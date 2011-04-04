@@ -1,0 +1,194 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, body, ring, Turret1, Turret2, Turret3, bladestop, bladesbottom,
+       wing1, wing2, wing3, wing2top, wing3top, sphere1, sphere2, sphere3,
+       flash1, flash2, flash3, engine, thrust;
+
+static-var  restore_delay;
+
+// Signal definitions
+#define SIG_AIM				4
+#define SIG_AIM_2			8
+#define SIG_AIM_3			16
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Create()
+{
+	start-script SmokeUnit();
+	sleep 1500;
+	hide flash1;
+	hide flash2;
+	hide flash3;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flash1;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flash2;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = flash3;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn base to y-axis <0.000000> speed <250.000000>;
+	turn base to x-axis <0.000000> speed <250.000000>;
+	turn body to y-axis <0.000000> speed <150.000000>;
+	turn body to x-axis <0.000000> speed <150.000000>;
+}
+
+StartMoving()
+{
+	spin bladestop around y-axis speed <600.357143> accelerate <50.005495>;
+	spin bladesbottom around y-axis speed <-600.357143> accelerate <50.005495>;
+	turn wing2top to z-axis <90.016484> speed <30.000000>;
+	turn wing3top to z-axis <-90.016484> speed <30.000000>;
+	sleep 1000;
+}
+
+StopMoving()
+{
+	stop-spin bladestop around y-axis decelerate <20.005495>;
+	stop-spin bladesbottom around y-axis decelerate <20.005495>;
+	turn wing2top to z-axis <0.000000> speed <30.000000>;
+	turn wing3top to z-axis <0.000000> speed <30.000000>;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn Turret1 to y-axis heading speed <200.000000>;
+	turn Turret1 to x-axis heading speed <200.000000>;
+	wait-for-turn Turret1 around y-axis;
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn Turret2 to x-axis heading speed <200.000000>;
+	turn Turret2 to y-axis heading speed <200.000000>;
+	wait-for-turn Turret2 around x-axis;
+	return (1);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn Turret3 to x-axis heading speed <200.000000>;
+	turn Turret3 to y-axis heading speed <200.000000>;
+	wait-for-turn Turret3 around x-axis;
+	return (1);
+}
+
+FirePrimary()
+{
+	show flash1;
+	sleep 100;
+	hide flash1;
+}
+
+FireSecondary()
+{
+	show flash2;
+	sleep 100;
+	hide flash2;
+}
+
+FireTertiary()
+{
+	show flash3;
+	sleep 100;
+	hide flash3;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode wing1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode wing2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode wing3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode sphere1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode sphere2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode sphere3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode wing2top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode wing3top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode Turret1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode Turret2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode Turret3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode bladestop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		explode bladesbottom type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode wing1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode wing2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode wing3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode sphere1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode sphere2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode sphere3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode wing2top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode wing3top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode Turret1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode Turret2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode Turret3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode bladestop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	explode bladesbottom type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+}

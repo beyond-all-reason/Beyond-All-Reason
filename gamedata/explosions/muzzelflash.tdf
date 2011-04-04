@@ -1,0 +1,155 @@
+[bluemuzzle]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 1 0.01	0.5 0.5 1 0.01	0 0 0 0.01; 
+          	size=10;
+          	length=30;
+          	sizeGrowth=1;
+          	ttl=5;
+          	frontOffset=0;
+          	sideTexture=shot;
+          	frontTexture=flash3;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+}
+
+[redmuzzle]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 1 0.01	1 0.4 0.4 0.01	0 0 0 0.01; 
+          	size=10;
+          	length=30;
+          	sizeGrowth=1;
+          	ttl=7;
+          	frontOffset=0.05;
+          	sideTexture=shot;
+          	frontTexture=flash3;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+}
+
+[vulcan]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 1 0.01	1 0.5 0.8 0.01	0 0 0 0.01; 
+          	size=5;
+          	length=30;
+          	sizeGrowth=1;
+          	ttl=1.5;
+          	frontOffset=0.05;
+          	sideTexture=shot;
+          	frontTexture=flash3;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+}
+
+[shotgun]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 1 0.01	0.5 0.5 0.2 0.01	0 0 0 0.01;
+          	size=5;
+          	length=6;
+          	sizeGrowth=3;
+          	ttl=2;
+          	frontOffset=0;
+          	sideTexture=shotgunside;
+          	frontTexture=shotgunflare;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+}
+
+[beammuzzle]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 1 0.01    1 0.2 1 0.01 	 0 0 0 0.01; 
+          	size=20;
+          	length=50;
+          	sizeGrowth=-1;
+          	ttl=5;
+          	frontOffset=0;
+          	sideTexture=shot;
+          	frontTexture=flash3;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+}
+
+//test muzzle flash, use this to check muzzle flash alignment.
+[LARGE_MUZZLE_FLASH_FX]
+{
+   [BitmapMuzzleFlame]
+   {
+      class = CBitmapMuzzleFlame;
+      [properties]
+       {
+         dir = dir; // don't touch me
+         colorMap=0.9 0.8 0.1 0.01	0 0 0 0.01;
+          size=9;
+          length=50;
+          sizeGrowth=-1;
+          ttl=10;
+          frontOffset=0;
+          sideTexture=muzzleside;
+          frontTexture=muzzlefront;
+      }
+   water=1;
+    air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+}

@@ -1,0 +1,209 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, hinge1, hinge2, hinge3, hinge4, dish4, dish3, dish2,
+       dish1, wheel, light;
+
+static-var  statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	turn hinge1 to x-axis <0.000000> now;
+	turn hinge1 to x-axis <133.027473> speed <68.000000>;
+	turn hinge2 to x-axis <0.000000> now;
+	turn hinge2 to x-axis <-132.027473> speed <68.000000>;
+	turn hinge3 to z-axis <0.000000> now;
+	turn hinge3 to z-axis <130.027473> speed <67.000000>;
+	turn hinge4 to z-axis <0.000000> now;
+	turn hinge4 to z-axis <-130.027473> speed <67.000000>;
+	turn dish4 to y-axis <0.000000> now;
+	turn dish4 to y-axis <-180.043956> speed <93.000000>;
+	turn dish3 to y-axis <0.000000> now;
+	turn dish3 to y-axis <-172.038462> speed <88.000000>;
+	turn dish2 to y-axis <0.000000> now;
+	turn dish2 to y-axis <-182.043956> speed <93.000000>;
+	turn dish1 to y-axis <0.000000> now;
+	turn dish1 to y-axis <-178.038462> speed <92.000000>;
+	sleep 1939;
+	set ARMORED to 0;
+}
+
+deactivatescr()
+{
+	turn hinge1 to x-axis <133.291209> now;
+	turn hinge1 to x-axis <0.000000> speed <68.000000>;
+	turn hinge2 to x-axis <-132.857143> now;
+	turn hinge2 to x-axis <0.000000> speed <68.000000>;
+	turn hinge3 to z-axis <130.686813> now;
+	turn hinge3 to z-axis <0.000000> speed <67.000000>;
+	turn hinge4 to z-axis <-130.247253> now;
+	turn hinge4 to z-axis <0.000000> speed <67.000000>;
+	turn dish4 to y-axis <-180.461538> now;
+	turn dish4 to y-axis <0.000000> speed <93.000000>;
+	turn dish3 to y-axis <-172.247253> now;
+	turn dish3 to y-axis <0.000000> speed <88.000000>;
+	turn dish2 to y-axis <-182.192308> now;
+	turn dish2 to y-axis <0.000000> speed <94.000000>;
+	turn dish1 to y-axis <-178.730769> now;
+	turn dish1 to y-axis <0.000000> speed <92.000000>;
+	sleep 1938;
+	set ARMORED to 1;
+}
+
+Go()
+{
+	dont-cache base;
+	dont-cache dish1;
+	dont-cache dish2;
+	dont-cache dish3;
+	dont-cache dish4;
+	dont-cache hinge1;
+	dont-cache hinge2;
+	dont-cache hinge3;
+	dont-cache hinge4;
+	dont-cache wheel;
+	call-script activatescr();
+	spin wheel around y-axis speed <60.010989>;
+}
+
+Stop()
+{
+	stop-spin wheel around y-axis;
+	call-script deactivatescr();
+	cache base;
+	cache dish1;
+	cache dish2;
+	cache dish3;
+	cache dish4;
+	cache hinge1;
+	cache hinge2;
+	cache hinge3;
+	cache hinge4;
+	cache wheel;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState)
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	dont-shade light;
+	dont-cache light;
+	dont-shade base;
+	dont-shade dish1;
+	dont-shade dish2;
+	dont-shade dish3;
+	dont-shade dish4;
+	dont-shade hinge1;
+	dont-shade hinge2;
+	dont-shade hinge3;
+	dont-shade hinge4;
+	dont-shade wheel;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dish1 type BITMAPONLY | BITMAP2;
+		explode dish2 type BITMAPONLY | BITMAP3;
+		explode dish3 type BITMAPONLY | BITMAP4;
+		explode dish4 type BITMAPONLY | BITMAP5;
+		explode hinge1 type BITMAPONLY | BITMAP1;
+		explode hinge2 type BITMAPONLY | BITMAP2;
+		explode hinge3 type BITMAPONLY | BITMAP3;
+		explode hinge4 type BITMAPONLY | BITMAP4;
+		explode light type SHATTER | BITMAP5;
+		explode wheel type SHATTER | BITMAP1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dish1 type BITMAPONLY | BITMAP2;
+		explode dish2 type BITMAPONLY | BITMAP3;
+		explode dish3 type BITMAPONLY | BITMAP4;
+		explode dish4 type BITMAPONLY | BITMAP5;
+		explode hinge1 type BITMAPONLY | BITMAP1;
+		explode hinge2 type BITMAPONLY | BITMAP2;
+		explode hinge3 type BITMAPONLY | BITMAP3;
+		explode hinge4 type BITMAPONLY | BITMAP4;
+		explode light type SHATTER | BITMAP5;
+		explode wheel type SHATTER | BITMAP1;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dish1 type BITMAPONLY | BITMAP2;
+		explode dish2 type BITMAPONLY | BITMAP3;
+		explode dish3 type BITMAPONLY | BITMAP4;
+		explode dish4 type BITMAPONLY | BITMAP5;
+		explode hinge1 type BITMAPONLY | BITMAP1;
+		explode hinge2 type BITMAPONLY | BITMAP2;
+		explode hinge3 type BITMAPONLY | BITMAP3;
+		explode hinge4 type BITMAPONLY | BITMAP4;
+		explode light type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+		explode wheel type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode dish1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode dish2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode dish3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode dish4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode hinge1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode hinge2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode hinge3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode hinge4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode light type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode wheel type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+}

@@ -1,0 +1,175 @@
+[CORE_FIRE_SMALL]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=flowexplo2;
+			airdrag=0.95;
+			particleLife=6;
+			particleLifeSpread=4;
+			numParticles=3;
+			particleSpeed=2;
+			particleSpeedSpread=2;
+			particleSize=10;
+			particleSizeSpread=5;
+			directional=1;
+			emitRot=50;
+			emitRotSpread=50;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	
+	[groundflash]
+	{
+		flashSize = 12;
+		flashAlpha = 1;
+		circleGrowth = 2.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.8, 0.2, 0.0;
+	}
+}
+
+[CORE_FIRE_LARGE]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=flowexplo2;
+			airdrag=0.95;
+			particleLife=6;
+			particleLifeSpread=4;
+			numParticles=3;
+			particleSpeed=2;
+			particleSpeedSpread=2;
+			particleSize=30;
+			particleSizeSpread=15;
+			directional=1;
+			emitRot=50;
+			emitRotSpread=50;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	
+	[groundflash]
+	{
+		flashSize = 12;
+		flashAlpha = 1;
+		circleGrowth = 2.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.8, 0.2, 0.0;
+	}
+}
+
+[ARM_FIRE_SMALL]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=cloudexplo;
+			airdrag=0.95;
+			particleLife=3;
+			particleLifeSpread=2;
+			numParticles=3;
+			particleSpeed=5;
+			particleSpeedSpread=2;
+			particleSize=10;
+			particleSizeSpread=5;
+			directional=1;
+			emitRot=50;
+			emitRotSpread=50;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+
+	[groundflash]
+	{
+		flashSize = 12;
+		flashAlpha = 1;
+		circleGrowth = 2.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.8, 0.2, 0.0;
+	}
+}
+
+[ARM_FIRE_LARGE]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=cloudexplo;
+			airdrag=0.95;
+			particleLife=3;
+			particleLifeSpread=2;
+			numParticles=3;
+			particleSpeed=5;
+			particleSpeedSpread=2;
+			particleSize=30;
+			particleSizeSpread=15;
+			directional=1;
+			emitRot=50;
+			emitRotSpread=50;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+
+	[groundflash]
+	{
+		flashSize = 12;
+		flashAlpha = 1;
+		circleGrowth = 2.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.8, 0.2, 0.0;
+	}
+}

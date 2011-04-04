@@ -1,0 +1,30 @@
+[CORESMALLTRAIL0]
+{
+	[smoketrail] {
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizeGrowth=0.10;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=dir;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0.001   0 0 0 0.4   0.1 0.1 0.1 0.2   0 0 0 0.05   0 0 0 0;
+			Texture=graysmoke;
+			airdrag=0.5;
+			particleLife=20;
+			particleLifeSpread=15;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=1;
+			particleSize=3;
+			particleSizeSpread=0;
+			emitRot=0;
+			emitRotSpread=0;
+			delay=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+}

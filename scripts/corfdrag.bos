@@ -1,0 +1,13 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece ground;
+
+
+Create()
+{
+	dont-shade ground;
+	dont-cache ground;
+}

@@ -1,0 +1,159 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, winga, wingb, thrusta1, thrusta2, thrustb;
+
+static-var  statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn winga to z-axis <0.000000> now;
+		turn winga to z-axis <-90.021978> speed <61.950549>;
+		turn wingb to z-axis <0.000000> now;
+		turn wingb to z-axis <90.021978> speed <61.950549>;
+		sleep 1453;
+	}
+	sleep 17;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn winga to z-axis <-90.021978> now;
+		turn winga to z-axis <0.000000> speed <62.642857>;
+		turn wingb to z-axis <90.021978> now;
+		turn wingb to z-axis <0.000000> speed <62.642857>;
+		sleep 1437;
+	}
+	sleep 28;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode thrusta1 type BITMAPONLY | BITMAP2;
+		explode thrusta2 type BITMAPONLY | BITMAP3;
+		explode thrustb type BITMAPONLY | BITMAP4;
+		explode winga type BITMAPONLY | BITMAP5;
+		explode wingb type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode thrusta1 type FALL | BITMAP2;
+		explode thrusta2 type FALL | BITMAP3;
+		explode thrustb type FALL | BITMAP4;
+		explode winga type FALL | BITMAP5;
+		explode wingb type SHATTER | BITMAP1;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode thrusta1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode thrusta2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode winga type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode wingb type SHATTER | BITMAP1;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode thrusta1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode thrusta2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode winga type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode wingb type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+}

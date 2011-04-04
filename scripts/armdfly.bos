@@ -1,0 +1,322 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, link, wing1, wing2, wing3, wing4, leg1, leg2,
+       leg3, leg4, leg5, leg6, jet1, jet2, flare;
+
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn leg1 to z-axis <-20.000000> speed <45.000000>;
+		turn leg2 to z-axis <-20.000000> speed <45.000000>;
+		turn leg3 to z-axis <-20.000000> speed <45.000000>;
+		turn leg4 to z-axis <20.000000> speed <45.000000>;
+		turn leg5 to z-axis <20.000000> speed <45.000000>;
+		turn leg6 to z-axis <20.000000> speed <45.000000>;
+		wait-for-turn leg1 around z-axis;
+		sleep 750;
+		turn leg1 to z-axis <-75.016484> speed <90.000000>;
+		turn leg2 to z-axis <-75.016484> speed <90.000000>;
+		turn leg3 to z-axis <-75.016484> speed <90.000000>;
+		turn leg4 to z-axis <75.016484> speed <90.000000>;
+		turn leg5 to z-axis <75.016484> speed <90.000000>;
+		turn leg6 to z-axis <75.016484> speed <90.000000>;
+	}
+	sleep 44;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn leg1 to z-axis <-20.000000> speed <90.000000>;
+		turn leg2 to z-axis <-20.000000> speed <90.000000>;
+		turn leg3 to z-axis <-20.000000> speed <90.000000>;
+		turn leg4 to z-axis <20.000000> speed <90.000000>;
+		turn leg5 to z-axis <20.000000> speed <90.000000>;
+		turn leg6 to z-axis <20.000000> speed <90.000000>;
+		sleep 1000;
+		turn leg1 to z-axis <-75.016484> speed <45.000000>;
+		turn leg2 to z-axis <-75.016484> speed <45.000000>;
+		turn leg3 to z-axis <-75.016484> speed <45.000000>;
+		turn leg4 to z-axis <75.016484> speed <45.000000>;
+		turn leg5 to z-axis <75.016484> speed <45.000000>;
+		turn leg6 to z-axis <75.016484> speed <45.000000>;
+		wait-for-turn leg1 around z-axis;
+	}
+}
+
+CloseWings()
+{
+	turn wing1 to y-axis <-90.016484> speed <20.000000>;
+	turn wing2 to y-axis <90.016484> speed <20.000000>;
+	turn wing3 to y-axis <-65.016484> speed <20.000000>;
+	turn wing4 to y-axis <65.016484> speed <20.000000>;
+}
+
+OpenWings()
+{
+	turn wing1 to y-axis <1.000000> speed <80.000000>;
+	turn wing2 to y-axis <-1.000000> speed <80.000000>;
+	turn wing3 to y-axis <-1.000000> speed <80.000000>;
+	turn wing4 to y-axis <1.000000> speed <80.000000>;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	hide flare;
+	turn leg1 to y-axis <30.005495> now;
+	turn leg3 to y-axis <-30.005495> now;
+	turn leg4 to y-axis <-30.005495> now;
+	turn leg6 to y-axis <30.005495> now;
+	turn leg1 to z-axis <-30.005495> now;
+	turn leg2 to z-axis <-30.005495> now;
+	turn leg3 to z-axis <-30.005495> now;
+	turn leg4 to z-axis <30.005495> now;
+	turn leg5 to z-axis <30.005495> now;
+	turn leg6 to z-axis <30.005495> now;
+	turn wing1 to y-axis <-90.016484> now;
+	turn wing2 to y-axis <90.016484> now;
+	turn wing3 to y-axis <-55.016484> now;
+	turn wing4 to y-axis <55.016484> now;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script OpenWings();
+	turn leg1 to z-axis <-135.027473> speed <45.000000>;
+	turn leg2 to z-axis <-135.027473> speed <45.000000>;
+	turn leg3 to z-axis <-135.027473> speed <45.000000>;
+	turn leg4 to z-axis <135.027473> speed <45.000000>;
+	turn leg5 to z-axis <135.027473> speed <45.000000>;
+	turn leg6 to z-axis <135.027473> speed <45.000000>;
+}
+
+Deactivate()
+{
+	start-script CloseWings();
+	turn leg1 to z-axis <-30.005495> speed <45.000000>;
+	turn leg2 to z-axis <-30.005495> speed <45.000000>;
+	turn leg3 to z-axis <-30.005495> speed <45.000000>;
+	turn leg4 to z-axis <30.005495> speed <45.000000>;
+	turn leg5 to z-axis <30.005495> speed <45.000000>;
+	turn leg6 to z-axis <30.005495> speed <45.000000>;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+QueryTransport(Func_Var_1)
+{
+	Func_Var_1 = 1;
+}
+
+BeginTransport(Func_Var_1)
+{
+	move link to y-axis [0.000000] - Func_Var_1 now;
+	start-script RequestState(0);
+}
+
+EndTransport()
+{
+	start-script RequestState(1);
+}
+
+ProcessFlames()
+{
+	while( TRUE )
+	{
+		if( Static_Var_1 == 1 )
+		{
+			emit-sfx 0 from jet1;
+			emit-sfx 0 from jet2;
+		}
+		sleep 67;
+	}
+}
+
+StopMoving()
+{
+	signal 2;
+	Static_Var_1 = 0;
+}
+
+MoveRate1()
+{
+	signal 2;
+	set-signal-mask 2;
+	start-script ProcessFlames();
+	Static_Var_1 = 1;
+}
+
+MoveRate2()
+{
+	signal 2;
+	set-signal-mask 2;
+	start-script ProcessFlames();
+	Static_Var_1 = 2;
+}
+
+MoveRate3()
+{
+	signal 2;
+	set-signal-mask 2;
+	start-script ProcessFlames();
+	Static_Var_1 = 3;
+}
+
+AimPrimary()
+{
+	return (1);
+}
+
+FirePrimary()
+{
+	show flare;
+	sleep 100;
+	hide flare;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP4;
+		explode wing1 type BITMAPONLY | BITMAP3;
+		explode wing2 type BITMAPONLY | BITMAP2;
+		explode wing3 type BITMAPONLY | BITMAP3;
+		explode wing4 type BITMAPONLY | BITMAP2;
+		explode leg1 type BITMAPONLY | BITMAP1;
+		explode leg2 type BITMAPONLY | BITMAP1;
+		explode leg3 type BITMAPONLY | BITMAP2;
+		explode leg4 type BITMAPONLY | BITMAP3;
+		explode leg5 type BITMAPONLY | BITMAP1;
+		explode leg6 type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP4;
+		explode wing1 type BITMAPONLY | BITMAP3;
+		explode wing2 type BITMAPONLY | BITMAP2;
+		explode wing3 type FALL | BITMAP4;
+		explode wing4 type FALL | BITMAP2;
+		explode leg1 type BITMAPONLY | BITMAP2;
+		explode leg2 type FALL | BITMAP1;
+		explode leg3 type BITMAPONLY | BITMAP3;
+		explode leg4 type BITMAPONLY | BITMAP4;
+		explode leg5 type FALL | BITMAP2;
+		explode leg6 type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type SHATTER | BITMAP4;
+		explode wing1 type BITMAPONLY | BITMAP3;
+		explode wing2 type BITMAPONLY | BITMAP2;
+		explode wing3 type FALL | SMOKE | FIRE | BITMAP4;
+		explode wing4 type FALL | SMOKE | FIRE | BITMAP2;
+		explode leg1 type BITMAPONLY | BITMAP2;
+		explode leg2 type FALL | SMOKE | FIRE | BITMAP3;
+		explode leg3 type BITMAPONLY | BITMAP3;
+		explode leg4 type BITMAPONLY | BITMAP4;
+		explode leg5 type FALL | SMOKE | FIRE | BITMAP2;
+		explode leg6 type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type SHATTER | BITMAP4;
+	explode wing1 type BITMAPONLY | BITMAP3;
+	explode wing2 type BITMAPONLY | BITMAP2;
+	explode wing3 type FALL | SMOKE | FIRE | BITMAP4;
+	explode wing4 type FALL | SMOKE | FIRE | BITMAP2;
+	explode leg1 type BITMAPONLY | BITMAP2;
+	explode leg2 type FALL | SMOKE | FIRE | BITMAP3;
+	explode leg3 type BITMAPONLY | BITMAP3;
+	explode leg4 type BITMAPONLY | BITMAP4;
+	explode leg5 type FALL | SMOKE | FIRE | BITMAP2;
+	explode leg6 type BITMAPONLY | BITMAP3;
+}

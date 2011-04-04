@@ -1,0 +1,338 @@
+[ARM_BIGBOMB_EXPLOSION]
+{
+
+	[subs] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+			pos=r-40 r40, 5, r-40 r40;  
+			delay=0 r20;				  
+			explosionGenerator=custom:ARM_BIGBOMB_EXPLOSION_SUBS;
+		}
+		unit=1;
+		ground=0;
+		count=8;
+	}
+	
+	[sparkses] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+			pos=r-15 r15, 1 r5, r-15 r15;  
+			delay=1 r6;				  
+			explosionGenerator=custom:ARM_BIGBOMB_EXPLOSION_SPARKS;
+		}
+		unit=1;
+		ground=1;
+		count=3;
+	}
+		
+	[pop2]
+	{
+		class=heatcloud;
+   	
+		[properties]
+      	{
+		    texture=flowexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.5;
+
+      		size = 15 r-1.5;
+      		sizeGrowth = 0.9;
+      		
+         	pos = r-40 r40, 5, r-40 r40;
+         	speed=r-1 r1, 1 0, r-1 r1;
+      	}
+		air=1;
+      	water=1;
+      	ground=1;
+      	count=2;
+      	unit=0;
+	}
+	
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0.9 0.82 0.73 0	0.9 0.82 0.73 0.3	  0.9 0.82 0.73 0.6	  0.5 0.5 0.5 0.3	  0 0 0 0.1	  0 0 0 0.01;
+			texture=bombsmoke;
+			airdrag=0.95;
+			particleLife=18;
+			particleLifeSpread=12;
+			numParticles=1;
+			particleSpeed=1;
+			particleSpeedSpread=1;
+			particleSize=4;
+			particleSizeSpread=3;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=2;
+	}
+		
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.4;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=1 1 1 0	1 1 1 0.2	  1 1 1 0.4	  1 1 1 0.2	  0 0 0 0.1	  0 0 0 0.01;
+			texture=whitelight2;
+			airdrag=0.95;
+			particleLife=5;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=0;
+			particleSize=25;
+			particleSizeSpread=5;
+			directional=1;
+			emitRot=50;
+			emitRotSpread=50;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	
+	[GROUNDFLASH]
+	{
+		flashsize=65;
+		flashalpha=1.2;
+		circlegrowth=4;
+		circlealpha=1.2;
+		ttl=14;
+		color=0.9, 0.82, 0.73;
+	}
+
+}
+
+[ARM_BIGBOMB_EXPLOSION_SUBS]
+{
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=flowexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.5;
+
+      		size = 15 r-1.5;
+      		sizeGrowth = 0.9;
+      		
+         	pos = 0, 5, 0;
+         	speed=r-1 r1, 1 0, r-1 r1;
+      		}
+		air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	} 
+}
+
+[ARM_BIGBOMB_EXPLOSION_SPARKS]
+{
+	[sparkles]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.3;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
+			texture=lightb2;
+			airdrag=0.95;
+			particleLife=2;
+			particleLifeSpread=4;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=0;
+			particleSize=5;
+			particleSizeSpread=15;
+			directional=1;
+			emitRot=0;
+			emitRotSpread=360;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+}
+
+[CORE_KROGROCKET_EXPLOSION]
+{
+	usedefaultexplosions=1;	
+	[pop2]
+	{
+		class=heatcloud;
+   	
+		[properties]
+      		{
+			texture=cloudexplo;
+      		heat = 10;
+      		maxheat = 20;
+      		heatFalloff = 0.5;
+
+      		size = 25;
+      		sizeGrowth = 0.9;
+
+         	pos = r-45 r45, 5, r-45 r45;
+         	emitRot=50;
+			emitRotSpread=50;
+			directional=1;
+         	speed=r-2 r2, 1 0, r-2 r2;
+      		}
+		air=1;
+      	water=1;
+      	ground=1;
+      	unit=0;
+      	count=1;
+	}
+
+	[subs] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+			pos=r-25 r25, 5, r-25 r25;  
+			delay=0 r20;				  
+			explosionGenerator=custom:CORE_BIGBOMB_EXPLOSION_SUBS;
+		}
+		unit=1;
+		ground=0;
+		count=2;
+	}
+
+	[groundflash]
+   	{
+      	ttl = 60;
+      	flashSize = 35;
+      	flashAlpha = 0.6;
+
+      	circleGrowth = 1;
+      	circleAlpha = 0.5;
+
+      	color = 1, 0.6, 0.4;
+
+		air=1;
+     	ground=1;
+      	water=1;
+	}
+
+}
+
+
+[CORE_BIGBOMB_EXPLOSION]
+{
+
+	[pop2]
+	{
+		class=heatcloud;
+   	
+		[properties]
+      		{
+			texture=cloudexplo;
+      		heat = 10;
+      		maxheat = 20;
+      		heatFalloff = 0.5;
+
+      		size = 25;
+      		sizeGrowth = 0.9;
+
+         	pos = r-45 r45, 5, r-45 r45;
+         	emitRot=50;
+			emitRotSpread=50;
+			directional=1;
+         	speed=r-2 r2, 1 0, r-2 r2;
+      		}
+		air=1;
+      	water=1;
+      	ground=1;
+      	unit=0;
+      	count=1;
+	}
+
+	[subs] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+			pos=r-25 r25, 5, r-25 r25;  
+			delay=0 r20;				  
+			explosionGenerator=custom:CORE_BIGBOMB_EXPLOSION_SUBS;
+		}
+		unit=1;
+		ground=0;
+		count=2;
+	}
+
+	[groundflash]
+   	{
+      	ttl = 60;
+      	flashSize = 35;
+      	flashAlpha = 0.6;
+
+      	circleGrowth = 1;
+      	circleAlpha = 0.5;
+
+      	color = 1, 0.6, 0.4;
+
+		air=1;
+     	ground=1;
+      	water=1;
+	}
+
+}
+
+[CORE_BIGBOMB_EXPLOSION_SUBS]
+{
+	[pop2]
+	{
+		class=heatcloud;
+   	
+		[properties]
+      		{
+			texture=cloudexplo;
+      		heat = 10;
+      		maxheat = 20;
+      		heatFalloff = 0.5;
+
+      		size = 25;
+      		sizeGrowth = 0.9;
+
+         	pos = 0, 5, 0;
+         	emitRot=50;
+			emitRotSpread=50;
+			directional=1;
+         	speed=r-1 r1, 1 0, r-1 r1;
+      		}
+		air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	}
+}

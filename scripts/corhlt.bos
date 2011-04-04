@@ -1,0 +1,164 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, flare, turret, gun1, gun2, gun3, spindle, stand;
+
+static-var  gun_1;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Create()
+{
+	hide flare;
+	dont-cache flare;
+	dont-cache gun1;
+	dont-cache gun2;
+	dont-cache gun3;
+	dont-cache spindle;
+	dont-cache turret;
+	dont-cache stand;
+	dont-shade flare;
+	dont-shade gun1;
+	dont-shade gun2;
+	dont-shade gun3;
+	dont-shade spindle;
+	dont-shade turret;
+	dont-shade stand;
+	gun_1 = flare;
+	start-script SmokeUnit();
+}
+
+PositionSpindle()
+{
+	if( gun_1 == 1 )
+	{
+		turn spindle to z-axis <0.000000> speed <400.093407>;
+	}
+	if( gun_1 == 2 )
+	{
+		turn spindle to z-axis <120.027473> speed <400.093407>;
+	}
+	if( gun_1 == 3 )
+	{
+		turn spindle to z-axis <0.000000> - <120.027473> speed <400.093407>;
+	}
+	wait-for-turn spindle around z-axis;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn stand to y-axis heading speed <200.043956>;
+	turn turret to x-axis <0.000000> - pitch speed <200.043956>;
+	call-script PositionSpindle();
+	wait-for-turn stand around y-axis;
+	wait-for-turn turret around x-axis;
+	return (1);
+}
+
+FirePrimary(Func_Var_1)
+{
+	Func_Var_1 = gun_1;
+	++gun_1;
+	if( gun_1 == 4 )
+	{
+		gun_1 = flare;
+	}
+	start-script PositionSpindle();
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+Killed(severity, corpsetype)
+{
+	hide flare;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode gun1 type BITMAPONLY | BITMAP3;
+		explode gun2 type BITMAPONLY | BITMAP4;
+		explode gun3 type BITMAPONLY | BITMAP5;
+		explode spindle type BITMAPONLY | BITMAP1;
+		explode stand type BITMAPONLY | BITMAP2;
+		explode turret type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode gun1 type FALL | BITMAP3;
+		explode gun2 type FALL | BITMAP4;
+		explode gun3 type FALL | BITMAP5;
+		explode spindle type FALL | BITMAP1;
+		explode stand type FALL | BITMAP2;
+		explode turret type SHATTER | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode gun3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode spindle type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode stand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode turret type SHATTER | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode gun3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode spindle type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode stand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+}

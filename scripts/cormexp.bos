@@ -1,0 +1,541 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, stands, shell, rotary, dingle1, dingle2, turret1, patch,
+       sleeve1, barrel1, flare1, barrel2, flare2, post, turret2, rocketbox,
+       rocket1, rocket2, rocket3, rocket4, smoke1, smoke2, smoke3, smoke4,
+       armor1, armor2, armor3, armor4, armor5, armor6, armor7, armor8,
+       fakeshell;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, restore_delay,
+            gun_1, gun_2, Static_Var_8, Static_Var_9, Static_Var_10,
+            Static_Var_11, Static_Var_12, bAiming, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RaiseArmor()
+{
+	hide armor8;
+	sleep 40;
+	hide armor7;
+	sleep 40;
+	hide armor6;
+	sleep 40;
+	hide armor5;
+	sleep 40;
+	hide armor4;
+	sleep 40;
+	hide armor3;
+	sleep 40;
+	hide armor2;
+	sleep 40;
+	hide armor1;
+	set ARMORED to 0;
+}
+
+LowerArmor()
+{
+	set ARMORED to 1;
+	show armor1;
+	sleep 40;
+	show armor2;
+	sleep 40;
+	show armor3;
+	sleep 40;
+	show armor4;
+	sleep 40;
+	show armor5;
+	sleep 40;
+	show armor6;
+	sleep 40;
+	show armor7;
+	sleep 40;
+	show armor8;
+}
+
+fixGo()
+{
+	Static_Var_4 = 0;
+	signal 8;
+	Static_Var_8 = 0;
+	show dingle1;
+	show dingle2;
+	show rotary;
+	dont-cache dingle1;
+	dont-cache dingle2;
+	dont-cache rotary;
+	dont-cache shell;
+	dont-cache stands;
+	start-script RaiseArmor();
+	turn rocketbox to x-axis <0.000000> speed <200.000000>;
+	turn turret2 to y-axis Static_Var_12 speed <200.000000>;
+	wait-for-turn turret2 around y-axis;
+	move stands to y-axis [0.000000] now;
+	move stands to y-axis [25.875000] speed [32.500000];
+	if( Static_Var_11 )
+	{
+		turn sleeve1 to x-axis <0.000000> speed <200.000000>;
+		wait-for-turn sleeve1 around x-axis;
+	}
+	turn sleeve1 to x-axis <-179.038462> speed <200.000000>;
+	wait-for-turn sleeve1 around x-axis;
+	move turret2 to y-axis [0.000000] speed [30.000000];
+	sleep 250;
+	show shell;
+	turn shell to x-axis <-180.038462> speed <261.000000>;
+	sleep 250;
+	move stands to y-axis [0.000000] speed [27.500000];
+	sleep 250;
+	hide fakeshell;
+	set ACTIVATION to 100;
+	spin rotary around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin dingle1 around y-axis speed Static_Var_1;
+	spin dingle2 around y-axis speed Static_Var_1;
+}
+
+Stop()
+{
+	if( !Static_Var_4 )
+	{
+		show turret1;
+		show sleeve1;
+		show barrel1;
+		show barrel2;
+		show patch;
+		show post;
+		show turret2;
+		show rocketbox;
+		start-script LowerArmor();
+		set ACTIVATION to 0;
+		stop-spin rotary around y-axis decelerate Static_Var_3;
+		stop-spin dingle1 around y-axis decelerate Static_Var_3;
+		stop-spin dingle2 around y-axis decelerate Static_Var_3;
+		wait-for-turn rotary around y-axis;
+		wait-for-turn dingle1 around y-axis;
+		wait-for-turn dingle2 around y-axis;
+		turn dingle1 to y-axis <0.000000> speed <120.000000>;
+		turn dingle2 to y-axis <0.000000> speed <120.000000>;
+		move stands to y-axis [0.000000] now;
+		move stands to y-axis [25.875000] speed [32.500000];
+		turn shell to x-axis <-180.038462> now;
+		sleep 250;
+		turn shell to x-axis <0.000000> speed <261.000000>;
+		sleep 250;
+		move turret2 to y-axis [12.500000] speed [30.000000];
+		wait-for-move turret2 along y-axis;
+		turn sleeve1 to x-axis <0.000000> speed <200.000000>;
+		move stands to y-axis [0.000000] speed [32.500000];
+		sleep 250;
+		cache dingle1;
+		cache dingle2;
+		cache rotary;
+		cache shell;
+		cache stands;
+		hide dingle1;
+		hide dingle2;
+		hide rotary;
+		gun_2 = base;
+	}
+	Static_Var_4 = 1;
+	Static_Var_8 = 1;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script fixGo();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_1 = 500;
+	Static_Var_2 = 100;
+	Static_Var_3 = 1092;
+	Static_Var_4 = 0;
+	Static_Var_8 = 0;
+	gun_1 = base;
+	Static_Var_11 = 0;
+	Static_Var_12 = 0;
+	gun_2 = base;
+	Static_Var_9 = 0;
+	Static_Var_10 = 0;
+	restore_delay = 5000;
+	bAiming = FALSE;
+	hide dingle1;
+	hide dingle2;
+	hide rotary;
+	hide flare1;
+	hide flare2;
+	hide rocket1;
+	hide rocket2;
+	hide rocket3;
+	hide rocket4;
+	hide smoke1;
+	hide smoke2;
+	hide smoke3;
+	hide smoke4;
+	hide armor1;
+	hide armor2;
+	hide armor3;
+	hide armor4;
+	hide armor5;
+	hide armor6;
+	hide armor7;
+	hide armor8;
+	hide shell;
+	hide turret1;
+	hide sleeve1;
+	hide barrel1;
+	hide barrel2;
+	hide patch;
+	hide post;
+	hide turret2;
+	hide rocketbox;
+	dont-shade dingle1;
+	dont-shade dingle2;
+	dont-shade rotary;
+	dont-shade shell;
+	dont-shade stands;
+	dont-shade turret1;
+	dont-shade patch;
+	dont-shade sleeve1;
+	dont-shade barrel1;
+	dont-shade barrel2;
+	dont-shade flare1;
+	dont-shade flare2;
+	dont-shade turret2;
+	dont-shade rocketbox;
+	dont-shade fakeshell;
+	dont-shade post;
+	dont-cache turret1;
+	dont-cache patch;
+	dont-cache sleeve1;
+	dont-cache barrel1;
+	dont-cache barrel2;
+	dont-cache flare1;
+	dont-cache flare2;
+	dont-cache turret2;
+	dont-cache rocketbox;
+	dont-cache fakeshell;
+	dont-cache post;
+	call-script InitState();
+	start-script SmokeUnit();
+	turn sleeve1 to x-axis <-179.038462> now;
+	set ARMORED to 0;
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+RestoreAfterDelay()
+{
+	sleep 10000;
+	set-signal-mask 0;
+	bAiming = FALSE;
+	start-script RequestState(0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 10;
+}
+
+AimPrimary(heading, pitch)
+{
+	if( get ACTIVATION )
+	{
+		bAiming = TRUE;
+		start-script RequestState(1);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_4 )
+	{
+		sleep 250;
+	}
+	Static_Var_11 = 0 - pitch;
+	Static_Var_12 = heading;
+	turn turret1 to y-axis Static_Var_12 speed Static_Var_9;
+	turn sleeve1 to x-axis Static_Var_11 speed Static_Var_10;
+	wait-for-turn turret1 around y-axis;
+	wait-for-turn sleeve1 around x-axis;
+	if( bAiming )
+	{
+		start-script RestoreAfterDelay();
+	}
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		show flare1;
+		sleep 250;
+		hide flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		show flare2;
+		sleep 250;
+		hide flare2;
+	}
+	++gun_1;
+	if( gun_1 == 2 )
+	{
+		gun_1 = base;
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret1;
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flare2;
+	}
+}
+
+Reload()
+{
+	signal 8;
+	set-signal-mask 8;
+	sleep 5000;
+	gun_2 = base;
+	Static_Var_8 = 1;
+}
+
+AimSecondary(heading, pitch)
+{
+	if( get ACTIVATION )
+	{
+		bAiming = TRUE;
+		start-script RequestState(1);
+	}
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	while( !Static_Var_8 )
+	{
+		sleep 250;
+	}
+	turn turret2 to y-axis heading speed Static_Var_9;
+	turn rocketbox to x-axis <0.000000> - pitch speed Static_Var_10;
+	wait-for-turn turret2 around y-axis;
+	wait-for-turn rocketbox around x-axis;
+	return (1);
+}
+
+FireSecondary()
+{
+	if( gun_2 == 0 )
+	{
+		emit-sfx 257 from smoke1;
+	}
+	if( gun_2 == 1 )
+	{
+		emit-sfx 257 from smoke2;
+	}
+	if( gun_2 == 2 )
+	{
+		emit-sfx 257 from smoke3;
+	}
+	if( gun_2 == 3 )
+	{
+		emit-sfx 257 from smoke4;
+	}
+	++gun_2;
+	if( gun_2 == 4 )
+	{
+		gun_2 = base;
+		Static_Var_8 = 0;
+		start-script Reload();
+	}
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = rocketbox;
+}
+
+QuerySecondary(piecenum)
+{
+	if( gun_2 == 0 )
+	{
+		piecenum = rocket1;
+	}
+	if( gun_2 == 1 )
+	{
+		piecenum = rocket2;
+	}
+	if( gun_2 == 2 )
+	{
+		piecenum = rocket3;
+	}
+	if( gun_2 == 3 )
+	{
+		piecenum = rocket4;
+	}
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1 * 27;
+	Static_Var_9 = Func_Var_1 * 10;
+	Static_Var_10 = Static_Var_9;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	hide flare1;
+	hide flare2;
+	hide armor1;
+	hide armor2;
+	hide armor3;
+	hide armor4;
+	hide armor5;
+	hide armor6;
+	hide armor7;
+	hide armor8;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dingle1 type BITMAPONLY | BITMAP2;
+		explode dingle2 type BITMAPONLY | BITMAP3;
+		explode rotary type BITMAPONLY | BITMAP4;
+		explode shell type BITMAPONLY | BITMAP5;
+		explode stands type BITMAPONLY | BITMAP1;
+		explode turret1 type BITMAPONLY | BITMAP3;
+		explode sleeve1 type BITMAPONLY | BITMAP2;
+		explode barrel1 type BITMAPONLY | BITMAP2;
+		explode barrel2 type BITMAPONLY | BITMAP2;
+		explode turret2 type BITMAPONLY | BITMAP2;
+		explode rocketbox type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dingle1 type FALL | BITMAP2;
+		explode dingle2 type FALL | BITMAP3;
+		explode rotary type FALL | BITMAP4;
+		explode shell type BITMAPONLY | BITMAP5;
+		explode stands type SHATTER | BITMAP1;
+		explode turret1 type BITMAPONLY | BITMAP3;
+		explode sleeve1 type SHATTER | BITMAP2;
+		explode barrel1 type BITMAPONLY | BITMAP2;
+		explode barrel2 type BITMAPONLY | BITMAP2;
+		explode turret2 type BITMAPONLY | BITMAP2;
+		explode rocketbox type FALL | BITMAP2;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dingle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode dingle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode rotary type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode shell type BITMAPONLY | BITMAP5;
+		explode stands type SHATTER | BITMAP2;
+		explode turret1 type BITMAPONLY | BITMAP3;
+		explode sleeve1 type SHATTER | BITMAP2;
+		explode barrel1 type BITMAPONLY | BITMAP2;
+		explode barrel2 type BITMAPONLY | BITMAP4;
+		explode turret2 type BITMAPONLY | BITMAP5;
+		explode rocketbox type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode dingle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode dingle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode rotary type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode shell type BITMAPONLY | BITMAP5;
+	explode stands type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode turret1 type BITMAPONLY | BITMAP3;
+	explode sleeve1 type SHATTER | BITMAP2;
+	explode barrel1 type BITMAPONLY | BITMAP2;
+	explode barrel2 type BITMAPONLY | BITMAP4;
+	explode turret2 type BITMAPONLY | BITMAP5;
+	explode rocketbox type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+}

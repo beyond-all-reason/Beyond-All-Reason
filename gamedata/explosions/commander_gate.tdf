@@ -1,0 +1,228 @@
+[COMGATE]
+{
+	[boom] 
+	{
+	 class=CExpGenSpawner;
+		[properties]
+		{
+		pos=0, 0, 0;  
+		delay=0;				  
+		explosionGenerator=custom:COMGATE_TELEPORT;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	}
+}
+
+[COMGATE_TELEPORT]
+{
+	[boom]
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=0, 0, 0;  
+		delay=85;				  
+		explosionGenerator=custom:GATE_CIRCLE_FLASH;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	}
+	[glow]
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=0, 0, 0;  
+		delay=0 i5;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_GLOW;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=5;
+	}
+	[electric circle0] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=150 r-300, 0, 150 r-300;  
+		delay=21 r106;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=10;
+	}
+	[electric circle1] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=100 r-200, 0, 100 r-200;  
+		delay=22 r140;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=30;
+	}
+	[electric circle2] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=60 r-120, 0, 60 r-120;  
+		delay=6 r162;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=30;
+	}
+	[electric circle3] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=72 r-144, 0, 72 r-144;  
+		delay=0 r125;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=60;
+	}
+	[electric circle4] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=20 r-40, 0, 20 r-40;  
+		delay=84;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=15;
+	}
+	[electric circle5] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=72 r-144, 0, 72 r-144;  
+		delay=155 r250;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=15;
+	}
+}
+[COMGATE_TELEPORT_CIRCLE_LIGHTNING]
+{
+	[electric circle5] 
+	{
+	    class=CExpGenSpawner;
+		[properties]
+		{
+		pos=26 r-52, 0, 26 r-52;  
+		delay=0;				  
+		explosionGenerator=custom:COMGATE_TELEPORT_CIRCLE_LIGHTNING_SINGLE;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	}
+}
+[COMGATE_TELEPORT_CIRCLE_LIGHTNING_SINGLE]
+{
+	[wezels]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 1, 0;
+			emitVector=0, 1, 0;
+			gravity=0.01 r-0.02, 0.01 r-0.02, 0.01 r-0.01;
+			colorMap=1 1 1 0.01     1 1 1 0.01;
+			Texture=lightb;
+			airdrag=0.5;
+			particleLife=2;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=0;
+			particleSize=10;
+			particleSizeSpread=30;
+			emitRot=0;
+			emitRotSpread=0;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+}
+[COMGATE_TELEPORT_GLOW]
+{
+	[glow]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 42, 0;
+			emitVector=-0, 1, 0;
+			gravity=0, 0.00, 0;
+			colorMap= 0 0 0 0.01   1 1 1 1             0 0 0 0.01;
+			Texture=circularthingy;
+			airdrag=1;
+			particleLife=200;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=0.1;
+			particleSpeedSpread=0;
+			particleSize=100;
+			particleSizeSpread=10;
+			emitRot=0;
+			emitRotSpread=180;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+}
+
+[GATE_CIRCLE_FLASH]
+{
+	usedefaultexplosions=1;
+	[groundflash]
+	{
+		flashSize = 430;
+		flashAlpha = 1.2;
+		circleGrowth = 25;
+		circleAlpha = 0.7;
+		ttl = 16;
+		color=0.55,0.7,0.9;
+	}
+}

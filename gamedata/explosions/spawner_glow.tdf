@@ -1,0 +1,13 @@
+[SPAWN_GLOW]
+{
+	usedefaultexplosions=0;
+	[groundflash]
+	{
+		flashSize = 30;
+		flashAlpha = 1;
+		circleGrowth = 1.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.0, 0.6, 0.7;
+	}
+}

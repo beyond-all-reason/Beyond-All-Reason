@@ -1,0 +1,224 @@
+[ARMCOM_DEAD]
+{
+	description=Commander Wreckage;
+	object=ARMCOM_DEAD;
+	featuredead=ARMCOM_HEAP;
+	footprintx=2;
+	footprintz=2;
+	height=20;
+	blocking=1;
+	hitdensity=100;
+	metal=2500;
+	damage=10000;
+	reclaimable=1;
+	featurereclamate=SMUDGE01;
+	seqnamereclamate=TREE1RECLAMATE;
+	energy=0;
+}
+[ARMCOM_HEAP]
+{
+	world=All Worlds;
+	description=Commander Debris;
+	category=heaps;
+	object=2X2F;
+	footprintx=2;
+	footprintz=2;
+	height=4;
+	blocking=0;
+	hitdensity=100;
+	metal=1250;
+	damage=5000;
+	reclaimable=1;
+	featurereclamate=SMUDGE01;
+	seqnamereclamate=TREE1RECLAMATE;
+	energy=0;
+}
+[CORCOM_DEAD]
+{
+	world=All Worlds;
+	description=Commander Wreckage;
+	category=corpses;
+	object=CORCOM_DEAD;
+	featuredead=CORCOM_HEAP;
+	footprintx=2;
+	footprintz=2;
+	height=20;
+	blocking=1;
+	hitdensity=100;
+	metal=2500;
+	damage=10000;
+	reclaimable=1;
+	featurereclamate=SMUDGE01;
+	seqnamereclamate=TREE1RECLAMATE;
+	energy=0;
+}
+[CORCOM_HEAP]
+{
+	world=All Worlds;
+	description=Commander Debris;
+	category=heaps;
+	object=2X2C;
+	footprintx=2;
+	footprintz=2;
+	height=4;
+	blocking=0;
+	hitdensity=100;
+	metal=1250;
+	damage=5000;
+	reclaimable=1;
+	featurereclamate=SMUDGE01;
+	seqnamereclamate=TREE1RECLAMATE;
+	energy=0;
+}
+[DragonsTeeth]
+{
+	world=allworld;
+	description=Dragon's Teeth;
+	category=dragonteeth;
+	object=armdrag;
+	footprintx=2;
+	footprintz=2;
+	height=20;
+	blocking=1;
+	hitdensity=100;
+	metal=5;
+	damage=2500;
+	reclaimable=1;
+	autoreclaimable=0;
+	featurereclamate=smudge01;
+	featuredead=RockTeeth;
+	seqnamereclamate=tree1reclamate;
+	nodrawundergray=1;
+}
+[DragonsTeeth_Core]
+{
+	world=allworld;
+	description=Dragon's Teeth;
+	category=dragonteeth;
+	object=cordrag;
+	footprintx=2;
+	footprintz=2;
+	height=20;
+	blocking=1;
+	hitdensity=100;
+	metal=5;
+	damage=2500;
+	reclaimable=1;
+	autoreclaimable=0;
+	featurereclamate=smudge01;
+	featuredead=RockTeeth;
+	seqnamereclamate=tree1reclamate;
+	nodrawundergray=1;
+}
+[ROCKTEETH]
+{
+	world=greenworld;
+	description=Rubble;
+	category=rocks;
+	animating=0;
+	footprintx=2;
+	footprintz=2;
+	height=20;
+	object=2X2A;
+	metal=2;
+	animtrans=0;
+	shadtrans=1;
+	reclaimable=1;
+	blocking=0;
+	hitdensity=100;
+	damage=500;
+}
+[Fortification]
+{
+	world=allworld;
+	description=Fortification Wall;
+	category=dragonteeth;
+	object=armfort;
+	footprintx=2;
+	footprintz=2;
+	height=55;
+	blocking=1;
+	hitdensity=100;
+	metal=15;
+	damage=15000;
+	reclaimTime=800;
+	reclaimable=1;
+	autoreclaimable=0;
+	featurereclamate=smudge01;
+	featuredead=RockTeethx;
+	seqnamereclamate=tree1reclamate;
+	nodrawundergray=1;
+}
+[Fortification_Core]
+{
+	world=allworld;
+	description=Fortification Wall;
+	category=dragonteeth;
+	object=corfort;
+	footprintx=2;
+	footprintz=2;
+	height=55;
+	blocking=1;
+	hitdensity=100;
+	metal=15;
+	damage=15000;
+	reclaimTime=800;
+	reclaimable=1;
+	autoreclaimable=0;
+	featurereclamate=smudge01;
+	featuredead=RockTeethx;
+	seqnamereclamate=tree1reclamate;
+	nodrawundergray=1;
+}
+[RockTeethx]
+{
+	world=greenworld;
+	description=Rubble;
+	category=rocks;
+	animating=0;
+	footprintx=2;
+	footprintz=2;
+	height=20;
+	object=2X2A;
+	metal=7;
+	animtrans=0;
+	shadtrans=1;
+	reclaimable=1;
+	blocking=1;
+	hitdensity=100;
+	damage=5000;
+}
+[FloatingTeeth]
+{
+	world=allworld;
+	description=Shark's Teeth;
+	category=dragonteeth;
+	object=armfdrag;
+	footprintx=2;
+	footprintz=2;
+	height=75;
+	blocking=1;
+	hitdensity=100;
+	metal=20;
+	damage=15000;
+	reclaimable=1;
+	autoreclaimable=0;
+	nodrawundergray=1;
+}
+[FloatingTeeth_Core]
+{
+	world=allworld;
+	description=Shark's Teeth;
+	category=dragonteeth;
+	object=corfdrag;
+	footprintx=2;
+	footprintz=2;
+	height=75;
+	blocking=1;
+	hitdensity=100;
+	metal=20;
+	damage=15000;
+	reclaimable=1;
+	autoreclaimable=0;
+	nodrawundergray=1;
+}

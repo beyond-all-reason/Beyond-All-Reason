@@ -1,0 +1,305 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, shell, leg1, leg2, leg3, leg4, wing1, wing2,
+       wing3, wing4;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3;
+
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1000;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1000;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+activatescr()
+{
+	if( Static_Var_1 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	call-script CloseYard();
+	move shell to y-axis [0.000000] now;
+	move shell to y-axis [4.089990] speed [8.000000];
+	sleep 597;
+	move leg1 to x-axis [4.450000] speed [9.000000];
+	move leg1 to z-axis [4.489990] speed [9.000000];
+	move leg2 to x-axis [-4.550000] speed [9.000000];
+	move leg2 to z-axis [4.500000] speed [9.000000];
+	move leg3 to x-axis [-4.339990] speed [9.000000];
+	move leg3 to z-axis [-4.450000] speed [9.000000];
+	move leg4 to x-axis [4.400000] speed [9.000000];
+	move leg4 to z-axis [-4.379999] speed [9.000000];
+	sleep 726;
+	turn wing1 to z-axis <-90.016484> speed <241.000000>;
+	turn wing2 to z-axis <90.016484> speed <241.000000>;
+	sleep 372;
+	turn wing1 to z-axis <-229.049451> speed <365.000000>;
+	turn wing2 to z-axis <229.049451> speed <365.000000>;
+	sleep 381;
+	move wing3 to y-axis [0.300000] speed [1.000000];
+	move wing4 to y-axis [0.300000] speed [1.000000];
+	sleep 226;
+	move wing3 to y-axis [0.000000] speed [0.000000];
+	move wing4 to y-axis [0.000000] speed [0.000000];
+	turn wing3 to x-axis <-90.016484> speed <246.000000>;
+	turn wing4 to x-axis <91.016484> speed <249.000000>;
+	sleep 365;
+	move wing3 to y-axis [0.300000] speed [0.000000];
+	move wing4 to y-axis [0.300000] speed [0.000000];
+	turn wing3 to x-axis <-229.049451> speed <446.000000>;
+	turn wing4 to x-axis <229.049451> speed <442.000000>;
+	sleep 345;
+}
+
+deactivatescr()
+{
+	call-script OpenYard();
+	move shell to y-axis [4.089990] now;
+	move leg1 to x-axis [4.450000] now;
+	move leg1 to z-axis [4.489990] now;
+	move leg2 to x-axis [-4.550000] now;
+	move leg2 to z-axis [4.500000] now;
+	move leg3 to x-axis [-4.339990] now;
+	move leg3 to z-axis [-4.450000] now;
+	move leg4 to x-axis [4.400000] now;
+	move leg4 to z-axis [-4.379999] now;
+	move wing3 to y-axis [0.300000] now;
+	move wing3 to y-axis [0.000000] speed [0.000000];
+	move wing4 to y-axis [0.300000] now;
+	move wing4 to y-axis [0.000000] speed [0.000000];
+	turn wing1 to z-axis <-229.302198> now;
+	turn wing2 to z-axis <229.302198> now;
+	turn wing3 to x-axis <-229.302198> now;
+	turn wing3 to x-axis <-90.016484> speed <321.000000>;
+	turn wing4 to x-axis <229.302198> now;
+	turn wing4 to x-axis <91.016484> speed <318.000000>;
+	sleep 433;
+	move wing3 to y-axis [0.300000] speed [0.000000];
+	move wing4 to y-axis [0.300000] speed [0.000000];
+	turn wing3 to x-axis <0.000000> speed <207.000000>;
+	turn wing4 to x-axis <0.000000> speed <210.000000>;
+	sleep 434;
+	move wing3 to y-axis [0.000000] speed [1.000000];
+	move wing4 to y-axis [0.000000] speed [1.000000];
+	sleep 204;
+	turn wing1 to z-axis <-90.016484> speed <324.000000>;
+	turn wing2 to z-axis <90.016484> speed <324.000000>;
+	sleep 429;
+	turn wing1 to z-axis <0.000000> speed <209.000000>;
+	turn wing2 to z-axis <0.000000> speed <209.000000>;
+	sleep 568;
+	move leg1 to x-axis [0.000000] speed [11.000000];
+	move leg1 to z-axis [0.000000] speed [11.000000];
+	move leg2 to x-axis [0.000000] speed [11.000000];
+	move leg2 to z-axis [0.000000] speed [11.000000];
+	move leg3 to x-axis [0.000000] speed [11.000000];
+	move leg3 to z-axis [0.000000] speed [11.000000];
+	move leg4 to x-axis [0.000000] speed [11.000000];
+	move leg4 to z-axis [0.000000] speed [11.000000];
+	turn wing1 to z-axis <0.000000> speed <0.000000>;
+	sleep 503;
+	move shell to y-axis [0.000000] speed [12.000000];
+	sleep 389;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( Static_Var_3 )
+	{
+		Static_Var_2 = requestedstate;
+		return (0);
+	}
+	Static_Var_3 = 1;
+	currentstate = Static_Var_2;
+	Static_Var_2 = requestedstate;
+	while( Static_Var_2 != currentstate )
+	{
+		if( Static_Var_2 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+	}
+	Static_Var_3 = 0;
+}
+
+Create()
+{
+	dont-shade base;
+	dont-shade leg1;
+	dont-shade leg2;
+	dont-shade leg3;
+	dont-shade leg4;
+	dont-shade shell;
+	dont-shade wing1;
+	dont-shade wing2;
+	dont-shade wing3;
+	dont-shade wing4;
+	dont-cache leg1;
+	dont-cache leg2;
+	dont-cache leg3;
+	dont-cache leg4;
+	dont-cache shell;
+	dont-cache wing1;
+	dont-cache wing2;
+	dont-cache wing3;
+	dont-cache wing4;
+	Static_Var_2 = 1;
+	Static_Var_3 = 0;
+	start-script SmokeUnit();
+	Static_Var_1 = 0;
+}
+
+Activate()
+{
+	if( Static_Var_1 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	set ARMORED to 0;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	set ARMORED to 1;
+	start-script RequestState(1);
+}
+
+HitByWeapon(Func_Var_1, Func_Var_2)
+{
+	if( get ACTIVATION )
+	{
+		Static_Var_1 = 1;
+	}
+	if( Static_Var_1 )
+	{
+		signal 2;
+		set-signal-mask 2;
+		set ACTIVATION to 0;
+		sleep 8000;
+		Static_Var_1 = 0;
+		set ACTIVATION to 100;
+	}
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode leg1 type SHATTER | BITMAP2;
+		explode leg2 type SHATTER | BITMAP3;
+		explode leg3 type BITMAPONLY | BITMAP4;
+		explode leg4 type BITMAPONLY | BITMAP5;
+		explode shell type BITMAPONLY | BITMAP1;
+		explode wing1 type FALL | BITMAP2;
+		explode wing2 type FALL | BITMAP3;
+		explode wing3 type BITMAPONLY | BITMAP4;
+		explode wing4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode leg1 type SHATTER | BITMAP2;
+		explode leg2 type SHATTER | BITMAP3;
+		explode leg3 type BITMAPONLY | BITMAP4;
+		explode leg4 type BITMAPONLY | BITMAP5;
+		explode shell type BITMAPONLY | BITMAP1;
+		explode wing1 type FALL | BITMAP2;
+		explode wing2 type FALL | BITMAP3;
+		explode wing3 type BITMAPONLY | BITMAP4;
+		explode wing4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode leg1 type SHATTER | BITMAP2;
+		explode leg2 type SHATTER | BITMAP3;
+		explode leg3 type BITMAPONLY | BITMAP4;
+		explode leg4 type BITMAPONLY | BITMAP5;
+		explode shell type BITMAPONLY | BITMAP1;
+		explode wing1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode wing2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode wing3 type BITMAPONLY | BITMAP4;
+		explode wing4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode leg1 type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode leg2 type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode leg3 type BITMAPONLY | BITMAP4;
+	explode leg4 type BITMAPONLY | BITMAP5;
+	explode shell type BITMAPONLY | BITMAP1;
+	explode wing1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode wing2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode wing3 type BITMAPONLY | BITMAP4;
+	explode wing4 type BITMAPONLY | BITMAP5;
+}

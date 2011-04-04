@@ -1,0 +1,124 @@
+[BADTRAIL]
+{
+	[smoketrail] {
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=dir;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0.001   0 0 0 0.4   0.1 0.1 0.1 0.2   0 0 0 0.05   0 0 0 0;
+			Texture=graysmoke;
+			airdrag=0.5;
+			particleLife=8;
+			particleLifeSpread=32;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=1;
+			particleSize=8;
+			particleSizeSpread=1;
+			emitRot=0;
+			emitRotSpread=0;
+			delay=4;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=2;
+	}
+	usedefaultexplosions=0;	
+	[firetrail]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=-1, 0, 0;
+			gravity=0, 0, 0;
+			colorMap=1 1 1 0.8  1 1 1 0.5;
+			texture=fireball;
+			airdrag=1;
+			particleLife=2;
+			particleLifeSpread=0;
+			numParticles=2;
+			particleSpeed=1;
+			particleSpeedSpread=0;
+			particleSize=1;
+			particleSizeSpread=2;
+			emitRot=0;
+			emitRotSpread=0;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+}
+
+[ASTEROIDTRAIL_Expl_mod]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		alwaysVisible=1;
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			alwaysVisible=1;
+			sizeGrowth=1.25;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0  0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=fireball;
+			airdrag=0.95;
+			particleLife=15;
+			particleLifeSpread=7;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=1;
+			particleSize=8;
+			particleSizeSpread=12;
+			emitRot=360;
+			emitRotSpread=360;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			alwaysVisible=1;
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  0.6 0.6 0.6 0.7	0.6 0.6 0.6 0.7	0.3 0.3 0.3 0.6	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=40;
+			particleLifeSpread=25;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=1;
+			particleSize=30;
+			particleSizeSpread=30;
+			emitRot=360;
+			emitRotSpread=360;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+}

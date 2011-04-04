@@ -1,0 +1,777 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  groundx2, hips, body, lleg, lfoot, rleg, rfoot, head,
+       laser, laserflare, gun, gunflare;
+
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, Static_Var_5,
+            gun_1, Static_Var_7, Static_Var_8;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_3			8
+#define SIG_MOVE			16
+
+
+walk()
+{
+	if( TRUE )
+	{
+		move body to y-axis [0.000000] now;
+		move head to y-axis [0.000000] now;
+		move rfoot to y-axis [0.000000] now;
+		move lfoot to y-axis [0.000000] now;
+		turn lleg to x-axis <-41.346154> now;
+		turn rleg to x-axis <54.725275> now;
+		turn head to x-axis <-10.934066> now;
+		turn rfoot to x-axis <-34.648352> now;
+		turn lfoot to x-axis <13.368132> now;
+		sleep 106;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.350000] now;
+		move lleg to y-axis [-0.200000] now;
+		move rleg to y-axis [0.500000] now;
+		turn hips to z-axis <5.159341> now;
+		turn body to x-axis <6.071429> now;
+		turn lleg to x-axis <-41.346154> now;
+		turn rleg to x-axis <55.335165> now;
+		turn head to x-axis <-5.467033> now;
+		turn rfoot to x-axis <-17.934066> now;
+		turn lfoot to x-axis <34.648352> now;
+		sleep 58;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.700000] now;
+		move lleg to y-axis [0.639978] now;
+		move rleg to y-axis [1.000000] now;
+		turn hips to z-axis <10.324176> now;
+		turn body to x-axis <12.159341> now;
+		turn lleg to x-axis <-32.225275> now;
+		turn rleg to x-axis <55.945055> now;
+		turn head to x-axis <0.000000> now;
+		turn rfoot to x-axis <-1.203297> now;
+		turn lfoot to x-axis <17.016484> now;
+		sleep 49;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [1.350000] now;
+		move rleg to y-axis [1.900000] now;
+		move head to y-axis [0.000000] now;
+		move rfoot to y-axis [0.000000] now;
+		turn hips to z-axis <14.582418> now;
+		turn lleg to x-axis <-10.934066> now;
+		turn rleg to x-axis <18.225275> now;
+		turn head to x-axis <13.368132> now;
+		turn rfoot to x-axis <-17.626374> now;
+		turn lfoot to x-axis <0.000000> now;
+		sleep 55;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [0.950000] now;
+		move rleg to y-axis [1.939978] now;
+		move head to x-axis [-0.350000] now;
+		move head to y-axis [-0.419983] now;
+		move rfoot to y-axis [0.000000] now;
+		turn hips to z-axis <12.159341> now;
+		turn lleg to x-axis <3.027473> now;
+		turn rleg to x-axis <4.857143> now;
+		turn head to x-axis <18.225275> now;
+		turn rfoot to x-axis <-22.192308> now;
+		turn rfoot to y-axis <0.000000> now;
+		turn lfoot to x-axis <-16.714286> now;
+		sleep 107;
+	}
+	if( TRUE )
+	{
+		move hips to z-axis [0.000000] now;
+		move lleg to y-axis [0.950000] now;
+		move rleg to y-axis [2.000000] now;
+		move head to x-axis [-0.700000] now;
+		move head to y-axis [-0.850000] now;
+		move rfoot to y-axis [0.000000] now;
+		turn hips to z-axis <9.714286> now;
+		turn lleg to x-axis <11.549451> now;
+		turn rleg to x-axis <-8.500000> now;
+		turn head to x-axis <23.104396> now;
+		turn rfoot to x-axis <-26.747253> now;
+		turn rfoot to y-axis <0.000000> now;
+		turn lfoot to x-axis <-24.324176> now;
+		sleep 122;
+	}
+	if( TRUE )
+	{
+		move hips to z-axis [0.000000] now;
+		move body to z-axis [0.469983] now;
+		move lleg to y-axis [0.469983] now;
+		move rleg to y-axis [1.769983] now;
+		move head to x-axis [-0.350000] now;
+		move head to y-axis [-0.419983] now;
+		turn hips to z-axis <5.769231> now;
+		turn body to x-axis <8.802198> now;
+		turn lleg to x-axis <17.016484> now;
+		turn rleg to x-axis <-25.225275> now;
+		turn head to x-axis <11.549451> now;
+		turn rfoot to x-axis <-8.181319> now;
+		turn lfoot to x-axis <-20.670330> now;
+		sleep 129;
+	}
+	if( TRUE )
+	{
+		move hips to z-axis [0.000000] now;
+		move body to z-axis [0.250000] now;
+		move lleg to y-axis [0.000000] now;
+		move rleg to y-axis [1.539978] now;
+		move head to x-axis [0.000000] now;
+		move head to y-axis [0.000000] now;
+		turn hips to z-axis <1.813187> now;
+		turn body to x-axis <5.467033> now;
+		turn lleg to x-axis <29.791209> now;
+		turn rleg to x-axis <-41.956044> now;
+		turn head to x-axis <0.000000> now;
+		turn rfoot to x-axis <10.324176> now;
+		turn lfoot to x-axis <-29.181319> now;
+		sleep 150;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [0.000000] now;
+		move rleg to y-axis [0.819983] now;
+		turn hips to z-axis <0.901099> now;
+		turn body to x-axis <2.725275> now;
+		turn lleg to x-axis <38.005495> now;
+		turn head to x-axis <-5.159341> now;
+		turn rfoot to x-axis <10.324176> now;
+		turn lfoot to x-axis <-33.137363> now;
+		sleep 121;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [0.000000] now;
+		move rleg to y-axis [0.900000] now;
+		turn hips to z-axis <0.000000> now;
+		turn body to x-axis <0.000000> now;
+		turn lleg to x-axis <55.945055> now;
+		turn head to x-axis <-10.324176> now;
+		turn rfoot to x-axis <1.203297> now;
+		turn lfoot to x-axis <-31.615385> now;
+		sleep 83;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.469983] now;
+		move lleg to y-axis [0.500000] now;
+		turn hips to z-axis <-3.324176> now;
+		turn body to x-axis <5.769231> now;
+		turn lleg to x-axis <46.214286> now;
+		turn rleg to x-axis <-51.082418> now;
+		turn head to x-axis <-5.159341> now;
+		turn rfoot to x-axis <15.802198> now;
+		turn lfoot to x-axis <-19.445055> now;
+		sleep 67;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.700000] now;
+		move lleg to y-axis [1.000000] now;
+		turn hips to z-axis <-6.681319> now;
+		turn body to x-axis <11.549451> now;
+		turn lleg to x-axis <55.335165> now;
+		turn rleg to x-axis <-60.203297> now;
+		turn head to x-axis <0.000000> now;
+		turn rfoot to x-axis <45.604396> now;
+		turn lfoot to x-axis <-12.159341> now;
+		sleep 51;
+	}
+	if( TRUE )
+	{
+		move hips to y-axis [-0.219983] now;
+		move lleg to y-axis [1.289978] now;
+		move rleg to y-axis [0.619983] now;
+		turn hips to z-axis <-11.247253> now;
+		turn lleg to x-axis <36.780220> now;
+		turn rleg to x-axis <-46.214286> now;
+		turn rfoot to x-axis <31.923077> now;
+		turn lfoot to x-axis <-14.582418> now;
+		sleep 39;
+	}
+	if( TRUE )
+	{
+		move hips to y-axis [-0.450000] now;
+		move lleg to y-axis [1.589978] now;
+		move rleg to y-axis [1.129999] now;
+		turn hips to z-axis <-15.802198> now;
+		turn lleg to x-axis <18.225275> now;
+		turn rleg to x-axis <-32.225275> now;
+		turn rfoot to x-axis <18.225275> now;
+		turn lfoot to x-axis <-17.016484> now;
+		sleep 55;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [1.789978] now;
+		move rleg to y-axis [1.339978] now;
+		move head to y-axis [-0.469983] now;
+		turn hips to z-axis <-13.368132> now;
+		turn lleg to x-axis <4.549451> now;
+		turn rleg to x-axis <-18.538462> now;
+		turn head to x-axis <12.456044> now;
+		turn rfoot to x-axis <4.549451> now;
+		turn lfoot to x-axis <-21.582418> now;
+		sleep 69;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [2.000000] now;
+		move rleg to y-axis [1.539978] now;
+		move head to y-axis [-0.950000] now;
+		turn hips to z-axis <-10.934066> now;
+		turn lleg to x-axis <-9.104396> now;
+		turn rleg to x-axis <-4.857143> now;
+		turn head to x-axis <24.923077> now;
+		turn rfoot to x-axis <-9.104396> now;
+		turn lfoot to x-axis <-26.137363> now;
+		sleep 97;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.400000] now;
+		move lleg to y-axis [1.419983] now;
+		move rleg to y-axis [0.939978] now;
+		move head to y-axis [-0.769983] now;
+		turn hips to z-axis <-6.681319> now;
+		turn body to x-axis <8.181319> now;
+		turn lleg to x-axis <-30.401099> now;
+		turn rleg to x-axis <4.857143> now;
+		turn head to x-axis <18.538462> now;
+		turn rfoot to x-axis <-14.890110> now;
+		turn lfoot to x-axis <-15.192308> now;
+		sleep 127;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.100000] now;
+		move lleg to y-axis [0.839978] now;
+		move rleg to y-axis [0.350000] now;
+		move head to y-axis [-0.600000] now;
+		turn hips to z-axis <-2.412088> now;
+		turn body to x-axis <4.857143> now;
+		turn lleg to x-axis <-51.692308> now;
+		turn rleg to x-axis <14.582418> now;
+		turn head to x-axis <12.159341> now;
+		turn rfoot to x-axis <-20.670330> now;
+		turn lfoot to x-axis <-4.247253> now;
+		sleep 136;
+	}
+	move hips to y-axis [-0.219983] now;
+	move hips to z-axis [0.000000] now;
+	move body to z-axis [0.500000] now;
+	move lleg to y-axis [0.419983] now;
+	move rleg to y-axis [0.169983] now;
+	move head to y-axis [-0.300000] now;
+	turn hips to z-axis <-1.203297> now;
+	turn body to x-axis <2.412088> now;
+	turn lleg to x-axis <-46.516484> now;
+	turn rleg to x-axis <34.648352> now;
+	turn head to x-axis <0.593407> now;
+	turn rfoot to x-axis <-27.659341> now;
+	turn rfoot to y-axis <0.000000> now;
+	turn lfoot to x-axis <-2.725275> now;
+	sleep 137;
+}
+
+walklegs()
+{
+	if( TRUE )
+	{
+		move body to y-axis [0.000000] now;
+		move head to y-axis [0.000000] now;
+		move rfoot to y-axis [0.000000] now;
+		move lfoot to y-axis [0.000000] now;
+		turn lleg to x-axis <-41.346154> now;
+		turn rleg to x-axis <54.725275> now;
+		turn rfoot to x-axis <-34.648352> now;
+		turn lfoot to x-axis <13.368132> now;
+		sleep 106;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.350000] now;
+		move lleg to y-axis [-0.200000] now;
+		move rleg to y-axis [0.500000] now;
+		turn hips to z-axis <5.159341> now;
+		turn body to x-axis <6.071429> now;
+		turn lleg to x-axis <-41.346154> now;
+		turn rleg to x-axis <55.335165> now;
+		turn rfoot to x-axis <-17.934066> now;
+		turn lfoot to x-axis <34.648352> now;
+		sleep 58;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.700000] now;
+		move lleg to y-axis [0.639978] now;
+		move rleg to y-axis [1.000000] now;
+		turn hips to z-axis <10.324176> now;
+		turn body to x-axis <12.159341> now;
+		turn lleg to x-axis <-32.225275> now;
+		turn rleg to x-axis <55.945055> now;
+		turn rfoot to x-axis <-1.203297> now;
+		turn lfoot to x-axis <17.016484> now;
+		sleep 49;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [1.350000] now;
+		move rleg to y-axis [1.900000] now;
+		move rfoot to y-axis [0.000000] now;
+		turn hips to z-axis <14.582418> now;
+		turn lleg to x-axis <-10.934066> now;
+		turn rleg to x-axis <18.225275> now;
+		turn rfoot to x-axis <-17.626374> now;
+		turn lfoot to x-axis <0.000000> now;
+		sleep 55;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [0.950000] now;
+		move rleg to y-axis [1.939978] now;
+		move rfoot to y-axis [0.000000] now;
+		turn hips to z-axis <12.159341> now;
+		turn lleg to x-axis <3.027473> now;
+		turn rleg to x-axis <4.857143> now;
+		turn rfoot to x-axis <-22.192308> now;
+		turn rfoot to y-axis <0.000000> now;
+		turn lfoot to x-axis <-16.714286> now;
+		sleep 107;
+	}
+	if( TRUE )
+	{
+		move hips to z-axis [0.000000] now;
+		move lleg to y-axis [0.950000] now;
+		move rleg to y-axis [1.989978] now;
+		move rfoot to y-axis [0.000000] now;
+		turn hips to z-axis <9.714286> now;
+		turn lleg to x-axis <11.549451> now;
+		turn rleg to x-axis <-8.500000> now;
+		turn rfoot to x-axis <-26.747253> now;
+		turn rfoot to y-axis <0.000000> now;
+		turn lfoot to x-axis <-24.324176> now;
+		sleep 122;
+	}
+	if( TRUE )
+	{
+		move hips to z-axis [0.000000] now;
+		move body to z-axis [0.469983] now;
+		move lleg to y-axis [0.469983] now;
+		move rleg to y-axis [1.769983] now;
+		turn hips to z-axis <5.769231> now;
+		turn body to x-axis <8.802198> now;
+		turn lleg to x-axis <17.016484> now;
+		turn rleg to x-axis <-25.225275> now;
+		turn rfoot to x-axis <-8.181319> now;
+		turn lfoot to x-axis <-20.670330> now;
+		sleep 129;
+	}
+	if( TRUE )
+	{
+		move hips to z-axis [0.000000] now;
+		move body to z-axis [0.250000] now;
+		move lleg to y-axis [0.000000] now;
+		move rleg to y-axis [1.539978] now;
+		turn hips to z-axis <1.813187> now;
+		turn body to x-axis <5.467033> now;
+		turn lleg to x-axis <29.791209> now;
+		turn rleg to x-axis <-41.956044> now;
+		turn rfoot to x-axis <10.324176> now;
+		turn lfoot to x-axis <-29.181319> now;
+		sleep 150;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [0.000000] now;
+		move rleg to y-axis [0.819983] now;
+		turn hips to z-axis <0.901099> now;
+		turn body to x-axis <2.725275> now;
+		turn lleg to x-axis <38.005495> now;
+		turn rfoot to x-axis <10.324176> now;
+		turn lfoot to x-axis <-33.137363> now;
+		sleep 121;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [0.000000] now;
+		move rleg to y-axis [0.900000] now;
+		turn hips to z-axis <0.000000> now;
+		turn body to x-axis <0.000000> now;
+		turn lleg to x-axis <55.945055> now;
+		turn rfoot to x-axis <1.203297> now;
+		turn lfoot to x-axis <-31.615385> now;
+		sleep 83;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.469983] now;
+		move lleg to y-axis [0.500000] now;
+		turn hips to z-axis <-3.324176> now;
+		turn body to x-axis <5.769231> now;
+		turn lleg to x-axis <46.214286> now;
+		turn rleg to x-axis <-51.082418> now;
+		turn rfoot to x-axis <15.802198> now;
+		turn lfoot to x-axis <-19.445055> now;
+		sleep 67;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.700000] now;
+		move lleg to y-axis [1.000000] now;
+		turn hips to z-axis <-6.681319> now;
+		turn body to x-axis <11.549451> now;
+		turn lleg to x-axis <55.335165> now;
+		turn rleg to x-axis <-60.203297> now;
+		turn rfoot to x-axis <45.604396> now;
+		turn lfoot to x-axis <-12.159341> now;
+		sleep 51;
+	}
+	if( TRUE )
+	{
+		move hips to y-axis [-0.219983] now;
+		move lleg to y-axis [1.289978] now;
+		move rleg to y-axis [0.619983] now;
+		turn hips to z-axis <-11.247253> now;
+		turn lleg to x-axis <36.780220> now;
+		turn rleg to x-axis <-46.214286> now;
+		turn rfoot to x-axis <31.923077> now;
+		turn lfoot to x-axis <-14.582418> now;
+		sleep 39;
+	}
+	if( TRUE )
+	{
+		move hips to y-axis [-0.450000] now;
+		move lleg to y-axis [1.589978] now;
+		move rleg to y-axis [1.129999] now;
+		turn hips to z-axis <-15.802198> now;
+		turn lleg to x-axis <18.225275> now;
+		turn rleg to x-axis <-32.225275> now;
+		turn rfoot to x-axis <18.225275> now;
+		turn lfoot to x-axis <-17.016484> now;
+		sleep 55;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [1.789978] now;
+		move rleg to y-axis [1.339978] now;
+		turn hips to z-axis <-13.368132> now;
+		turn lleg to x-axis <4.549451> now;
+		turn rleg to x-axis <-18.538462> now;
+		turn rfoot to x-axis <4.549451> now;
+		turn lfoot to x-axis <-21.582418> now;
+		sleep 69;
+	}
+	if( TRUE )
+	{
+		move lleg to y-axis [1.989978] now;
+		move rleg to y-axis [1.539978] now;
+		turn hips to z-axis <-10.934066> now;
+		turn lleg to x-axis <-9.104396> now;
+		turn rleg to x-axis <-4.857143> now;
+		turn rfoot to x-axis <-9.104396> now;
+		turn lfoot to x-axis <-26.137363> now;
+		sleep 97;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.400000] now;
+		move lleg to y-axis [1.419983] now;
+		move rleg to y-axis [0.939978] now;
+		turn hips to z-axis <-6.681319> now;
+		turn body to x-axis <8.181319> now;
+		turn lleg to x-axis <-30.401099> now;
+		turn rleg to x-axis <4.857143> now;
+		turn rfoot to x-axis <-14.890110> now;
+		turn lfoot to x-axis <-15.192308> now;
+		sleep 127;
+	}
+	if( TRUE )
+	{
+		move body to z-axis [0.100000] now;
+		move lleg to y-axis [0.839978] now;
+		move rleg to y-axis [0.350000] now;
+		turn hips to z-axis <-2.412088> now;
+		turn body to x-axis <4.857143> now;
+		turn lleg to x-axis <-51.692308> now;
+		turn rleg to x-axis <14.582418> now;
+		turn rfoot to x-axis <-20.670330> now;
+		turn lfoot to x-axis <-4.247253> now;
+		sleep 136;
+	}
+	move hips to y-axis [-0.219983] now;
+	move hips to z-axis [0.000000] now;
+	move body to z-axis [0.500000] now;
+	move lleg to y-axis [0.419983] now;
+	move rleg to y-axis [0.169983] now;
+	turn hips to z-axis <-1.203297> now;
+	turn body to x-axis <2.412088> now;
+	turn lleg to x-axis <-46.516484> now;
+	turn rleg to x-axis <34.648352> now;
+	turn rfoot to x-axis <-27.659341> now;
+	turn rfoot to y-axis <0.000000> now;
+	turn lfoot to x-axis <-2.725275> now;
+	sleep 137;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from body;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+MotionControl(Func_Var_1)
+{
+	Func_Var_1 = 1;
+	while( TRUE )
+	{
+		if( bMoving )
+		{
+			if( bAiming )
+			{
+				Static_Var_3 = 1;
+				call-script walklegs();
+			}
+			if( !bAiming )
+			{
+				Static_Var_3 = 0;
+				call-script walk();
+			}
+			Func_Var_1 = 1;
+			if( Static_Var_5 == 3 )
+			{
+				Static_Var_7 = 1;
+			}
+			if( Static_Var_5 == 2 )
+			{
+				Static_Var_7 = 0;
+			}
+			if( Static_Var_5 == 1 )
+			{
+				Static_Var_7 = 0;
+			}
+		}
+		if( !bMoving )
+		{
+			Static_Var_3 = 1;
+			if( Func_Var_1 )
+			{
+				move body to x-axis [0.000000] speed [1.000000];
+				turn rleg to x-axis <0.000000> speed <200.000000>;
+				turn rfoot to x-axis <0.000000> speed <200.000000>;
+				turn lleg to x-axis <0.000000> speed <200.000000>;
+				turn lfoot to x-axis <0.000000> speed <200.000000>;
+				Func_Var_1 = 0;
+			}
+			sleep 100;
+		}
+	}
+}
+
+Create()
+{
+	Static_Var_8 = 0 - -2147483648;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	Static_Var_3 = 1;
+	Static_Var_7 = 0;
+	hide gunflare;
+	hide laserflare;
+	restore_delay = 3000;
+	start-script MotionControl();
+	start-script SmokeUnit();
+	gun_1 = groundx2;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	signal SIG_MOVE;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn head to y-axis <0.000000> speed <90.000000>;
+	wait-for-turn head around y-axis;
+	bAiming = FALSE;
+}
+
+AimTertiary(heading, pitch)
+{
+    if ( get IN_WATER(0) == 0 )
+    {
+     return (0);
+    }
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn head to y-axis heading speed <60.000000>;
+	wait-for-turn head around y-axis;
+	return (1);
+}
+
+FireTertiary()
+{
+	sleep 100;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = head;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = head;
+}
+
+AimPrimary(heading, pitch)
+{
+    if ( get IN_WATER(0) == 1 )
+    {
+     return (0);
+    }
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	turn head to y-axis heading speed <200.000000>;
+	wait-for-turn head around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( !gun_1 )
+	{
+		show gunflare;
+		sleep 200;
+		hide gunflare;
+	}
+	if( gun_1 )
+	{
+		show laserflare;
+		sleep 200;
+		hide laserflare;
+	}
+	gun_1 = !gun_1;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = head;
+}
+
+QueryPrimary(piecenum)
+{
+	if( !gun_1 )
+	{
+		piecenum = gunflare;
+	}
+	if( gun_1 )
+	{
+		piecenum = laserflare;
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode body type BITMAPONLY | BITMAP1;
+		explode gun type BITMAPONLY | BITMAP2;
+		explode head type BITMAPONLY | BITMAP3;
+		explode hips type BITMAPONLY | BITMAP4;
+		explode lfoot type BITMAPONLY | BITMAP5;
+		explode lleg type BITMAPONLY | BITMAP1;
+		explode rfoot type BITMAPONLY | BITMAP2;
+		explode rleg type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode body type BITMAPONLY | BITMAP1;
+		explode gun type FALL | BITMAP2;
+		explode head type SHATTER | BITMAP3;
+		explode hips type FALL | BITMAP4;
+		explode lfoot type FALL | BITMAP5;
+		explode lleg type FALL | BITMAP1;
+		explode rfoot type FALL | BITMAP2;
+		explode rleg type FALL | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode body type BITMAPONLY | BITMAP1;
+		explode gun type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode head type SHATTER | BITMAP3;
+		explode hips type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode lfoot type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode lleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode rfoot type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode body type BITMAPONLY | BITMAP1;
+	explode gun type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode head type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode hips type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode lfoot type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode lleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode rfoot type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+}

@@ -1,0 +1,6 @@
+-32	groundflash
+-24	sphere
+-16	bursts
+0	simplePart
+1	distortionFBO
+4       airjet

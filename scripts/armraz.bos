@@ -1,0 +1,794 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  ground, hips, luparm, lloarm, lhand, fingerla, fingerlb, thumbl,
+       ruparm, rloarm, rhand, fingerra, fingerrb, thumbr, body, arml,
+       cannonl, flareb, canonbarrel1, armr, cannonr, flarea, canonbarrel2, EnrgyCell1,
+       Enrgycell2, b1, b2, arm1, arm2, ar, al, calcarm,
+       calcflare, calcpoint, turret, barrel, emit, axis, flare, exploder,
+       hpoint, smokepoint, smokeemit;
+
+static-var  Static_Var_1, gun_1, bMoving, bAiming, Static_Var_5,
+            Static_Var_6, unitviewer, Static_Var_8, Static_Var_9;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_AIM				4
+#define SIG_AIM_3			8
+
+
+startwalk()
+{
+	if( TRUE )
+	{
+		if( Static_Var_5 )
+		{
+			Static_Var_8 = 0;
+			turn arml to x-axis <18.000000> speed <9.000000>;
+			turn armr to x-axis <-18.000000> speed <18.000000>;
+		}
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <10.000000> speed <90.000000>;
+		turn rloarm to x-axis <10.000000> speed <90.000000>;
+		turn rhand to x-axis <-15.000000> speed <90.000000>;
+		turn fingerra to x-axis <-10.000000> speed <300.000000>;
+		turn fingerrb to x-axis <-10.000000> speed <300.000000>;
+		turn luparm to x-axis <-30.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <25.000000> speed <90.000000>;
+		turn thumbl to x-axis <-10.000000> speed <200.000000>;
+		turn fingerla to x-axis <10.000000> speed <300.000000>;
+		turn fingerlb to x-axis <10.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbl to x-axis <-25.000000> speed <200.000000>;
+		turn fingerla to x-axis <25.000000> speed <300.000000>;
+		turn fingerlb to x-axis <25.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <15.000000> speed <90.000000>;
+		turn rloarm to x-axis <15.000000> speed <90.000000>;
+		turn luparm to x-axis <-15.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <15.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerra to x-axis <0.000000> speed <300.000000>;
+		turn fingerrb to x-axis <0.000000> speed <300.000000>;
+		turn thumbl to x-axis <0.000000> speed <160.000000>;
+		turn fingerla to x-axis <0.000000> speed <160.000000>;
+		turn fingerlb to x-axis <0.000000> speed <160.000000>;
+		turn lloarm to x-axis <10.000000> speed <140.000000>;
+		turn lhand to x-axis <5.000000> speed <140.000000>;
+		sleep 100;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <10.000000> speed <90.000000>;
+		turn lloarm to x-axis <10.000000> speed <90.000000>;
+		turn lhand to x-axis <-15.000000> speed <90.000000>;
+		turn fingerla to x-axis <-5.000000> speed <300.000000>;
+		turn fingerlb to x-axis <-5.000000> speed <300.000000>;
+		turn ruparm to x-axis <-30.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <25.000000> speed <90.000000>;
+		turn thumbr to x-axis <-10.000000> speed <200.000000>;
+		turn fingerra to x-axis <10.000000> speed <300.000000>;
+		turn fingerrb to x-axis <10.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbr to x-axis <-25.000000> speed <200.000000>;
+		turn fingerra to x-axis <25.000000> speed <300.000000>;
+		turn fingerrb to x-axis <25.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <15.000000> speed <90.000000>;
+		turn lloarm to x-axis <15.000000> speed <90.000000>;
+		turn ruparm to x-axis <-15.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <15.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerla to x-axis <0.000000> speed <300.000000>;
+		turn fingerlb to x-axis <0.000000> speed <300.000000>;
+		turn thumbr to x-axis <0.000000> speed <160.000000>;
+		turn fingerra to x-axis <0.000000> speed <160.000000>;
+		turn fingerrb to x-axis <0.000000> speed <160.000000>;
+		turn rloarm to x-axis <10.000000> speed <140.000000>;
+		turn rhand to x-axis <5.000000> speed <140.000000>;
+		sleep 100;
+	}
+	if( TRUE )
+	{
+		if( Static_Var_5 )
+		{
+			turn arml to x-axis <-18.000000> speed <20.000000>;
+			turn armr to x-axis <18.000000> speed <20.000000>;
+		}
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <10.000000> speed <90.000000>;
+		turn rloarm to x-axis <10.000000> speed <90.000000>;
+		turn rhand to x-axis <-15.000000> speed <90.000000>;
+		turn fingerra to x-axis <-5.000000> speed <300.000000>;
+		turn fingerrb to x-axis <-5.000000> speed <300.000000>;
+		turn luparm to x-axis <-30.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <25.000000> speed <90.000000>;
+		turn thumbl to x-axis <-10.000000> speed <200.000000>;
+		turn fingerla to x-axis <10.000000> speed <300.000000>;
+		turn fingerlb to x-axis <10.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbl to x-axis <-25.000000> speed <200.000000>;
+		turn fingerla to x-axis <25.000000> speed <300.000000>;
+		turn fingerlb to x-axis <25.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <15.000000> speed <90.000000>;
+		turn rloarm to x-axis <15.000000> speed <90.000000>;
+		turn luparm to x-axis <-15.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <15.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerra to x-axis <0.000000> speed <300.000000>;
+		turn fingerrb to x-axis <0.000000> speed <300.000000>;
+		turn thumbl to x-axis <0.000000> speed <160.000000>;
+		turn fingerla to x-axis <0.000000> speed <160.000000>;
+		turn fingerlb to x-axis <0.000000> speed <160.000000>;
+		turn lloarm to x-axis <10.000000> speed <140.000000>;
+		turn lhand to x-axis <5.000000> speed <140.000000>;
+		sleep 100;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <10.000000> speed <90.000000>;
+		turn lloarm to x-axis <20.000000> speed <90.000000>;
+		turn lhand to x-axis <-15.000000> speed <90.000000>;
+		turn fingerla to x-axis <-5.000000> speed <300.000000>;
+		turn fingerlb to x-axis <-5.000000> speed <300.000000>;
+		turn ruparm to x-axis <-30.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <25.000000> speed <90.000000>;
+		turn thumbr to x-axis <-10.000000> speed <200.000000>;
+		turn fingerra to x-axis <10.000000> speed <300.000000>;
+		turn fingerrb to x-axis <10.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbr to x-axis <-25.000000> speed <200.000000>;
+		turn fingerra to x-axis <25.000000> speed <300.000000>;
+		turn fingerrb to x-axis <25.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <15.000000> speed <90.000000>;
+		turn lloarm to x-axis <15.000000> speed <90.000000>;
+		turn ruparm to x-axis <-15.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <15.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerla to x-axis <0.000000> speed <300.000000>;
+		turn fingerlb to x-axis <0.000000> speed <300.000000>;
+		turn thumbr to x-axis <0.000000> speed <160.000000>;
+		turn fingerra to x-axis <0.000000> speed <160.000000>;
+		turn fingerrb to x-axis <0.000000> speed <160.000000>;
+		turn rloarm to x-axis <10.000000> speed <140.000000>;
+		turn rhand to x-axis <5.000000> speed <140.000000>;
+		sleep 100;
+	}
+}
+
+walk()
+{
+	if( TRUE )
+	{
+		if( Static_Var_5 )
+		{
+			turn arml to x-axis <18.000000> speed <18.000000>;
+			turn armr to x-axis <-18.000000> speed <18.000000>;
+			turn body to y-axis <-8.000000> speed <12.000000>;
+			turn axis to y-axis <8.000000> speed <12.000000>;
+			if( !Static_Var_9 )
+			{
+				turn hpoint to y-axis <-8.000000> speed <12.000000>;
+			}
+		}
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <20.000000> speed <90.000000>;
+		turn rloarm to x-axis <20.000000> speed <90.000000>;
+		turn rhand to x-axis <-30.000000> speed <90.000000>;
+		turn fingerra to x-axis <-10.000000> speed <300.000000>;
+		turn fingerrb to x-axis <-10.000000> speed <300.000000>;
+		turn luparm to x-axis <-60.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <50.000000> speed <90.000000>;
+		turn thumbl to x-axis <-20.000000> speed <200.000000>;
+		turn fingerla to x-axis <20.000000> speed <300.000000>;
+		turn fingerlb to x-axis <20.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbl to x-axis <-50.000000> speed <200.000000>;
+		turn fingerla to x-axis <50.000000> speed <300.000000>;
+		turn fingerlb to x-axis <50.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <30.000000> speed <90.000000>;
+		turn rloarm to x-axis <30.000000> speed <90.000000>;
+		turn luparm to x-axis <-30.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <30.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerra to x-axis <0.000000> speed <300.000000>;
+		turn fingerrb to x-axis <0.000000> speed <300.000000>;
+		turn thumbl to x-axis <0.000000> speed <160.000000>;
+		turn fingerla to x-axis <0.000000> speed <160.000000>;
+		turn fingerlb to x-axis <0.000000> speed <160.000000>;
+		turn lloarm to x-axis <20.000000> speed <140.000000>;
+		turn lhand to x-axis <10.000000> speed <140.000000>;
+		sleep 100;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <20.000000> speed <90.000000>;
+		turn lloarm to x-axis <20.000000> speed <90.000000>;
+		turn lhand to x-axis <-30.000000> speed <90.000000>;
+		turn fingerla to x-axis <-10.000000> speed <300.000000>;
+		turn fingerlb to x-axis <-10.000000> speed <300.000000>;
+		turn ruparm to x-axis <-60.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <50.000000> speed <90.000000>;
+		turn thumbr to x-axis <-20.000000> speed <200.000000>;
+		turn fingerra to x-axis <20.000000> speed <300.000000>;
+		turn fingerrb to x-axis <20.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbr to x-axis <-50.000000> speed <200.000000>;
+		turn fingerra to x-axis <50.000000> speed <300.000000>;
+		turn fingerrb to x-axis <50.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <30.000000> speed <90.000000>;
+		turn lloarm to x-axis <30.000000> speed <90.000000>;
+		turn ruparm to x-axis <-30.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <30.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerla to x-axis <0.000000> speed <300.000000>;
+		turn fingerlb to x-axis <0.000000> speed <300.000000>;
+		turn thumbr to x-axis <0.000000> speed <160.000000>;
+		turn fingerra to x-axis <0.000000> speed <160.000000>;
+		turn fingerrb to x-axis <0.000000> speed <160.000000>;
+		turn rloarm to x-axis <20.000000> speed <140.000000>;
+		turn rhand to x-axis <10.000000> speed <140.000000>;
+		sleep 100;
+	}
+	if( TRUE )
+	{
+		if( Static_Var_5 )
+		{
+			turn arml to x-axis <-18.000000> speed <20.000000>;
+			turn armr to x-axis <18.000000> speed <20.000000>;
+			turn body to y-axis <8.000000> speed <12.000000>;
+			turn axis to y-axis <-8.000000> speed <12.000000>;
+			if( !Static_Var_9 )
+			{
+				turn hpoint to y-axis <8.000000> speed <12.000000>;
+			}
+		}
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <20.000000> speed <90.000000>;
+		turn rloarm to x-axis <20.000000> speed <90.000000>;
+		turn rhand to x-axis <-30.000000> speed <90.000000>;
+		turn fingerra to x-axis <-10.000000> speed <300.000000>;
+		turn fingerrb to x-axis <-10.000000> speed <300.000000>;
+		turn luparm to x-axis <-60.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <50.000000> speed <90.000000>;
+		turn thumbl to x-axis <-20.000000> speed <200.000000>;
+		turn fingerla to x-axis <20.000000> speed <300.000000>;
+		turn fingerlb to x-axis <20.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbl to x-axis <-50.000000> speed <200.000000>;
+		turn fingerla to x-axis <50.000000> speed <300.000000>;
+		turn fingerlb to x-axis <50.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn ruparm to x-axis <30.000000> speed <90.000000>;
+		turn rloarm to x-axis <30.000000> speed <90.000000>;
+		turn luparm to x-axis <-30.000000> speed <90.000000>;
+		turn lloarm to x-axis <0.000000> speed <90.000000>;
+		turn lhand to x-axis <30.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerra to x-axis <0.000000> speed <300.000000>;
+		turn fingerrb to x-axis <0.000000> speed <300.000000>;
+		turn thumbl to x-axis <0.000000> speed <160.000000>;
+		turn fingerla to x-axis <0.000000> speed <160.000000>;
+		turn fingerlb to x-axis <0.000000> speed <160.000000>;
+		turn lloarm to x-axis <20.000000> speed <140.000000>;
+		turn lhand to x-axis <10.000000> speed <140.000000>;
+		sleep 100;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <20.000000> speed <90.000000>;
+		turn lloarm to x-axis <20.000000> speed <90.000000>;
+		turn lhand to x-axis <-30.000000> speed <90.000000>;
+		turn fingerla to x-axis <-10.000000> speed <300.000000>;
+		turn fingerlb to x-axis <-10.000000> speed <300.000000>;
+		turn ruparm to x-axis <-60.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <50.000000> speed <90.000000>;
+		turn thumbr to x-axis <-20.000000> speed <200.000000>;
+		turn fingerra to x-axis <20.000000> speed <300.000000>;
+		turn fingerrb to x-axis <20.000000> speed <300.000000>;
+		sleep 225;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn thumbr to x-axis <-50.000000> speed <200.000000>;
+		turn fingerra to x-axis <50.000000> speed <300.000000>;
+		turn fingerrb to x-axis <50.000000> speed <300.000000>;
+		sleep 125;
+		move hips to y-axis [2.000000] speed [2.000000];
+		turn luparm to x-axis <30.000000> speed <90.000000>;
+		turn lloarm to x-axis <30.000000> speed <90.000000>;
+		turn ruparm to x-axis <-30.000000> speed <90.000000>;
+		turn rloarm to x-axis <0.000000> speed <90.000000>;
+		turn rhand to x-axis <30.000000> speed <90.000000>;
+		sleep 200;
+		move hips to y-axis [2.100000] speed [2.000000];
+		turn fingerla to x-axis <0.000000> speed <300.000000>;
+		turn fingerlb to x-axis <0.000000> speed <300.000000>;
+		turn thumbr to x-axis <0.000000> speed <160.000000>;
+		turn fingerra to x-axis <0.000000> speed <160.000000>;
+		turn fingerrb to x-axis <0.000000> speed <160.000000>;
+		turn rloarm to x-axis <20.000000> speed <140.000000>;
+		turn rhand to x-axis <10.000000> speed <140.000000>;
+		sleep 100;
+	}
+}
+
+stopwalk()
+{
+	if( TRUE )
+	{
+		move hips to y-axis [2.000000] speed [1.000000];
+		turn luparm to x-axis <0.000000> speed <50.000000>;
+		turn ruparm to x-axis <0.000000> speed <50.000000>;
+		turn lloarm to x-axis <0.000000> speed <100.000000>;
+		turn rloarm to x-axis <0.000000> speed <100.000000>;
+		turn body to x-axis <0.000000> speed <20.000000>;
+		move hips to y-axis [1.500000] speed [3.000000];
+		move hips to y-axis [0.000000] speed [5.000000];
+		turn hips to z-axis <0.000000> speed <20.000000>;
+		turn fingerra to x-axis <0.000000> speed <100.000000>;
+		turn fingerrb to x-axis <0.000000> speed <100.000000>;
+		turn thumbr to x-axis <0.000000> speed <100.000000>;
+		turn fingerla to x-axis <0.000000> speed <100.000000>;
+		turn fingerlb to x-axis <0.000000> speed <100.000000>;
+		turn thumbl to x-axis <0.000000> speed <100.000000>;
+		turn rhand to x-axis <0.000000> speed <100.000000>;
+		turn lhand to x-axis <0.000000> speed <100.000000>;
+		turn body to x-axis <8.000000> speed <48.000000>;
+		if( Static_Var_5 )
+		{
+			turn arml to x-axis <-8.000000> speed <48.000000>;
+			turn armr to x-axis <-8.000000> speed <48.000000>;
+		}
+		wait-for-turn body around x-axis;
+		wait-for-turn body around x-axis;
+		turn body to x-axis <-1.000000> speed <48.000000>;
+		wait-for-turn body around x-axis;
+		turn body to x-axis <0.000000> speed <48.000000>;
+		if( Static_Var_5 )
+		{
+			turn arml to x-axis <0.000000> speed <48.000000>;
+			turn armr to x-axis <0.000000> speed <48.000000>;
+		}
+		wait-for-turn body around x-axis;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from smokeemit;
+		}
+		sleeptime = healthpercent * 30;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+SmokeGun(Func_Var_1)
+{
+	signal 16;
+	set-signal-mask 16;
+	Func_Var_1 = 150;
+	emit-sfx 256 | 1 from emit;
+	sleep 150;
+	emit-sfx 256 | 1 from emit;
+	sleep 170;
+	emit-sfx 256 | 1 from emit;
+	sleep 190;
+	emit-sfx 256 | 1 from emit;
+	sleep 210;
+	emit-sfx 256 | 1 from emit;
+	sleep 230;
+	emit-sfx 256 | 1 from emit;
+	sleep 250;
+	emit-sfx 256 | 1 from emit;
+	sleep 270;
+	emit-sfx 256 | 1 from emit;
+	sleep 290;
+	emit-sfx 256 | 1 from emit;
+	sleep 310;
+	emit-sfx 256 | 1 from emit;
+	sleep 330;
+	emit-sfx 256 | 1 from emit;
+	sleep 350;
+	emit-sfx 256 | 1 from emit;
+	sleep 370;
+	emit-sfx 256 | 1 from emit;
+	sleep 390;
+	emit-sfx 256 | 1 from emit;
+	sleep 410;
+	emit-sfx 256 | 1 from emit;
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+Create()
+{
+	hide flare;
+	hide flarea;
+	hide flareb;
+	hide exploder;
+	turn calcarm to x-axis <0.000000> now;
+	gun_1 = ground;
+	unitviewer = FALSE;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	Static_Var_9 = 0;
+	Static_Var_5 = 1;
+	Static_Var_1 = 3500;
+	Static_Var_8 = 0;
+	dont-cache EnrgyCell1;
+	dont-shade EnrgyCell1;
+	dont-cache Enrgycell2;
+	dont-shade Enrgycell2;
+	spin smokepoint around y-axis speed <300.000000>;
+	start-script SmokeUnit();
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	if( !bAiming )
+	{
+		Static_Var_8 = 0;
+		turn body to y-axis <0.000000> speed <60.000000>;
+		turn axis to y-axis <0.000000> speed <60.000000>;
+		if( Rand( 1, 7 ) == 1 )
+		{
+			spin canonbarrel1 around z-axis speed <100.000000> accelerate <10.000000>;
+			spin canonbarrel2 around z-axis speed <100.000000> accelerate <10.000000>;
+		}
+	}
+	call-script startwalk();
+	while( TRUE )
+	{
+		call-script walk();
+	}
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	signal SIG_MOVE;
+	start-script stopwalk();
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+RestoreTertiary()
+{
+	sleep 6000;
+	turn hpoint to y-axis Static_Var_8 speed <70.000000>;
+	Static_Var_9 = 0;
+}
+
+RestoreAfterDelay(Func_Var_1)
+{
+	sleep Static_Var_1;
+	Func_Var_1 = bMoving;
+	stop-spin canonbarrel1 around z-axis decelerate <25.000000>;
+	stop-spin canonbarrel2 around z-axis decelerate <25.000000>;
+	turn cannonr to y-axis <0.000000> speed <15.000000>;
+	turn cannonl to y-axis <0.000000> speed <15.000000>;
+	if( Func_Var_1 )
+	{
+		Static_Var_8 = 0;
+		turn body to y-axis <0.000000> speed <60.000000>;
+		turn axis to y-axis <0.000000> speed <60.000000>;
+		wait-for-turn body around y-axis;
+	}
+	if( !Func_Var_1 )
+	{
+		turn arml to x-axis <0.000000> speed <20.000000>;
+		turn armr to x-axis <0.000000> speed <20.000000>;
+		wait-for-turn arml around x-axis;
+	}
+	wait-for-turn cannonr around y-axis;
+	Static_Var_5 = 1;
+	bAiming = FALSE;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = body;
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = flareb;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flarea;
+	}
+}
+
+AimPrimary(heading, pitch)
+{
+	var Func_Var_3, Func_Var_4, Func_Var_5;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	spin canonbarrel1 around z-axis speed <1000.000000> accelerate <30.000000>;
+	spin canonbarrel2 around z-axis speed <1000.000000> accelerate <30.000000>;
+	Static_Var_5 = 0;
+	if( !unitviewer )
+	{
+		turn calcarm to x-axis <0.000000> - pitch now;
+		Func_Var_4 = get PIECE_Y(calcpoint);
+		Func_Var_3 = get PIECE_Y(calcflare);
+		if( Func_Var_4 >= Func_Var_3 )
+		{
+			Func_Var_5 = ( Func_Var_4 - Func_Var_3 ) / 300 + 360;
+			turn cannonr to y-axis Func_Var_5 speed <200.000000>;
+			turn cannonl to y-axis <0.000000> - Func_Var_5 speed <200.000000>;
+		}
+		if( Func_Var_4 < Func_Var_3 )
+		{
+			turn cannonr to y-axis <0.000000> speed <200.000000>;
+			turn cannonl to y-axis <0.000000> speed <200.000000>;
+		}
+		turn body to y-axis heading speed <320.000000>;
+		turn axis to y-axis <0.005495> - heading speed <200.000000>;
+		if( !Static_Var_9 )
+		{
+			turn hpoint to y-axis heading speed <200.000000>;
+		}
+		turn arml to x-axis <0.000000> - pitch speed <200.000000>;
+		turn armr to x-axis <0.000000> - pitch speed <200.000000>;
+	}
+	if( unitviewer )
+	{
+		turn body to y-axis heading speed <200.000000>;
+		turn axis to y-axis <0.005495> - heading speed <100.000000>;
+	}
+	wait-for-turn body around y-axis;
+	Static_Var_8 = heading;
+	wait-for-turn arml around x-axis;
+	wait-for-turn armr around x-axis;
+	wait-for-turn cannonr around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		move b2 to z-axis [-2.000000] speed [400.000000];
+		turn al to x-axis <20.000000> speed <400.000000>;
+		turn cannonl to x-axis <-20.000000> speed <400.000000>;
+		show flareb;
+		sleep 100;
+		hide flareb;
+		move b2 to z-axis [0.000000] speed [2.000000];
+		turn al to x-axis <0.000000> speed <35.000000>;
+		turn cannonl to x-axis <0.000000> speed <35.000000>;
+		gun_1 = hips;
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		move b1 to z-axis [-2.000000] speed [400.000000];
+		turn ar to x-axis <20.000000> speed <400.000000>;
+		turn cannonr to x-axis <-20.000000> speed <400.000000>;
+		show flarea;
+		sleep 100;
+		hide flarea;
+		move b1 to z-axis [0.000000] speed [2.000000];
+		turn ar to x-axis <0.000000> speed <35.000000>;
+		turn cannonr to x-axis <0.000000> speed <35.000000>;
+		gun_1 = ground;
+		return (0);
+	}
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = hpoint;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = emit;
+}
+
+AimTertiary(heading, pitch)
+{
+	Static_Var_9 = 1;
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn hpoint to y-axis heading speed <200.000000>;
+	wait-for-turn hpoint around y-axis;
+	start-script RestoreTertiary();
+	return (1);
+}
+
+FireTertiary()
+{
+	start-script SmokeGun();
+	show flare;
+	explode emit type BITMAPONLY | BITMAP5;
+	explode exploder type FALL;
+	explode exploder type FALL;
+	explode exploder type FALL;
+	move turret to z-axis [-0.500000] speed [200.000000];
+	move barrel to z-axis [-1.000000] speed [400.000000];
+	sleep 280;
+	move barrel to z-axis [0.000000] speed [2.000000];
+	move turret to z-axis [0.000000] speed [1.000000];
+	hide flare;
+}
+
+Killed(severity, corpsetype)
+{
+	explode EnrgyCell1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode Enrgycell2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode barrel type BITMAPONLY | BITMAP1;
+		explode turret type BITMAPONLY | BITMAP1;
+		explode hips type BITMAPONLY | BITMAP1;
+		explode luparm type BITMAPONLY | BITMAP1;
+		explode lloarm type BITMAPONLY | BITMAP1;
+		explode lhand type BITMAPONLY | BITMAP1;
+		explode fingerla type BITMAPONLY | BITMAP1;
+		explode fingerlb type BITMAPONLY | BITMAP1;
+		explode thumbl type BITMAPONLY | BITMAP1;
+		explode ruparm type BITMAPONLY | BITMAP1;
+		explode rloarm type BITMAPONLY | BITMAP1;
+		explode rhand type BITMAPONLY | BITMAP1;
+		explode fingerra type BITMAPONLY | BITMAP1;
+		explode fingerrb type BITMAPONLY | BITMAP1;
+		explode thumbr type BITMAPONLY | BITMAP1;
+		explode body type BITMAPONLY | BITMAP1;
+		explode arml type BITMAPONLY | BITMAP1;
+		explode cannonl type BITMAPONLY | BITMAP1;
+		explode flareb type BITMAPONLY | BITMAP1;
+		explode canonbarrel1 type BITMAPONLY | BITMAP1;
+		explode armr type BITMAPONLY | BITMAP1;
+		explode cannonr type BITMAPONLY | BITMAP1;
+		explode flarea type BITMAPONLY | BITMAP1;
+		explode canonbarrel2 type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode barrel type SHATTER | BITMAP4;
+		explode turret type SHATTER | BITMAP4;
+		explode hips type SHATTER | BITMAP4;
+		explode luparm type SHATTER | BITMAP4;
+		explode lloarm type SHATTER | BITMAP4;
+		explode lhand type SHATTER | BITMAP4;
+		explode fingerla type SHATTER | BITMAP4;
+		explode fingerlb type SHATTER | BITMAP4;
+		explode thumbl type SHATTER | BITMAP4;
+		explode ruparm type SHATTER | BITMAP4;
+		explode rloarm type SHATTER | BITMAP4;
+		explode rhand type SHATTER | BITMAP4;
+		explode fingerra type SHATTER | BITMAP4;
+		explode fingerrb type SHATTER | BITMAP4;
+		explode thumbr type SHATTER | BITMAP4;
+		explode body type SHATTER | BITMAP4;
+		explode arml type SHATTER | BITMAP4;
+		explode cannonl type SHATTER | BITMAP4;
+		explode flareb type SHATTER | BITMAP4;
+		explode canonbarrel1 type SHATTER | BITMAP4;
+		explode armr type SHATTER | BITMAP4;
+		explode cannonr type SHATTER | BITMAP4;
+		explode flarea type SHATTER | BITMAP4;
+		explode canonbarrel2 type SHATTER | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode barrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode hips type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode luparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode fingerla type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode fingerlb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode thumbl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode fingerra type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode fingerrb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode thumbr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode arml type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode cannonl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode flareb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode canonbarrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode armr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode cannonr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode canonbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode barrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode hips type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode luparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode fingerla type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode fingerlb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode thumbl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode fingerra type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode fingerrb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode thumbr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode arml type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode cannonl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode canonbarrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode armr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode cannonr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode canonbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+}

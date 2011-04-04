@@ -1,0 +1,125 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, arms, emit1, emit2, emit3;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+fixGo()
+{
+	spin arms around y-axis speed Static_Var_1 accelerate Static_Var_2;
+}
+
+Stop()
+{
+	stop-spin arms around y-axis decelerate Static_Var_3;
+	wait-for-turn arms around y-axis;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script fixGo();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	Static_Var_2 = 91;
+	Static_Var_3 = 182;
+	dont-shade arms;
+	dont-cache arms;
+	dont-shade base;
+	dont-cache base;
+	call-script InitState();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	while( TRUE )
+	{
+		emit-sfx 259 from emit1;
+		emit-sfx 259 from emit2;
+		emit-sfx 259 from emit3;
+		sleep 250;
+	}
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	signal SIG_ACTIVATE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1 * 20;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode arms type BITMAPONLY | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode arms type SHATTER | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+}

@@ -1,0 +1,202 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, arm1, arm2, arm3, arm4, light4, light3, light2,
+       light1, centerlight;
+
+static-var  statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	move arm1 to z-axis [0.000000] now;
+	move arm1 to z-axis [-5.350000] speed [4.890314];
+	move arm2 to z-axis [0.000000] now;
+	move arm2 to z-axis [5.300000] speed [4.844604];
+	move arm3 to x-axis [0.000000] now;
+	move arm3 to x-axis [-5.500000] speed [5.027423];
+	move arm4 to x-axis [0.000000] now;
+	move arm4 to x-axis [5.450000] speed [4.981720];
+	sleep 1094;
+	set ARMORED to 0;
+
+	move light4 to y-axis [1.200000] speed [1.082056];
+	move light3 to y-axis [1.200000] speed [1.082056];
+	move light2 to y-axis [1.200000] speed [1.082056];
+	move light1 to y-axis [1.150000] speed [1.036969];
+	sleep 1109;
+}
+
+deactivatescr()
+{
+	move arm1 to z-axis [-5.350000] now;
+	move arm2 to z-axis [5.300000] now;
+	move arm3 to x-axis [-5.500000] now;
+	move arm4 to x-axis [5.450000] now;
+	move light4 to y-axis [1.200000] now;
+	move light4 to y-axis [0.000000] speed [0.999164];
+	move light3 to y-axis [1.200000] now;
+	move light3 to y-axis [0.000000] speed [0.999164];
+	move light2 to y-axis [1.200000] now;
+	move light2 to y-axis [0.000000] speed [0.999164];
+	move light1 to y-axis [1.150000] now;
+	move light1 to y-axis [0.000000] speed [0.957532];
+	sleep 1201;
+
+	move arm1 to z-axis [0.000000] speed [4.385248];
+	move arm2 to z-axis [0.000000] speed [4.344263];
+	move arm3 to x-axis [0.000000] speed [4.508197];
+	move arm4 to x-axis [0.000000] speed [4.467212];
+	sleep 1220;
+	set ARMORED to 1;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+HitByWeapon(Func_Var_1, Func_Var_2)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	signal 2;
+	set-signal-mask 2;
+	set ACTIVATION to 0;
+	sleep 8000;
+	set ACTIVATION to 1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode arm1 type BITMAPONLY | BITMAP1;
+		explode arm2 type BITMAPONLY | BITMAP2;
+		explode arm3 type BITMAPONLY | BITMAP3;
+		explode arm4 type BITMAPONLY | BITMAP4;
+		explode base type BITMAPONLY | BITMAP5;
+		explode centerlight type BITMAPONLY | BITMAP1;
+		explode light1 type BITMAPONLY | BITMAP2;
+		explode light2 type BITMAPONLY | BITMAP3;
+		explode light3 type BITMAPONLY | BITMAP4;
+		explode light4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode arm1 type BITMAPONLY | BITMAP1;
+		explode arm2 type BITMAPONLY | BITMAP2;
+		explode arm3 type BITMAPONLY | BITMAP3;
+		explode arm4 type BITMAPONLY | BITMAP4;
+		explode base type BITMAPONLY | BITMAP5;
+		explode centerlight type SHATTER | BITMAP1;
+		explode light1 type FALL | BITMAP2;
+		explode light2 type FALL | BITMAP3;
+		explode light3 type FALL | BITMAP4;
+		explode light4 type FALL | BITMAP5;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode arm1 type BITMAPONLY | BITMAP1;
+		explode arm2 type BITMAPONLY | BITMAP2;
+		explode arm3 type BITMAPONLY | BITMAP3;
+		explode arm4 type BITMAPONLY | BITMAP4;
+		explode base type BITMAPONLY | BITMAP5;
+		explode centerlight type SHATTER | BITMAP1;
+		explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		return (0);
+	}
+	corpsetype = 3;
+	explode arm1 type BITMAPONLY | BITMAP1;
+	explode arm2 type BITMAPONLY | BITMAP2;
+	explode arm3 type BITMAPONLY | BITMAP3;
+	explode arm4 type BITMAPONLY | BITMAP4;
+	explode base type BITMAPONLY | BITMAP5;
+	explode centerlight type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+}

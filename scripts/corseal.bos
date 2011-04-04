@@ -1,0 +1,191 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  flare1, flare2, turret, base, sleeve1, sleeve2, barrel1, barrel2,
+       wake1, wake2;
+
+static-var  restore_delay, gun_1, Static_Var_3, bMoving;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+HitByWeapon(Func_Var_1, Func_Var_2)
+{
+	turn base to z-axis Func_Var_2 speed <105.000000>;
+	turn base to x-axis Func_Var_1 speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <30.000000>;
+	turn base to x-axis <0.000000> speed <30.000000>;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis anglez speed <50.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+EmitSFX()
+{
+	while( TRUE )
+	{
+		if( bMoving )
+		{
+			if( Static_Var_3 == 3 )
+			{
+				emit-sfx 259 from wake1;
+				emit-sfx 259 from wake2;
+			}
+		}
+		sleep 250;
+	}
+}
+
+Create()
+{
+	hide flare1;
+	hide flare2;
+	Static_Var_3 = 4;
+	bMoving = FALSE;
+	gun_1 = flare1;
+	restore_delay = 3000;
+	start-script EmitSFX();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn turret to y-axis <0.000000> speed <65.000000>;
+	turn sleeve1 to x-axis <0.000000> speed <35.000000>;
+	turn sleeve2 to x-axis <0.000000> speed <35.000000>;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <75.000000>;
+	turn sleeve1 to x-axis <0.000000> - pitch speed <45.000000>;
+	turn sleeve2 to x-axis <0.000000> - pitch speed <45.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve1 around x-axis;
+	wait-for-turn sleeve2 around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		show flare1;
+		move barrel1 to z-axis [-2.400000] speed [500.000000];
+		sleep 150;
+		hide flare1;
+		wait-for-move barrel1 along z-axis;
+		move barrel1 to z-axis [0.000000] speed [3.000000];
+	}
+	if( gun_1 == 1 )
+	{
+		show flare2;
+		move barrel2 to z-axis [-2.400000] speed [500.000000];
+		sleep 150;
+		hide flare2;
+		wait-for-move barrel2 along z-axis;
+		move barrel2 to z-axis [0.000000] speed [3.000000];
+	}
+	gun_1 = !gun_1;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = gun_1;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	hide flare1;
+	hide flare2;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP4;
+		explode flare2 type BITMAPONLY | BITMAP5;
+		explode barrel1 type BITMAPONLY | BITMAP4;
+		explode barrel2 type BITMAPONLY | BITMAP5;
+		explode sleeve1 type BITMAPONLY | BITMAP1;
+		explode sleeve2 type BITMAPONLY | BITMAP2;
+		explode turret type BITMAPONLY | BITMAP4;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode flare1 type FALL | BITMAP4;
+		explode flare2 type FALL | BITMAP5;
+		explode barrel1 type FALL | BITMAP4;
+		explode barrel2 type FALL | BITMAP5;
+		explode sleeve1 type SHATTER | BITMAP1;
+		explode sleeve2 type BITMAPONLY | BITMAP2;
+		explode turret type FALL | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode barrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode sleeve1 type SHATTER | BITMAP1;
+		explode sleeve2 type BITMAPONLY | BITMAP2;
+		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode barrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode sleeve1 type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode sleeve2 type BITMAPONLY | BITMAP2;
+	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+}

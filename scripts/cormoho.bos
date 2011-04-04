@@ -1,0 +1,252 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, stands, shell, dingle1, dingle2, rotary;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move stands to y-axis [0.000000] now;
+		move stands to y-axis [25.875000] speed [32.500000];
+		sleep 772;
+	}
+	if( TRUE )
+	{
+		sleep 198;
+	}
+	if( TRUE )
+	{
+		turn shell to x-axis <-180.038462> speed <261.000000>;
+		sleep 688;
+	}
+	set ARMORED to 0;
+	if( TRUE )
+	{
+		sleep 201;
+	}
+	if( TRUE )
+	{
+		move stands to y-axis [0.000000] speed [27.500000];
+		sleep 911;
+	}
+	sleep 34;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move stands to y-axis [0.000000] now;
+		move stands to y-axis [25.875000] speed [32.500000];
+		turn shell to x-axis <-180.038462> now;
+		sleep 768;
+	}
+	if( TRUE )
+	{
+		sleep 199;
+	}
+	if( TRUE )
+	{
+		turn shell to x-axis <0.000000> speed <261.000000>;
+		sleep 689;
+	}
+	if( TRUE )
+	{
+		sleep 201;
+	}
+	if( TRUE )
+	{
+		move stands to y-axis [0.000000] speed [27.500000];
+		set ARMORED to 1;
+		sleep 911;
+	}
+	sleep 33;
+}
+
+fixedGo()
+{
+	show dingle1;
+	show dingle2;
+	show rotary;
+	dont-cache dingle1;
+	dont-cache dingle2;
+	dont-cache rotary;
+	dont-cache shell;
+	dont-cache stands;
+	call-script activatescr();
+	spin rotary around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin dingle1 around y-axis speed Static_Var_1;
+	spin dingle2 around y-axis speed Static_Var_1;
+}
+
+Stop()
+{
+	stop-spin rotary around y-axis decelerate Static_Var_3;
+	stop-spin dingle1 around y-axis decelerate Static_Var_3;
+	stop-spin dingle2 around y-axis decelerate Static_Var_3;
+	wait-for-turn rotary around y-axis;
+	wait-for-turn dingle1 around y-axis;
+	wait-for-turn dingle2 around y-axis;
+	turn dingle1 to y-axis <0.000000> speed <120.000000>;
+	turn dingle2 to y-axis <0.000000> speed <120.000000>;
+	call-script deactivatescr();
+	cache dingle1;
+	cache dingle2;
+	cache rotary;
+	cache shell;
+	cache stands;
+	hide dingle1;
+	hide dingle2;
+	hide rotary;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script fixedGo();
+			currentstate = 0;	
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_1 = 500;
+	Static_Var_2 = 100;
+	Static_Var_3 = 500;
+	hide dingle1;
+	hide dingle2;
+	hide rotary;
+	dont-shade dingle1;
+	dont-shade dingle2;
+	dont-shade rotary;
+	dont-shade shell;
+	dont-shade stands;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+	start-script SmokeUnit();
+	set ARMORED to 1;
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1 * 10;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dingle1 type BITMAPONLY | BITMAP2;
+		explode dingle2 type BITMAPONLY | BITMAP3;
+		explode rotary type BITMAPONLY | BITMAP4;
+		explode shell type BITMAPONLY | BITMAP5;
+		explode stands type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dingle1 type FALL | BITMAP2;
+		explode dingle2 type FALL | BITMAP3;
+		explode rotary type FALL | BITMAP4;
+		explode shell type BITMAPONLY | BITMAP5;
+		explode stands type SHATTER | BITMAP1;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dingle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode dingle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode rotary type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode shell type BITMAPONLY | BITMAP5;
+		explode stands type SHATTER | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode dingle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode dingle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode rotary type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode shell type BITMAPONLY | BITMAP5;
+	explode stands type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+}

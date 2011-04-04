@@ -1,0 +1,1456 @@
+7.30 --> 7.31
+- Reverted Podger and Spolier stealthyness to allow stealth mine laying.
+- Reverted hitsphere gadget removal to fix large hitspheres.
+- Tweaked dynamic collision volumes to allow targetting.
+- Fixed fido primary weapon range.
+- Added anti out-of-map aircraft gadget.
+
+7.20 --> 7.30
+
+- Fixed pathing for Eraser
+- Fixed pathing for Bantha
+- Fixed pathing for Construction Ship
+- Fixed pathing for Fatboy
+- Fixed pathing for Jammer
+- Fixed pathing for Pincer
+- Fixed pathing for Skimmer
+- Fixed pathing for Vanguard
+- Fixed pathing for Spider
+- Fixed pathing for Invader
+- Fixed pathing for Construction Ship
+- Fixed pathing for Garpike
+- Fixed pathing for Roach
+- Fixed pathing for Croc
+- Fixed pathing for Copperhead
+- Fixed pathing for Scrubber
+- Fixed pathing for Spectre
+- Fixed pathing for Shiva
+- Fixed pathing for Banisher
+
+- Fixed range of Fatboy
+- Fixed range of Fido
+- Fixed range of Luger
+- Fixed range of Crusader
+- Fixed range of Warlord
+- Fixed range of Pillager
+- Fixed range of Tremor
+
+- Fixed stealth of Spoiler
+- Fixed stealth of Podgy
+- Fixed stealth of Dragonfly (Bonus: Passengers become stealthy)
+
+- Fixed air targeting of Banshee
+- Fixed air targeting of Luger
+- Fixed air targeting of Sharpshooter
+- Fixed air targeting of Pillager
+- Fixed air targeting of Diplomat
+
+- Fixed depth of all submarines
+- Fixed underwater pathing for all submarines
+- Fixed sub targeting of underwater buildings
+- Fixed ship targeting for subkiller submarines
+
+- Fixed disproportionate comwreck hitsphere
+- Fixed disproportionate solar hitspheres
+- Fixed T1 defence hitspheres (are now hitboxes)
+- Fixed dynamic hitspheres gadget making units unhittable
+
+- Fixed vehicles being unable to exit vehicle labs due to automatic terraforming
+- Fixed Dragon's Claw being mobile
+- Fixed Marky (radar kbot) armorclass
+- Fixed liche impulse on commanders
+- Fixed Doomsday script
+- Fixed RedUI chat console
+
+7.19 --> 7.20
+
+- Fixed Commanders starting on the edge of the startbox being teleported into the middle.
+- Fixed a healthbars bug (negative display).
+- Fixed a load of incorrect model footprints which clashed with movedefs and may have caused bad pathing (mainly affected Sea).
+- Added dynamic hitsphere gadget for units such as Viper (thanks Deadnight Warrior).
+- Fixed some building footprint sizes / yardmaps (thanks Deadnight Warrior).
+- Fixed buggy targetting behaviour caused by (engine) BadTargetCategory issue, most noticable on Commander, Slasher, Samson, 
+- Added 'Air Comblast Full Damage' modoption (default on), disable to have an airbourne commander make a reduced complosion.
+- Updated Mex Upgrader gadget (thanks Deadnight Warrior) + fixed some global lua errors.
+- Re-added minimum builddistance of 128.
+- FFA Mode now gives anyone who drops after 8 minutes a grace period of 3 minutes to reconnect before destroying their units.
+- Labs should now only play their building sounds in LOS to avoid giving away their type.
+
+- Fixed cormex script (thanks bartvbl).
+- Arm Metal Makers sphere now spins when its on.
+- Arm Dragon's Eye buildtime reduced 50%.
+- Core Dragon's Eye buildtime reduced 50%.
+- Arm Twilight energy cost reduced 20%.
+- Core Exploiter energy cost reduced 20%.
+
+- Arm & Core Construction Ships should now maneuver better.
+
+- Arm Stumpy energycost increased (1746->1921).
+
+- Arm Pack0 cloak cost reduced (20->12).
+
+- Core Punisher targetmoveerror removed from low trajectory mode.
+- Arm Guardian targetmoveerror removed from low trajectory mode.
+
+- Tech 1 fighters should no longer chase ground units unless ordered to.
+
+- Removed the 'Fire Delay' option for Screamer, Mercury, Chainsaw, Eradicator.
+- Added some automatic targetting code to the above missile towers ('beta').
+- Arm Flakker energycost reduced 30%.
+- Core Cobra energycost reduced 30%.
+- Mobile and Static Flak damage vs fighters doubled. 
+- Arm Mercury energycost and buildtime reduced 30%.
+- Arm Mercury missile no longer collides with friendly units.
+- Core Screamer energycost and buildtime reduced 30%.
+- Core Screamer missile no longer collides with friendly units.
+
+- Arm Phoenix bomb damage reduced (250->210).
+- Arm Tsunami bombs dropped per run reduced (8->7).
+- Core Hurricane bomb damage reduced (337->283).
+- Core Maelstrom bombs dropped per run reduced (8->7).
+- Core Advanced Construction Aircraft workertime increased (80->120).
+- Arm Advanced Construction Aircraft workertime increased (80->120).
+- Core Krow flying energy cost removed, cruise altitude raised (60->80).
+- Core Krow frontal laser damage increased (170->250).
+- Arm Dragonfly weapon paralyzer damage decreased (64000->15000), reload time reduced (10-8).
+- Arm Dragonfly weapon paralyzetime reduced (20->15).
+- Arm Liche bomb no longer instantly kills commanders with impulse.
+- Arm Liche bomb special damage vs commanders raised (1550->2300)
+
+- Core Reaper energycost reduced 15%, buildtime reduced 15%.
+- Arm Bulldog energycost reduced 15%.
+
+- Core Advanced Construction Kbot workertime increased (140->180).
+- Arm Advanced Construction Kbot workertime increased (140->180).
+- Arm Fido energycost and buildtime reduced 10%.
+- Arm FARK HP increased (200->300), small autoheal added, repair speed increased (120->150).
+- Arm FARK can now build Dragon's Eye, Marky, Eraser.
+- Arm Invader velocity increased (2.31->2.8).
+- Core Roach velocity increased (2.2->2.7).
+- Core Skuttle velocity increased (1.35->1.75).
+
+- Arm Pit Bull cloak cost reduced (20->16)
+- Arm Ambusher cloak cost reduced (40->24)
+- Core Doomsday Machine given its own red/green lasers, roughly same dps.
+
+- Arm Marauder weapon damage increased (185->215).
+- Arm Bantha hand cannon damage increased (336->365).
+- Arm Bantha self D explosion AOE increased (960->1280).
+- Arm Bantha death explosion AOE increased (432->600), damage increased.
+- Arm Vanguard hp reduced (18000->15000).
+- Arm Vanguard energycost reduced 20%.
+- Core Krogoth head laser AOE increased, dps increased, energy per shot lowered.
+- Core Krogoth rockets dps improved, effects improved.
+- Core Krogoth hand cannons small impulse added.
+
+7.18 --> 7.19
+
+- Added the hitsphere fix gadget by kloot & Deadnight Warrior, reduces hitsphere sizes which were increased by engine update.
+- Added Ambient Occlusion Groundplates to most buildings, thanks to Beherith
+- Fixed the ability to disable units in the lobby.
+
+- Core Commando metalcost increased (618->1126).
+- Core Commando energycost and buildtime increased 30%.
+- Core Commando drop gadget behaviour tweaked.
+- Core Commando added Core Roach to buildlist.
+
+7.17 --> 7.18
+
+- Bomber reloadtimes now set on the weapon defs not via a script.
+- Fixed a crash bug in commando gadget.
+- Fixed Arm Advanced Fusion energy storage.
+
+7.16 --> 7.17
+
+- Fixed units not taking damage from dead attackers.
+
+7.15 --> 7.16
+
+- Fixed default unit icons.
+- Fixed and improved custom icons widget.
+- Disabled heatmapping for all units.
+- Better fix for reclaiming features with 0 resources.
+- Commander Wreck is no longer thrown across the map by a Commander Explosion.
+
+- Removed the fake lolUI launcher and enabled RedUI by default (should not affect users of other UIs who already have this disabled).
+- Fixed Ghost Site widget not displaying buildings under construction.
+- Updated Custom Formations to version 3.2
+
+- Fixed some model holes and improved animations (thanks Pizzi1), affects:
+  - Core Construction Vehicle 
+  - Core Advanced Construction Vehicle
+  - Core A.K.
+  - Arm Peewee
+  - Arm Kbot Lab
+  - Arm Conqueror
+  
+- Arm Phoenix reload time increased (5->9).
+- Arm Thunder reload time increased (5->9).
+- Arm Liche reload time increased (5->9).
+- Arm Liche rocket flightime limit added (1.5s).
+- Core Hurricane reload time increased (5->9).
+- Core Shadow reload time increased (5->9).
+
+- All Flak DPS vs non-gunships increased 20-25%.
+- Stationary Flak turrets (inc Naval Flak) accuracy increased somewhat.
+
+- New Core Commando added to Core Advanced Kbot Lab (experimental).
+- Arm Infiltrator given minor reclaim ability.
+- Core Parasite given minor reclaim ability.
+
+- Core Juggernaut, Energy storage added (350).
+- Core Krogoth head laser damage increased (5000->8000).
+- Core Krogoth rockets damage increased (360->600).
+- Core Krogoth rockets reload time increased (2.75->5).
+- Arm Bantha head laser damage increased (2500->4000).
+- Arm Vanguard Energy cost increased (54739->82109).
+- Arm Vanguard turret turn speed reduced 25%.
+- Arm Vanguard Weapon reloadtime increased (4->6), damage increased (900->1100).
+- Arm Vanguard Weapon area of effect reduced (256->192).
+
+- Arm Advanced Fusion, Energy Storage reduced (25000->9000).
+- Core Advanced Fusion, Energy Storage reduced (25000->9000).
+- Arm Moho Geothermal Powerplant (Hazardous), Energy storage increased (2500->12000).
+- Core Moho Geothermal Powerplant (Hazardous), Energy storage increased (2500->12000). 
+ 
+- Core Light Laser Tower, Energy storage reduced (100->20).
+- Arm Light Laser Tower, Energy storage reduced (100->20).
+- Core HLLT, Energy storage reduced (100->60).
+- Arm Beamer, Energy storage reduced (100->60).
+- Arm Annihilator, Energy storage reduced (2000->1500).
+
+7.14 --> 7.15
+
+- Fixed reclaim bug for negative/zero resource features.
+- Start resources and storage now belong to the commander not the team.
+- Fixed coop mode not spawning units for non coop players.
+- Moved start resources into mod options.
+
+7.12 --> 7.14
+
+- Added fix for new Spring release not spawning units.
+- Added fix for new Spring release removal of AllowUnsafeChanges function.
+
+- Added some fixes for MT build lua errors.
+- Removed default off widgets
+  - FPS Manager
+  - Blob Shadows
+
+7.11 --> 7.12
+
+- Added more new load screens.
+
+- Modified the brick texture on arm buildings to look less like 20th century house bricks.
+
+- Fixed Core SAM script issue.
+
+- Fixed Ghostsite widget, now does not redraw all ghosted buildings.
+- Fixed RedUI console bugs.
+- Fixed Ally Resource Bars widget in spectator mode showing the wrong teams.
+- LUPS should no longer draw effects on fusions under construction.
+- LUPS shockwave effect now used a bit less.
+- Turning off Lups Manager widget now also turns off the Shockwaves and Napalm Jitter gadget effects.
+- FFA mode will now remove commanders from players who drop in the first minute with no comwreck.
+- Healthbars widget now disables the engine ressurect bars.
+- Healthbars widget modified the EMP effect.
+
+- Improved Arm bomber effects.
+- Fixed Arm and Core seaplane bomber effects.
+- Arm Thunder bomb damage increased approx 10%.
+- Core Shadow bomb damage increased approx 10%.
+- T1 air transports may now release damaged units when destroyed provided they're close to the ground (mid-unload only).
+
+- Arm FatBoy weapon given minor impulse effect.
+
+- Arm Bulldog should not try to target air units anymore.
+- Core Reaper should not try to target air units anymore.
+
+- Arm Vanguard Range decreased 100, heightboostfactor increased (bonus range from high ground to low ground).
+- Core Karganeth shoulder/head weapon activated, a weak slow loading AA only version of their main missile (mainly for looks).
+
+7.1 --> 7.11
+
+- Replaced loadscreens with JAZCASH's higher resolution offerings.
+- Added EngineOptions.lua.
+
+- Fixed some UI stuff auto starting when it shouldn't have.
+- Added Ally Resource Bars widget (default off).
+- Fixed missing minimap buttons on RedUI.
+- Fixed Coop Info widget staying on if you did /luaui reload after gamestart.
+
+- Core Avenger fixed the bad airSightDistance tag (now actually 550).
+
+- Arm Guardian High Trajectory impulse reduced a little.
+- Arm Guardian Low Trajectory given a small impulse effect.
+- Arm Ambusher Low Trajectory given a small impulse effect.
+
+- Core Punisher High Trajectory impulse reduced a little.
+- Core Punisher Low Trajectory given a small impulse effect.
+- Core Toaster Low Trajectory given a small impulse effect.
+
+- Swapped Mercury and Screamer weapons (Arm had the Core smoke trail and vice versa!).
+
+7.04 --> 7.1
+
+- Removed some infolog spam.
+- Replaced modinfo.tdf with a shiny new modinfo.lua.
+- Added some minor randomisation to a few sounds via sounds.lua.
+- Fixed dgun and bladewing shot sound clipping issues.
+
+- Updated X-Ray hilight widget to work with black teams (thanks bartvbl).
+- Updated Custom Formations widget.
+- Updated LUPS.
+- Added Niobium's Loop Select widget.
+- Added Niobium's Build Split Widget.
+- Replaced LolUI with RedUI (default on for anyone previously using LolUI).
+
+- Added 'Progressive Mining' game mode (default off), all mines start at 25% efficiency and raise to 125% over a few minutes, death resets this.
+
+- Improved Core Fusion lups effect.
+- Improved a few effects with the lups napalm gadget.
+
+- Applied patch with small fixes & improvements to a few models (thanks Pizzi1), affects:
+  - Core Tremor + Corpse
+  - Core Toaster
+  - Core Punisher + Corpse
+  - Core Floating HLT
+  - Core A.K.
+  - Arm Vulcan Corpse
+  - Arm Vanguard + Corpse
+  - Arm LLT
+  - Arm Guardian + Corpse
+
+- Core Silencer launch platform is now in a correct position (thanks bartvbl)
+- Arm Ranger launching holes do not "jump up" anymore when the missile bay doors are closing (thanks bartvbl)
+- Arm Banisher now aims correctly (thanks bartvbl).
+
+- Removed impactonly from a load of weapons, should fix issues with hitting shipyards that are building stuff.
+
+- Arm Dragon's Claw HP increased (900->1200).
+- Arm Guardian High Trajectory damage increased 20%, Low Trajectory reload time decreased 10%.
+- Core Punisher High Trajectory damage increased 20%, Low Trajectory reload time decreased 10%.
+
+- Arm Panther Energycost reduced 40%, buildTime reduced 20%.
+- Arm Gremlin Reload time reduced 25%, damage reduced 25% (same DPS).
+- Arm Phalanx Buildtime reduced 25%, Health increased (1510->2350), velocity increased 20%.
+- Arm Phalanx airSightDistance tag added (900).
+- Arm Bulldog Velocity increased 20%, turnrate increased (378->415).
+- Core Croc Energycost reduced 40%, buildTime reduced 20%.
+- Core Croc Velocity increased 15%.
+- Core Reaper Velocity increased 15%.
+- Core Copperhead Buildtime reduced 20%, Health increased (1595->2425), velocity increased 25%
+- Core Copperhead airSightDistance tag added (900).
+- Core Goliath Velocity increased 5%, Health increased (7000->8200).
+
+- Arm Jethro airSightDistance tag added (800).
+
+- Core Manticore airSightDistance tag added (925).
+
+- Arm Archangel airSightDistance tag added (925).
+- Arm Advanced Construction Kbot Energycost increased 25%.
+
+- Core Crasher airSightDistance tag added (800).
+- Core Gimp turret turnrate increased slightly in water, doubled on land.
+- Core Advanced Construction Kbot Energycost increased 25%.
+
+- Arm Bantha airSightDistance tag added (1100).
+
+- Arm Brawler Health increased 10%.
+- Arm Hawk airSightDistance tag added (600), sightDistance reduced (560->300).
+- Arm Blade accuracy increased.
+- Arm Freedom Fighter airSightDistance tag added (550), sightDistance reduced (530->275).
+- Arm t1 Construction Aircraft added buildoption 'Arm Air Repair Pad'.
+- Core Rapier Buildtime and Energycost reduced 10%.
+- Core Vamp airSightDistance tag added (600), sightDistance reduced (550->300).
+- Core Avenger airSightDistance tag added (550), sightDistance reduced (500->275).
+- Core Bladewing useSmoothMesh=0 tag added.
+- Core Bladewing weapon values tweaked slightly to hopefully improve targetting.
+- Core t1 Construction Aircraft added buildoption 'Core Air Repair Pad'.
+
+- Arm Air Repair Pad costs and buildtime reduced.
+- Core Air Repair Pad costs and buildtime reduced.
+
+- Arm Defender airSightDistance tag added (700).
+- Arm Pack0 airSightDistance tag added (700), sightDistance reduced (520->375).
+- Arm Chainsaw airSightDistance tag added (1000), sightDistance reduced (700->350).
+- Arm screamer airSightDistance tag added (1200), sightDistance reduced (700->350).
+- Arm screamer AOE increased (240-300), edgeeffectiveness reduced (0.25->0).
+- Core Pulverizer airSightDistance tag added (700).
+- Core SAM airSightDistance tag added (700), sightDistance reduced (520->375).
+- Core Eradicator airSightDistance tag added (1000), sightDistance reduced (700->350).
+- Core Mercury airSightDistance tag added (1200), sightDistance reduced (700->350).
+- Core Mercuty AOE increased (240-300), edgeeffectiveness reduced (0.25->0).
+
+- Arm Archer airSightDistance tag added (900), radar removed.
+- Arm Skeeter airSightDistance tag added (800).
+- Arm Swatter airSightDistance tag added (800).
+- Arm Flakker NS airSightDistance tag added (800).
+- Arm Flakker airSightDistance tag added (800).
+- Arm Sentry airSightDistance tag added (750).
+- Core Shredder airSightDistance tag added (900), radar removed.
+- Core Slinger airSightDistance tag added (800).
+- Core Cobra - NS airSightDistance tag added (800).
+- Core Cobra airSightDistance tag added (800).
+- Core Stinger airSightDistance tag added (750).
+- Core Searcher airSightDistance tag added (800).
+
+7.03 --> 7.04
+
+- Core Exploiter metal extraction fixed.
+- Updated Pause Screen widget.
+
+7.02 --> 7.03
+
+- Arm Twilight fixed metal extraction, buildtime reduced.
+- Core Exploiter buildtime reduced.
+- Load hax gadget should ignore loading your own units.
+- Reverted solar textures.
+- Minor tweak to Core Metal Extractor Script (thanks bartvbl).
+
+7.01 --> 7.02
+
+- Fixed an issue with the prevent draw gadget.
+- Prevent Draw mode no longer on by default.
+- Added a new patch to the load hax gadget.
+- Fixed no wrecks mode to use a whitelist for walls rather than a blacklist for wreck names.
+- Imported jk's updated otatextures from CA where applicable.
+
+- Added More Sounds widget (default on).
+- Rolled back Take Remind widget due to reports of bugs.
+
+- Improved commander laser aim script a little more.
+
+- Juno explosion effect size decreased a bit.
+- Core Exploiter metal extraction raised to equal mex, metalcost (188->220).
+- Core Moho Exploiter metal extraction raised to equal moho mine.
+- Arm Twilight metal extraction raised to equal mex, metalcost (159->190), minCloakDistance (48->66), energyUse(5->3), cloakCost(10->12).
+
+- Core Wolverine AOE increased (88->113).
+- Arm Shellshocker AOE increased (80-105).
+
+- Arm Dragon's Claw HP increased (900->1200), closed damage reduction reduced 5%.
+- Core Dragon's Maw HP increased (1100->1450), closed damage reduction reduced 5%.
+
+- Arm Banshee buildtime reduced (15%), damage to commanders raised (2->3).
+
+- Added Decoy Commander to amphibious complex.
+- Added minor energy generation to Can, Sumo, Juggernaut and Zeus (still all use significantly more to fire their weapons).
+
+- Core Doomsday machine self destruct damage increased (1800->2400).
+
+- Core Karganeth Removed BadTargetCategory=VTOL.
+- Core Juggernaut sightdistance increased (720).
+- Core Buzzsaw and Arm Vulcan turret rotation speed increased.
+
+7.00 --> 7.01
+
+- Fixed enemy dragons teeth showing up outside LOS.
+- Fixed some missing sounds.
+- Fixed warning and point sounds being played non-globally.
+
+- Added mod option "Commander Ends No Draw", makes last com alive immune to comblast and disqualifies players who dgun the last com with their last com. (default on)
+- Added mod option "Show Enemy Wrecks", disable and you only gain instant LOS on your own wrecks. (default on)
+- Added a gadget to reduce damage of torpedos / depthcharges to land units when out of water by 80%.
+- Fixed the hack in the reclaim fix gadget.
+
+- Updated Defense Range widget to 6.2.
+- Updated Take Reminder widget to 3.2.
+- Updated Health Bars widget to latest version (faster).
+- Added very_bad_soldier's Pause Screen widget (default on).
+- Fixed Ghost Site widget rotation and tracking of buildframes, added tracking for enemy features if needed.
+- Fixed vertical text centering on some widgets including LolUI.
+- Removed a rare FPS loss issue in waypoint dragger widget.
+- Tweaked display of Transporting widget (+default on).
+
+- Improved bantha blaster FX.
+
+6.96 --> 7.00
+
+- Added new loadscreens.
+
+- Fixed categories for new spring release.
+
+- Added custom icons widget (default on).
+- Added customised Waypoint Dragger widget (default on).
+- Added new Share Tracker widget (default on).
+- Modified Attack AOE widget, idle performance increased.
+- Updated Ghost Site widget to 1.2.
+- Updated Defense Range widget to 6.12.
+- Updated Take Reminder widget to 3.12.
+- Updated Custom Formations widget to 2.2.
+- Updated Unit Marker widget to 1.3.
+- Removed blast radius widget.
+- Removed minimap events widget.
+
+- Added SirMaverick's DroppedStartPos gadget (fixes dropped players starting in enemy start box).
+- Fixed FFA Mode to no longer destroy units inside enemy transports.
+- Fixed a possible workaround the anti loadhax gadget.
+- Tweaked Passive nanos gadget, added the switch to t1 Minelayers.
+- Renamed "Greenfields Mode" to "No Metal Extraction".
+- Removed broken King of the Hill mode (if Alchemist/anyone wants to fix it in a mutator i'll reintegrate)
+
+- Tweaked some death explosions.
+- Added gfx for small yellow laser hits.
+- Improved Commander laser aiming script, special damages vs air tweaked.
+
+- Arm Jeffy weapon damage reduced (50->35).
+- Core Weasel weapon damage reduced (50->35).
+- Arm Flea Reloadtime increased (0.4->0.55), death explosion damage increased slightly (5->8).
+- Arm Jethro velocity increased 15%, added maxslope=15 tag for combat engineers.
+- Core Crasher velocity increased 15% added maxslope=15 tag for combat engineers.
+
+- Arm Freedom Fighter & Core Avenger buildtime reduced 15%, acceleration increased (2.5).
+- Arm Thunder & Core Shadow buildtime reduced 30%. 
+- Arm Thunder & Core Shadow Metal & energy cost reduced 5%.
+- Arm Thunder & Core Shadow bomb damage reduced, area of effect increased.
+
+- Arm Construction Seaplane & Core Construction Seaplane can now build t2 energy / metal stores.
+
+- Core Viper & Arm Pitbull energy cost increased 50%.
+- Core Viper & Arm Pitbull damage and reload increased 25% (same dps, slightly lower ROF).
+
+- Core Pyro flame should no longer show up outside normal LOS for enemies.
+- Arm Fatboy sightdistance increased (416->510).
+- Arm Fatboy Metal cost reduced (1576->1418).
+- Core Termite weapon damage increased 25%.
+- Arm Recluse weapon damage increased 25%.
+- Core Skuttle Energy cost reduced (27470->24723), Buildtime Reduced (18861->16975).
+- Core Voyeur movement class fixed (TANK2->KBOT2).
+
+- Arm Razorback weapon tweaked, dps and aimspeed improved.
+- Arm Razorback hitsphere streamlined to reduce blocking in groups.
+- Arm Vanguard velocity increased (0.8->1.1).
+- Arm Vanguard burnblow removed (broke high traj).
+
+6.95 --> 6.96
+
+- Added Prevent Load Hax gadget (does exactly what it says on the tin).
+- Patch for ressurect bug, should work in most circumstances.
+- Replaced Customformations with Niobium's fixed Customformations2 widget.
+
+6.94 --> 6.95
+
+- Fixed a bug in BA Allied Cursors where specs would broadcast a cursor.
+- Fixed autoquit widget.
+- Fixed shield watch gadget again for new spring.
+- Updated Select n Center widget as it seems to be marking the wrong start point on fixed/random games.
+
+- Resized Radar icons to 128x128 to fix an issue with some Nvidia cards.
+
+- Arm Spider sightdistance raised (273->360).
+- Core Pyro Acceleration (0.25->0.45) and Speed (2.5->2.75) increased, torso turnrate increased (200->275).
+- Core Skuttle move velocity increased (1.15->1.35)
+- Arm Pelican AA missile can no longer be force fired at ground.
+
+- Arm Panther lighting weapon no longer targets air.
+- Arm Panther AA missile can no longer be force fired at ground.
+
+- Core Double LLT buildtime reduced (6592->5448).
+- Arm Beamer buildtime reduced (6493->5324).
+- Arm Packo costs all reduced by 20% (energy,metal,buildtime).
+- Core SAM costs all reduced by 20% (energy,metal,buildtime).
+
+- Core Bladewing EMP damage vs Commanders cut by 33%.
+
+- Arm & Core Submarines given badtargetcategory HOVER (only attack hovercraft if no better targets).
+- Arm & Core Construction Seaplanes can now build naval mines rather than land mines.
+- Arm & Core Seaplane platform buildlists reorganised (same as land airplants).
+- Arm & Core Ressurection Subs workertime increased (200->450), can no longer assist building.
+
+- Arm Vanguard damage increased (750->900), heightboostfactor added (1.15), sightdistance increased (525->625), accuracy increased.
+- Arm Maurauder cannon reload time reduced (0.8->0.7), acceleration increased (0.072->0.22)
+- Arm Maurauder gains the panther/pelican light AA missile.
+- Arm Maurauder walk script improved, turret turnrate improved a bit (110->140).
+- Arm Razorback move velocity increased (2.1->2.3), turnrate increased 25%.
+- Arm Razorback dps vs air reduced ~25%.
+- Arm Bantha move velocity increased (1.32->1.65), blaster velocity decreased (600->400) (mainly so its more visible).
+- Arm Bantha self destruct damage reduced (9500->5500) blast range reduced (1280->960).
+- Core Karganeth move velocity increased (1.38->1.5).
+
+6.93 --> 6.94
+
+- Coop teams should no longer see enemies start points.
+- Improved behaviour of passive nanos in relation to estalling.
+
+6.92 --> 6.93
+
+- Removed override LuaUI function (player widgets take priority).
+- Removed Reclaim Info Widget (buggy).
+- Increased text size on LolUI command buttons (you can modify the size within the element settings under Menu).
+- Fixed the shield watch gadget (new spring changed how the shield call worked).
+- Fixed the prospector widget.
+- Added Reclaim Fix gadget (implements old style reclaim).
+- Fixed comcounter widget.
+- Coop info widget no longer displayed for spectators.
+- Coop teams should now see normal teams start points.
+- Changing airplant settings should no longer clear their order queue.
+- Added new 'Active/Passive' button for nanoturrets, Passive nano turrets wont build when you're stalling.
+
+- Energy removed from fort walls, manual reclaimTime tag added.
+
+6.91 --> 6.92
+
+- Added Coop mode + Mod option to enable.
+- Added Alchemist's King of the Hill mode + Mod option to enable.
+- Re-added No Wrecks mode.
+
+- Added the new LuaUI code which saves a seperate widget config for BA (will allow you to have a config for each mod, some settings may reset on first load.)
+
+- Added modified allied cursors widget (default on).
+- Added Com Counter widget, echos number of remaining Commanders in 'Kill all Commanders' mode (default on).
+- Updated LolUI to 9th, custom tweaks to make it work better with other UI's (default on).
+- Updated Old BA Layout, now disables LolUI when enabled (default off).
+- Updated Defense Range widget (default on), added ghostSite (default on), blastRadius (default on), unit_marker (default off).
+- Updated Commander Gate effect so it doesn't break with BA Coop.
+
+- Reverted Thud and Hammer weapon to 6.84 stats (see: http://springrts.com/phpbb/viewtopic.php?f=44&t=18585)
+- Advanced Metal and Energy storage HP increased 50%, added to 'ANTIBOMBER' armour class, renamed 'Hardened Energy/Metal Storage'.
+
+6.9 --> 6.91
+
+- Fixed a bug that disabled luarules for certain players and caused desyncs.
+- Renamed 'BA Layout' widget to 'Old BA Layout' so it isn't initially loaded for previous BA players.
+- Updated LolUI (Click Menu > Other Stuff > Reset UI if this does not display correctly).
+
+6.85 --> 6.9
+
+- Fixed some bad OTA soundfiles for new spring.
+
+- Added Regret's lolui (default on).
+- Added Evil4Zerggin's Prospector widget (default on).
+- Added jK's blobshadow widget (default off).
+- Added trepan's minimap events widget (default off).
+- Replaced Highlight unit widget with new Xray Highlight widget (default on).
+- Updated Attack AOE widget updated, added a BA specific fix that makes the D-gun indicator much more accurate.
+- Updated Advanced Players List widget.
+- Updated Defense Range widget.
+- Updated Buildbar widget.
+- Updated Commander name tags widget.
+- Tweaked FPS Manager widget (now default off).
+
+- Added new Prevent Range Hax gadget (prevents units from overshooting outside of FPS mode).
+- Added quantum's No Self-D gadget (stops the self d countdown on a shared unit).
+- Added Commander gate modoption/gadget (commanders visually teleport in at gamestart) (default off).
+
+- Several weapon effects improved graphically.
+
+- All weapons with AOE of 16 or less changed to 'impactonly'.
+
+- Added t1 torpedo launchers to the 'no direct control' gadget.
+- Modified depthmod tags on amphibs set to 0 (no penalty for being underwater).
+- Fixed t1 subs torpedo not reaching max range.
+- Land Depthcharge launchers projectiles will now bounce once on land (helps them reach water).
+- Scoutboats added to the no self pwn gadget.
+
+- Thud, Hammer predictboost cut a bit (this was added before reload change).
+- Core Can hitsphere size reduced.
+- Arm and Core Decoy Commander's stats improved, cloak added, mines added to buildlist.
+- Arm Marky added to the RADAR armourclass.
+
+- Blades no longer take extra damage from t2 fighters (they now take the same as all gunships).
+- Aircraft under construction will no longer be automatically fired upon by AA.
+- Raised cruisealt on Valkyrie and Atlas slightly (50->70).
+
+6.84 --> 6.85
+
+- Fixed Core Termite weapon sound (should not sound super loud on linux.)
+- Fixed Bladewings chasing air units, improved their script & behaviour somewhat.
+- Fixed Sea planes getting stuck in limbo in certain conditions.
+- Fixed amphibious units speed in and out of water (removed scripts, used depthmod).
+- Fixed a character encoding issue that prevented the Core Spectre being loaded.
+- Fixed Arm Advanced Radar Tower script imprived (thanks [PiRO]Pizzi1)
+- Razorback walk script improved (thanks [PiRO]Pizzi1)
+- Mobile AA units should no longer chase ground units.
+- Fixed Liche and Krow chasing after aircraft.
+- Tech 1 Submarines FPS exploit fixed (manual flighttime added).
+
+- Removed 'no wrecks mode' modoption (Never saw a game where players were happy with it being turned on).
+- Added Evil4Zerggin & zwzsg's autoquit widget (exits spring at game end if no mousemove after 10 seconds).
+
+- Arm Rector and Core Necro script & acceleration improvements (faster reaction times).
+- Arm Rector and Core Necro autoheal waittime reduced, sight distance increased, buildrange increased slightly.
+- Construction kbots build distance raised slightly (90->100).
+- Core AK and Arm Peewee number of exploding death shards reduced.
+- Core Thud and Arm Hammer mass increased (resistance to impulse).
+- Core Thud and Arm Hammer damage and reload time reduced (slight dps increase, faster shots).
+- Arm Warrior buildtime reduced by 15%.
+- Arm Zeus weapon now costs 35 energy to fire.
+- turninplace=0 added to spiders and crawling bombs (experimental).
+
+- Commander energy cost raised significantly (for the purpose of ressurection costs).
+- Commander capture speed tripled.
+- Terraform (Restore) speed on most builders tripled (thanks Trademark).
+
+- Arm and Core Ressurection Sub's Metalcost and Buildtime reduced by 30%.
+- Arm and Core AA Hovercraft DPS increased ~30%.
+
+- Arm Consul now builds Panther and Fatboy in place of Fido and Zeus.
+- Jeffy and Wezel no longer do self damage.
+
+6.83 --> 6.84
+
+- Exploit Fix: AA Kbots (and many other AA units that used 'BOGUS_MISSILE' for targeting) can no longer manually attack ground.
+- Added Trademark's wreckage renames (eg. wrecks will now be called 'Vehicle Plant Wreckage' rather than 'Wreckage').
+- Cleaned up the feature file of bad object references so spring doesn't crash when you perform certain operations on FeatureDefs from lua.
+- Added my Ally Resourcebars Widget (disabled by default).
+
+6.81 --> 6.83
+
+- Missile Delay Gadget now works based on % max weapon reload (in 10% steps).
+- Fixed No Owner Mode displaying messages for teams that died naturally.
+- Added No metal extraction mod option (to allow you to play greenfields on any map without disabling mex's).
+- Added some new reclaim GFX for wrecks.
+- Added Google Frog's prevent lab hax gadget (stops unattackable enemy units getting inside your labs).
+- Stability tweak to Mex Upgrader gadget to fix a random crash that ruined a game I was in (please report stuff like this with infolog.txt).
+
+- Pointtracker widget modified to only show the arrows on the screen edge and minimap markers (if you like the old functionality download the original widget).
+- Center n' Select widget simplified, now also marks your startpoint for you before gamestart on Random/Fixed modes and removes your startpoint at gamestart.
+- Start Point Remover widget removed.
+
+- Added missing mex select sound.
+- Added Collidefriendly=0 and Avoidfriendly=0 to Nukes and Antinukes to fix failure to fire sometimes.
+
+- Screamer/Mercury removed from ANTIBOMBER armourclass, HP raised 25%.
+- Chainsaw/Eradicator Missile Delay option added.
+- Chainsaw/Eradicator Bomb Resistance, AOE, Range, Acceleration and Edgeeffectiveness all slightly improved.
+- Arm Eradicator damage and reload time descreased (raised ROF, same DPS).
+- Defender/Pulverizer flighttime decreased slightly (1.7->1.5).
+
+- Core Shadow build costs adjusted (buildtime (9942->7220), metal (131->154), energy (5691->4837)).
+- Arm Thunder build costs adjusted (buildtime (9517->6825), metal (130->153), energy (4496->4271)).
+- Core Shadow HP raised very slightly (600->615).
+- Core Bladewing nochasecategory and badtargetcategory set to Commanders (since they can't paralyze them).
+
+- Arm Beaver & Core Muskrat velocity & turnrate decreased, energycost and buildtime increased.
+
+- Zipper overall build costs increased a bit (buildtime (3168->3960), energy (3506->4382), metal (161->177)).
+- Pyro weapon velocity increased (175->265).
+
+- Arm and Core Shield transparency increased.
+
+6.8 --> 6.81
+
+- Fixed missing sound crash with linux
+
+6.6 --> 6.8
+
+- No longer dependant on otacontent or tatextures
+
+- New gadget adds 'Land Mode' and 'Repair Mode' to air plants, aircraft inherit these settings.
+- LUPS version updated.
+- Self damage at pointblank range stopped with lua for the following units: 
+  - Arm Flash
+  - Arm Peewee
+  - Arm Zipper
+  - Core Pyro
+  - Core Dragons Maw
+- Added New Mod Options:
+  - (default off) Remove units with no player (useful for FFA games, not advised in team games)
+  - (default off) No sharing to enemies (units and resources) 
+  - (default off) No unit wrecks (experimental gameplay if you fancy a change)
+
+- Added Evil4Zerggin's Point Tracker widget.
+- Added zwzsg's Auto First Build Facing widget.
+- updated FPS Manager to use bumpmapped water when applicable.
+- Updated Healthbars widget.
+- Added Display DPS widget (disabled by default).
+- Added BuildETA widget (disabled by default).
+- Added Improved Metal Maked Widget (disabled by default).
+
+- Fixed a number of visible CobError's for new spring release.
+- Changed newboom.wav to mono to reduce volume issues.
+
+- Arm Hammer now unpacks its weapon faster.
+- Core Thud & Arm Hammer increased accuracy vs moving targets slightly.
+- Arm Janus corpse size increased.
+- Core Raider HP increased by 60, buildtime reduced slightly (3446->3312).
+- Arm Jethro & Core Crasher now Amphibious, added to Ambhibious complex.
+- Beamer energy per shot increased 1->6.
+
+- Packo/SAM reloadtime decreased: 15%.
+- Eradicator/Chainsaw reloadtime increased: 60%.
+- Added flighttime tags to many AA missiles.
+- Screamer/Mercury firedelay script fixed (previously only worked once!).
+
+- Construction ship acceleration increased slightly.
+- Transport hovercraft radar blob size fixed, arm script fixed.
+- Core Poison Arrow turret turns a bit faster.
+- Arm & Core Torpedo seaplanes damage raised 20%.
+- Core Leviathan & Arm Serpant aiming vs close-up ships improved a bit.
+
+- Core Gimp script fixed (can fire if built underwater), must now aim turret to shoot torpedo.
+- Core Gimp reload time increased, accuracy decreased, buildtime increased 25%.
+- Core Termite weapon gfx improved, dps increased by around 15%.
+- Core Can HP increased (3850->4350).
+- Arm Recluse weapon slightly more accurate.
+- Arm Zeus no longer able to shoot Air.
+- Arm Archangel & Core Manticore now Amphibious, added to Ambhibious complex.
+
+- Arm Annihilator damage raised 5000->9000, Beamtime raised 0.3->1.5.
+- Arm Annihilator hp raised 3000->5500.
+- Toaster/Ambusher dps increases: High Traj +15%, Low Traj +45%.
+- Pitbull/Viper buildtime increased by 25%.
+
+- Juno now hits some mobile jammers it didn't used to hit.
+- Plasma Deflectors buildtime and energy cost reduced by 25%.
+- Plasma Deflectors charge cost raised (100->600).
+- Plasma Deflectors no longer totally immune to lower ROF non-heavy plasma weapons.
+
+- Core Catapult rockets now reach their max range more often.
+- Core Shiva walk script fixed.
+- Core Shiva given its own weapons, it had the Dominator missile and was unintentionally buffed with Dominator range increase.
+- All special damages VS T3 mechs removed (aside from certain emp immunity).
+- Arm & Core Experimental Gantry buildtime raised by 25%.
+- VULCBUZZ armourclass removed, all special damages vs VULCBUZZ removed.
+
+6.5 --> 6.6
+
+- Raised LosMipLevel and AirLosMipLevel for a great reduction in lag
+
+- Fixed Krogoth vlaunch misfiring
+- Fixed Liche autofiring
+- Fixed Recluse range
+- Fixed some gfx corruption in bomber explosions
+- Fixed the 'no more mexs to upgrade' notification on the mex upgrader gadget being sent to every player
+
+- Added moho exploiter fix widget
+- Added proximitypriority tags to some high trajectory cannons so they prefer further away units
+- Added collidefriendly=0 to some aircraft weapons to stop them hitting eachother when tightly packed
+- Added some custom textures to arm and core missile trails
+- Added some weapon gfx effect improvements (Zeus, Bantha)
+- Upgraded defense range widget
+- Fixed take reminder widget (sends the proper /take command now)
+- Added the 'no duplicate orders' widget
+
+- Removed an unused 'FORT' category from the SAM
+- Removed seismic sig from stumpies
+- Reduced the volume of metalmakers on/off sounds
+
+- Beamer turret rotation speed increased, targetmoveerror reduced slightly
+- Double LLT tweaked so each laser can find different targets
+- Double LLT now slightly more energy efficient than two llts (-60 vs -80 drain on constant fire)
+- Dragons claw, Dragons maw no longer attempt to attack aircraft
+- Added 'DragonsDisguise' gadget, this can stop units from noticing dragons claws/dragons maws until they've popped up
+
+- Blade speed increased (~5 to 8), renamed from 'Heavy' to 'Rapid Assault'
+
+- Zeus buildtime lowered by ~15%
+- Fido speed increased by 15%
+
+- Raised burst DPS on SAM, packo slightly
+- Chainsaw & Eradicator now deal good burst damage at range rather than low damage over time.
+- Screamer/Mercury now have a fire delay button, you can specify per turret how many seconds to wait before firing once an enemy is spotted (0-5)
+
+- Reduced the chain explode factor on the lighter tech 3 mech deaths
+- Kargs and Razorbacks can now target features (ie, can eventually shoot through corpses & dragons teeth)
+- Razorbacks acceleration and turret speed increased slightly
+- Raised the Arm Vanguard HP (18000)
+- Juggernaut main cannons now no longer avoid features (it wouldn't attempt to fire through corpses before)
+- Lowered Juggernaut HP (300k)
+- Bantha hand cannon dps increased
+- Increased buildtime on Bantha, Juggernaut, Krogoth
+- Increased workertime on gantries slightly
+- Reduced the energypershot on Vulcan & Buzzsaw (constant fire: vulcan -18k, Buzzsaw -21k)
+- Bantha is now amphibious
+
+
+6.41 --> 6.5
+
+Fixed a crashbug with the areaatack gadget.
+Fixed LUPS
+Fixed Customformation widget
+
+
+6.4 --> 6.41
+
+Kill All Enemy Commanders, really is the default game mode ;)
+Arm Phoenix Script fixed
+Fixed CustomFormations widget for 0.77
+Fixed MexupgradeGadget
+
+
+6.31 --> 6.4
+Renamed end game modes so its more clear what mode does what
+Kill all enemy Commanders is now default end-game option
+Added a widget to show which mode is used at the start of a game
+Added Widget to display which endmode is active
+Fixed firepoints for HLT,HLLT,Pitbull,Flagships,Battleships,Cruisers,Destroyers
+Units which are being transported by a Intruder, wont die when a intruder dies.
+Fixed yardmap of Core Adv kbot factory.
+Mexes can be made it shallow waters now, UwMex mindepth changed to 15 (this change also affects mohomexes)
+Nerfed Dragons Claw anti air capability
+Removed the non-working anti-air gun of the phoenix
+Increased DPS of Warlord, increased laser range a bit too
+Increased DPS of the main weapon of the blackhydra
+Reduced Arm Saber costs
+Increased range of Dominator and Morty
+Made zipper EMG, truely look like EMG and increased DPS
+Nerfed Scouts/flea anti-air capability
+Commando removed
+Lowered cruise alt of T2 transports
+Increased wezel LOS a bit
+Increased storage level of adv. Energystorages
+Goliaths no longer target air
+Mines/Crawling bombs can now be set on hold fire
+Added Adv. Playerlist widget by Marmoth
+Added Attack AoE widget by Evil4Zerggin
+Updated defense range widget
+
+
+
+
+6.3 --> 6.31
+
+Down graded LUPS to the 6.21 version, to fix the desyncs
+
+6.21 --> 6.3
+Flagships have the same movement as other ships now
+Core nanoturrets can no longer be build in the water
+GIMP torpedo reloadtime increased
+Croc and Triton leave a wreck now
+ARM and CORE adv. Torp. Launcher have the same minimum depth now
+removed the annoying cannot reach destination sound
+Added Commander name tags widget, Thanks Evil4Zerggin and CarRepairer.
+Added FPS-manager widget, Thanks quantum
+Made Crusaders more expensive
+Reduced Gunship chain reaction
+Fixed the reloading of the Core Catapult
+Removed the unused turret of the Arm Razorback.
+Added Take remind widget written by Evil4Zerggin
+Added Commends and highlight widget written by trepan
+Updated quite some widgets, by comparing them to CA versions, Thanks CA Team!!
+Added a set of new game-ends rules, in mod options, made by KDR_11k:
+
+ Make sure you put the game on: Game continues if commander dies.
+ Then pick one of the mod options:
+
+ -  Kill Everything: Just disables all of the gadgets and lets normal Spring rules apply.
+
+ -  Commander: Team based com ends, if an allyteam has its last com destroyed the whole
+	  team is eliminated, as long as one player in the team has a com left the whole team
+    remains in play. 
+
+ -  Commander Control: In addition to the above a player without a com is unable to give
+ 	  orders to his units, all he can do is share them to an ally (sharing to enemies and
+	  self-d are disabled). An ally can take his units by using the ".luarules take" command.
+	  It was unfortunately not possible to merge this into the regular .take. 
+
+
+
+
+
+6.2 --> 6.21
+Fixed Error messages from the luashockwave gadget?
+Fixed Amphid Speeds
+Fixed Anti-nuke type
+Reduced Seaplane-fighters LoS
+
+6.1 --> 6.2
+Fixed directcontrol gadget.
+Fixed Layout gadget to not crash on /luaui reload, thanks eriatarka
+Reduced Los of fighters to their weapon range, did not do sea planes yet
+Added collide=0 to the brawler (forgot it last release :-) )
+Removed Lups exhaust from the gunships, it looks bad, i realise now :)
+Made the minesweeper weapon behave more elegant.
+Added fixed scripts from krogothe86
+Made Minwaterdepth of all big ships the same
+Added luashockwave, Thanks jK!!
+Mobile antinukes will no longer chase enemies
+Altered the BA-Layout to 10 rows so it works better on 1024x768
+Made Anti-nukes faster.
+Fixed Seismic rings.
+Amphids are as fast underwater as they are on land
+
+
+
+6.0 --> 6.1
+Updated CustomFormations widget, Thanks jK
+Added the reclaim info widget
+Added Exhaustflames to planes using LUPS, it looks nice now ~~
+Added Collide=0; to all planes
+Buffed the high traj weapon of the fido too, forgot that last release
+Improved Shields
+Fixed the Krow script, thanks [Krogoth86]!
+Arm Marky can be build again (fixed a typo)
+Core Tidal is as small as Arm Tidal now
+Added ARM.bmp and CORE.bmp to sidepics for support with other lobby's
+Intimidator shots cost the same as Bertha Shots now.
+Fixed Nuclear Missles / Starburst Missles.
+You can no longer FPS Vipers, Tactical nuke Launchers.
+Added AreaAttack to Arty-veh, Bertha/Timmy
+Radar/Jammer units will no longer "attack"
+Added a Layout for the Gui , a widget by lurker, many thanks!
+
+
+
+5.91 --> 6.0
+Updated defenserange widget by verybadsoldier
+Updated LUPS
+Updated HP-bars widget by jK
+Fixed Arm HoverConstructer script, Thanks Krogoth86
+Decoy Commanders wear Santa Hats too now(when its christmastime)
+Increased LOS of Radar Veh/kBots
+Increased Zeus HP
+Increased Fido Range
+Increased Maverick HP
+Increased Fatboy HP and DPS
+Increased Pyro DPS
+Core Battle Sub no longer drains E
+Both Battle Subs have increased turnrate now
+Decreased Arm Seabomber HP
+Shiva no longer targets planes
+Removed specialdamages from T1 subs to Torpedo Launchers
+Increased Shields repulsionstrength
+Added modtags to modinfo.tdf
+Buffed Advanced Torpedo Launchers, Less costs, more HP
+Increased Battleships HP and Range
+Torpedo Seaplanes are in the L2bombers Armorclass now 
+Removed MetalGenerators
+AF fixed unit_direct_control.lua, Thanks!
+Fixed Starburst Missiles (e.g. Merl and Nuke) to work with SVN version
+
+
+5.9 --> 5.91
+
+Fixed Corssub corpse metalvalue
+Added missing files for the Healthbars and the defense range widget.
+Removed unneeded tags for the VTOL_SABOT and the VTOL_ROCKET weapons
+Buffed Arm Zipper's HP and DPS
+Plane Trails disabled for now, Spring doesnt displays it properly IMO, at least not with lups.
+Increased LoS of Flea and of AK, so they can be used as LLT spotter for Storm/Rocko
+Added the V for the version again :P
+Added the latest Defenserange widget
+
+5.8--> 5.9
+
+Added Defense Range V3.1, by verybadsoldier
+Added Healthbars widget by jK
+Added Customformations widget by jK
+Added unit_mex_upgrader.lua by BigHead
+Increased Juggernaut's Mass
+Decreased Sumo's range, this also effects MohoExploiter and Doomsday machine
+Nukes will no longer collide with Friendly units (so it wont go BOOM above your base, when it hits a fighter :P)
+RadarVehicles LOS adjusted, ARM nerfed, CORE buffed >:)
+Added an image needed for the buildbar widget.
+Commando noautofire=0; now, also decreased the EMP damage so it shouldn't cause heavy screenshakes. Also doubled its capturespeed =)
+Fixed Rapier and Blade missile's
+Arm Destroyer slighty more DPS (7%)
+Nerfed Doomsday Armour 5% to 8%
+Consul begins building faster now, thanks Krogoth86
+Added avoidfriendly=0; to the DGun
+Reduced Special damage from LRPC/RFLRPC's to ships
+Ships/Subs wrecks leave a Heap now when they get destroyed.
+Fixed CorConship/CorRoy wakes.
+Replaced Adv Fusion models with the CA models, Thanks Saktoth
+Added Some lights on some factory's a la CA.
+Added LUPS, which adds some effects to certain units, Many thanks go out to jK for making LUPS
+Necro and rector will leave a corpse now.
+Removed corpses which aren't needed.
+New set of Loadscreens
+Disable FPS control of the Moho Exploiter
+Buffed Intrusion Countermeasure System's
+
+Redid T2 sea (will still require more tweaking probally =)):
+Levithan/Serpent are Battle subs now
+Sharks/Piranha's are Sub Killers now
+Cruisers costs Increased, Depthcharge Nerfed
+Flagship Range Increased.
+Naval Assister worker time Increased
+Reduced Costs of Anti-Air ships
+Seaplanes got more like T1.5 stats now and can submerge.
+
+
+
+
+5.71 --> 5.8
+
+Light mines really don't do impulse anymore.
+Reverted Gater Hitsphere
+Transportships can no longer load enemy units.
+Juno Weapon will no longer kill fusions on maps like SpeedBall and Cow.
+Reduced Tremor costs (20%)
+Increased Reaper DPS (15%)
+Increased Reaper Weapon velocity
+Increased Goliath DPS (30%)
+Reduced Goliath max speed (20%)
+Reduced Goliath Turning speed (30%)
+Increased metal worth of Gol Corpse
+Increased Goliath HP (16%)
+Reduced Penetrator DPS (10%)
+Reduced Bulldog DPS (10%)
+Increased Panther DPS (35%)
+Decreased FHLT range
+Increased Bertha/Intimidator accuracy
+Reduced Catalyst costs
+Reduced Catalyst Range
+Reduced Catalyst missle Costs and Buildtime
+Increased Destoyers Range
+Increased Missle Hover range 
+Increased Aircraft Carrier Ships worker time, to match repair pads.
+Changed Maverick's description to Skirmish Kbot
+
+
+
+5.7 --> 5.71
+
+Fixed the wreckagefile
+
+5.61 --> 5.7
+
+Arm Spy can no longer be build from the Amphid lab.
+Really fixed the Arm Seer corpse metal ammount :P
+Removed the radar turn off on E-stall lua-rule.
+Increased Buzzsaw/Vulcan energycosts to fire, you need redicoulous ammounts of E now :)
+Floating targetting facility's costs divided by 4, so they are in line with the landbased ones.
+Arm Solar Hitsphere decreased to Core Solar size
+Gator Hitsphere decreased to Armflash size
+Tweaked Floating Radar hitsphere's so subs can kill them more easy
+Light mines no longer do impulse
+Removed Flares from all planes which had them
+Made Juno Cheaper, Moved to T1 builders, Made the missle cheaper, faster to build, decreased its AoE a bit (You can also kill minefields with it!!!)
+Radar Jamming Kbots have the Kbotmovementclass now.
+Added one boring loadscreen, because Satirik Bribed me :(
+Increased Catalyst's Range, reduced the damage to commanders
+
+
+5.6 --> 5.61
+
+Fixed typo which caused the Core Adv Kbot lab to be 10 times expensive as it should be.
+
+5.5 --> 5.6
+
+Increased Juggernaut's Size, and costs
+Put the Juggernaut in the Krogoth armor class, so it receives the same special damages
+Maverick leaves a wreck now
+Informer and Seer wrecks metal worth adjusted.
+Increased Halberd's size, and fixed the firepoint, Saktoth fixed the script
+Juno's Missle Now also destroys minefields
+Increased Ground damage of Avengers and Freedomfighters
+Increased Sonar Range of Destroyers a bit
+Triton costs reduced
+EMP-bombs damage reduced, to fix the screenshaking if you use the screenshaking widget
+Added some gfx to some units, took from XTA and modified them a bit to fit BA, thanks Noruas and Gizmo!
+Improved Vulcan/Buzzsaw's accuracy, but it takes a shitload of E now :)
+Fixed bladewing patrols, thanks to Saktoth
+Jammers/Radars now disable when you E-Stall, lua script by licho
+Made Juno's weapon go less high
+Dragon Eyes can no longer be build in the water
+Spies are no longer amphib
+Pelican a bit more hp and dps
+Core skuttle is now amphib and cost some less BT
+Increased Viper/Pittbull costs a bit
+T2 Factory's cost less now
+Replaced the loadscreens
+
+
+
+
+5.4 --> 5.5
+
+Massivly increased Juggernauts HP
+Increased Bantha's HP
+Increased Razorback speed and dps
+Viper and Pittbull DPS doubled
+AK speed incresed
+Increased Merl/Diplomat AoE and DPS
+Doubled Tremor costs, well almost.
+Doubled Krow's HP
+Almost halved Liche's costs
+Increased Banisher DPS
+Added some lua widgets
+
+
+
+5.3 --> 5.4
+
+Storm costs increased
+Reaper hp increased
+Warrior dps increased
+Cor goliath costs increased
+Samson/Slasher LoS increased
+Panther is more accurate now while moving
+V-launch missles don't go as high anymore
+
+
+5.2 --> 5.3
+
+Janus range reduced, dps reduced.
+Fixed the movementclasses of radar/jammer veh/bots.
+Rez bots moved to T1 Kbots. costs adjusted.
+Decreased Thud and Storm costs slightly to make up for armwarrior.
+
+5.1 --> 5.2
+
+Fixes a bug which might cause crashing when building and adv factory.
+Removed streak (Caydr's bonus unit)
+Bantha can no longer be airlifted
+Made some buildpics a bit brighter (Thanks Trademark)
+
+4.7 --> 5.1
+
+Flash slowed down a little
+Energy structures revised, each step is now like a 30 % efficency gain Solar --> adv Solar --> Fusion --> Adv Fusion. The underwater fusions have the same efficency as a regular fusion. The cloaked fusion is about 20% more effective then adv solars.
+Snipers are no longer stealth
+ARM mohomines lost their cloaking ability.
+Fixed Seaplane torpedo planes, they will fire on ships now, they lost their anti air missle in the progress though.
+Fixed bladewings, they will keep attacking units now.
+Added back in the mobile radar/jammer vehicles/kbots, their costs adjusted to make more sense.
+Reverted Arm Dragon Teeth model.
+DragonTeeth have a higher slope tolerance now.
+leveler reload time decreased slightly
+janus damage increased
+Commander Self-D time reduced to 5 seconds.
+beamers damage improved 
+claws/maws damage improved
+claws accuracy improved
+Gave the corvette ships some more speed and dps
+
+T2 got buffed, Day took some time to tell me how he did it:
+
+Core 
+reaper role changed into more of a lighter tank
+golly firing rate increased weapon damage increased aoe increased
+pillager made faster, costs increased
+mobile flak firepower reduced
+can dps and speed increased
+sumo range and speed increased
+dominators a little more firepower
+made crawling bombs faster
+Pyro a little faster
+
+Arm
+zeus faster, more health
+fido speed increased slightly
+sniper stealth removed
+crawling bomb faster
+fatboy more range
+mavs a little faster
+zipper a bit more health
+bulldog made faster
+penetrator shorter reload
+luger faster, costs decreased
+panthers a bit faster
+
+
+
+
+4.61 --> 4.7
+Fixed Vamp Cruisealt
+Intruder can no longer load enemy units (Thanks Rattle)
+Implented Argh's Arm DT (someone should make us some for Core too. and maybe the floating DT's fortwalls as well)
+T3 units are no longer transportable.
+Seaplanes fighters do damage to aircraft again
+Added some effects by Fox
+Added Decoy tags so they won't be broken with luaui
+Juno costs (M/E/BT) reduced by 30 %
+Croc DPS reduced by 20 %
+Skuttle damage and AoE improved by 20 %
+Repairpads are no longer transportable
+Repairpads are 30% cheaper
+Fusions have their stats hidden to the enemy now, so decoys work
+Decoy Dgun costs 50 E to fire now instead of 500
+Maverick speed increased by 15 %
+Lvl2 Radar Jammer E Costs to about 18K instead of 1.8K
+
+
+4.6 --> 4.61
+
+Fixed minelayer's Sweep weapon (hopefully)
+Gunships/Transports/Some other planes are no longer near immune vs fighters.
+Commado can no longer cloak
+Improved Corvette's tracking it's like a LLT now.
+Skeeter/Searcger HP nerfed
+
+
+
+4.5 --> 4.6
+Core radar has LOS again
+Stumpy speed reduced (its slower then a gator now, but still faster then a raider)
+Gave Corvette's Lazors, Lowered DPS a bit because it will always hit now.
+Sniper cost to fire is 500 E now.
+AK 40 less HP
+Removed special movementstats of Hawks/Vamps/Seaplanes
+Reduced grouddamge of all fighters to 30 % to ground targets, 10 % to Commanders
+HLT's 5 % more DPS
+Hoverscouts 15 % more costs and BT
+Bombs do 50 % less damage to chainsaws (adjusted their description)
+Thuds/Hammer DPS increased by 6%
+Floating dragonteeth can be reclaimed again
+Fixed EMP problems (Thanks Saktoth!!)
+KrogCrush will do even less damage to heavy units.
+Fixed banisher visual bugs (Thanks Nemo!!)
+Fixed typo in the torpedolauncher weapon. It will have a lower ROF now.
+Improved Minesweeper (bigger AoE) and gave it a visual effect, just force fire somewhere.
+Fortwalls can be reclaimed now, but they have 200 E, so they reclaim slow about 3 seconds a piece.
+Removed the AoE of depthchargelauncher's weapon, it shouldn't be OP anymore on Tropical like maps
+
+
+4.41 --> 4.5
+Fixed the metalammount of the Targeting facility's corpses and heaps
+Gave Janus its "arc" Weapon as in AA
+Decreased Doomsday Costs by 30% (also adjusted corpses)
+Increased Doomsday HP by 11%
+Made radar planes, Radar/Sonar planes
+Arm Blade (Level2 Gunship) will no longer chase planes
+Greatly reduced the bugginess of skeeters/searchers to fire their AA missle.
+Corpse of Hive no longer floats
+All seaplanes have floater=1; now, so they can land on the water
+Seaplane radar/sonar planes, sonarrange doubled.
+The advanced Construction subs are deeper in the water now, so their buildturret will not come to the surface.
+Decreased Core Mohomine costs/builtime/corpsevalues to match the Arm version more.
+Made the lasers thicker and more colourfull.
+Vamps/Hawks Flare reloadtime increased by 40%, grounddamage reduced by 10 %
+Seaplanes can now be build by L1 Con Ships
+Seaplaneplatform costs increased by 20 % (and corpse)
+Juggernaut costs reduced by 10 % (and corpse)
+Pelican maxvelocity increased by 30 %
+Gave NavalEngineers more buildpower
+Seismic detectors costs Halved (and corpse)
+Made the Destroyerships able to fire while retreating/turning.
+Underwaterfusions produce more E now, they are on par with regular fusions now
+Floating metalmakers make 1.1 metal per 60 E now
+Underwater Mohomakers make 13 metal per 600 E now
+Increased adv sonar range to be more inline with the regular sonars
+Removed HAX rangerings as they are no longer needed
+Included a somewhat GUI, you have to enable LuaUI in settings.exe (gui.lua was made by Napkin, Thanks!)
+
+4.4 v--> 4.41
+Fixed Geo's
+Minelayers will no longer follow enenmy units
+
+
+4.33 --> 4.4
+Advanced Anti Air Kbots and AA hovers no longer follow ground units
+Gave detpcharge some tracking again
+Fixed the extraction rates of mexxes/twilights/exploiters, somehow they were mixed up
+L1 Arty can shoot up hills again, due to faster weaponvelocity and hightrajectory
+Floating radars can no longer be build on land
+Adjusted sonar range rings, so that they reflect the real range
+Builtime of Estorages reduced by 50 % (this included the underwater ones)
+Reduced Ecosts and Builtime of the Juno by 20 %
+Gave the Minelayer some AoE weapon, you still have to manual "attack" the enemy minefields
+
+
+
+V4.2 --> 4.33
+Arm Fusions really makes 1000 E now
+Core Fusions really makes 1100 E now
+Adv Fusions really make 3000 E now
+Tremor got less hp now
+Fixed Sniper bug
+Took Commanderscripts from XTA and made the movement of the "Arms" faster
+Targeting facilities cost 1/4 now, more facilities will enhance your accuracy of radar dots
+removed arrival sounds
+Added some loadscreens, thanks machio.
+Reduced hp of scouts hovercraft
+Floating metalmakers cost 1 metal now
+Reduced Gator maxspeed
+Reduced acceleration and turnrate of destroyer ships
+Removed the laser off the Destroyer ships
+Made the depthcharges no longer tracking
+Fatboy costs reduced by 30 %
+HLT's DPS increased slightly
+Increased Banshee DPS slightly
+Advanced Anti Air Kbots no longer chase ground units.
+Increased leveler E costs
+MT/PackO's do 10 % less damage now
+LRMT reloadtime increased
+Increased Acceleration and turning of Luger/Pillager
+Thud/Hammer now have LoS till the end of their range
+Increased Solar Buildtime 
+Halved JellyFish E-costs
+Tidal E costs Halfed
+Reduced Torpedo Launcher E Costs by 30 %
+(Adv.) Sonar range Doubled
+Torpedo from subs have some guidance now
+Poison Arrow moved to a other moventclass, so it can climb steeper slopes
+Changed the maxslope of shiva in the FBI so it matches with the movementclass
+Increased Beamer DPS by 5 %
+AK speed reduced a bit
+Improved the Core Maw in hp/dps/weaponspeed
+Core Slasher's HP bar is now visable when he fires
+Made Krogoth Able to Crush units with his feet, except heavy units/buildings
+Gave Krogoth more HP
+Reduced E Costs of All T3 units by 40 %
+
+
+
+
+
+
+
+
+
+V4.1->v4.2
+Fixed EMP bomber damage (it will only do stunning now)
+Punisher now has the correct icontype
+Mohometalmakers rebalanced
+Floating metalmakers rebalanced
+Added Level2 AA bots back in
+Added a D-gun effect borrowed from XTA8.1
+Increased Advanced radar ranges slightly
+Increased Floating radar ranges slightly
+Matched radar ranges to dummy range
+Arm and Core Geo both produce 300 now
+Arm and Core Moho Geo both produce 1250 now
+Fusions make 1000 E now, ARM 4000 HP CORE 4500 HP
+Adv Fusions make 3000 E now, ARM 7500 HP CORE 8500 HP
+Banisher range reduced a little
+Weasel/Jeffy reloadtime increased a bit
+Conveh and Conbot buildspeed the same now (90)
+
+
+
+
+V4->v4.1
+Fixed a panther bug
+Added custom unit icons
+
+
+v3->v4
+AK speed reduced Health increased range increased damage reduced
+Penetrator range increased
+Fixed dgun being able to fire 3 times at once
+Fixed a typo in merl health
+Thunder/Shadow health and turnrate increased significantly
+Reverted tremor damage
+Zipper E costs lowered
+Fixed panther speed bug
+Dominator costs increased to match its increased range
+Weasel/jeffy E costs lowered (for some reason it was 600ish)
+luger/pillager damage increased and aoe increased ( just trying to make this unit usefull instead of removing it)
+Freedomfighter/Avenger costs increased slightly
+Bladewing costs reduced
+Banisher range increased
+Advanced solar (core&arm) E costs reduced (not 0)
+
+Change log from AA 2.23 to Balanced Annihilation xD
+
+Flash/Instigator health reduced
+Stumpie/Raider costs reduced acceleration increased projectile speed increased
+Samson/Slasher costs reduced damage increased slightly
+Wolverine/Shellshocker range increased
+Weasel/Jeffy health and damage reduced
+Construction vehicle workertime decreased
+Leveler costs reduced damage increased speed increased
+Peewee speed increased
+Construction kbot workertime increased  it now builds faster then the construction vehicle
+Rocko/Storm damage increased slightly maxspeed increased slightly
+Hammer/Thud damage increased slightly
+Warrior energy costs reduced
+Flea now has a blowtorch! (actually its a bug i cant fix, im a noob modder!)
+Tier one Kbot lab metal costs reduced
+Solar now only costs metal
+Wind energy cost increased slightly
+Can damage increased slightly (3%)
+Morty costs reduced (spam baby spam)
+Pyro health increased slightly
+Dominator range increased (it now actually outranges Vipers! and lots of other stuffs)
+Maverick health reduced (you can get the fuckers by doing lots of damage at once so the regeneration doesnt have a chance)
+Reaper/Bulldog range decreased
+Merl/Diplomat health decreased alot! (i honestly dont know why an artilery unit like that had 3k health)
+Luger/Pillager now fire at low trajectory with increased damage 
+Panther health reduced
+Tremor damage increased slightly
+Brawler/rapiers now have 1k health
+Banshee damage increased (20%) E costs reduced

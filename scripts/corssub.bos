@@ -1,0 +1,135 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, door1, door2, bubbles1, bubbles2, btmcover, torp1, torp2;
+
+static-var  gun_1;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+Create()
+{
+	gun_1 = door1;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		emit-sfx 259 from bubbles1;
+		emit-sfx 259 from bubbles2;
+		sleep 300;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+}
+
+AimPrimary(heading,pitch)
+{
+    signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+ 	while( 255 > heading )
+	{
+		set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
+		heading = heading + 1000;
+		sleep 1;
+	}
+	while( heading > 255 )
+	{
+		set UNKNOWN_UNIT_VALUE(82) to 1000 + get UNKNOWN_UNIT_VALUE(82);
+		heading = heading - 1000;
+		sleep 1;
+	}	
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 1 )
+	{
+		gun_1 = door2;
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		gun_1 = door1;
+		return (0);
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = torp1;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = torp2;
+	}
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode bubbles1 type BITMAPONLY | BITMAP2;
+		explode bubbles2 type BITMAPONLY | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode btmcover type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode bubbles1 type FALL | BITMAP2;
+		explode bubbles2 type FALL | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode btmcover type FALL | BITMAP5;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode bubbles1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode bubbles2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode btmcover type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode bubbles1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode bubbles2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode door1 type BITMAPONLY | BITMAP4;
+	explode door2 type BITMAPONLY | BITMAP5;
+	explode btmcover type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+}

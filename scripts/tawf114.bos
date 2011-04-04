@@ -1,0 +1,183 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  flare1, flare2, turret, base, sleeve, missile1, missile2;
+
+static-var  restore_delay, gun_1;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+HitByWeapon(Func_Var_1, Func_Var_2)
+{
+	turn base to z-axis Func_Var_2 speed <105.000000>;
+	turn base to x-axis Func_Var_1 speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <30.000000>;
+	turn base to x-axis <0.000000> speed <30.000000>;
+}
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis anglez speed <50.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+Create()
+{
+	dont-cache missile1;
+	dont-shade missile1;
+	dont-cache missile2;
+	dont-shade missile2;
+	hide flare1;
+	hide flare2;
+	hide missile1;
+	hide missile2;
+	gun_1 = flare1;
+	restore_delay = 2400;
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn turret to y-axis <0.000000> speed <100.000000>;
+	turn sleeve to x-axis <0.000000> speed <100.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
+	return (1);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <125.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <125.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 1 )
+	{
+		explode flare1 type BITMAPONLY | BITMAP4;
+		sleep 20;
+		move missile1 to z-axis [-7.500000] now;
+		hide missile1;
+		show missile1;
+		move missile1 to z-axis [0.000000] speed [10.000000];
+	}
+	if( gun_1 == 0 )
+	{
+		explode flare2 type BITMAPONLY | BITMAP4;
+		sleep 20;
+		move missile2 to z-axis [-7.500000] now;
+		hide missile2;
+		show missile2;
+		move missile2 to z-axis [0.000000] speed [10.000000];
+	}
+	gun_1 = !gun_1;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = gun_1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	hide flare1;
+	hide flare2;
+	hide missile1;
+	hide missile2;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode turret type BITMAPONLY | BITMAP4;
+		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT;
+		explode missile1 type SHATTER | BITMAP4;
+		explode missile2 type SHATTER | BITMAP4;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode turret type SHATTER | BITMAP4;
+		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT;
+		explode missile1 type SHATTER | BITMAP4;
+		explode missile2 type SHATTER | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode turret type SHATTER | BITMAP4;
+		explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+		explode missile1 type SHATTER | BITMAP4;
+		explode missile2 type SHATTER | BITMAP4;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	explode missile1 type SHATTER | BITMAP4;
+	explode missile2 type SHATTER | BITMAP4;
+}

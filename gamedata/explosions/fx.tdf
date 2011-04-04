@@ -1,0 +1,409 @@
+//red flames on the zeon commander
+[gawtail]
+{
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		texture=explo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.6;
+
+      		size = 5 r-1.5;
+      		sizeGrowth = 0.9;
+
+         	pos = 0, 0, 0;
+         	speed=0, 0, 0;
+      		}
+	air=1;
+      	water=1;
+      	ground=1;
+      	count=2;
+	} 
+}
+
+//Sparkle effect found on the zaku2R
+[vernier]
+{
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		texture=flare;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.6;
+
+      		size = 10 r-1.5;
+      		sizeGrowth = -0.9;
+
+         	pos = 0, 0, 0;
+         	speed=0, r-1.5, 0;
+      		}
+	air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	} 
+
+
+}
+
+//Blue flames from Federation commander
+[whitetail]
+{
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		texture=blueexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.6;
+
+      		size = 30 r-1.5;
+      		sizeGrowth = -0.9;
+
+         	pos = r1 r-1, 0, r-1 r1;
+         	speed=0, r-1.5, 0;
+      		}
+		air=1;
+      	water=1;
+      	ground=1;
+      	count=2;
+	} 
+}
+
+//Large dust trail, use this ONLY on units you have a few of
+[dirt]
+{
+
+	[POOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.1 0.1 0.1 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=40;
+		numParticles=5;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+
+	[POOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.2 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+	[WPOOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.1 0.1 0.4 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=3;
+		particleLifeSpread=40;
+		numParticles=4;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	water=1;
+	count=1;
+	}
+
+
+	[WPOOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.4 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=2;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	water=1;
+	count=1;
+	}
+}
+
+
+//Small dust trail, recomended sparse use.
+[lildirt]
+{
+
+	[POOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.1 0.1 0.1 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=3;
+		particleLifeSpread=40;
+		numParticles=3;
+		particleSpeed=2;
+		particleSpeedSpread=10;
+		particleSize=5;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+
+	[POOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.2 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=2;
+		particleLifeSpread=20;
+		numParticles=4;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+	[wPOOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.1 0.1 0.3 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=1;
+		particleLifeSpread=40;
+		numParticles=3;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=5;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	water=1;
+	count=1;
+	}
+
+
+	[wPOOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.5 0.03	0 0 0 0.01;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=1;
+		particleLifeSpread=20;
+		numParticles=4;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		useAirLos=1;
+		}
+	waterr=1;
+	count=1;
+	}
+}
+
+
+//weird green particle emitter, used by the minovsky generator(unit name: zestor)
+[miofskyparticles]
+{
+	[POOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity= 0, 0, 0;
+
+		colorMap= 0.0 0.2 0.05 0.03   0 0 0 0.01;
+		Texture=2explo;
+
+		airdrag=1.0;
+
+		particleLife=2;
+		particleLifeSpread=50;
+
+		numParticles=10;
+
+		particleSpeed=1;
+		particleSpeedSpread=10;
+		particleSize=50;
+		particleSizeSpread=0;
+
+		emitRot=90;
+		emitRotSpread=10;
+
+		directional=1;
+		useAirLos=1;
+		}
+	water=1;
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+}
+
+//Blue puffs that make the kampfer thrusters
+[kampfertail]
+{
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		texture=blueexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.6;
+
+      		size = 10 r-1.5;
+      		sizeGrowth = -0.9;
+
+         	pos = r1 r-1, 0, r-1 r1;
+         	speed=0, r-1.5, 0;
+      		}
+	air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	} 
+
+}
+
+
+

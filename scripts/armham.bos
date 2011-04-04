@@ -1,0 +1,735 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  pelvis, rfirept, lfirept, lcannon, rcannon, locase, lthigh, rthigh,
+       torso, rleg, rfoot, lleg, lfoot, upcase2, canbase, ground;
+
+static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1,
+            restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+walk()
+{
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.500000] now;
+		move lcannon to y-axis [0.000000] now;
+		move lcannon to z-axis [0.000000] now;
+		move rcannon to y-axis [0.000000] now;
+		move rcannon to z-axis [0.000000] now;
+		move locase to y-axis [0.000000] now;
+		move rfirept to y-axis [-0.300000] now;
+		move rfirept to z-axis [0.209998] now;
+		move lfirept to y-axis [-0.300000] now;
+		move lfirept to z-axis [0.209998] now;
+		turn lthigh to x-axis <-62.934066> now;
+		turn rthigh to x-axis <3.505495> now;
+		turn torso to z-axis <-4.560440> now;
+		turn rleg to x-axis <82.978022> now;
+		turn rfoot to x-axis <-36.901099> now;
+		turn lleg to x-axis <57.302198> now;
+		turn lfoot to x-axis <5.258242> now;
+		sleep 70;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-51.681319> now;
+		turn rthigh to x-axis <-8.071429> now;
+		turn torso to z-axis <0.000000> now;
+		turn rleg to x-axis <105.835165> now;
+		turn rfoot to x-axis <-27.071429> now;
+		turn lleg to x-axis <45.346154> now;
+		turn lfoot to x-axis <5.967033> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-39.368132> now;
+		turn rthigh to x-axis <-20.027473> now;
+		turn rleg to x-axis <118.846154> now;
+		turn lleg to x-axis <38.670330> now;
+		turn lfoot to x-axis <1.049451> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn lthigh to x-axis <-29.170330> now;
+		turn rthigh to x-axis <-30.236264> now;
+		turn torso to z-axis <1.747253> now;
+		turn rleg to x-axis <72.769231> now;
+		turn rfoot to x-axis <-33.758242> now;
+		turn lleg to x-axis <29.868132> now;
+		turn lfoot to x-axis <-0.692308> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-20.390110> now;
+		turn rthigh to x-axis <-56.258242> now;
+		turn torso to z-axis <7.725275> now;
+		turn rleg to x-axis <58.357143> now;
+		turn lleg to x-axis <41.126374> now;
+		turn lfoot to x-axis <-21.093407> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-16.516484> now;
+		turn rthigh to x-axis <-57.659341> now;
+		turn torso to z-axis <9.835165> now;
+		turn rleg to x-axis <-10.192308> now;
+		turn lleg to x-axis <59.412088> now;
+		turn lfoot to x-axis <-31.637363> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.400000] now;
+		turn lthigh to x-axis <-4.560440> now;
+		turn rthigh to x-axis <-65.401099> now;
+		turn torso to z-axis <10.192308> now;
+		turn rleg to x-axis <35.857143> now;
+		turn lleg to x-axis <53.434066> now;
+		turn lfoot to x-axis <-33.758242> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.500000] now;
+		turn lthigh to x-axis <2.802198> now;
+		turn rthigh to x-axis <-66.445055> now;
+		turn torso to z-axis <7.027473> now;
+		turn rleg to x-axis <43.236264> now;
+		turn rfoot to x-axis <-7.725275> now;
+		turn lleg to x-axis <57.313187> now;
+		turn lfoot to x-axis <-29.527473> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.400000] now;
+		turn lthigh to x-axis <5.269231> now;
+		turn rthigh to x-axis <-61.527473> now;
+		turn torso to z-axis <4.912088> now;
+		turn rleg to x-axis <44.648352> now;
+		turn rfoot to x-axis <16.868132> now;
+		turn lleg to x-axis <78.401099> now;
+		turn lfoot to x-axis <-34.791209> now;
+		sleep 70;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-4.912088> now;
+		turn rthigh to x-axis <-52.390110> now;
+		turn torso to z-axis <0.000000> now;
+		turn rleg to x-axis <43.236264> now;
+		turn rfoot to x-axis <9.137363> now;
+		turn lleg to x-axis <100.560440> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-21.445055> now;
+		turn rthigh to x-axis <-36.214286> now;
+		turn torso to z-axis <0.000000> now;
+		turn rfoot to x-axis <-7.027473> now;
+		turn lleg to x-axis <103.725275> now;
+		turn lfoot to x-axis <-52.736264> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn lthigh to x-axis <-32.681319> now;
+		turn rthigh to x-axis <-21.791209> now;
+		turn torso to z-axis <-8.071429> now;
+		turn rleg to x-axis <38.670330> now;
+		turn rfoot to x-axis <-13.346154> now;
+		turn lleg to x-axis <84.736264> now;
+		turn lfoot to x-axis <-45.357143> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-68.912088> now;
+		turn rthigh to x-axis <-10.890110> now;
+		turn torso to z-axis <-10.192308> now;
+		turn rleg to x-axis <37.615385> now;
+		turn rfoot to x-axis <-21.445055> now;
+		turn lleg to x-axis <79.104396> now;
+		turn lfoot to x-axis <-37.967033> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-61.181319> now;
+		turn rthigh to x-axis <3.505495> now;
+		turn torso to z-axis <-8.769231> now;
+		turn rleg to x-axis <26.357143> now;
+		turn rfoot to x-axis <-22.846154> now;
+		turn lleg to x-axis <9.835165> now;
+		sleep 60;
+	}
+	move pelvis to y-axis [-0.400000] now;
+	turn lthigh to x-axis <-63.291209> now;
+	turn rthigh to x-axis <17.214286> now;
+	turn torso to z-axis <-7.027473> now;
+	turn rleg to x-axis <29.170330> now;
+	turn rfoot to x-axis <-21.093407> now;
+	turn lleg to x-axis <28.824176> now;
+	turn lfoot to x-axis <-1.390110> now;
+	sleep 60;
+}
+
+walklegs()
+{
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.500000] now;
+		move lcannon to y-axis [0.000000] now;
+		move lcannon to z-axis [0.000000] now;
+		move rcannon to y-axis [0.000000] now;
+		move rcannon to z-axis [0.000000] now;
+		move locase to y-axis [0.000000] now;
+		move rfirept to y-axis [-0.300000] now;
+		move rfirept to z-axis [0.209998] now;
+		move lfirept to y-axis [-0.300000] now;
+		move lfirept to z-axis [0.209998] now;
+		turn lthigh to x-axis <-62.934066> now;
+		turn rthigh to x-axis <3.505495> now;
+		turn rleg to x-axis <82.978022> now;
+		turn rfoot to x-axis <-36.901099> now;
+		turn lleg to x-axis <57.302198> now;
+		turn lfoot to x-axis <5.258242> now;
+		sleep 70;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-51.681319> now;
+		turn rthigh to x-axis <-8.071429> now;
+		turn rleg to x-axis <105.835165> now;
+		turn rfoot to x-axis <-27.071429> now;
+		turn lleg to x-axis <45.346154> now;
+		turn lfoot to x-axis <5.967033> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-39.368132> now;
+		turn rthigh to x-axis <-20.027473> now;
+		turn rleg to x-axis <118.846154> now;
+		turn lleg to x-axis <38.670330> now;
+		turn lfoot to x-axis <1.049451> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn lthigh to x-axis <-29.170330> now;
+		turn rthigh to x-axis <-30.236264> now;
+		turn rleg to x-axis <72.769231> now;
+		turn rfoot to x-axis <-33.758242> now;
+		turn lleg to x-axis <29.868132> now;
+		turn lfoot to x-axis <-0.692308> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-20.390110> now;
+		turn rthigh to x-axis <-56.258242> now;
+		turn rleg to x-axis <58.357143> now;
+		turn lleg to x-axis <41.126374> now;
+		turn lfoot to x-axis <-21.093407> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-16.516484> now;
+		turn rthigh to x-axis <-57.659341> now;
+		turn rleg to x-axis <-10.192308> now;
+		turn lleg to x-axis <59.412088> now;
+		turn lfoot to x-axis <-31.637363> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.400000] now;
+		turn lthigh to x-axis <-4.560440> now;
+		turn rthigh to x-axis <-65.401099> now;
+		turn rleg to x-axis <35.857143> now;
+		turn lleg to x-axis <53.434066> now;
+		turn lfoot to x-axis <-33.758242> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.500000] now;
+		turn lthigh to x-axis <2.802198> now;
+		turn rthigh to x-axis <-66.445055> now;
+		turn rleg to x-axis <43.236264> now;
+		turn rfoot to x-axis <-7.725275> now;
+		turn lleg to x-axis <57.313187> now;
+		turn lfoot to x-axis <-29.527473> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.400000] now;
+		turn lthigh to x-axis <5.269231> now;
+		turn rthigh to x-axis <-61.527473> now;
+		turn rleg to x-axis <44.648352> now;
+		turn rfoot to x-axis <16.868132> now;
+		turn lleg to x-axis <78.401099> now;
+		turn lfoot to x-axis <-34.791209> now;
+		sleep 70;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-4.912088> now;
+		turn rthigh to x-axis <-52.390110> now;
+		turn rleg to x-axis <43.236264> now;
+		turn rfoot to x-axis <9.137363> now;
+		turn lleg to x-axis <100.560440> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-21.445055> now;
+		turn rthigh to x-axis <-36.214286> now;
+		turn rfoot to x-axis <-7.027473> now;
+		turn lleg to x-axis <103.725275> now;
+		turn lfoot to x-axis <-52.736264> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn lthigh to x-axis <-32.681319> now;
+		turn rthigh to x-axis <-21.791209> now;
+		turn rleg to x-axis <38.670330> now;
+		turn rfoot to x-axis <-13.346154> now;
+		turn lleg to x-axis <84.736264> now;
+		turn lfoot to x-axis <-45.357143> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.100000] now;
+		turn lthigh to x-axis <-68.912088> now;
+		turn rthigh to x-axis <-10.890110> now;
+		turn rleg to x-axis <37.615385> now;
+		turn rfoot to x-axis <-21.445055> now;
+		turn lleg to x-axis <79.104396> now;
+		turn lfoot to x-axis <-37.967033> now;
+		sleep 60;
+	}
+	if( TRUE )
+	{
+		move pelvis to y-axis [-0.250000] now;
+		turn lthigh to x-axis <-61.181319> now;
+		turn rthigh to x-axis <3.505495> now;
+		turn rleg to x-axis <26.357143> now;
+		turn rfoot to x-axis <-22.846154> now;
+		turn lleg to x-axis <9.835165> now;
+		sleep 60;
+	}
+	move pelvis to y-axis [-0.400000] now;
+	turn lthigh to x-axis <-63.291209> now;
+	turn rthigh to x-axis <17.214286> now;
+	turn rleg to x-axis <29.170330> now;
+	turn rfoot to x-axis <-21.093407> now;
+	turn lleg to x-axis <28.824176> now;
+	turn lfoot to x-axis <-1.390110> now;
+	sleep 60;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Go()
+{
+	Static_Var_2 = 1;
+	if( !Static_Var_4 )
+	{
+		while( !Static_Var_3 )
+		{
+			sleep 75;
+		}
+		move lcannon to y-axis [0.000000] now;
+		move lcannon to z-axis [0.000000] now;
+		move rcannon to y-axis [0.000000] now;
+		move rcannon to z-axis [0.000000] now;
+		move locase to y-axis [0.000000] now;
+		move locase to z-axis [0.000000] now;
+		move locase to z-axis [-0.739990] speed [0.000000];
+		move rfirept to y-axis [-0.300000] now;
+		move rfirept to z-axis [0.209998] now;
+		move lfirept to y-axis [-0.300000] now;
+		move lfirept to z-axis [0.209998] now;
+		turn upcase2 to x-axis <0.000000> now;
+		turn upcase2 to x-axis <-43.005495> speed <266.000000>;
+		turn locase to x-axis <0.000000> now;
+		turn locase to x-axis <61.005495> speed <434.000000>;
+		sleep 75;
+		move upcase2 to z-axis [-4.379999] speed [132.000000];
+		turn upcase2 to x-axis <-47.005495> speed <96.000000>;
+		move locase to z-axis [-4.379999] speed [132.000000];
+		turn locase to x-axis <64.005495> speed <96.000000>;
+		sleep 25;
+		turn upcase2 to x-axis <-121.027473> speed <774.000000>;
+		turn locase to x-axis <139.027473> speed <774.000000>;
+		sleep 25;
+		turn upcase2 to x-axis <-45.005495> speed <703.000000>;
+		turn locase to x-axis <63.005495> speed <703.000000>;
+		sleep 35;
+		turn upcase2 to x-axis <-19.000000> speed <754.000000>;
+		turn locase to x-axis <37.005495> speed <754.000000>;
+		sleep 15;
+		turn upcase2 to x-axis <-47.005495> speed <1887.000000>;
+		turn locase to x-axis <64.005495> speed <1887.000000>;
+		sleep 5;
+		sleep 5;
+		Static_Var_4 = 1;
+	}
+}
+
+Stop()
+{
+	if( Static_Var_4 )
+	{
+		Static_Var_4 = 0;
+		move lcannon to y-axis [0.000000] now;
+		move lcannon to z-axis [0.000000] now;
+		move rcannon to y-axis [0.000000] now;
+		move rcannon to z-axis [0.000000] now;
+		move upcase2 to z-axis [-4.379999] now;
+		move upcase2 to z-axis [0.950000] speed [22.000000];
+		move locase to y-axis [0.000000] now;
+		move locase to z-axis [-0.739990] now;
+		move rfirept to y-axis [-0.300000] now;
+		move rfirept to z-axis [0.209998] now;
+		move lfirept to y-axis [-0.300000] now;
+		move lfirept to z-axis [0.209998] now;
+		turn upcase2 to x-axis <-47.104396> now;
+		turn locase to x-axis <61.527473> now;
+		sleep 229;
+		move upcase2 to z-axis [1.700000] speed [14.000000];
+		turn upcase2 to x-axis <-41.005495> speed <111.000000>;
+		sleep 54;
+		move upcase2 to z-axis [0.000000] speed [200.000000];
+		move locase to z-axis [0.000000] speed [88.000000];
+		turn upcase2 to x-axis <0.000000> speed <4840.000000>;
+		turn locase to x-axis <0.000000> speed <7239.000000>;
+		sleep 9;
+		sleep 5;
+	}
+	Static_Var_2 = 0;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+MotionControl(moving, aiming, justmoved)
+{
+	justmoved = TRUE;
+	while( TRUE )
+	{
+		moving = bMoving;
+		aiming = Static_Var_2;
+		if( moving )
+		{
+			if( aiming )
+			{
+				Static_Var_3 = 1;
+				call-script walklegs();
+			}
+			if( !aiming )
+			{
+				Static_Var_3 = 0;
+				call-script walk();
+			}
+			justmoved = TRUE;
+		}
+		if( !moving )
+		{
+			Static_Var_3 = 1;
+			if( justmoved )
+			{
+				move pelvis to y-axis [0.000000] speed [1.000000];
+				turn rthigh to x-axis <0.000000> speed <200.000000>;
+				turn rleg to x-axis <0.000000> speed <200.000000>;
+				turn lthigh to x-axis <0.000000> speed <200.000000>;
+				turn lleg to x-axis <0.000000> speed <200.000000>;
+				if( !aiming )
+				{
+					turn torso to y-axis <0.000000> speed <90.000000>;
+				}
+				justmoved = FALSE;
+			}
+			sleep 100;
+		}
+	}
+}
+
+Create()
+{
+	bMoving = FALSE;
+	Static_Var_2 = 0;
+	Static_Var_3 = 1;
+	Static_Var_4 = 0;
+	gun_1 = pelvis;
+	restore_delay = 3000;
+	hide rfirept;
+	hide lfirept;
+	dont-shade locase;
+	dont-shade lcannon;
+	dont-shade rcannon;
+	call-script InitState();
+	start-script MotionControl();
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = pelvis;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	turn torso to y-axis <0.000000> speed <90.000000>;
+	turn canbase to x-axis <0.000000> speed <45.000000>;
+	start-script RequestState(1);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_4 )
+	{
+		sleep 30;
+	}
+	turn torso to y-axis heading speed <128.000000>;
+	turn canbase to x-axis <0.000000> - pitch speed <65.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn canbase around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = pelvis;
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = lfirept;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = rfirept;
+	}
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		gun_1 = rfirept;
+		show rfirept;
+		move rcannon to z-axis [-2.000000] speed [25.000000];
+		sleep 100;
+		hide rfirept;
+		move rcannon to z-axis [0.000000] speed [4.000000];
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		gun_1 = pelvis;
+		show lfirept;
+		move lcannon to z-axis [-2.000000] speed [25.000000];
+		sleep 100;
+		hide lfirept;
+		move lcannon to z-axis [0.000000] speed [4.000000];
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	hide rfirept;
+	hide lfirept;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode canbase type BITMAPONLY | BITMAP1;
+		explode ground type BITMAPONLY | BITMAP2;
+		explode lcannon type BITMAPONLY | BITMAP3;
+		explode lfirept type BITMAPONLY | BITMAP4;
+		explode lfoot type BITMAPONLY | BITMAP5;
+		explode lleg type BITMAPONLY | BITMAP1;
+		explode locase type BITMAPONLY | BITMAP2;
+		explode lthigh type BITMAPONLY | BITMAP3;
+		explode pelvis type BITMAPONLY | BITMAP4;
+		explode rcannon type BITMAPONLY | BITMAP5;
+		explode rfirept type BITMAPONLY | BITMAP2;
+		explode rfoot type BITMAPONLY | BITMAP3;
+		explode rleg type BITMAPONLY | BITMAP4;
+		explode upcase2 type BITMAPONLY | BITMAP5;
+		explode rthigh type BITMAPONLY | BITMAP1;
+		explode torso type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode canbase type BITMAPONLY | BITMAP1;
+		explode ground type FALL | BITMAP2;
+		explode lcannon type SHATTER | BITMAP3;
+		explode lfirept type FALL | BITMAP4;
+		explode lfoot type FALL | BITMAP5;
+		explode lleg type FALL | BITMAP1;
+		explode locase type FALL | BITMAP2;
+		explode lthigh type FALL | BITMAP3;
+		explode pelvis type FALL | BITMAP4;
+		explode rcannon type SHATTER | BITMAP5;
+		explode rfirept type FALL | BITMAP1;
+		explode rfoot type FALL | BITMAP2;
+		explode rleg type FALL | BITMAP3;
+		explode upcase2 type FALL | BITMAP4;
+		explode rthigh type FALL | BITMAP5;
+		explode torso type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode canbase type BITMAPONLY | BITMAP1;
+		explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lcannon type SHATTER | BITMAP3;
+		explode lfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode locase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode rcannon type SHATTER | BITMAP5;
+		explode rfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode upcase2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode torso type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	corpsetype = 3;
+	explode canbase type BITMAPONLY | BITMAP1;
+	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lcannon type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode lfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode locase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode rcannon type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode rfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode upcase2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode torso type BITMAPONLY | BITMAP1;
+}

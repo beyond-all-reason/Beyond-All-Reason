@@ -1,0 +1,145 @@
+[IGNITE]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=r-2 r2, 0, r-2 r2;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0.8 0.6 0.0 0.2	0.8 0.6 0.0 0.3  0.8 0.3 0.3 0.4	0.8 0.3 0.3 0.3	0.8 0.3 0.3 0.2	0 0 0 0.01;
+			texture=cloudexplo;
+			airdrag=0.95;
+			particleLife=1;
+			particleLifeSpread=6;
+			numParticles=1;
+			particleSpeed=1;
+			particleSpeedSpread=3;
+			particleSize=12;
+			particleSizeSpread=6;
+			directional=1;
+			emitRot=10;
+			emitRotSpread=30;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  0.4 0.4 0.4 0.5	0.1 0.1 0.1 0.3	0 0 0 0.1	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=5;
+			particleLifeSpread=10;
+			numParticles=1;
+			particleSpeed=8;
+			particleSpeedSpread=1;
+			particleSize=8;
+			particleSizeSpread=12;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=2;
+	}
+	
+	usedefaultexplosions=0;
+	[groundflash]
+	{
+		flashSize = 12;
+		flashAlpha = 1;
+		circleGrowth = 2.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.8, 0.6, 0.0;
+	}
+}
+
+[LARGE_IGNITE]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=r-2 r2, 0, r-2 r2;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0.8 0.6 0.0 0.2	0.8 0.6 0.0 0.3  0.8 0.3 0.3 0.4	0.8 0.3 0.3 0.3	0.8 0.3 0.3 0.2	0 0 0 0.01;
+			texture=cloudexplo;
+			airdrag=0.95;
+			particleLife=1;
+			particleLifeSpread=6;
+			numParticles=1;
+			particleSpeed=1;
+			particleSpeedSpread=3;
+			particleSize=12;
+			particleSizeSpread=20;
+			directional=1;
+			emitRot=10;
+			emitRotSpread=30;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=5;
+	}
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  0.4 0.4 0.4 0.5	0.1 0.1 0.1 0.3	0 0 0 0.1	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=5;
+			particleLifeSpread=10;
+			numParticles=1;
+			particleSpeed=8;
+			particleSpeedSpread=1;
+			particleSize=8;
+			particleSizeSpread=28;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=5;
+	}
+	
+	usedefaultexplosions=0;
+	[groundflash]
+	{
+		flashSize = 32;
+		flashAlpha = 0.8;
+		circleGrowth = 2.5;
+		circleAlpha = 0.9;
+		ttl = 8;
+		color = 0.8, 0.6, 0.0;
+	}
+}

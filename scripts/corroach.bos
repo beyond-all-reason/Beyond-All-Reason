@@ -1,0 +1,244 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  lega2, lega3, lega5, lega6, legb2, legb3, legb5, legb6,
+       lega1, lega4, legb1, legb4, base;
+
+static-var  bMoving;
+
+
+walkscr()
+{
+	while( bMoving )
+	{
+		if( bMoving )
+		{
+			move lega2 to x-axis [0.000000] now;
+			move lega2 to x-axis [0.000000] speed [0.000000];
+			move lega2 to z-axis [0.000000] now;
+			move lega2 to z-axis [0.250000] speed [8.000000];
+			move lega3 to z-axis [0.000000] now;
+			move lega3 to z-axis [0.250000] speed [8.000000];
+			move lega5 to z-axis [0.000000] now;
+			move lega5 to z-axis [-0.250000] speed [8.000000];
+			move lega6 to z-axis [0.000000] now;
+			move lega6 to z-axis [-0.250000] speed [8.000000];
+			move legb2 to z-axis [0.000000] now;
+			move legb2 to z-axis [0.250000] speed [8.000000];
+			move legb3 to z-axis [0.000000] now;
+			move legb3 to z-axis [0.250000] speed [8.000000];
+			move legb5 to z-axis [0.000000] now;
+			move legb5 to z-axis [-0.250000] speed [8.000000];
+			move legb6 to z-axis [0.000000] now;
+			move legb6 to z-axis [-0.250000] speed [8.000000];
+			turn lega1 to x-axis <0.000000> now;
+			turn lega1 to x-axis <45.010989> speed <1463.000000>;
+			turn lega4 to x-axis <0.000000> now;
+			turn lega4 to x-axis <44.005495> speed <1448.000000>;
+			turn legb1 to x-axis <0.000000> now;
+			turn legb1 to x-axis <45.010989> speed <1463.000000>;
+			turn legb4 to x-axis <0.000000> now;
+			turn legb4 to x-axis <45.010989> speed <1463.000000>;
+			sleep 31;
+		}
+		if( bMoving )
+		{
+			move lega2 to z-axis [0.550000] speed [4.000000];
+			move lega3 to z-axis [0.550000] speed [4.000000];
+			move lega5 to z-axis [-0.550000] speed [4.000000];
+			move lega6 to z-axis [-0.550000] speed [4.000000];
+			move legb2 to z-axis [0.550000] speed [4.000000];
+			move legb3 to z-axis [0.550000] speed [4.000000];
+			move legb5 to z-axis [-0.550000] speed [4.000000];
+			move legb6 to z-axis [-0.550000] speed [4.000000];
+			turn lega1 to x-axis <89.016484> speed <1073.000000>;
+			turn lega4 to x-axis <86.016484> speed <1015.000000>;
+			turn legb1 to x-axis <89.016484> speed <1061.000000>;
+			turn legb2 to z-axis <0.000000> speed <23.000000>;
+			turn legb4 to x-axis <87.016484> speed <1015.000000>;
+			sleep 42;
+		}
+		if( bMoving )
+		{
+			move lega1 to y-axis [-0.150000] speed [0.000000];
+			move lega1 to z-axis [-0.200000] speed [4.000000];
+			move lega2 to z-axis [0.850000] speed [4.000000];
+			move lega3 to z-axis [0.850000] speed [4.000000];
+			move lega4 to y-axis [0.150000] speed [0.000000];
+			move lega4 to z-axis [0.200000] speed [4.000000];
+			move lega5 to z-axis [-0.900000] speed [8.000000];
+			move lega6 to z-axis [-0.850000] speed [4.000000];
+			move legb1 to y-axis [-0.150000] speed [0.000000];
+			move legb1 to z-axis [-0.200000] speed [4.000000];
+			move legb2 to z-axis [0.850000] speed [4.000000];
+			move legb3 to z-axis [0.850000] speed [4.000000];
+			move legb4 to y-axis [0.150000] speed [0.000000];
+			move legb4 to z-axis [0.200000] speed [4.000000];
+			move legb5 to z-axis [-0.900000] speed [8.000000];
+			move legb6 to z-axis [-0.850000] speed [4.000000];
+			turn lega1 to x-axis <135.032967> speed <1109.000000>;
+			turn lega4 to x-axis <135.032967> speed <1191.000000>;
+			turn legb1 to x-axis <134.027473> speed <1097.000000>;
+			turn legb2 to z-axis <0.000000> speed <23.000000>;
+			turn legb4 to x-axis <135.032967> speed <1167.000000>;
+			turn legb5 to z-axis <0.000000> speed <0.000000>;
+			sleep 164;
+		}
+		move lega1 to y-axis [0.000000] speed [300.000000];
+		move lega1 to z-axis [0.000000] speed [400.000000];
+		move lega2 to x-axis [0.000000] speed [0.000000];
+		move lega2 to z-axis [0.000000] speed [1696.000000];
+		move lega3 to z-axis [0.000000] speed [1696.000000];
+		move lega4 to y-axis [0.000000] speed [296.000000];
+		move lega4 to z-axis [0.000000] speed [396.000000];
+		move lega5 to z-axis [0.000000] speed [1796.000000];
+		move lega6 to z-axis [0.000000] speed [1700.000000];
+		move legb1 to y-axis [0.000000] speed [300.000000];
+		move legb1 to z-axis [0.000000] speed [400.000000];
+		move legb2 to z-axis [0.000000] speed [1700.000000];
+		move legb3 to z-axis [0.000000] speed [1700.000000];
+		move legb4 to y-axis [0.000000] speed [296.000000];
+		move legb4 to z-axis [0.000000] speed [400.000000];
+		move legb5 to z-axis [0.000000] speed [1796.000000];
+		move legb6 to z-axis [0.000000] speed [1700.000000];
+		turn lega1 to x-axis <0.000000> speed <67516.000000>;
+		turn lega4 to x-axis <0.000000> speed <67755.000000>;
+		turn legb1 to x-axis <0.000000> speed <67277.000000>;
+		turn legb4 to x-axis <0.000000> speed <67516.000000>;
+		turn legb5 to z-axis <0.000000> speed <0.000000>;
+		sleep 1;
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+MotionControl(Func_Var_1)
+{
+	while( TRUE )
+	{
+		Func_Var_1 = bMoving;
+		if( Func_Var_1 )
+		{
+			call-script walkscr();
+		}
+		if( !Func_Var_1 )
+		{
+			sleep 100;
+		}
+	}
+}
+
+Create()
+{
+	bMoving = FALSE;
+	start-script MotionControl();
+	start-script SmokeUnit();
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+}
+
+FireWeapon1()
+{
+	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = lega2;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode lega1 type FALL | BITMAP2;
+		explode lega2 type FALL | BITMAP3;
+		explode lega3 type FALL | BITMAP4;
+		explode lega4 type FALL | BITMAP5;
+		explode lega5 type FALL | BITMAP1;
+		explode lega6 type SHATTER | BITMAP2;
+		explode legb1 type FALL | BITMAP3;
+		explode legb2 type FALL | BITMAP4;
+		explode legb3 type FALL | BITMAP5;
+		explode legb4 type FALL | BITMAP1;
+		explode legb5 type FALL | BITMAP2;
+		explode legb6 type SHATTER | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode lega1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lega2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode lega3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode lega4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode lega5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode lega6 type SHATTER | BITMAP2;
+		explode legb1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode legb2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode legb3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode legb4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode legb5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode legb6 type SHATTER | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode lega1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lega2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode lega3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode lega4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode lega5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode lega6 type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode legb1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode legb2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode legb3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode legb4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode legb5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode legb6 type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+}

@@ -1,0 +1,608 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  torso, mlasflsh, bigflsh, nanospray, nanogun, luparm, ruparm, pelvis,
+       rthigh, lthigh, biggun, lleg, lfoot, rleg, rfoot, head;
+
+static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, justfired, building, buildx, buildy;
+
+// Signal definitions
+#define SIG_AIM				2
+
+walk()
+{
+	if( bMoving )
+	{
+		move pelvis to y-axis [-1.000000] now;
+		move bigflsh to x-axis [0.000000] now;
+		move mlasflsh to y-axis [0.000000] now;
+		move mlasflsh to z-axis [0.000000] now;
+		move nanospray to x-axis [5.000000] now;
+		move nanospray to y-axis [-8.000000] now;
+		move nanospray to z-axis [-7.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <17.000000> now;
+		turn lthigh to x-axis <-41.000000> now;
+		turn torso to y-axis <6.000000> now;
+		turn luparm to x-axis <30.000000> now;
+		turn ruparm to x-axis <-10.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <42.000000> now;
+		turn lfoot to x-axis <-5.000000> now;
+		turn rleg to x-axis <27.000000> now;
+		turn rfoot to x-axis <-28.000000> now;
+		sleep 120;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <7.000000> now;
+		turn lthigh to x-axis <-33.000000> now;
+		turn torso to y-axis <3.000000> now;
+		turn luparm to x-axis <25.000000> now;
+		turn ruparm to x-axis <-5.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <32.000000> now;
+		turn lfoot to x-axis <-5.000000> now;
+		turn rleg to x-axis <39.000000> now;
+		turn rfoot to x-axis <-27.000000> now;
+		sleep 110;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <-11.000000> now;
+		turn lthigh to x-axis <-26.000000> now;
+		turn torso to y-axis <0.000000> now;
+		turn luparm to x-axis <20.000000> now;
+		turn ruparm to x-axis <0.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn lfoot to x-axis <-10.000000> now;
+		turn rleg to x-axis <51.000000> now;
+		sleep 100;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <-19.000000> now;
+		turn lthigh to x-axis <1.000000> now;
+		turn torso to y-axis <-3.000000> now;
+		turn luparm to x-axis <10.000000> now;
+		turn ruparm to x-axis <10.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <6.000000> now;
+		turn lfoot to x-axis <-9.000000> now;
+		turn rleg to x-axis <52.000000> now;
+		turn rfoot to x-axis <-23.000000> now;
+		sleep 90;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <-42.000000> now;
+		turn lthigh to x-axis <8.000000> now;
+		turn torso to y-axis <-6.000000> now;
+		turn luparm to x-axis <0.000000> now;
+		turn ruparm to x-axis <20.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <10.000000> now;
+		turn lfoot to x-axis <-16.000000> now;
+		turn rleg to x-axis <51.000000> now;
+		turn rfoot to x-axis <-6.000000> now;
+		sleep 100;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <3.000000> now;
+		turn rthigh to x-axis <-49.000000> now;
+		turn lthigh to x-axis <11.000000> now;
+		turn torso to y-axis <-9.000000> now;
+		turn luparm to x-axis <-5.000000> now;
+		turn ruparm to x-axis <25.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn lleg to x-axis <19.000000> now;
+		turn lfoot to x-axis <-23.000000> now;
+		turn rleg to x-axis <33.000000> now;
+		sleep 110;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <-44.000000> now;
+		turn lthigh to x-axis <19.000000> now;
+		turn torso to y-axis <-6.000000> now;
+		turn luparm to x-axis <-10.000000> now;
+		turn ruparm to x-axis <30.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <23.000000> now;
+		turn lfoot to x-axis <-26.000000> now;
+		turn rleg to x-axis <49.000000> now;
+		turn rfoot to x-axis <-8.000000> now;
+		sleep 120;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <-33.000000> now;
+		turn lthigh to x-axis <3.000000> now;
+		turn torso to y-axis <-3.000000> now;
+		turn luparm to x-axis <-5.000000> now;
+		turn ruparm to x-axis <25.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <44.000000> now;
+		turn lfoot to x-axis <-27.000000> now;
+		turn rleg to x-axis <41.000000> now;
+		turn rfoot to x-axis <-13.000000> now;
+		sleep 110;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <-26.000000> now;
+		turn lthigh to x-axis <-12.000000> now;
+		turn torso to y-axis <0.000000> now;
+		turn luparm to x-axis <0.000000> now;
+		turn ruparm to x-axis <20.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <62.000000> now;
+		turn rleg to x-axis <36.000000> now;
+		turn rfoot to x-axis <-15.000000> now;
+		sleep 100;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <6.000000> now;
+		turn lthigh to x-axis <-26.000000> now;
+		turn torso to y-axis <3.000000> now;
+		turn luparm to x-axis <10.000000> now;
+		turn ruparm to x-axis <10.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <72.000000> now;
+		turn lfoot to x-axis <-26.000000> now;
+		turn rleg to x-axis <3.000000> now;
+		turn rfoot to x-axis <-12.000000> now;
+		sleep 90;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <16.000000> now;
+		turn lthigh to x-axis <-39.000000> now;
+		turn torso to y-axis <6.000000> now;
+		turn luparm to x-axis <21.000000> now;
+		turn ruparm to x-axis <0.000000> now;
+		turn biggun to x-axis <41.000000> now;
+		turn nanogun to x-axis <36.000000> now;
+		turn lleg to x-axis <55.000000> now;
+		turn lfoot to x-axis <-23.000000> now;
+		turn rleg to x-axis <8.000000> now;
+		turn rfoot to x-axis <-19.000000> now;
+		sleep 100;
+	}
+	move pelvis to y-axis [0.000000] now;
+	turn pelvis to x-axis <3.000000> now;
+	turn rthigh to x-axis <22.000000> now;
+	turn lthigh to x-axis <-48.000000> now;
+	turn torso to y-axis <9.000000> now;
+	turn luparm to x-axis <25.000000> now;
+	turn ruparm to x-axis <-5.000000> now;
+	turn biggun to x-axis <41.000000> now;
+	turn lleg to x-axis <40.000000> now;
+	turn lfoot to x-axis <-8.000000> now;
+	turn rleg to x-axis <11.000000> now;
+	turn rfoot to x-axis <-23.000000> now;
+	sleep 110;
+}
+
+walklegs()
+{
+	if( bMoving )
+	{
+		move pelvis to y-axis [-1.000000] now;
+		move bigflsh to x-axis [0.000000] now;
+		move mlasflsh to y-axis [0.000000] now;
+		move mlasflsh to z-axis [0.000000] now;
+		move nanospray to x-axis [5.000000] now;
+		move nanospray to y-axis [-8.000000] now;
+		move nanospray to z-axis [-7.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <17.000000> now;
+		turn lthigh to x-axis <-41.000000> now;
+		turn lleg to x-axis <42.000000> now;
+		turn lfoot to x-axis <-5.000000> now;
+		turn rleg to x-axis <27.000000> now;
+		turn rfoot to x-axis <-28.000000> now;
+		sleep 120;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <7.000000> now;
+		turn lthigh to x-axis <-33.000000> now;
+		turn lleg to x-axis <32.000000> now;
+		turn lfoot to x-axis <-5.000000> now;
+		turn rleg to x-axis <39.000000> now;
+		turn rfoot to x-axis <-27.000000> now;
+		sleep 110;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <-11.000000> now;
+		turn lthigh to x-axis <-26.000000> now;
+		turn lfoot to x-axis <-10.000000> now;
+		turn rleg to x-axis <51.000000> now;
+		sleep 100;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <-19.000000> now;
+		turn lthigh to x-axis <1.000000> now;
+		turn lleg to x-axis <6.000000> now;
+		turn lfoot to x-axis <-9.000000> now;
+		turn rleg to x-axis <52.000000> now;
+		turn rfoot to x-axis <-23.000000> now;
+		sleep 90;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <-42.000000> now;
+		turn lthigh to x-axis <8.000000> now;
+		turn lleg to x-axis <10.000000> now;
+		turn lfoot to x-axis <-16.000000> now;
+		turn rleg to x-axis <51.000000> now;
+		turn rfoot to x-axis <-6.000000> now;
+		sleep 100;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <3.000000> now;
+		turn rthigh to x-axis <-49.000000> now;
+		turn lthigh to x-axis <11.000000> now;
+		turn lleg to x-axis <19.000000> now;
+		turn lfoot to x-axis <-23.000000> now;
+		turn rleg to x-axis <33.000000> now;
+		sleep 110;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <-44.000000> now;
+		turn lthigh to x-axis <19.000000> now;
+		turn lleg to x-axis <23.000000> now;
+		turn lfoot to x-axis <-26.000000> now;
+		turn rleg to x-axis <49.000000> now;
+		turn rfoot to x-axis <-8.000000> now;
+		sleep 120;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <-33.000000> now;
+		turn lthigh to x-axis <3.000000> now;
+		turn lleg to x-axis <44.000000> now;
+		turn lfoot to x-axis <-27.000000> now;
+		turn rleg to x-axis <41.000000> now;
+		turn rfoot to x-axis <-13.000000> now;
+		sleep 110;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <5.000000> now;
+		turn rthigh to x-axis <-26.000000> now;
+		turn lthigh to x-axis <-12.000000> now;
+		turn lleg to x-axis <62.000000> now;
+		turn rleg to x-axis <36.000000> now;
+		turn rfoot to x-axis <-15.000000> now;
+		sleep 100;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <6.000000> now;
+		turn lthigh to x-axis <-26.000000> now;
+		turn lleg to x-axis <72.000000> now;
+		turn lfoot to x-axis <-26.000000> now;
+		turn rleg to x-axis <3.000000> now;
+		turn rfoot to x-axis <-12.000000> now;
+		sleep 90;
+	}
+	if( bMoving )
+	{
+		move pelvis to y-axis [0.000000] now;
+		turn pelvis to x-axis <4.000000> now;
+		turn rthigh to x-axis <16.000000> now;
+		turn lthigh to x-axis <-39.000000> now;
+		turn lleg to x-axis <55.000000> now;
+		turn lfoot to x-axis <-23.000000> now;
+		turn rleg to x-axis <8.000000> now;
+		turn rfoot to x-axis <-19.000000> now;
+		sleep 100;
+	}
+	move pelvis to y-axis [0.000000] now;
+	turn pelvis to x-axis <3.000000> now;
+	turn rthigh to x-axis <22.000000> now;
+	turn lthigh to x-axis <-48.000000> now;
+	turn lleg to x-axis <40.000000> now;
+	turn lfoot to x-axis <-8.000000> now;
+	turn rleg to x-axis <11.000000> now;
+	turn rfoot to x-axis <-23.000000> now;
+	sleep 110;
+}
+
+stand()
+{
+	sleep 200;
+}
+
+bigfire()
+{
+	if( TRUE )
+	{
+		move ruparm to z-axis [0.000000] now;
+		move ruparm to z-axis [-3.000000] speed [250.000000];
+		move biggun to z-axis [0.000000] now;
+		move biggun to z-axis [-5.000000] speed [520.000000];
+		move bigflsh to x-axis [0.000000] now;
+		move mlasflsh to y-axis [0.000000] now;
+		move mlasflsh to z-axis [0.000000] now;
+		move nanospray to x-axis [5.000000] now;
+		move nanospray to y-axis [-8.000000] now;
+		move nanospray to z-axis [-7.000000] now;
+		turn ruparm to x-axis <0.000000> now;
+		turn ruparm to x-axis <-1.000000> speed <113.000000>;
+		sleep 10;
+	}
+	if( TRUE )
+	{
+		move ruparm to z-axis [-1.000000] speed [16.000000];
+		move biggun to z-axis [-3.000000] speed [30.000000];
+		turn ruparm to x-axis <0.000000> speed <14.000000>;
+		sleep 80;
+	}
+	if( TRUE )
+	{
+		move ruparm to z-axis [0.000000] speed [14.000000];
+		move biggun to z-axis [-2.000000] speed [15.000000];
+		turn ruparm to x-axis <0.000000> speed <0.000000>;
+		sleep 70;
+	}
+	if( TRUE )
+	{
+		move ruparm to z-axis [0.000000] speed [1.000000];
+		turn ruparm to x-axis <1.000000> speed <15.000000>;
+		turn ruparm to z-axis <0.000000> speed <8.000000>;
+		sleep 50;
+	}
+	if( TRUE )
+	{
+		move ruparm to z-axis [0.000000] speed [5.000000];
+		move biggun to z-axis [0.000000] speed [44.000000];
+		turn ruparm to x-axis <0.000000> speed <19.000000>;
+		turn ruparm to z-axis <0.000000> speed <9.000000>;
+		sleep 40;
+	}
+	sleep 10;
+}
+
+MotionControl(Func_Var_1, Func_Var_2)
+{
+	while( TRUE )
+	{
+		Func_Var_1 = bMoving;
+		Func_Var_2 = bAiming;
+		if( Func_Var_1 )
+		{
+			Static_Var_4 = 0;
+			if( Func_Var_2 )
+			{
+				Static_Var_3 = 1;
+				call-script walklegs();
+			}
+			if( !Func_Var_2 )
+			{
+				Static_Var_3 = 0;
+				call-script walk();
+			}
+		}
+		if( !Func_Var_1 )
+		{
+			Static_Var_3 = 1;
+			call-script stand();
+		}
+	}
+}
+
+Create()
+{
+	hide bigflsh;
+	hide mlasflsh;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	building = FALSE;
+	justfired = FALSE;
+	Static_Var_3 = 1;
+	Static_Var_4 = 0;
+	buildy = 0;
+	buildx = 0;
+	start-script MotionControl();
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	Static_Var_4 = 0;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = torso;
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = mlasflsh;
+}
+
+RestorePosition()
+{
+	Static_Var_4 = 0;
+	turn torso to y-axis <0.000000> speed <90.000000>;
+	wait-for-turn torso around y-axis;
+	bAiming = FALSE;
+}
+
+ResumeBuilding()
+{
+     sleep 400;
+     if ((building) AND (NOT justfired))
+     {
+           turn torso to y-axis buildy speed <150.000000>;
+           turn luparm to x-axis <0.000000> - buildx - <30.000000> speed <45.000000>;
+     }
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = torso;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = mlasflsh;
+}
+
+AimPrimary(heading, pitch)
+{
+	if( Static_Var_4 == 1 )
+	{
+		return (0);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <300.000000>;
+	turn luparm to x-axis <0.000000> - pitch - <30.000000> speed <200.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn luparm around x-axis;
+	justfired = TRUE;
+	if (building == TRUE) 
+	{
+	    start-script ResumeBuilding();
+	}
+	return (1);
+}
+
+FirePrimary()
+{
+	show mlasflsh;
+	sleep 100;
+	hide mlasflsh;
+	sleep 400;
+	justfired = FALSE;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = biggun;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = bigflsh;
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	Static_Var_4 = 1;
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <300.000000>;
+	turn biggun to x-axis <0.000000> - pitch speed <150.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn biggun around x-axis;
+	return (1);
+}
+
+FireTertiary()
+{
+	show bigflsh;
+	sleep 100;
+	hide bigflsh;
+	Static_Var_4 = 0;
+	call-script bigfire();
+}
+
+StartBuilding(Func_Var_1, Func_Var_2)
+{
+	Static_Var_4 = 0;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	building = TRUE;
+	while( !Static_Var_3 )
+	{
+		sleep 30;
+	}
+	buildy = Func_Var_1;
+	buildx = Func_Var_2;
+	turn torso to y-axis Func_Var_1 speed <300.000000>;
+	turn luparm to x-axis <0.000000> - Func_Var_2 - <30.000000> speed <90.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn luparm around x-axis;
+	set INBUILDSTANCE to 1;
+}
+
+TargetCleared(Func_Var_1)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	call-script RestorePosition();
+}
+
+StopBuilding()
+{
+	building = FALSE;
+	set INBUILDSTANCE to 0;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	call-script RestorePosition();
+}

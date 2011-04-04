@@ -1,0 +1,202 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, post1, post2, post3, post4, light4, light3, light2,
+       light1, centerlight;
+
+static-var  statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	turn post1 to x-axis <0.000000> now;
+	turn post1 to x-axis <-90.236264> speed <82.329670>;
+	turn post2 to x-axis <0.000000> now;
+	turn post2 to x-axis <89.802198> speed <81.939560>;
+	turn post3 to z-axis <0.000000> now;
+	turn post3 to z-axis <-90.236264> speed <82.329670>;
+	turn post4 to z-axis <0.000000> now;
+	turn post4 to z-axis <90.236264> speed <82.329670>;
+	sleep 1096;
+	set ARMORED to 0;
+
+	move light4 to x-axis [1.900000] speed [1.713251];
+	move light3 to x-axis [-2.050000] speed [1.848511];
+	move light2 to z-axis [-2.000000] speed [1.803424];
+	move light1 to z-axis [2.000000] speed [1.803424];
+	sleep 1109;
+}
+
+deactivatescr()
+{
+	move light4 to x-axis [1.900000] now;
+	move light4 to x-axis [0.000000] speed [1.575452];
+	move light3 to x-axis [-2.050000] now;
+	move light3 to x-axis [0.000000] speed [1.699829];
+	move light2 to z-axis [-2.000000] now;
+	move light2 to z-axis [0.000000] speed [1.658374];
+	move light1 to z-axis [2.000000] now;
+	move light1 to z-axis [0.000000] speed [1.658368];
+	turn post1 to x-axis <-90.236264> now;
+	turn post2 to x-axis <89.802198> now;
+	turn post3 to z-axis <-90.236264> now;
+	turn post4 to z-axis <90.236264> now;
+	sleep 1206;
+
+	turn post1 to x-axis <0.000000> speed <73.961538>;
+	turn post2 to x-axis <0.000000> speed <73.609890>;
+	turn post3 to z-axis <0.000000> speed <73.961538>;
+	turn post4 to z-axis <0.000000> speed <73.961538>;
+	sleep 1220;
+	set ARMORED to 1;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+HitByWeapon(Func_Var_1, Func_Var_2)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	signal 2;
+	set-signal-mask 2;
+	set ACTIVATION to 0;
+	sleep 8000;
+	set ACTIVATION to 1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode centerlight type BITMAPONLY | BITMAP2;
+		explode light1 type BITMAPONLY | BITMAP3;
+		explode light2 type BITMAPONLY | BITMAP4;
+		explode light3 type BITMAPONLY | BITMAP5;
+		explode light4 type BITMAPONLY | BITMAP1;
+		explode post1 type BITMAPONLY | BITMAP2;
+		explode post2 type BITMAPONLY | BITMAP3;
+		explode post3 type BITMAPONLY | BITMAP4;
+		explode post4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode centerlight type FALL | BITMAP2;
+		explode light1 type FALL | BITMAP3;
+		explode light2 type FALL | BITMAP4;
+		explode light3 type FALL | BITMAP5;
+		explode light4 type FALL | BITMAP1;
+		explode post1 type SHATTER | BITMAP2;
+		explode post2 type BITMAPONLY | BITMAP3;
+		explode post3 type BITMAPONLY | BITMAP4;
+		explode post4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode post1 type SHATTER | BITMAP2;
+		explode post2 type BITMAPONLY | BITMAP3;
+		explode post3 type BITMAPONLY | BITMAP4;
+		explode post4 type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode post1 type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode post2 type BITMAPONLY | BITMAP3;
+	explode post3 type BITMAPONLY | BITMAP4;
+	explode post4 type BITMAPONLY | BITMAP5;
+}

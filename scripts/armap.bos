@@ -1,0 +1,391 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, beam1, beam2, door1, door2, plate1, plate2,
+       post1, nano2, nano1, post2, radar, light, cylinder, blink;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+Standby()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 100;
+	}
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blink;
+		sleep 1700;
+	}
+	sleep 50;
+	start-script Standby();
+}
+activatescr()
+{
+	if( TRUE )
+	{
+		turn door1 to x-axis <0.000000> now;
+		turn door1 to x-axis <-88.016484> speed <129.000000>;
+		turn door2 to z-axis <0.000000> now;
+		turn door2 to z-axis <90.021978> speed <131.000000>;
+		sleep 683;
+	}
+	if( TRUE )
+	{
+		move door1 to y-axis [-8.350000] speed [12.000000];
+		move door2 to y-axis [-5.300000] speed [7.000000];
+		sleep 689;
+	}
+	if( TRUE )
+	{
+		move plate1 to y-axis [7.750000] speed [11.000000];
+		move plate2 to y-axis [9.600000] speed [13.000000];
+		sleep 691;
+	}
+	if( TRUE )
+	{
+		turn post1 to y-axis <89.016484> speed <129.000000>;
+		sleep 691;
+	}
+	if( TRUE )
+	{
+		turn nano2 to x-axis <132.027473> speed <190.000000>;
+		turn nano1 to z-axis <-128.027473> speed <185.000000>;
+		sleep 694;
+	}
+	if( TRUE )
+	{
+		turn post2 to y-axis <-48.010989> speed <70.000000>;
+		turn post1 to y-axis <76.016484> speed <18.000000>;
+		sleep 685;
+	}
+	sleep 70;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move plate1 to y-axis [7.750000] now;
+		move door1 to y-axis [-8.350000] now;
+		move plate2 to y-axis [9.600000] now;
+		move door2 to y-axis [-5.300000] now;
+		turn door1 to x-axis <-88.659341> now;
+		turn door2 to z-axis <90.021978> now;
+		turn post2 to y-axis <-48.148352> now;
+		turn post2 to y-axis <0.000000> speed <70.000000>;
+		turn nano2 to x-axis <132.318681> now;
+		turn post1 to y-axis <76.956044> now;
+		turn post1 to y-axis <89.016484> speed <18.000000>;
+		turn nano1 to z-axis <-128.719780> now;
+		sleep 683;
+	}
+	if( TRUE )
+	{
+		turn nano2 to x-axis <0.000000> speed <192.000000>;
+		turn nano1 to z-axis <0.000000> speed <186.000000>;
+		sleep 689;
+	}
+	if( TRUE )
+	{
+		turn post1 to y-axis <0.000000> speed <129.000000>;
+		sleep 691;
+	}
+	if( TRUE )
+	{
+		move plate1 to y-axis [0.000000] speed [11.000000];
+		move plate2 to y-axis [0.000000] speed [13.000000];
+		sleep 691;
+	}
+	if( TRUE )
+	{
+		move door1 to y-axis [0.000000] speed [12.000000];
+		move door2 to y-axis [0.000000] speed [7.000000];
+		sleep 694;
+	}
+	if( TRUE )
+	{
+		turn door1 to x-axis <0.000000> speed <129.000000>;
+		turn door2 to z-axis <0.000000> speed <131.000000>;
+		sleep 685;
+	}
+	sleep 70;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+Go()
+{
+	dont-cache door1;
+	dont-cache door2;
+	dont-cache nano1;
+	dont-cache nano2;
+	dont-cache pad;
+	dont-cache plate1;
+	dont-cache plate2;
+	dont-cache post1;
+	dont-cache post2;
+	dont-cache pad;
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	cache pad;
+	cache door1;
+	cache door2;
+	cache plate1;
+	cache plate2;
+	cache post1;
+	cache post2;
+	cache nano1;
+	cache nano2;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	hide radar;
+	dont-shade light;
+	dont-cache light;
+	dont-shade door1;
+	dont-shade door2;
+	dont-shade nano1;
+	dont-shade nano2;
+	dont-shade pad;
+	dont-shade cylinder;
+	dont-shade plate1;
+	dont-shade plate2;
+	unitviewer = FALSE;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script SmokeUnit();
+	start-script Standby();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( Static_Var_1 == 0 )
+	{
+		piecenum = beam1;
+		Static_Var_1 = 1;
+		return (0);
+	}
+	if( Static_Var_1 == 1 )
+	{
+		piecenum = beam2;
+		Static_Var_1 = 0;
+	}
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+StartBuilding()
+{
+	spin pad around y-axis speed <30.005495>;
+}
+
+StopBuilding()
+{
+	stop-spin pad around y-axis;
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam1 type BITMAPONLY | BITMAP2;
+		explode beam2 type BITMAPONLY | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode light type BITMAPONLY | BITMAP1;
+		explode nano1 type BITMAPONLY | BITMAP2;
+		explode nano2 type BITMAPONLY | BITMAP3;
+		explode pad type BITMAPONLY | BITMAP4;
+		explode plate1 type BITMAPONLY | BITMAP5;
+		explode plate2 type BITMAPONLY | BITMAP1;
+		explode post1 type BITMAPONLY | BITMAP2;
+		explode post2 type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam1 type FALL | BITMAP2;
+		explode beam2 type FALL | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode light type FALL | BITMAP1;
+		explode nano1 type SHATTER | BITMAP2;
+		explode nano2 type BITMAPONLY | BITMAP3;
+		explode pad type BITMAPONLY | BITMAP4;
+		explode plate1 type BITMAPONLY | BITMAP5;
+		explode plate2 type BITMAPONLY | BITMAP1;
+		explode post1 type FALL | BITMAP2;
+		explode post2 type FALL | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode light type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode nano1 type SHATTER | BITMAP2;
+		explode nano2 type BITMAPONLY | BITMAP3;
+		explode pad type BITMAPONLY | BITMAP4;
+		explode plate1 type BITMAPONLY | BITMAP5;
+		explode plate2 type BITMAPONLY | BITMAP1;
+		explode post1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode post2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode door1 type BITMAPONLY | BITMAP4;
+	explode door2 type BITMAPONLY | BITMAP5;
+	explode light type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode nano1 type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode nano2 type BITMAPONLY | BITMAP3;
+	explode pad type BITMAPONLY | BITMAP4;
+	explode plate1 type BITMAPONLY | BITMAP5;
+	explode plate2 type BITMAPONLY | BITMAP1;
+	explode post1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode post2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+}

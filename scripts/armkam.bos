@@ -1,0 +1,126 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, carlingue, raile, rwing, laile, lwing, lflare, rflare,
+       flash;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+Create()
+{
+	hide lflare;
+	hide rflare;
+	hide flash;
+}
+
+RestoreAfterDelay()
+{
+	sleep 100;
+	turn rwing to x-axis <0.000000> speed <50.000000>;
+	turn lwing to x-axis <0.000000> speed <50.000000>;
+}
+
+ProcessFlames()
+{
+	while( TRUE )
+	{
+		emit-sfx 0 from rflare;
+		emit-sfx 0 from lflare;
+		sleep 30;
+	}
+}
+
+MoveRate1()
+{
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn base to z-axis <0.000000> speed <120.000000>;
+	start-script ProcessFlames();
+}
+
+MoveRate2()
+{
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	start-script ProcessFlames();
+	sleep 1000;
+	turn base to z-axis <240.000000> speed <120.000000>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <120.000000> speed <180.000000>;
+	wait-for-turn base around z-axis;
+	turn base to z-axis <0.000000> speed <120.000000>;
+}
+
+MoveRate3()
+{
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	start-script ProcessFlames();
+	turn base to z-axis <0.000000> speed <120.000000>;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = flash;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flash;
+}
+
+FirePrimary()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn rwing to x-axis <270.000000> speed <50.000000>;
+	turn lwing to x-axis <270.000000> speed <50.000000>;
+	wait-for-turn rwing around x-axis;
+	wait-for-turn lwing around x-axis;
+	show flash;
+	sleep 200;
+	hide flash;
+}
+
+StartMoving()
+{
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn raile to z-axis <0.000000> speed <60.000000>;
+	turn laile to z-axis <0.000000> speed <60.000000>;
+	wait-for-turn raile around z-axis;
+	wait-for-turn laile around z-axis;
+}
+
+StopMoving()
+{
+	start-script RestoreAfterDelay();
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	turn raile to z-axis <270.000000> speed <40.000000>;
+	turn laile to z-axis <90.000000> speed <40.000000>;
+	wait-for-turn raile around z-axis;
+	wait-for-turn laile around z-axis;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	corpsetype = 1;
+	explode base type 3;
+	explode carlingue type 3;
+	explode rwing type 30;
+	explode lwing type 30;
+}

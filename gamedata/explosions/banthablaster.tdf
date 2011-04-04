@@ -1,0 +1,124 @@
+[banthablaster]
+{
+   	[splashes]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-.2;
+			sizemod=1;
+			size=0.1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=brightblueexplo;
+			colorMap=0.2 0.5 0.9 1   0.3 0.6 0.8 0.3   0.4 0.7 0.7 0;
+			airdrag=.96;
+			particleLife=1;
+			particleLifeSpread=1;
+			numParticles=2;
+			particleSpeed=1;
+			particleSpeedSpread=2;
+			particleSize=2;
+			particleSizeSpread=4;
+			emitRot=0;
+			emitRotSpread=30;
+			directional=0;
+		}
+		air=1;
+		ground=1;
+	}
+}
+
+[FLASHBANTHA]
+{
+
+   	[splash1]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-3;
+			sizemod=1;
+			size=0.2;
+			pos=0, 0, 0;
+			emitVector=0,0,0;
+			gravity=0, 0, 0;
+			Texture=brightblueexplo;
+			colorMap=1 1 1 1    0.2 0.5 0.9 1   0.3 0.6 0.8 0.3   0.4 0.7 0.7 0;
+			airdrag=.96;
+			particleLife=10;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=0;
+			particleSize=30;
+			particleSizeSpread=0;
+			emitRot=0;
+			emitRotSpread=0;
+			directional=0;
+		}
+	    air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	}
+	
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=brightblueexplo;
+      		heat = 11;
+      		maxheat = 15;
+      		heatFalloff = 1.3;
+
+      		size = 1.5;
+      		sizeGrowth = 2;
+
+         	pos = 0,0,0;
+         	speed=0, 1 0, 0;
+      		}
+	    air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	} 
+		
+	[GROUNDFLASH]
+	{
+		flashsize=22;
+		flashalpha=0.9;
+		circlegrowth=3;
+		circlealpha=1.3;
+		ttl=6;
+		color=1, 1, 1;
+	}
+}
+
+[BANTHAMUZZLE]
+{
+
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=brightblueexplo;
+      		heat = 11;
+      		maxheat = 15;
+      		heatFalloff = 1.3;
+
+      		size = 1.5;
+      		sizeGrowth = 2;
+
+         	pos = 0,0,0;
+         	speed=0, 1 0, 0;
+      		}
+	    air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	} 
+}

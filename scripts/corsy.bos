@@ -1,0 +1,315 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, blink, beama, beamb, turreta, turretb, gunb, guna,
+       explodpt1, explodpt2, blinkw;
+
+static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+Standby()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 100;
+	}
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blinkw;
+		sleep 700;
+	}
+	sleep 50;
+	start-script Standby();
+}
+activatescr()
+{
+	if( TRUE )
+	{
+		move turreta to y-axis [0.000000] now;
+		move turreta to y-axis [6.899988] speed [5.862354];
+		move turretb to y-axis [0.000000] now;
+		move turretb to y-axis [6.949982] speed [5.904828];
+		sleep 1177;
+	}
+	if( TRUE )
+	{
+		move turreta to y-axis [6.949982] speed [0.069238];
+		move turretb to y-axis [6.950000] speed [0.000018];
+		turn turreta to y-axis <-33.989011> speed <47.076923>;
+		turn turretb to y-axis <-43.016484> speed <59.582418>;
+		turn gunb to x-axis <-71.697802> speed <99.302198>;
+		turn gunb to z-axis <28.675824> speed <39.719780>;
+		turn guna to x-axis <66.917582> speed <92.681319>;
+		turn guna to z-axis <-28.675824> speed <39.719780>;
+		sleep 722;
+	}
+	sleep 11;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move turreta to y-axis [6.949982] now;
+		move turreta to y-axis [6.899988] speed [0.073950];
+		move turretb to y-axis [6.950000] now;
+		move turretb to y-axis [6.949982] speed [0.000018];
+		turn turreta to y-axis <-33.989011> now;
+		turn turreta to y-axis <0.000000> speed <50.280220>;
+		turn turretb to y-axis <-43.016484> now;
+		turn turretb to y-axis <0.000000> speed <63.637363>;
+		turn gunb to x-axis <-71.697802> now;
+		turn gunb to x-axis <0.000000> speed <106.060440>;
+		turn gunb to z-axis <28.675824> now;
+		turn gunb to z-axis <0.000000> speed <42.423077>;
+		turn guna to x-axis <66.917582> now;
+		turn guna to x-axis <0.000000> speed <98.989011>;
+		turn guna to z-axis <-28.675824> now;
+		turn guna to z-axis <0.000000> speed <42.423077>;
+		sleep 676;
+	}
+	if( TRUE )
+	{
+		move turreta to y-axis [0.000000] speed [5.646472];
+		move turretb to y-axis [0.000000] speed [5.687384];
+		sleep 1222;
+	}
+	sleep 7;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+Go()
+{
+	dont-cache beama;
+	dont-cache beamb;
+	dont-cache guna;
+	dont-cache gunb;
+	dont-cache turreta;
+	dont-cache turretb;
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	cache beama;
+	cache beamb;
+	cache guna;
+	cache gunb;
+	cache turreta;
+	cache turretb;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	dont-shade blink;
+	dont-cache blink;
+	dont-cache beama;
+	dont-shade beamb;
+	dont-shade guna;
+	dont-shade gunb;
+	dont-shade turreta;
+	dont-shade turretb;
+	unitviewer = FALSE;
+	spray = base;
+	call-script InitState();
+	start-script SmokeUnit();
+	start-script Standby();
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( spray == 0 )
+	{
+		piecenum = beama;
+	}
+	if( spray != 0 )
+	{
+		piecenum = beamb;
+	}
+	spray = !spray;
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = base;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = blink;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beama type BITMAPONLY | BITMAP2;
+		explode beamb type BITMAPONLY | BITMAP3;
+		explode blink type BITMAPONLY | BITMAP4;
+		explode guna type BITMAPONLY | BITMAP5;
+		explode gunb type BITMAPONLY | BITMAP1;
+		explode turreta type BITMAPONLY | BITMAP2;
+		explode turretb type BITMAPONLY | BITMAP3;
+		explode explodpt1 type BITMAPONLY | BITMAP2;
+		explode explodpt2 type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type SHATTER | BITMAP1;
+		explode beama type FALL | BITMAP2;
+		explode beamb type FALL | BITMAP3;
+		explode blink type FALL | BITMAP4;
+		explode guna type FALL | BITMAP5;
+		explode gunb type FALL | BITMAP1;
+		explode turreta type FALL | BITMAP2;
+		explode turretb type FALL | BITMAP3;
+		explode explodpt1 type FALL | BITMAP2;
+		explode explodpt2 type FALL | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type SHATTER | BITMAP1;
+		explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode blink type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode turreta type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode turretb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode explodpt1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode explodpt2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode blink type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode turreta type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode turretb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode explodpt1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode explodpt2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+}

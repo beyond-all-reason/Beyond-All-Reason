@@ -1,0 +1,736 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pelvis, torso, stick, plasmasprayer, cap, fire, lshoulder,
+       larm, lcannon, lbarrel1, lfire1, lbarrel2, lfire2, launcher, glowybit,
+       rocketfire1, rocketfire2, rshoulder, rarm, rcannon, rbarrel1, rfire1, rbarrel2,
+       rfire2, cellholder, nrgycells, lupleg, llowleg, lfoot, lftoe, lleftoe,
+       lrightoe, rupleg, rlowleg, rfoot, rftoe, rleftoe, rrightoe, lbarrel1back,
+       lbarrel2back, rbarrel1back, rbarrel2back, lbtoe1, lbtoe2, rbtoe1, rbtoe2;
+
+static-var  gun_1, bMoving, bAiming, Static_Var_4, Static_Var_5,
+            Static_Var_6, gun_3, Static_Var_8, Static_Var_9, Static_Var_10,
+            unitviewer, Static_Var_12, Static_Var_13;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	var Func_Var_4;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			Func_Var_4 = Rand( 1, 4 );
+			if( Func_Var_4 == 1 )
+			{
+				emit-sfx smoketype from base;
+			}
+			if( Func_Var_4 == 2 )
+			{
+				emit-sfx smoketype from larm;
+			}
+			if( Func_Var_4 == 3 )
+			{
+				emit-sfx smoketype from launcher;
+			}
+			if( Func_Var_4 == 4 )
+			{
+				emit-sfx smoketype from rcannon;
+			}
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+StartMoving()
+{
+	set-signal-mask 16;
+	bMoving = TRUE;
+	while( bMoving )
+	{
+		if( !Static_Var_13 )
+		{
+			turn rupleg to x-axis <-40.000000> speed <52.500000>;
+			turn rlowleg to x-axis <0.000000> speed <26.247253>;
+		}
+		turn rfoot to x-axis <10.000000> speed <30.000000>;
+		turn lupleg to x-axis <30.000000> speed <22.500000>;
+		turn lbtoe1 to x-axis <-10.000000> speed <8.000000>;
+		turn lbtoe2 to x-axis <-7.000000> speed <5.593407>;
+		if( Static_Var_13 )
+		{
+			turn rupleg to x-axis <-40.000000> speed <27.500000>;
+			turn llowleg to x-axis <20.000000> speed <15.000000>;
+			Static_Var_13 = 0;
+		}
+		if( !Static_Var_13 )
+		{
+			if( !bAiming )
+			{
+				move torso to y-axis [3.750000] speed [6.250000];
+				turn torso to z-axis <2.500000> speed <1.000000>;
+				turn torso to y-axis <6.000000> speed <10.000000>;
+				turn stick to y-axis <7.500000> speed <11.000000>;
+				turn larm to x-axis <-22.000000> speed <14.000000>;
+				turn rarm to x-axis <18.000000> speed <14.000000>;
+				move stick to y-axis [6.250000] speed [2.500000];
+				move torso to x-axis [0.500000] speed [0.250000];
+				turn lcannon to y-axis <4.000000> speed <2.500000>;
+				turn rcannon to y-axis <-4.000000> speed <2.500000>;
+				move lshoulder to y-axis [1.250000] speed [2.500000];
+				move rshoulder to y-axis [-0.625000] speed [1.250000];
+				move launcher to y-axis [1.000000] speed [2.250000];
+			}
+		}
+		turn llowleg to x-axis <20.000000> speed <22.500000>;
+		turn lftoe to x-axis <-20.000000> speed <15.000000>;
+		turn lrightoe to x-axis <-15.000000> speed <11.247253>;
+		turn lleftoe to x-axis <-15.000000> speed <11.247253>;
+		turn lrightoe to y-axis <15.000000> speed <11.000000>;
+		turn lleftoe to y-axis <-15.000000> speed <11.000000>;
+		turn lfoot to x-axis <-30.000000> speed <22.500000>;
+		sleep 1250;
+		if( !bAiming )
+		{
+			move torso to y-axis [0.000000] speed [2.500000];
+			move stick to y-axis [3.750000] speed [2.000000];
+			move lshoulder to y-axis [0.000000] speed [1.125000];
+			move rshoulder to y-axis [0.000000] speed [0.549957];
+			move launcher to y-axis [0.000000] speed [1.250000];
+		}
+		turn rupleg to x-axis <0.000000> speed <68.000000>;
+		turn rlowleg to x-axis <-10.000000> speed <17.000000>;
+		turn rfoot to x-axis <0.000000> speed <51.093407>;
+		turn rftoe to x-axis <0.000000> speed <91.000000>;
+		turn rleftoe to x-axis <0.000000> speed <82.000000>;
+		turn rrightoe to x-axis <0.000000> speed <82.000000>;
+		turn rbtoe1 to x-axis <0.000000> speed <60.000000>;
+		turn rbtoe2 to x-axis <0.000000> speed <40.000000>;
+		turn llowleg to x-axis <35.000000> speed <24.890110>;
+		turn lftoe to x-axis <50.000000> speed <110.000000>;
+		turn lrightoe to x-axis <45.000000> speed <100.000000>;
+		turn lleftoe to x-axis <45.000000> speed <100.000000>;
+		turn lrightoe to y-axis <0.000000> speed <23.000000>;
+		turn lleftoe to y-axis <0.000000> speed <23.000000>;
+		turn lfoot to x-axis <20.000000> speed <40.000000>;
+		turn lbtoe1 to x-axis <-30.000000> speed <45.000000>;
+		turn lbtoe2 to x-axis <-20.000000> speed <30.000000>;
+		sleep 550;
+		if( !bAiming )
+		{
+			move torso to y-axis [3.750000] speed [6.250000];
+			turn torso to z-axis <-2.500000> speed <1.000000>;
+			turn torso to y-axis <-6.000000> speed <10.000000>;
+			turn stick to y-axis <-7.500000> speed <11.000000>;
+			turn larm to x-axis <18.000000> speed <14.000000>;
+			turn rarm to x-axis <-22.000000> speed <14.000000>;
+			move stick to y-axis [7.000000] speed [2.500000];
+			move torso to x-axis [-0.500000] speed [0.250000];
+			turn lcannon to y-axis <-4.000000> speed <2.500000>;
+			turn rcannon to y-axis <4.000000> speed <2.500000>;
+			move lshoulder to y-axis [1.250000] speed [2.500000];
+			move rshoulder to y-axis [-0.625000] speed [1.250000];
+		}
+		turn rupleg to x-axis <30.000000> speed <22.500000>;
+		turn rlowleg to x-axis <20.000000> speed <22.500000>;
+		turn rftoe to x-axis <-20.000000> speed <15.000000>;
+		turn rrightoe to x-axis <-15.000000> speed <11.247253>;
+		turn rleftoe to x-axis <-15.000000> speed <11.247253>;
+		turn rrightoe to y-axis <15.000000> speed <11.000000>;
+		turn rleftoe to y-axis <-15.000000> speed <11.000000>;
+		turn rfoot to x-axis <-30.000000> speed <22.500000>;
+		turn rbtoe1 to x-axis <-10.000000> speed <8.000000>;
+		turn rbtoe2 to x-axis <-7.000000> speed <5.593407>;
+		turn lupleg to x-axis <-40.000000> speed <52.500000>;
+		turn llowleg to x-axis <0.000000> speed <26.247253>;
+		turn lfoot to x-axis <10.000000> speed <30.000000>;
+		sleep 1250;
+		if( !bAiming )
+		{
+			move torso to y-axis [0.000000] speed [2.500000];
+			move stick to y-axis [3.750000] speed [2.000000];
+			move lshoulder to y-axis [0.000000] speed [1.125000];
+			move rshoulder to y-axis [0.000000] speed [0.549957];
+		}
+		turn lupleg to x-axis <0.000000> speed <68.000000>;
+		turn llowleg to x-axis <-10.000000> speed <17.000000>;
+		turn lftoe to x-axis <0.000000> speed <82.000000>;
+		turn lfoot to x-axis <0.000000> speed <51.093407>;
+		turn lleftoe to x-axis <0.000000> speed <91.000000>;
+		turn lrightoe to x-axis <0.000000> speed <91.000000>;
+		turn lbtoe1 to x-axis <0.000000> speed <60.000000>;
+		turn lbtoe2 to x-axis <0.000000> speed <40.000000>;
+		turn rlowleg to x-axis <35.000000> speed <24.890110>;
+		turn rftoe to x-axis <50.000000> speed <110.000000>;
+		turn rrightoe to x-axis <45.000000> speed <100.000000>;
+		turn rleftoe to x-axis <45.000000> speed <100.000000>;
+		turn rrightoe to y-axis <0.000000> speed <23.000000>;
+		turn rleftoe to y-axis <0.000000> speed <23.000000>;
+		turn rfoot to x-axis <20.000000> speed <40.000000>;
+		turn rbtoe1 to x-axis <-30.000000> speed <45.000000>;
+		turn rbtoe2 to x-axis <-20.000000> speed <30.000000>;
+		sleep 550;
+	}
+}
+
+StopMoving()
+{
+	signal 16;
+	bMoving = FALSE;
+	Static_Var_13 = 1;
+	if( !bAiming )
+	{
+		turn torso to y-axis <0.000000> speed <40.000000>;
+	}
+	if( !Static_Var_4 )
+	{
+		turn larm to x-axis <0.000000> speed <50.000000>;
+		turn rarm to x-axis <0.000000> speed <50.000000>;
+		turn lcannon to y-axis <0.000000> speed <20.000000>;
+		turn rcannon to y-axis <0.000000> speed <20.000000>;
+	}
+	if( !Static_Var_5 )
+	{
+		turn stick to y-axis <0.000000> speed <20.000000>;
+		move stick to y-axis [0.000000] speed [2.500000];
+	}
+	if( Static_Var_5 )
+	{
+		if( !Static_Var_12 )
+		{
+			move stick to y-axis [0.000000] speed [2.500000];
+		}
+	}
+	turn lupleg to x-axis <0.000000> speed <100.000000>;
+	turn llowleg to x-axis <0.000000> speed <100.000000>;
+	turn lfoot to x-axis <0.000000> speed <90.000000>;
+	turn lbtoe1 to x-axis <0.000000> speed <90.000000>;
+	turn lbtoe2 to x-axis <0.000000> speed <80.000000>;
+	turn lftoe to x-axis <0.000000> speed <60.000000>;
+	turn lleftoe to x-axis <0.000000> speed <60.000000>;
+	turn lrightoe to x-axis <0.000000> speed <60.000000>;
+	turn lleftoe to y-axis <0.000000> speed <45.000000>;
+	turn lrightoe to y-axis <0.000000> speed <45.000000>;
+	turn rupleg to x-axis <0.000000> speed <100.000000>;
+	turn rlowleg to x-axis <0.000000> speed <100.000000>;
+	turn rfoot to x-axis <0.000000> speed <90.000000>;
+	turn rftoe to x-axis <0.000000> speed <60.000000>;
+	turn rleftoe to x-axis <0.000000> speed <60.000000>;
+	turn rrightoe to x-axis <0.000000> speed <60.000000>;
+	turn rleftoe to y-axis <0.000000> speed <45.000000>;
+	turn rrightoe to y-axis <0.000000> speed <45.000000>;
+	turn rbtoe1 to x-axis <0.000000> speed <90.000000>;
+	turn rbtoe2 to x-axis <0.000000> speed <80.000000>;
+	turn torso to z-axis <0.000000> speed <8.000000>;
+	move torso to y-axis [0.000000] speed [10.000000];
+	move torso to x-axis [0.000000] speed [3.000000];
+	move lshoulder to y-axis [0.000000] speed [7.500000];
+	move rshoulder to y-axis [0.000000] speed [7.500000];
+}
+
+RestorePrimary()
+{
+	set-signal-mask SIG_AIM;
+	sleep 6000;
+	Static_Var_9 = 0;
+	Static_Var_10 = 0;
+	turn stick to y-axis <0.000000> speed <50.000000>;
+	turn torso to y-axis <0.000000> speed <50.000000>;
+	turn larm to x-axis <0.000000> speed <40.000000>;
+	turn rarm to x-axis <0.000000> speed <40.000000>;
+	turn lcannon to y-axis <0.000000> speed <65.000000>;
+	turn rcannon to y-axis <0.000000> speed <65.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn rarm around x-axis;
+	wait-for-turn rcannon around y-axis;
+	Static_Var_4 = 0;
+	if( bAiming == 1 )
+	{
+		if( Static_Var_5 == 0 AND Static_Var_6 == 0 )
+		{
+			bAiming = FALSE;
+			return (0);
+		}
+	}
+}
+
+RestoreSecondary()
+{
+	set-signal-mask SIG_AIM_2;
+	sleep 6500;
+	turn plasmasprayer to y-axis <0.000000> speed <80.000000>;
+	wait-for-turn plasmasprayer around y-axis;
+	Static_Var_8 = 0;
+	move stick to y-axis [0.000000] speed [2.500000];
+	wait-for-move stick along y-axis;
+	Static_Var_5 = 0;
+	if( bAiming == 1 )
+	{
+		if( ( !Static_Var_4 ) AND ( !Static_Var_6 ) )
+		{
+			bAiming = FALSE;
+		}
+	}
+}
+
+RestoreTertiary()
+{
+	set-signal-mask SIG_AIM_3;
+	sleep 7000;
+	Static_Var_6 = 0;
+	turn launcher to y-axis <0.000000> speed <105.000000>;
+	turn launcher to x-axis <0.000000> speed <105.000000>;
+	if( bAiming == 1 )
+	{
+		if( Static_Var_4 == 0 AND Static_Var_5 == 0 )
+		{
+			bAiming = FALSE;
+		}
+	}
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+Create()
+{
+	gun_1 = pelvis;
+	gun_3 = pelvis;
+	Static_Var_8 = 0;
+	Static_Var_4 = 0;
+	Static_Var_5 = 0;
+	Static_Var_6 = 0;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	Static_Var_9 = 0;
+	Static_Var_10 = 0;
+	Static_Var_9 = 0;
+	unitviewer = FALSE;
+	Static_Var_12 = 0;
+	Static_Var_13 = 1;
+	start-script RestoreSecondary();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	dont-cache glowybit;
+	dont-cache nrgycells;
+	start-script SmokeUnit();
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = torso;
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 1 )
+	{
+		piecenum = rfire2;
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = lfire1;
+		return (0);
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = rfire1;
+		return (0);
+	}
+	if( gun_1 == 4 )
+	{
+		piecenum = lfire2;
+		return (0);
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = torso;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	Static_Var_4 = 1;
+	Static_Var_9 = heading;
+	Static_Var_10 = 0 - pitch;
+	if( !Static_Var_5 )
+	{
+		turn stick to y-axis heading speed <150.000000>;
+	}
+	turn torso to y-axis heading speed <150.000000>;
+	turn larm to x-axis <0.000000> - pitch speed <120.000000>;
+	turn rarm to x-axis <0.000000> - pitch speed <120.000000>;
+	Static_Var_10 = 0 - pitch;
+	if( Static_Var_10 <= -32768 )
+	{
+		turn rcannon to y-axis Static_Var_10 speed <90.000000>;
+		turn lcannon to y-axis <0.000000> - Static_Var_10 speed <90.000000>;
+	}
+	if( Static_Var_10 > -32768 )
+	{
+		turn rcannon to y-axis <0.000000> speed <90.000000>;
+		turn lcannon to y-axis <0.000000> speed <90.000000>;
+	}
+	wait-for-turn torso around y-axis;
+	wait-for-turn lshoulder around x-axis;
+	wait-for-turn rshoulder around x-axis;
+	wait-for-turn rcannon around x-axis;
+	wait-for-turn lcannon around x-axis;
+	start-script RestorePrimary();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 1 )
+	{
+		gun_1 = torso;
+		move rbarrel2 to z-axis [-11.250000] speed [750.000000];
+		sleep 150;
+		move rbarrel2 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		gun_1 = stick;
+		move lbarrel1 to z-axis [-11.250000] speed [750.000000];
+		sleep 150;
+		move lbarrel1 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+	if( gun_1 == 3 )
+	{
+		gun_1 = plasmasprayer;
+		move rbarrel1 to z-axis [-11.250000] speed [750.000000];
+		sleep 150;
+		move rbarrel1 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+	if( gun_1 == 4 )
+	{
+		gun_1 = pelvis;
+		move lbarrel2 to z-axis [-11.250000] speed [750.000000];
+		sleep 150;
+		move lbarrel2 to z-axis [0.000000] speed [8.750000];
+		return (0);
+	}
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = fire;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = plasmasprayer;
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	Static_Var_5 = 1;
+	bAiming = TRUE;
+	if( Static_Var_8 == 0 )
+	{
+		if( !bMoving )
+		{
+			move stick to y-axis [2.500000] speed [5.000000];
+			wait-for-move stick along y-axis;
+		}
+		if( bMoving )
+		{
+			move stick to y-axis [7.000000] speed [5.000000];
+			wait-for-move stick along y-axis;
+		}
+	}
+	if( !bMoving )
+	{
+		move stick to y-axis [2.500000] speed [5.000000];
+	}
+	if( bMoving )
+	{
+		move stick to y-axis [7.000000] speed [5.000000];
+	}
+	turn stick to y-axis heading speed <140.000000>;
+	wait-for-turn stick around y-axis;
+	start-script RestoreSecondary();
+	return (1);
+}
+
+FireSecondary()
+{
+	explode fire type BITMAPONLY | BITMAP5;
+	move plasmasprayer to z-axis [-1.750000] speed [50.000000];
+	move cap to z-axis [6.250000] speed [65.000000];
+	sleep 500;
+	move plasmasprayer to z-axis [0.000000] speed [3.000000];
+	move cap to z-axis [0.000000] speed [5.000000];
+}
+
+QueryTertiary(piecenum)
+{
+	if( gun_3 == 1 )
+	{
+		piecenum = rocketfire1;
+		return (0);
+	}
+	if( gun_3 == 2 )
+	{
+		piecenum = rocketfire2;
+		return (0);
+	}
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = launcher;
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	if( !Static_Var_6 )
+	{
+		if( !Static_Var_4 )
+		{
+			turn larm to x-axis <0.000000> speed <50.000000>;
+			turn rarm to x-axis <0.000000> speed <50.000000>;
+			move lshoulder to y-axis [0.000000] speed [7.500000];
+			move rshoulder to y-axis [0.000000] speed [7.500000];
+			turn lcannon to y-axis <0.000000> speed <20.000000>;
+			turn rcannon to y-axis <0.000000> speed <20.000000>;
+		}
+	}
+	Static_Var_6 = 1;
+	bAiming = TRUE;
+	if( !unitviewer )
+	{
+		turn launcher to y-axis heading - Static_Var_9 speed <160.000000>;
+		turn launcher to x-axis <0.000000> - pitch - Static_Var_10 speed <85.000000>;
+	}
+	if( unitviewer )
+	{
+		turn launcher to y-axis heading speed <160.000000>;
+		turn launcher to x-axis <0.000000> - pitch speed <85.000000>;
+	}
+	wait-for-turn launcher around y-axis;
+	wait-for-turn launcher around x-axis;
+	start-script RestoreTertiary();
+	return (1);
+}
+
+FireTertiary()
+{
+	if( gun_3 == 1 )
+	{
+		gun_3 = torso;
+		return (0);
+	}
+	if( gun_3 == 2 )
+	{
+		gun_3 = pelvis;
+		return (0);
+	}
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode pelvis type BITMAPONLY | BITMAP1;
+		explode rcannon type SHATTER | BITMAP4;
+		explode rbarrel1 type SHATTER | BITMAP4;
+		explode lshoulder type SHATTER | BITMAP4;
+		explode rarm type SHATTER | BITMAP4;
+		explode torso type BITMAPONLY | BITMAP1;
+		explode stick type BITMAPONLY | BITMAP1;
+		explode plasmasprayer type SHATTER | BITMAP4;
+		explode larm type BITMAPONLY | BITMAP1;
+		explode lcannon type BITMAPONLY | BITMAP1;
+		explode lbarrel1 type BITMAPONLY | BITMAP1;
+		explode lfire1 type BITMAPONLY | BITMAP1;
+		explode lbarrel2 type BITMAPONLY | BITMAP1;
+		explode lfire2 type BITMAPONLY | BITMAP1;
+		explode launcher type BITMAPONLY | BITMAP1;
+		explode glowybit type BITMAPONLY | BITMAP1;
+		explode rocketfire1 type BITMAPONLY | BITMAP1;
+		explode rocketfire2 type BITMAPONLY | BITMAP1;
+		explode rshoulder type BITMAPONLY | BITMAP1;
+		explode rfire1 type BITMAPONLY | BITMAP1;
+		explode rbarrel2 type BITMAPONLY | BITMAP1;
+		explode rfire2 type BITMAPONLY | BITMAP1;
+		explode cellholder type BITMAPONLY | BITMAP1;
+		explode nrgycells type BITMAPONLY | BITMAP1;
+		explode lupleg type BITMAPONLY | BITMAP1;
+		explode llowleg type BITMAPONLY | BITMAP1;
+		explode lfoot type BITMAPONLY | BITMAP1;
+		explode lftoe type BITMAPONLY | BITMAP1;
+		explode lleftoe type BITMAPONLY | BITMAP1;
+		explode lrightoe type BITMAPONLY | BITMAP1;
+		explode rupleg type BITMAPONLY | BITMAP1;
+		explode rlowleg type BITMAPONLY | BITMAP1;
+		explode rfoot type BITMAPONLY | BITMAP1;
+		explode rftoe type BITMAPONLY | BITMAP1;
+		explode rleftoe type BITMAPONLY | BITMAP1;
+		explode rrightoe type BITMAPONLY | BITMAP1;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type SHATTER | BITMAP4;
+		explode pelvis type SHATTER | BITMAP4;
+		explode torso type SHATTER | BITMAP4;
+		explode stick type SHATTER | BITMAP4;
+		explode plasmasprayer type SHATTER | BITMAP4;
+		explode larm type SHATTER | BITMAP4;
+		explode lcannon type SHATTER | BITMAP4;
+		explode lbarrel1 type SHATTER | BITMAP4;
+		explode lfire1 type SHATTER | BITMAP4;
+		explode lbarrel2 type SHATTER | BITMAP4;
+		explode lfire2 type SHATTER | BITMAP4;
+		explode launcher type SHATTER | BITMAP4;
+		explode glowybit type SHATTER | BITMAP4;
+		explode rocketfire1 type SHATTER | BITMAP4;
+		explode rocketfire2 type SHATTER | BITMAP4;
+		explode rshoulder type SHATTER | BITMAP4;
+		explode rcannon type SHATTER | BITMAP4;
+		explode rbarrel1 type SHATTER | BITMAP4;
+		explode lshoulder type SHATTER | BITMAP4;
+		explode rarm type SHATTER | BITMAP4;
+		explode rfire1 type SHATTER | BITMAP4;
+		explode rbarrel2 type SHATTER | BITMAP4;
+		explode rfire2 type SHATTER | BITMAP4;
+		explode cellholder type SHATTER | BITMAP4;
+		explode nrgycells type SHATTER | BITMAP4;
+		explode lupleg type SHATTER | BITMAP4;
+		explode llowleg type SHATTER | BITMAP4;
+		explode lfoot type SHATTER | BITMAP4;
+		explode lftoe type SHATTER | BITMAP4;
+		explode lleftoe type SHATTER | BITMAP4;
+		explode lrightoe type SHATTER | BITMAP4;
+		explode rupleg type SHATTER | BITMAP4;
+		explode rlowleg type SHATTER | BITMAP4;
+		explode rfoot type SHATTER | BITMAP4;
+		explode rftoe type SHATTER | BITMAP4;
+		explode rleftoe type SHATTER | BITMAP4;
+		explode rrightoe type SHATTER | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode torso type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode stick type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode plasmasprayer type SHATTER | BITMAP4;
+		explode lshoulder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode larm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lcannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lbarrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode glowybit type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rocketfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rocketfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rshoulder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rcannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rbarrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode cellholder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode nrgycells type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode llowleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lleftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lrightoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rlowleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rleftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode rrightoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode torso type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode stick type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode plasmasprayer type SHATTER | BITMAP4;
+	explode lshoulder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode larm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lcannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lbarrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode glowybit type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rocketfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rocketfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rshoulder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rcannon type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rbarrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode cellholder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode nrgycells type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode llowleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lleftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lrightoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rlowleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rleftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rrightoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+}

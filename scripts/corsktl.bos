@@ -1,0 +1,98 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, Left_Back_Leg, Left_Back_Foot, Right_Back_Leg, Righ_Back_Foot, Left_Front_Leg, Left_Front_Foot, Right_Front_Leg,
+       Right_Front_Foot, Hump, Tail;
+
+static-var  bMoving;
+
+
+MotionControl()
+{
+	while( TRUE )
+	{
+		if( bMoving )
+		{
+			turn Left_Back_Leg to y-axis <30.005495> speed <180.000000>;
+			turn Right_Back_Leg to y-axis <30.005495> speed <180.000000>;
+			turn Left_Front_Leg to y-axis <-30.005495> speed <180.000000>;
+			turn Right_Front_Leg to y-axis <-30.005495> speed <180.000000>;
+			turn Tail to y-axis <-10.000000> speed <100.000000>;
+			wait-for-turn Left_Back_Leg around y-axis;
+			turn Left_Back_Leg to y-axis <-30.005495> speed <180.000000>;
+			turn Right_Back_Leg to y-axis <-30.005495> speed <180.000000>;
+			turn Left_Front_Leg to y-axis <30.005495> speed <180.000000>;
+			turn Right_Front_Leg to y-axis <30.005495> speed <180.000000>;
+			turn Tail to y-axis <10.000000> speed <100.000000>;
+			wait-for-turn Left_Back_Leg around y-axis;
+		}
+		if( !bMoving )
+		{
+			sleep 100;
+		}
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+Create()
+{
+	bMoving = FALSE;
+	start-script MotionControl();
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	move Tail to z-axis [0.000000] speed [50.000000];
+	wait-for-move Tail along z-axis;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	turn Left_Back_Leg to y-axis <0.000000> speed <30.000000>;
+	turn Right_Back_Leg to y-axis <0.000000> speed <30.000000>;
+	turn Left_Front_Leg to y-axis <0.000000> speed <30.000000>;
+	turn Right_Front_Leg to y-axis <0.000000> speed <30.000000>;
+	turn Tail to y-axis <10.000000> speed <30.000000>;
+	move Tail to z-axis [2.500000] speed [3.000000];
+	wait-for-move Tail along z-axis;
+	sleep 150;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode Left_Back_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode Left_Back_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode Right_Back_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	explode Righ_Back_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode Left_Front_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode Left_Front_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode Right_Front_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	explode Right_Front_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode Tail type FALL | EXPLODE_ON_HIT | BITMAP2;
+	explode Hump type FALL | EXPLODE_ON_HIT | BITMAP2;
+}
+
+Go()
+{
+}
+
+Stop()
+{
+}
+
+FireWeapon1()
+{
+	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
+}

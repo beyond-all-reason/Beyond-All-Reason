@@ -1,0 +1,172 @@
+[SMALL_GREEN_LASER_BURN]
+{
+	usedefaultexplosions=0;
+	[sparks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0;
+		sizeMod=1.0;
+		pos=0, 0, 0;
+		emitVector=0, 1, 0;
+		gravity=0, -0.4, 0;
+		colorMap=0.6 1 0.6 0.01   1 0.7 0.2 0.01   0 0 0 0.01;
+		Texture=plasma;
+		airdrag=0.97;
+		particleLife=2;
+		particleLifeSpread=7;
+		numParticles=8;
+		particleSpeed=6;
+		particleSpeedSpread=2;
+		particleSize=1;
+		particleSizeSpread=2.5;
+		emitRot=0;
+		emitRotSpread=80;
+		directional=1;
+		}
+	air=1;
+	water=0;
+	ground=0;
+	unit=1;
+	count=1;
+	}
+	[burnpop]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=greenexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.4;
+
+      		size = 5;
+      		sizeGrowth = 0.3;
+
+         	pos = r-2 r2, r0 r1, r-2 r2;
+         	emitRot=50;
+			emitRotSpread=50;
+			directional=1;
+         	speed=0, 0, 0;
+      		}
+	    air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	}
+	
+	[GROUNDFLASH]
+	{
+		flashsize=6;
+		flashalpha=0.6;
+		circlegrowth=-0.02;
+		circlealpha=1;
+		ttl=80;
+		color=1,1,0.44;
+	}
+    ground=1;
+	[GROUNDFLASH]
+	{
+		flashsize=16;
+		flashalpha=1;
+		circlegrowth=0;
+		circlealpha=0.4;
+		ttl=3;
+		color=0,1,0;
+	}
+    ground=1;
+
+}
+
+[LARGE_GREEN_LASER_BURN]
+{
+	usedefaultexplosions=0;
+	[sparks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0;
+		sizeMod=1.0;
+		pos=0, 0, 0;
+		emitVector=0, 1, 0;
+		gravity=0, -0.4, 0;
+		colorMap=0.6 1 0.6 0.01   1 0.7 0.2 0.01   0 0 0 0.01;
+		Texture=plasma;
+		airdrag=0.97;
+		particleLife=4;
+		particleLifeSpread=11;
+		numParticles=8;
+		particleSpeed=6;
+		particleSpeedSpread=2;
+		particleSize=1;
+		particleSizeSpread=2.5;
+		emitRot=0;
+		emitRotSpread=80;
+		directional=1;
+		}
+	air=1;
+	water=0;
+	ground=0;
+	unit=1;
+	count=1;
+	}
+	[burnpop]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=greenexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.4;
+
+      		size = 8;
+      		sizeGrowth = 0.4;
+
+         	pos = r-2 r2, r0 r1, r-2 r2;
+         	emitRot=50;
+			emitRotSpread=50;
+			directional=1;
+         	speed=0, 0, 0;
+      		}
+	    air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	}
+
+	[GROUNDFLASH]
+	{
+		flashsize=11;
+		flashalpha=1.1;
+		circlegrowth=2;
+		circlealpha=1;
+		ttl=10;
+		color=0.7,1,0.7;
+	}
+	air=1;
+    water=1;
+    ground=1;
+
+	[spikes]
+	{
+		class=explspike;
+		[properties]
+		{
+			dir=-45 r90,-45 r90,-45 r90;
+			width=10;
+			length=0.00001;
+			alpha=0.2;
+			alphadecay=0.08;
+			color=0, 1, 0;
+		}
+		air=1;
+		water=1;
+		ground=1;
+  		count=5; 
+	}
+}

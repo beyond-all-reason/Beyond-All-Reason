@@ -1,0 +1,133 @@
+[T1ARMBOMB]
+{
+
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0.9 0.82 0.73 0	0.9 0.82 0.73 0.3	  0.9 0.82 0.73 0.6	  0.5 0.5 0.5 0.3	  0 0 0 0.1	  0 0 0 0.01;
+			texture=bombsmoke;
+			airdrag=0.95;
+			particleLife=18;
+			particleLifeSpread=12;
+			numParticles=1;
+			particleSpeed=1;
+			particleSpeedSpread=1;
+			particleSize=4;
+			particleSizeSpread=3;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.4;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=1 1 1 0	1 1 1 0.2	  1 1 1 0.4	  1 1 1 0.2	  0 0 0 0.1	  0 0 0 0.01;
+			texture=whitelight2;
+			airdrag=0.95;
+			particleLife=5;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=0;
+			particleSize=20;
+			particleSizeSpread=5;
+			directional=1;
+			emitRot=50;
+			emitRotSpread=50;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	
+	[GROUNDFLASH]
+	{
+		flashsize=60;
+		flashalpha=1.1;
+		circlegrowth=4;
+		circlealpha=1;
+		ttl=9;
+		color=0.9, 0.82, 0.73;
+	}
+	
+}
+
+
+
+[T1COREBOMB]
+{
+	usedefaultexplosions=1;
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		texture=flare;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 1.3;
+
+      		size = 3;
+      		sizeGrowth = 25;
+
+         	pos = r-2 r2, 5, r-2 r2;
+         	speed=0, 1 0, 0;
+      		}
+	air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	} 
+
+
+	[dirt]
+	{
+		[properties]
+		{
+		size=20;
+		color=0.2, 0.1, 0.05;
+		alphaFalloff=2;
+		speed= r1.5 r-1.5, 2, r1.5 r-1.5;
+		pos=r-10 r10, 0, r-10 r10;
+		}
+		ground=1;
+		count=4;
+	}
+
+	[groundflash]
+   	{
+      	ttl = 13;
+      	flashSize = 60;
+      	flashAlpha = 0.9;
+
+      	circleGrowth = 6;
+      	circleAlpha = 0.6;
+
+      	color = 1, 0.8, 0.2;
+
+	air=1;
+     	ground=1;
+      	water=1;
+	}
+}

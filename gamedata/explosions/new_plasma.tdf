@@ -1,0 +1,81 @@
+[KARGMISSILE_EXPLOSION]
+{
+	[groundflash]
+   	{
+      	ttl = 15;
+      	flashSize = 40;
+      	flashAlpha = 0.9;
+
+      	circleGrowth = 1;
+      	circleAlpha = 0.6;
+
+      	color = 1, 0.3, 0.2;
+
+	    air=1;
+     	ground=1;
+      	water=1;
+	}
+	
+	[foom] {
+		class=CExpGenSpawner;
+		[properties]
+		{
+			pos=dir; 
+			delay=0;
+			explosionGenerator=custom:LIGHT_PLASMA_IGNITE; 
+		}
+		unit=1;
+		ground=0;
+		count=1;
+	}
+
+}
+
+[LIGHT_PLASMA]
+{
+    [groundflash]
+	{
+		flashsize=12;
+		flashalpha=1.5;
+		circlegrowth=0.001;
+		circlealpha=0.35;
+		ttl=14;
+		color=0.996, 0.980, 0.566;
+	}
+	[foom] {
+		class=CExpGenSpawner;
+		[properties]
+		{
+			pos=dir; 
+			delay=0;
+			explosionGenerator=custom:LIGHT_PLASMA_IGNITE; 
+		}
+		unit=1;
+		ground=0;
+		count=1;
+	}
+}
+
+[LIGHT_PLASMA_IGNITE] 
+{
+	[foom]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=explo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.5;
+      		size = 7;
+      		sizeGrowth = 0.7;
+         	pos=dir;
+         	speed=dir;
+      		}
+      	ground=1;
+      	unit=1;
+      	air=1;
+		count=1;
+	} 
+}
