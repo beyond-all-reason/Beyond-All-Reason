@@ -61,6 +61,7 @@ local unitDef = {
   transportSize      = 4,
   turnRate           = 373,
   unitname           = [[cortship]],
+  waterline          = 6,
   workerTime         = 0,
   sounds = {
     canceldestruct     = [[cancel2]],

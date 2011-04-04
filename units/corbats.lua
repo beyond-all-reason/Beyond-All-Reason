@@ -58,6 +58,7 @@ local unitDef = {
   TEDClass           = [[SHIP]],
   turnRate           = 306,
   unitname           = [[corbats]],
+  waterline          = 12,
   workerTime         = 0,
   sounds = {
     canceldestruct     = [[cancel2]],

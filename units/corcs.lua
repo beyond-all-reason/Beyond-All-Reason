@@ -57,6 +57,7 @@ local unitDef = {
   terraformSpeed     = 750,
   turnRate           = 626,
   unitname           = [[corcs]],
+  waterline          = 3,
   workerTime         = 250,
   buildoptions = {
     [[cortide]],

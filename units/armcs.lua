@@ -57,6 +57,7 @@ local unitDef = {
   terraformSpeed     = 750,
   turnRate           = 648,
   unitname           = [[armcs]],
+  waterline          = 4,
   workerTime         = 250,
   buildoptions = {
     [[armtide]],
