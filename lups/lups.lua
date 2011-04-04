@@ -165,6 +165,11 @@ local function DetectCard(vendor,renderer)
   renderer  = renderer:lower()
 
   NVseries  = ((isNvidia)and(
+                 (renderer:find("quadro [56]%d%d%d") and 11) or  --// Quadro series
+                 (renderer:find("quadro cx") and 10) or
+                 (renderer:find("quadro fx 5[678]%d%d") and 10) or
+                 (renderer:find("quadro fx 5[234]%d%d") and 8) or
+                 (renderer:find("quadro fx [1-4]%d%d%d") and 8) or
                  (renderer:find(" gf[xs]* 4%d%d") and 11) or  --// Fermi
                  (renderer:find(" g[txs]* %d%d%d") and 10) or
                  (renderer:find(" 9") and 9) or
