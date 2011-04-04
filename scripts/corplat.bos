@@ -178,6 +178,7 @@ Create()
 	dont-shade platform;
 	unitviewer = FALSE;
 	spray = base;
+	set ARMORED to 1;
 	move base to y-axis [5.000000] now;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

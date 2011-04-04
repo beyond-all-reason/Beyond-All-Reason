@@ -1,0 +1,319 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, beam1, beam2, side1, side2, doo2, door1,
+       plate2, plate1, nano2, nano1, post1, post2;
+
+static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+{
+	turn side1 to z-axis <0.000000> now;
+	turn side1 to z-axis <-89.016484> speed <116.000000>;
+	turn side2 to z-axis <0.000000> now;
+	turn side2 to z-axis <89.016484> speed <116.000000>;
+	set ARMORED to 0;
+	sleep 766;
+
+	turn doo2 to z-axis <90.016484> speed <210.000000>;
+	turn door1 to z-axis <-90.016484> speed <211.000000>;
+	sleep 428;
+
+	move doo2 to x-axis [-17.500000] speed [40.000000];
+	move door1 to x-axis [17.750000] speed [40.000000];
+	sleep 428;
+
+	move plate2 to x-axis [14.625000] speed [32.500000];
+	move plate1 to x-axis [-16.250000] speed [37.500000];
+	sleep 429;
+
+	turn nano2 to z-axis <-37.005495> speed <86.000000>;
+	turn nano1 to z-axis <41.005495> speed <97.000000>;
+	sleep 431;
+}
+
+deactivatescr()
+{
+	move plate2 to x-axis [14.625000] now;
+	move doo2 to x-axis [-17.500000] now;
+	move plate1 to x-axis [-16.250000] now;
+	move door1 to x-axis [17.750000] now;
+	turn side1 to z-axis <-89.560440> now;
+	turn side2 to z-axis <89.560440> now;
+	turn doo2 to z-axis <90.016484> now;
+	turn nano2 to z-axis <-37.346154> now;
+	turn nano2 to z-axis <0.000000> speed <89.000000>;
+	turn door1 to z-axis <-90.456044> now;
+	turn nano1 to z-axis <41.846154> now;
+	turn nano1 to z-axis <0.000000> speed <100.000000>;
+	sleep 418;
+
+	move plate2 to x-axis [0.000000] speed [32.500000];
+	move plate1 to x-axis [0.000000] speed [37.500000];
+	sleep 426;
+
+	move doo2 to x-axis [0.000000] speed [40.000000];
+	move door1 to x-axis [0.000000] speed [40.000000];
+	sleep 428;
+
+	turn doo2 to z-axis <0.000000> speed <209.000000>;
+	turn door1 to z-axis <0.000000> speed <210.000000>;
+	sleep 430;
+
+	turn side1 to z-axis <0.000000> speed <122.000000>;
+	turn side2 to z-axis <0.000000> speed <122.000000>;
+	set ARMORED to 1;
+	sleep 734;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+Go()
+{
+	dont-cache doo2;
+	dont-cache door1;
+	dont-cache nano1;
+	dont-cache nano2;
+	dont-cache pad;
+	dont-cache plate1;
+	dont-cache plate2;
+	dont-cache post1;
+	dont-cache post2;
+	dont-cache side1;
+	dont-cache side2;
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	cache doo2;
+	cache door1;
+	cache nano1;
+	cache nano2;
+	cache pad;
+	cache plate1;
+	cache plate2;
+	cache post1;
+	cache post2;
+	cache side1;
+	cache side2;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	dont-shade doo2;
+	dont-shade door1;
+	dont-shade nano1;
+	dont-shade nano2;
+	dont-shade pad;
+	dont-shade plate1;
+	dont-shade plate2;
+	dont-shade post1;
+	dont-shade post2;
+	dont-shade side1;
+	dont-shade side2;
+	Static_Var_2 = 0;
+	Static_Var_1 = 0;
+	set ARMORED to 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script SmokeUnit();
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = beam1 + Static_Var_1;
+	Static_Var_1 = !Static_Var_1;
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !Static_Var_2 )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+StartBuilding()
+{
+	spin pad around y-axis speed <0.000000>;
+}
+
+StopBuilding()
+{
+	stop-spin pad around y-axis;
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode doo2 type BITMAPONLY | BITMAP4;
+		explode door1 type BITMAPONLY | BITMAP5;
+		explode nano1 type BITMAPONLY | BITMAP1;
+		explode nano2 type BITMAPONLY | BITMAP2;
+		explode pad type BITMAPONLY | BITMAP3;
+		explode plate1 type BITMAPONLY | BITMAP4;
+		explode plate2 type BITMAPONLY | BITMAP5;
+		explode post1 type BITMAPONLY | BITMAP1;
+		explode post2 type BITMAPONLY | BITMAP2;
+		explode side1 type BITMAPONLY | BITMAP3;
+		explode side2 type BITMAPONLY | BITMAP4;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode doo2 type FALL | BITMAP4;
+		explode door1 type BITMAPONLY | BITMAP5;
+		explode nano1 type BITMAPONLY | BITMAP1;
+		explode nano2 type FALL | BITMAP2;
+		explode pad type BITMAPONLY | BITMAP3;
+		explode plate1 type SHATTER | BITMAP4;
+		explode plate2 type BITMAPONLY | BITMAP5;
+		explode post1 type FALL | BITMAP1;
+		explode post2 type FALL | BITMAP2;
+		explode side1 type BITMAPONLY | BITMAP3;
+		explode side2 type BITMAPONLY | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode doo2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode door1 type BITMAPONLY | BITMAP5;
+		explode nano1 type BITMAPONLY | BITMAP1;
+		explode nano2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode pad type BITMAPONLY | BITMAP3;
+		explode plate1 type SHATTER | BITMAP4;
+		explode plate2 type SHATTER | BITMAP5;
+		explode post1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode post2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode side1 type BITMAPONLY | BITMAP3;
+		explode side2 type BITMAPONLY | BITMAP4;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode doo2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode door1 type BITMAPONLY | BITMAP5;
+	explode nano1 type BITMAPONLY | BITMAP1;
+	explode nano2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode pad type BITMAPONLY | BITMAP3;
+	explode plate1 type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	explode plate2 type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode post1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode post2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode side1 type BITMAPONLY | BITMAP3;
+	explode side2 type BITMAPONLY | BITMAP4;
+}

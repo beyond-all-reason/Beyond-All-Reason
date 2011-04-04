@@ -191,6 +191,7 @@ Create()
 	dont-shade plate1;
 	dont-shade plate2;
 	dont-shade platform;
+	set ARMORED to 1;
 	unitviewer = FALSE;
 	spray = base;
 	move base to y-axis [2.500000] now;
