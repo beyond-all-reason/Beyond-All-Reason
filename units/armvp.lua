@@ -23,6 +23,9 @@ local unitDef = {
   canPatrol          = true,
   canstop            = 1,
   category           = [[ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR]],
+  collisionVolumeType = [[Box]],
+  collisionVolumeScales = [[120 34 92]],
+  collisionVolumeTest = 1,
   corpse             = [[DEAD]],
   description        = [[Produces Level 1 Vehicles]],
   energyStorage      = 100,
@@ -58,7 +61,7 @@ local unitDef = {
   unitname           = [[armvp]],
   useBuildingGroundDecal = true,
   workerTime         = 100,
-  yardMap            = [[ooooooooooccccooooccccooooccccooooccccooooccccoo]],
+  yardMap            = [[ooooooooooccccooooccccooooccccooooccccooyoccccoy]],
   buildoptions = {
     [[armcv]],
     [[armbeaver]],
