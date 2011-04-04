@@ -53,7 +53,7 @@
 			laserfalloff=laserfalloff.tga;
 			randdots=randdots.tga;
 			smoketrail=smoketrail.tga;
-			wake=wake.tga;
+			wake=wake.png;
 			explo=explo.tga;
 			explofade=explofade.tga;
 			heatcloud=explo.tga;
