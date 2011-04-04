@@ -3,8 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  missilea, missileb, base, winga, wingb, jet, thrusta1, thrusta2,
-       thrustb;
+piece  base, winga, wingb, thrustb;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -112,12 +111,12 @@ Deactivate()
 
 QueryPrimary(piecenum)
 {
-	piecenum = missilea;
+	piecenum = winga;
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = missileb;
+	piecenum = wingb;
 }
 
 SweetSpot(piecenum)
@@ -131,11 +130,6 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
-		explode jet type BITMAPONLY | BITMAP2;
-		explode missilea type BITMAPONLY | BITMAP3;
-		explode missileb type BITMAPONLY | BITMAP4;
-		explode thrusta1 type BITMAPONLY | BITMAP5;
-		explode thrusta2 type BITMAPONLY | BITMAP1;
 		explode thrustb type BITMAPONLY | BITMAP2;
 		explode winga type BITMAPONLY | BITMAP3;
 		explode wingb type BITMAPONLY | BITMAP4;
@@ -145,11 +139,6 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
-		explode jet type FALL | BITMAP2;
-		explode missilea type FALL | BITMAP3;
-		explode missileb type FALL | BITMAP4;
-		explode thrusta1 type FALL | BITMAP5;
-		explode thrusta2 type FALL | BITMAP1;
 		explode thrustb type FALL | BITMAP2;
 		explode winga type SHATTER | BITMAP3;
 		explode wingb type BITMAPONLY | BITMAP4;
@@ -159,11 +148,6 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
-		explode jet type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode missilea type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode missileb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode thrusta1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode thrusta2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode winga type SHATTER | BITMAP3;
 		explode wingb type BITMAPONLY | BITMAP4;
@@ -171,11 +155,6 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
-	explode jet type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode missilea type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode missileb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode thrusta1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode thrusta2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode winga type SHATTER | EXPLODE_ON_HIT | BITMAP3;
 	explode wingb type BITMAPONLY | BITMAP4;
