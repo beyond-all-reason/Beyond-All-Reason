@@ -1,8 +1,8 @@
 return {
-  name='Balanced Annihilation V7.31',
+  name='Balanced Annihilation SVN',
   description='Moooooo!',
   shortname='BA',
-  version='V7.31',
+  version='SVN',
   mutator='Official',
   game='Total Annihilation',
   shortGame='TA',
