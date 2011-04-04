@@ -15,17 +15,17 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from base;
 		}
@@ -65,11 +65,11 @@ PositionSpindle()
 	{
 		turn spindle to z-axis <0.000000> speed <400.093407>;
 	}
-	if( gun_1 == 2 )
+	else if( gun_1 == 2 )
 	{
 		turn spindle to z-axis <120.027473> speed <400.093407>;
 	}
-	if( gun_1 == 3 )
+	else if( gun_1 == 3 )
 	{
 		turn spindle to z-axis <0.000000> - <120.027473> speed <400.093407>;
 	}
