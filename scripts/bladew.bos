@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, rwing, lwing, hull, flare;
+piece  base, flare;
 
 #define SIG_AIM				2
 
@@ -86,7 +86,4 @@ Killed(severity, corpsetype)
 {
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
-	explode hull type SHATTER | SMOKE | BITMAP2;
-	explode rwing type FALL | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode lwing type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 }
