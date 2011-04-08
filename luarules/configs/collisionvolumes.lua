@@ -54,7 +54,7 @@ local unitCollisionVolume = {}
 		off={60,50,60,0,-4,0,1,1,1},
 	}
 	unitCollisionVolume["armpb"] = {
-		on={39,88,39,0,-14,0,0,1,0},
+		on={39,88,39,0,-11,0,0,1,0},
 		off={39,55,39,0,-27,0,0,1,0},
 	}
 	unitCollisionVolume["armplat"] = {
@@ -102,7 +102,7 @@ local unitCollisionVolume = {}
 		off={44,10,44,0,-7,0,2,1,0},
 	}
 	unitCollisionVolume["corvipe"] = {
-		on={39,86,39,0,-13,0,0,1,0},
+		on={39,86,39,0,-10,0,0,1,0},
 		off={39,55,39,0,-27,0,0,1,0},
 	}
 	unitCollisionVolume["packo"] = {
