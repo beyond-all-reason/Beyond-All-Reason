@@ -5,7 +5,7 @@
 
 piece  torso, arms, rfire, lfire, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, ground;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, animSpeed;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -35,7 +35,7 @@ walk()
 		turn rfoot to x-axis <46.934066> now;
 		turn lleg to x-axis <61.000000> now;
 		turn lfoot to x-axis <-50.390110> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -48,7 +48,7 @@ walk()
 		turn rfoot to x-axis <37.637363> now;
 		turn lleg to x-axis <33.615385> now;
 		turn lfoot to x-axis <-24.604396> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -61,7 +61,7 @@ walk()
 		turn rfoot to x-axis <27.890110> now;
 		turn lleg to x-axis <13.725275> now;
 		turn lfoot to x-axis <-25.978022> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -74,7 +74,7 @@ walk()
 		turn rfoot to x-axis <2.203297> now;
 		turn lleg to x-axis <-12.335165> now;
 		turn lfoot to x-axis <7.648352> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -87,7 +87,7 @@ walk()
 		turn rfoot to x-axis <-6.181319> now;
 		turn lleg to x-axis <-16.813187> now;
 		turn lfoot to x-axis <42.505495> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -99,7 +99,7 @@ walk()
 		turn rleg to x-axis <23.159341> now;
 		turn rfoot to x-axis <-33.170330> now;
 		turn lfoot to x-axis <7.357143> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -111,7 +111,7 @@ walk()
 		turn rfoot to x-axis <-43.148352> now;
 		turn lleg to x-axis <-10.082418> now;
 		turn lfoot to x-axis <28.236264> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -124,7 +124,7 @@ walk()
 		turn rfoot to x-axis <-44.824176> now;
 		turn lleg to x-axis <-4.412088> now;
 		turn lfoot to x-axis <46.934066> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -137,7 +137,7 @@ walk()
 		turn rfoot to x-axis <-10.791209> now;
 		turn lleg to x-axis <-5.747253> now;
 		turn lfoot to x-axis <42.505495> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -150,7 +150,7 @@ walk()
 		turn rfoot to x-axis <-20.978022> now;
 		turn lleg to x-axis <-3.978022> now;
 		turn lfoot to x-axis <33.648352> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -163,7 +163,7 @@ walk()
 		turn rfoot to x-axis <22.978022> now;
 		turn lleg to x-axis <4.115385> now;
 		turn lfoot to x-axis <14.016484> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -175,7 +175,7 @@ walk()
 		turn rfoot to x-axis <23.445055> now;
 		turn lleg to x-axis <24.203297> now;
 		turn lfoot to x-axis <-20.736264> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -187,7 +187,7 @@ walk()
 		turn rfoot to x-axis <26.115385> now;
 		turn lleg to x-axis <31.868132> now;
 		turn lfoot to x-axis <-37.637363> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	move pelvis to y-axis [-0.400000] now;
 	turn pelvis to x-axis <-0.423077> now;
@@ -198,7 +198,7 @@ walk()
 	turn rfoot to x-axis <6.104396> now;
 	turn lleg to x-axis <47.604396> now;
 	turn lfoot to x-axis <-47.412088> now;
-	sleep 3300 / currentSpeed;
+	sleep animSpeed;
 }
 
 walklegs()
@@ -224,7 +224,7 @@ walklegs()
 		turn rfoot to x-axis <46.934066> now;
 		turn lleg to x-axis <61.000000> now;
 		turn lfoot to x-axis <-50.390110> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -236,7 +236,7 @@ walklegs()
 		turn rfoot to x-axis <37.637363> now;
 		turn lleg to x-axis <33.615385> now;
 		turn lfoot to x-axis <-24.604396> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -248,7 +248,7 @@ walklegs()
 		turn rfoot to x-axis <27.890110> now;
 		turn lleg to x-axis <13.725275> now;
 		turn lfoot to x-axis <-25.978022> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -260,7 +260,7 @@ walklegs()
 		turn rfoot to x-axis <2.203297> now;
 		turn lleg to x-axis <-12.335165> now;
 		turn lfoot to x-axis <7.648352> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -272,7 +272,7 @@ walklegs()
 		turn rfoot to x-axis <-6.181319> now;
 		turn lleg to x-axis <-16.813187> now;
 		turn lfoot to x-axis <42.505495> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -283,7 +283,7 @@ walklegs()
 		turn rleg to x-axis <23.159341> now;
 		turn rfoot to x-axis <-33.170330> now;
 		turn lfoot to x-axis <7.357143> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -294,7 +294,7 @@ walklegs()
 		turn rfoot to x-axis <-43.148352> now;
 		turn lleg to x-axis <-10.082418> now;
 		turn lfoot to x-axis <28.236264> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -306,7 +306,7 @@ walklegs()
 		turn rfoot to x-axis <-44.824176> now;
 		turn lleg to x-axis <-4.412088> now;
 		turn lfoot to x-axis <46.934066> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -318,7 +318,7 @@ walklegs()
 		turn rfoot to x-axis <-10.791209> now;
 		turn lleg to x-axis <-5.747253> now;
 		turn lfoot to x-axis <42.505495> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -330,7 +330,7 @@ walklegs()
 		turn rfoot to x-axis <-20.978022> now;
 		turn lleg to x-axis <-3.978022> now;
 		turn lfoot to x-axis <33.648352> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -342,7 +342,7 @@ walklegs()
 		turn rfoot to x-axis <22.978022> now;
 		turn lleg to x-axis <4.115385> now;
 		turn lfoot to x-axis <14.016484> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -354,7 +354,7 @@ walklegs()
 		turn rfoot to x-axis <23.445055> now;
 		turn lleg to x-axis <24.203297> now;
 		turn lfoot to x-axis <-20.736264> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	if( bMoving )
 	{
@@ -366,7 +366,7 @@ walklegs()
 		turn rfoot to x-axis <26.115385> now;
 		turn lleg to x-axis <31.868132> now;
 		turn lfoot to x-axis <-37.637363> now;
-		sleep 3300 / currentSpeed;
+		sleep animSpeed;
 	}
 	move pelvis to y-axis [-0.400000] now;
 	turn pelvis to x-axis <-0.423077> now;
@@ -376,7 +376,7 @@ walklegs()
 	turn rfoot to x-axis <6.104396> now;
 	turn lleg to x-axis <47.604396> now;
 	turn lfoot to x-axis <-47.412088> now;
-	sleep 3300 / currentSpeed;
+	sleep animSpeed;
 }
 
 UnitSpeed()
@@ -385,36 +385,8 @@ UnitSpeed()
 	{
 		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
 		if (currentSpeed<20) currentSpeed=20;
+		animSpeed = 3700 / currentSpeed;
 		sleep 142;
-	}
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script UnitSpeed();
-
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
 	}
 }
 
@@ -463,6 +435,35 @@ MotionControl(moving, aiming, justmoved)
 	}
 }
 
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script UnitSpeed();
+	start-script MotionControl();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
 Create()
 {
 	hide rfire;
@@ -470,9 +471,9 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;
-	gun_1 = torso;
+	gun_1 = 0;
+	animSpeed = 37;
 	moveSpeed = get MAX_SPEED;
-	start-script MotionControl();
 	start-script SmokeUnit();
 }
 
