@@ -62,6 +62,7 @@ local unitDef = {
   turnRate           = 199,
   unitname           = [[armroy]],
   waterline          = 4.5,
+  windgenerator      = 0.001,
   workerTime         = 0,
   sounds = {
     canceldestruct     = [[cancel2]],

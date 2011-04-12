@@ -63,6 +63,7 @@ local unitDef = {
   turnRate           = 361,
   unitname           = [[armtship]],
   waterline          = 13,
+  windgenerator      = 0.001,
   workerTime         = 0,
   wpri_badtargetcategory = [[VTOL]],
   sounds = {

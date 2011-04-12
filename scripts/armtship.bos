@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, turret, arm1, arm2, arm3, link, door1, door2,
-       wake1, wake2, magnet, arm4, arm5, arm6, arm7;
+       wake1, wake2, magnet, arm4, arm5, arm6, arm7, ground;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4;
 
@@ -12,21 +12,48 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4;
 #define SIG_MOVE			2
 
 
+SetDirection(heading)
+{
+	var spd;
+	spd = get ABS(heading);
+	turn ground to y-axis heading speed spd;
+	turn base to y-axis 0-heading speed spd;
+}
+
+RockOnWaves()
+{
+	while(1)
+	{
+		turn ground to x-axis <1.0> speed <1.0>;
+		move ground to y-axis [0.2] speed [0.2];
+		wait-for-turn ground around x-axis;
+		turn ground to x-axis <-1.0> speed <1.0>;
+		move ground to y-axis [0.0] speed [0.2];
+		wait-for-move ground along y-axis;
+		move ground to y-axis [0.2] speed [0.2];
+		wait-for-turn ground around x-axis;
+		turn ground to x-axis <1.0> speed <1.0>;
+		move ground to y-axis [0.0] speed [0.2];
+		wait-for-move ground along y-axis;
+	}
+}
+
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
-	while( TRUE )
+	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
+	start-script RockOnWaves();
 	while( TRUE )
 	{
-		healthpercent = 4;
+		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from base;
 		}
@@ -36,29 +63,47 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 			sleeptime = 200;
 		}
 		sleep sleeptime;
-	}
-}
+	}}
 
 Create()
 {
 	start-script SmokeUnit();
 }
 
+waveSplash()
+{
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.35] speed [0.25];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.25];
+		wait-for-turn base around x-axis;
+	}
+}
+
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
 	while( TRUE )
 	{
 		emit-sfx 2 from wake1;
 		emit-sfx 2 from wake2;
-		sleep 300;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 10000 / waketime;
 	}
 }
 
 StopMoving()
 {
 	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.25];
 }
 
 SweetSpot(piecenum)

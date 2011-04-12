@@ -58,6 +58,7 @@ local unitDef = {
   turnRate           = 648,
   unitname           = [[armcs]],
   waterline          = 4,
+  windgenerator      = 0.001,
   workerTime         = 250,
   buildoptions = {
     [[armtide]],
