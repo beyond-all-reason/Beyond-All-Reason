@@ -9,6 +9,7 @@ piece  base, shell, leg1, leg2, leg3, leg4, wing1, wing2,
 static-var  Static_Var_1, Static_Var_2, Static_Var_3;
 
 
+/*
 OpenYard()
 {
 	set YARD_OPEN to 1;
@@ -32,6 +33,7 @@ CloseYard()
 	}
 	set BUGGER_OFF to 0;
 }
+*/
 
 activatescr()
 {
@@ -40,7 +42,7 @@ activatescr()
 		set ACTIVATION to 0;
 		return (0);
 	}
-	call-script CloseYard();
+	//call-script CloseYard();
 	move shell to y-axis [0.000000] now;
 	move shell to y-axis [4.089990] speed [8.000000];
 	sleep 597;
@@ -76,7 +78,7 @@ activatescr()
 
 deactivatescr()
 {
-	call-script OpenYard();
+	//call-script OpenYard();
 	move shell to y-axis [4.089990] now;
 	move leg1 to x-axis [4.450000] now;
 	move leg1 to z-axis [4.489990] now;
