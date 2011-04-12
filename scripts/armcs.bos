@@ -6,7 +6,7 @@
 piece  base, beam, plate, arm, nano, door1, door2, wake1,
        wake2, turret, ground;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -70,26 +70,28 @@ deactivatescr()
 SetDirection(heading)
 {
 	var spd;
-	spd = get ABS(heading);
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
 	turn ground to y-axis heading speed spd;
 	turn base to y-axis 0-heading speed spd;
+	oldHead = heading;
 }
 
 RockOnWaves()
 {
-	while(1)
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
 	{
-		turn ground to x-axis <1.0> speed <1.5>;
-		move ground to y-axis [0.0] speed [0.15];
-		wait-for-turn ground around x-axis;
-		turn ground to x-axis <-1.0> speed <1.5>;
-		move ground to y-axis [-0.1] speed [0.15];
-		wait-for-move ground along y-axis;
-		move ground to y-axis [0.0] speed [0.15];
-		wait-for-turn ground around x-axis;
-		turn ground to x-axis <1.0> speed <1.5>;
-		move ground to y-axis [-0.1] speed [0.15];
-		wait-for-move ground along y-axis;
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn ground to x-axis rockAng speed rockSpeed*4;
+			wait-for-turn ground around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
 	}
 }
 
