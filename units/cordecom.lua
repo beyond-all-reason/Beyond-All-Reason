@@ -69,6 +69,7 @@ local unitDef = {
   steeringmode       = 2,
   TEDClass           = [[COMMANDER]],
   terraformSpeed     = 450,
+  transportbyenemy   = false,
   turnRate           = 1133,
   unitname           = [[cordecom]],
   upright            = true,

@@ -80,6 +80,7 @@ local unitDef = {
   steeringmode       = 2,
   TEDClass           = [[COMMANDER]],
   terraformSpeed     = 900,
+  transportbyenemy   = false,
   turnRate           = 1148,
   unitname           = [[armcom]],
   upright            = true,
