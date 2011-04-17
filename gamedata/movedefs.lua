@@ -155,7 +155,7 @@ local moveDatas = {
 	UBOAT3 = {
 		footprintx = 3,
 		footprintz = 3,
-		minwaterdepth = 35,
+		minwaterdepth = 15,
 		crushstrength = 5,
 		subMarine = 1,
 	},
