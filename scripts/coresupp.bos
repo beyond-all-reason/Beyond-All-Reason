@@ -4,9 +4,9 @@
 #include "exptype.h"
 
 piece  base, turret1, turret2, abarrela, abarrelb, bbarrela, bbarrelb, flare11,
-       flare12, flare21, flare22, wake1, wake2;
+       flare12, flare21, flare22, wake1, wake2, ground;
 
-static-var  gun_1, gun_2, restore_delay;
+static-var  gun_1, gun_2, restore_delay, oldHead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -14,21 +14,50 @@ static-var  gun_1, gun_2, restore_delay;
 #define SIG_MOVE			8
 
 
+SetDirection(heading)
+{
+	var spd;
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+	turn ground to y-axis heading speed spd;
+	turn base to y-axis 0-heading speed spd;
+	oldHead = heading;
+}
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn ground to x-axis rockAng speed rockSpeed*5;
+			wait-for-turn ground around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
+	start-script RockOnWaves();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from base;
 		}
@@ -39,7 +68,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		}
 		sleep sleeptime;
 	}
-	return (0);
 }
 
 Create()
@@ -48,17 +76,15 @@ Create()
 	hide flare12;
 	hide flare21;
 	hide flare22;
-	gun_1 = turret1;
-	gun_2 = turret1;
+	gun_1 = 0;
+	gun_2 = 0;
 	restore_delay = 3000;
 	start-script SmokeUnit();
-	return (0);
 }
 
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
-	return (0);
 }
 
 RestoreAfterDelay()
@@ -70,26 +96,42 @@ RestoreAfterDelay()
 	turn abarrelb to x-axis <0.> speed <50.>;
 	turn bbarrela to x-axis <0.> speed <50.>;
 	turn bbarrelb to x-axis <0.> speed <50.>;
-	return (0);
+}
+
+waveSplash()
+{
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.23] speed [0.23];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.23];
+		wait-for-turn base around x-axis;
+	}
 }
 
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
 	while( TRUE )
 	{
 		emit-sfx 2 from wake1;
 		emit-sfx 2 from wake2;
-		sleep 300;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 9000 / waketime;
 	}
-	return (0);
 }
 
 StopMoving()
 {
 	signal SIG_MOVE;
-	return (0);
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
 }
 
 AimPrimary(heading, pitch)
@@ -108,16 +150,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 0 )
-	{
-		move abarrela to z-axis [-1.] speed [500.];
-		wait-for-move abarrela along z-axis;
-		move abarrela to z-axis [0.] speed [5.];
-		show flare11;
-		sleep 150;
-		hide flare11;
-	}
-	if( gun_1 == 1 )
+	if( gun_1 )
 	{
 		move abarrelb to z-axis [-1.] speed [500.];
 		wait-for-move abarrelb along z-axis;
@@ -126,18 +159,21 @@ FirePrimary()
 		sleep 150;
 		hide flare12;
 	}
-	++gun_1;
-	if( gun_1 == 2 )
+	else
 	{
-		gun_1 = base;
+		move abarrela to z-axis [-1.] speed [500.];
+		wait-for-move abarrela along z-axis;
+		move abarrela to z-axis [0.] speed [5.];
+		show flare11;
+		sleep 150;
+		hide flare11;
 	}
-	return (0);
+	gun_1 = !gun_1;
 }
 
 AimFromPrimary(piecenum)
 {
 	piecenum = turret1;
-	return (0);
 }
 
 AimSecondary(heading, pitch)
@@ -156,16 +192,7 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-	if( gun_2 == 0 )
-	{
-		move bbarrela to z-axis [-1.] speed [500.];
-		wait-for-move bbarrela along z-axis;
-		move bbarrela to z-axis [0.] speed [5.];
-		show flare21;
-		sleep 150;
-		hide flare21;
-	}
-	if( gun_2 == 1 )
+	if( gun_2 )
 	{
 		move bbarrelb to z-axis [-1.] speed [500.];
 		wait-for-move bbarrelb along z-axis;
@@ -174,50 +201,36 @@ FireSecondary()
 		sleep 150;
 		hide flare22;
 	}
-	++gun_2;
-	if( gun_2 == 2 )
+	else
 	{
-		gun_2 = base;
+		move bbarrela to z-axis [-1.] speed [500.];
+		wait-for-move bbarrela along z-axis;
+		move bbarrela to z-axis [0.] speed [5.];
+		show flare21;
+		sleep 150;
+		hide flare21;
 	}
-	return (0);
+	gun_2 = !gun_2;
 }
 
 AimFromSecondary(piecenum)
 {
 	piecenum = turret2;
-	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 0 )
-	{
-		piecenum = flare11;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = flare12;
-	}
-	return (0);
+	piecenum = flare11 + gun_1;
 }
 
 QuerySecondary(piecenum)
 {
-	if( gun_2 == 0 )
-	{
-		piecenum = flare21;
-	}
-	if( gun_2 == 1 )
-	{
-		piecenum = flare22;
-	}
-	return (0);
+	piecenum = flare21 + gun_2;
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
-	return (0);
 }
 
 Killed(severity, corpsetype)

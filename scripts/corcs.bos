@@ -4,9 +4,9 @@
 #include "exptype.h"
 
 piece  base, beam, door1, door2, fork, gun, wake1, wake2,
-       turret;
+       turret, ground;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -14,75 +14,88 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	if( TRUE )
-	{
-		turn door1 to z-axis <0.000000> now;
-		turn door1 to z-axis <-95.115385> speed <123.362637>;
-		turn door2 to z-axis <0.000000> now;
-		turn door2 to z-axis <95.082418> speed <123.329670>;
-		sleep 771;
-	}
-	if( TRUE )
-	{
-		turn door1 to z-axis <-190.060440> speed <157.192308>;
-		turn door2 to z-axis <190.027473> speed <157.192308>;
-		sleep 604;
-	}
-	if( TRUE )
-	{
-		turn door1 to z-axis <-190.060440> speed <0.000000>;
-		turn door2 to z-axis <190.027473> speed <0.000000>;
-		turn fork to x-axis <77.247253> speed <127.890110>;
-		turn gun to x-axis <-71.164835> speed <117.824176>;
-		sleep 604;
-	}
-	sleep 13;
+	turn door1 to z-axis <0.000000> now;
+	turn door1 to z-axis <-95.115385> speed <123.362637>;
+	turn door2 to z-axis <0.000000> now;
+	turn door2 to z-axis <95.082418> speed <123.329670>;
+	sleep 771;
+
+	turn door1 to z-axis <-190.060440> speed <157.192308>;
+	turn door2 to z-axis <190.027473> speed <157.192308>;
+	sleep 604;
+
+	turn door1 to z-axis <-190.060440> speed <0.000000>;
+	turn door2 to z-axis <190.027473> speed <0.000000>;
+	turn fork to x-axis <77.247253> speed <127.890110>;
+	turn gun to x-axis <-71.164835> speed <117.824176>;
+	sleep 604;
 }
 
 deactivatescr()
 {
-	if( TRUE )
+	turn door1 to z-axis <-190.060440> now;
+	turn door1 to z-axis <-190.060440> speed <0.000000>;
+	turn door2 to z-axis <190.027473> now;
+	turn door2 to z-axis <190.027473> speed <0.000000>;
+	turn fork to x-axis <77.247253> now;
+	turn fork to x-axis <0.000000> speed <70.225275>;
+	turn gun to x-axis <-71.164835> now;
+	turn gun to x-axis <0.000000> speed <64.692308>;
+	sleep 1100;
+
+	turn door1 to z-axis <-95.115385> speed <209.126374>;
+	turn door2 to z-axis <95.082418> speed <209.126374>;
+	sleep 454;
+
+	turn door1 to z-axis <0.000000> speed <209.505495>;
+	turn door2 to z-axis <0.000000> speed <209.439560>;
+	sleep 454;
+}
+
+SetDirection(heading)
+{
+	var spd;
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+	turn ground to y-axis heading speed spd;
+	turn base to y-axis 0-heading speed spd;
+	oldHead = heading;
+}
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
 	{
-		turn door1 to z-axis <-190.060440> now;
-		turn door1 to z-axis <-190.060440> speed <0.000000>;
-		turn door2 to z-axis <190.027473> now;
-		turn door2 to z-axis <190.027473> speed <0.000000>;
-		turn fork to x-axis <77.247253> now;
-		turn fork to x-axis <0.000000> speed <70.225275>;
-		turn gun to x-axis <-71.164835> now;
-		turn gun to x-axis <0.000000> speed <64.692308>;
-		sleep 1100;
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn ground to x-axis rockAng speed rockSpeed*4;
+			wait-for-turn ground around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
 	}
-	if( TRUE )
-	{
-		turn door1 to z-axis <-95.115385> speed <209.126374>;
-		turn door2 to z-axis <95.082418> speed <209.126374>;
-		sleep 454;
-	}
-	if( TRUE )
-	{
-		turn door1 to z-axis <0.000000> speed <209.505495>;
-		turn door2 to z-axis <0.000000> speed <209.439560>;
-		sleep 454;
-	}
-	sleep 15;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
+	start-script RockOnWaves();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from base;
 		}
@@ -95,21 +108,40 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+waveSplash()
+{
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.23] speed [0.23];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.23];
+		wait-for-turn base around x-axis;
+	}
+}
+
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
 	while( TRUE )
 	{
 		emit-sfx 2 from wake1;
 		emit-sfx 2 from wake2;
-		sleep 150;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 15000 / waketime;
 	}
 }
 
 StopMoving()
 {
 	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
 }
 
 Go()
@@ -128,12 +160,6 @@ Stop()
 	call-script deactivatescr();
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -146,15 +172,15 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
+		if( statechg_DesiredState )
 		{
 			call-script Stop();
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -163,7 +189,8 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	Static_Var_1 = 0;
-	call-script InitState();
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
 }
 

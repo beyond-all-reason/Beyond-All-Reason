@@ -1,0 +1,381 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  missile1, missile2, missile3, base, gun, door2b, door1b, door1a,
+       door2a, dish, turret, wake1, wake2, lock, front, back,
+       fp11, fp12, fp13, fp14, ground;
+
+static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, gun_1,
+            statechg_DesiredState, statechg_StateChanging, oldHead;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_3			4
+#define SIG_MOVE			8
+
+
+activatescr()
+{
+		move door2b to y-axis [0.000000] now;
+		move door2b to y-axis [0.000000] speed [1.000000];
+		move door2b to z-axis [0.000000] now;
+		move door2b to z-axis [4.000000] speed [9.000000];
+		move door1b to y-axis [0.000000] now;
+		move door1b to y-axis [0.000000] speed [1.000000];
+		move door1b to z-axis [0.000000] now;
+		move door1b to z-axis [-4.000000] speed [9.000000];
+		sleep 371;
+
+		move door1a to y-axis [0.000000] speed [1.000000];
+		move door1a to z-axis [-4.000000] speed [9.000000];
+		move door2a to y-axis [0.000000] speed [1.000000];
+		move door2a to z-axis [4.000000] speed [8.000000];
+		sleep 467;
+}
+
+deactivatescr()
+{
+		move door1a to y-axis [0.000000] now;
+		move door1a to z-axis [-4.000000] now;
+		move door2a to y-axis [0.000000] now;
+		move door2a to z-axis [4.000000] now;
+		move door2b to y-axis [0.000000] now;
+		move door2b to z-axis [4.000000] now;
+		move door1b to y-axis [0.000000] now;
+		move door1b to z-axis [-4.000000] now;
+		sleep 564;
+
+		move door1a to y-axis [0.000000] speed [1.000000];
+		move door1a to z-axis [0.000000] speed [7.000000];
+		move door2a to y-axis [0.000000] speed [1.000000];
+		move door2a to z-axis [0.000000] speed [6.000000];
+		sleep 573;
+
+		move door2b to y-axis [0.000000] speed [1.000000];
+		move door2b to z-axis [0.000000] speed [6.000000];
+		move door1b to y-axis [0.000000] speed [1.000000];
+		move door1b to z-axis [0.000000] speed [6.000000];
+		sleep 529;
+}
+
+SetDirection(heading)
+{
+	var spd;
+	spd = (get ABS(oldHead) - get ABS(heading)) / 2;
+	turn ground to y-axis heading speed spd;
+	turn base to y-axis 0-heading speed spd;
+	oldHead = heading;
+}
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn ground to x-axis rockAng speed rockSpeed*4;
+			wait-for-turn ground around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
+	spin dish around y-axis speed <150.000000>;
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+go()
+{
+	call-script activatescr();
+	Static_Var_1 = 1;
+}
+
+stop()
+{
+	Static_Var_1 = 0;
+	call-script deactivatescr();
+	if( Static_Var_4 )
+	{
+	}
+	Static_Var_4 = 0;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	gun_1 = missile1;
+	Static_Var_4 = 0;
+	Static_Var_2 = 1;
+	Static_Var_1 = 0;
+	restore_delay = 3000;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 8;
+}
+
+abaim()
+{
+	sleep 4000;
+	signal SIG_AIM_3;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	Static_Var_4 = 0;
+	start-script RequestState(1);
+	turn turret to y-axis <0.000000> speed <70.000000>;
+	turn gun to x-axis <0.000000> speed <30.000000>;
+}
+
+Activate()
+{
+	spin dish around y-axis speed <150.000000>;
+}
+
+Deactivate()
+{
+	spin dish around y-axis speed <0.000000>;
+}
+
+waveSplash()
+{
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.35] speed [0.23];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.23];
+		wait-for-turn base around x-axis;
+	}
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
+	while( TRUE )
+	{
+		emit-sfx 2 from wake1;
+		emit-sfx 2 from wake2;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 12000 / waketime;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn turret to y-axis heading speed <170.000000>;
+	turn gun to x-axis <0.000000> - pitch speed <130.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn gun around x-axis;
+	start-script abaim();
+	return (1);
+}
+
+TargetCleared(Func_Var_1)
+{
+	signal SIG_AIM_3;
+}
+
+/*
+FireTertiary()
+{
+	return (1);
+}
+*/
+
+FirePrimary()
+{
+	++gun_1;
+	if( gun_1 >= 4 )
+	{
+		gun_1 = missile1;
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = lock;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = gun;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = fp11 + gun_1;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = missile2;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dish type BITMAPONLY | BITMAP2;
+		explode door1a type BITMAPONLY | BITMAP3;
+		explode door1b type BITMAPONLY | BITMAP4;
+		explode door2a type BITMAPONLY | BITMAP5;
+		explode door2b type BITMAPONLY | BITMAP1;
+		explode gun type BITMAPONLY | BITMAP2;
+		explode missile1 type BITMAPONLY | BITMAP4;
+		explode missile2 type BITMAPONLY | BITMAP5;
+		explode missile3 type BITMAPONLY | BITMAP1;
+		explode turret type BITMAPONLY | BITMAP1;
+		explode wake1 type BITMAPONLY | BITMAP2;
+		explode wake1 type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dish type FALL | BITMAP2;
+		explode door1a type FALL | BITMAP3;
+		explode door1b type FALL | BITMAP4;
+		explode door2a type FALL | BITMAP5;
+		explode door2b type FALL | BITMAP1;
+		explode gun type FALL | BITMAP2;
+		explode missile1 type FALL | BITMAP4;
+		explode missile2 type FALL | BITMAP5;
+		explode missile3 type FALL | BITMAP1;
+		explode turret type FALL | BITMAP1;
+		explode wake1 type FALL | BITMAP2;
+		explode wake1 type FALL | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dish type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode door1a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode door1b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode door2a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode door2b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode gun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode missile1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode missile2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode missile3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode dish type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode door1a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode door1b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode door2a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode door2b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode gun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode missile1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode missile2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode missile3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+}

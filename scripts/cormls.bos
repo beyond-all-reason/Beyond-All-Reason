@@ -3,13 +3,14 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  Base, Body, NanoDoor1, NanoDoor2, NanoTurret, NanoPlate, NanoGun, Spray,
+piece  Base, Body, NanoDoor1, NanoDoor2, Boom, Neck, NanoGun, NanoSpray,
        Wake1, Wake2;
 
 static-var  Static_Var_2, statechg_DesiredState, statechg_StateChanging, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
+
 
 SetDirection(heading)
 {
@@ -55,7 +56,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 			{
 				smoketype = 257;
 			}
-			emit-sfx smoketype from Body;
+			emit-sfx smoketype from Base;
 		}
 		sleeptime = healthpercent * 50;
 		if( sleeptime < 200 )
@@ -68,37 +69,39 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 activatescr()
 {
-	turn NanoDoor1 to z-axis <-90.021978> speed <95.000000>;
-	turn NanoDoor2 to z-axis <90.021978> speed <95.000000>;
-	sleep 200;
+		turn NanoDoor1 to z-axis <-90.021978> speed <95.000000>;
+		turn NanoDoor2 to z-axis <90.021978> speed <95.000000>;
+		sleep 200;
 
-	move NanoPlate to y-axis [4.000000] speed [3.000000];
-	sleep 230;
+		turn Boom to x-axis <39.005495> speed <42.000000>;
+		turn Neck to x-axis <-39.005495> speed <42.000000>;
+		sleep 200;
 }
 
 deactivatescr()
 {
-	move NanoPlate to y-axis [0.000000] speed [8.000000];
-	sleep 200;
+		turn Boom to x-axis <0.000000> speed <62.000000>;
+		turn Neck to x-axis <0.000000> speed <62.000000>;
+		sleep 200;
 
-	turn NanoDoor1 to z-axis <0.000000> speed <125.000000>;
-	turn NanoDoor2 to z-axis <0.000000> speed <125.000000>;
-	sleep 230;
+		turn NanoDoor1 to z-axis <0.000000> speed <125.000000>;
+		turn NanoDoor2 to z-axis <0.000000> speed <125.000000>;
+		sleep 200;
 }
 
 Go()
 {
 	call-script activatescr();
-	turn NanoTurret to y-axis Static_Var_2 speed <160.000000>;
-	wait-for-turn NanoTurret around y-axis;
+	turn Neck to y-axis Static_Var_2 speed <160.000000>;
+	wait-for-turn Neck around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
 Stop()
 {
 	set INBUILDSTANCE to 0;
-	turn NanoTurret to y-axis <0.000000> speed <180.000000>;
-	wait-for-turn NanoTurret around y-axis;
+	turn Neck to y-axis <0.000000> speed <180.000000>;
+	wait-for-turn Neck around y-axis;
 	call-script deactivatescr();
 }
 
@@ -189,13 +192,13 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-	turn Body to x-axis <0.0> speed <3.0>;
-	move Body to y-axis [0.0] speed [0.23];
 }
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = Spray;
+	piecenum = NanoSpray;
+	turn Body to x-axis <0.0> speed <3.0>;
+	move Body to y-axis [0.0] speed [0.23];
 }
 
 TargetHeading(Func_Var_1)
@@ -217,40 +220,41 @@ Killed(severity, corpsetype)
 		explode Body type BITMAPONLY | BITMAP1;
 		explode NanoDoor1 type BITMAPONLY | BITMAP1;
 		explode NanoDoor2 type BITMAPONLY | BITMAP1;
-		explode NanoTurret type BITMAPONLY | BITMAP1;
-		explode NanoPlate type BITMAPONLY | BITMAP1;
+		explode Boom type BITMAPONLY | BITMAP1;
+		explode Neck type BITMAPONLY | BITMAP1;
 		explode NanoGun type BITMAPONLY | BITMAP1;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Base type SHATTER | BITMAP4;
-		explode Body type SHATTER | BITMAP4;
-		explode NanoDoor1 type SHATTER | BITMAP4;
-		explode NanoDoor2 type SHATTER | BITMAP4;
-		explode NanoTurret type SHATTER | BITMAP4;
-		explode NanoPlate type SHATTER | BITMAP4;
-		explode NanoGun type SHATTER | BITMAP4;
+		explode Base type BITMAPONLY | BITMAP1;
+		explode Body type BITMAPONLY | BITMAP1;
+		explode NanoDoor1 type BITMAPONLY | BITMAP1;
+		explode NanoDoor2 type BITMAPONLY | BITMAP1;
+		explode Boom type BITMAPONLY | BITMAP1;
+		explode Neck type BITMAPONLY | BITMAP1;
+		explode NanoGun type BITMAPONLY | BITMAP1;
+		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode Base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode Body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoDoor1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoDoor2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoTurret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoPlate type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoGun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode Base type SHATTER | BITMAP4;
+		explode Body type SHATTER | BITMAP4;
+		explode NanoDoor1 type SHATTER | BITMAP4;
+		explode NanoDoor2 type SHATTER | BITMAP4;
+		explode Boom type SHATTER | BITMAP4;
+		explode Neck type SHATTER | BITMAP4;
+		explode NanoGun type SHATTER | BITMAP4;
 		return (0);
 	}
 	corpsetype = 3;
-	explode Base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode Body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoDoor1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoDoor2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoTurret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoPlate type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoGun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode Base type SHATTER | BITMAP4;
+	explode Body type SHATTER | BITMAP4;
+	explode NanoDoor1 type SHATTER | BITMAP4;
+	explode NanoDoor2 type SHATTER | BITMAP4;
+	explode Boom type SHATTER | BITMAP4;
+	explode Neck type SHATTER | BITMAP4;
+	explode NanoGun type SHATTER | BITMAP4;
 }
