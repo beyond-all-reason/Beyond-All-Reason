@@ -22,13 +22,13 @@ local moveDatas = {
 		crushstrength = 40,
 		footprintx = 4,
 		footprintz = 4,
-		minwaterdepth = 5,
+		minwaterdepth = 8,
 	},
 	BOAT5 = {
 		crushstrength = 50,
 		footprintx = 5,
 		footprintz = 5,
-		minwaterdepth = 8,
+		minwaterdepth = 10,
 	},
 	--[[
 	DBOAT3 = {
@@ -61,12 +61,26 @@ local moveDatas = {
 		minwaterdepth = 15,
 	},
 	]]--
+	HKBOT3 = {
+		crushstrength = 1400,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 36,
+		maxwaterdepth = 22,
+	},
 	HKBOT4 = {
-		crushstrength = 250,
+		crushstrength = 1400,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 36,
-		maxwaterdepth = 22,
+		maxwaterdepth = 26,
+	},
+	HKBOT5 = {
+		crushstrength = 1400,
+		footprintx = 5,
+		footprintz = 5,
+		maxslope = 36,
+		maxwaterdepth = 30,
 	},
 	HOVER3 = {
 		badslope = 22,
@@ -140,6 +154,15 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxwaterdepth = 22,
+	},
+	VKBOT3 = {
+		crushstrength = 1400,
+		depthmod = 0,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 24,
+		maxwaterdepth = 5000,
+		maxwaterslope = 30,
 	},
 	VKBOT5 = {
 		crushstrength = 1400,
