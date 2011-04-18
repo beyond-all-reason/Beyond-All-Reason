@@ -17,7 +17,7 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1;
 walk()
 {
     move pivot to y-axis [4.000000] speed [10.000000];
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <50.005495> speed <108.000000>;
 		turn rleg to x-axis <-70.016484> speed <104.000000>;
@@ -26,7 +26,7 @@ walk()
 		turn lfoot to x-axis <-60.005495> speed <208.000000>;
 		sleep 464;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <0.000000> speed <104.000000>;
 		turn rleg to x-axis <0.000000> speed <108.000000>;
@@ -35,7 +35,7 @@ walk()
 		turn lfoot to x-axis <0.000000> speed <184.000000>;
 		sleep 364;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <-70.016484> speed <104.000000>;
 		turn rleg to x-axis <50.005495> speed <108.000000>;
@@ -44,7 +44,7 @@ walk()
 		turn rfoot to x-axis <-60.005495> speed <204.000000>;
 		sleep 464;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <0.000000> speed <104.000000>;
 		turn rleg to x-axis <0.000000> speed <108.000000>;
@@ -58,8 +58,8 @@ walk()
 
 walklegs()
 {
-     move pivot to y-axis [4.000000] speed [10.000000];
-	if( TRUE )
+	move pivot to y-axis [4.000000] speed [10.000000];
+	if( bMoving )
 	{
 		turn lleg to x-axis <50.005495> speed <108.000000>;
 		turn rleg to x-axis <-70.016484> speed <104.000000>;
@@ -68,7 +68,7 @@ walklegs()
 		turn lfoot to x-axis <-60.005495> speed <208.000000>;
 		sleep 464;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <0.000000> speed <104.000000>;
 		turn rleg to x-axis <0.000000> speed <108.000000>;
@@ -77,7 +77,7 @@ walklegs()
 		turn lfoot to x-axis <0.000000> speed <184.000000>;
 		sleep 364;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <-70.016484> speed <104.000000>;
 		turn rleg to x-axis <50.005495> speed <108.000000>;
@@ -86,7 +86,7 @@ walklegs()
 		turn rfoot to x-axis <-60.005495> speed <204.000000>;
 		sleep 464;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		turn lleg to x-axis <0.000000> speed <104.000000>;
 		turn rleg to x-axis <0.000000> speed <108.000000>;
@@ -102,17 +102,17 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from aimpt;
 		}
@@ -139,14 +139,14 @@ MotionControl(moving, aiming, justmoved)
 				Static_Var_3 = 1;
 				call-script walklegs();
 			}
-			if( !aiming )
+			else
 			{
 				Static_Var_3 = 0;
 				call-script walk();
 			}
 			justmoved = TRUE;
 		}
-		if( !moving )
+		else
 		{
 			Static_Var_3 = 1;
 			if( justmoved )
@@ -186,6 +186,7 @@ Create()
 	dont-shade larm;
 	dont-shade rarm;
 	restore_delay = 2000;
+	set ARMORED to 1;
 	start-script MotionControl();
 	start-script SmokeUnit();
 }
@@ -198,11 +199,13 @@ SetMaxReloadTime(Func_Var_1)
 StartMoving()
 {
 	bMoving = TRUE;
+	set ARMORED to 0;
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+	set ARMORED to 1;
 }
 
 RestoreAfterDelay()
@@ -253,26 +256,23 @@ AimTertiary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 1 )
-	{
-		move rbarrel to z-axis [-3.000000] speed [70.000000];
-		show flarea;
-		sleep 150;
-		hide flarea;
-		move rbarrel to z-axis [0.000000] speed [3.000000];
-		gun_1 = llowleg;
-		return (0);
-	}
-	if( gun_1 == 2 )
+	if( gun_1 )
 	{
 		move lbarrel to z-axis [-3.000000] speed [70.000000];
 		show flareb;
 		sleep 150;
 		hide flareb;
 		move lbarrel to z-axis [0.000000] speed [3.000000];
-		gun_1 = rleg;
-		return (0);
 	}
+	else
+	{
+		move rbarrel to z-axis [-3.000000] speed [70.000000];
+		show flarea;
+		sleep 150;
+		hide flarea;
+		move rbarrel to z-axis [0.000000] speed [3.000000];
+	}
+	gun_1 = !gun_1;
 }
 
 FireSecondary()
@@ -304,13 +304,13 @@ AimFromTertiary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = guna;
-	}
-	if( gun_1 == 2 )
+	if( gun_1 )
 	{
 		piecenum = gunb;
+	}
+	else
+	{
+		piecenum = guna;
 	}
 }
 

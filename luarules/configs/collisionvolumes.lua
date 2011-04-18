@@ -98,8 +98,8 @@ local unitCollisionVolume = {}
 		off={38,20,38,0,0,0,1,1,1},
 	}
 	unitCollisionVolume["cortoast"] = {
-		on={44,23,44,0,0,0,2,1,0},
-		off={44,10,44,0,-7,0,2,1,0},
+		on={44,23,44,0,4,0,2,1,0},
+		off={44,7,44,0,-3.3,0,2,1,0},
 	}
 	unitCollisionVolume["corvipe"] = {
 		on={39,86,39,0,-10,0,0,1,0},
@@ -108,6 +108,10 @@ local unitCollisionVolume = {}
 	unitCollisionVolume["packo"] = {
 		on={49,45,49,-0.5,-14,0,0,1,0},
 		off={49,26,49,-0.5,-13,0,0,1,0},
+	}
+	unitCollisionVolume["shiva"] = {
+		on={54,50,50,0,2,-1,0,1,0},
+		off={54,45,50,0,-4,-1,0,1,0},
 	}
 
 return unitCollisionVolume
