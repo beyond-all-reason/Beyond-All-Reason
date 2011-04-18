@@ -22,6 +22,7 @@ local unitDef = {
   category           = [[KBOT MOBILE WEAPON ALL NOTSUB NOTAIR]],
   collisionvolumeoffsets = [[0.0 -2.0 0.0]],
   collisionvolumescales = [[50.0 60.0 40.0]],
+  collisionvolumetest = 1,
   collisionvolumetype = [[box]],
   corpse             = [[DEAD]],
   defaultmissiontype = [[Standby]],
