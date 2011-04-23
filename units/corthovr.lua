@@ -86,7 +86,6 @@ return {
 		weapondefs = {
 			corfast_weapon = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.10000000149012,
 				corethickness = 0.5,
 				craterboost = 0,
@@ -98,12 +97,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 9,
-				lineofsight = true,
 				name = "L1DeckLaser",
 				noselfdamage = true,
 				range = 400,
 				reloadtime = 0.80000001192093,
-				rendertype = 0,
 				rgbcolor = "1 0.2 0.2",
 				soundhit = "lasrhit2",
 				soundstart = "lasrfir3",

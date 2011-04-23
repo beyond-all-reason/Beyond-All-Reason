@@ -99,7 +99,6 @@ return {
 			corbhmth_weapon = {
 				accuracy = 780,
 				areaofeffect = 192,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.69999998807907,
@@ -113,10 +112,8 @@ return {
 				noselfdamage = true,
 				range = 1650,
 				reloadtime = 0.5,
-				rendertype = 4,
 				soundhit = "xplolrg3",
 				soundstart = "xplonuk3",
-				startsmoke = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 620,

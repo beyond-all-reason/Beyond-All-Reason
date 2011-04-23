@@ -103,7 +103,6 @@ return {
 		weapondefs = {
 			arm_fatboy_notalaser = {
 				areaofeffect = 240,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.69999998807907,
@@ -112,14 +111,10 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.40000000596046,
 				impulsefactor = 0.40000000596046,
-				minbarrelangle = -20,
 				name = "HeavyPlasma",
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 6.75,
-				rendertype = 4,
-				shakeduration = 1,
-				shakemagnitude = 4,
 				soundhit = "bertha6",
 				soundstart = "BERTHA1",
 				turret = true,

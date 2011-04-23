@@ -92,7 +92,6 @@ return {
 			corwolv_gun = {
 				accuracy = 275,
 				areaofeffect = 113,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH4",
@@ -104,10 +103,8 @@ return {
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 3.5,
-				rendertype = 4,
 				soundhit = "xplomed2",
 				soundstart = "cannhvy3",
-				startsmoke = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 365,

@@ -98,7 +98,6 @@ return {
 		weapondefs = {
 			spider = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.10000000149012,
 				corethickness = 0.20000000298023,
 				craterboost = 0,
@@ -109,15 +108,12 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				lineofsight = true,
-				minbarrelangle = 0,
 				name = "Paralyzer",
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 9,
 				range = 220,
 				reloadtime = 1.75,
-				rendertype = 0,
 				rgbcolor = "1 1 0",
 				soundhit = "lashit",
 				soundstart = "hackshot",

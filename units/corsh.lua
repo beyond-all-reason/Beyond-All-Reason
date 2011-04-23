@@ -98,7 +98,6 @@ return {
 		weapondefs = {
 			armsh_weapon = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.10000000149012,
 				burstrate = 0.20000000298023,
 				color = 232,
@@ -112,12 +111,10 @@ return {
 				impactonly = 1,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
-				lineofsight = true,
 				name = "Laser",
 				noselfdamage = true,
 				range = 230,
 				reloadtime = 0.60000002384186,
-				rendertype = 0,
 				soundhit = "lashit",
 				soundstart = "lasrfast",
 				soundtrigger = true,

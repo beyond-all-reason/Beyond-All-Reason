@@ -107,7 +107,6 @@ return {
 		weapondefs = {
 			tawf001_weapon = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.15000000596046,
 				corethickness = 0.22499999403954,
 				craterboost = 0,
@@ -119,12 +118,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 12,
-				lineofsight = true,
 				name = "BeamLaser",
 				noselfdamage = true,
 				range = 475,
 				reloadtime = 0.10000000149012,
-				rendertype = 0,
 				rgbcolor = "0 0 1",
 				soundhit = "burn02",
 				soundstart = "build2",

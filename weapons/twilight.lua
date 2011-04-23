@@ -1,7 +1,6 @@
 return {
 	twilight = {
 		areaofeffect = 400,
-		ballistic = 1,
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
@@ -16,7 +15,6 @@ return {
 		paralyzetime = 15,
 		range = 600,
 		reloadtime = 0.30000001192093,
-		rendertype = 4,
 		soundhit = "EMGPULS1",
 		soundstart = "bombrel",
 		tolerance = 7000,

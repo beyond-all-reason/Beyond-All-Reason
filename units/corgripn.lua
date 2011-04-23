@@ -78,7 +78,6 @@ return {
 				paralyzetime = 15,
 				range = 1280,
 				reloadtime = 0.30000001192093,
-				rendertype = 6,
 				soundhit = "EMGPULS1",
 				soundstart = "bombrel",
 				tolerance = 7000,

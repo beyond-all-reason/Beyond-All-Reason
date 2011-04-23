@@ -105,7 +105,6 @@ return {
 		weapondefs = {
 			arm_laser = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.18000000715256,
 				burstrate = 0.20000000298023,
 				corethickness = 0.30000001192093,
@@ -120,12 +119,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 5,
-				lineofsight = true,
 				name = "Laser",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 0.94999998807907,
-				rendertype = 0,
 				rgbcolor = "1 1 0.4",
 				soundhit = "lasrhit2",
 				soundstart = "lasrfir1",

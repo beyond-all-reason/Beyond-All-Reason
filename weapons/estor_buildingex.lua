@@ -1,7 +1,6 @@
 return {
 	estor_buildingex = {
 		areaofeffect = 420,
-		ballistic = 1,
 		craterboost = 0,
 		cratermult = 0,
 		explosiongenerator = "custom:FLASHNUKE360",
@@ -10,7 +9,6 @@ return {
 		name = "Smallbuilding",
 		range = 550,
 		reloadtime = 3.5999999046326,
-		rendertype = 4,
 		soundhit = "xplolrg4",
 		soundstart = "largegun",
 		turret = 1,

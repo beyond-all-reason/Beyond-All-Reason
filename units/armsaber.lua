@@ -69,7 +69,6 @@ return {
 		weapondefs = {
 			vtol_emg2 = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.10000000149012,
 				corethickness = 0.20000000298023,
 				craterboost = 0,
@@ -79,13 +78,10 @@ return {
 				firestarter = 90,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
-				lineofsight = true,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
-				pitchtolerance = 12000,
 				range = 420,
 				reloadtime = 1.0499999523163,
-				rendertype = 0,
 				rgbcolor = "0 1 0",
 				soundhit = "lasrhit1",
 				soundstart = "Lasrmas2",

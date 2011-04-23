@@ -100,7 +100,6 @@ return {
 		weapondefs = {
 			crawl_detonator = {
 				areaofeffect = 5,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
@@ -112,7 +111,6 @@ return {
 				name = "Mine Detonator",
 				range = 1,
 				reloadtime = 0.10000000149012,
-				rendertype = 4,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {

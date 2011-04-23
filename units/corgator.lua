@@ -105,7 +105,6 @@ return {
 		weapondefs = {
 			gator_laserx = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.10000000149012,
 				corethickness = 0.17499999701977,
 				craterboost = 0,
@@ -117,12 +116,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 6,
-				lineofsight = true,
 				name = "Laser",
 				noselfdamage = true,
 				range = 230,
 				reloadtime = 0.76999998092651,
-				rendertype = 0,
 				rgbcolor = "1 0 0",
 				soundhit = "lasrhit2",
 				soundstart = "lasrlit3",

@@ -102,7 +102,6 @@ return {
 		weapondefs = {
 			core_croc = {
 				areaofeffect = 64,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH64",
@@ -113,7 +112,6 @@ return {
 				noselfdamage = true,
 				range = 440,
 				reloadtime = 0.89999997615814,
-				rendertype = 4,
 				soundhit = "xplomed4",
 				soundstart = "cannon2",
 				turret = true,

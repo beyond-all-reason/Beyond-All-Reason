@@ -1,7 +1,6 @@
 return {
 	decoy_commander_blast = {
 		areaofeffect = 32,
-		ballistic = 1,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.25,
@@ -11,9 +10,6 @@ return {
 		name = "FakeCommanderExplosion",
 		range = 380,
 		reloadtime = 3.5999999046326,
-		rendertype = 4,
-		shakeduration = 5,
-		shakemagnitude = 600,
 		soundhit = "xplolrg3",
 		soundstart = "largegun",
 		turret = 1,

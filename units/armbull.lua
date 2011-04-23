@@ -110,7 +110,6 @@ return {
 		weapondefs = {
 			arm_bull = {
 				areaofeffect = 140,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH72",
@@ -121,10 +120,8 @@ return {
 				noselfdamage = true,
 				range = 460,
 				reloadtime = 1.1200000047684,
-				rendertype = 4,
 				soundhit = "xplomed2",
 				soundstart = "cannon3",
-				startsmoke = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,

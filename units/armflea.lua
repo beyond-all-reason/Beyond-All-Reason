@@ -100,7 +100,6 @@ return {
 		weapondefs = {
 			flea_laser = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.10000000149012,
 				burstrate = 0.20000000298023,
 				corethickness = 0.10000000149012,
@@ -113,12 +112,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 2,
-				lineofsight = true,
 				name = "Laser",
 				noselfdamage = true,
 				range = 140,
 				reloadtime = 0.60000002384186,
-				rendertype = 0,
 				rgbcolor = "1 1 0",
 				soundhit = "lasrhit2",
 				soundstart = "lasrfir1",

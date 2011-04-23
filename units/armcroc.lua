@@ -102,7 +102,6 @@ return {
 		weapondefs = {
 			arm_triton = {
 				areaofeffect = 96,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH64",
@@ -113,10 +112,8 @@ return {
 				noselfdamage = true,
 				range = 480,
 				reloadtime = 1.5,
-				rendertype = 4,
 				soundhit = "xplomed4",
 				soundstart = "cannon2",
-				startsmoke = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 290,

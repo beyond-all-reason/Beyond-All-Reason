@@ -81,7 +81,6 @@ return {
 		weapondefs = {
 			corfhlt_laser = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.15000000596046,
 				corethickness = 0.20000000298023,
 				craterboost = 0,
@@ -93,12 +92,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 10,
-				lineofsight = true,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
 				range = 620,
 				reloadtime = 1,
-				rendertype = 0,
 				rgbcolor = "0 1 0",
 				soundhit = "lasrhit1",
 				soundstart = "Lasrmas2",

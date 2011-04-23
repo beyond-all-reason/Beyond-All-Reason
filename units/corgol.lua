@@ -110,7 +110,6 @@ return {
 		weapondefs = {
 			cor_gol = {
 				areaofeffect = 292,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH96",
@@ -121,10 +120,8 @@ return {
 				noselfdamage = true,
 				range = 650,
 				reloadtime = 3,
-				rendertype = 4,
 				soundhit = "xplomed4",
 				soundstart = "cannhvy2",
-				startsmoke = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,

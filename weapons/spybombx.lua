@@ -1,7 +1,6 @@
 return {
 	spybombx = {
 		areaofeffect = 360,
-		ballistic = 1,
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
@@ -16,7 +15,6 @@ return {
 		paralyzetime = 45,
 		range = 1280,
 		reloadtime = 0.30000001192093,
-		rendertype = 4,
 		soundhit = "xplomed4",
 		soundstart = "bombrel",
 		tolerance = 7000,

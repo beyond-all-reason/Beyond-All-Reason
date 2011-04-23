@@ -110,7 +110,6 @@ return {
 			tawf113_weapon = {
 				accuracy = 250,
 				areaofeffect = 105,
-				ballistic = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH4",
@@ -122,10 +121,8 @@ return {
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 3,
-				rendertype = 4,
 				soundhit = "TAWF113b",
 				soundstart = "TAWF113a",
-				startsmoke = 1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 370,

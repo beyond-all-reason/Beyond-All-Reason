@@ -1,7 +1,6 @@
 return {
 	mech_blastsml = {
 		areaofeffect = 100,
-		ballistic = 1,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.34999999403954,
@@ -11,7 +10,6 @@ return {
 		name = "EnergyCoreBomb",
 		range = 400,
 		reloadtime = 3.5999999046326,
-		rendertype = 4,
 		soundhit = "xplonuk3",
 		soundstart = "largegun",
 		turret = 1,

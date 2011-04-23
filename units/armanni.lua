@@ -105,7 +105,6 @@ return {
 		weapondefs = {
 			ata = {
 				areaofeffect = 16,
-				beamlaser = 1,
 				beamtime = 1.5,
 				corethickness = 0.20000000298023,
 				craterboost = 0,
@@ -116,12 +115,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 20,
-				lineofsight = true,
 				name = "ATA",
 				noselfdamage = true,
 				range = 1400,
 				reloadtime = 9.8999996185303,
-				rendertype = 0,
 				rgbcolor = "0 0 1",
 				soundhit = "xplolrg1",
 				soundstart = "annigun1",

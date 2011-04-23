@@ -1,7 +1,6 @@
 return {
 	medium_building = {
 		areaofeffect = 360,
-		ballistic = 1,
 		craterboost = 0,
 		cratermult = 0,
 		explosiongenerator = "custom:FLASHMEDIUMBUILDING",
@@ -10,7 +9,6 @@ return {
 		name = "Mediumbuilding",
 		range = 480,
 		reloadtime = 3.5999999046326,
-		rendertype = 4,
 		soundhit = "xplomed1",
 		soundstart = "largegun",
 		turret = 1,

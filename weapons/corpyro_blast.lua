@@ -1,7 +1,6 @@
 return {
 	corpyro_blast = {
 		areaofeffect = 200,
-		ballistic = 1,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
@@ -11,7 +10,6 @@ return {
 		name = "PyroBlast",
 		range = 200,
 		reloadtime = 3.5999999046326,
-		rendertype = 4,
 		soundhit = "xplolrg3",
 		soundstart = "largegun",
 		turret = 1,

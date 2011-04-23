@@ -105,7 +105,6 @@ return {
 		weapondefs = {
 			atam = {
 				areaofeffect = 12,
-				beamlaser = 1,
 				beamtime = 0.30000001192093,
 				corethickness = 0.30000001192093,
 				craterboost = 0,
@@ -115,12 +114,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 20,
-				lineofsight = true,
 				name = "ATAM",
 				noselfdamage = true,
 				range = 950,
 				reloadtime = 5.5,
-				rendertype = 0,
 				rgbcolor = "0 0 1",
 				soundhit = "xplolrg1",
 				soundstart = "annigun1",

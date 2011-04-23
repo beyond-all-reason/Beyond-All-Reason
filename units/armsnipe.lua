@@ -102,7 +102,6 @@ return {
 		weapondefs = {
 			armsnipe_weapon = {
 				areaofeffect = 16,
-				beamweapon = true,
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
@@ -112,13 +111,10 @@ return {
 				impulseboost = 0.2339999973774,
 				impulsefactor = 0.2339999973774,
 				intensity = 0.75,
-				lineofsight = true,
 				name = "SniperWeapon",
-				noradar = 1,
 				noselfdamage = true,
 				range = 900,
 				reloadtime = 10,
-				rendertype = 0,
 				rgbcolor = "1 1 0",
 				soundhit = "xplolrg2",
 				soundhitvolume = 4,

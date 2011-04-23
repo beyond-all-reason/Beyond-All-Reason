@@ -84,7 +84,6 @@ return {
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 9,
-				rendertype = 6,
 				soundhit = "xplomed2",
 				soundstart = "bombrel",
 				sprayangle = 300,

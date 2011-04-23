@@ -98,7 +98,6 @@ return {
 		weapondefs = {
 			core_termite_laser = {
 				areaofeffect = 42,
-				beamlaser = 1,
 				beamtime = 0.55000001192093,
 				corethickness = 0.30000001192093,
 				craterboost = 0,
@@ -108,12 +107,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 12,
-				lineofsight = true,
 				name = "HeatRay",
 				noselfdamage = true,
 				range = 340,
 				reloadtime = 1.6499999761581,
-				rendertype = 0,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
 				soundstart = "heatray1",

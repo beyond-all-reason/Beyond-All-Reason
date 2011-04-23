@@ -100,7 +100,6 @@ return {
 		weapondefs = {
 			armwar_laser = {
 				areaofeffect = 8,
-				beamlaser = 1,
 				beamtime = 0.11999999731779,
 				corethickness = 0.17499999701977,
 				craterboost = 0,
@@ -111,12 +110,10 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 10,
-				lineofsight = true,
 				name = "MediumLaser",
 				noselfdamage = true,
 				range = 330,
 				reloadtime = 0.30000001192093,
-				rendertype = 0,
 				rgbcolor = "1 0 0",
 				soundhit = "lasrhit2",
 				soundstart = "lasrfir3",
