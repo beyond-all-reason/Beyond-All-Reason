@@ -1,14 +1,18 @@
-if (Spring.GetModOptions) then
-	local modOptions = Spring.GetModOptions()
 
-	for name, ud in pairs(UnitDefs) do  
-		if (ud.unitname == "armcom" or ud.unitname == "corcom") then
-			ud.energystorage = modOptions.startenergy or 1000
-			ud.metalstorage = modOptions.startmetal or 1000
-		end
-		if ud.builddistance and ((ud.builddistance*1) < 128) then
-		  ud.builddistance = 128
-		end
-	end
-	
+-- Get modoptions (with some backwards compatibility)
+local modOptions = Spring.GetModOptions and Spring.GetModOptions() or {}
+
+-- Loop over unit defs
+for unitName, unitDef in pairs(UnitDefs) do  
+    
+    -- Com storage
+    if unitName == 'armcom' or unitName == 'corcom' then
+        unitDef.energystorage = modOptions.startenergy or 1000
+        unitDef.metalstorage = modOptions.startmetal or 1000
+    end
+    
+    -- Minimum build distance
+    if unitDef.builddistance and unitDef.builddistance < 128 then
+        unitDef.builddistance = 128
+    end
 end
