@@ -1,78 +1,61 @@
--- UNITDEF -- ARMFDRAG --
---------------------------------------------------------------------------------
-
-local unitName = "armfdrag"
-
---------------------------------------------------------------------------------
-
-local unitDef = {
-  acceleration       = 0,
-  bmcode             = 0,
-  brakeRate          = 0,
-  buildAngle         = 8192,
-  buildCostEnergy    = 600,
-  buildCostMetal     = 20,
-  builder            = false,
-  buildPic           = [[ARMFDRAG.DDS]],
-  buildTime          = 930,
-  category           = [[ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR]],
-  corpse             = [[FLOATINGTEETH]],
-  description        = [[Perimeter Defense]],
-  energyMake         = 0,
-  energyStorage      = 0,
-  energyUse          = 0,
-  footprintX         = 2,
-  footprintZ         = 2,
-  idleAutoHeal       = 5,
-  idleTime           = 1800,
-  isFeature          = true,
-  maxDamage          = 50,
-  maxSlope           = 32,
-  maxVelocity        = 0,
-  maxWaterDepth      = 0,
-  metalStorage       = 0,
-  minWaterDepth      = 1,
-  name               = [[Shark's Teeth]],
-  noAutoFire         = false,
-  objectName         = [[ARMFDRAG]],
-  seismicSignature   = 0,
-  side               = [[ARM]],
-  sightDistance      = 130,
-  smoothAnim         = false,
-  TEDClass           = [[FORT]],
-  turnRate           = 0,
-  unitname           = [[armfdrag]],
-  waterline          = 12,
-  workerTime         = 0,
-  yardMap            = [[wwww]],
+return {
+	armfdrag = {
+		acceleration = 0,
+		bmcode = 0,
+		brakerate = 0,
+		buildangle = 8192,
+		buildcostenergy = 600,
+		buildcostmetal = 20,
+		builder = false,
+		buildpic = "ARMFDRAG.DDS",
+		buildtime = 930,
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		corpse = "FLOATINGTEETH",
+		description = "Perimeter Defense",
+		energymake = 0,
+		energystorage = 0,
+		energyuse = 0,
+		footprintx = 2,
+		footprintz = 2,
+		idleautoheal = 5,
+		idletime = 1800,
+		isfeature = true,
+		maxdamage = 50,
+		maxslope = 32,
+		maxvelocity = 0,
+		maxwaterdepth = 0,
+		metalstorage = 0,
+		minwaterdepth = 1,
+		name = "Shark's Teeth",
+		noautofire = false,
+		objectname = "ARMFDRAG",
+		seismicsignature = 0,
+		side = "ARM",
+		sightdistance = 130,
+		smoothanim = false,
+		tedclass = "FORT",
+		turnrate = 0,
+		unitname = "armfdrag",
+		waterline = 12,
+		workertime = 0,
+		yardmap = "wwww",
+		featuredefs = {
+			floatingteeth = {
+				autoreclaimable = 0,
+				blocking = true,
+				category = "dragonteeth",
+				damage = 15000,
+				description = "Shark's Teeth",
+				footprintx = 2,
+				footprintz = 2,
+				height = 75,
+				hitdensity = 100,
+				metal = 20,
+				nodrawundergray = true,
+				object = "armfdrag",
+				reclaimable = true,
+				world = "allworld",
+			},
+		},
+	},
 }
-
-
---------------------------------------------------------------------------------
-
-local featureDefs = {
-  FLOATINGTEETH = {
-    autoreclaimable    = 0,
-    blocking           = true,
-    category           = [[dragonteeth]],
-    damage             = 15000,
-    description        = [[Shark's Teeth]],
-    footprintX         = 2,
-    footprintZ         = 2,
-    height             = 75,
-    hitdensity         = 100,
-    metal              = 20,
-    nodrawundergray    = true,
-    object             = [[armfdrag]],
-    reclaimable        = true,
-    world              = [[allworld]],
-  },
-}
-unitDef.featureDefs = featureDefs
-
-
---------------------------------------------------------------------------------
-
-return lowerkeys({ [unitName] = unitDef })
-
---------------------------------------------------------------------------------

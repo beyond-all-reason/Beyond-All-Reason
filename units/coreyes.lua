@@ -1,105 +1,88 @@
--- UNITDEF -- COREYES --
---------------------------------------------------------------------------------
-
-local unitName = "coreyes"
-
---------------------------------------------------------------------------------
-
-local unitDef = {
-  acceleration       = 0,
-  activateWhenBuilt  = true,
-  bmcode             = 0,
-  brakeRate          = 0,
-  buildAngle         = 8192,
-  buildCostEnergy    = 800,
-  buildCostMetal     = 30,
-  builder            = false,
-  buildPic           = [[COREYES.DDS]],
-  buildTime          = 750,
-  category           = [[ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR]],
-  cloakCost          = 10,
-  corpse             = [[CDRAGONSEYES_DEAD]],
-  description        = [[Perimeter Camera]],
-  energyMake         = 0,
-  energyStorage      = 0,
-  energyUse          = 5,
-  footprintX         = 1,
-  footprintZ         = 1,
-  iconType           = [[building]],
-  idleAutoHeal       = 5,
-  idleTime           = 1800,
-  initCloaked        = true,
-  levelGround        = false,
-  maxDamage          = 250,
-  maxSlope           = 24,
-  maxVelocity        = 0,
-  maxWaterDepth      = 0,
-  metalStorage       = 0,
-  minCloakDistance   = 36,
-  name               = [[Dragon's Eye]],
-  noAutoFire         = false,
-  objectName         = [[COREYES]],
-  onoffable          = false,
-  seismicSignature   = 0,
-  side               = [[CORE]],
-  sightDistance      = 540,
-  smoothAnim         = false,
-  stealth            = true,
-  TEDClass           = [[FORT]],
-  turnRate           = 0,
-  unitname           = [[coreyes]],
-  workerTime         = 0,
-  yardMap            = [[o]],
-  sounds = {
-    canceldestruct     = [[cancel2]],
-    underattack        = [[warning1]],
-    cant = {
-      [[cantdo4]],
-    },
-    count = {
-      [[count6]],
-      [[count5]],
-      [[count4]],
-      [[count3]],
-      [[count2]],
-      [[count1]],
-    },
-    ok = {
-      [[servsml6]],
-    },
-    select = {
-      [[minesel2]],
-    },
-  },
+return {
+	coreyes = {
+		acceleration = 0,
+		activatewhenbuilt = true,
+		bmcode = 0,
+		brakerate = 0,
+		buildangle = 8192,
+		buildcostenergy = 800,
+		buildcostmetal = 30,
+		builder = false,
+		buildpic = "COREYES.DDS",
+		buildtime = 750,
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		cloakcost = 10,
+		corpse = "CDRAGONSEYES_DEAD",
+		description = "Perimeter Camera",
+		energymake = 0,
+		energystorage = 0,
+		energyuse = 5,
+		footprintx = 1,
+		footprintz = 1,
+		icontype = "building",
+		idleautoheal = 5,
+		idletime = 1800,
+		initcloaked = true,
+		levelground = false,
+		maxdamage = 250,
+		maxslope = 24,
+		maxvelocity = 0,
+		maxwaterdepth = 0,
+		metalstorage = 0,
+		mincloakdistance = 36,
+		name = "Dragon's Eye",
+		noautofire = false,
+		objectname = "COREYES",
+		onoffable = false,
+		seismicsignature = 0,
+		side = "CORE",
+		sightdistance = 540,
+		smoothanim = false,
+		stealth = true,
+		tedclass = "FORT",
+		turnrate = 0,
+		unitname = "coreyes",
+		workertime = 0,
+		yardmap = "o",
+		featuredefs = {
+			cdragonseyes_dead = {
+				blocking = false,
+				category = "heaps",
+				damage = 120,
+				description = "Dragon's Eye Heap",
+				energy = 0,
+				featurereclamate = "SMUDGE01",
+				footprintx = 1,
+				footprintz = 1,
+				height = 4,
+				hitdensity = 100,
+				metal = 12,
+				object = "1X1B",
+				reclaimable = true,
+				seqnamereclamate = "TREE1RECLAMATE",
+				world = "All Worlds",
+			},
+		},
+		sounds = {
+			canceldestruct = "cancel2",
+			underattack = "warning1",
+			cant = {
+				[1] = "cantdo4",
+			},
+			count = {
+				[1] = "count6",
+				[2] = "count5",
+				[3] = "count4",
+				[4] = "count3",
+				[5] = "count2",
+				[6] = "count1",
+			},
+			ok = {
+				[1] = "servsml6",
+			},
+			select = {
+				[1] = "minesel2",
+			},
+		},
+	},
 }
-
-
---------------------------------------------------------------------------------
-
-local featureDefs = {
-  CDRAGONSEYES_DEAD = {
-    blocking           = false,
-    category           = [[heaps]],
-    damage             = 120,
-    description        = [[Dragon's Eye Heap]],
-    energy             = 0,
-    featurereclamate   = [[SMUDGE01]],
-    footprintX         = 1,
-    footprintZ         = 1,
-    height             = 4,
-    hitdensity         = 100,
-    metal              = 12,
-    object             = [[1X1B]],
-    reclaimable        = true,
-    seqnamereclamate   = [[TREE1RECLAMATE]],
-    world              = [[All Worlds]],
-  },
-}
-unitDef.featureDefs = featureDefs
-
-
---------------------------------------------------------------------------------
-
-return lowerkeys({ [unitName] = unitDef })
-
---------------------------------------------------------------------------------
