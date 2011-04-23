@@ -1,7 +1,6 @@
 return {
 	corsd = {
 		activatewhenbuilt = true,
-		bmcode = 0,
 		buildangle = 4096,
 		buildcostenergy = 6363,
 		buildcostmetal = 698,
@@ -31,10 +30,7 @@ return {
 		seismicdistance = 2000,
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
-		side = "CORE",
 		sightdistance = 225,
-		tedclass = "SPECIAL",
-		unitname = "corsd",
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		featuredefs = {

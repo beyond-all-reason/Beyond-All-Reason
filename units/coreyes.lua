@@ -2,7 +2,6 @@ return {
 	coreyes = {
 		acceleration = 0,
 		activatewhenbuilt = true,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 800,
@@ -35,13 +34,10 @@ return {
 		objectname = "COREYES",
 		onoffable = false,
 		seismicsignature = 0,
-		side = "CORE",
 		sightdistance = 540,
 		smoothanim = false,
 		stealth = true,
-		tedclass = "FORT",
 		turnrate = 0,
-		unitname = "coreyes",
 		workertime = 0,
 		yardmap = "o",
 		featuredefs = {

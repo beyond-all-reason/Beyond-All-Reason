@@ -1,7 +1,6 @@
 return {
 	armdf = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 4096,
 		buildcostenergy = 100,
@@ -37,11 +36,8 @@ return {
 		objectname = "ARMFUS",
 		seismicsignature = 0,
 		selfdestructas = "MEDIUM_BUILDING",
-		side = "ARM",
 		sightdistance = 210,
-		tedclass = "SPECIAL",
 		turnrate = 0,
-		unitname = "armdf",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "oooooooooooooooooooo",

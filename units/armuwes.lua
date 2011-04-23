@@ -1,7 +1,6 @@
 return {
 	armuwes = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 2445,
@@ -34,12 +33,9 @@ return {
 		objectname = "ARMUWES",
 		seismicsignature = 0,
 		selfdestructas = "ESTOR_BUILDING",
-		side = "ARM",
 		sightdistance = 182,
 		smoothanim = false,
-		tedclass = "ENERGY",
 		turnrate = 0,
-		unitname = "armuwes",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "oooooooooooooooo",

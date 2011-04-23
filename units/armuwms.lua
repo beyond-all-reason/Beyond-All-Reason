@@ -1,7 +1,6 @@
 return {
 	armuwms = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 1255,
@@ -34,12 +33,9 @@ return {
 		objectname = "ARMUWMS",
 		seismicsignature = 0,
 		selfdestructas = "SMALL_BUILDING",
-		side = "ARM",
 		sightdistance = 182,
 		smoothanim = false,
-		tedclass = "METAL",
 		turnrate = 0,
-		unitname = "armuwms",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "oooooooooooooooo",

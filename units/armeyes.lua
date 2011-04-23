@@ -2,7 +2,6 @@ return {
 	armeyes = {
 		acceleration = 0,
 		activatewhenbuilt = true,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 800,
@@ -35,13 +34,10 @@ return {
 		objectname = "ARMEYES",
 		onoffable = false,
 		seismicsignature = 0,
-		side = "ARM",
 		sightdistance = 560,
 		smoothanim = false,
 		stealth = true,
-		tedclass = "FORT",
 		turnrate = 0,
-		unitname = "armeyes",
 		workertime = 0,
 		yardmap = "o",
 		featuredefs = {

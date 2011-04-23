@@ -1,6 +1,5 @@
 return {
 	armuwadves = {
-		bmcode = 0,
 		buildangle = 8192,
 		buildcostenergy = 10094,
 		buildcostmetal = 773,
@@ -14,8 +13,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (40000)",
-		designation = "CP-AES",
-		downloadable = 1,
 		energystorage = 40000,
 		energyuse = 0,
 		explodeas = "ATOMIC_BLAST",
@@ -30,21 +27,14 @@ return {
 		metalstorage = 0,
 		name = "Hardened Energy Storage",
 		noautofire = false,
-		noshadow = 1,
 		objectname = "ARMUWADVES",
 		seismicsignature = 0,
 		selfdestructas = "MINE_NUKE",
-		side = "ARM",
 		sightdistance = 169,
 		smoothanim = false,
-		tedclass = "ENERGY",
-		threed = 1,
-		unitname = "armuwadves",
 		usebuildinggrounddecal = true,
-		version = 1.2000000476837,
 		workertime = 0,
 		yardmap = "oooooooooooooooo",
-		zbuffer = 1,
 		featuredefs = {
 			dead = {
 				blocking = true,

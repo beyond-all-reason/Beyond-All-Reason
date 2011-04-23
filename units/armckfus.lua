@@ -1,7 +1,6 @@
 return {
 	armckfus = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 4096,
 		buildcostenergy = 24646,
@@ -33,12 +32,9 @@ return {
 		objectname = "ARMCKFUS",
 		seismicsignature = 0,
 		selfdestructas = "MINE_NUKE",
-		side = "ARM",
 		sightdistance = 273,
 		smoothanim = false,
-		tedclass = "ENERGY",
 		turnrate = 0,
-		unitname = "armckfus",
 		workertime = 0,
 		yardmap = "oooooooooooooooooooo",
 		featuredefs = {

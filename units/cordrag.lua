@@ -1,7 +1,6 @@
 return {
 	cordrag = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 150,
@@ -34,12 +33,9 @@ return {
 		noautofire = false,
 		objectname = "CORDRAG",
 		seismicsignature = 0,
-		side = "CORE",
 		sightdistance = 130,
 		smoothanim = false,
-		tedclass = "FORT",
 		turnrate = 0,
-		unitname = "cordrag",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "ffff",

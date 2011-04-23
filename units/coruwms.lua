@@ -1,7 +1,6 @@
 return {
 	coruwms = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 1523,
@@ -34,12 +33,9 @@ return {
 		objectname = "CORUWMS",
 		seismicsignature = 0,
 		selfdestructas = "SMALL_BUILDING",
-		side = "CORE",
 		sightdistance = 169,
 		smoothanim = false,
-		tedclass = "METAL",
 		turnrate = 0,
-		unitname = "coruwms",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "oooooooooooooooo",

@@ -2,7 +2,6 @@ return {
 	armjamt = {
 		acceleration = 0,
 		activatewhenbuilt = true,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 4382,
 		buildcostenergy = 7945,
@@ -25,7 +24,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		initcloaked = false,
-		maxangledif1 = 1,
 		maxdamage = 712,
 		maxslope = 32,
 		maxvelocity = 0,
@@ -39,12 +37,9 @@ return {
 		radardistancejam = 500,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
-		side = "ARM",
 		sightdistance = 195,
 		smoothanim = false,
-		tedclass = "SPECIAL",
 		turnrate = 0,
-		unitname = "armjamt",
 		workertime = 0,
 		yardmap = "oooo",
 		featuredefs = {

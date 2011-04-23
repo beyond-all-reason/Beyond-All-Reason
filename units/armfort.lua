@@ -1,7 +1,6 @@
 return {
 	armfort = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 0,
 		buildcostenergy = 675,
@@ -34,12 +33,9 @@ return {
 		noautofire = false,
 		objectname = "ARMFORT",
 		seismicsignature = 0,
-		side = "ARM",
 		sightdistance = 130,
 		smoothanim = false,
-		tedclass = "FORT",
 		turnrate = 0,
-		unitname = "armfort",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "ffff",

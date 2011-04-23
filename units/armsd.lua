@@ -1,7 +1,6 @@
 return {
 	armsd = {
 		activatewhenbuilt = true,
-		bmcode = 0,
 		buildangle = 4096,
 		buildcostenergy = 6739,
 		buildcostmetal = 661,
@@ -31,10 +30,7 @@ return {
 		seismicdistance = 2000,
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
-		side = "ARM",
 		sightdistance = 240,
-		tedclass = "SPECIAL",
-		unitname = "armsd",
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		featuredefs = {

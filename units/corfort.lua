@@ -1,7 +1,6 @@
 return {
 	corfort = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 0,
 		buildcostenergy = 612,
@@ -34,12 +33,9 @@ return {
 		noautofire = false,
 		objectname = "CORFORT",
 		seismicsignature = 0,
-		side = "CORE",
 		sightdistance = 130,
 		smoothanim = false,
-		tedclass = "FORT",
 		turnrate = 0,
-		unitname = "corfort",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "ffff",

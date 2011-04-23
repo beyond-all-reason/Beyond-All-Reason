@@ -1,6 +1,5 @@
 return {
 	coruwadves = {
-		bmcode = 0,
 		buildangle = 7822,
 		buildcostenergy = 10032,
 		buildcostmetal = 790,
@@ -14,8 +13,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (40000)",
-		designation = "CP-CAES",
-		downloadable = 1,
 		energystorage = 40000,
 		energyuse = 0,
 		explodeas = "ATOMIC_BLAST",
@@ -30,21 +27,14 @@ return {
 		metalstorage = 0,
 		name = "Hardened Energy Storage",
 		noautofire = false,
-		noshadow = 1,
 		objectname = "CORUWADVES",
 		seismicsignature = 0,
 		selfdestructas = "MINE_NUKE",
-		side = "CORE",
 		sightdistance = 192,
 		smoothanim = false,
-		tedclass = "ENERGY",
-		threed = 1,
-		unitname = "coruwadves",
 		usebuildinggrounddecal = true,
-		version = 1.2000000476837,
 		workertime = 0,
 		yardmap = "ooooooooooooooooooooooooo",
-		zbuffer = 1,
 		featuredefs = {
 			dead = {
 				blocking = true,

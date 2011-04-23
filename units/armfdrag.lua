@@ -1,7 +1,6 @@
 return {
 	armfdrag = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 600,
@@ -30,12 +29,9 @@ return {
 		noautofire = false,
 		objectname = "ARMFDRAG",
 		seismicsignature = 0,
-		side = "ARM",
 		sightdistance = 130,
 		smoothanim = false,
-		tedclass = "FORT",
 		turnrate = 0,
-		unitname = "armfdrag",
 		waterline = 12,
 		workertime = 0,
 		yardmap = "wwww",

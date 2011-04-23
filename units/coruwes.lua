@@ -1,7 +1,6 @@
 return {
 	coruwes = {
 		acceleration = 0,
-		bmcode = 0,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 2540,
@@ -34,12 +33,9 @@ return {
 		objectname = "CORUWES",
 		seismicsignature = 0,
 		selfdestructas = "ESTOR_BUILDING",
-		side = "CORE",
 		sightdistance = 169,
 		smoothanim = false,
-		tedclass = "ENERGY",
 		turnrate = 0,
-		unitname = "coruwes",
 		usebuildinggrounddecal = true,
 		workertime = 0,
 		yardmap = "oooooooooooooooo",

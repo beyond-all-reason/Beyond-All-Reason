@@ -1,6 +1,5 @@
 return {
 	coruwadvms = {
-		bmcode = 0,
 		buildangle = 6093,
 		buildcostenergy = 10400,
 		buildcostmetal = 710,
@@ -14,8 +13,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (10000)",
-		designation = "CP-AUMS",
-		downloadable = 1,
 		energystorage = 0,
 		energyuse = 0,
 		explodeas = "LARGE_BUILDINGEX",
@@ -30,21 +27,14 @@ return {
 		metalstorage = 10000,
 		name = "Hardened Metal Storage",
 		noautofire = false,
-		noshadow = 1,
 		objectname = "CORUWADVMS",
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
-		side = "CORE",
 		sightdistance = 182,
 		smoothanim = false,
-		tedclass = "METAL",
-		threed = 1,
-		unitname = "coruwadvms",
 		usebuildinggrounddecal = true,
-		version = 1.2000000476837,
 		workertime = 0,
 		yardmap = "oooooooooooooooo",
-		zbuffer = 1,
 		featuredefs = {
 			dead = {
 				blocking = true,
