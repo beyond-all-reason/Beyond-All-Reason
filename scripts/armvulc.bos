@@ -11,6 +11,9 @@ static-var  gun_1;
 // Signal definitions
 #define SIG_AIM				2
 
+#define RECOIL_LENGTH		[-10]
+#define RECOIL_RESTORESPEED [10]
+#define SPINDLE_TURNSPEED	<230> // 90 degrees / 0.4 seconds = 225 degrees/second
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -69,7 +72,6 @@ AimPrimary(heading, pitch)
 	turn neck to x-axis <0.000000> - pitch speed <6.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn neck around x-axis;
-	sleep 115;
 	return (1);
 }
 
@@ -77,39 +79,35 @@ FirePrimary()
 {
 	if( gun_1 == 1 )
 	{
-		move barrel01 to z-axis [-10.000000] now;
+		move barrel01 to z-axis RECOIL_LENGTH now;
 		emit-sfx 1024 + 0 from flare;
-		sleep 100;
 		explode shell type FALL;
-		move barrel01 to z-axis [0.000000] speed [20.000000];
-		turn spindle to z-axis <90.016484> speed <400.093407>;
+		move barrel01 to z-axis [0.000000] speed RECOIL_RESTORESPEED;
+		turn spindle to z-axis <90.000000> speed SPINDLE_TURNSPEED;
 	}
 	if( gun_1 == 2 )
 	{
-		move barrel02 to z-axis [-10.000000] now;
+		move barrel02 to z-axis RECOIL_LENGTH now;
 		emit-sfx 1024 + 0 from flare;
-		sleep 100;
 		explode shell type FALL;
-		move barrel02 to z-axis [0.000000] speed [20.000000];
-		turn spindle to z-axis <180.038462> speed <400.093407>;
+		move barrel02 to z-axis [0.000000] speed RECOIL_RESTORESPEED;
+		turn spindle to z-axis <180.000000> speed SPINDLE_TURNSPEED;
 	}
 	if( gun_1 == 3 )
 	{
-		move barrel03 to z-axis [-10.000000] now;
+		move barrel03 to z-axis RECOIL_LENGTH now;
 		emit-sfx 1024 + 0 from flare;
-		sleep 100;
 		explode shell type FALL;
-		move barrel03 to z-axis [0.000000] speed [20.000000];
-		turn spindle to z-axis <270.060440> speed <400.093407>;
+		move barrel03 to z-axis [0.000000] speed RECOIL_RESTORESPEED;
+		turn spindle to z-axis <270.000000> speed SPINDLE_TURNSPEED;
 	}
 	if( gun_1 == 4 )
 	{
-		move barrel04 to z-axis [-10.000000] now;
+		move barrel04 to z-axis RECOIL_LENGTH now;
 		emit-sfx 1024 + 0 from flare;
-		sleep 100;
 		explode shell type FALL;
-		move barrel04 to z-axis [0.000000] speed [20.000000];
-		turn spindle to z-axis <0.000000> speed <400.093407>;
+		move barrel04 to z-axis [0.000000] speed RECOIL_RESTORESPEED;
+		turn spindle to z-axis <0.000000> speed SPINDLE_TURNSPEED;
 	}
 	++gun_1;
 	if( gun_1 == 5 )
