@@ -102,6 +102,7 @@ return {
 				edgeeffectiveness = 0.40000000596046,
 				explosiongenerator = "custom:VEHHVYROCKET_EXPLOSION",
 				firestarter = 20,
+				flighttime = 3,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				model = "TAWF114a",
@@ -121,7 +122,7 @@ return {
 				weaponacceleration = 70,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 400,
+				weaponvelocity = 450,
 				damage = {
 					commanders = 1000,
 					default = 1000,

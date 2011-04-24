@@ -102,7 +102,7 @@ return {
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 72,
-				flighttime = 2,
+				flighttime = 3,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				model = "missile",
