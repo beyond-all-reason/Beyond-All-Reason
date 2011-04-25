@@ -318,6 +318,10 @@ return {
 	l1subs = {
 		armsub = 99,
 		corsub = 99,
+        armsubk = 99,
+		corshark = 99,
+        corssub = 99,
+		tawf009 = 99,
 	},
 	l2bombers = {
 		armcybr = 99,
@@ -336,12 +340,10 @@ return {
 		corvamp = 99,
 	},
 	l2subs = {
-		armsubk = 99,
-		corshark = 99,
+		-- Empty
 	},
 	l3subs = {
-		corssub = 99,
-		tawf009 = 99,
+		-- Empty
 	},
 	mechs = {
 		-- Empty
