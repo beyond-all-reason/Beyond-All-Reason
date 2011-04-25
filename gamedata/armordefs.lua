@@ -254,13 +254,7 @@ return {
 		-- Empty
 	},
 	gunships = {
-		armbrawl = 99,
-		armkam = 99,
-		armsaber = 99,
-		bladew = 99,
-		corape = 99,
-		corcrw = 99,
-		corcut = 99,
+		-- Empty
 	},
 	heavyunits = {
 		aafus = 99,
@@ -467,6 +461,13 @@ return {
 		corhunt = 99,
         armatlas = 99,
 		corvalk = 99,
+        armbrawl = 99,
+		armkam = 99,
+		armsaber = 99,
+		bladew = 99,
+		corape = 99,
+		corcrw = 99,
+		corcut = 99,
 	},
 	vtrans = {
 		-- Empty
