@@ -131,7 +131,7 @@ return {
 					blackhydra = 10,
 					commanders = 10,
 					crawlingbombs = 10,
-					default = 10,
+					default = 1000,
 					dl = 10,
 					["else"] = 10,
 					flakboats = 10,
