@@ -87,11 +87,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					blackhydra = 20,
-					commanders = 20,
 					default = 800,
-					krogoth = 20,
-					seadragon = 20,
 				},
 			},
 		},

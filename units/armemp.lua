@@ -121,11 +121,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				damage = {
-					blackhydra = 300,
-					commanders = 300,
-					default = 96000,
-					krogoth = 300,
-					seadragon = 300,
+					default = 50000,
 				},
 			},
 		},

@@ -13,6 +13,9 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
+        customparams = {
+            paralyzemultiplier = 0,
+        },
 		description = "(barely) Mobile Heavy Turret",
 		energymake = 35,
 		energystorage = 350,

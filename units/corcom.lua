@@ -23,6 +23,9 @@ return {
 		collisionvolumetype = "Ell",
 		commander = true,
 		corpse = "DEAD",
+        customparams = {
+            paralyzemultiplier = 0.025,
+        },
 		description = "Commander",
 		energymake = 25,
 		energystorage = 1000,

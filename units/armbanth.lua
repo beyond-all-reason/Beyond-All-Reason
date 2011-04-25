@@ -14,6 +14,9 @@ return {
 		collisionvolumetest = 0,
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
+        customparams = {
+            paralyzemultiplier = 0,
+        },
 		description = "Assault Mech",
 		energymake = 12,
 		energystorage = 120,

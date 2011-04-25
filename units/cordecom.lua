@@ -15,6 +15,9 @@ return {
 		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR",
 		cloakcost = 30,
 		cloakcostmoving = 180,
+        customparams = {
+            paralyzemultiplier = 0.025,
+        },
 		decoyfor = "corcom",
 		description = "Decoy Commander",
 		energymake = 15,

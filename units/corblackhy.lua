@@ -15,6 +15,9 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
+        customparams = {
+            paralyzemultiplier = 0,
+        },
 		description = "Flagship",
 		energymake = 175,
 		energystorage = 1000,

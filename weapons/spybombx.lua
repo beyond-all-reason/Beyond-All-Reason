@@ -20,11 +20,7 @@ return {
 		tolerance = 7000,
 		turret = 1,
 		damage = {
-			blackhydra = 30,
-			commanders = 30,
-			default = 48000,
-			krogoth = 30,
-			seadragon = 30,
+			default = 50000,
 		},
 	},
 }
