@@ -3,8 +3,7 @@ return {
         -- Empty
 	},
 	anniddm = {
-		armanni = 99,
-		cordoom = 99,
+		-- Empty
 	},
 	antibomber = {
 		armcir = 99,
@@ -38,8 +37,7 @@ return {
 		corsktl = 99,
 	},
 	dl = {
-		armdl = 99,
-		cordl = 99,
+		-- Empty
 	},
 	["else"] = {
 		ajuno = 99,
@@ -233,22 +231,27 @@ return {
         armspy = 99,
 		commando = 99,
 		corspy = 99,
-	},
-	flakboats = {
-		armaas = 99,
-		corarch = 99,
-	},
-	flaks = {
-		armfflak = 99,
+        armdl = 99,
+		cordl = 99,
+        armfflak = 99,
 		armflak = 99,
 		armyork = 99,
 		corenaa = 99,
 		corflak = 99,
 		corsent = 99,
+        armmlv = 99,
+		cormlv = 99,
+        cormaw = 99,
+		corpyro = 99,
+	},
+	flakboats = {
+		-- Empty
+	},
+	flaks = {
+		-- Empty
 	},
 	flamethrowers = {
-		cormaw = 99,
-		corpyro = 99,
+		-- Empty
 	},
 	gunships = {
 		armbrawl = 99,
@@ -294,6 +297,15 @@ return {
 		armguard = 99,
 		corpun = 99,
 		cortoast = 99,
+        armanni = 99,
+		cordoom = 99,
+        armorco = 99,
+		corkrog = 99,
+		gorg = 99,
+        armtl = 99,
+		cortl = 99,
+        armatl = 99,
+		coratl = 99,
 	},
 	hgunships = {
 		blade = 99,
@@ -303,17 +315,22 @@ return {
 		corsjam = 99,
 	},
 	krogoth = {
-		armorco = 99,
-		corkrog = 99,
-		gorg = 99,
+		-- Empty
 	},
 	l1bombers = {
 		armthund = 99,
 		corshad = 99,
+        armcybr = 99,
+		armlance = 99,
+		armpnix = 99,
+		armsb = 99,
+		corgripn = 99,
+		corhurc = 99,
+		corsb = 99,
+		cortitan = 99,
 	},
 	l1fighters = {
-		armfig = 99,
-		corveng = 99,
+		-- Empty
 	},
 	l1subs = {
 		armsub = 99,
@@ -324,16 +341,11 @@ return {
 		tawf009 = 99,
 	},
 	l2bombers = {
-		armcybr = 99,
-		armlance = 99,
-		armpnix = 99,
-		armsb = 99,
-		corgripn = 99,
-		corhurc = 99,
-		corsb = 99,
-		cortitan = 99,
+		-- Empty
 	},
 	l2fighters = {
+        armfig = 99,
+		corveng = 99,
 		armhawk = 99,
 		armsfig = 99,
 		corsfig = 99,
@@ -349,8 +361,7 @@ return {
 		-- Empty
 	},
 	minelayers = {
-		armmlv = 99,
-		cormlv = 99,
+		-- Empty
 	},
 	mines = {
 		armfmine3 = 99,
@@ -391,6 +402,10 @@ return {
 		corroy = 99,
 		cortship = 99,
 		decade = 99,
+        armaas = 99,
+		corarch = 99,
+        aseadragon = 99,
+        corblackhy = 99,
 	},
 	plasmaguns = {
 		-- Empty
@@ -422,23 +437,16 @@ return {
 		corvrad = 99,
 	},
 	seadragon = {
-		aseadragon = 99,
-        corblackhy = 99,
+		-- Empty
 	},
 	spies = {
 		-- Empty
 	},
 	tl = {
-		armtl = 99,
-		cortl = 99,
-        armatl = 99,
-		coratl = 99,
+		-- Empty
 	},
 	vradar = {
-		armawac = 99,
-		armsehak = 99,
-		corawac = 99,
-		corhunt = 99,
+		-- Empty
 	},
 	vtol = {
 		armaca = 99,
@@ -453,9 +461,14 @@ return {
 		corcsa = 99,
 		corfink = 99,
 		corseap = 99,
+        armawac = 99,
+		armsehak = 99,
+		corawac = 99,
+		corhunt = 99,
+        armatlas = 99,
+		corvalk = 99,
 	},
 	vtrans = {
-		armatlas = 99,
-		corvalk = 99,
+		-- Empty
 	},
 }
