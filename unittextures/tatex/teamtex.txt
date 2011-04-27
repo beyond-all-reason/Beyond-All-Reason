@@ -10,7 +10,6 @@ colorsmd
 Core32Dk
 Core32Lt
 CoreLogoGouraud
-onoff01
 Solgradb
 Solid1a
 Solid2a
