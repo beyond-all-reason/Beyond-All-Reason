@@ -128,11 +128,8 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					default = 138,
-					gunships = 105,
 					hgunships = 105,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			cormship_rocket = {
@@ -164,8 +161,6 @@ return {
 					commanders = 500,
 					default = 1100,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

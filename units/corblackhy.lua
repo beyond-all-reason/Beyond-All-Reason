@@ -15,9 +15,6 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-        customparams = {
-            paralyzemultiplier = 0,
-        },
 		description = "Flagship",
 		energymake = 175,
 		energystorage = 1000,
@@ -43,6 +40,9 @@ return {
 		turnrate = 260,
 		waterline = 12,
 		windgenerator = 0.0010000000474975,
+		customparams = {
+			paralyzemultiplier = 0,
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -128,22 +128,12 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					anniddm = 221,
-					blackhydra = 590,
 					default = 380,
-					gunships = 130,
 					hgunships = 130,
 					l1bombers = 130,
-					l1fighters = 130,
 					l1subs = 5,
-					l2bombers = 130,
 					l2fighters = 130,
-					l2subs = 5,
-					l3subs = 5,
-					seadragon = 590,
-					vradar = 130,
 					vtol = 130,
-					vtrans = 130,
 				},
 			},
 			hydra_prime = {
@@ -166,18 +156,11 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					default = 400,
-					gunships = 65,
 					hgunships = 65,
 					l1bombers = 65,
-					l1fighters = 65,
 					l1subs = 5,
-					l2bombers = 65,
 					l2fighters = 65,
-					l2subs = 5,
-					l3subs = 5,
-					vradar = 65,
 					vtol = 65,
-					vtrans = 65,
 				},
 			},
 			hydramiss = {
@@ -211,11 +194,8 @@ return {
 				weaponvelocity = 950,
 				damage = {
 					default = 125,
-					gunships = 93,
 					hgunships = 93,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

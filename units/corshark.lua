@@ -122,13 +122,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					atl = 375,
 					default = 250,
-					krogoth = 1000,
 					l1subs = 400,
-					l2subs = 400,
-					l3subs = 500,
-					tl = 375,
 				},
 			},
 		},

@@ -123,13 +123,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					blackhydra = 7500,
 					commanders = 999,
 					default = 5000,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
-					seadragon = 7500,
 				},
 			},
 			doomsday_green_laser = {
@@ -161,18 +157,11 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 275,
-					gunships = 65,
 					hgunships = 65,
 					l1bombers = 65,
-					l1fighters = 65,
 					l1subs = 5,
-					l2bombers = 65,
 					l2fighters = 65,
-					l2subs = 5,
-					l3subs = 5,
-					vradar = 65,
 					vtol = 65,
-					vtrans = 65,
 				},
 			},
 			doomsday_red_laser = {
@@ -207,8 +196,6 @@ return {
 				damage = {
 					default = 45,
 					l1subs = 2,
-					l2subs = 2,
-					l3subs = 2,
 				},
 			},
 		},

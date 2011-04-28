@@ -14,7 +14,6 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			default = 1000,
-			minelayers = 20,
 			mines = 0.5,
 		},
 	},

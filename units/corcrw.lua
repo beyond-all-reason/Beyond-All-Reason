@@ -83,8 +83,6 @@ return {
 				damage = {
 					default = 90,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			krowlaser2 = {
@@ -115,8 +113,6 @@ return {
 				damage = {
 					default = 250,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

@@ -15,7 +15,6 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			default = 25,
-			l1fighters = 10,
 			l2fighters = 10,
 		},
 	},

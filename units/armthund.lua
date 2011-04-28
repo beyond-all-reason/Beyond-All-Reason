@@ -84,8 +84,6 @@ return {
 					antibomber = 70,
 					default = 140,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

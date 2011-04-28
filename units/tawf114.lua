@@ -127,8 +127,6 @@ return {
 					commanders = 1000,
 					default = 1000,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

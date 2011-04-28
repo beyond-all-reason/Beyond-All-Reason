@@ -13,9 +13,6 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-        customparams = {
-            paralyzemultiplier = 0,
-        },
 		description = "Experimental Assault Kbot",
 		energymake = 35,
 		energystorage = 350,
@@ -41,6 +38,9 @@ return {
 		smoothanim = true,
 		turnrate = 380,
 		upright = true,
+		customparams = {
+			paralyzemultiplier = 0,
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -127,11 +127,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 900,
 				damage = {
-					anniddm = 200,
 					default = 325,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			corkrog_laser = {
@@ -161,12 +158,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					anniddm = 2500,
 					commanders = 1200,
 					default = 5500,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			corkrog_rocket = {
@@ -198,11 +192,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 3000,
 				damage = {
-					anniddm = 500,
 					default = 800,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			krogcrush = {
@@ -227,27 +218,16 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {
-					amphibious = 2000,
-					anniddm = 1,
 					antibomber = 2000,
-					antifighter = 2000,
-					antiraider = 2000,
 					commanders = 1,
 					crawlingbombs = 2000,
 					default = 1,
-					dl = 2000,
 					["else"] = 2000,
-					flaks = 2000,
-					flamethrowers = 2000,
 					heavyunits = 1,
-					krogoth = 1,
-					mechs = 1,
 					minelayser = 2000,
 					mines = 2000,
 					nanos = 2000,
-					plasmaguns = 1,
 					radar = 2000,
-					spies = 2000,
 				},
 			},
 		},

@@ -15,7 +15,6 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			default = 25,
-			gunships = 50,
 			hgunships = 50,
 		},
 	},

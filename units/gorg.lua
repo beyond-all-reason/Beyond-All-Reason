@@ -13,9 +13,6 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-        customparams = {
-            paralyzemultiplier = 0,
-        },
 		description = "(barely) Mobile Heavy Turret",
 		energymake = 35,
 		energystorage = 350,
@@ -36,6 +33,9 @@ return {
 		sightdistance = 720,
 		smoothanim = true,
 		turnrate = 109,
+		customparams = {
+			paralyzemultiplier = 0,
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -126,8 +126,6 @@ return {
 				damage = {
 					default = 75,
 					l1subs = 3,
-					l2subs = 3,
-					l3subs = 3,
 				},
 			},
 			gorg_top = {
@@ -161,8 +159,6 @@ return {
 				damage = {
 					default = 100,
 					l1subs = 3,
-					l2subs = 3,
-					l3subs = 3,
 				},
 			},
 			juggernaut_fire = {
@@ -184,11 +180,8 @@ return {
 				weapontype = "EmgCannon",
 				weaponvelocity = 530,
 				damage = {
-					anniddm = 225,
 					default = 300,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

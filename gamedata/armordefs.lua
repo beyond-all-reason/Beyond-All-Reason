@@ -1,10 +1,4 @@
 return {
-	amphibious = {
-        -- Empty
-	},
-	anniddm = {
-		-- Empty
-	},
 	antibomber = {
 		armcir = 99,
 		armuwadves = 99,
@@ -12,18 +6,6 @@ return {
 		corerad = 99,
 		coruwadves = 99,
 		coruwadvms = 99,
-	},
-	antifighter = {
-		-- Empty
-	},
-	antiraider = {
-		-- Empty
-	},
-	atl = {
-		-- Empty
-	},
-	blackhydra = {
-		-- Empty
 	},
 	commanders = {
 		armcom = 99,
@@ -35,9 +17,6 @@ return {
 		armvader = 99,
 		corroach = 99,
 		corsktl = 99,
-	},
-	dl = {
-		-- Empty
 	},
 	["else"] = {
 		ajuno = 99,
@@ -244,18 +223,6 @@ return {
         cormaw = 99,
 		corpyro = 99,
 	},
-	flakboats = {
-		-- Empty
-	},
-	flaks = {
-		-- Empty
-	},
-	flamethrowers = {
-		-- Empty
-	},
-	gunships = {
-		-- Empty
-	},
 	heavyunits = {
 		aafus = 99,
 		armaap = 99,
@@ -301,16 +268,6 @@ return {
         armatl = 99,
 		coratl = 99,
 	},
-	hgunships = {
-		blade = 99,
-	},
-	jammerboats = {
-		armsjam = 99,
-		corsjam = 99,
-	},
-	krogoth = {
-		-- Empty
-	},
 	l1bombers = {
 		armthund = 99,
 		corshad = 99,
@@ -323,9 +280,6 @@ return {
 		corsb = 99,
 		cortitan = 99,
 	},
-	l1fighters = {
-		-- Empty
-	},
 	l1subs = {
 		armsub = 99,
 		corsub = 99,
@@ -334,9 +288,6 @@ return {
         corssub = 99,
 		tawf009 = 99,
 	},
-	l2bombers = {
-		-- Empty
-	},
 	l2fighters = {
         armfig = 99,
 		corveng = 99,
@@ -344,18 +295,6 @@ return {
 		armsfig = 99,
 		corsfig = 99,
 		corvamp = 99,
-	},
-	l2subs = {
-		-- Empty
-	},
-	l3subs = {
-		-- Empty
-	},
-	mechs = {
-		-- Empty
-	},
-	minelayers = {
-		-- Empty
 	},
 	mines = {
 		armfmine3 = 99,
@@ -401,9 +340,6 @@ return {
         aseadragon = 99,
         corblackhy = 99,
 	},
-	plasmaguns = {
-		-- Empty
-	},
 	radar = {
 		armarad = 99,
 		armaser = 99,
@@ -429,18 +365,6 @@ return {
 		corspec = 99,
 		corvoyr = 99,
 		corvrad = 99,
-	},
-	seadragon = {
-		-- Empty
-	},
-	spies = {
-		-- Empty
-	},
-	tl = {
-		-- Empty
-	},
-	vradar = {
-		-- Empty
 	},
 	vtol = {
 		armaca = 99,
@@ -468,8 +392,5 @@ return {
 		corape = 99,
 		corcrw = 99,
 		corcut = 99,
-	},
-	vtrans = {
-		-- Empty
 	},
 }

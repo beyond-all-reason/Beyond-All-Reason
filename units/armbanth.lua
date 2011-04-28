@@ -14,9 +14,6 @@ return {
 		collisionvolumetest = 0,
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-        customparams = {
-            paralyzemultiplier = 0,
-        },
 		description = "Assault Mech",
 		energymake = 12,
 		energystorage = 120,
@@ -41,6 +38,9 @@ return {
 		smoothanim = true,
 		turnrate = 1056,
 		upright = true,
+		customparams = {
+			paralyzemultiplier = 0,
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -129,11 +129,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 400,
 				damage = {
-					anniddm = 200,
 					default = 365,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			bantha_rocket = {
@@ -165,11 +162,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2100,
 				damage = {
-					anniddm = 270,
 					default = 360,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 			tehlazerofdewm = {
@@ -197,12 +191,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					anniddm = 2000,
 					commanders = 1200,
 					default = 4000,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

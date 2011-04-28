@@ -108,12 +108,8 @@ return {
 				weaponvelocity = 265,
 				damage = {
 					default = 12,
-					flamethrowers = 5,
-					gunships = 1,
 					hgunships = 1,
 					l1subs = 1,
-					l2subs = 1,
-					l3subs = 1,
 				},
 			},
 		},

@@ -148,8 +148,6 @@ return {
 				damage = {
 					default = 62,
 					l1subs = 5,
-					l2subs = 5,
-					l3subs = 5,
 				},
 			},
 		},

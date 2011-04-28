@@ -127,8 +127,6 @@ return {
 				damage = {
 					commanders = 500,
 					default = 250,
-					dl = 5,
-					krogoth = 500,
 				},
 			},
 		},

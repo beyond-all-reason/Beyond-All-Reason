@@ -23,9 +23,6 @@ return {
 		collisionvolumetype = "Ell",
 		commander = true,
 		corpse = "DEAD",
-        customparams = {
-            paralyzemultiplier = 0.025,
-        },
 		description = "Commander",
 		energymake = 25,
 		energystorage = 1000,
@@ -88,6 +85,9 @@ return {
 			[23] = "armrl",
 			[24] = "armfrt",
 			[25] = "armdl",
+		},
+		customparams = {
+			paralyzemultiplier = 0.025000000372529,
 		},
 		featuredefs = {
 			dead = {
@@ -216,13 +216,8 @@ return {
 				damage = {
 					default = 75,
 					l1bombers = 180,
-					l1fighters = 110,
 					l1subs = 5,
-					l2bombers = 180,
 					l2fighters = 110,
-					l2subs = 5,
-					l3subs = 5,
-					vtrans = 110,
 				},
 			},
 		},

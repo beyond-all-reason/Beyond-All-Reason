@@ -82,7 +82,6 @@ return {
 				weaponvelocity = 100,
 				damage = {
 					default = 1500,
-					krogoth = 3000,
 				},
 			},
 		},

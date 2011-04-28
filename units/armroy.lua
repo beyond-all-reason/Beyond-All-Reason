@@ -115,18 +115,11 @@ return {
 				weaponvelocity = 307.40850830078,
 				damage = {
 					default = 160,
-					gunships = 41,
 					hgunships = 41,
 					l1bombers = 41,
-					l1fighters = 41,
 					l1subs = 5,
-					l2bombers = 41,
 					l2fighters = 41,
-					l2subs = 5,
-					l3subs = 5,
-					vradar = 41,
 					vtol = 41,
-					vtrans = 41,
 				},
 			},
 			depthcharge = {
