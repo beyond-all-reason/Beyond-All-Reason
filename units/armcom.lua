@@ -93,8 +93,8 @@ return {
 			dead = {
 				blocking = true,
 				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "60 10 60",
-				collisionvolumetype = "cylY",
+				collisionvolumescales = "35 10 60",
+				collisionvolumetype = "CylY",
 				damage = 10000,
 				description = "Commander Wreckage",
 				energy = 0,

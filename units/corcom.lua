@@ -94,7 +94,7 @@ return {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "60 10 60",
+				collisionvolumescales = "35 12 54",
 				collisionvolumetype = "cylY",
 				damage = 10000,
 				description = "Commander Wreckage",
