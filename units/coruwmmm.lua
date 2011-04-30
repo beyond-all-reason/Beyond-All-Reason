@@ -20,7 +20,7 @@ return {
 		footprintz = 5,
 		icontype = "building",
 		idleautoheal = 5,
-		idletime = 1800,
+		idletime = 900,
 		maxdamage = 500,
 		maxslope = 16,
 		minwaterdepth = 15,

@@ -19,6 +19,8 @@ return {
 		explodeas = "CRAWL_BLASTSML",
 		footprintx = 5,
 		footprintz = 5,
+		idleautoheal = 3000,
+		idletime = 900,
 		mass = 2000000,
 		maxdamage = 300000,
 		maxslope = 14,

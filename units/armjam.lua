@@ -17,6 +17,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
+		idleautoheal = 4.5999999046326,
+		idletime = 900,
 		leavetracks = true,
 		maxdamage = 460,
 		maxslope = 16,

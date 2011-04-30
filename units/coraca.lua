@@ -21,8 +21,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
-		idleautoheal = 5,
-		idletime = 1800,
+		idleautoheal = 1.8500000238419,
+		idletime = 900,
 		maxdamage = 185,
 		maxslope = 10,
 		maxvelocity = 8.0500001907349,
@@ -35,6 +35,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 383.5,
+		terraformspeed = 650,
 		turnrate = 121,
 		workertime = 130,
 		buildoptions = {

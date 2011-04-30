@@ -24,6 +24,8 @@ return {
 		explodeas = "MINE_LIGHT",
 		footprintx = 2,
 		footprintz = 2,
+		idleautoheal = 11,
+		idletime = 900,
 		maxdamage = 1100,
 		maxslope = 20,
 		maxvelocity = 2.25,

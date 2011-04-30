@@ -15,7 +15,4 @@ for unitName, unitDef in pairs(UnitDefs) do
     if unitDef.builddistance and unitDef.builddistance < 128 then
         unitDef.builddistance = 128
     end
-    
-    -- Boost terraform speed
-    unitDef.terraformspeed = 5 * (unitDef.workertime or 0)
 end
