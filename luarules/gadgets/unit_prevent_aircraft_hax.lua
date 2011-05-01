@@ -22,8 +22,8 @@ local SpringGetAllUnits =Spring.GetAllUnits
 if (not gadgetHandler:IsSyncedCode()) then
   return false
 end
-mapX = Game.mapSizeX*512
-mapZ = Game.mapSizeZ*512
+mapX = Game.mapSizeX
+mapZ = Game.mapSizeZ
 function gadget:GameFrame (f)
 	if (f%61==0) then
 		local all_units = SpringGetAllUnits ()
