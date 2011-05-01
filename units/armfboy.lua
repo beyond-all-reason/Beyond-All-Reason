@@ -21,6 +21,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 70,
 		idletime = 900,
+        mass = 5001,
 		maxdamage = 7000,
 		maxslope = 20,
 		maxvelocity = 1,

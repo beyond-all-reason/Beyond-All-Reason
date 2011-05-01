@@ -31,6 +31,7 @@ return {
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 125,
 		transportcapacity = 1,
+        transportmass = 5000,
 		transportsize = 3,
 		turnrate = 550,
 		sounds = {
