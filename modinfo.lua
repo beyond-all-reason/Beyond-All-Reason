@@ -1,5 +1,5 @@
 return {
-  name='Balanced Annihilation SVN',
+  name='Balanced Annihilation',
   description='Moooooo!',
   shortname='BA',
   version='SVN',
