@@ -86,6 +86,12 @@ local UnitEffects = {
     {class='ShieldJitter',options={life=math.huge, pos={0,40.5,-6.5}, size=21, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashGreen},
   },
+  [UnitDefNames["aafus"].id] = {
+    {class='SimpleParticles2', options=MergeTable({pos={-38,70,-10}, delay=10, lifeSpread=300},sparks)},
+    {class='SimpleParticles2', options=MergeTable({pos={21,70,-10}, delay=60, lifeSpread=300},sparks)},
+    {class='ShieldJitter',options={layer=-16, life=math.huge, pos={-31,55,-10}, size=12, precision=22, repeatEffect=true}},
+    {class='ShieldJitter',options={layer=-16, life=math.huge, pos={31,55,-10}, size=12, precision=22, repeatEffect=true}},
+  },
     --// ENERGY STORAGE //--------------------
   [UnitDefNames["corestor"].id] = {
     {class='GroundFlash',options=groundFlashCorestor},
