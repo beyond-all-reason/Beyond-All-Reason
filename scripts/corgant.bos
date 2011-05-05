@@ -16,37 +16,33 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 Standby()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 100;
-	}
 	while( TRUE )
 	{
-		emit-sfx 1024 + 1 from blink3;
-		emit-sfx 1024 + 1 from blink4;
-		emit-sfx 1024 + 2 from blink6;
+		emit-sfx UNIT_SFX1 from blink3;
+		emit-sfx UNIT_SFX1 from blink4;
+		emit-sfx UNIT_SFX2 from blink6;
 		sleep 1000;
-		emit-sfx 1024 + 1 from blink9;
-		emit-sfx 1024 + 2 from blink7;
+		emit-sfx UNIT_SFX1 from blink9;
+		emit-sfx UNIT_SFX2 from blink7;
 		sleep 250;
-		emit-sfx 1024 + 0 from blink5;
+		emit-sfx UNIT_SFX0 from blink5;
 		sleep 750;
-		emit-sfx 1024 + 1 from blink8;
-		emit-sfx 1024 + 2 from blink7;
+		emit-sfx UNIT_SFX1 from blink8;
+		emit-sfx UNIT_SFX2 from blink7;
 		sleep 1000;
-		emit-sfx 1024 + 1 from blink1;
-		emit-sfx 1024 + 2 from blink7;
+		emit-sfx UNIT_SFX1 from blink1;
+		emit-sfx UNIT_SFX2 from blink7;
 		sleep 1000;
-		emit-sfx 1024 + 1 from blink10;
-		emit-sfx 1024 + 2 from blink7;
+		emit-sfx UNIT_SFX1 from blink10;
+		emit-sfx UNIT_SFX2 from blink7;
 		sleep 250;
-		emit-sfx 1024 + 0 from blink5;
+		emit-sfx UNIT_SFX0 from blink5;
 		sleep 750;
-		emit-sfx 1024 + 1 from blink11;
-		emit-sfx 1024 + 2 from blink7;
+		emit-sfx UNIT_SFX1 from blink11;
+		emit-sfx UNIT_SFX2 from blink7;
 		sleep 1000;
-		emit-sfx 1024 + 1 from blink2;
-		emit-sfx 1024 + 2 from blink7;
+		emit-sfx UNIT_SFX1 from blink2;
+		emit-sfx UNIT_SFX2 from blink7;
 		sleep 1000;
 	}
 	sleep 50;
@@ -55,413 +51,324 @@ Standby()
 
 activatescr()
 {
-	if( TRUE )
-	{
-		turn clamp4b to z-axis <0.000000> now;
-		turn clamp4b to z-axis <28.005495> speed <94.000000>;
-		turn clamp3b to z-axis <0.000000> now;
-		turn clamp3b to z-axis <34.005495> speed <112.000000>;
-		turn clamp2b to z-axis <0.000000> now;
-		turn clamp2b to z-axis <-32.005495> speed <106.000000>;
-		turn clamp1b to z-axis <0.000000> now;
-		turn clamp1b to z-axis <-30.005495> speed <101.000000>;
-		sleep 306;
-	}
-	if( TRUE )
-	{
-		turn clamp4b to z-axis <49.010989> speed <56.000000>;
-		turn clamp3b to z-axis <49.010989> speed <42.000000>;
-		turn clamp2b to z-axis <-48.010989> speed <45.000000>;
-		turn clamp1b to z-axis <-49.010989> speed <52.000000>;
-		sleep 358;
-	}
-	if( TRUE )
-	{
-		turn clamp4b to z-axis <36.005495> speed <38.000000>;
-		turn clamp3b to z-axis <37.005495> speed <37.000000>;
-		turn clamp2b to z-axis <-39.005495> speed <28.000000>;
-		turn clamp1b to z-axis <-39.005495> speed <32.000000>;
-		sleep 328;
-	}
-	if( TRUE )
-	{
-		move clamp1 to x-axis [8.779999] speed [28.000000];
-		move clamp4 to x-axis [-8.339996] speed [27.000000];
-		turn clamp4b to z-axis <41.005495> speed <14.000000>;
-		turn clamp3b to z-axis <41.005495> speed <12.000000>;
-		turn clamp2b to z-axis <-41.005495> speed <5.000000>;
-		turn clamp1b to z-axis <-42.005495> speed <11.000000>;
-		sleep 308;
-	}
-	if( TRUE )
-	{
-		move clamp1 to x-axis [13.400000] speed [7.000000];
-		move clamp2 to x-axis [9.050000] speed [13.000000];
-		move clamp3 to x-axis [-8.650000] speed [13.000000];
-		move clamp4 to x-axis [-13.750000] speed [8.000000];
-		sleep 657;
-	}
-	if( TRUE )
-	{
-		move clamp1 to x-axis [14.989996] speed [2.000000];
-		move clamp2 to x-axis [13.300000] speed [5.000000];
-		move clamp3 to x-axis [-13.200000] speed [6.000000];
-		move clamp4 to x-axis [-15.139996] speed [1.000000];
-		turn crane to x-axis <-10.000000> speed <14.000000>;
-		turn clamp4b to z-axis <15.000000> speed <35.000000>;
-		turn clamp1b to z-axis <-14.000000> speed <39.000000>;
-		sleep 717;
-	}
-	if( TRUE )
-	{
-		move clamp2 to x-axis [15.089996] speed [3.000000];
-		move clamp3 to x-axis [-14.939996] speed [3.000000];
-		move clamp4b to x-axis [-4.589996] speed [8.000000];
-		move clamplight4 to x-axis [2.450000] speed [4.000000];
-		move clamp1b to x-axis [4.589996] speed [8.000000];
-		move clamplight1 to x-axis [-2.250000] speed [4.000000];
-		turn crane to x-axis <-24.005495> speed <27.000000>;
-		turn clamp4b to z-axis <-36.005495> speed <95.000000>;
-		turn clamp3b to z-axis <13.000000> speed <51.000000>;
-		turn clamp2b to z-axis <-13.000000> speed <51.000000>;
-		turn clamp1b to z-axis <39.005495> speed <98.000000>;
-		sleep 543;
-	}
-	if( TRUE )
-	{
-		move clamp4b to y-axis [-5.250000] speed [10.000000];
-		move clamplight4 to x-axis [3.700000] speed [2.000000];
-		move clamp3b to x-axis [-4.589996] speed [8.000000];
-		move clamplight3 to x-axis [2.400000] speed [4.000000];
-		move clamp2b to x-axis [4.650000] speed [8.000000];
-		move clamplight2 to x-axis [-2.039996] speed [3.000000];
-		move clamp1b to y-axis [-5.200000] speed [9.000000];
-		move clamplight1 to x-axis [-3.500000] speed [2.000000];
-		turn crane to x-axis <-37.005495> speed <23.000000>;
-		turn clamp4b to z-axis <0.000000> speed <69.000000>;
-		turn clamp3b to z-axis <-36.005495> speed <95.000000>;
-		turn clamp2b to z-axis <39.005495> speed <101.000000>;
-		turn clamp1b to z-axis <0.000000> speed <75.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		move clamp3b to y-axis [-5.050000] speed [9.000000];
-		move clamplight3 to x-axis [3.650000] speed [2.000000];
-		move clamp2b to y-axis [-5.039996] speed [9.000000];
-		move clamplight2 to x-axis [-3.550000] speed [2.000000];
-		turn crane to x-axis <-48.010989> speed <21.000000>;
-		turn clamp3b to z-axis <0.000000> speed <70.000000>;
-		turn clamp2b to z-axis <0.000000> speed <75.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-64.010989> speed <30.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-82.016484> speed <35.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-94.021978> speed <22.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-92.021978> speed <4.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-88.016484> speed <7.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-90.021978> speed <2.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <8.000000> speed <15.000000>;
-		turn arm2a to z-axis <20.000000> speed <38.000000>;
-		turn arm3a to z-axis <-19.000000> speed <36.000000>;
-		turn arm4a to z-axis <-11.000000> speed <21.000000>;
-		sleep 523;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <26.005495> speed <31.000000>;
-		turn arm2a to z-axis <41.005495> speed <38.000000>;
-		turn arm3a to z-axis <-42.005495> speed <40.000000>;
-		turn arm4a to z-axis <-25.005495> speed <24.000000>;
-		turn arm3b to z-axis <-29.005495> speed <52.000000>;
-		turn arm2b to z-axis <26.005495> speed <46.000000>;
-		sleep 573;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <59.010989> speed <60.000000>;
-		turn arm2a to z-axis <73.016484> speed <57.000000>;
-		turn arm3a to z-axis <-73.016484> speed <55.000000>;
-		turn arm4a to z-axis <-53.010989> speed <50.000000>;
-		turn arm4b to z-axis <-36.005495> speed <65.000000>;
-		turn arm3b to z-axis <-74.016484> speed <81.000000>;
-		turn arm2b to z-axis <78.016484> speed <93.000000>;
-		turn arm1b to z-axis <40.005495> speed <73.000000>;
-		sleep 553;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <76.016484> speed <31.000000>;
-		turn arm2a to z-axis <86.016484> speed <22.000000>;
-		turn arm3a to z-axis <-83.016484> speed <19.000000>;
-		turn arm4a to z-axis <-75.016484> speed <39.000000>;
-		turn arm4b to z-axis <-56.010989> speed <36.000000>;
-		turn arm1b to z-axis <68.016484> speed <51.000000>;
-		sleep 553;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <86.016484> speed <18.000000>;
-		turn arm4a to z-axis <-86.016484> speed <21.000000>;
-		turn arm4b to z-axis <-78.016484> speed <40.000000>;
-		turn arm1b to z-axis <77.016484> speed <16.000000>;
-		sleep 543;
-	}
-	if( TRUE )
-	{
-		move gangplank to z-axis [2.250000] speed [4.000000];
-		move arm1a to z-axis [-4.879999] speed [9.000000];
-		move arm4a to z-axis [-4.900000] speed [9.000000];
-		sleep 533;
-	}
-	if( TRUE )
-	{
-		move gangplank to z-axis [9.889996] speed [13.000000];
-		sleep 583;
-	}
-	sleep 703;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+	turn clamp4b to z-axis <0.000000> now;
+	turn clamp4b to z-axis <28.005495> speed <94.000000>;
+	turn clamp3b to z-axis <0.000000> now;
+	turn clamp3b to z-axis <34.005495> speed <112.000000>;
+	turn clamp2b to z-axis <0.000000> now;
+	turn clamp2b to z-axis <-32.005495> speed <106.000000>;
+	turn clamp1b to z-axis <0.000000> now;
+	turn clamp1b to z-axis <-30.005495> speed <101.000000>;
+	sleep 306;
+
+	turn clamp4b to z-axis <49.010989> speed <56.000000>;
+	turn clamp3b to z-axis <49.010989> speed <42.000000>;
+	turn clamp2b to z-axis <-48.010989> speed <45.000000>;
+	turn clamp1b to z-axis <-49.010989> speed <52.000000>;
+	sleep 358;
+
+	turn clamp4b to z-axis <36.005495> speed <38.000000>;
+	turn clamp3b to z-axis <37.005495> speed <37.000000>;
+	turn clamp2b to z-axis <-39.005495> speed <28.000000>;
+	turn clamp1b to z-axis <-39.005495> speed <32.000000>;
+	sleep 328;
+
+	move clamp1 to x-axis [8.779999] speed [28.000000];
+	move clamp4 to x-axis [-8.339996] speed [27.000000];
+	turn clamp4b to z-axis <41.005495> speed <14.000000>;
+	turn clamp3b to z-axis <41.005495> speed <12.000000>;
+	turn clamp2b to z-axis <-41.005495> speed <5.000000>;
+	turn clamp1b to z-axis <-42.005495> speed <11.000000>;
+	sleep 308;
+
+	move clamp1 to x-axis [13.400000] speed [7.000000];
+	move clamp2 to x-axis [9.050000] speed [13.000000];
+	move clamp3 to x-axis [-8.650000] speed [13.000000];
+	move clamp4 to x-axis [-13.750000] speed [8.000000];
+	sleep 657;
+
+	move clamp1 to x-axis [14.989996] speed [2.000000];
+	move clamp2 to x-axis [13.300000] speed [5.000000];
+	move clamp3 to x-axis [-13.200000] speed [6.000000];
+	move clamp4 to x-axis [-15.139996] speed [1.000000];
+	turn crane to x-axis <-10.000000> speed <14.000000>;
+	turn clamp4b to z-axis <15.000000> speed <35.000000>;
+	turn clamp1b to z-axis <-14.000000> speed <39.000000>;
+	sleep 717;
+	set ARMORED to 0;
+
+	move clamp2 to x-axis [15.089996] speed [3.000000];
+	move clamp3 to x-axis [-14.939996] speed [3.000000];
+	move clamp4b to x-axis [-4.589996] speed [8.000000];
+	move clamplight4 to x-axis [2.450000] speed [4.000000];
+	move clamp1b to x-axis [4.589996] speed [8.000000];
+	move clamplight1 to x-axis [-2.250000] speed [4.000000];
+	turn crane to x-axis <-24.005495> speed <27.000000>;
+	turn clamp4b to z-axis <-36.005495> speed <95.000000>;
+	turn clamp3b to z-axis <13.000000> speed <51.000000>;
+	turn clamp2b to z-axis <-13.000000> speed <51.000000>;
+	turn clamp1b to z-axis <39.005495> speed <98.000000>;
+	sleep 543;
+
+	move clamp4b to y-axis [-5.250000] speed [10.000000];
+	move clamplight4 to x-axis [3.700000] speed [2.000000];
+	move clamp3b to x-axis [-4.589996] speed [8.000000];
+	move clamplight3 to x-axis [2.400000] speed [4.000000];
+	move clamp2b to x-axis [4.650000] speed [8.000000];
+	move clamplight2 to x-axis [-2.039996] speed [3.000000];
+	move clamp1b to y-axis [-5.200000] speed [9.000000];
+	move clamplight1 to x-axis [-3.500000] speed [2.000000];
+	turn crane to x-axis <-37.005495> speed <23.000000>;
+	turn clamp4b to z-axis <0.000000> speed <69.000000>;
+	turn clamp3b to z-axis <-36.005495> speed <95.000000>;
+	turn clamp2b to z-axis <39.005495> speed <101.000000>;
+	turn clamp1b to z-axis <0.000000> speed <75.000000>;
+	sleep 523;
+
+	move clamp3b to y-axis [-5.050000] speed [9.000000];
+	move clamplight3 to x-axis [3.650000] speed [2.000000];
+	move clamp2b to y-axis [-5.039996] speed [9.000000];
+	move clamplight2 to x-axis [-3.550000] speed [2.000000];
+	turn crane to x-axis <-48.010989> speed <21.000000>;
+	turn clamp3b to z-axis <0.000000> speed <70.000000>;
+	turn clamp2b to z-axis <0.000000> speed <75.000000>;
+	sleep 523;
+
+	turn crane to x-axis <-64.010989> speed <30.000000>;
+	sleep 523;
+
+	turn crane to x-axis <-82.016484> speed <35.000000>;
+	sleep 523;
+
+	turn crane to x-axis <-94.021978> speed <22.000000>;
+	sleep 523;
+
+	turn crane to x-axis <-92.021978> speed <4.000000>;
+	sleep 523;
+
+	turn crane to x-axis <-88.016484> speed <7.000000>;
+	sleep 523;
+
+	turn crane to x-axis <-90.021978> speed <2.000000>;
+	sleep 523;
+
+	turn arm1a to z-axis <8.000000> speed <15.000000>;
+	turn arm2a to z-axis <20.000000> speed <38.000000>;
+	turn arm3a to z-axis <-19.000000> speed <36.000000>;
+	turn arm4a to z-axis <-11.000000> speed <21.000000>;
+	sleep 523;
+
+	turn arm1a to z-axis <26.005495> speed <31.000000>;
+	turn arm2a to z-axis <41.005495> speed <38.000000>;
+	turn arm3a to z-axis <-42.005495> speed <40.000000>;
+	turn arm4a to z-axis <-25.005495> speed <24.000000>;
+	turn arm3b to z-axis <-29.005495> speed <52.000000>;
+	turn arm2b to z-axis <26.005495> speed <46.000000>;
+	sleep 573;
+
+	turn arm1a to z-axis <59.010989> speed <60.000000>;
+	turn arm2a to z-axis <73.016484> speed <57.000000>;
+	turn arm3a to z-axis <-73.016484> speed <55.000000>;
+	turn arm4a to z-axis <-53.010989> speed <50.000000>;
+	turn arm4b to z-axis <-36.005495> speed <65.000000>;
+	turn arm3b to z-axis <-74.016484> speed <81.000000>;
+	turn arm2b to z-axis <78.016484> speed <93.000000>;
+	turn arm1b to z-axis <40.005495> speed <73.000000>;
+	sleep 553;
+
+	turn arm1a to z-axis <76.016484> speed <31.000000>;
+	turn arm2a to z-axis <86.016484> speed <22.000000>;
+	turn arm3a to z-axis <-83.016484> speed <19.000000>;
+	turn arm4a to z-axis <-75.016484> speed <39.000000>;
+	turn arm4b to z-axis <-56.010989> speed <36.000000>;
+	turn arm1b to z-axis <68.016484> speed <51.000000>;
+	sleep 553;
+
+	turn arm1a to z-axis <86.016484> speed <18.000000>;
+	turn arm4a to z-axis <-86.016484> speed <21.000000>;
+	turn arm4b to z-axis <-78.016484> speed <40.000000>;
+	turn arm1b to z-axis <77.016484> speed <16.000000>;
+	sleep 543;
+
+	move gangplank to z-axis [2.250000] speed [4.000000];
+	move arm1a to z-axis [-4.879999] speed [9.000000];
+	move arm4a to z-axis [-4.900000] speed [9.000000];
+	sleep 533;
+
+	move gangplank to z-axis [9.889996] speed [13.000000];
+	sleep 583;
 }
 
 deactivatescr()
 {
-	if( TRUE )
-	{
-		move gangplank to z-axis [9.889996] now;
-		move gangplank to z-axis [2.250000] speed [38.000000];
-		move clamp1 to x-axis [14.989996] now;
-		move clamp2 to x-axis [15.089996] now;
-		move clamp3 to x-axis [-14.939996] now;
-		move clamp4 to x-axis [-15.139996] now;
-		move clamp4b to x-axis [-4.589996] now;
-		move clamp4b to y-axis [-5.250000] now;
-		move clamplight4 to x-axis [3.700000] now;
-		move clamp3b to x-axis [-4.589996] now;
-		move clamp3b to y-axis [-5.050000] now;
-		move clamplight3 to x-axis [3.650000] now;
-		move clamp2b to x-axis [4.650000] now;
-		move clamp2b to y-axis [-5.039996] now;
-		move clamplight2 to x-axis [-3.550000] now;
-		move clamp1b to x-axis [4.589996] now;
-		move clamp1b to y-axis [-5.200000] now;
-		move clamplight1 to x-axis [-3.500000] now;
-		move arm1a to z-axis [-4.879999] now;
-		move arm4a to z-axis [-4.900000] now;
-		turn crane to x-axis <-90.021978> now;
-		turn clamp4b to z-axis <0.000000> now;
-		turn clamp3b to z-axis <0.000000> now;
-		turn clamp2b to z-axis <0.000000> now;
-		turn clamp1b to z-axis <0.000000> now;
-		turn arm1a to z-axis <86.846154> now;
-		turn arm2a to z-axis <86.500000> now;
-		turn arm3a to z-axis <-83.686813> now;
-		turn arm4a to z-axis <-86.846154> now;
-		turn arm4b to z-axis <-78.054945> now;
-		turn arm3b to z-axis <-74.884615> now;
-		turn arm2b to z-axis <78.406593> now;
-		turn arm1b to z-axis <77.697802> now;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move gangplank to z-axis [0.000000] speed [11.000000];
-		move arm1a to z-axis [0.000000] speed [24.000000];
-		move arm4a to z-axis [0.000000] speed [24.000000];
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <76.016484> speed <49.000000>;
-		turn arm4a to z-axis <-75.016484> speed <58.000000>;
-		turn arm4b to z-axis <-56.010989> speed <109.000000>;
-		turn arm1b to z-axis <68.016484> speed <43.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <59.010989> speed <87.000000>;
-		turn arm2a to z-axis <73.016484> speed <63.000000>;
-		turn arm3a to z-axis <-73.016484> speed <52.000000>;
-		turn arm4a to z-axis <-53.010989> speed <109.000000>;
-		turn arm4b to z-axis <-36.005495> speed <100.000000>;
-		turn arm1b to z-axis <40.005495> speed <142.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <26.005495> speed <167.000000>;
-		turn arm2a to z-axis <41.005495> speed <160.000000>;
-		turn arm3a to z-axis <-42.005495> speed <152.000000>;
-		turn arm4a to z-axis <-25.005495> speed <140.000000>;
-		turn arm4b to z-axis <0.000000> speed <181.000000>;
-		turn arm3b to z-axis <-29.005495> speed <225.000000>;
-		turn arm2b to z-axis <26.005495> speed <258.000000>;
-		turn arm1b to z-axis <0.000000> speed <202.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <8.000000> speed <89.000000>;
-		turn arm2a to z-axis <20.000000> speed <109.000000>;
-		turn arm3a to z-axis <-19.000000> speed <116.000000>;
-		turn arm4a to z-axis <-11.000000> speed <70.000000>;
-		turn arm3b to z-axis <0.000000> speed <149.000000>;
-		turn arm2b to z-axis <0.000000> speed <133.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn arm1a to z-axis <0.000000> speed <40.000000>;
-		turn arm2a to z-axis <0.000000> speed <100.000000>;
-		turn arm3a to z-axis <0.000000> speed <96.000000>;
-		turn arm4a to z-axis <0.000000> speed <56.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-92.021978> speed <14.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-91.021978> speed <8.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-87.016484> speed <15.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-82.016484> speed <24.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-64.010989> speed <93.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn crane to x-axis <-48.010989> speed <79.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move clamp3b to y-axis [0.000000] speed [25.000000];
-		move clamplight3 to x-axis [2.400000] speed [6.000000];
-		move clamp2b to y-axis [0.000000] speed [25.000000];
-		move clamplight2 to x-axis [-2.039996] speed [7.000000];
-		turn crane to x-axis <-37.005495> speed <56.000000>;
-		turn clamp3b to z-axis <-36.005495> speed <184.000000>;
-		turn clamp2b to z-axis <39.005495> speed <198.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move clamp4b to y-axis [0.000000] speed [26.000000];
-		move clamplight4 to x-axis [2.450000] speed [6.000000];
-		move clamp3b to x-axis [0.000000] speed [23.000000];
-		move clamplight3 to x-axis [0.000000] speed [12.000000];
-		move clamp2b to x-axis [0.000000] speed [23.000000];
-		move clamplight2 to x-axis [0.000000] speed [10.000000];
-		move clamp1b to y-axis [0.000000] speed [26.000000];
-		move clamplight1 to x-axis [-2.250000] speed [6.000000];
-		turn crane to x-axis <-24.005495> speed <61.000000>;
-		turn clamp4b to z-axis <-36.005495> speed <181.000000>;
-		turn clamp3b to z-axis <13.000000> speed <249.000000>;
-		turn clamp2b to z-axis <-13.000000> speed <265.000000>;
-		turn clamp1b to z-axis <39.005495> speed <196.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move clamp2 to x-axis [13.300000] speed [8.000000];
-		move clamp3 to x-axis [-13.200000] speed [8.000000];
-		move clamp4b to x-axis [0.000000] speed [23.000000];
-		move clamplight4 to x-axis [0.000000] speed [12.000000];
-		move clamp1b to x-axis [0.000000] speed [22.000000];
-		move clamplight1 to x-axis [0.000000] speed [11.000000];
-		turn crane to x-axis <-10.000000> speed <73.000000>;
-		turn clamp4b to z-axis <15.000000> speed <260.000000>;
-		turn clamp3b to z-axis <41.005495> speed <140.000000>;
-		turn clamp2b to z-axis <-41.005495> speed <138.000000>;
-		turn clamp1b to z-axis <-14.000000> speed <267.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move clamp1 to x-axis [13.400000] speed [7.000000];
-		move clamp2 to x-axis [9.050000] speed [21.000000];
-		move clamp3 to x-axis [-8.650000] speed [22.000000];
-		move clamp4 to x-axis [-13.750000] speed [6.000000];
-		turn crane to x-axis <0.000000> speed <50.000000>;
-		turn clamp4b to z-axis <41.005495> speed <126.000000>;
-		turn clamp1b to z-axis <-42.005495> speed <142.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move clamp1 to x-axis [8.779999] speed [23.000000];
-		move clamp2 to x-axis [0.000000] speed [45.000000];
-		move clamp3 to x-axis [0.000000] speed [43.000000];
-		move clamp4 to x-axis [-8.339996] speed [27.000000];
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		move clamp1 to x-axis [0.000000] speed [43.000000];
-		move clamp4 to x-axis [0.000000] speed [41.000000];
-		turn clamp4b to z-axis <36.005495> speed <22.000000>;
-		turn clamp3b to z-axis <37.005495> speed <19.000000>;
-		turn clamp2b to z-axis <-39.005495> speed <8.000000>;
-		turn clamp1b to z-axis <-39.005495> speed <17.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn clamp4b to z-axis <28.005495> speed <38.000000>;
-		turn clamp3b to z-axis <34.005495> speed <14.000000>;
-		turn clamp2b to z-axis <-32.005495> speed <33.000000>;
-		turn clamp1b to z-axis <-30.005495> speed <40.000000>;
-		sleep 200;
-	}
-	if( TRUE )
-	{
-		turn clamp4b to z-axis <0.000000> speed <144.000000>;
-		turn clamp3b to z-axis <0.000000> speed <172.000000>;
-		turn clamp2b to z-axis <0.000000> speed <163.000000>;
-		turn clamp1b to z-axis <0.000000> speed <154.000000>;
-		sleep 200;
-	}
+
+	move gangplank to z-axis [9.889996] now;
+	move gangplank to z-axis [2.250000] speed [38.000000];
+	move clamp1 to x-axis [14.989996] now;
+	move clamp2 to x-axis [15.089996] now;
+	move clamp3 to x-axis [-14.939996] now;
+	move clamp4 to x-axis [-15.139996] now;
+	move clamp4b to x-axis [-4.589996] now;
+	move clamp4b to y-axis [-5.250000] now;
+	move clamplight4 to x-axis [3.700000] now;
+	move clamp3b to x-axis [-4.589996] now;
+	move clamp3b to y-axis [-5.050000] now;
+	move clamplight3 to x-axis [3.650000] now;
+	move clamp2b to x-axis [4.650000] now;
+	move clamp2b to y-axis [-5.039996] now;
+	move clamplight2 to x-axis [-3.550000] now;
+	move clamp1b to x-axis [4.589996] now;
+	move clamp1b to y-axis [-5.200000] now;
+	move clamplight1 to x-axis [-3.500000] now;
+	move arm1a to z-axis [-4.879999] now;
+	move arm4a to z-axis [-4.900000] now;
+	turn crane to x-axis <-90.021978> now;
+	turn clamp4b to z-axis <0.000000> now;
+	turn clamp3b to z-axis <0.000000> now;
+	turn clamp2b to z-axis <0.000000> now;
+	turn clamp1b to z-axis <0.000000> now;
+	turn arm1a to z-axis <86.846154> now;
+	turn arm2a to z-axis <86.500000> now;
+	turn arm3a to z-axis <-83.686813> now;
+	turn arm4a to z-axis <-86.846154> now;
+	turn arm4b to z-axis <-78.054945> now;
+	turn arm3b to z-axis <-74.884615> now;
+	turn arm2b to z-axis <78.406593> now;
+	turn arm1b to z-axis <77.697802> now;
+	sleep 200;
+
+	move gangplank to z-axis [0.000000] speed [11.000000];
+	move arm1a to z-axis [0.000000] speed [24.000000];
+	move arm4a to z-axis [0.000000] speed [24.000000];
+	sleep 200;
+
+	turn arm1a to z-axis <76.016484> speed <49.000000>;
+	turn arm4a to z-axis <-75.016484> speed <58.000000>;
+	turn arm4b to z-axis <-56.010989> speed <109.000000>;
+	turn arm1b to z-axis <68.016484> speed <43.000000>;
+	sleep 200;
+
+	turn arm1a to z-axis <59.010989> speed <87.000000>;
+	turn arm2a to z-axis <73.016484> speed <63.000000>;
+	turn arm3a to z-axis <-73.016484> speed <52.000000>;
+	turn arm4a to z-axis <-53.010989> speed <109.000000>;
+	turn arm4b to z-axis <-36.005495> speed <100.000000>;
+	turn arm1b to z-axis <40.005495> speed <142.000000>;
+	sleep 200;
+
+	turn arm1a to z-axis <26.005495> speed <167.000000>;
+	turn arm2a to z-axis <41.005495> speed <160.000000>;
+	turn arm3a to z-axis <-42.005495> speed <152.000000>;
+	turn arm4a to z-axis <-25.005495> speed <140.000000>;
+	turn arm4b to z-axis <0.000000> speed <181.000000>;
+	turn arm3b to z-axis <-29.005495> speed <225.000000>;
+	turn arm2b to z-axis <26.005495> speed <258.000000>;
+	turn arm1b to z-axis <0.000000> speed <202.000000>;
+	sleep 200;
+
+	turn arm1a to z-axis <8.000000> speed <89.000000>;
+	turn arm2a to z-axis <20.000000> speed <109.000000>;
+	turn arm3a to z-axis <-19.000000> speed <116.000000>;
+	turn arm4a to z-axis <-11.000000> speed <70.000000>;
+	turn arm3b to z-axis <0.000000> speed <149.000000>;
+	turn arm2b to z-axis <0.000000> speed <133.000000>;
+	sleep 200;
+
+	turn arm1a to z-axis <0.000000> speed <40.000000>;
+	turn arm2a to z-axis <0.000000> speed <100.000000>;
+	turn arm3a to z-axis <0.000000> speed <96.000000>;
+	turn arm4a to z-axis <0.000000> speed <56.000000>;
+	sleep 200;
+
+	turn crane to x-axis <-92.021978> speed <14.000000>;
+	sleep 200;
+
+	turn crane to x-axis <-91.021978> speed <8.000000>;
+	sleep 200;
+
+	turn crane to x-axis <-87.016484> speed <15.000000>;
+	sleep 200;
+
+	turn crane to x-axis <-82.016484> speed <24.000000>;
+	sleep 200;
+
+	turn crane to x-axis <-64.010989> speed <93.000000>;
+	sleep 200;
+
+	turn crane to x-axis <-48.010989> speed <79.000000>;
+	sleep 200;
+
+	move clamp3b to y-axis [0.000000] speed [25.000000];
+	move clamplight3 to x-axis [2.400000] speed [6.000000];
+	move clamp2b to y-axis [0.000000] speed [25.000000];
+	move clamplight2 to x-axis [-2.039996] speed [7.000000];
+	turn crane to x-axis <-37.005495> speed <56.000000>;
+	turn clamp3b to z-axis <-36.005495> speed <184.000000>;
+	turn clamp2b to z-axis <39.005495> speed <198.000000>;
+	sleep 200;
+
+	move clamp4b to y-axis [0.000000] speed [26.000000];
+	move clamplight4 to x-axis [2.450000] speed [6.000000];
+	move clamp3b to x-axis [0.000000] speed [23.000000];
+	move clamplight3 to x-axis [0.000000] speed [12.000000];
+	move clamp2b to x-axis [0.000000] speed [23.000000];
+	move clamplight2 to x-axis [0.000000] speed [10.000000];
+	move clamp1b to y-axis [0.000000] speed [26.000000];
+	move clamplight1 to x-axis [-2.250000] speed [6.000000];
+	turn crane to x-axis <-24.005495> speed <61.000000>;
+	turn clamp4b to z-axis <-36.005495> speed <181.000000>;
+	turn clamp3b to z-axis <13.000000> speed <249.000000>;
+	turn clamp2b to z-axis <-13.000000> speed <265.000000>;
+	turn clamp1b to z-axis <39.005495> speed <196.000000>;
+	sleep 200;
+
+	move clamp2 to x-axis [13.300000] speed [8.000000];
+	move clamp3 to x-axis [-13.200000] speed [8.000000];
+	move clamp4b to x-axis [0.000000] speed [23.000000];
+	move clamplight4 to x-axis [0.000000] speed [12.000000];
+	move clamp1b to x-axis [0.000000] speed [22.000000];
+	move clamplight1 to x-axis [0.000000] speed [11.000000];
+	turn crane to x-axis <-10.000000> speed <73.000000>;
+	turn clamp4b to z-axis <15.000000> speed <260.000000>;
+	turn clamp3b to z-axis <41.005495> speed <140.000000>;
+	turn clamp2b to z-axis <-41.005495> speed <138.000000>;
+	turn clamp1b to z-axis <-14.000000> speed <267.000000>;
+	sleep 200;
+	set ARMORED to 1;
+
+	move clamp1 to x-axis [13.400000] speed [7.000000];
+	move clamp2 to x-axis [9.050000] speed [21.000000];
+	move clamp3 to x-axis [-8.650000] speed [22.000000];
+	move clamp4 to x-axis [-13.750000] speed [6.000000];
+	turn crane to x-axis <0.000000> speed <50.000000>;
+	turn clamp4b to z-axis <41.005495> speed <126.000000>;
+	turn clamp1b to z-axis <-42.005495> speed <142.000000>;
+	sleep 200;
+
+	move clamp1 to x-axis [8.779999] speed [23.000000];
+	move clamp2 to x-axis [0.000000] speed [45.000000];
+	move clamp3 to x-axis [0.000000] speed [43.000000];
+	move clamp4 to x-axis [-8.339996] speed [27.000000];
+	sleep 200;
+
+	move clamp1 to x-axis [0.000000] speed [43.000000];
+	move clamp4 to x-axis [0.000000] speed [41.000000];
+	turn clamp4b to z-axis <36.005495> speed <22.000000>;
+	turn clamp3b to z-axis <37.005495> speed <19.000000>;
+	turn clamp2b to z-axis <-39.005495> speed <8.000000>;
+	turn clamp1b to z-axis <-39.005495> speed <17.000000>;
+	sleep 200;
+
+	turn clamp4b to z-axis <28.005495> speed <38.000000>;
+	turn clamp3b to z-axis <34.005495> speed <14.000000>;
+	turn clamp2b to z-axis <-32.005495> speed <33.000000>;
+	turn clamp1b to z-axis <-30.005495> speed <40.000000>;
+	sleep 200;
+
+	turn clamp4b to z-axis <0.000000> speed <144.000000>;
+	turn clamp3b to z-axis <0.000000> speed <172.000000>;
+	turn clamp2b to z-axis <0.000000> speed <163.000000>;
+	turn clamp1b to z-axis <0.000000> speed <154.000000>;
 	sleep 200;
 }
 
@@ -469,17 +376,18 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
+	start-script Standby();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from base;
 		}
@@ -576,12 +484,6 @@ Stop()
 	cache lathe4;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -594,15 +496,15 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
+		if( statechg_DesiredState )
 		{
 			call-script Stop();
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -646,35 +548,18 @@ Create()
 	dont-shade lathe3;
 	dont-shade lathe4;
 	dont-shade base;
-	Static_Var_1 = 1;
-	call-script InitState();
+	Static_Var_1 = 0;
+	set ARMORED to 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
-	start-script Standby();
 }
 
 QueryNanoPiece(piecenum)
 {
-	if( Static_Var_1 == 1 )
-	{
-		piecenum = nano1;
-	}
-	if( Static_Var_1 == 2 )
-	{
-		piecenum = nano2;
-	}
-	if( Static_Var_1 == 3 )
-	{
-		piecenum = nano3;
-	}
-	if( Static_Var_1 == 4 )
-	{
-		piecenum = nano4;
-	}
+	piecenum = nano1 + Static_Var_1;
 	++Static_Var_1;
-	if( Static_Var_1 == 5 )
-	{
-		Static_Var_1 = 1;
-	}
+	if( Static_Var_1 >= 4 ) Static_Var_1 = 0;
 }
 
 Activate()
