@@ -7,7 +7,8 @@ piece  torso, rfirept, lfirept, pelvis, lleg, rleg, rthigh, lthigh,
        luparm, lloarm, rloarm, ruparm, rgun, lgun, ground, lexhaust, rexhaust;
 
 static-var  bMoving, Static_Var_2, Static_Var_3, gun_3, restore_delay,
-            statechg_DesiredState, statechg_StateChanging;
+            statechg_DesiredState, statechg_StateChanging,
+            moveSpeed, currentSpeed;
 
 // Signal definitions
 #define SIG_AIM_3			2
@@ -28,22 +29,22 @@ walk()
 			turn lthigh to x-axis <-35.153846> now;
 			turn lleg to x-axis <34.796703> now;
 			turn rleg to x-axis <26.362637> now;
-			sleep 20;
+			sleep 2000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move torso to y-axis [-0.150000] now;
-			sleep 20;
+			sleep 2000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move torso to y-axis [-0.300000] now;
-			sleep 50;
+			sleep 5000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move torso to y-axis [-0.150000] now;
-			sleep 20;
+			sleep 2000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -54,7 +55,7 @@ walk()
 			turn lthigh to x-axis <-30.582418> now;
 			turn lleg to x-axis <29.873626> now;
 			turn rleg to x-axis <26.714286> now;
-			sleep 70;
+			sleep 7000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -64,7 +65,7 @@ walk()
 			turn lthigh to x-axis <-23.901099> now;
 			turn lleg to x-axis <24.604396> now;
 			turn rleg to x-axis <26.714286> now;
-			sleep 60;
+			sleep 6000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -73,7 +74,7 @@ walk()
 			turn lthigh to x-axis <-7.368132> now;
 			turn lleg to x-axis <7.379121> now;
 			turn rleg to x-axis <26.362637> now;
-			sleep 50;
+			sleep 5000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -83,28 +84,28 @@ walk()
 			turn lthigh to x-axis <4.565934> now;
 			turn lleg to x-axis <16.873626> now;
 			turn rleg to x-axis <26.362637> now;
-			sleep 40;
+			sleep 4000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move pelvis to y-axis [-0.100000] now;
 			turn rthigh to x-axis <-28.824176> now;
 			turn lthigh to x-axis <15.818681> now;
-			sleep 50;
+			sleep 5000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move pelvis to y-axis [-0.200000] now;
 			turn rthigh to x-axis <-43.598901> now;
 			turn lthigh to x-axis <18.631868> now;
-			sleep 60;
+			sleep 6000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move pelvis to y-axis [-0.300000] now;
 			turn rthigh to x-axis <-54.148352> now;
 			turn lthigh to x-axis <25.664835> now;
-			sleep 70;
+			sleep 7000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -114,22 +115,22 @@ walk()
 			turn lthigh to x-axis <28.126374> now;
 			turn lleg to x-axis <16.170330> now;
 			turn rleg to x-axis <35.857143> now;
-			sleep 20;
+			sleep 2000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move torso to y-axis [-0.150000] now;
-			sleep 20;
+			sleep 2000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move torso to y-axis [-0.300000] now;
-			sleep 50;
+			sleep 5000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move torso to y-axis [-0.150000] now;
-			sleep 20;
+			sleep 2000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -140,7 +141,7 @@ walk()
 			turn lthigh to x-axis <21.445055> now;
 			turn lleg to x-axis <21.791209> now;
 			turn rleg to x-axis <28.126374> now;
-			sleep 70;
+			sleep 7000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -149,7 +150,7 @@ walk()
 			turn lthigh to x-axis <8.428571> now;
 			turn lleg to x-axis <24.252747> now;
 			turn rleg to x-axis <22.142857> now;
-			sleep 60;
+			sleep 6000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -157,7 +158,7 @@ walk()
 			turn rthigh to x-axis <-16.170330> now;
 			turn lthigh to x-axis <-6.670330> now;
 			turn rleg to x-axis <16.873626> now;
-			sleep 50;
+			sleep 5000 / currentSpeed;
 		}
 		if( bMoving )
 		{
@@ -167,55 +168,26 @@ walk()
 			turn lthigh to x-axis <-15.461538> now;
 			turn lleg to x-axis <20.390110> now;
 			turn rleg to x-axis <25.313187> now;
-			sleep 40;
+			sleep 4000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move pelvis to y-axis [-0.100000] now;
 			turn rthigh to x-axis <2.807692> now;
 			turn lthigh to x-axis <-26.010989> now;
-			sleep 50;
+			sleep 5000 / currentSpeed;
 		}
 		if( bMoving )
 		{
 			move pelvis to y-axis [-0.200000] now;
 			turn rthigh to x-axis <10.192308> now;
 			turn lthigh to x-axis <-35.153846> now;
-			sleep 60;
+			sleep 6000 / currentSpeed;
 		}
 		move pelvis to y-axis [-0.300000] now;
 		turn rthigh to x-axis <21.445055> now;
 		turn lthigh to x-axis <-55.549451> now;
-		sleep 70;
-	}
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
+		sleep 7000 / currentSpeed;
 	}
 }
 
@@ -232,10 +204,9 @@ Go()
 		turn rloarm to z-axis <-90.021978> speed <260.000000>;
 		turn ruparm to z-axis <0.000000> now;
 		turn ruparm to z-axis <75.016484> speed <218.000000>;
-		sleep 346;
+		sleep 450;
 		Static_Var_3 = 1;
 	}
-	sleep 354;
 }
 
 Stop()
@@ -253,14 +224,7 @@ Stop()
 		turn ruparm to z-axis <0.000000> speed <68.000000>;
 		sleep 1097;
 	}
-	sleep 1109;
 	Static_Var_2 = 0;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 }
 
 RequestState(requestedstate, currentstate)
@@ -275,15 +239,15 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
 		if( statechg_DesiredState == 1 )
 		{
 			call-script Stop();
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -301,7 +265,7 @@ MotionControl(moving, aiming, justmoved)
 			call-script walk();
 			justmoved = TRUE;
 		}
-		if( !moving )
+		else
 		{
 			if( justmoved )
 			{
@@ -321,6 +285,45 @@ MotionControl(moving, aiming, justmoved)
 	}
 }
 
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<20) currentSpeed=20;
+		sleep 142;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script UnitSpeed();
+	start-script MotionControl();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
 Create()
 {
 	hide rfirept;
@@ -330,8 +333,10 @@ Create()
 	Static_Var_3 = 0;
 	gun_3 = torso;
 	restore_delay = 3000;
-	start-script InitState();
-	start-script MotionControl();
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	moveSpeed = get MAX_SPEED;
+	currentSpeed = 100;
 	start-script SmokeUnit();
 }
 
@@ -379,23 +384,21 @@ AimTertiary(heading, pitch)
 
 FireTertiary()
 {
-	if( gun_3 == 0 )
+	if( gun_3 )
 	{
-		gun_3 = rfirept;
-		move rgun to z-axis [-1.500000] speed [25.000000];
-		wait-for-move rgun along z-axis;
-		emit-sfx 1024 + 0 from lexhaust;
-		move rgun to z-axis [0.000000] speed [3.000000];
-		return (0);
-	}
-	if( gun_3 == 1 )
-	{
-		gun_3 = torso;
 		move lgun to z-axis [-1.500000] speed [25.000000];
 		wait-for-move lgun along z-axis;
-		emit-sfx 1024 + 0 from rexhaust;
+		emit-sfx 1024 from rexhaust;
 		move lgun to z-axis [0.000000] speed [3.000000];
 	}
+	else
+	{
+		move rgun to z-axis [-1.500000] speed [25.000000];
+		wait-for-move rgun along z-axis;
+		emit-sfx 1024 from lexhaust;
+		move rgun to z-axis [0.000000] speed [3.000000];
+	}
+	gun_3 = !gun_3;
 }
 
 AimFromTertiary(piecenum)
@@ -405,14 +408,7 @@ AimFromTertiary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	if( gun_3 == 0 )
-	{
-		piecenum = rfirept;
-	}
-	if( gun_3 == 1 )
-	{
-		piecenum = lfirept;
-	}
+	piecenum = rfirept + gun_3;
 }
 
 Killed(severity, corpsetype)

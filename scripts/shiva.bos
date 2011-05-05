@@ -98,33 +98,6 @@ walklegs()
 	move pivot to y-axis [0.000000] speed [4.000000];
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from aimpt;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 MotionControl(moving, aiming, justmoved)
 {
 	justmoved = TRUE;
@@ -163,6 +136,34 @@ MotionControl(moving, aiming, justmoved)
 	}
 }
 
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script MotionControl();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from aimpt;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
 Create()
 {
 	bMoving = FALSE;
@@ -187,7 +188,6 @@ Create()
 	dont-shade rarm;
 	restore_delay = 2000;
 	set ARMORED to 1;
-	start-script MotionControl();
 	start-script SmokeUnit();
 }
 

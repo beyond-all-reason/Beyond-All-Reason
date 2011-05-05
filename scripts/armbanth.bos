@@ -18,7 +18,7 @@ static-var  gun_1, gun_3, bMoving, bAiming, Static_Var_5,
 
 walk()
 {
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [2.050000] now;
 		move hips to y-axis [1.800000] speed [1.179242];
@@ -62,7 +62,7 @@ walk()
 		turn larm to x-axis <-22.351648> speed <40.747253>;
 		sleep 212;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.900000] speed [0.438593];
 		move rleg to y-axis [-1.500000] speed [0.438593];
@@ -84,7 +84,7 @@ walk()
 		turn larm to x-axis <-41.087912> speed <82.170330>;
 		sleep 228;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.200000] speed [3.255811];
 		move rleg to y-axis [-0.700000] speed [3.720929];
@@ -105,7 +105,7 @@ walk()
 		turn larm to x-axis <-39.417582> speed <7.747253>;
 		sleep 215;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [0.750000] speed [2.393616];
 		move rleg to y-axis [-0.100000] speed [3.191486];
@@ -125,7 +125,7 @@ walk()
 		turn larm to x-axis <-42.813187> speed <18.049451>;
 		sleep 188;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-0.425000] speed [6.317200];
 		move lleg to y-axis [0.625000] speed [3.360211];
@@ -146,7 +146,7 @@ walk()
 		turn larm to x-axis <-15.456044> speed <147.087912>;
 		sleep 186;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-1.900000] speed [13.532104];
 		move lleg to y-axis [1.250000] speed [5.733942];
@@ -168,7 +168,7 @@ walk()
 		turn larm to x-axis <7.846154> speed <213.835165>;
 		sleep 109;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [0.000000] speed [27.142853];
 		move lleg to y-axis [-0.400000] speed [23.571423];
@@ -189,7 +189,7 @@ walk()
 		turn larm to x-axis <0.758242> speed <101.285714>;
 		sleep 70;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [2.100000] speed [14.583331];
 		move lleg to y-axis [-2.050000] speed [11.458331];
@@ -210,7 +210,7 @@ walk()
 		turn larm to x-axis <-14.879121> speed <108.626374>;
 		sleep 144;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.800000] speed [1.648346];
 		move lleg to y-axis [-1.425000] speed [3.434058];
@@ -229,7 +229,7 @@ walk()
 		turn larm to x-axis <-22.500000> speed <41.879121>;
 		sleep 182;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.250000] speed [2.820508];
 		move lleg to y-axis [-0.800000] speed [3.205127];
@@ -248,7 +248,7 @@ walk()
 		turn larm to x-axis <-17.972527> speed <23.230769>;
 		sleep 195;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.025000] speed [1.086957];
 		move lleg to y-axis [-0.400000] speed [1.932367];
@@ -271,7 +271,7 @@ walk()
 		turn larm to x-axis <-25.615385> speed <36.934066>;
 		sleep 207;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [0.800000] speed [1.190472];
 		move lleg to y-axis [0.000000] speed [2.116400];
@@ -293,7 +293,7 @@ walk()
 		turn larm to x-axis <-24.263736> speed <7.175824>;
 		sleep 189;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-0.900000] speed [13.178296];
 		move rleg to y-axis [0.599994] speed [4.651154];
@@ -313,7 +313,7 @@ walk()
 		turn larm to x-axis <-3.906593> speed <157.774725>;
 		sleep 129;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-1.750000] speed [8.585852];
 		move rleg to y-axis [1.199994] speed [6.060596];
@@ -334,7 +334,7 @@ walk()
 		turn larm to x-axis <-2.461538> speed <14.631868>;
 		sleep 99;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-0.100000] speed [23.913037];
 		move rleg to y-axis [-0.400000] speed [23.188379];
@@ -354,14 +354,13 @@ walk()
 		turn ruparm to x-axis <0.527473> speed <180.917582>;
 		turn rarm to x-axis <-7.032967> speed <91.730769>;
 		turn larm to x-axis <-6.510989> speed <58.708791>;
-		sleep 69;
+		sleep 149;
 	}
-	sleep 149;
 }
 
 walklegs()
 {
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [2.050000] now;
 		move hips to y-axis [1.800000] speed [1.179242];
@@ -391,7 +390,7 @@ walklegs()
 		turn rheel to x-axis <-4.923077> speed <1.653846>;
 		sleep 212;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.900000] speed [0.438593];
 		move rleg to y-axis [-1.500000] speed [0.438593];
@@ -406,7 +405,7 @@ walklegs()
 		turn rheel to x-axis <-9.142857> speed <18.505495>;
 		sleep 228;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.200000] speed [3.255811];
 		move rleg to y-axis [-0.700000] speed [3.720929];
@@ -421,7 +420,7 @@ walklegs()
 		turn rheel to x-axis <-12.307692> speed <14.719780>;
 		sleep 215;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [0.750000] speed [2.393616];
 		move rleg to y-axis [-0.100000] speed [3.191486];
@@ -436,7 +435,7 @@ walklegs()
 		turn rheel to x-axis <-21.450549> speed <48.631868>;
 		sleep 188;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-0.425000] speed [6.317200];
 		move lleg to y-axis [0.625000] speed [3.360211];
@@ -452,7 +451,7 @@ walklegs()
 		turn rheel to x-axis <-32.521978> speed <59.549451>;
 		sleep 186;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-1.900000] speed [13.532104];
 		move lleg to y-axis [1.250000] speed [5.733942];
@@ -468,7 +467,7 @@ walklegs()
 		turn rheel to x-axis <-40.791209> speed <75.813187>;
 		sleep 109;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [0.000000] speed [27.142853];
 		move lleg to y-axis [-0.400000] speed [23.571423];
@@ -482,7 +481,7 @@ walklegs()
 		turn rtoes to x-axis <17.241758> speed <25.318681>;
 		sleep 70;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [2.100000] speed [14.583331];
 		move lleg to y-axis [-2.050000] speed [11.458331];
@@ -496,7 +495,7 @@ walklegs()
 		turn rtoes to x-axis <19.016484> speed <12.307692>;
 		sleep 144;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.800000] speed [1.648346];
 		move lleg to y-axis [-1.425000] speed [3.434058];
@@ -509,7 +508,7 @@ walklegs()
 		turn rleg to x-axis <64.703297> speed <15.456044>;
 		sleep 182;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.250000] speed [2.820508];
 		move lleg to y-axis [-0.800000] speed [3.205127];
@@ -522,7 +521,7 @@ walklegs()
 		turn rleg to x-axis <60.483516> speed <21.637363>;
 		sleep 195;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [1.025000] speed [1.086957];
 		move lleg to y-axis [-0.400000] speed [1.932367];
@@ -539,7 +538,7 @@ walklegs()
 		turn rheel to x-axis <-11.956044> speed <139.296703>;
 		sleep 207;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [0.800000] speed [1.190472];
 		move lleg to y-axis [0.000000] speed [2.116400];
@@ -556,7 +555,7 @@ walklegs()
 		turn rheel to x-axis <16.879121> speed <152.565934>;
 		sleep 189;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-0.900000] speed [13.178296];
 		move rleg to y-axis [0.599994] speed [4.651154];
@@ -571,7 +570,7 @@ walklegs()
 		turn rheel to x-axis <11.076923> speed <44.978022>;
 		sleep 129;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-1.750000] speed [8.585852];
 		move rleg to y-axis [1.199994] speed [6.060596];
@@ -586,7 +585,7 @@ walklegs()
 		turn rheel to x-axis <5.269231> speed <58.604396>;
 		sleep 99;
 	}
-	if( TRUE )
+	if( bMoving )
 	{
 		move hips to y-axis [-0.100000] speed [23.913037];
 		move rleg to y-axis [-0.400000] speed [23.188379];
@@ -599,35 +598,7 @@ walklegs()
 		turn rleg to x-axis <21.098901> speed <61.153846>;
 		turn rtoes to x-axis <-4.747253> speed <119.763736>;
 		turn rheel to x-axis <0.000000> speed <76.445055>;
-		sleep 69;
-	}
-	sleep 149;
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
+		sleep 149;
 	}
 }
 
@@ -645,14 +616,14 @@ MotionControl(moving, aiming, justmoved)
 				Static_Var_5 = 1;
 				call-script walklegs();
 			}
-			if( !aiming )
+			else
 			{
 				Static_Var_5 = 0;
 				call-script walk();
 			}
 			justmoved = TRUE;
 		}
-		if( !moving )
+		else
 		{
 			Static_Var_5 = 1;
 			if( justmoved )
@@ -682,6 +653,34 @@ MotionControl(moving, aiming, justmoved)
 	}
 }
 
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script MotionControl();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
 Create()
 {
 	hide eyeflare;
@@ -692,10 +691,9 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_5 = 1;
-	gun_1 = torso;
-	gun_3 = torso;
+	gun_1 = 0;
+	gun_3 = 0;
 	restore_delay = 2000;
-	start-script MotionControl();
 	start-script SmokeUnit();
 }
 
@@ -795,20 +793,7 @@ AimTertiary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 1 )
-	{
-		turn ruparm to x-axis <85.016484> speed <200.043956>;
-		turn rarm to x-axis <-100.021978> speed <200.043956>;
-		//show rgunflare;
-		emit-sfx 1024 from rgunflare;
-		sleep 90;
-		//hide rgunflare;
-		turn rarm to x-axis <-86.016484> speed <100.021978>;
-		turn ruparm to x-axis <0.000000> speed <100.021978>;
-		gun_1 = hips;
-		return (0);
-	}
-	if( gun_1 == 2 )
+	if( gun_1 )
 	{
 		turn luparm to x-axis <85.016484> speed <200.043956>;
 		turn larm to x-axis <-100.021978> speed <200.043956>;
@@ -818,9 +803,19 @@ FirePrimary()
 		//hide lgunflare;
 		turn larm to x-axis <-86.016484> speed <100.021978>;
 		turn luparm to x-axis <0.000000> speed <100.021978>;
-		gun_1 = torso;
-		return (0);
 	}
+	else
+	{
+		turn ruparm to x-axis <85.016484> speed <200.043956>;
+		turn rarm to x-axis <-100.021978> speed <200.043956>;
+		//show rgunflare;
+		emit-sfx 1024 from rgunflare;
+		sleep 90;
+		//hide rgunflare;
+		turn rarm to x-axis <-86.016484> speed <100.021978>;
+		turn ruparm to x-axis <0.000000> speed <100.021978>;
+	}
+	gun_1 = !gun_1;
 }
 
 FireSecondary()
@@ -832,16 +827,7 @@ FireSecondary()
 
 FireTertiary()
 {
-	if( gun_3 == 1 )
-	{
-		gun_3 = hips;
-		return (0);
-	}
-	if( gun_3 == 2 )
-	{
-		gun_3 = torso;
-		return (0);
-	}
+	gun_3 = !gun_3;
 }
 
 AimFromPrimary(piecenum)
@@ -861,14 +847,7 @@ AimFromTertiary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = rgunflare;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = lgunflare;
-	}
+	piecenum = rgunflare + gun_1;
 }
 
 QuerySecondary(piecenum)
@@ -878,14 +857,7 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	if( gun_3 == 1 )
-	{
-		piecenum = rmispoint;
-	}
-	if( gun_3 == 2 )
-	{
-		piecenum = lmispoint;
-	}
+	piecenum = rmispoint + gun_3;
 }
 
 SweetSpot(piecenum)
