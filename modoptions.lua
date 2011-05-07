@@ -30,13 +30,13 @@ local options={
 			{key="comcontrol", name="No Commander, No Control", desc="A player without a Commander cannot issue orders"},
 		}
 	},
-	{
-		key    = "mo_coop",
-		name   = "Cooperative Mode",
-		desc   = "Adds an extra commander for comsharing teams",
-		type   = "bool",
-		def    = false,
-		section= "ba_modes",
+    {
+        key    = 'mo_allowfactionchange',
+        name   = 'Allow Faction Change',
+        desc   = 'Allows faction to be changed ingame',
+        type   = 'bool',
+        def    = true,
+        section= 'ba_modes',
     },
 	{
 		key    = "mo_greenfields",
