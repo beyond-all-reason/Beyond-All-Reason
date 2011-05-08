@@ -31,12 +31,16 @@ local options={
 		}
 	},
     {
-        key    = 'mo_allowfactionchange',
-        name   = 'Allow Faction Change',
-        desc   = 'Allows faction to be changed ingame',
-        type   = 'bool',
+        key    = 'mo_armageddontime',
+        name   = 'Armageddon time (minutes)',
+        desc   = 'At armageddon every unit is destroyed and the game is over',
+        type   = 'number',
         def    = true,
         section= 'ba_modes',
+        def    = 0,
+        min    = 0,
+        max    = 120,
+        step   = 1,
     },
 	{
 		key    = "mo_greenfields",
@@ -61,6 +65,14 @@ local options={
 		type   = "bool",
 		def    = false,
 		section= "ba_modes",
+    },
+    {
+        key    = 'mo_allowfactionchange',
+        name   = 'Allow Faction Change',
+        desc   = 'Allows faction to be changed ingame',
+        type   = 'bool',
+        def    = true,
+        section= 'ba_options',
     },
     {
 		key    = "mo_preventdraw",
