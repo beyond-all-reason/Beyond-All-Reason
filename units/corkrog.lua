@@ -102,8 +102,6 @@ return {
 		weapondefs = {
 			corkrog_fire = {
 				areaofeffect = 112,
-				burst = 5,
-				burstrate = 0.03999999910593,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -114,6 +112,7 @@ return {
 				name = "GaussCannon",
 				noselfdamage = true,
 				predictboost = 1,
+                projectiles = 10,
 				range = 590,
 				reloadtime = 1.3999999761581,
 				rgbcolor = "1 0.75 0.25",
@@ -127,7 +126,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 900,
 				damage = {
-					default = 325,
+					default = 165,
 					l1subs = 5,
 				},
 			},
@@ -152,7 +151,7 @@ return {
 				rgbcolor2 = "0.8 0 0",
 				soundstart = "heatray1",
 				targetmoveerror = 0.10000000149012,
-				thickness = 3,
+				thickness = 5,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
