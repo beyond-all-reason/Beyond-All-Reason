@@ -41,7 +41,7 @@ walk()
 		turn larm to x-axis <-14.060440> now;
 		turn ruparm to z-axis <15.115385> now;
 		turn rarm to x-axis <-26.016484> now;
-		sleep 9500 / currentSpeed;
+		sleep 8600 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -62,7 +62,7 @@ walk()
 		turn larm to x-axis <-20.560440> now;
 		turn ruparm to z-axis <13.527473> now;
 		turn rarm to x-axis <-38.681319> now;
-		sleep 8700 / currentSpeed;
+		sleep 7900 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -83,7 +83,7 @@ walk()
 		turn larm to x-axis <-27.071429> now;
 		turn ruparm to z-axis <11.956044> now;
 		turn rarm to x-axis <-51.335165> now;
-		sleep 7100 / currentSpeed;
+		sleep 6400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -103,7 +103,7 @@ walk()
 		turn larm to x-axis <-16.879121> now;
 		turn ruparm to z-axis <10.549451> now;
 		turn rarm to x-axis <-60.302198> now;
-		sleep 6800 / currentSpeed;
+		sleep 6100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -123,7 +123,7 @@ walk()
 		turn larm to x-axis <-6.670330> now;
 		turn ruparm to z-axis <9.137363> now;
 		turn rarm to x-axis <-69.269231> now;
-		sleep 6800 / currentSpeed;
+		sleep 6100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -140,7 +140,7 @@ walk()
 		turn luparm to z-axis <-4.923077> now;
 		turn larm to x-axis <-14.769231> now;
 		turn ruparm to z-axis <12.478022> now;
-		sleep 6800 / currentSpeed;
+		sleep 6100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -157,7 +157,7 @@ walk()
 		turn luparm to z-axis <-9.846154> now;
 		turn larm to x-axis <-22.846154> now;
 		turn ruparm to z-axis <15.824176> now;
-		sleep 6000 / currentSpeed;
+		sleep 5400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -178,7 +178,7 @@ walk()
 		turn larm to x-axis <-23.736264> now;
 		turn ruparm to z-axis <15.637363> now;
 		turn rarm to x-axis <-55.560440> now;
-		sleep 5800 / currentSpeed;
+		sleep 5200 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -199,7 +199,7 @@ walk()
 		turn larm to x-axis <-24.615385> now;
 		turn ruparm to z-axis <15.467033> now;
 		turn rarm to x-axis <-41.835165> now;
-		sleep 9000 / currentSpeed;
+		sleep 8100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -220,7 +220,7 @@ walk()
 		turn larm to x-axis <-25.489011> now;
 		turn ruparm to z-axis <15.291209> now;
 		turn rarm to x-axis <-28.126374> now;
-		sleep 9000 / currentSpeed;
+		sleep 8100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -241,7 +241,7 @@ walk()
 		turn larm to x-axis <-26.368132> now;
 		turn ruparm to z-axis <15.115385> now;
 		turn rarm to x-axis <-14.412088> now;
-		sleep 9800 / currentSpeed;
+		sleep 8900 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -262,7 +262,7 @@ walk()
 		turn larm to x-axis <-38.846154> now;
 		turn ruparm to z-axis <11.247253> now;
 		turn rarm to x-axis <-20.736264> now;
-		sleep 8600 / currentSpeed;
+		sleep 7700 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -283,7 +283,7 @@ walk()
 		turn larm to x-axis <-51.335165> now;
 		turn ruparm to z-axis <7.379121> now;
 		turn rarm to x-axis <-27.071429> now;
-		sleep 8000 / currentSpeed;
+		sleep 7200 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -303,7 +303,7 @@ walk()
 		turn larm to x-axis <-60.302198> now;
 		turn ruparm to z-axis <3.681319> now;
 		turn rarm to x-axis <-16.879121> now;
-		sleep 8100 / currentSpeed;
+		sleep 7300 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -323,7 +323,7 @@ walk()
 		turn larm to x-axis <-69.269231> now;
 		turn ruparm to z-axis <0.000000> now;
 		turn rarm to x-axis <-6.670330> now;
-		sleep 7900 / currentSpeed;
+		sleep 7100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -342,7 +342,7 @@ walk()
 		turn larm to x-axis <-69.445055> now;
 		turn ruparm to z-axis <4.923077> now;
 		turn rarm to x-axis <-19.692308> now;
-		sleep 8000 / currentSpeed;
+		sleep 7200 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -361,7 +361,7 @@ walk()
 		turn larm to x-axis <-69.626374> now;
 		turn ruparm to z-axis <9.846154> now;
 		turn rarm to x-axis <-32.692308> now;
-		sleep 4800 / currentSpeed;
+		sleep 4300 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -381,7 +381,7 @@ walk()
 		turn larm to x-axis <-55.725275> now;
 		turn ruparm to z-axis <11.159341> now;
 		turn rarm to x-axis <-31.027473> now;
-		sleep 4900 / currentSpeed;
+		sleep 4400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -401,7 +401,7 @@ walk()
 		turn larm to x-axis <-41.835165> now;
 		turn ruparm to z-axis <12.478022> now;
 		turn rarm to x-axis <-29.357143> now;
-		sleep 6500 / currentSpeed;
+		sleep 5900 / currentSpeed;
 	}
 	move hips to y-axis [0.700000] now;
 	move rlegmain to y-axis [0.825000] now;
@@ -419,7 +419,7 @@ walk()
 	turn larm to x-axis <-27.956044> now;
 	turn ruparm to z-axis <13.791209> now;
 	turn rarm to x-axis <-27.692308> now;
-	sleep 6400 / currentSpeed;
+	sleep 5800 / currentSpeed;
 }
 
 walklegs()
@@ -437,7 +437,7 @@ walklegs()
 		move rgunshaft to x-axis [0.000000] now;
 		turn rlegmain to x-axis <-19.335165> now;
 		turn rfoot to x-axis <26.725275> now;
-		sleep 9500 / currentSpeed;
+		sleep 8400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -450,7 +450,7 @@ walklegs()
 		turn llegmain to x-axis <6.148352> now;
 		turn lfoot to x-axis <-9.137363> now;
 		turn rfoot to x-axis <20.038462> now;
-		sleep 8700 / currentSpeed;
+		sleep 7900 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -463,7 +463,7 @@ walklegs()
 		turn llegmain to x-axis <12.302198> now;
 		turn lfoot to x-axis <-18.280220> now;
 		turn rfoot to x-axis <13.357143> now;
-		sleep 7100 / currentSpeed;
+		sleep 6400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -475,7 +475,7 @@ walklegs()
 		turn llegmain to x-axis <17.401099> now;
 		turn lfoot to x-axis <-13.005495> now;
 		turn rfoot to x-axis <6.681319> now;
-		sleep 6800 / currentSpeed;
+		sleep 6100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -487,7 +487,7 @@ walklegs()
 		turn llegmain to x-axis <22.505495> now;
 		turn lfoot to x-axis <-7.736264> now;
 		turn rfoot to x-axis <0.000000> now;
-		sleep 6800 / currentSpeed;
+		sleep 6100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -497,7 +497,7 @@ walklegs()
 		turn rlegmain to x-axis <-53.269231> now;
 		turn lfoot to x-axis <10.714286> now;
 		turn rfoot to x-axis <17.747253> now;
-		sleep 6800 / currentSpeed;
+		sleep 6100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -507,7 +507,7 @@ walklegs()
 		turn rlegmain to x-axis <-53.093407> now;
 		turn lfoot to x-axis <29.181319> now;
 		turn rfoot to x-axis <35.516484> now;
-		sleep 6000 / currentSpeed;
+		sleep 5400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -520,7 +520,7 @@ walklegs()
 		turn llegmain to x-axis <12.038462> now;
 		turn lfoot to x-axis <28.478022> now;
 		turn rfoot to x-axis <26.626374> now;
-		sleep 5800 / currentSpeed;
+		sleep 5200 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -533,7 +533,7 @@ walklegs()
 		turn llegmain to x-axis <1.571429> now;
 		turn lfoot to x-axis <27.769231> now;
 		turn rfoot to x-axis <17.747253> now;
-		sleep 9000 / currentSpeed;
+		sleep 8100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -546,7 +546,7 @@ walklegs()
 		turn llegmain to x-axis <-8.868132> now;
 		turn lfoot to x-axis <27.071429> now;
 		turn rfoot to x-axis <8.868132> now;
-		sleep 9000 / currentSpeed;
+		sleep 8100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -559,7 +559,7 @@ walklegs()
 		turn llegmain to x-axis <-19.335165> now;
 		turn lfoot to x-axis <26.368132> now;
 		turn rfoot to x-axis <0.000000> now;
-		sleep 9800 / currentSpeed;
+		sleep 8900 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -572,7 +572,7 @@ walklegs()
 		turn llegmain to x-axis <-34.813187> now;
 		turn lfoot to x-axis <19.857143> now;
 		turn rfoot to x-axis <-9.137363> now;
-		sleep 8600 / currentSpeed;
+		sleep 7700 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -585,7 +585,7 @@ walklegs()
 		turn llegmain to x-axis <-50.280220> now;
 		turn lfoot to x-axis <13.357143> now;
 		turn rfoot to x-axis <-18.280220> now;
-		sleep 8000 / currentSpeed;
+		sleep 7200 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -597,7 +597,7 @@ walklegs()
 		turn llegmain to x-axis <-51.681319> now;
 		turn lfoot to x-axis <6.670330> now;
 		turn rfoot to x-axis <-12.824176> now;
-		sleep 8100 / currentSpeed;
+		sleep 7300 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -609,7 +609,7 @@ walklegs()
 		turn llegmain to x-axis <-53.093407> now;
 		turn lfoot to x-axis <0.000000> now;
 		turn rfoot to x-axis <-7.379121> now;
-		sleep 7900 / currentSpeed;
+		sleep 7100 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -620,7 +620,7 @@ walklegs()
 		turn llegmain to x-axis <-53.269231> now;
 		turn lfoot to x-axis <17.747253> now;
 		turn rfoot to x-axis <10.901099> now;
-		sleep 8000 / currentSpeed;
+		sleep 7200 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -631,7 +631,7 @@ walklegs()
 		turn llegmain to x-axis <-53.445055> now;
 		turn lfoot to x-axis <35.505495> now;
 		turn rfoot to x-axis <29.181319> now;
-		sleep 4800 / currentSpeed;
+		sleep 4300 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -644,7 +644,7 @@ walklegs()
 		turn llegmain to x-axis <-40.082418> now;
 		turn lfoot to x-axis <26.626374> now;
 		turn rfoot to x-axis <28.560440> now;
-		sleep 4900 / currentSpeed;
+		sleep 4400 / currentSpeed;
 	}
 	if( bMoving )
 	{
@@ -657,7 +657,7 @@ walklegs()
 		turn llegmain to x-axis <-26.725275> now;
 		turn lfoot to x-axis <17.747253> now;
 		turn rfoot to x-axis <27.956044> now;
-		sleep 6500 / currentSpeed;
+		sleep 5900 / currentSpeed;
 	}
 	move hips to y-axis [0.700000] now;
 	move rlegmain to y-axis [0.825000] now;
@@ -668,7 +668,7 @@ walklegs()
 	turn llegmain to x-axis <-13.357143> now;
 	turn lfoot to x-axis <8.868132> now;
 	turn rfoot to x-axis <27.335165> now;
-	sleep 6400 / currentSpeed;
+	sleep 5800 / currentSpeed;
 }
 
 ready2()
