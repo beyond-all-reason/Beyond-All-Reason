@@ -1,48 +1,45 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
 function widget:GetInfo()
   return {
     name      = "Select n Center!",
-    desc      = "Selects and centers Commander at start of the game",
-    author    = "quantum, Evil4Zerggin, TheFatController",
-    date      = "12 Feb 2009",
+    desc      = "Selects and centers the Commander at the start of the game.",
+    author    = "quantum and Evil4Zerggin and zwzsg",
+    date      = "19 April 2008",
     license   = "GNU GPL, v2 or later",
     layer     = 5,
-    enabled   = true
+    enabled   = true  --  loaded by default?
   }
 end
 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local myTeamID = Spring.GetMyTeamID()
 
-if select(3,Spring.GetPlayerInfo(myTeamID)) then
-  return false
-end
-
-local enabled = tonumber(Spring.GetModOptions().mo_coop) or 0
-
-if (enabled == 1) then
-  local playerCount = 0
-  for _, playerID in ipairs(Spring.GetPlayerList(myTeamID)) do
-    if not select(3,Spring.GetPlayerInfo(playerID)) then
-      playerCount = playerCount + 1
+function widget:Update()
+  local t = Spring.GetGameSeconds()
+  _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyTeamID())
+  if (spectator or t > 10) then
+    widgetHandler:RemoveWidget()
+    return
+  end
+  if (t > 0) then
+    local x, y, z = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
+    local unitArray = Spring.GetTeamUnits(Spring.GetMyTeamID())
+    if (unitArray and #unitArray==1) then
+      Spring.SelectUnitArray{unitArray[1]}
+      x, y, z = Spring.GetUnitPosition(unitArray[1])
     end
-  end
-  if (playerCount > 1) then
-    return false
+    if x and y and z then
+      Spring.SetCameraTarget(x, y, z)
+    end
+    widgetHandler:RemoveWidget()
   end
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
-  if (unitTeam ~= myTeamID) or (not UnitDefs[unitDefID].isCommander) then return end
-  Spring.SelectUnitArray({unitID})
-  local x,y,z = Spring.GetUnitPosition(unitID)
-  Spring.SetCameraTarget(x,800,z)
-  widgetHandler:RemoveWidget()
-end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

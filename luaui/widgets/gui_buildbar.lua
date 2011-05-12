@@ -1,3 +1,5 @@
+-- $Id$
+
 function widget:GetInfo()
   return {
     name      = "BuildBar",
@@ -6,7 +8,7 @@ function widget:GetInfo()
     date      = "Jul 11, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -256,8 +258,8 @@ local function DrawLineRect(rect, color, width)
   glColor(color)
   glLineWidth(width or borderSize)
   glShape(GL.LINE_LOOP, {
-    { v = { rect[3] , rect[2] } }, { v = { rect[1] , rect[2] } },
-    { v = { rect[1] , rect[4] } }, { v = { rect[3], rect[4] } },
+    { v = { rect[3]+0.5 , rect[2]+0.5 } }, { v = { rect[1]+0.5 , rect[2]+0.5 } },
+    { v = { rect[1]+0.5 , rect[4]+0.5 } }, { v = { rect[3]+0.5 , rect[4]+0.5 } },
   })
   glLineWidth(1)
   glColor(1,1,1,1)
@@ -481,7 +483,7 @@ function widget:DrawScreen()
   end
 
   -- draw border around factory list
-  if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2) end
+  if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2.5) end
 end
 
 
@@ -933,7 +935,7 @@ function widget:GetTooltip(x,y)
   elseif (hoveredBOpt>=0) then
     if hoveredBOpt>=0 then
       local unitDef = UnitDefs[facs[openedMenu+1].buildList[hoveredBOpt+1]]
-      return "Build: " .. unitDef.humanName .. " - " .. unitDef.tooltip .. "\n" ..
+      return " " .. unitDef.humanName .. " (" .. unitDef.tooltip .. ")\n" ..
              GreyStr .. "Health " .. GreenStr .. unitDef.health .. "\n" ..
              GreyStr .. "Metal cost " .. OrangeStr .. unitDef.metalCost .. "\n" ..
              GreyStr .. "Energy cost " .. YellowStr .. unitDef.energyCost .. GreyStr .. " Build time "  .. BlueStr .. unitDef.buildTime

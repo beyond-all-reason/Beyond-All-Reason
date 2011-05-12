@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  file:    gui_ally_res.lua
+--  file:    gui_allu_res.lua
 --  brief:   Shows your allies resources and allows quick resource transfer
 --  author:  Owen Martindell
 --
@@ -11,11 +11,11 @@
 function widget:GetInfo()
   return {
     name      = "Ally Resource Bars",
-    desc      = "Shows your allies resources and allows quick resource transfer (v1.5)",
-    author    = "TheFatController",
-    date      = "Feb 7, 2010",
+    desc      = "Shows your allies resources and allows quick resource transfer (v1.4)",
+    author    = "TheFatController & AF",
+    date      = "July 2, 2010",
     license   = "MIT/x11",
-    layer     = -9, 
+    layer     = -9,
     enabled   = false  --  loaded by default?
   }
 end
@@ -36,8 +36,6 @@ local IsReplay = Spring.IsReplay
 local IsGUIHidden = Spring.IsGUIHidden
 local ShareResources = Spring.ShareResources
 local GetGameFrame = Spring.GetGameFrame
-local GetTeamList = Spring.GetTeamList
-local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 local mathMin = math.min
 local gl, GL = gl, GL
 local sF = string.format
@@ -59,7 +57,8 @@ local START_HEIGHT     = (TOTAL_BAR_HEIGHT + BAR_GAP + TOP_HEIGHT)
 local FULL_BAR         = (BAR_WIDTH + BAR_GAP + BAR_GAP + BAR_SPACER)
 local w                = (BAR_WIDTH + BAR_OFFSET + BAR_GAP)
 local h                = START_HEIGHT
-local x1,y1
+local x1               = - w
+local y1               = - h - 31
 local mx, my
 local sentSomething = false
 local enabled       = false
@@ -78,11 +77,7 @@ local trnsMetal  = {}
 local labelText  = {}
 local sentEnergy = 0
 local sentMetal  = 0
-local gameFrame  = 0
-local lastFrame  = -1
-local prevHeight = nil
 local myID
-local posLoaded = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -102,11 +97,11 @@ local function getTeamNames()
 end
 
 function widget:Initialize()
+  x1 = math.floor(x1 - viewSizeX)
+  y1 = math.floor(y1 - viewSizeY)
   viewSizeX, viewSizeY = gl.GetViewSizes()
-  if not posLoaded then
-    x1 = (viewSizeX - w)
-    y1 = (viewSizeY * 0.65)
-  end
+  x1 = viewSizeX + x1
+  y1 = viewSizeY + y1
   myID = GetMyTeamID()
 end
 
@@ -119,11 +114,27 @@ local function setUpTeam()
   teamRes = {}
   teamColors = {}
   myID = GetMyTeamID()
-  local getTeams = GetTeamList(GetMyAllyTeamID())
-  mx, my = 0,0
+  local getTeams = nil
   local teamCount = 0
-  for _,teamID in ipairs(getTeams) do
-    if teamID ~= myID then
+  mx, my = 0,0
+  if GetSpectatingState() then
+   local alist = Spring.GetAllyTeamList()
+   for _,allyID in pairs(alist) do
+     getTeams = Spring.GetTeamList(allyID)
+     if getTeams ~= nil then
+       for _,teamID in pairs(getTeams) do
+          --local eCur = GetTeamResources(teamID, "energy")
+          --if eCur and (not deadTeams[teamID]) then
+        if not deadTeams[teamID] then
+            teamList[teamID] = true
+            teamCount = (teamCount + 1)
+          end
+        end
+     end
+   end
+  else
+   getTeams = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+   for _,teamID in pairs(getTeams) do
       local eCur = GetTeamResources(teamID, "energy")
       if eCur and (not deadTeams[teamID]) then
         teamList[teamID] = true
@@ -131,11 +142,12 @@ local function setUpTeam()
       end
     end
   end
+
   for teamID in pairs(teamList) do
     local r,g,b = Spring.GetTeamColor(teamID)
     teamColors[teamID] = {r=r,g=g,b=b}
   end
-  if (teamCount > 0) then
+  if (teamCount > 1) then
     enabled = true
     return true
   else
@@ -147,24 +159,16 @@ end
 local function updateStatics()
   if (staticList) then gl.DeleteList(staticList) end
   staticList = gl.CreateList( function()
-	gl.PushMatrix()
-    gl.Color(0.0, 0.0, 0.0, 0.5)
+    gl.Color(0.2, 0.2, 0.2, 0.8)
     gl.Rect(x1, y1, x1+w,y1+h)
-    gl.Color(0.0, 0.0, 0.0, 1)
-    gl.Shape(GL.LINE_LOOP, {
-      { v = { x1 + 0.5, y1 + 0.5 }, t = { 0, 1 } },
-      { v = { x1+w + 0.5, y1 + 0.5 }, t = { 1, 1 } },
-      { v = { x1+w + 0.5, y1+h + 0.5 }, t = { 1, 0 } },
-      { v = { x1 + 0.5, y1+h + 0.5 }, t = { 0, 0 } },
-    })
     local height = h - TOP_HEIGHT
     local teamNames = getTeamNames()
     teamIcons = {}
     for teamID in pairs(teamList) do
-      if (teamID ~= myID) then
+      if (teamID ~= myID or GetSpectatingState()) then
         gl.Color(teamColors[teamID].r,teamColors[teamID].g,teamColors[teamID].b,1)
         gl.Rect(x1+BAR_GAP,y1+height,x1+TOP_HEIGHT,y1+height-TOTAL_BAR_HEIGHT)
-        teamIcons[teamID] = 
+        teamIcons[teamID] =
         {
          name = teamNames[teamID] or "No Player",
          iy1 = y1+height,
@@ -173,7 +177,6 @@ local function updateStatics()
         height = (height - TOTAL_BAR_HEIGHT - BAR_GAP)
       end
     end
-    gl.PopMatrix()
   end)
 end
 
@@ -183,18 +186,18 @@ local function updateBars()
       updateStatics()
       updateBars()
     end
-    return false 
+    return false   
   end
   local eCur, eMax, mCur, mMax
   local height = h - TOP_HEIGHT
   for teamID in pairs(teamList) do
-    if (teamID ~= myID) then
+    if (teamID ~= myID or GetSpectatingState()) then
       eCur, eMax = GetTeamResources(teamID, "energy")
       mCur, mMax = GetTeamResources(teamID, "metal")
       eCur = eCur + (sendEnergy[teamID] or 0)
       mCur = mCur + (sendMetal[teamID] or 0)
       local xoffset = (x1+BAR_OFFSET)
-      teamRes[teamID] = 
+      teamRes[teamID] =
       {
         ex1  = xoffset,       
         ey1  = y1+height,
@@ -219,17 +222,11 @@ local function updateBars()
   end
   if (height ~= 0) then
     h = (h - height)
-    if prevHeight then
-      y1 = y1 - (h-prevHeight)
-      prevHeight = nil
-    else
-      y1 = (y1 + height)
-    end
+    y1 = (y1 + height)
     updateStatics()
   end
   if (displayList) then gl.DeleteList(displayList) end
   displayList = gl.CreateList( function()
-	gl.PushMatrix()
     for _,d in pairs(teamRes) do
       if d.eRec then
         gl.Color(0.8, 0, 0, 0.8)
@@ -238,7 +235,7 @@ local function updateBars()
       end
       gl.Rect(d.ex1,d.ey1,d.ex2,d.ey2)
       gl.Color(1, 1, 0, 1)
-      gl.Rect(d.ex1,d.ey1,d.ex2b,d.ey2) 
+      gl.Rect(d.ex1,d.ey1,d.ex2b,d.ey2)
       if d.mRec then
         gl.Color(0.8, 0, 0, 0.8)
       else
@@ -248,7 +245,6 @@ local function updateBars()
       gl.Color(1, 1, 1, 1)
       gl.Rect(d.mx1,d.my1,d.mx2b,d.my2)
     end
-    gl.PopMatrix()
   end)
 end
 
@@ -273,7 +269,7 @@ end
 local function transferResources(n)
   local sCur, sMax = GetTeamResources(transferTeam, transferType)
   local lCur, _, _, lInc, _, _, _, lRec = GetTeamResources(myID, transferType)
-  if (transferType == "metal") then 
+  if (transferType == "metal") then
     lCur = (lCur - sentMetal)
     sCur = sCur + (sendMetal[transferTeam] or 0)
   else
@@ -305,72 +301,65 @@ local function transferResources(n)
 end
 
 function widget:GameFrame(n)
-	gameFrame = n
-end
-
-function widget:Update()
-  if (gameFrame ~= lastFrame) then
-    if enabled then
-	  lastFrame = gameFrame
-	  updateBars()
-	  if transferTeam then
-	    transferResources(gameFrame)
-	  end
-	  if sentSomething and ((gameFrame % 16) == 0) then
-	    for teamID,send in pairs(sendEnergy) do
-		  ShareResources(teamID,"energy",send)
-	    end
-	    for teamID,send in pairs(sendMetal) do
-	      ShareResources(teamID,"metal",send)
-	    end
-	    sendEnergy = {}
-	    sendMetal = {}
-	    trnsEnergy = {}
-	    trnsMetal = {}
-	    sentEnergy = 0
-	    sentMetal = 0 
-	    sentSomething = false
-	  end
-	  if TOOL_TIPS then
-	    local x, y = GetMouseState()
-	    if (mx ~= x) or (my ~= y) or transferring or ((gameFrame % 15) == 0) then
-		  mx = x
-		  my = y
-		  if (x > x1 + BAR_GAP) and (y > y1 + BAR_GAP) and (x < (x1 + FULL_BAR)) and (y < (y1 + h - TOP_HEIGHT)) then
-		    for teamID,defs in pairs(teamIcons) do
-			  if (y < defs.iy1) and (y >= defs.iy2) then
-			    local _, _, _, eInc, _, _, _, eRec = GetTeamResources(teamID, "energy")
-			    local _, _, _, mInc, _, _, _, mRec = GetTeamResources(teamID, "metal")   
-			    eRec = eRec + (trnsEnergy[teamID] or 0)
-			    mRec = mRec + (trnsMetal[teamID] or 0)      
-			    labelText[1] = 
-			    {
-				  label=defs.name,
-				  x=x1-BAR_SPACER,
-				  y=defs.iy1-BAR_SPACER,
-				  size=TOTAL_BAR_HEIGHT,
-				  config="orn",
-			    }
-			    labelText[2] = 
-			    {
-				  label="(E: +"..sF("%.1f",eInc+eRec) ..", M: +"..sF("%.2f",mInc+mRec)..")", 
-				  x=x1-BAR_SPACER, 
-				  y=defs.iy1-BAR_SPACER-TOTAL_BAR_HEIGHT, 
-				  size=TOTAL_BAR_HEIGHT/1.25, 
-				  config="orn",
-			    }
-			    return
-			  end
-		    end
-		    if (labelText) then labelText = {} end
-		  elseif (labelText) then labelText = {} end
-	    end
-	  end
-    elseif (#GetTeamList(GetMyAllyTeamID()) > 1) then
-	  setUpTeam()
-	  updateStatics()
-	  updateBars()
+  if enabled then
+    updateBars()
+    if transferTeam then
+      transferResources(n)
     end
+    if sentSomething and ((n % 16) == 0) then
+      for teamID,send in pairs(sendEnergy) do
+        ShareResources(teamID,"energy",send)
+      end
+      for teamID,send in pairs(sendMetal) do
+        ShareResources(teamID,"metal",send)
+      end
+      sendEnergy = {}
+      sendMetal = {}
+      trnsEnergy = {}
+      trnsMetal = {}
+      sentEnergy = 0
+      sentMetal = 0
+      sentSomething = false
+    end
+    if TOOL_TIPS then
+      local x, y = GetMouseState()
+      if (mx ~= x) or (my ~= y) or transferring or ((n % 15) == 0) then
+        mx = x
+        my = y
+        if (x > x1 + BAR_GAP) and (y > y1 + BAR_GAP) and (x < (x1 + FULL_BAR)) and (y < (y1 + h - TOP_HEIGHT)) then
+          for teamID,defs in pairs(teamIcons) do
+            if (y < defs.iy1) and (y >= defs.iy2) then
+              local _, _, _, eInc, _, _, _, eRec = GetTeamResources(teamID, "energy")
+              local _, _, _, mInc, _, _, _, mRec = GetTeamResources(teamID, "metal")   
+              eRec = eRec + (trnsEnergy[teamID] or 0)
+              mRec = mRec + (trnsMetal[teamID] or 0)     
+              labelText[1] =
+              {
+                label=defs.name,
+                x=x1-BAR_SPACER,
+                y=defs.iy2-1,
+                size=TOTAL_BAR_HEIGHT,
+                config="orn",
+              }
+              labelText[2] =
+              {
+                label="(E: +"..sF("%.1f",eInc+eRec) ..", M: +"..sF("%.2f",mInc+mRec)..")",
+                x=x1-BAR_SPACER,
+                y=defs.iy2-TOTAL_BAR_HEIGHT,
+                size=TOTAL_BAR_HEIGHT/1.25,
+                config="orn",
+              }
+              return
+            end
+          end
+          if (labelText) then labelText = {} end
+        elseif (labelText) then labelText = {} end
+      end
+    end
+  elseif (#Spring.GetTeamList(Spring.GetMyAllyTeamID()) > 1) then
+    setUpTeam()
+    updateStatics()
+    updateBars()
   end
 end
 
@@ -378,21 +367,20 @@ function widget:GameStart()
   enabled = true
   setUpTeam()
   updateStatics()
-end 
+end
 
 function widget:DrawScreen()
   if enabled and (not IsGUIHidden()) then
+    gl.PushMatrix()
       gl.CallList(staticList)
       gl.CallList(displayList)
       if (labelText[1]) then
-        gl.PushMatrix()
         gl.Color(1, 1, 1, 0.8)
         gl.Text(labelText[1].label,labelText[1].x,labelText[1].y,labelText[1].size,labelText[1].config)
         gl.Color(0.8, 0.8, 0.8, 0.8)
         gl.Text(labelText[2].label,labelText[2].x,labelText[2].y,labelText[2].size,labelText[2].config)
-        
-        gl.PopMatrix()
       end
+    gl.PopMatrix()
   end
 end
 
@@ -401,8 +389,6 @@ function widget:MouseMove(x, y, dx, dy, button)
     if moving then
       x1 = x1 + dx
       y1 = y1 + dy
-      if (x1 < 0) then x1 = 0 elseif ((x1+w) > viewSizeX) then x1 = (viewSizeX-w) end
-      if (y1 < 0) then y1 = 0 elseif ((y1+h) > viewSizeY) then y1 = (viewSizeY-h) end
       updateBars()
       updateStatics()
     elseif transferring then
@@ -423,20 +409,39 @@ function widget:MouseMove(x, y, dx, dy, button)
             end
           end
         end
-      end      
+      end     
     end
   end
 end
 
 function widget:MousePress(x, y, button)
   if (enabled) and ((x > x1) and (y > y1) and (x < (x1 + w)) and (y < (y1 + h))) then
-    if (button == 2) or (y > (y1 + h - TOP_HEIGHT)) then
+    if y > (y1 + h - TOP_HEIGHT) then
       capture = true
       moving  = true
       return capture
     end
     if GetSpectatingState() or IsReplay() then
-      return false
+      if (x > (x1+BAR_OFFSET)) and (x < (x1+BAR_OFFSET+BAR_WIDTH)) then
+        for teamID,defs in pairs(teamRes) do
+          if (y < defs.ey1) and (y >= defs.ey2) then
+          local tid = teamID
+         Spring.SendCommands('specteam '..tid)
+            --transferTeam = teamID
+            --transferType = "energy"
+            --transferring = true
+            return true
+          elseif (y < defs.my1) and (y >= defs.my2) then
+            local tid = teamID
+         Spring.SendCommands('specteam '..tid)
+         --transferTeam = teamID
+            --transferType = "metal"
+            --transferring = true
+            return true
+          end
+        end
+      end
+     --return false
     end
     if (x > (x1+BAR_OFFSET)) and (x < (x1+BAR_OFFSET+BAR_WIDTH)) then
       for teamID,defs in pairs(teamRes) do
@@ -466,24 +471,13 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:ViewResize(vsx, vsy)
+  x1 = math.floor(x1 - viewSizeX)
+  y1 = math.floor(y1 - viewSizeY)
   viewSizeX, viewSizeY = vsx, vsy
-  if (x1 < 0) then x1 = 0 elseif ((x1+w) > viewSizeX) then x1 = (viewSizeX-w) end
-  if (y1 < 0) then y1 = 0 elseif ((y1+h) > viewSizeY) then y1 = (viewSizeY-h) end
+  x1 = viewSizeX + x1
+  y1 = viewSizeY + y1
   updateBars()
   updateStatics()
-end
-
-function widget:GetConfigData() --save config
-  return {x1=x1, y1=y1, h=h}
-end
-
-function widget:SetConfigData(data) --load config
-  if (data.x1) and (data.y1) and (data.h) then
-    x1 = data.x1
-    y1 = data.y1
-    prevHeight = data.h
-    posLoaded = true
-  end
 end
 
 --------------------------------------------------------------------------------

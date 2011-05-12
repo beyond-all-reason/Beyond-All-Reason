@@ -1,4 +1,4 @@
-local versionNumber = "v2.3mod"
+local versionNumber = "v2.3"
 
 function widget:GetInfo()
   return {
@@ -27,7 +27,7 @@ local maxAlpha = 1
 local fontSize = 16
 local maxLabelLength = 16
 
-local minimapHighlightSize = 6
+local minimapHighlightSize = 8
 local minimapHighlightLineMin = 6
 local minimapHighlightLineMax = 10
 
@@ -108,7 +108,23 @@ function widget:DrawScreen()
 		else
 			local sx, sy, sz = WorldToScreenCoords(curr[2], curr[3], curr[4])
 			glColor(curr[1][1], curr[1][2], curr[1][3], alpha)
-			if (sx < 0) or (sy < 0) or (sx > vsx) or (sy > vsy) then
+			if (sx >= 0 and sy >= 0
+					and sx <= vsx and sy <= vsy) then
+				--in screen
+				local vertices = {
+					{v = {sx, sy - highlightLineMin, 0}},
+					{v = {sx, sy - highlightLineMax, 0}},
+					{v = {sx, sy + highlightLineMin, 0}},
+					{v = {sx, sy + highlightLineMax, 0}},
+					{v = {sx - highlightLineMin, sy, 0}},
+					{v = {sx - highlightLineMax, sy, 0}},
+					{v = {sx + highlightLineMin, sy, 0}},
+					{v = {sx + highlightLineMax, sy, 0}},
+				}
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+				glRect(sx - highlightSize, sy - highlightSize, sx + highlightSize, sy + highlightSize)
+				glShape(GL_LINES, vertices)
+			else
 				--out of screen
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 				--flip if behind screen

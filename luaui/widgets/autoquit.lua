@@ -3,7 +3,7 @@
 -- global variables
 ----------------------------------------------------------------
 local versionNumber = "v1.2"
-local delay = 12
+local delay = 5
 local endTime
 local mx,my
 

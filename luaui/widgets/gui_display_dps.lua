@@ -199,7 +199,7 @@ local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
     glColor(1, 1, 1)
   end
   
-  glText(damage, 0, 0, textSize, "dcno")
+  glText(damage, 0, 0, textSize, "cno")
   
   glPopMatrix()
 end
@@ -210,10 +210,10 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
   if paralyze then
     glColor(0, 0, 1)
-    glText(damage, 0, 0, textSize, 'acnO')
+    glText(damage, 0, 0, textSize, 'cnO')
   else
     glColor(1, 1, 1)
-    glText(damage, 0, 0, textSize, 'acno')
+    glText(damage, 0, 0, textSize, 'cno')
   end
 end
 
