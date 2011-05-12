@@ -46,6 +46,10 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "120 26 108",
+				collisionvolumetest = 1,
+				collisionvolumetype = "Box",
 				damage = 2014,
 				description = "Floating Hovercraft Platform Wreckage",
 				energy = 0,

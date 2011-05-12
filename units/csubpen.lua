@@ -54,6 +54,10 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
+				collisionvolumeoffsets = "0 0 -15",
+				collisionvolumescales = "111 34 86",
+				collisionvolumetest = 1,
+				collisionvolumetype = "Box",
 				damage = 1500,
 				description = "Amphibious Complex Wreckage",
 				energy = 0,

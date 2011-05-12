@@ -46,6 +46,10 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0 -8 0",
+				collisionvolumescales = "135 24 135",
+				collisionvolumetest = 1,
+				collisionvolumetype = "Box",
 				damage = 1116,
 				description = "Air Repair Pad Wreckage",
 				energy = 0,

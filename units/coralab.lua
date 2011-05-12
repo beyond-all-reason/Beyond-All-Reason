@@ -64,6 +64,10 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0 -17 0",
+				collisionvolumescales = "98 52 88",
+				collisionvolumetest = 1,
+				collisionvolumetype = "CylZ",
 				damage = 2443,
 				description = "Advanced Kbot Lab Wreckage",
 				energy = 0,

@@ -41,6 +41,10 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0 -9 0",
+				collisionvolumescales = "70 36 70",
+				collisionvolumetest = 1,
+				collisionvolumetype = "Ell",
 				damage = 192,
 				description = "Solar Collector Wreckage",
 				energy = 0,

@@ -49,6 +49,10 @@ return {
 			armshlt_dead = {
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0 -14 0",
+				collisionvolumescales = "125 57 145",
+				collisionvolumetest = 0,
+				collisionvolumetype = "Ell",
 				damage = 8640,
 				description = "Experimental Gantry Wreckage",
 				energy = 0,

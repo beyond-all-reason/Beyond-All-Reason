@@ -52,6 +52,10 @@ return {
 			dead = {
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0 -14 -23",
+				collisionvolumescales = "110 33 50",
+				collisionvolumetest = 1,
+				collisionvolumetype = "Box",
 				damage = 1155,
 				description = "Aircraft Plant Wreckage",
 				energy = 0,
