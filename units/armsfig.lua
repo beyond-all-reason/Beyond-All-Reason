@@ -11,7 +11,7 @@ return {
 		cansubmerge = true,
 		category = "ALL NOTLAND MOBILE WEAPON ANTIGATOR NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP",
 		collide = false,
-		cruisealt = 80,
+		cruisealt = 110,
 		description = "Seaplane Swarmer",
 		energymake = 0.69999998807907,
 		energyuse = 0.69999998807907,
