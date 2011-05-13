@@ -13,11 +13,10 @@ function gadget:GetInfo()
 end
 
 local FIRE_WEAPONS = {
-  ["coradvbomb"] = true,
-  ["corebomb"] = true,
-  ["exp_heavyrocket"] = true,
-  ["core_seaadvbomb"] = true,
-  ["corkrog_rocket"] = true,
+  ["corhurc_coradvbomb"] = true,
+  ["armpnix_armadvbomb"] = true,
+  ["armraven_exp_heavyrocket"] = true,
+  ["corkrog_corkrog_rocket"] = true,
 }
 
 if (gadgetHandler:IsSyncedCode()) then
