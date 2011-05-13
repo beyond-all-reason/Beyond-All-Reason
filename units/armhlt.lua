@@ -25,7 +25,7 @@ return {
 		icontype = "building",
 		idleautoheal = 23.25,
 		idletime = 900,
-		maxdamage = 2325,
+		maxdamage = 1630,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Sentinel",

@@ -25,7 +25,7 @@ return {
 		icontype = "building",
 		idleautoheal = 24.75,
 		idletime = 900,
-		maxdamage = 2475,
+		maxdamage = 1730,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Gaat Gun",
