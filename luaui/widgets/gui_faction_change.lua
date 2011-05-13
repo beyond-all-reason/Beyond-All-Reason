@@ -152,7 +152,7 @@ function widget:MousePress(mx, my, mButton)
                 end
                 return true
             end
-        elseif mButton == 3 and mx < px + 128 then
+        elseif (mButton == 2 or mButton == 3) and mx < px + 128 then
             -- Dragging
             return true
         end
@@ -161,7 +161,7 @@ end
 
 function widget:MouseMove(mx, my, dx, dy, mButton)
     -- Dragging
-    if mButton == 3 then
+    if mButton == 2 or mButton == 3 then
         px = px + dx
         py = py + dy
     end
