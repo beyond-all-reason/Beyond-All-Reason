@@ -34,7 +34,10 @@ local GetAllUnits = Spring.GetAllUnits
 
 local COM_BLAST = WeaponDefNames['commander_blast'].id
 
-local DGUN = WeaponDefNames['arm_disintegrator'].id
+local DGUN = {
+    [WeaponDefNames['armcom_arm_disintegrator'].id] = true,
+    [WeaponDefNames['corcom_arm_disintegrator'].id] = true,
+}
 
 local COMMANDER = {
   [UnitDefNames["corcom"].id] = true,
@@ -52,7 +55,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
   if cantFall and (cantFall == unitID) and (weaponID < 0) then      
     return 0, 0
   end     
-  if (weaponID == DGUN) then
+  if DGUN[weaponID] then
     if (immuneCom == unitID) then
       return 0, 0
     elseif COMMANDER[attackerDefID] and COMMANDER[unitDefID] then
