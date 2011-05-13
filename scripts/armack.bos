@@ -538,6 +538,8 @@ Create()
 	Static_Var_1 = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
+	moveSpeed = get MAX_SPEED;
+	currentSpeed = 100;
 	start-script SmokeUnit();
 }
 
