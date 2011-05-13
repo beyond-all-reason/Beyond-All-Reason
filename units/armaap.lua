@@ -48,8 +48,7 @@ return {
 			[6] = "armawac",
 			[7] = "armdfly",
 			[8] = "blade",
-			[9] = "corgripn",
-			[10] = "armcybr",
+			[9] = "armcybr",
 		},
 		featuredefs = {
 			dead = {
