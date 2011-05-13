@@ -114,7 +114,7 @@ return {
 				leadbonus = 0,
 				name = "IntimidatorCannon",
 				noselfdamage = true,
-				range = 6600,
+				range = 4000,
 				reloadtime = 13.5,
 				soundhit = "xplonuk1",
 				soundstart = "xplonuk3",

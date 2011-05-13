@@ -114,7 +114,7 @@ return {
 				leadbonus = 0,
 				name = "BerthaCannon",
 				noselfdamage = true,
-				range = 6200,
+				range = 4000,
 				reloadtime = 11,
 				soundhit = "xplonuk1",
 				soundstart = "xplonuk4",
