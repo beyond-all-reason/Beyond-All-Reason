@@ -7,56 +7,40 @@ piece  head, torso, hips, mpack, rgunflare, lgunflare, eyeflare, rmispoint,
        lmispoint, rleg, rthigh, lthigh, lleg, ltoes, lheel, rtoes,
        rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2;
 
-static-var  Static_Var_1, Static_Var_2, bMoving, Static_Var_4, Static_Var_5,
+static-var  Static_Var_1, Static_Var_2, bMoving, Static_Var_4, Static_Var_5, foot, notrdyStomp,
             restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
 
-
-#define CHANGE_TARGET       98
+#define SIG_FOOTSTOMP_L 8
+#define SIG_FOOTSTOMP_R 16
 
 walk()
 {
 	if( bMoving )
 	{
-		move hips to y-axis [2.000000] now;
 		move hips to y-axis [2.000000] speed [1.000000];
-		move rleg to y-axis [-2.000000] now;
 		move rleg to y-axis [-2.000000] speed [1.000000];
-		move mpack to y-axis [-1.000000] now;
 		move mpack to y-axis [0.000000] speed [1.000000];
 		move rgunflare to y-axis [0.000000] now;
 		move rgunflare to z-axis [0.000000] now;
 		move lgunflare to y-axis [0.000000] now;
 		move lgunflare to z-axis [0.000000] now;
-		turn hips to x-axis <7.000000> now;
 		turn hips to x-axis <5.000000> speed <9.000000>;
-		turn torso to y-axis <-5.000000> now;
 		turn torso to y-axis <-1.000000> speed <16.000000>;
-		turn rthigh to x-axis <-16.000000> now;
-		turn rthigh to x-axis <-16.000000> speed <0.000000>;
-		turn lthigh to x-axis <-53.000000> now;
-		turn lthigh to x-axis <-58.000000> speed <27.000000>;
-		turn head to x-axis <0.000000> now;
+		turn rthigh to x-axis <-16.000000> speed <16.000000>;
+		turn lthigh to x-axis <-58.000000> speed <98.000000>;
 		turn head to x-axis <-7.000000> speed <36.000000>;
-		turn lleg to x-axis <71.000000> now;
 		turn lleg to x-axis <66.000000> speed <20.000000>;
-		turn ltoes to x-axis <18.000000> now;
-		turn ltoes to x-axis <18.000000> speed <0.000000>;
-		turn lheel to x-axis <-23.000000> now;
+		turn ltoes to x-axis <18.000000> speed <12.000000>;
 		turn lheel to x-axis <-33.000000> speed <48.000000>;
-		turn rleg to x-axis <19.000000> now;
 		turn rleg to x-axis <25.000000> speed <31.000000>;
-		turn rtoes to x-axis <-13.000000> now;
 		turn rtoes to x-axis <-15.000000> speed <12.000000>;
-		turn rheel to x-axis <-5.000000> now;
 		turn rheel to x-axis <-4.000000> speed <1.000000>;
-		turn luparm to x-axis <-1.000000> now;
 		turn luparm to x-axis <6.000000> speed <35.000000>;
-		turn ruparm to x-axis <-12.000000> now;
 		turn ruparm to x-axis <-20.000000> speed <38.000000>;
-		turn rarm to x-axis <-15.000000> now;
 		turn rarm to x-axis <-16.000000> speed <4.000000>;
-		turn larm to x-axis <-14.000000> now;
 		turn larm to x-axis <-22.000000> speed <40.000000>;
+		foot=TRUE;
+		notrdyStomp=0;
 		sleep 212;
 	}
 	if( bMoving )
@@ -66,11 +50,11 @@ walk()
 		move mpack to y-axis [0.000000] speed [1.000000];
 		turn hips to x-axis <3.000000> speed <7.000000>;
 		turn torso to y-axis <2.000000> speed <15.000000>;
-		turn rthigh to x-axis <-16.000000> speed <0.000000>;
-		turn lthigh to x-axis <-64.000000> speed <25.000000>;
+		turn rthigh to x-axis <-16.000000> speed <16.000000>;
+		turn lthigh to x-axis <-64.000000> speed <63.000000>;
 		turn head to x-axis <-7.000000> speed <3.000000>;
 		turn lleg to x-axis <61.000000> speed <19.000000>;
-		turn ltoes to x-axis <18.000000> speed <0.000000>;
+		turn ltoes to x-axis <18.000000> speed <12.000000>;
 		turn lheel to x-axis <-24.000000> speed <37.000000>;
 		turn rleg to x-axis <33.000000> speed <35.000000>;
 		turn rtoes to x-axis <-18.000000> speed <11.000000>;
@@ -121,6 +105,7 @@ walk()
 		turn rarm to x-axis <-43.000000> speed <129.000000>;
 		turn larm to x-axis <-42.000000> speed <18.000000>;
 		sleep 188;
+		notrdyStomp=1;
 	}
 	if( bMoving )
 	{
@@ -224,6 +209,8 @@ walk()
 		turn luparm to x-axis <-26.000000> speed <15.000000>;
 		turn rarm to x-axis <-37.000000> speed <13.000000>;
 		turn larm to x-axis <-22.000000> speed <41.000000>;
+		foot=FALSE;
+		notrdyStomp=0;
 		sleep 182;
 	}
 	if( bMoving )
@@ -289,6 +276,7 @@ walk()
 		turn rarm to x-axis <-46.000000> speed <3.000000>;
 		turn larm to x-axis <-24.000000> speed <7.000000>;
 		sleep 189;
+		notrdyStomp=1;
 	}
 	if( bMoving )
 	{
@@ -339,7 +327,7 @@ walk()
 		turn hips to x-axis <7.000000> speed <5.000000>;
 		turn torso to y-axis <-7.000000> speed <45.000000>;
 		turn rthigh to x-axis <-23.000000> speed <112.000000>;
-		turn lthigh to x-axis <-6.000000> speed <677.000000>;
+		turn lthigh to x-axis <-13.000000> speed <419.000000>;
 		turn head to x-axis <5.000000> speed <137.000000>;
 		turn lleg to x-axis <48.000000> speed <326.000000>;
 		turn ltoes to x-axis <20.000000> speed <30.000000>;
@@ -351,40 +339,28 @@ walk()
 		turn ruparm to x-axis <0.000000> speed <180.000000>;
 		turn rarm to x-axis <-7.000000> speed <91.000000>;
 		turn larm to x-axis <-6.000000> speed <58.000000>;
-		sleep 69;
+		sleep 149;
 	}
-	sleep 149;
 }
 
 walklegs()
 {
 	if( bMoving )
 	{
-		move hips to y-axis [2.000000] now;
 		move hips to y-axis [2.000000] speed [1.000000];
-		move rleg to y-axis [-2.000000] now;
 		move rleg to y-axis [-2.000000] speed [1.000000];
 		move rgunflare to y-axis [0.000000] now;
 		move rgunflare to z-axis [0.000000] now;
 		move lgunflare to y-axis [0.000000] now;
 		move lgunflare to z-axis [0.000000] now;
-		turn hips to x-axis <7.000000> now;
 		turn hips to x-axis <5.000000> speed <9.000000>;
-		turn rthigh to x-axis <-16.000000> now;
-		turn rthigh to x-axis <-16.000000> speed <0.000000>;
-		turn lthigh to x-axis <-53.000000> now;
-		turn lthigh to x-axis <-58.000000> speed <27.000000>;
-		turn lleg to x-axis <71.000000> now;
+		turn rthigh to x-axis <-16.000000> speed <16.000000>;
+		turn lthigh to x-axis <-58.000000> speed <98.000000>;
 		turn lleg to x-axis <66.000000> speed <20.000000>;
-		turn ltoes to x-axis <18.000000> now;
-		turn ltoes to x-axis <18.000000> speed <0.000000>;
-		turn lheel to x-axis <-23.000000> now;
+		turn ltoes to x-axis <18.000000> speed <12.000000>;
 		turn lheel to x-axis <-33.000000> speed <48.000000>;
-		turn rleg to x-axis <19.000000> now;
 		turn rleg to x-axis <25.000000> speed <31.000000>;
-		turn rtoes to x-axis <-13.000000> now;
 		turn rtoes to x-axis <-15.000000> speed <12.000000>;
-		turn rheel to x-axis <-5.000000> now;
 		turn rheel to x-axis <-4.000000> speed <1.000000>;
 		sleep 212;
 	}
@@ -393,15 +369,17 @@ walklegs()
 		move hips to y-axis [2.000000] speed [0.000000];
 		move rleg to y-axis [-2.000000] speed [0.000000];
 		turn hips to x-axis <3.000000> speed <7.000000>;
-		turn rthigh to x-axis <-16.000000> speed <0.000000>;
-		turn lthigh to x-axis <-64.000000> speed <25.000000>;
+		turn rthigh to x-axis <-16.000000> speed <16.000000>;
+		turn lthigh to x-axis <-64.000000> speed <68.000000>;
 		turn lleg to x-axis <61.000000> speed <19.000000>;
-		turn ltoes to x-axis <18.000000> speed <0.000000>;
+		turn ltoes to x-axis <18.000000> speed <12.000000>;
 		turn lheel to x-axis <-24.000000> speed <37.000000>;
 		turn rleg to x-axis <33.000000> speed <35.000000>;
 		turn rtoes to x-axis <-18.000000> speed <11.000000>;
 		turn rheel to x-axis <-9.000000> speed <18.000000>;
 		sleep 228;
+		foot=TRUE;
+		notrdyStomp=0;
 	}
 	if( bMoving )
 	{
@@ -432,6 +410,7 @@ walklegs()
 		turn rtoes to x-axis <-26.000000> speed <22.000000>;
 		turn rheel to x-axis <-21.000000> speed <48.000000>;
 		sleep 188;
+		notrdyStomp=1;
 	}
 	if( bMoving )
 	{
@@ -518,6 +497,8 @@ walklegs()
 		turn lheel to x-axis <-13.000000> speed <23.000000>;
 		turn rleg to x-axis <60.000000> speed <21.000000>;
 		sleep 195;
+		foot=FALSE;
+		notrdyStomp=0;
 	}
 	if( bMoving )
 	{
@@ -552,6 +533,7 @@ walklegs()
 		turn rtoes to x-axis <19.000000> speed <1.000000>;
 		turn rheel to x-axis <16.000000> speed <152.000000>;
 		sleep 189;
+		notrdystomp=1;
 	}
 	if( bMoving )
 	{
@@ -589,42 +571,14 @@ walklegs()
 		move rleg to y-axis [0.000000] speed [23.000000];
 		turn hips to x-axis <7.000000> speed <5.000000>;
 		turn rthigh to x-axis <-23.000000> speed <112.000000>;
-		turn lthigh to x-axis <-6.000000> speed <677.000000>;
+		turn lthigh to x-axis <-13.000000> speed <419.000000>;
 		turn lleg to x-axis <48.000000> speed <326.000000>;
 		turn ltoes to x-axis <20.000000> speed <30.000000>;
 		turn lheel to x-axis <-36.000000> speed <56.000000>;
 		turn rleg to x-axis <21.000000> speed <61.000000>;
 		turn rtoes to x-axis <-4.000000> speed <119.000000>;
 		turn rheel to x-axis <0.000000> speed <76.000000>;
-		sleep 69;
-	}
-	sleep 149;
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
+		sleep 149;
 	}
 }
 
@@ -682,12 +636,6 @@ Stop()
 	Static_Var_4 = 0;
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -700,15 +648,15 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
+		if( statechg_DesiredState )
 		{
 			call-script Stop();
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -728,7 +676,7 @@ MotionControl(moving, aiming, justmoved)
 				Static_Var_5 = 1;
 				call-script walklegs();
 			}
-			if( !aiming )
+			else
 			{
 				Static_Var_5 = 0;
 				call-script walk();
@@ -754,7 +702,7 @@ MotionControl(moving, aiming, justmoved)
 				emit-sfx 3 from rheel;
 			}
 		}
-		if( !moving )
+		else
 		{
 			Static_Var_5 = 1;
 			if( justmoved )
@@ -784,6 +732,34 @@ MotionControl(moving, aiming, justmoved)
 	}
 }
 
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script MotionControl();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
 Create()
 {
 	set ARMORED to 1;
@@ -797,10 +773,11 @@ Create()
 	Static_Var_5 = 1;
 	Static_Var_8 = 0;
 	Static_Var_1 = 1;
-	Static_Var_2 = 1;
+	Static_Var_2 = 0;
+	notrdyStomp=1;
 	restore_delay = 2000;
-	call-script InitState();
-	start-script MotionControl();
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
 }
 
@@ -839,11 +816,11 @@ RestoreHead()
 	turn head to y-axis <0.000000> speed <110.000000>;
 }
 
-AimWeapon2(Func_Var_1, Func_Var_2)
+AimWeapon2(heading, pitch)
 {
 	signal 4;
 	set-signal-mask 4;
-	turn head to y-axis Func_Var_1 speed <300.000000>;
+	turn head to y-axis heading speed <130.000000>;
 	wait-for-turn head around y-axis;
 	start-script RestoreHead();
 	return (1);
@@ -856,55 +833,37 @@ FireWeapon2()
 	hide eyeflare;
 }
 
-AimFromWeapon2(Func_Var_1)
+AimFromWeapon2(piecenum)
 {
-	Func_Var_1 = 1;
+	piecenum = 1;
 }
 
-QueryWeapon2(Func_Var_1)
+QueryWeapon2(piecenum)
 {
-	Func_Var_1 = 6;
+	piecenum = eyeflare;
 }
 
-AimWeapon3(Func_Var_1, Func_Var_2)
+AimWeapon3(heading, pitch)
 {
 	return (1);
 }
 
 FireWeapon3()
 {
-	if( Static_Var_2 == 1 )
-	{
-		Static_Var_2 = 2;
-		set CHANGE_TARGET to 3;
-		return (0);
-	}
-	if( Static_Var_2 == 2 )
-	{
-		Static_Var_2 = 1;
-		set CHANGE_TARGET to 3;
-		return (0);
-	}
+	Static_Var_2 = !Static_Var_2;
 }
 
-AimFromWeapon3(Func_Var_1)
+AimFromWeapon3(piecenum)
 {
-	Func_Var_1 = 3;
+	piecenum = 3;
 }
 
-QueryWeapon3(Func_Var_1)
+QueryWeapon3(piecenum)
 {
-	if( Static_Var_2 == 1 )
-	{
-		Func_Var_1 = 7;
-	}
-	if( Static_Var_2 == 2 )
-	{
-		Func_Var_1 = 8;
-	}
+	piecenum = rmispoint + Static_Var_2;
 }
 
-AimWeapon1(Func_Var_1, Func_Var_2)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal 2;
@@ -913,7 +872,7 @@ AimWeapon1(Func_Var_1, Func_Var_2)
 	{
 		sleep 250;
 	}
-	turn torso to y-axis Func_Var_1 speed <50.000000>;
+	turn torso to y-axis heading speed <50.000000>;
 	wait-for-turn torso around y-axis;
 	start-script RestoreBody();
 	return (1);
@@ -921,19 +880,7 @@ AimWeapon1(Func_Var_1, Func_Var_2)
 
 FireWeapon1()
 {
-	if( Static_Var_1 == 1 )
-	{
-		turn ruparm to x-axis <85.000000> speed <140.000000>;
-		turn rarm to x-axis <-100.000000> speed <140.000000>;
-		show rgunflare;
-		sleep 150;
-		hide rgunflare;
-		turn rarm to x-axis <-86.000000> speed <60.000000>;
-		turn ruparm to x-axis <0.000000> speed <60.000000>;
-		Static_Var_1 = 2;
-		return (0);
-	}
-	if( Static_Var_1 == 2 )
+	if( Static_Var_1 )
 	{
 		turn luparm to x-axis <85.000000> speed <140.000000>;
 		turn larm to x-axis <-100.000000> speed <140.000000>;
@@ -942,26 +889,28 @@ FireWeapon1()
 		hide lgunflare;
 		turn larm to x-axis <-86.000000> speed <60.000000>;
 		turn luparm to x-axis <0.000000> speed <60.000000>;
-		Static_Var_1 = 1;
-		return (0);
 	}
+	else
+	{
+		turn ruparm to x-axis <85.000000> speed <140.000000>;
+		turn rarm to x-axis <-100.000000> speed <140.000000>;
+		show rgunflare;
+		sleep 150;
+		hide rgunflare;
+		turn rarm to x-axis <-86.000000> speed <60.000000>;
+		turn ruparm to x-axis <0.000000> speed <60.000000>;
+	}
+	Static_Var_1 = !Static_Var_1;
 }
 
-AimFromWeapon1(Func_Var_1)
+AimFromWeapon1(piecenum)
 {
-	Func_Var_1 = 1;
+	piecenum = torso;
 }
 
-QueryWeapon1(Func_Var_1)
+QueryWeapon1(piecenum)
 {
-	if( Static_Var_1 == 1 )
-	{
-		Func_Var_1 = 4;
-	}
-	if( Static_Var_1 == 2 )
-	{
-		Func_Var_1 = 5;
-	}
+	piecenum = rgunflare + Static_Var_1;
 }
 
 SweetSpot(piecenum)
@@ -969,49 +918,42 @@ SweetSpot(piecenum)
 	piecenum = torso;
 }
 
-AimWeapon4(Func_Var_1, Func_Var_2)
+AimWeapon4(heading, pitch)
 {
-	signal 4;
-	set-signal-mask 4;
+	signal SIG_FOOTSTOMP_L;
+	set-signal-mask SIG_FOOTSTOMP_L;
+	while(notrdyStomp OR !foot) sleep 65;
 	return (1);
 }
 
-FireWeapon4()
+AimFromWeapon4(piecenum)
 {
-	sleep 150;
+	piecenum = ltoes;
 }
 
-AimFromWeapon4(Func_Var_1)
+QueryWeapon4(piecenum)
 {
-	Func_Var_1 = 9;
+	piecenum = ltoes;
 }
 
-QueryWeapon4(Func_Var_1)
+AimWeapon5(heading, pitch)
 {
-	Func_Var_1 = 9;
-}
-
-AimWeapon5(Func_Var_1, Func_Var_2)
-{
-	signal 4;
-	set-signal-mask 4;
+	signal SIG_FOOTSTOMP_R;
+	set-signal-mask SIG_FOOTSTOMP_R;
+	while(notrdyStomp OR foot) sleep 65;
 	return (1);
 }
 
-FireWeapon5()
+AimFromWeapon5(piecenum)
 {
-	sleep 150;
+	piecenum = rtoes;
 }
 
-AimFromWeapon5(Func_Var_1)
+QueryWeapon5(piecenum)
 {
-	Func_Var_1 = 12;
+	piecenum = rtoes;
 }
 
-QueryWeapon5(Func_Var_1)
-{
-	Func_Var_1 = 12;
-}
 
 Killed(severity, corpsetype)
 {
