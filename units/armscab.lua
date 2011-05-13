@@ -2,10 +2,10 @@ return {
 	armscab = {
 		acceleration = 0.01799999922514,
 		brakerate = 0.034000001847744,
-		buildcostenergy = 88000,
-		buildcostmetal = 1437,
+		buildcostenergy = 36400,
+		buildcostmetal = 1400,
 		buildpic = "ARMSCAB.DDS",
-		buildtime = 95678,
+		buildtime = 36400,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
 		corpse = "DEAD",
