@@ -56,14 +56,12 @@ return {
 		weapondefs = {
 			armadvbomb = {
 				areaofeffect = 144,
-				burst = 8,
-				burstrate = 0.14000000059605,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
 				dropped = true,
-				edgeeffectiveness = 0.69999998807907,
+				edgeeffectiveness = 0,
 				explosiongenerator = "custom:ARM_BIGBOMB_EXPLOSION",
 				gravityaffected = "true",
 				impulseboost = 0.12300000339746,
@@ -78,8 +76,8 @@ return {
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
 				damage = {
-					antibomber = 100,
-					default = 210,
+					antibomber = 450,
+					default = 1050,
 					l1bombers = 5,
 					l1subs = 5,
 				},
