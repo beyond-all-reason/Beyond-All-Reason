@@ -3,21 +3,22 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, thrustb;
+piece  flare1, flare2, base, rearthrust;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
 {
 
-	sleep 17;
+	sleep 44;
 	return (0);
 }
 
 deactivatescr()
 {
-	sleep 28;
+
+	sleep 44;
 	return (0);
 }
 
@@ -83,8 +84,24 @@ RequestState(requestedstate, currentstate)
 	return (0);
 }
 
+MoveRate2()
+{
+	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
+	{
+		Static_Var_1 = 1;
+		turn base to z-axis <240.054945> speed <120.027473>;
+		wait-for-turn base around z-axis;
+		turn base to z-axis <120.027473> speed <180.043956>;
+		wait-for-turn base around z-axis;
+		turn base to z-axis <0.000000> speed <120.027473>;
+		Static_Var_1 = 0;
+	}
+	return (0);
+}
+
 Create()
 {
+	Static_Var_1 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
 	return (0);
@@ -102,6 +119,18 @@ Deactivate()
 	return (0);
 }
 
+QueryPrimary(piecenum)
+{
+	piecenum = flare1;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flare2;
+	return (0);
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -114,25 +143,33 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
-		explode thrustb type BITMAPONLY | BITMAP4;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode rearthrust type BITMAPONLY | BITMAP4;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
-		explode thrustb type FALL | BITMAP4;
+		explode flare1 type FALL | BITMAP2;
+		explode flare2 type FALL | BITMAP3;
+		explode rearthrust type FALL | BITMAP4;;
 		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
-		explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode rearthrust type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
-	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode rearthrust type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 	return (0);
 }

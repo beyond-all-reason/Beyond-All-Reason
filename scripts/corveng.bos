@@ -3,35 +3,21 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  missle1, missle2, base, winga, wingb, thrusta1, thrusta2, thrustb;
+piece  missle1, missle2, base, thrusta1, thrusta2;
 
 static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
 {
-	if( TRUE )
-	{
-		turn winga to z-axis <0.000000> now;
-		turn winga to z-axis <-91.236264> speed <63.225275>;
-		turn wingb to z-axis <0.000000> now;
-		turn wingb to z-axis <91.236264> speed <63.225275>;
-		sleep 1443;
-	}
 	sleep 23;
+	return (0);
 }
 
 deactivatescr()
 {
-	if( TRUE )
-	{
-		turn winga to z-axis <-91.236264> now;
-		turn winga to z-axis <0.000000> speed <63.137363>;
-		turn wingb to z-axis <91.236264> now;
-		turn wingb to z-axis <0.000000> speed <63.137363>;
-		sleep 1445;
-	}
 	sleep 24;
+	return (0);
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -59,12 +45,14 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		}
 		sleep sleeptime;
 	}
+	return (0);
 }
 
 InitState()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
+	return (0);
 }
 
 RequestState(requestedstate, currentstate)
@@ -91,6 +79,7 @@ RequestState(requestedstate, currentstate)
 		}
 	}
 	statechg_StateChanging = FALSE;
+	return (0);
 }
 
 MoveRate2()
@@ -105,6 +94,7 @@ MoveRate2()
 		turn base to z-axis <0.000000> speed <120.027473>;
 		Static_Var_1 = 0;
 	}
+	return (0);
 }
 
 Create()
@@ -113,31 +103,37 @@ Create()
 	Static_Var_2 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
+	return (0);
 }
 
 Activate()
 {
 	start-script RequestState(0);
+	return (0);
 }
 
 Deactivate()
 {
 	start-script RequestState(1);
+	return (0);
 }
 
 ePrimary(Func_Var_1)
 {
 	Static_Var_2 = !Static_Var_2;
+	return (0);
 }
 
 QueryPrimary(piecenum)
 {
 	piecenum = Static_Var_2;
+	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
+	return (0);
 }
 
 Killed(severity, corpsetype)
@@ -150,9 +146,6 @@ Killed(severity, corpsetype)
 		explode missle2 type BITMAPONLY | BITMAP1;
 		explode thrusta1 type BITMAPONLY | BITMAP1;
 		explode thrusta2 type BITMAPONLY | BITMAP1;
-		explode thrustb type BITMAPONLY | BITMAP1;
-		explode winga type BITMAPONLY | BITMAP1;
-		explode wingb type BITMAPONLY | BITMAP1;
 		return (0);
 	}
 	if( severity <= 50 )
@@ -163,9 +156,6 @@ Killed(severity, corpsetype)
 		explode missle2 type FALL | BITMAP1;
 		explode thrusta1 type FALL | BITMAP1;
 		explode thrusta2 type FALL | BITMAP1;
-		explode thrustb type FALL | BITMAP1;
-		explode winga type SHATTER | BITMAP1;
-		explode wingb type BITMAPONLY | BITMAP1;
 		return (0);
 	}
 	if( severity <= 99 )
@@ -176,9 +166,6 @@ Killed(severity, corpsetype)
 		explode missle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode thrusta1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode thrusta2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode winga type SHATTER | BITMAP1;
-		explode wingb type BITMAPONLY | BITMAP1;
 		return (0);
 	}
 	corpsetype = 3;
@@ -187,7 +174,5 @@ Killed(severity, corpsetype)
 	explode missle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode thrusta1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode thrusta2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode winga type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-	explode wingb type BITMAPONLY | BITMAP1;
+	return (0);
 }

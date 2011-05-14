@@ -10,27 +10,13 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	if( TRUE )
-	{
-		turn winga to z-axis <0.000000> now;
-		turn winga to z-axis <-111.697802> speed <76.818681>;
-		turn wingb to z-axis <0.000000> now;
-		turn wingb to z-axis <111.697802> speed <76.818681>;
-		sleep 1454;
-	}
+
 	sleep 15;
 }
 
 deactivatescr()
 {
-	if( TRUE )
-	{
-		turn winga to z-axis <-111.697802> now;
-		turn winga to z-axis <0.000000> speed <76.873626>;
-		turn wingb to z-axis <111.697802> now;
-		turn wingb to z-axis <0.000000> speed <76.873626>;
-		sleep 1453;
-	}
+
 	sleep 9;
 }
 

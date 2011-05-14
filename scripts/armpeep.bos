@@ -3,23 +3,11 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, thrustb;
+piece  base;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
 
-activatescr()
-{
-
-	sleep 17;
-	return (0);
-}
-
-deactivatescr()
-{
-	sleep 28;
-	return (0);
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -70,12 +58,10 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState == 0 )
 		{
-			call-script activatescr();
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
 		{
-			call-script deactivatescr();
 			currentstate = 1;
 		}
 	}
@@ -114,25 +100,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
-		explode thrustb type BITMAPONLY | BITMAP4;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
-		explode thrustb type FALL | BITMAP4;
 		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
-		explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
-	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 	return (0);
 }
