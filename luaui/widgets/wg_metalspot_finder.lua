@@ -4,7 +4,7 @@ function widget:GetInfo()
 		name      = "Metalspot Finder",
 		desc      = "Finds metal spots for other widgets",
 		author    = "Niobium",
-		version   = "v1.0",
+		version   = "v1.1",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = -30000,
@@ -95,7 +95,7 @@ end
 function IsMexPositionValid(spot, x, z)
 	
 	if z <= spot.maxZ - extractorRadius or
-	   z >= spot.minZ + extractorRadius then
+	   z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
 		return false
 	end
 	
@@ -202,10 +202,6 @@ function GetSpots()
 				stripStart = stripStart or mx
 				stripWorth = stripWorth + groundMetal
 			elseif stripStart then
-				if mx - gridSize - stripStart > extractorRadius then
-					Spring.Echo('<WG.metalSpots> Mass metal detected. Disabling.')
-					return {}
-				end
 				DoStrip(stripStart, mx - gridSize, mz, stripWorth)
 				stripStart = nil
 				stripWorth = 0
@@ -213,10 +209,6 @@ function GetSpots()
 		end
 		
 		if stripStart then
-			if metalmapSizeX - stripStart > extractorRadius then
-				Spring.Echo('<WG.metalSpots> Mass metal detected. Disabling.')
-				return {}
-			end
 			DoStrip(stripStart, metalmapSizeX, mz, stripWorth)
 		end
 	end
@@ -251,12 +243,12 @@ function GetValidStrips(spot)
 	local validLeft = {}
 	local validRight = {}
 	
-	local maxZOffset = buildGridSize * floor(extractorRadius / buildGridSize)
+	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
 	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
 		local vLeft, vRight = buildmapStartX, buildmapSizeX
 		for sz = sMinZ, sMaxZ, gridSize do
 			local dz = sz - mz
-			local maxXOffset = buildGridSize * floor(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize) -- Test for metal being included is dist < extractorRadius
+			local maxXOffset = buildGridSize * ceil(sqrt(extractorRadiusSqr - dz * dz) / buildGridSize - 1) -- Test for metal being included is dist < extractorRadius
 			local left, right = sRight[sz] - maxXOffset, sLeft[sz] + maxXOffset
 			if left  > vLeft  then vLeft  = left  end
 			if right < vRight then vRight = right end
