@@ -56,6 +56,8 @@ return {
 		weapondefs = {
 			coradvbomb = {
 				areaofeffect = 180,
+				burst = 5,
+				burstrate = 0.05,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
@@ -76,8 +78,8 @@ return {
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
 				damage = {
-					antibomber = 600,
-					default = 1400,
+					antibomber = 120,
+					default = 280,
 					l1bombers = 5,
 					l1subs = 5,
 				},
