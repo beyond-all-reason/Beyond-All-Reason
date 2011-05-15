@@ -55,10 +55,9 @@ return {
 			[11] = "corroach",
 			[12] = "corsktl",
 			[13] = "cordecom",
-			[14] = "commando",
-			[15] = "corvoyr",
-			[16] = "corspy",
-			[17] = "corspec",
+			[14] = "corvoyr",
+			[15] = "corspy",
+			[16] = "corspec",
 		},
 		featuredefs = {
 			dead = {
