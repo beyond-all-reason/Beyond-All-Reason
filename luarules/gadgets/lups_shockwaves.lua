@@ -1,3 +1,4 @@
+
 function gadget:GetInfo()
   return {
     name      = "Shockwaves",
@@ -14,12 +15,13 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 
   local SHOCK_WEAPONS = {
-    ["arm_disintegrator"] = true,
-    ["armbomb"] = true,
-    ["armadvbomb"] = true,
-    ["shocker"] = true,
-    ["arm_fatboy_notalaser"] = true,
-    ["arm_seaadvbomb"] = true,
+    ["armcom_arm_disintegrator"] = true,
+    ["corcom_arm_disintegrator"] = true,
+    ["armthund_armbomb"] = true,
+--  ["armpnix_armadvbomb"] = true,
+    ["armshock_shocker"] = true,
+    ["armfboy_arm_fatboy_notalaser"] = true,
+    ["armsb_seaadvbomb"] = true,
   }
 
   --// find weapons which cause a shockwave
