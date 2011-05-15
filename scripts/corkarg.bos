@@ -4,11 +4,10 @@
 #include "exptype.h"
 
 piece  base, pelvis, torso, stick, plasmasprayer, cap, fire, lshoulder,
-       larm, lcannon, lbarrel1, lfire1, lbarrel2, lfire2, launcher, glowybit,
+       larm, lcannon, lbarrel1, lfire1, lbarrel2, lfire2, launcher,
        rocketfire1, rocketfire2, rshoulder, rarm, rcannon, rbarrel1, rfire1, rbarrel2,
-       rfire2, cellholder, nrgycells, lupleg, llowleg, lfoot, lftoe, lleftoe,
-       lrightoe, rupleg, rlowleg, rfoot, rftoe, rleftoe, rrightoe, lbarrel1back,
-       lbarrel2back, rbarrel1back, rbarrel2back, lbtoe1, lbtoe2, rbtoe1, rbtoe2;
+       rfire2, lupleg, llowleg, lfoot, lftoe, lleftoe,
+       lrightoe, rupleg, rlowleg, rfoot, rftoe, rleftoe, rrightoe, lbtoe1, lbtoe2, rbtoe1, rbtoe2;
 
 static-var  gun_1, bMoving, bAiming, Static_Var_4, Static_Var_5,
             Static_Var_6, gun_3, Static_Var_8, Static_Var_9, Static_Var_10,
@@ -62,6 +61,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		}
 		sleep sleeptime;
 	}
+	return (0);
 }
 
 StartMoving()
@@ -193,6 +193,7 @@ StartMoving()
 		turn rbtoe2 to x-axis <-20.000000> speed <30.000000>;
 		sleep 550;
 	}
+	return (0);
 }
 
 StopMoving()
@@ -248,6 +249,7 @@ StopMoving()
 	move torso to x-axis [0.000000] speed [3.000000];
 	move lshoulder to y-axis [0.000000] speed [7.500000];
 	move rshoulder to y-axis [0.000000] speed [7.500000];
+	return (0);
 }
 
 RestorePrimary()
@@ -293,6 +295,7 @@ RestoreSecondary()
 			bAiming = FALSE;
 		}
 	}
+	return (0);
 }
 
 RestoreTertiary()
@@ -309,11 +312,13 @@ RestoreTertiary()
 			bAiming = FALSE;
 		}
 	}
+	return (0);
 }
 
 Demo()
 {
 	unitviewer = TRUE;
+	return (0);
 }
 
 Create()
@@ -337,14 +342,14 @@ Create()
 	{
 		sleep 1000;
 	}
-	dont-cache glowybit;
-	dont-cache nrgycells;
 	start-script SmokeUnit();
+	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = torso;
+	return (0);
 }
 
 QueryPrimary(piecenum)
@@ -374,6 +379,7 @@ QueryPrimary(piecenum)
 AimFromPrimary(piecenum)
 {
 	piecenum = torso;
+	return (0);
 }
 
 AimPrimary(heading, pitch)
@@ -450,11 +456,13 @@ FirePrimary()
 QuerySecondary(piecenum)
 {
 	piecenum = fire;
+	return (0);
 }
 
 AimFromSecondary(piecenum)
 {
 	piecenum = plasmasprayer;
+	return (0);
 }
 
 AimSecondary(heading, pitch)
@@ -498,6 +506,7 @@ FireSecondary()
 	sleep 500;
 	move plasmasprayer to z-axis [0.000000] speed [3.000000];
 	move cap to z-axis [0.000000] speed [5.000000];
+	return (0);
 }
 
 QueryTertiary(piecenum)
@@ -517,6 +526,7 @@ QueryTertiary(piecenum)
 AimFromTertiary(piecenum)
 {
 	piecenum = launcher;
+	return (0);
 }
 
 AimTertiary(heading, pitch)
@@ -588,15 +598,12 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type BITMAPONLY | BITMAP1;
 		explode lfire2 type BITMAPONLY | BITMAP1;
 		explode launcher type BITMAPONLY | BITMAP1;
-		explode glowybit type BITMAPONLY | BITMAP1;
 		explode rocketfire1 type BITMAPONLY | BITMAP1;
 		explode rocketfire2 type BITMAPONLY | BITMAP1;
 		explode rshoulder type BITMAPONLY | BITMAP1;
 		explode rfire1 type BITMAPONLY | BITMAP1;
 		explode rbarrel2 type BITMAPONLY | BITMAP1;
 		explode rfire2 type BITMAPONLY | BITMAP1;
-		explode cellholder type BITMAPONLY | BITMAP1;
-		explode nrgycells type BITMAPONLY | BITMAP1;
 		explode lupleg type BITMAPONLY | BITMAP1;
 		explode llowleg type BITMAPONLY | BITMAP1;
 		explode lfoot type BITMAPONLY | BITMAP1;
@@ -626,7 +633,6 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type SHATTER | BITMAP4;
 		explode lfire2 type SHATTER | BITMAP4;
 		explode launcher type SHATTER | BITMAP4;
-		explode glowybit type SHATTER | BITMAP4;
 		explode rocketfire1 type SHATTER | BITMAP4;
 		explode rocketfire2 type SHATTER | BITMAP4;
 		explode rshoulder type SHATTER | BITMAP4;
@@ -637,8 +643,6 @@ Killed(severity, corpsetype)
 		explode rfire1 type SHATTER | BITMAP4;
 		explode rbarrel2 type SHATTER | BITMAP4;
 		explode rfire2 type SHATTER | BITMAP4;
-		explode cellholder type SHATTER | BITMAP4;
-		explode nrgycells type SHATTER | BITMAP4;
 		explode lupleg type SHATTER | BITMAP4;
 		explode llowleg type SHATTER | BITMAP4;
 		explode lfoot type SHATTER | BITMAP4;
@@ -669,7 +673,6 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode lfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode glowybit type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode rocketfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode rocketfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode rshoulder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
@@ -679,8 +682,6 @@ Killed(severity, corpsetype)
 		explode rfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode rbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode rfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode cellholder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode nrgycells type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode lupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode llowleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
@@ -709,7 +710,6 @@ Killed(severity, corpsetype)
 	explode lbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode lfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode glowybit type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rocketfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rocketfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rshoulder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
@@ -719,8 +719,6 @@ Killed(severity, corpsetype)
 	explode rfire1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rbarrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rfire2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode cellholder type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode nrgycells type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode lupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode llowleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
@@ -733,4 +731,5 @@ Killed(severity, corpsetype)
 	explode rftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rleftoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode rrightoe type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	return (0);
 }

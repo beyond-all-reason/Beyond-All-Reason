@@ -174,7 +174,7 @@ return {
 				smoketrail = true,
 				soundhit = "xplosml2",
 				soundstart = "rocklit1",
-				startvelocity = 500,
+				startvelocity = 250,
 				texture2 = "coresmoketrail",
 				tolerance = 15000,
 				tracks = true,
@@ -183,7 +183,7 @@ return {
 				weaponacceleration = 150,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 800,
+				weaponvelocity = 400,
 				damage = {
 					default = 120,
 					hgunships = 112,
