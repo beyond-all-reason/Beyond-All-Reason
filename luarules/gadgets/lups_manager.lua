@@ -103,6 +103,8 @@ local lups_luaui = false --// lups running as widget?
 local nilDispList
 
 local corfusdefid = UnitDefNames["corfus"].id
+local cafusdefid = UnitDefNames["cafus"].id
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -254,7 +256,8 @@ end
 
 
 local function UnitCreated(_,unitID,unitDefID)
-  if (lups_luaui)and(corfusdefid == unitDefID) then
+  if (lups_luaui)and(corfusdefid == unitDefID) or
+     (lups_luaui)and(cafusdefid == unitDefID) then
     Spring.UnitRendering.SetLODCount(unitID,1)
     Spring.UnitRendering.SetLODLength(unitID,1,1)
     Spring.UnitRendering.SetMaterial(unitID,1,"defaults3o",{shader="s3o"})
