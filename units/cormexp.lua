@@ -13,7 +13,7 @@ return {
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
-		collisionvolumeoffsets = "0 -32 0",
+		collisionvolumeoffsets = "0 -27 0",
 		collisionvolumescales = "83 77 78",
 		collisionvolumetest = 1,
 		collisionvolumetype = "Ell",

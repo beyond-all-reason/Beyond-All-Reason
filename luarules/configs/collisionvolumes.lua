@@ -86,8 +86,8 @@ local unitCollisionVolume = {}
 		off={110,66,130,0,-21,0,1,1,2},
 	}
 	unitCollisionVolume["cormexp"] = {
-		on={83,77,78,0,-32,0,0,1,0},
-		off={90,135,84,0,-32,0,0,1,0},
+		on={83,77,78,0,-27,0,0,1,0},
+		off={90,135,84,0,-27,0,0,1,0},
 	}
 	unitCollisionVolume["cormmkr"] = {
 		on={60,60,60,0,0,0,1,1,1},
