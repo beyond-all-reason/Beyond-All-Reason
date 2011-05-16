@@ -24,6 +24,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 550,
+		waterline = 0.3,
 		yardmap = "wwwwwwwww",
 		featuredefs = {
 			dead = {
