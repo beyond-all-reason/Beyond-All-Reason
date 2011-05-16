@@ -48,7 +48,9 @@ modConfig["BA"]["unitList"] =
 								armtl = { weapons = { 1 } }, --torp launcher
 								armfhlt = { weapons = { 1 } },  --floating hlt
 								armfrt = { weapons = { 2 } },  --floating rocket laucher
-								
+								armfflak = { weapons = { 2 } },  --floating flak AA
+								armatl = { weapons = { 1 } },  --adv torpedo launcher
+
 								armamb = { weapons = { 1,1 } }, --ambusher
 								armpb = { weapons = { 1 } }, --pitbull
 								armanni = { weapons = { 1 } },
@@ -59,7 +61,7 @@ modConfig["BA"]["unitList"] =
 								
 								armbrtha = { weapons = { 1 } },
 								armvulc = { weapons = { 1 } },
-								
+																
 								--CORE
 								corexp = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
@@ -75,7 +77,9 @@ modConfig["BA"]["unitList"] =
 								
 								corfhlt = { weapons = { 1 } },  --floating hlt
 								cortl = { weapons = { 1 } }, --torp launcher
+								coratl = { weapons = { 1 } }, --T2 torp launcher
 								corfrt = { weapons = { 2 } }, --floating rocket laucher
+								corenaa = { weapons = { 2 } }, --floating flak AA
 								
 								cortoast = { weapons = { 1 } },
 								corvipe = { weapons = { 1 } },
