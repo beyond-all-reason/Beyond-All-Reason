@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 26,
 		idletime = 900,
-		maxdamage = 2600,
+		maxdamage = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Eradicator",

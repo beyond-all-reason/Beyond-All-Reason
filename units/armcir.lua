@@ -21,7 +21,7 @@ return {
 		icontype = "building",
 		idleautoheal = 25,
 		idletime = 900,
-		maxdamage = 2500,
+		maxdamage = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Chainsaw",

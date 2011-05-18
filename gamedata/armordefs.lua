@@ -1,12 +1,4 @@
 return {
-	antibomber = {
-		armcir = 99,
-		armuwadves = 99,
-		armuwadvms = 99,
-		corerad = 99,
-		coruwadves = 99,
-		coruwadvms = 99,
-	},
 	commanders = {
 		armcom = 99,
 		armdecom = 99,
@@ -321,6 +313,12 @@ return {
 		corarch = 99,
         aseadragon = 99,
         corblackhy = 99,
+        armcir = 99,
+		armuwadves = 99,
+		armuwadvms = 99,
+		corerad = 99,
+		coruwadves = 99,
+		coruwadvms = 99,
 	},
 	l1bombers = {
 		armthund = 99,
