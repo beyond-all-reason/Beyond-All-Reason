@@ -11,7 +11,7 @@ return {
 		category = "ALL WEAPON NOTSUB VTOL",
 		collide = false,
 		cruisealt = 110,
-		description = "Rapid Assault Flak-Resistant Gunship",
+		description = "Rapid Assault Gunship",
 		energymake = 0.80000001192093,
 		energyuse = 0.89999997615814,
 		explodeas = "GUNSHIPEX",

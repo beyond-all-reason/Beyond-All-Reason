@@ -296,9 +296,6 @@ return {
         aseadragon = 99,
         corblackhy = 99,
 	},
-    hgunships = {
-        blade = 99,
-    },
 	l1bombers = {
 		armthund = 99,
 		corshad = 99,
@@ -391,6 +388,7 @@ return {
         armbrawl = 99,
 		armkam = 99,
 		armsaber = 99,
+        blade = 99,
 		bladew = 99,
 		corape = 99,
 		corcrw = 99,
