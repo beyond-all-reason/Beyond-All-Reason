@@ -131,7 +131,7 @@ return {
 				wobble = 1800,
 				damage = {
 					default = 450,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

@@ -82,7 +82,7 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 90,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			krowlaser2 = {
@@ -112,7 +112,7 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 250,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

@@ -127,7 +127,7 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 75,
-					l1subs = 3,
+					subs = 3,
 				},
 			},
 			gorg_top = {
@@ -160,7 +160,7 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 100,
-					l1subs = 3,
+					subs = 3,
 				},
 			},
 			juggernaut_fire = {
@@ -183,7 +183,7 @@ return {
 				weaponvelocity = 530,
 				damage = {
 					default = 300,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

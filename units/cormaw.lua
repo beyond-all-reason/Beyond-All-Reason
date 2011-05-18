@@ -136,8 +136,7 @@ return {
 				damage = {
 					commanders = 20,
 					default = 25,
-					hgunships = 4,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

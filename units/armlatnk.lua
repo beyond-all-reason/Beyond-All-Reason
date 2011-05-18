@@ -128,8 +128,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 85,
-					hgunships = 48,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			armlatnk_weapon = {
@@ -157,7 +156,7 @@ return {
 				weaponvelocity = 400,
 				damage = {
 					default = 227,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

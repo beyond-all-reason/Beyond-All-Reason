@@ -124,8 +124,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 85,
-					hgunships = 48,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			armmech_cannon = {
@@ -148,11 +147,10 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 600,
 				damage = {
+					bombers = 60,
 					default = 215,
-					hgunships = 60,
-					l1bombers = 60,
-					l1subs = 5,
-					l2fighters = 60,
+					fighters = 60,
+					subs = 5,
 					vtol = 60,
 				},
 			},

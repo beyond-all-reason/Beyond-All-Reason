@@ -130,7 +130,7 @@ return {
 				weaponvelocity = 400,
 				damage = {
 					default = 365,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			bantha_rocket = {
@@ -163,7 +163,7 @@ return {
 				weaponvelocity = 2100,
 				damage = {
 					default = 360,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			tehlazerofdewm = {
@@ -193,7 +193,7 @@ return {
 				damage = {
 					commanders = 1200,
 					default = 4000,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

@@ -123,7 +123,7 @@ return {
 				weaponvelocity = 670,
 				damage = {
 					default = 62,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			bogus_missile = {

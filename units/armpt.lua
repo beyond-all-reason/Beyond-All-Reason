@@ -126,8 +126,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 110,
-					hgunships = 82,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			armpt_laser = {
@@ -160,11 +159,10 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 750,
 				damage = {
+					bombers = 9,
 					default = 55,
-					hgunships = 9,
-					l1bombers = 9,
-					l1subs = 2,
-					l2fighters = 9,
+					fighters = 9,
+					subs = 2,
 					vtol = 9,
 				},
 			},

@@ -320,7 +320,7 @@ return {
 		coruwadves = 99,
 		coruwadvms = 99,
 	},
-	l1bombers = {
+	bombers = {
 		armthund = 99,
 		corshad = 99,
         armcybr = 99,
@@ -332,7 +332,7 @@ return {
 		corsb = 99,
 		cortitan = 99,
 	},
-	l1subs = {
+	subs = {
 		armsub = 99,
 		corsub = 99,
         armsubk = 99,
@@ -340,7 +340,7 @@ return {
         corssub = 99,
 		tawf009 = 99,
 	},
-	l2fighters = {
+	fighters = {
         armfig = 99,
 		corveng = 99,
 		armhawk = 99,

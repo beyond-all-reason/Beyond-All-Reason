@@ -123,7 +123,7 @@ return {
 				weaponvelocity = 200,
 				damage = {
 					default = 250,
-					l1subs = 400,
+					subs = 400,
 				},
 			},
 		},

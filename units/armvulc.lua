@@ -122,9 +122,7 @@ return {
 				weaponvelocity = 1100,
 				damage = {
 					default = 1500,
-					jammerboats = 2500,
-					l1subs = 5,
-					otherboats = 2500,
+					subs = 5,
 				},
 			},
 		},

@@ -124,7 +124,7 @@ return {
 				damage = {
 					commanders = 500,
 					default = 800,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			armship_missile = {
@@ -159,8 +159,7 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					default = 138,
-					hgunships = 105,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

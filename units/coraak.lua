@@ -115,21 +115,16 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
-					antibomber = 10,
+					bombers = 200,
 					commanders = 10,
 					crawlingbombs = 10,
 					default = 1000,
 					["else"] = 10,
+					fighters = 200,
 					heavyunits = 10,
-					hgunships = 75,
-					jammerboats = 10,
-					l1bombers = 200,
-					l1subs = 5,
-					l2fighters = 200,
 					mines = 10,
 					nanos = 10,
-					otherboats = 10,
-					radar = 10,
+					subs = 5,
 					vtol = 200,
 				},
 			},
@@ -191,8 +186,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 30,
-					hgunships = 23,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			coraakbot_missile2 = {
@@ -229,8 +223,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 30,
-					hgunships = 23,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			coraakbot_missile3 = {
@@ -267,8 +260,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 30,
-					hgunships = 23,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			coraakbot_missile4 = {
@@ -305,8 +297,7 @@ return {
 				weaponvelocity = 1100,
 				damage = {
 					default = 75,
-					hgunships = 56,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

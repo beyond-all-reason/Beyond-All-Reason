@@ -57,7 +57,7 @@ return {
 			armadvbomb = {
 				areaofeffect = 144,
 				burst = 5,
-				burstrate = 0.05,
+				burstrate = 0.050000000745058,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
@@ -78,10 +78,9 @@ return {
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
 				damage = {
-					antibomber = 90,
+					bombers = 5,
 					default = 210,
-					l1bombers = 5,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},

@@ -120,8 +120,7 @@ return {
 				weaponvelocity = 850,
 				damage = {
 					default = 85,
-					hgunships = 48,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			armamph_weapon1 = {
@@ -149,11 +148,10 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 500,
 				damage = {
+					bombers = 15,
 					default = 70,
-					hgunships = 15,
-					l1bombers = 15,
-					l1subs = 5,
-					l2fighters = 15,
+					fighters = 15,
+					subs = 5,
 					vtol = 15,
 				},
 			},

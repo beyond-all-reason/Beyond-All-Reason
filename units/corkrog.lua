@@ -131,7 +131,7 @@ return {
 				weaponvelocity = 900,
 				damage = {
 					default = 165,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			corkrog_laser = {
@@ -163,7 +163,7 @@ return {
 				damage = {
 					commanders = 1200,
 					default = 5500,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			corkrog_rocket = {
@@ -196,7 +196,7 @@ return {
 				weaponvelocity = 3000,
 				damage = {
 					default = 800,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 			krogkick = {
@@ -205,10 +205,10 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargetting = true,
-				edgeeffectiveness = 0.45,
+				edgeeffectiveness = 0.44999998807907,
 				explosiongenerator = "custom:KROGCRUSHE",
-				impulseboost = 8.00,
-				impulsefactor = 8.00,
+				impulseboost = 8,
+				impulsefactor = 8,
 				name = "KrogCrush",
 				noselfdamage = true,
 				proximitypriority = 5,
@@ -221,16 +221,13 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				damage = {
-					antibomber = 3000,
 					commanders = 1,
 					crawlingbombs = 3000,
 					default = 1,
 					["else"] = 3000,
 					heavyunits = 1,
-					minelayser = 3000,
 					mines = 3000,
 					nanos = 3000,
-					radar = 3000,
 				},
 			},
 		},

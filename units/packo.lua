@@ -134,8 +134,7 @@ return {
 				wobble = 120,
 				damage = {
 					default = 149,
-					hgunships = 95,
-					l1subs = 5,
+					subs = 5,
 				},
 			},
 		},
