@@ -37,6 +37,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "32.1447906494 31.2162322998 37.0860900879",
+				collisionvolumeoffsets = "0.882118225098 0.0283161499023 6.0887298584",
 				category = "corpses",
 				damage = 2400,
 				description = "Marauder Wreckage",

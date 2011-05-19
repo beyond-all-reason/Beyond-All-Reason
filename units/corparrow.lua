@@ -37,6 +37,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "36.4536895752 11.1021575928 54.8021697998",
+				collisionvolumeoffsets = "4.526512146 -4.16978120361 3.13526153564",
 				category = "corpses",
 				damage = 3420,
 				description = "Poison Arrow Wreckage",

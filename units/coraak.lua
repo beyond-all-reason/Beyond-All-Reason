@@ -31,6 +31,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "38.4586334229 17.0406036377 34.7582092285",
+				collisionvolumeoffsets = "1.21222686768 -2.24119818115 -5.60705566406",
 				category = "corpses",
 				damage = 1548,
 				description = "Manticore Wreckage",

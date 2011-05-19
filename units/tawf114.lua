@@ -39,6 +39,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "41.3831787109 15.9763793945 46.5609588623",
+				collisionvolumeoffsets = "0.597640991211 -2.38606030273 0.928077697754",
 				category = "corpses",
 				damage = 1350,
 				description = "Banisher Wreckage",

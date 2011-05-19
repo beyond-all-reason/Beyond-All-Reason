@@ -40,6 +40,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "81.6838531494 113.772003174 72.5632324219",
+				collisionvolumeoffsets = "3.15924835205 -0.787798413086 6.6563873291",
 				category = "corpses",
 				damage = 2520,
 				description = "Big Bertha Wreckage",

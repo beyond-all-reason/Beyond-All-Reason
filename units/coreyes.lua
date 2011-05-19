@@ -33,6 +33,9 @@ return {
 		featuredefs = {
 			cdragonseyes_dead = {
 				blocking = false,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "15.8270874023 2.5 15.2345123291",
+				collisionvolumeoffsets = "-0.0323944091797 0.0 0.00588226318359",
 				category = "heaps",
 				damage = 120,
 				description = "Dragon's Eye Heap",

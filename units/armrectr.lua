@@ -41,6 +41,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "20.0 11.0 10.0759887695",
+				collisionvolumeoffsets = "0.0 -5.0193 1.03799438477",
 				category = "corpses",
 				damage = 344,
 				description = "Rector Wreckage",

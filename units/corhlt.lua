@@ -39,6 +39,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "47.0663604736 80.2818603516 63.6924743652",
+				collisionvolumeoffsets = "5.89052581787 0.209030175781 17.5331115723",
 				category = "corpses",
 				damage = 1485,
 				description = "Gaat Gun Wreckage",

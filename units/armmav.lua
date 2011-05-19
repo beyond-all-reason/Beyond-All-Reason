@@ -35,6 +35,9 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
+				collisionvolumetype = "Box",
+				collisionvolumescales = "50.6378936768 10.4806671143 38.4813079834",
+				collisionvolumeoffsets = "-6.69805145264 -3.04614644287 13.0918655396",
 				category = "arm_corpses",
 				damage = 696,
 				description = "Maverick Heap",
