@@ -81,7 +81,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 700,
-				wobble = 2500,
 				damage = {
 					bombers = 15,
 					commanders = 61,
