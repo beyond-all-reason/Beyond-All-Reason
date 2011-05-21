@@ -97,7 +97,6 @@ return {
 		},
 		weapondefs = {
 			exp_heavyrocket = {
-				accuracy = 300,
 				areaofeffect = 96,
 				avoidfeature = false,
 				burst = 20,
@@ -121,7 +120,6 @@ return {
 				smoketrail = true,
 				soundhit = "rockhit",
 				soundstart = "rapidrocket3",
-				sprayangle = 1200,
 				startvelocity = 200,
 				texture2 = "coresmoketrail",
 				trajectoryheight = 1,
@@ -131,7 +129,7 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 510,
-				wobble = 1800,
+				wobble = 2000,
 				damage = {
 					default = 450,
 					subs = 5,
