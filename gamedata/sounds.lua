@@ -122,6 +122,16 @@ local Sounds = {
 	   pitchmod = 0.02,
 	   maxconcurrent = 5,	   
 	  },
+	  kroggie2 = {
+     file = "sounds/kroggie2.wav",
+	   maxconcurrent = 1,	  
+	  }
+	  xplomed2 = {
+     file = "sounds/xplomed2.wav",
+     pitch = 1,
+	   pitchmod = 0.05,
+	   maxconcurrent = 4,	  
+	  }
    },
 }
 

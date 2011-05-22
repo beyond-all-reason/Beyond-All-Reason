@@ -153,7 +153,7 @@ return {
 				reloadtime = 4,
 				rgbcolor = "1 0.8 0",
 				rgbcolor2 = "0.8 0 0",
-				soundstart = "heatray1",
+				soundstart = "heatray2",
 				targetmoveerror = 0.10000000149012,
 				thickness = 5,
 				tolerance = 10000,
