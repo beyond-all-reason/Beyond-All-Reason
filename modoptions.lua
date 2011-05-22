@@ -67,6 +67,14 @@ local options={
 		section= "ba_modes",
     },
     {
+        key    = 'mo_coop',
+        name   = 'Cooperative mode',
+        desc   = 'Adds extra commanders to idsharing teams, to 1 per player',
+        type   = 'bool',
+        def    = true,
+        section= 'ba_options',
+    },
+    {
         key    = 'mo_allowfactionchange',
         name   = 'Allow Faction Change',
         desc   = 'Allows faction to be changed ingame',

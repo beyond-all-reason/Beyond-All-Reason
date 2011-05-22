@@ -82,15 +82,27 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
     end
 end
 
+local function SpawnTeamStartUnit(teamID, allyID, x, z)
+    local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
+    if x <= 0 or z <= 0 then
+        local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID)
+        x = 0.5 * (xmin + xmax)
+        z = 0.5 * (zmin + zmax)
+    end
+    spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID)
+end
+
 function gadget:GameStart()
+    
     for teamID, allyID in pairs(spawnTeams) do
-        local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
         local startX, _, startZ = spGetTeamStartPosition(teamID)
-        if startX <= 0 or startZ <= 0 then
-            local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID)
-            startX = 0.5 * (xmin + xmax)
-            startZ = 0.5 * (zmin + zmax)
+        SpawnTeamStartUnit(teamID, allyID, startX, startZ)
+    end
+    
+    if GG.coopMode then
+        for playerID, startPos in pairs(GG.coopStartPoints) do
+            local _, _, _, teamID, allyID = spGetPlayerInfo(playerID)
+            SpawnTeamStartUnit(teamID, allyID, startPos[1], startPos[3])
         end
-        spCreateUnit(startUnit, startX, spGetGroundHeight(startX, startZ), startZ, 0, teamID)
     end
 end

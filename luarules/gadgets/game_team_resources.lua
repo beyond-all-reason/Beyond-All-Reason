@@ -27,13 +27,36 @@ function gadget:Initialize()
 	local startMetal  = tonumber(modOptions.startmetal)  or 1000
 	local startEnergy = tonumber(modOptions.startenergy) or 1000
 	
-    local teamList = Spring.GetTeamList()
-    for i = 1, #teamList do
-        local teamID = teamList[i]
-        Spring.SetTeamResource(teamID, 'ms', startMetal)
-        Spring.SetTeamResource(teamID, 'm' , startMetal)
-        Spring.SetTeamResource(teamID, 'es', startEnergy)
-        Spring.SetTeamResource(teamID, 'e' , startEnergy)
+    if GG.coopMode then
+        
+        local teamPlayerCounts = {}
+        local playerList = Spring.GetPlayerList()
+        for i = 1, #playerList do
+            local playerID = playerList[i]
+            local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID)
+            if not isSpec then
+                teamPlayerCounts[teamID] = (teamPlayerCounts[teamID] or 0) + 1
+            end
+        end
+        
+        local teamList = Spring.GetTeamList()
+        for i = 1, #teamList do
+            local teamID = teamList[i]
+            local multiplier = teamPlayerCounts[teamID] or 1 -- Gaia has no players
+            Spring.SetTeamResource(teamID, 'ms', startMetal  * multiplier)
+            Spring.SetTeamResource(teamID, 'm' , startMetal  * multiplier)
+            Spring.SetTeamResource(teamID, 'es', startEnergy * multiplier)
+            Spring.SetTeamResource(teamID, 'e' , startEnergy * multiplier)
+        end
+    else
+        local teamList = Spring.GetTeamList()
+        for i = 1, #teamList do
+            local teamID = teamList[i]
+            Spring.SetTeamResource(teamID, 'ms', startMetal)
+            Spring.SetTeamResource(teamID, 'm' , startMetal)
+            Spring.SetTeamResource(teamID, 'es', startEnergy)
+            Spring.SetTeamResource(teamID, 'e' , startEnergy)
+        end
     end
 end
 
