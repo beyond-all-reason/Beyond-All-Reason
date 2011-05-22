@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		author    = 'Niobium',
 		date      = 'May 2011',
 		license   = 'GNU GPL, v2 or later',
-		layer     = -1,
+		layer     = 1,
 		enabled   = true
 	}
 end
@@ -29,7 +29,13 @@ if gadgetHandler:IsSyncedCode() then
     ----------------------------------------------------------------
     -- Synced Callins
     ----------------------------------------------------------------
-    function gadget:Initialize()
+    
+    -- Commented out Initialize due to set of GG.coopMode and layer of 1
+    -- Previously layer was -1 (and so initialize ran first), however this made the unsynced drawing code draw UNDER the green startbox
+    -- Could have a separate :GetInfo in both synced and unsynced sections, but that is asking for trouble
+    
+    --function gadget:Initialize()
+    do
         local coopHasEffect = false
         local teamHasPlayers = {}
         local playerList = Spring.GetPlayerList()
