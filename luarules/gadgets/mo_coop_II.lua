@@ -72,7 +72,25 @@ if gadgetHandler:IsSyncedCode() then
         return true
     end
     
+    local function SpawnTeamStartUnit(teamID, allyID, x, z)
+        local startUnit = Spring.GetTeamRulesParam(teamID, 'startUnit')
+        if x <= 0 or z <= 0 then
+            local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+            x = 0.5 * (xmin + xmax)
+            z = 0.5 * (zmin + zmax)
+        end
+        Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+    end
+    
     function gadget:GameFrame(n)
+        
+        if GG.coopMode then
+            for playerID, startPos in pairs(coopStartPoints) do
+                local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
+                SpawnTeamStartUnit(teamID, allyID, startPos[1], startPos[3])
+            end
+        end
+        
         gadgetHandler:RemoveGadget(self)
         SendToUnsynced('RemoveGadget') -- Remove unsynced side too
     end

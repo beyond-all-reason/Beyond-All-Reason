@@ -93,16 +93,8 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
 end
 
 function gadget:GameStart()
-    
     for teamID, allyID in pairs(spawnTeams) do
         local startX, _, startZ = spGetTeamStartPosition(teamID)
         SpawnTeamStartUnit(teamID, allyID, startX, startZ)
-    end
-    
-    if GG.coopMode then
-        for playerID, startPos in pairs(GG.coopStartPoints) do
-            local _, _, _, teamID, allyID = spGetPlayerInfo(playerID)
-            SpawnTeamStartUnit(teamID, allyID, startPos[1], startPos[3])
-        end
     end
 end
