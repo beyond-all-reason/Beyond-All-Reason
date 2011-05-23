@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 	return {
 		name      = "Mex Snap",
@@ -107,9 +106,9 @@ function widget:DrawWorld()
 	
 	gl.Color(1, 1, 0, 0.7)
 	gl.LineWidth(2.49)
-	gl.LineStipple("springdefault")
+	--gl.LineStipple("springdefault")
 		gl.Shape(GL.LINE_STRIP, {{v={bx, by, bz}}, {v=bestPos}})
-	gl.LineStipple(false)
+	--gl.LineStipple(false)
 	gl.LineWidth(1.0)
 	
 	gl.DepthTest(true)
