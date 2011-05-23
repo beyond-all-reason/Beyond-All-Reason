@@ -1,3 +1,438 @@
+7.31 --> 7.40
+
+05/23/11:
+
+11:42 Changeset [147] by beherith
+    Readded commando after change 144.
+11:36 Changeset [146] by beherith
+    Intimidator and Big Bertha gains more range from heights: …
+
+05/22/11:
+
+18:20 Changeset [145] by TheFatController
+    Improved Krogoth heatray effect / sound.
+17:47 Changeset [144] by TheFatController
+    Fixed gadgets which were removed in commit 65 - Torpedo bombers can no …
+15:50 Changeset [143] by Niobium
+    Hack fix to coop mode
+15:43 Changeset [142] by Niobium
+    Whoops. Fix function doesn't exist.
+15:35 Changeset [141] by Niobium
+    Attempt at fixing coop drawing/spawning issues.
+12:21 Changeset [140] by Niobium
+    Removed old and no longer needed coop widgets
+12:21 Changeset [139] by Niobium
+    Replaced take reminder widget with a far more efficient version. Probably …
+11:58 Changeset [138] by Niobium
+    Reimplemented coop mode. Probably works.
+
+05/21/11:
+
+14:13 Changeset [137] by Niobium
+    Remove sound.tdf as sound data is now included in lua unitdefs
+14:10 Changeset [136] by Niobium
+    Removed 180 unreferenced 3do's
+13:22 Changeset [135] by Niobium
+    Removed more featuredefs that are now included with the units
+13:02 Changeset [134] by Niobium
+    Removed feature definitions which are now in the .lua files* * Note: ~112 …
+12:44 Changeset [133] by Niobium
+    Removed wobble from weapons that shouldn't have it
+12:43 Changeset [132] by Niobium
+    Made Catapult spread more even and circular
+
+05/20/11:
+
+14:01 Changeset [131] by Niobium
+    Removed 50% damage reduction from pitbull/viper when closed
+13:08 Changeset [130] by Niobium
+    Berthas eject shell casing
+10:37 Changeset [129] by Niobium
+    Increased size of brawler LUPS effect to make them noticable
+
+05/19/11:
+
+23:07 Changeset [128] by nixtux
+    Add lups effect for armbrawl and corape and experimental effect for bladew
+16:56 WikiStart edited by beherith
+    (diff)
+14:21 Changeset [127] by beherith
+    Added custom colvols to wrecks that didnt have them (260) Removed crazy …
+
+05/18/11:
+
+15:16 Changeset [126] by Niobium
+    Removed redundant unitdefs_post.lua
+15:06 Changeset [125] by Niobium
+    Removed damage entries against removed armor classes Renamed some armor …
+14:36 Changeset [124] by Niobium
+    Removed antibomber armorclass, boosted HP on Eradicator/Chainsaw to …
+14:16 Changeset [123] by Niobium
+    Moved juno damage handling to a gadget (and removed the radar armorclass)
+13:56 Changeset [122] by Niobium
+    Removed blade flak resistance and hgunship armorclass
+13:55 Changeset [121] by Niobium
+    Armordef fixes/ship class merge
+
+05/16/11:
+
+20:50 Changeset [120] by nixtux
+    Add floating t2 flak's and adv torp launcher's to defensive range widget
+20:28 Changeset [119] by nixtux
+    Add missing waterline def , unit is now builable on water
+17:06 Changeset [118] by DeadNightWarrior
+    Some more model cleanup
+13:14 Changeset [117] by nixtux
+    Add custom collision volumes for ajuno and cjuno
+
+05/15/11:
+
+23:45 Changeset [116] by beherith
+    Reverted [86], stumpy and raider turret turn rate reverted to 90.
+23:42 Changeset [115] by beherith
+    Karganeth model optimized, weaponvelocity reduced by 50%
+23:38 Changeset [114] by nixtux
+    Add extra files i missed on chnage [113] Beautified cafus model and …
+23:37 Changeset [113] by nixtux
+    Beautified cafus model and removed unused piece 5 > 4
+23:28 Ticket #10 (defect) closed by nixtux
+    fixed: Fixed with changeset [111]
+23:28 Changeset [112] by beherith
+    Removed Commando pending a scripting fix
+23:27 Changeset [111] by nixtux
+    Update lups_shockwaves.lua to reflect changes to weapondefname changes
+
+05/14/11:
+
+18:59 Ticket #10 (defect) created by nixtux
+    luarules/gadgets/lups_shockwaves.lua
+15:20 Changeset [110] by beherith
+    Samson 1065->700 HP Slasher 1120->740 HP
+12:13 Changeset [109] by beherith
+    Heavy optimization of t1 scout planes and t1 and t2 fighters
+10:12 Changeset [108] by Niobium
+    Updated metalspot finder
+07:53 Changeset [107] by Niobium
+    Reduced EMP launcher range to that of berthas (6000->4000)
+07:32 Changeset [106] by Niobium
+    Precision bombers now quickly drop 5 bombs (to fix targeting of moving …
+
+05/13/11:
+
+19:25 Changeset [105] by DeadNightWarrior
+    Krogoth can kick small units only in sync with leg movement
+14:15 Changeset [104] by Niobium
+    Antinukes no longer stockpile
+13:48 Changeset [103] by Niobium
+    Reduced bertha/intimidator range 6200,6600 -> 4000
+13:45 Changeset [102] by Niobium
+    Made antinuke energycost/buildtime ratios closer to normal T2 ratios
+13:33 Changeset [101] by Niobium
+    Hurricane + Phoenix -> Precision bombers (Same single-target damage, …
+13:24 Changeset [100] by Niobium
+    Lowered plane cruise altitudes
+13:08 Changeset [99] by Niobium
+    Fixed napalm effects
+13:02 Changeset [98] by Niobium
+    Fixed preventdraw gadget
+12:55 Changeset [97] by Niobium
+    Reduced HLT HP 30%
+12:54 Changeset [96] by Niobium
+    Removed arm EMP bomber
+12:52 Changeset [95] by Niobium
+    Reduced fighter HP to 50
+12:36 Changeset [94] by Niobium
+    Faction change UI now middle-mouse draggable
+12:34 Changeset [93] by Niobium
+    Basic UI for new energy conversion system
+10:04 Changeset [92] by DeadNightWarrior
+    Fixed division by zero errors in 2 COBs, my fault
+
+05/12/11:
+
+13:25 Changeset [91] by Niobium
+    Added helpful widgets to mod
+13:05 Changeset [90] by Niobium
+    Implemented widget blacklisting for likely metal maker widgets (Regex: …
+11:32 Changeset [89] by DeadNightWarrior
+    Customized collision volumes Dragon Teeth and common large wrecks …
+10:59 Changeset [88] by Niobium
+    Updated various widgets
+
+05/10/11:
+
+14:23 Changeset [87] by Niobium
+    Removed energy drain from underwater T1 mexes
+11:01 Changeset [86] by DeadNightWarrior
+    Increased turret turn speed for Stumpys and Raiders 90->145 deg/s
+11:00 Changeset [85] by DeadNightWarrior
+    Beautified and/or optimized several Kbot animations.
+00:39 Ticket #9 (enhancement) created by spam@abma.de
+    make svn version public avaiable
+
+05/09/11:
+
+14:36 Changeset [84] by DeadNightWarrior
+    Customized lots of collision volumes
+
+05/08/11:
+
+08:29 Changeset [83] by Niobium
+    Krog arms are now shotguns
+05:49 Changeset [82] by Niobium
+    Added armageddon modoption (After X minutes, every unit is destroyed)
+01:29 Changeset [81] by Niobium
+    Removed storage from commanders, added base storage for teams.
+
+05/07/11:
+
+15:07 Changeset [80] by Niobium
+    Added ingame faction change. Coop mode removed (potentially temporarily)
+
+05/05/11:
+
+14:04 Ticket #7 (defect) closed by DeadNightWarrior
+    fixed
+14:03 Ticket #6 (defect) closed by DeadNightWarrior
+    fixed
+14:01 Changeset [79] by DeadNightWarrior
+    Tickets #6 and #7 resolved
+13:58 Changeset [78] by DeadNightWarrior
+    Beautified and/or optimized several Kbot animations.
+13:57 Changeset [77] by DeadNightWarrior
+    Better on/off animation for ARM M Makers (even though it's not used …
+13:56 Changeset [76] by DeadNightWarrior
+    Custom collision volumes for LRPCs, T3 Labs, Moho Geos, ARM Fusion and …
+09:57 Ticket #8 (defect) created by beherith
+    Commander ends nodraw doesnt work
+
+05/01/11:
+
+21:59 Ticket #7 (defect) created by spam@abma.de
+    modinfo.lua contains wrong version
+15:14 Changeset [75] by VeryBadSoldier
+    first attempt in integrating chili
+15:00 Ticket #6 (defect) created by Niobium
+    Core AK script broken
+14:57 Ticket #4 (defect) closed by Niobium
+    fixed
+14:57 Changeset [74] by VeryBadSoldier
+    Integrates chili also added some other essential widgets
+11:30 Changeset [73] by Niobium
+    Removed energy drain from T1 mexes.
+09:23 Changeset [72] by Niobium
+    Rewrote passive builders, more efficient, more accurate. Also applies to …
+04:55 Changeset [71] by Niobium
+    Added mass limits to T1 transports to make fatboy/sumo untransportable
+04:00 Changeset [70] by Niobium
+    Fixed out-of-map destoy gadget
+03:45 Changeset [69] by Niobium
+    DGun now able to target units (Doesn't aim ahead)
+
+04/30/11:
+
+06:34 Changeset [68] by Niobium
+    Normalized idle autoheal. 1%/second after 30 seconds. Moved terraform from …
+
+04/29/11:
+
+23:05 Changeset [67] by DeadNightWarrior
+    Some minor cleanup for a few wrecks
+00:31 Ticket #5 (defect) created by beherith
+    Sumos can be napped when moving
+
+04/28/11:
+
+13:09 Changeset [66] by Niobium
+    Removed empty armor classes and corresponding special damage instances
+12:29 Changeset [65] by Niobium
+    Removed gadgets that no longer work
+07:51 Changeset [64] by DeadNightWarrior
+    Cleaned up lots of models using 3DO Builder's "Clean up model" …
+
+04/27/11:
+
+12:27 Changeset [63] by DeadNightWarrior
+    Removed all unused TA textures and deleted all thumbs.db
+11:58 Ticket #4 (defect) created by DeadNightWarrior
+    unit_commando_watch and unit_no_land_damage gadgets broken
+
+04/25/11:
+
+14:18 Changeset [62] by Niobium
+    Moved gunships to vtol armorclass, increased gunship HP +25% to counteract …
+14:05 Changeset [61] by Niobium
+    Emptied more redundant armor classes
+11:42 Changeset [60] by Niobium
+    Fixup of r59
+11:40 Changeset [59] by Niobium
+    Moved EMP resistance to gadget
+08:24 Changeset [58] by Niobium
+    Merged subs into one armorclass (from 3)
+
+04/24/11:
+
+14:03 Changeset [57] by Niobium
+    Added 3 second flight times for guided anti-air missiles (higher than the …
+13:38 Changeset [56] by Niobium
+    Changed vulcan script so that it will constantly spin when firing
+
+04/23/11:
+
+17:39 Changeset [55] by Niobium
+    Removed 2923 unitdef tags specifying obvious default values (i.e. …
+16:57 Changeset [54] by Niobium
+    Increased all unit terraform speed 5x
+16:56 Changeset [53] by Niobium
+    Fixed unitdefs_post.lua (Used removed tags)
+16:03 Changeset [52] by Niobium
+    Removed 1222 unit and 129 explosion weapondef tags not read by spring
+15:31 Changeset [51] by Niobium
+    Removed 3867 unitdef tags not read by spring
+15:04 Changeset [50] by Niobium
+    Split explosions.lua into separate files
+14:59 Changeset [49] by Niobium
+    Simplified unit file layout to ease automation
+
+04/22/11:
+
+14:41 Changeset [48] by DeadNightWarrior
+    Better collision volumes for LLTs, HLTs, Missile Towers, Shields, HLLT, …
+
+04/18/11:
+
+16:13 Changeset [47] by DeadNightWarrior
+    Updated movedefs for Bantha, Fatboy, Sumo and Juggernaut (applied in …
+16:11 Changeset [46] by DeadNightWarrior
+    Custom collision volumes for T3 units (except Bantha)
+16:10 Changeset [45] by DeadNightWarrior
+    Better collision volumes for Toaster, Shiva and Sub Pens
+15:08 Changeset [44] by DeadNightWarrior
+    Beautified animation for CORE T1 & T2 ships. Customized collision volumes …
+
+04/17/11:
+
+22:21 Changeset [43] by beherith
+    Made the flamethrower sound a bit more ear friendly
+21:52 Ticket #3 (defect) closed by beherith
+    fixed
+21:44 Changeset [42] by beherith
+    Fixed t2 subs not being able to pass shallows they used to. Not pretty, …
+21:33 Changeset [41] by beherith
+    Made ocean look bluer
+05:42 Changeset [40] by Niobium
+    Made commanders untransportable by enemy
+
+04/16/11:
+
+07:34 Changeset [39] by Niobium
+    Reverted r38
+07:23 Changeset [38] by Nixa
+    --
+
+04/15/11:
+
+16:34 Ticket #3 (defect) created by anonymous
+    all subs minwaterdepth broken (test on therockfinal)
+15:22 Changeset [37] by Niobium
+    weapons.tdf -> *.lua. Removed duplicate definitions and 215 unused weapon …
+14:44 Changeset [36] by Niobium
+    Moved to armordefs.lua, emptied some duplicate armor classes
+13:22 Changeset [35] by Niobium
+    Replaced sidedata.tdf with sidedata.lua, stripping out buildoption info …
+
+04/14/11:
+
+08:03 Changeset [34] by DeadNightWarrior
+    Beautified animation for ARM T2 ships. Customized collision volumes as …
+
+04/12/11:
+
+19:45 Changeset [33] by DeadNightWarrior
+    Niobium asked for better ARM T1 sea animation. Also added better collision …
+18:48 Ticket #2 (defect) closed by DeadNightWarrior
+    fixed
+11:32 Changeset [32] by DeadNightWarrior
+    Beautified animation for ARM T1 ships.
+10:33 Changeset [31] by DeadNightWarrior
+    Ticket #2 resolved, solar collector's yardmap allowed units to pass when …
+10:04 Changeset [30] by Niobium
+    Fixed starting resources always being 1000 regardless of setting.
+00:09 Changeset [29] by TheFatController
+    - Added a track I made some time ago for Thud (something to think about)
+
+04/11/11:
+
+22:08 Ticket #2 (defect) created by beherith
+    r28 armsolar and corsolar yardmaps allow units to pass through closed solars
+22:03 WikiStart edited by beherith
+    (diff)
+21:42 WikiStart edited by beherith
+    (diff)
+11:23 Changeset [28] by DeadNightWarrior
+    More accurate initial collision volume for Solars and better footprint for …
+
+04/09/11:
+
+19:48 Changeset [27] by DeadNightWarrior
+    Set smoothanim = false for all non-Kbots, negligible performance …
+16:45 Changeset [26] by Niobium
+    Metal Makers replaced by gadget-controlled Energy Converters.
+03:19 Changeset [25] by Niobium
+    Reverted waterline changes to advanced torpedo launchers which made them …
+
+04/08/11:
+
+21:15 Changeset [24] by DeadNightWarrior
+    Some hax for a better dynamic collision volume for Pit Bull and Viper
+21:05 Changeset [23] by DeadNightWarrior
+    Missed the core Commander script, last commit had core A.K. instead.
+21:02 Changeset [22] by DeadNightWarrior
+    Optimized and improved animation of Commanders.
+21:01 Changeset [21] by DeadNightWarrior
+    Optimized PeeWee? 19 -> 15 pieces, improved animation (sync with unit …
+20:54 Changeset [20] by beherith
+    bladewing optimization, 5->2 pieces
+20:28 WikiStart edited by beherith
+    (diff)
+20:28 WikiStart edited by beherith
+    (diff)
+
+04/07/11:
+
+17:30 Changeset [19] by beherith
+    init_game_spawn.lua update to reflect engine no longer supporting lineage
+
+04/06/11:
+
+09:49 Changeset [18] by Niobium
+    Updated Custom Formations 2 to v3.3 (From v3.2)
+17:15 Changeset [17] by DeadNightWarrior
+    Some more optimizations, improved walking animation, now in sync with …
+14:58 Changeset [16] by VeryBadSoldier
+    small speedup for unitMarker widget
+23:16 Changeset [15] by DeadNightWarrior
+    Fixed some targeting bugs and added new dynamic collision volumes to some …
+23:14 Changeset [14] by DeadNightWarrior
+    Make targeting of units behind wrecks and DTs better.
+23:13 Changeset [13] by DeadNightWarrior
+    Part of waterline fix.
+23:12 Changeset [12] by DeadNightWarrior
+    Custom collision volumes for all factories.
+23:10 Changeset [11] by DeadNightWarrior
+    Fixed waterline tag for all ships, subs and some floating …
+23:01 Changeset [10] by DeadNightWarrior
+    Updated LUPS with GFX card detection for NVidia Quadro series.
+23:00 Changeset [9] by DeadNightWarrior
+    Replaced wake particles with nicer ones from CA/ZK
+22:58 Changeset [8] by DeadNightWarrior
+    Optimized all PNG images with OptiPNG for smaller file size, no quality …
+21:42 Changeset [7] by beherith
+    Core vamp optimized 9->4 pieces
+21:38 Changeset [6] by beherith
+    Core AK optimized, 27->12 pieces
+
+
 7.30 --> 7.31
 - Reverted Podger and Spolier stealthyness to allow stealth mine laying.
 - Reverted hitsphere gadget removal to fix large hitspheres.
