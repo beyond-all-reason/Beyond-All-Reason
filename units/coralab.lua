@@ -58,6 +58,7 @@ return {
 			[14] = "corvoyr",
 			[15] = "corspy",
 			[16] = "corspec",
+			[17] = "commando",
 		},
 		featuredefs = {
 			dead = {
