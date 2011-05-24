@@ -155,13 +155,13 @@
 		sizeMod		= 0.6;
 
 		airdrag			= 0.8;
-		particleLife		= 5;
-		particleLifeSpread	= 22;
+		particleLife		= 1;
+		particleLifeSpread	= 25;
 		numParticles		= 2;
 		particleSpeed		= 12;
 		particleSpeedSpread	= 22;
-		particleSize		= 10;
-		particleSizeSpread	= 35;
+		particleSize		= 5;
+		particleSizeSpread	= 40;
 
 		directional		= 1;
 		useAirLos		= 0;
@@ -169,7 +169,7 @@
 	air=1;
 	unit=1;
 	ground=0;
-	count=2;
+	count=1;
 	}
 	[smokey]
 	{

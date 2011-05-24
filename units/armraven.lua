@@ -130,6 +130,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 510,
 				wobble = 2000,
+				dance = 30,
 				damage = {
 					default = 450,
 					subs = 5,
