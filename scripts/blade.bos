@@ -153,16 +153,8 @@ AimFromPrimary(piecenum)
 	piecenum = body;
 }
 
-FirePrimary()
+Shot1()
 {
-	if( gun_1 == 0 )
-	{
-		sleep 150;
-	}
-	if( gun_1 == 1 )
-	{
-		sleep 150;
-	}
 	gun_1 = !gun_1;
 }
 
