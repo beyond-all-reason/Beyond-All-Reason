@@ -1,7 +1,7 @@
 
 function gadget:GetInfo()
     return {
-        name      = 'Juno Damage',
+        name      = 'Paralyse Multiplier',
         desc      = 'Handles Juno damage',
         author    = 'Niobium',
         version   = 'v1.0',
