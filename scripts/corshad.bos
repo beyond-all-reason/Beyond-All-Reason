@@ -7,6 +7,7 @@ piece  bombay, base, winga, wingb, thrusta1, thrusta2, thrustb;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
+lua_BombsAway() { return 0; }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -103,6 +104,11 @@ QueryPrimary(piecenum)
 SweetSpot(piecenum)
 {
 	piecenum = base;
+}
+
+FirePrimary()
+{
+	call-script lua_BombsAway();
 }
 
 Killed(severity, corpsetype)

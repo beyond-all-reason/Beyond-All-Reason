@@ -7,6 +7,7 @@ piece  base, jets, wing1, wing2, nose, vertjet1, vertjet2, thrust1, thrust2, thr
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
+lua_BombsAway() { return 0; }
 
 activatescr()
 {
@@ -123,6 +124,11 @@ QueryPrimary(piecenum)
 SweetSpot(piecenum)
 {
 	piecenum = base;
+}
+
+FirePrimary()
+{
+	call-script lua_BombsAway();
 }
 
 Killed(severity, corpsetype)
