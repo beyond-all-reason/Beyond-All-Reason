@@ -186,10 +186,6 @@ local UnitEffects = {
   [UnitDefNames["blade"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=28, piece="thrust1", onActive=true}},
   },
-   [UnitDefNames["bladew"].id] = {
-    {class='Ribbon', options={width=1, size=2, length=5, piece="rribbon"}},
-    {class='Ribbon', options={width=1, size=2, length=5, piece="lribbon"}},
- }, 
  [UnitDefNames["armbrawl"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=15, piece="thrust1", onActive=true}},
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=15, piece="thrust2", onActive=true}},
