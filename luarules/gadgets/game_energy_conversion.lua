@@ -105,7 +105,10 @@ end
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
     local convertCapacity = convertCapacities[uDefID]
     if convertCapacity then
-        AdjustTeamCapacity(uTeam, -convertCapacity)
+        local _, _, _, _, buildProg = spGetUnitHealth(uID)
+        if buildProg == 1 then
+            AdjustTeamCapacity(uTeam, -convertCapacity)
+        end
     end
 end
 
