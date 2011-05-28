@@ -1,9 +1,10 @@
+
 function widget:GetInfo()
 	return {
 		name      = "Mex Snap",
 		desc      = "Snaps mexes to give 100% metal",
 		author    = "Niobium",
-		version   = "v1.0",
+		version   = "v1.1",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
@@ -70,6 +71,11 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 
+local function DoLine(x1, y1, z1, x2, y2, z2)
+    gl.Vertex(x1, y1, z1)
+    gl.Vertex(x2, y2, z2)
+end
+
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
@@ -104,11 +110,9 @@ function widget:DrawWorld()
 	-- Draw !
 	gl.DepthTest(false)
 	
-	gl.Color(1, 1, 0, 0.7)
-	gl.LineWidth(2.49)
-	--gl.LineStipple("springdefault")
-		gl.Shape(GL.LINE_STRIP, {{v={bx, by, bz}}, {v=bestPos}})
-	--gl.LineStipple(false)
+	gl.LineWidth(1.49)
+    gl.Color(1, 1, 0, 0.5)
+    gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, bestPos[1], bestPos[2], bestPos[3])
 	gl.LineWidth(1.0)
 	
 	gl.DepthTest(true)
