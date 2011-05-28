@@ -1,7 +1,7 @@
 include("colors.h.lua")
 include("keysym.h.lua")
 
-local versionNumber = "6.2"
+local versionNumber = "6.3"
 
 function widget:GetInfo()
 	return {
@@ -17,6 +17,7 @@ end
 
 --[[
 changelog:
+6.3: heightboost support. missing ba floating turrets added (thx to nixa)
 6.2: speed-up by cpu culling
 6.12: bugfix (BA Ambusher working)
 6.11: added missing water units to BA (torpLauncher/FHLT/FRocketTower)
@@ -61,7 +62,7 @@ modConfig["BA"]["unitList"] =
 								
 								armbrtha = { weapons = { 1 } },
 								armvulc = { weapons = { 1 } },
-																
+								
 								--CORE
 								corexp = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
@@ -899,7 +900,7 @@ function GetRange2DWeapon( range, yDiff)
 	end
 end
 
-function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity )
+function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity, heightBoostFactor )
 	local factor = 0.7071067
 	local smoothHeight = 100.0
 	local speed2d = projectileSpeed*factor
@@ -908,24 +909,26 @@ function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity
 	if ( myGravity ~= nil and myGravity ~= 0 ) then
 		gravity = myGravity   -- i have never seen a stationary weapon using myGravity tag, so its untested :D
 	end
-	local gravity = - ( curGravity / 900 )		-- -0.13333333
+	local gravity = - ( curGravity / 900 ) -- -0.13333333
 		
 	--printDebug("rangeFactor: " .. rangeFactor)
 	--printDebug("ProjSpeed: " .. projectileSpeed)
-	local heightBoostFactor = (2.0 - rangeFactor) / sqrt(rangeFactor)
+	if ( heightBoostFactor < 0.0 ) then
+		heightBoostFactor = (2.0 - rangeFactor) / sqrt(rangeFactor)
+	end
 	
 	if ( yDiff < -smoothHeight ) then
 		yDiff = yDiff * heightBoostFactor
 	elseif ( yDiff < 0.0 ) then
-	  yDiff = yDiff * ( 1.0 + ( heightBoostFactor - 1.0 ) * ( -yDiff)/smoothHeight )
+		yDiff = yDiff * ( 1.0 + ( heightBoostFactor - 1.0 ) * ( -yDiff)/smoothHeight )
 	end
 	
 	local root1 = speed2dSq + 2 * gravity * yDiff
-	if ( root1 < 0 ) then
-		--printDebug("Cann return 0")
-		return 0
+	if ( root1 < 0.0 ) then
+		printDebug("Cann return 0")
+		return 0.0
 	else
-	--	printDebug("Cann return: " .. rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-gravity) )
+		printDebug("Cann return: " .. rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-gravity) )
 		return rangeFactor * ( speed2dSq + speed2d * sqrt( root1 ) ) / (-gravity)
 	end	
 end
@@ -939,11 +942,12 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 	local rangeFactor = 1.0 --used by range2dCannon
 	if ( weaponDef.type == "Cannon" ) then
 		rangeFunc = GetRange2DCannon
-		rangeFactor = range / GetRange2DCannon( range, 0.0, weaponDef.projectilespeed, rangeFactor )
+		rangeFactor = range / GetRange2DCannon( range, 0.0, weaponDef.projectilespeed, rangeFactor, nil, weaponDef.heightBoostFactor )
 		if ( rangeFactor > 1.0 or rangeFactor <= 0.0 ) then
 			rangeFactor = 1.0
 		end
 	end
+	
 				
 	local yGround = spGetGroundHeight( x,z)
 	for i = 1, lineConfig["circleDivs"] do
@@ -957,11 +961,10 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 		local posz = z + cosR * rad
 		local posy = spGetGroundHeight( posx, posz )
 
-		local heightDiff = ( posy - yGround) / 2.0							-- maybe y has to be getGroundHeight(x,z) cause y is unit center and not aligned to ground			
-					
+		local heightDiff = ( posy - yGround ) / 2.0							-- maybe y has to be getGroundHeight(x,z) cause y is unit center and not aligned to ground			
 					
 		rad = rad - heightDiff * slope
-		local adjRadius = rangeFunc( range, heightDiff * weaponDef.heightMod, weaponDef.projectilespeed, rangeFactor )
+		local adjRadius = rangeFunc( range, heightDiff * weaponDef.heightMod, weaponDef.projectilespeed, rangeFactor, nil, weaponDef.heightBoostFactor )
 		local adjustment = rad / 2.0
 		local yDiff = 0.0
 					
@@ -986,7 +989,7 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 			posy = max( posy, 0.0 )  --hack
 			
 			heightDiff = ( posy - yGround ) 																--maybe y has to be Ground(x,z)
-			adjRadius = rangeFunc( range, heightDiff * weaponDef.heightMod, weaponDef.projectilespeed, rangeFactor, weaponDef.myGravity )
+			adjRadius = rangeFunc( range, heightDiff * weaponDef.heightMod, weaponDef.projectilespeed, rangeFactor, weaponDef.myGravity, weaponDef.heightBoostFactor )
 		end
 					
 					
