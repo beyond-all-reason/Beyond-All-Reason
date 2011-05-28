@@ -71,10 +71,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "22.0 23.11277771 24.3265991211",
-				collisionvolumeoffsets = "0.0 -1.11450195313e-05 -6.82949829102",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -1.11450195313e-05 -6.82949829102",
+				collisionvolumescales = "22.0 23.11277771 24.3265991211",
+				collisionvolumetype = "Box",
 				damage = 540,
 				description = "Advanced Construction Kbot Wreckage",
 				energy = 0,
