@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP",
 		collide = false,
-		cruisealt = 110,
+		cruisealt = 150,
 		description = "Stealthy Armed Transport",
 		energymake = 0.60000002384186,
 		energyuse = 0.60000002384186,

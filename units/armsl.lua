@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "ALL TPORT NOTSUB VTOL NOWEAPON",
 		collide = false,
-		cruisealt = 110,
+		cruisealt = 150,
 		description = "Assault Transport",
 		energymake = 3,
 		energyuse = 16,
