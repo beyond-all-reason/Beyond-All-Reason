@@ -24,8 +24,8 @@ return {
 		footprintx = 8,
 		footprintz = 6,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3360,
 		maxslope = 15,
 		maxwaterdepth = 0,
@@ -48,7 +48,8 @@ return {
 			[6] = "armawac",
 			[7] = "armdfly",
 			[8] = "blade",
-			[9] = "armcybr",
+			[9] = "corgripn",
+			[10] = "armcybr",
 		},
 		featuredefs = {
 			dead = {

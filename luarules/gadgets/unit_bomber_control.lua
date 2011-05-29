@@ -28,6 +28,8 @@ local MoveCtrlDisable = Spring.MoveCtrl.Disable
 local GetUnitVelocity = Spring.GetUnitVelocity
 local GetGameFrame = Spring.GetGameFrame
 
+bombWait = { }
+
 function gadget:Initialize()
   gadgetHandler:RegisterGlobal("BombsAway",BombsAway)
 end
@@ -35,8 +37,8 @@ end
 function BombsAway(unitID, unitDefID, unitTeam)
   local x,y,z = GetUnitVelocity(unitID)
   MoveCtrlEnable(unitID)
-  MoveCtrlSetVelocity(unitID,x,y,z)
-  watchList[unitID] = GetGameFrame()+90
+  MoveCtrlSetVelocity(unitID,x,0,z)
+  watchList[unitID] = GetGameFrame()+(bombWait[unitDefID] or 75)
 end
 
 function gadget:GameFrame(n)

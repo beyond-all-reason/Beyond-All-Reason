@@ -14,7 +14,7 @@ end
 
 local FIRE_WEAPONS = {
   ["corhurc_coradvbomb"] = true,
-  ["armpnix_armadvbomb"] = true,
+  ["corsb_core_seaadvbomb"] = true,
   ["armraven_exp_heavyrocket"] = true,
   ["corkrog_corkrog_rocket"] = true,
 }

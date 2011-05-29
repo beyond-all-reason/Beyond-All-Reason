@@ -8,6 +8,7 @@ piece  Flare1, base, wing1, wing2, missle1, missle2, laser, jet1,
 
 static-var  Static_Var_1, gun_3;
 
+lua_BombsAway() { return 0; }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -115,6 +116,7 @@ QueryPrimary(piecenum)
 
 FirePrimary(Func_Var_1)
 {
+	call-script lua_BombsAway();
 	sleep 5;
 	move Flare1 to x-axis [-21.600000] now;
 	sleep 1000;

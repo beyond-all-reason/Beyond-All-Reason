@@ -8,6 +8,12 @@ piece  base, bombdrop, wing1, wing2, thrust, bombdrop2,
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
+lua_BombsAway() { return 0; }
+
+FirePrimary()
+{
+	call-script lua_BombsAway();
+}
 
 activatescr()
 {

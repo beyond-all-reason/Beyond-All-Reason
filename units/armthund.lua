@@ -18,8 +18,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 560,
 		maxslope = 10,
 		maxvelocity = 8.3999996185303,
@@ -56,7 +56,7 @@ return {
 		weapondefs = {
 			armbomb = {
 				accuracy = 500,
-				areaofeffect = 168,
+				areaofeffect = 144,
 				avoidfeature = false,
 				burst = 5,
 				burstrate = 0.30000001192093,

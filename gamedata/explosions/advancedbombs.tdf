@@ -26,7 +26,7 @@
 		}
 		unit=1;
 		ground=1;
-		count=3;
+		count=4;
 	}
 		
 	[pop2]
@@ -165,13 +165,13 @@
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
 			texture=lightb2;
 			airdrag=0.95;
-			particleLife=2;
-			particleLifeSpread=4;
+			particleLife=1;
+			particleLifeSpread=5;
 			numParticles=1;
-			particleSpeed=2;
-			particleSpeedSpread=0;
-			particleSize=5;
-			particleSizeSpread=15;
+			particleSpeed=1;
+			particleSpeedSpread=1;
+			particleSize=1;
+			particleSizeSpread=18;
 			directional=1;
 			emitRot=0;
 			emitRotSpread=360;

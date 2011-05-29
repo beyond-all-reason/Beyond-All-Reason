@@ -60,8 +60,9 @@ return {
 		weapondefs = {
 			arm_seaadvbomb = {
 				areaofeffect = 100,
-				burst = 7,
-				burstrate = 0.18999999761581,
+				burst = 5,
+				burstrate = 0.19,
+				manualbombsettings = true,
 				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
