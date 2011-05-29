@@ -112,7 +112,7 @@ return {
 				energypershot = 3000,
 				explosiongenerator = "custom:FLASHBIGBUILDING",
 				gravityaffected = "true",
-				heightboostfactor = 20,
+				heightboostfactor = 10,
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
