@@ -13,6 +13,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
 		cloakcost = 16,
 		corpse = "DEAD",
+		damagemodifier = 0.5,
 		description = "Pop-up Gauss Cannon",
 		energystorage = 25,
 		explodeas = "SMALL_BUILDINGEX",

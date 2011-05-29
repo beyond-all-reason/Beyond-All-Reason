@@ -13,6 +13,7 @@ return {
 		buildtime = 15035,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
 		corpse = "DEAD",
+		damagemodifier = 0.5, 
 		description = "Pop-up Sabot Battery",
 		explodeas = "MEDIUM_BUILDINGEX",
 		footprintx = 3,
