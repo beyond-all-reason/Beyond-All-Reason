@@ -117,6 +117,9 @@ else
     local glText = gl.Text
     local spGetTeamColor = Spring.GetTeamColor
     local spWorldToScreenCoords = Spring.WorldToScreenCoords
+    local spGetMyPlayerID = Spring.GetMyPlayerID
+    local spGetSpectatingState = spring.GetSpectatingState
+    local spArePlayersAllied = Spring.ArePlayersAllied
     
     ----------------------------------------------------------------
     -- Stolen funcs from from minimap_startbox.lua (And cleaned up a bit)
@@ -176,28 +179,36 @@ else
     end
     
     function gadget:DrawWorld()
+        local areSpec = spGetSpectatingState()
+        local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in spairs(SYNCED.coopStartPoints) do
-            local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
-            if sx > 0 or sz > 0 then
-                local tr, tg, tb = spGetTeamColor(playerTeams[playerID])
-                glPushMatrix()
-                    glTranslate(sx, sy, sz)
-                    glColor(tr, tg, tb, 0.5) -- Alpha would oscillate, but gadgets can't get time
-                    glCallList(coneList)
-                glPopMatrix()
+            if areSpec or spArePlayersAllied(myPlayerID, playerID) then
+                local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
+                if sx > 0 or sz > 0 then
+                    local tr, tg, tb = spGetTeamColor(playerTeams[playerID])
+                    glPushMatrix()
+                        glTranslate(sx, sy, sz)
+                        glColor(tr, tg, tb, 0.5) -- Alpha would oscillate, but gadgets can't get time
+                        glCallList(coneList)
+                    glPopMatrix()
+                end
             end
         end
     end
     
     function gadget:DrawScreenEffects()
         glBeginText()
+        local areSpec = spGetSpectatingState()
+        local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in spairs(SYNCED.coopStartPoints) do
-            local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
-            if sx > 0 or sz > 0 then
-                local scx, scy, scz = spWorldToScreenCoords(sx, sy + 120, sz)
-                if scz < 1 then
-                    local colorStr, outlineStr = GetTeamColorStr(playerTeams[playerID])
-                    glText(colorStr .. playerNames[playerID], scx, scy, 18, 'cs')
+            if areSpec or spArePlayersAllied(myPlayerID, playerID) then
+                local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
+                if sx > 0 or sz > 0 then
+                    local scx, scy, scz = spWorldToScreenCoords(sx, sy + 120, sz)
+                    if scz < 1 then
+                        local colorStr, outlineStr = GetTeamColorStr(playerTeams[playerID])
+                        glText(colorStr .. playerNames[playerID], scx, scy, 18, 'cs')
+                    end
                 end
             end
         end
