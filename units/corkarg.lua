@@ -112,7 +112,6 @@ return {
 				damage = {
 					bombers = 150,
 					default = 120,
-					fighters = 150,
 					subs = 5,
 					vtol = 150,
 				},
@@ -152,7 +151,6 @@ return {
 				damage = {
 					bombers = 150,
 					default = 120,
-					fighters = 150,
 					subs = 5,
 					vtol = 150,
 				},
@@ -188,7 +186,6 @@ return {
 				damage = {
 					bombers = 150,
 					default = 120,
-					fighters = 150,
 					subs = 5,
 					vtol = 150,
 				},
