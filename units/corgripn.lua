@@ -71,6 +71,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				model = "bomb",
+				mygravity = 0.4,
 				name = "EMPbomb",
 				noselfdamage = true,
 				paralyzer = true,
