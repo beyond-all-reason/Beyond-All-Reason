@@ -90,6 +90,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
+				mygravity = 0.01,
 				name = "FlakCannon",
 				noselfdamage = true,
 				predictboost = 1,
