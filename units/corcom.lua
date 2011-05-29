@@ -53,7 +53,6 @@ return {
 		smoothanim = true,
 		sonardistance = 300,
 		terraformspeed = 1500,
-		transportbyenemy = false,
 		turnrate = 1133,
 		upright = true,
 		workertime = 300,

@@ -50,7 +50,6 @@ return {
 		sightdistance = 377,
 		smoothanim = true,
 		terraformspeed = 750,
-		transportbyenemy = false,
 		turnrate = 1148,
 		upright = true,
 		workertime = 150,

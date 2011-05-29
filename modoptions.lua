@@ -130,6 +130,19 @@ local options={
 		def    = false,
 		section= "ba_options",
     },
+    {
+		key="mo_transportenemy",
+		name="Enemy Transporting",
+		desc="Toggle which enemy units you can kidnap with an air transport",
+		type="list",
+		def="com",
+		section="ba_options",
+		items={
+      {key="none", name="Allow All", desc="All enemy units can be napped"},
+			{key="com", name="All But Commanders", desc="Only commanders are immune to napping"},
+			{key="all", name="Disallow All", desc="No enemy units can be napped"},
+		}
+	},
 	{
        key    = "startmetal",
        name   = "Starting metal",
