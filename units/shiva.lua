@@ -17,7 +17,7 @@ return {
 		explodeas = "MECH_BLASTSML",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5 ,
+		idleautoheal = 15 ,
 		idletime = 1800 ,
 		mass = 200000,
 		maxdamage = 8500,

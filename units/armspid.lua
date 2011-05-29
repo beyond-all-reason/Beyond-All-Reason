@@ -16,7 +16,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idletime = 600 ,
 		maxdamage = 750,
 		maxvelocity = 2.6500000953674,
 		maxwaterdepth = 16,

@@ -24,7 +24,7 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		icontype = "sea",
-		idleautoheal = 5 ,
+		idleautoheal = 25 ,
 		idletime = 1800 ,
 		maxdamage = 77500,
 		maxvelocity = 1.960000038147,
