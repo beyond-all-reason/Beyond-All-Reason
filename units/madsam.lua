@@ -99,8 +99,6 @@ return {
 				areaofeffect = 16,
 				burnblow = true,
 				projectiles = 2,
-				burst = 2,
-				burstrate = 0.1,
 				canattackground = false,
 				craterboost = 0,
 				cratermult = 0,
@@ -131,7 +129,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
 				damage = {
-					default = 38,
+					default = 76,
 					subs = 5,
 				},
 			},
