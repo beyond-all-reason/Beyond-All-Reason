@@ -31,7 +31,7 @@ local convertCapacities = { -- Given as per-frame values, with 32 frames in a se
         [UnitDefNames.armmakr.id]  = 1.875, [UnitDefNames.cormakr.id]  = 1.875,
         [UnitDefNames.armfmkr.id]  = 2.0625, [UnitDefNames.corfmkr.id]  = 2.0625,
         [UnitDefNames.armmmkr.id]  = 22.5, [UnitDefNames.cormmkr.id]  = 22.5,
-        [UnitDefNames.armuwmmm.id] = 2.4375, [UnitDefNames.coruwmmm.id] = 2.4375,
+        [UnitDefNames.armuwmmm.id] = 24.375, [UnitDefNames.coruwmmm.id] = 24.375,
     }
 
 ----------------------------------------------------------------
