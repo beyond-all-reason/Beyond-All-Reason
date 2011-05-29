@@ -26,7 +26,7 @@ local alterLevelRegex = '^' .. string.char(137) .. '(%d+)$'
 local mmLevelParamName = 'mmLevel'
 local mmCapacityParamName = 'mmCapacity'
 local mmUseParamName = 'mmUse'
-local convertEfficiency = 0.02 -- 50:1
+local convertEfficiency = 0.01666666 -- 60:1
 local convertCapacities = { -- Given as per-frame values, with 32 frames in a second.
         [UnitDefNames.armmakr.id]  = 1.875, [UnitDefNames.cormakr.id]  = 1.875,
         [UnitDefNames.armfmkr.id]  = 2.0625, [UnitDefNames.corfmkr.id]  = 2.0625,
