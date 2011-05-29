@@ -35,20 +35,20 @@ function gadget:Initialize()
 end
 
 function BombsAway(unitID, unitDefID, unitTeam)
-  local x,y,z = GetUnitVelocity(unitID)
-  MoveCtrlEnable(unitID)
-  MoveCtrlSetVelocity(unitID,x,0,z)
-  watchList[unitID] = GetGameFrame()+(bombWait[unitDefID] or 75)
+--  local x,y,z = GetUnitVelocity(unitID)
+--  MoveCtrlEnable(unitID)
+--  MoveCtrlSetVelocity(unitID,x,0,z)
+--  watchList[unitID] = GetGameFrame()+(bombWait[unitDefID] or 75)
 end
 
-function gadget:GameFrame(n)
-  for unitID,t in pairs(watchList) do
-    if (n > t) then
-      watchList[unitID] = nil
-      MoveCtrlDisable(unitID)
-    end
-  end
-end
+--function gadget:GameFrame(n)
+--  for unitID,t in pairs(watchList) do
+--    if (n > t) then
+--     watchList[unitID] = nil
+--      MoveCtrlDisable(unitID)
+--    end
+--  end
+--end
 
 
 --------------------------------------------------------------------------------
