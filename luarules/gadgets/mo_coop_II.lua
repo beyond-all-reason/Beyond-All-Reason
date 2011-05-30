@@ -118,7 +118,7 @@ else
     local spGetTeamColor = Spring.GetTeamColor
     local spWorldToScreenCoords = Spring.WorldToScreenCoords
     local spGetMyPlayerID = Spring.GetMyPlayerID
-    local spGetSpectatingState = spring.GetSpectatingState
+    local spGetSpectatingState = Spring.GetSpectatingState
     local spArePlayersAllied = Spring.ArePlayersAllied
     
     ----------------------------------------------------------------
