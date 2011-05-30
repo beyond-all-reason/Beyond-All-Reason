@@ -105,7 +105,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
-				flighttime = 2.2999999523163,
+				flighttime = 2.35,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				model = "torpedo",
