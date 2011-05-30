@@ -126,7 +126,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				onlytargetcategory = "NOTAIR",
 				def = "CORE_TERMITE_LASER",
 			},
 		},
