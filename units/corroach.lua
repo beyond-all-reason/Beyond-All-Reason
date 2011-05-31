@@ -9,7 +9,7 @@ return {
 		buildtime = 7899,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
-		description = "Crawling Bomb",
+		description = "Amphibious Crawling Bomb",
 		energymake = 0.10000000149012,
 		energyuse = 0.10000000149012,
 		explodeas = "CRAWL_BLASTSML",

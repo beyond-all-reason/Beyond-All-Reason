@@ -11,7 +11,7 @@ return {
 		category = "KBOT MOBILE WEAPON ALL KAMIKAZE NOTSUB NOTSHIP NOTAIR",
 		cloakcost = 150,
 		cloakcostmoving = 400,
-		description = "Advanced Crawling Bomb",
+		description = "Advanced Amphibious Crawling Bomb",
 		energymake = 0.20000000298023,
 		energyuse = 0.20000000298023,
 		explodeas = "CRAWL_BLAST",
