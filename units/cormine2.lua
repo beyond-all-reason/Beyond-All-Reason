@@ -25,6 +25,7 @@ return {
 		idleautoheal = 10 ,
 		idletime = 300 ,
 		initcloaked = true,
+		levelground = false,
 		maxdamage = 10,
 		maxslope = 40,
 		maxwaterdepth = 0,
