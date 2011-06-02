@@ -5,8 +5,7 @@
 
 piece  base, sphere;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
+#define WHAT_DO 1024
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -35,50 +34,39 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-RequestState(requestedstate, currentstate)
+static-var  mmState;
+ImAMetalMaker()
 {
-	if( statechg_StateChanging )
+	while( get BUILD_PERCENT_LEFT )
 	{
-		statechg_DesiredState = requestedstate;
-		return (0);
+		sleep 150;
 	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
+	mmState = -1;
+	while( TRUE )
 	{
-		if( statechg_DesiredState )
+		if ((get WHAT_DO) == 1)
 		{
-			cache sphere;
-			currentstate = 1;
+			if (mmState != 1) {
+				move sphere to y-axis [1.600000] speed [1.600000];
+				mmState = 1;
+			}
 		}
 		else
 		{
-			dont-cache sphere;
-			currentstate = 0;
+			if (mmState != 0) {
+				move sphere to y-axis [0.000000] speed [1.600000];
+				mmState = 0;
+			}
 		}
+		sleep 1000;
 	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
 {
 	dont-shade sphere;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
-}
-
-Activate()
-{
-	move sphere to y-axis [1.600000] speed [1.600000];
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	move sphere to y-axis [0.000000] speed [1.600000];
-	start-script RequestState(1);
+	start-script ImAMetalMaker();
 }
 
 SweetSpot(piecenum)

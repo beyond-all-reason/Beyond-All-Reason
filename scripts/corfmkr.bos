@@ -5,9 +5,8 @@
 
 piece  base, float1, float2, float3, float4, float5, float6, door1,
        door2, door3, door4, glow;
-
-static-var  statechg_DesiredState, statechg_StateChanging;
-
+       
+#define WHAT_DO 1024
 
 activatescr()
 {
@@ -124,30 +123,32 @@ Stop()
 	set ARMORED to 1;
 }
 
-RequestState(requestedstate, currentstate)
+static-var  mmState;
+ImAMetalMaker()
 {
-	if( statechg_StateChanging )
+	while( get BUILD_PERCENT_LEFT )
 	{
-		statechg_DesiredState = requestedstate;
-		return (0);
+		sleep 150;
 	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
+	mmState = -1;
+	while( TRUE )
 	{
-		if( statechg_DesiredState )
+		if ((get WHAT_DO) == 1)
 		{
-			call-script Stop();
-			currentstate = 1;
+			if (mmState != 1) {
+				call-script Go();
+				mmState = 1;
+			}
 		}
 		else
 		{
-			call-script Go();
-			currentstate = 0;
+			if (mmState != 0) {
+				call-script Stop();
+				mmState = 0;
+			}
 		}
+		sleep 1000;
 	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
@@ -176,19 +177,8 @@ Create()
 	dont-cache float6;
 	dont-cache glow;
 	dont-shade glow;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
-}
-
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
+	start-script ImAMetalMaker();
 }
 
 SweetSpot(piecenum)
