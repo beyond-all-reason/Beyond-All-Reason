@@ -29,6 +29,7 @@ return {
 		seismicsignature = 0,
 		sightdistance = 540,
 		stealth = true,
+		waterline = 5,
 		yardmap = "o",
 		featuredefs = {
 			cdragonseyes_dead = {

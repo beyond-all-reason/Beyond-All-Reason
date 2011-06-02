@@ -29,6 +29,7 @@ return {
 		seismicsignature = 0,
 		sightdistance = 560,
 		stealth = true,
+		waterline = 5,
 		yardmap = "o",
 		featuredefs = {
 			dragonseyes_dead = {
