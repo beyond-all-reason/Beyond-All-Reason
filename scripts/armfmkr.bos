@@ -1,0 +1,139 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, dome;
+
+#define WHAT_DO 1024
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn dome to x-axis <0.000000> now;
+		turn dome to x-axis <180.285714> speed <112.467033>;
+		sleep 1603;
+	}
+	sleep 73;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn dome to x-axis <180.285714> now;
+		turn dome to x-axis <0.000000> speed <112.467033>;
+		sleep 1603;
+	}
+	sleep 73;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Go()
+{
+	start-script activatescr();
+	dont-cache dome;
+}
+
+Stop()
+{
+	call-script deactivatescr();
+	cache dome;
+}
+
+static-var  mmState;
+ImAMetalMaker()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 150;
+	}
+	mmState = -1;
+	while( TRUE )
+	{
+		if ((get WHAT_DO) == 1)
+		{
+			if (mmState != 1) {
+				call-script Go();
+				mmState = 1;
+			}
+		}
+		else
+		{
+			if (mmState != 0) {
+				call-script Stop();
+				mmState = 0;
+			}
+		}
+		sleep 1000;
+	}
+}
+
+Create()
+{
+	dont-cache dome;
+	dont-shade dome;
+	start-script SmokeUnit();
+	start-script ImAMetalMaker();
+}
+
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dome type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dome type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode dome type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode dome type BITMAPONLY | BITMAP2;
+}
