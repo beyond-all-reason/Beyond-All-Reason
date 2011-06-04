@@ -3,78 +3,69 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-#define SIG_BUILD		4	
-
-piece  base, beam, door1, door2, stand, gun, turret;
+piece  base, beam, door1, door2, plate, wake1, wake2, post,
+       gun;
 
 static-var  notBuilding, statechg_DesiredState, statechg_StateChanging;
 
+// Signal definitions
+#define SIG_MOVE		2
+#define SIG_BUILD		4	
 
 activatescr()
 {
 	turn door1 to z-axis <0.000000> now;
-	turn door1 to z-axis <-95.010989> speed <190.791209>;
+	turn door1 to z-axis <-67.428571> speed <108.582418>;
 	turn door2 to z-axis <0.000000> now;
-	turn door2 to z-axis <95.010989> speed <190.791209>;
-	sleep 498;
+	turn door2 to z-axis <67.428571> speed <108.582418>;
+	sleep 621;
 
-	turn door1 to z-axis <-191.598901> speed <193.939560>;
-	turn door2 to z-axis <192.813187> speed <196.384615>;
-	sleep 498;
+	move door1 to y-axis [-3.149994] speed [5.023920];
+	move door2 to y-axis [-3.100000] speed [4.944177];
+	sleep 627;
 
-	move stand to y-axis [3.050000] speed [5.249567];
-	move gun to y-axis [0.700000] speed [1.204816];
-	sleep 581;
+	move plate to y-axis [5.650000] speed [8.996814];
+	sleep 628;
 }
 
 deactivatescr()
 {
 	set INBUILDSTANCE to 0;
-	turn turret to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn turret around y-axis;
+	turn post to y-axis <0.000000> speed <160.038462>;
+	wait-for-turn post around y-axis;
 
-	move stand to y-axis [3.050000] now;
-	move stand to y-axis [0.000000] speed [5.222601];
-	move gun to y-axis [0.700000] now;
-	move gun to y-axis [0.000000] speed [1.198627];
-	turn door1 to z-axis <-191.598901> now;
-	turn door2 to z-axis <192.813187> now;
-	sleep 584;
+	move plate to y-axis [5.650000] now;
+	move plate to y-axis [0.000000] speed [9.098230];
+	move door1 to y-axis [-3.149994] now;
+	move door2 to y-axis [-3.100000] now;
+	turn door1 to z-axis <-67.428571> now;
+	turn door2 to z-axis <67.428571> now;
+	sleep 621;
 
-	turn door1 to z-axis <-95.604396> speed <192.752747>;
-	turn door2 to z-axis <95.851648> speed <194.708791>;
-	sleep 498;
+	move door1 to y-axis [0.000000] speed [5.023920];
+	move door2 to y-axis [0.000000] speed [4.944177];
+	sleep 627;
 
-	turn door1 to z-axis <0.000000> speed <191.983516>;
-	turn door2 to z-axis <0.000000> speed <192.472527>;
-	sleep 498;
+	turn door1 to z-axis <0.000000> speed <107.373626>;
+	turn door2 to z-axis <0.000000> speed <107.373626>;
+	sleep 628;
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+StartMoving()
 {
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
+		emit-sfx 259 from wake1;
+		emit-sfx 259 from wake2;
+		sleep 250;
 	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
 }
 
 RequestState(requestedstate, currentstate)
@@ -110,7 +101,6 @@ Create()
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
-	start-script SmokeUnit();
 }
 
 Activate()
@@ -128,8 +118,8 @@ StartBuilding(heading, pitch)
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
-	turn turret to y-axis heading speed <160.038462>;
-	wait-for-turn turret around y-axis;
+	turn post to y-axis heading speed <160.038462>;
+	wait-for-turn post around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
@@ -170,8 +160,10 @@ Killed(severity, corpsetype)
 		explode door1 type BITMAPONLY | BITMAP3;
 		explode door2 type BITMAPONLY | BITMAP4;
 		explode gun type BITMAPONLY | BITMAP5;
-		explode stand type BITMAPONLY | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP2;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type BITMAPONLY | BITMAP2;
+		explode wake1 type BITMAPONLY | BITMAP3;
+		explode wake2 type BITMAPONLY | BITMAP4;
 		return (0);
 	}
 	if( severity <= 50 )
@@ -182,28 +174,34 @@ Killed(severity, corpsetype)
 		explode door1 type BITMAPONLY | BITMAP3;
 		explode door2 type BITMAPONLY | BITMAP4;
 		explode gun type SHATTER | BITMAP5;
-		explode stand type FALL | BITMAP1;
-		explode turret type FALL | BITMAP2;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type FALL | BITMAP2;
+		explode wake1 type FALL | BITMAP3;
+		explode wake2 type FALL | BITMAP4;
 		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
-		explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 		explode door1 type BITMAPONLY | BITMAP3;
 		explode door2 type BITMAPONLY | BITMAP4;
 		explode gun type SHATTER | BITMAP5;
-		explode stand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
-	explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 	explode door1 type BITMAPONLY | BITMAP3;
 	explode door2 type BITMAPONLY | BITMAP4;
 	explode gun type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-	explode stand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode plate type BITMAPONLY | BITMAP1;
+	explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 }

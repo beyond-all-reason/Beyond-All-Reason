@@ -3,11 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+#define SIG_BUILD		4	
+
 piece  nanospray, turret, rfoot, lfoot, pelvis, lflap, rflap, guncover,
        nozzle, arms, nanobody2, ground;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, statechg_DesiredState,
-            statechg_StateChanging, moveSpeed, currentSpeed;
+static-var  bMoving, statechg_DesiredState, statechg_StateChanging,
+			notBuilding, moveSpeed, currentSpeed;
 
 
 walk()
@@ -358,43 +360,34 @@ walklegs()
 	sleep 4700 / currentSpeed;
 }
 
-stand()
-{
-	move rfoot to y-axis [0.000000] now;
-	move lfoot to y-axis [0.000000] now;
-	sleep 200;
-}
-
 MotionControl(Func_Var_1, Func_Var_2)
 {
 	while( TRUE )
 	{
 		Func_Var_1 = bMoving;
-		Func_Var_2 = Static_Var_3;
+		Func_Var_2 = notBuilding;
 		if( Func_Var_1 )
 		{
 			if( Func_Var_2 )
 			{
-				Static_Var_4 = 1;
-				call-script walklegs();
+				call-script walk();
 			}
 			else
 			{
-				Static_Var_4 = 0;
-				call-script walk();
+				call-script walklegs();
 			}
 		}
 		else
 		{
-			Static_Var_4 = 1;
-			call-script stand();
+			move rfoot to y-axis [0.000000] now;
+			move lfoot to y-axis [0.000000] now;
+			sleep 200;
 		}
 	}
 }
 
 Go()
 {
-	Static_Var_3 = 1;
 	turn lflap to z-axis <0.000000> now;
 	turn lflap to z-axis <97.016484> speed <350.000000>;
 	turn rflap to z-axis <0.000000> now;
@@ -419,10 +412,6 @@ Go()
 	turn arms to x-axis <90.016484> speed <0.000000>;
 	turn nanobody2 to x-axis <-90.016484> speed <0.000000>;
 	sleep 100;
-
-	turn turret to y-axis Static_Var_1 speed <300.000000>;
-	wait-for-turn turret around y-axis;
-	set INBUILDSTANCE to 1;
 }
 
 Stop()
@@ -462,8 +451,6 @@ Stop()
 	turn lflap to z-axis <0.000000> speed <350.000000>;
 	turn rflap to z-axis <0.000000> speed <350.000000>;
 	sleep 50;
-
-	Static_Var_3 = 0;
 }
 
 RequestState(requestedstate, currentstate)
@@ -481,11 +468,13 @@ RequestState(requestedstate, currentstate)
 		if( statechg_DesiredState )
 		{
 			call-script Stop();
+			notBuilding = 1;
 			currentstate = 1;
 		}
 		else
 		{
 			call-script Go();
+			notBuilding = 0;
 			currentstate = 0;
 		}
 	}
@@ -534,9 +523,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	bMoving = FALSE;
-	Static_Var_3 = 0;
-	Static_Var_4 = 1;
-	Static_Var_1 = 0;
+	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;
@@ -554,14 +541,23 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading, pitch)
 {
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn turret to y-axis heading speed <300.000000>;
+	wait-for-turn turret around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
 	start-script RequestState(1);
 }
 
@@ -580,10 +576,12 @@ QueryNanoPiece(piecenum)
 	piecenum = nanospray;
 }
 
+/*
 TargetHeading(Func_Var_1)
 {
 	Static_Var_1 = 0 - Func_Var_1;
 }
+*/
 
 SweetSpot(piecenum)
 {

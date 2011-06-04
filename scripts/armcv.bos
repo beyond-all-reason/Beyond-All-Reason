@@ -7,27 +7,27 @@
 
 piece  base, beam, door1, door2, plate, arm, nano, turret;
 
-static-var  notBuilding, statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging, notBuilding;
 
 
 activatescr()
 {
 	turn door1 to z-axis <0.000000> now;
-	turn door1 to z-axis <-70.664835> speed <182.131868>;
+	turn door1 to z-axis <-70.659341> speed <182.126374>;
 	turn door2 to z-axis <0.000000> now;
-	turn door2 to z-axis <70.664835> speed <182.131868>;
-	sleep 388;
+	turn door2 to z-axis <70.659341> speed <182.126374>;
+	sleep 40;
 
 	move door1 to y-axis [-2.350000] speed [6.041132];
 	move door2 to y-axis [-2.250000] speed [5.784058];
-	sleep 389;
+	sleep 40;
 
 	move plate to y-axis [4.450000] speed [11.439600];
-	sleep 389;
+	sleep 40;
 
-	turn arm to x-axis <90.021978> speed <230.824176>;
-	turn nano to x-axis <-66.164835> speed <169.653846>;
-	sleep 390;
+	turn arm to x-axis <90.016484> speed <230.824176>;
+	turn nano to x-axis <-66.159341> speed <169.648352>;
+	sleep 40;
 }
 
 deactivatescr()
@@ -39,24 +39,24 @@ deactivatescr()
 	move plate to y-axis [4.450000] now;
 	move door1 to y-axis [-2.350000] now;
 	move door2 to y-axis [-2.250000] now;
-	turn door1 to z-axis <-70.664835> now;
-	turn door2 to z-axis <70.664835> now;
-	turn arm to x-axis <90.021978> now;
-	turn arm to x-axis <0.000000> speed <232.010989>;
-	turn nano to x-axis <-66.164835> now;
+	turn door1 to z-axis <-70.659341> now;
+	turn door2 to z-axis <70.659341> now;
+	turn arm to x-axis <90.016484> now;
+	turn arm to x-axis <0.000000> speed <232.005495>;
+	turn nano to x-axis <-66.159341> now;
 	turn nano to x-axis <0.000000> speed <170.527473>;
-	sleep 388;
+	sleep 40;
 
 	move plate to y-axis [0.000000] speed [11.439600];
-	sleep 389;
+	sleep 40;
 
 	move door1 to y-axis [0.000000] speed [6.041132];
 	move door2 to y-axis [0.000000] speed [5.784058];
-	sleep 389;
+	sleep 40;
 
-	turn door1 to z-axis <0.000000> speed <181.197802>;
-	turn door2 to z-axis <0.000000> speed <181.197802>;
-	sleep 390;
+	turn door1 to z-axis <0.000000> speed <181.192308>;
+	turn door2 to z-axis <0.000000> speed <181.192308>;
+	sleep 40;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)

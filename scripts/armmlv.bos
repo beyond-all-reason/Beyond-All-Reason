@@ -3,11 +3,11 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, Door1, Turret, Gun, Door2, Stand, wheel1,
-       wheel2, launcher, flare;
+piece  base, beam, launcher, flare, plate, gun, tire1, tire2,
+       tire3, tire4, post;
 
 static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading, notBuilding;
+			oldHeading;
 
 #define SIG_MOVE	2
 #define SIG_BUILD	4
@@ -20,12 +20,14 @@ Steering(heading, steer, currentSpeed)
 	{
 		heading = get HEADING;
 		steer = (heading - oldheading)*3;
-		turn wheel1 to y-axis steer speed <180>;	
-		turn wheel2 to y-axis steer speed <180>;	
-		currentSpeed = <4.6> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
+		turn tire1 to y-axis steer speed <180>;	
+		turn tire2 to y-axis steer speed <180>;	
+		currentSpeed = <3.92> *((get CURRENT_SPEED) * 100 / get MAX_SPEED);
 		if (currentSpeed < <100>) currentSpeed = <100>;
-		spin wheel1 around x-axis speed currentSpeed;
-		spin wheel2 around x-axis speed currentSpeed;
+		spin tire1 around x-axis speed currentSpeed;
+		spin tire2 around x-axis speed currentSpeed;
+		spin tire3 around x-axis speed currentSpeed;
+		spin tire4 around x-axis speed currentSpeed;
 		sleep 66;
 		oldheading = heading;
 	}
@@ -37,7 +39,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -62,12 +63,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 /*
 Go()
 {
-	return (0);
 }
 
 Stop()
 {
-	return (0);
 }
 
 RequestState(requestedstate, currentstate)
@@ -108,6 +107,15 @@ Create()
 	start-script SmokeUnit();
 }
 
+DetonateMines()
+{
+	while( TRUE )
+	{
+		sleep 500;
+		emit-sfx 4096 from flare;
+	}
+}
+
 /*
 Activate()
 {
@@ -123,8 +131,8 @@ Deactivate()
 StartBuilding(heading, pitch)
 {
 	signal SIG_BUILD;
-	turn Gun to y-axis heading speed <160.>;
-	wait-for-turn Gun around y-axis;
+	turn gun to y-axis heading speed <160.000000>;
+	wait-for-turn gun around y-axis;
 	set INBUILDSTANCE to 1;
 }
 
@@ -136,8 +144,8 @@ StopBuilding()
 	set-signal-mask 0;
 	signal SIG_BUILD;	
 	set INBUILDSTANCE to 0;
-	turn Gun to y-axis <0.> speed <160.>;
-	wait-for-turn Gun around y-axis;
+	turn gun to y-axis <0.000000> speed <160.000000>;
+	wait-for-turn gun around y-axis;
 }
 
 StartMoving()
@@ -148,8 +156,10 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
-	stop-spin wheel1 around x-axis;
-	stop-spin wheel2 around x-axis;
+	stop-spin tire1 around x-axis;
+	stop-spin tire2 around x-axis;
+	stop-spin tire3 around x-axis;
+	stop-spin tire4 around x-axis;
 }
 
 QueryNanoPiece(piecenum)
@@ -228,56 +238,55 @@ Killed(severity, corpsetype)
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
 		explode beam type BITMAPONLY | BITMAP2;
-		explode Door1 type BITMAPONLY | BITMAP3;
 		explode launcher type BITMAPONLY | BITMAP3;
-		explode Door2 type BITMAPONLY | BITMAP4;
-		explode Gun type BITMAPONLY | BITMAP5;
-		explode Stand type BITMAPONLY | BITMAP1;
-		explode Turret type BITMAPONLY | BITMAP2;
-		explode wheel1 type BITMAPONLY | BITMAP3;
-		explode wheel2 type BITMAPONLY | BITMAP4;
+		explode gun type BITMAPONLY | BITMAP5;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type BITMAPONLY | BITMAP2;
+		explode tire1 type BITMAPONLY | BITMAP3;
+		explode tire2 type BITMAPONLY | BITMAP4;
+		explode tire3 type BITMAPONLY | BITMAP5;
+		explode tire4 type BITMAPONLY | BITMAP1;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
-		explode beam type BITMAPONLY | BITMAP2;
-		explode Door1 type FALL | BITMAP3;
-		explode launcher type FALL | BITMAP3;
-		explode Door2 type FALL | BITMAP4;
-		explode Gun type SHATTER | BITMAP5;
-		explode Stand type FALL | BITMAP1;
-		explode Turret type FALL | BITMAP2;
-		explode wheel1 type FALL | BITMAP3;
-		explode wheel2 type FALL | BITMAP4;
+		explode beam type FALL | BITMAP2;
+		explode launcher type BITMAPONLY | BITMAP3;
+		explode gun type SHATTER | BITMAP5;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type FALL | BITMAP2;
+		explode tire1 type FALL | BITMAP3;
+		explode tire2 type FALL | BITMAP4;
+		explode tire3 type FALL | BITMAP5;
+		explode tire4 type FALL | BITMAP1;
 		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
-		explode beam type BITMAPONLY | BITMAP2;
-		explode Door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode Door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode Gun type SHATTER | BITMAP5;
-		explode Stand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode Turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode wheel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode wheel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode launcher type BITMAPONLY | BITMAP3;
+		explode gun type SHATTER | BITMAP5;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode tire1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode tire2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode tire3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode tire4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
 		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
-	explode beam type BITMAPONLY | BITMAP2;
-	explode Door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode Door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode Gun type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-	explode Stand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode Turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode wheel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode wheel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	return (0);
+	explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode launcher type BITMAPONLY | BITMAP3;
+	explode gun type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode plate type BITMAPONLY | BITMAP1;
+	explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode tire1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode tire2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode tire3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode tire4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
 }

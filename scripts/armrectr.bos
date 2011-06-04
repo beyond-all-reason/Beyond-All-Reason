@@ -3,12 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+#define SIG_BUILD		4	
+
 piece  llathe, rlathe, torso, hips, Lleg, Rleg, Rfoot, Lfoot,
        Lshoulder, Rshoulder, head, Rarm, Larm, llathepoint, rlathepoint, shield1,
        shield2, shield3, shield4;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, spray,
-            statechg_DesiredState, statechg_StateChanging, building;
+static-var  bMoving, spray, statechg_DesiredState, statechg_StateChanging, notBuilding;
 
 
 walk()
@@ -539,24 +540,21 @@ MotionControl(moving, aiming, justmoved)
 	while( TRUE )
 	{
 		moving = bMoving;
-		aiming = Static_Var_3;
+		aiming = notBuilding;
 		if( moving )
 		{
 			if( aiming )
 			{
-				Static_Var_4 = 1;
-				call-script walklegs();
+				call-script walk();
 			}
 			else
 			{
-				Static_Var_4 = 0;
-				call-script walk();
+				call-script walklegs();
 			}
 			justmoved = TRUE;
 		}
 		else
 		{
-			Static_Var_4 = 1;
 			if( justmoved )
 			{
 				move hips to y-axis [0.000000] speed [3.000000];
@@ -580,8 +578,6 @@ MotionControl(moving, aiming, justmoved)
 
 Go()
 {
-	Static_Var_3 = 1;
-
 	turn Lshoulder to x-axis <0.000000> now;
 	turn Lshoulder to x-axis <-10.000000> speed <59.000000>;
 	turn Rshoulder to x-axis <0.000000> now;
@@ -608,10 +604,6 @@ Go()
 	turn Rarm to z-axis <20.000000> speed <58.000000>;
 	turn Larm to z-axis <-20.000000> speed <58.000000>;
 	sleep 90;
-
-	turn torso to y-axis Static_Var_1 speed <240.000000>;
-	wait-for-turn torso around y-axis;
-	set INBUILDSTANCE to 1;
 }
 
 Stop()
@@ -651,8 +643,6 @@ Stop()
 	turn Rarm to x-axis <0.000000> speed <111.000000>;
 	turn Larm to x-axis <0.000000> speed <111.000000>;
 	sleep 200;
-
-	Static_Var_3 = 0;
 }
 
 RequestState(requestedstate, currentstate)
@@ -670,11 +660,13 @@ RequestState(requestedstate, currentstate)
 		if( statechg_DesiredState )
 		{
 			call-script Stop();
+			notBuilding = 1;
 			currentstate = 1;
 		}
 		else
 		{
 			call-script Go();
+			notBuilding = 0;
 			currentstate = 0;
 		}
 	}
@@ -712,31 +704,31 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	bMoving = FALSE;
-	Static_Var_3 = 0;
-	Static_Var_4 = 1;
+	notBuilding = 1;
 	spray = llathe;
-	Static_Var_1 = 0;
-	building = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading, pitch)
 {
-	Static_Var_1 = Func_Var_1;
-	building = 1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn torso to y-axis heading speed <240.000000>;
+	wait-for-turn torso around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
-    building = 0;
-    sleep 5000;
-   	if(building == 0)
-	{
-	  start-script RequestState(1);
-	}
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
+	start-script RequestState(1);
 }
 
 StartMoving()
@@ -755,10 +747,12 @@ QueryNanoPiece(piecenum)
 	spray = !spray;
 }
 
+/*
 TargetHeading(Func_Var_1)
 {
 	Static_Var_1 = 0 - Func_Var_1;
 }
+*/
 
 SweetSpot(piecenum)
 {

@@ -6,7 +6,8 @@
 piece  lathe, torso, nanopoint, hip, lleg, rleg, rfoot, lfoot,
        finger2, luparm, ruparm, head, rarm, larm, finger1, thumb;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, Static_Var_5;
+static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, Static_Var_5,
+			currentSpeed, moveSpeed;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -16,10 +17,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
 		{
-			smoketype = 256 | 2;
+			smoketype = 258;
 			if( Rand( 1, 66 ) < healthpercent )
 			{
-				smoketype = 256 | 1;
+				smoketype = 257;
 			}
 			emit-sfx smoketype from torso;
 		}
@@ -29,6 +30,16 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 			sleeptime = 200;
 		}
 		sleep sleeptime;
+	}
+}
+
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<20) currentSpeed=20;
+		sleep 142;
 	}
 }
 
@@ -47,7 +58,7 @@ MotionControl(Func_Var_1)
 			turn rleg to x-axis <37.708791> now;
 			turn rfoot to x-axis <-4.857143> now;
 			turn lfoot to x-axis <-17.637363> now;
-			sleep 146;
+			sleep 14600 / currentSpeed;
 			move hip to z-axis [0.700000] now;
 			move rleg to y-axis [0.279999] now;
 			turn hip to x-axis <6.076923> now;
@@ -55,7 +66,7 @@ MotionControl(Func_Var_1)
 			turn rleg to x-axis <50.478022> now;
 			turn rfoot to x-axis <6.379121> now;
 			turn lfoot to x-axis <-32.538462> now;
-			sleep 146;
+			sleep 14600 / currentSpeed;
 			if( bMoving )
 			{
 				move hip to z-axis [1.400000] now;
@@ -65,7 +76,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <63.258242> now;
 				turn rfoot to x-axis <17.637363> now;
 				turn lfoot to x-axis <-47.439560> now;
-				sleep 123;
+				sleep 12300 / currentSpeed;
 				move hip to z-axis [1.800000] now;
 				move lleg to y-axis [-0.219995] now;
 				move rleg to y-axis [0.379999] now;
@@ -74,7 +85,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <27.664835> now;
 				turn rfoot to x-axis <32.236264> now;
 				turn lfoot to x-axis <-30.708791> now;
-				sleep 110;
+				sleep 11000 / currentSpeed;
 			}
 			if( bMoving )
 			{
@@ -86,7 +97,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <-7.906593> now;
 				turn rfoot to x-axis <46.835165> now;
 				turn lfoot to x-axis <-13.989011> now;
-				sleep 81;
+				sleep 8100 / currentSpeed;
 				move hip to z-axis [1.629999] now;
 				move lleg to y-axis [-0.700000] now;
 				move rleg to y-axis [0.379999] now;
@@ -98,7 +109,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <-20.065934> now;
 				turn finger1 to x-axis <28.884615> now;
 				turn thumb to x-axis <-10.335165> now;
-				sleep 66;
+				sleep 6600 / currentSpeed;
 				move hip to z-axis [1.050000] now;
 				move lleg to y-axis [-0.950000] now;
 				move rleg to y-axis [0.000000] now;
@@ -110,7 +121,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <-26.148352> now;
 				turn finger1 to x-axis <57.774725> now;
 				turn thumb to x-axis <-20.675824> now;
-				sleep 123;
+				sleep 12300 / currentSpeed;
 			}
 			if( bMoving )
 			{
@@ -122,7 +133,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <-17.027473> now;
 				turn rfoot to x-axis <-40.137363> now;
 				turn lfoot to x-axis <-40.137363> now;
-				sleep 146;
+				sleep 14600 / currentSpeed;
 				move hip to z-axis [0.169995] now;
 				move lleg to y-axis [-0.350000] now;
 				move rleg to y-axis [0.119995] now;
@@ -132,7 +143,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <-7.000000> now;
 				turn rfoot to x-axis <-35.879121> now;
 				turn lfoot to x-axis <-44.395604> now;
-				sleep 148;
+				sleep 14800 / currentSpeed;
 			}
 			if( bMoving )
 			{
@@ -145,7 +156,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <3.038462> now;
 				turn rfoot to x-axis <-31.626374> now;
 				turn lfoot to x-axis <-48.659341> now;
-				sleep 111;
+				sleep 11100 / currentSpeed;
 				move hip to z-axis [0.569995] now;
 				move lleg to y-axis [0.000000] now;
 				move rleg to y-axis [0.119995] now;
@@ -156,7 +167,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <-25.538462> now;
 				turn finger1 to x-axis <26.456044> now;
 				turn thumb to x-axis <-36.489011> now;
-				sleep 94;
+				sleep 9400 / currentSpeed;
 				move hip to z-axis [1.150000] now;
 				move lleg to y-axis [-0.200000] now;
 				move rleg to y-axis [0.000000] now;
@@ -167,7 +178,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <-2.428571> now;
 				turn finger1 to x-axis <-4.857143> now;
 				turn thumb to x-axis <-52.307692> now;
-				sleep 87;
+				sleep 8700 / currentSpeed;
 			}
 			if( bMoving )
 			{
@@ -180,7 +191,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <17.335165> now;
 				turn lfoot to y-axis <0.000000> now;
 				turn finger1 to x-axis <-23.719780> now;
-				sleep 74;
+				sleep 7400 / currentSpeed;
 				move hip to z-axis [1.700000] now;
 				move lleg to y-axis [1.250000] now;
 				move rleg to y-axis [-0.850000] now;
@@ -190,7 +201,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <37.098901> now;
 				turn lfoot to y-axis <0.000000> now;
 				turn finger1 to x-axis <-42.576923> now;
-				sleep 88;
+				sleep 8800 / currentSpeed;
 				move hip to z-axis [1.300000] now;
 				move rleg to y-axis [-0.650000] now;
 				turn hip to x-axis <16.115385> now;
@@ -200,7 +211,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <-4.554945> now;
 				turn finger1 to x-axis <-18.549451> now;
 				turn thumb to x-axis <-33.445055> now;
-				sleep 116;
+				sleep 11600 / currentSpeed;
 			}
 			if( bMoving )
 			{
@@ -213,7 +224,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to x-axis <-46.225275> now;
 				turn finger1 to x-axis <5.467033> now;
 				turn thumb to x-axis <-14.587912> now;
-				sleep 147;
+				sleep 14700 / currentSpeed;
 				move hip to z-axis [0.450000] now;
 				move lleg to y-axis [0.629999] now;
 				move rleg to y-axis [0.050000] now;
@@ -227,7 +238,7 @@ MotionControl(Func_Var_1)
 				turn lfoot to y-axis <0.000000> now;
 				turn finger1 to x-axis <2.736264> now;
 				turn thumb to x-axis <-7.296703> now;
-				sleep 146;
+				sleep 14600 / currentSpeed;
 			}
 			Func_Var_1 = 1;
 		}
@@ -469,11 +480,14 @@ Create()
 	Static_Var_3 = 0;
 	Static_Var_4 = 0;
 	Static_Var_5 = 0;
+	moveSpeed = get MAX_SPEED;
+	currentSpeed = 100;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 	start-script SmokeUnit();
+	start-script UnitSpeed();
 	start-script MotionControl();
 }
 

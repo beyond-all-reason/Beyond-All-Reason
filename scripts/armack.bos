@@ -3,11 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+#define SIG_BUILD		4	
+
 piece  rnanospray, lnanospray, torso, pelvis, lleg, lfoot, rleg, rfoot,
        rthigh, lthigh, guncase, nanojoint, nanoarm, lnanogun, rnanogun, ground;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, Static_Var_5,
-            statechg_DesiredState, statechg_StateChanging, moveSpeed, currentSpeed;
+static-var  bMoving, notBuilding, nanoNozzle, statechg_DesiredState,
+			statechg_StateChanging, moveSpeed, currentSpeed;
 
 
 walk()
@@ -381,23 +383,20 @@ MotionControl(Func_Var_1, Func_Var_2)
 	while( TRUE )
 	{
 		Func_Var_1 = bMoving;
-		Func_Var_2 = Static_Var_3;
+		Func_Var_2 = notBuilding;
 		if( Func_Var_1 )
 		{
 			if( Func_Var_2 )
 			{
-				Static_Var_4 = 1;
-				call-script walklegs();
+				call-script walk();
 			}
 			else
 			{
-				Static_Var_4 = 0;
-				call-script walk();
+				call-script walklegs();
 			}
 		}
 		else
 		{
-			Static_Var_4 = 1;
 			sleep 100;
 		}
 	}
@@ -405,31 +404,19 @@ MotionControl(Func_Var_1, Func_Var_2)
 
 Go()
 {
-	Static_Var_3 = 1;
-	if( Static_Var_3 )
-	{
-		turn guncase to x-axis <0.000000> now;
-		turn guncase to x-axis <-68.016484> speed <90.000000>;
-		turn nanojoint to x-axis <0.000000> now;
-		turn nanojoint to x-axis <-4.000000> speed <5.000000>;
-		sleep 750;
-	}
-	if( Static_Var_3 )
-	{
-		turn nanoarm to x-axis <-52.010989> speed <69.000000>;
-		turn nanojoint to x-axis <43.005495> speed <63.000000>;
-		sleep 758;
-	}
-	if( Static_Var_3 )
-	{
-		turn nanoarm to x-axis <-87.016484> speed <45.000000>;
-		turn nanojoint to x-axis <157.032967> speed <149.000000>;
-		sleep 758;
-	}
-	sleep 30;
-	turn torso to y-axis Static_Var_1 speed <160.000000>;
-	wait-for-turn torso around y-axis;
-	set INBUILDSTANCE to 1;
+	turn guncase to x-axis <0.000000> now;
+	turn guncase to x-axis <-68.016484> speed <90.000000>;
+	turn nanojoint to x-axis <0.000000> now;
+	turn nanojoint to x-axis <-4.000000> speed <5.000000>;
+	sleep 750;
+
+	turn nanoarm to x-axis <-52.010989> speed <69.000000>;
+	turn nanojoint to x-axis <43.005495> speed <63.000000>;
+	sleep 758;
+
+	turn nanoarm to x-axis <-87.016484> speed <45.000000>;
+	turn nanojoint to x-axis <157.032967> speed <149.000000>;
+	sleep 758;
 }
 
 Stop()
@@ -437,22 +424,16 @@ Stop()
 	set INBUILDSTANCE to 0;
 	turn torso to y-axis <0.000000> speed <160.000000>;
 	wait-for-turn torso around y-axis;
-	if( Static_Var_3 )
-	{
-		turn guncase to x-axis <-68.104396> now;
-		turn nanoarm to x-axis <-87.549451> now;
-		turn nanoarm to x-axis <0.000000> speed <116.000000>;
-		turn nanojoint to x-axis <157.538462> now;
-		turn nanojoint to x-axis <0.000000> speed <209.000000>;
-		sleep 751;
-	}
-	if( Static_Var_3 )
-	{
-		turn guncase to x-axis <0.000000> speed <89.000000>;
-		sleep 758;
-	}
-	sleep 40;
-	Static_Var_3 = 0;
+
+	turn guncase to x-axis <-68.104396> now;
+	turn nanoarm to x-axis <-87.549451> now;
+	turn nanoarm to x-axis <0.000000> speed <116.000000>;
+	turn nanojoint to x-axis <157.538462> now;
+	turn nanojoint to x-axis <0.000000> speed <209.000000>;
+	sleep 751;
+
+	turn guncase to x-axis <0.000000> speed <89.000000>;
+	sleep 758;
 }
 
 RequestState(requestedstate, currentstate)
@@ -470,11 +451,13 @@ RequestState(requestedstate, currentstate)
 		if( statechg_DesiredState )
 		{
 			call-script Stop();
+			notBuilding = 1;
 			currentstate = 1;
 		}
 		else
 		{
 			call-script Go();
+			notBuilding = 0;
 			currentstate = 0;
 		}
 	}
@@ -532,10 +515,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	bMoving = FALSE;
-	Static_Var_3 = 0;
-	Static_Var_4 = 1;
-	Static_Var_5 = 0;
-	Static_Var_1 = 0;
+	notBuilding = 1;
+	nanoNozzle = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;
@@ -553,14 +534,23 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading, pitch)
 {
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn torso to y-axis heading speed <160.000000>;
+	wait-for-turn torso around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
 	start-script RequestState(1);
 }
 
@@ -576,14 +566,16 @@ StopMoving()
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = Static_Var_5;
-	Static_Var_5 = !Static_Var_5;
+	piecenum = nanoNozzle;
+	nanoNozzle = !nanoNozzle;
 }
 
+/*
 TargetHeading(Func_Var_1)
 {
 	Static_Var_1 = 0 - Func_Var_1;
 }
+*/
 
 SweetSpot(piecenum)
 {

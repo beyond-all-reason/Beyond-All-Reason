@@ -3,10 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+#define SIG_BUILD		4	
+
 piece  base, beam, plate, arm, nano, door1, door2, wake1,
        wake2, turret, ground;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, oldHead;
+static-var  statechg_DesiredState, statechg_StateChanging,
+			notBuilding, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -39,6 +42,10 @@ activatescr()
 
 deactivatescr()
 {
+	set INBUILDSTANCE to 0;
+	turn turret to y-axis <0.000000> speed <160.000000>;
+	wait-for-turn turret around y-axis;
+
 	move plate to y-axis [3.700000] now;
 	move plate to z-axis [0.000000] now;
 	move door1 to y-axis [-3.550000] now;
@@ -159,22 +166,6 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.23];
 }
 
-Go()
-{
-	call-script activatescr();
-	turn turret to y-axis Static_Var_1 speed <160.000000>;
-	wait-for-turn turret around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn turret to y-axis <0.000000> speed <160.000000>;
-	wait-for-turn turret around y-axis;
-	call-script deactivatescr();
-}
-
 RequestState(requestedstate, currentstate)
 {
 	if( statechg_StateChanging )
@@ -189,12 +180,14 @@ RequestState(requestedstate, currentstate)
 	{
 		if( statechg_DesiredState )
 		{
-			call-script Stop();
+			call-script deactivatescr();
+			notBuilding = 1;
 			currentstate = 1;
 		}
 		else
 		{
-			call-script Go();
+			call-script activatescr();
+			notBuilding = 0;
 			currentstate = 0;
 		}
 	}
@@ -203,7 +196,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 0;
+	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
@@ -219,14 +212,23 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading, pitch)
 {
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn turret to y-axis heading speed <160.000000>;
+	wait-for-turn turret around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
 	start-script RequestState(1);
 }
 
@@ -235,10 +237,12 @@ QueryNanoPiece(piecenum)
 	piecenum = beam;
 }
 
+/*
 TargetHeading(Func_Var_1)
 {
 	Static_Var_1 = 0 - Func_Var_1;
 }
+*/
 
 SweetSpot(piecenum)
 {

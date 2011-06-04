@@ -13,18 +13,18 @@ static-var  notBuilding, statechg_DesiredState, statechg_StateChanging;
 activatescr()
 {
 	turn door1 to z-axis <0.000000> now;
-	turn door1 to z-axis <-95.010989> speed <190.791209>;
+	turn door1 to z-axis <-95.005495> speed <190.791209>;
 	turn door2 to z-axis <0.000000> now;
-	turn door2 to z-axis <95.010989> speed <190.791209>;
-	sleep 498;
+	turn door2 to z-axis <-95.005495> speed <190.791209>;
+	sleep 40;
 
-	turn door1 to z-axis <-191.598901> speed <193.939560>;
-	turn door2 to z-axis <192.813187> speed <196.384615>;
-	sleep 498;
+	turn door1 to z-axis <-191.593407> speed <193.934066>;
+	turn door2 to z-axis <-192.813187> speed <196.379121>;
+	sleep 40;
 
 	move stand to y-axis [3.050000] speed [5.249567];
 	move gun to y-axis [0.700000] speed [1.204816];
-	sleep 581;
+	sleep 40;
 }
 
 deactivatescr()
@@ -34,20 +34,20 @@ deactivatescr()
 	wait-for-turn turret around y-axis;
 
 	move stand to y-axis [3.050000] now;
-	move stand to y-axis [0.000000] speed [5.222601];
+	move stand to y-axis [0.000000] speed [5.222589];
 	move gun to y-axis [0.700000] now;
 	move gun to y-axis [0.000000] speed [1.198627];
-	turn door1 to z-axis <-191.598901> now;
+	turn door1 to z-axis <-191.593407> now;
 	turn door2 to z-axis <192.813187> now;
-	sleep 584;
+	sleep 40;
 
-	turn door1 to z-axis <-95.604396> speed <192.752747>;
-	turn door2 to z-axis <95.851648> speed <194.708791>;
-	sleep 498;
+	turn door1 to z-axis <-95.604396> speed <192.747253>;
+	turn door2 to z-axis <95.846154> speed <194.703297>;
+	sleep 40;
 
-	turn door1 to z-axis <0.000000> speed <191.983516>;
-	turn door2 to z-axis <0.000000> speed <192.472527>;
-	sleep 498;
+	turn door1 to z-axis <0.000000> speed <191.978022>;
+	turn door2 to z-axis <0.000000> speed <192.467033>;
+	sleep 40;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
