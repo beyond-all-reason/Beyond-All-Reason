@@ -62,11 +62,17 @@ if gadgetHandler:IsSyncedCode() then
     
     function gadget:AllowStartPosition(x, y, z, playerID)
         if coopStartPoints[playerID] then
-            local _, _, _, _, allyID = Spring.GetPlayerInfo(playerID)
-            local bx1, bz1, bx2, bz2 = Spring.GetAllyTeamStartBox(allyID)
-            x = math.min(math.max(x, bx1), bx2)
-            z = math.min(math.max(z, bz1), bz2)
-            coopStartPoints[playerID] = {x, Spring.GetGroundHeight(x, z), z}
+            -- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
+            -- To catch this, we don't recognise a coop start position if it is identical to their teams spring start position
+            -- This has the side-effect that a coop player cannot intentionally start directly on their teammate, but this is OK
+            local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
+            local osx, _, osz = Spring.GetTeamStartPosition(teamID)
+            if x ~= osx or z ~= osz then
+                local bx1, bz1, bx2, bz2 = Spring.GetAllyTeamStartBox(allyID)
+                x = math.min(math.max(x, bx1), bx2)
+                z = math.min(math.max(z, bz1), bz2)
+                coopStartPoints[playerID] = {x, Spring.GetGroundHeight(x, z), z}
+            end
             return false
         end
         return true
