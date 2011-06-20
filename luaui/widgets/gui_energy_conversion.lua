@@ -48,6 +48,16 @@ local spGetSpectatingState = Spring.GetSpectatingState
 --------------------------------------------------------------------------------
 -- Funcs
 --------------------------------------------------------------------------------
+function widget:Initialize()
+	local playerID = Spring.GetMyPlayerID()
+	local _, _, spec, _, _, _, _, _ = Spring.GetPlayerInfo(playerID)
+		
+	if ( spec == true ) then
+		Spring.Echo("<Energy Conversion Info> Spectator mode. Widget removed.")
+		widgetHandler:RemoveWidget()
+	end
+end
+
 function widget:DrawScreen()
     
     -- Var
