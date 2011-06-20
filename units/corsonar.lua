@@ -6,10 +6,6 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 399,
 		buildcostmetal = 20,
-		buildinggrounddecaldecayspeed = 30,
-		buildinggrounddecalsizex = 4,
-		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corsonar_aoplane.dds",
 		buildpic = "CORSONAR.DDS",
 		buildtime = 900,
 		canattack = false,
@@ -38,7 +34,6 @@ return {
 		selfdestructas = "SMALL_BUILDING",
 		sightdistance = 485,
 		sonardistance = 1200,
-		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		featuredefs = {
 			dead = {

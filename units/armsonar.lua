@@ -6,10 +6,6 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 403,
 		buildcostmetal = 20,
-		buildinggrounddecaldecayspeed = 30,
-		buildinggrounddecalsizex = 4,
-		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "armsonar_aoplane.dds",
 		buildpic = "ARMSONAR.DDS",
 		buildtime = 912,
 		canattack = false,
@@ -38,7 +34,6 @@ return {
 		selfdestructas = "SMALL_BUILDING",
 		sightdistance = 515,
 		sonardistance = 1200,
-		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		featuredefs = {
 			dead = {
