@@ -1,7 +1,7 @@
 include("colors.h.lua")
 include("keysym.h.lua")
 
-local versionNumber = "6.3"
+local versionNumber = "6.31"
 
 function widget:GetInfo()
 	return {
@@ -457,7 +457,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local dps
 	local weaponDef
 	
-	if ( udef.weapons.n == 0  ) then
+	if ( #udef.weapons == 0  ) then
 		--not intresting, has no weapons, lame
 		--printDebug("Unit ignored: weaponCount is 0")
 		return
@@ -466,7 +466,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 	printDebug( udef.name )
 	local foundWeapons = {}
 			
-	for i=1, udef.weapons.n do
+	for i=1, #udef.weapons do
 		if ( currentModConfig["unitList"][udef.name] == nil or currentModConfig["unitList"][udef.name]["weapons"][i] == nil ) then
 			printDebug("Weapon skipped! Name: "..  udef.name .. " weaponidx: " .. i )
 		else
