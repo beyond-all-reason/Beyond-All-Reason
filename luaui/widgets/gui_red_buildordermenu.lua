@@ -569,7 +569,7 @@ local function hijacklayout()
 	local function dummylayouthandler(xIcons, yIcons, cmdCount, commands) --gets called on selection change
 		WG.layoutpinghax = 54352
 		widgetHandler.commands = commands
-		widgetHandler.commands.n = cmdCount
+		#widgetHandler.commands = cmdCount
 		widgetHandler:CommandsChanged() --call widget:CommandsChanged()
 		local iconList = {[1337]=9001}
 		return "", xIcons, yIcons, {}, {}, {}, {}, {}, {}, {}, iconList

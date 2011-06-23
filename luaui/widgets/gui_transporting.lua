@@ -78,7 +78,7 @@ local rectMaxY = 0
 
 local function SortedTransportedUnits()
   local selUnits = Spring.GetSelectedUnits()
-  if (selUnits.n ~= 1) then
+  if (#selUnits ~= 1) then
     return { n = 0 }
   end
   local units = Spring.GetUnitIsTransporting(selUnits[1])
@@ -98,14 +98,14 @@ local function SortedTransportedUnits()
       end
     end
   end
-  typed.n = typeCount
+  #typed = typeCount
   return typed
 end
 
 
 function widget:DrawScreen()
   unitCounts = SortedTransportedUnits()
-  unitTypes = unitCounts.n;
+  #unitTypes = unitCounts;
   if (unitTypes <= 0) then
     countsTable = {}
     activePress = false
@@ -119,7 +119,7 @@ function widget:DrawScreen()
   gl.Clear(GL.DEPTH_BUFFER_BIT)
 
   -- draw the buildpics
-  unitCounts.n = nil  
+  #unitCounts = nil  
   local icon = 0
   for udid,count in pairs(unitCounts) do
     DrawUnitDefIcon(udid, icon, count)

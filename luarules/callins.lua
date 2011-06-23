@@ -21,7 +21,7 @@ CallInsList = {
   "KeyPress",
   "KeyRelease",
   "MouseMove",
-  "MousePress",
+  "MousePress",F
   "MouseRelease",
   "IsAbove",
   "GetTooltip",

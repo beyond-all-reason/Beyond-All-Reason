@@ -52,7 +52,7 @@ end
 local function CustomLayoutHandler(xIcons, yIcons, cmdCount, commands)
 
   widgetHandler.commands   = commands
-  widgetHandler.commands.n = cmdCount
+  #widgetHandler.commands = cmdCount
   widgetHandler:CommandsChanged()
 
   -- FIXME: custom commands  

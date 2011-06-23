@@ -636,7 +636,7 @@ function UpdateFactoryList()
   facs = {}
 
   local teamUnits = Spring.GetTeamUnits(myTeamID)
-  local totalUnits = teamUnits.n
+  local totalUnits = #teamUnits
 
   for num = 1, totalUnits do
     local unitID = teamUnits[num]
