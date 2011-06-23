@@ -51,9 +51,14 @@ end
 
 local function destroyTeam(team)
 	local teamUnits = GetTeamUnits(team)
+	frame=Spring.GetGameFrame()
 	for _, unitID in pairs(teamUnits) do
 		if not GetUnitTransporter(unitID) then
-			DestroyUnit(unitID)
+			if frame> 30*120 then //teams dying before 2 minutes dont leave wrecks
+				DestroyUnit(unitID,false, true)
+			else
+				DestroyUnit(unitID)
+			end
 		end
 	end
 	Spring.Echo("No Owner Mode: Destroying Team " .. team)
