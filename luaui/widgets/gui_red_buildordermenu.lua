@@ -1,6 +1,7 @@
 function widget:GetInfo()
 	return {
-	name      = "Red Build/Order Menu", --version 7
+	version   = "8",
+	name      = "Red Build/Order Menu",
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
 	date      = "August 9, 2009", --last change September 10,2009
@@ -337,6 +338,8 @@ local function UpdateGrid(g,cmds,ordertype)
 		end
 		if (cmd.disabled) then
 			icon.texturecolor = {0.5,0.5,0.5,1}	
+		else
+			icon.texturecolor = {1,1,1,1}
 		end
 		
 		icon.mouseclick = {
@@ -435,12 +438,6 @@ local function UpdateGrid(g,cmds,ordertype)
 end
 
 function widget:Initialize()
-	for i, widget in ipairs(widgetHandler.widgets) do
-		if (widget:GetInfo().name == 'Old BA Layout') then
-			Spring.SendCommands{"luaui disablewidget Old BA Layout"}
-		end
-    end
-
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 		
@@ -449,7 +446,8 @@ function widget:Initialize()
 	
 	buildmenu.page = 1
 	ordermenu.page = 1
-	AutoResizeObjects()
+	
+	AutoResizeObjects() --fix for displacement on crash issue
 end
 
 local function onNewCommands(buildcmds,othercmds)
@@ -569,7 +567,7 @@ local function hijacklayout()
 	local function dummylayouthandler(xIcons, yIcons, cmdCount, commands) --gets called on selection change
 		WG.layoutpinghax = 54352
 		widgetHandler.commands = commands
-		#widgetHandler.commands = cmdCount
+		widgetHandler.commands.n = cmdCount
 		widgetHandler:CommandsChanged() --call widget:CommandsChanged()
 		local iconList = {[1337]=9001}
 		return "", xIcons, yIcons, {}, {}, {}, {}, {}, {}, {}, iconList
