@@ -54,7 +54,7 @@ local function destroyTeam(team)
 	frame=Spring.GetGameFrame()
 	for _, unitID in pairs(teamUnits) do
 		if not GetUnitTransporter(unitID) then
-			if frame> 30*120 then --teams dying before 2 minutes dont leave wrecks
+			if frame < 30*120 then --teams dying before 2 minutes dont leave wrecks
 				DestroyUnit(unitID,false, true)
 			else
 				DestroyUnit(unitID)
