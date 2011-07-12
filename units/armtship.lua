@@ -10,7 +10,7 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR",
-		collisionvolumeoffsets = "0 -2 -4",
+		collisionvolumeoffsets = "0 -10 -4",
 		collisionvolumescales = "60 80 120",
 		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
