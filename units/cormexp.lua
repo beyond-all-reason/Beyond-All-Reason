@@ -9,7 +9,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "cormexp_aoplane.dds",
+		buildinggrounddecaltype = "cormoho_aoplane.dds",
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
