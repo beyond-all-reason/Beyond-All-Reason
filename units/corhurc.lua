@@ -59,7 +59,7 @@ return {
 				burst = 5,
 				burstrate = 0.2,
 				collidefriendly = false,
-				commandfire = true,
+				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
 				manualbombsettings = 1,	

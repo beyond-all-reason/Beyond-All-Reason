@@ -57,7 +57,7 @@ return {
 			armadvbomb = {
 				areaofeffect = 168,
 				collidefriendly = false,
-				commandfire = true,
+				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
 				dropped = true,
