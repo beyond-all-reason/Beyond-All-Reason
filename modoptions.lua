@@ -166,6 +166,27 @@ local options={
        max    = 10000,
        step   = 1,  -- quantization is aligned to the def value
                     -- (step <= 0) means that there is no quantization
-	},
+	},  
+	{
+      key="teamdeathmode",
+      name="Team Game End Mode",
+      desc="What it takes to eliminate a Team",
+      type="list",
+	  section= 'ba_modes',
+      def="allyzerounits",
+      items={
+         {key="none", name="Never Die", desc="All Teams will stay alive regardless of what happends, gameover will never arrive."},
+         {key="teamzerounits", name="Team Death on Zero Units", desc="The Team will die when it has 0 units."},
+         {key="allyzerounits", name="AllyTeam Death on Zero units", desc="The Team will die when every Team in his AllyTeam have 0 units."},
+      }
+   },
+   {
+      key    = "shareddynamicalliancevictory",
+      name   = "Dynamic Ally Victory",
+      desc   = "Ingame alliance should count for game over condition.",
+      type   = "bool",
+	  section= 'ba_modes',
+      def    = false,
+    },
 }
 return options
