@@ -1,4 +1,4 @@
---[[  from Spring Wiki, info about CollisionVolumeData
+--[[  from Spring Wiki and source code, info about CollisionVolumeData
 Spring.GetUnitCollisionVolumeData ( number unitID ) -> 
 	number scaleX, number scaleY, number scaleZ, number offsetX, number offsetY, number offsetZ,
 	number volumeType, number testType, number primaryAxis, boolean disabled
@@ -7,6 +7,11 @@ Spring.SetUnitCollisionVolumeData ( number unitID, number scaleX, number scaleY,
 					number offsetX, number offsetY, number offsetX,
 					number vType, number tType, number Axis ) -> nil
 
+Spring.SetUnitPieceCollisionVolumeData ( number unitID, number pieceIndex, boolean enabled, number scaleX, number scaleY, number scaleZ,
+					number offsetX, number offsetY, number offsetZ, number vType, number Axis) -> nil
+	per piece collision volumes always use COLVOL_TEST_CONT as tType
+	above syntax is for 0.83, for 0.82 compatibility repeat enabled 3 more times
+	
    possible vType constants
      DISABLED = -1  disables collision volume and collision detection for that unit, do not use
      ELLIPSOID = 0
@@ -23,6 +28,24 @@ Spring.SetUnitCollisionVolumeData ( number unitID, number scaleX, number scaleY,
      COLVOL_AXIS_X = 0
      COLVOL_AXIS_Y = 1
      COLVOL_AXIS_Z = 2
+
+   sample collision volume with detailed descriptions
+	unitCollisionVolume["arm_advanced_radar_tower"] = {
+		on=            -- Unit is active/open/poped-up 
+		   {60,80,60,  -- Volume X scale, Volume Y scale, Volume Z scale,
+		    0,15,0,    -- Volume X offset, Volume Y offset, Volume Z offset,
+		    0,1,0},    -- vType, tType, axis}
+		off={32,48,32,0,-10,0,0,1,0},
+	}
+	pieceCollisionVolume["arm_big_bertha"] = {
+		["1"]={true,       -- [pieceIndexNumber]={enabled,
+			   48,74,48,   --              Volume X scale, Volume Y scale, Volume Z scale,
+		       0,0,0,      --              Volume X offset, Volume Y offset, Volume Z offset,
+			   1,1}        --              vType, axis},
+		["2"]={false},
+		....
+	}
+
 ]]--
 
 --Collision volume definitions, ones entered here are for BA, for other mods modify apropriatly
@@ -74,8 +97,8 @@ local unitCollisionVolume = {}
 		off={90,34,92,0,0,0,2,1,0},
 	}
 	unitCollisionVolume["cordoom"] = {
-		on={55,112,55,0,-3,0,2,1,0},
-		off={48,86,48,0,-15,0,2,1,0},
+		on={63,112,63,0,12,0,1,1,1},
+		off={45,87,45,0,0,0,2,1,0},
 	}
 	unitCollisionVolume["corfmkr"] = {
 		on={48,46,48,0,0,0,0,1,0},
@@ -122,4 +145,6 @@ local unitCollisionVolume = {}
 		off={54,45,50,0,-4,-1,0,1,0},
 	}
 
-return unitCollisionVolume
+	pieceCollisionVolume = {}
+
+return unitCollisionVolume, pieceCollisionVolume

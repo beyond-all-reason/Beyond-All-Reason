@@ -21,8 +21,8 @@ return {
 		description = "Energy Weapon",
 		energystorage = 2000,
 		explodeas = "ESTOR_BUILDING",
-		footprintx = 3,
-		footprintz = 3,
+		footprintx = 4,
+		footprintz = 4,
 		icontype = "building",
 		idleautoheal = 5 ,
 		idletime = 1800 ,
@@ -38,7 +38,7 @@ return {
 		selfdestructas = "ATOMIC_BLAST",
 		sightdistance = 780,
 		usebuildinggrounddecal = true,
-		yardmap = "ooooooooo",
+		yardmap = "yooy oooo oooo yooy",
 		featuredefs = {
 			dead = {
 				blocking = true,

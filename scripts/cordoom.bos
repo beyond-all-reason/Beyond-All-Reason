@@ -1,0 +1,550 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, flarea, flareb, flarec1, flarec2, turreta, hatch, shell1a,
+       shell4b, shell3b, shell2b, shell1b, shell2a, shell3a, shell4a, turretb,
+       turretc, hatchc, sleevec, hatchb, barrelc1, barrelc2, collarb, barrelb,
+       barrela, sleevea, sleeveb;
+
+static-var  gun_3, restore_delay, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
+
+
+activatescr()
+{
+	turn hatch to z-axis <-31.005495> speed <94.000000>;
+	sleep 150;
+
+	move hatch to x-axis [4.000000] speed [10.000000];
+	move hatch to y-axis [-4.562500] speed [12.500000];
+	turn hatch to z-axis <-49.005495> speed <52.000000>;
+	sleep 150;
+
+	move shell4b to x-axis [-5.150000] speed [15.000000];
+	move shell3b to z-axis [-5.150000] speed [15.000000];
+	move shell2b to x-axis [5.150000] speed [15.000000];
+	move shell1b to z-axis [5.150000] speed [15.000000];
+	sleep 150;
+
+	move shell1a to x-axis [5.000000] speed [10.000000];
+	move shell2a to z-axis [-5.000000] speed [10.000000];
+	move shell3a to x-axis [-5.000000] speed [10.000000];
+	move shell4a to z-axis [5.000000] speed [10.000000];
+	sleep 250;
+
+	move shell1a to y-axis [-20.250000] speed [42.500000];
+	move shell2a to y-axis [-20.250000] speed [42.500000];
+	move shell3a to y-axis [-20.250000] speed [40.000000];
+	move shell4a to y-axis [-20.250000] speed [40.000000];
+	sleep 250;
+
+	move turreta to y-axis [9.062500] speed [15.000000];
+	move turretb to y-axis [5.000000] speed [15.000000];
+	sleep 300;
+
+	move turreta to y-axis [11.000000] speed [10.000000];
+	move turretb to y-axis [8.625000] speed [7.500000];
+	move turretc to y-axis [3.312500] speed [7.500000];
+	sleep 150;
+
+	move hatchc to y-axis [2.125000] speed [5.000000];
+	move hatchc to z-axis [-0.862469] speed [2.500000];
+	sleep 150;
+
+	move sleevec to z-axis [5.112469] speed [15.000000];
+	move hatchb to x-axis [3.687500] speed [10.000000];
+	move hatchb to z-axis [-4.187500] speed [10.000000];
+	turn hatchb to y-axis <-46.005495> speed <137.000000>;
+	sleep 150;
+
+	move barrelc1 to z-axis [3.937500] speed [20.000000];
+	move barrelc2 to z-axis [3.924969] speed [20.000000];
+	move collarb to z-axis [4.250000] speed [20.000000];
+	move barrelb to z-axis [4.375000] speed [25.000000];
+	move barrela to z-axis [4.549969] speed [25.000000];
+	sleep 120;
+}
+
+deactivatescr()
+{
+	move barrela to z-axis [0.000000] speed [12.500000];
+	move barrelb to z-axis [0.000000] speed [12.500000];
+	move barrelc1 to z-axis [0.000000] speed [10.000000];
+	move barrelc2 to z-axis [0.000000] speed [10.000000];
+	move collarb to z-axis [0.000000] speed [10.000000];
+	sleep 150;
+
+	move sleevec to z-axis [0.000000] speed [15.000000];
+	move hatchb to x-axis [0.000000] speed [10.000000];
+	move hatchb to z-axis [0.000000] speed [10.000000];
+	turn hatchb to y-axis <0.000000> speed <137.000000>;
+	sleep 150;
+
+	move hatchc to y-axis [0.000000] speed [5.000000];
+	move hatchc to z-axis [0.000000] speed [2.500000];
+	sleep 150;
+
+	move turreta to y-axis [11.062500] speed [10.000000];
+	move turretb to y-axis [5.562500] speed [10.000000];
+	move turretc to y-axis [0.000000] speed [10.000000];
+	sleep 150;
+
+	move turreta to y-axis [0.000000] speed [15.000000];
+	move turretb to y-axis [0.000000] speed [15.000000];
+	sleep 400;
+
+	move shell1a to y-axis [0.000000] speed [42.500000];
+	move shell2a to y-axis [0.000000] speed [42.500000];
+	move shell3a to y-axis [0.000000] speed [42.500000];
+	move shell4a to y-axis [0.000000] speed [42.500000];
+	sleep 300;
+
+	move shell1a to x-axis [0.000000] speed [12.500000];
+	move shell2a to z-axis [0.000000] speed [12.500000];
+	move shell3a to x-axis [0.000000] speed [12.500000];
+	move shell4a to z-axis [0.000000] speed [12.500000];
+	sleep 150;
+
+	move shell4b to x-axis [0.000000] speed [15.000000];
+	move shell3b to z-axis [0.000000] speed [15.000000];
+	move shell2b to x-axis [0.000000] speed [15.000000];
+	move shell1b to z-axis [0.000000] speed [15.000000];
+	sleep 150;
+
+	move hatch to x-axis [0.000000] speed [10.000000];
+	move hatch to y-axis [0.000000] speed [12.500000];
+	turn hatch to z-axis <-31.005495> speed <53.000000>;
+	sleep 150;
+
+	turn hatch to z-axis <0.000000> speed <96.000000>;
+	sleep 150;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Go()
+{
+	dont-cache barrela;
+	dont-cache barrelb;
+	dont-cache barrelc1;
+	dont-cache barrelc2;
+	dont-cache collarb;
+	dont-cache flarea;
+	dont-cache flareb;
+	dont-cache flarec1;
+	dont-cache flarec2;
+	dont-cache hatch;
+	dont-cache hatchb;
+	dont-cache hatchc;
+	dont-cache shell1a;
+	dont-cache shell1b;
+	dont-cache shell2a;
+	dont-cache shell2b;
+	dont-cache shell3a;
+	dont-cache shell3b;
+	dont-cache shell4a;
+	dont-cache shell4b;
+	dont-cache sleevea;
+	dont-cache sleeveb;
+	dont-cache sleevec;
+	dont-cache turreta;
+	dont-cache turretb;
+	dont-cache turretc;
+	set ARMORED to 0;
+	if( !Static_Var_3 )
+	{
+		call-script activatescr();
+	}
+	Static_Var_3 = 1;
+}
+
+Stop()
+{
+	Static_Var_3 = 0;
+	call-script deactivatescr();
+	set ARMORED to 1;
+	cache barrela;
+	cache barrelb;
+	cache barrelc1;
+	cache barrelc2;
+	cache collarb;
+	cache flarea;
+	cache flareb;
+	cache flarec1;
+	cache flarec2;
+	cache hatch;
+	cache hatchb;
+	cache hatchc;
+	cache shell1a;
+	cache shell1b;
+	cache shell2a;
+	cache shell2b;
+	cache shell3a;
+	cache shell3b;
+	cache shell4a;
+	cache shell4b;
+	cache sleevea;
+	cache sleeveb;
+	cache sleevec;
+	cache turreta;
+	cache turretb;
+	cache turretc;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	hide flarea;
+	hide flareb;
+	hide flarec1;
+	hide flarec2;
+	dont-shade barrela;
+	dont-shade barrelb;
+	dont-shade barrelc1;
+	dont-shade barrelc2;
+	dont-shade collarb;
+	dont-shade flarea;
+	dont-shade flareb;
+	dont-shade flarec1;
+	dont-shade flarec2;
+	dont-shade hatch;
+	dont-shade hatchb;
+	dont-shade hatchc;
+	dont-shade shell1a;
+	dont-shade shell1b;
+	dont-shade shell2a;
+	dont-shade shell2b;
+	dont-shade shell3a;
+	dont-shade shell3b;
+	dont-shade shell4a;
+	dont-shade shell4b;
+	dont-shade sleevea;
+	dont-shade sleeveb;
+	dont-shade sleevec;
+	dont-shade turreta;
+	dont-shade turretb;
+	dont-shade turretc;
+	gun_3 = 0;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	Static_Var_3 = 0;
+	restore_delay = 2000;
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_AIM;
+	signal SIG_AIM_2;
+	signal SIG_AIM_3;
+	start-script RequestState(1);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 4;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_3 )
+	{
+		sleep 250;
+	}
+	turn turreta to y-axis heading speed <50.000000>;
+	turn sleevea to x-axis <0.000000> - pitch speed <50.000000>;
+	wait-for-turn turreta around y-axis;
+	wait-for-turn sleevea around x-axis;
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	while( !Static_Var_3 )
+	{
+		sleep 250;
+	}
+	turn turretb to y-axis heading speed <200.000000>;
+	turn sleeveb to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn turretb around y-axis;
+	wait-for-turn sleeveb around x-axis;
+	return (1);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	while( !Static_Var_3 )
+	{
+		sleep 250;
+	}
+	turn turretc to y-axis heading speed <300.000000>;
+	turn sleevec to x-axis <0.000000> - pitch speed <300.000000>;
+	wait-for-turn turretc around y-axis;
+	wait-for-turn sleevec around x-axis;
+	return (1);
+}
+
+FirePrimary()
+{
+	show flarea;
+	sleep 150;
+	hide flarea;
+}
+
+FireSecondary()
+{
+	show flareb;
+	sleep 150;
+	hide flareb;
+}
+
+FireTertiary()
+{
+	if( gun_3 )
+	{
+		show flarec2;
+		sleep 150;
+		hide flarec2;
+	}
+	else
+	{
+		show flarec1;
+		sleep 150;
+		hide flarec1;
+	}
+	gun_3 = !gun_3;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turreta;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turretb;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = turretc;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flarea;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flareb;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = flarec1 + gun_3;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	hide flarea;
+	hide flareb;
+	hide flarec1;
+	hide flarec2;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode barrela type BITMAPONLY | BITMAP1;
+		explode barrelb type BITMAPONLY | BITMAP2;
+		explode barrelc1 type BITMAPONLY | BITMAP3;
+		explode barrelc2 type BITMAPONLY | BITMAP4;
+		explode base type BITMAPONLY | BITMAP5;
+		explode collarb type BITMAPONLY | BITMAP1;
+		explode flarea type BITMAPONLY | BITMAP2;
+		explode flareb type BITMAPONLY | BITMAP3;
+		explode flarec1 type BITMAPONLY | BITMAP4;
+		explode flarec2 type BITMAPONLY | BITMAP5;
+		explode hatch type BITMAPONLY | BITMAP1;
+		explode hatchb type BITMAPONLY | BITMAP2;
+		explode hatchc type BITMAPONLY | BITMAP3;
+		explode shell1a type BITMAPONLY | BITMAP4;
+		explode shell1b type BITMAPONLY | BITMAP5;
+		explode shell2a type BITMAPONLY | BITMAP1;
+		explode shell2b type BITMAPONLY | BITMAP2;
+		explode shell3a type BITMAPONLY | BITMAP3;
+		explode shell3b type BITMAPONLY | BITMAP4;
+		explode shell4a type BITMAPONLY | BITMAP5;
+		explode shell4b type BITMAPONLY | BITMAP1;
+		explode sleevea type BITMAPONLY | BITMAP2;
+		explode sleeveb type BITMAPONLY | BITMAP3;
+		explode sleevec type BITMAPONLY | BITMAP4;
+		explode turreta type BITMAPONLY | BITMAP5;
+		explode turretb type BITMAPONLY | BITMAP1;
+		explode turretc type BITMAPONLY | BITMAP2;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode barrela type FALL | BITMAP1;
+		explode barrelb type FALL | BITMAP2;
+		explode barrelc1 type FALL | BITMAP3;
+		explode barrelc2 type FALL | BITMAP4;
+		explode base type BITMAPONLY | BITMAP5;
+		explode collarb type FALL | BITMAP1;
+		explode flarea type FALL | BITMAP2;
+		explode flareb type FALL | BITMAP3;
+		explode flarec1 type FALL | BITMAP4;
+		explode flarec2 type FALL | BITMAP5;
+		explode hatch type FALL | BITMAP1;
+		explode hatchb type FALL | BITMAP2;
+		explode hatchc type FALL | BITMAP3;
+		explode shell1a type BITMAPONLY | BITMAP4;
+		explode shell1b type BITMAPONLY | BITMAP5;
+		explode shell2a type BITMAPONLY | BITMAP1;
+		explode shell2b type BITMAPONLY | BITMAP2;
+		explode shell3a type BITMAPONLY | BITMAP3;
+		explode shell3b type BITMAPONLY | BITMAP4;
+		explode shell4a type BITMAPONLY | BITMAP5;
+		explode shell4b type BITMAPONLY | BITMAP1;
+		explode sleevea type FALL | BITMAP2;
+		explode sleeveb type FALL | BITMAP3;
+		explode sleevec type FALL | BITMAP4;
+		explode turreta type BITMAPONLY | BITMAP5;
+		explode turretb type BITMAPONLY | BITMAP1;
+		explode turretc type SHATTER | BITMAP2;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode barrela type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode barrelb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode barrelc1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode barrelc2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode base type BITMAPONLY | BITMAP5;
+		explode collarb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode flarea type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode flareb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode flarec1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode flarec2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode hatch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode hatchb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode hatchc type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode shell1a type BITMAPONLY | BITMAP4;
+		explode shell1b type BITMAPONLY | BITMAP5;
+		explode shell2a type BITMAPONLY | BITMAP1;
+		explode shell2b type BITMAPONLY | BITMAP2;
+		explode shell3a type BITMAPONLY | BITMAP3;
+		explode shell3b type BITMAPONLY | BITMAP4;
+		explode shell4a type BITMAPONLY | BITMAP5;
+		explode shell4b type BITMAPONLY | BITMAP1;
+		explode sleevea type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode sleeveb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode sleevec type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode turreta type BITMAPONLY | BITMAP5;
+		explode turretb type BITMAPONLY | BITMAP1;
+		explode turretc type SHATTER | BITMAP2;
+		return (0);
+	}
+	corpsetype = 3;
+	explode barrela type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode barrelb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode barrelc1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode barrelc2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode base type BITMAPONLY | BITMAP5;
+	explode collarb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode flarea type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode flareb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode flarec1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode flarec2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode hatch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode hatchb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode hatchc type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode shell1a type BITMAPONLY | BITMAP4;
+	explode shell1b type BITMAPONLY | BITMAP5;
+	explode shell2a type BITMAPONLY | BITMAP1;
+	explode shell2b type BITMAPONLY | BITMAP2;
+	explode shell3a type BITMAPONLY | BITMAP3;
+	explode shell3b type BITMAPONLY | BITMAP4;
+	explode shell4a type BITMAPONLY | BITMAP5;
+	explode shell4b type BITMAPONLY | BITMAP1;
+	explode sleevea type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode sleeveb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode sleevec type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode turreta type BITMAPONLY | BITMAP5;
+	explode turretb type BITMAPONLY | BITMAP1;
+	explode turretc type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+}
