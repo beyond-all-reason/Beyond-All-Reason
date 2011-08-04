@@ -64,7 +64,7 @@ end
 function LOSSound(_,x,y,z,sound)
 	local _,inLos = GetPositionLosState(x,y,z,GetMyAllyTeamID())
 	if inLos then
-		local volume = ((Spring.GetConfigString("snd_volunitreply") or 100) / 100)
+		local volume = (tonumber(Spring.GetConfigString("snd_volunitreply")) or 100) / 100
 		PlaySoundFile(sound,volume,x,y,z)
 	end
 end
