@@ -69,7 +69,12 @@ local spSetUnitCOBValue = Spring.SetUnitCOBValue
 local function AdjustTeamCapacity(teamID, adjustment, e)
     local newCapacity = teamCapacities[teamID][e] + adjustment
     teamCapacities[teamID][e] = newCapacity
-    spSetTeamRulesParam(teamID, mmCapacityParamName, 32 * newCapacity)
+
+    local totalCapacity = 0
+    for j = 1, #eSteps do
+      totalCapacity = totalCapacity + teamCapacities[teamID][eSteps[j]]
+    end
+    spSetTeamRulesParam(teamID, mmCapacityParamName, totalCapacity)
 end
 
 local function UpdateMetalMakers(teamID, energyUse)
@@ -181,28 +186,30 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
     if cDefs then
         local _, _, _, _, buildProg = spGetUnitHealth(uID)
         if buildProg == 1 then
-			if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
-				teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
-			end
-            teamMMList[uTeam][cDefs.e][uID] = nil
-            AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
+          if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
+            teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
+          end
+          teamMMList[uTeam][cDefs.e][uID] = nil
+          AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
         end
     end
 end
 
 function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
     local cDefs = convertCapacities[uDefID]
-    if convertCapacity then
+    if cDefs then
         local _, _, _, _, buildProg = spGetUnitHealth(uID)
         if (buildProg == 1) then
+            teamMMList[newTeam][cDefs.e][uID] = {}
+            teamMMList[newTeam][cDefs.e][uID].capacity = teamMMList[oldTeam][cDefs.e][uID].capacity
+            teamMMList[newTeam][cDefs.e][uID].status = teamMMList[oldTeam][cDefs.e][uID].status
+            if (teamMMList[oldTeam][cDefs.e][uID].status == 1) then
+              teamActiveMM[oldTeam] = teamActiveMM[oldTeam] - 1
+              teamActiveMM[newTeam] = teamActiveMM[newTeam] + 1
+            end
+            teamMMList[oldTeam][cDefs.e][uID] = nil
             AdjustTeamCapacity(oldTeam, -cDefs.c, cDefs.e)
             AdjustTeamCapacity(newTeam,  cDefs.c, cDefs.e)
-            teamMMList[newTeam][cDefs.e][uID] = teamMMList[oldTeam][cDefs.e][uID]
-            if (teamMMList[oldTeam][cDefs.e][uID].status == 1) then
-				teamActiveMM[oldTeam] = teamActiveMM[oldTeam] - 1
-				teamActiveMM[newTeam] = teamActiveMM[newTeam] + 1
-			end
-            teamMMList[oldTeam][cDefs.e][uID] = nil
         end
     end
 end
