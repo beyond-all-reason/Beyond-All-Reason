@@ -177,6 +177,8 @@ return {
 				explosiongenerator = "custom:SMALL_RED_BURN",
 				firestarter = 100,
 				impactonly = 1,
+				burst = 2,
+				burstrate = 0.01,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				laserflaresize = 10,
