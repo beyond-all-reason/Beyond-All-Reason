@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32768,
-		buildcostenergy = 1467,
+		buildcostenergy = 1617,
 		buildcostmetal = 185,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
@@ -32,7 +32,7 @@ return {
 		objectname = "HLLT",
 		seismicsignature = 0,
 		selfdestructas = "MEDIUM_BUILDING",
-		sightdistance = 455,
+		sightdistance = 475,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		featuredefs = {
@@ -153,7 +153,7 @@ return {
 				name = "LightLaser",
 				noselfdamage = true,
 				proximitypriority = -1.5,
-				range = 435,
+				range = 475,
 				reloadtime = 0.47999998927116,
 				rgbcolor = "1 0 0",
 				soundhit = "lasrhit2",
@@ -178,10 +178,11 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "HLLT_BOTTOM",
+				def = "HLLT_TOP",
 			},
 			[2] = {
-				def = "HLLT_TOP",
+        badtargetcategory = "VTOL",
+				def = "HLLT_BOTTOM",
 			},
 		},
 	},
