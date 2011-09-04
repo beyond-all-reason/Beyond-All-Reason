@@ -20,14 +20,14 @@ local moveDatas = {
 	},
 	BOAT4 = {
 		crushstrength = 40,
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 3,
+		footprintz = 3,
 		minwaterdepth = 8,
 	},
 	BOAT5 = {
 		crushstrength = 50,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 4,
+		footprintz = 4,
 		minwaterdepth = 10,
 	},
 	--[[
