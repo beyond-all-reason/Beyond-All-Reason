@@ -114,7 +114,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				duration = 8,
-				explosiongenerator = "custom:LIGHTNING_FLASH",
+				explosiongenerator = "custom:CLAW_FLASH",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0.12300000339746,
