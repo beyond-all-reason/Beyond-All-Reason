@@ -81,7 +81,7 @@ return {
 				weapontype = "AircraftBomb",
 				damage = {
 					antibomber = 120,
-					default = 283,
+					default = 337,
 					l1bombers = 5,
 					l1subs = 5,
 				},
