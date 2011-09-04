@@ -95,7 +95,7 @@ local options={
 		name   = "Air Comblast Full Damage",
 		desc   = "Commander death explosion does full damage if it dies whilst being air transported",
 		type   = "bool",
-		def    = true,
+		def    = false,
 		section= "ba_options",
     },
 	{
