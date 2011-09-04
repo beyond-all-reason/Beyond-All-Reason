@@ -62,11 +62,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
     if ((e > 1000) or (i > 1000)) and (not active) and (math.sqrt((vx*vx)+(vz*vz)) < 1.5) then
 	  local x,_,z = Spring.GetUnitBasePosition(attackerID)
 	  local ex,ey,ez = Spring.GetUnitBasePosition(unitID)
-	  for i=0,28,4 do
-	    local r = Spring.GetUnitRadius(unitID) + i
+	  local r = Spring.GetUnitRadius(unitID)
+	  for i=r/2,r+28,4 do
 	    local angle = math.atan2((x-ex),(z-ez))
-	    tx = ex + (math.sin(angle) * r)
-	    tz = ez + (math.cos(angle) * r)
+	    local angleMod = ((math.random(math.pi) - (math.pi/2)) * 0.25)
+	    angle = (angle + angleMod)
+	    tx = ex + (math.sin(angle) * i)
+	    tz = ez + (math.cos(angle) * i)
 	    if (Spring.TestBuildOrder(MINE2,tx,ey,tz,1) == 2) then
 	  	  orderQueue[attackerID] = {tx,ey,tz}
 	  	  break
