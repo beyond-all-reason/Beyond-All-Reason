@@ -33,7 +33,7 @@ function gadget:GameFrame(n)
   for unitID in pairs(shields) do
     local eDrain = select(4,GetUnitResources(unitID))
     if (eDrain > 620) then
-      SetUnitShieldState(unitID,true,mathMax(select(2,GetUnitShieldState(unitID))-mathMin((eDrain/100), 16),0),1)
+      SetUnitShieldState(unitID,true,mathMax(select(2,GetUnitShieldState(unitID))-mathMin((eDrain/80), 18),0),1)
     end
   end
 end

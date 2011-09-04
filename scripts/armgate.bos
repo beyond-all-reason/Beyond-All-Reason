@@ -3,7 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, arms, disha, dishb, gun, legs, platform, shield;
+piece  base, flap1, flap2, flap3, dish, door, arm, gun,
+       plate, turret, shield;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -79,14 +80,16 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide beam;
-	dont-shade arms;
-	dont-shade beam;
-	dont-shade disha;
-	dont-shade dishb;
+	dont-shade flap1;
+	dont-shade flap2;
+	dont-shade flap3;
+	dont-shade dish;
+	dont-shade door;
+	dont-shade arm;
 	dont-shade gun;
-	dont-shade legs;
-	dont-shade platform;
+	dont-shade plate;
+	dont-shade turret;
+	Static_Var_1 = 1;
 	start-script SmokeUnit();
 	call-script InitState();
 }
@@ -120,11 +123,6 @@ QueryPrimary(piecenum)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = beam;
-}
-
-SweetSpot(piecenum)
-{
 	piecenum = base;
 }
 
@@ -150,54 +148,67 @@ AimFromSecondary(piecenum)
 	piecenum = base;
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode arms type BITMAPONLY | BITMAP1;
+		explode arm type BITMAPONLY | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		explode beam type BITMAPONLY | BITMAP3;
-		explode disha type BITMAPONLY | BITMAP4;
-		explode dishb type BITMAPONLY | BITMAP5;
-		explode gun type BITMAPONLY | BITMAP1;
-		explode legs type BITMAPONLY | BITMAP2;
-		explode platform type BITMAPONLY | BITMAP3;
+		explode dish type BITMAPONLY | BITMAP3;
+		explode door type BITMAPONLY | BITMAP4;
+		explode flap1 type BITMAPONLY | BITMAP5;
+		explode flap2 type BITMAPONLY | BITMAP1;
+		explode flap3 type BITMAPONLY | BITMAP2;
+		explode gun type BITMAPONLY | BITMAP3;
+		explode plate type BITMAPONLY | BITMAP4;
+		explode turret type BITMAPONLY | BITMAP5;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode arms type SHATTER | BITMAP1;
+		explode arm type FALL | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		explode beam type FALL | BITMAP3;
-		explode disha type FALL | BITMAP4;
-		explode dishb type FALL | BITMAP5;
-		explode gun type BITMAPONLY | BITMAP1;
-		explode legs type BITMAPONLY | BITMAP2;
-		explode platform type FALL | BITMAP3;
+		explode dish type BITMAPONLY | BITMAP3;
+		explode door type FALL | BITMAP4;
+		explode flap1 type FALL | BITMAP5;
+		explode flap2 type FALL | BITMAP1;
+		explode flap3 type FALL | BITMAP2;
+		explode gun type FALL | BITMAP3;
+		explode plate type FALL | BITMAP4;
+		explode turret type SHATTER | BITMAP5;
 		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode arms type SHATTER | BITMAP1;
+		explode arm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode disha type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode dishb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode gun type BITMAPONLY | BITMAP1;
-		explode legs type BITMAPONLY | BITMAP2;
-		explode platform type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode dish type BITMAPONLY | BITMAP3;
+		explode door type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode flap1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode flap2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode flap3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode gun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode plate type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode turret type SHATTER | BITMAP5;
 		return (0);
 	}
 	corpsetype = 3;
-	explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode arm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode base type BITMAPONLY | BITMAP2;
-	explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode disha type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode dishb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode gun type BITMAPONLY | BITMAP1;
-	explode legs type BITMAPONLY | BITMAP2;
-	explode platform type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode dish type BITMAPONLY | BITMAP3;
+	explode door type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode flap1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode flap2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode flap3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode gun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode plate type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP5;
 }
