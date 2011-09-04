@@ -135,7 +135,7 @@ local options={
 		name="Enemy Transporting",
 		desc="Toggle which enemy units you can kidnap with an air transport",
 		type="list",
-		def="com",
+		def="all",
 		section="ba_options",
 		items={
       {key="none", name="Allow All", desc="All enemy units can be napped"},
