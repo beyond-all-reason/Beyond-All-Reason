@@ -1,0 +1,435 @@
+[EVIL_NANOS]
+{
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.7 0.7 0.7 0.0001   0.7 0.7 0.7 1	  0.4 0.4 0.4 1 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 0, 0, 0;
+		gravity		= 0, 0.1, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 10;
+		particleLifeSpread	= 10;
+		numParticles		= 1;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 3;
+		particleSize		= 2;
+		particleSizeSpread	= 3;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=2;
+	}
+}
+
+[JUNO_SPHERE_EMIT]
+{
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.0 0.0 0.0 0.0001   0.0 0.0 0.0 0.7	  0.0 0.0 0.0 0.5 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 0, 1, 0;
+		gravity		= 0, 0.2, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 40;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 5;
+		particleLifeSpread	= 15;
+		numParticles		= 1;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 2;
+		particleSize		= 2;
+		particleSizeSpread	= 3;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=3;
+	}
+}
+
+[EVIL_NANOS_BLOCKING]
+{
+	
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.7 0.7 0.7 0.0001   0.7 0.7 0.7 1	  0.4 0.4 0.4 1 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 0, 0, 0;
+		gravity		= 0, -0.3, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 12;
+		particleLifeSpread	= 12;
+		numParticles		= 2;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 5;
+		particleSize		= 3;
+		particleSizeSpread	= 2;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=1;
+	}
+}
+
+
+
+
+[LARGE_NANO_FLASH]
+{
+    usedefaultexplosions=1;
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.7 0.7 0.7 0.0001   0.7 0.7 0.7 1	  0.4 0.4 0.4 1 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 50 r-100, 0, 100 r-50;
+		gravity		= 0, 0.2, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 10;
+		particleLifeSpread	= 10;
+		numParticles		= 2;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 3;
+		particleSize		= 5;
+		particleSizeSpread	= 0;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=40;
+	}
+	
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			alwaysVisible=1;
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  1 1 1 0.7	0.9 0.9 0.9 0.7	0.6 0.6 0.6 0.6	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=20;
+			particleLifeSpread=35;
+			numParticles=1;
+			particleSpeed=5;
+			particleSpeedSpread=1;
+			particleSize=30;
+			particleSizeSpread=25;
+			emitRot=360;
+			emitRotSpread=360;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	
+	[glow]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=-0, 1, 0;
+			gravity=0, 0.00, 0;
+			colorMap= 0 0 0 0.01   1 1 1 1             0 0 0 0.01;
+			Texture=circularthingy;
+			airdrag=1;
+			particleLife=40;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=0.1;
+			particleSpeedSpread=0;
+			particleSize=200;
+			particleSizeSpread=10;
+			emitRot=0;
+			emitRotSpread=180;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	
+	usedefaultexplosions=0;
+	[GROUNDFLASH]
+	{
+		flashSize = 300;
+		flashAlpha = 1.2;
+		circleGrowth = 20;
+		circleAlpha = 0.7;
+		ttl = 16;
+		color=0.9,0.9,0.9;
+	}
+}
+
+
+
+[LARGE_NANO_FLASH2]
+{
+    usedefaultexplosions=1;
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.7 0.7 0.7 0.0001   0.7 0.7 0.7 1	  0.4 0.4 0.4 1 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 50 r-100, 0, 100 r-50;
+		gravity		= 0, 0.2, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 10;
+		particleLifeSpread	= 10;
+		numParticles		= 2;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 3;
+		particleSize		= 5;
+		particleSizeSpread	= 0;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=40;
+	}
+		
+	[glow]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=-0, 1, 0;
+			gravity=0, 0.00, 0;
+			colorMap= 0 0 0 0.01   1 1 1 1             0 0 0 0.01;
+			Texture=circularthingy;
+			airdrag=1;
+			particleLife=20;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=0.1;
+			particleSpeedSpread=0;
+			particleSize=200;
+			particleSizeSpread=10;
+			emitRot=0;
+			emitRotSpread=180;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	
+	usedefaultexplosions=0;
+	[GROUNDFLASH]
+	{
+		flashSize = 300;
+		flashAlpha = 1.2;
+		circleGrowth = 20;
+		circleAlpha = 0.7;
+		ttl = 16;
+		color=0.9,0.9,0.9;
+	}
+}
+
+
+[DISPEL_EVIL_NANOS]
+{
+	
+	[nanoblock]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.7 0.7 0.7 0.0001   0.7 0.7 0.7 1	  0.4 0.4 0.4 1 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 0, 0, 0;
+		gravity		= 0, -0.3, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 12;
+		particleLifeSpread	= 12;
+		numParticles		= 2;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 8;
+		particleSize		= 3;
+		particleSizeSpread	= 2;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=10;
+	}
+	
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0 0 0 0.0001   0.7 0.7 0.7 0.0001   0.7 0.7 0.7 1	  0.4 0.4 0.4 1 	0.0 0.0 0.0 0.001;
+
+      		pos 		= 0, 0, 0;
+		gravity		= 0, 0.1, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 10;
+		particleLifeSpread	= 10;
+		numParticles		= 1;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 5;
+		particleSize		= 2;
+		particleSizeSpread	= 3;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=6;
+	}
+	
+	[glow]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=-0, 1, 0;
+			gravity=0, 0.00, 0;
+			colorMap= 0 0 0 0.01   1 1 1 0.6             0 0 0 0.01;
+			Texture=circularthingy;
+			airdrag=1;
+			particleLife=10;
+			particleLifeSpread=0;
+			numParticles=1;
+			particleSpeed=0.1;
+			particleSpeedSpread=0;
+			particleSize=40;
+			particleSizeSpread=10;
+			emitRot=0;
+			emitRotSpread=180;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+}

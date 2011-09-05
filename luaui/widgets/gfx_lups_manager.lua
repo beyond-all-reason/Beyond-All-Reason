@@ -73,6 +73,14 @@ end
 
 local UnitEffects = {
 
+  [UnitDefNames["cjuno"].id] = {
+    {class='ShieldSphere',options=junoShieldSphere},
+    {class='GroundFlash',options=groundFlashJuno},
+  },
+  [UnitDefNames["ajuno"].id] = {
+    {class='ShieldSphere',options=junoShieldSphere},
+    {class='GroundFlash',options=groundFlashJuno},
+  },
   --// FUSIONS //--------------------------
   [UnitDefNames["cafus"].id] = {
     {class='Bursts',options=cafusBursts},

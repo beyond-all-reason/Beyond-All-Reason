@@ -34,6 +34,11 @@ return {
 		stealth = true,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		sfxtypes = { 
+      explosiongenerators = { 
+        "custom:JUNO_SPHERE_EMIT", 
+      },
+ 	  },
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -102,7 +107,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 1,
-				energypershot = 16000,
+				energypershot = 12000,
 				explosiongenerator = "custom:FLASHJUNO",
 				flighttime = 400,
 				impulseboost = 0,

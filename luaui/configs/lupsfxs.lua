@@ -57,10 +57,35 @@ groundFlashArmestor = {
   repeatEffect = true,
 }
 
+groundFlashJuno = {
+  life       = 50,
+  size       = 80,
+  texture    = "bitmaps/GPL/Lups/groundflash.png",
+  colormap   = { {0.55,0.55,0.9, 0.1}, {0.55,0.55,0.9, 0.12},{0.55,0.55,0.9, 0.12},{0.55,0.55,0.9, 0.1}, },
+  repeatEffect = true,
+}
+
 
 ----------------------------------------------------------------------------
 -- BURSTS ------------------------------------------------------------------
 ----------------------------------------------------------------------------
+junoBursts = {
+  life       = math.huge,
+  pos        = {0,76,0},
+  rotSpeed   = 0.5,
+  rotSpread  = 1,
+  rotairdrag = 1,
+  arc        = 90,
+  arcSpread  = 0,
+  size       = 20,
+  sizeSpread = 0,
+  colormap   = { {0.7,0.9,0.55, 0.5} },
+  directional= true,
+  repeatEffect = true,
+  count      = 20,
+}
+
+
 corfusBursts = {
   life       = math.huge,
   pos        = {0,50,-5},
@@ -130,6 +155,16 @@ corfusShieldSphere = {
   size=22,
   colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
   colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
+  repeatEffect=true
+}
+
+junoShieldSphere = {
+  layer=-35,
+  life=20,
+  pos = {0,76,0},
+  size=13,
+  colormap1 = { {0.55,0.55,0.9, 0.8},{0.55,0.55,0.9, 0.8},{0.55,0.55,0.9, 0.8},{0.55,0.55,0.9, 0.8} },
+  colormap2 = { {0, 0, 0, 1},{0, 0, 0, 1},{0, 0, 0, 1},{0, 0, 0, 1} },
   repeatEffect=true
 }
 

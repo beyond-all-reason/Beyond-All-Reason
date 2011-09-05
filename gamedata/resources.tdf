@@ -115,6 +115,8 @@
 			whitelight=lightw.bmp;
 			whitelight2=lightw.tga;
             yellowlight=lighty.bmp;
+            
+            nanoball=nanoball.tga;
 		}
 	}
 }
