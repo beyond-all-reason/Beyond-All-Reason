@@ -31,6 +31,11 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
+if (type(Spring.GameOver)~='function') then
+  Spring.Echo("Game End gadget disabled as Spring.GameOver is not a function")
+  return false
+end
+
 local modOptions = Spring.GetModOptions()
 -- teamDeathMode possible values: "none", "teamzerounits" , "allyzerounits"
 local teamDeathMode = modOptions.teamdeathmode or "teamzerounits"
