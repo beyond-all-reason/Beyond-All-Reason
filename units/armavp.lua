@@ -40,7 +40,7 @@ return {
 		sightdistance = 283.39999389648,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "occcccoocccccoocccccoocccccoocccccooccccco",
 		buildoptions = {
 			[1] = "armacv",

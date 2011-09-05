@@ -34,7 +34,7 @@ return {
 		sightdistance = 299,
 		terraformspeed = 1000,
 		waterline = 26,
-		workertime = 200,
+		workertime = 400,
 		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
 		buildoptions = {
 			[1] = "armacsub",

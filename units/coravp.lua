@@ -39,7 +39,7 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
 			[1] = "coracv",
