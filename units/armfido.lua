@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 5264,
 		buildcostmetal = 253,
 		buildpic = "ARMFIDO.DDS",
-		buildtime = 6924,
+		buildtime = 6232,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
 		corpse = "DEAD",
@@ -94,7 +94,7 @@ return {
 		},
 		weapondefs = {
 			bfido = {
-				areaofeffect = 48,
+				areaofeffect = 72,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -120,6 +120,7 @@ return {
 			},
 			gauss = {
 				areaofeffect = 8,
+				impactonly = 1,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH1nd",
@@ -149,6 +150,7 @@ return {
 				def = "GAUSS",
 			},
 			[2] = {
+        badtargetcategory = "VTOL",
 				def = "BFIDO",
 			},
 		},
