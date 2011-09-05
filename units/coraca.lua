@@ -37,7 +37,7 @@ return {
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turnrate = 121,
-		workertime = 130,
+		workertime = 170,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "cmgeo",

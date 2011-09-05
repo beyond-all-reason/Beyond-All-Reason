@@ -37,7 +37,7 @@ return {
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turnrate = 138,
-		workertime = 130,
+		workertime = 170,
 		buildoptions = {
 			[1] = "armfus",
 			[2] = "armckfus",
