@@ -66,6 +66,8 @@ return {
 			[19] = "armjeth",
 			[20] = "armlatnk",
 			[21] = "armfboy",
+			[22] = "armcs",
+			[23] = "armroy",
 		},
 		featuredefs = {
 			dead = {
