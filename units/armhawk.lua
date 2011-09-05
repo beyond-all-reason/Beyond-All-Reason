@@ -66,7 +66,7 @@ return {
 				name = "GuidedMissiles",
 				noselfdamage = true,
 				range = 562,
-				reloadtime = 0.85000002384186,
+				reloadtime = 1.7,
 				smoketrail = true,
 				soundhit = "xplosml2",
 				soundstart = "Rocklit3",
