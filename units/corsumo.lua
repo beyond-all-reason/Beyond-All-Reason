@@ -35,6 +35,9 @@ return {
 		sightdistance = 510,
 		smoothanim = true,
 		turnrate = 320,
+		customparams = {
+			paralyzemultiplier = 0.5,
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,

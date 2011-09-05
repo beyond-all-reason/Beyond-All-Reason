@@ -2,7 +2,7 @@
 function gadget:GetInfo()
     return {
         name      = 'Paralyse Multiplier',
-        desc      = 'Handles Juno damage',
+        desc      = 'Handles Paralyze damage resistance',
         author    = 'Niobium',
         version   = 'v1.0',
         date      = 'April 2011',
