@@ -102,7 +102,7 @@ return {
 		weapondefs = {
 			adv_decklaser = {
 				areaofeffect = 8,
-				beamtime = 0.10000000149012,
+				beamtime = 0.15,
 				corethickness = 0.17499999701977,
 				craterboost = 0,
 				cratermult = 0,
@@ -129,7 +129,7 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					bombers = 15,
-					default = 60,
+					default = 110,
 					fighters = 15,
 					subs = 5,
 					vtol = 15,
