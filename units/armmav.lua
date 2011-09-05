@@ -99,6 +99,7 @@ return {
 				name = "GaussCannon",
 				noselfdamage = true,
 				range = 365,
+				predictboost = 0.3,
 				reloadtime = 0.94499999284744,
 				soundhit = "xplomed2",
 				soundstart = "Mavgun2",
