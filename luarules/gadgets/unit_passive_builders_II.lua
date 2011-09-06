@@ -53,7 +53,7 @@ local spGetTeamResources = Spring.GetTeamResources
 ----------------------------------------------------------------
 function gadget:Initialize()
     for uDefID, uDef in pairs(UnitDefs) do
-        canPassive[uDefID] = (uDef.canAssist and uDef.buildSpeed > 0)
+        canPassive[uDefID] = ((uDef.canAssist and uDef.buildSpeed > 0) or #uDef.buildOptions > 0)
         requiresMetal[uDefID] = (uDef.metalCost > 1) -- T1 metal makers cost 1 metal.
         requiresEnergy[uDefID] = (uDef.energyCost > 0) -- T1 solars cost 0 energy.
     end
