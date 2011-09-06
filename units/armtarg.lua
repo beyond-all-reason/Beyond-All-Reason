@@ -15,7 +15,7 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
 		corpse = "DEAD",
 		description = "Enhanced Radar Targeting, more facilities enhance accuracy",
-		energyuse = 150,
+		energyuse = 100,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 4,
 		footprintz = 4,
