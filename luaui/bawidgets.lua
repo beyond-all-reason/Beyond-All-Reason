@@ -740,7 +740,7 @@ end
 
 
 function widgetHandler:RemoveWidget(widget)
-  if (widget == nil) then
+  if (widget == nil) or (widget.whInfo == nil) then
     return
   end
 

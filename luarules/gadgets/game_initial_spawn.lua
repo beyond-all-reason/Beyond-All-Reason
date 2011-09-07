@@ -37,6 +37,14 @@ local validStartUnits = {
 }
 local spawnTeams = {} -- spawnTeams[teamID] = allyID
 
+local modOptions = Spring.GetModOptions() or {}
+local comStorage = false
+if ((modOptions.mo_storageowner) and (modOptions.mo_storageowner == "com")) then
+  comStorage = true
+end
+local startMetal  = tonumber(modOptions.startmetal)  or 1000
+local startEnergy = tonumber(modOptions.startenergy) or 1000
+
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
@@ -89,7 +97,11 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
         x = 0.5 * (xmin + xmax)
         z = 0.5 * (zmin + zmax)
     end
-    spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID)
+    local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID)
+    if (comStorage) then
+      Spring.AddUnitResource(unitID, 'm', startMetal)
+      Spring.AddUnitResource(unitID, 'e', startEnergy)
+    end
 end
 
 function gadget:GameStart()

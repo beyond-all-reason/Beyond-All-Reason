@@ -144,6 +144,18 @@ local options={
 		}
 	},
 	{
+		key="mo_storageowner",
+		name="Team Storage Owner",
+		desc="What owns the starting resource storage",
+		type="list",
+		def="team",
+		section="ba_options",
+		items={
+      {key="com", name="Commander", desc="Starting resource storage belongs to commander, is lost when commander dies"},
+			{key="team", name="Team", desc="Starting resource storage belongs to the team, cannot be lost"},
+		}
+	},
+	{
        key    = "startmetal",
        name   = "Starting metal",
        desc   = "Determines amount of metal and metal storage that each player will start with",

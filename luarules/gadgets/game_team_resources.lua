@@ -26,6 +26,11 @@ function gadget:Initialize()
 	local modOptions = Spring.GetModOptions() or {}
 	local startMetal  = tonumber(modOptions.startmetal)  or 1000
 	local startEnergy = tonumber(modOptions.startenergy) or 1000
+	local teamResources = true 
+
+	if ((modOptions.mo_storageowner) and (modOptions.mo_storageowner == "com")) then
+    teamResources = false
+	end
 	
     if GG.coopMode then
         
@@ -43,18 +48,28 @@ function gadget:Initialize()
         for i = 1, #teamList do
             local teamID = teamList[i]
             local multiplier = teamPlayerCounts[teamID] or 1 -- Gaia has no players
-            Spring.SetTeamResource(teamID, 'ms', startMetal  * multiplier)
+            if (teamResources) then
+              Spring.SetTeamResource(teamID, 'es', startEnergy * multiplier)
+              Spring.SetTeamResource(teamID, 'ms', startMetal  * multiplier)
+            else
+              Spring.SetTeamResource(teamID, 'es', 20 * multiplier)
+              Spring.SetTeamResource(teamID, 'ms', 20 * multiplier)
+            end
             Spring.SetTeamResource(teamID, 'm' , startMetal  * multiplier)
-            Spring.SetTeamResource(teamID, 'es', startEnergy * multiplier)
             Spring.SetTeamResource(teamID, 'e' , startEnergy * multiplier)
         end
     else
         local teamList = Spring.GetTeamList()
         for i = 1, #teamList do
             local teamID = teamList[i]
-            Spring.SetTeamResource(teamID, 'ms', startMetal)
+            if (teamResources) then
+              Spring.SetTeamResource(teamID, 'ms', startMetal)
+              Spring.SetTeamResource(teamID, 'es', startEnergy)
+            else
+              Spring.SetTeamResource(teamID, 'es', 20)
+              Spring.SetTeamResource(teamID, 'ms', 20)
+            end
             Spring.SetTeamResource(teamID, 'm' , startMetal)
-            Spring.SetTeamResource(teamID, 'es', startEnergy)
             Spring.SetTeamResource(teamID, 'e' , startEnergy)
         end
     end
@@ -64,3 +79,5 @@ function gadget:TeamDied(teamID)
 	Spring.SetTeamShareLevel(teamID, 'metal', 0)
 	Spring.SetTeamShareLevel(teamID, 'energy', 0)
 end
+
+

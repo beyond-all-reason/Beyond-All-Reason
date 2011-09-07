@@ -8,11 +8,17 @@ if (Spring.GetModOptions) then
       end
     end
   elseif (modOptions.mo_transportenemy == "all") then
-  
   	for name, ud in pairs(UnitDefs) do  
-      Spring.Echo(name)
 			ud.transportbyenemy = false
 		end
+  end
+  if (modOptions.mo_storageowner == "com") then
+  	for name, ud in pairs(UnitDefs) do  
+      if (name == "armcom" or name == "corcom") then
+        ud.energyStorage = modOptions.startenergy or 1000
+        ud.metalStorage = modOptions.startmetal or 1000
+      end
+    end
   end
 	
 end
