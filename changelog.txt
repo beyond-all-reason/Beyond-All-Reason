@@ -1,3 +1,110 @@
+7.50 -> 7.60
+
+- Fixed CORE Dragon Eye having ARM logo on it 
+- Units that couldn't previously can now hit a closed packO
+- Energy converter now uses correct efficiencies and capacities from BA 7.31
+- MetalMakers now open/close depending on whether they're in use again
+- Improved and optimized/beautified all construction unit animation scripts
+- Fix for coop players starting on the same position
+- Fixed bombers commandfire weapon tag for .83 compatibility
+- Added new game end condition gadget for .83
+- Fixed Core DDM animation, collision volume and optimized model
+- Updated dynamic collision volume gadget 
+- Added more custom collision volumes
+
+- Added modoption to toggle whether start resources belong to the team or the commander (default: team)
+- Teams that die in FFA mode before 2 minutes get killed without leaving wrecks
+- Enemy Transporting mod option now defaults to 'Disallow All' (previously All But Commander) 
+- Air Comblast Full Damage modoption now defaults to 'false'
+
+- Fixed submarines not being able to hit some t1 ships by expanding hitspheres
+- Sea pathing improved by reducing footprint of smaller boats (only minimal unit overlap) and removing turninplace for smaller boats 
+- Dragon Eyes can now float on water
+- Added amphibious to description of units lacking them
+- Arm & Core Cruiser close-range deck lasers damage per shot increased (60->110)
+
+- Arm & Core T1 Missile trucks dps vs air increased 20%
+- Arm & Core T1 Missile trucks airsightdistance 800 added
+
+- Arm Maverick accuracy vs moving targets increased
+- Arm Fido buildtime reduced 10%, 'On' weapon AOE increased a little
+- Arm Zeus weapon now does 50% splash damage to up to 2 nearby units 
+- Core Freaker can now build T1 Construction Ships & Destroyers
+- Core Commando mine placing script improved
+- Core Can HP increased (4350->4850)
+- Core Sumo EMP resistance added (0%->50%)
+
+- Arm Consul can now build T1 Construction Ships & Destroyers
+- Arm Bulldog weapon damage increased (240->270), turret aim speed increased a little
+- Core Reaper weapon damage increased (97->109), turret aim speed increased a little
+- Core Diplomat missile damage increased 20%
+- Arm Merl missile damage increased 20%
+
+- Arm Banshee special damage vs commanders raised (3->5) (default damage is 9)
+- Core Hurricane bomb damage increased (283->337)
+- Arm Phoenix bomb damage increased (210->250)
+- Arm & Core Advanced construction aircraft workertimes raised (130->170)
+- Arm Brawler hp increased (1400->1600)
+- Core Rapier hp increased (1150->1400) 
+- Core Krow hp reduced (17500->15000)
+- Arm Blade hp increased (2675->2700)
+- Arm Dragonfly EMP damage per beam raised (15000->22500) 
+
+- Fighter HP reverted to 7.31 levels
+- Fighter special lower damage vs gunships removed
+- Fighter vs Fighter damage increased
+- Fighter airsightdistance increased
+- Hawk/Vamp reload times increased
+- EnergyMake/EnergyUse & Idle Autoheal removed from fighters 
+
+- Arm Dragons Claw weapon now does ~33% splash damage to up to 2 nearby units
+- Core Double llt top laser range increased (435->475), special damage vs commanders reduced (140->100)
+- Core Double llt bottom laser range reduced (435->400)
+- Core Double llt Energycost increased (1467->1617), sightdistance increased (455->475)
+- Fixed missing Active/Passive switch on Minelayers
+- Building mines doesn't level terrain beneath them
+
+- Arm Annihilatior weapon max damage increased from 9000 to 12000
+- Core Doomsday machine small red laser now in a burst of 2 shots per round
+
+- Core LRPC (Intimidator) range increased (4000->4950) 
+- Core LRPC (Intimidator) reload increased ~20%
+- Core LRPC (Intimidator) heightboost factor reduced (6)
+- Arm LRPC (Bertha) range increased (4000->4650)
+- Arm LRPC (Bertha) reload increased ~20%
+- Arm LRPC (Bertha) heightboost factor reduced (8)
+- Core Buzzsaw metalcost increased
+- Core Buzzsaw damage per shot reduced
+- Core Buzzsaw death explosion made much larger
+- Arm Vulcan metalcost increased
+- Arm Vulcan damage per shot reduced
+- Arm Vulcan death explosion made much larger
+- Arm EMP Silo range increased (4000->4500)
+
+- Increased plasma deflector coverage (400-500)
+- Increased plasma deflector max power (7500->12500)
+- Decreased plasma deflector charge speed (150->100)
+- Added some initial charge to plasma deflector once built (2000)
+
+- Arm & Core Advanced fusion buildtimes raised 40%
+- Arm & Core Advanced Kbot labs workertime increased (200->300)
+- Arm & Core Advanced Vehicle plants workertime increased (200->300)
+- Arm & Core Advanced Shipyards workertime increased (200->400)
+- Arm & Core Targeting facilites energy to run cost reduced (150->100)
+
+- Juno energy per shot reduced (16000->12000), new unit effects added
+
+- Arm & Core Stationary Anti-Nukes energycost increased (28000->40000) (was ~60k prior to BA 7.4)
+- Arm & Core Stationary Anti-Nukes buildtime increased (28000->60000) (was ~95k prior to BA 7.4)
+- Arm & Core (Ground Based) Mobile Anti Nukes costs reduced ~20%
+- Arm & Core (Ground Based) Mobile Anti Nukes coverage reduced (2000->1600)
+  
+- Arm Bantha EMP resistance reduced (100%->50%)
+- Arm Maurauder hp raised (4000->4200)
+- Arm Razorback hp raised (11500->12000)
+- Core Juggernaut laser dps increased
+- Core Krogoth kick AE made a bit larger
+
 7.31 --> 7.40
 
 05/23/11:
