@@ -116,7 +116,7 @@ return {
 				name = "LightLaser",
 				noselfdamage = true,
 				proximitypriority = 3,
-				range = 430,
+				range = 400,
 				reloadtime = 0.47999998927116,
 				rgbcolor = "1 0 0",
 				soundhit = "lasrhit2",
@@ -167,8 +167,8 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					bombers = 5,
-					commanders = 140,
 					default = 75,
+					commanders = 100,
 					fighters = 5,
 					subs = 3,
 					vtol = 5,
