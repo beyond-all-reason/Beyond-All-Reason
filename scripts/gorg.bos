@@ -11,7 +11,6 @@ piece  rflare, lflare, body, turret, feetparent, FLFoot, FRFoot, RLFoot,
 static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
             Static_Var_6, Static_Var_7;
 
-
 walk()
 {
 	if( TRUE )
@@ -459,6 +458,7 @@ AimWeapon1(Func_Var_1, Func_Var_2)
 	return (1);
 }
 
+
 FireWeapon1()
 {
 	if( Static_Var_5 == 0 )
@@ -493,6 +493,7 @@ AimWeapon2(Func_Var_1, Func_Var_2)
 
 FireWeapon2()
 {
+	set CHANGE_TARGET to 2;
 	show flare1;
 	sleep 150;
 	hide flare1;
@@ -521,6 +522,7 @@ AimWeapon3(Func_Var_1, Func_Var_2)
 
 FireWeapon3()
 {
+	set CHANGE_TARGET to 3;
 	show flare2;
 	sleep 150;
 	hide flare2;
@@ -549,6 +551,7 @@ AimWeapon4(Func_Var_1, Func_Var_2)
 
 FireWeapon4()
 {
+	set CHANGE_TARGET to 4;
 	show flare3;
 	sleep 150;
 	hide flare3;

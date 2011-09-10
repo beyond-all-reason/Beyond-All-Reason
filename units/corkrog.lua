@@ -200,7 +200,7 @@ return {
 				},
 			},
 			krogkick = {
-				areaofeffect = 35,
+				areaofeffect = 65,
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
