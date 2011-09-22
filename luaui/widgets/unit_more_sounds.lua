@@ -16,7 +16,8 @@ end
 local activateSounds = {}
 local GetUnitPosition = Spring.GetUnitPosition
 local PlaySoundFile = Spring.PlaySoundFile
-local volume = ((Spring.GetConfigString("snd_volunitreply") or 100) / 100)
+local configVolume = tonumber(Spring.GetConfigString("snd_volunitreply"))
+local volume = ((configVolume or 100) / 100)
 
 function widget:Initialize()
   for unitDefID,defs in pairs(UnitDefs) do
