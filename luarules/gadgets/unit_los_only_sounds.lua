@@ -56,6 +56,7 @@ else
 local PlaySoundFile = Spring.PlaySoundFile
 local GetPositionLosState = Spring.GetPositionLosState
 local GetMyAllyTeamID = Spring.GetMyAllyTeamID
+local GetConfigString = Spring.GetConfigString
 
 function gadget:Initialize()
   gadgetHandler:AddSyncAction("LOSSound", LOSSound)
@@ -64,7 +65,7 @@ end
 function LOSSound(_,x,y,z,sound)
 	local _,inLos = GetPositionLosState(x,y,z,GetMyAllyTeamID())
 	if inLos then
-		local volume = (tonumber(Spring.GetConfigString("snd_volunitreply")) or 100) / 100
+		local volume = (tonumber(GetConfigString("snd_volunitreply") or 100) or 100) / 100
 		PlaySoundFile(sound,volume,x,y,z)
 	end
 end
