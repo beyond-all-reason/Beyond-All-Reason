@@ -33,8 +33,6 @@ return {
 		trackstrength = 4,
 		tracktype = "StdTank",
 		trackwidth = 22,
-		turninplace = 1,
-		turninplacespeedlimit = 50,
 		turnrate = 592,
 		featuredefs = {
 			dead = {
