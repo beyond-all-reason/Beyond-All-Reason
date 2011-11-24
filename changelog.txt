@@ -1,3 +1,10 @@
+7.60 -> 7.61
+
+- Fixed default widgets and added game end gadget.
+- Updated dynamic collision volumes
+- Sound config fixes
+- Fixed tank and hovercraft maneuverability issues (where they would stop on new orders and on turn)
+
 7.50 -> 7.60
 
 - Fixed CORE Dragon Eye having ARM logo on it 
