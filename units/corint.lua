@@ -33,6 +33,7 @@ return {
 		selfdestructas = "ATOMIC_BLAST",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
+		usePieceCollisionVolumes = 1,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			canareaattack = 1,

@@ -38,6 +38,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
+		usePieceCollisionVolumes = 1,
 		workertime = 600,
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
