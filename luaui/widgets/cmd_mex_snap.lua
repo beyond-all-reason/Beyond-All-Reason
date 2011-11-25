@@ -22,7 +22,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 
 local isMex = {}
 for uDefID, uDef in pairs(UnitDefs) do
-	if uDef.isMetalExtractor then
+	if uDef.extractsMetal > 0 then
 		isMex[uDefID] = true
 	end
 end
