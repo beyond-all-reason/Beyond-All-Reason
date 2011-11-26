@@ -12,7 +12,7 @@ piece  base, turret1, stand, door1, door2, door3, door4, turret2,
 //-------------------------------------------------------------------------------------------------
 // Static var
 //-------------------------------------------------------------------------------------------------
-static-var  isFullyOpen;
+static-var  isFullyOpen, gun_1;
 
 //-------------------------------------------------------------------------------------------------
 // Signal definitions
@@ -135,7 +135,7 @@ Create()
 	dont-cache stand;
 	dont-cache turret1;
 	dont-cache turret2;
-
+	gun_1 = turret1;
 	// State (Fully open)
     isFullyOpen = 1;
     start-script FCloseAfterDelay();
@@ -173,9 +173,25 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show emit1;
-	sleep 150;
-	hide emit1;
+	if( gun_1 == 1 )
+	{
+		gun_1 = 2;
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		gun_1 = 3;
+		return (0);
+	}
+	if( gun_1 == 3 )
+	{
+		gun_1 = 4;
+		return (0);
+	}
+	if( gun_1 == 4 )
+	{
+		gun_1 = 1;
+	}
 }
 
 AimFromPrimary(piecenum)
@@ -185,9 +201,23 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = emit1;
+	if( gun_1 == 1 )
+	{
+		piecenum = emit1;
+	}
+	if( gun_1 == 2 )
+	{
+		piecenum = emit2;
+	}
+	if( gun_1 == 3 )
+	{
+		piecenum = emit3;
+	}
+	if( gun_1 == 4 )
+	{
+		piecenum = emit4;
+	}
 }
-
 SweetSpot(piecenum)
 {
 	piecenum = base;
