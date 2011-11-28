@@ -31,6 +31,7 @@ return {
 		selfdestructas = "MEDIUM_BUILDING",
 		sightdistance = 546,
 		usebuildinggrounddecal = true,
+		usePieceCollisionVolumes = 1,
 		yardmap = "ooooooooo",
 		featuredefs = {
 			dead = {

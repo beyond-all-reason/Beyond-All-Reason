@@ -122,14 +122,6 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		on={64,20,64,0,0,0,1,1,1},
 		off={38,20,38,0,0,0,1,1,1},
 	}
-	unitCollisionVolume["cortoast"] = {
-		on={44,23,44,0,4,0,2,1,0},
-		off={44,7,44,0,-3.3,0,2,1,0},
-	}
-	unitCollisionVolume["corvipe"] = {
-		on={39,86,39,0,-10,0,0,1,0},
-		off={39,55,39,0,-27,0,0,1,0},
-	}
 	unitCollisionVolume["packo"] = {
 		on={49,51,49,-0.5,-10,0,0,1,0},
 		off={49,23,49,-0.5,-10,0,0,1,0},
@@ -138,134 +130,57 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		on={54,50,50,0,2,-1,0,1,0},
 		off={54,45,50,0,-4,-1,0,1,0},
 	}
+	pieceCollisionVolume["armrad"] = {
+			["0"]={true,22,58,22,0,30,0,1,1},
+			["2"]={true,60,13,13,11,0,0,1,0},
+	}
+	pieceCollisionVolume["armveil"] = {
+			["0"]={true,25,58,25,0,30,0,1,1},
+			["2"]={true,76,16,16,6,0,0,1,0},
+	}
 	pieceCollisionVolume["armbrtha"] = {
 			["0"]={true,32,80,32,0,20,0,1,1},
 			["2"]={true,24,30,75,0,23,0,1,2},
-			["1"]={false},
 			["3"]={true,8,8,42,0,1,70,1,2},
-			["4"]={false},	
 	}
 	pieceCollisionVolume["corint"] = {
 			["0"]={true,73,103,73,0,50,0,1,1},
 			["2"]={true,13,13,48,0,1,55,1,2},
-			["1"]={false},
-			["3"]={false},
-			["4"]={false},	
-	}		
+	}
 	dynamicPieceCollisionVolume["corgant"] = {
 		on = {
 			["0"]={true,118,96,130,0,0,0,1,2},
-			["1"]={false},
-			["2"]={false},
-			["3"]={false},
-			["4"]={false},
-			["5"]={false},
-			["6"]={false},
-			["7"]={false},
-			["8"]={false},
-			["9"]={false},
-			["10"]={false},
-			["11"]={false},
-			["12"]={false},
-			["13"]={false},
-			["14"]={false},
-			["15"]={false},
-			["16"]={false},
 			["17"]={true,105,55,105,0,7,30,1,2},
-			["18"]={false},
-			["19"]={false},
-			["20"]={false},
-			["21"]={false},
-			["22"]={false},
-			["23"]={false},
-			["24"]={false},
-			["25"]={false},
-			["26"]={false},
-			["27"]={false},
-			["28"]={false},
-			["29"]={false},
-			["30"]={false},
-			["31"]={false},
-			["33"]={false},
-			["32"]={false},
-			["33"]={false},
-			["34"]={false},
-			["35"]={false},
-			["36"]={false},
-			["37"]={false},
-			["38"]={false},
-			["39"]={false},
-			
-			
-		},
+	},
 		off = {
-			["0"]={true,110,66,130,0,0,0,1,2},
-			["1"]={false},
-			["2"]={false},
-			["3"]={false},
-			["4"]={false},
-			["5"]={false},
-			["6"]={false},
-			["7"]={false},
-			["8"]={false},
-			["9"]={false},
-			["10"]={false},
-			["11"]={false},
-			["12"]={false},
-			["13"]={false},
-			["14"]={false},
-			["15"]={false},
-			["16"]={false},
-			["17"]={false},
-			["18"]={false},
-			["19"]={false},
-			["20"]={false},
-			["21"]={false},
-			["22"]={false},
-			["23"]={false},
-			["24"]={false},
-			["25"]={false},
-			["26"]={false},
-			["27"]={false},
-			["28"]={false},
-			["29"]={false},
-			["30"]={false},
-			["31"]={false},
-			["33"]={false},
-			["32"]={false},
-			["33"]={false},
-			["34"]={false},
-			["35"]={false},
-			["36"]={false},
-			["37"]={false},
-			["38"]={false},
-			["39"]={false},
+			["0"]={true,110,66,130,0,0,0,1,0},
 		}
 	}	
 	dynamicPieceCollisionVolume["armarad"] = {
 		on = {
 			["0"]={true,25,45,25,0,22,0,1,1},
-			["1"]={false},
 			["2"]={true,76,29,29,0,3,0,1,0},
-			["3"]={false},
-			["4"]={false},
-			["5"]={false},
-			["6"]={false},
-		
-			
-			
 		},
 		off = {
 			["0"]={true,32,51,32,0,8,1,0,0},
-			["1"]={false},
-			["2"]={false},
-			["3"]={false},
-			["4"]={false},
-			["5"]={false},
-			["6"]={false},
-		
-			
 		}
 	}
-	
+	dynamicPieceCollisionVolume["cortoast"] = {
+		on = {
+			["1"]={true,44,23,44,0,0,0,2,0},
+			["5"]={true,10,10,60,0,13,13,1,2},
+		},
+		off = {
+			["1"]={true,44,7,44,0,0,0,2,0},
+		}
+	}
+	dynamicPieceCollisionVolume["corvipe"] = {
+                on = {
+                        ["0"]={true,40,12,30,0,0,0,2,0},
+                        ["5"]={true,25,46,25,0,25,0,1,1},
+                },
+                off = {
+                        ["0"]={true,39,55,39,0,0,0,0,1},
+                }
+        }
 return unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
