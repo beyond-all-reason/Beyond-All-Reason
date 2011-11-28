@@ -12,10 +12,6 @@ return {
 		buildpic = "ARMVULC.DDS",
 		buildtime = 672961,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
-		collisionvolumeoffsets = "0 1 -3",
-		collisionvolumescales = "98 153 98",
-		collisionvolumetest = 1,
-		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Rapid-Fire Long-Range Plasma Cannon",
 		explodeas = "RLRPC_DEATH",
@@ -33,6 +29,7 @@ return {
 		selfdestructas = "RLRPC_DEATH",
 		sightdistance = 700,
 		usebuildinggrounddecal = true,
+		usePieceCollisionVolumes = 1,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		featuredefs = {
 			dead = {
