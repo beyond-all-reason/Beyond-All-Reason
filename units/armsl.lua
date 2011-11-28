@@ -26,6 +26,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Seahook",
 		objectname = "ARMSL",
+		releaseheld = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 260,

@@ -28,6 +28,7 @@ return {
 		name = "Dragonfly",
 		nochasecategory = "VTOL",
 		objectname = "ARMDFLY",
+		releaseheld = true,
 		seismicsignature = 0,
 		selfdestructas = "SMALL_UNIT",
 		sightdistance = 318,
