@@ -106,7 +106,7 @@ end
 
 function gadget:GameStart()
     for teamID, allyID in pairs(spawnTeams) do
-        local startX, _, startZ = spGetTeamStartPosition(teamID)
+        local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
         SpawnTeamStartUnit(teamID, allyID, startX, startZ)
     end
 end
