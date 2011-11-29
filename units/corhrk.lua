@@ -100,7 +100,7 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:STARFIRE",
 				firestarter = 100,
-				flighttime = 6,2,
+				flighttime = 6.2,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				metalpershot = 0,
@@ -118,7 +118,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
 				damage = {
-					default = 820,
+					default = 750,
 					subs = 5,
 				},
 			},
