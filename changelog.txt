@@ -1,3 +1,17 @@
+7.61 -> 7.62
+11/29/11:
+
+-Better handling for most units with turninplace
+-Fix t1 destroyer bad handling (by reverting to old behaivour, a combo of …
+-Torpedoes no longer hit hovers
+-Fix the Dominator hack
+-Added ability for maps to override engine start positions. Thanks zwzsg
+-Add Updated air release gadget and new airlab fix gadget , and cmd_lstpos …
+-Fix problem with armbrtha hitsphere
+-Updated Dynamic Collision Volume gadget to support dynamic per piece …
+-Update mex snap Widget
+-Viper and Pitbull script fix (thanks KingRaptor and Juzza)
+
 7.60 -> 7.61
 
 - Fixed default widgets and added game end gadget.
