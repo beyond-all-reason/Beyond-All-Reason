@@ -24,6 +24,9 @@ if (Spring.GetModOptions) then
 end
 
 for name, ud in pairs(UnitDefs) do
+	if (ud.maxvelocity) then 
+		ud.turninplacespeedlimit = ud.maxvelocity or 0
+	end
 	if ud.category and (ud.category:find("TANK",1,true) or ud.category:find("HOVER",1,true)) then
 		if (ud.maxvelocity) then 
 			ud.turninplace = 0
