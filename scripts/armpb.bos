@@ -3,35 +3,31 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//-------------------------------------------------------------------------------------------------
-// Pieces
-//-------------------------------------------------------------------------------------------------
-piece base, turret, dome, post, gun, barrel, flare;
+piece  base, turret, dome, post, gun, barrel, flare;
 
-//-------------------------------------------------------------------------------------------------
-// Static var
-//-------------------------------------------------------------------------------------------------
-static-var  isFullyOpen;
+static-var  OpenClosed, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
-//-------------------------------------------------------------------------------------------------
 // Signal definitions
-//-------------------------------------------------------------------------------------------------
-#define SIG_AIM 2
-#define SIG_OPENCLOSE 4
+#define SIG_AIM			2
+#define SIG_RESTORE		8
 
-//-------------------------------------------------------------------------------------------------
-// Functions
-//-------------------------------------------------------------------------------------------------
-FClose()
+Go()
 {
-    // Signal guard
-    signal SIG_OPENCLOSE;
-    set-signal-mask SIG_OPENCLOSE;
-    
-    // State
-    isFullyOpen = 0;
-    
-    // Animation
+	set ARMORED to 0;
+	turn dome to x-axis <-135.032967> speed <550.000000>;
+	wait-for-turn dome around x-axis;
+	move post to y-axis [3.600000] speed [25.000000];
+	move barrel to z-axis [0.000000] speed [15.000000];
+	move gun to x-axis [1.500000] speed [5.000000];
+	wait-for-move post along y-axis;
+	wait-for-move barrel along z-axis;
+	wait-for-move gun along x-axis;
+	OpenClosed = 1;
+}
+
+Stop()
+{
+	OpenClosed = 0;
 	turn gun to x-axis <0.000000> speed <90.000000>;
 	move barrel to z-axis [-5.500000] speed [15.000000];
 	move gun to x-axis [0.000000] speed [5.000000];
@@ -42,57 +38,51 @@ FClose()
 	wait-for-move post along y-axis;
 	turn dome to x-axis <0.000000> speed <550.000000>;
 	wait-for-turn dome around x-axis;
-    
-    // Fully closed -> Gain armor
 	set ARMORED to 1;
 }
 
-FCloseAfterDelay()
+RequestState(requestedstate, currentstate)
 {
-    // Signals
-    set-signal-mask SIG_OPENCLOSE;
-    
-    // Script
-    sleep 4000;
-    set-signal-mask 0; // To stop FClose from inheriting SIG_OPENCLOSE and killing itself
-    start-script FClose();
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
 }
 
-FOpen()
+RestoreAfterDelay()
 {
-    // Signals
-    signal SIG_OPENCLOSE;
-    set-signal-mask SIG_OPENCLOSE;
-    
-    // Lose armor immediately
-    set ARMORED to 0;
-    
-    // Animation
-	turn dome to x-axis <-135.032967> speed <550.000000>;
-	wait-for-turn dome around x-axis;
-	move post to y-axis [0.000000] speed [25.000000];
-	move barrel to z-axis [0.000000] speed [15.000000];
-	move gun to x-axis [1.500000] speed [5.000000];
-	wait-for-move post along y-axis;
-	wait-for-move barrel along z-axis;
-	wait-for-move gun along x-axis;
-    
-    // Done
-	isFullyOpen = 1;
-    
-    // Remember to close later
-    start-script FCloseAfterDelay();
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
 }
 
-//-------------------------------------------------------------------------------------------------
-// Callins
-//-------------------------------------------------------------------------------------------------
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
 	}
+	start-script RestoreAfterDelay();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -116,50 +106,47 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-    // Pieces
 	hide flare;
-	dont-cache turret;
-	dont-cache dome;
-	dont-cache post;
-	dont-cache gun;
-	dont-cache barrel;
-	dont-cache flare;
-	dont-shade turret;
-	dont-shade dome;
-	dont-shade post;
-	dont-shade gun;
-	dont-shade barrel;
-	dont-shade flare;
-    
-    // State (Fully open)
-    isFullyOpen = 1;
-    start-script FCloseAfterDelay();
-    
-    // Other threads
+	restore_delay = 2000;
+	OpenClosed = 1;
+	statechg_DesiredState = FALSE;
+	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
-    
-    // Alignment
-	turn dome to x-axis <-135.000000> now;
+	turn dome to x-axis <-135.032967> now;
 	move gun to x-axis [1.500000] now;
+}
+
+/*
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+*/
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
 }
 
 AimPrimary(heading, pitch)
 {
-    // Signal guard
+	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-    
-    // Open up
-    start-script FOpen();
-	while(!isFullyOpen)
+	while( !OpenClosed )
 	{
-		sleep 100;
+		sleep 250;
 	}
-    
 	turn turret to y-axis heading speed <200.000000>;
 	turn gun to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 

@@ -3,93 +3,99 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-//-------------------------------------------------------------------------------------------------
-// Pieces
-//-------------------------------------------------------------------------------------------------
 piece  base, turret1, stand, door1, door2, door3, door4, turret2,
        emit1, emit2, emit3, emit4;
 
-//-------------------------------------------------------------------------------------------------
-// Static var
-//-------------------------------------------------------------------------------------------------
-static-var  isFullyOpen, gun_1;
+static-var  OpenClosed, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
 
-//-------------------------------------------------------------------------------------------------
 // Signal definitions
-//-------------------------------------------------------------------------------------------------
-#define SIG_AIM	2
-#define SIG_OPENCLOSE 4
+#define SIG_AIM			2
+#define SIG_RESTORE		8
 
-//-------------------------------------------------------------------------------------------------
-// Functions
-//-------------------------------------------------------------------------------------------------
-FClose()
+Go()
 {
-    // Signal guard
-    signal SIG_OPENCLOSE;
-    set-signal-mask SIG_OPENCLOSE;
+	set ARMORED to 0;
+	move stand to y-axis [-23.389996] now;
+	turn door1 to z-axis <-3.027473> now;
+	turn door1 to z-axis <-179.038462> speed <827.000000>;
+	turn door2 to z-axis <3.027473> now;
+	turn door2 to z-axis <178.038462> speed <826.000000>;
+	turn door3 to x-axis <-3.027473> now;
+	turn door3 to x-axis <-179.038462> speed <827.000000>;
+	turn door4 to x-axis <3.027473> now;
+	turn door4 to x-axis <179.038462> speed <829.000000>;
+	turn turret2 to x-axis <90.021978> now;
+	sleep 213;
 
-    // State
-    isFullyOpen = 0;
+	move stand to y-axis [0.000000] speed [76.000000];
+	wait-for-move stand along y-axis;
+	turn turret2 to x-axis <0.000000> speed <200.000000>;
+	sleep 307;
+	
+	OpenClosed = 1;
+}
 
-    // Animation
-	turn turret1 to y-axis <0.000000> speed <200.000000>;
-	turn turret2 to x-axis <90.000000> speed <200.000000>;
+Stop()
+{
+	OpenClosed = 0;
+	move stand to y-axis [0.000000] now;
+	turn turret2 to x-axis <0.000000> now;
+	turn turret2 to x-axis <90.021978> speed <200.000000>;
 	wait-for-turn turret2 around x-axis;
-	wait-for-turn turret1 around y-axis;
 	move stand to y-axis [-23.389996] speed [41.000000];
-	sleep 400;
+	turn door1 to z-axis <-179.329670> now;
+	turn door2 to z-axis <178.983516> now;
+	turn door3 to x-axis <-179.329670> now;
+	turn door4 to x-axis <179.681319> now;
+	sleep 563;
+
 	turn door1 to z-axis <-3.000000> speed <309.000000>;
 	turn door2 to z-axis <3.000000> speed <308.000000>;
 	turn door3 to x-axis <-3.000000> speed <309.000000>;
 	turn door4 to x-axis <3.000000> speed <309.000000>;
-	sleep 400;
-	
-	// Fully closed -> Gain armor
+	sleep 570;
+
 	set ARMORED to 1;
 }
 
-FCloseAfterDelay()
+RequestState(requestedstate, currentstate)
 {
-    // Signals
-    set-signal-mask SIG_OPENCLOSE;
-    
-    // Script
-    sleep 4000;
-    set-signal-mask 0; // To stop FClose from inheriting SIG_OPENCLOSE and killing itself
-    start-script FClose();
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
 }
 
-FOpen()
+RestoreAfterDelay()
 {
-    // Signals
-    signal SIG_OPENCLOSE;
-    set-signal-mask SIG_OPENCLOSE;
-   
-    // Lose armor immediately
-	set ARMORED to 0;
-	
-	// Animation
-	turn door1 to z-axis <-179.038462> speed <827.000000>;
-	turn door2 to z-axis <178.038462> speed <826.000000>;
-	turn door3 to x-axis <-179.038462> speed <827.000000>;
-	turn door4 to x-axis <179.038462> speed <829.000000>;
-	move stand to y-axis [0.000000] speed [76.000000];
-	wait-for-turn door4 around x-axis;
-	wait-for-move stand along y-axis;
-
-	
-	    // Done
-	isFullyOpen = 1;
-    
-    // Remember to close later
-    start-script FCloseAfterDelay();
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+	sleep restore_delay;
+	turn turret1 to y-axis <0.000000> speed <200.000000>;
+	turn turret2 to x-axis <0.000000> speed <200.000000>;
+	wait-for-turn turret1 around y-axis;
+	wait-for-turn turret2 around x-axis;
+	set-signal-mask 0;
+	start-script RequestState(1);
 }
-
-
-//-------------------------------------------------------------------------------------------------
-// Callins
-//-------------------------------------------------------------------------------------------------
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -97,6 +103,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
+	start-script RestoreAfterDelay();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -120,47 +127,30 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-    // Pieces
-	dont-shade door1;
-	dont-shade door2;
-	dont-shade door3;
-	dont-shade door4;
-	dont-shade stand;
-	dont-shade turret1;
-	dont-shade turret2;
-	dont-cache door1;
-	dont-cache door2;
-	dont-cache door3;
-	dont-cache door4;
-	dont-cache stand;
-	dont-cache turret1;
-	dont-cache turret2;
-	gun_1 = turret1;
-	// State (Fully open)
-    isFullyOpen = 1;
-    start-script FCloseAfterDelay();
-
-    // Other threads
-	start-script SmokeUnit();
-	
-    // Alignment
+	OpenClosed = 1;
+	gun_1 = 0;
+	restore_delay = 3000;
+	statechg_DesiredState = FALSE;
+	statechg_StateChanging = FALSE;
 	move turret1 to y-axis [5.0] now;
 	turn door1 to z-axis <-179.038462> now;
 	turn door2 to z-axis <178.038462> now;
 	turn door3 to x-axis <-179.038462> now;
 	turn door4 to x-axis <179.038462> now;
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
 }
 
 AimPrimary(heading, pitch)
 {
-	
-    // Signal guard
+	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	
-	// Open up
-    start-script FOpen();
-	while(!isFullyOpen)
+	while( !OpenClosed )
 	{
 		sleep 250;
 	}
@@ -168,30 +158,14 @@ AimPrimary(heading, pitch)
 	turn turret2 to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn turret2 around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
-	if( gun_1 == 1 )
-	{
-		gun_1 = 2;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-		gun_1 = 3;
-		return (0);
-	}
-	if( gun_1 == 3 )
-	{
-		gun_1 = 4;
-		return (0);
-	}
-	if( gun_1 == 4 )
-	{
-		gun_1 = 1;
-	}
+	++gun_1;
+	if( gun_1 == 4 ) gun_1 = 0;
 }
 
 AimFromPrimary(piecenum)
@@ -201,23 +175,9 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = emit1;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = emit2;
-	}
-	if( gun_1 == 3 )
-	{
-		piecenum = emit3;
-	}
-	if( gun_1 == 4 )
-	{
-		piecenum = emit4;
-	}
+	piecenum = emit1 + gun_1;
 }
+
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -227,11 +187,11 @@ Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
-		if( isFullyOpen )
+		if( OpenClosed )
 		{
 			corpsetype = 1;
 		}
-		if( !isFullyOpen )
+		if( !OpenClosed )
 		{
 			corpsetype = 2;
 		}
@@ -247,11 +207,11 @@ Killed(severity, corpsetype)
 	}
 	if( severity <= 50 )
 	{
-		if( isFullyOpen )
+		if( OpenClosed )
 		{
 			corpsetype = 2;
 		}
-		if( !isFullyOpen )
+		if( !OpenClosed )
 		{
 			corpsetype = 3;
 		}
@@ -267,11 +227,11 @@ Killed(severity, corpsetype)
 	}
 	if( severity <= 99 )
 	{
-		if( isFullyOpen )
+		if( OpenClosed )
 		{
 			corpsetype = 3;
 		}
-		if( !isFullyOpen )
+		if( !OpenClosed )
 		{
 			corpsetype = 4;
 		}
