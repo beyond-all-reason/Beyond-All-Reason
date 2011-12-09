@@ -30,7 +30,7 @@ local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 
-local CMD_DGUN = CMD.DGUN
+local CMD_DGUN = CMD.MANUALFIRE
 local CMDTYPE_ICON_UNIT_OR_MAP = CMDTYPE.ICON_UNIT_OR_MAP
 
 ----------------------------------------------------------------
