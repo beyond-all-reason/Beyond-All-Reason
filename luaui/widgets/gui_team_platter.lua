@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "Apr 16, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 5,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
@@ -58,6 +58,11 @@ local spSendCommands         = Spring.SendCommands
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local GetGaiaTeamID = Spring.GetGaiaTeamID () --+++
+function widget:PlayerChanged() --+++
+	GetGaiaTeamID = Spring.GetGaiaTeamID () --+++
+end --+++
 
 local function SetupCommandColors(state)
   local alpha = state and 1 or 0
@@ -180,7 +185,7 @@ function widget:DrawWorldPreUnit()
   for _,unitID in ipairs(spGetAllUnits()) do
     if (spIsUnitVisible(unitID)) then
       local teamID = spGetUnitTeam(unitID)
-      if (teamID) then
+      if (teamID and teamID~=GetGaiaTeamID) then	--+++
         local udid = spGetUnitDefID(unitID)
         local radius = GetUnitDefRealRadius(udid)
         if (radius) then
