@@ -2,7 +2,7 @@ return {
   name='Balanced Annihilation',
   description='Moooooo!',
   shortname='BA',
-  version='SVN',
+  version='$VERSION',
   mutator='Official',
   game='Total Annihilation',
   shortGame='TA',
