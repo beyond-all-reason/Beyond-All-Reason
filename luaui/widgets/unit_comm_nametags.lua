@@ -145,11 +145,10 @@ end
 
 function widget:DrawWorld()
   glDepthTest(true)
-  glTexture('LuaUI/Images/hellomynameis.png')
   glAlphaTest(GL_GREATER, 0)
 
   if (showStickyTags) then
-    
+    glTexture('LuaUI/Images/hellomynameis.png')
     for unitID, attributes in pairs(comms) do
 	  if (attributes[4]) then
 	      glPushMatrix()
