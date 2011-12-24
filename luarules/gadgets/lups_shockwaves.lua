@@ -39,7 +39,7 @@ if (gadgetHandler:IsSyncedCode()) then
       if (wd.type == "DGun") then
         SendToUnsynced("lups_shockwave", px, py, pz, 4.0, 18, 0.13, true)
       else
-        local growth = (wd.areaOfEffect*1.1)/20
+        local growth = (wd.damageAreaOfEffect*1.1)/20
         SendToUnsynced("lups_shockwave", px, py, pz, growth, false)
       end
     end
