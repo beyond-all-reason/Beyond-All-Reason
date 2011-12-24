@@ -38,7 +38,7 @@ local CMDTYPE_ICON_UNIT_OR_MAP = CMDTYPE.ICON_UNIT_OR_MAP
 ----------------------------------------------------------------
 function gadget:Initialize()
     for uDefID, uDef in pairs(UnitDefs) do
-        if uDef.canDGun then
+        if uDef.canManualFire then
             canDGun[uDefID] = true
         end
     end
