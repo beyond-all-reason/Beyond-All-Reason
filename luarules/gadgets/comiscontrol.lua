@@ -37,14 +37,14 @@ local GetGameFrame=Spring.GetGameFrame
 
 function gadget:UnitCreated(u, ud, team)
 	isAlive[u] = true
-	if UnitDefs[ud].isCommander then
+	if UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Created",team)
 		aliveCount[team] = aliveCount[team] + 1
 	end
 end
 
 function gadget:UnitGiven(u, ud, team)
-	if UnitDefs[ud].isCommander then
+	if UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Given",team)
 		aliveCount[team] = aliveCount[team] + 1
 	end
@@ -58,7 +58,7 @@ end
 
 function gadget:UnitDestroyed(u, ud, team)
 	isAlive[u] = nil
-	if UnitDefs[ud].isCommander then
+	if UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Destroyed",team)
 		aliveCount[team] = aliveCount[team] - 1
 		if aliveCount[team]<= 0 then
@@ -68,7 +68,7 @@ function gadget:UnitDestroyed(u, ud, team)
 end
 
 function gadget:UnitTaken(u, ud, team)
-	if isAlive[u] and UnitDefs[ud].isCommander then
+	if isAlive[u] and UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Taken",team)
 		aliveCount[team] = aliveCount[team] - 1
 		if aliveCount[team]<= 0 then

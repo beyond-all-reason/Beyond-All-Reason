@@ -25,13 +25,13 @@ local GetUnitDefID = Spring.GetUnitDefID
 local lastCounts = {}
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-  if UnitDefs[unitDefID].isCommander then
+  if UnitDefs[unitDefID].customParams.iscommander then
     comNotify = (Spring.GetGameFrame() + 15)
   end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  if UnitDefs[unitDefID].isCommander then
+  if UnitDefs[unitDefID].customParams.iscommander then
     comNotify = (Spring.GetGameFrame() + 15)
   end
 end
@@ -43,13 +43,13 @@ function widget:TeamDied(teamID)
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, newTeam)
-  if UnitDefs[unitDefID].isCommander then
+  if UnitDefs[unitDefID].customParams.iscommander then
     comNotify = (Spring.GetGameFrame() + 15)
   end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-  if UnitDefs[unitDefID].isCommander then
+  if UnitDefs[unitDefID].customParams.iscommander then
     comNotify = (Spring.GetGameFrame() + 15)
   end
 end
@@ -60,7 +60,7 @@ function widget:GameFrame(n)
     local allyID = Spring.GetMyAllyTeamID()
     for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
       for _, unitID in ipairs(Spring.GetTeamUnits(teamID)) do
-        if (UnitDefs[GetUnitDefID(unitID)].isCommander) then
+        if (UnitDefs[GetUnitDefID(unitID)].customParams.iscommander) then
           comCount = (comCount + 1)
         end
       end

@@ -22,7 +22,7 @@ local GetUnitHealth = Spring.GetUnitHealth
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
 	--if (UnitDefs[unitDefID].isCommander) and ((damage > GetUnitHealth(unitID)) or (weaponID==LICHE_BOMB)) then
-	if UnitDefs[unitDefID].isCommander and damage > GetUnitHealth(unitID) then
+	if UnitDefs[unitDefID].customParams.iscommander and damage > GetUnitHealth(unitID) then
 		return damage, 0
 	end
 	return damage, 1

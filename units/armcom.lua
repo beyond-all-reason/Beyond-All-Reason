@@ -85,6 +85,7 @@ return {
 		},
 		customparams = {
 			paralyzemultiplier = 0.025000000372529,
+			iscommander = true,
 		},
 		featuredefs = {
 			dead = {

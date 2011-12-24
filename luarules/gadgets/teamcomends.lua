@@ -53,14 +53,14 @@ end
 
 function gadget:UnitCreated(u, ud, team)
 	isAlive[u] = true
-	if UnitDefs[ud].isCommander then
+	if UnitDefs[ud].customParams.iscommander then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] + 1
 	end
 end
 
 function gadget:UnitGiven(u, ud, team)
-	if UnitDefs[ud].isCommander then
+	if UnitDefs[ud].customParams.iscommander then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] + 1
 	end
@@ -68,7 +68,7 @@ end
 
 function gadget:UnitDestroyed(u, ud, team)
 	isAlive[u] = nil
-	if UnitDefs[ud].isCommander then
+	if UnitDefs[ud].customParams.iscommander then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
@@ -78,7 +78,7 @@ function gadget:UnitDestroyed(u, ud, team)
 end
 
 function gadget:UnitTaken(u, ud, team)
-	if isAlive[u] and UnitDefs[ud].isCommander then
+	if isAlive[u] and UnitDefs[ud].customParams.iscommander then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
