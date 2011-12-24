@@ -1,3 +1,11 @@
+7.62 -> 7.63
+2011/24/12:
+
+-fixes for engine 85.0
+-attempt to fix unit velocities
+-units die instantly now in shot down air transports
+-fixed unit animations
+
 7.61 -> 7.62
 11/29/11:
 
