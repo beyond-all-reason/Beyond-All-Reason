@@ -20,8 +20,7 @@ local spDiffTimers                  = Spring.DiffTimers
 local spIsUnitInView                = Spring.IsUnitInView
 local spGetUnitPosition             = Spring.GetUnitPosition
 local spSetLastMessagePosition      = Spring.SetLastMessagePosition
-local spGetMyPlayerID       		= Spring.GetMyPlayerID
-local spGetPlayerInfo       		= Spring.GetPlayerInfo
+local spGetSpectatingState   		= Spring.GetSpectatingState
 local random                        = math.random
 ----------------------------------------------------------------------------
 local lastAlarmTime                 = nil
@@ -75,17 +74,14 @@ function setTeamId()
 end
 
 --changing teams, rejoin, becoming spec etc
-function widget:PlayerChanged (playerID)
+function widget:PlayerChanged(playerID)
     setTeamId()
 	CheckSpecState()
 end
 
 
 function CheckSpecState()
-	local playerID = spGetMyPlayerID()
-	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
-		
-	if ( spec == true ) then
+	if ( spGetSpectatingState() == tue ) then
 		widgetHandler:RemoveWidget()
 		return false
 	end
