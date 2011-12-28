@@ -271,7 +271,7 @@ local function UpdateUnitCommands(transport_id, commands, no_pickup)
 		if def and def.buildDistance then
 			drop_distance=0.8*def.buildDistance
 		end
-	elseif command.id==CMD.DGUN then
+	elseif command.id==CMD.MANUALFIRE then
 		drop_distance=opts.dgun_drop_distance;
 	end
 					
@@ -283,7 +283,7 @@ local function UpdateUnitCommands(transport_id, commands, no_pickup)
 		pz = command.params[3]
 		handle_command=true
 		transports[transport_id].track_target=nil
-	elseif command.id==CMD.REPAIR or command.id==CMD.RECLAIM or command.id==CMD.RESURRECT or command.id==CMD.DGUN or command.id==CMD.GUARD then
+	elseif command.id==CMD.REPAIR or command.id==CMD.RECLAIM or command.id==CMD.RESURRECT or command.id==CMD.MANUALFIRE or command.id==CMD.GUARD then
 		if table.getn(command.params)==4 or table.getn(command.params)==3 then
 			px = command.params[1]
 			py = command.params[2]

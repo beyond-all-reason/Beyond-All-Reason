@@ -63,7 +63,7 @@ function IsTransportable(unitDefID)
   ud = UnitDefs[unitDefID]
   if (ud == nil) then return false end
   udc = ud.springCategories
-  return (udc~= nil and ud.speed > 0 and not ud.canFly and not ud.canHover and not ud.floater and (ud.minWaterDepth or 0) <= 0)
+  return (udc~= nil and ud.speed > 0 and not ud.canFly and not ud.canHover and not ud.floatOnWater and (ud.minWaterDepth or 0) <= 0)
 end
 
 
