@@ -11,6 +11,7 @@ return {
 		collisionvolumeoffsets = "0.0 0.0 0.0",
 		collisionvolumescales = "28.0 27.0 25.0",
 		collisionvolumetype = "box",
+		collisionvolumetest = 1,
 		corpse = "DEAD",
 		description = "Armored Assault Kbot",
 		energymake = 7.5,
