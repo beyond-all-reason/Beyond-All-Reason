@@ -10,7 +10,7 @@ return {
 		category = "ALL TANK WEAPON NOTSUB NOTAIR",
 		collisionVolumeScales = [[42.6 32.6 44.6]],
 		collisionVolumeOffsets = [[0 -4 1]],
-		collisionVolumeTest = 0,
+		collisionVolumeTest = 1,
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Heavy Missile Tank",

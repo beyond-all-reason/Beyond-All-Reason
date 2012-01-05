@@ -17,6 +17,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
 		collisionvolumeoffsets = "0.0 -7.0 0.0",
 		collisionvolumescales = "19.0 35.0 19.0",
+		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		description = "Stealthy Tactical K-bot",
 		energymake = 10,

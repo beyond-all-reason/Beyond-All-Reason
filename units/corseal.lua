@@ -10,7 +10,7 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
 		collisionVolumeScales = [[31.1 14.1 29.1]],
 		collisionVolumeOffsets = [[0 -1 0]],
-		collisionVolumeTest = 0,
+		collisionVolumeTest = 1,
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Medium Amphibious Tank",
