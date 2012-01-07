@@ -49,7 +49,7 @@ local hmsz = Game.mapSizeZ/2
 -- builders that have been idling for the number of game frames
 -- (in case a player accidentally STOPs them)
 
-local idleFrames = 0
+local idleFrames = 50
 
 
 --------------------------------------------------------------------------------
