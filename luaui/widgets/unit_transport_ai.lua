@@ -1,4 +1,4 @@
--- $Id$
+-- $Id: unit_transport_ai.lua 4460 2009-04-20 20:36:16Z licho $
 include("keysym.h.lua")
 
 function widget:GetInfo()
@@ -15,7 +15,7 @@ function widget:GetInfo()
 end
 
 
-local CONST_IGNORE_BUILDERS = true -- should automated factory transport ignore builders?
+local CONST_IGNORE_BUILDERS = false -- should automated factory transport ignore builders?
 local CONST_HEIGHT_MULTIPLIER = 3 -- how many times to multiply height difference when evaluating distance
 local CONST_TRANSPORT_PICKUPTIME = 9 -- how long (in seconds) does transport land and takeoff with unit
 local CONST_PRIORITY_BENEFIT = 10000 -- how much more important are priority transfers
@@ -54,16 +54,31 @@ local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitIsTransporting = Spring.GetUnitIsTransporting
 local GetGroundHeight = Spring.GetGroundHeight
 
+local function IgBuilderChanged()
+  CONST_IGNORE_BUILDERS = options.ignoreBuilders.value
+end
+
+options_path = 'Game/Settings'
+options = {
+	ignoreBuilders = {
+		name = "Transport AI: Ignore Builders",
+		type = "bool",
+		value = false,
+		desc = "Do not pick up builders.",
+		OnChange = IgBuilderChanged,
+	},
+}
+
 function IsTransport(unitDefID) 
   ud = UnitDefs[unitDefID]
-  return (ud ~= nil and ud.isTransport and ud.canFly)
+  return (ud ~= nil and (ud.transportCapacity >= 1) and ud.canFly)
 end
 
 function IsTransportable(unitDefID)  
   ud = UnitDefs[unitDefID]
   if (ud == nil) then return false end
   udc = ud.springCategories
-  return (udc~= nil and ud.speed > 0 and not ud.canFly and not ud.canHover and not ud.floatOnWater and (ud.minWaterDepth or 0) <= 0)
+  return (udc~= nil and ud.speed > 0 and not ud.canFly)
 end
 
 
@@ -164,7 +179,9 @@ function widget:Initialize()
 
 
   for _, unitID in ipairs(GetTeamUnits(teamID)) do  -- init existing transports
-    AddTransport(unitID, GetUnitDefID(unitID))
+	if AddTransport(unitID, GetUnitDefID(unitID)) then
+       AssignTransports(unitID, 0)
+    end
   end
 end
 
@@ -226,7 +243,7 @@ end
 function AddTransport(unitID, unitDefID) 
   if (IsTransport(unitDefID)) then -- and IsIdle(unitID)
     idleTransports[unitID] = unitDefID
---    Echo ("transport added " .. unitID)
+    --Echo ("transport added " .. unitID)
     return true
   end
   return false
@@ -235,6 +252,7 @@ end
 
 function widget:UnitIdle(unitID, unitDefID, teamID) 
   if teamID ~= myTeamID then return end
+  if WG.FerryUnits and WG.FerryUnits[unitID] then return end
   if (hackIdle[unitID] ~= nil) then
     hackIdle[unitID] = nil
     return
@@ -254,7 +272,7 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
       if (marked ~= 0) then  
 --        Echo("to pick unit idle "..unitID)
         DeleteToPickTran(marked)
-        GiveOrderToUnit(marked, CMD.STOP, {}, {})  -- and stop it (when it becomes idle it will be assigned
+        GiveOrderToUnit(marked, CMD.STOP, {}, {})  -- and stop it (when it becomes idle it will be assigned)
       end
     end
   end
@@ -377,18 +395,21 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
   local cnt = 0
   for k, v in ipairs(queue) do
     if (not v.options.internal) then 
-      if ((v.id == CMD.MOVE or (v.id==CMD.WAIT and cnt == 0) or v.id == CMD.SET_WANTED_MAX_SPEED) and not ender) then
+      if ((v.id == CMD.MOVE or (v.id==CMD.WAIT) or v.id == CMD.SET_WANTED_MAX_SPEED) and not ender) then
         cnt = cnt +1
         if (v.id == CMD.MOVE) then 
           GiveOrderToUnit(transportID, CMD.MOVE, v.params, {"shift"})      
           table.insert(torev, {v.params[1], v.params[2], v.params[3]+20})
           vl = v.params 
         end
+		if (IsDisembark(v)) then 
+			ender = true
+		end
       else
         if (not ender) then 
           ender = true
         end
-        if (not IsDisembark(v) and not IsEmbark(v)) then
+        if (v.ID ~= CMD.WAIT) then
           local opts = {}
           table.insert(opts, "shift") -- appending
           if (v.options.alt)   then table.insert(opts, "alt")   end
@@ -400,6 +421,8 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
     end
   end
 
+  GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+  
   if (vl ~= nil) then 
     GiveOrderToUnit(transportID, CMD.UNLOAD_UNITS, {vl[1], vl[2], vl[3], CONST_UNLOAD_RADIUS}, {"shift"})
     
@@ -423,6 +446,8 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     GiveOrderToUnit(unitID, x[1], x[2], x[3])
   end
   storedQueue[unitID] = nil
+  local queue = GetCommandQueue(unitID)
+  if (queue and queue[1] and queue[1].id == CMD.WAIT) then GiveOrderToUnit(unitID, CMD.WAIT, {}, {}) end -- workaround: clears wait order if STOP fails to do so
 end
 
 
@@ -547,7 +572,7 @@ function GetPathLength(unitID)
 
   local d = 0
   local queue = GetCommandQueue(unitID);
-  if (queue == nil) then return false end
+  if (queue == nil) then return 0 end
   for k, v in ipairs(queue) do
     if (v.id == CMD.MOVE or v.id==CMD.WAIT) then
       if (v.id == CMD.MOVE) then 
@@ -613,5 +638,4 @@ function taiEmbark(unitID, teamID, embark, shift) -- called by gadget
     end
   end
 end
-
 
