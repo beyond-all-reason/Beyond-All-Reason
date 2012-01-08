@@ -86,7 +86,7 @@ local function IsCandidateWinner(allyTeamID)
 end
 
 local function CheckSingleAllyVictoryEnd()
-	if aliveAllyTeamCount > 1 then
+	if aliveAllyTeamCount ~= 1 then
 		return false
 	end
 
@@ -137,7 +137,10 @@ end
 
 local function CheckGameOver()
 	local winners
-	if sharedDynamicAllianceVictory == 0 then
+    
+    if aliveAllyTeamCount == 0 then
+		winners = {}
+	elseif sharedDynamicAllianceVictory == 0 then
 		winners = CheckSingleAllyVictoryEnd()
 	else
 		winners = CheckSharedAllyVictoryEnd()
