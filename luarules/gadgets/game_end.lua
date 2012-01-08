@@ -86,7 +86,7 @@ local function IsCandidateWinner(allyTeamID)
 end
 
 local function CheckSingleAllyVictoryEnd()
-	if aliveAllyTeamCount ~= 1 then
+	if aliveAllyTeamCount > 1 then
 		return false
 	end
 
