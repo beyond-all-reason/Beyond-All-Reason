@@ -61,8 +61,8 @@ function widget:Update(dt)
 	for i = 1, #teamList do
         local tID = teamList[i]
 		if not hasPlayer[tID] then
-			local _, _, isDead, isAI = spGetTeamInfo(tID)
-			if not (isDead or isAI) then
+			local _, _, _, isAI = spGetTeamInfo(tID)
+			if not isAI then
 				--takeableTeams[#takeableTeams + 1] = tID
                 takeableCount = takeableCount + spGetTeamUnitCount(tID)
 			end
