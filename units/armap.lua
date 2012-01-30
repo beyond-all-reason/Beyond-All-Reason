@@ -33,6 +33,7 @@ return {
 		name = "Aircraft Plant",
 		objectname = "ARMAP",
 		radardistance = 500,
+		radaremitheight = 72,
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
 		sightdistance = 292,
