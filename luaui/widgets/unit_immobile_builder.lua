@@ -27,7 +27,7 @@ end
 --------------------------------------------------------------------------------
 
 -- Automatically generated local definitions
-
+local CMD_PASSIVE = 34571
 local CMD_MOVE_STATE    = CMD.MOVE_STATE
 local CMD_PATROL        = CMD.PATROL
 local CMD_STOP          = CMD.STOP
@@ -97,7 +97,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
     return
   end
   if (IsImmobileBuilder(UnitDefs[unitDefID])) then
-    SetupUnit(unitID)
+    SetupUnit(unitID) 
+	spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {}) 
   end
 end
 
