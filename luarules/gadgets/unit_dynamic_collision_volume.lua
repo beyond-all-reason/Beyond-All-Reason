@@ -30,6 +30,14 @@ local pairs = pairs
 
 if (gadgetHandler:IsSyncedCode()) then
 
+	--Process all initial map features
+	function gadget:Initialize()
+		for _, featID in pairs(Spring.GetAllFeatures()) do
+			gadget:FeatureCreated(featID)
+		end
+	end
+
+	
 	--Reduces the diameter of default (unspecified) collision volume for 3DO models,
 	--for S3O models it's not needed and will in fact result in wrong collision volume
 	--also handles per piece collision volume definitions
