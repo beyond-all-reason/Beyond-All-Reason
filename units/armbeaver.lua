@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMBEAVER.DDS",
 		buildtime = 6708,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB CONSTR NOWEAPON NOTAIR",
+		category = "ALL TANK PHIB NOTSUB CONSTR NOWEAPON NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Amphibious Construction Vehicle",
 		energymake = 8,

@@ -7,7 +7,7 @@ return {
 		buildpic = "CORTERMITE.DDS",
 		buildtime = 18834,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR",
+		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "All-terrain Assault Vehicle",
 		energymake = 0.69999998807907,

@@ -7,7 +7,7 @@ return {
 		buildpic = "CORGOL.DDS",
 		buildtime = 26125,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -15 -1",
 		collisionvolumescales = "50 55 49",
 		collisionvolumetest = 1,

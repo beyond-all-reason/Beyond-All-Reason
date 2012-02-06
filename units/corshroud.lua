@@ -13,7 +13,7 @@ return {
 		buildpic = "CORSHROUD.DDS",
 		buildtime = 9392,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "32 93 32",
 		collisionvolumetest = 1,

@@ -9,7 +9,7 @@ return {
 		buildinggrounddecaltype = "coruwadvms_aoplane.dds",
 		buildpic = "CORUWADVMS.DDS",
 		buildtime = 20524,
-		category = "ALL NOTSUB NOWEAPON NOTAIR",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "-6 0 0",
 		collisionvolumescales = "46 40 58",
 		collisionvolumetest = 1,

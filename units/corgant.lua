@@ -12,7 +12,7 @@ return {
 		buildpic = "CORGANT.DDS",
 		buildtime = 67321,
 		canmove = true,
-		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -21 0",
 		collisionvolumescales = "110 66 130",
 		collisionvolumetest = 1,

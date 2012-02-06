@@ -7,7 +7,7 @@ return {
 		buildpic = "CORKROG.DDS",
 		buildtime = 552145,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -7 -5",
 		collisionvolumescales = "112 168 104",
 		collisionvolumetest = 1,

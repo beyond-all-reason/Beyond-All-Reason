@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMFRAD.DDS",
 		buildtime = 1637,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "36 59 36",
 		collisionvolumetest = 1,

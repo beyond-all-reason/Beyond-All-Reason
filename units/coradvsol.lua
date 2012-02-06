@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "coradvsol_aoplane.dds",
 		buildpic = "CORADVSOL.DDS",
 		buildtime = 8143,
-		category = "ALL NOTSUB NOWEAPON NOTAIR",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -27 -2",
 		collisionvolumescales = "60 112 58",
 		collisionvolumetest = 1,

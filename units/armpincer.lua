@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMPINCER.DDS",
 		buildtime = 2613,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Light Amphibious Tank",
 		energymake = 0.5,

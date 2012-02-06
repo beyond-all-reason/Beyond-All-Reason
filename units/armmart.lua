@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMMART.DDS",
 		buildtime = 5530,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "36 36 42",
 		collisionvolumetest = 1,

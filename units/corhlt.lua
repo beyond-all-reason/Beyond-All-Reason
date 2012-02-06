@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corhlt_aoplane.dds",
 		buildpic = "CORHLT.DDS",
 		buildtime = 12650,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 90 32",
 		collisionvolumetest = 1,

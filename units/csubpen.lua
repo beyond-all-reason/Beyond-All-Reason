@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "csubpen_aoplane.dds",
 		buildpic = "CSUBPEN.DDS",
 		buildtime = 11402,
-		category = "ALL PLANT NOWEAPON NOTSUB NOTAIR",
+		category = "ALL PLANT NOWEAPON NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "115 36 112",
 		collisionvolumetest = 1,

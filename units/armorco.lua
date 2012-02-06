@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMORCO.DDS",
 		buildtime = 499801,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "104 106 68",
 		collisionvolumetype = "Ell",

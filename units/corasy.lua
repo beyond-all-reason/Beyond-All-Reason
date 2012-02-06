@@ -8,7 +8,7 @@ return {
 		buildpic = "CORASY.DDS",
 		buildtime = 15696,
 		canmove = true,
-		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -13 -3",
 		collisionvolumescales = "192 61 180",
 		collisionvolumetest = 1,

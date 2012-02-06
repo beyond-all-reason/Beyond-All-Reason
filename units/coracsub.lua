@@ -9,7 +9,7 @@ return {
 		buildpic = "CORACSUB.DDS",
 		buildtime = 17228,
 		canmove = true,
-		category = "ALL UNDERWATER MOBILE NOTLAND NOWEAPON NOTAIR",
+		category = "ALL UNDERWATER MOBILE NOTLAND NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "40 11 80",
 		collisionvolumetest = 1,

@@ -8,7 +8,7 @@ return {
 		buildtime = 15289,
 		canfly = true,
 		canmove = true,
-		category = "ALL TPORT NOTSUB VTOL NOWEAPON",
+		category = "ALL NOTSUB VTOL NOWEAPON NOTHOVER",
 		collide = false,
 		cruisealt = 150,
 		description = "Assault Transport",

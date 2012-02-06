@@ -7,7 +7,7 @@ return {
 		buildpic = "TAWF013.DDS",
 		buildtime = 2998,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Light Artillery Vehicle",
 		energymake = 1,

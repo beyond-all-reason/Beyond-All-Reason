@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMSONAR.DDS",
 		buildtime = 912,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 41 28",
 		collisionvolumetest = 1,

@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2904,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Medium Assault Tank",
 		energymake = 0.60000002384186,

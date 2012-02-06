@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMFAST.DDS",
 		buildtime = 3960,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Fast Raider Kbot",
 		energymake = 0.40000000596046,

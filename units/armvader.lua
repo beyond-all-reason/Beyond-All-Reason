@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMVADER.DDS",
 		buildtime = 7901,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "CORPSE",
 		description = "Amphibious Crawling Bomb",
 		energymake = 0.10000000149012,

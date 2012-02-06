@@ -7,7 +7,7 @@ return {
 		buildpic = "CORMABM.DDS",
 		buildtime = 42000,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = "Mobile Anti-missile Defense",

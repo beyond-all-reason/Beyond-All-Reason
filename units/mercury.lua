@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "mercury_aoplane.dds",
 		buildpic = "MERCURY.DDS",
 		buildtime = 27190,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Long-Range Missile Tower",
 		explodeas = "BIG_UNITEX",

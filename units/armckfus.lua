@@ -7,7 +7,7 @@ return {
 		buildcostmetal = 4369,
 		buildpic = "ARMCKFUS.DDS",
 		buildtime = 84389,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		cloakcost = 200,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "77 51 51",

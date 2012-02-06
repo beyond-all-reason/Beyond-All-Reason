@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "packo_aoplane.dds",
 		buildpic = "PACKO.DDS",
 		buildtime = 5810,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		cloakcost = 12,
 		corpse = "DEAD",
 		damagemodifier = 0.20000000298023,

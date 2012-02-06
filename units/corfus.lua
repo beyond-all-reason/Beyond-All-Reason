@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "corfus_aoplane.dds",
 		buildpic = "CORFUS.DDS",
 		buildtime = 75424,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Produces Energy / Storage",
 		energymake = 1100,

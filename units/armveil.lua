@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMVEIL.DDS",
 		buildtime = 9080,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 73 32",
 		collisionvolumetest = 1,

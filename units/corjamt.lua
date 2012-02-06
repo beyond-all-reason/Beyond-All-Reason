@@ -13,7 +13,7 @@ return {
 		buildpic = "CORJAMT.DDS",
 		buildtime = 4577,
 		canattack = false,
-		category = "ALL NOTSUB JAM NOWEAPON SPECIAL NOTAIR",
+		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 32 30",
 		collisionvolumetest = 1,

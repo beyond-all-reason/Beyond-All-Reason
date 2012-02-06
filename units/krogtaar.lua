@@ -7,7 +7,7 @@ return {
 		buildpic = "krogtaar.DDS",
 		buildtime = 101125,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
 		corpse = "dead",
 		description = "Heavy Weapons Mech",
 		energymake = 3,

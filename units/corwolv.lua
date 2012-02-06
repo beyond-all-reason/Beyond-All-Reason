@@ -7,7 +7,7 @@ return {
 		buildpic = "CORWOLV.DDS",
 		buildtime = 3254,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR",
+		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Light Mobile Artillery",
 		energymake = 0.5,

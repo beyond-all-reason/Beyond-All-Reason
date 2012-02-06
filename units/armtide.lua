@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 82,
 		buildpic = "ARMTIDE.DDS",
 		buildtime = 2188,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 50,

@@ -8,7 +8,7 @@ return {
 		buildpic = "CORSJAM.DDS",
 		buildtime = 7025,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR",
+		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "31 19 71",
 		collisionvolumetest = 1,

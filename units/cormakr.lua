@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cormakr_aoplane.dds",
 		buildpic = "CORMAKR.DDS",
 		buildtime = 2682,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "46 22 35",
 		collisionvolumetest = 1,

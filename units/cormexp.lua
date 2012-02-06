@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cormoho_aoplane.dds",
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -27 0",
 		collisionvolumescales = "83 77 78",
 		collisionvolumetest = 1,

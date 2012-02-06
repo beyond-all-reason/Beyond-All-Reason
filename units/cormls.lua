@@ -9,7 +9,7 @@ return {
 		buildpic = "CORMLS.DDS",
 		buildtime = 5352,
 		canmove = true,
-		category = "ALL NOWEAPON MINELAYER SHIP NOTSUB NOTAIR",
+		category = "ALL NOWEAPON MINELAYER SHIP NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -3 3",
 		collisionvolumescales = "25 18 62",
 		collisionvolumetest = 1,

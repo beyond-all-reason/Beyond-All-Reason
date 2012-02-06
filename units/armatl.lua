@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 981,
 		buildpic = "ARMATL.DDS",
 		buildtime = 9262,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Advanced Torpedo Launcher",
 		energymake = 0.10000000149012,
@@ -108,6 +108,7 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "ARMATL_TORPEDO",
+				onlytargetcategory= "NOTHOVER",
 			},
 		},
 	},

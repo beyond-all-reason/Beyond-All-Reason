@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaltype = "ajuno_aoplane.dds",
 		buildpic = "AJUNO.DDS",
 		buildtime = 21833,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "44 88 44",
 		collisionvolumetest = 1,

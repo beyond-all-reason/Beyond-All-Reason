@@ -9,7 +9,7 @@ return {
 		buildinggrounddecaltype = "armuwadvms_aoplane.dds",
 		buildpic = "ARMUWADVMS.DDS",
 		buildtime = 20391,
-		category = "ALL NOTSUB NOWEAPON NOTAIR",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "45 48 45",
 		collisionvolumetest = 1,

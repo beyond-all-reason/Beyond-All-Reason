@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMCK.DDS",
 		buildtime = 3453,
 		canmove = true,
-		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 7,

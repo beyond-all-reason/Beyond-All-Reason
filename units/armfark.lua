@@ -10,7 +10,7 @@ return {
 		buildpic = "ARMFARK.DDS",
 		buildtime = 4302,
 		canmove = true,
-		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTAIR",
+		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Fast Assist/Repair Kbot",
 		energymake = 12,

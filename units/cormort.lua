@@ -7,7 +7,7 @@ return {
 		buildpic = "CORMORT.DDS",
 		buildtime = 5139,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Mobile Mortar Kbot",
 		energymake = 1,

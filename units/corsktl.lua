@@ -8,7 +8,7 @@ return {
 		buildtime = 16975,
 		canmove = true,
 		cantbetransported = true,
-		category = "KBOT MOBILE WEAPON ALL KAMIKAZE NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL KAMIKAZE NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		description = "Advanced Amphibious Crawling Bomb",

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armamex_aoplane.dds",
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
-		category = "ALL NOTSUB NOWEAPON NOTAIR",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER",
 		cloakcost = 12,
 		corpse = "DEAD",
 		description = "Stealthy Cloakable Metal Extractor",

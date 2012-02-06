@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMZEUS.DDS",
 		buildtime = 7252,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Assault Kbot",
 		energymake = 3.5,

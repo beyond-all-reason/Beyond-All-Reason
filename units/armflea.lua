@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMFLEA.DDS",
 		buildtime = 789,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Fast Scout Kbot",
 		energymake = 0.40000000596046,

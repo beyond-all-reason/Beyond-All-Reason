@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "madsam_aoplane.dds",
 		buildpic = "MADSAM.DDS",
 		buildtime = 5237,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Hardened Missile Battery",
 		energyuse = 5,

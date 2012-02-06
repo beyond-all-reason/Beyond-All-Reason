@@ -9,7 +9,7 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "ALL NOTLAND MOBILE WEAPON ANTIGATOR NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP",
+		category = "ALL NOTLAND MOBILE WEAPON ANTIGATOR NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 100,
 		description = "Torpedo Seaplane",
@@ -93,6 +93,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTSHIP",
 				def = "ARMSEAP_WEAPON1",
+				onlytargetcategory= "NOTHOVER",
 			},
 		},
 	},

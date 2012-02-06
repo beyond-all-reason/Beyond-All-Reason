@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "corgeo_aoplane.dds",
 		buildpic = "CORGEO.DDS",
 		buildtime = 12875,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "2 -6 0",
 		collisionvolumescales = "63 45 59",
 		collisionvolumetest = 1,

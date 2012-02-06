@@ -8,7 +8,7 @@ return {
 		buildtime = 2073,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON VTOL NOTSUB",
+		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = false,
 		cruisealt = 78,
 		description = "Light Paralyzer Drone",

@@ -9,7 +9,7 @@ return {
 		buildpic = "CORACV.DDS",
 		buildtime = 12882,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionVolumeScales = [[39.2 33.2 48.2]],
 		collisionVolumeOffsets = [[0 -3 0]],
 		collisionVolumeTest = 1,

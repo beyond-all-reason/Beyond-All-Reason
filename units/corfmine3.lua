@@ -9,7 +9,7 @@ return {
 		canattack = false,
 		canguard = false,
 		canpatrol = false,
-		category = "ALL WEAPON MINE KAMIKAZE NOTSUB NOTAIR",
+		category = "ALL WEAPON MINE KAMIKAZE NOTSUB NOTAIR NOTHOVER",
 		cloakcost = 2,
 		collide = false,
 		collisionvolumeoffsets = "0 -0.5 0",

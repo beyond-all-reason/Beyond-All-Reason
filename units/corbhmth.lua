@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "corbhmth_aoplane.dds",
 		buildpic = "CORBHMTH.DDS",
 		buildtime = 59640,
-		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "dead",
 		description = "Geothermal Plasma Battery",
 		energymake = 450,

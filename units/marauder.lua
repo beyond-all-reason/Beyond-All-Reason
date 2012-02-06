@@ -7,7 +7,7 @@ return {
 		buildpic = "MARAUDER.DDS",
 		buildtime = 28957,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "27 31 40",
 		collisionvolumetest = 1,

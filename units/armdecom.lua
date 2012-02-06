@@ -12,7 +12,7 @@ return {
 		buildtime = 24048,
 		candgun = true,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		cloakcost = 30,
 		cloakcostmoving = 180,
 		collisionvolumeoffsets = "0 -1 0",

@@ -13,7 +13,7 @@ return {
 		buildpic = "CORALAB.DDS",
 		buildtime = 16819,
 		canmove = true,
-		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -16 0",
 		collisionvolumescales = "100 34 90",
 		collisionvolumetest = 1,

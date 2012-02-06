@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corvipe_aoplane.dds",
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15035,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		damagemodifier = 0.5, 
 		description = "Pop-up Sabot Battery",

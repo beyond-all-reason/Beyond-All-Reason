@@ -11,7 +11,7 @@ return {
 		canassist = false,
 		canmove = true,
 		canresurrect = true,
-		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Stealthy Rez Kbot",
 		energymake = 1.75,

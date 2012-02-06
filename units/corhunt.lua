@@ -9,7 +9,7 @@ return {
 		canfly = true,
 		canmove = true,
 		cansubmerge = true,
-		category = "ALL ANTIEMG NOTLAND MOBILE ANTIGATOR NOTSUB ANTIFLAME ANTILASER VTOL NOWEAPON NOTSHIP",
+		category = "ALL ANTIEMG NOTLAND MOBILE ANTIGATOR NOTSUB ANTIFLAME ANTILASER VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 190,
 		description = "Advanced Radar/Sonar Plane",

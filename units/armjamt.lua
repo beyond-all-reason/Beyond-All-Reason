@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMJAMT.DDS",
 		buildtime = 9955,
 		canattack = false,
-		category = "ALL NOTSUB NOWEAPON JAM SPECIAL NOTAIR",
+		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER",
 		cloakcost = 25,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 82 32",

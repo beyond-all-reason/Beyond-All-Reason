@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armmex_aoplane.dds",
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "TINY_BUILDINGEX",

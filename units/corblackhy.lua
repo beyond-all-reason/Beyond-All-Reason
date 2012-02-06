@@ -9,7 +9,7 @@ return {
 		buildpic = "CORBLACKHY.DDS",
 		buildtime = 309264,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR",
+		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -10 10",
 		collisionvolumescales = "77 73 170",
 		collisionvolumetest = 1,

@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSPID.DDS",
 		buildtime = 5090,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "All-terrain EMP Bot",
 		energymake = 0.69999998807907,

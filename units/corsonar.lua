@@ -9,7 +9,7 @@ return {
 		buildpic = "CORSONAR.DDS",
 		buildtime = 900,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 33 30",
 		collisionvolumetest = 1,

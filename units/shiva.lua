@@ -7,7 +7,7 @@ return {
 		buildpic = "SHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -4 -1",
 		collisionvolumescales = "54 45 50",
 		collisionvolumetest = 1,

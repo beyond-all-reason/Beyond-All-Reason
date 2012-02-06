@@ -7,7 +7,7 @@ return {
 		buildcostmetal = 20,
 		buildpic = "CORFDRAG.DDS",
 		buildtime = 1000,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "FLOATINGTEETH_CORE",
 		description = "Perimeter Defense",
 		footprintx = 2,
@@ -29,7 +29,7 @@ return {
 			floatingteeth_core = {
 				autoreclaimable = 0,
 				blocking = true,
-				category = "dragonteeth",
+				category = "dragonteeth NOTHOVER",
 				damage = 15000,
 				description = "Shark's Teeth",
 				footprintx = 2,

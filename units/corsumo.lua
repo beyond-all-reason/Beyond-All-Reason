@@ -7,7 +7,7 @@ return {
 		buildpic = "CORSUMO.DDS",
 		buildtime = 50975,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 32 32",
 		collisionvolumetest = 1,

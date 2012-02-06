@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armuwms_aoplane.dds",
 		buildpic = "ARMUWMS.DDS",
 		buildtime = 3741,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (3000)",
 		explodeas = "SMALL_BUILDINGEX",

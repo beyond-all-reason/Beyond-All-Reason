@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "screamer_aoplane.dds",
 		buildpic = "SCREAMER.DDS",
 		buildtime = 26280,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Long-Range Missile Tower",
 		explodeas = "BIG_UNITEX",

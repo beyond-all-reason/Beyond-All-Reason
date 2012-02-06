@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMMAV.DDS",
 		buildtime = 18384,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Skirmish Kbot (Combat Auto-Repair)",
 		energymake = 0.40000000596046,

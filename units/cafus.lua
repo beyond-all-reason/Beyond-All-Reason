@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "cafus_aoplane.dds",
 		buildpic = "CAFUS.DDS",
 		buildtime = 226272,
-		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR",
+		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		damagemodifier = 0.94999998807907,
 		description = "Enhanced Energy Output",

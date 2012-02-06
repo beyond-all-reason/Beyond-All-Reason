@@ -16,7 +16,7 @@ return {
 		canreclaim = false,
 		canrepair = false,
 		canrestore = false,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Stealthy Minelayer/Minesweeper",
 		energymake = 1,

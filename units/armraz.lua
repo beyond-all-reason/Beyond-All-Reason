@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMRAZ.DDS",
 		buildtime = 88566,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0.0 -2.0 0.0",
 		collisionvolumescales = "50.0 60.0 40.0",
 		collisionvolumetest = 1,

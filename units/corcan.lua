@@ -7,7 +7,7 @@ return {
 		buildpic = "CORCAN.DDS",
 		buildtime = 11734,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0.0 0.0 0.0",
 		collisionvolumescales = "28.0 27.0 25.0",
 		collisionvolumetype = "box",

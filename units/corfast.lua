@@ -9,7 +9,7 @@ return {
 		buildpic = "CORFAST.DDS",
 		buildtime = 6488,
 		canmove = true,
-		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Combat Engineer",
 		energymake = 15,

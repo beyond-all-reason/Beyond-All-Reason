@@ -9,7 +9,7 @@ return {
 		buildpic = "CONSUL.DDS",
 		buildtime = 6793,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionVolumeScales = [[33.0 18.0 30.0]],
 		collisionVolumeOffsets = [[0 0 1]],
 		collisionVolumeTest = 1,

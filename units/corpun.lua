@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corpun_aoplane.dds",
 		buildpic = "CORPUN.DDS",
 		buildtime = 19268,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
 		collisionvolumetest = 1,

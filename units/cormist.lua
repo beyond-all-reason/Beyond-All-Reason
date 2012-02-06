@@ -7,7 +7,7 @@ return {
 		buildpic = "CORMIST.DDS",
 		buildtime = 3065,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Missile Truck",
 		energymake = 0.5,

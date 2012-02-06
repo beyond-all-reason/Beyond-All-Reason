@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMJANUS.DDS",
 		buildtime = 3545,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Twin Medium Rocket Launcher",
 		energymake = 0.5,

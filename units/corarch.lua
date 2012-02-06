@@ -9,7 +9,7 @@ return {
 		buildpic = "CORARCH.DDS",
 		buildtime = 9791,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR",
+		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "34 41 82",
 		collisionvolumetest = 1,

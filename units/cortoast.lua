@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cortoast_aoplane.dds",
 		buildpic = "CORTOAST.DDS",
 		buildtime = 25717,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = "Heavy Plasma Cannon",

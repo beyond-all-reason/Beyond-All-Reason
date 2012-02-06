@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armamb_aoplane.dds",
 		buildpic = "ARMAMB.DDS",
 		buildtime = 27072,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		cloakcost = 24,
 		corpse = "DEAD",
 		damagemodifier = 0.25,

@@ -9,7 +9,7 @@ return {
 		buildpic = "CORNANOTC.DDS",
 		buildtime = 5312,
 		cantbetransported = true,
-		category = "ALL NOTSUB CONSTR NOWEAPON NOTAIR",
+		category = "ALL NOTSUB CONSTR NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -11 0",
 		collisionvolumescales = "31 70 31",
 		collisionvolumetest = 1,

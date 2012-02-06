@@ -8,7 +8,7 @@ return {
 		buildtime = 5182,
 		canhover = true,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 24 56",
 		collisionvolumetest = 1,

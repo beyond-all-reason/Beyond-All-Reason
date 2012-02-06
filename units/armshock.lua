@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSHOCK.DDS",
 		buildtime = 101218,
 		canmove = true,
-		category = "ALL NOTSTRUCTURE NOTSUB WEAPON NOTAIR",
+		category = "ALL NOTSTRUCTURE NOTSUB WEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -6 1",
 		collisionvolumescales = "55 65 53",
 		collisionvolumetest = 1,

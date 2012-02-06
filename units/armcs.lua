@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMCS.DDS",
 		buildtime = 5121,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR",
+		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "32 30 78",
 		collisionvolumetest = 1,

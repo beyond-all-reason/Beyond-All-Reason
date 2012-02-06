@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cormmkr_aoplane.dds",
 		buildpic = "CORMMKR.DDS",
 		buildtime = 31253,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Converts up to 600 energy into 12 metal per second",
 		explodeas = "ATOMIC_BLASTSML",

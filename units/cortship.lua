@@ -9,7 +9,7 @@ return {
 		buildtime = 13663,
 		canattack = false,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR",
+		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "65 77 120",
 		collisionvolumetest = 1,

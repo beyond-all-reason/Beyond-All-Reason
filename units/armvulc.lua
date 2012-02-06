@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armvulc_aoplane.dds",
 		buildpic = "ARMVULC.DDS",
 		buildtime = 672961,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Rapid-Fire Long-Range Plasma Cannon",
 		explodeas = "RLRPC_DEATH",

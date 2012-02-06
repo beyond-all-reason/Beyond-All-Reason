@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMASON.DDS",
 		buildtime = 6152,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		damagemodifier = 0.46000000834465,
 		description = "Extended Sonar",

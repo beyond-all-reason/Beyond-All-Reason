@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "cormstor_aoplane.dds",
 		buildpic = "CORMSTOR.DDS",
 		buildtime = 2925,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "-1 0 -6",
 		collisionvolumescales = "75 34 53",
 		collisionvolumetest = 1,

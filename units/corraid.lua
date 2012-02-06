@@ -7,7 +7,7 @@ return {
 		buildpic = "CORRAID.DDS",
 		buildtime = 3312,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Medium Assault Tank",
 		energymake = 0.60000002384186,

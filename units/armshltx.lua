@@ -12,7 +12,7 @@ return {
 		buildpic = "ARMSHLTX.DDS",
 		buildtime = 61380,
 		canmove = true,
-		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR",
+		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -26 0",
 		collisionvolumescales = "137 58 145",
 		collisionvolumetest = 0,

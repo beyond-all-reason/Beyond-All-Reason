@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSPTK.DDS",
 		buildtime = 8775,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "All-Terrain Rocket Spider",
 		energymake = 0.69999998807907,

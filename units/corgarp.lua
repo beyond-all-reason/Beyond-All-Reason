@@ -7,7 +7,7 @@ return {
 		buildpic = "CORGARP.DDS",
 		buildtime = 3101,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Light Amphibious Tank",
 		energymake = 0.89999997615814,

@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "tawf001_aoplane.dds",
 		buildpic = "TAWF001.DDS",
 		buildtime = 5324,
-		category = "ALL WEAPON NOTSUB NOTAIR",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 85 33",
 		collisionvolumetest = 1,

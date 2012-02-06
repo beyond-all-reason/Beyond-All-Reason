@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMCV.DDS",
 		buildtime = 4066,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 10,

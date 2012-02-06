@@ -8,7 +8,7 @@ return {
 		buildpic = "CORROACH.DDS",
 		buildtime = 7899,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		description = "Amphibious Crawling Bomb",
 		energymake = 0.10000000149012,
 		energyuse = 0.10000000149012,

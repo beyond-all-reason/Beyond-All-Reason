@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armanni_aoplane.dds",
 		buildpic = "ARMANNI.DDS",
 		buildtime = 52071,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = "Tachyon Accelerator",

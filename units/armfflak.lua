@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 807,
 		buildpic = "ARMFFLAK.DDS",
 		buildtime = 21855,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 44 42",
 		collisionvolumetest = 1,

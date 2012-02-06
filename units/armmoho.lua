@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armmoho_aoplane.dds",
 		buildpic = "ARMMOHO.DDS",
 		buildtime = 14938,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,

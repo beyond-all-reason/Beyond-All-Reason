@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMFLASH.DDS",
 		buildtime = 1963,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Fast Assault Tank",
 		energymake = 0.5,

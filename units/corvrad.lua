@@ -9,7 +9,7 @@ return {
 		buildtime = 4223,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionVolumeScales = [[34.1 24.1 34.1]],
 		collisionVolumeOffsets = [[0 -4 -2]],
 		collisionVolumeTest = 1,

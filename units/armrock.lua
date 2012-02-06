@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMROCK.DDS",
 		buildtime = 1887,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Rocket Kbot",
 		energymake = 0.60000002384186,

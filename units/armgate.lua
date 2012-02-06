@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armgate_aoplane.dds",
 		buildpic = "ARMGATE.DDS",
 		buildtime = 54139,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "58 62 63",
 		collisionvolumetest = 1,

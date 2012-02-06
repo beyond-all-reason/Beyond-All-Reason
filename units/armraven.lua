@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMRAVEN.DDS",
 		buildtime = 126522,
 		canmove = true,
-		category = "WEAPON NOTSUB NOTAIR",
+		category = "WEAPON NOTSUB NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "60 53 30",
 		collisionvolumetest = 1,

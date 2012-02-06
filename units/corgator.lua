@@ -7,7 +7,7 @@ return {
 		buildpic = "CORGATOR.DDS",
 		buildtime = 1761,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Light Tank",
 		energymake = 0.5,

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cordl_aoplane.dds",
 		buildpic = "CORDL.DDS",
 		buildtime = 4280,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Depthcharge Launcher",
 		energymake = 0.10000000149012,
@@ -137,6 +137,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTSUB",
 				def = "COAX_DEPTHCHARGE",
+				onlytargetcategory= "NOTHOVER",
 			},
 		},
 	},

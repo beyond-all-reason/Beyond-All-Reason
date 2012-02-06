@@ -14,7 +14,7 @@ return {
 		candgun = true,
 		canmove = true,
 		capturespeed = 900,
-		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR",
+		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER",
 		cloakcost = 100,
 		cloakcostmoving = 1000,
 		collisionvolumeoffsets = "0 -1 0",

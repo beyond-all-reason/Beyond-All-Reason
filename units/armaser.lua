@@ -9,7 +9,7 @@ return {
 		buildtime = 4937,
 		canattack = false,
 		canmove = true,
-		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Radar Jammer Kbot",
 		energyuse = 100,

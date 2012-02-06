@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMARAD.DDS",
 		buildtime = 11800,
 		canattack = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		corpse = "DEAD",
 		description = "Long-Range Radar",
 		energymake = 18,

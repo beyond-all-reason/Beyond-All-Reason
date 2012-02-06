@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaltype = "armsd_aoplane.dds",
 		buildpic = "ARMSD.DDS",
 		buildtime = 11877,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -17	0",
 		collisionvolumescales = "75 42 75",
 		collisionvolumetest = 1,

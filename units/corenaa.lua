@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 832,
 		buildpic = "CORENAA.DDS",
 		buildtime = 23129,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 44 42",
 		collisionvolumetest = 1,
