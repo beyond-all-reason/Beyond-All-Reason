@@ -21,8 +21,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 252,
 		minwaterdepth = 2,
 		name = "Sentry",
@@ -36,10 +36,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "41.2024536133 67.0857849121 50.3104095459",
-				collisionvolumeoffsets = "0.10124206543 -0.0500075439453 1.15520477295",
 				category = "corpses",
+				collisionvolumeoffsets = "0.10124206543 -0.0500075439453 1.15520477295",
+				collisionvolumescales = "41.2024536133 67.0857849121 50.3104095459",
+				collisionvolumetype = "Box",
 				damage = 151,
 				description = "Sentry Wreckage",
 				energy = 0,
@@ -116,6 +116,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOWEAPON",
 				def = "ARMRL_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

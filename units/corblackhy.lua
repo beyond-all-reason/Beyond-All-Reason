@@ -24,8 +24,8 @@ return {
 		footprintx = 6,
 		footprintz = 6,
 		icontype = "sea",
-		idleautoheal = 25 ,
-		idletime = 1800 ,
+		idleautoheal = 25,
+		idletime = 1800,
 		losemitheight = 64,
 		maxdamage = 77500,
 		maxvelocity = 1.960000038147,
@@ -48,10 +48,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "88.47706604 56.7307739258 178.029220581",
-				collisionvolumeoffsets = "17.3217697144 -6.85541303711 2.43087005615",
 				category = "corpses",
+				collisionvolumeoffsets = "17.3217697144 -6.85541303711 2.43087005615",
+				collisionvolumescales = "88.47706604 56.7307739258 178.029220581",
+				collisionvolumetype = "Box",
 				damage = 46500,
 				description = "Black Hydra Wreckage",
 				energy = 0,
@@ -214,6 +214,7 @@ return {
 			},
 			[3] = {
 				def = "HYDRAMISS",
+				onlytargetcategory = "VTOL",
 			},
 			[4] = {
 				def = "HYDRA_GUN",
@@ -229,6 +230,7 @@ return {
 			},
 			[6] = {
 				def = "HYDRAMISS",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

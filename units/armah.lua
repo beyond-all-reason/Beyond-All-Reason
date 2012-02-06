@@ -21,8 +21,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 959,
 		maxslope = 16,
 		maxvelocity = 3.3399999141693,
@@ -39,10 +39,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "36.0007324219 20.7278594971 32.712387085",
-				collisionvolumeoffsets = "-0.635131835938 -0.527570251465 0.982536315918",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.635131835938 -0.527570251465 0.982536315918",
+				collisionvolumescales = "36.0007324219 20.7278594971 32.712387085",
+				collisionvolumetype = "Box",
 				damage = 575,
 				description = "Swatter Wreckage",
 				energy = 0,
@@ -161,9 +161,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				def = "ARMAH_WEAPON",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

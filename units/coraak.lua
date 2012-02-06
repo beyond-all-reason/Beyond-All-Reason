@@ -14,8 +14,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1280,
 		maxvelocity = 1.1499999761581,
 		movementclass = "AKBOT2",
@@ -31,10 +31,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "38.4586334229 17.0406036377 34.7582092285",
-				collisionvolumeoffsets = "1.21222686768 -2.24119818115 -5.60705566406",
 				category = "corpses",
+				collisionvolumeoffsets = "1.21222686768 -2.24119818115 -5.60705566406",
+				collisionvolumescales = "38.4586334229 17.0406036377 34.7582092285",
+				collisionvolumetype = "Box",
 				damage = 1548,
 				description = "Manticore Wreckage",
 				energy = 0,
@@ -118,11 +118,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
+					["else"] = 10,
 					bombers = 200,
 					commanders = 10,
 					crawlingbombs = 10,
 					default = 1000,
-					["else"] = 10,
 					fighters = 200,
 					heavyunits = 10,
 					mines = 10,
@@ -305,43 +305,53 @@ return {
 			},
 		},
 		weapons = {
+			[10] = {
+				def = "AAKFLAK",
+				onlytargetcategory = "VTOL",
+			},
 			[1] = {
 				def = "BOGUS_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				def = "CORAAKBOT_MISSILE3",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[3] = {
 				def = "CORAAKBOT_MISSILE1",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[4] = {
 				def = "CORAAKBOT_MISSILE2",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[5] = {
 				def = "CORAAKBOT_MISSILE1",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[6] = {
 				def = "CORAAKBOT_MISSILE2",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[7] = {
 				def = "CORAAKBOT_MISSILE3",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[8] = {
 				def = "CORAAKBOT_MISSILE4",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[9] = {
 				def = "CORAAKBOT_MISSILE4",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
-			},
-			[10] = {
-				def = "AAKFLAK",
 			},
 		},
 	},

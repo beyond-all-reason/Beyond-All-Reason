@@ -16,8 +16,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 570,
 		maxslope = 15,
 		maxvelocity = 1.875,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "29.3736572266 14.4243774414 27.4587402344",
-				collisionvolumeoffsets = "5.17987060547 -4.3375112793 -4.29997253418",
 				category = "corpses",
+				collisionvolumeoffsets = "5.17987060547 -4.3375112793 -4.29997253418",
+				collisionvolumescales = "29.3736572266 14.4243774414 27.4587402344",
+				collisionvolumetype = "Box",
 				damage = 342,
 				description = "Jethro Wreckage",
 				energy = 0,
@@ -162,9 +162,11 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "BOGUS_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "ARMKBOT_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

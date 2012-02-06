@@ -20,8 +20,8 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "orcone",
-		idleautoheal = 30 ,
-		idletime = 0 ,
+		idleautoheal = 30,
+		idletime = 0,
 		maxdamage = 90000,
 		maxslope = 17,
 		maxvelocity = 1.4259999990463,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "96.1643829346 64.7911071777 125.082168579",
-				collisionvolumeoffsets = "-5.82859039307 -5.26144641113 24.3969650269",
 				category = "arm_corpses",
+				collisionvolumeoffsets = "-5.82859039307 -5.26144641113 24.3969650269",
+				collisionvolumescales = "96.1643829346 64.7911071777 125.082168579",
+				collisionvolumetype = "Box",
 				damage = 429000,
 				description = "Wreckage",
 				featuredead = "HEAP",
@@ -158,11 +158,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1550,
 				damage = {
+					["else"] = 10,
 					bombers = 250,
 					commanders = 10,
 					crawlingbombs = 10,
 					default = 1000,
-					["else"] = 10,
 					fighters = 250,
 					heavyunits = 10,
 					mines = 10,
@@ -209,6 +209,7 @@ return {
 			},
 			[2] = {
 				def = "ORCONE_HEAD",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "ORCONE_ROCKET",

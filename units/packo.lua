@@ -21,8 +21,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1200,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "48.1152496338 19.0 48.1152496338",
-				collisionvolumeoffsets = "-0.544990539551 0.0 -0.500007629395",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.544990539551 0.0 -0.500007629395",
+				collisionvolumescales = "48.1152496338 19.0 48.1152496338",
+				collisionvolumetype = "Box",
 				damage = 720,
 				description = "Pack0 Wreckage",
 				energy = 0,
@@ -101,7 +101,6 @@ return {
 		weapondefs = {
 			packo_missile = {
 				areaofeffect = 16,
-				projectiles = 2,
 				canattackground = false,
 				craterboost = 0,
 				cratermult = 0,
@@ -115,6 +114,7 @@ return {
 				model = "missile",
 				name = "AA2Missile",
 				noselfdamage = true,
+				projectiles = 2,
 				proximitypriority = 1,
 				range = 840,
 				reloadtime = 0.85,
@@ -143,6 +143,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "PACKO_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

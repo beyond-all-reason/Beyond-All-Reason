@@ -21,8 +21,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1008,
 		maxslope = 16,
 		maxvelocity = 3.3399999141693,
@@ -39,10 +39,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "29.5848236084 21.4446258545 33.5151977539",
-				collisionvolumeoffsets = "2.10999298096 0.00491292724609 -0.668823242188",
 				category = "corpses",
+				collisionvolumeoffsets = "2.10999298096 0.00491292724609 -0.668823242188",
+				collisionvolumescales = "29.5848236084 21.4446258545 33.5151977539",
+				collisionvolumetype = "Box",
 				damage = 605,
 				description = "Slinger Wreckage",
 				energy = 0,
@@ -161,9 +161,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				def = "COREAH_WEAPON",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

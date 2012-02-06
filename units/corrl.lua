@@ -22,8 +22,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 300,
 		maxslope = 20,
 		maxwaterdepth = 0,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.2288513184 52.705368042 33.0822753906",
-				collisionvolumeoffsets = "-0.808319091797 0.000184020996095 2.23503112793",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.808319091797 0.000184020996095 2.23503112793",
+				collisionvolumescales = "30.2288513184 52.705368042 33.0822753906",
+				collisionvolumetype = "Box",
 				damage = 180,
 				description = "Pulverizer Wreckage",
 				energy = 0,
@@ -137,6 +137,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOWEAPON",
 				def = "CORRL_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

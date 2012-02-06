@@ -14,8 +14,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1020,
 		maxslope = 14,
 		maxvelocity = 1.5800000429153,
@@ -32,10 +32,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.0 14.3981628418 32.5845489502",
-				collisionvolumeoffsets = "0.0 -1.2425585791 1.2922744751",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -1.2425585791 1.2922744751",
+				collisionvolumescales = "30.0 14.3981628418 32.5845489502",
+				collisionvolumetype = "Box",
 				damage = 1212,
 				description = "Archangel Wreckage",
 				energy = 0,
@@ -119,11 +119,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1500,
 				damage = {
+					["else"] = 10,
 					bombers = 200,
 					commanders = 10,
 					crawlingbombs = 10,
 					default = 1000,
-					["else"] = 10,
 					fighters = 200,
 					heavyunits = 10,
 					mines = 10,
@@ -234,20 +234,25 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				def = "ARMAAKBOT_MISSILE1",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "ARMAAKBOT_MISSILE2",
+				onlytargetcategory = "VTOL",
 				slaveto = 2,
 			},
 			[4] = {
 				def = "ARMAAKBOT_MISSILE2",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[5] = {
 				def = "AAKFLAK",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

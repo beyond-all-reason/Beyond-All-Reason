@@ -17,8 +17,8 @@ return {
 		explodeas = "MECH_BLASTSML",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 200000,
 		maxdamage = 9000,
 		maxslope = 160,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "77.9624938965 23.0893859863 76.4105682373",
-				collisionvolumeoffsets = "3.89811706543 -12.9994070068 -38.2052841187",
 				category = "corpses",
+				collisionvolumeoffsets = "3.89811706543 -12.9994070068 -38.2052841187",
+				collisionvolumescales = "77.9624938965 23.0893859863 76.4105682373",
+				collisionvolumetype = "Box",
 				damage = 1200,
 				description = "Karganeth Wreckage",
 				energy = 0,
@@ -197,9 +197,11 @@ return {
 			},
 			[2] = {
 				def = "KARG_SHOULDER",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "KARG_HEAD",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

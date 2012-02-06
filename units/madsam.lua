@@ -20,8 +20,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2500,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -35,10 +35,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "55.5325927734 38.388458252 42.4240570068",
-				collisionvolumeoffsets = "6.74545288086 -0.640270874023 -2.82326507568",
 				category = "corpses",
+				collisionvolumeoffsets = "6.74545288086 -0.640270874023 -2.82326507568",
+				collisionvolumescales = "55.5325927734 38.388458252 42.4240570068",
+				collisionvolumetype = "Box",
 				damage = 1500,
 				description = "SAM Wreckage",
 				energy = 0,
@@ -98,7 +98,6 @@ return {
 			madsam_missile = {
 				areaofeffect = 16,
 				burnblow = true,
-				projectiles = 2,
 				canattackground = false,
 				craterboost = 0,
 				cratermult = 0,
@@ -110,6 +109,7 @@ return {
 				model = "missile",
 				name = "AA2Missile",
 				noselfdamage = true,
+				projectiles = 2,
 				proximitypriority = 1,
 				range = 840,
 				reloadtime = 0.85,
@@ -138,6 +138,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "MADSAM_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

@@ -20,8 +20,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 290,
 		minwaterdepth = 2,
 		name = "Stinger",
@@ -35,10 +35,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "48.0115509033 52.983001709 47.76612854",
-				collisionvolumeoffsets = "-1.13062286377 0.0342008544922 1.088722229",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.13062286377 0.0342008544922 1.088722229",
+				collisionvolumescales = "48.0115509033 52.983001709 47.76612854",
+				collisionvolumetype = "Box",
 				damage = 174,
 				description = "Stinger Wreckage",
 				energy = 0,
@@ -115,6 +115,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOWEAPON",
 				def = "ARMRL_MISSILE",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},
