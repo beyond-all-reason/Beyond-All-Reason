@@ -18,8 +18,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 4200,
 		maxslope = 12,
 		maxwaterdepth = 0,
@@ -29,7 +29,7 @@ return {
 		selfdestructas = "ATOMIC_BLAST",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
-		usePieceCollisionVolumes = 1,
+		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			canareaattack = 1,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "81.6838531494 113.772003174 72.5632324219",
-				collisionvolumeoffsets = "3.15924835205 -0.787798413086 6.6563873291",
 				category = "corpses",
+				collisionvolumeoffsets = "3.15924835205 -0.787798413086 6.6563873291",
+				collisionvolumescales = "81.6838531494 113.772003174 72.5632324219",
+				collisionvolumetype = "Box",
 				damage = 2520,
 				description = "Big Bertha Wreckage",
 				energy = 0,
@@ -132,7 +132,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARM_BERTHACANNON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

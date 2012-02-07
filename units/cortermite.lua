@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2800,
 		maxslope = 50,
 		maxvelocity = 1.6100000143051,
@@ -33,10 +33,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "32.3684997559 15.844833374 33.5386505127",
-				collisionvolumeoffsets = "0.0 -1.81045331299 4.38243865967",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -1.81045331299 4.38243865967",
+				collisionvolumescales = "32.3684997559 15.844833374 33.5386505127",
+				collisionvolumetype = "Box",
 				damage = 1680,
 				description = "Termite Wreckage",
 				energy = 0,
@@ -126,8 +126,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				onlytargetcategory = "NOTAIR",
 				def = "CORE_TERMITE_LASER",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

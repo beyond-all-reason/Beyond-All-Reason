@@ -17,8 +17,8 @@ return {
 		explodeas = "MECH_BLASTSML",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 200000,
 		maxdamage = 12000,
 		maxslope = 15,
@@ -36,10 +36,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "61.6002807617 54.8114776611 71.5794219971",
-				collisionvolumeoffsets = "-1.43661499023 -1.36986116943 12.126411438",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.43661499023 -1.36986116943 12.126411438",
+				collisionvolumescales = "61.6002807617 54.8114776611 71.5794219971",
+				collisionvolumetype = "Box",
 				damage = 1500,
 				description = "Razorback Wreckage",
 				energy = 0,
@@ -134,6 +134,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "MECH_RAPIDLASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

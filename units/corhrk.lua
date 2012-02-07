@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 550,
 		maxslope = 14,
 		maxvelocity = 1.7999999523163,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "31.73046875 27.05418396 31.9737854004",
-				collisionvolumeoffsets = "0.59033203125 -0.11500802002 -0.125",
 				category = "corpses",
+				collisionvolumeoffsets = "0.59033203125 -0.11500802002 -0.125",
+				collisionvolumescales = "31.73046875 27.05418396 31.9737854004",
+				collisionvolumetype = "Box",
 				damage = 330,
 				description = "Dominator Wreckage",
 				energy = 0,
@@ -127,7 +127,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "CORHRK_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

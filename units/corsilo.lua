@@ -22,8 +22,8 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 5560,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "75.0 23.7250518799 77.7504577637",
-				collisionvolumeoffsets = "0.0 -0.0182740600586 2.87522888184",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -0.0182740600586 2.87522888184",
+				collisionvolumescales = "75.0 23.7250518799 77.7504577637",
+				collisionvolumetype = "Box",
 				damage = 3336,
 				description = "Silencer Wreckage",
 				energy = 0,
@@ -138,6 +138,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "CRBLMSSL",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

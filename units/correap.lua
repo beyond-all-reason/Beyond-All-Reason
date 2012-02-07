@@ -19,8 +19,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 4900,
 		maxslope = 12,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "37.7348022461 25.9745025635 40.3383178711",
-				collisionvolumeoffsets = "-0.042236328125 -0.00674871826172 -0.122863769531",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.042236328125 -0.00674871826172 -0.122863769531",
+				collisionvolumescales = "37.7348022461 25.9745025635 40.3383178711",
+				collisionvolumetype = "Box",
 				damage = 2340,
 				description = "Reaper Wreckage",
 				energy = 0,
@@ -135,7 +135,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_REAP",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

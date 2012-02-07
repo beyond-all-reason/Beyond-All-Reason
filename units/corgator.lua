@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 693,
 		maxslope = 10,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "21.4374389648 12.6050109863 32.0003356934",
-				collisionvolumeoffsets = "0.0 -0.0103445068359 -0.00248718261719",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -0.0103445068359 -0.00248718261719",
+				collisionvolumescales = "21.4374389648 12.6050109863 32.0003356934",
+				collisionvolumetype = "Box",
 				damage = 450,
 				description = "Instigator Wreckage",
 				energy = 0,
@@ -136,6 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "GATOR_LASERX",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

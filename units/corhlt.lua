@@ -23,8 +23,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2475,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -39,10 +39,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "47.0663604736 80.2818603516 63.6924743652",
-				collisionvolumeoffsets = "5.89052581787 0.209030175781 17.5331115723",
 				category = "corpses",
+				collisionvolumeoffsets = "5.89052581787 0.209030175781 17.5331115723",
+				collisionvolumescales = "47.0663604736 80.2818603516 63.6924743652",
+				collisionvolumetype = "Box",
 				damage = 1485,
 				description = "Gaat Gun Wreckage",
 				energy = 0,
@@ -140,6 +140,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_LASERH1",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

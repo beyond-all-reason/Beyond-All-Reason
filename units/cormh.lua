@@ -20,8 +20,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 495,
 		maxslope = 16,
 		maxvelocity = 2.4200000762939,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.0869903564 18.3419342041 34.3326873779",
-				collisionvolumeoffsets = "-0.112327575684 -0.511842897949 -0.201560974121",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.112327575684 -0.511842897949 -0.201560974121",
+				collisionvolumescales = "30.0869903564 18.3419342041 34.3326873779",
+				collisionvolumetype = "Box",
 				damage = 297,
 				description = "Nixer Wreckage",
 				energy = 0,
@@ -128,7 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "CORMH_WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

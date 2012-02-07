@@ -53,12 +53,12 @@ return {
 		weapondefs = {
 			armvtol_advmissile = {
 				areaofeffect = 8,
-				impactonly = 1,
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 0,
+				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
@@ -82,9 +82,9 @@ return {
 				damage = {
 					bombers = 350,
 					commanders = 5,
-					subs = 5,
 					default = 12,
 					fighters = 400,
+					subs = 5,
 					vtol = 300,
 				},
 			},
@@ -93,10 +93,12 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "ARMVTOL_ADVMISSILE",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-        badtargetcategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "ARMVTOL_ADVMISSILE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -17,8 +17,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2100,
 		maxslope = 14,
 		maxvelocity = 1.8500000238419,
@@ -142,10 +142,11 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORAMPH_WEAPON2",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "CORAMPH_WEAPON1",
-				onlytargetcategory= "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

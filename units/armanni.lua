@@ -21,8 +21,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		losemitheight = 72,
 		maxdamage = 5500,
 		maxslope = 10,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "62.5 81.7362213135 62.5",
-				collisionvolumeoffsets = "0.0 1.06567382829e-05 -0.0",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 1.06567382829e-05 -0.0",
+				collisionvolumescales = "62.5 81.7362213135 62.5",
+				collisionvolumetype = "Box",
 				damage = 1800,
 				description = "Annihilator Wreckage",
 				energy = 0,
@@ -136,7 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ATA",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

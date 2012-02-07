@@ -36,10 +36,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "67.5281219482 32.0374145508 71.4806213379",
-				collisionvolumeoffsets = "0.543556213379 0.108607275391 -1.27166748047",
 				category = "cor_corpses",
+				collisionvolumeoffsets = "0.543556213379 0.108607275391 -1.27166748047",
+				collisionvolumescales = "67.5281219482 32.0374145508 71.4806213379",
+				collisionvolumetype = "Box",
 				damage = 15700,
 				description = "Wreckage",
 				featuredead = "heap",
@@ -128,6 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOWEAPON",
 				def = "COR_TAAR_RC",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

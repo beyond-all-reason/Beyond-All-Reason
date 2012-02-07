@@ -1,6 +1,7 @@
 return {
 	corsfig = {
 		acceleration = 0.45600000023842,
+		airsightdistance = 700,
 		brakerate = 7.5,
 		buildcostenergy = 3558,
 		buildcostmetal = 64,
@@ -27,7 +28,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 200,
-		airsightdistance = 700,
 		turnrate = 1547,
 		sounds = {
 			build = "nanlath1",
@@ -72,8 +72,8 @@ return {
 				soundhit = "xplosml2",
 				soundstart = "Rocklit3",
 				startvelocity = 420,
-				tolerance = 8000,
 				texture2 = "coresmoketrail",
+				tolerance = 8000,
 				tracks = true,
 				turnrate = 19384,
 				weaponacceleration = 146,
@@ -94,6 +94,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "CORSFIG_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

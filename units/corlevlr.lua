@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 1275,
 		maxslope = 17,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.4261322021 21.4884033203 31.1059265137",
-				collisionvolumeoffsets = "-0.00485992431641 -0.393698339844 -0.0",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.00485992431641 -0.393698339844 -0.0",
+				collisionvolumescales = "30.4261322021 21.4884033203 31.1059265137",
+				collisionvolumetype = "Box",
 				damage = 765,
 				description = "Leveler Wreckage",
 				energy = 0,
@@ -127,6 +127,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORLEVLR_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

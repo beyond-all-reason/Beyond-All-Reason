@@ -1,6 +1,7 @@
 return {
 	armsfig = {
 		acceleration = 0.47999998927116,
+		airsightdistance = 700,
 		brakerate = 10,
 		buildcostenergy = 4274,
 		buildcostmetal = 72,
@@ -27,7 +28,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 200,
-		airsightdistance = 700,
 		turnrate = 1625,
 		sounds = {
 			build = "nanlath1",
@@ -94,6 +94,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "ARMSFIG_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -171,11 +171,11 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMMSHIP_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "ARMSHIP_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

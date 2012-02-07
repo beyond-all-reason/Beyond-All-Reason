@@ -20,8 +20,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2531,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "33.0 12.8524169922 33.0",
-				collisionvolumeoffsets = "0.0 -1.5039062502e-06 -0.0",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -1.5039062502e-06 -0.0",
+				collisionvolumescales = "33.0 12.8524169922 33.0",
+				collisionvolumetype = "Box",
 				damage = 1519,
 				description = "Pit Bull Wreckage",
 				energy = 0,
@@ -130,7 +130,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMPB_WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

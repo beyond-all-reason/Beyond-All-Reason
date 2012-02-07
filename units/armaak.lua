@@ -234,25 +234,25 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[2] = {
 				def = "ARMAAKBOT_MISSILE1",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[3] = {
 				def = "ARMAAKBOT_MISSILE2",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 2,
 			},
 			[4] = {
 				def = "ARMAAKBOT_MISSILE2",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[5] = {
 				def = "AAKFLAK",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		mass = 300,
 		maxdamage = 900,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "27.809387207 16.8939208984 40.2852935791",
-				collisionvolumeoffsets = "-1.26663208008 -3.12783955078 2.54402923584",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.26663208008 -3.12783955078 2.54402923584",
+				collisionvolumescales = "27.809387207 16.8939208984 40.2852935791",
+				collisionvolumetype = "Box",
 				damage = 540,
 				description = "Thud Wreckage",
 				energy = 0,
@@ -131,6 +131,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_HAM",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

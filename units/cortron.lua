@@ -22,8 +22,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3200,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "54.9480133057 48.063583374 52.6346282959",
-				collisionvolumeoffsets = "-3.71137237549 -0.216808312988 -0.0546798706055",
 				category = "corpses",
+				collisionvolumeoffsets = "-3.71137237549 -0.216808312988 -0.0546798706055",
+				collisionvolumescales = "54.9480133057 48.063583374 52.6346282959",
+				collisionvolumetype = "Box",
 				damage = 1920,
 				description = "Catalyst Wreckage",
 				energy = 0,
@@ -135,6 +135,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTLAND",
 				def = "CORTRON_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

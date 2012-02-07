@@ -22,8 +22,8 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		icontype = "building",
-		idleautoheal = 10 ,
-		idletime = 300 ,
+		idleautoheal = 10,
+		idletime = 300,
 		initcloaked = true,
 		maxdamage = 10,
 		maxslope = 40,
@@ -106,10 +106,11 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "MINE_DUMMY",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "MINE_DETONATOR",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

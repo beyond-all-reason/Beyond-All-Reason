@@ -15,8 +15,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 80,
 		maxslope = 26,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "26.3068695068 15.9473724365 28.9309844971",
-				collisionvolumeoffsets = "0.351249694824 -0.179103781738 -0.672737121582",
 				category = "corpses",
+				collisionvolumeoffsets = "0.351249694824 -0.179103781738 -0.672737121582",
+				collisionvolumescales = "26.3068695068 15.9473724365 28.9309844971",
+				collisionvolumetype = "Box",
 				damage = 111,
 				description = "Jeffy Wreckage",
 				energy = 0,
@@ -139,6 +139,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

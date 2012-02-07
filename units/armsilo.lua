@@ -22,8 +22,8 @@ return {
 		footprintx = 7,
 		footprintz = 7,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 5300,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "97.7549743652 23.7849884033 93.0073547363",
-				collisionvolumeoffsets = "0.0 -5.79833984382e-06 2.37380981445",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -5.79833984382e-06 2.37380981445",
+				collisionvolumescales = "97.7549743652 23.7849884033 93.0073547363",
+				collisionvolumetype = "Box",
 				damage = 3180,
 				description = "Retaliator Wreckage",
 				energy = 0,
@@ -138,6 +138,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "NUCLEAR_MISSILE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -20,8 +20,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 260,
 		maxslope = 16,
 		maxvelocity = 4.4899997711182,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "27.5594329834 12.8443908691 29.2598724365",
-				collisionvolumeoffsets = "-1.91515350342 0.0479854345703 0.265983581543",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.91515350342 0.0479854345703 0.265983581543",
+				collisionvolumescales = "27.5594329834 12.8443908691 29.2598724365",
+				collisionvolumetype = "Box",
 				damage = 185,
 				description = "Skimmer Wreckage",
 				energy = 0,
@@ -131,6 +131,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMSH_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -1,6 +1,7 @@
 return {
 	cormist = {
 		acceleration = 0.035199999809265,
+		airsightdistance = 800,
 		brakerate = 0.016499999910593,
 		buildcostenergy = 2177,
 		buildcostmetal = 146,
@@ -15,8 +16,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 740,
 		maxslope = 16,
@@ -29,7 +30,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 620,
-		airsightdistance = 800,
 		trackoffset = -6,
 		trackstrength = 5,
 		tracktype = "StdTank",
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "31.3571624756 22.0425262451 48.4261016846",
-				collisionvolumeoffsets = "-0.41771697998 -0.356536877441 1.65004730225",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.41771697998 -0.356536877441 1.65004730225",
+				collisionvolumescales = "31.3571624756 22.0425262451 48.4261016846",
+				collisionvolumetype = "Box",
 				damage = 672,
 				description = "Slasher Wreckage",
 				energy = 0,
@@ -141,8 +141,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-        badtargetcategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "CORTRUCK_MISSILE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

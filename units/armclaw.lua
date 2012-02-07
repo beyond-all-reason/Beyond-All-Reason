@@ -24,8 +24,8 @@ return {
 		footprintz = 2,
 		hidedamage = true,
 		icontype = "building",
-		idleautoheal = 10 ,
-		idletime = 900 ,
+		idleautoheal = 10,
+		idletime = 900,
 		mass = 10000000000,
 		maxdamage = 1200,
 		maxslope = 10,
@@ -44,11 +44,11 @@ return {
 		featuredefs = {
 			dead = {
 				autoreclaimable = 0,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "32.0 17.7499847412 31.375",
-				collisionvolumeoffsets = "0.0 2.37060546837e-06 -0.0625",
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 2.37060546837e-06 -0.0625",
+				collisionvolumescales = "32.0 17.7499847412 31.375",
+				collisionvolumetype = "Box",
 				damage = 540,
 				description = "Dragon's Claw Wreckage",
 				energy = 0,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "DCLAW",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

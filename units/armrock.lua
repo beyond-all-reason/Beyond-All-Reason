@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 650,
 		maxslope = 14,
 		maxvelocity = 1.7400000095367,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "29.8971862793 8.38395690918 32.6823883057",
-				collisionvolumeoffsets = "0.570877075195 -3.63811154541 -0.184501647949",
 				category = "corpses",
+				collisionvolumeoffsets = "0.570877075195 -3.63811154541 -0.184501647949",
+				collisionvolumescales = "29.8971862793 8.38395690918 32.6823883057",
+				collisionvolumetype = "Box",
 				damage = 390,
 				description = "Rocko Wreckage",
 				energy = 0,
@@ -132,6 +132,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_KBOT_ROCKET",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

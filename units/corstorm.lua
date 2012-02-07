@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 670,
 		maxslope = 14,
 		maxvelocity = 1.6499999761581,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "22.6238861084 13.1411590576 35.857635498",
-				collisionvolumeoffsets = "-0.258720397949 -5.34902047119 6.00907897949",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.258720397949 -5.34902047119 6.00907897949",
+				collisionvolumescales = "22.6238861084 13.1411590576 35.857635498",
+				collisionvolumetype = "Box",
 				damage = 402,
 				description = "Storm Wreckage",
 				energy = 0,
@@ -132,6 +132,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_KBOT_ROCKET",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

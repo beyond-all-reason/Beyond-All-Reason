@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 1685,
 		maxslope = 10,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "37.1564331055 16.4705352783 33.7862091064",
-				collisionvolumeoffsets = "1.73252868652 -0.81482236084 -0.546882629395",
 				category = "corpses",
+				collisionvolumeoffsets = "1.73252868652 -0.81482236084 -0.546882629395",
+				collisionvolumescales = "37.1564331055 16.4705352783 33.7862091064",
+				collisionvolumetype = "Box",
 				damage = 975,
 				description = "Raider Wreckage",
 				energy = 0,
@@ -128,6 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_LIGHTCANNON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

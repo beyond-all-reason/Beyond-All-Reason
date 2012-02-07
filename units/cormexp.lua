@@ -26,8 +26,8 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2000,
 		maxslope = 20,
 		maxwaterdepth = 0,
@@ -44,10 +44,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "85.8415527344 30.0151062012 74.3409423828",
-				collisionvolumeoffsets = "0.0 0.0263531005859 -0.0",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 0.0263531005859 -0.0",
+				collisionvolumescales = "85.8415527344 30.0151062012 74.3409423828",
+				collisionvolumetype = "Box",
 				damage = 1200,
 				description = "Moho Exploiter Wreckage",
 				energy = 0,
@@ -172,9 +172,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

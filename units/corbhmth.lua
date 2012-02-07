@@ -21,8 +21,8 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 7500,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "83.4941711426 37.581817627 90.826675415",
-				collisionvolumeoffsets = "1.45333862305 -0.843691186523 0.648628234863",
 				category = "corpses",
+				collisionvolumeoffsets = "1.45333862305 -0.843691186523 0.648628234863",
+				collisionvolumescales = "83.4941711426 37.581817627 90.826675415",
+				collisionvolumetype = "Box",
 				damage = 4500,
 				description = "Behemoth Wreckage",
 				energy = 0,
@@ -125,7 +125,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORBHMTH_WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

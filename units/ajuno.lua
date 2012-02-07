@@ -21,8 +21,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2120,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -34,18 +34,13 @@ return {
 		stealth = true,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
-		sfxtypes = { 
-      explosiongenerators = { 
-        "custom:JUNO_SPHERE_EMIT", 
-      },
- 	  },
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "65.8518981934 75.545135498 65.7558898926",
-				collisionvolumeoffsets = "1.02378845215 -0.244132250977 6.86585998535",
 				category = "corpses",
+				collisionvolumeoffsets = "1.02378845215 -0.244132250977 6.86585998535",
+				collisionvolumescales = "65.8518981934 75.545135498 65.7558898926",
+				collisionvolumetype = "Box",
 				damage = 1272,
 				description = "Arm Juno Wreckage",
 				energy = 0,
@@ -77,6 +72,11 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:juno_sphere_emit",
 			},
 		},
 		sounds = {
@@ -130,11 +130,11 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				damage = {
+					["else"] = 1,
 					bombers = 1,
 					commanders = 1,
 					crawlingbombs = 1,
 					default = 1,
-					["else"] = 1,
 					fighters = 1,
 					heavyunits = 1,
 					mines = 1000,
@@ -148,6 +148,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "JUNO_PULSE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

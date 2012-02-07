@@ -22,8 +22,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3000,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "48.0 21.8883666992 48.0",
-				collisionvolumeoffsets = "0.0 -5.75001665039 -0.0",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -5.75001665039 -0.0",
+				collisionvolumescales = "48.0 21.8883666992 48.0",
+				collisionvolumetype = "Box",
 				damage = 1800,
 				description = "Detonator Wreckage",
 				energy = 0,
@@ -136,6 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMEMP_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -19,8 +19,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 5001,
 		maxdamage = 14000,
 		maxslope = 15,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "60.9344787598 36.418548584 64.3249511719",
-				collisionvolumeoffsets = "-2.34260559082 -0.241825708008 -1.33148193359",
 				category = "corpses",
+				collisionvolumeoffsets = "-2.34260559082 -0.241825708008 -1.33148193359",
+				collisionvolumescales = "60.9344787598 36.418548584 64.3249511719",
+				collisionvolumetype = "Box",
 				damage = 8400,
 				description = "Sumo Wreckage",
 				energy = 0,
@@ -138,6 +138,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

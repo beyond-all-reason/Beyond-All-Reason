@@ -23,8 +23,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 585,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -39,10 +39,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "22.7612304688 56.4846038818 36.8613586426",
-				collisionvolumeoffsets = "-4.60437011719 0.021101940918 2.44569396973",
 				category = "corpses",
+				collisionvolumeoffsets = "-4.60437011719 0.021101940918 2.44569396973",
+				collisionvolumescales = "22.7612304688 56.4846038818 36.8613586426",
+				collisionvolumetype = "Box",
 				damage = 351,
 				description = "LLT Wreckage",
 				energy = 0,
@@ -141,6 +141,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORE_LIGHTLASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

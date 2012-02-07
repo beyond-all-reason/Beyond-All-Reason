@@ -16,8 +16,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "type1",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 1530,
 		maxslope = 10,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "25.7996826172 19.2875671387 29.4318847656",
-				collisionvolumeoffsets = "-0.0399932861328 0.00128356933594 -0.564636230469",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.0399932861328 0.00128356933594 -0.564636230469",
+				collisionvolumescales = "25.7996826172 19.2875671387 29.4318847656",
+				collisionvolumetype = "Box",
 				damage = 1056,
 				description = "Stumpy Wreckage",
 				energy = 0,
@@ -129,6 +129,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_LIGHTCANNON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

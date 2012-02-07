@@ -23,8 +23,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1290,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "48.9197998047 59.9625549316 37.0396270752",
-				collisionvolumeoffsets = "-1.45989990234 -3.69362253418 0.310646057129",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.45989990234 -3.69362253418 0.310646057129",
+				collisionvolumescales = "48.9197998047 59.9625549316 37.0396270752",
+				collisionvolumetype = "Box",
 				damage = 774,
 				description = "Beamer Wreckage",
 				energy = 0,
@@ -140,6 +140,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "TAWF001_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

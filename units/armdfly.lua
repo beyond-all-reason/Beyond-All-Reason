@@ -19,8 +19,8 @@ return {
 		footprintz = 4,
 		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1050,
 		maxslope = 15,
 		maxvelocity = 8.0500001907349,
@@ -93,6 +93,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMDFLY_PARALYZER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

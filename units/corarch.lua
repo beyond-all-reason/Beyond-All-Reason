@@ -204,15 +204,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[2] = {
 				def = "GA2",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[3] = {
 				def = "MOBILEFLAK",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

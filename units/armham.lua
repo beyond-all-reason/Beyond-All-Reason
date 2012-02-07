@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 300,
 		maxdamage = 810,
 		maxslope = 14,
@@ -35,10 +35,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "31.0182495117 8.18759155273 36.3284454346",
-				collisionvolumeoffsets = "1.85908508301 -3.40689422363 2.59911346436",
 				category = "corpses",
+				collisionvolumeoffsets = "1.85908508301 -3.40689422363 2.59911346436",
+				collisionvolumescales = "31.0182495117 8.18759155273 36.3284454346",
+				collisionvolumetype = "Box",
 				damage = 486,
 				description = "Hammer Wreckage",
 				energy = 0,
@@ -125,6 +125,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_HAM",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

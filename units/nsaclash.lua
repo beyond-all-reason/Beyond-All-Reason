@@ -20,8 +20,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3465,
 		maxslope = 16,
 		maxvelocity = 1.4800000190735,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.5680847168 11.9420166016 35.7424163818",
-				collisionvolumeoffsets = "0.0 1.56313830078 -0.150825500488",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 1.56313830078 -0.150825500488",
+				collisionvolumescales = "30.5680847168 11.9420166016 35.7424163818",
+				collisionvolumetype = "Box",
 				damage = 2079,
 				description = "Halberd Wreckage",
 				energy = 0,
@@ -134,6 +134,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_CANLASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

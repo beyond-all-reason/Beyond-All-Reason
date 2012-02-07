@@ -119,15 +119,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "KROWLASER2",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "KROWLASER",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "KROWLASER",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

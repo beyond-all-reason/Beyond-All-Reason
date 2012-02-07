@@ -17,8 +17,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 950,
 		maxslope = 12,
@@ -40,10 +40,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "28.9706878662 18.1388702393 29.5620422363",
-				collisionvolumeoffsets = "-0.198936462402 -1.72446488037 0.38102722168",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.198936462402 -1.72446488037 0.38102722168",
+				collisionvolumescales = "28.9706878662 18.1388702393 29.5620422363",
+				collisionvolumetype = "Box",
 				damage = 570,
 				description = "Gremlin Wreckage",
 				energy = 0,
@@ -128,6 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMST_GAUSS",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

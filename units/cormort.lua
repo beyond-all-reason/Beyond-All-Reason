@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 850,
 		maxslope = 14,
 		maxvelocity = 2.1500000953674,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "41.948348999 14.0481719971 51.4421844482",
-				collisionvolumeoffsets = "-2.46048736572 -3.00319400146 6.99045562744",
 				category = "corpses",
+				collisionvolumeoffsets = "-2.46048736572 -3.00319400146 6.99045562744",
+				collisionvolumescales = "41.948348999 14.0481719971 51.4421844482",
+				collisionvolumetype = "Box",
 				damage = 510,
 				description = "Morty Wreckage",
 				energy = 0,
@@ -121,7 +121,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_MORT",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

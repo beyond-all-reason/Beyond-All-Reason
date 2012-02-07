@@ -175,10 +175,11 @@ return {
 			[1] = {
 				badtargetcategory = "ANTIGATOR",
 				def = "ARMPT_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ARMKBOT_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

@@ -17,8 +17,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1450,
 		minwaterdepth = 1,
 		name = "Harpoon",
@@ -31,10 +31,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "32.1499938965 9.51611328125 31.9671630859",
-				collisionvolumeoffsets = "0.25 -4.24193335938 -0.393661499023",
 				category = "corpses",
+				collisionvolumeoffsets = "0.25 -4.24193335938 -0.393661499023",
+				collisionvolumescales = "32.1499938965 9.51611328125 31.9671630859",
+				collisionvolumetype = "Box",
 				damage = 870,
 				description = "Harpoon Wreckage",
 				energy = 0,
@@ -107,6 +107,7 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "COAX_TORPEDO",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

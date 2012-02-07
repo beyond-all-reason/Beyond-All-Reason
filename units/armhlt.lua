@@ -23,8 +23,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2325,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -39,10 +39,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "42.0427246094 74.7609558105 56.8743896484",
-				collisionvolumeoffsets = "-0.0445556640625 -0.0718220947266 6.04946899414",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.0445556640625 -0.0718220947266 6.04946899414",
+				collisionvolumescales = "42.0427246094 74.7609558105 56.8743896484",
+				collisionvolumetype = "Box",
 				damage = 1395,
 				description = "Sentinel Wreckage",
 				energy = 0,
@@ -140,6 +140,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_LASERH1",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

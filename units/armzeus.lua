@@ -14,8 +14,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2975,
 		maxslope = 15,
 		maxvelocity = 1.5800000429153,
@@ -33,10 +33,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "39.0425720215 11.3397369385 32.5729980469",
-				collisionvolumeoffsets = "-4.33491516113 -5.09323153076 2.83627319336",
 				category = "corpses",
+				collisionvolumeoffsets = "-4.33491516113 -5.09323153076 2.83627319336",
+				collisionvolumescales = "39.0425720215 11.3397369385 32.5729980469",
+				collisionvolumetype = "Box",
 				damage = 1110,
 				description = "Zeus Wreckage",
 				energy = 0,
@@ -132,7 +132,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "LIGHTNING",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

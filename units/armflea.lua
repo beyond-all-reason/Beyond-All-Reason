@@ -15,8 +15,8 @@ return {
 		explodeas = "FLEA_EX",
 		footprintx = 1,
 		footprintz = 1,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 1000,
 		maxdamage = 50,
 		maxslope = 255,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "18.3164367676 15.4085083008 17.7548828125",
-				collisionvolumeoffsets = "0.00276184082031 -0.139985849609 -0.0299072265625",
 				category = "corpses",
+				collisionvolumeoffsets = "0.00276184082031 -0.139985849609 -0.0299072265625",
+				collisionvolumescales = "18.3164367676 15.4085083008 17.7548828125",
+				collisionvolumetype = "Box",
 				damage = 30,
 				description = "Flea Wreckage",
 				energy = 0,
@@ -134,6 +134,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "FLEA_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

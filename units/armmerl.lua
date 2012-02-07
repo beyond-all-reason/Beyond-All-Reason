@@ -19,8 +19,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 1100,
 		maxslope = 16,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "41.7318725586 18.875 50.3305206299",
-				collisionvolumeoffsets = "-0.623458862305 -0.91624 0.291633605957",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.623458862305 -0.91624 0.291633605957",
+				collisionvolumescales = "41.7318725586 18.875 50.3305206299",
+				collisionvolumetype = "Box",
 				damage = 1812,
 				description = "Merl Wreckage",
 				energy = 0,
@@ -136,7 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMTRUCK_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

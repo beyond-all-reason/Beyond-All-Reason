@@ -23,8 +23,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "sea",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2800,
 		maxvelocity = 3.2200000286102,
 		minwaterdepth = 12,
@@ -42,10 +42,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "33.2652587891 20.5109710693 79.4415893555",
-				collisionvolumeoffsets = "0.0580749511719 -0.062504465332 -0.201034545898",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0580749511719 -0.062504465332 -0.201034545898",
+				collisionvolumescales = "33.2652587891 20.5109710693 79.4415893555",
+				collisionvolumetype = "Box",
 				damage = 1680,
 				description = "Enforcer Wreckage",
 				energy = 0,
@@ -161,11 +161,11 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_ROY",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "DEPTHCHARGE",
-				onlytargetcategory= "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

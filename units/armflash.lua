@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 570,
 		maxslope = 10,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "20.3918304443 9.5 30.2260284424",
-				collisionvolumeoffsets = "0.0750198364258 0.20984 -0.70206451416",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0750198364258 0.20984 -0.70206451416",
+				collisionvolumescales = "20.3918304443 9.5 30.2260284424",
+				collisionvolumetype = "Box",
 				damage = 366,
 				description = "Flash Wreckage",
 				energy = 0,
@@ -132,6 +132,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "EMGX",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

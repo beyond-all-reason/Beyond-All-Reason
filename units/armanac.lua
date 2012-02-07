@@ -20,8 +20,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1377,
 		maxslope = 16,
 		maxvelocity = 2.5299999713898,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "34.1171112061 20.2492980957 33.3804016113",
-				collisionvolumeoffsets = "-0.415473937988 2.80222904785 -0.337173461914",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.415473937988 2.80222904785 -0.337173461914",
+				collisionvolumescales = "34.1171112061 20.2492980957 33.3804016113",
+				collisionvolumetype = "Box",
 				damage = 826,
 				description = "Anaconda Wreckage",
 				energy = 0,
@@ -124,6 +124,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMANAC_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -17,8 +17,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 520,
 		maxslope = 14,
 		maxvelocity = 1.2599999904633,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "49.6789398193 12.193939209 52.2985229492",
-				collisionvolumeoffsets = "-6.88437652588 -4.41893039551 -2.47041320801",
 				category = "corpses",
+				collisionvolumeoffsets = "-6.88437652588 -4.41893039551 -2.47041320801",
+				collisionvolumescales = "49.6789398193 12.193939209 52.2985229492",
+				collisionvolumetype = "Box",
 				damage = 240,
 				description = "Sharpshooter Wreckage",
 				energy = 0,
@@ -130,7 +130,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMSNIPE_WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

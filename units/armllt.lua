@@ -23,8 +23,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 560,
 		maxslope = 14,
 		maxwaterdepth = 0,
@@ -141,6 +141,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_LIGHTLASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

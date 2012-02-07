@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 1219,
 		maxslope = 12,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.1485290527 10.4821014404 33.694442749",
-				collisionvolumeoffsets = "0.0 -0.580979279785 -0.621788024902",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -0.580979279785 -0.621788024902",
+				collisionvolumescales = "30.1485290527 10.4821014404 33.694442749",
+				collisionvolumetype = "Box",
 				damage = 731,
 				description = "Garpike Wreckage",
 				energy = 0,
@@ -107,6 +107,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_PINCER_GAUSS",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -142,7 +142,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "CORE_ADVSAM",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

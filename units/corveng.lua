@@ -91,6 +91,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "CORVTOL_MISSILE_A2A",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

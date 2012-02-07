@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1000,
 		maxslope = 17,
 		maxvelocity = 2.75,
@@ -115,6 +115,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "FLAMETHROWER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

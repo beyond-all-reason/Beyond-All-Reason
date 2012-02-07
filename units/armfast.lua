@@ -14,8 +14,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 620,
 		maxslope = 17,
 		maxvelocity = 3.710000038147,
@@ -33,10 +33,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "50.1881866455 6.02409362793 37.503112793",
-				collisionvolumeoffsets = "-2.49777984619 -2.74520318604 -3.11322021484",
 				category = "corpses",
+				collisionvolumeoffsets = "-2.49777984619 -2.74520318604 -3.11322021484",
+				collisionvolumescales = "50.1881866455 6.02409362793 37.503112793",
+				collisionvolumetype = "Box",
 				damage = 240,
 				description = "Zipper Wreckage",
 				energy = 0,
@@ -126,6 +126,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_FAST",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

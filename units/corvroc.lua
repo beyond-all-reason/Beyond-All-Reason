@@ -19,8 +19,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 1250,
 		maxslope = 16,
@@ -40,10 +40,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "42.9068603516 14.9519805908 46.03515625",
-				collisionvolumeoffsets = "-0.75276184082 -4.69010970459 0.13981628418",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.75276184082 -4.69010970459 0.13981628418",
+				collisionvolumescales = "42.9068603516 14.9519805908 46.03515625",
+				collisionvolumetype = "Box",
 				damage = 1897,
 				description = "Diplomat Wreckage",
 				energy = 0,
@@ -134,7 +134,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORTRUCK_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

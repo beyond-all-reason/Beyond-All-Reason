@@ -16,8 +16,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 477,
 		maxslope = 16,
 		maxvelocity = 2.4200000762939,
@@ -33,10 +33,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "29.5979919434 18.3375244141 32.5498809814",
-				collisionvolumeoffsets = "0.23698425293 1.26007220703 -0.625221252441",
 				category = "corpses",
+				collisionvolumeoffsets = "0.23698425293 1.26007220703 -0.625221252441",
+				collisionvolumescales = "29.5979919434 18.3375244141 32.5498809814",
+				collisionvolumetype = "Box",
 				damage = 286,
 				description = "Wombat Wreckage",
 				energy = 0,
@@ -124,7 +124,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMMH_WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

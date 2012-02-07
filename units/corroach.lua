@@ -16,8 +16,8 @@ return {
 		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 1500,
 		maxdamage = 560,
 		maxslope = 32,
@@ -100,10 +100,11 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CRAWL_DUMMY",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "CRAWL_DETONATOR",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

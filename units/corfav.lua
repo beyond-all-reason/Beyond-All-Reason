@@ -15,8 +15,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 95,
 		maxslope = 26,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "27.7855834961 9.28491210938 30.4499664307",
-				collisionvolumeoffsets = "0.0 -2.81028394531 1.25487518311",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -2.81028394531 1.25487518311",
+				collisionvolumescales = "27.7855834961 9.28491210938 30.4499664307",
+				collisionvolumetype = "Box",
 				damage = 132,
 				description = "Weasel Wreckage",
 				energy = 0,
@@ -139,6 +139,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

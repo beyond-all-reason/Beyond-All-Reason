@@ -23,8 +23,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1500,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "35.5121612549 61.9105224609 33.3319244385",
-				collisionvolumeoffsets = "-10.5723800659 -3.06343876953 1.66596221924",
 				category = "corpses",
+				collisionvolumeoffsets = "-10.5723800659 -3.06343876953 1.66596221924",
+				collisionvolumescales = "35.5121612549 61.9105224609 33.3319244385",
+				collisionvolumetype = "Box",
 				damage = 900,
 				description = "HLLT Wreckage",
 				energy = 0,
@@ -167,8 +167,8 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					bombers = 5,
-					default = 75,
 					commanders = 100,
+					default = 75,
 					fighters = 5,
 					subs = 3,
 					vtol = 5,
@@ -179,10 +179,12 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "HLLT_TOP",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-        badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "HLLT_BOTTOM",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

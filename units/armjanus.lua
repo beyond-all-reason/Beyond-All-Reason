@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 880,
 		maxslope = 10,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "28.8743438721 18.1917877197 33.2305145264",
-				collisionvolumeoffsets = "-1.45095062256 -4.56400614014 0.266441345215",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.45095062256 -4.56400614014 0.266441345215",
+				collisionvolumescales = "28.8743438721 18.1917877197 33.2305145264",
+				collisionvolumetype = "Box",
 				damage = 528,
 				description = "Janus Wreckage",
 				energy = 0,
@@ -137,11 +137,11 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "JANUS_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "JANUS_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 				slaveto = 1,
 			},
 		},

@@ -19,8 +19,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		mass = 5001,
 		maxdamage = 7000,
 		maxslope = 20,
@@ -38,10 +38,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "33.431427002 25.3690338135 53.5839233398",
-				collisionvolumeoffsets = "1.35855102539 -5.79698309326 2.2872467041",
 				category = "corpses",
+				collisionvolumeoffsets = "1.35855102539 -5.79698309326 2.2872467041",
+				collisionvolumescales = "33.431427002 25.3690338135 53.5839233398",
+				collisionvolumetype = "Box",
 				damage = 4200,
 				description = "Fatboy Wreckage",
 				energy = 0,
@@ -128,7 +128,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_FATBOY_NOTALASER",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

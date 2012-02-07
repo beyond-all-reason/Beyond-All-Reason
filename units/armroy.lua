@@ -23,8 +23,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "sea",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 2575,
 		maxvelocity = 3.3399999141693,
 		minwaterdepth = 12,
@@ -42,10 +42,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "31.5542297363 37.44581604 80.6425476074",
-				collisionvolumeoffsets = "0.164245605469 8.02001953204e-06 -0.56591796875",
 				category = "corpses",
+				collisionvolumeoffsets = "0.164245605469 8.02001953204e-06 -0.56591796875",
+				collisionvolumescales = "31.5542297363 37.44581604 80.6425476074",
+				collisionvolumetype = "Box",
 				damage = 1545,
 				description = "Crusader Wreckage",
 				energy = 0,
@@ -160,11 +160,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARM_ROY",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "DEPTHCHARGE",
-				onlytargetcategory= "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

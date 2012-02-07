@@ -22,8 +22,8 @@ return {
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 30000,
 		maxslope = 13,
 		maxwaterdepth = 0,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "83.9113311768 124.753143311 117.611557007",
-				collisionvolumeoffsets = "1.84717559814 -0.761228344727 2.30910491943",
 				category = "corpses",
+				collisionvolumeoffsets = "1.84717559814 -0.761228344727 2.30910491943",
+				collisionvolumescales = "83.9113311768 124.753143311 117.611557007",
+				collisionvolumetype = "Box",
 				damage = 20976,
 				description = "Buzzsaw Wreckage",
 				energy = 0,
@@ -133,7 +133,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "CORBUZZ_WEAPON",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

@@ -19,8 +19,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 4200,
 		maxslope = 12,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "43.0491943359 23.8300933838 46.0147399902",
-				collisionvolumeoffsets = "-0.291641235352 0.00484669189453 0.383178710938",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.291641235352 0.00484669189453 0.383178710938",
+				collisionvolumescales = "43.0491943359 23.8300933838 46.0147399902",
+				collisionvolumetype = "Box",
 				damage = 2520,
 				description = "Bulldog Wreckage",
 				energy = 0,
@@ -135,7 +135,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_BULL",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

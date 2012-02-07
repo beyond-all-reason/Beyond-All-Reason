@@ -205,18 +205,19 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ORCONE_GUN",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "ORCONE_HEAD",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[3] = {
 				def = "ORCONE_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[4] = {
 				def = "ORCONE_SHIELD",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

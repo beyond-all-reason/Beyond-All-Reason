@@ -15,8 +15,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 300,
 		maxslope = 17,
 		maxvelocity = 2.7999999523163,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "30.1392364502 18.4953460693 29.797164917",
-				collisionvolumeoffsets = "0.979118347168 -0.453806965332 -0.796119689941",
 				category = "corpses",
+				collisionvolumeoffsets = "0.979118347168 -0.453806965332 -0.796119689941",
+				collisionvolumescales = "30.1392364502 18.4953460693 29.797164917",
+				collisionvolumetype = "Box",
 				damage = 192,
 				description = "Peewee Wreckage",
 				energy = 0,
@@ -131,6 +131,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "EMG",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

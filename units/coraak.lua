@@ -307,50 +307,50 @@ return {
 		weapons = {
 			[10] = {
 				def = "AAKFLAK",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[1] = {
 				def = "BOGUS_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[2] = {
 				def = "CORAAKBOT_MISSILE3",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[3] = {
 				def = "CORAAKBOT_MISSILE1",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[4] = {
 				def = "CORAAKBOT_MISSILE2",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[5] = {
 				def = "CORAAKBOT_MISSILE1",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[6] = {
 				def = "CORAAKBOT_MISSILE2",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[7] = {
 				def = "CORAAKBOT_MISSILE3",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[8] = {
 				def = "CORAAKBOT_MISSILE4",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 			[9] = {
 				def = "CORAAKBOT_MISSILE4",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 				slaveto = 1,
 			},
 		},

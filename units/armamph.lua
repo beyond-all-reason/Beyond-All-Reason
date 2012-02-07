@@ -21,8 +21,8 @@ return {
 		floater = false,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 910,
 		maxslope = 14,
 		maxvelocity = 3,
@@ -39,10 +39,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "31.8423614502 16.689666748 36.9563140869",
-				collisionvolumeoffsets = "-1.16748809814 -0.254996625977 -1.62804412842",
 				category = "corpses",
+				collisionvolumeoffsets = "-1.16748809814 -0.254996625977 -1.62804412842",
+				collisionvolumescales = "31.8423614502 16.689666748 36.9563140869",
+				collisionvolumetype = "Box",
 				damage = 426,
 				description = "Pelican Wreckage",
 				energy = 0,
@@ -167,11 +167,12 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMAMPH_WEAPON1",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				badtargetcategory = "NOTAIR",
 				def = "ARMAMPH_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

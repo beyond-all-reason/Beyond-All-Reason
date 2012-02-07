@@ -22,8 +22,8 @@ return {
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 4600,
 		maxslope = 13,
 		maxwaterdepth = 0,
@@ -33,7 +33,7 @@ return {
 		selfdestructas = "ATOMIC_BLAST",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
-		usePieceCollisionVolumes = 1,
+		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			canareaattack = 1,
@@ -41,10 +41,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "86.25 91.6069641113 74.6947021484",
-				collisionvolumeoffsets = "0.0 0.0987820556641 -0.0",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 0.0987820556641 -0.0",
+				collisionvolumescales = "86.25 91.6069641113 74.6947021484",
+				collisionvolumetype = "Box",
 				damage = 2760,
 				description = "Intimidator Wreckage",
 				energy = 0,
@@ -136,7 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "CORE_INTIMIDATOR",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

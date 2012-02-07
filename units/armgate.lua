@@ -24,8 +24,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3000,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -40,10 +40,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "57.2399902344 32.5033416748 63.3298492432",
-				collisionvolumeoffsets = "0.0 -2.91625976558e-05 -0.414924621582",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -2.91625976558e-05 -0.414924621582",
+				collisionvolumescales = "57.2399902344 32.5033416748 63.3298492432",
+				collisionvolumetype = "Box",
 				damage = 1800,
 				description = "Keeper Wreckage",
 				energy = 0,
@@ -115,7 +115,7 @@ return {
 				shieldpowerregenenergy = 562.5,
 				shieldradius = 500,
 				shieldrepulser = true,
-				ShieldStartingPower = 2000,
+				shieldstartingpower = 2000,
 				smartshield = true,
 				visibleshield = true,
 				visibleshieldhitframes = 70,
@@ -129,6 +129,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "REPULSOR",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

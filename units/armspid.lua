@@ -15,8 +15,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 600 ,
+		idleautoheal = 5,
+		idletime = 600,
 		maxdamage = 750,
 		maxvelocity = 2.6500000953674,
 		maxwaterdepth = 16,
@@ -32,10 +32,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "31.362487793 12.4340515137 31.2150268555",
-				collisionvolumeoffsets = "0.0926513671875 -4.24316406278e-06 -0.909057617188",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0926513671875 -4.24316406278e-06 -0.909057617188",
+				collisionvolumescales = "31.362487793 12.4340515137 31.2150268555",
+				collisionvolumetype = "Box",
 				damage = 450,
 				description = "Spider Wreckage",
 				energy = 0,
@@ -125,8 +125,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				onlytargetcategory = "NOTAIR",
 				def = "SPIDER",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

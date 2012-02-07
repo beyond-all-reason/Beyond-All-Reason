@@ -21,8 +21,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3927,
 		minwaterdepth = 5,
 		name = "Thunderbolt",
@@ -36,10 +36,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "44.3973846436 40.5940704346 42.9052734375",
-				collisionvolumeoffsets = "1.41945648193 0.0257352172852 3.31944274902",
 				category = "corpses",
+				collisionvolumeoffsets = "1.41945648193 0.0257352172852 3.31944274902",
+				collisionvolumescales = "44.3973846436 40.5940704346 42.9052734375",
+				collisionvolumetype = "Box",
 				damage = 2356,
 				description = "Thunderbolt Wreckage",
 				energy = 0,
@@ -117,6 +117,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORFHLT_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

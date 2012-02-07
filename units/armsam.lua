@@ -1,6 +1,7 @@
 return {
 	armsam = {
 		acceleration = 0.039599999785423,
+		airsightdistance = 800,
 		brakerate = 0.016499999910593,
 		buildcostenergy = 2027,
 		buildcostmetal = 140,
@@ -15,8 +16,8 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 700,
 		maxslope = 16,
@@ -28,7 +29,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 620,
-		airsightdistance = 800,
 		trackoffset = -6,
 		trackstrength = 5,
 		tracktype = "StdTank",
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "34.0520019531 26.7133789063 42.7676696777",
-				collisionvolumeoffsets = "1.01370239258 -1.0546875e-05 -0.0623321533203",
 				category = "corpses",
+				collisionvolumeoffsets = "1.01370239258 -1.0546875e-05 -0.0623321533203",
+				collisionvolumescales = "34.0520019531 26.7133789063 42.7676696777",
+				collisionvolumetype = "Box",
 				damage = 639,
 				description = "Samson Wreckage",
 				energy = 0,
@@ -143,8 +143,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-        badtargetcategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "ARMTRUCK_MISSILE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

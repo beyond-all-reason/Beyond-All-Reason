@@ -174,10 +174,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMPT_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ARMKBOT_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

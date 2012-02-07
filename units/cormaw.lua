@@ -24,8 +24,8 @@ return {
 		footprintz = 2,
 		hidedamage = true,
 		icontype = "building",
-		idleautoheal = 10 ,
-		idletime = 900 ,
+		idleautoheal = 10,
+		idletime = 900,
 		mass = 10000000000,
 		maxdamage = 1450,
 		maxslope = 10,
@@ -44,11 +44,11 @@ return {
 		featuredefs = {
 			dead = {
 				autoreclaimable = 0,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "32.042388916 19.5953521729 32.6287231445",
-				collisionvolumeoffsets = "0.0 0.0149960864258 0.116882324219",
 				blocking = true,
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 0.0149960864258 0.116882324219",
+				collisionvolumescales = "32.042388916 19.5953521729 32.6287231445",
+				collisionvolumetype = "Box",
 				damage = 600,
 				description = "Dragon's Maw Wreckage",
 				energy = 0,
@@ -146,7 +146,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "DMAW",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

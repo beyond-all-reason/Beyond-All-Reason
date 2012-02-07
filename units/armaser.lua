@@ -17,8 +17,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 305,
 		maxslope = 32,
 		maxvelocity = 1.6100000143051,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "28.490814209 34.7166900635 16.3992004395",
-				collisionvolumeoffsets = "0.136978149414 4.50317382814e-05 -6.27960205078",
 				category = "corpses",
+				collisionvolumeoffsets = "0.136978149414 4.50317382814e-05 -6.27960205078",
+				collisionvolumescales = "28.490814209 34.7166900635 16.3992004395",
+				collisionvolumetype = "Box",
 				damage = 183,
 				description = "Eraser Wreckage",
 				energy = 0,
@@ -123,6 +123,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "BOGUS_GROUND_MISSILE",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

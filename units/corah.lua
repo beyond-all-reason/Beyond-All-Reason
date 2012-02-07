@@ -161,11 +161,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 			[2] = {
 				def = "COREAH_WEAPON",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL NOTSUB",
 			},
 		},
 	},

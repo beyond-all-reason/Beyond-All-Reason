@@ -15,8 +15,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1300,
 		maxslope = 17,
 		maxvelocity = 1.5,
@@ -34,10 +34,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "37.3442840576 10.0486450195 42.9995422363",
-				collisionvolumeoffsets = "-0.527076721191 -5.09926749023 6.06378173828",
 				category = "corpses",
+				collisionvolumeoffsets = "-0.527076721191 -5.09926749023 6.06378173828",
+				collisionvolumescales = "37.3442840576 10.0486450195 42.9995422363",
+				collisionvolumetype = "Box",
 				damage = 780,
 				description = "Warrior Wreckage",
 				energy = 0,
@@ -132,6 +132,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMWAR_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

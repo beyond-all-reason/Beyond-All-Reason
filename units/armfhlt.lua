@@ -21,8 +21,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3837,
 		minwaterdepth = 2,
 		name = "Stingray",
@@ -36,10 +36,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
-				collisionvolumeoffsets = "0.0 -3.6047363281e-05 -7.62939453125e-06",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -3.6047363281e-05 -7.62939453125e-06",
+				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
+				collisionvolumetype = "Box",
 				damage = 2302,
 				description = "Stingray Wreckage",
 				energy = 0,
@@ -117,6 +117,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORFHLT_LASER",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

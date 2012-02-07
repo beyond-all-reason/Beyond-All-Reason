@@ -20,8 +20,8 @@ return {
 		explodeas = "SMALL_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 230,
 		maxslope = 16,
 		maxvelocity = 4.2600002288818,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "20.8764801025 14.7368011475 29.8970336914",
-				collisionvolumeoffsets = "1.82556915283 -0.57393942627 -0.410171508789",
 				category = "corpses",
+				collisionvolumeoffsets = "1.82556915283 -0.57393942627 -0.410171508789",
+				collisionvolumescales = "20.8764801025 14.7368011475 29.8970336914",
+				collisionvolumetype = "Box",
 				damage = 162,
 				description = "Scrubber Wreckage",
 				energy = 0,
@@ -130,6 +130,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMSH_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

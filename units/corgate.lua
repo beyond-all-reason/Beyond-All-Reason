@@ -24,8 +24,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 3200,
 		maxslope = 10,
 		maxwaterdepth = 0,
@@ -40,10 +40,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "65.7474060059 27.1259613037 55.6685791016",
-				collisionvolumeoffsets = "0.0 -0.00271934814453 -1.05072021484",
 				category = "corpses",
+				collisionvolumeoffsets = "0.0 -0.00271934814453 -1.05072021484",
+				collisionvolumescales = "65.7474060059 27.1259613037 55.6685791016",
+				collisionvolumetype = "Box",
 				damage = 1920,
 				description = "Overseer Wreckage",
 				energy = 0,
@@ -115,7 +115,7 @@ return {
 				shieldpowerregenenergy = 562.5,
 				shieldradius = 500,
 				shieldrepulser = true,
-				ShieldStartingPower = 2000,
+				shieldstartingpower = 2000,
 				smartshield = true,
 				visibleshield = true,
 				visibleshieldhitframes = 70,
@@ -129,6 +129,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "REPULSOR",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

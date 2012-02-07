@@ -62,7 +62,6 @@ return {
 				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
-				manualbombsettings = 1,	
 				dropped = true,
 				edgeeffectiveness = 0.7,
 				explosiongenerator = "custom:CORE_BIGBOMB_EXPLOSION",
@@ -91,6 +90,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "CORADVBOMB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

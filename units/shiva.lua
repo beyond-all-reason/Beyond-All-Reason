@@ -17,8 +17,8 @@ return {
 		explodeas = "MECH_BLASTSML",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 15 ,
-		idletime = 1800 ,
+		idleautoheal = 15,
+		idletime = 1800,
 		mass = 200000,
 		maxdamage = 8500,
 		maxslope = 36,
@@ -37,10 +37,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "48.4013214111 35.5686035156 49.8471069336",
-				collisionvolumeoffsets = "2.34152984619 -0.363798242187 4.68096923828",
 				category = "corpses",
+				collisionvolumeoffsets = "2.34152984619 -0.363798242187 4.68096923828",
+				collisionvolumescales = "48.4013214111 35.5686035156 49.8471069336",
+				collisionvolumetype = "Box",
 				damage = 1500,
 				description = "Shiva Wreckage",
 				energy = 0,
@@ -154,11 +154,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "SHIVA_GUN",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "SHIVA_ROCKET",
-				onlytargetcategory = "NOTAIR",
+				onlytargetcategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

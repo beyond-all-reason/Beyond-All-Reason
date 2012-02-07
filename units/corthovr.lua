@@ -23,8 +23,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "corthovr",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 5020,
 		maxvelocity = 2.1800000667572,
 		minwaterdepth = 12,
@@ -42,10 +42,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "72.0837402344 61.3697357178 89.0081481934",
-				collisionvolumeoffsets = "2.68968200684 -3.21411132802e-05 0.200881958008",
 				category = "corpses",
+				collisionvolumeoffsets = "2.68968200684 -3.21411132802e-05 0.200881958008",
+				collisionvolumescales = "72.0837402344 61.3697357178 89.0081481934",
+				collisionvolumetype = "Box",
 				damage = 3012,
 				description = "Turtle Wreckage",
 				energy = 0,
@@ -121,6 +121,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORFAST_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

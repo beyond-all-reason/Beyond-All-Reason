@@ -23,8 +23,8 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "armthovr",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 5160,
 		maxvelocity = 2.0699999332428,
 		minwaterdepth = 12,
@@ -42,10 +42,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = false,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "64.6317596436 60.2001953125 88.311706543",
-				collisionvolumeoffsets = "3.81589508057 -2.34375000119e-06 -4.35322570801",
 				category = "corpses",
+				collisionvolumeoffsets = "3.81589508057 -2.34375000119e-06 -4.35322570801",
+				collisionvolumescales = "64.6317596436 60.2001953125 88.311706543",
+				collisionvolumetype = "Box",
 				damage = 3096,
 				description = "Bear Wreckage",
 				energy = 0,
@@ -122,6 +122,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORFAST_WEAPON",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
