@@ -16,15 +16,12 @@ end
 --------------------------------------------------------------------------------
 local alterLevelFormat = string.char(137) .. '%i'
 
+local X, Y = Spring.GetViewGeometry()
 local px, py = 500, 100
 local sx, sy = 128, 54
 
-local hoverLeft = 53
-local hoverRight = 123
-local hoverBottom = 23
-local hoverTop = 35
-local barBottom = 28
-local barTop = 30
+local hoverLeft, hoverRight, hoverBottom, hoverTop, barBottom, barTop
+local scaling, fontSize, col1, col2, row1, row2, row3, row4
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -56,6 +53,15 @@ function widget:Initialize()
 		Spring.Echo("<Energy Conversion Info> Spectator mode. Widget removed.")
 		widgetHandler:RemoveWidget()
 	end
+	scaling = Y/1200
+	sx, sy, fontSize = sx*scaling, sy*scaling, 12*scaling
+	col1, col2, row1, row2, row3 = 123*scaling, 64*scaling, 5*scaling, 21*scaling,37*scaling
+	hoverLeft = 53*scaling
+	hoverRight = 123*scaling
+	hoverBottom = 23*scaling
+	hoverTop = 35*scaling
+	barBottom = 28*scaling
+	barTop = 30*scaling
 end
 
 function widget:DrawScreen()
@@ -77,10 +83,10 @@ function widget:DrawScreen()
         -- Text
         glColor(1, 1, 1, 1)
         glBeginText()
-            glText('Energy Conversion', 64, 37, 12, 'cd')
-            glText('Hover:', 5, 21, 12, 'd')
-            glText('Usage:', 5, 5, 12, 'd')
-            glText(format('%i / %i', curUsage, curCapacity), 123, 5, 12, 'dr')
+            glText('Energy Conversion', col2, row3, fontSize, 'cd')
+            glText('Hover:', row1, row2, fontSize, 'd')
+            glText('E usage:', row1, row1, fontSize, 'd')
+            glText(format('%i / %i', curUsage, curCapacity), col1, row1, fontSize, 'dr')
         glEndText()
         
         -- Bar
@@ -112,8 +118,8 @@ end
 function widget:MouseMove(mx, my, dx, dy, mButton)
     -- Dragging
     if mButton == 2 or mButton == 3 then
-        px = px + dx
-        py = py + dy
+		if px+dx>=0 and px+sx+dx<=X then px = px + dx end
+        if py+dy>=0 and py+sy+dy<=Y then py = py + dy end
     end
 end
 
