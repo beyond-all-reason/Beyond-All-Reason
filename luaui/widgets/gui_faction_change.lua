@@ -86,21 +86,21 @@ function widget:DrawWorld()
 end
 
 function widget:DrawScreen()
-    
+
     -- Spectator check
     if spGetSpectatingState() then
         widgetHandler:RemoveWidget(self)
         return
     end
-    
+
     -- Positioning
     glPushMatrix()
         glTranslate(px, py, 0)
-        
+
         -- Panel
         glColor(0, 0, 0, 0.5)
         glRect(0, 0, 128, 80)
-        
+
         -- Highlight
         glColor(1, 1, 0, 0.5)
         if spGetTeamRulesParam(myTeamID, 'startUnit') == 43 then
@@ -108,7 +108,7 @@ function widget:DrawScreen()
         else
             glTexRect(65, 1, 127, 63)
         end
-        
+
         -- Icons
         glColor(1, 1, 1, 1)
         glTexture('LuaUI/Images/ARM.png')
@@ -116,7 +116,7 @@ function widget:DrawScreen()
         glTexture('LuaUI/Images/CORE.png')
         glTexRect(72, 8, 120, 56)
         glTexture(false)
-        
+
         -- Text
         glBeginText()
             glText('Choose Your Faction', 64, 64, 12, 'cd')
@@ -127,28 +127,36 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(mx, my, mButton)
-    
+
     -- Check 3 of the 4 sides
     if mx >= px and my >= py and my < py + 80 then
-        
+
         -- Check buttons
         if mButton == 1 then
-            
+
             -- Spectator check before any action
             if spGetSpectatingState() then
                 widgetHandler:RemoveWidget(self)
                 return false
             end
-            
+
             -- Which button?
             if mx < px + 64 then
                 if spGetTeamRulesParam(myTeamID, 'startUnit') ~= 43 then
                     spSendLuaRulesMsg('\13843')
+                    -- don't use caching, so we're sure the function has been loaded, also, it's called so rarely that doesn't matter if it's slow
+                    if WG["faction_change"] then
+                    	WG["faction_change"](43)
+                    end
                 end
                 return true
             elseif mx < px + 128 then
                 if spGetTeamRulesParam(myTeamID, 'startUnit') ~= 216 then
                     spSendLuaRulesMsg('\138216')
+                    -- don't use caching, so we're sure the function has been loaded, also, it's called so rarely that doesn't matter if it's slow
+                    if WG["faction_change"] then
+                    	WG["faction_change"](216)
+                    end
                 end
                 return true
             end
@@ -180,3 +188,4 @@ function widget:SetConfigData(data)
 	px = math.floor(math.max(0, vsx * math.min(data[1] or 0, 0.95)))
 	py = math.floor(math.max(0, vsy * math.min(data[2] or 0, 0.95)))
 end
+

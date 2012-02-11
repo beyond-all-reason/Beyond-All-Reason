@@ -101,17 +101,12 @@ function widget:DrawScreen()
      gl.Text("   M:"..metal.."\255\255\255\128".." E:"..energy,x,y,form)
     end
     --Unit resource info when mouse on one
-    if (cmd==CMD.RECLAIM) and (rangestart ~= nil) and ((energy==0) or (metal==0)) and (b1==false)  and buildprogress then
+    if (cmd==CMD.RECLAIM) and (rangestart ~= nil) and ((energy==0) or (metal==0)) and (b1==false) then
       local isunit, unitID = Spring.TraceScreenRay(x, y) --if on unit pos!
       if (isunit == "unit") then
        local unitDefID = Spring.GetUnitDefID(unitID)
        local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
-       local ud = UnitDefs[unitDefID]
-       if ud ~= nil then 
-         metal=math.floor(ud.metalCost*buildprogress)
-       else 
-         metal = 0
-       end
+       metal=math.floor(UnitDefs[unitDefID].metalCost*buildprogress)
        local textwidth = 12*gl.GetTextWidth("   M:"..metal.."\255\255\255\128".." E:"..energy)
         if(textwidth+x>vsx) then
         x = x - textwidth - 10
@@ -120,7 +115,7 @@ function widget:DrawScreen()
          y = y - form
         end
         local color = "\255\255\255\255"
-        if (Spring.GetUnitDefID(unitID) and not UnitDefs[Spring.GetUnitDefID(unitID)].reclaimable) then
+        if not UnitDefs[Spring.GetUnitDefID(unitID)].reclaimable then
          color = "\255\220\10\10"
         end
         gl.Text(color.."   M:"..metal,x,y,form)
