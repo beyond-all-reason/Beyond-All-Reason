@@ -14,12 +14,12 @@
 function widget:GetInfo()
   return {
     name      = "ImmobileBuilder",
-    desc      = "Sets immobile builders to MANEUVER, with a PATROL command",
+    desc      = "Sets immobile builders to MANEUVER, with a FIGHT command",
     author    = "trepan",
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -27,7 +27,7 @@ end
 --------------------------------------------------------------------------------
 
 -- Automatically generated local definitions
-
+local CMD_PASSIVE = 34571
 local CMD_MOVE_STATE    = CMD.MOVE_STATE
 local CMD_REPEAT        = CMD.REPEAT
 local CMD_PATROL        = CMD.PATROL
@@ -88,6 +88,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
   end
   if (IsImmobileBuilder(UnitDefs[unitDefID])) then
     SetupUnit(unitID)
+	spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {}) 
   end
 end
 
