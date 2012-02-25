@@ -2,7 +2,7 @@
 --------------------------------------------------------------------------------
 --
 --  file:    unit_immobile_buider.lua
---  brief:   sets immobile builders to ROAMING, and gives them a PATROL order
+--  brief:   sets immobile builders to MANEUVERING, and gives them a FIGHT order
 --  author:  Dave Rodgers
 --
 --  Copyright (C) 2007.
@@ -14,12 +14,12 @@
 function widget:GetInfo()
   return {
     name      = "ImmobileBuilder",
-    desc      = "Sets immobile builders to ROAM, with a PATROL command",
+    desc      = "Sets immobile builders to MANEUVER, with a PATROL command",
     author    = "trepan",
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
@@ -27,9 +27,11 @@ end
 --------------------------------------------------------------------------------
 
 -- Automatically generated local definitions
-local CMD_PASSIVE = 34571
+
 local CMD_MOVE_STATE    = CMD.MOVE_STATE
+local CMD_REPEAT        = CMD.REPEAT
 local CMD_PATROL        = CMD.PATROL
+local CMD_FIGHT         = CMD.FIGHT
 local CMD_STOP          = CMD.STOP
 local spGetGameFrame    = Spring.GetGameFrame
 local spGetMyTeamID     = Spring.GetMyTeamID
@@ -39,8 +41,6 @@ local spGetUnitDefID    = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
-local hmsx = Game.mapSizeX/2
-local hmsz = Game.mapSizeZ/2
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ local hmsz = Game.mapSizeZ/2
 -- builders that have been idling for the number of game frames
 -- (in case a player accidentally STOPs them)
 
-local idleFrames = 50
+local idleFrames = 60
 
 
 --------------------------------------------------------------------------------
@@ -62,22 +62,12 @@ end
 
 
 local function SetupUnit(unitID)
-  -- set immobile builders (nanotowers?) to the ROAM movestate,
-  -- and give them a PATROL order (does not matter where, afaict)
+  -- set immobile builders (nanotowers?) to the MANEUVER movestate,
+  -- and give them a FIGHT order (does not matter where, afaict)
   local x, y, z = spGetUnitPosition(unitID)
   if (x) then
-    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 2 }, {})
-    if (x > hmsx) then
-      x = x - 25
-    else
-      x = x + 25
-    end
-    if (z > hmsz) then
-      z = z - 25
-    else
-      z = z + 25
-    end
-    spGiveOrderToUnit(unitID, CMD_PATROL, { x, y, z }, {})
+    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
+    spGiveOrderToUnit(unitID, CMD_FIGHT, { x + 50, y, z - 50 }, {"meta"}) -- meta enables reclaim enemy units, alt autoresurrect ( if available )
   end
 end
 
@@ -97,8 +87,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
     return
   end
   if (IsImmobileBuilder(UnitDefs[unitDefID])) then
-    SetupUnit(unitID) 
-	spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {}) 
+    SetupUnit(unitID)
   end
 end
 
@@ -127,7 +116,7 @@ if (idleFrames > 0) then
           idlers[unitID] = nil
         end
       end
-    end  
+    end
   end
 
 
