@@ -91,14 +91,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTAIR",
+				badTargetCategory = "NOTAIR",
 				def = "CORVTOL_ADVMISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[2] = {
-				badtargetcategory = "NOTAIR",
+				badTargetCategory = "NOTAIR",
 				def = "CORVTOL_ADVMISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

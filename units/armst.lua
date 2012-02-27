@@ -126,9 +126,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badTargetCategory = "VTOL",
 				def = "ARMST_GAUSS",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

@@ -136,11 +136,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "COMMANDO_BLASTER",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "COMMANDO_MINELAYER",
-				onlytargetcategory = "NOTAIR NOTSHIP NOTSUB NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSHIP NOTSUB NOTSUB",
 			},
 		},
 	},

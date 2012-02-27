@@ -146,9 +146,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "MOBILE",
+				badTargetCategory = "MOBILE",
 				def = "JUNO_PULSE",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

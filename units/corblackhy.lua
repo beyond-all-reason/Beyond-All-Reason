@@ -204,33 +204,33 @@ return {
 		weapons = {
 			[1] = {
 				def = "HYDRA_PRIME",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
 				maxangledif = 300,
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "HYDRAMISS",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 			[4] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
 				maxangledif = 300,
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[5] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
 				maxangledif = 300,
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[6] = {
 				def = "HYDRAMISS",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 		},
 	},

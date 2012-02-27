@@ -88,9 +88,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "MOBILE",
+				badTargetCategory = "MOBILE",
 				def = "COREBOMB",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

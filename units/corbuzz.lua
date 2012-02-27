@@ -131,9 +131,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "MOBILE",
+				badTargetCategory = "MOBILE",
 				def = "CORBUZZ_WEAPON",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

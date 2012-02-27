@@ -121,7 +121,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORFAST_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

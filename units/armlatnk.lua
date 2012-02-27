@@ -166,11 +166,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMLATNK_WEAPON",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "ARMAMPH_MISSILE",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 		},
 	},

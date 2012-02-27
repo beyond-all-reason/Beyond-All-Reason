@@ -136,9 +136,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "MOBILE",
+				badTargetCategory = "MOBILE",
 				def = "CRBLMSSL",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

@@ -148,7 +148,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "MINESWEEP",
-				onlytargetcategory = "MINE NOTSUB",
+				onlyTargetCategory = "MINE NOTSUB",
 			},
 		},
 	},

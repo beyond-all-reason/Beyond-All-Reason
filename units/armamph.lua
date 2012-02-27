@@ -165,14 +165,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badTargetCategory = "VTOL",
 				def = "ARMAMPH_WEAPON1",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[3] = {
-				badtargetcategory = "NOTAIR",
+				badTargetCategory = "NOTAIR",
 				def = "ARMAMPH_MISSILE",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 		},
 	},

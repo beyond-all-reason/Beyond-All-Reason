@@ -160,11 +160,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARM_ROY",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlyTargetCategory = "NOTHOVER",
 			},
 		},
 	},

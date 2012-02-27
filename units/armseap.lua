@@ -91,9 +91,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTSHIP",
+				badTargetCategory = "NOTSHIP",
 				def = "ARMSEAP_WEAPON1",
-				onlytargetcategory= "NOTHOVER",
+				onlyTargetCategory= "NOTHOVER",
 			},
 		},
 	},

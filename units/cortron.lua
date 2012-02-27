@@ -133,9 +133,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTLAND",
+				badTargetCategory = "NOTLAND",
 				def = "CORTRON_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

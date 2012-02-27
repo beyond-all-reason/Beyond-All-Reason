@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "DCLAW",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

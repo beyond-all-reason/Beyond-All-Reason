@@ -135,9 +135,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTSUB",
+				badTargetCategory = "NOTSUB",
 				def = "COAX_DEPTHCHARGE",
-				onlytargetcategory= "NOTHOVER",
+				onlyTargetCategory= "NOTHOVER",
 			},
 		},
 	},

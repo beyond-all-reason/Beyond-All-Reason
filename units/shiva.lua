@@ -154,11 +154,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "SHIVA_GUN",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "SHIVA_ROCKET",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

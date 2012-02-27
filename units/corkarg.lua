@@ -194,15 +194,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "SUPER_MISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[2] = {
 				def = "KARG_SHOULDER",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 			[3] = {
 				def = "KARG_HEAD",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 		},
 	},

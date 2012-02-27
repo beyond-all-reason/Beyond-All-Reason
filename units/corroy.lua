@@ -159,13 +159,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badTargetCategory = "VTOL",
 				def = "CORE_ROY",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlyTargetCategory = "NOTHOVER",
 			},
 		},
 	},

@@ -134,7 +134,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORTRUCK_ROCKET",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

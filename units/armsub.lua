@@ -132,11 +132,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "HOVER NOTSHIP",
+				badTargetCategory = "HOVER NOTSHIP",
 				def = "ARM_TORPEDO",
 				maindir = "0 0 1",
 				maxangledif = 90,
-				onlytargetcategory= "NOTHOVER",
+				onlyTargetCategory= "NOTHOVER",
 			},
 		},
 	},

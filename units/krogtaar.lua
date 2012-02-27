@@ -126,9 +126,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOWEAPON",
+				badTargetCategory = "NOWEAPON",
 				def = "COR_TAAR_RC",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

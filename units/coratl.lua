@@ -105,9 +105,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "HOVER NOTSHIP",
+				badTargetCategory = "HOVER NOTSHIP",
 				def = "CORATL_TORPEDO",
-				onlytargetcategory= "NOTHOVER",
+				onlyTargetCategory= "NOTHOVER",
 			},
 		},
 	},

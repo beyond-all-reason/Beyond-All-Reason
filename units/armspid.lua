@@ -126,7 +126,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "SPIDER",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

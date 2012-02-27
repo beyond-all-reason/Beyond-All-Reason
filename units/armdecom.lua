@@ -175,11 +175,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMCOMLASER",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[3] = {
 				def = "DECOY_DISINTEGRATOR",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

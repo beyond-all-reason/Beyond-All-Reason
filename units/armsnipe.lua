@@ -130,7 +130,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMSNIPE_WEAPON",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

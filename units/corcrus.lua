@@ -202,15 +202,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "COR_CRUS",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[2] = {
 				def = "ADV_DECKLASER",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlyTargetCategory = "NOTHOVER",
 			},
 		},
 	},

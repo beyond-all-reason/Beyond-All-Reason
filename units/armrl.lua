@@ -136,7 +136,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMRL_MISSILE",
-				onlytargetcategory = "VTOL NOTSUB",
+				onlyTargetCategory = "VTOL",
 			},
 		},
 	},

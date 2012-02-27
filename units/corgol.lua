@@ -135,7 +135,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "COR_GOL",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

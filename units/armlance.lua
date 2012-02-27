@@ -87,9 +87,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTSHIP",
+				badTargetCategory = "NOTSHIP",
 				def = "ARMAIR_TORPEDO",
-				onlytargetcategory= "NOTHOVER",
+				onlyTargetCategory= "NOTHOVER",
 			},
 		},
 	},

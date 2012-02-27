@@ -105,9 +105,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "HOVER NOTSHIP",
+				badTargetCategory = "HOVER NOTSHIP",
 				def = "COAX_TORPEDO",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},

@@ -133,11 +133,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTLAND",
+				badTargetCategory = "NOTLAND",
 				def = "CORE_ARTILLERY",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

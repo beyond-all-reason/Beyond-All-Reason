@@ -127,7 +127,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORE_TERMITE_LASER",
-				onlytargetcategory = "NOTAIR NOTSUB",
+				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
 	},

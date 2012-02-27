@@ -203,15 +203,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMBANTHA_FIRE",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[2] = {
 				def = "TEHLAZEROFDEWM",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 			[3] = {
 				def = "BANTHA_ROCKET",
-				onlytargetcategory = "NOTSUB",
+				onlyTargetCategory = "NOTSUB",
 			},
 		},
 	},
