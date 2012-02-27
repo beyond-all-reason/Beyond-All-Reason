@@ -135,7 +135,7 @@ return {
 				badTargetCategory = "HOVER NOTSHIP",
 				def = "CORSSUB_WEAPON",
 				maindir = "0 0 1",
-				maxangledif = 75,
+				maxangledif = 37,
 				onlyTargetCategory= "NOTHOVER",
 			},
 		},

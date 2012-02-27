@@ -136,7 +136,7 @@ return {
 				badTargetCategory = "NOTLAND",
 				def = "CORE_ARTILLERY",
 				maindir = "0 0 1",
-				maxangledif = 180,
+				maxangledif = 90,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},

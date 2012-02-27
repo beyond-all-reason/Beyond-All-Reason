@@ -250,13 +250,13 @@ return {
 			[4] = {
 				def = "KROGKICK",
 				maindir = "-1.4 -1.5 1",
-				maxangledif = 170,
+				maxangledif = 85,
 				onlyTargetCategory = "NOTSUB",
 			},
 			[5] = {
 				def = "KROGKICK",
 				maindir = "1.4 -1.5 1",
-				maxangledif = 170,
+				maxangledif = 85,
 				onlyTargetCategory = "NOTSUB",
 			},
 		},

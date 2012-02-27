@@ -134,7 +134,7 @@ return {
 				badTargetCategory = "VTOL",
 				def = "TREM1",
 				maindir = "0 0 1",
-				maxangledif = 270,
+				maxangledif = 135,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},
