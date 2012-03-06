@@ -1,3 +1,18 @@
+7.63 -> 7.64
+2012/03/06:
+
+-fixes for .87
+-Tank and Hover turninplacespeedlimit=unitvelocity/2
+-Kbot turninplaceanglelimit=91
+-Torpedos and depthcharges no longer target hovers
+-Per piece collision volumes fixed (viper being immune to beamlaser bug)
+-Carriers no longer assist building
+-Nanos get restarted automatically
+-Nanos are built with passive mode by default
+-Added ranks api gadget
+-Radar units now emit radar and los from their actual radar dishes (results in greatly improved t2 radar and LOS)
+-Many widget fixes, and performace optimizations
+
 7.62 -> 7.63
 2011/24/12:
 
