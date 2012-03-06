@@ -167,7 +167,7 @@ return {
 			[2] = {
 				def = "CORE_BATSLASER",
 				maindir = "0 0 1",
-				maxangledif = 175,
+				maxangledif = 350,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},

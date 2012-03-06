@@ -115,7 +115,7 @@ return {
 				badTargetCategory = "VTOL",
 				def = "CORWOLV_GUN",
 				maindir = "0 0 1",
-				maxangledif = 90,
+				maxangledif = 180,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 		},

@@ -199,20 +199,20 @@ return {
 			[2] = {
 				def = "GORG_BOTTOM",
 				maindir = "1 0 4",
-				maxangledif = 45,
+				maxangledif = 90,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
 				def = "GORG_BOTTOM",
 				maindir = "-1 0 4",
-				maxangledif = 45,
+				maxangledif = 90,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[4] = {
 				badTargetCategory = "VTOL",
 				def = "GORG_TOP",
 				maindir = "0 1 0",
-				maxangledif = 135,
+				maxangledif = 270,
 				onlyTargetCategory = "NOTSUB",
 			},
 		},

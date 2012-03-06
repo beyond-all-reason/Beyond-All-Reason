@@ -209,7 +209,7 @@ return {
 			[2] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
-				maxangledif = 150,
+				maxangledif = 300,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[3] = {
@@ -219,13 +219,13 @@ return {
 			[4] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
-				maxangledif = 150,
+				maxangledif = 300,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[5] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
-				maxangledif = 150,
+				maxangledif = 300,
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
 			[6] = {
