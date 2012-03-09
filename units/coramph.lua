@@ -7,7 +7,6 @@ return {
 		buildcostmetal = 305,
 		buildpic = "CORAMPH.DDS",
 		buildtime = 9650,
-		candgun = true,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER",
 		corpse = "HEAP",
