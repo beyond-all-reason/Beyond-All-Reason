@@ -201,18 +201,18 @@ local function SetupUnitDef(unitDefID, unitDef)
   if (maxWeaponDef.cylinderTargetting >= 100) then
     aoeDefInfo[unitDefID] = {type = "orbital", scatter = scatter}
   elseif (weaponType == "Cannon") then
-    aoeDefInfo[unitDefID] = {type = "ballistic", scatter = scatter, v = maxWeaponDef.projectilespeed, range = maxWeaponDef.range}
+    aoeDefInfo[unitDefID] = {type = "ballistic", scatter = scatter, v = maxWeaponDef.projectilespeed * 30, range = maxWeaponDef.range}
   elseif (weaponType == "MissileLauncher") then
     local turnRate = 0
     if (maxWeaponDef.tracks) then
       turnRate = maxWeaponDef.turnRate
     end
     if (maxWeaponDef.wobble > turnRate * 1.4) then
-      scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 16
+      scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 30 * 16
       local rangeScatter = (8 * maxWeaponDef.wobble - maxWeaponDef.turnRate)
       aoeDefInfo[unitDefID] = {type = "wobble", scatter = scatter, rangeScatter = rangeScatter, range = maxWeaponDef.range}
     elseif (maxWeaponDef.wobble > turnRate) then
-      scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 16
+      scatter = (maxWeaponDef.wobble - maxWeaponDef.turnRate) * maxWeaponDef.projectilespeed * 30 * 16
       aoeDefInfo[unitDefID] = {type = "wobble", scatter = scatter}
     elseif (maxWeaponDef.tracks) then
       aoeDefInfo[unitDefID] = {type = "tracking"}
