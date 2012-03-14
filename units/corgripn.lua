@@ -8,7 +8,7 @@ return {
 		buildtime = 21522,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON VTOL NOTSUB NOTHOVER",
+		category = "ALL MOBILE WEAPON VTOL NOTHOVER",
 		collide = false,
 		cruisealt = 220,
 		description = "EMP Bomber",

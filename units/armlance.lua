@@ -8,7 +8,7 @@ return {
 		buildtime = 15096,
 		canfly = true,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON ANTIGATOR NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP NOTHOVER",
+		category = "ALL NOTLAND MOBILE WEAPON ANTIGATOR ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 120,
 		description = "Torpedo Bomber",
