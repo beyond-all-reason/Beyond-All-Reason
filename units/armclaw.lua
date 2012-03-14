@@ -69,7 +69,7 @@ return {
 				animating = 0,
 				animtrans = 0,
 				blocking = false,
-				category = "rocks NOTHOVER",
+				category = "heaps",
 				damage = 500,
 				description = "Rubble",
 				footprintx = 2,

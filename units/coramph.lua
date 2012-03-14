@@ -8,7 +8,7 @@ return {
 		buildpic = "CORAMPH.DDS",
 		buildtime = 9650,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB",
 		corpse = "HEAP",
 		description = "Amphibious Kbot",
 		energymake = 0.40000000596046,

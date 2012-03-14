@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19137,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB",
 		cloakcost = 75,
 		cloakcostmoving = 200,
 		corpse = "DEAD",

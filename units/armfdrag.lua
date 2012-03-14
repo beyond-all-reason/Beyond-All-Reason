@@ -29,7 +29,7 @@ return {
 			floatingteeth = {
 				autoreclaimable = 0,
 				blocking = true,
-				category = "dragonteeth NOTHOVER",
+				category = "corpses",
 				damage = 15000,
 				description = "Shark's Teeth",
 				footprintx = 2,

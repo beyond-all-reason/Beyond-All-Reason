@@ -33,7 +33,7 @@ return {
 			fortification = {
 				autoreclaimable = 0,
 				blocking = true,
-				category = "dragonteeth NOTHOVER",
+				category = "corpses",
 				collisionvolumeoffsets = "0 -3 0",
 				collisionvolumescales = "32 50 32",
 				collisionvolumetest = 1,
@@ -58,7 +58,7 @@ return {
 				animating = 0,
 				animtrans = 0,
 				blocking = true,
-				category = "rocks NOTHOVER",
+				category = "heaps",
 				damage = 5000,
 				description = "Rubble",
 				footprintx = 2,

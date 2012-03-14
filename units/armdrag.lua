@@ -33,7 +33,7 @@ return {
 			dragonsteeth = {
 				autoreclaimable = 0,
 				blocking = true,
-				category = "dragonteeth NOTHOVER",
+				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "32 22 32",
 				collisionvolumetest = 1,
@@ -57,7 +57,7 @@ return {
 				animating = 0,
 				animtrans = 0,
 				blocking = false,
-				category = "rocks NOTHOVER",
+				category = "heaps",
 				damage = 500,
 				description = "Rubble",
 				footprintx = 2,
