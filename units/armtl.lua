@@ -107,7 +107,7 @@ return {
 			[1] = {
 				badTargetCategory = "HOVER NOTSHIP",
 				def = "COAX_TORPEDO",
-				onlyTargetCategory = "NOTSUB",
+				onlyTargetCategory = "NOTHOVER",
 			},
 		},
 	},
