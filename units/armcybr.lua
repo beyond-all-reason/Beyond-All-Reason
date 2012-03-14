@@ -8,7 +8,7 @@ return {
 		buildtime = 56203,
 		canfly = true,
 		canmove = true,
-		category = "ALL WEAPON VTOL NOTHOVER",
+		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = false,
 		cruisealt = 300,
 		description = "Atomic Bomber",
