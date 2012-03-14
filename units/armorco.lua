@@ -215,10 +215,7 @@ return {
 				def = "ORCONE_ROCKET",
 				onlyTargetCategory = "NOTAIR NOTSUB",
 			},
-			[4] = {
-				def = "ORCONE_SHIELD",
-				onlyTargetCategory = "NOTSUB",
-			},
+
 		},
 	},
 }
