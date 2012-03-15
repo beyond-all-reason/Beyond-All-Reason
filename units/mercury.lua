@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "mercury_aoplane.dds",
 		buildpic = "MERCURY.DDS",
 		buildtime = 27190,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Long-Range Missile Tower",
 		explodeas = "BIG_UNITEX",
@@ -139,9 +139,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "ARM_ADVSAM",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

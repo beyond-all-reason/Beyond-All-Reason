@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMBANTH.DDS",
 		buildtime = 276057,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "59 83 51",
 		collisionvolumetest = 1,
@@ -203,15 +203,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMBANTHA_FIRE",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "TEHLAZEROFDEWM",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "BANTHA_ROCKET",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

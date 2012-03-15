@@ -8,7 +8,7 @@ return {
 		buildtime = 16975,
 		canmove = true,
 		cantbetransported = true,
-		category = "KBOT MOBILE WEAPON ALL KAMIKAZE NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL KAMIKAZE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		description = "Advanced Amphibious Crawling Bomb",
@@ -102,13 +102,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CRAWL_DUMMY",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "CRAWL_DETONATOR",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

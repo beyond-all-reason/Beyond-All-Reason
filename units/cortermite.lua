@@ -7,7 +7,7 @@ return {
 		buildpic = "CORTERMITE.DDS",
 		buildtime = 18834,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "All-terrain Assault Vehicle",
 		energymake = 0.69999998807907,
@@ -127,7 +127,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORE_TERMITE_LASER",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

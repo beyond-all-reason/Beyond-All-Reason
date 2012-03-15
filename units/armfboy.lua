@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMFBOY.DDS",
 		buildtime = 22397,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "26 37 38",
 		collisionvolumetest = 1,
@@ -126,9 +126,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARM_FATBOY_NOTALASER",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

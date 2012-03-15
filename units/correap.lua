@@ -7,7 +7,7 @@ return {
 		buildpic = "CORREAP.DDS",
 		buildtime = 11501,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "33 35 40",
 		collisionvolumetest = 1,
@@ -133,9 +133,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORE_REAP",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

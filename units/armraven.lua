@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMRAVEN.DDS",
 		buildtime = 126522,
 		canmove = true,
-		category = "WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "60 53 30",
 		collisionvolumetest = 1,
@@ -139,9 +139,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "EXP_HEAVYROCKET",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

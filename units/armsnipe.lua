@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19137,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB",
+		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE",
 		cloakcost = 75,
 		cloakcostmoving = 200,
 		corpse = "DEAD",
@@ -130,7 +130,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMSNIPE_WEAPON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corsilo_aoplane.dds",
 		buildpic = "CORSILO.DDS",
 		buildtime = 181243,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -18 -2",
 		collisionvolumescales = "90 38 84",
 		collisionvolumetest = 1,
@@ -136,9 +136,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "CRBLMSSL",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

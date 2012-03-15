@@ -7,7 +7,7 @@ return {
 		buildpic = "krogtaar.DDS",
 		buildtime = 101125,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "dead",
 		description = "Heavy Weapons Mech",
 		energymake = 3,
@@ -126,9 +126,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOWEAPON",
+				badtargetcategory = "NOWEAPON",
 				def = "COR_TAAR_RC",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

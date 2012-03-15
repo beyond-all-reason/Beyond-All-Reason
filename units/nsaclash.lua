@@ -8,7 +8,7 @@ return {
 		buildtime = 12907,
 		canhover = true,
 		canmove = true,
-		category = "ALL HOVER WEAPON NOTSUB NOTAIR",
+		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "48 20 48",
 		collisionvolumetest = 1,
@@ -132,9 +132,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORE_CANLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

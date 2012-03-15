@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMJETH.DDS",
 		buildtime = 1831,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Amphibious Anti-air Kbot",
 		energymake = 0.40000000596046,
@@ -160,13 +160,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "BOGUS_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "ARMKBOT_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

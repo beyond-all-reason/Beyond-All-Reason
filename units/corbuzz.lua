@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corbuzz_aoplane.dds",
 		buildpic = "CORBUZZ.DDS",
 		buildtime = 680630,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -14 0",
 		collisionvolumescales = "80 162 80",
 		collisionvolumetest = 1,
@@ -131,9 +131,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "CORBUZZ_WEAPON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

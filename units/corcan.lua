@@ -7,7 +7,7 @@ return {
 		buildpic = "CORCAN.DDS",
 		buildtime = 11734,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0.0 0.0 0.0",
 		collisionvolumescales = "28.0 27.0 25.0",
 		collisionvolumetest = 1,
@@ -134,9 +134,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORE_CANLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -10,7 +10,7 @@ return {
 		canhover = true,
 		canmove = true,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
 		collisionvolumeoffsets = "0 -16 0",
 		collisionvolumescales = "60 36 84",
 		collisionvolumetest = 1,
@@ -121,7 +121,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORFAST_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

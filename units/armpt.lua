@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMPT.DDS",
 		buildtime = 2062,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "22 23 64",
 		collisionvolumetest = 1,
@@ -173,13 +173,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "ANTIGATOR",
+				badtargetcategory = "ANTIGATOR",
 				def = "ARMPT_LASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ARMKBOT_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

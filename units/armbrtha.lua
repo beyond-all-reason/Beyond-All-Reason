@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armbrtha_aoplane.dds",
 		buildpic = "ARMBRTHA.DDS",
 		buildtime = 85185,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Long Range Plasma Cannon",
 		explodeas = "ATOMIC_BLAST",
@@ -130,9 +130,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "ARM_BERTHACANNON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

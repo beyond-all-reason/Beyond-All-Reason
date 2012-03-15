@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMPINCER.DDS",
 		buildtime = 2613,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Light Amphibious Tank",
 		energymake = 0.5,
@@ -105,9 +105,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARM_PINCER_GAUSS",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

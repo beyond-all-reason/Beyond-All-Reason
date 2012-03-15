@@ -12,7 +12,7 @@ return {
 		buildpic = "ARMAAP.DDS",
 		buildtime = 20851,
 		canmove = true,
-		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -17 -23",
 		collisionvolumescales = "106 40 48",
 		collisionvolumetest = 1,
@@ -40,6 +40,7 @@ return {
 		workertime = 200,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooo",
 		buildoptions = {
+			[10] = "armcybr",
 			[1] = "armaca",
 			[2] = "armbrawl",
 			[3] = "armpnix",
@@ -49,7 +50,6 @@ return {
 			[7] = "armdfly",
 			[8] = "blade",
 			[9] = "corgripn",
-			[10] = "armcybr",
 		},
 		featuredefs = {
 			dead = {

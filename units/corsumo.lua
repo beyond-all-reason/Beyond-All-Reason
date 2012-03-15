@@ -7,7 +7,7 @@ return {
 		buildpic = "CORSUMO.DDS",
 		buildtime = 50975,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 32 32",
 		collisionvolumetest = 1,
@@ -138,7 +138,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

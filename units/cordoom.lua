@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cordoom_aoplane.dds",
 		buildpic = "CORDOOM.DDS",
 		buildtime = 55276,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0.0 -5.0 0.0",
 		collisionvolumescales = "48.0 110.0 48.0",
 		collisionvolumetype = "box",
@@ -207,17 +207,17 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ATADR",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "DOOMSDAY_GREEN_LASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "DOOMSDAY_RED_LASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "screamer_aoplane.dds",
 		buildpic = "SCREAMER.DDS",
 		buildtime = 26280,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Long-Range Missile Tower",
 		explodeas = "BIG_UNITEX",
@@ -140,9 +140,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "CORE_ADVSAM",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

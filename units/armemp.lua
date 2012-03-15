@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armemp_aoplane.dds",
 		buildpic = "ARMEMP.DDS",
 		buildtime = 79247,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "48 28 48",
 		collisionvolumetest = 1,
@@ -134,9 +134,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "ARMEMP_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

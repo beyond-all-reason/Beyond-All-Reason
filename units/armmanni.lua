@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMMANNI.DDS",
 		buildtime = 25706,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = [[0 -10 2]],
 		collisionvolumescales = [[37.2 71.4 36.4]],
 		collisionvolumetest = 1,
@@ -133,11 +133,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ATAM",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

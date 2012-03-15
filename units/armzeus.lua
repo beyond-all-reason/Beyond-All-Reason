@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMZEUS.DDS",
 		buildtime = 7252,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Assault Kbot",
 		energymake = 3.5,
@@ -132,7 +132,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "LIGHTNING",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

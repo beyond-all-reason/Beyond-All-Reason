@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMCROC.DDS",
 		buildtime = 13367,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = [[1 -5 -5]],
 		collisionvolumescales = [[52.6 34.6 52.6]],
 		collisionvolumetest = 1,
@@ -125,9 +125,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARM_TRITON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

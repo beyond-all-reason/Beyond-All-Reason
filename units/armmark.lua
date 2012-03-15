@@ -9,7 +9,7 @@ return {
 		buildtime = 3800,
 		canattack = false,
 		canmove = true,
-		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "dead",
 		description = "Radar Kbot",
 		energymake = 8,
@@ -36,10 +36,10 @@ return {
 		featuredefs = {
 			dead = {
 				blocking = true,
-				collisionvolumetype = "Box",
-				collisionvolumescales = "23.0599975586 13.375 26.6004943848",
-				collisionvolumeoffsets = "-2.9700012207 0.0 2.42810058594",
 				category = "corpses",
+				collisionvolumeoffsets = "-2.9700012207 0.0 2.42810058594",
+				collisionvolumescales = "23.0599975586 13.375 26.6004943848",
+				collisionvolumetype = "Box",
 				damage = 256,
 				description = "Marky Wreckage",
 				featuredead = "HEAP",

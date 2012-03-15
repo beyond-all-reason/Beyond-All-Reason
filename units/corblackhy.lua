@@ -9,7 +9,7 @@ return {
 		buildpic = "CORBLACKHY.DDS",
 		buildtime = 309264,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 10",
 		collisionvolumescales = "77 73 170",
 		collisionvolumetest = 1,
@@ -204,33 +204,33 @@ return {
 		weapons = {
 			[1] = {
 				def = "HYDRA_PRIME",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
 				maxangledif = 300,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "HYDRAMISS",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[4] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
 				maxangledif = 300,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[5] = {
 				def = "HYDRA_GUN",
 				maindir = "0 0 1",
 				maxangledif = 300,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[6] = {
 				def = "HYDRAMISS",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 72,
 		buildpic = "CORFRT.DDS",
 		buildtime = 2357,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "36 59 36",
 		collisionvolumetest = 1,
@@ -113,9 +113,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOWEAPON",
+				badtargetcategory = "NOWEAPON",
 				def = "ARMRL_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

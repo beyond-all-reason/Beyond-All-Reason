@@ -8,7 +8,7 @@ return {
 		buildpic = "CORMSHIP.DDS",
 		buildtime = 22126,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER",
+		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "45 43 111",
 		collisionvolumetest = 1,
@@ -169,13 +169,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "CORMSHIP_ROCKET",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "ARMSHIP_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

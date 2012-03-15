@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSHOCK.DDS",
 		buildtime = 101218,
 		canmove = true,
-		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER",
+		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 1",
 		collisionvolumescales = "55 65 53",
 		collisionvolumetest = 1,
@@ -129,9 +129,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "SHOCKER",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

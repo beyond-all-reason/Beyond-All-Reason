@@ -7,7 +7,7 @@ return {
 		buildpic = "CORPARROW.DDS",
 		buildtime = 22181,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = [[0 -4 0]],
 		collisionvolumescales = [[44.6 24.6 46.6]],
 		collisionvolumetest = 1,
@@ -127,9 +127,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORE_PARROW",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

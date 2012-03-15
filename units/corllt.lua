@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corllt_aoplane.dds",
 		buildpic = "CORLLT.DDS",
 		buildtime = 2724,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 72 32",
 		collisionvolumetest = 1,
@@ -141,7 +141,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORE_LIGHTLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

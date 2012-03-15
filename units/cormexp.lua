@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "cormoho_aoplane.dds",
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -27 0",
 		collisionvolumescales = "83 77 78",
 		collisionvolumetest = 1,
@@ -172,11 +172,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

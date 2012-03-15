@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armsilo_aoplane.dds",
 		buildpic = "ARMSILO.DDS",
 		buildtime = 178453,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "90 26 90",
 		collisionvolumetest = 1,
@@ -136,9 +136,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "NUCLEAR_MISSILE",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

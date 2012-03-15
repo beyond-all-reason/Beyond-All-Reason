@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armguard_aoplane.dds",
 		buildpic = "ARMGUARD.DDS",
 		buildtime = 21377,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -17 0",
 		collisionvolumescales = "50 68 50",
 		collisionvolumetest = 1,
@@ -160,15 +160,15 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARMFIXED_GUN",
 				maindir = "0 1 0",
 				maxangledif = 230,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "ARMFIXED_GUN_HIGH",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

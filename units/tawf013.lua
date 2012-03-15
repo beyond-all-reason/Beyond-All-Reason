@@ -7,7 +7,7 @@ return {
 		buildpic = "TAWF013.DDS",
 		buildtime = 2998,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Light Artillery Vehicle",
 		energymake = 1,
@@ -130,11 +130,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "TAWF113_WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

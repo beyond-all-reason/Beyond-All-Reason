@@ -8,7 +8,7 @@ return {
 		buildpic = "CORCRASH.DDS",
 		buildtime = 1900,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Amphibious Anti-air Kbot",
 		energymake = 0.60000002384186,
@@ -155,14 +155,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "BOGUS_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "COREKBOT_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

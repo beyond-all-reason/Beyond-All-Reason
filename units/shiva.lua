@@ -7,7 +7,7 @@ return {
 		buildpic = "SHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -1",
 		collisionvolumescales = "54 45 50",
 		collisionvolumetest = 1,
@@ -154,11 +154,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "SHIVA_GUN",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "SHIVA_ROCKET",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

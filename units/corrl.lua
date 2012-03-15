@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corrl_aoplane.dds",
 		buildpic = "CORRL.DDS",
 		buildtime = 1749,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 58 32",
 		collisionvolumetest = 1,
@@ -135,9 +135,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOWEAPON",
+				badtargetcategory = "NOWEAPON",
 				def = "CORRL_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

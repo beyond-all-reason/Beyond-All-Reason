@@ -7,7 +7,7 @@ return {
 		buildpic = "CORVROC.DDS",
 		buildtime = 15002,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -1",
 		collisionvolumescales = "39 29 42",
 		collisionvolumetest = 1,
@@ -134,7 +134,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORTRUCK_ROCKET",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

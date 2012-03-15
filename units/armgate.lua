@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armgate_aoplane.dds",
 		buildpic = "ARMGATE.DDS",
 		buildtime = 54139,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "58 62 63",
 		collisionvolumetest = 1,
@@ -129,7 +129,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "REPULSOR",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

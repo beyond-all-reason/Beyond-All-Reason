@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaltype = "cormaw_aoplane.dds",
 		buildpic = "CORMAW.DDS",
 		buildtime = 4419,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -24 0",
 		collisionvolumescales = "30 51 30",
 		collisionvolumetest = 1,
@@ -146,7 +146,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "DMAW",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

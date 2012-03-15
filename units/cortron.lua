@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "cortron_aoplane.dds",
 		buildpic = "CORTRON.DDS",
 		buildtime = 58927,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 47 59",
 		collisionvolumetest = 1,
@@ -133,9 +133,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTLAND",
+				badtargetcategory = "NOTLAND",
 				def = "CORTRON_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

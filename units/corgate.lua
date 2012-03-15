@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "corgate_aoplane.dds",
 		buildpic = "CORGATE.DDS",
 		buildtime = 57166,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -16 0",
 		collisionvolumescales = "65 72 50",
 		collisionvolumetest = 1,
@@ -129,7 +129,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "REPULSOR",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

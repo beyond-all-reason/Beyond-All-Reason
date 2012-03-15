@@ -8,7 +8,7 @@ return {
 		buildpic = "CORAMPH.DDS",
 		buildtime = 9650,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB",
+		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE",
 		corpse = "HEAP",
 		description = "Amphibious Kbot",
 		energymake = 0.40000000596046,
@@ -139,13 +139,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORAMPH_WEAPON2",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "CORAMPH_WEAPON1",
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

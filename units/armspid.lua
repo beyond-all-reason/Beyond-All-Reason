@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMSPID.DDS",
 		buildtime = 5090,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "All-terrain EMP Bot",
 		energymake = 0.69999998807907,
@@ -126,7 +126,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "SPIDER",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

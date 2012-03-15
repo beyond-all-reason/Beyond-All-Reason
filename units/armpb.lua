@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaltype = "armpb_aoplane.dds",
 		buildpic = "ARMPB.DDS",
 		buildtime = 14961,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 16,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -128,9 +128,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARMPB_WEAPON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

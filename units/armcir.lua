@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armcir_aoplane.dds",
 		buildpic = "ARMCIR.DDS",
 		buildtime = 19004,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Bomb-Resistant Medium-Range Missile Battery",
 		explodeas = "LARGE_BUILDINGEX",
@@ -146,9 +146,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARM_CIR",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "armrl_aoplane.dds",
 		buildpic = "ARMRL.DDS",
 		buildtime = 1843,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "36 57 36",
 		collisionvolumetest = 1,
@@ -136,7 +136,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMRL_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

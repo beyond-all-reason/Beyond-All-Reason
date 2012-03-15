@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corvipe_aoplane.dds",
 		buildpic = "CORVIPE.DDS",
 		buildtime = 15035,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = "Pop-up Sabot Battery",
@@ -154,9 +154,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "VIPERSABOT",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

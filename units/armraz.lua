@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMRAZ.DDS",
 		buildtime = 88566,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0.0 -2.0 0.0",
 		collisionvolumescales = "50.0 60.0 40.0",
 		collisionvolumetest = 1,
@@ -132,9 +132,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "MECH_RAPIDLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

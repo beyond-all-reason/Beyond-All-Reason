@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "madsam_aoplane.dds",
 		buildpic = "MADSAM.DDS",
 		buildtime = 5237,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Hardened Missile Battery",
 		energyuse = 5,
@@ -136,9 +136,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "MADSAM_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

@@ -8,7 +8,7 @@ return {
 		buildpic = "CORBATS.DDS",
 		buildtime = 60640,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER",
+		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 -2",
 		collisionvolumescales = "57 75 139",
 		collisionvolumetest = 1,
@@ -160,15 +160,15 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "COR_BATS",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "CORE_BATSLASER",
 				maindir = "0 0 1",
 				maxangledif = 350,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

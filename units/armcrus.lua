@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMCRUS.DDS",
 		buildtime = 19789,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -12 -1",
 		collisionvolumescales = "35 44 98",
 		collisionvolumetest = 1,
@@ -196,15 +196,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARM_CRUS",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "ADV_DECKLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

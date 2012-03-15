@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMORCO.DDS",
 		buildtime = 499801,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "104 106 68",
 		collisionvolumetype = "Ell",
@@ -202,20 +202,20 @@ return {
 			},
 		},
 		weapons = {
+			 = ,
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ORCONE_GUN",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "ORCONE_HEAD",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "ORCONE_ROCKET",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
-
 		},
 	},
 }

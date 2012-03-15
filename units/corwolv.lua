@@ -7,7 +7,7 @@ return {
 		buildpic = "CORWOLV.DDS",
 		buildtime = 3254,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Light Mobile Artillery",
 		energymake = 0.5,
@@ -112,11 +112,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORWOLV_GUN",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "hllt_aoplane.dds",
 		buildpic = "HLLT.DDS",
 		buildtime = 5448,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 100 32",
 		collisionvolumetest = 1,
@@ -177,14 +177,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "HLLT_TOP",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "HLLT_BOTTOM",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

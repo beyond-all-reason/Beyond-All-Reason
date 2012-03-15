@@ -90,7 +90,7 @@ return {
 			[1] = {
 				badTargetCategory = "VTOL",
 				def = "MED_EMG",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

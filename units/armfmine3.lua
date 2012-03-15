@@ -9,7 +9,7 @@ return {
 		canattack = false,
 		canguard = false,
 		canpatrol = false,
-		category = "ALL WEAPON MINE NOTSUB KAMIKAZE NOTAIR NOTHOVER",
+		category = "ALL WEAPON MINE NOTSUB KAMIKAZE NOTAIR NOTHOVER SURFACE",
 		cloakcost = 2,
 		collide = false,
 		collisionvolumeoffsets = "0 -1.5 0",
@@ -104,13 +104,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "MINE_DUMMY",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "MINE_DETONATOR",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

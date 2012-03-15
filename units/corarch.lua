@@ -9,7 +9,7 @@ return {
 		buildpic = "CORARCH.DDS",
 		buildtime = 9791,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER",
+		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "34 41 82",
 		collisionvolumetest = 1,
@@ -204,15 +204,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				def = "GA2",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "MOBILEFLAK",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

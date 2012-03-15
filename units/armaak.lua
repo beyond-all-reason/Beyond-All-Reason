@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMAAK.DDS",
 		buildtime = 6958,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Advanced Amphibious Anti-Air Kbot",
 		explodeas = "BIG_UNITEX",
@@ -234,25 +234,25 @@ return {
 		weapons = {
 			[1] = {
 				def = "BOGUS_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[2] = {
 				def = "ARMAAKBOT_MISSILE1",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "ARMAAKBOT_MISSILE2",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 				slaveto = 2,
 			},
 			[4] = {
 				def = "ARMAAKBOT_MISSILE2",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[5] = {
 				def = "AAKFLAK",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

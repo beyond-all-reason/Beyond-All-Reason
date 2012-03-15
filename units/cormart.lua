@@ -7,7 +7,7 @@ return {
 		buildpic = "CORMART.DDS",
 		buildtime = 4270,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
 		collisionvolumescales = "34 38 37",
 		collisionvolumetest = 1,
@@ -133,11 +133,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTLAND",
+				badtargetcategory = "NOTLAND",
 				def = "CORE_ARTILLERY",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

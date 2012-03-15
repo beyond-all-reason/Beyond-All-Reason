@@ -9,7 +9,7 @@ return {
 		buildpic = "CORCRUS.DDS",
 		buildtime = 19950,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER",
+		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "41 49 110",
 		collisionvolumetest = 1,
@@ -202,15 +202,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "COR_CRUS",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "ADV_DECKLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

@@ -14,7 +14,7 @@ return {
 		candgun = true,
 		canmove = true,
 		capturespeed = 900,
-		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 100,
 		cloakcostmoving = 1000,
 		collisionvolumeoffsets = "0 -1 0",
@@ -224,11 +224,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMCOMLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ARM_DISINTEGRATOR",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

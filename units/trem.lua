@@ -7,7 +7,7 @@ return {
 		buildpic = "TREM.DDS",
 		buildtime = 31103,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 -3",
 		collisionvolumescales = "29 59 46",
 		collisionvolumetest = 1,
@@ -131,11 +131,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "TREM1",
 				maindir = "0 0 1",
 				maxangledif = 270,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

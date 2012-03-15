@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "packo_aoplane.dds",
 		buildpic = "PACKO.DDS",
 		buildtime = 5810,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 12,
 		corpse = "DEAD",
 		damagemodifier = 0.20000000298023,
@@ -141,9 +141,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "PACKO_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

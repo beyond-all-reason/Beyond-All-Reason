@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaltype = "armclaw_aoplane.dds",
 		buildpic = "ARMCLAW.DDS",
 		buildtime = 4638,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -24 0",
 		collisionvolumescales = "30 51 30",
 		collisionvolumetest = 1,
@@ -142,7 +142,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "DCLAW",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

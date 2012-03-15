@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "corerad_aoplane.dds",
 		buildpic = "CORERAD.DDS",
 		buildtime = 19958,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Bomb-Resistant Medium-Range Missile Battery",
 		explodeas = "LARGE_BUILDINGEX",
@@ -146,9 +146,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "COR_ERAD",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

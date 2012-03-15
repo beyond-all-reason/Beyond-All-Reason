@@ -7,7 +7,7 @@ return {
 		buildpic = "CORKARG.DDS",
 		buildtime = 50609,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0.0 -2.0 -1.0",
 		collisionvolumescales = "56.0 60.0 40.0",
 		collisionvolumetest = 1,
@@ -194,15 +194,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "SUPER_MISSILE",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "KARG_SHOULDER",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 			[3] = {
 				def = "KARG_HEAD",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

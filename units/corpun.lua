@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "corpun_aoplane.dds",
 		buildpic = "CORPUN.DDS",
 		buildtime = 19268,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
 		collisionvolumetest = 1,
@@ -160,15 +160,15 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORFIXED_GUN",
 				maindir = "0 1 0",
 				maxangledif = 230,
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				def = "CORFIXED_GUN_HIGH",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

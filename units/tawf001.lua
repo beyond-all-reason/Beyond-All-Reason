@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "tawf001_aoplane.dds",
 		buildpic = "TAWF001.DDS",
 		buildtime = 5324,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 85 33",
 		collisionvolumetest = 1,
@@ -138,9 +138,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "TAWF001_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

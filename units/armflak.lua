@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armflak_aoplane.dds",
 		buildpic = "ARMFLAK.DDS",
 		buildtime = 19005,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "29 40 29",
 		collisionvolumetest = 1,
@@ -146,9 +146,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "ARMFLAK_GUN",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

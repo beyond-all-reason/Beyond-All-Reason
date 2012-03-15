@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "corbhmth_aoplane.dds",
 		buildpic = "CORBHMTH.DDS",
 		buildtime = 59640,
-		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "dead",
 		description = "Geothermal Plasma Battery",
 		energymake = 450,
@@ -123,9 +123,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORBHMTH_WEAPON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},

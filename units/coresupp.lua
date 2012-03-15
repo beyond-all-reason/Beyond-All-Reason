@@ -9,7 +9,7 @@ return {
 		buildpic = "CORESUPP.DDS",
 		buildtime = 6660,
 		canmove = true,
-		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER",
+		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 -1",
 		collisionvolumescales = "28 20 69",
 		collisionvolumetest = 1,
@@ -123,11 +123,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORVETTE_LIGHTLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORVETTE_LIGHTLASER",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -16,7 +16,7 @@ return {
 		canreclaim = false,
 		canrepair = false,
 		canrestore = false,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Stealthy Minelayer/Minesweeper",
 		energymake = 1,
@@ -149,7 +149,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "MINESWEEP",
-				onlyTargetCategory = "MINE NOTSUB",
+				onlytargetcategory = "MINE NOTSUB",
 			},
 		},
 	},

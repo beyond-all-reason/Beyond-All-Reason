@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMLATNK.DDS",
 		buildtime = 6027,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -9 -0.5",
 		collisionvolumescales = "30.5 38 28",
 		collisionvolumetest = 1,
@@ -166,11 +166,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMLATNK_WEAPON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "ARMAMPH_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

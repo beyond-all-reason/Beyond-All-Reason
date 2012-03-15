@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMFIDO.DDS",
 		buildtime = 6232,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Mortar/Skirmish Kbot",
 		energymake = 0.80000001192093,
@@ -146,14 +146,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "GAUSS",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "BFIDO",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -7,7 +7,7 @@ return {
 		buildpic = "MARAUDER.DDS",
 		buildtime = 28957,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "27 31 40",
 		collisionvolumetest = 1,
@@ -161,11 +161,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMMECH_CANNON",
-				onlyTargetCategory = "NOTAIR NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
 				def = "ARMAMPH_MISSILE",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

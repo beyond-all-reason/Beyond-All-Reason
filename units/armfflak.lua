@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 807,
 		buildpic = "ARMFFLAK.DDS",
 		buildtime = 21855,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER",
+		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 44 42",
 		collisionvolumetest = 1,
@@ -122,9 +122,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "ARMFLAK_GUN",
-				onlyTargetCategory = "VTOL",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

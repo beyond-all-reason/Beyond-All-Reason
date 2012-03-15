@@ -7,7 +7,7 @@ return {
 		buildpic = "TAWF114.DDS",
 		buildtime = 23129,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER",
+		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = [[0 -4 1]],
 		collisionvolumescales = [[42.6 32.6 44.6]],
 		collisionvolumetest = 1,
@@ -139,11 +139,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "TAWF_BANISHER",
 				maindir = "0 0 1",
 				maxangledif = 270,
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
