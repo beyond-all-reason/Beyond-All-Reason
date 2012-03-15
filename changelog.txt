@@ -1,3 +1,13 @@
+7.64 -> 7.65
+3/15/2012
+- Units that shouldnt shoot air now dont
+- Fixed submerged nanoframe targetting
+- Core adv torp now officially underwater unit
+- Area reclaim fixed
+- Torp launchers dont target hovers at all now
+- Sniper and others couldnt be targetted by most units
+- Core aircraft plant heights increased
+
 7.63 -> 7.64
 2012/03/06:
 
