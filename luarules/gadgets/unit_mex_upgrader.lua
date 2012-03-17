@@ -483,7 +483,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, _)
     
     return false 
   elseif cmdID ~= CMD_AUTOMEX then 
-    if builder and getUnitPhase(unitID, teamID) == RECLAIMING then 
+    if builder and builder.targetMex and getUnitPhase(unitID, teamID) == RECLAIMING then 
       mexes[teamID][builder.targetMex].assignedBuilder = nil 
     end 
     return true 
