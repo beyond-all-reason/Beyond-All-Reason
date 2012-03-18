@@ -12,6 +12,9 @@ return {
 		collisionvolumescales = "104 106 68",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
+		customparams = {
+				RequireTech = [[Advanced T3 Unit Research Centre]]
+		       },
 		description = "Shielded Experimental Assault Mech",
 		energymake = 40,
 		energystorage = 500,
@@ -202,7 +205,6 @@ return {
 			},
 		},
 		weapons = {
-			 = ,
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ORCONE_GUN",
