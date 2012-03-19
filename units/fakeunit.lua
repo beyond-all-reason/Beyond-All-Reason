@@ -31,7 +31,6 @@ return {
 	  maxVelocity                   = 0,
 	  maxWaterDepth                 = 0,
 	  noAutoFire                    = false,
-	  noChaseCategory               = "FIXEDWING LAND SINK TURRET SHIP SATELLITE SWIM GUNSHIP FLOAT SUB HOVER",
 	  objectName                    = "1x1d",
 	  onoffable                     = false,
 	  seismicSignature              = 16,
