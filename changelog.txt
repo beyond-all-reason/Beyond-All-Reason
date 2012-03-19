@@ -1,3 +1,9 @@
+7.65 -> 7.66
+3/15/2012
+- Fixed area reclaim
+- Fixed cons getting stuck
+- Fixed mexupgrader
+
 7.64 -> 7.65
 3/15/2012
 - Units that shouldnt shoot air now dont
