@@ -6,8 +6,8 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'cormakr','corfmkr'},
 {'armeyes','armsonar'},
 {'coreyes','corsonar'},
-{'armdrag','armfdrag'},
-{'cordrag','corfdrag'},
+--{'armdrag','armfdrag'},  --both can be built in shallow water -> do not touch
+--{'cordrag','corfdrag'},  --both can be built in shallow water -> do not touch
 {'armmstor', 'armuwms'},
 {'armestor', 'armuwes'},
 {'cormstor', 'coruwms'},
