@@ -32,6 +32,14 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'corflak','corfflak'},
 {'armmoho','armuwmme'},
 {'cormoho','coruwmme'},
+{'armsolar','armtide'},
+{'corsolar','cortide'},
+{'armlab','armsy'},
+{'corlab','corsy'},
+{'armllt','armtl'},
+{'corllt','cortl'},
+{'corsonar','corrad'},
+{'armsonar','armrad'},
 
 
 -- XTA - arm
