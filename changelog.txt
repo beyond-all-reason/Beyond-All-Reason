@@ -1,3 +1,10 @@
+7.66->7.67
+3/24/2012
+- Removed hacky 87 gadgets
+- Added ZXCV building hotkeys
+- Added widget enemy spotter which marks enemy units. disabled by default 
+- Blob shadow fix
+
 7.65 -> 7.66
 3/15/2012
 - Fixed area reclaim
