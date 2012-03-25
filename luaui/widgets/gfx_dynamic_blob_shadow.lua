@@ -13,6 +13,9 @@ function widget:GetInfo()
   }
 end
 
+--1.3
+--perfomance optimizid (vbs)
+
 --1.2
 --now working in LOS view without deactivating shadows (vbs)
  
@@ -40,6 +43,25 @@ local sunangle             = 0
 local cangle               = 0                                      
 local ShadowsOn            = Spring.HaveShadows
 local GetMapDrawMode       = Spring.GetMapDrawMode
+local spGetUnitViewPosition 	= Spring.GetUnitViewPosition
+local spGetUnitDefID			= Spring.GetUnitDefID
+local spGetGroundHeight			= Spring.GetGroundHeight
+local spGetVectorFromHeading	= Spring.GetVectorFromHeading
+
+local glPushMatrix				= gl.PushMatrix
+local glTranslate				= gl.Translate
+local glPopMatrix				= gl.PopMatrix
+local glDrawListAtUnit			= gl.DrawListAtUnit
+local glBeginEnd				= gl.BeginEnd
+local glVertex					= gl.Vertex
+local glTexCoord				= gl.TexCoord
+local glTexture					= gl.Texture
+local glColor					= gl.Color
+local glDepthMask				= gl.DepthMask
+local glDepthTest				= gl.DepthTest
+
+local udefTab					= UnitDefs
+
 local list         
 
 --------------------------------------------------------------------------------
@@ -62,70 +84,69 @@ sundist = math.sqrt(sundist)
 realdist = sundist * 50
 sunscale = sunscale / 1876
 
+list = gl.CreateList(function() 
+	glBeginEnd(GL.QUAD_STRIP,function()  
+    --point1
+    glTexCoord(0,0)
+    glTexCoord(-4,0,-4)
+    --point2                                 
+    glTexCoord(0,1)                           
+    glTexCoord(4*sunscale,0,-4)                   
+    --point3
+    glTexCoord(1,0)
+    glTexCoord(-4,0,4)
+    --point4
+    glTexCoord(1,1)
+    glTexCoord(4*sunscale,0,4)
+    end)
+end)
+
 function widget:DrawWorldPreUnit()
-
-   list = gl.CreateList(function() 
-     gl.BeginEnd(GL.QUAD_STRIP,function()  
-       --point1
-       gl.TexCoord(0,0)
-       gl.Vertex(-4,0,-4)
-       --point2                                 
-       gl.TexCoord(0,1)                           
-       gl.Vertex(4*sunscale,0,-4)                   
-       --point3
-       gl.TexCoord(1,0)
-       gl.Vertex(-4,0,4)
-       --point4
-       gl.TexCoord(1,1)
-       gl.Vertex(4*sunscale,0,4)
-     end)
-   end)
-
-unitList = Spring.GetVisibleUnits(-1,3000,false)
-
-local cx,cy,cz = Spring.GetCameraPosition()
-
-  gl.Texture('LuaUI/Images/shadow.tga')
-  gl.DepthMask(false)
-  gl.DepthTest(false)
-  gl.Color(1,1,1,0.4)
-
-  local x,y,z
-  local fx,fy 
-
-if unitList[1] == nil then return false else
-
-if (ShadowsOn() and GetMapDrawMode() ~= "los") then
-   return false
-else
-
-if cy == nil or cy > 4000 then return false else
-
-	for _,unitID in ipairs(unitList) do
-		x,y,z = Spring.GetUnitViewPosition(unitID)
-		
-		if (x) then
-		local id = Spring.GetUnitDefID(unitID) 
-		fx = UnitDefs[id].xsize
-		fy = UnitDefs[id].zsize
-		 
-		local height = Spring.GetGroundHeight(x,z)
-		local diff = height-y+5
-		local x2,z2 = Spring.GetVectorFromHeading(sunangle)  
-		
-		gl.PushMatrix()
-		gl.Translate(0,diff,0)  
-		gl.Translate(sunx*diff,0,sunz*diff)
-		gl.DrawListAtUnit(unitID,list,false,fx,1.0,fy,sunangle,0,1.0,0)
-		gl.PopMatrix()
-		end
-    
+	if (ShadowsOn() and GetMapDrawMode() ~= "los") then
+	   return false
+	end
+	
+	unitList = Spring.GetVisibleUnits(-1,3000,false)
+	if unitList[1] == nil then 
+		return false 
 	end
 
+	local _,cy,_ = Spring.GetCameraPosition()
+	if cy == nil or cy > 4000 then 
+		return false
+	end
+	
+	glTexture('LuaUI/Images/shadow.tga')
+	glDepthMask(false)
+	glDepthTest(false)
+	glColor(1,1,1,0.4)
 
-   end
-   end
-   end
+	local x,y,z
+	local fx,fy 
+
+	for i=1, #unitList do
+		unitID = unitList[i]
+		x,y,z = spGetUnitViewPosition(unitID)
+		
+		if (x) then
+			local id = spGetUnitDefID(unitID) 
+			fx = udefTab[id].xsize
+			fy = udefTab[id].zsize
+			 
+			local height = spGetGroundHeight(x,z)
+			local diff = height-y+5
+			local x2,z2 = spGetVectorFromHeading(sunangle)  
+			
+			glPushMatrix()
+			glTranslate(0,diff,0)  
+			glTranslate(sunx*diff,0,sunz*diff)
+			glDrawListAtUnit(unitID,list,false,fx,1.0,fy,sunangle,0,1.0,0)
+			glPopMatrix()
+		end
+	end
+
+	--gl.Texture(nil)
+	--gl.Color(1.0,1.0,1.0,1.0)
 end
 
 --------------------------------------------------------------------------------
