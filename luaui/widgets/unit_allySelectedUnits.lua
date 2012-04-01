@@ -69,7 +69,7 @@ local debug = false
 local unitLimitPerFrame = 300 -- controls how many units will be send per frame
 local fullSelectionUpdateInt = 0 -- refresh full selection info once in ten seconds, 0 = disabled
 local hotFadeTime = 10.0
-local lockTeamUnits = true --disallow selection of units selected by teammates
+local lockTeamUnits = false --disallow selection of units selected by teammates
 local showAlly = true 		--also show allies (besides coop)
 local useHotColor = false --use RED for all hot units, if false use playerColor starting with transparency
 local minZlibSize = 130  --minimum size threshold of msg to use zlib (msg smaller than this will not be compressed before sending)
