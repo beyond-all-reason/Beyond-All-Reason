@@ -29,7 +29,7 @@ return {
 		sightdistance = 130,
 		tidalgenerator = 1,
 		waterline = 13,
-		yardmap = "wwwwwwwwwwwwwwww",
+		yardmap = "wwwwwwwww",
 		featuredefs = {
 			dead = {
 				blocking = false,
