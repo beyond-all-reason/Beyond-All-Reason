@@ -4,7 +4,7 @@ return {
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 11687,
-		buildcostmetal = 1645,
+		buildcostmetal = 1398,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
