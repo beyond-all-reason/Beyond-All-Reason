@@ -29,7 +29,7 @@ return {
 		releaseheld = true,
 		seismicsignature = 0,
 		selfdestructas = "SMALL_UNIT",
-		sightdistance = 125,
+		sightdistance = 260,
 		transportcapacity = 1,
         transportmass = 5000,
 		transportsize = 3,
