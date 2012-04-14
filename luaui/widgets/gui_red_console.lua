@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-	name      = "Red Console", --version 4
+	name      = "Red Console", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
 	date      = "August 13, 2009", --last change September 10,2009
@@ -13,6 +13,8 @@ end
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
+local SoundIncomingChat  = 'sounds/beep4.wav'
+local SoundIncomingChatVolume = 1.0
 
 --todo: dont cut words apart when clipping text 
 
@@ -71,6 +73,7 @@ local sGetPlayerRoster = Spring.GetPlayerRoster
 local sGetTeamColor = Spring.GetTeamColor
 local sGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local sGetModKeyState = Spring.GetModKeyState
+local spPlaySoundFile = Spring.PlaySoundFile
 
 local function IncludeRedUIFrameworkFunctions()
 	New = WG.Red.New(widget)
@@ -392,10 +395,17 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,3)
 		end		
 	end
+	--mute--
+	local ignoreThisMessage = false
+	if (mutedPlayers[name]) then 
+		ignoreThisMessage = true 
+		--Spring.Echo ("blocked message by " .. name)
+	end
 	
 	local MyAllyTeamID = sGetMyAllyTeamID()
 	local textcolor = nil
 	
+    local playSound = false
 	if (linetype==1) then --playermessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
@@ -416,6 +426,8 @@ local function processLine(line,g,cfg,newlinecolor)
 		local namecolor = convertColor(r,g,b)
 		
 		line = namecolor..name..misccolor..": "..textcolor..text
+        
+        playSound = true
 		
 	elseif (linetype==2) then --spectatormessage
 		local c = cfg.cothertext
@@ -433,6 +445,8 @@ local function processLine(line,g,cfg,newlinecolor)
 		
 		line = namecolor.."(s) "..name..misccolor..": "..textcolor..text
 		
+        playSound = true
+        
 	elseif (linetype==3) then --playerpoint
 		local c = cfg.cspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
@@ -475,10 +489,16 @@ local function processLine(line,g,cfg,newlinecolor)
 	if (g.vars.consolehistory == nil) then
 		g.vars.consolehistory = {}
 	end
-	local history = g.vars.consolehistory
-	local lineID = #history+1
+	local history = g.vars.consolehistory	
 	
-	history[#history+1] = {line,clock(),lineID,textcolor,linetype}
+	if (not ignoreThisMessage) then		--mute--
+		local lineID = #history+1	
+		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
+        
+        if ( playSound ) then
+            spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
+        end
+	end
 
 	return history[#history]
 end
@@ -637,4 +657,49 @@ function widget:SetConfigData(data) --load config
 		Config.console.px = data.Config.console.px
 		Config.console.py = data.Config.console.py
 	end
+end
+
+--mute--
+function widget:TextCommand(s)     
+     local token = {}
+	 local n = 0
+	 --for w in string.gmatch(s, "%a+") do
+	 for w in string.gmatch(s, "%S+") do
+		n = n +1
+		token[n] = w		
+     end
+	 
+	--for i = 1,n do Spring.Echo (token[i]) end
+	 
+	 if (token[1] == "mute") then
+		--Spring.Echo ("geht ums muten")
+		 for i = 2,n do
+			mutePlayer (token[i])
+			Spring.Echo ("*muting " .. token[i] .. "*")
+		end
+	end
+	
+	if (token[1] == "unmute") then
+		--Spring.Echo ("geht ums UNmuten")
+		 for i = 2,n do
+			unmutePlayer (token[i])
+			Spring.Echo ("*unmuting " .. token[i] .."*")
+		end
+		if (n==1) then unmuteAll() Spring.Echo ("unmuting everybody") end
+	end
+	
+end
+
+--mute
+mutedPlayers = {}
+function mutePlayer (playername)
+	mutedPlayers[playername] = true
+end
+
+function unmutePlayer (playername)
+	mutedPlayers[playername] = nil
+end
+
+function unmuteAll ()
+	mutedPlayers = {}
 end
