@@ -101,7 +101,7 @@ return {
 		},
 		weapondefs = {
 			armtruck_rocket = {
-				areaofeffect = 90,
+				areaofeffect = 150,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
