@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = "1.4"
+local versionNumber = "1.5"
 
 function widget:GetInfo()
 	return {
@@ -253,7 +253,9 @@ function drawOrientation()
 	local alt,ctrl,meta,shift = spGetModKeyState()
 	
 	local udef = udefTab[unitDefID]
-	if (drawForAll == false and udef["isFactory"] == false ) then
+	
+	--check for an empty buildlist to avoid to draw for air repair pads
+	if (drawForAll == false and (udef["isFactory"] == false or #udef["buildOptions"] == 0)) then
 		return
 	end
 	
