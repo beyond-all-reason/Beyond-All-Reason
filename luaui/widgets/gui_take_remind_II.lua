@@ -19,9 +19,11 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spGetPlayerList = Spring.GetPlayerList
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local spGetMyTeamID = Spring.GetMyTeamID
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
+local spGetTeamRulesParam = Spring.GetTeamRulesParam
 
 --local takeableTeams = {} -- takeableTeams[1..n] = tID
 local takeableCount = 0
@@ -43,29 +45,16 @@ function widget:Update(dt)
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-    
-	-- Create map of teams that have players
-	local hasPlayer = {}
-	local playerList = spGetPlayerList(true) -- Get list of active players
-	for i = 1, #playerList do
-		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerList[i])
-		if not playerIsSpec then
-			hasPlayer[playerTeam] = true
-		end
-	end
-	
+	local myTeamID = spGetMyTeamID()
 	-- Search allied teams for units to take
     --takeableTeams = {}
     takeableCount = 0
 	local teamList = spGetTeamList(spGetMyAllyTeamID())
 	for i = 1, #teamList do
         local tID = teamList[i]
-		if not hasPlayer[tID] then
-			local _, _, _, isAI = spGetTeamInfo(tID)
-			if not isAI then
-				--takeableTeams[#takeableTeams + 1] = tID
-                takeableCount = takeableCount + spGetTeamUnitCount(tID)
-			end
+		if tID ~= myTeamID and spGetTeamRulesParam(tID, "numActivePlayers" ) == 0 then
+			--takeableTeams[#takeableTeams + 1] = tID
+	        takeableCount = takeableCount + spGetTeamUnitCount(tID)
 		end
 	end
 end
@@ -90,7 +79,7 @@ function widget:MousePress(mx, my, mButton)
         local posx, posy = GetButtonPosition()
         if mx >= posx and mx < posx + buttonWidth and
            my >= posy and my < posy + buttonHeight then
-            Spring.SendCommands('take')
+            Spring.SendCommands('luarules take2')
             return true
         end
     end
