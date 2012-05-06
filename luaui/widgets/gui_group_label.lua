@@ -26,13 +26,13 @@ end
 local glPushMatrix				= gl.PushMatrix
 local glTranslate				= gl.Translate
 local glPopMatrix				= gl.PopMatrix
+local glColor					= gl.Color
 local glText					= gl.Text
 local glBillboard				= gl.Billboard
 
+local spGetGroupList			= Spring.GetGroupList
 local spGetGroupUnits			= Spring.GetGroupUnits
 local spGetUnitViewPosition 	= Spring.GetUnitViewPosition
-
-
 local textColor = {0.7, 1.0, 0.7, 1.0}
 local textSize = 12.0
 
@@ -43,12 +43,11 @@ local textSize = 12.0
 --
 
 function widget:DrawWorld()
-   local groups = Spring.GetGroupList()
+   local groups = spGetGroupList()
    for group, _ in pairs(groups) do
       units = spGetGroupUnits(group)
-      for i, #units do
-		unit = units[i]
-        if Spring.IsUnitInView(unit) then
+      for _, unit in ipairs(units) do
+         if Spring.IsUnitInView(unit) then
             local ux, uy, uz = spGetUnitViewPosition(unit)
             glPushMatrix()
             glTranslate(ux, uy, uz)
