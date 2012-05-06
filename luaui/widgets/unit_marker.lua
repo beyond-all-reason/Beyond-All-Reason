@@ -1,14 +1,14 @@
-local versionNumber = "1.31"
+local versionNumber = "1.4"
 
 function widget:GetInfo()
 	return {
-		name      = "Unit Marker (BA)",
+		name      = "Unit Marker",
 		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Marks spotted units of interest.",
 		author    = "very_bad_soldier",
 		date      = "October 21, 2007",
 		license   = "GNU GPL v2",
 		layer     = 0,
-		enabled   = false
+		enabled   = true
 	}
 end
 
@@ -18,6 +18,7 @@ Features:
 -no multiple markers if multiple players use it
 
 Changelog:
+1.4: fixed for current engine
 1.31: small speedup
 1.3: fixed: double markers for one unit 
 1.2: added XTA support (thx to manolo_), deactivates older defense range widget (thx to TFC)
@@ -33,6 +34,39 @@ unitList["BA"]["armamd"] = { markerText = "Anti Nuke" }
 unitList["BA"]["corfmd"] = { markerText = "Anti Nuke" }
 unitList["BA"]["armsilo"] = { markerText = "Nuke" }
 unitList["BA"]["corsilo"] = { markerText = "Nuke" }
+
+unitList["XTA"] = {} --initialize table
+unitList["XTA"]["arm_protector"] = 				{ markerText = "Anti Nuke" }
+unitList["XTA"]["core_fortitude_missile_defense"] = 	{ markerText = "Anti Nuke" }
+unitList["XTA"]["arm_retaliator"] = 			{ markerText = "Nuke" }
+unitList["XTA"]["core_silencer"] = 				{ markerText = "Nuke" }
+unitList["XTA"]["arm_stunner"] = 				{ markerText = "Mini-Nuke" }
+unitList["XTA"]["core_neutron"] = 				{ markerText = "Mini-Nuke" }
+unitList["XTA"]["arm_big_bertha"] = 			{ markerText = "Big Bertha" }
+unitList["XTA"]["core_intimidator"] = 			{ markerText = "Intimidator" }
+unitList["XTA"]["arm_sentinel"] = 				{ markerText = "HLT" }
+unitList["XTA"]["core_gaat_gun"] = 				{ markerText = "HLT" }
+unitList["XTA"]["arm_ambusher"] = 				{ markerText = "Pop Up" }
+unitList["XTA"]["core_toaster"] = 				{ markerText = "Pop Up" }
+unitList["XTA"]["arm_stingray"] = 				{ markerText = "HLT" }
+unitList["XTA"]["core_thunderbolt"] = 			{ markerText = "HLT" }
+unitList["XTA"]["arm_annihilator"] = 			{ markerText = "Anni" }
+unitList["XTA"]["arm_cloakable_fusion_reactor"] = 	{ markerText = "Fusion" }
+unitList["XTA"]["arm_vulcan"] = 				{ markerText = "Vulcan" }
+unitList["XTA"]["arm_repulsor"] 			= 	{ markerText = "Anti Nuke" }
+unitList["XTA"]["core_resistor"] = 				{ markerText = "Anti Nuke" }
+unitList["XTA"]["core_cloakable_fusion_power_plant"]= { markerText = "Fusion" }
+unitList["XTA"]["core_viper"] = 				{ markerText = "Viper" }
+unitList["XTA"]["core_immolator"]			    = { markerText = "Immolator" }
+unitList["XTA"]["core_doomsday_machine"] = 		{ markerText = "Doomsday" }
+unitList["XTA"]["core_buzzsaw"]			    = { markerText = "Buzzsaw" }
+unitList["XTA"]["core_krogoth_gantr"] 	= 		{ markerText = "Krogot Lab" }
+
+unitList["CA"] = {} --initialize table
+unitList["CA"]["armamd"] = { markerText = "Anti Nuke" }
+unitList["CA"]["corfmd"] = { markerText = "Anti Nuke" }
+unitList["CA"]["armsilo"] = { markerText = "Nuke" }
+unitList["CA"]["corsilo"] = { markerText = "Nuke" }
 --END OF MARKER LIST---------------------------------------
 
 local markerTimePerId = 0.2 --400ms
@@ -44,6 +78,7 @@ local lastTimeUpdate = 0
 
 
 local markersToSet = {} --this is a todo list filled with marker which have to be set, widget waits before setting them to see if another play tags them before to avoid multitagging
+local markersToSetEmpty = true
 local knownUnits = {} --all units that have been marked already, so they wont get marked again
 
 --local spGetLocalTeamID	 	= Spring.GetLocalTeamID
@@ -60,6 +95,7 @@ local spGetPlayerList  		= Spring.GetPlayerList
 local spGetPlayerInfo		= Spring.GetPlayerInfo
 local spArePlayersAllied	= Spring.ArePlayersAllied
 local spGetLocalPlayerID 	= Spring.GetLocalPlayerID
+local spGetSpectatingState  = Spring.GetSpectatingState
 local upper                 = string.upper
 local floor                 = math.floor
 local max					= math.max
@@ -118,6 +154,8 @@ function setMarkerForUnit( unitId, udef, pos )
 	spSendLuaUIMsg("dfT" .. unitId, "allies")
 
 	markersToSet[unitId] = { time = spGetGameSeconds(), pos = pos, text = markerText }
+	
+	markersToSetEmpty = false
 end
 
 --returns highest ping from all players whos playerid < myPlayerId
@@ -156,17 +194,20 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawWorld()
-	if ( #markersToSet <= 0 ) then
+function widget:GameFrame()
+	if ( markersToSetEmpty ) then
 		return
 	end
 	
+	markersToSetEmpty = true
 	local now = spGetGameSeconds()
 	local currentWaitTime = 2 * getHighestPing() --wait twice the worst ping time of all candidates (=players with lower id than myself)
 	for k, marker in pairs( markersToSet ) do
 		if ( now >= marker["time"] + currentWaitTime ) then
-			spMarkerAddPoint( marker["pos"][1], marker["pos"][2], marker["pos"][3],  marker["text"] )
+			spMarkerAddPoint( marker["pos"][1], marker["pos"][2], marker["pos"][3],  marker["text"], 1 )
 			markersToSet[k] = nil
+		else
+			markersToSetEmpty = false
 		end
 	end
 end
@@ -186,10 +227,9 @@ function widget:GameStart()
 end
 
 function CheckSpecState()
-	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(myPlayerID)
+	local spec = spGetSpectatingState()
 		
 	if ( spec == true ) then
-		spEcho("<Unit Marker> Spectator mode. Widget removed.")
 		widgetHandler:RemoveWidget()
 		return false
 	end
