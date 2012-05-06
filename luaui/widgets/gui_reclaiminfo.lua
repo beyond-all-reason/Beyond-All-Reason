@@ -28,31 +28,64 @@ end
 local start = false  --reclaim area cylinder drawing has been started
 local metal = 0  --metal count from features in cylinder
 local energy = 0  --energy count from features in cylinder
+local nonground = "" --if reclaim order done with right click on a feature or unit 
 local rangestart = {}  --counting start center
+local rangestartinminimap = false --both start and end need to be equaly checked
 local rangeend = {}  --counting radius end point
 local b1was = false  -- cursor was outside the map?
 local vsx, vsy = widgetHandler:GetViewSizes()
 local form = 12 --text format depends on screen size
 local xstart,ystart = 0
+local cmd,xend,yend,x,y,b1,b2
+local inMinimap = false --mouse cursor in minimap
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
   form = math.floor(vsx/87)
 end
 
+local function InMinimap(x,y)
+  local posx,posy,sizex,sizey,minimized,maximized = Spring.GetMiniMapGeometry()
+  rx,ry = (x-posx)/sizex,(y-posy)/sizey
+  return (not (minimized or maximized)) and
+         (rx>=0)and(rx<=1)and
+         (ry>=0)and(ry<=1),rx,ry
+end
+local function MinimapToWorld(rx,ry)
+  if (rx>=0)and(rx<=1)and
+     (ry>=0)and(ry<=1)
+  then
+    local mapx,mapz = Game.mapSizeX*rx,Game.mapSizeZ-Game.mapSizeZ*ry
+    local mapy = Spring.GetGroundHeight(mapx,mapz)
+    return {mapx,mapy,mapz}
+  else
+    return {-1,-1,-1}
+  end
+end
+
 function widget:Initialize()
 end
 
 function widget:DrawScreen()
-  local _,cmd,_ = Spring.GetActiveCommand()
-  local xend,yend
-  local x, y, b1 = Spring.GetMouseState() --b1 = left button pressed?
+  _,cmd,_ = Spring.GetActiveCommand()
+  x, y, b1,_,b2 = Spring.GetMouseState() --b1 = left button pressed?
+  nonground,_ = Spring.GetMouseCursor()
   x, y = math.floor(x), math.floor(y) --TraceScreenRay needs this
-  if (cmd==CMD.RECLAIM) and (rangestart ~= nil) and (b1) and (b1was == false) then
+  if ((cmd==CMD.RECLAIM) and (rangestart ~= nil) and (b1) and (b1was == false)) or ((nonground == "Reclaim") and (b1was == false) and (b2) and (rangestart ~= nil)) then
    if(rangestart[1] == 0) and (rangestart[3] == 0) then
-     xstart,ystart = x,y
-     start = false
-     _, rangestart = Spring.TraceScreenRay(x, y, true) --cursor on world pos
+     local rx,ry
+     inMinimap,rx,ry = InMinimap(x,y)
+     if inMinimap then
+        rangestart = MinimapToWorld(rx,ry)
+        xstart,ystart = x,y
+        start = false
+        rangestartinminimap = true
+     else
+      xstart,ystart = x,y
+      start = false
+      rangestartinminimap = false
+      _, rangestart = Spring.TraceScreenRay(x, y, true) --cursor on world pos
+     end
    end
   elseif (rangestart == nil) and (b1) then
      b1was = true
@@ -61,15 +94,23 @@ function widget:DrawScreen()
     rangestart = {0, _,0}
   end 
   --bit more precise showing when mouse is moved by 4 pixels (start)
-  if (b1 == true) and (rangestart ~= nil) and (cmd==CMD.RECLAIM) and (start==false) then
+  if (b1 and (rangestart ~= nil) and (cmd==CMD.RECLAIM) and (start==false)) or ((nonground == "Reclaim") and (rangestart ~= nil) and (start==false) and (b2)) then
    xend, yend = x,y
     if (((xend>xstart+4)or(xend<xstart-4))or((yend>ystart+4)or(yend<ystart-4))) then
      start=true
     end
   end
   --
-   if (b1 == true) and (rangestart ~= nil) and (cmd==CMD.RECLAIM) and start then
+   if (b1 and (rangestart ~= nil) and (cmd==CMD.RECLAIM) and start) or ((nonground == "Reclaim") and start and b2 and (rangestart ~= nil)) then
+   
+     local rx,ry
+     inMinimap,rx,ry = InMinimap(x,y)
+     if inMinimap and rangestartinminimap then
+        rangeend = MinimapToWorld(rx,ry)
+     else
      _, rangeend = Spring.TraceScreenRay(x,y,true)
+     end
+     
       if(rangeend == nil) then
       return 
       end
@@ -101,13 +142,13 @@ function widget:DrawScreen()
      gl.Text("   M:"..metal.."\255\255\255\128".." E:"..energy,x,y,form)
     end
     --Unit resource info when mouse on one
-    if (cmd==CMD.RECLAIM) and (rangestart ~= nil) and ((energy==0) or (metal==0)) and (b1==false) then
+    if (nonground=="Reclaim") and (rangestart ~= nil) and ((energy==0) or (metal==0)) and (b1==false) then
       local isunit, unitID = Spring.TraceScreenRay(x, y) --if on unit pos!
-      if (isunit == "unit") then
+      if (isunit == "unit") and (Spring.GetUnitHealth(unitID)) then --Getunithealth just to make sure that it is in los
        local unitDefID = Spring.GetUnitDefID(unitID)
        local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
        metal=math.floor(UnitDefs[unitDefID].metalCost*buildprogress)
-       local textwidth = 12*gl.GetTextWidth("   M:"..metal.."\255\255\255\128".." E:"..energy)
+       local textwidth = 12*gl.GetTextWidth("   M:"..metal.."\255\255\255\128")
         if(textwidth+x>vsx) then
         x = x - textwidth - 10
         end
