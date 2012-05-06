@@ -200,5 +200,15 @@ local options={
 	  section= 'ba_modes',
       def    = false,
     },
+  {
+      key     = "pathfinder",
+      name    = "Pathfinder",
+      desc    = "Switch Pathfinding System",
+      type    = "list",
+      def     = "normal",
+      section = "spring",
+      {key="normal", name="Normal", desc="Spring vanilla pathfinder"},
+      {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
+  },
 }
 return options
