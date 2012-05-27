@@ -24,7 +24,7 @@ local modrules  = {
     allow_team_colors = true;
   },
   
-  featureLOS = { featureVisibility = 2; }
+  featureLOS = { featureVisibility = 2; },
 
   system = {
         pathFinderSystem = (Spring.GetModOptions() and (Spring.GetModOptions().pathfinder == "qtpfs") and 1) or 0,
