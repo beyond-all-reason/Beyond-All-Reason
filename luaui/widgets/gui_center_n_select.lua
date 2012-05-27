@@ -13,7 +13,7 @@ function widget:GetInfo()
     enabled   = true  --  loaded by default?
   }
 end
-
+--bug with usage of "Spring.GetPlayerInfo" fixed by [teh]decay 27 may 2012
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ end
 
 function widget:Update()
   local t = Spring.GetGameSeconds()
-  _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyTeamID())
+  _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
   if (spectator or t > 10) then
     widgetHandler:RemoveWidget()
     return
