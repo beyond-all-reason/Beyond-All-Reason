@@ -104,6 +104,7 @@ local flexCallIns = {
   'GameStart',
   'GameOver',
   'GameFrame',
+  'GameProgress',
   'GameSetup',
   'TeamDied',
   'TeamChanged',
@@ -1561,6 +1562,12 @@ function widgetHandler:GameFrame(frameNum)
   return
 end
 
+function widgetHandler:GameProgress(serverFrameNum)
+  for _,w in ipairs(self.GameProgressList) do
+    w:GameProgress(serverFrameNum)
+  end
+  return
+end
 
 function widgetHandler:ShockFront(power, dx, dy, dz)
   for _,w in ipairs(self.ShockFrontList) do
@@ -1850,6 +1857,7 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam,
   end
   return
 end
+
 
 
 --------------------------------------------------------------------------------
