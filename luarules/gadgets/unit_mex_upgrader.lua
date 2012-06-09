@@ -79,18 +79,9 @@ local upgradeMexCmdDesc = {
 } 
 
 
-if (gadgetHandler:IsSyncedCode()) then 
-
--- This part of the code determines who should upgrade what 
---------------------------------------------------------------------------------------------------------------------------- 
-function gadget:Initialize()  
-  determine() 
-  registerUnits()  
-end 
-
-function determine() 
+function determine(ud, wd)
   local tmpbuilders = {} 
-  for unitDefID, unitDef in pairs(UnitDefs) do 
+  for unitDefID, unitDef in pairs(ud) do 
     if isBuilder(unitDef) then 
       insert(tmpbuilders, unitDefID) 
     else 
@@ -99,7 +90,7 @@ function determine()
         local mexDef = {} 
         mexDef.extractsMetal = extractsMetal 
         if #unitDef.weapons <= 1 then
-          if (#unitDef.weapons == 1 and WeaponDefs[unitDef.weapons[1].weaponDef].isShield) then
+          if (#unitDef.weapons == 1 and wd[unitDef.weapons[1].weaponDef].isShield) then
 	    mexDef.armed = #unitDef.weapons < 0
           else
             mexDef.armed = #unitDef.weapons > 0      
@@ -116,7 +107,7 @@ function determine()
       
   for _, unitDefID in ipairs(tmpbuilders) do 
     local upgradePairs = nil 
-    for _, optionID in ipairs(UnitDefs[unitDefID].buildOptions) do 
+    for _, optionID in ipairs(ud[unitDefID].buildOptions) do 
       local mexDef = mexDefs[optionID] 
       if mexDef then 
         upgradePairs = processMexData(optionID, mexDef, upgradePairs)        
@@ -127,8 +118,6 @@ function determine()
       builderDefs[unitDefID] = upgradePairs 
     end 
   end 
-  
-  _G.builderDefs = builderDefs 
 end 
 
 function processMexData(mexDefID, mexDef, upgradePairs)  
@@ -152,7 +141,18 @@ end
 
 function isBuilder(unitDef) 
   return (unitDef.isBuilder and unitDef.canAssist) 
+end
+
+
+if (gadgetHandler:IsSyncedCode()) then 
+
+-- This part of the code determines who should upgrade what 
+--------------------------------------------------------------------------------------------------------------------------- 
+function gadget:Initialize()  
+  determine(UnitDefs, WeaponDefs) 
+  registerUnits()  
 end 
+
 
 function registerUnits() 
   local teams = Spring.GetTeamList() 
@@ -565,22 +565,28 @@ end
 
 else 
 
-function gadget:Update() 
-  if SYNCED.builderDefs and Script.LuaUI.registerUpgradePairs then 
-  
-    local builderDefs = {} 
-    for k,v in spairs(SYNCED.builderDefs) do 
-      local upgradePairs = {} 
-      for k2,v2 in spairs(v) do 
-        upgradePairs[k2] = v2 
-      end 
-      builderDefs[k] = upgradePairs 
-    end 
+local bDefs = {} 
 
-    if Script.LuaUI.registerUpgradePairs(builderDefs) then 
-      gadgetHandler:RemoveCallIn("Update") 
-    end 
-  end 
-end 
+local function RegisterUpgradePairs(_, val)
+	Script.LuaUI.registerUpgradePairs(bDefs)
+end
+
+function gadget:Initialize()
+	determine(UnitDefs, WeaponDefs)
+
+	for k,v in pairs(builderDefs) do 
+		local upgradePairs = {} 
+		for k2,v2 in pairs(v) do 
+			upgradePairs[k2] = v2 
+		end 
+		bDefs[k] = upgradePairs 
+	end
+
+	gadgetHandler:AddChatAction("registerUpgradePairs", RegisterUpgradePairs, "toggles registerUpgradePairs setting")
+end
+
+function gadget:Shutdown()
+	gadgetHandler:RemoveChatAction("registerUpgradePairs")
+end
 
 end
