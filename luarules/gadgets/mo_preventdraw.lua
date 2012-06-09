@@ -96,11 +96,18 @@ function gadget:GameFrame(n)
         immuneCom = nil
         break
       elseif (ctrlCom == unitID) then
+        --if the game was actually a draw then this unitID is not valid anymore
+        --if that is the case then just remove it from the watchList and clear the ctrlCom flag		
         local x,_,z = Spring.GetUnitPosition(unitID)
-        local y = Spring.GetGroundHeight(x,z) 
-        Spring.MoveCtrl.SetPosition(unitID, x,y,z)
-        Spring.MoveCtrl.Disable(unitID)
-        watchList[unitID] = Spring.GetGameFrame() + 220
+        if (x) then
+            local y = Spring.GetGroundHeight(x,z) 
+            Spring.MoveCtrl.SetPosition(unitID, x,y,z)
+            Spring.MoveCtrl.Disable(unitID)
+            watchList[unitID] = Spring.GetGameFrame() + 220
+        else
+            watchList[unitID] = nil
+        end
+        
         ctrlCom = nil
         break
       elseif (cantFall == unitID) then
