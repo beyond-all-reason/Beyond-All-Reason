@@ -28,6 +28,7 @@ local modrules  = {
 
   system = {
         pathFinderSystem = (Spring.GetModOptions() and (Spring.GetModOptions().pathfinder == "qtpfs") and 1) or 0,
+	    luaThreadingModel = 4,
   },
 
 }

@@ -23,7 +23,6 @@ if gadgetHandler:IsSyncedCode() then
     ----------------------------------------------------------------
     local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z} -- Also acts as is-player-a-coop-player
     
-    _G.coopStartPoints = coopStartPoints -- Share it to unsynced
     GG.coopStartPoints = coopStartPoints -- Share it to other gadgets
     
     ----------------------------------------------------------------
@@ -33,6 +32,11 @@ if gadgetHandler:IsSyncedCode() then
     -- Commented out Initialize due to set of GG.coopMode and layer of 1
     -- Previously layer was -1 (and so initialize ran first), however this made the unsynced drawing code draw UNDER the green startbox
     -- Could have a separate :GetInfo in both synced and unsynced sections, but that is asking for trouble
+    
+    local function SetCoopStartPoint(playerID, x, y, z)
+        coopStartPoints[playerID] = {x, y, z}
+        SendToUnsynced("CoopStartPoint", playerID, x, y, z)
+    end
     
     --function gadget:Initialize()
     do
@@ -44,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
             local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID)
             if not isSpec then
                 if teamHasPlayers[teamID] then
-                    coopStartPoints[playerID] = {-1, -1, -1}
+                    SetCoopStartPoint(playerID, -1, -1, -1)
                     coopHasEffect = true
                 else
                     teamHasPlayers[teamID] = true
@@ -71,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
                 local bx1, bz1, bx2, bz2 = Spring.GetAllyTeamStartBox(allyID)
                 x = math.min(math.max(x, bx1), bx2)
                 z = math.min(math.max(z, bz1), bz2)
-                coopStartPoints[playerID] = {x, Spring.GetGroundHeight(x, z), z}
+                SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z)
             end
             return false
         end
@@ -109,6 +113,7 @@ else
     
     local playerNames = {} -- playerNames[playerID] = playerName
     local playerTeams = {} -- playerTeams[playerID] = playerTeamID
+    local coopStartPoints = {}
     
     ----------------------------------------------------------------
     -- Unsynced speedup
@@ -149,11 +154,15 @@ else
         return colorStr
     end
     
+    local function CoopStartPoint(playerID, x, y, z)
+    	coopStartPoints[playerID] = {x, y, z}
+    end
+    
     ----------------------------------------------------------------
     -- Unsynced Callins
     ----------------------------------------------------------------
     function gadget:Initialize()
-        
+        gadgetHandler:AddSyncAction("CoopStartPoint", CoopStartPoint)
         -- Speed things up
         local playerList = Spring.GetPlayerList()
         for i = 1, #playerList do
@@ -182,12 +191,13 @@ else
     
     function gadget:Shutdown()
         gl.DeleteList(coneList)
+        gadgetHandler:RemoveSyncAction("CoopStartPoint")
     end
     
     function gadget:DrawWorld()
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
-        for playerID, startPosition in spairs(SYNCED.coopStartPoints) do
+        for playerID, startPosition in pairs(coopStartPoints) do
             if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then
@@ -206,7 +216,7 @@ else
         glBeginText()
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
-        for playerID, startPosition in spairs(SYNCED.coopStartPoints) do
+        for playerID, startPosition in pairs(coopStartPoints) do
             if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then

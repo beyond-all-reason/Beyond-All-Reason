@@ -35,18 +35,23 @@ local GetPlayerInfo=Spring.GetPlayerInfo
 local TransferUnit=Spring.TransferUnit
 local GetGameFrame=Spring.GetGameFrame
 
+local function SetAliveCount(t, n)
+	aliveCount[t] = n
+	SendToUnsynced("AliveCount", t ,n)
+end
+
 function gadget:UnitCreated(u, ud, team)
 	isAlive[u] = true
 	if UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Created",team)
-		aliveCount[team] = aliveCount[team] + 1
+		SetAliveCount(team, aliveCount[team] + 1)
 	end
 end
 
 function gadget:UnitGiven(u, ud, team)
 	if UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Given",team)
-		aliveCount[team] = aliveCount[team] + 1
+		SetAliveCount(team, aliveCount[team] + 1)
 	end
 end
 
@@ -60,7 +65,7 @@ function gadget:UnitDestroyed(u, ud, team)
 	isAlive[u] = nil
 	if UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Destroyed",team)
-		aliveCount[team] = aliveCount[team] - 1
+		SetAliveCount(team, aliveCount[team] - 1)
 		if aliveCount[team]<= 0 then
 			TeamTakeable(team)
 		end
@@ -70,7 +75,7 @@ end
 function gadget:UnitTaken(u, ud, team)
 	if isAlive[u] and UnitDefs[ud].customParams.iscommander then
 		--Spring.Echo("Taken",team)
-		aliveCount[team] = aliveCount[team] - 1
+		SetAliveCount(team, aliveCount[team] - 1)
 		if aliveCount[team]<= 0 then
 			TeamTakeable(team)
 		end
@@ -123,9 +128,8 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 	end
 	for _,t in ipairs(GetTeamList()) do
-		aliveCount[t] = 0
+		SetAliveCount(t, 0)
 	end
-	_G.playerCommsAlive=aliveCount
 	gadgetHandler:AddChatAction("take",wantToTake,"Takes unused units")
 end
 
@@ -140,12 +144,17 @@ local GetGameFrame=Spring.GetGameFrame
 local GetPlayerList=Spring.GetPlayerList
 local GetPlayerInfo=Spring.GetPlayerInfo
 local SendMessageToAllyTeam=Spring.SendMessageToAllyTeam
+local playerCommsAlive = {}
 
 function gadget:DrawScreen(vsx,vsy)
+	local pca = playerCommsAlive[GetLocalTeamID()]
+	if pca == nil then
+		pca = 0
+	end
 	local _,_,spec=GetSpectatingState()
-	--Text("Comms: "..SYNCED.playerCommsAlive[GetLocalTeamID()],vsx*.5, 200,18,"oc")
+	--Text("Comms: "..pca,vsx*.5, 200,18,"oc")
 	if not spec and GetGameFrame() > 0 then
-		if SYNCED.playerCommsAlive[GetLocalTeamID()] <= 0 then
+		if pca <= 0 then
 			Text("You have no Commander!",vsx*.5, vsy*.6,24,"oc")
 			Text("UNIT CONTROL DISABLED",vsx*.5, vsy*.5,24,"oc")
 			Text("Please share your units to allies that need them",vsx*.5, vsy*.4,18,"oc")
@@ -170,10 +179,19 @@ function gadget:RecvFromSynced(event,team,allyTeam)
 	return false
 end
 
+local function AliveCount(_, t, n)
+	playerCommsAlive[t] = n
+end
+
 function gadget:Initialize()
+	gadgetHandler:AddSyncAction("AliveCount", AliveCount)	
 	if Spring.GetModOptions().deathmode~="comcontrol" then
 		gadgetHandler:RemoveGadget()
 	end
+end
+
+function gadget:Shutdown()
+	gadgetHandler:RemoveSyncAction("AliveCount")	
 end
 
 end
