@@ -406,7 +406,11 @@ function widget:DrawScreen()
       end
      -- repeat mode?
       local ustate   = GetUnitStates(facInfo.unitID)
-      options['repeat'] = ustate["repeat"]
+      if ustate ~= nil then
+        options['repeat'] = ustate["repeat"]
+      else
+        options['repeat'] = false
+      end
      -- hover or pressed?
       if (i==hoveredFac+1) then
         options.hovered_repeat = IsInRect(mx,my, {fac_rec[3]-repIcoSize,fac_rec[2],fac_rec[3],fac_rec[2]-repIcoSize}) 
@@ -785,7 +789,7 @@ function MenuHandler(x,y,button)
       local unitID = facs[pressedFac+1].unitID
       local ustate = GetUnitStates(unitID)
       local onoff  = {1}
-      if ustate["repeat"] then onoff = {0} end
+      if ustate ~= nil and ustate["repeat"] then onoff = {0} end
       Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, { })
       Spring.PlaySoundFile(sound_click, 0.97)
     else--if (bar_openByClick) then

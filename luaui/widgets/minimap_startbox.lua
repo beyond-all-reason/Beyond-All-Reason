@@ -327,7 +327,7 @@ function widget:DrawScreenEffects()
   for _, teamID in ipairs(Spring.GetTeamList()) do
     local _,leader = Spring.GetTeamInfo(teamID)
     local name,_,spec = Spring.GetPlayerInfo(leader)
-    if ((not spec) and (teamID ~= gaiaTeamID)) then
+    if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) then
       local colorStr, outlineStr = GetTeamColorStr(teamID)
       local x, y, z = Spring.GetTeamStartPosition(teamID)
       if (x ~= nil and x > 0 and z > 0 and y > -500) then
