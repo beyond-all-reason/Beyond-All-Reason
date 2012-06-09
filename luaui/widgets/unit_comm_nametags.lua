@@ -78,7 +78,7 @@ local comms = {}
 --gets the name, color, and height of the commander
 local function GetCommAttributes(unitID, unitDefID)
   local team = GetUnitTeam(unitID)
-  if team == nil
+  if team == nil then
     return nil
   end
   local _, player = GetTeamInfo(team)
