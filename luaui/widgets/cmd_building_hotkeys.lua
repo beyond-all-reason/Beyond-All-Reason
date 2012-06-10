@@ -88,7 +88,6 @@ local binds={
 	"bind shift+c buildunit_corvipe",
 	"bind c buildunit_corflak",
 	"bind shift+c buildunit_corflak",
-	
 	"bind c buildunit_armtl",
 	"bind shift+c buildunit_armtl",
 	"bind c buildunit_cortl",
@@ -105,7 +104,6 @@ local binds={
 	"bind shift+c buildunit_armfrt",
 	"bind c buildunit_corfrt",
 	"bind shift+c buildunit_corfrt",
-	
 	"bind v buildunit_armnanotc",
 	"bind shift+v buildunit_armnanotc",
 	"bind v buildunit_armlab",

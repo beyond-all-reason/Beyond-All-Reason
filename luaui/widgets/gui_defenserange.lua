@@ -1,7 +1,7 @@
 include("colors.h.lua")
 include("keysym.h.lua")
 
-local versionNumber = "6.31"
+local versionNumber = "6.32"
 
 function widget:GetInfo()
 	return {
@@ -106,6 +106,84 @@ modConfig["BA"]["dps"]["ground"]["max"] = 500
 modConfig["BA"]["dps"]["air"]["min"] = 80
 modConfig["BA"]["dps"]["air"]["max"] = 500
 --end of dps-colors
+
+-- BA
+--to support other mods
+--table initialized and unitList is needed!
+modConfig["BAR"] = {}
+modConfig["BAR"]["unitList"] = 
+							{ 
+								armclaw = { weapons = { 1 } },
+								cormaw = { weapons = { 1 } },
+								armllt = { weapons = { 1 } },
+								tawf001 = { weapons = { 1 } },
+								armhlt = { weapons = { 1 } },
+								armguard = { weapons = { 1, 1 } },
+								armrl = { weapons = { 2 } }, --light aa
+								packo = { weapons = { 2 } },
+								armcir = { weapons = { 2 } }, --chainsaw
+								armdl = { weapons = { 1 } }, --depthcharge
+								ajuno = { weapons = { 1 } },
+								armtl = { weapons = { 1 } }, --torp launcher
+								armfhlt = { weapons = { 1 } },  --floating hlt
+								armfrt = { weapons = { 2 } },  --floating rocket laucher
+								armfflak = { weapons = { 2 } },  --floating flak AA
+								armatl = { weapons = { 1 } },  --adv torpedo launcher
+
+								armamb = { weapons = { 1,1 } }, --ambusher
+								armpb = { weapons = { 1 } }, --pitbull
+								armanni = { weapons = { 1 } },
+								armflak = { weapons = { 2 } },
+								mercury = { weapons = { 2 } },
+								armemp = { weapons = { 1 } },
+								armamd = { weapons = { 3 } }, --antinuke
+								
+								armbrtha = { weapons = { 1 } },
+								armvulc = { weapons = { 1 } },
+								
+								--CORE
+								corexp = { weapons = { 1 } },
+								cormaw = { weapons = { 1 } },
+								corllt = { weapons = { 1 } },
+								hllt = { weapons = { 1 } },
+								corhlt = { weapons = { 1 } },
+								corpun = { weapons = { 1, 1 } },
+								corrl = { weapons = { 2 } },
+								madsam = { weapons = { 2 } },
+								corerad = { weapons = { 2 } },
+								cordl = { weapons = { 1 } },
+								cjuno = { weapons = { 1 } },
+								
+								corfhlt = { weapons = { 1 } },  --floating hlt
+								cortl = { weapons = { 1 } }, --torp launcher
+								coratl = { weapons = { 1 } }, --T2 torp launcher
+								corfrt = { weapons = { 2 } }, --floating rocket laucher
+								corenaa = { weapons = { 2 } }, --floating flak AA
+								
+								cortoast = { weapons = { 1 } },
+								corvipe = { weapons = { 1 } },
+								cordoom = { weapons = { 1 } },
+								corflak = { weapons = { 2 } },
+								screamer = { weapons = { 2 } },
+								cortron = { weapons = { 1 } },
+								corfmd = { weapons = { 3 } },
+								corint = { weapons = { 1 } },
+								corbuzz = { weapons = { 1 } }					
+							}
+
+--implement this if you want dps-depending ring-colors
+--colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
+modConfig["BAR"]["armorTags"] = {}
+modConfig["BAR"]["armorTags"]["air"] = "vtol"
+modConfig["BAR"]["armorTags"]["ground"] = "else"
+modConfig["BAR"]["dps"] = {}
+modConfig["BAR"]["dps"]["ground"] = {}
+modConfig["BAR"]["dps"]["air"] = {}
+modConfig["BAR"]["dps"]["ground"]["min"] = 50
+modConfig["BAR"]["dps"]["ground"]["max"] = 500
+modConfig["BAR"]["dps"]["air"]["min"] = 80
+modConfig["BAR"]["dps"]["air"]["max"] = 500
+
 --implement this if you want custom colors - we dont want it for BA
 --[[
 modConfig["BA"]["color"] = {}
