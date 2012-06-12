@@ -215,7 +215,7 @@ function ScanFeatures()
 
 			local resName, _ = spGetFeatureResurrect(fID)
 											
-			if ( (resName == "" or dontTrackEnemyWrecks == 0) and fAllyID >= 0 and myAllyID ~= fAllyID and ghostFeatures[fID] == nil ) then
+			if ( (resName == "" or dontTrackEnemyWrecks == 0) and fAllyID ~= nil and fAllyID >= 0 and myAllyID ~= fAllyID and ghostFeatures[fID] == nil ) then
 							
 				local x, y, z = spGetFeaturePosition(fID)
 				local dx,_,dz = spGetFeatureDirection(fID)

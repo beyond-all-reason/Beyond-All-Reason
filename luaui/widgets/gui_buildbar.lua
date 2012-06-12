@@ -518,14 +518,16 @@ function widget:DrawInMiniMap(sx,sy)
        local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25)*4 - 0.5)
        local x,_,z = Spring.GetUnitBasePosition(facs[openedMenu+1].unitID)
 
-       gl.PointSize(pt*0.066)
-       gl.Color(0, 0, 0)
-       gl.BeginEnd(GL.POINTS, function() gl.Vertex(x, z) end)
-       gl.PointSize(pt*0.051)
-       gl.Color(r,g,b, alpha)
-       gl.BeginEnd(GL.POINTS, function() gl.Vertex(x, z) end)
-       gl.PointSize(1)
-       gl.Color(1, 1, 1, 1)
+       if x ~= nil then
+         gl.PointSize(pt*0.066)
+         gl.Color(0, 0, 0)
+         gl.BeginEnd(GL.POINTS, function() gl.Vertex(x, z) end)
+         gl.PointSize(pt*0.051)
+         gl.Color(r,g,b, alpha)
+         gl.BeginEnd(GL.POINTS, function() gl.Vertex(x, z) end)
+         gl.PointSize(1)
+         gl.Color(1, 1, 1, 1)
+       end
      gl.PopMatrix()
    end
 end
