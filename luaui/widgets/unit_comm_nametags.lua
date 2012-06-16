@@ -139,7 +139,11 @@ end
 
 function spGetUnitPieceMap(unitID,piecename)
   local pieceMap = {}
-  for piecenum,piecename in pairs(Spring.GetUnitPieceList(unitID)) do
+  local pl = Spring.GetUnitPieceList(unitID)
+  if pl == nil then
+    return pieceMap
+  end
+  for piecenum,piecename in pairs(pl) do
     pieceMap[piecename] = piecenum
   end
   return pieceMap
