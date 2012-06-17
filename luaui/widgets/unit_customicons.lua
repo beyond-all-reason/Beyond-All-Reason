@@ -86,7 +86,9 @@ function widget:Initialize()
         ud.origIconType = ud.iconType
       end
       
-      if (ud.name=="armwin") or (ud.name=="corwin") then
+      if (ud.name=="roost") then
+        Spring.SetUnitDefIcon(udid, "star.user")
+      elseif (ud.name=="armwin") or (ud.name=="corwin") then
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.name=="armfig") or (ud.name=="corveng") or (ud.name=="armhawk") or (ud.name=="corvamp") then
         Spring.SetUnitDefIcon(udid, "tri-up_fighter.user") 
