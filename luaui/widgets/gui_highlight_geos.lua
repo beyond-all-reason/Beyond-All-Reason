@@ -23,6 +23,7 @@ local geoDisplayList
 local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glCallList = gl.CallList
+local glColor = gl.Color
 local spGetMapDrawMode = Spring.GetMapDrawMode
 
 ----------------------------------------------------------------
@@ -66,6 +67,7 @@ function widget:DrawWorld()
 		glLineWidth(20)
 		glDepthTest(true)
 		glCallList(geoDisplayList)
+        glColor(1, 1, 1, 1)
 		glLineWidth(1)
 	end
 end
