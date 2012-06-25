@@ -457,10 +457,13 @@ do
         primaryWeapon = ud.primaryWeapon-1,
       }
     end
-    ci = customInfo[unitDefID]
-
-    fullText = true
     ux, uy, uz = GetUnitViewPosition(unitID)
+    if ux == nil then
+        return
+    end
+
+    ci = customInfo[unitDefID]
+    fullText = true
     dx, dy, dz = ux-cx, uy-cy, uz-cz
     dist = dx*dx + dy*dy + dz*dz
     if (dist > infoDistance) then

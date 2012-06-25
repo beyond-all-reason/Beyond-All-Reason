@@ -495,12 +495,15 @@ end
 function widget:DrawWorld()
   -- Draw factories command lines
   if waypointMode>1 or openedMenu>=0 then
-    local unitID
-    if waypointMode>1 
-      then unitID = facs[waypointFac+1].unitID
-      else unitID = facs[openedMenu+1].unitID end
-
-    DrawUnitCommands(unitID)
+    local fac
+    if waypointMode>1 then
+      fac = facs[waypointFac+1]
+    else
+      fac = facs[openedMenu+1]
+    end
+    if fac ~= nil then
+      DrawUnitCommands(fac.unitID)
+    end
   end
 end
 
