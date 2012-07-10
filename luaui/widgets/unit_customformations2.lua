@@ -319,15 +319,17 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	
 	spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
-local function GiveNotifyingOrderToUnit(uID, cmdID, cmdParams, cmdOpts)
+local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOpts)
 	
 	for _, w in ipairs(widgetHandler.widgets) do
 		if w.UnitCommandNotify and w:UnitCommandNotify(uID, cmdID, cmdParams, cmdOpts) then
 			return
 		end
 	end
-	
-	spGiveOrderToUnit(uID, cmdID, cmdParams, cmdOpts.coded)
+
+	uArr[#uArr + 1] = uID
+	oArr[#oArr + 1] = {cmdID, cmdParams, cmdOpts.coded}
+	return
 end
 
 --------------------------------------------------------------------------------
@@ -540,19 +542,32 @@ function widget:MouseRelease(mx, my, mButton)
 					orders = GetOrdersNoX(interpNodes, mUnits, #mUnits, shift and not meta)
 				end
 				
+				local unitArr = {}
+				local orderArr = {}
 				if meta then
 					local altOpts = GetCmdOpts(true, false, false, false, false)
 					for i = 1, #orders do
 						local orderPair = orders[i]
 						local orderPos = orderPair[2]
-						GiveNotifyingOrderToUnit(orderPair[1], CMD_INSERT, {0, usingCmd, cmdOpts.coded, orderPos[1], orderPos[2], orderPos[3]}, altOpts)
+						GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], CMD_INSERT, {0, usingCmd, cmdOpts.coded, orderPos[1], orderPos[2], orderPos[3]}, altOpts)
+						if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
+							Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
+							unitArr = {}
+							orderArr = {}
+						end
 					end
 				else
 					for i = 1, #orders do
 						local orderPair = orders[i]
-						GiveNotifyingOrderToUnit(orderPair[1], usingCmd, orderPair[2], cmdOpts)
+						GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
+						if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
+							Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
+							unitArr = {}
+							orderArr = {}
+						end
 					end
 				end
+
 			end
 		end
 		
