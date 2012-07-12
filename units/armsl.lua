@@ -13,7 +13,6 @@ return {
 		cruisealt = 150,
 		description = "Assault Transport",
 		energymake = 3,
-		energyuse = 16,
 		explodeas = "BIG_UNITEX",
 		footprintx = 4,
 		footprintz = 4,
