@@ -113,7 +113,6 @@ return {
 				reloadtime = 0.15000000596046,
 				rgbcolor = "0.75 0 0",
 				rgbcolor2 = "0.9 0.9 0.6",
-				soundhit = "lasrhit1",
 				soundstart = "lasfirerb",
 				soundtrigger = true,
 				thickness = 3.5,

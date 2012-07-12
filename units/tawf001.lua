@@ -117,7 +117,6 @@ return {
 				range = 475,
 				reloadtime = 0.10000000149012,
 				rgbcolor = "0 0 1",
-				soundhit = "burn02",
 				soundstart = "build2",
 				soundtrigger = true,
 				targetmoveerror = 0.050000000745058,

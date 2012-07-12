@@ -74,7 +74,6 @@ return {
 				range = 420,
 				reloadtime = 1.0499999523163,
 				rgbcolor = "0 1 0",
-				soundhit = "lasrhit1",
 				soundstart = "Lasrmas2",
 				targetmoveerror = 0.30000001192093,
 				thickness = 2.9000000953674,

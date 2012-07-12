@@ -185,7 +185,6 @@ return {
 				range = 800,
 				reloadtime = 5,
 				rgbcolor = "0.2 0.2 1",
-				soundhit = "xplosml3",
 				soundstart = "annigun1",
 				targetmoveerror = 0.20000000298023,
 				thickness = 4,

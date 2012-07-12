@@ -113,7 +113,6 @@ return {
 				noselfdamage = true,
 				range = 230,
 				reloadtime = 0.60000002384186,
-				soundhit = "lashit",
 				soundstart = "lasrfast",
 				soundtrigger = true,
 				targetmoveerror = 0.30000001192093,

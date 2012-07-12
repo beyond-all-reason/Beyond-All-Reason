@@ -153,7 +153,6 @@ return {
 				range = 220,
 				reloadtime = 0.89999997615814,
 				rgbcolor = "1 1 0",
-				soundhit = "lasrhit2",
 				soundstart = "lasrfir1",
 				soundtrigger = true,
 				targetmoveerror = 0.20000000298023,

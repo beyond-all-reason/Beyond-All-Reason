@@ -75,7 +75,6 @@ return {
 				range = 520,
 				reloadtime = 8,
 				rgbcolor = "0.9 0.9 0",
-				soundhit = "lashit",
 				soundstart = "hackshot",
 				soundtrigger = true,
 				targetmoveerror = 0.30000001192093,

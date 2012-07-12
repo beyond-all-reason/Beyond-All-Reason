@@ -120,7 +120,6 @@ return {
 				range = 300,
 				reloadtime = 1.1499999761581,
 				rgbcolor = "0 1 0",
-				soundhit = "lasrhit1",
 				soundstart = "lasrhvy3",
 				targetmoveerror = 0.25,
 				thickness = 3,
