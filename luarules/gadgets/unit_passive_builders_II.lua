@@ -83,13 +83,27 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
 end
 
 function gadget:GameFrame(n)
-    if n % 16 == 0 then
+    if n % 32 == 0 then
         for i = 1, #teamList do
             local teamID = teamList[i]
-            local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec = spGetTeamResources(teamID, 'metal')
-            local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec = spGetTeamResources(teamID, 'energy')
-            teamMetalStalling[teamID] = (mCur < 0.5 * mPull)
-            teamEnergyStalling[teamID] = (eCur < 0.5 * ePull)
+            local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec, mExc = spGetTeamResources(teamID, 'metal')
+            local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec, eExc = spGetTeamResources(teamID, 'energy')
+            -- stabilize the situation if storage is small
+            if ePull > eExp then
+                eCur = eCur - (ePull - eExp)
+            end
+            if eExc > 0 then
+                eCur = eCur + eExc
+            end            
+            if mPull > mExp then
+                mCur = mCur - (mPull - mExp)
+            end
+            if mExc > 0 then
+                mCur = mCur + mExc
+            end
+            -- never consider it a stall if the actual combined income is higher than the total expense
+            teamMetalStalling[teamID] = (mCur < 0.5 * mPull) and ((mInc + mRec) <= (mExp + mSent))
+            teamEnergyStalling[teamID] = (eCur < 0.5 * ePull) and ((eInc + eRec) <= (eExp + eSent))
         end
     end
 end
