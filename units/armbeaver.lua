@@ -4,7 +4,7 @@ return {
 		brakerate = 0.11659999936819,
 		buildcostenergy = 2928,
 		buildcostmetal = 141,
-		builddistance = 128,
+		builddistance = 96,
 		builder = true,
 		buildpic = "ARMBEAVER.DDS",
 		buildtime = 6708,

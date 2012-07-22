@@ -4,7 +4,7 @@ return {
 		brakerate = 0.11659999936819,
 		buildcostenergy = 3216,
 		buildcostmetal = 161,
-		builddistance = 128,
+		builddistance = 96,
 		builder = true,
 		buildpic = "CORMUSKRAT.DDS",
 		buildtime = 6864,

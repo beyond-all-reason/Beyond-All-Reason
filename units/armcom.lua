@@ -6,7 +6,7 @@ return {
 		brakerate = 0.375,
 		buildcostenergy = 25000,
 		buildcostmetal = 2500,
-		builddistance = 128,
+		builddistance = 96,
 		builder = true,
 		buildpic = "ARMCOM.DDS",
 		buildtime = 75000,

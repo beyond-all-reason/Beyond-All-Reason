@@ -4,7 +4,7 @@ return {
 		brakerate = 0.25,
 		buildcostenergy = 1400,
 		buildcostmetal = 102,
-		builddistance = 128,
+		builddistance = 96,
 		builder = true,
 		buildpic = "CORNECRO.DDS",
 		buildtime = 2400,

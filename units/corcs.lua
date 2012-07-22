@@ -4,7 +4,7 @@ return {
 		brakerate = 0.10000000149012,
 		buildcostenergy = 2375,
 		buildcostmetal = 260,
-		builddistance = 250,
+		builddistance = 128,
 		builder = true,
 		buildpic = "CORCS.DDS",
 		buildtime = 5537,
