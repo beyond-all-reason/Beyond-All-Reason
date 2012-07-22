@@ -37,4 +37,9 @@ for name, ud in pairs(UnitDefs) do
 			ud.turninplaceanglelimit = 91
 		end
 	end
-end 
+end
+
+-- Setting collisionvolumetest true for all units
+for name, ud in pairs(UnitDefs) do
+		ud.collisionvolumetest = true
+end
