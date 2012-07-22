@@ -204,7 +204,7 @@ return {
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
-				cylindertargetting = true,
+				cylindertargeting = true,
 				edgeeffectiveness = 0.44999998807907,
 				explosiongenerator = "custom:KROGCRUSHE",
 				impulseboost = 8,

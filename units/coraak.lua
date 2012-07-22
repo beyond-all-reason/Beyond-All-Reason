@@ -98,7 +98,7 @@ return {
 				color = 1,
 				craterboost = 0,
 				cratermult = 0,
-				cylindertargetting = 1,
+				cylindertargeting = 1,
 				edgeeffectiveness = 0.85000002384186,
 				gravityaffected = "true",
 				impulseboost = 0,

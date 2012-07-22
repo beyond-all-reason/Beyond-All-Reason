@@ -63,7 +63,7 @@ return {
 				corethickness = 0.10000000149012,
 				craterboost = 0,
 				cratermult = 0,
-				cylindertargetting = 1,
+				cylindertargeting = 1,
 				duration = 0.0099999997764826,
 				explosiongenerator = "custom:EMPFLASH20",
 				impactonly = 1,

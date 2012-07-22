@@ -198,7 +198,7 @@ local function SetupUnitDef(unitDefID, unitDef)
   local waterWeapon = maxWeaponDef.waterWeapon
   local ee = maxWeaponDef.edgeEffectiveness
   
-  if (maxWeaponDef.cylinderTargetting >= 100) then
+  if (maxWeaponDef.cylinderTargeting >= 100) then
     aoeDefInfo[unitDefID] = {type = "orbital", scatter = scatter}
   elseif (weaponType == "Cannon") then
     aoeDefInfo[unitDefID] = {type = "ballistic", scatter = scatter, v = maxWeaponDef.projectilespeed * 30, range = maxWeaponDef.range}
