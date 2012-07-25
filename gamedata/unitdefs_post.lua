@@ -37,6 +37,10 @@ for name, ud in pairs(UnitDefs) do
 			ud.turninplaceanglelimit = 91
 		end
 	end
+	if (name == 'armnanotc' or name == 'cornanotc') then
+		ud.cantbetransported=false
+	end
+	ud.minCollisionSpeed = -1000000.0
 end
 
 -- Setting collisionvolumetest true for all units
