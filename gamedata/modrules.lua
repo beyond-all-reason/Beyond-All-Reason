@@ -24,6 +24,7 @@ local modrules  = {
     allow_team_colors = true;
   },
   
+  useClassicGroundMoveType = false;
   featureLOS = { featureVisibility = 2; },
 
   system = {
