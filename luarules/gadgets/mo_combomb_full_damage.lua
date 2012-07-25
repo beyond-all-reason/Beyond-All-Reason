@@ -40,7 +40,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
   if COMMANDER[unitDefID] then
-    local x,y,z = Spring.GetUnitBasePosition(unitID)
+    local x,y,z = Spring.GetUnitPosition(unitID)
 	local h = Spring.GetGroundHeight(x,z)
 	if ((y-h) > 15) then
 		FAILBOMB[unitID] = true
@@ -60,6 +60,20 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
 	end
   end
   return damage,1
+end
+
+function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
+	if (Spring.GetUnitSelfDTime (transportID) > 0 or Spring.GetUnitHealth (transportID) < 0) then	--***not sure what happens with transports with selfDestructTime=0
+		--Spring.Echo ("unloaded " .. unitID .. " from a DEAD transport")
+		
+		if (COMMANDER[unitDefID]) then
+			--Spring.Echo ("Commander BOOM PASSENGER IS DEAD!")
+			--Spring.AddUnitDamage (unitID, math.huge)	--simply doing this here will still result in crash
+			FAILBOMB[unitID] = true
+		--else
+			--Spring.Echo('Unit in trans was not a commander!')
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
