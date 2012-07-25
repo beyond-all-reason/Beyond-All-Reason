@@ -41,13 +41,11 @@ end
 function gadget:UnitUnloaded(unitID, unitDefID, _, transID)
 	if unitDefID ~= COMMANDO then
 		local x,y,z = Spring.GetUnitBasePosition(unitID)
-		local h = Spring.GetGroundHeight(x,z)
+		local h = math.max(0,Spring.GetGroundHeight(x,z))
 		local damage = 0
 		if (y-h) > 25 then
 			local Udef = UnitDefs[unitDefID]
 			damage = Udef.mass * (y-h)/50
-		elseif (y-h) > 5 then
-			damage = ((y-h)*25)
 		end
 		if damage > 10 then 
 			fC = fC + 1
