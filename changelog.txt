@@ -1,3 +1,33 @@
+7.67(8) -> 7.70
+7/25/2012
+- Perfomance optimized blob shadows (nearly 30% faster) 
+- Optimized group label widget 
+- Fixed keybind/hotkey screen 
+- Fixed cortide yardmap
+- Xray widgets removed 
+- Guardian and punisher 15% less metal costs 
+- Arm cloakable fus cloak cost reduced to 100 (from 200) auto cloaks when built
+- Added mute support to red console Syntax: /mute <PlayerName?> /unmute … 
+- Merl AOE increased (100->150) Diplomat AOE increased (90->150)
+- From BrainDamage: take command for idle players 
+- Added 'Prevent Excessive Share' gadget, fixes lost resources on take bug
+- Added modoption to switch to classic pathfinder 
+- Changed to BrainDamage's dynamic stockpiler 
+- Decreased HP of t1 metal storages by 30%
+- reduced morty speed by 20% 
+- Updated game energy converion gadget, stunned mm no longer produce m, each mm now shows output like old times
+- DGUN Unstall widget replaced by DGUN stall assist widget
+- Fixed crash in mo_preventdraw when game is acutally a draw 
+- Added 3 more widgets on request: cmd_factoryqmanager.lua  gui_idle_builders_new.lua unit_only_fighters_patrol.lua 
+- Mex upgrader fix
+- Set collisionvolumetest true for all unit's 
+- Fixed comm reduced airblast
+- Nano towers are now transportable, in t1 transports too. 
+- Fix units receiving damage on not-so-nice unloads from transports. 
+- Vanguard nerf: hp 15k->12k, weaponvelocity 610->500, predicboost 0.75->0.25
+- Plenty of widget and gadget fixes, optimizations for MT.
+
+
 7.66->7.67
 3/24/2012
 - Removed hacky 87 gadgets
