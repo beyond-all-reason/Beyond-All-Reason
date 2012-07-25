@@ -38,15 +38,15 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	FAILBOMB[unitID] = nil
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  if COMMANDER[unitDefID] then
-    local x,y,z = Spring.GetUnitPosition(unitID)
-	local h = Spring.GetGroundHeight(x,z)
-	if ((y-h) > 15) then
-		FAILBOMB[unitID] = true
-	end
-  end
-end
+-- function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+  -- if COMMANDER[unitDefID] then
+    -- local x,y,z = Spring.GetUnitPosition(unitID)
+	-- local h = Spring.GetGroundHeight(x,z)
+	-- if ((y-h) > 15) then
+		-- FAILBOMB[unitID] = true
+	-- end
+  -- end
+-- end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
                             weaponID, attackerID, attackerDefID, attackerTeam)
