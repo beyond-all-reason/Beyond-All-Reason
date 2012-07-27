@@ -38,7 +38,7 @@ walk2()
 			turn leg5 to z-axis <0.000000> speed <0.000000>;
 			turn leg6 to y-axis <0.000000> now;
 			turn leg6 to y-axis <-30.005495> speed <152.000000>;
-			turn leg6 to z-axis <-45.010989> now;
+			turn leg6 to z-axis <-45.010989> speed <179.680964>;
 			sleep 200;
 		}
 		if( bMoving )

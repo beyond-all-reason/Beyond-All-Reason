@@ -22,7 +22,7 @@ walkscr()
 			turn leg2 to z-axis <0.000000> speed <262.000000>;
 			turn leg3 to y-axis <0.000000> now;
 			turn leg3 to y-axis <60.010989> speed <413.000000>;
-			turn leg3 to z-axis <37.796703> now;
+			turn leg3 to z-axis <37.796703> speed <205.597450>;
 			turn leg4 to y-axis <-60.302198> now;
 			turn leg4 to y-axis <0.000000> speed <413.000000>;
 			turn leg4 to z-axis <0.000000> now;

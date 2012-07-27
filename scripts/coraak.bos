@@ -1,0 +1,562 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  ground, pelvis, lleg, rleg, turret, gunbase, rmiss, rmiss_fire,
+       lmiss, lmiss_fire, flak, flak_fire, fire1, fire2, fire3, fire4,
+       fire5, fire6;
+
+static-var  bMoving, Static_Var_2;
+
+
+walk()
+{
+	while( bMoving )
+	{
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [0.000000] now;
+			move lleg to z-axis [5.000000] speed [59.638554];
+			move rleg to y-axis [0.000000] now;
+			move rleg to z-axis [-5.000000] speed [59.638554];
+			turn pelvis to x-axis <6.000000> speed <71.566265>;
+			turn lleg to x-axis <-6.000000> speed <71.566265>;
+			turn rleg to x-axis <0.000000> now;
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [-2.500000] now;
+			move lleg to y-axis [2.500000] now;
+			move rleg to y-axis [2.500000] now;
+			turn pelvis to x-axis <5.000000> now;
+			turn lleg to x-axis <-5.000000> now;
+			turn rleg to x-axis <1.000000> now;
+			sleep 30;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [0.000000] now;
+			move rleg to y-axis [0.000000] now;
+			turn pelvis to x-axis <2.000000> now;
+			turn lleg to x-axis <-2.000000> now;
+			turn rleg to x-axis <3.000000> now;
+			sleep 20;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [0.000000] now;
+			move rleg to y-axis [0.000000] now;
+			turn pelvis to x-axis <1.000000> now;
+			turn lleg to x-axis <-1.000000> now;
+			turn rleg to x-axis <3.000000> now;
+			sleep 10;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [0.000000] now;
+			move rleg to y-axis [2.500000] speed [29.819277];
+			move rleg to z-axis [-5.000000] now;
+			turn pelvis to x-axis <0.000000> speed <71.566265>;
+			turn lleg to x-axis <0.000000> speed <71.566265>;
+			turn rleg to x-axis <0.000000> now;
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move lleg to z-axis [2.500000] speed [29.819277];
+			move rleg to z-axis [0.000000] speed [59.638554];
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move lleg to y-axis [0.000000] now;
+			move lleg to z-axis [0.000000] speed [29.819277];
+			move rleg to z-axis [0.000000] now;
+			turn pelvis to x-axis <0.000000> now;
+			turn lleg to x-axis <0.000000> now;
+			turn rleg to x-axis <0.000000> now;
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move lleg to z-axis [-2.500000] speed [16.610738];
+			move rleg to z-axis [2.500000] speed [16.610738];
+			turn rleg to x-axis <-9.000000> speed <59.798658>;
+			sleep 100;
+		}
+		if( bMoving )
+		{
+			move lleg to z-axis [-2.500000] now;
+			move rleg to y-axis [0.000000] speed [29.819277];
+			turn pelvis to x-axis <6.000000> speed <71.566265>;
+			turn rleg to x-axis <-6.000000> speed <35.783133>;
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [2.500000] now;
+			move rleg to y-axis [2.500000] now;
+			turn pelvis to x-axis <5.000000> now;
+			turn lleg to x-axis <1.000000> now;
+			turn rleg to x-axis <-5.000000> now;
+			sleep 30;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [0.000000] now;
+			move rleg to y-axis [0.000000] now;
+			turn pelvis to x-axis <2.000000> now;
+			turn lleg to x-axis <3.000000> now;
+			turn rleg to x-axis <-2.000000> now;
+			sleep 20;
+		}
+		if( bMoving )
+		{
+			move pelvis to y-axis [0.000000] now;
+			move lleg to y-axis [0.000000] now;
+			move rleg to y-axis [0.000000] now;
+			turn pelvis to x-axis <1.000000> now;
+			turn lleg to x-axis <2.000000> now;
+			turn rleg to x-axis <-1.000000> now;
+			sleep 10;
+		}
+		if( bMoving )
+		{
+			move lleg to y-axis [2.500000] speed [29.819277];
+			move lleg to z-axis [-5.000000] speed [29.819277];
+			move rleg to y-axis [2.500000] speed [29.819277];
+			turn pelvis to x-axis <0.000000> speed <71.566265>;
+			turn lleg to x-axis <0.000000> now;
+			turn rleg to x-axis <0.000000> speed <71.566265>;
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move lleg to z-axis [-2.500000] speed [29.819277];
+			move rleg to z-axis [0.000000] speed [29.819277];
+			sleep 60;
+		}
+		if( bMoving )
+		{
+			move lleg to z-axis [0.000000] speed [29.819277];
+			move rleg to y-axis [0.000000] speed [29.819277];
+			move rleg to z-axis [0.000000] now;
+			turn rleg to x-axis <0.000000> now;
+			sleep 60;
+		}
+		move lleg to z-axis [2.500000] speed [16.610738];
+		move rleg to y-axis [0.000000] now;
+		move rleg to z-axis [-2.500000] speed [16.610738];
+		turn lleg to x-axis <-10.000000> speed <66.442953>;
+		turn rleg to x-axis <0.000000> now;
+		sleep 100;
+	}
+	return (0);
+}
+
+MotionControl(moving, aiming, justmoved)
+{
+	justmoved = TRUE;
+	while( TRUE )
+	{
+		moving = bMoving;
+		aiming = Static_Var_2;
+		if( moving )
+		{
+			call-script walk();
+			justmoved = TRUE;
+		}
+		if( !moving )
+		{
+			if( justmoved )
+			{
+				move pelvis to y-axis [0.000000] speed [2.500000];
+				turn lleg to x-axis <0.000000> speed <200.000000>;
+				turn rleg to x-axis <0.000000> speed <200.000000>;
+				if( !aiming )
+				{
+					turn turret to y-axis <0.000000> speed <90.000000>;
+				}
+				justmoved = FALSE;
+			}
+			sleep 100;
+		}
+	}
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from turret;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	return (0);
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	return (0);
+}
+
+Create()
+{
+	hide fire1;
+	hide fire2;
+	hide fire3;
+	hide fire4;
+	hide fire5;
+	hide fire6;
+	hide flak_fire;
+	hide lmiss_fire;
+	hide rmiss_fire;
+	start-script MotionControl();
+	start-script SmokeUnit();
+	bMoving = FALSE;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = turret;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep 5000;
+	set-signal-mask 0;
+	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn rmiss to x-axis <0.000000> speed <90.000000>;
+	turn lmiss to x-axis <0.000000> speed <90.000000>;
+	return (0);
+}
+
+QueryWeapon2(Func_Var_1)
+{
+	Func_Var_1 = 12;
+	return (0);
+}
+
+AimFromWeapon2(Func_Var_1)
+{
+	Func_Var_1 = 5;
+	return (0);
+}
+
+AimWeapon2(Func_Var_1, Func_Var_2)
+{
+	signal 2;
+	set-signal-mask 2;
+	turn turret to y-axis Func_Var_1 speed <225.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon2()
+{
+}
+
+QueryWeapon3(Func_Var_1)
+{
+	Func_Var_1 = 13;
+	return (0);
+}
+
+AimFromWeapon3(Func_Var_1)
+{
+	Func_Var_1 = 5;
+	return (0);
+}
+
+AimWeapon3(Func_Var_1, Func_Var_2)
+{
+	signal 4;
+	set-signal-mask 4;
+	turn turret to y-axis Func_Var_1 speed <225.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon3()
+{
+}
+
+QueryWeapon4(Func_Var_1)
+{
+	Func_Var_1 = 14;
+	return (0);
+}
+
+AimFromWeapon4(Func_Var_1)
+{
+	Func_Var_1 = 5;
+	return (0);
+}
+
+AimWeapon4(Func_Var_1, Func_Var_2)
+{
+	signal 8;
+	set-signal-mask 8;
+	turn turret to y-axis Func_Var_1 speed <225.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon4()
+{
+}
+
+QueryWeapon5(Func_Var_1)
+{
+	Func_Var_1 = 15;
+	return (0);
+}
+
+AimFromWeapon5(Func_Var_1)
+{
+	Func_Var_1 = 5;
+	return (0);
+}
+
+AimWeapon5(Func_Var_1, Func_Var_2)
+{
+	signal 16;
+	set-signal-mask 16;
+	turn turret to y-axis Func_Var_1 speed <225.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon5()
+{
+}
+
+QueryWeapon6(Func_Var_1)
+{
+	Func_Var_1 = 16;
+	return (0);
+}
+
+AimFromWeapon6(Func_Var_1)
+{
+	Func_Var_1 = 5;
+	return (0);
+}
+
+AimWeapon6(Func_Var_1, Func_Var_2)
+{
+	signal 32;
+	set-signal-mask 32;
+	turn turret to y-axis Func_Var_1 speed <225.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon6()
+{
+}
+
+QueryWeapon7(Func_Var_1)
+{
+	Func_Var_1 = 17;
+	return (0);
+}
+
+AimFromWeapon7(Func_Var_1)
+{
+	Func_Var_1 = 5;
+	return (0);
+}
+
+AimWeapon7(Func_Var_1, Func_Var_2)
+{
+	signal 64;
+	set-signal-mask 64;
+	turn turret to y-axis Func_Var_1 speed <225.000000>;
+	wait-for-turn turret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon7()
+{
+}
+
+QueryWeapon8(Func_Var_1)
+{
+	Func_Var_1 = 9;
+	return (0);
+}
+
+AimFromWeapon8(Func_Var_1)
+{
+	Func_Var_1 = 8;
+	return (0);
+}
+
+AimWeapon8(Func_Var_1, Func_Var_2)
+{
+	signal 128;
+	set-signal-mask 128;
+	turn lmiss to x-axis <0.000000> - Func_Var_2 speed <225.000000>;
+	wait-for-turn lmiss around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon8()
+{
+}
+
+QueryWeapon9(Func_Var_1)
+{
+	Func_Var_1 = 7;
+	return (0);
+}
+
+AimFromWeapon9(Func_Var_1)
+{
+	Func_Var_1 = 6;
+	return (0);
+}
+
+AimWeapon9(Func_Var_1, Func_Var_2)
+{
+	signal 256;
+	set-signal-mask 256;
+	turn rmiss to x-axis <0.000000> - Func_Var_2 speed <225.000000>;
+	wait-for-turn lmiss around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon9()
+{
+}
+
+QueryWeapon10(Func_Var_1)
+{
+	Func_Var_1 = 11;
+	return (0);
+}
+
+AimFromWeapon10(Func_Var_1)
+{
+	Func_Var_1 = 10;
+	return (0);
+}
+
+AimWeapon10(Func_Var_1, Func_Var_2)
+{
+	signal 512;
+	set-signal-mask 512;
+	turn flak to x-axis <0.000000> - Func_Var_2 speed <225.000000>;
+	wait-for-turn flak around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon10()
+{
+	show flak_fire;
+	sleep 100;
+	hide flak_fire;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode ground type BITMAPONLY | BITMAP1;
+		explode pelvis type BITMAPONLY | BITMAP2;
+		explode lleg type BITMAPONLY | BITMAP3;
+		explode rleg type BITMAPONLY | BITMAP4;
+		explode turret type BITMAPONLY | BITMAP5;
+		explode gunbase type BITMAPONLY | BITMAP1;
+		explode rmiss type BITMAPONLY | BITMAP2;
+		explode lmiss type BITMAPONLY | BITMAP3;
+		explode flak type BITMAPONLY | BITMAP4;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode ground type FALL | BITMAP1;
+		explode pelvis type FALL | BITMAP2;
+		explode lleg type FALL | BITMAP3;
+		explode rleg type FALL | BITMAP4;
+		explode turret type FALL | BITMAP5;
+		explode gunbase type BITMAPONLY | BITMAP1;
+		explode lmiss type FALL | BITMAP2;
+		explode rmiss type BITMAPONLY | BITMAP3;
+		explode flak type FALL | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode gunbase type BITMAPONLY | BITMAP1;
+		explode rmiss type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode lmiss type BITMAPONLY | BITMAP3;
+		explode flak type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		return (0);
+	}
+	corpsetype = 3;
+	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode gunbase type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode rmiss type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode lmiss type BITMAPONLY | BITMAP3;
+	explode flak type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	return (0);
+}

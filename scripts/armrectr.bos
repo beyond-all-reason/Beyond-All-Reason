@@ -614,16 +614,16 @@ Stop()
 
 	turn torso to x-axis <27.972527> now;
 	turn torso to x-axis <0.000000> speed <139.000000>;
-	turn Lshoulder to x-axis <-21.890110> now;
-	turn Rshoulder to x-axis <-21.280220> now;
-	turn Rarm to x-axis <-44.395604> now;
+	turn Lshoulder to x-axis <-21.890110> speed <87.383907>;
+	turn Rshoulder to x-axis <-21.280220> speed <84.949265>;
+	turn Rarm to x-axis <-44.395604> speed <177.224387>;
 	turn Rarm to z-axis <20.049451> now;
 	turn Rarm to z-axis <33.005495> speed <66.000000>;
-	turn rlathe to z-axis <-63.851648> now;
-	turn Larm to x-axis <-44.395604> now;
+	turn rlathe to z-axis <-63.851648> speed <254.891659>;
+	turn Larm to x-axis <-44.395604> speed <177.224387>;
 	turn Larm to z-axis <-20.049451> now;
 	turn Larm to z-axis <-33.005495> speed <66.000000>;
-	turn llathe to z-axis <62.642857> now;
+	turn llathe to z-axis <62.642857> speed <250.066244>;
 	sleep 200;
 
 	turn Rarm to z-axis <0.000000> speed <167.000000>;

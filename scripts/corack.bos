@@ -17,8 +17,8 @@ walk()
 {
 	if( bMoving )
 	{
-		move lforeleg to z-axis [1.750000] now;
-		move rforeleg to z-axis [-1.700000] now;
+		move lforeleg to z-axis [1.750000] speed [9.519231] *  currentSpeed / 100;
+		move rforeleg to z-axis [-1.700000] speed [9.247253] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
 		move rcasedoor to x-axis [0.000000] now;
 		move lcasedoor to x-axis [0.000000] now;
@@ -26,70 +26,70 @@ walk()
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [0.850000] now;
-		move rforeleg to y-axis [0.450000] now;
+		move lforeleg to z-axis [0.850000] speed [5.979866] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.450000] speed [2.989933] *  currentSpeed / 100;
 		move rforeleg to z-axis [-1.700000] now;
 		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [1.500000] now;
-		turn torso to x-axis <-8.076923> now;
+		move rhindleg to z-axis [1.500000] speed [9.966443] *  currentSpeed / 100;
+		turn torso to x-axis <-8.076923> speed <53.665462> *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [0.000000] now;
-		move rforeleg to y-axis [0.950000] now;
-		move rforeleg to z-axis [-1.650000] now;
+		move lforeleg to z-axis [0.000000] speed [5.647651] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.950000] speed [3.322148] *  currentSpeed / 100;
+		move rforeleg to z-axis [-1.650000] speed [0.332215] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [3.150000] now;
-		turn torso to x-axis <-11.950549> now;
+		move rhindleg to z-axis [3.150000] speed [10.963087] *  currentSpeed / 100;
+		turn torso to x-axis <-11.950549> speed <25.737515> *  currentSpeed / 100;
 		sleep 11000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [-0.789996] now;
-		move rforeleg to y-axis [0.450000] now;
-		move rforeleg to z-axis [0.000000] now;
+		move lforeleg to z-axis [-0.789996] speed [5.248967] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.450000] speed [3.322148] *  currentSpeed / 100;
+		move rforeleg to z-axis [0.000000] speed [10.963087] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [1.500000] now;
-		turn torso to x-axis <-8.076923> now;
+		move rhindleg to z-axis [1.500000] speed [10.963087] *  currentSpeed / 100;
+		turn torso to x-axis <-8.076923> speed <25.737515> *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [-1.700000] now;
-		move rforeleg to y-axis [0.000000] now;
-		move rforeleg to z-axis [1.600000] now;
+		move lforeleg to z-axis [-1.700000] speed [4.950022] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.000000] speed [2.447802] *  currentSpeed / 100;
+		move rforeleg to z-axis [1.600000] speed [8.703297] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
-		move rhindleg to z-axis [0.000000] now;
-		turn torso to x-axis <0.000000> now;
+		move rhindleg to z-axis [0.000000] speed [8.159341] *  currentSpeed / 100;
+		turn torso to x-axis <0.000000> speed <43.934911> *  currentSpeed / 100;
 		sleep 15000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to y-axis [0.450000] now;
-		move rforeleg to z-axis [0.800000] now;
+		move lforeleg to y-axis [0.450000] speed [2.989933] *  currentSpeed / 100;
+		move rforeleg to z-axis [0.800000] speed [5.315436] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
-		move lhindleg to z-axis [1.500000] now;
-		turn torso to x-axis <-8.076923> now;
+		move lhindleg to z-axis [1.500000] speed [9.966443] *  currentSpeed / 100;
+		turn torso to x-axis <-8.076923> speed <53.665462> *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to y-axis [0.950000] now;
-		move rforeleg to z-axis [0.000000] now;
+		move lforeleg to y-axis [0.950000] speed [3.322148] *  currentSpeed / 100;
+		move rforeleg to z-axis [0.000000] speed [5.315436] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
-		move lhindleg to z-axis [3.100000] now;
-		turn torso to x-axis <-11.950549> now;
+		move lhindleg to z-axis [3.100000] speed [10.630872] *  currentSpeed / 100;
+		turn torso to x-axis <-11.950549> speed <25.737515> *  currentSpeed / 100;
 		sleep 11000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to y-axis [0.450000] now;
-		move lforeleg to z-axis [0.000000] now;
-		move rforeleg to z-axis [-0.839996] now;
+		move lforeleg to y-axis [0.450000] speed [3.322148] *  currentSpeed / 100;
+		move lforeleg to z-axis [0.000000] speed [11.295302] *  currentSpeed / 100;
+		move rforeleg to z-axis [-0.839996] speed [5.581181] *  currentSpeed / 100;
 		move torso to y-axis [0.000000] now;
-		move lhindleg to z-axis [1.500000] now;
-		turn torso to x-axis <-8.076923> now;
+		move lhindleg to z-axis [1.500000] speed [10.630872] *  currentSpeed / 100;
+		turn torso to x-axis <-8.076923> speed <25.737515> *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 }
@@ -98,64 +98,64 @@ walklegs()
 {
 	if( bMoving )
 	{
-		move lforeleg to z-axis [1.750000] now;
-		move rforeleg to z-axis [-1.700000] now;
+		move lforeleg to z-axis [1.750000] speed [9.519231] *  currentSpeed / 100;
+		move rforeleg to z-axis [-1.700000] speed [4.678044] *  currentSpeed / 100;
 		move rcasedoor to x-axis [0.000000] now;
 		move lcasedoor to x-axis [0.000000] now;
 		sleep 15000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [0.850000] now;
-		move rforeleg to y-axis [0.450000] now;
+		move lforeleg to z-axis [0.850000] speed [5.979866] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.450000] speed [2.989933] *  currentSpeed / 100;
 		move rforeleg to z-axis [-1.700000] now;
-		move rhindleg to z-axis [1.500000] now;
+		move rhindleg to z-axis [1.500000] speed [9.966443] *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [0.000000] now;
-		move rforeleg to y-axis [0.950000] now;
-		move rforeleg to z-axis [-1.650000] now;
-		move rhindleg to z-axis [3.150000] now;
+		move lforeleg to z-axis [0.000000] speed [5.647651] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.950000] speed [3.322148] *  currentSpeed / 100;
+		move rforeleg to z-axis [-1.650000] speed [0.332215] *  currentSpeed / 100;
+		move rhindleg to z-axis [3.150000] speed [10.963087] *  currentSpeed / 100;
 		sleep 11000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [-0.789996] now;
-		move rforeleg to y-axis [0.450000] now;
-		move rforeleg to z-axis [0.000000] now;
-		move rhindleg to z-axis [1.500000] now;
+		move lforeleg to z-axis [-0.789996] speed [5.248967] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.450000] speed [3.322148] *  currentSpeed / 100;
+		move rforeleg to z-axis [0.000000] speed [10.963087] *  currentSpeed / 100;
+		move rhindleg to z-axis [1.500000] speed [10.963087] *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to z-axis [-1.700000] now;
-		move rforeleg to y-axis [0.000000] now;
-		move rforeleg to z-axis [1.600000] now;
-		move rhindleg to z-axis [0.000000] now;
+		move lforeleg to z-axis [-1.700000] speed [4.950022] *  currentSpeed / 100;
+		move rforeleg to y-axis [0.000000] speed [2.447802] *  currentSpeed / 100;
+		move rforeleg to z-axis [1.600000] speed [8.703297] *  currentSpeed / 100;
+		move rhindleg to z-axis [0.000000] speed [8.159341] *  currentSpeed / 100;
 		sleep 15000 / currentSpeed;
 	}
 	if( bMoving )
 	{
 		move lforeleg to y-axis [0.450000] now;
-		move rforeleg to z-axis [0.800000] now;
+		move rforeleg to z-axis [0.800000] speed [5.315436] *  currentSpeed / 100;
 		move lhindleg to z-axis [1.500000] now;
 		sleep 13000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to y-axis [0.950000] now;
-		move rforeleg to z-axis [0.000000] now;
-		move lhindleg to z-axis [3.100000] now;
+		move lforeleg to y-axis [0.950000] speed [3.322148] *  currentSpeed / 100;
+		move rforeleg to z-axis [0.000000] speed [5.315436] *  currentSpeed / 100;
+		move lhindleg to z-axis [3.100000] speed [10.630872] *  currentSpeed / 100;
 		sleep 11000 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move lforeleg to y-axis [0.450000] now;
-		move lforeleg to z-axis [0.000000] now;
-		move rforeleg to z-axis [-0.839996] now;
-		move lhindleg to z-axis [1.500000] now;
+		move lforeleg to y-axis [0.450000] speed [3.322148] *  currentSpeed / 100;
+		move lforeleg to z-axis [0.000000] speed [11.295302] *  currentSpeed / 100;
+		move rforeleg to z-axis [-0.839996] speed [5.581181] *  currentSpeed / 100;
+		move lhindleg to z-axis [1.500000] speed [10.630872] *  currentSpeed / 100;
 		sleep 13000 / currentSpeed;
 	}
 }

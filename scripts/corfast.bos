@@ -16,414 +16,414 @@ walk()
 {
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.250000] now;
-		move Hip to z-axis [-0.600000] now;
+		move Hip to y-axis [-0.250000] speed [2.133621] *  currentSpeed / 100;
+		move Hip to z-axis [-0.600000] speed [5.120690] *  currentSpeed / 100;
 		move RLLeg to y-axis [0.000000] now;
-		move LLLeg to y-axis [0.639996] now;
-		turn Hip to x-axis <10.890110> now;
-		turn torso to x-axis <5.269231> now;
-		turn LULeg to x-axis <-43.939560> now;
-		turn RULeg to x-axis <4.208791> now;
-		turn RLLeg to x-axis <19.324176> now;
-		turn LLLeg to x-axis <43.598901> now;
-		turn LUArm to x-axis <-17.219780> now;
-		turn RUArm to x-axis <-9.840659> now;
-		turn RLArm to x-axis <-9.137363> now;
-		turn LLArm to x-axis <-36.565934> now;
+		move LLLeg to y-axis [0.639996] speed [5.462035] *  currentSpeed / 100;
+		turn Hip to x-axis <10.890110> speed <92.941456> *  currentSpeed / 100;
+		turn torso to x-axis <5.269231> speed <44.970161> *  currentSpeed / 100;
+		turn LULeg to x-axis <-43.939560> speed <375.001417> *  currentSpeed / 100;
+		turn RULeg to x-axis <4.208791> speed <35.919854> *  currentSpeed / 100;
+		turn RLLeg to x-axis <19.324176> speed <164.921847> *  currentSpeed / 100;
+		turn LLLeg to x-axis <43.598901> speed <372.094069> *  currentSpeed / 100;
+		turn LUArm to x-axis <-17.219780> speed <146.961916> *  currentSpeed / 100;
+		turn RUArm to x-axis <-9.840659> speed <83.984935> *  currentSpeed / 100;
+		turn RLArm to x-axis <-9.137363> speed <77.982667> *  currentSpeed / 100;
+		turn LLArm to x-axis <-36.565934> speed <312.071333> *  currentSpeed / 100;
 		sleep 8200 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.119995] now;
-		move Hip to z-axis [-0.500000] now;
-		turn torso to x-axis <2.626374> now;
-		turn LULeg to x-axis <-57.302198> now;
-		turn RULeg to x-axis <10.708791> now;
-		turn RLLeg to x-axis <21.093407> now;
+		move Hip to y-axis [-0.119995] speed [1.550662] *  currentSpeed / 100;
+		move Hip to z-axis [-0.500000] speed [1.192771] *  currentSpeed / 100;
+		turn torso to x-axis <2.626374> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <-57.302198> speed <159.385682> *  currentSpeed / 100;
+		turn RULeg to x-axis <10.708791> speed <77.530120> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.093407> speed <21.102876> *  currentSpeed / 100;
 		turn LLLeg to x-axis <43.598901> now;
-		turn LUArm to x-axis <-8.598901> now;
-		turn RUArm to x-axis <-11.769231> now;
-		turn RLArm to x-axis <-14.230769> now;
-		turn LLArm to x-axis <-24.774725> now;
+		turn LUArm to x-axis <-8.598901> speed <102.827352> *  currentSpeed / 100;
+		turn RUArm to x-axis <-11.769231> speed <23.003449> *  currentSpeed / 100;
+		turn RLArm to x-axis <-14.230769> speed <60.752674> *  currentSpeed / 100;
+		turn LLArm to x-axis <-24.774725> speed <140.642131> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [-0.400000] now;
-		turn torso to x-axis <0.000000> now;
-		turn LULeg to x-axis <-70.664835> now;
-		turn RULeg to x-axis <17.219780> now;
-		turn RLLeg to x-axis <22.851648> now;
+		move Hip to y-axis [0.000000] speed [1.431266] *  currentSpeed / 100;
+		move Hip to z-axis [-0.400000] speed [1.192771] *  currentSpeed / 100;
+		turn torso to x-axis <0.000000> speed <31.326630> *  currentSpeed / 100;
+		turn LULeg to x-axis <-70.664835> speed <159.385670> *  currentSpeed / 100;
+		turn RULeg to x-axis <17.219780> speed <77.661194> *  currentSpeed / 100;
+		turn RLLeg to x-axis <22.851648> speed <20.971790> *  currentSpeed / 100;
 		turn LLLeg to x-axis <43.598901> now;
-		turn LUArm to x-axis <0.000000> now;
-		turn RUArm to x-axis <-13.708791> now;
-		turn RLArm to x-axis <-19.324176> now;
-		turn LLArm to x-axis <-13.000000> now;
+		turn LUArm to x-axis <0.000000> speed <102.565205> *  currentSpeed / 100;
+		turn RUArm to x-axis <-13.708791> speed <23.134511> *  currentSpeed / 100;
+		turn RLArm to x-axis <-19.324176> speed <60.752686> *  currentSpeed / 100;
+		turn LLArm to x-axis <-13.000000> speed <140.445515> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [-0.200000] now;
-		move LLLeg to y-axis [0.700000] now;
-		turn torso to x-axis <-2.626374> now;
-		turn LULeg to x-axis <-76.296703> now;
-		turn RULeg to x-axis <18.983516> now;
-		turn RLLeg to x-axis <25.313187> now;
-		turn LLLeg to x-axis <37.263736> now;
-		turn Head to x-axis <-4.038462> now;
-		turn LUArm to x-axis <10.890110> now;
-		turn RUArm to x-axis <-14.928571> now;
-		turn RLArm to x-axis <-28.994505> now;
-		turn LLArm to x-axis <-12.818681> now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [-0.200000] speed [2.385542] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.700000] speed [0.715710] *  currentSpeed / 100;
+		turn torso to x-axis <-2.626374> speed <31.326630> *  currentSpeed / 100;
+		turn LULeg to x-axis <-76.296703> speed <67.175293> *  currentSpeed / 100;
+		turn RULeg to x-axis <18.983516> speed <21.037333> *  currentSpeed / 100;
+		turn RLLeg to x-axis <25.313187> speed <29.360525> *  currentSpeed / 100;
+		turn LLLeg to x-axis <37.263736> speed <75.564016> *  currentSpeed / 100;
+		turn Head to x-axis <-4.038462> speed <48.169607> *  currentSpeed / 100;
+		turn LUArm to x-axis <10.890110> speed <129.894083> *  currentSpeed / 100;
+		turn RUArm to x-axis <-14.928571> speed <14.549183> *  currentSpeed / 100;
+		turn RLArm to x-axis <-28.994505> speed <115.344888> *  currentSpeed / 100;
+		turn LLArm to x-axis <-12.818681> speed <2.162721> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.500000] now;
-		move Hip to z-axis [0.000000] now;
-		move LLLeg to y-axis [-0.500000] now;
-		turn torso to x-axis <-5.269231> now;
-		turn LULeg to x-axis <-81.917582> now;
-		turn RULeg to x-axis <20.741758> now;
-		turn RLLeg to x-axis <27.774725> now;
-		turn LLLeg to x-axis <30.934066> now;
-		turn Head to x-axis <-8.076923> now;
-		turn LUArm to x-axis <21.791209> now;
-		turn RUArm to x-axis <-16.170330> now;
-		turn RLArm to x-axis <-38.675824> now;
-		turn LLArm to x-axis <-12.648352> now;
+		move Hip to y-axis [0.500000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.000000] speed [2.385542] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.500000] speed [14.313253] *  currentSpeed / 100;
+		turn torso to x-axis <-5.269231> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <-81.917582> speed <67.044219> *  currentSpeed / 100;
+		turn RULeg to x-axis <20.741758> speed <20.971802> *  currentSpeed / 100;
+		turn RLLeg to x-axis <27.774725> speed <29.360513> *  currentSpeed / 100;
+		turn LLLeg to x-axis <30.934066> speed <75.498473> *  currentSpeed / 100;
+		turn Head to x-axis <-8.076923> speed <48.169595> *  currentSpeed / 100;
+		turn LUArm to x-axis <21.791209> speed <130.025157> *  currentSpeed / 100;
+		turn RUArm to x-axis <-16.170330> speed <14.811342> *  currentSpeed / 100;
+		turn RLArm to x-axis <-38.675824> speed <115.475974> *  currentSpeed / 100;
+		turn LLArm to x-axis <-12.648352> speed <2.031635> *  currentSpeed / 100;
 		sleep 5900 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [0.869995] now;
-		move LLLeg to y-axis [-0.700000] now;
-		turn torso to x-axis <-2.626374> now;
-		turn LULeg to x-axis <-68.384615> now;
-		turn RULeg to x-axis <29.357143> now;
-		turn RLLeg to x-axis <25.483516> now;
-		turn LLLeg to x-axis <26.010989> now;
-		turn Head to x-axis <-7.901099> now;
-		turn LUArm to x-axis <34.456044> now;
-		turn RUArm to x-axis <-22.851648> now;
-		turn RLArm to x-axis <-54.489011> now;
-		turn LLArm to x-axis <-20.912088> now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.869995] speed [10.377049] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.700000] speed [2.385542] *  currentSpeed / 100;
+		turn torso to x-axis <-2.626374> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <-68.384615> speed <161.417317> *  currentSpeed / 100;
+		turn RULeg to x-axis <29.357143> speed <102.761821> *  currentSpeed / 100;
+		turn RLLeg to x-axis <25.483516> speed <27.328878> *  currentSpeed / 100;
+		turn LLLeg to x-axis <26.010989> speed <58.721039> *  currentSpeed / 100;
+		turn Head to x-axis <-7.901099> speed <2.097178> *  currentSpeed / 100;
+		turn LUArm to x-axis <34.456044> speed <151.062490> *  currentSpeed / 100;
+		turn RUArm to x-axis <-22.851648> speed <79.692829> *  currentSpeed / 100;
+		turn RLArm to x-axis <-54.489011> speed <188.615122> *  currentSpeed / 100;
+		turn LLArm to x-axis <-20.912088> speed <98.567453> *  currentSpeed / 100;
 		sleep 5700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [1.739996] now;
-		move LLLeg to y-axis [-0.900000] now;
-		turn torso to x-axis <0.000000> now;
-		turn LULeg to x-axis <-54.851648> now;
-		turn RULeg to x-axis <37.967033> now;
-		turn RLLeg to x-axis <23.203297> now;
-		turn LLLeg to x-axis <21.093407> now;
-		turn Head to x-axis <-7.730769> now;
-		turn LUArm to x-axis <47.109890> now;
-		turn RUArm to x-axis <-29.532967> now;
-		turn RLArm to x-axis <-70.324176> now;
-		turn LLArm to x-axis <-29.175824> now;
+		move Hip to y-axis [0.000000] speed [4.950000] *  currentSpeed / 100;
+		move Hip to z-axis [1.739996] speed [17.226020] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.900000] speed [3.960000] *  currentSpeed / 100;
+		turn torso to x-axis <0.000000> speed <52.002205> *  currentSpeed / 100;
+		turn LULeg to x-axis <-54.851648> speed <267.952747> *  currentSpeed / 100;
+		turn RULeg to x-axis <37.967033> speed <170.475822> *  currentSpeed / 100;
+		turn RLLeg to x-axis <23.203297> speed <45.148336> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.093407> speed <97.368124> *  currentSpeed / 100;
+		turn Head to x-axis <-7.730769> speed <3.372534> *  currentSpeed / 100;
+		turn LUArm to x-axis <47.109890> speed <250.546151> *  currentSpeed / 100;
+		turn RUArm to x-axis <-29.532967> speed <132.290116> *  currentSpeed / 100;
+		turn RLArm to x-axis <-70.324176> speed <313.536267> *  currentSpeed / 100;
+		turn LLArm to x-axis <-29.175824> speed <163.621973> *  currentSpeed / 100;
 		sleep 2600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.469995] now;
-		move Hip to z-axis [2.059998] now;
-		move RLLeg to y-axis [0.619995] now;
-		move LLLeg to y-axis [-0.000031] now;
+		move Hip to y-axis [-0.469995] speed [9.305901] *  currentSpeed / 100;
+		move Hip to z-axis [2.059998] speed [6.336040] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.619995] speed [12.275901] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.000031] speed [17.819386] *  currentSpeed / 100;
 		turn Hip to x-axis <10.890110> now;
-		turn torso to x-axis <2.626374> now;
-		turn LULeg to x-axis <-43.598901> now;
-		turn RULeg to x-axis <18.104396> now;
-		turn RLLeg to x-axis <48.170330> now;
-		turn LLLeg to x-axis <21.263736> now;
-		turn Head to x-axis <-3.857143> now;
-		turn LUArm to x-axis <48.868132> now;
-		turn RLArm to x-axis <-74.186813> now;
-		turn LLArm to x-axis <-23.730769> now;
+		turn torso to x-axis <2.626374> speed <52.002205> *  currentSpeed / 100;
+		turn LULeg to x-axis <-43.598901> speed <222.804391> *  currentSpeed / 100;
+		turn RULeg to x-axis <18.104396> speed <393.280213> *  currentSpeed / 100;
+		turn RLLeg to x-axis <48.170330> speed <494.347253> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.263736> speed <3.372514> *  currentSpeed / 100;
+		turn Head to x-axis <-3.857143> speed <76.697795> *  currentSpeed / 100;
+		turn LUArm to x-axis <48.868132> speed <34.813192> *  currentSpeed / 100;
+		turn RLArm to x-axis <-74.186813> speed <76.480213> *  currentSpeed / 100;
+		turn LLArm to x-axis <-23.730769> speed <107.812089> *  currentSpeed / 100;
 		sleep 2700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.939996] now;
-		move Hip to z-axis [2.400000] now;
-		move RLLeg to y-axis [1.239996] now;
-		move LLLeg to y-axis [0.800000] now;
-		turn torso to x-axis <5.269231> now;
-		turn LULeg to x-axis <-32.346154> now;
-		turn RULeg to x-axis <-1.747253> now;
-		turn RLLeg to x-axis <73.137363> now;
-		turn LLLeg to x-axis <21.434066> now;
-		turn Head to x-axis <0.000000> now;
-		turn LUArm to x-axis <50.631868> now;
-		turn RLArm to x-axis <-78.054945> now;
-		turn LLArm to x-axis <-18.280220> now;
+		move Hip to y-axis [-0.939996] speed [5.606036] *  currentSpeed / 100;
+		move Hip to z-axis [2.400000] speed [4.055446] *  currentSpeed / 100;
+		move RLLeg to y-axis [1.239996] speed [7.395193] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.800000] speed [9.542538] *  currentSpeed / 100;
+		turn torso to x-axis <5.269231> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <-32.346154> speed <134.219512> *  currentSpeed / 100;
+		turn RULeg to x-axis <-1.747253> speed <236.784729> *  currentSpeed / 100;
+		turn RLLeg to x-axis <73.137363> speed <297.799550> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.434066> speed <2.031647> *  currentSpeed / 100;
+		turn Head to x-axis <0.000000> speed <46.006886> *  currentSpeed / 100;
+		turn LUArm to x-axis <50.631868> speed <21.037333> *  currentSpeed / 100;
+		turn RLArm to x-axis <-78.054945> speed <46.137960> *  currentSpeed / 100;
+		turn LLArm to x-axis <-18.280220> speed <65.012572> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.769995] now;
-		move Hip to z-axis [1.619995] now;
-		move RLLeg to y-axis [1.189996] now;
-		move LLLeg to y-axis [0.700000] now;
-		turn torso to x-axis <7.730769> now;
-		turn LULeg to x-axis <-22.142857> now;
-		turn RULeg to x-axis <-5.087912> now;
-		turn RLLeg to x-axis <58.362637> now;
-		turn LLLeg to x-axis <11.252747> now;
-		turn Head to x-axis <4.736264> now;
-		turn LUArm to x-axis <30.406593> now;
-		turn RUArm to x-axis <-26.714286> now;
-		turn RLArm to x-axis <-61.703297> now;
-		turn LLArm to x-axis <-14.928571> now;
+		move Hip to y-axis [-0.769995] speed [2.027723] *  currentSpeed / 100;
+		move Hip to z-axis [1.619995] speed [9.303674] *  currentSpeed / 100;
+		move RLLeg to y-axis [1.189996] speed [0.596386] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.700000] speed [1.192771] *  currentSpeed / 100;
+		turn torso to x-axis <7.730769> speed <29.360513> *  currentSpeed / 100;
+		turn LULeg to x-axis <-22.142857> speed <121.701976> *  currentSpeed / 100;
+		turn RULeg to x-axis <-5.087912> speed <39.846415> *  currentSpeed / 100;
+		turn RLLeg to x-axis <58.362637> speed <176.228660> *  currentSpeed / 100;
+		turn LLLeg to x-axis <11.252747> speed <121.439829> *  currentSpeed / 100;
+		turn Head to x-axis <4.736264> speed <56.492787> *  currentSpeed / 100;
+		turn LUArm to x-axis <30.406593> speed <241.241232> *  currentSpeed / 100;
+		turn RUArm to x-axis <-26.714286> speed <33.620412> *  currentSpeed / 100;
+		turn RLArm to x-axis <-61.703297> speed <195.037729> *  currentSpeed / 100;
+		turn LLArm to x-axis <-14.928571> speed <39.977500> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.589996] now;
-		move Hip to z-axis [0.850000] now;
-		move RLLeg to y-axis [1.129999] now;
-		move LLLeg to y-axis [0.600000] now;
-		turn torso to x-axis <10.192308> now;
-		turn LULeg to x-axis <-11.950549> now;
-		turn RULeg to x-axis <-8.428571> now;
-		turn RLLeg to x-axis <43.598901> now;
-		turn LLLeg to x-axis <1.049451> now;
-		turn Head to x-axis <9.489011> now;
-		turn LUArm to x-axis <10.192308> now;
-		turn RUArm to x-axis <-23.901099> now;
-		turn RLArm to x-axis <-45.357143> now;
-		turn LLArm to x-axis <-11.598901> now;
+		move Hip to y-axis [-0.589996] speed [2.146976] *  currentSpeed / 100;
+		move Hip to z-axis [0.850000] speed [9.184278] *  currentSpeed / 100;
+		move RLLeg to y-axis [1.129999] speed [0.715627] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.600000] speed [1.192771] *  currentSpeed / 100;
+		turn torso to x-axis <10.192308> speed <29.360525> *  currentSpeed / 100;
+		turn LULeg to x-axis <-11.950549> speed <121.570903> *  currentSpeed / 100;
+		turn RULeg to x-axis <-8.428571> speed <39.846415> *  currentSpeed / 100;
+		turn RLLeg to x-axis <43.598901> speed <176.097574> *  currentSpeed / 100;
+		turn LLLeg to x-axis <1.049451> speed <121.701964> *  currentSpeed / 100;
+		turn Head to x-axis <9.489011> speed <56.689392> *  currentSpeed / 100;
+		turn LUArm to x-axis <10.192308> speed <241.110146> *  currentSpeed / 100;
+		turn RUArm to x-axis <-23.901099> speed <33.554881> *  currentSpeed / 100;
+		turn RLArm to x-axis <-45.357143> speed <194.972198> *  currentSpeed / 100;
+		turn LLArm to x-axis <-11.598901> speed <39.715341> *  currentSpeed / 100;
 		sleep 5800 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.419995] now;
-		move Hip to z-axis [0.119995] now;
-		move RLLeg to y-axis [0.889996] now;
-		move LLLeg to y-axis [0.300000] now;
-		turn torso to x-axis <7.730769> now;
-		turn LULeg to x-axis <-3.857143> now;
-		turn RULeg to x-axis <-26.181319> now;
-		turn LLLeg to x-axis <10.192308> now;
-		turn Head to x-axis <4.736264> now;
-		turn LUArm to x-axis <4.379121> now;
-		turn RUArm to x-axis <-16.340659> now;
-		turn RLArm to x-axis <-39.549451> now;
-		turn LLArm to x-axis <-11.071429> now;
+		move Hip to y-axis [-0.419995] speed [2.027723] *  currentSpeed / 100;
+		move Hip to z-axis [0.119995] speed [8.707289] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.889996] speed [2.862686] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.300000] speed [3.578313] *  currentSpeed / 100;
+		turn torso to x-axis <7.730769> speed <29.360525> *  currentSpeed / 100;
+		turn LULeg to x-axis <-3.857143> speed <96.535807> *  currentSpeed / 100;
+		turn RULeg to x-axis <-26.181319> speed <211.749645> *  currentSpeed / 100;
+		turn LLLeg to x-axis <10.192308> speed <109.053355> *  currentSpeed / 100;
+		turn Head to x-axis <4.736264> speed <56.689392> *  currentSpeed / 100;
+		turn LUArm to x-axis <4.379121> speed <69.338014> *  currentSpeed / 100;
+		turn RUArm to x-axis <-16.340659> speed <90.178742> *  currentSpeed / 100;
+		turn RLArm to x-axis <-39.549451> speed <69.272471> *  currentSpeed / 100;
+		turn LLArm to x-axis <-11.071429> speed <6.291533> *  currentSpeed / 100;
 		sleep 5700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.250000] now;
-		move Hip to z-axis [-0.600000] now;
-		move RLLeg to y-axis [0.639996] now;
-		move LLLeg to y-axis [0.000000] now;
+		move Hip to y-axis [-0.250000] speed [1.450819] *  currentSpeed / 100;
+		move Hip to z-axis [-0.600000] speed [6.144785] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.639996] speed [2.133621] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.000000] speed [2.560345] *  currentSpeed / 100;
 		turn Hip to x-axis <10.890110> now;
-		turn torso to x-axis <5.258242> now;
-		turn LULeg to x-axis <4.208791> now;
-		turn RULeg to x-axis <-43.950549> now;
-		turn LLLeg to x-axis <19.324176> now;
-		turn Head to x-axis <0.000000> now;
-		turn LUArm to x-axis <-1.395604> now;
-		turn RUArm to x-axis <-8.769231> now;
-		turn RLArm to x-axis <-33.758242> now;
-		turn LLArm to x-axis <-10.538462> now;
+		turn torso to x-axis <5.258242> speed <21.101739> *  currentSpeed / 100;
+		turn LULeg to x-axis <4.208791> speed <68.838575> *  currentSpeed / 100;
+		turn RULeg to x-axis <-43.950549> speed <151.651187> *  currentSpeed / 100;
+		turn LLLeg to x-axis <19.324176> speed <77.935770> *  currentSpeed / 100;
+		turn Head to x-axis <0.000000> speed <40.421563> *  currentSpeed / 100;
+		turn LUArm to x-axis <-1.395604> speed <49.284291> *  currentSpeed / 100;
+		turn RUArm to x-axis <-8.769231> speed <64.618222> *  currentSpeed / 100;
+		turn RLArm to x-axis <-33.758242> speed <49.424973> *  currentSpeed / 100;
+		turn LLArm to x-axis <-10.538462> speed <4.548598> *  currentSpeed / 100;
 		sleep 8700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.119995] now;
-		move Hip to z-axis [-0.500000] now;
+		move Hip to y-axis [-0.119995] speed [1.550662] *  currentSpeed / 100;
+		move Hip to z-axis [-0.500000] speed [1.192771] *  currentSpeed / 100;
 		move RLLeg to y-axis [0.639996] now;
-		turn torso to x-axis <2.626374> now;
-		turn LULeg to x-axis <11.950549> now;
-		turn RULeg to x-axis <-57.302198> now;
-		turn LLLeg to x-axis <21.093407> now;
-		turn LUArm to x-axis <-4.208791> now;
-		turn RUArm to x-axis <-4.379121> now;
-		turn RLArm to x-axis <-23.203297> now;
-		turn LLArm to x-axis <-16.873626> now;
+		turn torso to x-axis <2.626374> speed <31.392160> *  currentSpeed / 100;
+		turn LULeg to x-axis <11.950549> speed <92.341451> *  currentSpeed / 100;
+		turn RULeg to x-axis <-57.302198> speed <159.254609> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.093407> speed <21.102876> *  currentSpeed / 100;
+		turn LUArm to x-axis <-4.208791> speed <33.554881> *  currentSpeed / 100;
+		turn RUArm to x-axis <-4.379121> speed <52.363963> *  currentSpeed / 100;
+		turn RLArm to x-axis <-23.203297> speed <125.896332> *  currentSpeed / 100;
+		turn LLArm to x-axis <-16.873626> speed <75.564004> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [-0.400000] now;
+		move Hip to y-axis [0.000000] speed [1.431266] *  currentSpeed / 100;
+		move Hip to z-axis [-0.400000] speed [1.192771] *  currentSpeed / 100;
 		move RLLeg to y-axis [0.639996] now;
-		turn torso to x-axis <0.000000> now;
-		turn LULeg to x-axis <19.681319> now;
-		turn RULeg to x-axis <-70.664835> now;
-		turn LLLeg to x-axis <22.851648> now;
-		turn LUArm to x-axis <-7.027473> now;
-		turn RUArm to x-axis <0.000000> now;
-		turn RLArm to x-axis <-12.648352> now;
-		turn LLArm to x-axis <-23.203297> now;
+		turn torso to x-axis <0.000000> speed <31.326630> *  currentSpeed / 100;
+		turn LULeg to x-axis <19.681319> speed <92.210389> *  currentSpeed / 100;
+		turn RULeg to x-axis <-70.664835> speed <159.385670> *  currentSpeed / 100;
+		turn LLLeg to x-axis <22.851648> speed <20.971790> *  currentSpeed / 100;
+		turn LUArm to x-axis <-7.027473> speed <33.620424> *  currentSpeed / 100;
+		turn RUArm to x-axis <0.000000> speed <52.232889> *  currentSpeed / 100;
+		turn RLArm to x-axis <-12.648352> speed <125.896332> *  currentSpeed / 100;
+		turn LLArm to x-axis <-23.203297> speed <75.498485> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [-0.200000] now;
-		move RLLeg to y-axis [0.700000] now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [-0.200000] speed [2.385542] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.700000] speed [0.715710] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
-		turn torso to x-axis <-2.626374> now;
-		turn LULeg to x-axis <19.851648> now;
-		turn RULeg to x-axis <-76.296703> now;
-		turn RLLeg to x-axis <37.263736> now;
-		turn LLLeg to x-axis <25.313187> now;
-		turn Head to x-axis <-4.038462> now;
-		turn LUArm to x-axis <-11.950549> now;
-		turn RUArm to x-axis <7.901099> now;
-		turn RLArm to x-axis <-12.478022> now;
-		turn LLArm to x-axis <-24.252747> now;
+		turn torso to x-axis <-2.626374> speed <31.326630> *  currentSpeed / 100;
+		turn LULeg to x-axis <19.851648> speed <2.031635> *  currentSpeed / 100;
+		turn RULeg to x-axis <-76.296703> speed <67.175293> *  currentSpeed / 100;
+		turn RLLeg to x-axis <37.263736> speed <75.564016> *  currentSpeed / 100;
+		turn LLLeg to x-axis <25.313187> speed <29.360525> *  currentSpeed / 100;
+		turn Head to x-axis <-4.038462> speed <48.169607> *  currentSpeed / 100;
+		turn LUArm to x-axis <-11.950549> speed <58.721027> *  currentSpeed / 100;
+		turn RUArm to x-axis <7.901099> speed <94.242024> *  currentSpeed / 100;
+		turn RLArm to x-axis <-12.478022> speed <2.031647> *  currentSpeed / 100;
+		turn LLArm to x-axis <-24.252747> speed <12.517536> *  currentSpeed / 100;
 		sleep 5700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.500000] now;
-		move Hip to z-axis [0.000000] now;
-		move RLLeg to y-axis [-0.500000] now;
+		move Hip to y-axis [0.500000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.000000] speed [2.385542] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.500000] speed [14.313253] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
-		turn torso to x-axis <-5.269231> now;
-		turn LULeg to x-axis <20.032967> now;
-		turn RULeg to x-axis <-81.917582> now;
-		turn RLLeg to x-axis <30.934066> now;
-		turn LLLeg to x-axis <27.774725> now;
-		turn Head to x-axis <-8.076923> now;
-		turn LUArm to x-axis <-16.873626> now;
-		turn RUArm to x-axis <15.818681> now;
-		turn RLArm to x-axis <-12.302198> now;
-		turn LLArm to x-axis <-25.313187> now;
+		turn torso to x-axis <-5.269231> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <20.032967> speed <2.162721> *  currentSpeed / 100;
+		turn RULeg to x-axis <-81.917582> speed <67.044219> *  currentSpeed / 100;
+		turn RLLeg to x-axis <30.934066> speed <75.498473> *  currentSpeed / 100;
+		turn LLLeg to x-axis <27.774725> speed <29.360513> *  currentSpeed / 100;
+		turn Head to x-axis <-8.076923> speed <48.169595> *  currentSpeed / 100;
+		turn LUArm to x-axis <-16.873626> speed <58.721039> *  currentSpeed / 100;
+		turn RUArm to x-axis <15.818681> speed <94.438629> *  currentSpeed / 100;
+		turn RLArm to x-axis <-12.302198> speed <2.097178> *  currentSpeed / 100;
+		turn LLArm to x-axis <-25.313187> speed <12.648622> *  currentSpeed / 100;
 		sleep 5900 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [0.869995] now;
-		move RLLeg to y-axis [-0.700000] now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.869995] speed [10.377049] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.700000] speed [2.385542] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
 		turn Hip to x-axis <10.890110> now;
-		turn torso to x-axis <-2.626374> now;
-		turn LULeg to x-axis <24.071429> now;
-		turn RULeg to x-axis <-68.384615> now;
-		turn RLLeg to x-axis <26.010989> now;
-		turn LLLeg to x-axis <25.483516> now;
-		turn Head to x-axis <-7.901099> now;
-		turn LUArm to x-axis <-22.505495> now;
-		turn RUArm to x-axis <31.642857> now;
-		turn RLArm to x-axis <-20.741758> now;
-		turn LLArm to x-axis <-45.527473> now;
+		turn torso to x-axis <-2.626374> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <24.071429> speed <48.169607> *  currentSpeed / 100;
+		turn RULeg to x-axis <-68.384615> speed <161.417317> *  currentSpeed / 100;
+		turn RLLeg to x-axis <26.010989> speed <58.721039> *  currentSpeed / 100;
+		turn LLLeg to x-axis <25.483516> speed <27.328878> *  currentSpeed / 100;
+		turn Head to x-axis <-7.901099> speed <2.097178> *  currentSpeed / 100;
+		turn LUArm to x-axis <-22.505495> speed <67.175305> *  currentSpeed / 100;
+		turn RUArm to x-axis <31.642857> speed <188.746196> *  currentSpeed / 100;
+		turn RLArm to x-axis <-20.741758> speed <100.664631> *  currentSpeed / 100;
+		turn LLArm to x-axis <-45.527473> speed <241.110158> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [1.750000] now;
-		move RLLeg to y-axis [-0.900000] now;
+		move Hip to y-axis [0.000000] speed [4.950000] *  currentSpeed / 100;
+		move Hip to z-axis [1.750000] speed [17.424099] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.900000] speed [3.960000] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
-		turn torso to x-axis <0.000000> now;
-		turn LULeg to x-axis <28.126374> now;
-		turn RULeg to x-axis <-54.851648> now;
-		turn RLLeg to x-axis <21.093407> now;
-		turn LLLeg to x-axis <23.203297> now;
-		turn Head to x-axis <-7.730769> now;
-		turn LUArm to x-axis <-28.126374> now;
-		turn RUArm to x-axis <47.461538> now;
-		turn RLArm to x-axis <-29.175824> now;
-		turn LLArm to x-axis <-65.741758> now;
+		turn torso to x-axis <0.000000> speed <52.002205> *  currentSpeed / 100;
+		turn LULeg to x-axis <28.126374> speed <80.287911> *  currentSpeed / 100;
+		turn RULeg to x-axis <-54.851648> speed <267.952747> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.093407> speed <97.368124> *  currentSpeed / 100;
+		turn LLLeg to x-axis <23.203297> speed <45.148336> *  currentSpeed / 100;
+		turn Head to x-axis <-7.730769> speed <3.372534> *  currentSpeed / 100;
+		turn LUArm to x-axis <-28.126374> speed <111.293404> *  currentSpeed / 100;
+		turn RUArm to x-axis <47.461538> speed <313.209884> *  currentSpeed / 100;
+		turn RLArm to x-axis <-29.175824> speed <166.994507> *  currentSpeed / 100;
+		turn LLArm to x-axis <-65.741758> speed <400.242843> *  currentSpeed / 100;
 		sleep 2800 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.469995] now;
-		move Hip to z-axis [2.059998] now;
-		move RLLeg to y-axis [-0.000031] now;
-		move LLLeg to y-axis [0.600000] now;
-		turn torso to x-axis <2.626374> now;
-		turn LULeg to x-axis <13.181319> now;
-		turn RULeg to x-axis <-43.598901> now;
-		turn RLLeg to x-axis <21.263736> now;
-		turn LLLeg to x-axis <48.159341> now;
-		turn Head to x-axis <-3.857143> now;
-		turn LUArm to x-axis <-27.774725> now;
-		turn RUArm to x-axis <47.818681> now;
-		turn RLArm to x-axis <-24.071429> now;
-		turn LLArm to x-axis <-72.785714> now;
+		move Hip to y-axis [-0.469995] speed [9.305901] *  currentSpeed / 100;
+		move Hip to z-axis [2.059998] speed [6.137960] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.000031] speed [17.819386] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.600000] speed [11.880000] *  currentSpeed / 100;
+		turn torso to x-axis <2.626374> speed <52.002205> *  currentSpeed / 100;
+		turn LULeg to x-axis <13.181319> speed <295.912089> *  currentSpeed / 100;
+		turn RULeg to x-axis <-43.598901> speed <222.804391> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.263736> speed <3.372514> *  currentSpeed / 100;
+		turn LLLeg to x-axis <48.159341> speed <494.129671> *  currentSpeed / 100;
+		turn Head to x-axis <-3.857143> speed <76.697795> *  currentSpeed / 100;
+		turn LUArm to x-axis <-27.774725> speed <6.962650> *  currentSpeed / 100;
+		turn RUArm to x-axis <47.818681> speed <7.071431> *  currentSpeed / 100;
+		turn RLArm to x-axis <-24.071429> speed <101.067021> *  currentSpeed / 100;
+		turn LLArm to x-axis <-72.785714> speed <139.470329> *  currentSpeed / 100;
 		sleep 2700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.939996] now;
-		move Hip to z-axis [2.400000] now;
-		move RLLeg to y-axis [0.789996] now;
-		move LLLeg to y-axis [1.200000] now;
-		turn torso to x-axis <5.269231> now;
-		turn LULeg to x-axis <-1.747253> now;
-		turn RULeg to x-axis <-32.346154> now;
-		turn RLLeg to x-axis <21.445055> now;
-		turn LLLeg to x-axis <73.137363> now;
-		turn Head to x-axis <0.000000> now;
-		turn LUArm to x-axis <-27.423077> now;
-		turn RUArm to x-axis <48.159341> now;
-		turn RLArm to x-axis <-18.983516> now;
-		turn LLArm to x-axis <-79.807692> now;
+		move Hip to y-axis [-0.939996] speed [5.606036] *  currentSpeed / 100;
+		move Hip to z-axis [2.400000] speed [4.055446] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.789996] speed [9.423214] *  currentSpeed / 100;
+		move LLLeg to y-axis [1.200000] speed [7.156627] *  currentSpeed / 100;
+		turn torso to x-axis <5.269231> speed <31.523234> *  currentSpeed / 100;
+		turn LULeg to x-axis <-1.747253> speed <178.063690> *  currentSpeed / 100;
+		turn RULeg to x-axis <-32.346154> speed <134.219512> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.445055> speed <2.162721> *  currentSpeed / 100;
+		turn LLLeg to x-axis <73.137363> speed <297.930624> *  currentSpeed / 100;
+		turn Head to x-axis <0.000000> speed <46.006886> *  currentSpeed / 100;
+		turn LUArm to x-axis <-27.423077> speed <4.194356> *  currentSpeed / 100;
+		turn RUArm to x-axis <48.159341> speed <4.063294> *  currentSpeed / 100;
+		turn RLArm to x-axis <-18.983516> speed <60.687155> *  currentSpeed / 100;
+		turn LLArm to x-axis <-79.807692> speed <83.756123> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.769995] now;
-		move Hip to z-axis [1.619995] now;
-		move RLLeg to y-axis [0.689996] now;
-		move LLLeg to y-axis [1.350000] now;
-		turn torso to x-axis <7.730769> now;
-		turn LULeg to x-axis <-5.087912> now;
-		turn RULeg to x-axis <-22.142857> now;
-		turn RLLeg to x-axis <11.252747> now;
-		turn LLLeg to x-axis <58.362637> now;
-		turn Head to x-axis <4.736264> now;
-		turn LUArm to x-axis <-24.961538> now;
-		turn RUArm to x-axis <34.093407> now;
-		turn RLArm to x-axis <-16.340659> now;
-		turn LLArm to x-axis <-71.714286> now;
+		move Hip to y-axis [-0.769995] speed [2.027723] *  currentSpeed / 100;
+		move Hip to z-axis [1.619995] speed [9.303674] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.689996] speed [1.192771] *  currentSpeed / 100;
+		move LLLeg to y-axis [1.350000] speed [1.789157] *  currentSpeed / 100;
+		turn torso to x-axis <7.730769> speed <29.360513> *  currentSpeed / 100;
+		turn LULeg to x-axis <-5.087912> speed <39.846415> *  currentSpeed / 100;
+		turn RULeg to x-axis <-22.142857> speed <121.701976> *  currentSpeed / 100;
+		turn RLLeg to x-axis <11.252747> speed <121.570903> *  currentSpeed / 100;
+		turn LLLeg to x-axis <58.362637> speed <176.228660> *  currentSpeed / 100;
+		turn Head to x-axis <4.736264> speed <56.492787> *  currentSpeed / 100;
+		turn LUArm to x-axis <-24.961538> speed <29.360525> *  currentSpeed / 100;
+		turn RUArm to x-axis <34.093407> speed <167.774393> *  currentSpeed / 100;
+		turn RLArm to x-axis <-16.340659> speed <31.523234> *  currentSpeed / 100;
+		turn LLArm to x-axis <-71.714286> speed <96.535807> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.589996] now;
-		move Hip to z-axis [0.850000] now;
-		move RLLeg to y-axis [0.589996] now;
-		move LLLeg to y-axis [1.500000] now;
-		turn torso to x-axis <10.192308> now;
-		turn LULeg to x-axis <-8.428571> now;
-		turn RULeg to x-axis <-11.950549> now;
-		turn RLLeg to x-axis <1.049451> now;
-		turn LLLeg to x-axis <43.598901> now;
-		turn Head to x-axis <9.489011> now;
-		turn LUArm to x-axis <-22.505495> now;
-		turn RUArm to x-axis <20.032967> now;
-		turn RLArm to x-axis <-13.708791> now;
-		turn LLArm to x-axis <-63.642857> now;
+		move Hip to y-axis [-0.589996] speed [2.146976] *  currentSpeed / 100;
+		move Hip to z-axis [0.850000] speed [9.184278] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.589996] speed [1.192771] *  currentSpeed / 100;
+		move LLLeg to y-axis [1.500000] speed [1.789157] *  currentSpeed / 100;
+		turn torso to x-axis <10.192308> speed <29.360525> *  currentSpeed / 100;
+		turn LULeg to x-axis <-8.428571> speed <39.846415> *  currentSpeed / 100;
+		turn RULeg to x-axis <-11.950549> speed <121.570903> *  currentSpeed / 100;
+		turn RLLeg to x-axis <1.049451> speed <121.701964> *  currentSpeed / 100;
+		turn LLLeg to x-axis <43.598901> speed <176.097574> *  currentSpeed / 100;
+		turn Head to x-axis <9.489011> speed <56.689392> *  currentSpeed / 100;
+		turn LUArm to x-axis <-22.505495> speed <29.294971> *  currentSpeed / 100;
+		turn RUArm to x-axis <20.032967> speed <167.708863> *  currentSpeed / 100;
+		turn RLArm to x-axis <-13.708791> speed <31.392160> *  currentSpeed / 100;
+		turn LLArm to x-axis <-63.642857> speed <96.273671> *  currentSpeed / 100;
 		sleep 5800 / currentSpeed;
 	}
-	move Hip to y-axis [-0.419995] now;
-	move Hip to z-axis [0.119995] now;
-	move RLLeg to y-axis [0.279999] now;
-	move LLLeg to y-axis [1.069995] now;
-	turn torso to x-axis <7.730769> now;
-	turn LULeg to x-axis <-26.181319> now;
-	turn RULeg to x-axis <-3.857143> now;
-	turn RLLeg to x-axis <10.192308> now;
-	turn Head to x-axis <4.736264> now;
-	turn LUArm to x-axis <-19.851648> now;
-	turn RUArm to x-axis <5.087912> now;
-	turn RLArm to x-axis <-11.417582> now;
-	turn LLArm to x-axis <-50.098901> now;
+	move Hip to y-axis [-0.419995] speed [2.027723] *  currentSpeed / 100;
+	move Hip to z-axis [0.119995] speed [8.707289] *  currentSpeed / 100;
+	move RLLeg to y-axis [0.279999] speed [3.697555] *  currentSpeed / 100;
+	move LLLeg to y-axis [1.069995] speed [5.128975] *  currentSpeed / 100;
+	turn torso to x-axis <7.730769> speed <29.360525> *  currentSpeed / 100;
+	turn LULeg to x-axis <-26.181319> speed <211.749645> *  currentSpeed / 100;
+	turn RULeg to x-axis <-3.857143> speed <96.535807> *  currentSpeed / 100;
+	turn RLLeg to x-axis <10.192308> speed <109.053355> *  currentSpeed / 100;
+	turn Head to x-axis <4.736264> speed <56.689392> *  currentSpeed / 100;
+	turn LUArm to x-axis <-19.851648> speed <31.654320> *  currentSpeed / 100;
+	turn RUArm to x-axis <5.087912> speed <178.260295> *  currentSpeed / 100;
+	turn RLArm to x-axis <-11.417582> speed <27.328878> *  currentSpeed / 100;
+	turn LLArm to x-axis <-50.098901> speed <161.548391> *  currentSpeed / 100;
 	sleep 5500 / currentSpeed;
 }
 
@@ -431,277 +431,277 @@ walklegs()
 {
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.250000] now;
-		move Hip to z-axis [-0.600000] now;
-		move RLLeg to y-axis [0.000000] now;
-		move LLLeg to y-axis [0.639996] now;
+		move Hip to y-axis [-0.250000] speed [1.450819] *  currentSpeed / 100;
+		move Hip to z-axis [-0.600000] speed [6.144785] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.000000] speed [2.389647] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.639996] speed [3.669819] *  currentSpeed / 100;
 		turn Hip to x-axis <10.890110> now;
-		turn LULeg to x-axis <-43.939560> now;
-		turn RULeg to x-axis <4.208791> now;
-		turn RLLeg to x-axis <19.324176> now;
+		turn LULeg to x-axis <-43.939560> speed <151.557402> *  currentSpeed / 100;
+		turn RULeg to x-axis <4.208791> speed <68.838575> *  currentSpeed / 100;
+		turn RLLeg to x-axis <19.324176> speed <77.935770> *  currentSpeed / 100;
 		turn LLLeg to x-axis <43.598901> now;
 		sleep 8200 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.119995] now;
-		move Hip to z-axis [-0.500000] now;
-		turn LULeg to x-axis <-57.302198> now;
-		turn RULeg to x-axis <10.708791> now;
-		turn RLLeg to x-axis <21.093407> now;
+		move Hip to y-axis [-0.119995] speed [1.550662] *  currentSpeed / 100;
+		move Hip to z-axis [-0.500000] speed [1.192771] *  currentSpeed / 100;
+		turn LULeg to x-axis <-57.302198> speed <159.385682> *  currentSpeed / 100;
+		turn RULeg to x-axis <10.708791> speed <77.530120> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.093407> speed <21.102876> *  currentSpeed / 100;
 		turn LLLeg to x-axis <43.598901> now;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [-0.400000] now;
-		turn LULeg to x-axis <-70.664835> now;
-		turn RULeg to x-axis <17.219780> now;
-		turn RLLeg to x-axis <22.851648> now;
+		move Hip to y-axis [0.000000] speed [1.431266] *  currentSpeed / 100;
+		move Hip to z-axis [-0.400000] speed [1.192771] *  currentSpeed / 100;
+		turn LULeg to x-axis <-70.664835> speed <159.385670> *  currentSpeed / 100;
+		turn RULeg to x-axis <17.219780> speed <77.661194> *  currentSpeed / 100;
+		turn RLLeg to x-axis <22.851648> speed <20.971790> *  currentSpeed / 100;
 		turn LLLeg to x-axis <43.598901> now;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [-0.200000] now;
-		move LLLeg to y-axis [0.700000] now;
-		turn LULeg to x-axis <-76.296703> now;
-		turn RULeg to x-axis <18.983516> now;
-		turn RLLeg to x-axis <25.313187> now;
-		turn LLLeg to x-axis <37.263736> now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [-0.200000] speed [2.385542] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.700000] speed [0.715710] *  currentSpeed / 100;
+		turn LULeg to x-axis <-76.296703> speed <67.175293> *  currentSpeed / 100;
+		turn RULeg to x-axis <18.983516> speed <21.037333> *  currentSpeed / 100;
+		turn RLLeg to x-axis <25.313187> speed <29.360525> *  currentSpeed / 100;
+		turn LLLeg to x-axis <37.263736> speed <75.564016> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.500000] now;
-		move Hip to z-axis [0.000000] now;
-		move LLLeg to y-axis [-0.500000] now;
-		turn LULeg to x-axis <-81.917582> now;
-		turn RULeg to x-axis <20.741758> now;
-		turn RLLeg to x-axis <27.774725> now;
-		turn LLLeg to x-axis <30.934066> now;
+		move Hip to y-axis [0.500000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.000000] speed [2.385542] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.500000] speed [14.313253] *  currentSpeed / 100;
+		turn LULeg to x-axis <-81.917582> speed <67.044219> *  currentSpeed / 100;
+		turn RULeg to x-axis <20.741758> speed <20.971802> *  currentSpeed / 100;
+		turn RLLeg to x-axis <27.774725> speed <29.360513> *  currentSpeed / 100;
+		turn LLLeg to x-axis <30.934066> speed <75.498473> *  currentSpeed / 100;
 		sleep 5900 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [0.869995] now;
-		move LLLeg to y-axis [-0.700000] now;
-		turn LULeg to x-axis <-68.384615> now;
-		turn RULeg to x-axis <29.357143> now;
-		turn RLLeg to x-axis <25.483516> now;
-		turn LLLeg to x-axis <26.010989> now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.869995] speed [10.377049] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.700000] speed [2.385542] *  currentSpeed / 100;
+		turn LULeg to x-axis <-68.384615> speed <161.417317> *  currentSpeed / 100;
+		turn RULeg to x-axis <29.357143> speed <102.761821> *  currentSpeed / 100;
+		turn RLLeg to x-axis <25.483516> speed <27.328878> *  currentSpeed / 100;
+		turn LLLeg to x-axis <26.010989> speed <58.721039> *  currentSpeed / 100;
 		sleep 5700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [1.739996] now;
-		move LLLeg to y-axis [-0.900000] now;
-		turn LULeg to x-axis <-54.851648> now;
-		turn RULeg to x-axis <37.967033> now;
-		turn RLLeg to x-axis <23.203297> now;
-		turn LLLeg to x-axis <21.093407> now;
+		move Hip to y-axis [0.000000] speed [4.950000] *  currentSpeed / 100;
+		move Hip to z-axis [1.739996] speed [17.226020] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.900000] speed [3.960000] *  currentSpeed / 100;
+		turn LULeg to x-axis <-54.851648> speed <267.952747> *  currentSpeed / 100;
+		turn RULeg to x-axis <37.967033> speed <170.475822> *  currentSpeed / 100;
+		turn RLLeg to x-axis <23.203297> speed <45.148336> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.093407> speed <97.368124> *  currentSpeed / 100;
 		sleep 2600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.469995] now;
-		move Hip to z-axis [2.059998] now;
-		move RLLeg to y-axis [0.619995] now;
-		move LLLeg to y-axis [-0.000031] now;
+		move Hip to y-axis [-0.469995] speed [9.305901] *  currentSpeed / 100;
+		move Hip to z-axis [2.059998] speed [6.336040] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.619995] speed [12.275901] *  currentSpeed / 100;
+		move LLLeg to y-axis [-0.000031] speed [17.819386] *  currentSpeed / 100;
 		turn Hip to x-axis <10.890110> now;
-		turn LULeg to x-axis <-43.598901> now;
-		turn RULeg to x-axis <18.104396> now;
-		turn RLLeg to x-axis <48.170330> now;
-		turn LLLeg to x-axis <21.263736> now;
+		turn LULeg to x-axis <-43.598901> speed <222.804391> *  currentSpeed / 100;
+		turn RULeg to x-axis <18.104396> speed <393.280213> *  currentSpeed / 100;
+		turn RLLeg to x-axis <48.170330> speed <494.347253> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.263736> speed <3.372514> *  currentSpeed / 100;
 		sleep 2700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.939996] now;
-		move Hip to z-axis [2.400000] now;
-		move RLLeg to y-axis [1.239996] now;
-		move LLLeg to y-axis [0.800000] now;
-		turn LULeg to x-axis <-32.346154> now;
-		turn RULeg to x-axis <-1.747253> now;
-		turn RLLeg to x-axis <73.137363> now;
-		turn LLLeg to x-axis <21.434066> now;
+		move Hip to y-axis [-0.939996] speed [5.606036] *  currentSpeed / 100;
+		move Hip to z-axis [2.400000] speed [4.055446] *  currentSpeed / 100;
+		move RLLeg to y-axis [1.239996] speed [7.395193] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.800000] speed [9.542538] *  currentSpeed / 100;
+		turn LULeg to x-axis <-32.346154> speed <134.219512> *  currentSpeed / 100;
+		turn RULeg to x-axis <-1.747253> speed <236.784729> *  currentSpeed / 100;
+		turn RLLeg to x-axis <73.137363> speed <297.799550> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.434066> speed <2.031647> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.769995] now;
-		move Hip to z-axis [1.619995] now;
-		move RLLeg to y-axis [1.189996] now;
-		move LLLeg to y-axis [0.700000] now;
-		turn LULeg to x-axis <-22.142857> now;
-		turn RULeg to x-axis <-5.087912> now;
-		turn RLLeg to x-axis <58.362637> now;
-		turn LLLeg to x-axis <11.252747> now;
+		move Hip to y-axis [-0.769995] speed [2.027723] *  currentSpeed / 100;
+		move Hip to z-axis [1.619995] speed [9.303674] *  currentSpeed / 100;
+		move RLLeg to y-axis [1.189996] speed [0.596386] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.700000] speed [1.192771] *  currentSpeed / 100;
+		turn LULeg to x-axis <-22.142857> speed <121.701976> *  currentSpeed / 100;
+		turn RULeg to x-axis <-5.087912> speed <39.846415> *  currentSpeed / 100;
+		turn RLLeg to x-axis <58.362637> speed <176.228660> *  currentSpeed / 100;
+		turn LLLeg to x-axis <11.252747> speed <121.439829> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.589996] now;
-		move Hip to z-axis [0.850000] now;
-		move RLLeg to y-axis [1.129999] now;
-		move LLLeg to y-axis [0.600000] now;
-		turn LULeg to x-axis <-11.950549> now;
-		turn RULeg to x-axis <-8.428571> now;
-		turn RLLeg to x-axis <43.598901> now;
-		turn LLLeg to x-axis <1.049451> now;
+		move Hip to y-axis [-0.589996] speed [2.146976] *  currentSpeed / 100;
+		move Hip to z-axis [0.850000] speed [9.184278] *  currentSpeed / 100;
+		move RLLeg to y-axis [1.129999] speed [0.715627] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.600000] speed [1.192771] *  currentSpeed / 100;
+		turn LULeg to x-axis <-11.950549> speed <121.570903> *  currentSpeed / 100;
+		turn RULeg to x-axis <-8.428571> speed <39.846415> *  currentSpeed / 100;
+		turn RLLeg to x-axis <43.598901> speed <176.097574> *  currentSpeed / 100;
+		turn LLLeg to x-axis <1.049451> speed <121.701964> *  currentSpeed / 100;
 		sleep 5800 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.419995] now;
-		move Hip to z-axis [0.119995] now;
-		move RLLeg to y-axis [0.889996] now;
-		move LLLeg to y-axis [0.300000] now;
-		turn LULeg to x-axis <-3.857143> now;
-		turn RULeg to x-axis <-26.181319> now;
-		turn LLLeg to x-axis <10.192308> now;
+		move Hip to y-axis [-0.419995] speed [2.027723] *  currentSpeed / 100;
+		move Hip to z-axis [0.119995] speed [8.707289] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.889996] speed [2.862686] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.300000] speed [3.578313] *  currentSpeed / 100;
+		turn LULeg to x-axis <-3.857143> speed <96.535807> *  currentSpeed / 100;
+		turn RULeg to x-axis <-26.181319> speed <211.749645> *  currentSpeed / 100;
+		turn LLLeg to x-axis <10.192308> speed <109.053355> *  currentSpeed / 100;
 		sleep 5700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.250000] now;
-		move Hip to z-axis [-0.600000] now;
-		move RLLeg to y-axis [0.639996] now;
-		move LLLeg to y-axis [0.000000] now;
+		move Hip to y-axis [-0.250000] speed [1.450819] *  currentSpeed / 100;
+		move Hip to z-axis [-0.600000] speed [6.144785] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.639996] speed [2.133621] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.000000] speed [2.560345] *  currentSpeed / 100;
 		turn Hip to x-axis <10.890110> now;
-		turn LULeg to x-axis <4.208791> now;
-		turn RULeg to x-axis <-43.950549> now;
-		turn LLLeg to x-axis <19.324176> now;
+		turn LULeg to x-axis <4.208791> speed <68.838575> *  currentSpeed / 100;
+		turn RULeg to x-axis <-43.950549> speed <151.651187> *  currentSpeed / 100;
+		turn LLLeg to x-axis <19.324176> speed <77.935770> *  currentSpeed / 100;
 		sleep 8700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.119995] now;
-		move Hip to z-axis [-0.500000] now;
+		move Hip to y-axis [-0.119995] speed [1.550662] *  currentSpeed / 100;
+		move Hip to z-axis [-0.500000] speed [1.192771] *  currentSpeed / 100;
 		move RLLeg to y-axis [0.639996] now;
-		turn LULeg to x-axis <11.950549> now;
-		turn RULeg to x-axis <-57.302198> now;
-		turn LLLeg to x-axis <21.093407> now;
+		turn LULeg to x-axis <11.950549> speed <92.341451> *  currentSpeed / 100;
+		turn RULeg to x-axis <-57.302198> speed <159.254609> *  currentSpeed / 100;
+		turn LLLeg to x-axis <21.093407> speed <21.102876> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [-0.400000] now;
+		move Hip to y-axis [0.000000] speed [1.431266] *  currentSpeed / 100;
+		move Hip to z-axis [-0.400000] speed [1.192771] *  currentSpeed / 100;
 		move RLLeg to y-axis [0.639996] now;
-		turn LULeg to x-axis <19.681319> now;
-		turn RULeg to x-axis <-70.664835> now;
-		turn LLLeg to x-axis <22.851648> now;
+		turn LULeg to x-axis <19.681319> speed <92.210389> *  currentSpeed / 100;
+		turn RULeg to x-axis <-70.664835> speed <159.385670> *  currentSpeed / 100;
+		turn LLLeg to x-axis <22.851648> speed <20.971790> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [-0.200000] now;
-		move RLLeg to y-axis [0.700000] now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [-0.200000] speed [2.385542] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.700000] speed [0.715710] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
-		turn LULeg to x-axis <19.851648> now;
-		turn RULeg to x-axis <-76.296703> now;
-		turn RLLeg to x-axis <37.263736> now;
-		turn LLLeg to x-axis <25.313187> now;
+		turn LULeg to x-axis <19.851648> speed <2.031635> *  currentSpeed / 100;
+		turn RULeg to x-axis <-76.296703> speed <67.175293> *  currentSpeed / 100;
+		turn RLLeg to x-axis <37.263736> speed <75.564016> *  currentSpeed / 100;
+		turn LLLeg to x-axis <25.313187> speed <29.360525> *  currentSpeed / 100;
 		sleep 5700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.500000] now;
-		move Hip to z-axis [0.000000] now;
-		move RLLeg to y-axis [-0.500000] now;
+		move Hip to y-axis [0.500000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.000000] speed [2.385542] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.500000] speed [14.313253] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
-		turn LULeg to x-axis <20.032967> now;
-		turn RULeg to x-axis <-81.917582> now;
-		turn RLLeg to x-axis <30.934066> now;
-		turn LLLeg to x-axis <27.774725> now;
+		turn LULeg to x-axis <20.032967> speed <2.162721> *  currentSpeed / 100;
+		turn RULeg to x-axis <-81.917582> speed <67.044219> *  currentSpeed / 100;
+		turn RLLeg to x-axis <30.934066> speed <75.498473> *  currentSpeed / 100;
+		turn LLLeg to x-axis <27.774725> speed <29.360513> *  currentSpeed / 100;
 		sleep 5900 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.250000] now;
-		move Hip to z-axis [0.869995] now;
-		move RLLeg to y-axis [-0.700000] now;
+		move Hip to y-axis [0.250000] speed [2.981928] *  currentSpeed / 100;
+		move Hip to z-axis [0.869995] speed [10.377049] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.700000] speed [2.385542] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
 		turn Hip to x-axis <10.890110> now;
-		turn LULeg to x-axis <24.071429> now;
-		turn RULeg to x-axis <-68.384615> now;
-		turn RLLeg to x-axis <26.010989> now;
-		turn LLLeg to x-axis <25.483516> now;
+		turn LULeg to x-axis <24.071429> speed <48.169607> *  currentSpeed / 100;
+		turn RULeg to x-axis <-68.384615> speed <161.417317> *  currentSpeed / 100;
+		turn RLLeg to x-axis <26.010989> speed <58.721039> *  currentSpeed / 100;
+		turn LLLeg to x-axis <25.483516> speed <27.328878> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [0.000000] now;
-		move Hip to z-axis [1.750000] now;
-		move RLLeg to y-axis [-0.900000] now;
+		move Hip to y-axis [0.000000] speed [4.950000] *  currentSpeed / 100;
+		move Hip to z-axis [1.750000] speed [17.424099] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.900000] speed [3.960000] *  currentSpeed / 100;
 		move LLLeg to y-axis [0.000000] now;
-		turn LULeg to x-axis <28.126374> now;
-		turn RULeg to x-axis <-54.851648> now;
-		turn RLLeg to x-axis <21.093407> now;
-		turn LLLeg to x-axis <23.203297> now;
+		turn LULeg to x-axis <28.126374> speed <80.287911> *  currentSpeed / 100;
+		turn RULeg to x-axis <-54.851648> speed <267.952747> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.093407> speed <97.368124> *  currentSpeed / 100;
+		turn LLLeg to x-axis <23.203297> speed <45.148336> *  currentSpeed / 100;
 		sleep 2800 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.469995] now;
-		move Hip to z-axis [2.059998] now;
-		move RLLeg to y-axis [-0.000031] now;
-		move LLLeg to y-axis [0.600000] now;
-		turn LULeg to x-axis <13.181319> now;
-		turn RULeg to x-axis <-43.598901> now;
-		turn RLLeg to x-axis <21.263736> now;
-		turn LLLeg to x-axis <48.159341> now;
+		move Hip to y-axis [-0.469995] speed [9.305901] *  currentSpeed / 100;
+		move Hip to z-axis [2.059998] speed [6.137960] *  currentSpeed / 100;
+		move RLLeg to y-axis [-0.000031] speed [17.819386] *  currentSpeed / 100;
+		move LLLeg to y-axis [0.600000] speed [11.880000] *  currentSpeed / 100;
+		turn LULeg to x-axis <13.181319> speed <295.912089> *  currentSpeed / 100;
+		turn RULeg to x-axis <-43.598901> speed <222.804391> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.263736> speed <3.372514> *  currentSpeed / 100;
+		turn LLLeg to x-axis <48.159341> speed <494.129671> *  currentSpeed / 100;
 		sleep 2700 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.939996] now;
-		move Hip to z-axis [2.400000] now;
-		move RLLeg to y-axis [0.789996] now;
-		move LLLeg to y-axis [1.200000] now;
-		turn LULeg to x-axis <-1.747253> now;
-		turn RULeg to x-axis <-32.346154> now;
-		turn RLLeg to x-axis <21.445055> now;
-		turn LLLeg to x-axis <73.137363> now;
+		move Hip to y-axis [-0.939996] speed [5.606036] *  currentSpeed / 100;
+		move Hip to z-axis [2.400000] speed [4.055446] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.789996] speed [9.423214] *  currentSpeed / 100;
+		move LLLeg to y-axis [1.200000] speed [7.156627] *  currentSpeed / 100;
+		turn LULeg to x-axis <-1.747253> speed <178.063690> *  currentSpeed / 100;
+		turn RULeg to x-axis <-32.346154> speed <134.219512> *  currentSpeed / 100;
+		turn RLLeg to x-axis <21.445055> speed <2.162721> *  currentSpeed / 100;
+		turn LLLeg to x-axis <73.137363> speed <297.930624> *  currentSpeed / 100;
 		sleep 5600 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.769995] now;
-		move Hip to z-axis [1.619995] now;
-		move RLLeg to y-axis [0.689996] now;
-		move LLLeg to y-axis [1.350000] now;
-		turn LULeg to x-axis <-5.087912> now;
-		turn RULeg to x-axis <-22.142857> now;
-		turn RLLeg to x-axis <11.252747> now;
-		turn LLLeg to x-axis <58.362637> now;
+		move Hip to y-axis [-0.769995] speed [2.027723] *  currentSpeed / 100;
+		move Hip to z-axis [1.619995] speed [9.303674] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.689996] speed [1.192771] *  currentSpeed / 100;
+		move LLLeg to y-axis [1.350000] speed [1.789157] *  currentSpeed / 100;
+		turn LULeg to x-axis <-5.087912> speed <39.846415> *  currentSpeed / 100;
+		turn RULeg to x-axis <-22.142857> speed <121.701976> *  currentSpeed / 100;
+		turn RLLeg to x-axis <11.252747> speed <121.570903> *  currentSpeed / 100;
+		turn LLLeg to x-axis <58.362637> speed <176.228660> *  currentSpeed / 100;
 		sleep 5500 / currentSpeed;
 	}
 	if( bMoving )
 	{
-		move Hip to y-axis [-0.589996] now;
-		move Hip to z-axis [0.850000] now;
-		move RLLeg to y-axis [0.589996] now;
-		move LLLeg to y-axis [1.500000] now;
-		turn LULeg to x-axis <-8.428571> now;
-		turn RULeg to x-axis <-11.950549> now;
-		turn RLLeg to x-axis <1.049451> now;
-		turn LLLeg to x-axis <43.598901> now;
+		move Hip to y-axis [-0.589996] speed [2.146976] *  currentSpeed / 100;
+		move Hip to z-axis [0.850000] speed [9.184278] *  currentSpeed / 100;
+		move RLLeg to y-axis [0.589996] speed [1.192771] *  currentSpeed / 100;
+		move LLLeg to y-axis [1.500000] speed [1.789157] *  currentSpeed / 100;
+		turn LULeg to x-axis <-8.428571> speed <39.846415> *  currentSpeed / 100;
+		turn RULeg to x-axis <-11.950549> speed <121.570903> *  currentSpeed / 100;
+		turn RLLeg to x-axis <1.049451> speed <121.701964> *  currentSpeed / 100;
+		turn LLLeg to x-axis <43.598901> speed <176.097574> *  currentSpeed / 100;
 		sleep 5800 / currentSpeed;
 	}
-	move Hip to y-axis [-0.419995] now;
-	move Hip to z-axis [0.119995] now;
-	move RLLeg to y-axis [0.279999] now;
-	move LLLeg to y-axis [1.069995] now;
-	turn LULeg to x-axis <-26.181319> now;
-	turn RULeg to x-axis <-3.857143> now;
-	turn RLLeg to x-axis <10.192308> now;
+	move Hip to y-axis [-0.419995] speed [2.027723] *  currentSpeed / 100;
+	move Hip to z-axis [0.119995] speed [8.707289] *  currentSpeed / 100;
+	move RLLeg to y-axis [0.279999] speed [3.697555] *  currentSpeed / 100;
+	move LLLeg to y-axis [1.069995] speed [5.128975] *  currentSpeed / 100;
+	turn LULeg to x-axis <-26.181319> speed <211.749645> *  currentSpeed / 100;
+	turn RULeg to x-axis <-3.857143> speed <96.535807> *  currentSpeed / 100;
+	turn RLLeg to x-axis <10.192308> speed <109.053355> *  currentSpeed / 100;
 	sleep 5500 / currentSpeed;
 }
 
