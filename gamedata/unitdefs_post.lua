@@ -45,5 +45,5 @@ end
 
 -- Setting collisionvolumetest true for all units
 for name, ud in pairs(UnitDefs) do
-		ud.collisionvolumetest = true
+		ud.collisionvolumetest = 1
 end
