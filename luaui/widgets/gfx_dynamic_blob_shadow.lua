@@ -47,6 +47,8 @@ local spGetUnitViewPosition 	= Spring.GetUnitViewPosition
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetVectorFromHeading	= Spring.GetVectorFromHeading
+local spGetVisibleUnits			= Spring.GetVisibleUnits
+local spGetCameraPosition			= Spring.GetCameraPosition
 
 local glPushMatrix				= gl.PushMatrix
 local glTranslate				= gl.Translate
@@ -106,12 +108,12 @@ function widget:DrawWorldPreUnit()
 	   return false
 	end
 	
-	unitList = Spring.GetVisibleUnits(-1,3000,false)
+	unitList = spGetVisibleUnits(-1,100,false)
 	if unitList[1] == nil then 
 		return false 
 	end
 
-	local _,cy,_ = Spring.GetCameraPosition()
+	local _,cy,_ = spGetCameraPosition()
 	if cy == nil or cy > 4000 then 
 		return false
 	end
