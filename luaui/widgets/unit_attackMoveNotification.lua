@@ -10,7 +10,7 @@ function widget:GetInfo()
     }
 end
 ----------------------------------------------------------------------------
-local alarmInterval                 = 5        --seconds
+local alarmInterval                 = 15        --seconds
 ----------------------------------------------------------------------------                
 local spGetLocalTeamID              = Spring.GetLocalTeamID
 local spPlaySoundFile               = Spring.PlaySoundFile
