@@ -88,16 +88,16 @@ list = gl.CreateList(function()
 	glBeginEnd(GL.QUAD_STRIP,function()  
     --point1
     glTexCoord(0,0)
-    glTexCoord(-4,0,-4)
+    glVertex(-4,0,-4)
     --point2                                 
     glTexCoord(0,1)                           
-    glTexCoord(4*sunscale,0,-4)                   
+    glVertex(4*sunscale,0,-4)                   
     --point3
     glTexCoord(1,0)
-    glTexCoord(-4,0,4)
+    glVertex(-4,0,4)
     --point4
     glTexCoord(1,1)
-    glTexCoord(4*sunscale,0,4)
+    glVertex(4*sunscale,0,4)
     end)
 end)
 
@@ -135,7 +135,7 @@ function widget:DrawWorldPreUnit()
 			 
 			local height = spGetGroundHeight(x,z)
 			local diff = height-y+5
-			local x2,z2 = spGetVectorFromHeading(sunangle)  
+			--local x2,z2 = spGetVectorFromHeading(sunangle)  --commented out, vars not used?!
 			
 			glPushMatrix()
 			glTranslate(0,diff,0)  
