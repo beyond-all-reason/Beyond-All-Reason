@@ -8,6 +8,20 @@ local moveDatas = {
 		maxslope = 36,
 		maxwaterdepth = 5000,
 		maxwaterslope = 50,
+		
+	},
+	AKBOTBOMB2 = {
+		crushstrength = 50,
+		depthmod = 0,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		maxwaterdepth = 5000,
+		maxwaterslope = 50,
+		depthModParams = {
+			constantCoeff = 1.5,
+		},
+		
 	},
 	ATANK3 = {
 		crushstrength = 30,

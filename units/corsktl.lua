@@ -26,7 +26,7 @@ return {
 		maxvelocity = 1.75,
 		maxwaterdepth = 30,
 		mincloakdistance = 60,
-		movementclass = "AKBOT2",
+		movementclass = "AKBOTBOMB2",
 		name = "Skuttle",
 		nochasecategory = "VTOL",
 		objectname = "CORSKTL",

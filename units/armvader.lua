@@ -24,7 +24,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 2.7999999523163,
 		maxwaterdepth = 112,
-		movementclass = "AKBOT2",
+		movementclass = "AKBOTBOMB2",
 		name = "Invader",
 		nochasecategory = "VTOL",
 		objectname = "ARMVADER",

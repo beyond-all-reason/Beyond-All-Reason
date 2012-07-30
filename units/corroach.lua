@@ -23,7 +23,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 2.7000000476837,
 		maxwaterdepth = 112,
-		movementclass = "AKBOT2",
+		movementclass = "AKBOTBOMB2",
 		name = "Roach",
 		nochasecategory = "VTOL",
 		objectname = "CORROACH",
