@@ -1449,9 +1449,9 @@ end
 --  Projectile call-ins
 --
 
-function gadgetHandler:ProjectileCreated(proID, proOwnerID)
+function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
   for _,g in ipairs(self.ProjectileCreatedList) do
-    g:ProjectileCreated(proID, proOwnerID)
+    g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
   end
   return
 end
