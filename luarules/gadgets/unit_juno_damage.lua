@@ -49,6 +49,9 @@ local radarUnits = {
     [UnitDefNames.corspec.id] = true,
     [UnitDefNames.corvoyr.id] = true,
     [UnitDefNames.corvrad.id] = true,
+    [UnitDefNames.corfav.id] = true, --also kills cheap scouts
+    [UnitDefNames.armfav.id] = true,
+    [UnitDefNames.armflea.id] = true,
 }
 
 local junoWeapons = {
