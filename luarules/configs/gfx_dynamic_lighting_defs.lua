@@ -27,18 +27,18 @@ local copyLightDefs = {
 
 		--Self-D , Explosion for large units eg corkrog and commanders etc
 		["commander_blast"           ] = "commander_blast",
-		["crblmssl"                  ] = "emp_weapon",
+		["crblmssl"                  ] = "nuke_crblmssl",
 		["nuclear_missile"           ] = "nuke_missile",
 		
 		--Nukes
-		["corsilo_crblmssl"          ] = "nuke_missile",
+		["corsilo_crblmssl"          ] = "nuke_crblmssl",
 		["armsilo_nuclear_missile"   ] = "nuke_missile",
 		
 		--Emp
 		["armemp_armemp_weapon"      ] = "emp_weapon",
 
 		--Tacnuke
-		["cortron_cortron_weapon"    ] = "emp_weapon",
+		["cortron_cortron_weapon"    ] = "tron_weapon",
 		
 		--Brthas
 		["corint_core_intimidator"   ] = "berthacannon",
@@ -88,6 +88,26 @@ local dynLightDefs = {
 			--   airburst, since the actual projectile
 			--   detonates on ground impact
 			--   ttl value roughly matches CEG duration
+			["nuke_crblmssl"] = {
+				projectileLightDef = {
+					diffuseColor    = {3.0,                   2.0,                   2.0                  },
+					specularColor   = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
+					priority        = 20 * 10,
+					radius          = 270.0,
+					ttl             = 100000,
+				},
+				
+				explosionLightDef = {
+					diffuseColor      = {25.0,                   25.0,                   17.0                  },
+					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					priority          = 20 * 10 + 1,
+					radius            = 2020.0,
+					ttl               = 6.5 * Game.gameSpeed,
+					decayFunctionType = {0.0, 0.0, 0.0},
+					altitudeOffset    = 250.0,
+				},
+			},
+
 			["nuke_missile"] = {
 				projectileLightDef = {
 					diffuseColor    = {3.0,                   2.0,                   2.0                  },
@@ -101,13 +121,12 @@ local dynLightDefs = {
 					diffuseColor      = {25.0,                   25.0,                   17.0                  },
 					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
 					priority          = 20 * 10 + 1,
-					radius            = 1200.0,
+					radius            = 1380.0,
 					ttl               = 6.5 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 250.0,
 				},
 			},
-
 			-- Arm Stunner / Core Neutron (small nuke) projectiles
 			["emp_weapon"] = {
 				projectileLightDef = {
@@ -121,14 +140,31 @@ local dynLightDefs = {
 					diffuseColor      = {12.0,                   12.0,                   8.0                  },
 					specularColor     = {12.0 * rgbSpecMults[1], 12.0 * rgbSpecMults[2], 8.0 * rgbSpecMults[3]},
 					priority          = 8 * 10 + 1,
-					radius            = 575.0,
+					radius            = 375.0,
 					ttl               = 2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 125.0,
 				},
 			},
 
-
+			["tron_weapon"] = {
+				projectileLightDef = {
+					diffuseColor    = {3.0,                   2.0,                   2.0                  },
+					specularColor   = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
+					priority        = 8 * 10,
+					radius          = 200.0,
+					ttl             = 100000,
+				},
+				explosionLightDef = {
+					diffuseColor      = {12.0,                   12.0,                   8.0                  },
+					specularColor     = {12.0 * rgbSpecMults[1], 12.0 * rgbSpecMults[2], 8.0 * rgbSpecMults[3]},
+					priority          = 8 * 10 + 1,
+					radius            = 610.0,
+					ttl               = 2 * Game.gameSpeed,
+					decayFunctionType = {0.0, 0.0, 0.0},
+					altitudeOffset    = 125.0,
+				},
+			},
 			-- Arm Bertha / Core Intimidator (main barrel) projectiles
 			-- NOTE:
 			--   No lol cannon here way to many lights needed
@@ -148,7 +184,7 @@ local dynLightDefs = {
 					radius            = 220.0,
 					ttl               = 2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
-					altitudeOffset    = 150.0,
+					altitudeOffset    = 70.0,
 				},
 			},
 			-- Juno Weapon
