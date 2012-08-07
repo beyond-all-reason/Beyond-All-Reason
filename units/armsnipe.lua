@@ -118,7 +118,7 @@ return {
 				soundstartvolume = 4,
 				thickness = 0.5,
 				turret = true,
-				weapontype = "LaserCannon",
+				weapontype = "Rifle",
 				weaponvelocity = 3000,
 				damage = {
 					commanders = 1025,
