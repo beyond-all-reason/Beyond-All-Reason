@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMFAV.DDS",
 		buildtime = 912,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT",
 		corpse = "DEAD",
 		description = "Light Scout Vehicle",
 		energymake = 0.20000000298023,

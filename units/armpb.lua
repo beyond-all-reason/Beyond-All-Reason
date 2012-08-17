@@ -128,7 +128,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "ARMPB_WEAPON",
 				onlytargetcategory = "SURFACE",
 			},

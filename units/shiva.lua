@@ -153,10 +153,12 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "GROUNDSCOUT",
 				def = "SHIVA_GUN",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
+				badtargetcategory = "GROUNDSCOUT",
 				def = "SHIVA_ROCKET",
 				onlytargetcategory = "SURFACE",
 			},

@@ -193,10 +193,12 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "GROUNDSCOUT",
 				def = "SUPER_MISSILE",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
+				badtargetcategory = "GROUNDSCOUT",
 				def = "KARG_SHOULDER",
 				onlytargetcategory = "VTOL",
 			},

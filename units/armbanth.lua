@@ -121,15 +121,16 @@ return {
 				intensity = 4,
 				name = "ImpulsionBlaster",
 				noselfdamage = true,
+				proximitypriority = 1,
 				range = 465,
 				reloadtime = 0.69999998807907,
-				rgbcolor = "0.15 0.15 1",
+				rgbcolor = "0.05 0.05 1",
 				size = 1,
 				soundhit = "xplosml3",
 				soundstart = "Lasrhvy2",
 				tolerance = 10000,
 				turret = true,
-				weapontype = "Cannon",
+				weapontype = "LaserCannon",
 				weaponvelocity = 400,
 				damage = {
 					default = 365,
@@ -201,14 +202,17 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
 				def = "ARMBANTHA_FIRE",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "TEHLAZEROFDEWM",
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "BANTHA_ROCKET",
 				onlytargetcategory = "NOTSUB",
 			},

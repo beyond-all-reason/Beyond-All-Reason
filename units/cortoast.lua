@@ -175,13 +175,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CORTOAST_GUN",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
+				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CORTOAST_GUN_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
