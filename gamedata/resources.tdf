@@ -117,6 +117,8 @@
             yellowlight=lighty.bmp;
             
             nanoball=nanoball.tga;
+			GenericSmokeCloud1=GenericSmokeCloud1.tga;
+
 		}
 	}
 }
