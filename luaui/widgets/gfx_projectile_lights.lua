@@ -128,6 +128,8 @@ function widget:DrawWorldPreUnit()
 	--Spring.Echo('viewport=',sx,sy,px,py)
 	local x1=0
 	local y1=0
+	local cx,cy,p
+	local d=0
 	local x2=Game.mapSizeX 
 	local y2=Game.mapSizeZ
 	--[[
@@ -162,8 +164,60 @@ function widget:DrawWorldPreUnit()
 		y1=math.max(y1, tr[3])
 		--y2=math.min(y2, tl[3])
 	end]]--
-	local plist=Spring.GetProjectilesInRectangle(x1,y1,x2,y2,false,false) --todo, only those in view or close:P
-	--Spring.Echo('mapview',x1,y1,x2,y2)
+	local plist
+	local at, p=Spring.TraceScreenRay(sx/2,sy/2,true,false,false)
+	local outofbounds=0
+	if at=='ground' then
+		cx=p[1]
+		--x2=math.min(x2, tl[1])
+		cy=p[3]		--y2=math.min(y2, tl[3])
+		
+		at, p=Spring.TraceScreenRay(0,0,true,false,false) --bottom left
+		if at=='ground' then
+			d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+		else 
+			outofbounds=outofbounds+1
+		end
+		at, p=Spring.TraceScreenRay(sx-1,0,true,false,false) --bottom left
+		if at=='ground' then
+			d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+		else 
+			outofbounds=outofbounds+1
+		end
+		at, p=Spring.TraceScreenRay(sx-1,sy-1,true,false,false) --bottom left
+		if at=='ground' then
+			d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+		else 
+			outofbounds=outofbounds+1
+		end
+		at, p=Spring.TraceScreenRay(0,sy-1,true,false,false) --bottom left
+		if at=='ground' then
+			d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+		else 
+			outofbounds=outofbounds+1
+		end
+		if outofbounds>=3 then
+			plist=Spring.GetProjectilesInRectangle(x1,y1,x2,y2,false,false) --todo, only those in view or close:P
+		else
+			d=math.sqrt(d)
+			plist=Spring.GetProjectilesInRectangle(cx-d,cy-d,cx+d,cy+d,false,false) 
+		end
+	else -- if we are not pointing at ground, get the whole list.
+		plist=Spring.GetProjectilesInRectangle(x1,y1,x2,y2,false,false) --todo, only those in view or close:P
+	end
+		--todo, only those in view or close:P
+	--Spring.GetCameraPosition 
+	--Spring.GetCameraPosition() -> number x, number y, number z
+	--Spring.GetCameraDirection() -> number forward_x, number forward_y, number forward_z
+	--Spring.GetCameraFOV( ) -> number fov
+	local nplist
+	if #plist > 0 then
+		nplist=#plist
+	else
+		nplist=0
+	end
+	--Spring.Echo('mapview',nplist,outofbounds,d,cx,cy)
+	--Spring.Echo('fov',Spring.GetCameraFOV(),Spring.GetCameraPosition())
 	if #plist>0 then --dont do anything if there are no projectiles in range of view
 		--Spring.Echo('#projectiles:',#plist)
 		glTexture('luaui/images/pointlight.tga') --simple white square with alpha white blurred circle
