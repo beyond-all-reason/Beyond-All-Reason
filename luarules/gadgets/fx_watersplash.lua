@@ -12,7 +12,7 @@ function gadget:GetInfo()
   }
 end
 
-LUAUI_DIRNAME							= 'LuaUI/'
+LUAUI_DIRNAME= 'LuaUI/'
 local random  = math.random
 local abs = math.abs
 local nonexplosiveWeapons = {
@@ -33,10 +33,8 @@ else
 	-- SYNCED PART --
 	-----------------
 	
-	local splashCEG1					= "torpbomb"
-	local splashCEG2					= "Watersplash_Small"
-	local splashCEG3					= "Watersplash_Large"
-	local sndWater 						= "Sounds/SPLSHBIG.WAV"
+	local splashCEG1					= "Watersplash_Small"
+	local splashCEG2					= "Watersplash_Large"
 	local GetGroundBlocked					= Spring.GetGroundBlocked
 
 	
@@ -46,9 +44,9 @@ else
 		local wType = WeaponDefs[weaponID].type
 		if not nonexplosiveWeapons[wType] and isWater and abs(py) <= aoe then
 			if aoe >= 16 and aoe < 48 and (not GetGroundBlocked(px, pz)) then
-				Spring.SpawnCEG(splashCEG2, px, 0, pz)
+				Spring.SpawnCEG(splashCEG1, px, 0, pz)
 			elseif aoe >= 48 and (not GetGroundBlocked(px, pz))  then
-				Spring.SpawnCEG(splashCEG3, px, 0, pz)
+				Spring.SpawnCEG(splashCEG2, px, 0, pz)
 			end
 			return true
 		else
@@ -57,9 +55,6 @@ else
 	end
 	
 	function gadget:Initialize()
-		--Spring.SendCommands ("cheat") 
-		--Spring.SendCommands ("globallos")
-		--Spring.SendCommands ("nocost")
 	
 		for id,Def in pairs(WeaponDefs) do
 			local weaponID
