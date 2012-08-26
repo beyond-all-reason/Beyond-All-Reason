@@ -41,6 +41,8 @@ local spGetUnitDefID    = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+local hmsx = Game.mapSizeX/2
+local hmsz = Game.mapSizeZ/2
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -64,11 +66,23 @@ end
 local function SetupUnit(unitID)
   -- set immobile builders (nanotowers?) to the MANEUVER movestate,
   -- and give them a FIGHT order (does not matter where, afaict)
+  local ret = false
   local x, y, z = spGetUnitPosition(unitID)
   if (x) then
-    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
-    spGiveOrderToUnit(unitID, CMD_FIGHT, { x + 50, y, z - 50 }, {"meta"}) -- meta enables reclaim enemy units, alt autoresurrect ( if available )
+    ret = spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
+    if (x > hmsx) then -- avoid to issue commands outside map
+      x = x - 50
+    else
+      x = x + 50
+    end
+    if (z > hmsz) then
+      z = z - 50
+    else
+      z = z + 50
+    end
+    ret = spGiveOrderToUnit(unitID, CMD_FIGHT, { x, y, z }, {"meta"}) and ret -- meta enables reclaim enemy units, alt autoresurrect ( if available )
   end
+  return ret
 end
 
 
@@ -88,7 +102,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
   end
   if (IsImmobileBuilder(UnitDefs[unitDefID])) then
     SetupUnit(unitID)
-	spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {}) 
+    spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {}) 
   end
 end
 
@@ -112,7 +126,11 @@ if (idleFrames > 0) then
       if ((frame - f) > idleFrames) then
         local cmds = spGetUnitCommands(unitID)
         if (cmds and (#cmds <= 0)) then
-          SetupUnit(unitID)
+          if SetupUnit(unitID) then
+            idlers[unitID] = frame -- safeguard against command spam
+          else
+            idlers[unitID] = nil -- the unit could not be set up, don't retry
+          end
         else
           idlers[unitID] = nil
         end
