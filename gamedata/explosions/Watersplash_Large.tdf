@@ -129,47 +129,6 @@
 	count=1;
 	}
 
-	[GroundExplosion]
-	{
-	class=CSimpleParticleSystem;
-
-		[properties]
-		{
-
-		Texture=GenericSmokeCloud1;
-
-
-		colorMap	=   1 0.5 0 1  0.6 0.2 0 0.8	0.1 0.1 0.1 0.8 0 0 0 0.01;
-
-      		pos 		= 0, 18, 0;
-		gravity		= 0 r0.1, .02, 0;
-	       	emitVector	= 0,1,0;
-		emitRot		= 0;
-		emitRotSpread	= 0 r360 r-360;
-
-		sizeGrowth	= -0.35;
-		sizeMod		= 1.0;
-
-		airdrag			= 1;
-		particleLife		= 8;
-		particleLifeSpread	= 30;
-		numParticles		= 100;
-		particleSpeed		= 2 i0.25;
-		particleSpeedSpread	= 2;
-		particleSize		= 5;
-		particleSizeSpread	= 15;
-
-		directional		= 0; 
-		useAirLos		= 1;
-		}
-	air=0;
-	ground=1;
-	water=0;
-	underwater=0;
-	count=1;
-	}
-
-
 	[splash_spawner] 
 	{
 	    class=CExpGenSpawner;
@@ -210,46 +169,6 @@
 
 [Death_Explosion_Tidal_2]
 {
-
-	[WaterExplosion22]
-	{
-	class=CSimpleParticleSystem;
-
-		[properties]
-		{
-
-		Texture=GenericSmokeCloud1;
-
-
-		colorMap	=   1 0.5 0 1  0.6 0.2 0 0.8	0.1 0.1 0.1 0.8 0 0 0 0.01;
-
-      		pos 		= 0, 18, 0;
-		gravity		= 0 r0.1, .02, 0;
-	       	emitVector	= 0,1,0;
-		emitRot		= 0;
-		emitRotSpread	= 0 r360 r-360;
-
-		sizeGrowth	= -0.35;
-		sizeMod		= 1.0;
-
-		airdrag			= 1;
-		particleLife		= 8;
-		particleLifeSpread	= 8;
-		numParticles		= 16;
-		particleSpeed		= 4 i0.25;
-		particleSpeedSpread	= 6;
-		particleSize		= 5;
-		particleSizeSpread	= 10;
-
-		directional		= 0; 
-		useAirLos		= 1;
-		}
-	air=0;
-	ground=1;
-	water=0;
-	underwater=0;
-	count=1;
-	}
 
 [WaterBall2]
 	{
