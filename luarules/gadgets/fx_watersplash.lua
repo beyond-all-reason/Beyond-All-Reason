@@ -33,8 +33,10 @@ else
 	-- SYNCED PART --
 	-----------------
 	
-	local splashCEG1					= "Watersplash_Small"
-	local splashCEG2					= "Watersplash_Large"
+  	local splashCEG1					= "Watersplash_Extrasmall"
+	local splashCEG2					= "Watersplash_Small"
+	local splashCEG3					= "Watersplash_Large"
+	local splashCEG4					= "Watersplash_Extralarge"
 	local GetGroundBlocked					= Spring.GetGroundBlocked
 
 	
@@ -43,10 +45,14 @@ else
 		local aoe = WeaponDefs[weaponID]["damageAreaOfEffect"] / 2
 		local wType = WeaponDefs[weaponID].type
 		if not nonexplosiveWeapons[wType] and isWater and abs(py) <= aoe then
-			if aoe >= 16 and aoe < 48 and (not GetGroundBlocked(px, pz)) then
+		        if aoe >= 8 and aoe < 16 and (not GetGroundBlocked(px, pz)) then
 				Spring.SpawnCEG(splashCEG1, px, 0, pz)
-			elseif aoe >= 48 and (not GetGroundBlocked(px, pz))  then
+			elseif aoe >= 16 and aoe < 48 and (not GetGroundBlocked(px, pz)) then
 				Spring.SpawnCEG(splashCEG2, px, 0, pz)
+			elseif aoe >= 48 and aoe < 64 and (not GetGroundBlocked(px, pz)) then
+				Spring.SpawnCEG(splashCEG3, px, 0, pz)
+			elseif aoe >= 64 and (not GetGroundBlocked(px, pz)) then
+				Spring.SpawnCEG(splashCEG4, px, 0, pz)
 			end
 			return true
 		else
