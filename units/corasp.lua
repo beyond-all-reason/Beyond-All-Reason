@@ -6,7 +6,7 @@ return {
 		buildangle = 0,
 		buildcostenergy = 4042,
 		buildcostmetal = 378,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 12,

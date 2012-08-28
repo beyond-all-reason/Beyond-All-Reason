@@ -4,7 +4,7 @@ return {
 		brakerate = 0.44999998807907,
 		buildcostenergy = 5105,
 		buildcostmetal = 290,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildpic = "ARMACK.DDS",
 		buildtime = 9432,

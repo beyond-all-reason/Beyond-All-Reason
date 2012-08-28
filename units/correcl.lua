@@ -4,7 +4,7 @@ return {
 		brakerate = 0.25,
 		buildcostenergy = 6568,
 		buildcostmetal = 416,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildpic = "CORRECL.DDS",
 		buildtime = 9495,

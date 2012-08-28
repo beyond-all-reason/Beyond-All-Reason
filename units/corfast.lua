@@ -4,7 +4,7 @@ return {
 		brakerate = 0.25,
 		buildcostenergy = 3583,
 		buildcostmetal = 192,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildpic = "CORFAST.DDS",
 		buildtime = 6488,

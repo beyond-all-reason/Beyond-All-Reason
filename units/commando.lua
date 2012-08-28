@@ -5,7 +5,7 @@ return {
 		brakerate = 0.5,
 		buildcostenergy = 14352,
 		buildcostmetal = 1126,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildpic = "COMMANDO.DDS",
 		buildtime = 17131,

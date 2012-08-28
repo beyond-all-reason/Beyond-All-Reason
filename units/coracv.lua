@@ -4,7 +4,7 @@ return {
 		brakerate = 0.13750000298023,
 		buildcostenergy = 5512,
 		buildcostmetal = 452,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildpic = "CORACV.DDS",
 		buildtime = 12882,

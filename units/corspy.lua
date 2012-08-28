@@ -5,7 +5,7 @@ return {
 		brakerate = 0.17499999701977,
 		buildcostenergy = 11452,
 		buildcostmetal = 156,
-		builddistance = 128,
+		builddistance = 136,
 		builder = true,
 		buildpic = "CORSPY.DDS",
 		buildtime = 22247,
