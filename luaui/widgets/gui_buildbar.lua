@@ -65,7 +65,7 @@ local myTeamID = 0
 local inTweak  = 0
 
 -- a nice blur shader
-local useBlurShader   = true   -- it has a fallback, if the gfx don't support glsl
+local useBlurShader   = false   -- it has a fallback, if the gfx don't support glsl
 local blured          = false
 local blurFullscreen  = function() return end
 
@@ -169,11 +169,11 @@ local tan         = math.tan
 -- INITIALIZTION FUNCTIONS
 -------------------------------------------------------------------------------
 function widget:Initialize()
-  blurFullscreen = ((useBlurShader)and(WG['blur_api'])and(WG['blur_api'].Fullscreen))
-  if (useBlurShader)and(blurFullscreen==nil) then
-    Spring.Echo('BuildBar Warning: you deactivated the "blurApi" widget, please reactivate it.')
-  end
-  blurFullscreen = (blurFullscreen)or(function() return end)
+ -- blurFullscreen = ((useBlurShader)and(WG['blur_api'])and(WG['blur_api'].Fullscreen))
+ -- if (useBlurShader)and(blurFullscreen==nil) then
+ --   Spring.Echo('BuildBar Warning: you deactivated the "blurApi" widget, please reactivate it.')
+ -- end
+--  blurFullscreen = (blurFullscreen)or(function() return end)
 
   myTeamID = Spring.GetMyTeamID()
 
@@ -192,7 +192,7 @@ function widget:GetConfigData()
     openByClick  = bar_openByClick,
     autoclose    = bar_autoclose,
 
-    useBlurShader= useBlurShader
+   -- useBlurShader= useBlurShader
   }
 end
 
@@ -210,7 +210,7 @@ function widget:SetConfigData(data)
   --SetupNewScreenAlignment()
 
   -- shader
-  useBlurShader    = data.useBlurShader or true
+  --useBlurShader    = data.useBlurShader or true
 end
 
 
@@ -818,7 +818,7 @@ function MenuHandler(x,y,button)
     openedMenu   = -1
     pressedFac   = -1
     hoveredFac   = -1
-    blurFullscreen(false)
+   -- blurFullscreen(false)
     blured = false
   end
   return
@@ -978,7 +978,7 @@ function widget:IsAbove(x,y)
     end
     if not blured then
       Spring.PlaySoundFile(sound_hover, 0.95)
-      blurFullscreen(true)
+      --blurFullscreen(true)
       blured = true
     end
     return true
@@ -986,7 +986,7 @@ function widget:IsAbove(x,y)
     --buildoption icon
     if not blured then
       Spring.PlaySoundFile(sound_hover, 0.95)
-      blurFullscreen(true)
+      --blurFullscreen(true)
       blured = true
     end
     return true
@@ -1003,7 +1003,7 @@ function widget:IsAbove(x,y)
 
   if blured then
     Spring.PlaySoundFile(sound_hover, 0.9)
-    blurFullscreen(false)
+    --blurFullscreen(false)
     blured = false
   end
   return false
