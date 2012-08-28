@@ -5,7 +5,7 @@ return {
 		brakerate = 0.55000001192093,
 		buildcostenergy = 1031,
 		buildcostmetal = 53,
-		builddistance = 136,
+		builddistance = 96,
 		builder = true,
 		buildpic = "ARMMLV.DDS",
 		buildtime = 3519,
