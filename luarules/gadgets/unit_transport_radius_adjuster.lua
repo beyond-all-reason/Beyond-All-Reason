@@ -14,10 +14,10 @@ if (not gadgetHandler:IsSyncedCode()) then
   return
 end
 local AirTrans = {
-  [UnitDefNames["corvalk"].id] = 24,
-  [UnitDefNames["armsl"].id] = 32,
-  [UnitDefNames["armatlas"].id] = 24,
-  [UnitDefNames["armdfly"].id] = 32,
+  [UnitDefNames["corvalk"].id] = 16,
+  [UnitDefNames["armsl"].id] = 16,
+  [UnitDefNames["armatlas"].id] = 16,
+  [UnitDefNames["armdfly"].id] = 16,
 }
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	if AirTrans[unitDefID] then
