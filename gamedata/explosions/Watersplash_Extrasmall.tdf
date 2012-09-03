@@ -23,9 +23,9 @@
 		sizeMod		= 1.0;
 
 		airdrag			= 1;
-		particleLife		= 20;
-		particleLifeSpread	= 10;
-		numParticles		= 40;
+		particleLife		= 16;
+		particleLifeSpread	= 8;
+		numParticles		= 35;
 		particleSpeed		= 3 i0.25;
 		particleSpeedSpread	= 2;
 		particleSize		= 3;
@@ -68,8 +68,8 @@
 
 		airdrag			= 1;
 		particleLife		= 2;
-		particleLifeSpread	= 12;
-		numParticles		= 40;
+		particleLifeSpread	= 10;
+		numParticles		= 35;
 		particleSpeed		= 0 r3 i-0.05;
 		particleSpeedSpread	= 2;
 		particleSize		= 1;
@@ -112,8 +112,8 @@
 
 		airdrag			= 1;
 		particleLife		= 4;
-		particleLifeSpread	= 16;
-		numParticles		= 40;
+		particleLifeSpread	= 14;
+		numParticles		= 35;
 		particleSpeed		= 1 r1;
 		particleSpeedSpread	= 0;
 		particleSize		= 1 r2;
@@ -194,8 +194,8 @@
 
 		airdrag			= 1;
 		particleLife		= 4;
-		particleLifeSpread	= 16;
-		numParticles		= 30;
+		particleLifeSpread	= 14;
+		numParticles		= 35;
 		particleSpeed		= 1 r1;
 		particleSpeedSpread	= 0;
 		particleSize		= 2 r2;
