@@ -1,3 +1,23 @@
+7.70 -> 7.71
+9/4/2012
+- Fixed bombers + torp bombers ignoring attack commands 91 (Customformations line attack DOES NOT work for bombers in 91)
+- Fixed Transports for 91
+- Non gunship aircraft have 50% chance of crashing to ground instead of exploding
+- Fixed builddistance for 91 
+- Remove blur shader (ugly and resource intensive) 
+- Give corsktl a larger hitsphere so unit self explodes correctly 
+- Add modified xta Splashgadget with custom cegs 
+- Add fixed weaponDefs_post.lua and water hit splash sounds 
+- Armsniper weapontype changed to Rifle. Should fix snipers shooting … 
+- Torps no longer fire at Pelicans 
+- Juno now kills jeffy, flea and weasel. Juno metalpershot cost added, 250M per shot
+- Add Kloots dynamic lighting gadget and custom config (more bling) 
+- Added dynamic projectile lights widget (bling bling) 
+- Reduced all crawling bomb's underwater speed by 33% 
+- Further optimized gfx_dynamic_blob_shadow.lua 
+- Increased unit under attack warning alarminterval to 15 
+- Smoothed out all Kbot animations with smoothanim.py 
+
 7.67(8) -> 7.70
 7/25/2012
 - Perfomance optimized blob shadows (nearly 30% faster) 
