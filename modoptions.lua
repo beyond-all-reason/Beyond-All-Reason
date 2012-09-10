@@ -206,9 +206,11 @@ local options={
       desc    = "Switch Pathfinding System",
       type    = "list",
       def     = "normal",
-      section = "spring",
-      {key="normal", name="Normal", desc="Spring vanilla pathfinder"},
-      {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
+      section = "ba_options",
+	  items={
+		  {key="normal", name="Normal", desc="Spring vanilla pathfinder"},
+		  {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
+	  },
   },
 }
 return options
