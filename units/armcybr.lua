@@ -58,7 +58,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
-				commandfire = true,
+				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
