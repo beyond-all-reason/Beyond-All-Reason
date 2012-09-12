@@ -115,7 +115,7 @@ return {
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 120,
-				tolerance = 32767,
+				tolerance = 18000,
 				tracks = true,
 				turnrate = 12000,
 				turret = false,
