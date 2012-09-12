@@ -135,7 +135,7 @@ return {
 				badTargetCategory = "HOVER NOTSHIP",
 				def = "ARM_TORPEDO",
 				maindir = "0 0 1",
-				maxangledif = 75,
+				maxangledif = 90,
 				onlyTargetCategory= "NOTHOVER",
 			},
 		},
