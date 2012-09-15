@@ -104,8 +104,9 @@ function gadget:GameFrame(n)
                 mCur = mCur + mExc
             end
             -- never consider it a stall if the actual combined income is higher than the total expense
-            teamMetalStalling[teamID] = (mCur < 0.5 * mPull) and ((mInc + mRec) <= (mPull + mSent)) --switch mExp to mPull! otherwise it makes no sense, it shouldnt have even worked!
-            teamEnergyStalling[teamID] = (eCur < 0.5 * ePull) and ((eInc + eRec) <= (ePull + eSent))
+            teamMetalStalling[teamID] = (mCur < 0.5 * mPull) and ((mInc + mRec) <= (mExp*1.1 + mSent)) --switch mExp to mPull! otherwise it makes no sense, it shouldnt have even worked!
+            teamEnergyStalling[teamID] = (eCur < 0.5 * ePull) and ((eInc + eRec) <= (eExp*1.1 + eSent))
+			--Spring.Echo("teamID",teamID,"mCur",mCur,"mPull",mPull, "mExp",mExp, "mExc",mExc,'mInc',mInc,'mRec',mRec,'mSent',mSent)
 			--Spring.Echo("teamID",teamID,'estall',teamEnergyStalling[teamID],'mstall',teamMetalStalling[teamID])
 		end
     end
