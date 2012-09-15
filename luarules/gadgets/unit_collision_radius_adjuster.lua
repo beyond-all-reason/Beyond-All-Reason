@@ -25,6 +25,8 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 		--Spring.Echo('reset radius for airtrans')
 	--Spring.SetUnitRadiusAndHeight New in version 89.0( number unitID, number radius, number height )
 		Spring.SetUnitRadiusAndHeight(unitID, AirTrans[unitDefID], 32 )
+	else
+		Spring.SetUnitRadiusAndHeight(unitID,Spring.GetUnitRadius(unitID)*0.66,Spring.GetUnitHeight(unitID))
 	end
 end
 
