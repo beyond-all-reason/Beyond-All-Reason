@@ -73,6 +73,7 @@ function gadget:AllowCommand(uID, uDefID, uTeam, cmdID, cmdParams, cmdOptions, c
         cmdDesc.params[1] = cmdParams[1]
         spEditUnitCmdDesc(uID, cmdIdx, cmdDesc)
         passiveBuilders[uID] = (cmdParams[1] == 1)
+		--Spring.Echo(uID,'is passive')
         return false -- Allowing command causes command queue to be lost if command is unshifted
     end
     return true
@@ -88,6 +89,7 @@ function gadget:GameFrame(n)
             local teamID = teamList[i]
             local mCur, mStor, mPull, mInc, mExp, mShare, mSent, mRec, mExc = spGetTeamResources(teamID, 'metal')
             local eCur, eStor, ePull, eInc, eExp, eShare, eSent, eRec, eExc = spGetTeamResources(teamID, 'energy')
+			--Spring.Echo("teamID",teamID,"mCur",mCur,"mPull",mPull, "mExp",mExp, "mExc",mExc,'mInc',mInc,'mRec',mRec,'mSent',mSent)
             -- stabilize the situation if storage is small
             if ePull > eExp then
                 eCur = eCur - (ePull - eExp)
@@ -102,12 +104,14 @@ function gadget:GameFrame(n)
                 mCur = mCur + mExc
             end
             -- never consider it a stall if the actual combined income is higher than the total expense
-            teamMetalStalling[teamID] = (mCur < 0.5 * mPull) and ((mInc + mRec) <= (mExp + mSent))
-            teamEnergyStalling[teamID] = (eCur < 0.5 * ePull) and ((eInc + eRec) <= (eExp + eSent))
-        end
+            teamMetalStalling[teamID] = (mCur < 0.5 * mPull) and ((mInc + mRec) <= (mPull + mSent)) --switch mExp to mPull! otherwise it makes no sense, it shouldnt have even worked!
+            teamEnergyStalling[teamID] = (eCur < 0.5 * ePull) and ((eInc + eRec) <= (ePull + eSent))
+			--Spring.Echo("teamID",teamID,'estall',teamEnergyStalling[teamID],'mstall',teamMetalStalling[teamID])
+		end
     end
 end
 
 function gadget:AllowUnitBuildStep(builderID, builderTeamID, uID, uDefID, step)
+	--Spring.Echo('gooby pls', not (passiveBuilders[builderID] and ((teamMetalStalling[builderTeamID] and requiresMetal[uDefID]) or (teamEnergyStalling[builderTeamID] and requiresEnergy[uDefID]))))
     return (step <= 0) or not (passiveBuilders[builderID] and ((teamMetalStalling[builderTeamID] and requiresMetal[uDefID]) or (teamEnergyStalling[builderTeamID] and requiresEnergy[uDefID])))
 end
