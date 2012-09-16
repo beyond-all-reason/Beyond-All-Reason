@@ -17,13 +17,15 @@ local GetUnitHealth 	= Spring.GetUnitHealth
 local random			= math.random 
 local SetUnitCOBValue 	= Spring.SetUnitCOBValue
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
+local SetUnitCosts		= Spring.SetUnitCosts
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
 	if UnitDefs[unitDefID]["canFly"] == true and (damage>GetUnitHealth(unitID)) and random()>0.5 then
 	--NOTE: strafe airmovetype aircraft DO NOT CRASH, only regular stuff like bombers
 		--Spring.Echo('CRASHING AIRCRAFT')
 		SetUnitCOBValue(unitID, COB.CRASHING, 1)
-		Spring.SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
+		SetUnitCosts(unitID,10000,0,0)
+		SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
 	end
 end
 
