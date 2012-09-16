@@ -12,7 +12,7 @@ end
 
 if ( not gadgetHandler:IsSyncedCode()) then
 -- UNSYNCED code
-	local maxIdleTreshold = 60*30 -- in frames
+	local maxIdleTreshold = 150*30 -- in frames (30 game frames per sec)
 
 	local GetGameFrame = Spring.GetGameFrame
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
