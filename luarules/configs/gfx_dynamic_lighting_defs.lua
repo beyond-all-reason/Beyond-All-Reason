@@ -27,8 +27,8 @@ local copyLightDefs = {
 
 		--Self-D , Explosion for large units eg corkrog and commanders etc
 		["commander_blast"           ] = "commander_blast",
-		["crblmssl"                  ] = "nuke_crblmssl",
-		["nuclear_missile"           ] = "nuke_missile",
+		["crblmssl"                  ] = "nuke_crblmssl_blast",
+		["nuclear_missile"           ] = "nuke_missile_blast",
 		
 		--Nukes
 		["corsilo_crblmssl"          ] = "nuke_crblmssl",
@@ -67,8 +67,7 @@ local dynLightDefs = {
 					ttl               = 100000,
 				},
 			},
-			
-			
+
 			-- explodeas/selfdestructas lights for various large units
 			["commander_blast"] = { 
 				explosionLightDef = {
@@ -81,7 +80,31 @@ local dynLightDefs = {
 					altitudeOffset    = 65.0,
 				},
 			},
-			
+
+			["nuke_crblmssl_blast"] = {
+				explosionLightDef = {
+					diffuseColor      = {25.0,                   25.0,                   17.0                  },
+					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					priority          = 15 * 10,
+					radius            = 2020.0,
+					ttl               = 6.5 * Game.gameSpeed,
+					decayFunctionType = {0.0, 0.0, 0.0},
+					altitudeOffset    = 250.0,
+				},
+			},
+
+			["nuke_missile_blast"] = {
+				explosionLightDef = {
+					diffuseColor      = {25.0,                   25.0,                   17.0                  },
+					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					priority          = 15 * 10,
+					radius            = 1380.0,
+					ttl               = 6.5 * Game.gameSpeed,
+					decayFunctionType = {0.0, 0.0, 0.0},
+					altitudeOffset    = 250.0,
+				},
+			},
+
 			-- Arm Retaliator / Core Silencer (large nuke) projectiles
 			-- NOTE:
 			--   uses a vertical offset to simulate an
@@ -96,7 +119,7 @@ local dynLightDefs = {
 					radius          = 270.0,
 					ttl             = 100000,
 				},
-				
+
 				explosionLightDef = {
 					diffuseColor      = {25.0,                   25.0,                   17.0                  },
 					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
@@ -127,6 +150,7 @@ local dynLightDefs = {
 					altitudeOffset    = 250.0,
 				},
 			},
+		
 			-- Arm Stunner / Core Neutron (small nuke) projectiles
 			["emp_weapon"] = {
 				projectileLightDef = {
@@ -184,7 +208,7 @@ local dynLightDefs = {
 					radius            = 220.0,
 					ttl               = 2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
-					altitudeOffset    = 70.0,
+					altitudeOffset    = 100.0,
 				},
 			},
 			-- Juno Weapon
