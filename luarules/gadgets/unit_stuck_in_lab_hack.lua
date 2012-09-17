@@ -22,6 +22,16 @@ end
 
 local GetUnitCommands = Spring.GetUnitCommands
 
+local badfactories={
+  [UnitDefNames["corsy"].id] = true,
+  [UnitDefNames["corasy"].id] = true,
+  [UnitDefNames["corfhp"].id] = true,
+  [UnitDefNames["csubpen"].id] = true,
+  [UnitDefNames["armsy"].id] = true,
+  [UnitDefNames["armasy"].id] = true,
+  [UnitDefNames["armfhp"].id] = true,
+  [UnitDefNames["csubpen"].id] = true,
+}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -79,8 +89,25 @@ function gadget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 				newcmd[1]={10,{x,y,z},16} --CMD.MOVE, pos ,16
 				--Spring.Echo('facing',f)
 			end
-			--Spring.Echo('newcmd',to_string(newcmd))
+			--Spring.Echo('Unit unstuck from lab')
 			Spring.GiveOrderArrayToUnitArray({unitID},newcmd)
+		end
+	else
+		if badfactories[factDefID] and #Spring.GetUnitCommands(factID)==0 then
+			local x,y,z = Spring.GetUnitPosition(factID)
+				local f=Spring.GetUnitBuildFacing(factID)
+				if f==0 then
+					z=z+96
+				elseif f==1 then
+					x=x+96
+				elseif f==2 then
+					z=z-96
+				else
+					x=x-96
+				end
+				y=Spring.GetGroundHeight(x,z)
+				local newcmd={{10,{x,y,z},16}} --CMD.MOVE, pos ,16
+				Spring.GiveOrderArrayToUnitArray({unitID},newcmd)
 		end
 	end
 end
