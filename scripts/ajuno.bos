@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, sphere, sphere1, collar, gear, clamp1, clamp2, clamp3,
+piece  base, globetop, globebottom, collar, gear, clamp1, clamp2, clamp3,
        clamp4, clamp5, clamp6, tower, emit1, emit2, emit3, emit4,
        flare1;
 
@@ -11,6 +11,7 @@ static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
+
 
 NanoEmit()
 {
@@ -20,7 +21,6 @@ NanoEmit()
 	}
 	while( TRUE )
 	{
-	
 		emit-sfx 1024 from tower;
 		sleep 1200;
 	}
@@ -41,9 +41,9 @@ Activatescr()
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	spin sphere around y-axis speed <85.016484>;
+	spin globetop around y-axis speed <85.016484>;
 	spin gear around y-axis speed <-165.038462>;
-	spin collar around y-axis speed <-65.010989>;
+	spin collar around y-axis speed <-65.005495>;
 	sleep 250;
 	emit-sfx 257 from emit1;
 	emit-sfx 257 from emit2;
@@ -58,8 +58,6 @@ Activatescr()
 	emit-sfx 257 from emit2;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 deactivatescr()
@@ -69,7 +67,7 @@ deactivatescr()
 	emit-sfx 257 from emit3;
 	emit-sfx 257 from emit4;
 	sleep 250;
-	spin sphere around y-axis speed <25.005495>;
+	spin globetop around y-axis speed <25.005495>;
 	spin gear around y-axis speed <15.000000>;
 	spin collar around y-axis speed <15.000000>;
 	emit-sfx 257 from emit1;
@@ -109,7 +107,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Go()
 {
 	call-script Activatescr();
-	gun_1 = sphere;
+	gun_1 = globetop;
 }
 
 Stop()
@@ -155,8 +153,8 @@ Create()
 {
 	gun_1 = base;
 	hide flare1;
-	dont-cache sphere;
-	dont-cache sphere1;
+	dont-cache globetop;
+	dont-cache globebottom;
 	dont-cache collar;
 	dont-cache gear;
 	dont-cache clamp1;
@@ -167,8 +165,8 @@ Create()
 	dont-cache clamp6;
 	dont-shade collar;
 	dont-shade gear;
-	dont-shade sphere;
-	dont-shade sphere1;
+	dont-shade globetop;
+	dont-shade globebottom;
 	dont-shade tower;
 	dont-shade base;
 	restore_delay = 3000;
@@ -237,7 +235,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP1;
 		explode collar type BITMAPONLY | BITMAP2;
 		explode gear type BITMAPONLY | BITMAP3;
-		explode sphere type BITMAPONLY | BITMAP2;
+		explode globetop type BITMAPONLY | BITMAP2;
 		explode tower type BITMAPONLY | BITMAP5;
 		return (0);
 	}
@@ -247,7 +245,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP1;
 		explode collar type BITMAPONLY | BITMAP2;
 		explode gear type BITMAPONLY | BITMAP3;
-		explode sphere type BITMAPONLY | BITMAP2;
+		explode globetop type BITMAPONLY | BITMAP2;
 		explode tower type BITMAPONLY | BITMAP5;
 		return (0);
 	}
@@ -257,7 +255,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP1;
 		explode collar type BITMAPONLY | BITMAP2;
 		explode gear type BITMAPONLY | BITMAP3;
-		explode sphere type BITMAPONLY | BITMAP1;
+		explode globetop type BITMAPONLY | BITMAP1;
 		explode tower type BITMAPONLY | BITMAP5;
 		explode emit1 type FALL | SMOKE | BITMAP5;
 		explode emit2 type FALL | SMOKE | BITMAP5;
@@ -269,7 +267,7 @@ Killed(severity, corpsetype)
 	explode base type BITMAPONLY | BITMAP1;
 	explode collar type BITMAPONLY | BITMAP2;
 	explode gear type BITMAPONLY | BITMAP3;
-	explode sphere type BITMAPONLY | BITMAP1;
+	explode globetop type BITMAPONLY | BITMAP1;
 	explode tower type BITMAPONLY | BITMAP5;
 	explode emit1 type SHATTER | SMOKE | FIRE | BITMAP5;
 	explode emit2 type SHATTER | SMOKE | FIRE | BITMAP5;
