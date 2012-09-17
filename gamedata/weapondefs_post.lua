@@ -104,7 +104,7 @@ local inertialessWeapons = {
 	LightningCannon = true,
 }
 
-local modOptions = Spring.GetModOptions()
+-- local modOptions = Spring.GetModOptions() -- this crashes the mission editor and is not actually used here.
 
 -- Adjustment of terrain damage, kinetic force of weapons, avoidfeature==false for short range and explosive weapons, and add water hit sounds
 for id in pairs(WeaponDefs) do
