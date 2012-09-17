@@ -83,13 +83,13 @@ local UnitEffects = {
   },
   --// FUSIONS //--------------------------
   [UnitDefNames["cafus"].id] = {
-    {class='Bursts',options=cafusBursts},
+    --{class='Bursts',options=cafusBursts},
     {class='ShieldSphere',options=cafusShieldSphere},
     {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,58.9,-4.5}, size=24.5, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashBlue},
   },
   [UnitDefNames["corfus"].id] = {
-    {class='Bursts',options=corfusBursts},
+    --{class='Bursts',options=corfusBursts},
     {class='ShieldSphere',options=corfusShieldSphere},
     {class='ShieldJitter',options={life=math.huge, pos={0,40.5,-6.5}, size=21, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashGreen},
