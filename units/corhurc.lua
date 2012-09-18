@@ -14,7 +14,7 @@ return {
 		description = "Heavy Strategic Bomber",
 		energymake = 0.60000002384186,
 		energyuse = 0.60000002384186,
-		explodeas = "BIG_UNIT",
+		explodeas = "BIG_UNITEX",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "air",
