@@ -29,7 +29,7 @@ return {
 		objectname = "ARMSEHAK",
 		radardistance = 2250,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 1100,
 		sonardistance = 900,
 		turnrate = 402,

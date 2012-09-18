@@ -29,7 +29,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMTHUND",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 195,
 		turnrate = 829,
 		sounds = {

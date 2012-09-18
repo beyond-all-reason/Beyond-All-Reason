@@ -28,7 +28,7 @@ return {
 		objectname = "ARMPEEP",
 		radardistance = 1140,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "SMALL_UNIT_AIR",
 		selfdestructcountdown = 1,
 		sightdistance = 865,
 		turnrate = 880,

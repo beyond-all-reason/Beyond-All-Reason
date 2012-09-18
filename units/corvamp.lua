@@ -25,7 +25,7 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORVAMP",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 200,
 		stealth = true,
 		turnrate = 1337,

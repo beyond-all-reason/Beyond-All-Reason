@@ -14,7 +14,7 @@ return {
 		description = "Heavy Strategic Bomber",
 		energymake = 0.60000002384186,
 		energyuse = 0.60000002384186,
-		explodeas = "BIG_UNITEX",
+		explodeas = "BIG_UNIT",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "air",
@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORHURC",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 221,
 		turnrate = 220,
 		sounds = {

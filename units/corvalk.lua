@@ -17,6 +17,7 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 3,
+		hoverattack = true,
 		icontype = "air",
 		idleautoheal = 5 ,
 		idletime = 1800 ,

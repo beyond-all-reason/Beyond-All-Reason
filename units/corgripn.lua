@@ -28,7 +28,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORGRIPN",
 		seismicsignature = 0,
-		selfdestructas = "ESTOR_BUILDINGEX",
+		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 390,
 		stealth = true,
 		turnrate = 396,

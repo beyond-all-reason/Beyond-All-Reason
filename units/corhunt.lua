@@ -29,7 +29,7 @@ return {
 		objectname = "CORHUNT",
 		radardistance = 2200,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 1130,
 		sonardistance = 900,
 		turnrate = 450,

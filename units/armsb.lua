@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSB",
 		seismicsignature = 0,
-		selfdestructas = "CRAWL_BLASTSML",
+		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 455,
 		turnrate = 392,
 		sounds = {

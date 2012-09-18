@@ -26,7 +26,7 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORSFIG",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 200,
 		turnrate = 1547,
 		sounds = {
