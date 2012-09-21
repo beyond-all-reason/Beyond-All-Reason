@@ -47,27 +47,50 @@ end
 					-- // and we must slow down to prevent entering an infinite circle
 					-- targetSpeed = std::min(targetSpeed, (currWayPointDist * PI) / (SPRING_CIRCLE_DIVS / turnRate));
 				-- }
-
+local cons = {['armcv'] = true,
+	['armacv']  = true,
+	['consul'] = true,
+	['armbeaver'] = true,
+	['armch'] = true,
+	['corcv'] = true,
+	['coracv'] = true,
+	['cormuskrat'] = true,
+	['corch'] = true,}
+local turninplacebots= {['corck'] = true,
+	['corack'] = true,
+	['corfast'] = true,
+	['armck'] = true,
+	['armack'] = true,
+	['armfark'] = true,}
 for name, ud in pairs(UnitDefs) do
 	if (ud.maxvelocity) then 
-		ud.turninplacespeedlimit = ud.maxvelocity
+		ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
+		ud.turninplaceanglelimit = 140
 	end
-	if ud.category and (ud.category:find("TANK",1,true) or ud.category:find("HOVER",1,true)) then
-		Spring.Echo('tank or hover:',ud.name,ud.moveData)
-		if (ud.maxvelocity) then 
+	if ud.movementclass and (ud.movementclass:find("TANK",1,true) or ud.movementclass:find("HOVER",1,true)) then
+		--Spring.Echo('tank or hover:',ud.name,ud.movementclass)
+		if cons[name] then
+			--Spring.Echo('tank or hover con:',ud.name,ud.moveData)
+			ud.turninplace=1
+			ud.turninplaceanglelimit=60
+			ud.acceleration=ud.acceleration*2
+			ud.brakerate=ud.brakerate*2
+		elseif (ud.maxvelocity) then 
 			ud.turninplace = 0
 			ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
 		end
-	elseif ud.category and (ud.category:find("KBOT",1,true)) then
-		Spring.Echo('kbot:',ud.name)
-		if (ud.maxvelocity) and (ud.turninplace) then 
+	elseif ud.movementclass and (ud.movementclass:find("KBOT",1,true)) then
+		if turninplacebots[name] then
+			--Spring.Echo('turninplacekbot:',ud.name)
+			ud.turninplace=1
+			ud.turninplaceanglelimit=60
+			ud.acceleration=ud.acceleration*2
+			ud.brakerate=ud.brakerate*2
+		elseif (ud.maxvelocity) then 
 			ud.turninplaceanglelimit = 140
 		end
 	end
-	if name=='armcv' then
-		ud.turninplace = 1
-		ud.turninplaceanglelimit = 60
-	end
+
 	if (name == 'armnanotc' or name == 'cornanotc') then
 		ud.cantbetransported=false
 	end
