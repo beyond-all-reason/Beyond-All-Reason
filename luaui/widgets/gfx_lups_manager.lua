@@ -91,7 +91,7 @@ local UnitEffects = {
   [UnitDefNames["corfus"].id] = {
     --{class='Bursts',options=corfusBursts},
     {class='ShieldSphere',options=corfusShieldSphere},
-    {class='ShieldJitter',options={life=math.huge, pos={0,40.5,-6.5}, size=21, precision=22, repeatEffect=true}},
+    {class='ShieldJitter',options={life=math.huge, pos={0,50,-5}, size=23, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashGreen},
   },
   [UnitDefNames["aafus"].id] = {
