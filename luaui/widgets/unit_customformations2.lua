@@ -586,8 +586,10 @@ function widget:MouseRelease(mx, my, mButton)
 		
 		-- Directly giving speed order appears to work perfectly, including with shifted orders ...
 		-- ... But other widgets CMD.INSERT the speed order into the front (Posn 1) of the queue instead (which doesn't work with shifted orders)
-		local speedOpts = GetCmdOpts(alt, ctrl, meta, shift, true)
-		GiveNotifyingOrder(CMD_SET_WANTED_MAX_SPEED, {wantedSpeed / 30}, speedOpts)
+		if usingCmd ~= CMD.ATTACK and usingCmd ~= CMD.UNLOAD then --hack to fix bomber line attack etc.
+		  local speedOpts = GetCmdOpts(alt, ctrl, meta, shift, true)
+		  GiveNotifyingOrder(CMD_SET_WANTED_MAX_SPEED, {wantedSpeed / 30}, speedOpts)
+		end
 	end
 	
 	if #fNodes > 1 then
@@ -625,28 +627,37 @@ local function tVertsMinimap(verts)
 	end
 end
 local function DrawFormationLines(vertFunction, lineStipple)
-	
-	glLineStipple(lineStipple, 4095)
+
+	glLineStipple(lineStipple, 4369)
 	glLineWidth(2.0)
-	
+
 	if #fNodes > 1 then
 		SetColor(usingCmd, 1.0)
 		glBeginEnd(GL_LINE_STRIP, vertFunction, fNodes)
 	end
-	
+
 	if #dimmNodes > 1 then
 		SetColor(dimmCmd, dimmAlpha)
 		glBeginEnd(GL_LINE_STRIP, vertFunction, dimmNodes)
 	end
-	
+
 	glLineWidth(1.0)
 	glLineStipple(false)
 end
 
+local GetCameraPosition = Spring.GetCameraPosition
+local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
 function widget:DrawWorld()
-	
-	DrawFormationLines(tVerts, 2)
+  if #fNodes > 1 or #dimmNodes > 1 then
+	local _,zoomY = GetCameraPosition()
+	zoomY = zoomY/340 --magic number
+	local lineStipple = lineLength/(GetSelectedUnitsCount()*zoomY)
+	--TODO fix the pattern and rest of math -so that always starts with half line and ends with half line
+	DrawFormationLines(tVerts, lineStipple)
+  end
 end
+
 function widget:DrawInMiniMap()
 	
 	glPushMatrix()
