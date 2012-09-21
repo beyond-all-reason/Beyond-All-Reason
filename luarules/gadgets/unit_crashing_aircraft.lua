@@ -47,6 +47,6 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, uID, uDefID, step) 
 	return true
 end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
-	if crashing[unitID] then return false --hacky
+	if crashing[unitID] then return false end --hacky
 	return true
 end
