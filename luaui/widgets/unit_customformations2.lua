@@ -223,6 +223,9 @@ local function GetExecutingUnits(cmdID)
 	end
 	return units
 end
+
+local lineLength = 0
+
 local function AddFNode(pos)
 	
 	local px, pz = pos[1], pos[3]
@@ -244,6 +247,7 @@ local function AddFNode(pos)
 		
 		fNodes[n + 1] = pos
 		fDists[n + 1] = fDists[n] + sqrt(distSq)
+		lineLength = lineLength+distSq^0.5
 	end
 	
 	totaldxy = 0
@@ -336,7 +340,7 @@ end
 -- Mouse/keyboard Callins
 --------------------------------------------------------------------------------
 function widget:MousePress(mx, my, mButton)
-	
+	lineLength=0 --for linestipple
 	-- Where did we click
 	inMinimap = spIsAboveMiniMap(mx, my)
 	if inMinimap and not MiniMapFullProxy then return false end
