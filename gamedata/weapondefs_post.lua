@@ -127,7 +127,7 @@ for id in pairs(WeaponDefs) do
 				WeaponDefs[id].soundhitwet = "splsmed"
 				WeaponDefs[id].soundhitwetvolume = 0.5
 			elseif AoE>450 then
-				WeaponDefs[id].soundhitwet = WeaponDefs[id].soundhitd
+				WeaponDefs[id].soundhitwet = WeaponDefs[id].soundhitdry
 			else
 				WeaponDefs[id].soundhitwet = "splslrg"
 				WeaponDefs[id].soundhitwetvolume = 0.5
