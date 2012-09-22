@@ -655,8 +655,8 @@ local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 function widget:DrawWorld()
   if #fNodes > 1 or #dimmNodes > 1 then
 	local _,zoomY = GetCameraPosition()
-	zoomY = zoomY/340 --magic number
-	local lineStipple = lineLength/(GetSelectedUnitsCount()*zoomY)
+	zoomY = zoomY/470 --magic number with 20 units its 27 stipp with 30 its 39
+	local lineStipple = lineLength/((GetSelectedUnitsCount()-1)*zoomY)
 	--TODO fix the pattern and rest of math -so that always starts with half line and ends with half line
 	DrawFormationLines(tVerts, lineStipple)
   end
