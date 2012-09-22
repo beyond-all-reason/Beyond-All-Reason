@@ -1,3 +1,25 @@
+7.71 -> 7.72
+9/21/2012
+-Fixed Customformations bomb line
+-Fixed nuke not firing if order given before missile is ready
+-Fixed subs and subkillers firing in any direction
+-Fixed nuke bombers refusing to fire at ground
+-Fixed aircraft getting stuck on air repair pads
+-Fixed reclaiming crashing aircraft giving lots of resources
+-Fixed killing crashing aircraft givings -1 XP
+-Fixed units getting stuck in labs
+-Fixed passive builders not detecting stall condition correctly
+-Reclaim command can now be waited
+-Added splash sounds
+-Crashing aircraft do less damage
+-Fixed turninplace for most units, handling and pathing improved
+-Added QTPFS modoption
+-Amph t1 vec cons now have better acceleration: handling>random nerf
+-Added logo (MAKE A BETTER ONE!)
+-Auto idle timer changed to 2.5 minutes
+
+
+
 7.70 -> 7.71
 9/4/2012
 - Fixed bombers + torp bombers ignoring attack commands 91 (Customformations line attack DOES NOT work for bombers in 91)
