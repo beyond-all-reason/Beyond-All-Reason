@@ -119,24 +119,23 @@ for id in pairs(WeaponDefs) do
 			local AoE = tonumber(WeaponDefs[id].areaofeffect) or 0
 			if AoE<50 then
 				WeaponDefs[id].soundhitwet = "splshbig"
-				WeaponDefs[id].soundhitvolume = 0.5
+				WeaponDefs[id].soundhitwetvolume = 0.5
 			elseif AoE<88 then
 				WeaponDefs[id].soundhitwet = "splssml"
-				WeaponDefs[id].soundhitvolume = 0.5
+				WeaponDefs[id].soundhitwetvolume = 0.5
 			elseif AoE<145 then
 				WeaponDefs[id].soundhitwet = "splsmed"
-				WeaponDefs[id].soundhitvolume = 0.5
+				WeaponDefs[id].soundhitwetvolume = 0.5
 			elseif AoE>450 then
-				WeaponDefs[id].soundhitwet = WeaponDefs[id].soundhitdry
-				WeaponDefs[id].soundhitvolume = 1
+				WeaponDefs[id].soundhitwet = WeaponDefs[id].soundhitd
 			else
 				WeaponDefs[id].soundhitwet = "splslrg"
-				WeaponDefs[id].soundhitvolume = 0.5
+				WeaponDefs[id].soundhitwetvolume = 0.5
 			end
 		end
 	else
 		WeaponDefs[id].soundhitwet = "sizzle"
-		WeaponDefs[id].soundhitvolume = 0.5
+		WeaponDefs[id].soundhitwetvolume = 0.5
 	end
 	if inertialessWeapons[WeaponDefs[id].weapontype] then
 		WeaponDefs[id].impulseboost = 0
