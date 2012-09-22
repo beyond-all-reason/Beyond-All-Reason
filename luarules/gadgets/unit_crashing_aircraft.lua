@@ -21,6 +21,9 @@ local SetUnitCosts		= Spring.SetUnitCosts
 local crashing={}
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
+	if crashing[unitID] then 
+		return 0,0
+	end --hacky
 	if UnitDefs[unitDefID]["canFly"] == true and (damage>GetUnitHealth(unitID)) and random()>0.5 then
 	--NOTE: strafe airmovetype aircraft DO NOT CRASH, only regular stuff like bombers
 		--Spring.Echo('CRASHING AIRCRAFT',unitID)
@@ -28,7 +31,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		--SetUnitCosts(unitID,{10000,0,0}) this doesnt work either :)
 		SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
 		crashing[unitID]=true
+		--return 0,0--TEST THIS
 	end
+	return damage,1
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
@@ -44,9 +49,5 @@ function gadget:AllowUnitBuildStep(builderID, builderTeamID, uID, uDefID, step) 
 		--Spring.Echo('AllowUnitBuildStep ON CRASHING!')
 		return false
 	end
-	return true
-end
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
-	if crashing[unitID] then return false end --hacky
 	return true
 end
