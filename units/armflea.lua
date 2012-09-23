@@ -29,7 +29,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "FLEA_EX",
 		sightdistance = 550,
-		smoothanim = true,
 		turnrate = 1672,
 		featuredefs = {
 			dead = {

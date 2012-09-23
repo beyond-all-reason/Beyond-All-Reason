@@ -35,7 +35,6 @@ return {
 		selfdestructas = "CRBLMSSL",
 		selfdestructcountdown = 10,
 		sightdistance = 910,
-		smoothanim = true,
 		turnrate = 396,
 		upright = true,
 		featuredefs = {

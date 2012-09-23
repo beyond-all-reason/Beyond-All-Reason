@@ -34,7 +34,6 @@ return {
 		selfdestructas = "CORMINE6",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
-		smoothanim = true,
 		turninplace = 0,
 		turnrate = 1122,
 		upright = true,

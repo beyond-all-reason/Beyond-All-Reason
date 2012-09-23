@@ -39,7 +39,6 @@ return {
 		seismicsignature = 4,
 		selfdestructas = "MINE_MEDIUM",
 		sightdistance = 600,
-		smoothanim = true,
 		stealth = true,
 		turninplace = 0,
 		turnrate = 1016,

@@ -52,7 +52,6 @@ return {
 		selfdestructcountdown = 5,
 		showplayername = true,
 		sightdistance = 450,
-		smoothanim = true,
 		sonardistance = 300,
 		terraformspeed = 1500,
 		turnrate = 1148,

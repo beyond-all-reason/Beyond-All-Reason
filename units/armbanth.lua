@@ -35,7 +35,6 @@ return {
 		selfdestructas = "BANTHA_NUKE",
 		selfdestructcountdown = 10,
 		sightdistance = 617,
-		smoothanim = true,
 		turnrate = 1056,
 		upright = true,
 		customparams = {

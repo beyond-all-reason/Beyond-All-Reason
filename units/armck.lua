@@ -32,7 +32,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 305,
-		smoothanim = true,
 		terraformspeed = 450,
 		turnrate = 1100,
 		upright = true,

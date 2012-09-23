@@ -30,7 +30,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "MECH_BLAST",
 		sightdistance = 450,
-		smoothanim = true,
 		turnrate = 668,
 		upright = true,
 		featuredefs = {

@@ -31,7 +31,6 @@ return {
 		selfdestructas = "CRAWL_BLAST",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
-		smoothanim = true,
 		turninplace = 0,
 		turnrate = 1507,
 		sounds = {

@@ -30,7 +30,6 @@ return {
 		radardistance = 2200,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 900,
-		smoothanim = true,
 		sonardistance = 0,
 		turnrate = 505,
 		featuredefs = {

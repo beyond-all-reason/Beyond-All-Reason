@@ -31,7 +31,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "CRAWL_BLASTSML",
 		sightdistance = 455,
-		smoothanim = true,
 		turnrate = 1056,
 		upright = true,
 		featuredefs = {

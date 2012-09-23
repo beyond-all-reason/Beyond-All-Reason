@@ -28,7 +28,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 338,
-		smoothanim = true,
 		turnrate = 1106,
 		upright = true,
 		featuredefs = {

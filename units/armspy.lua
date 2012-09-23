@@ -37,7 +37,6 @@ return {
 		selfdestructas = "SPYBOMBX",
 		selfdestructcountdown = 1,
 		sightdistance = 550,
-		smoothanim = true,
 		stealth = true,
 		turnrate = 1375,
 		upright = true,

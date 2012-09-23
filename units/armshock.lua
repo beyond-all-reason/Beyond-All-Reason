@@ -32,7 +32,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "SHOCKER",
 		sightdistance = 625,
-		smoothanim = true,
 		turnrate = 231,
 		featuredefs = {
 			dead = {

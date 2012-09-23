@@ -48,7 +48,6 @@ return {
 		selfdestructas = "DECOY_COMMANDER_BLAST",
 		showplayername = true,
 		sightdistance = 377,
-		smoothanim = true,
 		terraformspeed = 750,
 		turnrate = 1133,
 		upright = true,

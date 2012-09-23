@@ -30,7 +30,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 380,
-		smoothanim = true,
 		trackoffset = 2,
 		trackstrength = 8,
 		trackstretch = 0.32499998807907,

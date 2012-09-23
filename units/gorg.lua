@@ -33,7 +33,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "CRAWL_BLAST",
 		sightdistance = 720,
-		smoothanim = true,
 		turnrate = 109,
 		customparams = {
 			paralyzemultiplier = 0,

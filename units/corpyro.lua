@@ -29,7 +29,6 @@ return {
 		selfdestructas = "CORPYRO_BLAST",
 		selfdestructcountdown = 1,
 		sightdistance = 318,
-		smoothanim = true,
 		turnrate = 1145,
 		upright = true,
 		featuredefs = {
