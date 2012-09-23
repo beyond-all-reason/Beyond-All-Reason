@@ -30,7 +30,7 @@ local badfactories={
   [UnitDefNames["armsy"].id] = true,
   [UnitDefNames["armasy"].id] = true,
   [UnitDefNames["armfhp"].id] = true,
-  [UnitDefNames["csubpen"].id] = true,
+  [UnitDefNames["asubpen"].id] = true,
 }
 
 --------------------------------------------------------------------------------
