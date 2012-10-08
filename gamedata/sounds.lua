@@ -15,7 +15,7 @@ local Sounds = {
       warning2 = {
 		file = "sounds/warning2.wav",
 		rolloff = 0.2,
-		dopperscale = 0,      
+		dopplerscale = 0,      
       },
       lasrfir1 = {
 	   file = "sounds/lasrfir1.wav",
