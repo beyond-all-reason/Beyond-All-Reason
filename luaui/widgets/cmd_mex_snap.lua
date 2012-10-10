@@ -4,7 +4,7 @@ function widget:GetInfo()
 		name      = "Mex Snap",
 		desc      = "Snaps mexes to give 100% metal",
 		author    = "Niobium",
-		version   = "v1.1",
+		version   = "v1.2",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
@@ -12,6 +12,13 @@ function widget:GetInfo()
 		handler   = true
 	}
 end
+
+------------------------------------------------------------
+-- Blacklist
+------------------------------------------------------------
+local mapBlackList = {
+						"Brazillian_Battlefield_Remake_V2",
+					 }
 
 ------------------------------------------------------------
 -- Speedups
@@ -83,6 +90,13 @@ function widget:Initialize()
 	if not WG.metalSpots then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget(self)
+	end
+	
+	for key,value in ipairs(mapBlackList) do
+		if (Game.mapName == value) then
+			Spring.Echo("<Snap Mex> This map is on compatible. Shutting down...")
+			widgetHandler:RemoveWidget(self)
+		end
 	end
 end
 
