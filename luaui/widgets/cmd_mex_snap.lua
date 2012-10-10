@@ -94,7 +94,7 @@ function widget:Initialize()
 	
 	for key,value in ipairs(mapBlackList) do
 		if (Game.mapName == value) then
-			Spring.Echo("<Snap Mex> This map is on compatible. Shutting down...")
+			Spring.Echo("<Snap Mex> This map is incompatible - removing mex snap widget.")
 			widgetHandler:RemoveWidget(self)
 		end
 	end
