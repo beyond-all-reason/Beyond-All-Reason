@@ -24,6 +24,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
+		loadingradius = 110,
 		mass = 200000000,
 		maxdamage = 12500,
 		maxvelocity = 1.8919999599457,
@@ -41,8 +42,9 @@ return {
 		trackwidth = 42,
 		transportcapacity = 20,
 		transportsize = 4,
+		transportunloadmethod = 2,
 		turnrate = 215.60000610352,
-		unloadspread = 4,
+		unloadspread = 3,
 		featuredefs = {
 			dead = {
 				blocking = true,
