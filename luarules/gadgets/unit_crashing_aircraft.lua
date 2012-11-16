@@ -18,6 +18,7 @@ local random			= math.random
 local SetUnitCOBValue 	= Spring.SetUnitCOBValue
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local SetUnitCosts		= Spring.SetUnitCosts
+local crashing = {}
 local crashable  ={ --fucking hacky bugfix, strafemovetype cant crash, and sometimes doesnt take the damage it is dealt. 
 	[UnitDefNames["armthund"].id] = true,
 	[UnitDefNames["armpeep"].id] = true,
