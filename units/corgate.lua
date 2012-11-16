@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "corgate_aoplane.dds",
 		buildpic = "CORGATE.DDS",
 		buildtime = 57166,
+		canattack = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -16 0",
 		collisionvolumescales = "65 72 50",
