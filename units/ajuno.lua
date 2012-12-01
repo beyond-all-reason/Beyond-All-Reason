@@ -108,7 +108,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				energypershot = 12000,
-				metalpershot = 250,
+				metalpershot = 200,
 				explosiongenerator = "custom:FLASHJUNO",
 				flighttime = 400,
 				impulseboost = 0,
