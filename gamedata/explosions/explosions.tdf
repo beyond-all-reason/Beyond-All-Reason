@@ -2224,9 +2224,9 @@
 		flashsize=256;
 		flashalpha=1.2;
 		circlegrowth=7;
-		circlealpha=3;
-		ttl=35;
-		color=0.9,0.9,0;
+		circlealpha=0.2;
+		ttl=20;
+		color=0.0,0.6,0.6;
 	}
 	usedefaultexplosions=0;
 	air=1;

@@ -17,6 +17,8 @@ local function CopyTable(srcTbl, dstTbl)
 	end
 end
 
+--for decayfunctiontype see http://springrts.com/phpbb/viewtopic.php?p=532643#p532643
+
 
 local rgbSpecMults = {0.25, 0.25, 0.25} -- specular RGB scales
 local copyLightDefs = {
@@ -62,9 +64,9 @@ local dynLightDefs = {
 				projectileLightDef = {
 					diffuseColor      = {2.8,                   1.0,                   0.1                  },
 					specularColor     = {2.8 * rgbSpecMults[1], 1.0 * rgbSpecMults[2], 0.1 * rgbSpecMults[3]},
-					radius            = 200.0,
+					radius            = 100.0,
 					priority          = 2 * 10,
-					ttl               = 100000,
+					ttl               = 2 * Game.gameSpeed,
 				},
 			},
 
@@ -74,8 +76,8 @@ local dynLightDefs = {
 					diffuseColor      = {6.0,                   6.0,                   6.0                  },
 					specularColor     = {6.0 * rgbSpecMults[1], 6.0 * rgbSpecMults[2], 6.0 * rgbSpecMults[3]},
 					priority          = 15 * 10,
-					radius            = 2020.0,
-					ttl               = 3 * Game.gameSpeed,
+					radius            = 720.0,
+					ttl               = 2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 65.0,
 				},
@@ -83,11 +85,11 @@ local dynLightDefs = {
 
 			["nuke_crblmssl_blast"] = {
 				explosionLightDef = {
-					diffuseColor      = {25.0,                   25.0,                   17.0                  },
-					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					diffuseColor      = {2.0,                   1.0,                   1.0                  },
+					specularColor     = {2.0 * rgbSpecMults[1], 1.0 * rgbSpecMults[2], 1.0 * rgbSpecMults[3]},
 					priority          = 15 * 10,
-					radius            = 2020.0,
-					ttl               = 1.6 * Game.gameSpeed,
+					radius            = 1500.0,
+					ttl               = 1.3 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 250.0,
 				},
@@ -95,11 +97,11 @@ local dynLightDefs = {
 
 			["nuke_missile_blast"] = {
 				explosionLightDef = {
-					diffuseColor      = {25.0,                   25.0,                   17.0                  },
-					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					diffuseColor      = {2.0,                   2.0,                   1.0                  },
+					specularColor     = {2.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 1.0 * rgbSpecMults[3]},
 					priority          = 15 * 10,
-					radius            = 1380.0,
-					ttl               = 1.6 * Game.gameSpeed,
+					radius            = 900.0,
+					ttl               = 1.2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 250.0,
 				},
@@ -116,15 +118,15 @@ local dynLightDefs = {
 					diffuseColor    = {3.0,                   2.0,                   2.0                  },
 					specularColor   = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
 					priority        = 20 * 10,
-					radius          = 270.0,
-					ttl             = 100000,
+					radius          = 170.0,
+					ttl             = 100,
 				},
 
 				explosionLightDef = {
-					diffuseColor      = {25.0,                   25.0,                   17.0                  },
-					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					diffuseColor      = {1.0,                   1.0,                   0.5                  },
+					specularColor     = {1.0 * rgbSpecMults[1], 1.0 * rgbSpecMults[2], 0.5 * rgbSpecMults[3]},
 					priority          = 20 * 10 + 1,
-					radius            = 2020.0,
+					radius            = 1250.0,
 					ttl               = 1.6 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 250.0,
@@ -136,15 +138,15 @@ local dynLightDefs = {
 					diffuseColor    = {3.0,                   2.0,                   2.0                  },
 					specularColor   = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
 					priority        = 20 * 10,
-					radius          = 260.0,
-					ttl             = 100000,
+					radius          = 170.0,
+					ttl             = 100,
 				},
 				
 				explosionLightDef = {
-					diffuseColor      = {25.0,                   25.0,                   17.0                  },
-					specularColor     = {25.0 * rgbSpecMults[1], 25.0 * rgbSpecMults[2], 17.0 * rgbSpecMults[3]},
+					diffuseColor      = {1.0,                   1.0,                   0.5                  },
+					specularColor     = {1.0 * rgbSpecMults[1], 1.0 * rgbSpecMults[2], 0.5 * rgbSpecMults[3]},
 					priority          = 20 * 10 + 1,
-					radius            = 1380.0,
+					radius            = 800.0,
 					ttl               = 1.6 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 250.0,
@@ -152,38 +154,38 @@ local dynLightDefs = {
 			},
 		
 			-- Arm Stunner / Core Neutron (small nuke) projectiles
-			["emp_weapon"] = {
+			["tron_weapon"] = {
 				projectileLightDef = {
-					diffuseColor    = {3.0,                   2.0,                   2.0                  },
-					specularColor   = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
+					diffuseColor    = {0.6,                   0.6,                   0.3                  },
+					specularColor   = {0.6 * rgbSpecMults[1], 0.6 * rgbSpecMults[2], 0.3 * rgbSpecMults[3]},
 					priority        = 8 * 10,
-					radius          = 200.0,
-					ttl             = 100000,
+					radius          = 100.0,
+					ttl             = 125,
 				},
 				explosionLightDef = {
-					diffuseColor      = {12.0,                   12.0,                   8.0                  },
-					specularColor     = {12.0 * rgbSpecMults[1], 12.0 * rgbSpecMults[2], 8.0 * rgbSpecMults[3]},
+					diffuseColor      = {3.0,                   2.0,                   2.0                  },
+					specularColor     = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
 					priority          = 8 * 10 + 1,
-					radius            = 375.0,
+					radius            = 400.0,
 					ttl               = 2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 125.0,
 				},
 			},
 
-			["tron_weapon"] = {
+			["emp_weapon"] = {
 				projectileLightDef = {
-					diffuseColor    = {3.0,                   2.0,                   2.0                  },
-					specularColor   = {3.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 2.0 * rgbSpecMults[3]},
+					diffuseColor    = {0.0,                   0.0,                   0.25                  },
+					specularColor   = {0.0 * rgbSpecMults[1], 0.0 * rgbSpecMults[2], 0.25 * rgbSpecMults[3]},
 					priority        = 8 * 10,
-					radius          = 200.0,
-					ttl             = 100000,
+					radius          = 110.0,
+					ttl             = 125,
 				},
 				explosionLightDef = {
-					diffuseColor      = {12.0,                   12.0,                   8.0                  },
-					specularColor     = {12.0 * rgbSpecMults[1], 12.0 * rgbSpecMults[2], 8.0 * rgbSpecMults[3]},
+					diffuseColor      = {0.0,                   0.25,                   0.75                  },
+					specularColor     = {0.0 * rgbSpecMults[1], 0.25 * rgbSpecMults[2], 0.75 * rgbSpecMults[3]},
 					priority          = 8 * 10 + 1,
-					radius            = 610.0,
+					radius            = 256.0,
 					ttl               = 2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 125.0,
@@ -191,41 +193,31 @@ local dynLightDefs = {
 			},
 			-- Arm Bertha / Core Intimidator (main barrel) projectiles
 			-- NOTE:
-			--   No lol cannon here way to many lights needed
+			--   No lol cannon (here way to many lights needed)
 			["berthacannon"] = {
 				projectileLightDef = {
 					diffuseColor    = {2.9,                   1.9,                   0.2                  },
 					specularColor   = {2.9 * rgbSpecMults[1], 1.9 * rgbSpecMults[2], 0.2 * rgbSpecMults[3]},
 					priority        = 5 * 10,
-					radius          = 105.0,
-					ttl             = 1000,
-				},
-				
-				explosionLightDef = {
-					diffuseColor      = {4.0,                   3.0,                   1.2                  },
-					specularColor     = {4.0 * rgbSpecMults[1], 3.0 * rgbSpecMults[2], 1.2 * rgbSpecMults[3]},
-					priority          = 3 * 10 + 1,
-					radius            = 220.0,
-					ttl               = 2 * Game.gameSpeed,
-					decayFunctionType = {0.0, 0.0, 0.0},
-					altitudeOffset    = 100.0,
+					radius          = 115.0,
+					ttl             = 10,
 				},
 			},
 			-- Juno Weapon
 			["juno"] = {
 				projectileLightDef = {
-					diffuseColor    = {2.9,                   1.9,                   0.2                  },
-					specularColor   = {2.9 * rgbSpecMults[1], 1.9 * rgbSpecMults[2], 0.2 * rgbSpecMults[3]},
+					diffuseColor    = {0.0,                   0.5,                   0.4                 },
+					specularColor   = {0.0 * rgbSpecMults[1], 0.5 * rgbSpecMults[2], 0.4 * rgbSpecMults[3]},
 					priority        = 5 * 10,
-					radius          = 125.0,
-					ttl             = 1000,
+					radius          = 120.0,
+					ttl             = 125,
 				},
 				explosionLightDef = {
-					diffuseColor      = {2.0,                   2.0,                   1.2                  },
-					specularColor     = {2.0 * rgbSpecMults[1], 2.0 * rgbSpecMults[2], 1.2 * rgbSpecMults[3]},
+					diffuseColor      = {0.0,                   0.2,                   0.15                  },
+					specularColor     = {0.0 * rgbSpecMults[1], 0.2 * rgbSpecMults[2], 0.15 * rgbSpecMults[3]},
 					priority          = 3 * 10 + 1,
-					radius            = 1620.0,
-					ttl               = 2 * Game.gameSpeed,
+					radius            = 1400.0,
+					ttl               = 70,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 150.0,
 				},
