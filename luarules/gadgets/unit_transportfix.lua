@@ -3,7 +3,7 @@
 --checking newDamage>health in UnitDamaged() does not work because UnitDamaged() does not trigger on selfdestruct -> meh
 --with releaseHeld, on death of a transport UnitUnload is called before UnitDestroyed
 --when UnitUnloaded is called due to transport death, Spring.GetUnitIsDead (transportID) is still false
---when trans is self d'ed, on the frame it dies it has both Spring.GetUnitHealth(ID)>0 and Spring.UnitSelfDTime(ID)>0
+--when trans is self d'ed, on the frame it dies it has both Spring.GetUnitHealth(ID)>0 and Spring.UnitSelfDTime(ID)=0
 --when trans is crashing it isn't dead
 
 function gadget:GetInfo()
