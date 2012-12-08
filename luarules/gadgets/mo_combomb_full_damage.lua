@@ -1,5 +1,6 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+--all we care about is how high the commander is when the COM_BLAST happens
+--this is much simper than checking if the com has just been unloaded from a trans or not, with essentially the same gameplay; coms don't levitate/bounce much
+--if the com is more than 10 off the ground, the combaslt damage is reduced. consequence is that COM_BLAST should not be used for anything else 
 
 function gadget:GetInfo()
   return {
@@ -15,29 +16,21 @@ end
 
 
 if (not gadgetHandler:IsSyncedCode()) then
-  return false
+	return false
 end
 
 local enabled = tonumber(Spring.GetModOptions().mo_combomb_full_damage) or 1
 if (enabled == 1) then 
---	return false
+	return false
 end
 
-local COM_BLAST = WeaponDefNames['commander_blast'].id
-local COMMANDER = {
-  [UnitDefNames["corcom"].id] = true,
-  [UnitDefNames["armcom"].id] = true,
-}
+local COM_BLAST = WeaponDefNames['commander_blast'].id 
 
--- function gadget:UnitDestroyed(unitID, unitDefID, unitTeam) --we need to call UnitPreDamaged instead, so as to get in before unit_transportfix has its effect
-
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
 
 	--Spring.Echo("UnitPreDamaged called with unitID " .. unitID .. " and attackerID " .. attackerID)
 
-	--all we care about is how high the commander is when the COM_BLAST happens
-	--(much simper than checking if the com has just been unloaded from a trans or not, with essentially the same gameplay; coms don't levitate/bounce much)
-	if (COMMANDER[attackerDefID]) and  (weaponID == COM_BLAST) then --we control the damage inflicted on units by the COM_BLAST
+	if (weaponID == COM_BLAST) then --we control the damage inflicted on units by the COM_BLAST
 		--Spring.Echo("weapon is comblast from unloaded com " .. attackerID)
 		local x,y,z = Spring.GetUnitBasePosition(attackerID)
 		local h = Spring.GetGroundHeight(x,z)
@@ -49,7 +42,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			return newdamage,0
 		end
 	end
-	--Spring.Echo("Did full damage " .. damage)
 	return damage,1
 end
 
