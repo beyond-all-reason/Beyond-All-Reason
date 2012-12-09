@@ -12,7 +12,7 @@ return {
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "45 19 57",
 		collisionvolumetest = 1,
-		collisionvolumetype = "Ell",
+		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Battle Submarine",
 		energymake = 15,

@@ -15,7 +15,7 @@ return {
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
 		collisionvolumetest = 1,
-		collisionvolumetype = "Ell",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Medium Range Plasma Battery",
 		explodeas = "MEDIUM_BUILDINGEX",
