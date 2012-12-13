@@ -98,8 +98,6 @@ return {
 				areaofeffect = 8,
 				beamtime = 0.10000000149012,
 				burstrate = 0.20000000298023,
-				color = 232,
-				color2 = 234,
 				craterboost = 0,
 				cratermult = 0,
 				duration = 0.019999999552965,

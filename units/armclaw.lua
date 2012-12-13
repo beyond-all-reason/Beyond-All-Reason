@@ -109,8 +109,6 @@ return {
 		weapondefs = {
 			dclaw = {
 				areaofeffect = 8,
-				color = 128,
-				color2 = 130,
 				craterboost = 0,
 				cratermult = 0,
 				duration = 8,
@@ -122,6 +120,8 @@ return {
 				name = "LightningGun",
 				noselfdamage = true,
 				range = 440,
+				rgbcolor = [[.2 .5 .9]],
+				rgbcolor2 = [[0 0 1]],
 				reloadtime = 1.1499999761581,
 				soundhit = "lashit",
 				soundstart = "lghthvy1",

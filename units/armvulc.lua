@@ -101,7 +101,6 @@ return {
 			armvulc_weapon = {
 				accuracy = 700,
 				areaofeffect = 224,
-				color = 2,
 				craterboost = 0.25,
 				cratermult = 0.25,
 				edgeeffectiveness = 0.75,
@@ -114,6 +113,7 @@ return {
 				noselfdamage = true,
 				range = 5750,
 				reloadtime = 0.40000000596046,
+				rgbcolor = [[1, 0.4, 0]],
 				soundhit = "rflrpc3",
 				soundstart = "XPLONUK4",
 				turret = true,

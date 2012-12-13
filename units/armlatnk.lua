@@ -136,8 +136,6 @@ return {
 			},
 			armlatnk_weapon = {
 				areaofeffect = 8,
-				color = 128,
-				color2 = 130,
 				craterboost = 0,
 				cratermult = 0,
 				duration = 10,
@@ -150,6 +148,8 @@ return {
 				name = "LightningGun",
 				noselfdamage = true,
 				range = 320,
+				rgbcolor = [[.2 5 .9]],
+				rgbcolor2 = [[0 0 1]],
 				reloadtime = 1.3999999761581,
 				soundhit = "lashit",
 				soundstart = "lghthvy1",

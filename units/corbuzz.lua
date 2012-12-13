@@ -104,7 +104,6 @@ return {
 			corbuzz_weapon = {
 				accuracy = 750,
 				areaofeffect = 256,
-				color = 2,
 				craterboost = 0.25,
 				cratermult = 0.25,
 				edgeeffectiveness = 0.80000001192093,
@@ -117,6 +116,7 @@ return {
 				noselfdamage = true,
 				range = 6100,
 				reloadtime = 0.5,
+				rgbcolor = [[1, 0.4, 0]],
 				soundhit = "rflrpc3",
 				soundstart = "XPLONUK4",
 				turret = true,
