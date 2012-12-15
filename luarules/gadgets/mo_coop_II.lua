@@ -170,6 +170,7 @@ else
             local playerName, _, _, teamID = Spring.GetPlayerInfo(playerID)
             playerNames[playerID] = playerName
             playerTeams[playerID] = teamID
+			Spring.Echo('coop dbg2',i,playerName,playerID,teamID,#playerList)
         end
         
         -- Cone code taken directly from minimap_startbox.lua
@@ -201,6 +202,7 @@ else
             if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then
+					Spring.Echo('coop dbg',playerID,playerTeams[playerID])
                     local tr, tg, tb = spGetTeamColor(playerTeams[playerID])
                     glPushMatrix()
                         glTranslate(sx, sy, sz)
