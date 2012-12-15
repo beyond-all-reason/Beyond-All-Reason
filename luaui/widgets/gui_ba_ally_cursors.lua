@@ -293,28 +293,37 @@ function widget:DrawWorldPreUnit()
   glTexture('LuaUI/Images/AlliedCursors.png')
   glPolygonOffset(-7,-10)
   local time = clock()
-
+  local specteam = -1
+  local fullView = true
+  if spec then 
+	_,fullView,_ = GetSpectatingState()
+	if not fullView then
+	  specteam=GetMyTeamID()
+	end
+  end
   for playerID,data in pairs(alliedCursorsPos) do
-    local teamID = data[#data]
-    for n=0,5 do
-      local wx,wz = data[1],data[2]
-      local lastUpdatedDiff = time-data[#data-2] + n*0.025
+	if fullView or playerID==specteam then 
+		local teamID = data[#data]
+		for n=0,5 do
+		  local wx,wz = data[1],data[2]
+		  local lastUpdatedDiff = time-data[#data-2] + n*0.025
 
-      if (lastUpdatedDiff<sendPacketEvery) then
-        local scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
-        local iscale = math.min(floor(scale),numMousePos-1)
-        local fscale = scale-iscale
+		  if (lastUpdatedDiff<sendPacketEvery) then
+			local scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
+			local iscale = math.min(floor(scale),numMousePos-1)
+			local fscale = scale-iscale
 
-        wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
-        wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
-      end
+			wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
+			wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
+		  end
 
-      local gy = GetGroundHeight(wx,wz)
-      if (IsSphereInView(wx,gy,wz,QSIZE)) then
-        SetTeamColor(teamID,n*0.1)
-        glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
-      end
-    end
+		  local gy = GetGroundHeight(wx,wz)
+		  if (IsSphereInView(wx,gy,wz,QSIZE)) then
+			SetTeamColor(teamID,n*0.1)
+			glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
+		  end
+		end
+	end
   end
 
   glPolygonOffset(false)
