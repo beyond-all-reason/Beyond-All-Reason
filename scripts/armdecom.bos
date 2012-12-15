@@ -5,6 +5,29 @@
 
 piece  torso, ruparm, luparm, rbigflash, nanospray, pelvis, lfirept, head,
        lthigh, rthigh, nanolath, biggun, rleg, lleg;
+       
+Killed(severity, corpsetype)
+{
+	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode torso type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode pelvis type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode rthigh type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode rleg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode lthigh type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode lleg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode luparm type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode luparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode ruparm type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode biggun type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode biggun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	return (0);
+}
 
 static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, justfired,
 			building, buildx, buildy, moveSpeed, currentSpeed;
