@@ -32,7 +32,47 @@ if gadgetHandler:IsSyncedCode() then
     -- Commented out Initialize due to set of GG.coopMode and layer of 1
     -- Previously layer was -1 (and so initialize ran first), however this made the unsynced drawing code draw UNDER the green startbox
     -- Could have a separate :GetInfo in both synced and unsynced sections, but that is asking for trouble
-    
+   	local function to_string(data, indent)
+		local str = ""
+
+		if(indent == nil) then
+			indent = 0
+		end
+
+		-- Check the type
+		if(type(data) == "string") then
+			str = str .. (" "):rep(indent) .. data .. "\n"
+		elseif(type(data) == "number") then
+			str = str .. (" "):rep(indent) .. data .. "\n"
+		elseif(type(data) == "boolean") then
+			if(data == true) then
+				str = str .. "true\n"
+			else
+				str = str .. "false\n"
+			end
+		elseif(type(data) == "table") then
+			local i, v
+			for i, v in pairs(data) do
+				-- Check for a table in a table
+				if(type(v) == "table") then
+					str = str .. (" "):rep(indent) .. i .. ":\n"
+					str = str .. to_string(v, indent + 2)
+				else
+			str = str .. (" "):rep(indent) .. i .. ": " ..to_string(v, 0)
+			end
+			end
+		elseif (data ==nil) then
+			str=str..'nil'
+		else
+		   -- print_debug(1, "Error: unknown data type: %s", type(data))
+			--str=str.. "Error: unknown data type:" .. type(data)
+			Spring.Echo(type(data) .. 'X data type')
+		end
+
+		return str
+	end
+	
+	
     local function SetCoopStartPoint(playerID, x, y, z)
         coopStartPoints[playerID] = {x, y, z}
 		Spring.Echo('coop dbg6',playerID,x,y,z,to_string(coopStartPoints))
@@ -107,45 +147,7 @@ if gadgetHandler:IsSyncedCode() then
         SendToUnsynced('RemoveGadget') -- Remove unsynced side too
     end
 		
-	function to_string(data, indent)
-		local str = ""
 
-		if(indent == nil) then
-			indent = 0
-		end
-
-		-- Check the type
-		if(type(data) == "string") then
-			str = str .. (" "):rep(indent) .. data .. "\n"
-		elseif(type(data) == "number") then
-			str = str .. (" "):rep(indent) .. data .. "\n"
-		elseif(type(data) == "boolean") then
-			if(data == true) then
-				str = str .. "true\n"
-			else
-				str = str .. "false\n"
-			end
-		elseif(type(data) == "table") then
-			local i, v
-			for i, v in pairs(data) do
-				-- Check for a table in a table
-				if(type(v) == "table") then
-					str = str .. (" "):rep(indent) .. i .. ":\n"
-					str = str .. to_string(v, indent + 2)
-				else
-			str = str .. (" "):rep(indent) .. i .. ": " ..to_string(v, 0)
-			end
-			end
-		elseif (data ==nil) then
-			str=str..'nil'
-		else
-		   -- print_debug(1, "Error: unknown data type: %s", type(data))
-			--str=str.. "Error: unknown data type:" .. type(data)
-			Spring.Echo(type(data) .. 'X data type')
-		end
-
-		return str
-	end
 else
     
     ----------------------------------------------------------------
@@ -196,8 +198,8 @@ else
         return colorStr
     end
     
-    local function CoopStartPoint(playerID, x, y, z)
-    	Spring.Echo('coop dbg5',playerID,x,y,z,to_string(coopStartPoints))
+    local function CoopStartPoint(epicwtf, playerID, x, y, z)
+    	Spring.Echo('coop dbg5',epicwtf,playerID,x,y,z,to_string(coopStartPoints))
             
 		coopStartPoints[playerID] = {x, y, z}
     end
