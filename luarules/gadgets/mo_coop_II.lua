@@ -107,6 +107,7 @@ if gadgetHandler:IsSyncedCode() then
     end
     
     function gadget:AllowStartPosition(x, y, z, playerID)
+		Spring.Echo('allowstart',x,z,playerID)
         if coopStartPoints[playerID] then
             -- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
             -- To catch this, we don't recognise a coop start position if it is identical to their teams spring start position
@@ -119,9 +120,12 @@ if gadgetHandler:IsSyncedCode() then
                 z = math.min(math.max(z, bz1), bz2)
                 SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z)
             end
+			Spring.Echo('allowstart false',x,z,playerID)
             return false
         end
-        return true
+       Spring.Echo('allowstart true',x,z,playerID)
+           
+	   return true
     end
     
     local function SpawnTeamStartUnit(teamID, allyID, x, z)
