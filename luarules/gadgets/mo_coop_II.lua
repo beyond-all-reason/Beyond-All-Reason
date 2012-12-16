@@ -35,6 +35,8 @@ if gadgetHandler:IsSyncedCode() then
     
     local function SetCoopStartPoint(playerID, x, y, z)
         coopStartPoints[playerID] = {x, y, z}
+		Spring.Echo('coop dbg6',playerID,x,y,z,to_string(coopStartPoints))
+       
         SendToUnsynced("CoopStartPoint", playerID, x, y, z)
     end
     
@@ -155,7 +157,9 @@ else
     end
     
     local function CoopStartPoint(playerID, x, y, z)
-    	coopStartPoints[playerID] = {x, y, z}
+    	Spring.Echo('coop dbg5',playerID,x,y,z,to_string(coopStartPoints))
+            
+		coopStartPoints[playerID] = {x, y, z}
     end
     
     ----------------------------------------------------------------
@@ -199,7 +203,7 @@ else
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in pairs(coopStartPoints) do
-			Spring.Echo('coop dbg3',myPlayerID,playerID)
+			Spring.Echo('coop dbg3',myPlayerID,playerID,'klj\n',to_string(coopStartPoints))
             if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then
@@ -241,4 +245,44 @@ else
             gadgetHandler:RemoveGadget(self)
         end
     end
+	
+	function to_string(data, indent)
+		local str = ""
+
+		if(indent == nil) then
+			indent = 0
+		end
+
+		-- Check the type
+		if(type(data) == "string") then
+			str = str .. (" "):rep(indent) .. data .. "\n"
+		elseif(type(data) == "number") then
+			str = str .. (" "):rep(indent) .. data .. "\n"
+		elseif(type(data) == "boolean") then
+			if(data == true) then
+				str = str .. "true\n"
+			else
+				str = str .. "false\n"
+			end
+		elseif(type(data) == "table") then
+			local i, v
+			for i, v in pairs(data) do
+				-- Check for a table in a table
+				if(type(v) == "table") then
+					str = str .. (" "):rep(indent) .. i .. ":\n"
+					str = str .. to_string(v, indent + 2)
+				else
+			str = str .. (" "):rep(indent) .. i .. ": " ..to_string(v, 0)
+			end
+			end
+		elseif (data ==nil) then
+			str=str..'nil'
+		else
+		   -- print_debug(1, "Error: unknown data type: %s", type(data))
+			--str=str.. "Error: unknown data type:" .. type(data)
+			Spring.Echo(type(data) .. 'X data type')
+		end
+
+		return str
+	end
 end
