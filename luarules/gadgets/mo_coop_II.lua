@@ -199,6 +199,7 @@ else
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in pairs(coopStartPoints) do
+			Spring.Echo('coop dbg3',myPlayerID,playerID)
             if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then
@@ -219,7 +220,9 @@ else
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in pairs(coopStartPoints) do
-            if areSpec or spArePlayersAllied(myPlayerID, playerID) then
+			Spring.Echo('coop dbg4',myPlayerID,playerID)
+          
+			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then
                     local scx, scy, scz = spWorldToScreenCoords(sx, sy + 120, sz)
