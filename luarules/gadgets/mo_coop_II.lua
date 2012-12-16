@@ -137,6 +137,7 @@ if gadgetHandler:IsSyncedCode() then
     function gadget:GameFrame(n)
         
         if GG.coopMode then
+			Spring.Echo('coop dbg7',to_string(coopStartPoints))
             for playerID, startPos in pairs(coopStartPoints) do
                 local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
                 SpawnTeamStartUnit(teamID, allyID, startPos[1], startPos[3])
@@ -198,7 +199,7 @@ else
         return colorStr
     end
     
-    local function CoopStartPoint(epicwtf, playerID, x, y, z)
+    local function CoopStartPoint(epicwtf, playerID, x, y, z) --this epicwtf param is used because it seem that when a registered function is locaal, then the registration name is  passed too. if the function is part of gadget: then it is not passed.
     	Spring.Echo('coop dbg5',epicwtf,playerID,x,y,z,to_string(coopStartPoints))
             
 		coopStartPoints[playerID] = {x, y, z}
@@ -245,11 +246,11 @@ else
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in pairs(coopStartPoints) do
-			Spring.Echo('coop dbg3',myPlayerID,playerID,'klj\n',to_string(coopStartPoints))
+		--	Spring.Echo('coop dbg3',myPlayerID,playerID,'klj\n',to_string(coopStartPoints))
             if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
                 if sx > 0 or sz > 0 then
-					Spring.Echo('coop dbg',playerID,playerTeams[playerID])
+					--Spring.Echo('coop dbg',playerID,playerTeams[playerID])
                     local tr, tg, tb = spGetTeamColor(playerTeams[playerID])
                     glPushMatrix()
                         glTranslate(sx, sy, sz)
@@ -266,7 +267,7 @@ else
         local areSpec = spGetSpectatingState()
         local myPlayerID = spGetMyPlayerID()
         for playerID, startPosition in pairs(coopStartPoints) do
-			Spring.Echo('coop dbg4',myPlayerID,playerID)
+			--Spring.Echo('coop dbg4',myPlayerID,playerID)
           
 			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
                 local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
@@ -328,3 +329,16 @@ else
 		return str
 	end
 end
+
+
+-- [f=0000000] coop dbg6, 1, 1868, 144.53125, 619, 1:
+  -- 1: 1868
+  -- 2: 144.53125
+  -- 3: 619
+
+-- [f=0000000] coop dbg5, CoopStartPoint, 1, 1868, 144.53125, 
+-- [f=0000000] coop dbg3, 1, CoopStartPoint, klj
+-- , CoopStartPoint:
+  -- 1: 1
+  -- 2: 1868
+  -- 3: 144.53125
