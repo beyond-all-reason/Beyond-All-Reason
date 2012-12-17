@@ -107,11 +107,20 @@ if gadgetHandler:IsSyncedCode() then
     end
     
     function gadget:AllowStartPosition(x, y, z, playerID)
-		Spring.Echo('allowstart',x,z,playerID)
+		--Spring.Echo('allowstart',x,z,playerID)
+		for otherplayerID, startPos in pairs(coopStartPoints) do
+			if startPos[1]==x and startPos[3]==z then
+				Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
+				return false
+			end
+		end
         if coopStartPoints[playerID] then
             -- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
             -- To catch this, we don't recognise a coop start position if it is identical to their teams spring start position
             -- This has the side-effect that a coop player cannot intentionally start directly on their teammate, but this is OK
+			
+			--Since spring is a bitch, and if the host (the guy who places the real start point) readies up first, and the client second, then the host will have his start point overwritten by the client
+			-- this can be prevented by not allowing the host to place on client either.
             local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
             local osx, _, osz = Spring.GetTeamStartPosition(teamID)
             if x ~= osx or z ~= osz then
