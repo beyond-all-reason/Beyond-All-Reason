@@ -75,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 	
     local function SetCoopStartPoint(playerID, x, y, z)
         coopStartPoints[playerID] = {x, y, z}
-		Spring.Echo('coop dbg6',playerID,x,y,z,to_string(coopStartPoints))
+		--Spring.Echo('coop dbg6',playerID,x,y,z,to_string(coopStartPoints))
        
         SendToUnsynced("CoopStartPoint", playerID, x, y, z)
     end
@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 		--Spring.Echo('allowstart',x,z,playerID)
 		for otherplayerID, startPos in pairs(coopStartPoints) do
 			if startPos[1]==x and startPos[3]==z then
-				Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
+				--Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
 				return false
 			end
 		end
@@ -129,10 +129,10 @@ if gadgetHandler:IsSyncedCode() then
                 z = math.min(math.max(z, bz1), bz2)
                 SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z)
             end
-			Spring.Echo('allowstart false',x,z,playerID)
+			--Spring.Echo('allowstart false',x,z,playerID)
             return false
         end
-       Spring.Echo('allowstart true',x,z,playerID)
+		---Spring.Echo('allowstart true',x,z,playerID)
            
 	   return true
     end
@@ -150,7 +150,7 @@ if gadgetHandler:IsSyncedCode() then
     function gadget:GameFrame(n)
         
         if GG.coopMode then
-			Spring.Echo('coop dbg7',to_string(coopStartPoints))
+			--Spring.Echo('coop dbg7',to_string(coopStartPoints))
             for playerID, startPos in pairs(coopStartPoints) do
                 local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
                 SpawnTeamStartUnit(teamID, allyID, startPos[1], startPos[3])
@@ -213,7 +213,7 @@ else
     end
     
     local function CoopStartPoint(epicwtf, playerID, x, y, z) --this epicwtf param is used because it seem that when a registered function is locaal, then the registration name is  passed too. if the function is part of gadget: then it is not passed.
-    	Spring.Echo('coop dbg5',epicwtf,playerID,x,y,z,to_string(coopStartPoints))
+    	--Spring.Echo('coop dbg5',epicwtf,playerID,x,y,z,to_string(coopStartPoints))
             
 		coopStartPoints[playerID] = {x, y, z}
     end
@@ -230,7 +230,7 @@ else
             local playerName, _, _, teamID = Spring.GetPlayerInfo(playerID)
             playerNames[playerID] = playerName
             playerTeams[playerID] = teamID
-			Spring.Echo('coop dbg2',i,playerName,playerID,teamID,#playerList)
+			--Spring.Echo('coop dbg2',i,playerName,playerID,teamID,#playerList)
         end
         
         -- Cone code taken directly from minimap_startbox.lua
