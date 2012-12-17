@@ -66,7 +66,6 @@ return {
 				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
-				dropped = true,
 				edgeeffectiveness = 0.69999998807907,
 				explosiongenerator = "custom:ARM_BIGBOMB_EXPLOSION",
 				gravityaffected = "true",

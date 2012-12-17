@@ -62,7 +62,6 @@ return {
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
-				dropped = true,
 				edgeeffectiveness = 0.1,
 				explosiongenerator = "custom:EMPFLASH240",
 				firestarter = 90,
