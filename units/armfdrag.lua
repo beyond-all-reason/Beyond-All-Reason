@@ -32,6 +32,7 @@ return {
 				category = "corpses",
 				damage = 15000,
 				description = "Shark's Teeth",
+				floating = true,
 				footprintx = 2,
 				footprintz = 2,
 				height = 75,
