@@ -88,13 +88,6 @@ function gadget:GameFrame (f)
 	end
 end
 
---remove comwrecks created in mid-air 
---(in fact, does not allow ANY feature to be created in midair, just in case a flying/bounding unit is accidentally killed in mid air)
-function gadget:FeatureCreated(featureID, allyTeam)
-	x,y,z=Spring.GetFeaturePosition(featureID)
-	h = Spring.GetGroundHeight(x,z)
-	if (y-h>10 and y>10) then Spring.DestroyFeature(featureID) end --need to check y>10 because features are often created underwater
-end
 
 	
 
