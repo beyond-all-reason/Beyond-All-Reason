@@ -148,6 +148,8 @@ local flexCallIns = {
   'DrawWorldRefraction',
   'DrawScreenEffects',
   'DrawInMiniMap'
+  'FeatureCreated',
+  'FeatureDestroyed',
 }
 local flexCallInMap = {}
 for _,ci in ipairs(flexCallIns) do
@@ -1858,7 +1860,25 @@ function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam,
   return
 end
 
+--------------------------------------------------------------------------------
+--
+--  Feature call-ins
+--
 
+function widgetHandler:FeatureCreated(featureID, allyTeam)
+  for _,w in ipairs(self.FeatureCreatedList) do
+    w:FeatureCreated(featureID, allyTeam)
+  end
+  return
+end
+
+
+function widgetHandler:FeatureDestroyed(featureID, allyTeam)
+  for _,w in ipairs(self.FeatureDestroyedList) do
+    w:FeatureDestroyed(featureID, allyTeam)
+  end
+  return
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
