@@ -47,7 +47,6 @@ return {
 				height = 55,
 				hitdensity = 100,
 				metal = 15,
-				nodrawundergray = true,
 				object = "armfort",
 				reclaimable = true,
 				reclaimtime = 800,

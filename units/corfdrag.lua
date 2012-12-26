@@ -38,7 +38,6 @@ return {
 				height = 75,
 				hitdensity = 100,
 				metal = 20,
-				nodrawundergray = true,
 				object = "corfdrag",
 				reclaimable = true,
 				world = "allworld",

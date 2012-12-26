@@ -59,7 +59,6 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 205,
-				nodrawundergray = true,
 				object = "ARMDRAG",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",

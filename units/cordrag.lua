@@ -47,7 +47,6 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 5,
-				nodrawundergray = true,
 				object = "cordrag",
 				reclaimable = true,
 				seqnamereclamate = "tree1reclamate",
