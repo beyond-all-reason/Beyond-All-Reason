@@ -98,6 +98,8 @@ return {
 		weapondefs = {
 			armemp_weapon = {
 				areaofeffect = 256,
+				avoidfriendly = false,
+				collidefriendly = false,
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,

@@ -98,6 +98,8 @@ return {
 		weapondefs = {
 			cortron_weapon = {
 				areaofeffect = 512,
+				avoidfriendly = false,
+				collidefriendly = false,
 				commandfire = true,
 				craterboost = 4,
 				cratermult = 1.75,
