@@ -49,6 +49,8 @@ local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetVectorFromHeading	= Spring.GetVectorFromHeading
 local spGetVisibleUnits			= Spring.GetVisibleUnits
 local spGetCameraPosition			= Spring.GetCameraPosition
+local spGetGameFrame 			= Spring.GetGameFrame
+
 
 local glPushMatrix				= gl.PushMatrix
 local glTranslate				= gl.Translate
@@ -103,12 +105,16 @@ list = gl.CreateList(function()
     end)
 end)
 
+local frame=0
+
 function widget:DrawWorldPreUnit()
 	if (ShadowsOn() and GetMapDrawMode() ~= "los") then
 	   return false
 	end
-	
-	unitList = spGetVisibleUnits(-1,100,false)
+	if frame < spGetGameFrame() then --only query on frame update, better performance.
+		frame = spGetGameFrame() 
+		unitList = spGetVisibleUnits(-1,100,false)
+	end
 	if unitList[1] == nil then 
 		return false 
 	end
@@ -117,7 +123,7 @@ function widget:DrawWorldPreUnit()
 	if cy == nil or cy > 4000 then 
 		return false
 	end
-	
+
 	glTexture('LuaUI/Images/shadow.tga')
 	glDepthMask(false)
 	glDepthTest(false)
@@ -147,8 +153,9 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 
-	--gl.Texture(nil)
-	--gl.Color(1.0,1.0,1.0,1.0)
+	glTexture(false)
+	glColor(1.0,1.0,1.0,1.0)
+	glDepthTest(true)
 end
 
 --------------------------------------------------------------------------------
