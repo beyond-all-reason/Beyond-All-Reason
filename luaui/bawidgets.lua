@@ -147,7 +147,7 @@ local flexCallIns = {
   'DrawWorldReflection',
   'DrawWorldRefraction',
   'DrawScreenEffects',
-  'DrawInMiniMap'
+  'DrawInMiniMap',
   'FeatureCreated',
   'FeatureDestroyed',
 }
