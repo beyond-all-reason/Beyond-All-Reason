@@ -20,7 +20,14 @@ local spGetVectorFromHeading	= Spring.GetVectorFromHeading
 local spGetViewGeometry		    = Spring.GetViewGeometry 
 local spTraceScreenRay 			= Spring.TraceScreenRay
 local spGetProjectilesInRectangle=Spring.GetProjectilesInRectangle
+local spGetProjectilePosition	= Spring.GetProjectilePosition
+local spGetProjectileType		= Spring.GetProjectileType
+local spGetProjectileName		= Spring.GetProjectileName
 local spGetGameFrame 			= Spring.GetGameFrame
+
+local max						= math.max
+local floor						= math.floor
+local sqrt						= math.sqrt
 
 local glPushMatrix				= gl.PushMatrix
 local glTranslate				= gl.Translate
@@ -35,11 +42,6 @@ local glDepthMask				= gl.DepthMask
 local glBlending				= gl.Blending
 local glDepthTest				= gl.DepthTest
 local glCallList				= gl.CallList
-
-
-
-
-local udefTab					= UnitDefs
 
 local list      
 local plighttable ={}
@@ -131,7 +133,7 @@ function widget:Initialize() -- create lighttable
 	end
 
 end   
-local plist
+local plist = {}
 local frame = 0
 function widget:DrawWorldPreUnit()
 	local sx,sy,px,py=spGetViewGeometry()
@@ -154,32 +156,32 @@ function widget:DrawWorldPreUnit()
 			
 			at, p=spTraceScreenRay(0,0,true,false,false) --bottom left
 			if at=='ground' then
-				d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
 			else 
 				outofbounds=outofbounds+1
 			end
 			at, p=spTraceScreenRay(sx-1,0,true,false,false) --bottom left
 			if at=='ground' then
-				d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
 			else 
 				outofbounds=outofbounds+1
 			end
 			at, p=spTraceScreenRay(sx-1,sy-1,true,false,false) --bottom left
 			if at=='ground' then
-				d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
 			else 
 				outofbounds=outofbounds+1
 			end
 			at, p=spTraceScreenRay(0,sy-1,true,false,false) --bottom left
 			if at=='ground' then
-				d=math.max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
 			else 
 				outofbounds=outofbounds+1
 			end
 			if outofbounds>=3 then
 				plist=spGetProjectilesInRectangle(x1,y1,x2,y2,false,false) --todo, only those in view or close:P
 			else
-				d=math.sqrt(d)
+				d=sqrt(d)
 				plist=spGetProjectilesInRectangle(cx-d,cy-d,cx+d,cy+d,false,false) 
 			end
 		else -- if we are not pointing at ground, get the whole list.
@@ -190,12 +192,7 @@ function widget:DrawWorldPreUnit()
 	--Spring.GetCameraPosition() -> number x, number y, number z
 	--Spring.GetCameraDirection() -> number forward_x, number forward_y, number forward_z
 	--Spring.GetCameraFOV( ) -> number fov
-	local nplist
-	if #plist > 0 then
-		nplist=#plist
-	else
-		nplist=0
-	end
+
 	--Spring.Echo('mapview',nplist,outofbounds,d,cx,cy)
 	--Spring.Echo('fov',Spring.GetCameraFOV(),Spring.GetCameraPosition())
 	if #plist>0 then --dont do anything if there are no projectiles in range of view
@@ -211,7 +208,6 @@ function widget:DrawWorldPreUnit()
 		--glDepthMask(true)
 		glDepthTest(false)
 		--glDepthTest(GL.LEQUAL) 
-		
 
 		local x,y,z
 		local fx,fy 
@@ -220,33 +216,32 @@ function widget:DrawWorldPreUnit()
 		-- AND NOW FOR THE FUN STUFF!
 		for i=1, #plist do
 			local pID=plist[i]
-			x,y,z=Spring.GetProjectilePosition(pID)
-			local wep,piece=Spring.GetProjectileType(pID)
-			--Spring.Echo('Proj',pID,'name',Spring.GetProjectileName(pID),' wep/piece',wep,piece,'pos=',math.floor(x),math.floor(y),math.floor(z))
+			x,y,z=spGetProjectilePosition(pID)
+			local wep,piece=spGetProjectileType(pID)
+			--Spring.Echo('Proj',pID,'name',Spring.GetProjectileName(pID),' wep/piece',wep,piece,'pos=',floor(x),floor(y),floor(z))
 			lightparams=nil
 			if piece then
 				lightparams={1,1,0.5,0.3}
 			else
-				lightparams=plighttable[Spring.GetProjectileName(pID)]
+				lightparams=plighttable[spGetProjectileName(pID)]
 			end
-			if Spring.GetProjectileName(pID) == 'armllt_arm_lightlaser' then
+			--if Spring.GetProjectileName(pID) == 'armllt_arm_lightlaser' then
 				--Spring.Echo('angle',Spring.GetProjectileSpinAngle(pID),'/',Spring.GetProjectileSpinAngle(pID),'/',Spring.GetProjectileSpinVec(pID),'/',Spring.GetProjectileVelocity(pID))
-			end
+			--end
 			if (lightparams ~= nil and x and y>0) then -- projectile is above water
 				fx = 32
 				fy = 32 --footprint
 				 
-				local height = math.max(0,spGetGroundHeight(x,z)) --above water projectiles should show on water surface
+				local height = max(0,spGetGroundHeight(x,z)) --above water projectiles should show on water surface
 				local diff = height-y  -- this is usually 5 for land units, 5+cruisehieght for others
 										-- the plus 5 is do that itdoesnt clip all ugly like, unneeded with depthtest and mask both false!
 										-- diff is negative, cause we need to put the lighting under it
 				--diff defines size and diffusion rate)
-				local factor=math.max(0.01,(100.0+diff)/100.0) --factor=1 at when almost touching ground, factor=0 when above 100 height)
+				local factor=max(0.01,(100.0+diff)/100.0) --factor=1 at when almost touching ground, factor=0 when above 100 height)
 				
 				if (factor >0.01) then 
-					
-					glColor(lightparams[1],lightparams[2],lightparams[3],lightparams[4]*factor*factor*noise[math.floor(x+z+pID)%10+1]) -- attentuation is x^2
-					factor = math.max(factor,0.3) -- clamp the size
+					glColor(lightparams[1],lightparams[2],lightparams[3],lightparams[4]*factor*factor*noise[floor(x+z+pID)%10+1]) -- attentuation is x^2
+					factor = max(factor,0.3) -- clamp the size
 					glPushMatrix()
 					glTranslate(x,y+diff+5,z)  -- push in y dir by height (to push it on the ground!), +5 to keep it above surface
 					glScale(fx*(1.1-factor),1.0,fy*(1.1-factor)) --scale it by size
@@ -255,7 +250,6 @@ function widget:DrawWorldPreUnit()
 				end
 			end
 		end
-
 		glTexture(false) --be nice, reset stuff 
 		glColor(1.0,1.0,1.0,1.0)
 		glBlending(false)
