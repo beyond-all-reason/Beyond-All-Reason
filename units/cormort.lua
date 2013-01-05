@@ -8,6 +8,10 @@ return {
 		buildtime = 5139,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		collisionvolumeoffsets = "2 0 -4",
+		collisionvolumescales = "28 35 22",
+		collisionvolumetest = 1,
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Mobile Mortar Kbot",
 		energymake = 1,
@@ -92,6 +96,7 @@ return {
 		weapondefs = {
 			core_mort = {
 				areaofeffect = 36,
+				avoidfriendly = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:CORE_FIRE_SMALL",
