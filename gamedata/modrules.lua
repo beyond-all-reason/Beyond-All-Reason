@@ -22,6 +22,7 @@ local modrules  = {
 
   movement = {
 	allowUnitCollisionDamage = true, -- defaults to false
+	allowPushingEnemyUnits = (Spring.GetModOptions() and (Spring.GetModOptions().mo_enemypushing) or (not Spring.GetModOptions())),
 	useClassicGroundMoveType =  (Spring.GetModOptions() and (Spring.GetModOptions().movetype == "classic")),
   },
   
@@ -36,5 +37,14 @@ local modrules  = {
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
+if modrules.movement.useClassicGroundMoveType then 
+	Spring.Echo('Using ClassicGroundMoveType')
+else
+	Spring.Echo('Using vanilla groundmovetype')
+end
+if modrules.movement.allowPushingEnemyUnits then 
+	Spring.Echo('Allowing pushing enemy units')
+else
+	Spring.Echo('Disallowing pushing enemy units')
+end
 return modrules

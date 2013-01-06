@@ -224,5 +224,13 @@ local options={
 		  {key="classic", name="Classic", desc="Old classic groundmovetype"},
 	  },
   },
+  	{
+		key    = "mo_enemypushing",
+		name   = "Allow pushing enemy units",
+		desc   = "Enemy and friendly units can push past each other",
+		type   = "bool",
+		def    = true,
+		section= "ba_options",
+    },
 }
 return options
