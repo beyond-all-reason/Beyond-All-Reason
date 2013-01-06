@@ -20,12 +20,11 @@ local modrules  = {
     fireAtCrashing = false;
   },
 
-  nanospray = {
-    allow_team_colors = true;
-  },
   movement = {
+	allowUnitCollisionDamage = true, -- defaults to false
 	useClassicGroundMoveType =  (Spring.GetModOptions() and (Spring.GetModOptions().movetype == "classic")),
   },
+  
   featureLOS = { featureVisibility = 2; },
 
   system = {

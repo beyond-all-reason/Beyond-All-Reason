@@ -94,7 +94,7 @@ for name, ud in pairs(UnitDefs) do
 	if (name == 'armnanotc' or name == 'cornanotc') then
 		ud.cantbetransported=false
 	end
-	ud.minCollisionSpeed = -1000000.0
+	ud.minCollisionSpeed = 0.0
 end
 
 -- Setting collisionvolumetest true for all units
