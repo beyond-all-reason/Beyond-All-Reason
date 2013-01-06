@@ -24,7 +24,7 @@ local modrules  = {
     allow_team_colors = true;
   },
   movement = {
-	useClassicGroundMoveType = false;
+	useClassicGroundMoveType =  (Spring.GetModOptions() and (Spring.GetModOptions().movetype == "classic")),
   },
   featureLOS = { featureVisibility = 2; },
 

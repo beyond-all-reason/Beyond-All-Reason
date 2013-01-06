@@ -212,5 +212,17 @@ local options={
 		  {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
 	  },
   },
+  {
+      key     = "movetype",
+      name    = "Movetype",
+      desc    = "Switch ground move type to classic mode (2009) or latest. Default is latest",
+      type    = "list",
+      def     = "normal",
+      section = "ba_options",
+	  items={
+		  {key="normal", name="Normal", desc="Spring latest groundmovetype"},
+		  {key="classic", name="Classic", desc="Old classic groundmovetype"},
+	  },
+  },
 }
 return options
