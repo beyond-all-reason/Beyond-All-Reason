@@ -34,8 +34,8 @@ local FALL_DAMAGE_MULT = 10 -- Unit<->Ground collisions
 -- weaponDefID -5 --> kill damage
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
-	-- unit or wreck collision
-	if (weaponDefID == -3 or weaponDefID == -1) and attackerID == nil then
+	-- unit collision
+	if weaponDefID == -3 and attackerID == nil then
 		--[[Spring code:
 			const float impactDamageMult = std::min(impactSpeed * collider->mass * MASS_MULT, MAX_UNIT_SPEED);
 			]]
@@ -45,7 +45,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	end
 	
 	-- ground collision
-	if weaponDefID == -2 and attackerID == nil and Spring.ValidUnitID(unitID) and UnitDefs[unitDefID] then		
+	if weaponDefID == -2 and attackerID == nil then		
 		--[[Spring code:
 			const float impactSpeed = midPos.IsInBounds()?
 			-speed.dot(ground->GetNormal(midPos.x, midPos.z)):
