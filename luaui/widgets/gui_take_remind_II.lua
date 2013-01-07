@@ -79,6 +79,7 @@ function widget:MousePress(mx, my, mButton)
         local posx, posy = GetButtonPosition()
         if mx >= posx and mx < posx + buttonWidth and
            my >= posy and my < posy + buttonHeight then
+            Spring.SendCommands('take')
             Spring.SendCommands('luarules take2')
             return true
         end
