@@ -14,8 +14,8 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'corestor', 'coruwes'},
 {'armrl','armfrt'},
 {'corrl','corfrt'},
-{'armdl','armtl'},
-{'cordl','cortl'},
+--{'armdl','armtl'},  --its ambiguous with armllt -> armtl
+--{'cordl','cortl'},  --its ambiguous with armllt -> armtl
 {'armhp','armfhp'},
 {'corhp','corfhp'},
 {'armrad','armfrad'},
