@@ -18,6 +18,8 @@ local random			= math.random
 local SetUnitCOBValue 	= Spring.SetUnitCOBValue
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local SetUnitCosts		= Spring.SetUnitCosts
+local SetUnitSensorRadius = Spring.SetUnitSensorRadius
+
 local crashing = {}
 local crashable  ={ --fucking hacky bugfix, strafemovetype cant crash, and sometimes doesnt take the damage it is dealt. 
 	[UnitDefNames["armthund"].id] = true,
@@ -57,6 +59,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		--SetUnitCosts(unitID,{10000,0,0}) this doesnt work either :)
 		SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
 		crashing[unitID]=true
+		SetUnitSensorRadius(unitID, "los", 0)
+		SetUnitSensorRadius(unitID, "radar", 0)
+		SetUnitSensorRadius(unitID, "sonar", 0)
 		--return 0,0--TEST THIS
 	end
 	return damage,1
