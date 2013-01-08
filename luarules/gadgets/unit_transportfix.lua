@@ -1,6 +1,5 @@
---in BA "commando" unit survives being shot down during transport, but nothing else
---a commando falling out of a trans will recieve (from engine) a move order to the point at which the trans died, that order is then cancelled
---when a com dies in mid air the damage done is controlled by mo_combomb_full_damage and the wreck is removed below
+--in BA "commando" unit always survives being shot down during transport
+--when a com dies in mid air the damage done is controlled by mo_combomb_full_damage 
 
 --several other ways to code this do not work because:
 --when UnitDestroyed() is called, Spring.GetUnitIsTransporting is already empty -> meh
@@ -13,7 +12,8 @@
 
 --DestroyUnit(ID, true, true) will trigger self d explosion, won't leave a wreck but won't cause an explosion either
 --DestroyUnit(ID, true, false) won't leave a wreck but won't cause the self d explosion either
---AddUnitDamage (i, math.huge) makes a normal death explo but leaves wreck.
+--AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same framce as the trans dies results in a crash.
+
 
 function gadget:GetInfo()
   return {
@@ -33,7 +33,6 @@ local COMMANDO = UnitDefNames["commando"].id
 
 toKill = {} -- [frame][unitID]
 fromtrans = {}
-clearorders = {}
 
 currentFrame = 0
 
@@ -48,9 +47,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	--if (not transDef) then Spring.Echo ("transDef = nil!!!!!!!!!!!!!!!!!!!!!!!!") end		
 	--if (not (transDef.customParams and transDef.customParams.releaseheld)) then *** 
 	
-	if (unitDefID ~= COMMANDO) then
-		--Spring.AddUnitDamage (unitID, math.huge)	--simply doing this here will result in a crash
-		
+	if (unitDefID ~= COMMANDO) then		
 		if (not toKill[currentFrame+1]) then toKill[currentFrame+1] = {} end
 		toKill[currentFrame+1][unitID] = true
 		if (not fromtrans[currentFrame+1]) then fromtrans[currentFrame+1] = {} end
