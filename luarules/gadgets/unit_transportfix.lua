@@ -55,9 +55,6 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		toKill[currentFrame+1][unitID] = true
 		if (not fromtrans[currentFrame+1]) then fromtrans[currentFrame+1] = {} end
 		fromtrans[currentFrame+1][unitID] = transportID
-	else
-		if (not clearorders[currentFrame+1]) then clearorders[currentFrame+1] = {} end 
-		clearorders[currentFrame+1][unitID] = true
 	end
 end
 
@@ -75,16 +72,6 @@ function gadget:GameFrame (f)
 		end
 	toKill[currentFrame] = nil
 	fromtrans[currentFrame] = nil
-	end
-
-	if (clearorders[f])	then --clears order as requested from above
-		for i,u in pairs (clearorders[currentFrame]) do
-			if (not Spring.GetUnitIsDead(i))	then	
-				--Spring.Echo("giving stop order to  unit ".. i)
-				Spring.GiveOrderToUnit(i, CMD.STOP, {}, {})
-			end
-		end
-	clearorders[currentFrame] = nil
 	end
 end
 
