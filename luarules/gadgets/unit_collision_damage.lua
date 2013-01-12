@@ -7,7 +7,7 @@ function gadget:GetInfo()
     date      = "06 Jan 2013",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = false  -- DISABLED FOR BUGGINESS!
   }
 end
 
