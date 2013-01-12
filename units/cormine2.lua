@@ -1,6 +1,7 @@
 return {
 	cormine2 = {
 		acceleration = 0,
+		blocking = false,
 		brakerate = 0,
 		buildcostenergy = 1000,
 		buildcostmetal = 15,
@@ -38,7 +39,6 @@ return {
 		selfdestructcountdown = 0,
 		sightdistance = 83.199996948242,
 		stealth = true,
-		yardmap = "y",
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

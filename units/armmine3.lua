@@ -1,6 +1,7 @@
 return {
 	armmine3 = {
-		acceleration = 0,
+		acceleration = 0,		
+		blocking = false,
 		brakerate = 0,
 		buildcostenergy = 1250,
 		buildcostmetal = 20,
@@ -38,7 +39,6 @@ return {
 		selfdestructcountdown = 0,
 		sightdistance = 83.199996948242,
 		stealth = true,
-		yardmap = "y",
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
