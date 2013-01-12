@@ -133,9 +133,6 @@ function widget:Update(dt)
 							if states and (states['repeat']) then
 								GiveOrderToUnit(bomber_id, commands[1].id,commands[1].params,{'shift'})
 							end
-							--- workaround for mantis 1823
-							GiveOrderToUnit(bomber_id, CMD.WAIT,{},{})
-							GiveOrderToUnit(bomber_id, CMD.WAIT,{},{})
 						end
 					end
 				end
