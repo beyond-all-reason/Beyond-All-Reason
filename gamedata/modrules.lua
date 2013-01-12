@@ -21,7 +21,7 @@ local modrules  = {
   },
 
   movement = {
-	allowUnitCollisionDamage = true, -- defaults to false
+	--allowUnitCollisionDamage = true, -- defaults to false
 	allowPushingEnemyUnits = (Spring.GetModOptions() and (Spring.GetModOptions().mo_enemypushing) or (not Spring.GetModOptions())),
 	useClassicGroundMoveType =  (Spring.GetModOptions() and (Spring.GetModOptions().movetype == "classic")),
   },
