@@ -8,6 +8,7 @@ return {
 		buildtime = 1279,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		collisionvolumetype	    = [[ell]],
 		corpse = "DEAD",
 		description = "Infantry Kbot",
 		energymake = 0.30000001192093,

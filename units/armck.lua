@@ -10,6 +10,10 @@ return {
 		buildtime = 3453,
 		canmove = true,
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		collisionvolumescales		= [[33 32 32.5]],
+		collisionvolumeoffsets	= [[0 0 0]],
+		collisionvolumetest	    = 1,
+		collisionvolumetype	= 'ell',--something is bugged here, todo: fix it so it doesnt get reduced in size
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 7,
