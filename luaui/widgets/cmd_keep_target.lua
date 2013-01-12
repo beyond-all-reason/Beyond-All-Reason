@@ -13,8 +13,10 @@ end
 local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_CANCEL_TARGET = 34924
 
-local function isValidType(ud)
-	return ud and not (ud.isBomber or ud.isFactory)
+local LICHE = UnitDefNames["armcybr"].id --liche is a bomber and should be treated as such, but its weapontype is MissileLauncher; so it has ud.isBomber=false
+
+local function isValidType(ud, udid)
+	return ud and not (ud.isBomber or ud.isFactory or (udid==armcybr) )
 end
 
 function widget:CommandNotify(id, params, options)
@@ -27,7 +29,7 @@ function widget:CommandNotify(id, params, options)
             local unitID = units[i]
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local ud = UnitDefs[unitDefID]
-            if isValidType(ud) and Spring.ValidUnitID(unitID) then
+            if isValidType(ud, udid) and Spring.ValidUnitID(unitID) then
                 local cmd = Spring.GetCommandQueue(unitID, 1)
                 if cmd and #cmd ~= 0 and cmd[1].id == CMD.ATTACK and #cmd[1].params == 1 and not cmd[1].options.internal then
 					Spring.GiveOrderToUnit(unitID,CMD_UNIT_SET_TARGET,cmd[1].params,{})
