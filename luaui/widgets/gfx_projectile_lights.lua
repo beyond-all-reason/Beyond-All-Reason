@@ -240,8 +240,9 @@ function widget:DrawWorldPreUnit()
 				local factor=max(0.01,(100.0+diff)/100.0) --factor=1 at when almost touching ground, factor=0 when above 100 height)
 				
 				if (factor >0.01) then 
-					glColor(lightparams[1],lightparams[2],lightparams[3],lightparams[4]*factor*factor*noise[floor(x+z+pID)%10+1]) -- attentuation is x^2
-					factor = max(factor,0.3) -- clamp the size
+					local n=noise[floor(x+z+pID)%10+1]
+					glColor(lightparams[1],lightparams[2],lightparams[3],lightparams[4]*factor*factor*n) -- attentuation is x^2
+					factor = max(factor/(n*0.5+0.5),0.3) -- clamp the size
 					glPushMatrix()
 					glTranslate(x,y+diff+5,z)  -- push in y dir by height (to push it on the ground!), +5 to keep it above surface
 					glScale(fx*(1.1-factor),1.0,fy*(1.1-factor)) --scale it by size
