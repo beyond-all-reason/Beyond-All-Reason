@@ -13,10 +13,16 @@ end
 local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_CANCEL_TARGET = 34924
 
+local SpGetSelectedUnits = Spring.GetSelectedUnits
+local SpValidUnitID = Spring.ValidUnitID
+local SpGetUnitDefID = Spring.GetUnitDefID
+local SpGetCommandQueue = Spring.GetCommandQueue
+local SpGiveOrderToUnit = Spring.GiveOrderToUnit
+
 local LICHE = UnitDefNames["armcybr"].id --liche is a bomber and should be treated as such, but its weapontype is MissileLauncher; so it has ud.isBomber=false
 
 local function isValidType(ud, udid)
-	return ud and not (ud.isBomber or ud.isFactory or (udid==armcybr) )
+	return ud and not (ud.isBomber or ud.isFactory or (udid==LICHE) )
 end
 
 function widget:CommandNotify(id, params, options)
@@ -24,24 +30,26 @@ function widget:CommandNotify(id, params, options)
         return false -- FUCK CMD.SET_WANTED_MAX_SPEED
     end
     if id == CMD.MOVE then
-        local units = Spring.GetSelectedUnits()
+        local units = SpGetSelectedUnits()
         for i = 1, #units do
             local unitID = units[i]
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			local ud = UnitDefs[unitDefID]
-            if isValidType(ud, udid) and Spring.ValidUnitID(unitID) then
-                local cmd = Spring.GetCommandQueue(unitID, 1)
-                if cmd and #cmd ~= 0 and cmd[1].id == CMD.ATTACK and #cmd[1].params == 1 and not cmd[1].options.internal then
-					Spring.GiveOrderToUnit(unitID,CMD_UNIT_SET_TARGET,cmd[1].params,{})
-                end
-            end
+			if SpValidUnitID(unitID) then
+			local unitDefID = SpGetUnitDefID(unitID)
+				local ud = UnitDefs[unitDefID]
+				if isValidType(ud, unitDefID) then 
+					local cmd = SpGetCommandQueue(unitID, 1)
+					if cmd and #cmd ~= 0 and cmd[1].id == CMD.ATTACK and #cmd[1].params == 1 and not cmd[1].options.internal then
+						SpGiveOrderToUnit(unitID,CMD_UNIT_SET_TARGET,cmd[1].params,{})
+					end
+				end
+			end
         end
     elseif id ~= CMD_UNIT_SET_TARGET and id ~= CMD_UNIT_CANCEL_TARGET then
-        local units = Spring.GetSelectedUnits()
+        local units = SpGetSelectedUnits()
         for i = 1, #units do
             local unitID = units[i]
             if isValidType(ud) and Spring.ValidUnitID(unitID) then
-                Spring.GiveOrderToUnit(unitID,CMD_UNIT_CANCEL_TARGET,params,{})
+                SpGiveOrderToUnit(unitID,CMD_UNIT_CANCEL_TARGET,params,{})
             end
         end
     end
