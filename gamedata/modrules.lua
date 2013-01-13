@@ -21,9 +21,10 @@ local modrules  = {
   },
 
   movement = {
-	--allowUnitCollisionDamage = true, -- defaults to false
+	--allowUnitCollisionDamage = true, -- defaults to false, Do unit-unit (skidding) collisions cause damage? 
 	allowPushingEnemyUnits = (Spring.GetModOptions() and (Spring.GetModOptions().mo_enemypushing) or (not Spring.GetModOptions())),
 	useClassicGroundMoveType =  (Spring.GetModOptions() and (Spring.GetModOptions().movetype == "classic")),
+	allowUnitCollisionOverlap = false,--Can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'. 
   },
   
   featureLOS = { featureVisibility = 2; },
