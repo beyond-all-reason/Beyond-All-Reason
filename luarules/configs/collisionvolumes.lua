@@ -114,7 +114,7 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		off={55,78,55,0,-19.5,0,1,1,1},
 	}
 	unitCollisionVolume["armvp"] = {
-		on={120,34,92,0,0,0,2,1,0},
+		on={90,34,92,0,0,0,2,1,0},
 		off={90,34,92,0,0,0,2,1,0},
 	}
 	unitCollisionVolume["cordoom"] = {
