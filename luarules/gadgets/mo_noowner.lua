@@ -92,7 +92,7 @@ function gadget:GameFrame(n)
 				graceperiod = 1800 --1 minute grace period for early droppers
 			end
 			if (n - time) > graceperiod then  
-				if n < 30*120 then 
+				if time < 30*120 then 
 					destroyTeam(team,true) --nowrecks=true
 				else
 					destroyTeam(team,false) --nowrecks=false
