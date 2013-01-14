@@ -21,7 +21,7 @@ local SetUnitCosts		= Spring.SetUnitCosts
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 
 local crashing = {}
-local crashable  ={ --fucking hacky bugfix, strafemovetype cant crash, and sometimes doesnt take the damage it is dealt. 
+local crashable  ={ --strafemovetype sometimes doesnt take the damage it is dealt. 
 	[UnitDefNames["armthund"].id] = true,
 	[UnitDefNames["armpeep"].id] = true,
 	[UnitDefNames["armfig"].id] = true,
@@ -53,16 +53,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0,0
 	end --hacky
 	if UnitDefs[unitDefID]["canFly"] == true and (damage>GetUnitHealth(unitID)) and random()<0.25 then
-	--NOTE: strafe airmovetype aircraft DO NOT CRASH, only regular stuff like bombers
-		--Spring.Echo('CRASHING AIRCRAFT',unitID)
+	--NOTE: strafe airmovetype aircraft crash since 92. only
 		SetUnitCOBValue(unitID, COB.CRASHING, 1)
-		--SetUnitCosts(unitID,{10000,0,0}) this doesnt work either :)
 		SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
 		crashing[unitID]=true
 		SetUnitSensorRadius(unitID, "los", 0)
 		SetUnitSensorRadius(unitID, "radar", 0)
 		SetUnitSensorRadius(unitID, "sonar", 0)
-		--return 0,0--TEST THIS
 	end
 	return damage,1
 end
