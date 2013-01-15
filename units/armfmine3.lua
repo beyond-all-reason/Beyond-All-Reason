@@ -1,6 +1,7 @@
 return {
 	armfmine3 = {
 		acceleration = 0,
+		blocking = false,
 		brakerate = 0,
 		buildcostenergy = 1500,
 		buildcostmetal = 25,
@@ -39,7 +40,6 @@ return {
 		sightdistance = 78,
 		stealth = true,
 		waterline = 1,
-		yardmap = "w",
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
