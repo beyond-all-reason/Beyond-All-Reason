@@ -101,6 +101,7 @@ return {
 			armvulc_weapon = {
 				accuracy = 700,
 				areaofeffect = 224,
+				avoidground = false,
 				craterboost = 0.25,
 				cratermult = 0.25,
 				edgeeffectiveness = 0.75,

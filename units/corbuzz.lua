@@ -104,6 +104,7 @@ return {
 			corbuzz_weapon = {
 				accuracy = 750,
 				areaofeffect = 256,
+				avoidground = false,
 				craterboost = 0.25,
 				cratermult = 0.25,
 				edgeeffectiveness = 0.80000001192093,
