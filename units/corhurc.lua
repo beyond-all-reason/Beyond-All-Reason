@@ -67,7 +67,6 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				manualbombsettings = true,
 				model = "bomb",
 				mygravity = 0.4,
 				name = "AdvancedBombs",

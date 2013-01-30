@@ -72,7 +72,6 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
-				manualbombsettings = true,
 				model = "bomb",
 				mygravity = 0.4,
 				name = "EMPbomb",
