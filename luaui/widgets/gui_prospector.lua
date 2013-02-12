@@ -117,7 +117,7 @@ local function SetupMexDefInfos()
 		if (extractsMetal > 0) then
 			mexDefInfos[unitDefID] = {}
 			mexDefInfos[unitDefID][1] = extractsMetal
-			mexDefInfos[unitDefID][2] = unitDef.extractSquare
+			--mexDefInfos[unitDefID][2] = unitDef.extractSquare --removed because deprecated from unitdefs; so mexDefInfos[UnitDefID][x] is defined only for only x=1,3,4.
 			if (unitDef.xsize % 4 == 2) then
 				mexDefInfos[unitDefID][3] = true
 			end
@@ -161,28 +161,17 @@ local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 	endX, endZ = min(endX, MAP_SIZE_X_SCALED - 1), min(endZ, MAP_SIZE_Z_SCALED - 1)
 	
 	local mult = mexDefInfo[1]
-	local square = mexDefInfo[2]
-	local result = 0
-	
-	if (square) then
-		for i = startX, endX do
-			for j = startZ, endZ do
-				local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
+	local result = 0	
+
+	for i = startX, endX do
+		for j = startZ, endZ do
+			local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
+			local dx, dz = cx - centerX, cz - centerZ
+			local dist = sqrt(dx * dx + dz * dz)
+			
+			if (dist < MEX_RADIUS) then
 				local _, metal = GetGroundInfo(cx, cz)
 				result = result + metal
-			end
-		end
-	else
-		for i = startX, endX do
-			for j = startZ, endZ do
-				local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
-				local dx, dz = cx - centerX, cz - centerZ
-				local dist = sqrt(dx * dx + dz * dz)
-				
-				if (dist < MEX_RADIUS) then
-					local _, metal = GetGroundInfo(cx, cz)
-					result = result + metal
-				end
 			end
 		end
 	end
