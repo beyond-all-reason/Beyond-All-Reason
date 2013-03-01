@@ -64,12 +64,12 @@ local circlePolys = 0
 local myTeamID = Spring.GetLocalTeamID()
 local realRadii = {}
 
-local circleDivs = 8 -- how precise circle? octagon by default
-local innersize = 1.5 -- circle scale compared to unit radius
-local outersize = 1.75 -- outer fade size compared to circle scale (1 = no outer fade)
+local circleDivs = 12 -- how precise circle? octagon by default
+local innersize = 1.35 -- circle scale compared to unit radius
+local outersize = 1.25 -- outer fade size compared to circle scale (1 = no outer fade)
 
 local fadefrom = { 0, 0, 1, 0 } -- inner color
-local colorSet = { 0, 0, 1, 0.23 } -- middle color
+local colorSet = { 0, 0, 1, 0.18 } -- middle color
 local fadeto = { 0, 0, 1, 0 } -- outer color
 
 
