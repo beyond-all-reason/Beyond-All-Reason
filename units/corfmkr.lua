@@ -18,7 +18,6 @@ return {
 		idletime = 1800,
 		maxdamage = 120,
 		maxslope = 10,
-		maxwaterdepth = 0,
 		minwaterdepth = 11,
 		name = "Floating Energy Converter",
 		objectname = "CORFMKR",

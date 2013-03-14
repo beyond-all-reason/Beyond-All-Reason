@@ -19,7 +19,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1820,
-		maxwaterdepth = 0,
 		metalmake = 1,
 		metalstorage = 200,
 		minwaterdepth = 30,
