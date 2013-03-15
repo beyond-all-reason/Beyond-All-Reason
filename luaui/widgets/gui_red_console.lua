@@ -463,7 +463,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		end
 		
 		c = cfg.cotherallytext
-		if (spectator == 1) then
+		if (spectator) then
 			c = cfg.cspectext
 		elseif (names[name][1] == MyAllyTeamID) then
 			c = cfg.callytext
