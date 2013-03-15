@@ -394,7 +394,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 4 --gamemessage
 			text = ssub(line,3)
 		end		
-	end
+    end
 	--mute--
 	local ignoreThisMessage = false
 	if (mutedPlayers[name]) then 
@@ -451,15 +451,15 @@ local function processLine(line,g,cfg,newlinecolor)
 		local c = cfg.cspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
 		
-		local spectator = 1
+		local spectator = true
 		if (names[name] ~= nil) then
 			spectator = names[name][2]
 		end
-		if (spectator == 0) then
-			local r,g,b,a = sGetTeamColor(names[name][3])
-			namecolor =  convertColor(r,g,b)
-		elseif (spectator == 1) then
-			name = "(s) "..name
+		if (spectator) then
+            name = "(s) "..name
+		else
+            local r,g,b,a = sGetTeamColor(names[name][3])
+            namecolor =  convertColor(r,g,b)
 		end
 		
 		c = cfg.cotherallytext
