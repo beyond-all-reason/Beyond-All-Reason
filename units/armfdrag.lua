@@ -17,7 +17,6 @@ return {
 		isfeature = true,
 		maxdamage = 50,
 		maxslope = 32,
-		maxwaterdepth = 0,
 		minwaterdepth = 1,
 		name = "Shark's Teeth",
 		objectname = "ARMFDRAG",

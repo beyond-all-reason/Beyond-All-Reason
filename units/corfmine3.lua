@@ -28,7 +28,6 @@ return {
 		initcloaked = true,
 		maxdamage = 10,
 		maxslope = 40,
-		maxwaterdepth = 10,
 		mincloakdistance = 8,
 		minwaterdepth = 0,
 		name = "1100 NS",
