@@ -14,9 +14,6 @@ end
 local popupUnits = {}		--list of pop-up style units
 local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume = include("LuaRules/Configs/CollisionVolumes.lua")
 
--- Building's radius must be scaled after UnitFinished()
-local scaleBuilding = {}
-
 -- Localization and speedups
 local spGetPieceCollisionData = Spring.GetUnitPieceCollisionVolumeData
 local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
@@ -53,7 +50,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				if featureModel:len() > 4 then
 					local featureModelTrim
 					if Game.version > "91.0" then
-						featureModelTrim = featureModel:sub(1,-5)
+						featureModelTrim = featureModel:sub(1,-5) -- featureModel:match("/.*%."):sub(2,-2)
 					else
 						featureModelTrim = featureModel:match("/.*%."):sub(2,-2)
 					end
@@ -131,12 +128,19 @@ if (gadgetHandler:IsSyncedCode()) then
 			elseif (not UnitDefs[unitDefID].canFly) then
 				rs, hs, ws = 0.75, 0.75, 0.75
 			else
-				rs, hs, ws = 0.48, 0.225, 0.35
+				rs, hs, ws = 0.53, 0.17, 0.53
 			end
 			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
 			if (vtype>=3 and xs==ys and ys==zs) then
+			  if ( ys*hs ) < 13 and (UnitDefs[unitDefID].canFly) then -- Limit Max V height
+			        spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  1, htype, 1)
+			  elseif (UnitDefs[unitDefID].canFly) then
+				spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  1, htype, 1)
+			  else 
 				spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  vtype, htype, axis)
+			  end
 			end
+			
 			if UnitDefs[unitDefID].canFly and UnitDefs[unitDefID].transportCapacity>0 then
 				spSetUnitRadiusAndHeight(unitID, 16, 16)
 			else
