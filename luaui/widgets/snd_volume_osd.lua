@@ -59,8 +59,6 @@ function widget:Initialize()
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	Spring.Echo(key)
-
 	if (key == pluskey or key == pluskey2) and (not mods.alt) and (not mods.shift) then -- KEY = Alt + pluskey
 		volume = Spring.GetConfigInt("snd_volmaster", 60)
 		volume = volume + step
