@@ -37,10 +37,10 @@ local dt									= -1
 local TEST_SOUND 							= LUAUI_DIRNAME .. 'sounds/volume_osd/pop.wav'
 local font         							= "luaui/fonts/freesansbold_14"
 local step 									= 2 -- how many steps to change sound volume on one key press
-local pluskey								= 0x10E -- numpad+ (look in uikeys.txt in spring folder for key symbols)
-local minuskey								= 0x10D -- numpad-
-local pluskey2								= 0x02B -- +key (duplicate key for volume+, set to same as primary to disable)
-local minuskey2								= 0x02D -- -key  
+local pluskey								= 270 -- numpad+ (look in uikeys.txt in spring folder for key symbols)
+local minuskey								= 269 -- numpad-
+local pluskey2								= 61 -- +key (duplicate key for volume+, set to same as primary to disable)
+local minuskey2								= 45 -- -key  
 local dtime									= 3 --How long time the volume display is drawn, in seconds
 local ftime 								= 2.5 --How long time before the volume display starts fading, in seconds
 local widgetWidth							= vsx/2.5 -- in pixels (changed from 400)
@@ -59,7 +59,9 @@ function widget:Initialize()
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if (key == pluskey or key == pluskey2) and mods.alt and (not mods.shift) then -- KEY = Alt + pluskey
+	Spring.Echo(key)
+
+	if (key == pluskey or key == pluskey2) and (not mods.alt) and (not mods.shift) then -- KEY = Alt + pluskey
 		volume = Spring.GetConfigInt("snd_volmaster", 60)
 		volume = volume + step
 		if volume < 0 then volume = 0 end
@@ -70,7 +72,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		dt = os.clock()
 		return true
 		
-	elseif (key == minuskey or key == minuskey2) and mods.alt and (not mods.shift) then -- KEY = Alt + minuskey
+	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then -- KEY = Alt + minuskey
 		volume = Spring.GetConfigInt("snd_volmaster", 60)
 		volume = volume - step
 		if volume < 0 then volume = 0 end
