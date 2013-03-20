@@ -13,6 +13,7 @@ function widget:GetInfo()
 	}
 end
 -- 12 jun 2012: "uDef.isMetalExtractor" was replaced by "uDef.extractsMetal > 0" to fix "metal" mode map switching (by [teh]decay, thx to vbs and Beherith)
+-- 20 march 2013: added keyboard support with BA keybinds (Bluestone)
 
 ------------------------------------------------------------
 -- Config
@@ -422,7 +423,7 @@ function widget:GameFrame(n)
 	for u = 1, #units do
 		local uID = units[u]
 		if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
-			Spring.Echo("sending queue to unit")
+			--Spring.Echo("sending queue to unit")
 			for b = 1, #buildQueue do
 				local buildData = buildQueue[b]
 				Spring.GiveOrderToUnit(uID, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
@@ -517,6 +518,110 @@ function widget:MouseRelease(mx, my, mButton)
 end
 
 ------------------------------------------------------------
+-- Keyboard -- This will only work with BA!
+------------------------------------------------------------
+local ZKEY = 122
+local XKEY = 120
+local CKEY = 99
+local VKEY = 118
+
+local ARMCOM = UnitDefNames["armcom"].id
+local CORCOM = UnitDefNames["corcom"].id
+
+local ARMMEX = UnitDefNames["armmex"].id
+local CORMEX = UnitDefNames["cormex"].id
+local ARMUWMEX = UnitDefNames["armuwmex"].id
+local CORUWMEX = UnitDefNames["coruwmex"].id
+
+local ARMSOLAR = UnitDefNames["armsolar"].id
+local CORSOLAR = UnitDefNames["corsolar"].id
+local ARMWIN = UnitDefNames["armwin"].id
+local CORWIN = UnitDefNames["corwin"].id
+local ARMTIDE = UnitDefNames["armtide"].id
+local CORTIDE = UnitDefNames["cortide"].id
+
+local ARMLLT = UnitDefNames["armllt"].id
+local CORLLT = UnitDefNames["corllt"].id
+local ARMRAD = UnitDefNames["armrad"].id
+local CORRAD = UnitDefNames["corrad"].id
+local ARMRL = UnitDefNames["armrl"].id
+local CORRL = UnitDefNames["corrl"].id
+local ARMTL = UnitDefNames["armtl"].id
+local CORTL = UnitDefNames["cortl"].id
+local ARMSONAR = UnitDefNames["armsonar"].id
+local CORSONAR = UnitDefNames["corsonar"].id
+local ARMFRT = UnitDefNames["armfrt"].id
+local CORFRT = UnitDefNames["armfrt"].id
+
+local ARMLAB = UnitDefNames["armlab"].id
+local CORLAB = UnitDefNames["corlab"].id
+local ARMVP = UnitDefNames["armvp"].id
+local CORVP = UnitDefNames["corvp"].id
+local ARMSY = UnitDefNames["armsy"].id
+local CORSY = UnitDefNames["corsy"].id
+
+
+function widget:KeyPress(key,mods,isrepeat)
+	if sDef == UnitDefs[ARMCOM] then
+		if key == ZKEY then
+			if 		selDefID == ARMMEX then 	selDefID = ARMUWMEX
+			elseif 	selDefID == ARMUWMEX then	selDefID = ARMMEX
+			else								selDefID = ARMMEX
+			end		
+		elseif key == XKEY then
+			if 		selDefID == ARMSOLAR then	selDefID = ARMWIN
+			elseif 	selDefID == ARMWIN then		selDefID = ARMTIDE
+			elseif 	selDefID == ARMTIDE then	selDefID = ARMSOLAR
+			else 								selDefID = ARMSOLAR
+			end
+		elseif key == CKEY then
+			if		selDefID == ARMLLT then		selDefID = ARMRAD
+			elseif 	selDefID == ARMRAD then		selDefID = ARMRL
+			elseif 	selDefID == ARMRL then 		selDefID = ARMTL
+			elseif 	selDefID == ARMTL then 		selDefID = ARMSONAR
+			elseif 	selDefID == ARMSONAR then	selDefID = ARMFRT
+			elseif 	selDefID == ARMFRT then		selDefID = ARMLLT
+			else 								selDefID = ARMLLT
+			end
+		elseif key == VKEY then
+			if		selDefID == ARMLAB then		selDefID = ARMVP
+			elseif 	selDefID == ARMVP then		selDefID = ARMSY
+			elseif 	selDefID == ARMSY then		selDefID = ARMLAB
+			else 								selDefID = ARMLAB	
+			end			
+		end	
+	elseif sDef == UnitDefs[CORCOM] then
+		if key == ZKEY then
+			if 		selDefID == CORMEX then 	selDefID = CORUWMEX
+			elseif 	selDefID == CORUWMEX then	selDefID = CORMEX
+			else								selDefID = CORMEX
+			end		
+		elseif key == XKEY then
+			if 		selDefID == CORSOLAR then	selDefID = CORWIN
+			elseif 	selDefID == CORWIN then		selDefID = CORTIDE
+			elseif 	selDefID == CORTIDE then	selDefID = CORSOLAR
+			else 								selDefID = CORSOLAR
+			end
+		elseif key == CKEY then
+			if		selDefID == CORLLT then		selDefID = CORRAD
+			elseif 	selDefID == CORRAD then		selDefID = CORRL
+			elseif 	selDefID == CORRL then 		selDefID = CORTL
+			elseif 	selDefID == CORTL then 		selDefID = CORSONAR
+			elseif 	selDefID == CORSONAR then	selDefID = CORFRT
+			elseif 	selDefID == CORFRT then		selDefID = CORLLT
+			else 								selDefID = CORLLT
+			end
+		elseif key == VKEY then
+			if		selDefID == CORLAB then		selDefID = CORVP
+			elseif 	selDefID == CORVP then		selDefID = CORSY
+			elseif 	selDefID == CORSY then		selDefID = CORLAB
+			else 								selDefID = CORLAB		
+			end
+		end	
+	end
+end
+
+------------------------------------------------------------
 -- Misc
 ------------------------------------------------------------
 function widget:TextCommand(cmd)
@@ -536,7 +641,7 @@ function widget:TextCommand(cmd)
 		end
 
 		Spring.SetBuildFacing(newFacing)
-		Spring.Echo("Buildings set to face " .. ({"South", "East", "North", "West"})[1 + newFacing])
+		--Spring.Echo("Buildings set to face " .. ({"South", "East", "North", "West"})[1 + newFacing])
 		return true
 	end
 
