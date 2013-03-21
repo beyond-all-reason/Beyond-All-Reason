@@ -16,7 +16,7 @@ return {
 		collisionVolumeScales		= [[39 26 39]],
 		collisionVolumeOffsets	= [[0 0 0]],
 		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[Box]],
+		collisionVolumeType	    = [[CylY]],
 		corpse = "DEAD",
 		description = "Long Range Anti-Air Tower",
 		explodeas = "BIG_UNITEX",
