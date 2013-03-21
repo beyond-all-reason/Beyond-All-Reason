@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[39 26 39]],
+		collisionVolumeScales		= [[49 26 49]],
 		collisionVolumeOffsets	= [[0 0 0]],
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylY]],

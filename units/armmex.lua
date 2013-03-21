@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[39 26 39]],
+		collisionVolumeScales		= [[41 26 41]],
 		collisionVolumeOffsets	= [[0 0 0]],
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylY]],

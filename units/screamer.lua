@@ -13,7 +13,7 @@ return {
 		buildpic = "SCREAMER.DDS",
 		buildtime = 30220,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[39 26 39]],
+		collisionVolumeScales		= [[63 57 63]],
 		collisionVolumeOffsets	= [[0 0 0]],
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylY]],
