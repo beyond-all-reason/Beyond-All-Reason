@@ -98,6 +98,7 @@ local vsx,vsy = widgetHandler:GetViewSizes()
 ------------------------------------------------
 local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
+local GetCameraNames = Spring.GetCameraNames
 local IsGUIHidden = Spring.IsGUIHidden
 local GetMouseState = Spring.GetMouseState
 local GetSpectatingState = Spring.GetSpectatingState
@@ -256,80 +257,26 @@ end
 --packets
 ------------------------------------------------
 
-local CAMERA_STATE_FORMATS = {
-	fps = {
-		"px", "py", "pz",
-		"dx", "dy", "dz",
-		"rx", "ry", "rz",
-		"oldHeight",
-	},
-	free = {
-		"px", "py", "pz",
-		"dx", "dy", "dz",
-		"rx", "ry", "rz",
-		"fov",
-		"gndOffset",
-		"gravity",
-		"slide",
-		"scrollSpeed",
-		"tiltSpeed",
-		"velTime",
-		"avelTime",
-		"autoTilt",
-		"goForward",
-		"invertAlt",
-		"gndLock",
-		"vx", "vy", "vz",
-		"avx", "avy", "avz",
-	},
-	OrbitController = {
-		"px", "py", "pz",
-		"tx", "ty", "tz",
-	},
-	ta = {
-		"px", "py", "pz",
-		"dx", "dy", "dz",
-		"height",
-		"zscale",
-		"flipped",
-	},
-	ov = {
-		"px", "py", "pz",
-	},
-	rot = {
-		"px", "py", "pz",
-		"dx", "dy", "dz",
-		"rx", "ry", "rz",
-		"oldHeight",
-	},
-	sm = {
-		"px", "py", "pz",
-		"dx", "dy", "dz",
-		"height",
-		"zscale",
-		"flipped",
-	},
-	tw = {
-		"px", "py", "pz",
-		"rx", "ry", "rz",
-	},
-}
+local CAMERA_IDS = GetCameraNames()
+local CAMERA_NAMES = {}
+local CAMERA_STATE_FORMATS = {}
 
-local CAMERA_NAMES = {
-	"fps",
-	"free",
-	"OrbitController",
-	"ta",
-	"ov",
-	"rot",
-	"sm",
-	"tw",
-}
-local CAMERA_IDS = {}
-
-for i=1, #CAMERA_NAMES do
-	CAMERA_IDS[CAMERA_NAMES[i]] = i
+Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
+local prevCameraState = GetCameraState()
+for name, num in pairs(CAMERA_IDS) do
+	CAMERA_NAMES[num] = name
+	SetCameraState({name=name,mode=num},0)
+	local packetFormat = {}
+	for stateindex in pairs(GetCameraState()) do
+		if stateindex ~= "mode" and stateindex ~= "name" then
+			table.insert(packetFormat,stateindex)
+		end
+	end
+	CAMERA_STATE_FORMATS[name] = packetFormat
 end
+SetCameraState(prevCameraState,0)
+--workaround a bug where minimap remains minimized because we switched to overview cam
+SendCommands("minimap minimize")
 
 --does not allow spaces in keys; values are numbers
 local function CameraStateToPacket(s)
@@ -892,5 +839,5 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:GameOver()
-  Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
+	Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
 end
