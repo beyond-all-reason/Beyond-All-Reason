@@ -46,25 +46,33 @@ local Bombers = { -- ALL BOMBER TYPE AIRCRAFT FAIL THIS CHECK
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+-- Note: this check must match the equiavelent function in customformations or commands will get modified
+-- TODO: make this into a table on init so as it doesnt have to be rechecked each time
+local function HasWaterWeapon(UnitDefID)
+	local haswaterweapon = false
+	local numweapons = #(UnitDefs[UnitDefID]["weapons"])
+	for j=1, numweapons do
+		local weapondefid = UnitDefs[UnitDefID]["weapons"][j]["weaponDef"]
+		local iswaterweapon = WeaponDefs[weapondefid]["waterWeapon"]
+		if iswaterweapon then haswaterweapon=true end
+	end	
+	return haswaterweapon
+end
+
+function gadget:AllowCommand(UnitID, UnitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
   if synced then return true end
-  if (Bombers[unitDefID]) then return true end
-  
-  local maxwaterdepth = UnitDefs[unitDefID]["maxWaterDepth"]
-  local height = GetUnitHeight(unitID)
-  local basex,basey,basez = GetUnitPosition(unitID)
+  if (Bombers[UnitDefID]) then return true end
   if (cmdID == CMD_INSERT) and (CMD_ATTACK == cmdParams[2]) and cmdParams[6] then
-	-- Note: this check and its equivalent below must match the behaviour of customformations or customformations commands will get modified
-	if (maxwaterdepth<=0) or (basey+height<=0) then y=GetGroundHeight(cmdParams[4],cmdParams[6]) else y = math.max(0,GetGroundHeight(cmdParams[4],cmdParams[6])) end
+	if HasWaterWeapon(UnitDefID) then y=GetGroundHeight(cmdParams[4],cmdParams[6]) else y = math.max(0,GetGroundHeight(cmdParams[4],cmdParams[6])) end
     if (cmdParams[5] > y) then
-      GiveOrderToUnit(unitID, CMD_INSERT, {cmdParams[1],cmdParams[2],cmdParams[3],cmdParams[4],y,cmdParams[6]}, cmdOptions.coded)
+      GiveOrderToUnit(UnitID, CMD_INSERT, {cmdParams[1],cmdParams[2],cmdParams[3],cmdParams[4],y,cmdParams[6]}, cmdOptions.coded)
       return false
     end    
   end  
   if (cmdID == CMD_ATTACK) and cmdParams[3] then
-	if maxwaterdepth<=0 or (basey+height<=0) then y=GetGroundHeight(cmdParams[1],cmdParams[3]) else y = math.max(0,GetGroundHeight(cmdParams[1],cmdParams[3])) end
+	if HasWaterWeapon(UnitDefID) then y=GetGroundHeight(cmdParams[1],cmdParams[3]) else y = math.max(0,GetGroundHeight(cmdParams[1],cmdParams[3])) end
     if (cmdParams[2] > y) then
-      GiveOrderToUnit(unitID, CMD_ATTACK, {cmdParams[1],y,cmdParams[3]}, cmdOptions.coded)
+      GiveOrderToUnit(UnitID, CMD_ATTACK, {cmdParams[1],y,cmdParams[3]}, cmdOptions.coded)
       return false
     end
   end
