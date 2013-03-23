@@ -123,6 +123,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
+local spGetUnitHeight = Spring.GetUnitHeight
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -253,9 +254,23 @@ local function AddFNode(pos)
 	totaldxy = 0
 	return true
 end
-local function GetInterpNodes(number)
-	
-	local spacing = fDists[#fNodes] / (number - 1)
+local function GetInterpNodes(mUnits)
+		
+	local number = #mUnits
+	local spacing = fDists[#fNodes] / (#mUnits - 1)
+
+	local mUnitEffHeights = {}
+	for i=1, number do
+		local height = spGetUnitHeight(mUnits[i])
+		local basex,basey,basez = spGetUnitPosition(mUnits[i])
+		local defID = spGetUnitDefID(mUnits[i])
+		local maxwaterdepth = UnitDefs[defID]["maxWaterDepth"]
+		mUnitEffHeights[i] = math.min(maxwaterdepth,basey + height) 
+	end
+	--result of this and code below is that aimpoint for a unit [i] will be:
+	--(a) on the sea bed, if the unit has either maxWaterDepth<=0 or has its base+height<=0 (i.e. is underwater).
+	--(b) on whichever is highest out of water surface (=0) and GetGroundHeight(units aimed position), otherwise. 
+	--in BA this must match the behaviour of prevent_range_hax or commands will get modified.
 	
 	local interpNodes = {}
 	
@@ -270,7 +285,9 @@ local function GetInterpNodes(number)
 	local eZ = ePos[3]
 	local eDist = fDists[2]
 	
-	interpNodes[1] = {sX, spGetGroundHeight(sX, sZ), sZ}
+	local sY 
+	if mUnitEffHeights[1]<=0 then sY=spGetGroundHeight(sX, sZ) else sY=math.max(0,spGetGroundHeight(sX,sZ)) end
+	interpNodes[1] = {sX, sY, sZ}
 	
 	for n = 1, number - 2 do
 		
@@ -291,13 +308,19 @@ local function GetInterpNodes(number)
 		local nFrac = (reqDist - sDist) / (eDist - sDist)
 		local nX = sX * (1 - nFrac) + eX * nFrac
 		local nZ = sZ * (1 - nFrac) + eZ * nFrac
-		interpNodes[n + 1] = {nX, spGetGroundHeight(nX, nZ), nZ}
+		local nY 
+		if mUnitEffHeights[n+1]<=0 then nY=spGetGroundHeight(nX, nZ) else nY=math.max(0,spGetGroundHeight(nX, nZ)) end
+		interpNodes[n + 1] = {nX, nY, nZ}
 	end
 	
 	ePos = fNodes[#fNodes]
 	eX = ePos[1]
 	eZ = ePos[3]
-	interpNodes[number] = {eX, spGetGroundHeight(eX, eZ), eZ}
+	local eY 
+	if mUnitEffHeights[number]<=0 then  eY=spGetGroundHeight(eX, eZ) else eY=math.max(0,spGetGroundHeight(eX, eZ)) end
+	interpNodes[number] = {eX, eY, eZ}
+	
+	--DEBUG for i=1,number do Spring.Echo(interpNodes[i]) end
 	
 	return interpNodes
 end
@@ -535,9 +558,10 @@ function widget:MouseRelease(mx, my, mButton)
 			-- Order is a formation
 			-- Are any units able to execute it?
 			local mUnits = GetExecutingUnits(usingCmd)
+			
 			if #mUnits > 0 then
-				
-				local interpNodes = GetInterpNodes(#mUnits)
+		
+				local interpNodes = GetInterpNodes(mUnits)
 				
 				local orders
 				if (#mUnits <= maxHungarianUnits) then
