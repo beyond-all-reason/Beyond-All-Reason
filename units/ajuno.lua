@@ -16,7 +16,7 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Anti Radar/Jammer/Minefield Weapon",
+		description = "Anti Radar/Jammer/Minefield/ScoutSpam Weapon",
 		explodeas = "ESTOR_BUILDINGEX",
 		footprintx = 4,
 		footprintz = 4,
