@@ -1,3 +1,34 @@
+7.72 -> 7.73
+23/03/2013
+-New loadscreens 
+-Added cmd_keep_target widget 
+-Added lock_camera widget 
+-Added com_counter widget
+-Added blackened crosshair cursor to show when an attack command will fail 
+-Added collision volumes for almost all units 
+-Replaced unit_marker widget with Adv_Unit_Marker 
+-Replaced snd_volume widget with snd_volume_osd (-> use -/+ keys to change volume ingame)
+-Made enemy_spotter widget look much nicer and handle multiple enemies 
+-Made z,x,c,v 'keybinds' work with initial_queue widget
+-Fixed t1 veh/sea cons lacking buildrange for t2 labs
+-Fixed bad maxwaterdepth making some sea unit unbuildable in 92.0+
+-Fixed un-killable paralysed aircraft 
+-Fixed mines blocking units in 92.0+
+-Fixed coop mode
+-Fixed liche 
+-Several small bugfixes
+-Pushing units is now a modoption, default enabled
+-Startpoints now cannot be placed within the dgun range of another start point
+-Took away radar, sonar and LOS from crashing aircraft
+-Units built by engineers changed: Consul now builds Fido,Zeus,Maverick; Freaker now builds Pyro,Can,Commando
+-Increased Panther energy cost 4200->6000
+-Removed 50% EMP damage reduction recieved by Bantha
+-Vanguard health decreased 12k->9k, reload time increased 6->8
+-Mercury & Screamer changed substantially, hopefully they are good anti-air-swarm defence now
+-Vulcan & Buzzsaw will now fire at/over/into hills
+
+
+
 7.71 -> 7.72
 9/21/2012
 -Fixed Customformations bomb line
