@@ -79,6 +79,7 @@ local dynLightDefs = {
 					ttl               = 2.2 * Game.gameSpeed,
 					decayFunctionType = {0.0, 0.0, 0.0},
 					altitudeOffset    = 250.0,
+					ignoreLOS         = false,
 				},
 			},
 
