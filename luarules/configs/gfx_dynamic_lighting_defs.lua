@@ -26,7 +26,7 @@ local copyLightDefs = {
 		["corcom_arm_disintegrator"  ] = "arm_disintegrator",
 
 		--Self-D , Explosion for large units eg corkrog and commanders etc
-		["commander_blast"           ] = "commander_explosion",
+		--["commander_blast"           ] = "commander_explosion",
 		["crblmssl"                  ] = "nuke_crblmssl_blast",
 		["nuclear_missile"           ] = "nuke_missile_blast",
 		
