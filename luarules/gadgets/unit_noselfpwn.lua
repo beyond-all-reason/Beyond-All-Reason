@@ -36,7 +36,7 @@ PWN_UNITS[UnitDefNames["corpt"].id] = true
 PWN_UNITS[UnitDefNames["armpt"].id] = true
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
-                            weaponID, attackerID, attackerDefID, attackerTeam)
+                            weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if ((unitID == attackerID) and PWN_UNITS[unitDefID]) then
     return 0, 0
   else

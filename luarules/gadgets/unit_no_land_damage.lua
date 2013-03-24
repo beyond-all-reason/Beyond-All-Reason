@@ -30,7 +30,7 @@ local NO_LAND_DAMAGE = {
 }
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
-                            weaponID, attackerID, attackerDefID, attackerTeam)
+                            weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if NO_LAND_DAMAGE[weaponID] then
     if select(2,GetUnitBasePosition(unitID)) > 0 then 
       return (damage * 0.2),1

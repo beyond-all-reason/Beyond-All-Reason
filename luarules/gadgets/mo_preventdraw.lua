@@ -51,7 +51,7 @@ local ctrlCom = nil
 local cantFall = nil
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
-                            weaponID, attackerID, attackerDefID, attackerTeam)  
+                            weaponID, projectileID, attackerID, attackerDefID, attackerTeam)  
   if cantFall and (cantFall == unitID) and (weaponID < 0) then      
     return 0, 0
   end     

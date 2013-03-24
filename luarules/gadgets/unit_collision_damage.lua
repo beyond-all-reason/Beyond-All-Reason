@@ -33,7 +33,7 @@ local FALL_DAMAGE_MULT = 10 -- Unit<->Ground collisions
 -- weaponDefID -4 --> fire damage
 -- weaponDefID -5 --> kill damage
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	-- unit collision
 	if weaponDefID == -3 and attackerID == nil then
 		--[[Spring code:

@@ -47,7 +47,7 @@ local crashable  ={ --strafemovetype sometimes doesnt take the damage it is deal
 	[UnitDefNames["corsfig"].id] = true,
 	[UnitDefNames["corsb"].id] = true,
 }
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if paralyzer then return damage,1 end --OOPS FORGOT THIS
 	if crashing[unitID] then 
 		return 0,0

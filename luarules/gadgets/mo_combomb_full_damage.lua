@@ -26,7 +26,7 @@ end
 
 local COM_BLAST = WeaponDefNames['commander_blast'].id 
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
 
 	--Spring.Echo("UnitPreDamaged called with unitID " .. unitID .. " and attackerID " .. attackerID)
 

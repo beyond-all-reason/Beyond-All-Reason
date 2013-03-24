@@ -32,7 +32,7 @@ local mines = {}
 local orderQueue = {}
 COMMANDO_MINELAYER = WeaponDefNames['commando_commando_minelayer'].id
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if (unitDefID == COMMANDO) then  
     if (weaponID < 0) then
       local x,y,z = Spring.GetUnitPosition(unitID)

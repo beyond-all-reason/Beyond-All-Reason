@@ -33,7 +33,7 @@ function gadget:Initialize()
     end
 end
 
-function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, aID, aDefID, aTeam)
+function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
     if paralyzer then
         local paralyzeMultiplier = paralyzeMultipliers[uDefID]
         return damage * paralyzeMultiplier, paralyzeMultiplier
