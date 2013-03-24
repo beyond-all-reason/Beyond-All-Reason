@@ -100,6 +100,7 @@ return {
 			armcomlaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
+				avoidground = false,
 				beamtime = 0.10000000149012,
 				corethickness = 0.10000000149012,
 				craterboost = 0,

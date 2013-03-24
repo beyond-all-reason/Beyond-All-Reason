@@ -158,6 +158,7 @@ return {
 			arm_disintegrator = {
 				areaofeffect = 36,
 				avoidfriendly = false,
+				avoidground = false,
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,

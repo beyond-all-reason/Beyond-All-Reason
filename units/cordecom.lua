@@ -135,6 +135,7 @@ return {
 			decoy_disintegrator = {
 				areaofeffect = 32,
 				avoidfriendly = false,
+				avoidground = false,
 				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
