@@ -30,7 +30,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     Spring.SetUnitNoDraw(unitID, true)
     Spring.SetUnitNeutral(unitID, true)
     Spring.SetUnitNoMinimap(unitID, true)
-    local x,y,z = Spring.GetUnitBasePosition(unitID)
+    local x,y,z = Spring.GetUnitPosition(unitID)
     Spring.MoveCtrl.Enable(unitID)
     Spring.MoveCtrl.SetPosition(unitID, x, y+32000, z)
     Spring.SetUnitHealth(unitID, {paralyze=3180})
@@ -49,9 +49,12 @@ function gadget:GameFrame(n)
       SendToUnsynced("gatesound", Spring.GetUnitTeam(defs.unitID), defs.x, defs.y+90, defs.z)
     end
   end
-  if (n >= 105) then
+  if (n == 105) then
     for _, defs in ipairs(hiddenUnits) do
-      if Spring.ValidUnitID(defs.unitID) then
+	if Spring.ValidUnitID(defs.unitID) then
+		local x,_,z = Spring.GetUnitPosition(defs.unitID)
+		local y = Spring.GetGroundHeight(x,z)
+		Spring.MoveCtrl.SetPosition(defs.unitID, x, y, z)
         Spring.MoveCtrl.Disable(defs.unitID)
         Spring.SetUnitNoDraw(defs.unitID, false)
         Spring.SetUnitNeutral(defs.unitID, false)
@@ -60,7 +63,7 @@ function gadget:GameFrame(n)
         Spring.GiveOrderToUnit(defs.unitID, CMD.INSERT, {0, CMD.STOP, CMD.OPT_SHIFT, defs.unitID}, CMD.OPT_ALT)
       end
     end
-    Spring.Echo("Commander Gate Successful")
+    Spring.Echo("Commander Gate Complete")
     gadgetHandler:RemoveGadget()
   end
 end
