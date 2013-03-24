@@ -122,6 +122,9 @@ local strByte = string.byte
 local strChar = string.char
 
 local floor = math.floor
+local ceil = math.ceil
+local max = math.max
+local min = math.min
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -391,6 +394,29 @@ local function DrawL()
 	glShape(GL_LINE_STRIP, vertices)
 end
 
+-- get a player's font outline-mode string
+local function getPlayerFontStyle(playerColor)
+	local playerFontStyle = "O" ---- white outline
+	local luminance  = (playerColor[1] * 0.299) + (playerColor[2] * 0.587) + (playerColor[3] * 0.114)
+	if luminance > 0.25 then
+		playerFontStyle = "o" -- black outline
+	end
+	return playerFontStyle
+end
+
+local function convertColor(colorarray)
+	local red = ceil(colorarray[1]*255)
+	local green = ceil(colorarray[2]*255)
+	local blue = ceil(colorarray[3]*255)
+	red = max( red, 1 )
+	green = max( green, 1 )
+	blue = max( blue, 1 )
+	red = min( red, 255 )
+	green = min( green, 255 )
+	blue = min( blue, 255 )
+	return strChar(255,red,green,blue)
+end
+
 local function DrawShow()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 	glColor(0, 0, 0, 0.2)
@@ -441,12 +467,9 @@ local function DrawShow()
 			local playerID = playerInfo[1]
 			local playerName = playerInfo[2]
 			local r, g, b = GetPlayerColor(playerID)
-			if r < 0.5 and g < 0.5 then
-				glColor(1, 1, 1, 0.5)
-				glRect(0, 0, 8, 1)
-			end
 			glColor(r, g, b)
-			glText(playerID .. ": " .. playerName, textMargin, textMargin, textSize, "n")
+			local outline = getPlayerFontStyle({r, g, b})
+			glText(convertColor({r,g,b}) .. playerID .. ": " .. playerName, textMargin, textMargin, textSize, outline.."n")
 			if lockPlayerID == playerID then
 				DrawL()
 			end
