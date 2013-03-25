@@ -287,14 +287,6 @@ function UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	appendComToTeam(newTeam)
 end
 
-function widget:FeatureCreated(featureID)
-	newFeature(featureID)
-end
-
-function widget:FeatureDestroyed(featureID)
-	delFeature(featureID)
-end
-
 -- keep progress of reclaim/resurrect/damage done in each frame, calc delta
 -- last time a change happened, and try to predict next value to guesstimate a
 -- reason why a feature disappeared
