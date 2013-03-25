@@ -11,7 +11,10 @@ function gadget:GetInfo()
 	}
 end
 
--- todo: add modoption
+local enabled = tonumber(Spring.GetModOptions().mo_no_close_spawns) or 1
+if (enabled == 0) or (Game.startPosType ~= 2) then --don't load if modoptions say not too or if start pos placement is not 'choose in game'
+	return false
+end
 
 if gadgetHandler:IsSyncedCode() then
     
