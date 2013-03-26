@@ -1,3 +1,18 @@
+7.73-7.74
+26/03/2013
+-Fixed lua errors and odd behaviour caused by change to UnitPreDamaged arguments (fixes combomb, commando and other gadgetry)
+-Fixed comgate
+-Fixed dgun not firing if there was uneven ground in the way
+-Fixed some lua errors and set com_counter to not place markers by default
+-Made a modoption for no_close_spawn
+-Made adv_unit_marker place only local markers
+-Made enemy_spotter widget more visible
+-Made menu of lock_camera easier to read
+-Made snd_volume_osd enabled by default and made it go pop!
+-Removed dynamic_blob_shadows widget 
+
+
+
 7.72 -> 7.73
 23/03/2013
 -New loadscreens 
