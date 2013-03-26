@@ -87,7 +87,7 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 
 function widget:KeyRelease(key)
-	if altdown and (key == pluskey or key == minuskey or key == pluskey2 or key == minuskey2) then
+	if (key == pluskey or key == minuskey or key == pluskey2 or key == minuskey2) then
 		Spring.PlaySoundFile(TEST_SOUND, 1.0)
 		return true
 	elseif key == 0x134 then --ALT
