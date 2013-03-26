@@ -124,7 +124,7 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
 
   local teamNum, teamLeader = Spring.GetTeamInfo(teamID)
   if (teamLeader == nil) then
-    return "Not sure what purpose this originally served" --nor I - LEDZ
+    return "Not sure what purpose this originally served" -- nor I -LEDZ -- I do but its effect is lost in time -Bluestone
   end
 
   name = Spring.GetPlayerInfo(teamLeader)
@@ -145,8 +145,7 @@ function widget:Initialize()
 
 	myColour = colourNames(Spring.GetMyTeamID())
 	generateMexList()
-	markerLocal = 1
-	spEcho("<Unit Marker> Set to Global Mode")
+	markerLocal = nil --note: this name of this on the lua wiki is a misnomer
 	curModID = string.upper(Game.modShortName or "")
 	if ( unitList[curModID] == nil ) then
 		spEcho("<Unit Marker> Unsupported Game, shutting down...")
