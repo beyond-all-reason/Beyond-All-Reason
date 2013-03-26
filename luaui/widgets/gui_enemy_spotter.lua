@@ -34,9 +34,10 @@ local skipOwnAllyTeam                   = true    -- keep this 'true' if you don
 
 local circleSize                        = 1
 local circleDivs                        = 12      -- how precise circle? octagon by default
-local circleOpacity                     = 0.13
-local innerSize                         = 1.35    -- circle scale compared to unit radius
-local outerSize                         = 1.30    -- outer fade size compared to circle scale (1 = no outer fade)
+local innercircleOpacity                = 0.35
+local outercircleOpacity                = 0.3
+local innerSize                         = 0.8    -- circle scale compared to unit radius
+local outerSize                         = 1.35    -- outer fade size compared to circle scale (1 = no outer fade)
                                         
 local defaultColorsForAllyTeams         = 0       -- (number of teams)   if number <= of total numebr of allyTeams then dont use teamcoloring but default colors
 local keepTeamColorsForSmallAllyTeam    = 3       -- (number of teams)   use teamcolors if number or teams (inside allyTeam)  <=  this value
@@ -130,7 +131,7 @@ function widget:Initialize()
                   glColor(usedSpotterColor[1], usedSpotterColor[2], usedSpotterColor[3], 0)
                   glVertex(0, 0, 0)
                   --(colorSet)
-                  glColor(usedSpotterColor[1], usedSpotterColor[2], usedSpotterColor[3], circleOpacity)
+                  glColor(usedSpotterColor[1], usedSpotterColor[2], usedSpotterColor[3], innercircleOpacity)
                   glVertex(math.sin(a1), 0, math.cos(a1))
                   glVertex(math.sin(a2), 0, math.cos(a2))
                end
@@ -144,7 +145,7 @@ function widget:Initialize()
                      local a1 = (i * radstep)
                      local a2 = ((i+1) * radstep)
                      --(colorSet)
-                     glColor(usedSpotterColor[1], usedSpotterColor[2], usedSpotterColor[3], circleOpacity)
+                     glColor(usedSpotterColor[1], usedSpotterColor[2], usedSpotterColor[3], outercircleOpacity)
                      glVertex(math.sin(a1), 0, math.cos(a1))
                      glVertex(math.sin(a2), 0, math.cos(a2))
                      --(fadeto)
