@@ -641,7 +641,7 @@ function widget:TextCommand(cmd)
 		end
 
 		Spring.SetBuildFacing(newFacing)
-		--Spring.Echo("Buildings set to face " .. ({"South", "East", "North", "West"})[1 + newFacing])
+		Spring.Echo("Buildings set to face " .. ({"South", "East", "North", "West"})[1 + newFacing])
 		return true
 	end
 
