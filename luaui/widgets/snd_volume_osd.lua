@@ -29,7 +29,6 @@ local vsx,vsy                    			= gl.GetViewSizes()
 local widgetPosX 							= vsx/3
 local widgetPosY 							= vsy/6
 local pressedToMove		 					= false
-local altdown
 local dt									= -1
 --------------------------------------------------------------------------------
 -- SETTINGS, configurable
@@ -59,39 +58,25 @@ function widget:Initialize()
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if (key == pluskey or key == pluskey2) and (not mods.alt) and (not mods.shift) then -- KEY = Alt + pluskey
+	if (key == pluskey or key == pluskey2) and (not mods.alt) and (not mods.shift) then -- KEY = pluskey
 		volume = Spring.GetConfigInt("snd_volmaster", 60)
 		volume = volume + step
 		if volume < 0 then volume = 0 end
 		if volume > 100 then volume = 100 end
 		Spring.SetConfigInt("snd_volmaster", volume)
-		--if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0) end
 		--Spring.Echo("Volume = " .. volume)
+		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0) end
 		dt = os.clock()
-		return true
-		
-	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then -- KEY = Alt + minuskey
+		return true		
+	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then -- KEY = minuskey
 		volume = Spring.GetConfigInt("snd_volmaster", 60)
 		volume = volume - step
 		if volume < 0 then volume = 0 end
 		if volume > 100 then volume = 100 end
 		Spring.SetConfigInt("snd_volmaster", volume)
-		--pring.Echo("Volume = " .. volume)
-		--if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0) end
+		--Spring.Echo("Volume = " .. volume)
+		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0) end
 		dt = os.clock()
-		return true
-	elseif key == 0x134 then --ALT
-		altdown = true
-	end
-	return false
-end
-
-function widget:KeyRelease(key)
-	if (key == pluskey or key == minuskey or key == pluskey2 or key == minuskey2) then
-		Spring.PlaySoundFile(TEST_SOUND, 1.0)
-		return true
-	elseif key == 0x134 then --ALT
-		altdown = false
 		return true
 	end
 	return false
