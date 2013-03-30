@@ -30,6 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORAMPH",
 		radardistance = 300,
+		script = "coramph.lua",
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 400,
