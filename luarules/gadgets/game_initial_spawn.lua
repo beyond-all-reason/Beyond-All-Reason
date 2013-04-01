@@ -49,7 +49,7 @@ local startEnergy = tonumber(modOptions.startenergy) or 1000
 
 local StartPointTable = {}
 local claimradius = 250*2.5 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
-local claimheight = 300 -- the height difference relative your own startpoint in which, within the claimradius, the startpoint guesser regards you as claiming mexes (coms can build up a claiff ~200 high but not 250).
+local claimheight = 300 -- the height difference relative your own startpoint in which, within the claimradius, the startpoint guesser regards you as claiming mexes (coms can build up a cliff ~200 high but not much more).
 
 ----------------------------------------------------------------
 -- Speedups
@@ -83,6 +83,7 @@ function gadget:Initialize()
     end
 end
 
+-- keep track of choosing faction ingame
 if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
     function gadget:RecvLuaMsg(msg, playerID)
         local startUnit = tonumber(msg:match(changeStartUnitRegex))
@@ -96,33 +97,51 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
     end
 end
 
--- Construct a table of startpoints that have actually been placed, somewhat hackily because engine does not have the appropriate callins; see http://springrts.com/mantis/view.php?id=3665
+--[[
+function gadget:AllowStartPosition(x,y,z,playerID)
+	Spring.Echo(x,y,z)
+	return true
+end]]-- DEBUG
+
+--[[ Construct a table to tell us which startpoints have actually been placed.
+	 This is somewhat hackily because the engine does not have the appropriate callins; see http://springrts.com/mantis/view.php?id=3665
+	 At GameStart it seems all playerIDs "without" a startpoint have had a startpoint placed by the engine.
+	 When the engine auto-places startpoints it puts them mostly at (xmin,-500,zmin) but in odd situations it puts themelsewhere too, as of 01/04/13.]]--
 local function MakeStartPointTable()
 	local GaiateamID = Spring.GetGaiaTeamID()
 	local allyTeamIDs = Spring.GetAllyTeamList()
 	for j=1,#allyTeamIDs do
 		local teamIDs = Spring.GetTeamList(allyTeamIDs[j])
-		--Spring.Echo("teams",j)--DEBUG
+		--Spring.Echo("teams in allyteam",j)--DEBUG
 		--Spring.Echo(teamIDs)--DEBUG
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamIDs[j]) 
 		for i=1,#teamIDs do
 			local isactive,isspec = true,false
 			local _,_,_,isAIteam,_,_,_,_ = Spring.GetTeamInfo(teamIDs[i]) 
-			local x,_,z = Spring.GetTeamStartPosition(teamIDs[i])
+			local x,y,z = Spring.GetTeamStartPosition(teamIDs[i])
+			local yground = Spring.GetGroundHeight(x,z)
 			local isGaiateam = (teamIDs[i] == GaiateamID)
 			playerIDs = Spring.GetPlayerList(teamIDs[i])
-			--Spring.Echo("players", i)
+			--Spring.Echo("players in team", i)
 			--Spring.Echo(playerIDs)--DEBUG
 			if #playerIDs ~= 0 then
 				if playerIDs[1] ~= nil then
 					local _,isactive,isspec,_,_,_,_,_,_,_ = Spring.GetPlayerInfo(playerIDs[1])
 				end
 			end
-			if (not isAIteam) and (isactive and (not isspec) and (not isGaiateam) and ((xmin ~= x) or (zmin ~= z))) then 
+			local isplayerspot = true
+			local isygood = (y >= yground)
+			if xmin and xmax then
+				local isLeft = (xmin >= x) 
+				local isTop = (zmin >= z) 
+				isplayerspot = (not isLeft) or (not isTop) 
+			end
+			--Spring.Echo(teamIDs[i],x,y,z,xmin,xmax,zmin,zmax,isygood,isplayerspot,isGaiateam,isAIteam,isactive,isspec)--DEBUG
+			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and isactive and (not isspec))) then -- test this logic on wierd cases (currently if a player places and resigns he will be moved)
 				StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 			else
 				if (not isGaiateam) then
-					StartPointTable[teamIDs[i]]={-1,-1}
+					StartPointTable[teamIDs[i]]={-3*claimradius,-3*claimradius} --far enough out the way to trigger a guess and not interfere with guessing routines of other teamIDs
 				end
 			end
 		end
@@ -130,25 +149,27 @@ local function MakeStartPointTable()
 	return StartPointTable
 end
 
-
+-- spawn starting unit
 local function SpawnTeamStartUnit(teamID, allyID, x, z)
     local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
     local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
 	--Spring.Echo("Checking team, ",teamID)--DEBUG
-	if (StartPointTable[teamID][1] == -1) then 
+	-- guess points for the classified in StartPointTable as not genuine 
+	if (StartPointTable[teamID][1] < 0) and (true) then --TODO add modoption
 		--Spring.Echo("Guessing for team, ",teamID)--DEBUG
 		x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
     end
 
-    local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) -- feed x=z=0 into this and engine will place in TL corner of startbox, or failing that in center of map
-    if (comStorage) then
+    local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
+	
+	if (comStorage) then
       Spring.AddUnitResource(unitID, 'm', startMetal)
       Spring.AddUnitResource(unitID, 'e', startEnergy)
     end
 end
 
-function gadget:GameStart() -- At this point it seems all playerIDs "without" a startpoint have had a startpoint placed by the engine at the north west point of their startbox.
+function gadget:GameStart() 
 	local StartPointTable = MakeStartPointTable() --TODO modoption
     for teamID, allyID in pairs(spawnTeams) do
         local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
@@ -156,15 +177,15 @@ function gadget:GameStart() -- At this point it seems all playerIDs "without" a 
     end
 end
 
-
-
+----------------------------------------------------------------
+--- Guessing Routine ------
+----------------------------------------------------------------
 function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 	--Sanity check, covers case when there are no startboxes 
 	if (xmin >= xmax) or (zmin>=zmax) then return 0,0 end 
 	
 	-- Try our guesses
 	local x,z = GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
-	Spring.Echo(x,z)
 	if x>=0 and z>=0 then
 		StartPointTable[teamID]={x,z} 
 		return x,z 
@@ -187,8 +208,15 @@ end
 -- guess based on metal spots --
 function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax) 	
 
-	-- TODO check if mex list is sensible
+
+	-- check if mex list generation worked and retrieve if so
+	if not GG.metalSpots then
+		return -1,-1
+	end
 	local metalspots = GG.metalSpots
+	if metalspots == false then 
+		return -1,-1 
+	end
 
 	-- find free metal spots
 	local freemetalspots = {} -- will contain all metalspots that are within teamIDs startbox and are not within one of the cylinders given by (claimradius,claimheight) about an already existing startpoint
@@ -227,9 +255,9 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 	
 	for i=1,#freemetalspots do
 		local ix,iz = freemetalspots[i][1], freemetalspots[i][2]
-		for j=1,i do
+		for j=1,i-1 do
 			local jx,jz = freemetalspots[j][1],freemetalspots[j][2]
-			local score = 1/((ix-jx)*(ix-jx)+(iz-jz)*(iz-jz)) -- Magic formula. (Assumes all metal spots are of equal production value, TODO...)
+			local score = 1/((ix-jx)*(ix-jx)+(iz-jz)*(iz-jz)) -- Magic formula. (Assumes all metal spots are of equal production value, TODO...). TODO: check this and take care of score from self
 			freemetalspotscores[i] = freemetalspotscores[i] + score
 			freemetalspotscores[j] = freemetalspotscores[j] + score
 		end
