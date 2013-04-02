@@ -564,58 +564,58 @@ local CORSY = UnitDefNames["corsy"].id
 function widget:KeyPress(key,mods,isrepeat)
 	if sDef == UnitDefs[ARMCOM] then
 		if key == ZKEY then
-			if 		selDefID == ARMMEX then 	selDefID = ARMUWMEX
-			elseif 	selDefID == ARMUWMEX then	selDefID = ARMMEX
-			else								selDefID = ARMMEX
+			if 		selDefID == ARMMEX then 	SetSelDefID(ARMUWMEX)
+			elseif 	selDefID == ARMUWMEX then	SetSelDefID(ARMMEX)
+			else								SetSelDefID(ARMMEX)
 			end		
 		elseif key == XKEY then
-			if 		selDefID == ARMSOLAR then	selDefID = ARMWIN
-			elseif 	selDefID == ARMWIN then		selDefID = ARMTIDE
-			elseif 	selDefID == ARMTIDE then	selDefID = ARMSOLAR
-			else 								selDefID = ARMSOLAR
+			if 		selDefID == RMSOLAR then	SetSelDefID(ARMWIN)
+			elseif 	selDefID == ARMWIN then		SetSelDefID(ARMTIDE)
+			elseif 	selDefID == ARMTIDE then	SetSelDefID(ARMSOLAR)
+			else 								SetSelDefID(ARMSOLAR)
 			end
 		elseif key == CKEY then
-			if		selDefID == ARMLLT then		selDefID = ARMRAD
-			elseif 	selDefID == ARMRAD then		selDefID = ARMRL
-			elseif 	selDefID == ARMRL then 		selDefID = ARMTL
-			elseif 	selDefID == ARMTL then 		selDefID = ARMSONAR
-			elseif 	selDefID == ARMSONAR then	selDefID = ARMFRT
-			elseif 	selDefID == ARMFRT then		selDefID = ARMLLT
-			else 								selDefID = ARMLLT
+			if		selDefID == ARMLLT then		SetSelDefID(ARMRAD)
+			elseif 	selDefID == ARMRAD then		SetSelDefID(ARMRL)
+			elseif 	selDefID == ARMRL then 		SetSelDefID(ARMTL)
+			elseif 	selDefID == ARMTL then 		SetSelDefID(ARMSONAR)
+			elseif 	selDefID == ARMSONAR then	SetSelDefID(ARMFRT)
+			elseif 	selDefID == ARMFRT then		SetSelDefID(ARMLLT)
+			else 								SetSelDefID(ARMLLT)
 			end
 		elseif key == VKEY then
-			if		selDefID == ARMLAB then		selDefID = ARMVP
-			elseif 	selDefID == ARMVP then		selDefID = ARMSY
-			elseif 	selDefID == ARMSY then		selDefID = ARMLAB
-			else 								selDefID = ARMLAB	
+			if		selDefID == ARMLAB then		SetSelDefID(ARMVP)
+			elseif 	selDefID == ARMVP then		SetSelDefID(ARMSY)
+			elseif 	selDefID == ARMSY then		SetSelDefID(ARMLAB)
+			else 								SetSelDefID(ARMLAB)
 			end			
 		end	
 	elseif sDef == UnitDefs[CORCOM] then
 		if key == ZKEY then
-			if 		selDefID == CORMEX then 	selDefID = CORUWMEX
-			elseif 	selDefID == CORUWMEX then	selDefID = CORMEX
-			else								selDefID = CORMEX
+			if 		selDefID == CORMEX then 	SetSelDefID(CORUWMEX)
+			elseif 	selDefID == CORUWMEX then	SetSelDefID(CORMEX)
+			else								SetSelDefID(CORMEX)
 			end		
 		elseif key == XKEY then
-			if 		selDefID == CORSOLAR then	selDefID = CORWIN
-			elseif 	selDefID == CORWIN then		selDefID = CORTIDE
-			elseif 	selDefID == CORTIDE then	selDefID = CORSOLAR
-			else 								selDefID = CORSOLAR
+			if 		selDefID == CORSOLAR then	SetSelDefID(CORWIN)
+			elseif 	selDefID == CORWIN then		SetSelDefID(CORTIDE)
+			elseif 	selDefID == CORTIDE then	SetSelDefID(CORSOLAR)
+			else 								SetSelDefID(CORSOLAR)
 			end
 		elseif key == CKEY then
-			if		selDefID == CORLLT then		selDefID = CORRAD
-			elseif 	selDefID == CORRAD then		selDefID = CORRL
-			elseif 	selDefID == CORRL then 		selDefID = CORTL
-			elseif 	selDefID == CORTL then 		selDefID = CORSONAR
-			elseif 	selDefID == CORSONAR then	selDefID = CORFRT
-			elseif 	selDefID == CORFRT then		selDefID = CORLLT
-			else 								selDefID = CORLLT
+			if		selDefID == CORLLT then		SetSelDefID(CORRAD)
+			elseif 	selDefID == CORRAD then		SetSelDefID(CORRL)
+			elseif 	selDefID == CORRL then 		SetSelDefID(CORTL)
+			elseif 	selDefID == CORTL then 		SetSelDefID(CORSONAR)
+			elseif 	selDefID == CORSONAR then	SetSelDefID(CORFRT)
+			elseif 	selDefID == CORFRT then		SetSelDefID(CORLLT)
+			else 								SetSelDefID(CORLLT)
 			end
 		elseif key == VKEY then
-			if		selDefID == CORLAB then		selDefID = CORVP
-			elseif 	selDefID == CORVP then		selDefID = CORSY
-			elseif 	selDefID == CORSY then		selDefID = CORLAB
-			else 								selDefID = CORLAB		
+			if		selDefID == CORLAB then		SetSelDefID(CORVP)
+			elseif 	selDefID == CORVP then		SetSelDefID(CORSY)
+			elseif 	selDefID == CORSY then		SetSelDefID(CORLAB)
+			else 								SetSelDefID(CORLAB)		
 			end
 		end	
 	end
