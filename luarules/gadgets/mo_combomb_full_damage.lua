@@ -40,10 +40,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			local newdamage = math.min(damage,math.max(hp*0.6,400)) 
 			--Spring.Echo("new damage is " .. newdamage .. ", old damage is " .. damage .. ", hp is " .. hp)
 			return newdamage,0
-		end
-		return damage,1
+		end		
 	end
-	
+	return damage,1
 end
 
 
