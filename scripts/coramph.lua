@@ -248,18 +248,10 @@ local function stoped()
 	Turn( lfoot , x_axis, 0, math.rad(200.000000) )
 end
 
-local function DepthCheck()
-	while true do
-		_, basepos, _ = Spring.GetUnitPosition(unitID)
-		Sleep(400)
-	end 
-end
-
 function script.Create()
 	Hide( gunflare)
 	Hide( laserflare)
 	StartThread(SmokeUnit)
-	StartThread(DepthCheck)
 end
 
 function script.StartMoving()
@@ -279,6 +271,7 @@ local function RestoreAfterDelay()
 end
 
 function script.AimWeapon(num, heading, pitch)
+	local _, basepos, _ = Spring.GetUnitPosition(unitID)
 	if num == 1 then
 		Signal( SIG_AIM)
 		SetSignalMask( SIG_AIM)
