@@ -229,7 +229,7 @@ local options={
 		name   = "Allow pushing enemy units",
 		desc   = "Enemy and friendly units can push past each other",
 		type   = "bool",
-		def    = true,
+		def    = false,
 		section= "ba_options",
     },
   {
