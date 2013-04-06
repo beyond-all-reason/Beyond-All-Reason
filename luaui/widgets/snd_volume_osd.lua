@@ -53,7 +53,6 @@ local blue									= 0 -- volume bar colour, 0 to 1.
 
 function widget:Initialize()
   volume = Spring.GetConfigInt("snd_volmaster", 60)
-  Spring.Echo("Volume = " .. volume)
   fontHandler.UseFont(font)
 end
 
