@@ -12,7 +12,14 @@ function gadget:GetInfo()
 end
 
 local enabled = tonumber(Spring.GetModOptions().mo_no_close_spawns) or 1
-if (enabled == 0) or (Game.startPosType ~= 2) then --don't load if modoptions say not too or if start pos placement is not 'choose in game'
+
+local spawndist = 300
+
+local mapx = Game.mapX
+local mapz = Game.mapY -- misnomer in API
+local smallmap = (mapx^2 + mapz^2 < 6^2)
+
+if (enabled == 0) or (Game.startPosType ~= 2) or smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
 	return false
 end
 
@@ -73,7 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 			if otherplayerID ~= playerID then
 				
 				--Spring.Echo('vs',x,z,playerID, startPos[1],startPos[3])
-				if ((startPos[1]-x)*(startPos[1]-x)+(startPos[2]-y)*(startPos[2]-y)+(startPos[3]-z)*(startPos[3]-z))<250*250 then --at least dgun range away from everyone else
+				if ((startPos[1]-x)*(startPos[1]-x)+(startPos[2]-y)*(startPos[2]-y)+(startPos[3]-z)*(startPos[3]-z))<spawndist^2 then -- a little more than a dgun range away from everyone else
 					Spring.SendMessageToPlayer(playerID,"You cannot place a start position inside of the D-Gun range of an Ally")
 				--	Spring.Echo('canceled start')
 					return false
