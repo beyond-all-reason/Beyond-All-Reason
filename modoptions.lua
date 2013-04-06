@@ -235,7 +235,7 @@ local options={
   {
 		key    = "mo_no_close_spawns",
 		name   = "No close spawns",
-		desc   = "Prevents players startpoints being placed close together",
+		desc   = "Prevents players startpoints being placed close together (on large enough maps)",
 		type   = "bool",
 		def    = true,
 		section= "ba_options",
