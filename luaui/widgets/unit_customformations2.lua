@@ -1,9 +1,9 @@
 
 function widget:GetInfo()
 	return {
-		name      = "CustomFormations2dot",
+		name      = "CustomFormations2",
 		desc      = "Allows you to draw your own formation line.",
-		author    = "PixelOfDeath", -- Just Niobiums CustomFormations2 with different visuals, whitch is based on 'Custom Formations' by jK and gunblob
+		author    = "Niobium", -- based on 'Custom Formations' by jK and gunblob
 		version   = "v4.2",
 		date      = "April, 2013",
 		license   = "GNU GPL, v2 or later",
@@ -12,6 +12,9 @@ function widget:GetInfo()
 		handler   = true,
 	}
 end
+
+-- 13/04/13 -- Visuals remade by PixelOfDeath 
+-- 23/03/13 -- Attack order y-coord placement remade by Bluestone for spring 94+ 
 
 --------------------------------------------------------------------------------
 -- User Configurable Constants
