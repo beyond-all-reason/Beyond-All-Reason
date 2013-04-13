@@ -1,11 +1,11 @@
 
 function widget:GetInfo()
 	return {
-		name      = "CustomFormations2",
+		name      = "CustomFormations2dot",
 		desc      = "Allows you to draw your own formation line.",
-		author    = "Niobium", -- Based on 'Custom Formations' by jK and gunblob
-		version   = "v3.4",
-		date      = "Mar, 2010",
+		author    = "PixelOfDeath", -- Just Niobiums CustomFormations2 with different visuals, whitch is based on 'Custom Formations' by jK and gunblob
+		version   = "v4.2",
+		date      = "April, 2013",
 		license   = "GNU GPL, v2 or later",
 		layer     = 10000,
 		enabled   = true,
@@ -663,23 +663,51 @@ local function tVertsMinimap(verts)
 		glVertex(v[1], v[3], 1)
 	end
 end
-local function DrawFormationLines(vertFunction, lineStipple)
 
-	glLineStipple(lineStipple, 4369)
-	glLineWidth(2.0)
+local function DrawFilledCircle(pos, size, cornerCount)
+	glPushMatrix()
+	gl.Translate(pos[1], pos[2], pos[3])
+	gl.BeginEnd(GL.TRIANGLE_FAN, function()
+		glVertex(0,0,0)
+		local radstep = (2.0 * math.pi) / cornerCount
+		for i = 1, cornerCount+1 do
+			local a1 = (i * radstep)
+			glVertex(math.sin(a1) * size, 0, math.cos(a1) * size)
+		end
+	end)
+	glPopMatrix()
+end
 
-	if #fNodes > 1 then
-		SetColor(usingCmd, 1.0)
-		glBeginEnd(GL_LINE_STRIP, vertFunction, fNodes)
+local function DrawFormationDots(vertFunction, zoomY, unitCount)
+	local currentLenght = 0
+	local lenghtPerUnit = lineLength / (unitCount-1)
+	local lenghtUnitNext = lenghtPerUnit
+	if (#fNodes > 1) and (unitCount > 1) then
+		SetColor(usingCmd, 0.6)
+		DrawFilledCircle(fNodes[1], 0.006*zoomY, 8)
+		if (#fNodes > 2) then
+			for i=1, #fNodes-1 do
+				local x = fNodes[i][1]
+				local y = fNodes[i][3]
+				local x2 = fNodes[i+1][1]
+				local y2 = fNodes[i+1][3]
+				local dx = x - x2
+				local dy = y - y2
+				local lenght = (((dx*dx)+(dy*dy))^0.5)
+				while (currentLenght + lenght >= lenghtUnitNext) do
+					local factor = (lenghtUnitNext - currentLenght) / lenght
+					local factorPos =
+						{fNodes[i][1] + ((fNodes[i+1][1] - fNodes[i][1]) * factor),
+						fNodes[i][2] + ((fNodes[i+1][2] - fNodes[i][2]) * factor),
+						fNodes[i][3] + ((fNodes[i+1][3] - fNodes[i][3]) * factor)}
+					DrawFilledCircle(factorPos, 0.006*zoomY, 8)
+					lenghtUnitNext = lenghtUnitNext + lenghtPerUnit
+				end
+				currentLenght = currentLenght + lenght
+			end
+		end
+		DrawFilledCircle(fNodes[#fNodes], 0.006*zoomY, 8)
 	end
-
-	if #dimmNodes > 1 then
-		SetColor(dimmCmd, dimmAlpha)
-		glBeginEnd(GL_LINE_STRIP, vertFunction, dimmNodes)
-	end
-
-	glLineWidth(1.0)
-	glLineStipple(false)
 end
 
 local GetCameraPosition = Spring.GetCameraPosition
@@ -688,23 +716,21 @@ local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 function widget:DrawWorld()
   if #fNodes > 1 or #dimmNodes > 1 then
 	local _,zoomY = GetCameraPosition()
-	zoomY = zoomY/470 --magic number with 20 units its 27 stipp with 30 its 39
-	local lineStipple = lineLength/((GetSelectedUnitsCount()-1)*zoomY)
-	--TODO fix the pattern and rest of math -so that always starts with half line and ends with half line
-	DrawFormationLines(tVerts, lineStipple)
+	local unitCount = GetSelectedUnitsCount()
+	DrawFormationDots(tVerts, zoomY, unitCount)
   end
 end
 
-function widget:DrawInMiniMap()
-	
+--TODO maybe include minimap drawing again
+--[[function widget:DrawInMiniMap()
 	glPushMatrix()
 		glLoadIdentity()
 		glTranslate(0, 1, 0)
 		glScale(1 / mapSizeX, -1 / mapSizeZ, 1)
 		
-		DrawFormationLines(tVertsMinimap, 1)
+		--DrawFormationLines(tVertsMinimap, 1)
 	glPopMatrix()
-end
+end]]
 function widget:Update(deltaTime)
 	
 	dimmAlpha = dimmAlpha - lineFadeRate * deltaTime
