@@ -454,6 +454,10 @@ function Init()
 end
 
 function widget:Initialize()
+	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
+		Spring.SendCommands("info 0")
+	end
+	
 	Init()
 end
 
