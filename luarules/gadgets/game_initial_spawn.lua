@@ -48,6 +48,8 @@ local startMetal  = tonumber(modOptions.startmetal)  or 1000
 local startEnergy = tonumber(modOptions.startenergy) or 1000
 
 local StartPointTable = {}
+
+-- guessing vars
 local claimradius = 250*2.3 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
 local claimheight = 300 -- the height difference relative your own startpoint in which, within the claimradius, the startpoint guesser regards you as claiming mexes (coms can build up a cliff ~200 high but not much more).
 
@@ -64,7 +66,7 @@ local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
 
 ----------------------------------------------------------------
--- Callins
+-- Initialize
 ----------------------------------------------------------------
 function gadget:Initialize()
     local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -90,13 +92,16 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
         if startUnit and validStartUnits[startUnit] then
             local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
             if not playerIsSpec then
-                spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit)
+                spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public)
                 return true
             end
         end
     end
 end
 
+----------------------------------------------------------------
+-- Spawning
+----------------------------------------------------------------
 
 --[[--for debugging only
 function gadget:AllowStartPosition(x,y,z,playerID)
@@ -117,36 +122,36 @@ local function MakeStartPointTable()
 	local allyTeamIDs = Spring.GetAllyTeamList()
 	for j=1,#allyTeamIDs do
 		local teamIDs = Spring.GetTeamList(allyTeamIDs[j])
-		--Spring.Echo("teams in allyteam",j)--DEBUG
-		--Spring.Echo(teamIDs)--DEBUG
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamIDs[j]) 
 		for i=1,#teamIDs do
 			local x,y,z = Spring.GetTeamStartPosition(teamIDs[i])
-			local _,_,_,isAIteam,_,_,_,_ = Spring.GetTeamInfo(teamIDs[i]) 
 			local yground1 = Spring.GetGroundHeight(x,z)
-			local yground2 = Spring.GetGroundHeight(x+1,z)
-			local yground3 = Spring.GetGroundHeight(x-1,z)
-			local yground4 = Spring.GetGroundHeight(x,z+1)
-			local yground5 = Spring.GetGroundHeight(x,z-1)
+			local yground2 = Spring.GetGroundHeight(x+1,z+1)
+			local yground3 = Spring.GetGroundHeight(x-1,z+1)
+			local yground4 = Spring.GetGroundHeight(x+1,z-1)
+			local yground5 = Spring.GetGroundHeight(x-1,z-1)
+			local isygood = (y >= yground1) or (y >= yground2) or (y >= yground3) or (y >= yground4) or (y >= yground5)  -- the point here is to account for rounding errors in x/z that take place inside the engine, see http://springrts.com/mantis/view.php?id=3678
+
+			local _,_,_,isAIteam,_,_,_,_ = Spring.GetTeamInfo(teamIDs[i]) 
 			local isGaiateam = (teamIDs[i] == GaiateamID)
+			
 			playerIDs = Spring.GetPlayerList(teamIDs[i])
-			--Spring.Echo("players in team", i)
-			--Spring.Echo(playerIDs)--DEBUG
 			local isactive,isspec = true,false
 			if #playerIDs ~= 0 then
 				if playerIDs[1] ~= nil then
 					local _,isactive,isspec,_,_,_,_,_,_,_ = Spring.GetPlayerInfo(playerIDs[1])
 				end
 			end
+			
 			local isplayerspot = true
-			local isygood = (y >= yground1) or (y >= yground2) or (y >= yground3) or (y >= yground4) or (y >= yground5)  -- the point here is to account for rounding errors in x/z that take place inside teh engine 
 			if xmin and xmax then
 				local isLeft = (xmin >= x) 
 				local isTop = (zmin >= z) 
 				isplayerspot = (not isLeft) or (not isTop) 
 			end
-			Spring.Echo(teamIDs[i],x,z,xmin,xmax,zmin,zmax,y,yground,isygood,isplayerspot,isGaiateam,isAIteam,isactive,isspec)--DEBUG
-			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and isactive and (not isspec))) then -- TODO: test this logic on wierd cases & nont existent start boxes
+			--Spring.Echo(teamIDs[i],x,z,xmin,xmax,zmin,zmax,y,yground,isygood,isplayerspot,isGaiateam,isAIteam,isactive,isspec)--DEBUG
+			
+			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and isactive and (not isspec))) then -- TODO: test this logic on wierd cases 
 				StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 			else
 				if (not isGaiateam) then
@@ -163,10 +168,8 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
     local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
     local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
-	--Spring.Echo("Checking team, ",teamID)--DEBUG
 	-- guess points for the classified in StartPointTable as not genuine 
 	if (StartPointTable[teamID][1] < 0) and (true) then --TODO add modoption
-		--Spring.Echo("Guessing for team, ",teamID)--DEBUG
 		x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
     end
 
@@ -178,8 +181,9 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
     end
 end
 
+-- cycle through teams spawning starting unit
 function gadget:GameStart() 
-	local StartPointTable = MakeStartPointTable() --TODO modoption
+	StartPointTable = MakeStartPointTable() --TODO modoption
     for teamID, allyID in pairs(spawnTeams) do
         local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
         SpawnTeamStartUnit(teamID, allyID, startX, startZ) 
@@ -190,7 +194,7 @@ end
 --- Guessing Routine ------
 ----------------------------------------------------------------
 function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
-	--Sanity check, covers case when there are no startboxes 
+	--Sanity check
 	if (xmin >= xmax) or (zmin>=zmax) then return 0,0 end 
 	
 	-- Try our guesses
@@ -217,7 +221,7 @@ end
 -- guess based on metal spots --
 function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax) 	
 
-	-- Note: This code is deliberately easy to read and not optimized since there is no pressure on its runtime.
+	-- Note: This code is deliberately easy to read and not optimized in its logic since there is no pressure on its runtime.
 	-- It's also got magic number style guesswork in it.
 
 	-- check if mex list generation worked and retrieve if so
@@ -300,7 +304,7 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 		end
 	end
 	
-	-- if it wasn't possible to find a nearest free spot, or some error caused us to find ourselves, make a reasonable choice
+	-- if it wasn't possible to find a nearest free spot, or some error caused us to find ourselves, start on the mex
 	if nx==nil or nx==bx or nz==nil or nz==bz then 
 		nx=bx+1
 		nz=bx+1

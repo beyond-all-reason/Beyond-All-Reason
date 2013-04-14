@@ -45,6 +45,7 @@ local Spring_SendCommands        = Spring.SendCommands
 local Spring_GetConfigInt        = Spring.GetConfigInt
 local Spring_GetMouseState       = Spring.GetMouseState
 local Spring_GetAIInfo           = Spring.GetAIInfo
+local Spring_GetTeamRulesParam   = Spring.GetTeamRulesParam
 
 local GetTextWidth        = fontHandler.GetTextWidth
 local UseFont             = fontHandler.UseFont
@@ -150,7 +151,9 @@ local mySpecStatus = false
 --General players/spectator count and tables
 local player = {}
 
-
+--To determine faction at start
+local armcomDefID = UnitDefNames.armcom.id
+local corcomDefID = UnitDefNames.corcom.id
 
 --------------------------------------------------------------------------------
 -- Button check variable
@@ -1426,7 +1429,17 @@ function SetSidePics()
 
 	teamList = Spring_GetTeamList()
 	for _, team in ipairs(teamList) do
-		_,_,_,_,teamside = Spring_GetTeamInfo(team)
+		local teamside
+		if Spring_GetTeamRulesParam(team, 'startUnit') then
+			local startunit = Spring_GetTeamRulesParam(team, 'startUnit')
+			if startunit == armcomDefID then 
+				teamside = "arm"
+			else
+				teamside = "core"
+			end
+		else
+			_,_,_,_,teamside = Spring_GetTeamInfo(team)
+		end
 		if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside..".png") then
 			sidePics[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside..".png"
 			if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside.."WO.png") then
@@ -2030,6 +2043,7 @@ end
 
 function widget:GameStart()
 	Init()
+	SetSidePics()
 end
 
 function widget:Update(frame)
