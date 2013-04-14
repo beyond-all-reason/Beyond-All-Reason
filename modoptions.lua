@@ -240,5 +240,13 @@ local options={
 		def    = true,
 		section= "ba_options",
     },
+ {
+		key    = "mo_startpoint_assist",
+		name   = "Startpoint Assist",
+		desc   = "Chooses sensible starting places for players/AIs who don't make a startpoint themselves",
+		type   = "bool",
+		def    = true,
+		section= "ba_options",
+    },
 }
 return options

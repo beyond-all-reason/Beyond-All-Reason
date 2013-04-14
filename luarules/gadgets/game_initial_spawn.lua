@@ -48,6 +48,7 @@ local startMetal  = tonumber(modOptions.startmetal)  or 1000
 local startEnergy = tonumber(modOptions.startenergy) or 1000
 
 local StartPointTable = {}
+local StartPointAssist 
 
 -- guessing vars
 local claimradius = 250*2.3 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
@@ -97,6 +98,12 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
             end
         end
     end
+end
+
+if tonumber((Spring.GetModOptions() or {}).mo_startpoint_assist) == 1 then
+	 StartPointAssist = true
+else
+	StartPointAssist = false
 end
 
 ----------------------------------------------------------------
@@ -168,9 +175,15 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
     local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
     local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
-	-- guess points for the classified in StartPointTable as not genuine 
-	if (StartPointTable[teamID][1] < 0) and (true) then --TODO add modoption
-		x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
+	if (StartPointAssist) then 
+		-- guess points for the classified in StartPointTable as not genuine 
+		if (StartPointTable[teamID][1] < 0) then
+			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
+		end
+	else
+		--old start point placement
+		x = (xmin + xmax) / 2
+		z = (zmin + zmax) / 2
     end
 
     local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
@@ -181,10 +194,12 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
     end
 end
 
--- cycle through teams spawning starting unit
+-- cycle through teams and call spawn starting unit
 function gadget:GameStart() 
-	StartPointTable = MakeStartPointTable() --TODO modoption
-    for teamID, allyID in pairs(spawnTeams) do
+	if StartPointAssist then 
+		StartPointTable = MakeStartPointTable() 
+    end
+	for teamID, allyID in pairs(spawnTeams) do
         local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
         SpawnTeamStartUnit(teamID, allyID, startX, startZ) 
     end
@@ -322,6 +337,6 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 end
 
 function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax)
-	return -1,-1 --TODO, cycle through map startpoints looking for one that isn't close to already placed startpoint
+	return -1,-1 --TODO: cycle through map startpoints looking for one that isn't close to an already placed startpoint
 end
 
