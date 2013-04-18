@@ -19,7 +19,7 @@ return {
 		collisionvolumescales = "24 45 20",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
-		description = "Stealthy Tactical K-bot",
+		description = "Stealthy Paratrooper K-bot",
 		energymake = 10,
 		energystorage = 20,
 		explodeas = "MINE_LIGHT",
