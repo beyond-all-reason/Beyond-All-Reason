@@ -850,5 +850,5 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:GameOver()
-	Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
+	--Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
 end
