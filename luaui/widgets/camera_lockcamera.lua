@@ -380,9 +380,9 @@ end
 --drawing
 ------------------------------------------------
 local function GetPlayerColor(playerID)
-	local _, _, isSpec, teamID = GetPlayerInfo(playerID)
-	if isSpec then return 1,1,1 end
-	if (not teamID) then return nil end
+	local _, _, isSpec, teamID = GetPlayerInfo(playerID) 
+ 	if isSpec then return 1,1,1 end 
+	if (not teamID) then return nil end 
 	return GetTeamColor(teamID)
 end
 
@@ -395,15 +395,6 @@ local function DrawL()
 	glShape(GL_LINE_STRIP, vertices)
 end
 
--- get a player's font outline-mode string
-local function getPlayerFontStyle(playerColor)
-	local playerFontStyle = "O" ---- white outline
-	local luminance  = (playerColor[1] * 0.299) + (playerColor[2] * 0.587) + (playerColor[3] * 0.114)
-	if luminance > 0.25 then
-		playerFontStyle = "o" -- black outline
-	end
-	return playerFontStyle
-end
 
 local function convertColor(colorarray)
 	local red = ceil(colorarray[1]*255)
@@ -427,35 +418,34 @@ local function DrawShow()
 	glColor(1, 1, 1, 1)
 	glPushMatrix()
 		glTranslate(0, 1, 0)
-		glText("Refresh", textMargin, textMargin, textSize, "n")
+		glText("Refresh", textMargin, textMargin, textSize, "no")
 		DrawL()
 		glTranslate(4, 0, 0)
-		glText("Move", textMargin, textMargin, textSize, "n")
+		glText("Move", textMargin, textMargin, textSize, "no")
 		DrawL()
 		glTranslate(0, 1, 0)
+		local color = {1, 0, 0}
 		if (broadcastSpecsAsSpec and isSpectator)
 				or (broadcastSpecsAsPlayer and not isSpectator) then
-			glColor(0, 1, 0)
+			color = {0, 1, 0}
 		else
 			glColor(1, 0, 0)
 		end
-		glText("Specs", textMargin, textMargin, textSize, "n")
+		glText(convertColor(color) .. "Specs", textMargin, textMargin, textSize, "no")
 		DrawL()
 		glTranslate(-4, 0, 0)
 		if isSpectator then
+			color = {1, 0, 0}
 			if autoLock then
-				glColor(0, 1, 0)
-			else
-				glColor(1, 0, 0)
+				color = {0, 1, 0}
 			end
-			glText("Autolock", textMargin, textMargin, textSize, "n")
+			glText(convertColor(color) .."Autolock", textMargin, textMargin, textSize, "no")
 		else
+			color = {1, 0, 0}
 			if broadcastAlliesAsPlayer then
-				glColor(0, 1, 0)
-			else
-				glColor(1, 0, 0)
+				color = {0, 1, 0}
 			end
-			glText("Allies", textMargin, textMargin, textSize, "n")
+			glText(convertColor(color) .."Allies", textMargin, textMargin, textSize, "no")
 		end
 		DrawL()
 	glPopMatrix()
@@ -467,10 +457,8 @@ local function DrawShow()
 			local playerInfo = recentBroadcasters[i]
 			local playerID = playerInfo[1]
 			local playerName = playerInfo[2]
-			local r, g, b = GetPlayerColor(playerID)
-			glColor(r, g, b)
-			local outline = getPlayerFontStyle({r, g, b})
-			glText(convertColor({r,g,b}) .. playerID .. ": " .. playerName, textMargin, textMargin, textSize, outline.."n")
+			local color = {GetPlayerColor(playerID)}
+			glText(convertColor(color) .. playerID .. ": " .. playerName, textMargin, textMargin, textSize, "on")
 			if lockPlayerID == playerID then
 				DrawL()
 			end
@@ -484,9 +472,8 @@ local function DrawTitle()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 	glColor(0, 0, 0, 0.2)
 	glRect(0, 0, 8, 1)
-	glColor(1, 1, 1, 1)
 	DrawL()
-	glText("LockCamera", textMargin, textMargin, textSize, "n")
+	glText(convertColor({1, 1, 1, 1}) .. "LockCamera", textMargin, textMargin, textSize, "no")
 end
 
 function widget:IsAbove(x,y)
@@ -863,5 +850,5 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:GameOver()
-	--Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
+	Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
 end
