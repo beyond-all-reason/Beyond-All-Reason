@@ -115,7 +115,7 @@ local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
-local spGetSelectedUnitCount = Spring.GetSelectedUnitsCount
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrder = Spring.GiveOrder
@@ -128,7 +128,6 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitHeight = Spring.GetUnitHeight
 local spGetCameraPosition = Spring.GetCameraPosition
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
@@ -441,7 +440,7 @@ function widget:MousePress(mx, my, mButton)
 	if not AddFNode(pos) then return false end
 	
 	-- Is this line a path candidate (We don't do a path off an overriden command)
-	pathCandidate = (not overriddenCmd) and (spGetSelectedUnitCount()==1 or (alt and not requiresAlt[usingCmd]))
+	pathCandidate = (not overriddenCmd) and (spGetSelectedUnitsCount()==1 or (alt and not requiresAlt[usingCmd]))
 	
 	-- We handled the mouse press
 	return true
