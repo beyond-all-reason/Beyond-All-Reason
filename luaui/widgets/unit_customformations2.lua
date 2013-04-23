@@ -127,6 +127,9 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitHeight = Spring.GetUnitHeight
+local spGetCameraPosition = Spring.GetCameraPosition
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -682,12 +685,14 @@ local function DrawFilledCircle(pos, size, cornerCount)
 end
 
 local function DrawFormationDots(vertFunction, zoomY, unitCount)
-	local currentLenght = 0
-	local lenghtPerUnit = lineLength / (unitCount-1)
-	local lenghtUnitNext = lenghtPerUnit
+	local currentLength = 0
+	local lengthPerUnit = lineLength / (unitCount-1)
+	local lengthUnitNext = lengthPerUnit
+	if zoomY <= 0 then zoomY = 1 end
+	local dotSize = 15+10*(zoomY/1000)^(-1/10)
 	if (#fNodes > 1) and (unitCount > 1) then
 		SetColor(usingCmd, 0.6)
-		DrawFilledCircle(fNodes[1], 0.006*zoomY, 8)
+		DrawFilledCircle(fNodes[1], dotSize, 8)
 		if (#fNodes > 2) then
 			for i=1, #fNodes-1 do
 				local x = fNodes[i][1]
@@ -696,30 +701,28 @@ local function DrawFormationDots(vertFunction, zoomY, unitCount)
 				local y2 = fNodes[i+1][3]
 				local dx = x - x2
 				local dy = y - y2
-				local lenght = (((dx*dx)+(dy*dy))^0.5)
-				while (currentLenght + lenght >= lenghtUnitNext) do
-					local factor = (lenghtUnitNext - currentLenght) / lenght
+				local length = (((dx*dx)+(dy*dy))^0.5)
+				while (currentLength + length >= lengthUnitNext) do
+					local factor = (lengthUnitNext - currentLength) / length
 					local factorPos =
 						{fNodes[i][1] + ((fNodes[i+1][1] - fNodes[i][1]) * factor),
 						fNodes[i][2] + ((fNodes[i+1][2] - fNodes[i][2]) * factor),
 						fNodes[i][3] + ((fNodes[i+1][3] - fNodes[i][3]) * factor)}
-					DrawFilledCircle(factorPos, 0.006*zoomY, 8)
-					lenghtUnitNext = lenghtUnitNext + lenghtPerUnit
+					DrawFilledCircle(factorPos, dotSize, 8)
+					lengthUnitNext = lengthUnitNext + lengthPerUnit
 				end
-				currentLenght = currentLenght + lenght
+				currentLength = currentLength + length
 			end
 		end
-		DrawFilledCircle(fNodes[#fNodes], 0.006*zoomY, 8)
+		DrawFilledCircle(fNodes[#fNodes], dotSize, 8)
 	end
 end
 
-local GetCameraPosition = Spring.GetCameraPosition
-local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 function widget:DrawWorld()
   if #fNodes > 1 or #dimmNodes > 1 then
-	local _,zoomY = GetCameraPosition()
-	local unitCount = GetSelectedUnitsCount()
+	local _,zoomY = spGetCameraPosition()
+	local unitCount = spGetSelectedUnitsCount()
 	DrawFormationDots(tVerts, zoomY, unitCount)
   end
 end
