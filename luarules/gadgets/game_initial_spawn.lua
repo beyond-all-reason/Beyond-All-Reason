@@ -93,7 +93,7 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
         if startUnit and validStartUnits[startUnit] then
             local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
             if not playerIsSpec then
-                spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public)
+                spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public) --public so as advplayerlist can check faction at GameStart
                 return true
             end
         end
@@ -110,13 +110,22 @@ end
 -- Spawning
 ----------------------------------------------------------------
 
---[[--for debugging only
+-- prevent startpoints being placed outside or on the edge of the startbox, as a workaround for http://springrts.com/mantis/view.php?id=3737
 function gadget:AllowStartPosition(x,y,z,playerID)
-	Spring.Echo(x,y,z)
-	yh = Spring.GetGroundHeight(x,z)
-	Spring.Echo(x,yh,z)
+	--Spring.Echo(x,y,z)
+	--yh = Spring.GetGroundHeight(x,z)
+	--Spring.Echo(x,yh,z)
+	local _,_,_,_,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
+	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
+	local isoutsidestartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine round the placing of startpoints to integers but does not round the startbox (wtf)
+	if isoutsidestartbox then 
+		return false
+	else
+		return true
+	end
+	
 	return true
-end]]--
+end--
 
 --[[ 
 	Construct a table to tell us which startpoints have actually been placed.
@@ -156,9 +165,9 @@ local function MakeStartPointTable()
 				local isTop = (zmin >= z) 
 				isplayerspot = (not isLeft) or (not isTop) 
 			end
-			--Spring.Echo(teamIDs[i],x,z,xmin,xmax,zmin,zmax,y,yground,isygood,isplayerspot,isGaiateam,isAIteam,isactive,isspec)--DEBUG
+			--Spring.Echo(teamIDs[i],x,z,xmin,xmax,zmin,zmax,y,isygood,isplayerspot,isGaiateam,isAIteam,isactive,isspec)--DEBUG
 			
-			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and isactive and (not isspec))) then -- TODO: test this logic on wierd cases 
+			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and isactive and (not isspec))) then 
 				StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 			else
 				if (not isGaiateam) then
