@@ -117,6 +117,7 @@ function gadget:AllowStartPosition(x,y,z,playerID)
 	--Spring.Echo(x,yh,z)
 	if StartPointAssist == false then return true end
 	local _,_,_,_,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
+	if allyteamID == nil then return true end
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
 	if xmin>=xmax or zmin>=zmax then return true end
 	local isoutsidestartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine round the placing of startpoints to integers but does not round the startbox (wtf)
