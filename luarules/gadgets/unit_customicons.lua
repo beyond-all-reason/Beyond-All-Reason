@@ -39,19 +39,6 @@ local wasLuaModUIEnabled = 0
 
 --------------------------------------------------------------------------------
 
-
-function gadget:Shutdown()
-  -- revert our changes
-  for udid,ud in pairs(UnitDefs) do
-    if ((ud ~= nil) and (ud.origIconType ~= nil)) then
-      Spring.SetUnitDefIcon(udid, ud.origIconType)
-    end
-  end
-end
-
-
---------------------------------------------------------------------------------
-
 function gadget:Initialize()
 
   Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",2)
@@ -91,9 +78,6 @@ function gadget:Initialize()
   for udid,ud in pairs(UnitDefs) do
   
     if (ud ~= nil) then
-      if (ud.origIconType == nil) then
-        ud.origIconType = ud.iconType
-      end
       
       if (ud.name=="roost") then
         Spring.SetUnitDefIcon(udid, "star.user")
