@@ -100,7 +100,7 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
     end
 end
 
-if tonumber((Spring.GetModOptions() or {}).mo_startpoint_assist) == 1 then
+if (tonumber((Spring.GetModOptions() or {}).mo_startpoint_assist) == 1) and (Game.startPosType == 2) then
 	 StartPointAssist = true
 else
 	StartPointAssist = false
@@ -115,7 +115,7 @@ function gadget:AllowStartPosition(x,y,z,playerID)
 	--Spring.Echo(x,y,z)
 	--yh = Spring.GetGroundHeight(x,z)
 	--Spring.Echo(x,yh,z)
-	if StartPointAssist == false then return true end
+	--if StartPointAssist == false then return true end
 	local _,_,_,_,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if allyteamID == nil then return true end
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
@@ -174,7 +174,7 @@ local function MakeStartPointTable()
 				StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 			else
 				if (not isGaiateam) then
-					StartPointTable[teamIDs[i]]={-3*claimradius,-3*claimradius} --far enough out the way to trigger a guess and not interfere with guessing routines of other teamIDs
+					StartPointTable[teamIDs[i]]={-3*claimradius,-3*claimradius} --far enough out the way to not interfere with guessing routines of other teamIDs
 				end
 			end
 		end
@@ -194,8 +194,10 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
 		end
 	else
 		--old start point placement
-		x = (xmin + xmax) / 2
-		z = (zmin + zmax) / 2
+		if (x<=0) or (z<=0) then
+			x = (xmin + xmax) / 2
+			z = (zmin + zmax) / 2
+		end
     end
 
     local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
