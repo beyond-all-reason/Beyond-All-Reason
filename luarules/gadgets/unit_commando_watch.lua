@@ -48,7 +48,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
     end
   elseif mines[unitID] and (attackerID == mines[unitID]) then
     return 0,0
-  elseif (weaponID == COMMANDO_MINELAYER) and (orderQueue[attackerID]==nil) and (attackerTeam) and (unitTeam) and (not Spring.AreTeamsAllied(attackerTeam,unitTeam)) then
+  elseif (weaponID == COMMANDO_MINELAYER) and (orderQueue[attackerID]==nil) and (attackerTeam) and (unitTeam) and (not Spring.AreTeamsAllied(attackerTeam,unitTeam)) and UnitDefs[unitDefID]["isBuilding"] then
     local vx,_,vz = Spring.GetUnitVelocity(unitID)
     local e,_,_,i = Spring.GetTeamResources(attackerTeam, "energy")
     local cQueue = Spring.GetCommandQueue(attackerID)
