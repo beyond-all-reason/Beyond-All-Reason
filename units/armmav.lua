@@ -14,7 +14,7 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Skirmish Kbot (Combat Auto-Repair)",
+		description = "Skirmish Kbot (Fast Learning, Auto-Repair)",
 		energymake = 0.40000000596046,
 		energyuse = 0.40000000596046,
 		explodeas = "BIG_UNITEX",
