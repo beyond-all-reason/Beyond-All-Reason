@@ -44,7 +44,9 @@ local GetPlayerInfo   = Spring.GetPlayerInfo
 local GetTeamColor    = Spring.GetTeamColor
 local IsSphereInView  = Spring.IsSphereInView
 local GetSpectatingState = Spring.GetSpectatingState
-local GetMyPlayerID = Spring.GetMyPlayerID
+local GetMyPlayerID      = Spring.GetMyPlayerID
+local GetMyTeamID 	 	 = Spring.GetMyTeamID
+local GetPlayerRoster 	 = Spring.GetPlayerRoster
 
 local glTexCoord      = gl.TexCoord
 local glVertex        = gl.Vertex
@@ -293,16 +295,31 @@ function widget:DrawWorldPreUnit()
   glTexture('LuaUI/Images/AlliedCursors.png')
   glPolygonOffset(-7,-10)
   local time = clock()
-  local specteam = -1
-  local fullView = true
+  local isally = {}
+  local fullView = false
   if spec then 
-	_,fullView,_ = GetSpectatingState()
-	if not fullView then
-	  specteam=GetMyTeamID()
+	_,NOTfullView,_ = GetSpectatingState()
+	fullView = not NOTfullView --HOTFIX FOR 94.0/1: Spring returns the second argument of GetSpectatingState with true/false swapped. http://springrts.com/mantis/view.php?id=3753.
+	if fullView then 
+	    local specTeamID=GetMyTeamID()
+	    local roster = GetPlayerRoster()
+		local specAllyTeamID = -1
+		for _,playerTable in ipairs(roster) do
+			if playerTable[3] == specTeamID then
+				specAllyTeamID = playerTable[4]
+				break
+			end
+		end
+	    for _,playerTable in ipairs(roster) do
+	  	  	local playerID = playerTable[2]
+			local teamID = playerTable[3]
+			local allyTeamID = playerTable[4]
+			if playerID and allyTeamID then isally[playerID] = (allyTeamID == specAllyTeamID) end
+	    end
 	end
   end
   for playerID,data in pairs(alliedCursorsPos) do
-	if fullView or playerID==specteam then 
+	if (not fullView) or isally[playerID] then 
 		local teamID = data[#data]
 		for n=0,5 do
 		  local wx,wz = data[1],data[2]
