@@ -11,13 +11,16 @@ function gadget:GetInfo()
     }
 end
 
+-- SYNCED --
+if (gadgetHandler:IsSyncedCode()) then
+ 
 local mercDefID = UnitDefNames.mercury.id
 local scrDefID = UnitDefNames.screamer.id
 
+local pilelimit = 5
+
 local CMD_STOCKPILE = CMD.STOCKPILE
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
-
-local pilelimit = 5
 
 function gadget:AllowCommand(UnitID, UnitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 	if UnitID and (UnitDefID == mercDefID or UnitDefID == scrDefID) then
@@ -35,7 +38,7 @@ function gadget:AllowCommand(UnitID, UnitDefID, teamID, cmdID, cmdParams, cmdOpt
 			end
 			if cmdOptions.right then addQ = -addQ end
 
-			if pile+pileQ == pilelimit and (not cmdOptions.right) then Spring.Echo("Stockpile queue is already full (max " .. tostring(pilelimit) .. ").") end
+			if pile+pileQ == pilelimit and (not cmdOptions.right) then SendToUnsynced("PileLimit",teamID,pilelimit) end
 			
 			if pile+pileQ+addQ <= pilelimit then 
 				return true
@@ -55,6 +58,23 @@ function gadget:AllowCommand(UnitID, UnitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	end
 	return true 
+end
+ 
+-- UNSYNCED --
+else
+
+function gadget:Initialize()
+	gadgetHandler:AddSyncAction("PileLimit",PileLimit,pilelimit)
+end
+
+function PileLimit(_,teamID,pilelimit)
+	local myTeamID = Spring.GetMyTeamID()
+	if myTeamID == teamID then
+		Spring.Echo("Stockpile queue is already full (max " .. tostring(pilelimit) .. ").")
+	end
+end
+
+
 end
 
 
