@@ -75,6 +75,7 @@ list = gl.CreateList(function()
     glVertex(4,0,4)
     end)
 end)
+
 function widget:Initialize() -- create lighttable
 	--The GetProjectileName function returns 'unitname_weaponnname'. EG: armcom_armcomlaser
 	-- This is fine with BA, because unitnames dont use '_' characters
@@ -126,66 +127,70 @@ function widget:Initialize() -- create lighttable
 					--size=WeaponDefs[weaponID]['size']
 					plighttable[WeaponDefs[weaponID]['name']]={0.2,0.2,1,0.6}
 				end
-			
-				
 			end
 		end
 	end
+end
 
-end   
+local sx, sy, px, py = spGetViewGeometry()
+function widget:ViewResize(viewSizeX, viewSizeY)
+	sx, sy, px, py = spGetViewGeometry()
+end
+
 local plist = {}
 local frame = 0
+local x1, y1 = 0, 0
+local x2, y2 = Game.mapSizeX, Game.mapSizeZ
 function widget:DrawWorldPreUnit()
-	local sx,sy,px,py=spGetViewGeometry()
-	--Spring.Echo('viewport=',sx,sy,px,py)
-	local x1=0
-	local y1=0
-	local cx,cy,p
-	local d=0
-	local x2=Game.mapSizeX 
-	local y2=Game.mapSizeZ
+
 	if frame < spGetGameFrame() then
-		frame=spGetGameFrame()
+		frame = spGetGameFrame()
 	
-		local at, p=spTraceScreenRay(sx/2,sy/2,true,false,false)
-		local outofbounds=0
+		local at, p = spTraceScreenRay(sx*0.5,sy*0.5,true,false,false)
 		if at=='ground' then
-			cx=p[1]
+			local cx, cy = p[1], p[3]
+			local dcxp1, dcxp3
+			local outofbounds = 0
+			local d = 0
 			--x2=math.min(x2, tl[1])
-			cy=p[3]		--y2=math.min(y2, tl[3])
+			--y2=math.min(y2, tl[3])
 			
-			at, p=spTraceScreenRay(0,0,true,false,false) --bottom left
+			at, p = spTraceScreenRay(0, 0, true, false, false) --bottom left
 			if at=='ground' then
-				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				dcxp1, dcxp3 = cx-p[1], cy-p[3]
+				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
 			else 
-				outofbounds=outofbounds+1
+				outofbounds = outofbounds+1
 			end
-			at, p=spTraceScreenRay(sx-1,0,true,false,false) --bottom left
+			at, p = spTraceScreenRay(sx-1, 0, true, false, false) --bottom left
 			if at=='ground' then
-				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				dcxp1, dcxp3 = cx-p[1], cy-p[3]
+				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
 			else 
-				outofbounds=outofbounds+1
+				outofbounds = outofbounds+1
 			end
-			at, p=spTraceScreenRay(sx-1,sy-1,true,false,false) --bottom left
+			at, p = spTraceScreenRay(sx-1, sy-1, true, false, false) --bottom left
 			if at=='ground' then
-				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				dcxp1, dcxp3 = cx-p[1], cy-p[3]
+				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
 			else 
-				outofbounds=outofbounds+1
+				outofbounds = outofbounds+1
 			end
-			at, p=spTraceScreenRay(0,sy-1,true,false,false) --bottom left
+			at, p = spTraceScreenRay(0, sy-1, true, false, false) --bottom left
 			if at=='ground' then
-				d=max(d,(cx-p[1])*(cx-p[1])+(cy-p[3])*(cy-p[3]))
+				dcxp1, dcxp3 = cx-p[1], cy-p[3]
+				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
 			else 
-				outofbounds=outofbounds+1
+				outofbounds = outofbounds+1
 			end
 			if outofbounds>=3 then
-				plist=spGetProjectilesInRectangle(x1,y1,x2,y2,false,false) --todo, only those in view or close:P
+				plist = spGetProjectilesInRectangle(x1, y1, x2, y2, false, false) --todo, only those in view or close:P
 			else
-				d=sqrt(d)
-				plist=spGetProjectilesInRectangle(cx-d,cy-d,cx+d,cy+d,false,false) 
+				d = sqrt(d)
+				plist = spGetProjectilesInRectangle(cx-d, cy-d, cx+d, cy+d, false, false) 
 			end
 		else -- if we are not pointing at ground, get the whole list.
-			plist=spGetProjectilesInRectangle(x1,y1,x2,y2,false,false) --todo, only those in view or close:P
+			plist = spGetProjectilesInRectangle(x1, y1, x2, y2, false, false) --todo, only those in view or close:P
 		end
 	end
 	--Spring.GetCameraPosition 
@@ -210,7 +215,7 @@ function widget:DrawWorldPreUnit()
 		--glDepthTest(GL.LEQUAL) 
 
 		local x,y,z
-		local fx,fy 
+		--local fx, fy = 32, 32	--footprint
 		glBlending("alpha_add") --makes it go into +
 		local lightparams
 		-- AND NOW FOR THE FUN STUFF!
@@ -218,34 +223,25 @@ function widget:DrawWorldPreUnit()
 			local pID=plist[i]
 			x,y,z=spGetProjectilePosition(pID)
 			local wep,piece=spGetProjectileType(pID)
-			--Spring.Echo('Proj',pID,'name',Spring.GetProjectileName(pID),' wep/piece',wep,piece,'pos=',floor(x),floor(y),floor(z))
-			lightparams=nil
 			if piece then
 				lightparams={1,1,0.5,0.3}
 			else
 				lightparams=plighttable[spGetProjectileName(pID)]
 			end
-			--if Spring.GetProjectileName(pID) == 'armllt_arm_lightlaser' then
-				--Spring.Echo('angle',Spring.GetProjectileSpinAngle(pID),'/',Spring.GetProjectileSpinAngle(pID),'/',Spring.GetProjectileSpinVec(pID),'/',Spring.GetProjectileVelocity(pID))
-			--end
-			if (lightparams ~= nil and x and y>0) then -- projectile is above water
-				fx = 32
-				fy = 32 --footprint
-				 
-				local height = max(0,spGetGroundHeight(x,z)) --above water projectiles should show on water surface
-				local diff = height-y  -- this is usually 5 for land units, 5+cruisehieght for others
-										-- the plus 5 is do that itdoesnt clip all ugly like, unneeded with depthtest and mask both false!
+			if (lightparams and x and y>0) then -- projectile is above water
+				local height = max(0, spGetGroundHeight(x, z)) --above water projectiles should show on water surface
+				--local diff = height-y	-- this is usually 5 for land units, 5+cruisehieght for others
+										-- the plus 5 is do that it doesn't clip all ugly like, unneeded with depthtest and mask both false!
 										-- diff is negative, cause we need to put the lighting under it
-				--diff defines size and diffusion rate)
-				local factor=max(0.01,(100.0+diff)/100.0) --factor=1 at when almost touching ground, factor=0 when above 100 height)
-				
+										-- diff defines size and diffusion rate)
+				local factor = max(0.01, (100.0+height-y)*0.01) --factor=1 at when almost touching ground, factor=0 when above 100 height)
 				if (factor >0.01) then 
 					local n=noise[floor(x+z+pID)%10+1]
 					glColor(lightparams[1],lightparams[2],lightparams[3],lightparams[4]*factor*factor*n) -- attentuation is x^2
-					factor = max(factor/(n*0.5+0.5),0.3) -- clamp the size
+					factor = 32*(1.1-max(factor/(n*0.5+0.5),0.3)) -- clamp the size
 					glPushMatrix()
-					glTranslate(x,y+diff+5,z)  -- push in y dir by height (to push it on the ground!), +5 to keep it above surface
-					glScale(fx*(1.1-factor),1.0,fy*(1.1-factor)) --scale it by size
+					glTranslate(x, height+5, z)  -- push in y dir by height (to push it on the ground!), +5 to keep it above surface
+					glScale(factor, 1.0, factor) --scale it by size
 					glCallList(list) --draw it :)
 					glPopMatrix()
 				end
@@ -255,7 +251,6 @@ function widget:DrawWorldPreUnit()
 		glColor(1.0,1.0,1.0,1.0)
 		glBlending(false)
 		glDepthTest(true)
-		
 	end
 end
 
