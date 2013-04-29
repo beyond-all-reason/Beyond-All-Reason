@@ -63,14 +63,17 @@ end
 -- UNSYNCED --
 else
 
+local SpGetMyTeamID = Spring.GetMyTeamID
+local SpEcho = Spring.Echo
+
 function gadget:Initialize()
-	gadgetHandler:AddSyncAction("PileLimit",PileLimit,pilelimit)
+	gadgetHandler:AddSyncAction("PileLimit",PileLimit)
 end
 
 function PileLimit(_,teamID,pilelimit)
-	local myTeamID = Spring.GetMyTeamID()
+	local myTeamID = SpGetMyTeamID()
 	if myTeamID == teamID then
-		Spring.Echo("Stockpile queue is already full (max " .. tostring(pilelimit) .. ").")
+		SpEcho("Stockpile queue is already full (max " .. tostring(pilelimit) .. ").")
 	end
 end
 
