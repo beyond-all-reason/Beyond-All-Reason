@@ -15,13 +15,17 @@ function widget:GetInfo()
 		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth.",
 		date      = "January 16, 2011",
-		version   = "8.0",
+		version   = "9.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
 		handler   = true,
 	}
 end
+
+--Changelog
+-- before v8.0 developed outside of BA by Marmoth
+-- v9.0 (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them. 
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -197,7 +201,8 @@ local localBottom    -- used by different functions to pass values
 local activePlayers   = {}
 local labelOffset     = 20
 local separatorOffset = 3
-local playerOffset    = 19
+local playerOffset    = 18
+local specOffset 	  = 12
 local drawList        = {}
 local teamN
 
@@ -227,7 +232,7 @@ local m_seespec;  modulesCount = modulesCount + 1
 m_rank = {
 	spec      = true,
 	play      = true,
-	active    = true,
+	active    = false,
 	width     = 18,
 	position  = 2,
 	posX      = 0,
@@ -287,7 +292,7 @@ m_share = {
 m_chat = {
 	spec      = false,
 	play      = true,
-  active    = true,
+    active    = true,
 	width     = 18,
 	position  = 8,
 	posX      = 0,
@@ -419,7 +424,7 @@ function InitializePlayers()
 	myPlayerID = Spring_GetLocalPlayerID()
 	myTeamID = Spring_GetLocalTeamID()
 	myAllyTeamID = Spring_GetLocalAllyTeamID()
-	for i = 0, 64 do
+	for i = 0, 128 do
 		player[i] = {} 
 	end
 	GetAllPlayers()
@@ -431,7 +436,7 @@ function GetAllPlayers()
 	teamN = table.maxn(allteams) - 1               --remove gaia
 	for i = 0,teamN-1 do
 		local teamPlayers = Spring_GetPlayerList(i, true)
-		player[i + 32] = CreatePlayerFromTeam(i)
+		player[i + 64] = CreatePlayerFromTeam(i)
 		for _,playerID in ipairs(teamPlayers) do
 			player[playerID] = CreatePlayer(playerID)
 		end
@@ -624,7 +629,7 @@ function SortAllyTeams(vOffset)
 	-- find own ally team
 	for allyTeamID = 0, allyTeamsCount - 1 do
 		if allyTeamID == myAllyTeamID  then
-			vOffset = vOffset + labelOffset
+			vOffset = vOffset + labelOffset - 2
 			table.insert(drawListOffset, vOffset)
 			table.insert(drawList, -2)  -- "Allies" label
 			vOffset = SortTeams(allyTeamID, vOffset)	-- Add the teams from the allyTeam		
@@ -636,7 +641,7 @@ function SortAllyTeams(vOffset)
 	for allyTeamID = 0, allyTeamsCount-1 do
 		if allyTeamID ~= myAllyTeamID then
 			if firstEnnemy == true then
-				vOffset = vOffset + labelOffset
+				vOffset = vOffset + labelOffset - 2
 				table.insert(drawListOffset, vOffset)
 				table.insert(drawList, -3) -- "Ennemies" label
 				firstEnnemy = false
@@ -716,8 +721,8 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	if isAi == true then
 		vOffset = vOffset + playerOffset
 		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, 32 + teamID) -- new AI team (instead of players)
-		player[32 + teamID].posY = vOffset
+		table.insert(drawList, 64 + teamID) -- new AI team (instead of players)
+		player[64 + teamID].posY = vOffset
 		noPlayer = false
 	end
 	
@@ -725,8 +730,8 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	if noPlayer == true then
 		vOffset = vOffset + playerOffset
 		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, 32 + teamID)  -- no players team
-		player[32 + teamID].posY = vOffset
+		table.insert(drawList, 64 + teamID)  -- no players team
+		player[64 + teamID].posY = vOffset
 	end
 	return vOffset
 end
@@ -744,14 +749,15 @@ function SortSpecs(vOffset)
 				
 				-- add "Specs" label if first spec
 				if noSpec == true then
-					vOffset = vOffset + labelOffset
+					vOffset = vOffset + labelOffset - 2
 					table.insert(drawListOffset, vOffset)
 					table.insert(drawList, -5)
 					noSpec = false
+					vOffset = vOffset + 4					
 				end
 				
 				-- add spectator
-				vOffset = vOffset + playerOffset
+				vOffset = vOffset + specOffset
 				table.insert(drawListOffset, vOffset)
 				table.insert(drawList, playerID)
 				player[playerID].posY = vOffset
@@ -835,7 +841,7 @@ function CheckTime()
 		else
 			blink = true
 		end
-		for playerID =0, 31 do
+		for playerID =0, 63 do
 			if player[playerID] ~= nil then
 				if player[playerID].pointTime ~= nil then
 					if player[playerID].pointTime <= now then
@@ -963,9 +969,7 @@ function DrawPlayer(playerID, leader, vOffset)
 			end
 			gl_Color(red,green,blue,1)
 			if m_ID.active == true then
-				--if playerID < 32 then
 					DrawID(team, posY, dark)
-				--end
 			end
 		end
 		gl_Color(red,green,blue,1)
@@ -976,19 +980,19 @@ function DrawPlayer(playerID, leader, vOffset)
 		if m_rank.active == true then
 			DrawRank(rank, posY, dark)
 		end
-	else
+	else --spectator
 		gl_Color(1,1,1,1)	
 		if m_name.active == true then
-			DrawName(name, posY, false)
+			DrawSmallName(name, posY, false)
 		end		
 	end
-	if m_cpuping.active == true then
+	if m_cpuping.active == true and not spec then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawCpuPing(pingLvl,cpuLvl,posY)
 		end
 	end
 	gl_Color(1,1,1,1)
-	if playerID < 32 then
+	if playerID < 64 then
 		if m_chat.active == true and mySpecStatus == false then
 			if playerID ~= myPlayerID then
 				DrawChatButton(posY)
@@ -1032,7 +1036,7 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 	
 	if mouseY >= posY and mouseY <= posY + 16 then tipY = true end
 	
-	if spec == false then
+	if spec == false then --player
 		if leader == true then                              -- take / share buttons
 			if mySpecStatus == false then
 				if allyteam == myAllyTeamID then
@@ -1055,14 +1059,10 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 			end
 			gl_Color(red,green,blue,1)	
 			if m_rank.active == true then
-			--	if playerID < 32 then
 					DrawRank(rank, posY, dark)
-			--	end
 			end
 			if m_ID.active == true then
-			--	if playerID < 32 then
 					DrawID(team, posY, dark)
-			--	end
 			end
 		end
 		gl_Color(red,green,blue,1)
@@ -1077,14 +1077,14 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 		if m_name.active == true then
 			DrawName(name, posY, dark)
 		end
-	else
+	else -- spectator
 		gl_Color(1,1,1,1)	
 		if m_name.active == true then
-			DrawName(name, posY, false)
+			DrawSmallName(name, posY, false)
 		end		
 	end
 
-	if m_cpuping.active == true then
+	if m_cpuping.active == true and not spec then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY)
 			if tipY == true then PingCpuTip(mouseX, ping, cpu) end
@@ -1092,7 +1092,7 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 	end
 	
 	gl_Color(1,1,1,1)
-	if playerID < 32 then
+	if playerID < 64 then
 	
 		if m_chat.active == true and mySpecStatus == false then
 			if playerID ~= myPlayerID then
@@ -1226,6 +1226,11 @@ function DrawName(name, posY, dark)
 		TextDraw(name, m_name.posX + widgetPosX + 3, posY + 3)
 		UseFont(font)
 	end
+	gl_Color(1,1,1)
+end
+
+function DrawSmallName(name, posY, dark)
+	gl.Text(name, m_name.posX + widgetPosX + 3, posY + 3, 12, "o")
 	gl_Color(1,1,1)
 end
 
@@ -1520,7 +1525,7 @@ function widget:MousePress(x,y,button)
 				else
 					t = false
 					if m_point.active == true then
-						if i > -1 and i < 32 then
+						if i > -1 and i < 64 then
 							clickedPlayer = player[i]
 							if clickedPlayer.pointTime ~= nil then
 								posY = widgetPosY + widgetHeight - clickedPlayer.posY
@@ -1599,7 +1604,7 @@ function widget:MousePress(x,y,button)
 					t = true
 				else
 					t = false
-					if i > -1 and i < 32 then
+					if i > -1 and i < 64 then
 						clickedPlayer = player[i]
 						posY = widgetPosY + widgetHeight - clickedPlayer.posY
 						if m_chat.active == true then
@@ -1916,7 +1921,7 @@ function widget:SetConfigData(data)      -- load
 			widgetPosX  = data.widgetPosX
 		end
 	end
-	m_rank.active         = SetDefault(data.m_rankActive, true)
+	m_rank.active         = SetDefault(data.m_rankActive, false)
 	m_side.active         = SetDefault(data.m_sideActive, true)
 	m_ID.active           = SetDefault(data.m_IDActive, false)
 	m_name.active         = SetDefault(data.m_nameActive, true)
@@ -1939,13 +1944,13 @@ end
 
 function CheckPlayersChange()
 	local sorting = false
-	for i = 0,31 do
+	for i = 0,63 do
 		local name,active,spec,teamID,allyTeamID,pingTime,cpuUsage, country, rank = Spring_GetPlayerInfo(i)
 		if active == false then
 			if player[i].name ~= nil then                                             -- NON SPEC PLAYER LEAVING
 				if player[i].spec==false then
 					if table.maxn(Spring_GetPlayerList(player[i].team,true)) == 0 then
-						player[player[i].team + 32] = CreatePlayerFromTeam(player[i].team)
+						player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
 						sorting = true
 					end
 				end
@@ -1957,7 +1962,7 @@ function CheckPlayersChange()
 			if spec ~= player[i].spec then                                           -- PLAYER SWITCHING TO SPEC STATUS
 				if spec == true then
 					if table.maxn(Spring_GetPlayerList(player[i].team,true)) == 0 then   -- (update the no players team)
-						player[player[i].team + 32] = CreatePlayerFromTeam(player[i].team)
+						player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)
 					end
 					player[i].team = nil                                                 -- remove team
 				end
@@ -1966,7 +1971,7 @@ function CheckPlayersChange()
 			end
 			if teamID ~= player[i].team then                                               -- PLAYER CHANGING TEAM
 				if table.maxn(Spring_GetPlayerList(player[i].team,true)) == 0 then           -- check if there is no more player in the team + update
-					player[player[i].team + 32] = CreatePlayerFromTeam(player[i].team)         
+					player[player[i].team + 64] = CreatePlayerFromTeam(player[i].team)         
 				end
 				player[i].team = teamID
 				player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
@@ -2006,8 +2011,8 @@ end
 
 function updateTake(allyTeamID)
 	for i = 0,teamN-1 do
-		if player[i + 32].allyTeam == allyTeamID then
-			player[i + 32] = CreatePlayerFromTeam(i)
+		if player[i + 64].allyTeam == allyTeamID then
+			player[i + 64] = CreatePlayerFromTeam(i)
 		end
 	end
 end
@@ -2030,7 +2035,7 @@ function Take()
 
 	Spring_SendCommands{"take"}
 	Spring_SendCommands{"say a: I took the abandoned units."}
-	for i = 0,63 do
+	for i = 0,127 do
 		if player[i].allyteam == myAllyTeamID then
 			if player[i].totake == true then
 				player[i] = CreatePlayerFromTeam(player[i].team)
@@ -2056,8 +2061,8 @@ function widget:Update(frame)
 end
 
 function widget:TeamDied(teamID)
-	player[teamID+32]        = CreatePlayerFromTeam(teamID)
-	player[teamID+32].totake = false
+	player[teamID+64]        = CreatePlayerFromTeam(teamID)
+	player[teamID+64].totake = false
 	SortList()
 end
 
