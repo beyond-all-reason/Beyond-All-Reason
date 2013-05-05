@@ -157,7 +157,6 @@
          	startSize = 2;
          	sizeExpansion = 0.6;
          	size = 10;
-         	sizeGrowth = 4;
 
          	pos = r-3 r3, r-3 r3, r-3 r3;
          	speed=0, 1 r2.3, 0;
@@ -333,7 +332,6 @@
          	startSize = 1;
          	sizeExpansion = 0.6;
          	size = 4;
-         	sizeGrowth = 1;
 
          	pos = r-3 r3, 7, r-3 r3;
          	speed=0, 1 r2.3, 0;
@@ -421,7 +419,6 @@
          	startSize = 1;
          	sizeExpansion = 0.6;
          	size = 4;
-         	sizeGrowth = 1;
 
          	pos = r-3 r3, 7, r-3 r3;
          	speed=0, 1 r2.3, 0;
@@ -523,7 +520,6 @@
          	startSize = 1;
          	sizeExpansion = 0.6;
          	size = 4;
-         	sizeGrowth = 1;
 
          	pos = r-3 r3, r-3 r3, r-3 r3;
          	speed=0, 1 r2.3, 0;
@@ -2118,7 +2114,6 @@
 		{
 			agespeed=0.03;
 			size=2;
-			sizegrowth=2;
 			pos=0, 1, 0;
 			speed=0,1.75,0;
 			useAirLos=0;

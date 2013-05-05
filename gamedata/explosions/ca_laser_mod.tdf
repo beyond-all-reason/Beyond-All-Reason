@@ -46,9 +46,6 @@
       		sizeGrowth = 0.3;
 
          	pos = r-2 r2, r0 r1, r-2 r2;
-         	emitRot=50;
-			emitRotSpread=50;
-			directional=1;
          	speed=0, 0, 0;
       		}
 	    air=1;
@@ -128,9 +125,6 @@
       		sizeGrowth = 0.4;
 
          	pos = r-2 r2, r0 r1, r-2 r2;
-         	emitRot=50;
-			emitRotSpread=50;
-			directional=1;
          	speed=0, 0, 0;
       		}
 	    air=1;
