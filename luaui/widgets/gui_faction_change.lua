@@ -44,6 +44,9 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 local spGetSpectatingState = Spring.GetSpectatingState
 
+local armcomDefID = UnitDefNames.armcom.id
+local corcomDefID = UnitDefNames.corcom.id
+
 --------------------------------------------------------------------------------
 -- Funcs
 --------------------------------------------------------------------------------
@@ -73,7 +76,7 @@ function widget:DrawWorld()
         local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
         if tsx and tsx > 0 then
             local teamStartUnit = spGetTeamRulesParam(teamID, 'startUnit')
-            if teamStartUnit == 43 then
+            if teamStartUnit == armcomDefID then
                 glTexture('LuaUI/Images/arm.png')
                 glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 80)
             else
@@ -103,7 +106,7 @@ function widget:DrawScreen()
 
         -- Highlight
         glColor(1, 1, 0, 0.5)
-        if spGetTeamRulesParam(myTeamID, 'startUnit') == 43 then
+        if spGetTeamRulesParam(myTeamID, 'startUnit') == armcomDefID then
             glRect(1, 1, 63, 63)
         else
             glTexRect(65, 1, 127, 63)
@@ -142,20 +145,20 @@ function widget:MousePress(mx, my, mButton)
 
             -- Which button?
             if mx < px + 64 then
-                if spGetTeamRulesParam(myTeamID, 'startUnit') ~= 43 then
-                    spSendLuaRulesMsg('\13843')
-                    -- don't use caching, so we're sure the function has been loaded, also, it's called so rarely that doesn't matter if it's slow
+                if spGetTeamRulesParam(myTeamID, 'startUnit') ~= armcomDefID then
+                    spSendLuaRulesMsg('\138' .. tostring(armcomDefID))
+                    -- communicates factionto game_initial_spawn 
+					-- don't use caching, so we're sure the function has been loaded, also, it's called so rarely that doesn't matter if it's slow
                     if WG["faction_change"] then
-                    	WG["faction_change"](43)
+                    	WG["faction_change"](armcomDefID)
                     end
                 end
                 return true
             elseif mx < px + 128 then
-                if spGetTeamRulesParam(myTeamID, 'startUnit') ~= 216 then
-                    spSendLuaRulesMsg('\138216')
-                    -- don't use caching, so we're sure the function has been loaded, also, it's called so rarely that doesn't matter if it's slow
+                if spGetTeamRulesParam(myTeamID, 'startUnit') ~= corcomDefID then
+                    spSendLuaRulesMsg('\138' .. tostring(corcomDefID))
                     if WG["faction_change"] then
-                    	WG["faction_change"](216)
+                    	WG["faction_change"](corcomDefID)
                     end
                 end
                 return true
