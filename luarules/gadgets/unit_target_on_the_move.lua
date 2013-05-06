@@ -445,7 +445,7 @@ function gadget:Initialize()
 	gadgetHandler:AddSyncAction("targetChange", handleTargetChangeEvent)
 	
 	Spring.SendCommands("bind y settarget")
-	Spring.SendCommands("bind u canceltarget")
+	Spring.SendCommands("bind j canceltarget")
 end
 
 function gadget:Shutdown()
