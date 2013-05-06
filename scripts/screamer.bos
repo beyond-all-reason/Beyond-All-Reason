@@ -10,12 +10,12 @@ static-var  Static_Var_1, last_fire, firstaim;
 
 // Signal definitions
 #define SIG_AIM				2
-#define CHANGE_TARGET       98
-#define TARGET_ID			83
-#define DELAY_UNIT_VAR 1024
-#define GAME_FRAME 134
+//#define CHANGE_TARGET       98
+//#define TARGET_ID			83
+//#define DELAY_UNIT_VAR 1024
+//#define GAME_FRAME 134
 
-lua_TargetCheck() { return 0; }
+//lua_TargetCheck() { return 0; }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -71,10 +71,10 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	call-script lua_TargetCheck();
-	if ((get DELAY_UNIT_VAR) == 0) {
-	  return(0);
-	}
+//	call-script lua_TargetCheck();
+//	if ((get DELAY_UNIT_VAR) == 0) {
+//	  return(0);
+//	}
 	turn spindle to y-axis heading speed <125.000000>;
 	wait-for-turn spindle around y-axis;
 	start-script RestoreDelay();
@@ -87,7 +87,7 @@ FirePrimary()
 	show flare1;
 	sleep 150;
 	hide flare1;
-	set DELAY_UNIT_VAR to 0;
+//	set DELAY_UNIT_VAR to 0;
 }
 
 QueryPrimary(piecenum)
