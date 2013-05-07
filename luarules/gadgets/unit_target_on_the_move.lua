@@ -55,7 +55,6 @@ for i=1, #UnitDefs do
 	local ud = UnitDefs[i]
 	if (ud.canAttack and ud.maxWeaponRange and ud.maxWeaponRange > 0) or ud.isFactory then
 		if (not (ud.canFly and ud.isBomber)) and ud.canMove and (not (i == LICHE)) then
-			Spring.Echo("Moo")
 			validUnits[i] = true
 		end
 	end
