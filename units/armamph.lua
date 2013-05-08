@@ -6,7 +6,6 @@ return {
 		buildcostmetal = 245,
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5182,
-		canhover = true,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE",
 		collisionVolumeScales		= [[27 27 33]],

@@ -6,7 +6,6 @@ return {
 		buildcostmetal = 600,
 		buildpic = "NSACLASH.DDS",
 		buildtime = 12907,
-		canhover = true,
 		canmove = true,
 		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE",
 		collisionvolumeoffsets = "0 1 0",

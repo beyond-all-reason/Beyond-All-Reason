@@ -8,7 +8,6 @@ return {
 		builder = true,
 		buildpic = "CORCH.DDS",
 		buildtime = 4576,
-		canhover = true,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE",
 		collisionVolumeScales		= [[30 12 30]],

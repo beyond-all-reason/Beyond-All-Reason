@@ -6,7 +6,6 @@ return {
 		buildcostmetal = 163,
 		buildpic = "ARMMH.DDS",
 		buildtime = 3298,
-		canhover = true,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
 		collisionvolumeoffsets = "0 1 0",
