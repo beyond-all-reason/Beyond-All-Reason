@@ -2,7 +2,7 @@
 function widget:GetInfo()
   return {
     name      = "Specific Unit Reclaimer",
-    desc      = "Reclaims targeted unit types in an area",
+    desc      = "Hold down Alt and give an area reclaim order, centered on a unit of the type to reclaim.",
     author    = "Google Frog",
     date      = "May 12, 2008",
     license   = "GNU GPL, v2 or later",
@@ -25,6 +25,8 @@ local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetModKeyState = Spring.GetModKeyState
+
 
 local reclaimEnemy = Game.reclaimAllowEnemies
 
@@ -38,6 +40,10 @@ function widget:CommandNotify(id, params, options)
 
 
   if (id == 90) and (#params == 4) then
+	local alt,_,_,_ = spGetModKeyState()
+	if not alt then 
+		return true 
+	end
     
 	local cx, cy, cz = params[1], params[2], params[3]
 	
