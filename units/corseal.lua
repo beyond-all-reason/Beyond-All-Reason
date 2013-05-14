@@ -2,7 +2,7 @@ return {
 	corseal = {
 		acceleration = 0.04619999974966,
 		brakerate = 0.020899999886751,
-		buildcostenergy = 7208,
+		buildcostenergy = 8500,
 		buildcostmetal = 450,
 		buildpic = "CORSEAL.DDS",
 		buildtime = 7010,
