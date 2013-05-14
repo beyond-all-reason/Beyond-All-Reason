@@ -199,7 +199,6 @@ end
 -- Initialize/shutdown
 ------------------------------------------------------------
 function widget:Initialize()
-
 	if (Game.startPosType == 1) or			-- Don't run if start positions are random
 	   (Spring.GetGameFrame() > 0) or		-- Don't run if game has already started
 	   (Spring.GetSpectatingState()) then	-- Don't run if we are a spec
@@ -207,12 +206,16 @@ function widget:Initialize()
 		return
 	end
 	-- Get our starting unit
-	-- Sometimes the information is not available, so the widget will error and exit :)
 	local _, _, _, _, mySide = Spring.GetTeamInfo(myTeamID)
-	local startUnitName = Spring.GetSideData(mySide)
-	sDefID = UnitDefNames[startUnitName].id
-	InitializeFaction(sDefID)
-	WG["faction_change"] = InitializeFaction
+	if mySide == "" then -- Don't run unless we know what faction the player is
+		widgetHandler:RemoveWidget(self)
+		return
+	else
+		local startUnitName = Spring.GetSideData(mySide)
+		sDefID = UnitDefNames[startUnitName].id
+		InitializeFaction(sDefID)
+		WG["faction_change"] = InitializeFaction
+	end
 end
 
 function InitializeFaction(sDefID)
