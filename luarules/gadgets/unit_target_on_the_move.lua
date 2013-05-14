@@ -201,7 +201,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) 
 	if validUnits[unitDefID] then
-		spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
+		--spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
 		spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 		spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
 	end
