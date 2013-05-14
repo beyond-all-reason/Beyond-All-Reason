@@ -34,9 +34,9 @@ local spGetUnitsInRectangle	= Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder	= Spring.GetUnitsInCylinder
 
 local CMD_STOP				= CMD.STOP
-local LICHE = UnitDefNames["armcybr"].id
 
 local noUnitTarget			= 0
+local LICHE					= UnitDefNames["armcybr"].id
 
 --------------------------------------------------------------------------------
 -- Config
@@ -201,7 +201,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) 
 	if validUnits[unitDefID] then
-		--spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
+		spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
 		spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 		spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
 	end
@@ -269,7 +269,7 @@ local function setTargetClosestFromList(unitID, unitDefID, team, choiceUnits, by
 			target = bestUnit, 
 			allyTeam = spGetUnitAllyTeam(unitID), 
 			range = UnitDefs[unitDefID].maxWeaponRange,
-			alwaysSeen = tud and (tud.isBuilding == true or tud.maxAcc == 0),
+			alwaysSeen = tud and (tud.isBuilding or tud.speed == 0),
 			bypassRangeCheck = bypassRangeCheck,
 			ignoreStop = ignoreStop,
 		})
@@ -350,7 +350,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 					target = cmdParams[1], 
 					allyTeam = spGetUnitAllyTeam(unitID), 
 					range = UnitDefs[unitDefID].maxWeaponRange,
-					alwaysSeen = tud and (tud.isBuilding == true or tud.maxAcc == 0),
+					alwaysSeen = tud and (tud.isBuilding or tud.speed == 0),
 					bypassRangeCheck = bypassRangeCheck,
 					ignoreStop = ignoreStop,
 				})
@@ -428,11 +428,14 @@ local spGetModKeyState		= Spring.GetModKeyState
 local spGetSpectatingState	= Spring.GetSpectatingState
 local spGetUnitAllyTeam		= Spring.GetUnitAllyTeam
 local spGetUnitTeam			= Spring.GetUnitTeam
+local spGetLastUpdateSeconds= Spring.GetLastUpdateSeconds
 
 local myAllyTeam = spGetMyAllyTeamID()
 local myTeam = spGetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local lineWidth = 1.4
+local commandColour = {1, 0.75, 0, 0.7}
 
 local drawAllTargets = {}
 local drawTarget = {}
@@ -442,9 +445,6 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("targetdrawteam", handleTargetDrawEvent,"toggles drawing targets for units, params: teamID doDraw")
 	gadgetHandler:AddChatAction("targetdrawunit", handleUnitTargetDrawEvent,"toggles drawing targets for units, params: unitID")
 	gadgetHandler:AddSyncAction("targetChange", handleTargetChangeEvent)
-	
-	Spring.SendCommands("bind y settarget")
-	Spring.SendCommands("bind j canceltarget")
 end
 
 function gadget:Shutdown()
@@ -500,10 +500,10 @@ function gadget:DrawWorld()
 	local alt,ctrl,meta,shift = spGetModKeyState()
 	local spectator = spGetSpectatingState()
 	glPushAttrib(GL.LINE_BITS)
-	glLineStipple(true)
+	glLineStipple("any") -- use spring's default line stipple pattern, moving
 	glDepthTest(false)
-	glLineWidth(1.4)
-	glColor(1, 0.75, 0, 1)
+	glLineWidth(lineWidth)
+	glColor(commandColour)
 	for unitID, unitTarget in pairs(unitTargets) do
 		if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
 			if spectator or spGetUnitAllyTeam(unitID) == myAllyTeam then
