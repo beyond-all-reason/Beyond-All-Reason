@@ -16,6 +16,7 @@ end
 
 
 local CONST_IGNORE_BUILDERS = false -- should automated factory transport ignore builders?
+local CONST_IGNORE_GROUNDSCOUTS = true -- should automated factory transport ignore scouts?
 local CONST_HEIGHT_MULTIPLIER = 3 -- how many times to multiply height difference when evaluating distance
 local CONST_TRANSPORT_PICKUPTIME = 9 -- how long (in seconds) does transport land and takeoff with unit
 local CONST_PRIORITY_BENEFIT = 10000 -- how much more important are priority transfers
@@ -285,6 +286,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	if unitTeam == myTeamID then 
     local ud = UnitDefs[unitDefID]
     if (CONST_IGNORE_BUILDERS and ud.builder and ud.canAssist) then return end
+	if (CONST_IGNORE_GROUNDSCOUTS and ud.modCategories.groundscout) then return end
     if (IsTransportable(unitDefID) and not userOrders) then 
 --      Echo ("new unit from factory "..unitID)
 
