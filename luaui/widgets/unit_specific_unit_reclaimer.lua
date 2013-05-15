@@ -42,7 +42,7 @@ function widget:CommandNotify(id, params, options)
   if (id == 90) and (#params == 4) then
 	local alt,_,_,_ = spGetModKeyState()
 	if not alt then 
-		return true 
+		return false
 	end
     
 	local cx, cy, cz = params[1], params[2], params[3]
