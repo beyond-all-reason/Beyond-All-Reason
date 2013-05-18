@@ -26,8 +26,6 @@ local SetUnitCOBValue = Spring.SetUnitCOBValue
 local DELAY_UNIT_VAR = 1024
 
 local DELAY_UNIT = {
-  [UnitDefNames["screamer"].id] = 45,
-  [UnitDefNames["mercury"].id] = 45,
   [UnitDefNames["corerad"].id] = 30,
   [UnitDefNames["armcir"].id] = 30,
 }
