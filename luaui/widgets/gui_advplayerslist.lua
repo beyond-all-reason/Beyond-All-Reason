@@ -1877,7 +1877,7 @@ function widget:GetConfigData(data)      -- send
 		widgetTop          = widgetTop,
 		expandDown         = expandDown,
 		expandLeft         = expandLeft,
-		m_rankActive       = m_rank.Active,
+		m_rankActive       = m_rank.active,
 		m_sideActive       = m_side.active,
 		m_IDActive         = m_ID.active,
 		m_nameActive       = m_name.active,
