@@ -144,7 +144,7 @@ function gadget:GameFrame(frame)
 				
 					if (not foundmatch) then					
 						if unitID and SpValidUnitID(unitID) then
-							SpDestroyUnit(unitID,true,false,expl.o) 
+							SpDestroyUnit(unitID,true,false) 
 						end
 					end
 				end			
