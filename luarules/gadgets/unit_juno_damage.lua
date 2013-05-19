@@ -378,21 +378,23 @@ function UpdateList(_,curtime)
 			local q = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime) --tent function, |slope|=1/fadetime, up at expl.t and back down to expl.t+effectlength. controls 'fade' in/out.
 			local p = q 
 			
-			if (curtime-expl.t <= fadetime) then -- controls the non-linearity in amount of tsuff drawn during the fade in/out
-				p = Mpow(p,3)
-			else
-				p = Mmin(1,Mpow((5/2)*p,3/2))
-			end
-			
-			glPushMatrix()	
-			glTranslate(expl.x,0,expl.z)
-			for i=0,num_segments-1 do 
-				glTranslate(q * xcoords_incr[i], ycoords_incr[i], q * zcoords_incr[i])
-				if (ran_num[i] <= p) then
-					glCallList(FadedCircle)
+			if q>0 then
+				if (curtime-expl.t <= fadetime) then -- controls the non-linearity in amount of tsuff drawn during the fade in/out
+					p = Mpow(p,3)
+				else
+					p = Mmin(1,Mpow((5/2)*p,3/2))
 				end
+			
+				glPushMatrix()	
+				glTranslate(expl.x,0,expl.z)
+				for i=0,num_segments-1 do 
+					glTranslate(q * xcoords_incr[i], ycoords_incr[i], q * zcoords_incr[i])
+					if (ran_num[i] <= p) then
+						glCallList(FadedCircle)
+					end
+				end
+				glPopMatrix()
 			end
-			glPopMatrix()									
 		end
 	end
 	
