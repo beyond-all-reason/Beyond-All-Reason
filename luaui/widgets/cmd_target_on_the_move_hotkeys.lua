@@ -13,7 +13,9 @@ end
 function widget:Initialize()
 	Spring.SendCommands("bind y settarget")
 	Spring.SendCommands("bind j canceltarget")
-	
-	widgetHandler:RemoveWidget(self)
-	return
+end
+
+function widget:Shutdown()
+	Spring.SendCommands("unbind y settarget")
+	Spring.SendCommands("unbind j canceltarget")
 end
