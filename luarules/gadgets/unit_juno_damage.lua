@@ -70,6 +70,7 @@ local SpGetGameSeconds = Spring.GetGameSeconds
 local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local SpDestroyUnit = Spring.DestroyUnit
 local SpGetUnitDefID = Spring.GetUnitDefID
+local SpValidUnitID = Spring.ValidUnitID
 local Mmin = math.min
 
 
@@ -142,7 +143,9 @@ function gadget:GameFrame(frame)
 					end
 				
 					if (not foundmatch) then					
-						SpDestroyUnit(unitID,true,false,expl.o) 
+						if unitID and SpValidUnitID(unitID) then
+							SpDestroyUnit(unitID,true,false,expl.o) 
+						end
 					end
 				end			
 			end		
