@@ -101,3 +101,11 @@ end
 for name, ud in pairs(UnitDefs) do
 		ud.collisionvolumetest = 1
 end
+
+--Remove for 95
+for name, ud in pairs(UnitDefs) do
+  if ud.movementclass and (ud.movementclass:find("HOVER",1,true)) then
+
+  	ud.canhover = true
+  end
+end
