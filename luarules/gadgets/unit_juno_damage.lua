@@ -59,23 +59,19 @@ local todenyUnits = {
     [UnitDefNames.armflea.id] = true,
 }
 
-
+--config -- see also in unsynced
 local radius = 450 --outer radius of area denial ring
 local width = 30 --width of area denial ring
 local effectlength = 30 --how long area denial lasts, in seconds
-local fadetime = 2 --how long fade in/out effect lasts in seconds
+local fadetime = 2 --how long fade in/out effect lasts, in seconds
 
-----------------------------------------------------------------
--- Speedups
-----------------------------------------------------------------
+--locals
 local SpGetGameSeconds = Spring.GetGameSeconds
 local SpGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local SpDestroyUnit = Spring.DestroyUnit
 local SpGetUnitDefID = Spring.GetUnitDefID
+local Mmin = math.min
 
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
 
 -- kill appropriate things from initial juno blast --
 
@@ -98,18 +94,15 @@ local counter = 1 --index each explosion of juno missile with this counter
 function gadget:Initialize()
 	Script.SetWatchWeapon(WeaponDefNames.ajuno_juno_pulse.id, true)
 	Script.SetWatchWeapon(WeaponDefNames.cjuno_juno_pulse.id, true)
-	_G.centers = centers
-	_G.width = width
-	_G.radius = radius
-	_G.effectlength = effectlength
-	_G.fadetime = fadetime
 end
+
 
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if junoWeapons[weaponID] then
 		local curtime = SpGetGameSeconds()
-		local junoExpl = {x=px, y=py, z=pz, t=curtime, show=true}
+		local junoExpl = {x=px, y=py, z=pz, t=curtime, o=ownerID}
 		centers[counter] = junoExpl
+		SendToUnsynced("AddToCenters",counter,px,py,pz,curtime)
 		counter = counter + 1 		
 	end
 end
@@ -120,13 +113,22 @@ local updategrain = 1/updatespersec
 local update = true
 
 function gadget:GameFrame(frame)
+
+	if frame == 10 then --seems that SendToUnsynced has to happen after
+		SendToUnsynced("RecieveConstants",width,radius,effectlength,fadetime)
+	end
 	
 	local curtime = SpGetGameSeconds()
 	
 	for counter,expl in pairs(centers) do
 		if (expl.t >= curtime - effectlength) then
-			local unitIDsBig   = SpGetUnitsInCylinder(expl.x, expl.z, radius)
-			local unitIDsSmall = SpGetUnitsInCylinder(expl.x, expl.z, radius-width)
+			local q = 1
+			if ((expl.t + effectlength - fadetime <= curtime) and (curtime <= expl.t + effectlength)) then
+				q = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime)
+			end
+			
+			local unitIDsBig   = SpGetUnitsInCylinder(expl.x, expl.z, q*radius)
+			local unitIDsSmall = SpGetUnitsInCylinder(expl.x, expl.z, q*(radius-width))
 
 			for _,unitID in pairs(unitIDsBig) do
 				local unitDefID = SpGetUnitDefID(unitID)
@@ -140,19 +142,18 @@ function gadget:GameFrame(frame)
 					end
 				
 					if (not foundmatch) then					
-						SpDestroyUnit(unitID,false,false) --TODO aID
+						SpDestroyUnit(unitID,true,false,expl.o) 
 					end
 				end			
-			end
-
-			if ((expl.t + fadetime >= curtime) or (expl.t + effectlength - fadetime <= curtime) and (curtime <= expl.t + effectlength)) then --fast update during fade in/out of some center
-				update = true
-			end	
-			
+			end		
 		else
-			centers[counter].show = false --this seems to make passing to unsynced work properly, otherwise it can lag
+			SendToUnsynced("RemoveFromCenters", counter)
 			table.remove(centers, counter)
-		end		
+		end
+
+		if ((expl.t + fadetime >= curtime) or (expl.t + effectlength - fadetime <= curtime) and (curtime <= expl.t + effectlength)) then
+			update = true -- fast update during fade in/out
+		end
 	end
 	
 	if ((#centers ~= 0) and (curtime - lastupdate > 1)) then --slow update (to make y re-match ground in unsync)
@@ -168,8 +169,17 @@ end
 
 -----------------------------------------------------
 else -- UNSYNCED
+------- the code here is heavily optimized, be careful 
 -----------------------------------------------------
 
+--copy of config from synced (a bit hacky, meh, SendToUnsynced doesn't work in initialize and worse hacks would be needed to cope without these constants during the unsynced init)
+--TODO better way for this
+local radius = 450 --outer radius of area denial ring
+local width = 30 --width of area denial ring
+local effectlength = 30 --how long area denial lasts, in seconds
+local fadetime = 2 --how long fade in/out effect lasts, in seconds
+
+--speedups
 local glCreateList = gl.CreateList
 local glBeginEnd = gl.BeginEnd
 local glDepthTest = gl.DepthTest
@@ -192,34 +202,29 @@ local Mrandom = math.random
 local Mpow = math.pow
 local Mpi = math.pi
 
-local radius = SYNCED.radius
-local width = SYNCED.width
-local effectlength = SYNCED.effectlength
-local centers = SYNCED.centers
-local fadetime = SYNCED.fadetime
-
 local FadedCircle
 
 --setup constants for drawing small circles
-local num_segs = 4
+local num_segs = 5
 local smallcircleincr = 2 * Mpi / num_segs 
 local c = Mcos(smallcircleincr) 
 local s = Msin(smallcircleincr)
-local alpha = 0.11
+local alpha = 0.2
 local xcoords_small = {}
 local zcoords_small = {}
 
 --setup constants for drawing the big circle
-local num_segments = 150
+local num_segments = 60
 local incr = 2 * Mpi / num_segments
 local sincr = Msin(incr)
 local cincr = Mcos(incr)
-local fadedist = 10
+local fadedist = 8
 local xcoords_incr = {}
 local zcoords_incr = {}
 
 
-function DrawCircle(alpha) --quick and dirty circle drawing here	
+--quick and dirty circle for the small circles
+function DrawCircle(alpha) 
 	circle = glCreateList(function()
 	glBeginEnd(GL_TRIANGLE_FAN, function()	
 
@@ -236,12 +241,32 @@ function DrawCircle(alpha) --quick and dirty circle drawing here
 	return circle	
 end
 
-
+--init
+local runsetup = false
 function gadget:Initialize()
-	--register action on SendToUnsynced message
+	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("UpdateList", UpdateList)
+	gadgetHandler:AddSyncAction("AddToCenters",AddToCenters)
+	gadgetHandler:AddSyncAction("RemoveFromCenters", RemoveFromCenters)
 	
+	SetupCircles()
+end
 
+
+--Actions called from synced
+local centers = {}
+function AddToCenters(_,counter,px,py,pz,curtime)
+	local junoExpl = {x=px, y=py, z=pz, t=curtime}
+	centers[counter] = junoExpl
+end
+
+function RemoveFromCenters(_,counter)
+	table.remove(centers,counter)
+end
+
+
+--set up x and z coords for circle drawing
+function SetupCircles()
 	--compute coords for drawing small circles
 	local x = width + fadedist
 	local z = 0 
@@ -280,33 +305,33 @@ function gadget:Initialize()
 			zcoords_incr[i] = zcoords[i] - zcoords[i-1]	
 		end
 	end
+	
 end
-
-
-
 
 local ring 
 local ran_num_table = {}
 local ycoords_incr = {}
+local runsetup = true
 
+--Update display list
 function UpdateList(_,curtime)
-	--Spring.Echo("Updating list")
+	--Spring.Echo("Updating display list")
 	
 	--set up constants for drawing ring
-	for counter,expl in spairs(centers) do
+	for counter,expl in pairs(centers) do
 		--set up random numbers, if needed
 		if ran_num_table[counter]==nil then
 			local ran_nums = {}
 			for i=0,num_segments-1 do
-				ran_nums[i] = Mrandom() -- the 1/4 here controls how quickly the circle appears as it spreads out
+				ran_nums[i] = Mrandom() 
 			end
 			ran_num_table[counter] = ran_nums				
 		end		
 
 		--set up y coords to match map height
 		local q = 1
-		if (curtime-expl.t < fadetime) then
-			q = (1/fadetime) * Mmin(curtime-expl.t, fadetime) --controls movement outwards from center on fade in
+		if ((curtime-expl.t < fadetime) or (curtime > expl.t + effectlength - fadetime)) then
+			q = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime) --controls movement outwards from center on fade in
 		end
 	
 		local this_ycoords = {}
@@ -325,7 +350,7 @@ function UpdateList(_,curtime)
 		ycoords_incr[counter] = this_ycoords_incr
 	end
 	
-	--remake ring list
+	--remake list
 	if ring then
 		glDeleteList(ring)
 	end
@@ -334,38 +359,38 @@ function UpdateList(_,curtime)
 	glDepthTest(GL_LEQUAL) --needed else it will draw on top of some trees/grass
 	--gl.PolygonOffset(1,1)	
 	
-	for counter,expl in spairs(centers) do 
-		if expl.show then			
-			local ycoords_incr = ycoords_incr[counter]
-			local ran_num = ran_num_table[counter]
+	for counter,expl in pairs(centers) do 
+		local ycoords_incr = ycoords_incr[counter]
+		local ran_num = ran_num_table[counter]
+		
+		if ((expl.t + fadetime <= curtime) and (curtime <= expl.t + effectlength - fadetime)) then --check if we are fading in/out or not
+			glPushMatrix()	
+			glTranslate(expl.x,0,expl.z)
+			for i=0,num_segments-1 do 
+				glTranslate(xcoords_incr[i], ycoords_incr[i], zcoords_incr[i])
+				glCallList(FadedCircle)
+			end
+			glPopMatrix()
+		else
+			local q = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime) --tent function, |slope|=1/fadetime, up at expl.t and back down to expl.t+effectlength. controls 'fade' in/out.
+			local p = q 
 			
-			if ((expl.t + fadetime <= curtime) and (curtime <= expl.t + effectlength - fadetime)) then --check if we are fading in/out or not
-				glPushMatrix()	
-				glTranslate(expl.x,0,expl.z)
-				for i=0,num_segments do 
-					glTranslate(xcoords_incr[i], ycoords_incr[i], zcoords_incr[i])
+			if (curtime-expl.t <= fadetime) then -- controls the non-linearity in amount of tsuff drawn during the fade in/out
+				p = Mpow(p,3)
+			else
+				p = Mmin(1,Mpow((5/2)*p,3/2))
+			end
+			
+			glPushMatrix()	
+			glTranslate(expl.x,0,expl.z)
+			for i=0,num_segments-1 do 
+				glTranslate(q * xcoords_incr[i], ycoords_incr[i], q * zcoords_incr[i])
+				if (ran_num[i] <= p) then
 					glCallList(FadedCircle)
 				end
-				glPopMatrix()
-			else
-				local p = (1/fadetime) * Mmin(curtime-expl.t, expl.t+effectlength-curtime) --tent function, |slope|=1/fadetime, up at expl.t and back down to expl.t+effectlength. controls 'fade' in/out.
-				local q = (1/fadetime) * Mmin(curtime-expl.t, fadetime) --controls movement outwards from center on fade in
-				
-				if (curtime-expl.t <= fadetime) then -- controls the non-linearity in amount of tsuff drawn during the fade in/out
-					p = Mpow(p,3)
-				end
-				
-				glPushMatrix()	
-				glTranslate(expl.x,0,expl.z)
-				for i=0,num_segments-1 do 
-					glTranslate(q * xcoords_incr[i], ycoords_incr[i], q * zcoords_incr[i])
-					if (ran_num[i] <= p) then
-						glCallList(FadedCircle)
-					end
-				end
-				glPopMatrix()									
 			end
-		end	
+			glPopMatrix()									
+		end
 	end
 	
 	end)
@@ -373,7 +398,7 @@ function UpdateList(_,curtime)
 end
 
 
-
+--draw
 function gadget:DrawWorldPreUnit()
 	if ring then
 		glCallList(ring)
