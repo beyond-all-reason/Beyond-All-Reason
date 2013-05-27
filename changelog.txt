@@ -1,3 +1,4 @@
+
 7.75 -> 7.76
 19/05/2013
 -Try to intelligently choose startpos for players/AIs who didn't place themselves
