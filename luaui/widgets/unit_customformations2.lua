@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+-- 29/05/13 -- Dots are of consistent size depending on zoom and terrain height
+-- 25/05/13 -- Fixed crash bug that was triggered by pressing the left mouse button during line drawing with right mouse button. Also improved visuals.
 -- 13/04/13 -- Visuals remade by PixelOfDeath 
 -- 23/03/13 -- Attack order y-coord placement remade by Bluestone for spring 94+ 
 
@@ -128,6 +130,8 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitHeight = Spring.GetUnitHeight
 local spGetCameraPosition = Spring.GetCameraPosition
+local spGetViewGeometry = Spring.GetViewGeometry
+local spTraceScreenRay = Spring.TraceScreenRay
 
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
@@ -138,7 +142,11 @@ local tsort = table.sort
 local floor = math.floor
 local ceil = math.ceil
 local sqrt = math.sqrt
+local sin = math.sin
+local cos = math.cos
+local max = math.max
 local huge = math.huge
+local pi2 = 2*math.pi
 
 local CMD_INSERT = CMD.INSERT
 local CMD_MOVE = CMD.MOVE
@@ -381,6 +389,12 @@ function widget:MousePress(mx, my, mButton)
 	-- Where did we click
 	inMinimap = spIsAboveMiniMap(mx, my)
 	if inMinimap and not MiniMapFullProxy then return false end
+
+	if mButton ~= 3 and usingRMB then
+		fNodes = {}
+		fDists = {}
+		usingRMB = false
+	end
 	
 	-- Get command that would've been issued
 	local _, activeCmdID = spGetActiveCommand()
@@ -671,13 +685,25 @@ end
 
 local function DrawFilledCircle(pos, size, cornerCount)
 	glPushMatrix()
-	gl.Translate(pos[1], pos[2], pos[3])
-	gl.BeginEnd(GL.TRIANGLE_FAN, function()
+	glTranslate(pos[1], pos[2], pos[3])
+	glBeginEnd(GL.TRIANGLE_FAN, function()
 		glVertex(0,0,0)
-		local radstep = (2.0 * math.pi) / cornerCount
-		for i = 1, cornerCount+1 do
-			local a1 = (i * radstep)
-			glVertex(math.sin(a1) * size, 0, math.cos(a1) * size)
+		for t = 0, pi2, pi2 / cornerCount do
+			glVertex(sin(t) * size, 0, cos(t) * size)
+		end
+	end)
+	glPopMatrix()
+end
+
+local function DrawFilledCircleOutFading(pos, size, cornerCount)
+	glPushMatrix()
+	glTranslate(pos[1], pos[2], pos[3])
+	glBeginEnd(GL.TRIANGLE_FAN, function()
+		SetColor(usingCmd, 1)
+		glVertex(0,0,0)
+		SetColor(usingCmd, 0)
+		for t = 0, pi2, pi2 / cornerCount do
+			glVertex(sin(t) * size, 0, cos(t) * size)
 		end
 	end)
 	glPopMatrix()
@@ -687,11 +713,10 @@ local function DrawFormationDots(vertFunction, zoomY, unitCount)
 	local currentLength = 0
 	local lengthPerUnit = lineLength / (unitCount-1)
 	local lengthUnitNext = lengthPerUnit
-	if zoomY <= 0 then zoomY = 1 end
-	local dotSize = 15+10*(zoomY/1000)^(-1/10)
+	local dotSize = sqrt(zoomY*0.1)
 	if (#fNodes > 1) and (unitCount > 1) then
 		SetColor(usingCmd, 0.6)
-		DrawFilledCircle(fNodes[1], dotSize, 8)
+		DrawFilledCircleOutFading(fNodes[1], dotSize, 8)
 		if (#fNodes > 2) then
 			for i=1, #fNodes-1 do
 				local x = fNodes[i][1]
@@ -700,51 +725,78 @@ local function DrawFormationDots(vertFunction, zoomY, unitCount)
 				local y2 = fNodes[i+1][3]
 				local dx = x - x2
 				local dy = y - y2
-				local length = (((dx*dx)+(dy*dy))^0.5)
+				local length = sqrt((dx*dx)+(dy*dy))
 				while (currentLength + length >= lengthUnitNext) do
 					local factor = (lengthUnitNext - currentLength) / length
 					local factorPos =
 						{fNodes[i][1] + ((fNodes[i+1][1] - fNodes[i][1]) * factor),
 						fNodes[i][2] + ((fNodes[i+1][2] - fNodes[i][2]) * factor),
 						fNodes[i][3] + ((fNodes[i+1][3] - fNodes[i][3]) * factor)}
-					DrawFilledCircle(factorPos, dotSize, 8)
+					DrawFilledCircleOutFading(factorPos, dotSize, 8)
 					lengthUnitNext = lengthUnitNext + lengthPerUnit
 				end
 				currentLength = currentLength + length
 			end
 		end
-		DrawFilledCircle(fNodes[#fNodes], dotSize, 8)
+		DrawFilledCircleOutFading(fNodes[#fNodes], dotSize, 8)
 	end
 end
 
+local function DrawFormationLines(vertFunction, lineStipple)
+	glLineStipple(lineStipple, 4369)
+	glLineWidth(2.0)
+	if #fNodes > 1 then
+		SetColor(usingCmd, 1.0)
+		glBeginEnd(GL_LINE_STRIP, vertFunction, fNodes)
+	end
+	if #dimmNodes > 1 then
+		SetColor(dimmCmd, dimmAlpha)
+		glBeginEnd(GL_LINE_STRIP, vertFunction, dimmNodes)
+	end
+	glLineWidth(1.0)
+	glLineStipple(false)
+end
+
+local Xs, Ys = spGetViewGeometry()
+Xs, Ys = Xs*0.5, Ys*0.5
+function widget:ViewResize(viewSizeX, viewSizeY)
+	Xs, Ys = spGetViewGeometry()
+	Xs, Ys = Xs*0.5, Ys*0.5
+end
 
 function widget:DrawWorld()
   if #fNodes > 1 or #dimmNodes > 1 then
-	local _,zoomY = spGetCameraPosition()
+	local camX, camY, camZ = spGetCameraPosition()
+	local at, p = spTraceScreenRay(Xs,Ys,true,false,false)
+	if at == "ground" then 
+		local dx, dy, dz = camX-p[1], camY-p[2], camZ-p[3]
+		--zoomY = ((dx*dx + dy*dy + dz*dz)*0.01)^0.25	--tests show that sqrt(sqrt(x)) is faster than x^0.25
+		zoomY = sqrt(dx*dx + dy*dy + dz*dz)
+	else
+		--zoomY = sqrt((camY - max(spGetGroundHeight(camX, camZ), 0))*0.1)
+		zoomY = camY - max(spGetGroundHeight(camX, camZ), 0)
+	end
+	if zoomY < 6 then zoomY = 6 end
 	local unitCount = spGetSelectedUnitsCount()
 	DrawFormationDots(tVerts, zoomY, unitCount)
   end
 end
 
 --TODO maybe include minimap drawing again
---[[function widget:DrawInMiniMap()
+function widget:DrawInMiniMap()
 	glPushMatrix()
 		glLoadIdentity()
 		glTranslate(0, 1, 0)
 		glScale(1 / mapSizeX, -1 / mapSizeZ, 1)
-		
-		--DrawFormationLines(tVertsMinimap, 1)
+		DrawFormationLines(tVertsMinimap, 1)
 	glPopMatrix()
-end]]
+end
+
 function widget:Update(deltaTime)
-	
 	dimmAlpha = dimmAlpha - lineFadeRate * deltaTime
-	
 	if dimmAlpha <= 0 then
-		
 		dimmNodes = {}
 		widgetHandler:RemoveWidgetCallIn("Update", self)
-		
 		if #fNodes == 0 then
 			widgetHandler:RemoveWidgetCallIn("DrawWorld", self)
 			widgetHandler:RemoveWidgetCallIn("DrawInMiniMap", self)
