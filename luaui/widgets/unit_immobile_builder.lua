@@ -1,7 +1,6 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  file:	unit_immobile_buider.lua
 --  brief:   sets immobile builders to MANEUVERING, and gives them a FIGHT order
 --  author:  Dave Rodgers
 --
