@@ -1,3 +1,38 @@
+[DEATH_WAVE_SPARKS]
+{	
+	[unit_sparkles]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.25;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, -1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
+			texture=lightb2;
+			airdrag=0.95;
+			particleLife=3;
+			particleLifeSpread=12;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=2;
+			particleSize=5;
+			particleSizeSpread=30;
+			directional=1;
+			emitRot=0;
+			emitRotSpread=270;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		unit=1;
+		count=1;
+	}	
+		
+}
+
 [ZEUS_FLASH]
 {
 	[pop2]

@@ -27,6 +27,8 @@ if (gadgetHandler:IsSyncedCode()) then
 
 local destroyQueue = {}
 
+local destroyUnitQueue = {}
+
 local aliveCount = {}
 
 local isAlive = {}
@@ -35,20 +37,57 @@ local GetTeamList=Spring.GetTeamList
 local GetTeamUnits = Spring.GetTeamUnits
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local DestroyUnit=Spring.DestroyUnit
+local GetUnitPosition = Spring.GetUnitPosition
+local SpawnCEG = Spring.SpawnCEG
+
+local DISTANCE_LIMIT = ((math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ)) * 0.9)
+local MAX_TIME = 4 * 30
+local min = math.min
+local deathWave = false
+
+local function getSqrDistance(x1,z1,x2,z2)
+  local dx,dz = x1-x2,z1-z2
+  return (dx*dx)+(dz*dz)
+end
 
 function gadget:GameFrame(t)
-	if t % 32 < .1 then
-		for at,_ in pairs(destroyQueue) do
+	if t % 16 < .1 then
+		for at,defs in pairs(destroyQueue) do
 			if aliveCount[at] <= 0 then --safety check, triggers on transferring the last com otherwise
 				for _,team in ipairs(GetTeamList(at)) do
-					for _,u in ipairs(GetTeamUnits(team)) do
-						DestroyUnit(u, true)
+					for _,unitID in ipairs(GetTeamUnits(team)) do
+						local x,y,z = GetUnitPosition(unitID)
+						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * MAX_TIME), MAX_TIME)
+						if (destroyUnitQueue[unitID] == nil) then
+							destroyUnitQueue[unitID] = { 
+									time = t + deathTime + math.random(0,5), 
+									x = x, 
+									y = y, 
+									z = z, 
+									spark = false 
+								}
+						end
 					end
 				end
+				deathWave = true
 			end
-			destroyQueue[t]=nil
+			destroyQueue[at]=nil
 		end
 	end
+	
+	if (deathWave) then
+		for unitID, defs in pairs(destroyUnitQueue) do
+			if ((t > (defs.time - 15)) and (defs.spark == false)) then
+				SpawnCEG("DEATH_WAVE_SPARKS",defs.x,defs.y,defs.z,0,0,0)
+				destroyUnitQueue[unitID].spark = true
+			end
+			if (t > defs.time) then
+				DestroyUnit(unitID, true)
+				destroyUnitQueue[unitID] = nil
+			end
+		end
+	end
+	
 end
 
 function gadget:UnitCreated(u, ud, team)
@@ -72,7 +111,8 @@ function gadget:UnitDestroyed(u, ud, team)
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
-			destroyQueue[allyTeam] = true
+			local x,y,z = Spring.GetUnitPosition(u)
+			destroyQueue[allyTeam] = {x = x, y = y, z = z}
 		end
 	end
 end
@@ -82,7 +122,8 @@ function gadget:UnitTaken(u, ud, team)
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
-			destroyQueue[allyTeam] = true
+			local x,y,z = Spring.GetUnitPosition(u)
+			destroyQueue[allyTeam] = {x = x, y = y, z = z}
 		end
 	end
 end
