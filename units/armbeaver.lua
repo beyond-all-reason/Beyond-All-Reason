@@ -78,7 +78,7 @@ return {
 			[3] = "armwin",
 			[40] = "armfhlt",
 			[41] = "armfrt",
-			[42] = "armtl",
+			[42] = "armptl",
 			[4] = "armgeo",
 			[5] = "armmstor",
 			[6] = "armestor",

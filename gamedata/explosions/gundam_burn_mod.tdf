@@ -376,3 +376,80 @@
 		color=1,0.8,0.7;
 	}
 }
+
+
+[UW_LASER_BURN]
+{
+	[searingflame]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=gunshot;
+
+		colorMap	= 1 1 1 0.04	0.6 0.6 0.8 0.01	0.3 0.3 0.6 0.01;
+
+      		pos 		= 0, 2, 0;
+		gravity		= 0, -0.01, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= 1;
+		sizeMod		= 0.5;
+
+		airdrag			= 0.8;
+		particleLife		= 1;
+		particleLifeSpread	= 3;
+		numParticles		= 1;
+		particleSpeed		= 3;
+		particleSpeedSpread	= 3;
+		particleSize		= 7;
+		particleSizeSpread	= 0;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=0;
+	underwater=0;
+	count=1;
+	}
+	
+	[burnpop]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		    texture=brightblueexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.4;
+
+      		size = 2;
+      		sizeGrowth = 0.1;
+
+         	pos = r-2 r2, r0 r1, r-2 r2;
+         	speed=0, 0, 0;
+      		}
+	    air=1;
+      	water=1;
+      	ground=1;
+      	count=1;
+	}
+	
+	usedefaultexplosions=0;
+	[GROUNDFLASH]
+	{
+		flashsize=9;
+		flashalpha=0.9;
+		circlegrowth=1;
+		circlealpha=1;
+		ttl=3;
+		color=1,0.8,0.7;
+	}
+}

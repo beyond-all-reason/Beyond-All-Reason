@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 5285,
-		buildcostmetal = 917,
+		buildcostmetal = 1192,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
@@ -50,6 +50,7 @@ return {
 			[7] = "cordecom",
 			[8] = "intruder",
 			[9] = "corsub",
+			[10] = "correcl",
 		},
 		featuredefs = {
 			dead = {

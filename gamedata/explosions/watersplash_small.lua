@@ -1,6 +1,70 @@
 -- watersplash_small
 
 return {
+  ["com_sea_laser_bubbles"] = {
+    waterball = {
+      air                = false,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = false,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        airdrag            = 1,
+        colormap           = [[0 0 0 0  0.4 0.8 1 .1     0.6 .9 0.95 .4  	0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 15,
+        emitrotspread      = [[0 r-30 r30]],
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0, 0]],
+        numparticles       = 1,
+        particlelife       = 4,
+        particlelifespread = 15,
+        particlesize       = 1,
+        particlesizespread = 2,
+        particlespeed      = [[0 r3 i-0.05]],
+        particlespeedspread = 2,
+        pos                = [[0 r-5 r5, 3 r8, 0 r-5 r5]],
+        sizegrowth         = [[0 0 0]],
+        sizemod            = 1.0,
+        texture            = [[GenericSmokeCloud1]],
+        useairlos          = true,
+      },
+    },  
+  },
+
+  ["small_water_bubbles"] = {
+    waterball = {
+      air                = false,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = false,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        airdrag            = 1,
+        colormap           = [[0 0 0 0  0.4 0.8 1 .1     0.6 .9 0.95 .8  	0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 15,
+        emitrotspread      = [[0 r-30 r30]],
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0, 0]],
+        numparticles       = 1,
+        particlelife       = 4,
+        particlelifespread = 18,
+        particlesize       = 1,
+        particlesizespread = 3,
+        particlespeed      = [[0 r4 i-0.05]],
+        particlespeedspread = 2,
+        pos                = [[0 r-12 r12, 5 r15, 0 r-12 r12]],
+        sizegrowth         = [[0 0 0]],
+        sizemod            = 1.0,
+        texture            = [[GenericSmokeCloud1]],
+        useairlos          = true,
+      },
+    },  
+  },
+
   ["watersplash_small"] = {
     waterball = {
       air                = false,

@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 5144,
-		buildcostmetal = 860,
+		buildcostmetal = 1118,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
@@ -48,6 +48,7 @@ return {
 			[5] = "armaak",
 			[6] = "armdecom",
 			[7] = "armsub",
+			[8] = "armrecl",
 		},
 		featuredefs = {
 			dead = {

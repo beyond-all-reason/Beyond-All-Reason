@@ -1,3 +1,94 @@
+02/06/2013 - T1 Sea Balance patch
+
+- Commanders now have an underwater weapon, a short range laser which fires when they are not building/repairing (dps similar to the existing red laser)
+- Commanders can now build Floating Radar Towers
+
+- T1 Torpedo launchers built by Commanders and Amphibious vehicles are now initially created on the sea floor and pop-up once when complete.
+
+- Arm T1 Shipyard metalcost reduced (615->425), health increased (2990->3700), workertime increased (100->220), energymake added (+15)
+- Core T1 Shipyard metalcost reduced (600->415), health increased (2990->3850), workertime increased (100->220), energymake added (+15)
+
+- Arm Advanced Shipyard Health Increased (4512->5415), energymake added (+25)
+- Core Advanced Shipyard health increased (4416->5300), energymake added (+25)
+
+- Arm Tidal Generator energycost reduced (412->288), health increased (256->358)
+- Core Tidal Generator energycost reduced (417->292), health increased (253->354)
+
+- Both T1 Floating metal makers energy build cost reduced 10%
+
+- Arm T1 Torpedo launcher reload time reduced (1.9->1.7), AoE increased a little (16->48 with 40% edgeeffectiveness)
+- Core T1 Torpedo launcher reload time reduced (1.9->1.7), AoE increased a little (16->48 with 40% edgeeffectiveness)
+- Both T1 Torpedo launcher turret turn speeds increased a little
+
+- Core Amphibious lab metalcost increased (917->1192)
+- Arm Amphibious lab metalcost increased (860->1118)
+
+- Arm Floating HLT Energy Per Shot reduced (75->40), Reload time reduced (1->0.9), Target move error reduced (0.2->0.1), Special damage vs Commanders added (210->300)
+- Core Floating HLT Energy Per Shot reduced (75->45), damage increased (210->231), Target move error reduced (0.2->0.1) Special damage vs Commanders added (210->250) 
+- Both Floating HLT Turret turn speeds increased a little
+- Both Floating HTLs Energymake added (+5)
+- Both Floating HLTs Buildtime reduced 5%
+
+- Arm T1 Floating Anti-air Tower Metalcost increased (71->85), Health increased (252->340)
+- Arm T1 Floating Anti-air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
+
+- Core T1 Floaring Anti-air Tower Metalcost increased (72->86), Health increased (290->355)
+- Core T1 Floating Anti-air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
+
+- Added Aurora - T2 Floating Plasma Deflector (700 range, 700 shield energy cost)
+  - Buildable by Arm Construction Sea Plane
+  - Buildable by Arm Advanced Construction Sub
+  
+- Added Atoll - T2 Floating Plasma Deflector (700 range, 700 shield energy cost)
+  - Buildable by Core Construction Sea Plane
+  - Buildable by Core Advanced Construction Sub
+  
+  
+- Both T2 Ressurection subs moved to T1, costs reduced a little, movement enhanced (Ressurection Workertime 450, Repair Workertime 250)
+
+- Both T1 Construction ships Repair Workertime reduced (250->125), Build Workertime still 250.
+- Both T1 Construction ships acceleration increased.
+- Both T1 Construction ships added Dragons Teeth & Pop Up turrets (Arm Claw for Arm, Dragons Maw for Core) for anti-swarm coastal defense
+
+- Arm Dragons Claw & Core Dragons Maw maxslope increased (10->18), allows building in some places other turrets can't be placed
+
+- Core T1 Scoutboat footprint reduced, renamed 'Patrol Boat', health increased (228->345), autoheal added (1.5)
+- Core T1 Scoutboat laser redone, range increased (220->260), more rapid fire, about 40% more total dps
+
+- Arm T1 Scoutboat footprint reduced, renamed 'Patrol Boat', health increased (224->345), autoheal added (1.5)
+- Arm T1 Scoutboat laser redone, range increased (220->260), more rapid fire, about 40% more total dps
+
+- Core Corvette metalcost reduced (367->294), energycost increased (1912->2294), energymake added (+3)
+- Core Corvette weapons tweaked, energypershot reduced (20->5) & now do more damage at max range
+
+- Arm Corvette metalcost reduced (378->302), energycost increased (2055->2466)
+- Arm Corvette lasers replaced with EMG (peewee) type cannons, no energy cost, roughly the same dps.
+
+- Corvette corpses health reduced, can now become heaps, metal reduced in line with unit metal cost reduction
+
+- Arm Destroyer health increased (2575->3090), sight distance increased (490->550)
+- Arm Destroyer Turret Gun reload time reduced (1.4->1.2), damage increased (160->175)
+- Arm Destroyer Depth Charge tweaked (fires a little faster, lower damage, more AOE, less move accuracy)
+
+- Core Destroyer health increased (2800->3360), sight distance increased (465->550)
+- Core Destroyer Turret Gun damage increased (310->385)
+- Core Destroyer Depth Charge AOE increased
+
+- Arm T1 Sub handling improved, small autoheal added, sight distance increased, corpse metal reduced.
+- Arm T1 Sub weapon AoE Increased a little, damage increased a little (600->650), accuracy improved
+
+- Core T1 Sub handling improved, small autoheal added, sight distance increased, corpse metal reduced.
+- Core T1 Sub weapon AoE Increased a little, damage increased a little (600->650), accuracy improved
+
+- Arm Sea Transport metal cost reduced (919->735), energy cost increased (4639->6239), buildtime reduced (14538->10176)
+- Arm Sea Transport small autoheal added (+5), sightdistance increased
+- Core Sea Transport metal cost reduced (887->710), eenrgy cost increased (4768->6286), buildtime reduced (13663->9564)
+- Core Sea Transport small autoheal added (+5), sightdistance increased
+
+- Both Transport ships can now load and unload units again
+- Both Transport ships can now operate in any water depth
+
+
 
 7.75 -> 7.76
 19/05/2013

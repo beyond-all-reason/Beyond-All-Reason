@@ -44,6 +44,16 @@ local moveDatas = {
 		footprintz = 4,
 		minwaterdepth = 10,
 	},
+	
+	HOVERHACK1 = { -- Hack for transport ships name must contain 'hover', cannot contain 'ship/boat' ...
+		badslope = 1,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 1,
+		maxwaterslope = 255,
+	},
 	--[[
 	DBOAT3 = {
 		crushstrength = 30,

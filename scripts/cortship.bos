@@ -94,6 +94,14 @@ StartMoving()
 	start-script waveSplash();
 	while( TRUE )
 	{
+		if (get GROUND_WATER_HEIGHT(get PIECE_XZ(wake1)) > -325000 )
+    	{
+			emit-sfx 1024 + 0 from wake1;
+		}
+		if ( get GROUND_WATER_HEIGHT(get PIECE_XZ(wake2)) > -325000 )
+    	{
+			emit-sfx 1024 + 0 from wake2;	
+		}
 		emit-sfx 2 from wake1;
 		emit-sfx 2 from wake2;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;

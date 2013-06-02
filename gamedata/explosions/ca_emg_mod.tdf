@@ -37,6 +37,34 @@
 		ground=1;
 		count=1;
 	}	
+	
+	[splashes] {
+		class=CSimpleParticleSystem;
+		[properties]{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 1, 0;
+			emitVector=dir;
+			gravity=0, -0.5, 0;
+			colorMap=1 1 0.4 0.01   0.7 0.7 0.5 0.01   0.2 0.2 0.5 0.01   0 0 0 0.01;
+			Texture=plasma;
+			airdrag=0.97;
+			particleLife=5;
+			particleLifeSpread=0;
+			numParticles=3;
+			particleSpeed=1;
+			particleSpeedSpread=2;
+			particleSize=5;
+			particleSizeSpread=0;
+			emitRot=0;
+			emitRotSpread=40;
+			directional=1;
+		}
+		unit=0;
+		ground=0;
+		water=1;
+		count=1;
+	}	
 }
 
 [BRAWLIMPACTS]

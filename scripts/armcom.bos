@@ -495,7 +495,7 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	turn torso to y-axis heading speed <300.000000>;
-	turn luparm to x-axis <-30.000000> - pitch speed <200.000000>;
+	turn luparm to x-axis <-45.000000> - pitch speed <250.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
 	justfired = TRUE;
@@ -510,6 +510,57 @@ FirePrimary()
 {
 	show lfirept;
 	sleep 100;
+	hide lfirept;
+	sleep 400;
+	justfired = FALSE;
+}
+
+
+AimFromSecondary(piecenum)
+{
+	piecenum = lfirept;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = lfirept;
+}
+
+AimSecondary(heading, pitch)
+{
+    if ( get PIECE_Y(head) > -7 )
+    {
+     	return (0);
+    }
+	if( Static_Var_4 == 1 )
+	{
+		return (0);
+	}
+	if ( building )
+	{
+		return (0);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <300.000000>;
+	turn luparm to x-axis <-70.000000> - pitch speed <250.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn luparm around x-axis;
+	justfired = TRUE;
+	if (building == TRUE) 
+	{
+	    start-script ResumeBuilding();
+	}
+	return (1);
+}
+
+FireSecondary()
+{
+	show lfirept;
+	emit-sfx 1024 + 0 from lfirept;
+	sleep 100;
+	emit-sfx 1024 + 0 from lfirept;
 	hide lfirept;
 	sleep 400;
 	justfired = FALSE;

@@ -24,15 +24,17 @@ local mathMax = math.max
 local mathMin = math.min
 
 local shieldDef = {}
-shieldDef[UnitDefNames["armgate"].id] = true
-shieldDef[UnitDefNames["corgate"].id] = true
+shieldDef[UnitDefNames["armgate"].id] = 620
+shieldDef[UnitDefNames["corgate"].id] = 620
+shieldDef[UnitDefNames["armfgate"].id] = 720
+shieldDef[UnitDefNames["corfgate"].id] = 720
 local shields = {}
 local gameFrame = 0
 
 function gadget:GameFrame(n)
   for unitID in pairs(shields) do
     local eDrain = select(4,GetUnitResources(unitID))
-    if (eDrain > 620) then
+    if (eDrain > shields[unitID]) then
       SetUnitShieldState(unitID,true,mathMax(select(2,GetUnitShieldState(unitID))-mathMin((eDrain/80), 18),0),1)
     end
   end
@@ -44,7 +46,7 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   if shieldDef[unitDefID] then
-    shields[unitID] = 0
+    shields[unitID] = shieldDef[unitDefID]
   end
 end
 

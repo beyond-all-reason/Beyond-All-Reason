@@ -72,7 +72,8 @@ return {
 		},
 		weapondefs = {
 			coax_torpedo = {
-				areaofeffect = 16,
+				areaofeffect = 48,
+				edgeeffectiveness = 0.4,
 				avoidfriendly = false,
 				burnblow = true,
 				collidefriendly = false,
@@ -85,7 +86,7 @@ return {
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				range = 550,
-				reloadtime = 1.8999999761581,
+				reloadtime = 1.7,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 200,

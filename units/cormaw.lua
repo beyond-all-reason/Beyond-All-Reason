@@ -24,7 +24,8 @@ return {
 		idletime = 900,
 		mass = 10000000000,
 		maxdamage = 1450,
-		maxslope = 10,
+		maxslope = 18,
+		levelground = false,
 		maxwaterdepth = 0,
 		name = "Dragon's Maw",
 		nochasecategory = "MOBILE",
@@ -131,6 +132,7 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 300,
+				avoidfeature = false,
 				damage = {
 					commanders = 20,
 					default = 25,

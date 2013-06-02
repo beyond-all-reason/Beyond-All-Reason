@@ -1,0 +1,227 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, beam, door1, door2, plate, wake1, wake2, post,
+       gun;
+
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn door1 to z-axis <0.000000> now;
+		turn door1 to z-axis <-67.428571> speed <108.582418>;
+		turn door2 to z-axis <0.000000> now;
+		turn door2 to z-axis <67.428571> speed <108.582418>;
+		sleep 250;
+	}
+	if( TRUE )
+	{
+		move door1 to y-axis [-3.149994] speed [10.023920];
+		move door2 to y-axis [-3.100000] speed [10.944177];
+		sleep 250;
+	}
+	if( TRUE )
+	{
+		move plate to y-axis [5.650000] speed [13.996814];
+		sleep 250;
+	}
+	sleep 31;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move plate to y-axis [5.650000] now;
+		move plate to y-axis [0.000000] speed [19.098230];
+		move door1 to y-axis [-3.149994] now;
+		move door2 to y-axis [-3.100000] now;
+		turn door1 to z-axis <-67.428571> now;
+		turn door2 to z-axis <67.428571> now;
+		sleep 250;
+	}
+	if( TRUE )
+	{
+		move door1 to y-axis [0.000000] speed [15.023920];
+		move door2 to y-axis [0.000000] speed [14.944177];
+		sleep 250;
+	}
+	if( TRUE )
+	{
+		turn door1 to z-axis <0.000000> speed <107.373626>;
+		turn door2 to z-axis <0.000000> speed <107.373626>;
+		sleep 250;
+	}
+	sleep 31;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		emit-sfx 256 | 3 from wake1;
+		emit-sfx 256 | 3 from wake2;
+		sleep 250;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+}
+
+Go()
+{
+	call-script activatescr();
+	turn post to y-axis Static_Var_1 speed <250.038462>;
+	wait-for-turn post around y-axis;
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	turn post to y-axis <0.000000> speed <160.038462>;
+	wait-for-turn post around y-axis;
+	call-script deactivatescr();
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	call-script InitState();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+StartBuilding(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1;
+	start-script RequestState(0);
+}
+
+StopBuilding()
+{
+	start-script RequestState(1);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = beam;
+}
+
+TargetHeading(Func_Var_1)
+{
+	Static_Var_1 = 0 - Func_Var_1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam type BITMAPONLY | BITMAP2;
+		explode door1 type BITMAPONLY | BITMAP3;
+		explode door2 type BITMAPONLY | BITMAP4;
+		explode gun type BITMAPONLY | BITMAP5;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type BITMAPONLY | BITMAP2;
+		explode wake1 type BITMAPONLY | BITMAP3;
+		explode wake2 type BITMAPONLY | BITMAP4;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam type FALL | BITMAP2;
+		explode door1 type BITMAPONLY | BITMAP3;
+		explode door2 type BITMAPONLY | BITMAP4;
+		explode gun type SHATTER | BITMAP5;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type FALL | BITMAP2;
+		explode wake1 type FALL | BITMAP3;
+		explode wake2 type FALL | BITMAP4;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode door1 type BITMAPONLY | BITMAP3;
+		explode door2 type BITMAPONLY | BITMAP4;
+		explode gun type SHATTER | BITMAP5;
+		explode plate type BITMAPONLY | BITMAP1;
+		explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode door1 type BITMAPONLY | BITMAP3;
+	explode door2 type BITMAPONLY | BITMAP4;
+	explode gun type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode plate type BITMAPONLY | BITMAP1;
+	explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+}

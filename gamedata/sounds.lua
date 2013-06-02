@@ -17,8 +17,13 @@ local Sounds = {
 		rolloff = 0.2,
 		dopplerscale = 0,      
       },
-      lasrfir1 = {
+    lasrfir1 = {
 	   file = "sounds/lasrfir1.wav",
+	   pitch = 1,
+	   pitchmod = 0.05,
+	  },
+	  uwlasrfir1 = {
+	   file = "sounds/uwlasfir1.wav",
 	   pitch = 1,
 	   pitchmod = 0.05,
 	  },
