@@ -31,11 +31,13 @@ return {
 		name = "Bear",
 		nochasecategory = "ALL",
 		objectname = "ARMTHOVR",
+		releaseheld = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 325,
 		transportcapacity = 20,
 		transportsize = 3,
+		transportunloadmethod = 0,
 		turnrate = 395,
 		waterline = 4,
 		featuredefs = {
