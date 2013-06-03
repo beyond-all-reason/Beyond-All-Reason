@@ -39,7 +39,7 @@ currentFrame = 0
 --when a unit is unloaded, mark it either as a commando or for destruction on next frame
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
-	Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
+	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
 	
 	if (unitDefID ~= COMMANDO) then		
 		if (not toKill[currentFrame+1]) then toKill[currentFrame+1] = {} end
@@ -54,10 +54,10 @@ function gadget:GameFrame (f)
 	if (toKill[f]) then --kill units as requested from above
 		for i,u in pairs (toKill[currentFrame]) do
 			t = fromtrans[currentFrame][i]
-			Spring.Echo ("delayed killing check called for unit " .. i .. " and trans " .. t .. ". ")
+			--Spring.Echo ("delayed killing check called for unit " .. i .. " and trans " .. t .. ". ")
 			--check that trans is dead/crashing and unit is still alive 
 			if ((not Spring.GetUnitIsDead(i)) and (Spring.GetUnitIsDead(t) or (Spring.GetUnitMoveTypeData(t).aircraftState=="crashing")))	then	
-				Spring.Echo("killing unit " .. i)
+				--Spring.Echo("killing unit " .. i)
 				Spring.DestroyUnit (i, true, false) 
 			end
 		end
