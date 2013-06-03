@@ -62,6 +62,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("m-up.user", "LuaUI/Icons/m-up.png")
   Spring.AddUnitIcon("m.user", "LuaUI/Icons/m.png")
   Spring.AddUnitIcon("nuke.user", "LuaUI/Icons/nuke.png",1.25)
+  Spring.AddUnitIcon("slash.user", "LuaUI/Icons/slash.png") 
   Spring.AddUnitIcon("sphere.user", "LuaUI/Icons/sphere.png",1.1)
   Spring.AddUnitIcon("sphere2.user", "LuaUI/Icons/sphere.png",1.35)
   Spring.AddUnitIcon("sphere3.user", "LuaUI/Icons/sphere.png",1.7)
@@ -109,8 +110,8 @@ function gadget:Initialize()
         else
           Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
         end
-      elseif (ud.stockpileWeaponDef ~= nil) then
-      	-- nuke / antinuke ( stockpile weapon anyway )
+      elseif (ud.stockpileWeaponDef ~= nil) and (not ud.weapons[1].onlyTargets["vtol"]) then
+      	-- nuke / antinuke ( stockpile weapon, but not mercury/screamer )
       	Spring.SetUnitDefIcon(udid, "nuke.user")
       elseif (ud.canFly) then
         -- aircraft
@@ -147,7 +148,11 @@ function gadget:Initialize()
         if (#ud.weapons <= 0) then
           Spring.SetUnitDefIcon(udid, "square.user")
         else
-          Spring.SetUnitDefIcon(udid, "x.user")
+		  if ud.weapons[1].onlyTargets["vtol"] then
+			Spring.SetUnitDefIcon(udid, "slash.user")		  
+		  else
+			Spring.SetUnitDefIcon(udid, "x.user")
+		  end
         end
       else
         if (ud.techLevel == 4) then
