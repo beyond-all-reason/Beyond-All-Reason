@@ -1,11 +1,10 @@
 local unitlist={--- Human friendly list. Automatically converted to unitdef IDs on init
  -- BA
-
-{'armmex','armuwmex', 'cormex','coruwmex'},-- test that it is allright when unit can't really be built
+ -- this should only ever swap between pairs of (buildable) units, 03/06/13
+ 
+{'armmex','armuwmex', 'cormex','coruwmex'},-- to test that widget behaves correctly when unit can't really be built
 {'armmakr','armfmkr'},
 {'cormakr','corfmkr'},
-{'armeyes','armsonar'},
-{'coreyes','corsonar'},
 --{'armdrag','armfdrag'},  --both can be built in shallow water -> do not touch
 --{'cordrag','corfdrag'},  --both can be built in shallow water -> do not touch
 {'armmstor', 'armuwms'},
@@ -14,8 +13,6 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'corestor', 'coruwes'},
 {'armrl','armfrt'},
 {'corrl','corfrt'},
---{'armdl','armtl'},  --its ambiguous with armllt -> armtl
---{'cordl','cortl'},  --its ambiguous with armllt -> armtl
 {'armhp','armfhp'},
 {'corhp','corfhp'},
 {'armrad','armfrad'},
