@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth.",
 		date      = "January 16, 2011",
-		version   = "9.0",
+		version   = "9.1",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -26,6 +26,7 @@ end
 --Changelog
 -- before v8.0 developed outside of BA by Marmoth
 -- v9.0 (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them. 
+-- v9.1 ([teh]decay): added notification about shared resources
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -1666,6 +1667,8 @@ function widget:MouseRelease(x,y,button)
 				end
 			else
 				Spring_ShareResources(energyPlayer.team,"energy",amountEM)
+				Spring_SendCommands("/W "..energyPlayer.name.." I shared you "..amountEM.." energy.")
+				Echo(amountEM.." energy shared to "..energyPlayer.name)
 			end
 			sliderOrigin = nil
 			amountEMMax = nil
@@ -1683,6 +1686,8 @@ function widget:MouseRelease(x,y,button)
 				end
 			else
 				Spring_ShareResources(metalPlayer.team,"metal",amountEM)
+				Spring_SendCommands("/W "..metalPlayer.name.." I shared you "..amountEM.." metal.")
+				Echo(amountEM.." metal shared to "..metalPlayer.name)
 			end
 			sliderOrigin = nil
 			amountEMMax = nil
@@ -2081,4 +2086,4 @@ end
 
 
 -- Coord in % (resize) geometry will not be done
--- ajouter les décryptages de messages "widget:AddConsoleLine(line,priority)" appelé à chaque fois qu'il doit ajouter une ligne
+-- ajouter les dï¿½cryptages de messages "widget:AddConsoleLine(line,priority)" appelï¿½ ï¿½ chaque fois qu'il doit ajouter une ligne
