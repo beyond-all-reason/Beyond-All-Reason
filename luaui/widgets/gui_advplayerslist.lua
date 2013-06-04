@@ -1666,9 +1666,8 @@ function widget:MouseRelease(x,y,button)
 					Spring_SendCommands("say a: I need "..amountEM.." Energy!")
 				end
 			else
-				Spring_ShareResources(energyPlayer.team,"energy",amountEM)
-				Spring_SendCommands("/W "..energyPlayer.name.." I shared you "..amountEM.." energy.")
-				Echo(amountEM.." energy shared to "..energyPlayer.name)
+				Spring_ShareResources(energyPlayer.team, "energy", amountEM)
+				Spring_SendCommands("say a: I sent "..amountEM.." energy to "..energyPlayer.name)
 			end
 			sliderOrigin = nil
 			amountEMMax = nil
@@ -1685,9 +1684,8 @@ function widget:MouseRelease(x,y,button)
 					Spring_SendCommands("say a: I need "..amountEM.." Metal!")
 				end
 			else
-				Spring_ShareResources(metalPlayer.team,"metal",amountEM)
-				Spring_SendCommands("/W "..metalPlayer.name.." I shared you "..amountEM.." metal.")
-				Echo(amountEM.." metal shared to "..metalPlayer.name)
+				Spring_ShareResources(metalPlayer.team, "metal", amountEM)
+				Spring_SendCommands("say a: I sent "..amountEM.." metal to "..metalPlayer.name)
 			end
 			sliderOrigin = nil
 			amountEMMax = nil
