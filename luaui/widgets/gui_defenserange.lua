@@ -47,7 +47,6 @@ modConfig["BA"]["unitList"] =
 								armdl = { weapons = { 1 } }, --depthcharge
 								ajuno = { weapons = { 1 } },
 								armtl = { weapons = { 1 } }, --torp launcher
-								armptl = { weapons = { 1 } }, --popup torp launcher
 								armfhlt = { weapons = { 1 } },  --floating hlt
 								armfrt = { weapons = { 2 } },  --floating rocket laucher
 								armfflak = { weapons = { 2 } },  --floating flak AA
@@ -79,7 +78,6 @@ modConfig["BA"]["unitList"] =
 								
 								corfhlt = { weapons = { 1 } },  --floating hlt
 								cortl = { weapons = { 1 } }, --torp launcher
-								corptl = { weapons = { 1 } }, --popup torp launcher
 								coratl = { weapons = { 1 } }, --T2 torp launcher
 								corfrt = { weapons = { 2 } }, --floating rocket laucher
 								corenaa = { weapons = { 2 } }, --floating flak AA
