@@ -235,6 +235,10 @@ end
 function widgetHandler:LoadConfigData()
   local chunk, err = loadfile(CONFIG_FILENAME)
   if (chunk == nil) then
+	Spring.Echo("Unable to load luaui config file!")
+    return {}
+  elseif (chunk() == nil) then
+	Spring.Echo("Luaui config file is blank!")
     return {}
   else
     local tmp = {}
