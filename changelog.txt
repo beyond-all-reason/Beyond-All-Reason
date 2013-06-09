@@ -24,7 +24,7 @@
 - Arm Amphibious lab metalcost increased (860->1118)
 
 - Arm Floating HLT Energy Per Shot reduced (75->40), Reload time reduced (1->0.9), Target move error reduced (0.2->0.1), Special damage vs Commanders added (210->300)
-- Core Floating HLT Energy Per Shot reduced (75->45), damage increased (210->231), Target move error reduced (0.2->0.1) Special damage vs Commanders added (210->250) 
+- Core Floating HLT Energy Per Shot reduced (75->45), damage increased (210->231), Target move error reduced (0.2->0.1) Special damage vs Commanders added (210->350) 
 - Both Floating HLT Turret turn speeds increased a little
 - Both Floating HTLs Energymake added (+5)
 - Both Floating HLTs Buildtime reduced 5%
@@ -32,7 +32,7 @@
 - Arm T1 Floating Anti-air Tower Metalcost increased (71->85), Health increased (252->340)
 - Arm T1 Floating Anti-air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
 
-- Core T1 Floaring Anti-air Tower Metalcost increased (72->86), Health increased (290->355)
+- Core T1 Floating Anti-air Tower Metalcost increased (72->86), Health increased (290->355)
 - Core T1 Floating Anti-air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
 
 - Added Aurora - T2 Floating Plasma Deflector (700 range, 700 shield energy cost)
