@@ -233,25 +233,26 @@ end
 --------------------------------------------------------------------------------
 
 function widgetHandler:LoadConfigData()
-  local chunk, err = loadfile(CONFIG_FILENAME)
-  if (chunk == nil) then
-	Spring.Echo("Unable to load luaui config file!")
-    return {}
-  elseif (chunk() == nil) then
-	Spring.Echo("Luaui config file is blank!")
-    return {}
-  else
-    local tmp = {}
+	local chunk, err = loadfile(CONFIG_FILENAME)
+	if (chunk == nil) or (err) then
+		if err then
+			Spring.Log("bawidgets.lua", LOG.INFO, err)
+		end
+		return {}
+	elseif (chunk() == nil) then
+		Spring.Log("bawidgets.lua", LOG.ERROR, 'Luaui config file was blank')
+		return {}
+	end 
+    local tmp = {} 
     setfenv(chunk, tmp)
     self.orderList = chunk().order
     self.configData = chunk().data
     if (not self.orderList) then
-      self.orderList = {} -- safety
+		self.orderList = {} -- safety
     end
     if (not self.configData) then
-      self.configData = {} -- safety
+		self.configData = {} -- safety
     end
-  end
 end
 
 
