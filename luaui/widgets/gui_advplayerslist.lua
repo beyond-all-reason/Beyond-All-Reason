@@ -14,8 +14,8 @@ function widget:GetInfo()
 		name      = "AdvPlayersList",
 		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth.",
-		date      = "January 16, 2011",
-		version   = "9.1",
+		date      = "11.06.2013",
+		version   = "10",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -27,6 +27,7 @@ end
 -- before v8.0 developed outside of BA by Marmoth
 -- v9.0 (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them. 
 -- v9.1 ([teh]decay): added notification about shared resources
+-- v10  (Bluestone): Better use of opengl for a big speed increase & less spaghetti
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -51,6 +52,10 @@ local Spring_GetConfigInt        = Spring.GetConfigInt
 local Spring_GetMouseState       = Spring.GetMouseState
 local Spring_GetAIInfo           = Spring.GetAIInfo
 local Spring_GetTeamRulesParam   = Spring.GetTeamRulesParam
+local Spring_IsGUIHidden		 = Spring.IsGUIHidden
+local Spring_GetDrawFrame		 = Spring.GetDrawFrame
+local Spring_GetGameFrame		 = Spring.GetGameFrame
+local Spring_GetTeamColor		 = Spring.GetTeamColor
 
 local GetTextWidth        = fontHandler.GetTextWidth
 local UseFont             = fontHandler.UseFont
@@ -62,6 +67,11 @@ local gl_Texture          = gl.Texture
 local gl_Rect             = gl.Rect
 local gl_TexRect          = gl.TexRect
 local gl_Color            = gl.Color
+local gl_CreateList	      = gl.CreateList
+local gl_BeginEnd         = gl.BeginEnd
+local gl_DeleteList	      = gl.DeleteList
+local gl_CallList         = gl.CallList
+local gl_Text			  = gl.Text
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -140,7 +150,7 @@ local now             = 0
 --------------------------------------------------------------------------------
 
 local tipIdleTime = 1000     -- last time mouse moved (for tip)
-local tipText                -- text of the tip
+local tipText
 local oldMouseX,oldMouseY    -- used to determine idle status (mouse moved or not)
 
 --------------------------------------------------------------------------------
@@ -464,7 +474,7 @@ end
 
 function widget:Initialize()
 	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
-		Spring.SendCommands("info 0")
+		--Spring.SendCommands("info 0")
 	end
 	
 	Init()
@@ -775,33 +785,70 @@ end
 --  Draw
 ---------------------------------------------------------------------------------------------------
 
+local PrevGameFrame 
+local MainList
+local Background
+local ShareSlider
+
 function widget:DrawScreen()
 
-	local vOffset                 = 0         -- position of the next object to draw
-	local firstDrawnPlayer, firstEnemy, previousAllyTeam = true, true, nil
-	local tip                     = GetTipIdle()
-	local mouseX,mouseY           = Spring_GetMouseState()
 
-	-- sets font
-	UseFont(font)
-	
-	-- updates ressources for the sharing
-	UpdateRessources()
-	CheckTime()
-	
 	-- cancels the drawing if GUI is hidden
-	if Spring.IsGUIHidden() then
+	if Spring_IsGUIHidden() then
 		return
+	end
+
+	-- decides when to updates lists 
+	local NeedUpdate = false --(DrawFrame%30==0) or (GameFrame>=PrevGameFrame+15) --TODO use getmousestate and playerstuff to work out when to remake the gllist
+	local mouseX,mouseY = Spring_GetMouseState()
+	if (mouseX > widgetPosX) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
+		local DrawFrame = Spring_GetDrawFrame()
+		local GameFrame = Spring_GetGameFrame()
+		if PrevGameFrame == nil then PrevGameFrame = GameFrame end
+		if (DrawFrame%5==0) or (GameFrame>PrevGameFrame+1) then
+			--Echo(DrawFrame)
+			NeedUpdate = true
+		end
+	end
+	
+	if NeedUpdate then
+
+		--Spring.Echo(GameFrame)
+	
+		--local vOffset                 = 0         -- position of the next object to draw
+		--local firstDrawnPlayer, firstEnemy, previousAllyTeam = true, true, nil
+			
+		CreateLists()
+		PrevGameFrame = GameFrame
+	else
+	if (not Background) then CreateBackground() end
+	if (not MainList) then CreateMainList() end
+	if (not ShareSlider) then CreateShareSlider() end
 	end
 	
 	-- draws the background
-	DrawBackground()
+	if Background then
+		gl_CallList(Background)
+	end
 	
 	-- draws the main list
-	DrawList()
+	if MainList then
+		gl_CallList(MainList)
+	end
 
 	-- draws share energy/metal sliders
-	DrawShareSlider()
+	if ShareSlider then
+		gl_CallList(ShareSlider)
+	end
+end
+
+function CreateLists()
+		UpdateRessources()
+		CheckTime()		
+		--Create lists
+		CreateBackground()
+		CreateMainList()
+		CreateShareSlider()		
 end
 
 function UpdateRessources()
@@ -832,7 +879,7 @@ function UpdateRessources()
 end
 
 function CheckTime()
-	local period = 0.4
+	local period = 0.5
 	now = os.clock()
 	if  now > (lastTime + period) then
 		lastTime = now
@@ -857,10 +904,15 @@ function CheckTime()
 	end 
 end
 
-function DrawBackground()
+function CreateBackground()
 	
+	if Background then
+		gl_DeleteList(Background)
+	end
+	
+	Background = gl_CreateList(function()	
 	-- draws background rectangle
-	gl_Color(0,0,0,0.3)                              
+	gl_Color(.8,.8,1,0.3)                              
 	gl_Rect(widgetPosX,widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight - 1)
 	
 	-- draws black border
@@ -870,55 +922,52 @@ function DrawBackground()
 	gl_Rect(widgetPosX , widgetPosY, widgetPosX + 1, widgetPosY + widgetHeight  - 1)
 	gl_Rect(widgetPosX + widgetWidth - 1, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight  - 1)
 	gl_Color(1,1,1,1)
+	
+	end)	
 end
 
-function DrawList()
+function CreateMainList(tip)
+
+	--Spring.Echo("List Updated")
 
 	local mouseX,mouseY = Spring_GetMouseState()
 	local leader
-
-	if tip == false then
-		for i, drawObject in ipairs(drawList) do
-			if drawObject == -5 then
-				DrawLabel("SPECS", drawListOffset[i])
-			elseif drawObject == -4 then
-				DrawSeparator(drawListOffset[i])
-			elseif drawObject == -3 then
-				DrawLabel("ENEMIES", drawListOffset[i])
-			elseif drawObject == -2 then
-				DrawLabel("ALLIES", drawListOffset[i])
-			elseif drawObject == -1 then
-				leader = true
-			else
-				DrawPlayer(drawObject, leader, drawListOffset[i])
-			end
-		end
-	else
-		for i, drawObject in ipairs(drawList) do
-			if drawObject == -5 then
-				DrawLabel("SPECS", drawListOffset[i])
-			elseif drawObject == -4 then
-				DrawSeparator(drawListOffset[i])
-			elseif drawObject == -3 then
-				DrawLabel("ENEMIES", drawListOffset[i])
-			elseif drawObject == -2 then
-				DrawLabel("ALLIES", drawListOffset[i])
-			elseif drawObject == -1 then
-				leader = true
-			else
-				DrawPlayerTip(drawObject, leader, drawListOffset[i], mouseX, mouseY)
-				leader = false
-			end
-		end
-		DrawTip(mouseX, mouseY)
+	
+	if MainList then
+		gl_DeleteList(MainList)
 	end
+	
+	MainList = gl_CreateList(function()
+	
+	for i, drawObject in ipairs(drawList) do
+		if drawObject == -5 then
+			DrawLabel("SPECS", drawListOffset[i])
+		elseif drawObject == -4 then
+			DrawSeparator(drawListOffset[i])
+		elseif drawObject == -3 then
+			DrawLabel("ENEMIES", drawListOffset[i])
+		elseif drawObject == -2 then
+			DrawLabel("ALLIES", drawListOffset[i])
+		elseif drawObject == -1 then
+			leader = true
+		else
+			DrawPlayerTip(drawObject, leader, drawListOffset[i], mouseX, mouseY)
+			leader = false
+		end
+		
+		DrawTip(mouseX, mouseY)
+
+	end
+	
+	end)
+	
 end
 
 function DrawLabel(text, vOffset)
 	if widgetWidth < 67 then
 		text = string.sub(text, 0, 1)
 	end
-	TextDraw(text, widgetPosX + 2, widgetPosY + widgetHeight -vOffset+1)
+	gl_Text(text, widgetPosX + 2, widgetPosY + widgetHeight -vOffset+1, 15, "o")
 	gl_Color(1,1,1,0.5)
 	gl_Rect(widgetPosX+1, widgetPosY + widgetHeight -vOffset-1, widgetPosX + widgetWidth-1, widgetPosY + widgetHeight -vOffset-2)
 	gl_Color(0,0,0,0.5)
@@ -933,85 +982,7 @@ function DrawSeparator(vOffset)
 	gl_Color(1,1,1)
 end
 
-function DrawPlayer(playerID, leader, vOffset)
-	local rank     = player[playerID].rank
-	local name     = player[playerID].name
-	local team     = player[playerID].team
-	local allyteam = player[playerID].allyteam
-	local side     = player[playerID].side
-	local red      = player[playerID].red
-	local green    = player[playerID].green
-	local blue     = player[playerID].blue
-	local dark     = player[playerID].dark
-	local pingLvl  = player[playerID].pingLvl
-	local cpuLvl   = player[playerID].cpuLvl
-	local spec     = player[playerID].spec
-	local totake   = player[playerID].totake
-	local needm    = player[playerID].needm
-	local neede    = player[playerID].neede
-	local dead     = player[playerID].dead
-	local posY     = widgetPosY + widgetHeight - vOffset
 
-	if spec == false then
-		if leader == true then -- take / share buttons
-			if mySpecStatus == false then
-				if allyteam == myAllyTeamID then
-					if totake == true then
-						DrawTakeSignal(posY)
-					end
-					if m_share.active == true and dead ~= true then
-						DrawShareButtons(posY, needm, neede)
-					end
-				end
-			else
-				if m_spec.active == true then
-					DrawSpecButton(team,posY)                           -- spec button
-				end
-			end
-			gl_Color(red,green,blue,1)
-			if m_ID.active == true then
-					DrawID(team, posY, dark)
-			end
-		end
-		gl_Color(red,green,blue,1)
-		if m_side.active == true then
-			DrawSidePic(team, posY, leader, dark)   
-		end
-		gl_Color(red,green,blue,1)
-		if m_rank.active == true then
-			DrawRank(rank, posY, dark)
-		end
-	else --spectator
-		gl_Color(1,1,1,1)	
-		if m_name.active == true then
-			DrawSmallName(name, posY, false)
-		end		
-	end
-	if m_cpuping.active == true and not spec then
-		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
-			DrawCpuPing(pingLvl,cpuLvl,posY)
-		end
-	end
-	gl_Color(1,1,1,1)
-	if playerID < 64 then
-		if m_chat.active == true and mySpecStatus == false then
-			if playerID ~= myPlayerID then
-				DrawChatButton(posY)
-			end
-		end
-		if m_point.active == true then
-			if player[playerID].pointTime ~= nil then
-				if player[playerID].allyteam == myAllyTeamID or mySpecStatus == true then
-					if blink == true then
-						DrawPoint(posY)
-					end
-				end
-			end
-		end
-	end
-	leader = false
-	gl_Texture(false)
-end
 
 function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 	tipY           = nil
@@ -1055,7 +1026,7 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 			else
 				if m_spec.active == true then
 					DrawSpecButton(team, posY)                           -- spec button
-					if tipY == true then SpecTip(mouseX) end
+					if tipY == true then SpecTip(mouseX, mouseY) end
 				end
 			end
 			gl_Color(red,green,blue,1)	
@@ -1076,7 +1047,7 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		gl_Color(red,green,blue,1)	
 		if m_name.active == true then
-			DrawName(name, posY, dark)
+			DrawName(name, team, posY, dark)
 		end
 	else -- spectator
 		gl_Color(1,1,1,1)	
@@ -1219,30 +1190,35 @@ function DrawRankImage(rankImage, posY)
 		gl_TexRect(widgetPosX + 2, posY, widgetPosX + 18, posY + 16)
 end
 
-function DrawName(name, posY, dark)
-	TextDraw(name, m_name.posX + widgetPosX + 3, posY + 3) -- draws name
-	if dark == true then                                   -- draws outline if player color is dark
-		gl_Color(1,1,1)
-		UseFont(fontWOutline)
-		TextDraw(name, m_name.posX + widgetPosX + 3, posY + 3)
-		UseFont(font)
-	end
+function colourNames(teamID)
+    	nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(teamID)
+		R255 = math.floor(nameColourR*255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+        G255 = math.floor(nameColourG*255)
+        B255 = math.floor(nameColourB*255)
+        if ( R255%10 == 0) then
+                R255 = R255+1
+        end
+        if( G255%10 == 0) then
+                G255 = G255+1
+        end
+        if ( B255%10 == 0) then
+                B255 = B255+1
+        end
+	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
+end 
+
+function DrawName(name, team, posY, dark)
+	gl_Text(colourNames(team) .. name, m_name.posX + widgetPosX + 3, posY + 3, 15, "o") -- draws name
 	gl_Color(1,1,1)
 end
 
 function DrawSmallName(name, posY, dark)
-	gl.Text(name, m_name.posX + widgetPosX + 3, posY + 3, 12, "o")
+	gl_Text(name, m_name.posX + widgetPosX + 3, posY + 3, 12, "o")
 	gl_Color(1,1,1)
 end
 
 function DrawID(playerID, posY, dark)
-	TextDrawCentered(playerID..".", m_ID.posX + widgetPosX + 10, posY + 3) -- draws name
-	if dark == true then                                  -- draws outline if player color is dark
-		gl_Color(1,1,1)
-		UseFont(fontWOutline)
-		TextDrawCentered(playerID..".", m_ID.posX + widgetPosX + 10, posY + 3)
-		UseFont(font)
-	end
+	gl_Text(colourNames(team) .. playerID .. ".", m_ID.posX + widgetPosX + 10, posY + 3, 15, "o") 
 	gl_Color(1,1,1)
 end
 
@@ -1336,35 +1312,30 @@ function PointTip(mouseX)
 end
 
 function DrawTip(mouseX, mouseY)
-		if tipText ~= nil then
-			local tw = GetTextWidth(tipText) + 14
-			if right ~= true then tw = -tw end
-			gl_Color(0.7,0.7,0.7,0.5)
-			gl_Rect(mouseX-tw,mouseY,mouseX,mouseY+30) -- !! to be changed if the widget can be anywhere on the screen
-			gl_Color(1,1,1,1)
-			if right == true then
-				TextDrawRight(tipText,mouseX-7,mouseY+10)
-			else
-				TextDraw(tipText,mouseX+7,mouseY+10)
-			end
+	text = tipText --this is needed because we're inside a gllist
+	if text ~= nil then
+		local tw = GetTextWidth(text) + 14
+		if right ~= true then tw = -tw end
+		gl_Color(0.7,0.7,0.7,0.3)
+		gl_Rect(mouseX-tw,mouseY,mouseX,mouseY+30) 
+		gl_Color(1,1,1,1)
+		if right == true then
+			gl_Text(text,mouseX+7-tw,mouseY+10, 15, "o")
+		else
+			gl_Text(text,mouseX+7,mouseY+10, 15, "o")
 		end
-		tipText        = nil
+	end
+	tipText = nil
 end
 
-function GetTipIdle()
-	local mouseX,mouseY = Spring_GetMouseState()
-	if mouseX ~= oldMouseX or mouseY ~= oldMouseY then
-		tipIdleTime = now
-	end
-	oldMouseX,oldMouseY = mouseX,mouseY
-	if tipIdleTime + 0.5 > now then
-		return false
-	else
-		return true
-	end
-end
+function CreateShareSlider()
 
-function DrawShareSlider()
+	if ShareSlider then
+		gl_DeleteList(ShareSlider)
+	end
+	
+	ShareSlider = gl_CreateList(function()
+
 	local posY
 	if energyPlayer ~= nil then
 		posY = widgetPosY + widgetHeight - energyPlayer.posY
@@ -1376,11 +1347,11 @@ function DrawShareSlider()
 		if right == true then
 			gl_TexRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
 			gl_Texture(false)
-			TextDrawCentered(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
+			gl_Text(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
 		else
 			gl_TexRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
 			gl_Texture(false)
-			TextDrawCentered(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)				
+			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)				
 		end
 	elseif metalPlayer ~= nil then
 		posY = widgetPosY + widgetHeight - metalPlayer.posY
@@ -1392,13 +1363,15 @@ function DrawShareSlider()
 		if right == true then
 			gl_TexRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
 			gl_Texture(false)
-			TextDrawCentered(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
+			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
 		else
 			gl_TexRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
 			gl_Texture(false)
-			TextDrawCentered(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
+			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
 		end
 	end
+	
+	end)
 end
 
 function GetCpuLvl(cpuUsage)
@@ -1776,11 +1749,12 @@ local function DrawArrows()
 end
 
 function widget:TweakDrawScreen()
-
 	DrawGreyRect()
 	DrawTweakButtons()
 	DrawArrows()
 
+	CreateMainList()
+	CreateBackground()
 end
 
 
@@ -2054,12 +2028,23 @@ function widget:GameStart()
 	SetSidePics()
 end
 
-function widget:Update(frame)
-	local gs = Spring_GetGameSeconds()
+local timeCounter = 0
+local updateRate = 0.5
+
+function widget:Update(delta) --it seems to need this or it flickers slowly while waiting for game to start, wtf?
+	--[[local gs = Spring_GetGameSeconds()
 	if gs < 1 then
 		if gs > 0 then
 			Init() 
 		end
+	end]]--
+	
+	timeCounter = timeCounter + delta
+	if timeCounter < updateRate then
+		return
+	else
+		timeCounter = 0
+		CreateLists()
 	end
 end
 
