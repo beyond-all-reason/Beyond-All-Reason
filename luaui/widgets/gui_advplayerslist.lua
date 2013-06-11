@@ -57,12 +57,6 @@ local Spring_GetDrawFrame		 = Spring.GetDrawFrame
 local Spring_GetGameFrame		 = Spring.GetGameFrame
 local Spring_GetTeamColor		 = Spring.GetTeamColor
 
-local GetTextWidth        = fontHandler.GetTextWidth
-local UseFont             = fontHandler.UseFont
-local TextDraw            = fontHandler.Draw
-local TextDrawCentered    = fontHandler.DrawCentered
-local TextDrawRight       = fontHandler.DrawRight
-
 local gl_Texture          = gl.Texture
 local gl_Rect             = gl.Rect
 local gl_TexRect          = gl.TexRect
@@ -72,6 +66,7 @@ local gl_BeginEnd         = gl.BeginEnd
 local gl_DeleteList	      = gl.DeleteList
 local gl_CallList         = gl.CallList
 local gl_Text			  = gl.Text
+local gl_GetTextWidth	  = gl.GetTextWidth
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -120,24 +115,14 @@ local sidePics        = {}  -- loaded in Sem_sidePics function
 local sidePicsWO      = {}  -- loaded in Sem_sidePics function
 
 --------------------------------------------------------------------------------
--- Fonts
---------------------------------------------------------------------------------
-
-local font            = "LuaUI/Fonts/FreeSansBold_14"
-local fontWOutline    = "LuaUI/Fonts/FreeSansBoldWOutline_14"     -- White outline for font (special font set)
-
-
---------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
 
 local pingCpuColors   = {}
 
-
 --------------------------------------------------------------------------------
 -- Time Variables
 --------------------------------------------------------------------------------
-
 
 local blink           = true
 local lastTime        = 0
@@ -403,13 +388,12 @@ function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 
 	local t = Spring_GetPlayerList()
-	local maxWidth = GetTextWidth("- aband. units -")+4 -- minimal width = minimal standard text width
+	local maxWidth = 15*gl_GetTextWidth("- aband. units -")+8 -- minimal width = minimal standard text width
 	local name = ""
 	local nextWidth = 0
-	UseFont(font)
 	for _,wplayer in ipairs(t) do
 		name = Spring_GetPlayerInfo(wplayer)
-		nextWidth = GetTextWidth(name)+4
+		nextWidth = 15*gl_GetTextWidth(name)+8
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end
@@ -474,7 +458,7 @@ end
 
 function widget:Initialize()
 	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
-		--Spring.SendCommands("info 0")
+		Spring.SendCommands("info 0")
 	end
 	
 	Init()
@@ -1218,7 +1202,11 @@ function DrawSmallName(name, posY, dark)
 end
 
 function DrawID(playerID, posY, dark)
-	gl_Text(colourNames(team) .. playerID .. ".", m_ID.posX + widgetPosX + 10, posY + 3, 15, "o") 
+	if playerID < 10 then
+		gl_Text(colourNames(playerID) .. " ".. playerID .. ".", m_ID.posX + widgetPosX+2, posY + 3, 15, "o") 
+	else
+		gl_Text(colourNames(playerID) .. playerID .. ".", m_ID.posX + widgetPosX+2, posY + 3, 15, "o") 
+	end
 	gl_Color(1,1,1)
 end
 
@@ -1314,7 +1302,7 @@ end
 function DrawTip(mouseX, mouseY)
 	text = tipText --this is needed because we're inside a gllist
 	if text ~= nil then
-		local tw = GetTextWidth(text) + 14
+		local tw = 15*gl_GetTextWidth(text) + 28
 		if right ~= true then tw = -tw end
 		gl_Color(0.7,0.7,0.7,0.3)
 		gl_Rect(mouseX-tw,mouseY,mouseX,mouseY+30) 
@@ -2031,14 +2019,7 @@ end
 local timeCounter = 0
 local updateRate = 0.5
 
-function widget:Update(delta) --it seems to need this or it flickers slowly while waiting for game to start, wtf?
-	--[[local gs = Spring_GetGameSeconds()
-	if gs < 1 then
-		if gs > 0 then
-			Init() 
-		end
-	end]]--
-	
+function widget:Update(delta) 
 	timeCounter = timeCounter + delta
 	if timeCounter < updateRate then
 		return
