@@ -783,9 +783,9 @@ function widget:DrawScreen()
 	end
 
 	-- decides when to updates lists 
-	local NeedUpdate = false --(DrawFrame%30==0) or (GameFrame>=PrevGameFrame+15) --TODO use getmousestate and playerstuff to work out when to remake the gllist
+	local NeedUpdate = false 
 	local mouseX,mouseY = Spring_GetMouseState()
-	if (mouseX > widgetPosX) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
+	if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
 		local DrawFrame = Spring_GetDrawFrame()
 		local GameFrame = Spring_GetGameFrame()
 		if PrevGameFrame == nil then PrevGameFrame = GameFrame end
@@ -896,7 +896,7 @@ function CreateBackground()
 	
 	Background = gl_CreateList(function()	
 	-- draws background rectangle
-	gl_Color(.8,.8,1,0.3)                              
+	gl_Color(0.1,0.1,.45,0.18)                              
 	gl_Rect(widgetPosX,widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight - 1)
 	
 	-- draws black border
