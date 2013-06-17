@@ -66,6 +66,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("sphere.user", "LuaUI/Icons/sphere.png",1.1)
   Spring.AddUnitIcon("sphere2.user", "LuaUI/Icons/sphere.png",1.35)
   Spring.AddUnitIcon("sphere3.user", "LuaUI/Icons/sphere.png",1.7)
+  Spring.AddUnitIcon("tiny-sphere.user", "LuaUI/Icons/sphere.png",0.55)
   Spring.AddUnitIcon("square.user", "LuaUI/Icons/square.png")
   Spring.AddUnitIcon("square_+.user", "LuaUI/Icons/square_+.png")
   Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x.png")
@@ -165,8 +166,15 @@ function gadget:Initialize()
       end
     end
   end
+  
+  -- Shrink scouts
+  Spring.SetUnitDefIcon(UnitDefNames["corfav"].id, "tiny-sphere.user")
+  Spring.SetUnitDefIcon(UnitDefNames["armfav"].id, "tiny-sphere.user")
+  Spring.SetUnitDefIcon(UnitDefNames["corak"].id, "tiny-sphere.user")
+  Spring.SetUnitDefIcon(UnitDefNames["armpw"].id, "tiny-sphere.user")
+  Spring.SetUnitDefIcon(UnitDefNames["armflea"].id, "tiny-sphere.user")
+  
 end
-
 
 --------------------------------------------------------------------------------
 
