@@ -23,13 +23,13 @@ activatescr()
 		turn door1 to z-axis <-227.868132> speed <209.241758>;
 		turn door2 to z-axis <0.000000> now;
 		turn door2 to z-axis <227.516484> speed <208.917582>;
-		sleep 400;
+		sleep 300;
 	}
 	if( TRUE )
 	{
 		turn boom to x-axis <39.384615> speed <42.994505>;
 		turn neck to x-axis <-39.027473> speed <42.609890>;
-		sleep 350;
+		sleep 150;
 	}
 	sleep 16;
 }

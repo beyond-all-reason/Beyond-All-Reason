@@ -33,19 +33,19 @@ activatescr()
 		move nano2 to y-axis [7.800006] speed [10.386157];
 		move nano1 to y-axis [0.000000] now;
 		move nano1 to y-axis [7.750000] speed [10.319574];
-		sleep 751;
+		sleep 175;
 	}
 	if( TRUE )
 	{
 		turn nano2 to x-axis <-311.923077> speed <411.510989>;
 		turn nano1 to x-axis <-312.373626> speed <412.104396>;
-		sleep 758;
+		sleep 175;
 	}
 	if( TRUE )
 	{
 		turn turret1 to y-axis <-45.010989> speed <59.219780>;
 		turn turret2 to y-axis <45.456044> speed <59.813187>;
-		sleep 760;
+		sleep 175;
 	}
 	sleep 37;
 }

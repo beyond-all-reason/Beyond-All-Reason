@@ -20,18 +20,18 @@ activatescr()
 		turn door1 to z-axis <-67.428571> speed <108.582418>;
 		turn door2 to z-axis <0.000000> now;
 		turn door2 to z-axis <67.428571> speed <108.582418>;
-		sleep 250;
+		sleep 200;
 	}
 	if( TRUE )
 	{
 		move door1 to y-axis [-3.149994] speed [10.023920];
 		move door2 to y-axis [-3.100000] speed [10.944177];
-		sleep 250;
+		sleep 200;
 	}
 	if( TRUE )
 	{
-		move plate to y-axis [5.650000] speed [13.996814];
-		sleep 250;
+		move plate to y-axis [2.650000] speed [13.996814];
+		sleep 50;
 	}
 	sleep 31;
 }
@@ -40,7 +40,7 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move plate to y-axis [5.650000] now;
+		move plate to y-axis [2.650000] now;
 		move plate to y-axis [0.000000] speed [19.098230];
 		move door1 to y-axis [-3.149994] now;
 		move door2 to y-axis [-3.100000] now;

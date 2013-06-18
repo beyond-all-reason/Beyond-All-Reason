@@ -35,7 +35,7 @@ return {
 		terraformspeed = 500,
 		waterline = 33,
 		workertime = 220,
-		yardmap = "wCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCw",
+		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
 		buildoptions = {
 			[1] = "corcs",
 			[2] = "corpt",

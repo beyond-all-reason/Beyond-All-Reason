@@ -34,7 +34,7 @@ activatescr()
 		move turreta to y-axis [6.899988] speed [5.862354];
 		move turretb to y-axis [0.000000] now;
 		move turretb to y-axis [6.949982] speed [5.904828];
-		sleep 1177;
+		sleep 300;
 	}
 	if( TRUE )
 	{
@@ -46,7 +46,7 @@ activatescr()
 		turn gunb to z-axis <28.675824> speed <39.719780>;
 		turn guna to x-axis <66.917582> speed <92.681319>;
 		turn guna to z-axis <-28.675824> speed <39.719780>;
-		sleep 722;
+		sleep 200;
 	}
 	sleep 11;
 }
