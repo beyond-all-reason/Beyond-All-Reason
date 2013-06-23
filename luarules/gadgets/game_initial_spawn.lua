@@ -113,9 +113,12 @@ end
 -- prevent startpoints being placed outside or on the edge of the startbox, as a workaround for http://springrts.com/mantis/view.php?id=3737
 function gadget:AllowStartPosition(x,y,z,playerID)
 	--Spring.Echo(x,y,z)
+	--f = Spring.GetGameFrame()
+	--Spring.Echo(f)
 	--yh = Spring.GetGroundHeight(x,z)
 	--Spring.Echo(x,yh,z)
-	--if StartPointAssist == false then return true end
+	if StartPointAssist == false then return true end
+	
 	local _,_,_,_,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if allyteamID == nil then return true end
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
@@ -144,13 +147,7 @@ local function MakeStartPointTable()
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamIDs[j]) 
 		for i=1,#teamIDs do
 			local x,y,z = Spring.GetTeamStartPosition(teamIDs[i])
-			local yground1 = Spring.GetGroundHeight(x,z)
-			local yground2 = Spring.GetGroundHeight(x+1,z+1)
-			local yground3 = Spring.GetGroundHeight(x-1,z+1)
-			local yground4 = Spring.GetGroundHeight(x+1,z-1)
-			local yground5 = Spring.GetGroundHeight(x-1,z-1)
-			local isygood = (y >= yground1) or (y >= yground2) or (y >= yground3) or (y >= yground4) or (y >= yground5)  -- the point here is to account for rounding errors in x/z that take place inside the engine, see http://springrts.com/mantis/view.php?id=3678
-
+			local isygood = (y > -500) --if a player doesn't place a startpoint then the engine (mostly) places one for them in some unsuitable location and with y=-500
 			local _,_,_,isAIteam,_,_,_,_ = Spring.GetTeamInfo(teamIDs[i]) 
 			local isGaiateam = (teamIDs[i] == GaiateamID)
 			
@@ -170,7 +167,7 @@ local function MakeStartPointTable()
 			end
 			--Spring.Echo(teamIDs[i],x,z,xmin,xmax,zmin,zmax,y,isygood,isplayerspot,isGaiateam,isAIteam,isactive,isspec)--DEBUG
 			
-			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and isactive and (not isspec))) then 
+			if  isygood and (isplayerspot or ((not isGaiateam) and (not isAIteam) and (not isspec))) then --guess! engine has no callin that can check 
 				StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 			else
 				if (not isGaiateam) then
