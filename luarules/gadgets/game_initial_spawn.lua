@@ -117,7 +117,7 @@ function gadget:AllowStartPosition(x,y,z,playerID)
 	--Spring.Echo(f)
 	--yh = Spring.GetGroundHeight(x,z)
 	--Spring.Echo(x,yh,z)
-	if StartPointAssist == false then return true end
+	--if StartPointAssist == false then return true end
 	
 	local _,_,_,_,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if allyteamID == nil then return true end
