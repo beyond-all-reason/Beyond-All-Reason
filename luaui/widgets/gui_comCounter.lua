@@ -16,7 +16,7 @@ end
 
 -- Config
 local flashIcon				= true
-local markers				= true
+local markers				= false
 local flagWarningTime		= 30*10
 -- whenever reclaim/rez/damage labels should be placed even if the player has LOS
 local warnLOS				= false
