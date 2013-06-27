@@ -35,9 +35,6 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'corlab','corsy'},
 {'armllt','armtl'},
 {'corllt','cortl'},
-{'corsonar','corrad'},
-{'armsonar','armrad'},
-
 
 -- XTA - arm
 
