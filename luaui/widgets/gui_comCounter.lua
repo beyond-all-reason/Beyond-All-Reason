@@ -16,7 +16,7 @@ end
 
 -- Config
 local flashIcon				= true
-local markers				= false
+local markers				= true
 local flagWarningTime		= 30*10
 -- whenever reclaim/rez/damage labels should be placed even if the player has LOS
 local warnLOS				= false
@@ -55,6 +55,7 @@ local spGetTeamInfo			= Spring.GetTeamInfo
 local spIsPosInLos			= Spring.IsPosInLos
 local spAreTeamsAllied		= Spring.AreTeamsAllied
 local spGetGaiaTeamID		= Spring.GetGaiaTeamID
+local spValidFeatureID		= Spring.ValidFeatureID
 
 local VFSFileExists			= VFS.FileExists
 
@@ -74,7 +75,6 @@ local glDeleteList			= gl.DeleteList
 local floor					= math.floor
 local max					= math.max
 local min					= math.min
-local insert				= table.insert
 local toChar				= string.char
 
 local textSize				= 20
@@ -90,6 +90,7 @@ local allyComs				= 0
 local enemyComs				= 0
 local teamComs				= {}
 local deadComs				= {}
+local featureToProcess		= {}
 local lastAllyComMarked		= false
 local lastEnemyComMarked	= false
 local amISpec				= spGetSpectatingState()
@@ -100,6 +101,7 @@ local countChanged			= true
 local displayList			= nil
 local flickerLastState		= nil
 local newFeatures			= {}
+local toClean				= {}
 local is1v1					= #spGetTeamList() == 3 -- +1 because of gaia
 local coopOn				= Spring.GetModOptions().mo_coop == "1" or true
 --------------------------------------------------------------------------------
@@ -108,6 +110,9 @@ local coopOn				= Spring.GetModOptions().mo_coop == "1" or true
 function placeLabel(x, y, z, msg)
 	if markers and (specMarkers or not amISpec) then
 		spMarkerAddPoint(x, y, z, msg)
+		local eraseFrame = spGetGameFrame() + flagWarningTime
+		toClean[eraseFrame] = toClean[eraseFrame] or {}
+		toClean[eraseFrame][#toClean[eraseFrame]+1] = {x,y,z}
 	end
 end
 
@@ -220,7 +225,7 @@ function widget:Initialize()
 				local _, _, spec, tID, aID = spGetPlayerInfo(playerID)
 				if not spec then
 					teamToPlayers[tID] = teamToPlayers[tID] or {}
-					table.insert(teamToPlayers[tID],playerID)
+					teamToPlayers[tID][#teamToPlayers[tID]+1] = playerID
 				end
 			end
 			local gaiaTeam = spGetGaiaTeamID()
@@ -285,6 +290,14 @@ function UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 	removeComFromTeam(oldTeam)
 	appendComToTeam(newTeam)
+end
+
+function widget:FeatureCreated(featureID,allyTeamID)
+	featureToProcess[#featureToProcess+1] = {true,featureID,allyTeamID}
+end
+
+function widget:FeatureDestroyed(featureID,allyTeamID)
+	featureToProcess[#featureToProcess+1] = {false,featureID,allyTeamID}
 end
 
 -- keep progress of reclaim/resurrect/damage done in each frame, calc delta
@@ -369,38 +382,41 @@ end
 
 
 function widget:GameFrame(n)
-	for featureID,data  in pairs(deadComs) do
-		local Hp, maxHp, fRez = spGetFeatureHealth(featureID)
-		local _,_,_,_,reclaimLeft = spGetFeatureResources(featureID)
-		if Hp and maxHp then
-			wreckProcessChange(n,data.position,data.damage,Hp/maxHp)
-		end
-		if fRez then
-			wreckProcessChange(n,data.position,data.rez,fRez,"Com is being resurrected")
-		end
-		if reclaimLeft then
-			wreckProcessChange(n,data.position,data.reclaim,reclaimLeft,"Com is being resurrected","Com is being reclaimed")
-		end
-	end
 	-- ugly workaround to account if we change who we watch as spec
 	if myTeamID ~= spGetMyTeamID() then
 		IChanged()
 	end
-	--remove this shit when FetureCreated and FeatureDestroyed are available
-	local allFeatures = {}
-	for _,featureID in ipairs(spGetAllFeatures()) do
-		if not newFeatures[featureID] then
-			newFeature(featureID)
-			newFeatures[featureID] = true
+	for _, featureInfo in ipairs(featureToProcess) do
+		if featureInfo[1] then
+			newFeature(featureInfo[2],featureInfo[3])
+		else
+			delFeature(featureInfo[2],featureInfo[3])
 		end
-		allFeatures[featureID] = true
 	end
-	for featureID in pairs(newFeatures) do
-		if not allFeatures[featureID] then
+	featureToProcess = {}
+	for featureID,data  in pairs(deadComs) do
+		if not spValidFeatureID(featureID) then
 			delFeature(featureID)
-			newFeatures[featureID] = nil
+		end
+		local Hp, maxHp, fRez = spGetFeatureHealth(featureID)
+		local _,_,_,_,reclaimLeft = spGetFeatureResources(featureID)
+		if Hp and maxHp then
+			wreckProcessChange(n,data.position,data.variables.damage,Hp/maxHp)
+		end
+		if fRez then
+			fRez = 1-fRez -- have completion to 0 instead of 1, to make it consistent with rest
+			wreckProcessChange(n,data.position,data.variables.rez,fRez,nil,"Com is being resurrected")
+		end
+		if reclaimLeft then
+			wreckProcessChange(n,data.position,data.variables.reclaim,reclaimLeft,"Com is being resurrected","Com is being reclaimed")
 		end
 	end
+	if toClean[n] then
+		for _,coords in ipairs(toClean[n]) do
+			spMarkerErasePosition( coords[1], coords[2], coords[3] )
+		end
+	end
+	toClean[n] = nil
 end
 
 function initVec(value)
@@ -421,12 +437,19 @@ function newFeature(featureID)
 	end
 	local fTeamID = spGetFeatureTeam(featureID)
 	local _,fPlayerID = spGetTeamInfo(fTeamID)
-	local pName= spGetPlayerInfo(fPlayerID) or ""
-	local _,_,_,fX,fY,fZ = spGetFeaturePosition(featureID, true, false)
+	local pName = spGetPlayerInfo(fPlayerID) or ""
+	local fX,fY,fZ = spGetFeaturePosition(featureID, true, false)
 	local Hp, maxHp, fRez = spGetFeatureHealth(featureID)
 	local _,_,_,_,reclaimLeft = spGetFeatureResources(featureID)
 	local position = {fX=fX,fY=fY,fZ=fZ}
-	deadComs[featureID] = {position=position,rez=initVec(fRez),damage=initVec(Hp/maxHp),reclaim=initVec(reclaimLeft)}
+	deadComs[featureID] = {
+		position=position,
+		variables = {
+			rez=initVec(fRez),
+			damage=initVec(Hp/maxHp),
+			reclaim=initVec(reclaimLeft),
+		},
+	}
 	removeComFromTeam(fTeamID)
 	markComs() -- mark last com if necessary
 	if spAreTeamsAllied(myTeamID,fTeamID) then
@@ -445,8 +468,19 @@ function delFeature(featureID)
 		return -- it's either not a com or we got no info on it anyway
 	end
 	local position = data.position
+	local reasonVec = {}
+	local reasonReverseVec = {}
+	for name, info in pairs(data.variables) do
+		reasonVec[#reasonVec+1] = info.nextValue
+		reasonReverseVec[info.nextValue] = name
+	end
+	table.sort(reasonVec)
+	local reason = ""
+	if reasonVec[1] <= 0 then
+		reason = reasonReverseVec[reasonVec[1]]
+	end
 	-- use the linearry interpolated value to see which operation was successful
-	if data.rez.nextValue >= 1 then
+	if reason == "rez" then
 		--need to figure out a better way to find who resurrected the com, then we
 		--can keep track the amount of coms per team
 		if not amISpec then --as spectator, we can use UnitCreated alone
@@ -459,11 +493,11 @@ function delFeature(featureID)
 	end
 	-- don't annoy players when they can see themselves
 	if warnLOS or not spIsPosInLos(position.fX, position.fY, position.fZ, myAllyTeamID ) then
-		if data.rez.nextValue >= 1 then
+		if reason == "rez" then
 			placeLabel(position.fX, position.fY, position.fZ, "Com has been resurrected")
-		elseif data.reclaim.nextValue <= 0 then
+		elseif reason == "reclaim" then
 			placeLabel(position.fX, position.fY, position.fZ, "Com has been reclaimed")
-		elseif data.damage.nextValue <= 0 then
+		elseif reason == "damage" then
 			placeLabel(position.fX, position.fY, position.fZ, "Com wreck destroyed")
 		else
 			placeLabel(position.fX, position.fY, position.fZ, "Com wreck disappeared")
