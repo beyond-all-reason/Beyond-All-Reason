@@ -2,10 +2,10 @@ return {
 	mercury = {
 		acceleration = 0,
 		activatewhenbuilt = true,
-		airsightdistance = 1850,
+		airsightdistance = 2400,
 		brakerate = 0,
-		buildcostenergy = 32250,
-		buildcostmetal = 1772,
+		buildcostenergy = 30246,
+		buildcostmetal = 1522,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,

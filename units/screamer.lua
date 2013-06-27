@@ -2,10 +2,10 @@ return {
 	screamer = {
 		acceleration = 0,
 		activatewhenbuilt = true,
-		airsightdistance = 1850,
+		airsightdistance = 2400,
 		brakerate = 0,
-		buildcostenergy = 32362,
-		buildcostmetal = 1732,
+		buildcostenergy = 30362,
+		buildcostmetal = 1530,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
