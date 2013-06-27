@@ -1,6 +1,6 @@
 return {
 	corcan = {
-		acceleration = 0.11999999731779,
+		acceleration = 0.12,
 		brakerate = 0.1879999935627,
 		buildcostenergy = 8722,
 		buildcostmetal = 522,
@@ -23,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 4850,
 		maxslope = 14,
-		maxvelocity = 1.3500000238419,
+		maxvelocity = 1.25,
 		maxwaterdepth = 21,
 		movementclass = "KBOT2",
 		name = "Can",
