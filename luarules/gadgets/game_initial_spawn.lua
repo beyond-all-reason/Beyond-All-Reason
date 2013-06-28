@@ -1,15 +1,15 @@
 
 function gadget:GetInfo()
-    return {
-        name      = 'Initial Spawn',
-        desc      = 'Handles initial spawning of units',
-        author    = 'Niobium',
-        version   = 'v1.0',
-        date      = 'April 2011',
-        license   = 'GNU GPL, v2 or later',
-        layer     = 0,
-        enabled   = true
-    }
+	return {
+		name	= 'Initial Spawn',
+		desc	= 'Handles initial spawning of units',
+		author	= 'Niobium',
+		version	= 'v1.0',
+		date	= 'April 2011',
+		license	= 'GNU GPL, v2 or later',
+		layer	= 0,
+		enabled	= true
+	}
 end
 
 -- 31/03/13, mo_coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
@@ -18,7 +18,7 @@ end
 -- Synced only
 ----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
-    return false
+	return false
 end
 
 ----------------------------------------------------------------
@@ -34,8 +34,8 @@ local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
 local validStartUnits = {
-    [armcomDefID] = true,
-    [corcomDefID] = true,
+	[armcomDefID] = true,
+	[corcomDefID] = true,
 }
 local spawnTeams = {} -- spawnTeams[teamID] = allyID
 
@@ -49,6 +49,9 @@ local startEnergy = tonumber(modOptions.startenergy) or 1000
 
 local StartPointTable = {}
 local StartPointAssist 
+
+local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
+GG.playerStartingUnits = playerStartingUnits -- Share it to other gadgets
 
 -- guessing vars
 local claimradius = 250*2.3 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
@@ -70,34 +73,35 @@ local spGetGroundHeight = Spring.GetGroundHeight
 -- Initialize
 ----------------------------------------------------------------
 function gadget:Initialize()
-    local gaiaTeamID = Spring.GetGaiaTeamID()
-    local teamList = Spring.GetTeamList()
-    for i = 1, #teamList do
-        local teamID = teamList[i]
-        if teamID ~= gaiaTeamID then
-            local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID)
-            if teamSide == 'core' then
-                spSetTeamRulesParam(teamID, startUnitParamName, corcomDefID)
-            else
-                spSetTeamRulesParam(teamID, startUnitParamName, armcomDefID)
-            end
-            spawnTeams[teamID] = teamAllyID
-        end
-    end
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local teamList = Spring.GetTeamList()
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		if teamID ~= gaiaTeamID then
+			local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID)
+			if teamSide == 'core' then
+				spSetTeamRulesParam(teamID, startUnitParamName, corcomDefID)
+			else
+				spSetTeamRulesParam(teamID, startUnitParamName, armcomDefID)
+			end
+			spawnTeams[teamID] = teamAllyID
+		end
+	end
 end
 
 -- keep track of choosing faction ingame
 if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
-    function gadget:RecvLuaMsg(msg, playerID)
-        local startUnit = tonumber(msg:match(changeStartUnitRegex))
-        if startUnit and validStartUnits[startUnit] then
-            local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
-            if not playerIsSpec then
-                spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public) --public so as advplayerlist can check faction at GameStart
-                return true
-            end
-        end
-    end
+	function gadget:RecvLuaMsg(msg, playerID)
+		local startUnit = tonumber(msg:match(changeStartUnitRegex))
+		if startUnit and validStartUnits[startUnit] then
+			local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
+			if not playerIsSpec then
+				playerStartingUnits[playerID] = startUnit
+				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public) --public so as advplayerlist can check faction at GameStart
+				return true
+			end
+		end
+	end
 end
 
 if (tonumber((Spring.GetModOptions() or {}).mo_startpoint_assist) == 1) and (Game.startPosType == 2) then
@@ -181,8 +185,8 @@ end
 
 -- spawn starting unit
 local function SpawnTeamStartUnit(teamID, allyID, x, z)
-    local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
-    local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
+	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
+	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
 	if (StartPointAssist) then 
 		-- guess points for the classified in StartPointTable as not genuine 
@@ -195,25 +199,25 @@ local function SpawnTeamStartUnit(teamID, allyID, x, z)
 			x = (xmin + xmax) / 2
 			z = (zmin + zmax) / 2
 		end
-    end
+	end
 
-    local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
+	local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
 	
 	if (comStorage) then
-      Spring.AddUnitResource(unitID, 'm', startMetal)
-      Spring.AddUnitResource(unitID, 'e', startEnergy)
-    end
+	  Spring.AddUnitResource(unitID, 'm', startMetal)
+	  Spring.AddUnitResource(unitID, 'e', startEnergy)
+	end
 end
 
 -- cycle through teams and call spawn starting unit
 function gadget:GameStart() 
 	if StartPointAssist then 
 		StartPointTable = MakeStartPointTable() 
-    end
+	end
 	for teamID, allyID in pairs(spawnTeams) do
-        local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-        SpawnTeamStartUnit(teamID, allyID, startX, startZ) 
-    end
+		local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
+		SpawnTeamStartUnit(teamID, allyID, startX, startZ) 
+	end
 end
 
 ----------------------------------------------------------------
