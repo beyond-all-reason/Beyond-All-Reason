@@ -421,20 +421,26 @@ function widget:GameFrame(n)
 		return
 	end
 
+	local tasker
 	-- Search for our starting unit
 	local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
 	for u = 1, #units do
 		local uID = units[u]
 		if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
-			--Spring.Echo("sending queue to unit")
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				Spring.GiveOrderToUnit(uID, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+			tasker = uID
+			if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
+				--we found our com even if cooping, assing queue to this particular unit
+				break
 			end
-
-			widgetHandler:RemoveWidget(self)
-			return
 		end
+	end
+	if tasker then
+		--Spring.Echo("sending queue to unit")
+		for b = 1, #buildQueue do
+			local buildData = buildQueue[b]
+			Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+		end
+		widgetHandler:RemoveWidget(self)
 	end
 end
 

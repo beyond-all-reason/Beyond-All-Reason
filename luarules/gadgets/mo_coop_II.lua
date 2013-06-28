@@ -147,7 +147,9 @@ if gadgetHandler:IsSyncedCode() then
 			x = 0.5 * (xmin + xmax)
 			z = 0.5 * (zmin + zmax)
 		end
-		Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		--we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue
+		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end
 	
 	function gadget:GameFrame(n)
