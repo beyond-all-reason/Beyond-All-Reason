@@ -1,4 +1,26 @@
--- 02/06/2013 - T1 Ships Revamp (7.77) --
+7.76 -> 7.78
+27/06/2013
+- Dots in Customformations are of consistent size depending on zoom and terrain height 
+- Fixed crash in Customformations when both mouse buttons were pressed at once
+- Set Target can now be used with Customformations
+- Fixed faction changing in coops
+- Workaround for luaui crash on empty BA.lua
+- In team com-ends, when game ends, units are destroyed in a wave of death, outwards from last com
+- Fixed ambiguities in context build with radar, sonar & dragons eyes.
+- AdvPlayerList gives a chat notification when m/e are shared to allies
+- T1 Ships Revamp! (see below)
+- Added map icon for anti-air & gave scouts a smaller map icon
+- Fixed icon size when units are in ground/sea transports
+- Fixed Startpoint Guesser sometimes not recognizing genuine startpoints
+- Fixed passenger explosions on hover transport death
+- Reduced Can maxspeed reduced 1.35->1.25
+- Reduced Mercury/Screamer buildcost by about 10%
+- Commando only auto-builds mines when movestate is roam
+- Added draw/point spam blocker widget (default disabled)
+- Made Specific Unit Reclaimer work with all types of constructor
+
+
+-- 02/06/2013 - T1 Ships Revamp (7.76->7.77) --
 
 - Commanders now have an underwater weapon, a short range laser which fires when they are not building/repairing (dps similar to the existing red laser)
 - Commanders can now build Floating Radar Towers
@@ -11,9 +33,6 @@
 
 - Arm T1 Shipyard metalcost reduced (615->425), health increased (2990->3700), workertime increased (100->220), energymake added (+15)
 - Core T1 Shipyard metalcost reduced (600->415), health increased (2990->3850), workertime increased (100->220), energymake added (+15)
-
-- Arm Advanced Shipyard Health Increased (4512->5415), energymake added (+25)
-- Core Advanced Shipyard health increased (4416->5300), energymake added (+25)
 
 - Arm Tidal Generator energycost reduced (412->288), health increased (256->358)
 - Core Tidal Generator energycost reduced (417->292), health increased (253->354)
@@ -39,9 +58,9 @@
 
 - Both T1 Construction ships Repair Workertime reduced (250->125), Build Workertime still 250.
 - Both T1 Construction ships acceleration increased.
-- Both T1 Construction ships added Dragons Teeth & Pop Up turrets (Arm Claw for Arm, Dragons Maw for Core) for anti-swarm coastal defense
 
-- Arm Dragons Claw & Core Dragons Maw maxslope increased (10->18), allows building in some places other turrets can't be placed
+- Both T1 Construction ships added Dragons Teeth & Pop Up turrets (Arm Claw for Arm, Dragons Maw for Core) for anti-swarm coastal defense
+- Arm Dragons Claw & Core Dragons Maw maxslope increased (10->18)
 
 - Core T1 Scoutboat footprint reduced, renamed 'Patrol Boat', health increased (228->345), autoheal added (1.5)
 - Core T1 Scoutboat laser redone, range increased (220->260), more rapid fire, about 40% more total dps
@@ -54,7 +73,6 @@
 
 - Arm Corvette metalcost reduced (378->302), energycost increased (2055->2466)
 - Arm Corvette lasers replaced with EMG cannons, no energy cost, roughly the same dps.
-
 - Corvette corpses health reduced, can now become heaps, metal reduced in line with unit metal cost reduction
 
 - Arm Destroyer health increased (2575->3090), sight distance increased (490->550)
@@ -78,6 +96,11 @@
 
 - Both Transport ships can now load and unload units again (workaround for an engine bug)
 - Both Transport ships operate in any water depth
+
+- Arm Advanced Shipyard Health Increased (4512->5415), energymake added (+25)
+- Core Advanced Shipyard health increased (4416->5300), energymake added (+25)
+
+
 
 
 
