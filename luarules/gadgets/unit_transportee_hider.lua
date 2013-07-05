@@ -61,10 +61,12 @@ local function TransportIsFull(transportID)
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	--Spring.Echo("UnitLoaded")
+	--Spring.Echo("UnitLoaded", unitDefID, transportID)
+	if ((not unitDefID) or (not transportID)) then return end
 	local transportDef = UnitDefs[GetUnitDefID(transportID)]
 	local unitDef = UnitDefs[unitDefID]
 	-- Check if transport is full (former crash risk!)
+	if not massLeft[transportID] then return end
 	massLeft[transportID] = massLeft[transportID] - unitDef.mass
 	if massLeft[transportID] == 0 then
 		TransportIsFull(transportID)
@@ -76,8 +78,10 @@ end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	--Spring.Echo("UnitUnloaded")
+	if ((not unitDefID) or (not transportID)) then return end
 	local transportDef = UnitDefs[GetUnitDefID(transportID)]
 	local unitDef = UnitDefs[unitDefID]
+	if not massLeft[transportID] then return end
 	massLeft[transportID] = massLeft[transportID] + unitDef.mass
 	if (not transportDef.springCategories.vtol) then 
 		SetUnitNoDraw(unitID, false)
