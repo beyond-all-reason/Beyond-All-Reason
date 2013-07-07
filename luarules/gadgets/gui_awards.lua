@@ -1,11 +1,11 @@
 function gadget:GetInfo()
   return {
     name      = "Awards",
-    desc      = "Awards Awards",
+    desc      = "AwardsAwards",
     author    = "Bluestone",
     date      = "2013-07-06",
-    license   = "GPL v2 or later",
-    layer     = 100, 
+    license   = "GPLv2",
+    layer     = -1, 
     enabled   = true -- loaded by default?
   }
 end
@@ -58,8 +58,8 @@ function gadget:GameStart()
 			local isGaiaTeam = (teamIDs[j] == gaiaTeamID)
 			if ((not isAiTeam) and (not isLuaAi) and (not isGaiaTeam)) then
 				local playerIDs = Spring.GetPlayerList(teamIDs[j])			
-				teamInfo[teamIDs[j]] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0,}
-				coopInfo[teamIDs[j]] = {players=#playerIDs,}
+				teamInfo[teamIDs[j] ] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0,}
+				coopInfo[teamIDs[j] ] = {players=#playerIDs,}
 			end
 		end
 	end
@@ -298,7 +298,6 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						dmgRecAward, dmgRecScore, 
 						sleepAward, sleepScore)
 
-					
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
@@ -460,11 +459,6 @@ end
 gadget:ViewResize(Spring.GetViewGeometry())
 
 
-
-function isAboveButton(x,y)
-	return true --DEBUG
-end
-
 function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
 	if (x > bx+w-50-5) and (x < bx+w-50+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
@@ -515,9 +509,7 @@ function DrawScreen()
 end
 
 function gadget:ShutDown()
-	--Spring.SendCommands('endgraph 1')
+	Spring.SendCommands('endgraph 1')
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
 end
