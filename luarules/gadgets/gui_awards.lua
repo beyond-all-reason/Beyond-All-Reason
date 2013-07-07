@@ -486,7 +486,7 @@ function DrawScreen()
 		glCallList(ThirdAward)
 	end
 	
-	if cow and cowAward then
+	if cow and CowAward then
 		glCallList(CowAward)
 	elseif OtherAwards then
 		glCallList(OtherAwards)
