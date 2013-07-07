@@ -1,5 +1,4 @@
 local sprGetActiveCommand    = Spring.GetActiveCommand
-local sprGetDefaultCommand   = Spring.GetDefaultCommand
 local sprGetGameSeconds      = Spring.GetGameSeconds
 local sprGetSelectedUnits    = Spring.GetSelectedUnits
 local sprGetCommandQueue     = Spring.GetCommandQueue
@@ -297,19 +296,14 @@ function widget:MousePress(mx, my, mb)
 	--   1. we have at least one unit selected
 	--   2. we have the shift key pressed
 	--   3. we pressed the LEFT mouse button (otherwise shift-move orders would break)
-	--   4. our default command is Move (ie. we haven't clicked on a build-icon, etc.) [?]
-	--   5. our mouse cursor is within "grabbing" radius of (at least)
+	--   4. our mouse cursor is within "grabbing" radius of (at least)
 	--      one waypoint of at least one of the units we have selected
 	--
 	local _, actCmdID, _, _      = sprGetActiveCommand()
-	local _, defCmdID, _, _      = sprGetDefaultCommand()
 	local alt, ctrl, meta, shift = sprGetModKeyState()
 	local numWayPts              = 0
-
 	if (not shift)                                     then  return false  end
 	if (mb ~= 1)                                       then  return false  end
---	if (actCmdID ~= CMD.MOVE and defCmdID ~= CMD.MOVE) then  return false  end
-
 	numWayPts = GetWayPointsNearCursor(selWayPtsTbl, mx, my)
 
 	if (numWayPts == 0) then
