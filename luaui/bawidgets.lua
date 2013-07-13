@@ -150,7 +150,7 @@ local flexCallIns = {
   'DrawInMiniMap',
   'FeatureCreated',
   'FeatureDestroyed',
-  'LockCameraPacketFormat',
+  'CameraBroadcastEvent',
   'MouseCursorEvent',
 }
 local flexCallInMap = {}
@@ -1889,9 +1889,9 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-function widgetHandler:LockCameraPacketFormat(packetFormat)
-  for _,w in ipairs(self.LockCameraPacketFormatList) do
-    w:LockCameraPacketFormat(packetFormat)
+function widgetHandler:CameraBroadcastEvent(playerID,cameraState)
+  for _,w in ipairs(self.CameraBroadcastEventList) do
+    w:CameraBroadcastEvent(playerID,cameraState)
   end
   return
 end

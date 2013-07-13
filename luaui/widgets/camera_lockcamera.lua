@@ -121,190 +121,6 @@ local GL_FILL = GL.FILL
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
-local vfsPackU8 = VFS.PackU8
-local vfsPackF32 = VFS.PackF32
-local vfsUnpackU8 = VFS.UnpackU8
-local vfsUnpackF32 = VFS.UnpackF32
-
-------------------------------------------------
---const
-------------------------------------------------
-local PACKET_HEADER = "="
-local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
-
-------------------------------------------------
---H4X
-------------------------------------------------
---[0, 254] -> char
-local function CustomPackU8(num)
-	return strChar(num + 1)
-end
-
-local function CustomUnpackU8(s, offset)
-	local byte = strByte(s, offset)
-	if byte then
-		return strByte(s, offset) - 1
-	else
-		return nil
-	end
-end
-
---1 sign bit, 7 exponent bits, 8 mantissa bits, -64 bias, denorm, no infinities or NaNs, avoid zero bytes, big-Endian
-local function CustomPackF16(num)
-	--vfsPack is little-Endian
-	local floatChars = vfsPackF32(num)
-	if not floatChars then return nil end
-
-	local sign = 0
-	local exponent = strByte(floatChars, 4) * 2
-	local mantissa = strByte(floatChars, 3) * 2
-
-	local negative = exponent >= 256
-	local exponentLSB = mantissa >= 256
-	local mantissaLSB = strByte(floatChars, 2) >= 128
-
-	if negative then
-		sign = 128
-		exponent = exponent - 256
-	end
-
-	if exponentLSB then
-		exponent = exponent - 126
-		mantissa = mantissa - 256
-	else
-		exponent = exponent - 127
-	end
-
-	if mantissaLSB then
-		mantissa = mantissa + 1
-	end
-
-	if exponent > 63 then
-		exponent = 63
-		--largest representable number
-		mantissa = 255
-	elseif exponent < -62 then
-		--denorm
-		mantissa = floor((256 + mantissa) * 2^(exponent + 62))
-		--preserve zero-ness
-		if mantissa == 0 and num ~= 0 then
-			mantissa = 1
-		end
-		exponent = -63
-	end
-
-	if mantissa ~= 255 then
-		mantissa = mantissa + 1
-	end
-
-	local byte1 = sign + exponent + 64
-	local byte2 = mantissa
-
-	return strChar(byte1, byte2)
-end
-
-local function CustomUnpackF16(s, offset)
-	offset = offset or 1
-	local byte1, byte2 = strByte(s, offset, offset + 1)
-
-	if not (byte1 and byte2) then return nil end
-
-	local sign = 1
-	local exponent = byte1
-	local mantissa = byte2 - 1
-	local norm = 1
-
-	local negative = (byte1 >= 128)
-
-	if negative then
-		exponent = exponent - 128
-		sign = -1
-	end
-
-	if exponent == 1 then
-		exponent = 2
-		norm = 0
-	end
-
-	local order = 2^(exponent - 64)
-
-	return sign * order * (norm + mantissa / 256)
-end
-
-------------------------------------------------
---packets
-------------------------------------------------
-
-local CAMERA_IDS = GetCameraNames()
-local CAMERA_NAMES = {}
-local CAMERA_STATE_FORMATS = {}
-
-Echo("<LockCamera>: Sorry for the camera switch spam, but this is the only reliable way to list camera states other than hardcoding them")
-local prevCameraState = GetCameraState()
-for name, num in pairs(CAMERA_IDS) do
-	CAMERA_NAMES[num] = name
-	SetCameraState({name=name,mode=num},0)
-	local packetFormat = {}
-	for stateindex in pairs(GetCameraState()) do
-		if stateindex ~= "mode" and stateindex ~= "name" then
-			table.insert(packetFormat,stateindex)
-		end
-	end
-	CAMERA_STATE_FORMATS[name] = packetFormat
-end
-SetCameraState(prevCameraState,0)
---workaround a bug where minimap remains minimized because we switched to overview cam
-SendCommands("minimap minimize")
-
---does not allow spaces in keys; values are numbers
-local function CameraStateToPacket(s)
-
-	local name = s.name
-	local stateFormat = CAMERA_STATE_FORMATS[name]
-	local cameraID = CAMERA_IDS[name]
-
-	if not stateFormat or not cameraID then return nil end
-
-	local result = PACKET_HEADER .. CustomPackU8(cameraID) .. CustomPackU8(s.mode)
-
-	for i=1, #stateFormat do
-		local num = s[stateFormat[i]]
-		if not num then return nil end
-		result = result .. CustomPackF16(num)
-	end
-
-	return result
-end
-
-local function PacketToCameraState(p)
-	local offset = PACKET_HEADER_LENGTH + 1
-	local cameraID = CustomUnpackU8(p, offset)
-	local mode = CustomUnpackU8(p, offset + 1)
-	local name = CAMERA_NAMES[cameraID]
-	local stateFormat = CAMERA_STATE_FORMATS[name]
-	if not (cameraID and mode and name and stateFormat) then
-		return nil
-	end
-
-	local result = {
-		name = name,
-		mode = mode,
-	}
-
-	offset = offset + 2
-
-	for i=1, #stateFormat do
-		local num = CustomUnpackF16(p, offset)
-
-		if not num then return nil end
-
-		result[stateFormat[i]] = num
-		offset = offset + 2
-	end
-
-	return result
-end
-
 ------------------------------------------------
 --helpers
 ------------------------------------------------
@@ -511,14 +327,10 @@ function widget:Update(dt)
 	totalTime = totalTime + dt
 end
 
-function widget:RecvLuaMsg(msg, playerID)
-	--check header
-	if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then return end
+function widget:CameraBroadcastEvent(playerID,cameraState)
 
-	totalCharsRecv = totalCharsRecv + strLen(msg)
-
-	--a packet consisting only of the header indicated that transmission has stopped
-	if msg == PACKET_HEADER then
+	--if cameraState is empty then transmission has stopped
+	if not cameraState then
 		if lastBroadcasts[playerID] then
 			lastBroadcasts[playerID] = nil
 			newBroadcaster = true
@@ -526,13 +338,6 @@ function widget:RecvLuaMsg(msg, playerID)
 		if lockPlayerID == playerID then
 			LockCamera()
 		end
-		return
-	end
-
-	local cameraState = PacketToCameraState(msg)
-
-	if not cameraState then
-		Echo("<LockCamera>: Bad packet recieved.")
 		return
 	end
 
@@ -550,13 +355,10 @@ end
 
 
 function widget:Initialize()
-	--Spring.SendCommands("fetchlockcamerapacketformat")
 	UpdateRecentBroadcasters()
 	CreateLists()
 end
 
-function widget:LockCameraPacketFormat()
-end
 
 function widget:Shutdown()
 	DeleteLists()
