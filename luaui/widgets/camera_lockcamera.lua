@@ -23,18 +23,9 @@ local totalCharsRecv = 0
 --config
 ------------------------------------------------
 
---broadcast
-local broadcastPeriod = 1 --will send packet in this interval (s)
-local broadcastSpecsAsSpec = true
-
-local broadcastSpecsAsPlayer = true
-local broadcastAlliesAsPlayer = false
-
 --recieve
 local transitionTime = 1.5 --how long it takes the camera to move
 local listTime = 30 --how long back to look for recent broadcasters
-
-local autoLock = false
 
 --GUI
 local show
@@ -48,22 +39,12 @@ local posX, posY = 0.2, 0
 
 function widget:GetConfigData(data)
 	return {
-		broadcastPeriod = broadcastPeriod,
-		broadcastSpecsAsSpec = broadcastSpecsAsSpec,
-		notBroadcastSpecsAsPlayer = not broadcastSpecsAsPlayer,
-		broadcastAlliesAsPlayer = broadcastAlliesAsPlayer,
-		notAutoLock = not autoLock,
 		posX = posX,
 		posY = posY,
 	}
 end
 
 function widget:SetConfigData(data)
-	broadcastPeriod = data.broadcastPeriod or 1
-	broadcastSpecsAsSpec = data.broadcastSpecsAsSpec
-	broadcastSpecsAsPlayer = not data.notBroadcastSpecsAsPlayer
-	broadcastAlliesAsPlayer = data.broadcastAlliesAsPlayer
-	autoLock = not data.notAutoLock
 	posX = data.posX or posX
 	posY = data.posY or posY
 end
@@ -71,23 +52,19 @@ end
 ------------------------------------------------
 --vars
 ------------------------------------------------
-local myPlayerID
+local myPlayerID = Spring.GetMyPlayerID()
 local lockPlayerID
-local totalTime
-local timeSinceBroadcast
 --playerID = {time, state}
 local lastBroadcasts = {}
 local recentBroadcasters = {}
-local newBroadcaster
+local newBroadcaster = false
+local totalTime = 0
 
-local onceViewSize, onceRecentBroadcasters
 local showList, titleList
 
 local activeClick
 local isSpectator
 local myTeamID
-
-local lastPacketSent
 
 local myLastCameraState
 
@@ -103,8 +80,6 @@ local IsGUIHidden = Spring.IsGUIHidden
 local GetMouseState = Spring.GetMouseState
 local GetSpectatingState = Spring.GetSpectatingState
 local GetGameFrame = Spring.GetGameFrame
-
-local SendLuaUIMsg = Spring.SendLuaUIMsg
 
 local GetMyPlayerID = Spring.GetMyPlayerID
 local GetMyTeamID = Spring.GetMyTeamID
@@ -360,16 +335,10 @@ local function GetComponent(tx, ty)
 		else
 			return "move"
 		end
-	elseif ty < 3 then
-		if tx < 4 then
-			return "allies"
-		else
-			return "specs"
-		end
 	else
-		local result = floor(ty - 2)
+		local result = floor(ty - 1)
 		if result > #recentBroadcasters then
-			return nil
+			return
 		else
 			return result
 		end
@@ -380,9 +349,8 @@ end
 --drawing
 ------------------------------------------------
 local function GetPlayerColor(playerID)
-	local _, _, isSpec, teamID = GetPlayerInfo(playerID) 
- 	if isSpec then return 1,1,1 end 
-	if (not teamID) then return nil end 
+	local _, _, _, teamID = GetPlayerInfo(playerID)
+	if not teamID then return end
 	return GetTeamColor(teamID)
 end
 
@@ -412,7 +380,7 @@ end
 local function DrawShow()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 	glColor(0, 0, 0, 0.2)
-	glRect(0, 1, 8, 3 + #recentBroadcasters)
+	glRect(0, 1, 8, 2 + #recentBroadcasters)
 
 	--buttons
 	glColor(1, 1, 1, 1)
@@ -423,38 +391,12 @@ local function DrawShow()
 		glTranslate(4, 0, 0)
 		glText("Move", textMargin, textMargin, textSize, "no")
 		DrawL()
-		glTranslate(0, 1, 0)
-		local color = {1, 0, 0}
-		if (broadcastSpecsAsSpec and isSpectator)
-				or (broadcastSpecsAsPlayer and not isSpectator) then
-			color = {0, 1, 0}
-		else
-			glColor(1, 0, 0)
-		end
-		glText(convertColor(color) .. "Specs", textMargin, textMargin, textSize, "no")
-		DrawL()
-		glTranslate(-4, 0, 0)
-		if isSpectator then
-			color = {1, 0, 0}
-			if autoLock then
-				color = {0, 1, 0}
-			end
-			glText(convertColor(color) .."Autolock", textMargin, textMargin, textSize, "no")
-		else
-			color = {1, 0, 0}
-			if broadcastAlliesAsPlayer then
-				color = {0, 1, 0}
-			end
-			glText(convertColor(color) .."Allies", textMargin, textMargin, textSize, "no")
-		end
-		DrawL()
 	glPopMatrix()
 
 	--player list
 	glPushMatrix()
-		glTranslate(0, 3, 0)
-		for i = 1, #recentBroadcasters do
-			local playerInfo = recentBroadcasters[i]
+		glTranslate(0, 2, 0)
+		for _, playerInfo in pairs(recentBroadcasters) do
 			local playerID = playerInfo[1]
 			local playerName = playerInfo[2]
 			local color = {GetPlayerColor(playerID)}
@@ -478,12 +420,7 @@ end
 
 function widget:IsAbove(x,y)
 	local tx, ty = TransformMain(x, y)
-	local component = GetComponent(tx, ty)
-	if not component then
-		return false
-	else
-		return true
-	end
+	return GetComponent(tx, ty)
 end
 
 function widget:GetTooltip(x,y)
@@ -494,14 +431,6 @@ function widget:GetTooltip(x,y)
 
 	if component == "title" then
 		return "Open/close"
-	elseif component == "allies" then
-		if isSpectator then
-			return "Autolock camera"
-		else
-			return "Broadcast to allies"
-		end
-	elseif component == "specs" then
-		return "Broadcast to specs"
 	elseif component == "refresh" then
 		return "Refresh broadcaster list"
 	elseif component == "move" then
@@ -573,24 +502,14 @@ local function LockCamera(playerID)
 	UpdateRecentBroadcasters()
 end
 
-------------------------------------------------
---commands
-------------------------------------------------
-
-local function SetBroadcastPeriod(_, _, words)
-	local newBroadcastPeriod = tonumber(words[1])
-
-	if newBroadcastPeriod and newBroadcastPeriod >= 0.25 then
-		broadcastPeriod = newBroadcastPeriod
-		Echo("<LockCamera>: Now broadcasting every " .. broadcastPeriod .. " s.")
-	else
-		Echo("<LockCamera>: Invalid broadcast interval specified.")
-	end
-end
 
 ------------------------------------------------
 --callins
 ------------------------------------------------
+
+function widget:Update(dt)
+	totalTime = totalTime + dt
+end
 
 function widget:RecvLuaMsg(msg, playerID)
 	--check header
@@ -605,7 +524,7 @@ function widget:RecvLuaMsg(msg, playerID)
 			newBroadcaster = true
 		end
 		if lockPlayerID == playerID then
-			LockCamera(nil)
+			LockCamera()
 		end
 		return
 	end
@@ -623,108 +542,28 @@ function widget:RecvLuaMsg(msg, playerID)
 
 	lastBroadcasts[playerID] = {totalTime, cameraState}
 
-	if (playerID == lockPlayerID) then
+	if playerID == lockPlayerID then
 		 SetCameraState(cameraState, transitionTime)
 	end
 
 end
 
+
 function widget:Initialize()
-	myPlayerID = GetMyPlayerID()
-	timeSinceBroadcast = 0
-	totalTime = 0
-	onceViewSize = true
-	onceRecentBroadcasters = true
-	newBroadcaster = false
-	widgetHandler:AddAction("lockcamera_interval", SetBroadcastPeriod, nil, "t")
+	--Spring.SendCommands("fetchlockcamerapacketformat")
+	UpdateRecentBroadcasters()
+	CreateLists()
+end
+
+function widget:LockCameraPacketFormat()
 end
 
 function widget:Shutdown()
 	DeleteLists()
-	SendLuaUIMsg(PACKET_HEADER, "a")
-	SendLuaUIMsg(PACKET_HEADER, "s")
-	widgetHandler:RemoveAction("lockcamera_interval")
 end
 
-function widget:Update(dt)
-	if onceRecentBroadcasters and GetGameFrame() > 0 then
-		UpdateRecentBroadcasters()
-		onceRecentBroadcasters = false
-	end
-
-	local newIsSpectator = GetSpectatingState()
-	if newIsSpectator ~= isSpectator then
-		isSpectator = newIsSpectator
-		if isSpectator then
-			if not broadcastSpecsAsSpec then
-				SendLuaUIMsg(PACKET_HEADER, "s")
-				totalCharsSent = totalCharsSent + PACKET_HEADER_LENGTH
-			end
-		else
-			if not broadcastAlliesAsPlayer then
-				SendLuaUIMsg(PACKET_HEADER, "a")
-				totalCharsSent = totalCharsSent + PACKET_HEADER_LENGTH
-			end
-			if not broadcastSpecsAsPlayer then
-				SendLuaUIMsg(PACKET_HEADER, "s")
-				totalCharsSent = totalCharsSent + PACKET_HEADER_LENGTH
-			end
-		end
-		UpdateShowList()
-	end
-
-	if autoLock then
-		local newMyTeamID = GetMyTeamID()
-		if newMyTeamID ~= myTeamID then
-			myTeamID = newMyTeamID
-			local playerList = GetPlayerList(myTeamID, true)
-			if playerList then
-				local index = 1
-				for i=1,#playerList - 1 do
-					if playerList[i] == lockPlayerID then
-						index = i
-					end
-				end
-				LockCamera(playerList[index])
-			end
-		end
-	end
-
-	if (isSpectator and not broadcastSpecsAsSpec)
-			or (not isSpectator and not broadcastAlliesAsPlayer and not broadcastSpecsAsPlayer) then
-		return
-	end
-	totalTime = totalTime + dt
-	timeSinceBroadcast = timeSinceBroadcast + dt
-	if timeSinceBroadcast > broadcastPeriod then
-
-		local state = GetCameraState()
-		local msg = CameraStateToPacket(state)
-
-		--don't send duplicates
-
-		if not msg then
-			Echo("<LockCamera>: Error creating packet!")
-			return
-		end
-
-		if msg ~= lastPacketSent then
-			if (not isSpectator and broadcastAlliesAsPlayer) then
-				SendLuaUIMsg(msg, "a")
-			end
-
-			if (isSpectator and broadcastSpecsAsSpec)
-					or (not isSpectator and broadcastSpecsAsPlayer) then
-				SendLuaUIMsg(msg, "s")
-			end
-
-			totalCharsSent = totalCharsSent + strLen(msg)
-
-			lastPacketSent = msg
-		end
-
-		timeSinceBroadcast = timeSinceBroadcast - broadcastPeriod
-	end
+function widget:GameStart()
+	UpdateRecentBroadcasters()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -733,14 +572,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:DrawScreen()
-	if (onceViewSize) then
-		UpdateRecentBroadcasters()
-		local viewSizeX, viewSizeY = widgetHandler:GetViewSizes()
-		widget:ViewResize(viewSizeX, viewSizeY)
-		CreateLists()
-		onceViewSize = false
-	end
-
 	if IsGUIHidden() and not activeClick then return end
 
 	glLineWidth(lineWidth)
@@ -774,47 +605,6 @@ function widget:MousePress(x, y, button)
 		UpdateRecentBroadcasters()
 	elseif component == "move" then
 		activeClick = "move"
-	elseif component == "allies" then
-		if isSpectator then
-			autoLock = not autoLock
-			if autoLock then
-				myTeamID = GetMyTeamID()
-				local playerList = GetPlayerList(myTeamID, true)
-				if playerList then
-					local index = 1
-					for i=1,#playerList - 1 do
-						if playerList[i] == lockPlayerID then
-							index = i
-						end
-					end
-					LockCamera(playerList[index])
-				end
-			else
-				LockCamera(nil)
-			end
-		else
-			broadcastAlliesAsPlayer = not broadcastAlliesAsPlayer
-			if not broadcastAlliesAsPlayer then
-				SendLuaUIMsg(PACKET_HEADER, "a")
-				totalCharsSent = totalCharsSent + PACKET_HEADER_LENGTH
-			end
-		end
-		UpdateShowList()
-	elseif component == "specs" then
-		if isSpectator then
-			broadcastSpecsAsSpec = not broadcastSpecsAsSpec
-			if not broadcastSpecsAsSpec then
-				SendLuaUIMsg(PACKET_HEADER, "s")
-				totalCharsSent = totalCharsSent + PACKET_HEADER_LENGTH
-			end
-		else
-			broadcastSpecsAsPlayer = not broadcastSpecsAsPlayer
-			if not broadcastSpecsAsPlayer then
-				SendLuaUIMsg(PACKET_HEADER, "s")
-				totalCharsSent = totalCharsSent + PACKET_HEADER_LENGTH
-			end
-		end
-		UpdateShowList()
 	else
 		local playerInfo = recentBroadcasters[component]
 
@@ -829,7 +619,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
-	if (activeClick == "move") then
+	if activeClick == "move" then
 		posX = posX + dx/vsx
 		posY = posY + dy/vsy
 	end
@@ -842,13 +632,8 @@ local function ReleaseActiveClick(x, y)
 end
 
 function widget:MouseRelease(x, y, button)
-	if (activeClick) then
+	if activeClick then
 		ReleaseActiveClick(x, y)
-		return true
 	end
-	return false
-end
-
-function widget:GameOver()
-	--Echo("<LockCamera> " .. totalCharsSent .. " chars sent, " .. totalCharsRecv .. " chars received.")
+	return activeClick
 end
