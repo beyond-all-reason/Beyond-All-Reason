@@ -255,6 +255,13 @@ end
 --callins
 ------------------------------------------------
 
+function gadget:RecvLuaMsg(msg, playerID)
+	--check header
+	if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then return end
+
+	Spring.Echo("received message")
+end
+
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("fetchlockcamerapacketformat", onFetchCameraPacketformat,"sends to LuaUI lock camera packet format")
 end

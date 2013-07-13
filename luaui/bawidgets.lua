@@ -150,6 +150,8 @@ local flexCallIns = {
   'DrawInMiniMap',
   'FeatureCreated',
   'FeatureDestroyed',
+  'LockCameraPacketFormat',
+  'MouseCursorEvent',
 }
 local flexCallInMap = {}
 for _,ci in ipairs(flexCallIns) do
@@ -1885,6 +1887,21 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
   return
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+function widgetHandler:LockCameraPacketFormat(packetFormat)
+  for _,w in ipairs(self.LockCameraPacketFormatList) do
+    w:LockCameraPacketFormat(packetFormat)
+  end
+  return
+end
+
+function widgetHandler:MouseCursorEvent(playerID,x,z,click)
+  for _,w in ipairs(self.MouseCursorEventList) do
+    w:MouseCursorEvent(playerID,x,z,click)
+  end
+  return
+end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

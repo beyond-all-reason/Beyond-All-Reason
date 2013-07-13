@@ -54,9 +54,12 @@ local glBeginEnd			= gl.BeginEnd
 
 local floor					= math.floor
 local tanh					= math.tanh
+local min					= math.min
 local GL_QUADS				= GL.QUADS
 
 local clock					= os.clock
+
+local alliedCursorsPos = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -70,55 +73,44 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+local playerPos = {}
+function widget:MouseCursorEvent(playerID,x,z,click)
+	local playerPosList = playerPos[playerID] or {}
+	playerPosList[#playerPosList+1] = {x=x,z=z,click=click}
+	playerPos[playerID] = playerPosList
+	if #playerPosList < numMousePos then
+		return
+	end
+	playerPos[playerID] = {}
+	
+	if alliedCursorsPos[playerID] then
+		local acp = alliedCursorsPos[playerID]
 
-local alliedCursorsPos = {}
+		acp[(numMousePos)*2+1]   = acp[1]
+		acp[(numMousePos)*2+2]   = acp[2]
 
-local newPos = {}
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,2)=="£" then
-		if (playerID==GetMyPlayerID()) or select(3,GetPlayerInfo(playerID)) then return true end
-		local xz = msg:sub(4)
-
-		local l = xz:len()*0.25
-		if l==numMousePos then
-			for i=0,numMousePos-1 do
-				local x = VFS.UnpackU16(xz:sub(i*4+1,i*4+2))
-				local z = VFS.UnpackU16(xz:sub(i*4+3,i*4+4))
-				newPos[i*2+1]	 = x
-				newPos[i*2+2] = z
-			end
-
-			if alliedCursorsPos[playerID] then
-				local acp = alliedCursorsPos[playerID]
-
-				acp[(numMousePos)*2+1]	 = acp[1]
-				acp[(numMousePos)*2+2]	 = acp[2]
-
-				for i=0,numMousePos-1 do
-					acp[i*2+1] = newPos[i*2+1]
-					acp[i*2+2] = newPos[i*2+2]
-				end
-
-				acp[(numMousePos+1)*2+1] = clock()
-				acp[(numMousePos+1)*2+2] = (msg:sub(2,2)=="1")
-			else
-				local acp = {}
-				alliedCursorsPos[playerID] = acp
-
-				for i=0,numMousePos-1 do
-					acp[i*2+1] = newPos[i*2+1]
-					acp[i*2+2] = newPos[i*2+2]
-				end
-
-				acp[(numMousePos)*2+1]	 = newPos[(numMousePos-2)*2+1]
-				acp[(numMousePos)*2+2]	 = newPos[(numMousePos-2)*2+2]
-
-				acp[(numMousePos+1)*2+1] = clock()
-				acp[(numMousePos+1)*2+2] = (msg:sub(2,2)=="1")
-				_,_,_,acp[(numMousePos+1)*2+3] = GetPlayerInfo(playerID)
-			end
+		for i=0,numMousePos-1 do
+			acp[i*2+1] = playerPosList[i+1].x
+			acp[i*2+2] = playerPosList[i+1].z
 		end
-		return true
+
+		acp[(numMousePos+1)*2+1] = clock()
+		acp[(numMousePos+1)*2+2] = playerPosList[#playerPosList].click
+	else
+		local acp = {}
+		alliedCursorsPos[playerID] = acp
+
+		for i=0,numMousePos-1 do
+			acp[i*2+1] = playerPosList[i+1].x
+			acp[i*2+2] = playerPosList[i+1].z
+		end
+
+		acp[(numMousePos)*2+1]   = playerPosList[(numMousePos-2)*2+1].x
+		acp[(numMousePos)*2+2]   = playerPosList[(numMousePos-2)*2+1].z
+
+		acp[(numMousePos+1)*2+1] = clock()
+		acp[(numMousePos+1)*2+2] = playerPosList[#playerPosList].click
+		_,_,_,acp[(numMousePos+1)*2+3] = GetPlayerInfo(playerID)
 	end
 end
 
@@ -198,52 +190,26 @@ function widget:DrawWorldPreUnit()
 	glTexture('LuaUI/Images/AlliedCursors.png')
 	glPolygonOffset(-7,-10)
 	local time = clock()
-	local isally = {}
-	local fullView = false
-	local spec,NOTfullView = GetSpectatingState()
-	if spec then 
-		fullView = not NOTfullView --HOTFIX FOR 94.0/1: Spring returns the second argument of GetSpectatingState with true/false swapped. http://springrts.com/mantis/view.php?id=3753.
-		if fullView then 
-			local specTeamID=GetMyTeamID()
-			local roster = GetPlayerRoster()
-			local specAllyTeamID = -1
-			for _,playerTable in ipairs(roster) do
-				if playerTable[3] == specTeamID then
-					specAllyTeamID = playerTable[4]
-					break
-				end
+	local fullView = true
+	for playerID,data in pairs(alliedCursorsPos) do 
+		local teamID = data[#data]
+		for n=0,5 do
+			local wx,wz = data[1],data[2]
+			local lastUpdatedDiff = time-data[#data-2] + n*0.025
+
+			if (lastUpdatedDiff<sendPacketEvery) then
+				local scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
+				local iscale = math.min(floor(scale),numMousePos-1)
+				local fscale = scale-iscale
+
+				wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
+				wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
 			end
-			for _,playerTable in ipairs(roster) do
-				local playerID = playerTable[2]
-				local teamID = playerTable[3]
-				local allyTeamID = playerTable[4]
-				if playerID and allyTeamID then
-					isally[playerID] = allyTeamID == specAllyTeamID
-				end
-			end
-		end
-	end
-	for playerID,data in pairs(alliedCursorsPos) do
-		if not fullView or isally[playerID] then 
-			local teamID = data[#data]
-			for n=0,5 do
-				local wx,wz = data[1],data[2]
-				local lastUpdatedDiff = time-data[#data-2] + n*0.025
 
-				if lastUpdatedDiff < sendPacketEvery then
-					local scale	= (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
-					local iscale = math.min(floor(scale),numMousePos-1)
-					local fscale = scale-iscale
-
-					wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
-					wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
-				end
-
-				local gy = GetGroundHeight(wx,wz)
-				if IsSphereInView(wx,gy,wz,QSIZE) then
-					SetTeamColor(teamID,n*0.1)
-					glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
-				end
+			local gy = GetGroundHeight(wx,wz)
+			if (IsSphereInView(wx,gy,wz,QSIZE)) then
+				SetTeamColor(teamID,n*0.1)
+				glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
 			end
 		end
 	end
@@ -251,7 +217,7 @@ function widget:DrawWorldPreUnit()
 	glPolygonOffset(false)
 	glTexture(false)
 	glDepthTest(false)
-end						
+end       				
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

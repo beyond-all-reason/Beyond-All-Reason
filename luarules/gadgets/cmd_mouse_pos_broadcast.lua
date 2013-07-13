@@ -19,9 +19,6 @@ function gadget:GetInfo()
 	}
 end
 
-if gadgetHandler:IsSyncedCode() then
-	return
-end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -38,11 +35,15 @@ local numMousePos		= 2 --//num mouse pos in 1 packet
 
 local GetMouseState		= Spring.GetMouseState
 local TraceScreenRay	= Spring.TraceScreenRay
-local SendLuaUIMsg		= Spring.SendLuaUIMsg
-local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+local SendLuaRulesMsg	= Spring.SendLuaRulesMsg
+local GetMyPlayerID		= Spring.GetMyPlayerID
+local GetSpectatingState= Spring.GetSpectatingState
+local GetPlayerInfo		= Spring.GetPlayerInfo
+local GetLastUpdateSeconds= Spring.GetLastUpdateSeconds
 
 
 local PackU16			= VFS.PackU16
+local UnpackU16			= VFS.UnpackU16
 
 local floor				= math.floor
 local tanh				= math.tanh
@@ -62,7 +63,50 @@ local lastx,lastz = 0,0
 local n = 0
 local lastclick = 0
 
+if gadgetHandler:IsSyncedCode() then
+	function gadget:RecvLuaMsg(msg, playerID)
+		if msg:sub(1,2)=="£" then
+			local xz = msg:sub(4)
+			local l = xz:len()*0.25
+			if l == numMousePos then
+				for i=0,numMousePos-1 do
+					local x = UnpackU16(xz:sub(i*4+1,i*4+2))
+					local z = UnpackU16(xz:sub(i*4+3,i*4+4))
+					local click = msg:sub(2,2) == "1"
+					SendToUnsynced("mouseBroadcast",playerID,x,z,click)
+				end
+			end
+			return true
+		end
+	end
+else
+
 --------------------------------------------------------------------------------
+
+function gadget:Initialize()
+	gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
+end
+
+function gadget:Shutdown()
+	gadgetHandler:RemoveSyncAction("mouseBroadcast")
+end
+
+function handleMousePosEvent(_,playerID,x,z,click)
+	--here we receive mouse pos from other players and dispatch to luaui
+	local myPlayerID = GetMyPlayerID()
+	if myPlayerID == playerID then
+		--return
+	end
+	local spec, notFullView = GetSpectatingState()
+	if not spec or notFullView then
+		local _,_,_,_,myAllyTeamID = GetPlayerInfo(myPlayerID)
+		local _,_,_,_,allyTeamID = GetPlayerInfo(playerID)
+		if allyTeamID ~= myAllyTeamID then
+			return
+		end
+	end
+	Script.LuaUI.MouseCursorEvent(playerID,x,z,click)
+end
 
 function gadget:Update()
 	updateTimer = updateTimer + GetLastUpdateSeconds()
@@ -97,7 +141,7 @@ function gadget:Update()
 				posStr = posStr .. xStr .. zStr
 			end
 		end
-		SendLuaUIMsg("£" .. posStr,"a")
+		SendLuaRulesMsg("£" .. posStr)
 	 
 	end
 end
@@ -130,7 +174,9 @@ function gadget:MousePress(x,y,button)
 				posStr = posStr .. xStr .. zStr
 			end
 		end
-		SendLuaUIMsg("£" .. posStr,"a") 
+		SendLuaRulesMsg("£" .. posStr)
 	end
+end
+
 end
 
