@@ -275,7 +275,7 @@ else
 		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID)
 		local teamList = GetTeamList(allyTeamID)
 		if targetTeam then
-			local _,_,_,_,_,targetAllyTeamID = GetPlayerInfo(playerID)
+			local _,_,_,_,_,targetAllyTeamID = GetTeamInfo(targetTeam)
 			if targetAllyTeamID ~= allyTeamID then
 				--don't let enemies take
 				return
