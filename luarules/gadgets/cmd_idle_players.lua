@@ -271,8 +271,17 @@ else
 		if not CheckPlayerState(playerID) then
 			return -- exclude taking rights from lagged players, etc
 		end
+		local targetTeam = tonumber(words[1])
 		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID)
 		local teamList = GetTeamList(allyTeamID)
+		if targetTeam then
+			local _,_,_,_,_,targetAllyTeamID = GetPlayerInfo(playerID)
+			if targetAllyTeamID ~= allyTeamID then
+				--don't let enemies take
+				return
+			end
+			teamList = {targetTeam}
+		end
 		for teamID in ipairs(teamList) do
 			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
 				-- transfer all units
