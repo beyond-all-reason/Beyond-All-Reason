@@ -29,7 +29,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	local lastActionTime = 0
 	local timer = 0 
 	local updateTimer = 0
-	local isIdle = false
+	local isIdle = true
 	local updateRefreshTime = 1 --in seconds 
 
 	local mx,my = GetMouseState()
@@ -125,6 +125,7 @@ else
 -- SYNCED code
 	local playerInfoTable = {}
 	local TeamToRemainingPlayers = {}
+	local currentGameFrame = 0
 
 	local TransferUnit = Spring.TransferUnit
 	local GetPlayerList = Spring.GetPlayerList
@@ -200,7 +201,7 @@ else
 				Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
 			end
 			if playerInfoTableEntry.present == nil then
-				playerInfoTableEntry.present = true -- initialize to not afk
+				playerInfoTableEntry.present = false -- initialize to afk
 			end
 			playerInfoTable[playerID] = playerInfoTableEntry
 			
@@ -240,6 +241,7 @@ else
 	end
 
 	function gadget:GameFrame(currentFrame)
+		currentGameFrame = currentFrame
 		if currentFrame%16 ~= 0 then
 			return
 		end
@@ -251,12 +253,13 @@ else
 			return
 		end
 		local afk = tonumber(msg:sub(AFKMessageSize+1))
+		local previousPresent = playerInfoTableEntry.present
 		local playerInfoTableEntry = playerInfoTable[playerID] or {}
 		playerInfoTableEntry.present = afk == 0
 		playerInfoTable[playerID] = playerInfoTableEntry
-		if not playerInfoTableEntry.present then
+		if previousPresent and not playerInfoTableEntry.present then
 			Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
-		else
+		elseif not previousPresent and playerInfoTableEntry.present then
 			Echo("Player " .. GetPlayerInfo(playerID) .. " came back")
 		end
 	end
@@ -268,6 +271,9 @@ else
 
 
 	function TakeTeam(cmd, line, words, playerID)
+		if currentGameFrame == 0 then
+			return -- reject takes before the game has started
+		end
 		if not CheckPlayerState(playerID) then
 			return -- exclude taking rights from lagged players, etc
 		end
