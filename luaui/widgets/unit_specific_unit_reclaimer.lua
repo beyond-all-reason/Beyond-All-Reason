@@ -34,6 +34,19 @@ local CMD_RECLAIM = CMD.RECLAIM
 local CMD_STOP = CMD.STOP
 --
 
+function widget:Initialize()
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+end
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+		return
+	end
+end
 
 function widget:CommandNotify(id, params, options)
 
