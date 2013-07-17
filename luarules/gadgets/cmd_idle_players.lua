@@ -255,8 +255,8 @@ else
 			return
 		end
 		local afk = tonumber(msg:sub(AFKMessageSize+1))
-		local previousPresent = playerInfoTableEntry.present
 		local playerInfoTableEntry = playerInfoTable[playerID] or {}
+		local previousPresent = playerInfoTableEntry.present
 		playerInfoTableEntry.present = afk == 0
 		playerInfoTable[playerID] = playerInfoTableEntry
 		local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
