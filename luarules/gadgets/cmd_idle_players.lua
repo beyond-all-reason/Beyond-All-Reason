@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local maxIdleTreshold = 10 --in seconds
+local maxIdleTreshold = 60 --in seconds
 local maxPing = 30 -- in seconds
 local finishedResumingPing = 2 --in seconds
 local takeCommand = "take2"
