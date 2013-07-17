@@ -124,7 +124,6 @@ else
 
 -- SYNCED code
 	local playerInfoTable = {}
-	local TeamToRemainingPlayers = {}
 	local currentGameFrame = 0
 
 	local TransferUnit = Spring.TransferUnit
@@ -166,9 +165,9 @@ else
 	end
 
 	local function UpdatePlayerInfos()
-		TeamToRemainingPlayers = {} -- reset active teams table
+		local TeamToRemainingPlayers = {}
 		local aiOwners = {}
-		for _,teamID in ipairs(GetTeamList()) do -- sum all AI first
+		for _,teamID in ipairs(GetTeamList()) do --initialize team count
 			local _, _, _, isAI = GetTeamInfo(teamID)
 			if isAI then
 				--store who hosts that engine ai, team will be controlled if player is present
@@ -179,6 +178,7 @@ else
 			end
 			--is luaai or is gaia
 			if GetTeamLuaAI(teamID) ~= "" or teamID == gaiaTeamID then
+				--luaai and gaia are always controlled
 				TeamToRemainingPlayers[teamID] = 1
 			else
 				TeamToRemainingPlayers[teamID] = 0
@@ -195,10 +195,12 @@ else
 				pingTreshold = finishedResumingPing --use smaller treshold to determine finished resuming
 			end 
 			playerInfoTableEntry.pingOK = ping < pingTreshold
-			if oldPingOk and not playerInfoTableEntry.pingOK then
-				Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
-			elseif oldPingOk == false and playerInfoTableEntry.pingOK then
-				Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
+			if not spectator then
+				if oldPingOk and not playerInfoTableEntry.pingOK then
+					Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
+				elseif oldPingOk == false and playerInfoTableEntry.pingOK then
+					Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
+				end
 			end
 			if playerInfoTableEntry.present == nil then
 				playerInfoTableEntry.present = false -- initialize to afk
@@ -208,8 +210,8 @@ else
 			--mark hosted ais as controlled
 			local hostedAis = aiOwners[aiHost]
 			if hostedAis then
-				local hostingOk = playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK
-				if hostingOk then
+				--a player only needs to be connected and low enough ping to host an ai
+				if playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK then
 					for _,aiTeamID in ipairs(hostedAis) do
 						TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] +1
 					end
@@ -257,10 +259,13 @@ else
 		local playerInfoTableEntry = playerInfoTable[playerID] or {}
 		playerInfoTableEntry.present = afk == 0
 		playerInfoTable[playerID] = playerInfoTableEntry
-		if previousPresent and not playerInfoTableEntry.present then
-			Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
-		elseif not previousPresent and playerInfoTableEntry.present then
-			Echo("Player " .. GetPlayerInfo(playerID) .. " came back")
+		local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
+		if not spectator then
+			if previousPresent and not playerInfoTableEntry.present then
+				Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
+			elseif not previousPresent and playerInfoTableEntry.present then
+				Echo("Player " .. GetPlayerInfo(playerID) .. " came back")
+			end
 		end
 	end
 
@@ -291,8 +296,7 @@ else
 		for teamID in ipairs(teamList) do
 			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
 				-- transfer all units
-				local unitList = GetTeamUnits(teamID)
-				for _,unitID in ipairs(unitList) do
+				for _,unitID in ipairs(GetTeamUnits(teamID)) do
 					TransferUnit(unitID,takerID)
 				end
 				--send all resources en-block to the taker
