@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 2058,
 		buildcostmetal = 316,
 		buildpic = "CORTL.DDS",
-		buildtime = 4233,
+		buildtime = 6350,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Pop-up Torpedo Launcher",
