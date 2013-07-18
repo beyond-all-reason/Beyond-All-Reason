@@ -2,7 +2,7 @@ local versionNumber = "1.71"
 
 function widget:GetInfo()
   return {
-    name      = "Commander Name Tags ",
+    name      = "Commander Name Tags",
     desc      = versionNumber .." Displays a name tag above each commander.",
     author    = "Evil4Zerggin and CarRepairer",
     date      = "18 April 2008",
