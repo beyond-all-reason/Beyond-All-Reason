@@ -62,6 +62,8 @@ local startUnitParamName = 'startUnit'
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local totalTime
+
 ------------------------------------------------------------
 -- Local functions
 ------------------------------------------------------------
@@ -325,7 +327,12 @@ function widget:DrawScreen()
 		gl.CallList(panelList)
 		if #buildQueue > 0 then
 			local mCost, eCost, bCost = GetQueueCosts()
-			gl.Text(string.format(queueTimeFormat, mCost, eCost, bCost / sDef.buildSpeed), 0, 0, fontSize, 'do')
+			local buildTime = bCost / sDef.buildSpeed
+			if buildTime ~= totalTime then
+				Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+			end
+			totalTime = buildTime
+			gl.Text(string.format(queueTimeFormat, mCost, eCost, buildTime), 0, 0, fontSize, 'do')
 		end
 	gl.PopMatrix()
 end

@@ -13,6 +13,7 @@ end
 local maxIdleTreshold = 60 --in seconds
 local maxPing = 30 -- in seconds
 local finishedResumingPing = 2 --in seconds
+local maxInitialQueueSlack = 120 -- in seconds
 local takeCommand = "take2"
 
 local AFKMessage = 'idleplayers '
@@ -24,15 +25,44 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local GetMouseState = Spring.GetMouseState
 	
+	local min = math.min
+	local max = math.max
+	
 	local nameEnclosingPatterns = {{""," added point"},{"<","> "},{"> <","> "},{"[","] "}}
 	local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
 	local lastActionTime = 0
 	local timer = 0 
 	local updateTimer = 0
 	local isIdle = true
-	local updateRefreshTime = 1 --in seconds 
+	local updateRefreshTime = 1 --in seconds
+	local initialQueueTime 
 
 	local mx,my = GetMouseState()
+	
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("onGameStart", onGameStart)
+		gadgetHandler:AddChatAction("initialQueueTime",onInitialQueueTime)
+	end
+	
+	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction('initialQueueTime')
+		gadgetHandler:RemoveSyncAction("onGameStart")
+	end
+	
+	function onInitialQueueTime(_,_,words)
+		initialQueueTime = tonumber(words[1])
+		if initialQueueTime then
+			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
+		end
+	end
+	
+	function onGameStart()
+		if initialQueueTime then
+			NotIdle()
+			-- allow the user to slack while initial queue is unrolling
+			lastActionTime = timer + initialQueueTime
+		end
+	end
 
 	function WentIdle()
 		if not isIdle then
@@ -42,7 +72,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	end
 
 	function NotIdle()
-		lastActionTime = timer
+		lastActionTime = max(timer,lastActionTime)
 		if isIdle then
 			SendLuaRulesMsg(AFKMessage .. "0")
 			isIdle = false
@@ -239,7 +269,7 @@ else
 	end
 
 	function gadget:GameStart()
-		UpdatePlayerInfos()
+		SendToUnsynced("onGameStart")
 	end
 
 	function gadget:GameFrame(currentFrame)
@@ -261,10 +291,12 @@ else
 		playerInfoTable[playerID] = playerInfoTableEntry
 		local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
 		if not spectator then
-			if previousPresent and not playerInfoTableEntry.present then
-				Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
-			elseif not previousPresent and playerInfoTableEntry.present then
-				Echo("Player " .. GetPlayerInfo(playerID) .. " came back")
+			if currentGameFrame > 0 then
+				if previousPresent and not playerInfoTableEntry.present then
+					Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
+				elseif not previousPresent and playerInfoTableEntry.present then
+					Echo("Player " .. GetPlayerInfo(playerID) .. " came back")
+				end
 			end
 		end
 	end
