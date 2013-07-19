@@ -46,9 +46,10 @@ local econUnitDefIDs = { --better to hardcode these since its complicated to pic
 	UnitDefNames.coruwmmm.id,
 }
 
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
 function gadget:GameStart()
 	--make table of teams eligable for awards
-	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local allyTeamIDs = Spring.GetAllyTeamList()
 	for i=1,#allyTeamIDs do
 		local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
@@ -77,6 +78,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	-- add destroyed unitID cost to stats for attackerTeamID
+	if attackerTeamID == gaiaTeamID then return end
 	if not attackerTeamID then return end
 	if not teamInfo[attackerTeamID] then return end
 	if (not unitDefID) or (not teamID) then return end
@@ -104,9 +106,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if not newTeam then end --should never happen
-	if not teamInfo(newTeam) then end
-	if not unitDefID then end --should never happen
+	if not newTeam then return end 
+	if newTeam == gaiaTeamID then return end
+	if not teamInfo(newTeam) then return end
+	if not unitDefID then return end --should never happen
 
 	local ud = UnitDefs[unitDefID]
 	teamInfo[newTeam].ecoUsed = ud.energyCost + 60 * ud.metalCost 
