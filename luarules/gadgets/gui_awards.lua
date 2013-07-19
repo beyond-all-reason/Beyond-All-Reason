@@ -46,11 +46,11 @@ local econUnitDefIDs = { --better to hardcode these since its complicated to pic
 	UnitDefNames.coruwmmm.id,
 }
 
-local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function gadget:GameStart()
 	--make table of teams eligable for awards
 	local allyTeamIDs = Spring.GetAllyTeamList()
+	local gaiaTeamID = Spring.GetGaiaTeamID()
 	for i=1,#allyTeamIDs do
 		local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
 		for j=1,#teamIDs do
@@ -59,8 +59,10 @@ function gadget:GameStart()
 			local isGaiaTeam = (teamIDs[j] == gaiaTeamID)
 			if ((not isAiTeam) and (not isLuaAi) and (not isGaiaTeam)) then
 				local playerIDs = Spring.GetPlayerList(teamIDs[j])			
-				teamInfo[teamIDs[j] ] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0,}
+				teamInfo[teamIDs[j] ] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, present=true,}
 				coopInfo[teamIDs[j] ] = {players=#playerIDs,}
+			else
+				teamInfo[teamIDs[j] ] = {present=false,}
 			end
 		end
 	end
@@ -78,9 +80,8 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	-- add destroyed unitID cost to stats for attackerTeamID
-	if attackerTeamID == gaiaTeamID then return end
 	if not attackerTeamID then return end
-	if not teamInfo[attackerTeamID] then return end
+	if not teamInfo[attackerTeamID].present then return end
 	if (not unitDefID) or (not teamID) then return end
 	if SpAreTeamsAllied(teamID, attackerTeamID) then return end
 	
@@ -107,8 +108,7 @@ end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if not newTeam then return end 
-	if newTeam == gaiaTeamID then return end
-	if not teamInfo(newTeam) then return end
+	if not teamInfo[newTeam].present then return end
 	if not unitDefID then return end --should never happen
 
 	local ud = UnitDefs[unitDefID]
