@@ -40,7 +40,7 @@ return {
 		selfdestructas = "ATOMIC_BLAST",
 		sightdistance = 650,
 		turnrate = 260,
-		waterline = 12,
+		waterline = 5,
 		windgenerator = 0.0010000000474975,
 		customparams = {
 			paralyzemultiplier = 0,
