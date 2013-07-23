@@ -16,9 +16,7 @@ end
 
 local lineWidth = 1.0 -- calcs dynamic now
 
-
 local printDebug
-local DrawGhosts
 
 local udefTab				= UnitDefs
 local spGetUnitDefID        = Spring.GetUnitDefID
@@ -26,15 +24,13 @@ local spEcho                = Spring.Echo
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetGameSeconds      = Spring.GetGameSeconds
 local floor                 = math.floor
-local max					= math.max
+local pairs					= pairs
 local spGetMyPlayerID       = Spring.GetMyPlayerID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
-local spIsSphereInView  	= Spring.IsSphereInView
-
+local spIsUnitInView		= Spring.IsUnitInView
 
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
---local glBlending			= gl.Blending
 local glUnitShape			= gl.UnitShape
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
@@ -77,6 +73,11 @@ function widget:UnitCreated(unitID, allyTeam)
 	end
 end
 
+function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+	if ( dots[unitID] ~= nil ) then
+		dots[unitID] = nil
+	end
+end
 
 function widget:UnitLeftRadar(unitID, allyTeam)
 	if ( dots[unitID] ~= nil ) then
@@ -92,22 +93,13 @@ end
 
 
 function widget:DrawWorld()
-	DrawGhosts()
-end
+	glColor(1.0, 1.0, 1.0, 0.35 )
+	glDepthTest(true)
 
-
-function DrawGhosts()
-  glColor(1.0, 1.0, 1.0, 0.35 )
-  glDepthTest(true)
-
-  for unitID, dot in pairs( dots ) do
-		local x, y, z = spGetUnitPosition(unitID)
-		local udef = udefTab[ dot["unitDefId"] ]
-		local radius = max( udef["xsize"], udef["zsize"] ) * 0.5
-		
-		if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) and ( x ~= nil ) then		
-		--	printDebug("DRAW udef: " .. dot["unitDefId"] .. " x: " .. x .. " y: " .. y .. " z:" .. z )
-			if ( spIsSphereInView( x, y, z, radius ) ) then
+	for unitID, dot in pairs( dots ) do
+		if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
+			local x, y, z = spGetUnitPosition(unitID)
+			if x and ( spIsUnitInView(unitID) ) then
 				glPushMatrix()
 				glTranslate( x, y + 5 , z)
 				glUnitShape( dot["unitDefId"], dot["teamId"] )					      
@@ -117,8 +109,6 @@ function DrawGhosts()
 	end
 
 	glDepthTest(false)
- -- glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA); 
- -- glBlending(false)
  	glColor(1, 1, 1, 1)
 end
 
