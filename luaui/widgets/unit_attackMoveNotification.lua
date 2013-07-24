@@ -11,6 +11,7 @@ function widget:GetInfo()
 end
 ----------------------------------------------------------------------------
 local alarmInterval                 = 15        --seconds
+local commanderAlarmInterval		= 10
 ----------------------------------------------------------------------------                
 local spGetLocalTeamID              = Spring.GetLocalTeamID
 local spPlaySoundFile               = Spring.PlaySoundFile
@@ -24,25 +25,42 @@ local spGetSpectatingState   		= Spring.GetSpectatingState
 local random                        = math.random
 ----------------------------------------------------------------------------
 local lastAlarmTime                 = nil
+local lastCommanderAlarmTime        = nil
 local localTeamID                   = nil
 ----------------------------------------------------------------------------
+local armcomID=UnitDefNames["armcom"].id
+local corcomID=UnitDefNames["corcom"].id
+
 
 function widget:Initialize()
     setTeamId()    
     lastAlarmTime = spGetTimer()
+	lastCommanderAlarmTime =  spGetTimer()
     math.randomseed( os.time() )
 end
 
 function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
-    if ( localTeamID ~= unitTeam or spIsUnitInView(unitID)) then
-        return --ignore other teams and units in view
-    end
+    if ( localTeamID ~= unitTeam )then
+		return
+	end
+	Spring.Echo(corcomID, unitID)
+	if (unitDefID==corcomID or unitDefID==armcomID) then --commander under attack must always be played! (10 sec retrigger alert though)
+		Spring.Echo("Commander under attack!")
+		local now = spGetTimer()
+		if ( spDiffTimers( now, lastCommanderAlarmTime ) < alarmInterval ) then
+			return
+		end
+		lastCommanderAlarmTime=now
+	else
+		if (spIsUnitInView(unitID)) then
+			return --ignore other teams and units in view
+		end
 
-    local now = spGetTimer()
-    if ( spDiffTimers( now, lastAlarmTime ) < alarmInterval ) then
-        return
-    end
-    
+		local now = spGetTimer()
+		if ( spDiffTimers( now, lastAlarmTime ) < alarmInterval ) then
+			return
+		end
+	end
     lastAlarmTime = now
     
     local udef = UnitDefs[unitDefID]
