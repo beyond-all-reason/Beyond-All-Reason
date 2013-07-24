@@ -43,10 +43,10 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer, wea
     if ( localTeamID ~= unitTeam )then
 		return
 	end
-	Spring.Echo(corcomID, unitID)
+	--Spring.Echo(corcomID, unitID)
+	local now = spGetTimer()
 	if (unitDefID==corcomID or unitDefID==armcomID) then --commander under attack must always be played! (10 sec retrigger alert though)
-		Spring.Echo("Commander under attack!")
-		local now = spGetTimer()
+		--Spring.Echo("Commander under attack!")
 		if ( spDiffTimers( now, lastCommanderAlarmTime ) < alarmInterval ) then
 			return
 		end
@@ -55,8 +55,6 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer, wea
 		if (spIsUnitInView(unitID)) then
 			return --ignore other teams and units in view
 		end
-
-		local now = spGetTimer()
 		if ( spDiffTimers( now, lastAlarmTime ) < alarmInterval ) then
 			return
 		end
