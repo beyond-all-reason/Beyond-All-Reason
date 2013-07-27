@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 0.5,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "WIND_EX",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
