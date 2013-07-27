@@ -306,10 +306,11 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
-	CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400) 	
-	OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400)
-	if (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) then
+	if (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 then
 		cow = true
+		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400) 	
+	else
+		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400)		
 	end
 	drawAwards = true
 	Spring.SendCommands('endgraph 0')		
@@ -463,13 +464,15 @@ end
 
 gadget:ViewResize(Spring.GetViewGeometry())
 
+local quitX = 100
+local graphsX = 250
 
 function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
-	if (x > bx+w-50-5) and (x < bx+w-50+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
+	if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
 		Spring.SendCommands("quitforce")
 	end
-	if (x > bx+w-220-5) and (x < bx+w-220+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+	if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 		Spring.SendCommands('endgraph 1')
 		drawAwards = false
 	end	
@@ -499,18 +502,18 @@ function DrawScreen()
 	
 	--draw buttons, wastefully, but it doesnt matter now game is over
 	local x,y = Spring.GetMouseState()
-	if (x > bx+w-50-5) and (x < bx+w-50+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
+	if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
 		quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 	else
 		quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 	end
-	if (x > bx+w-220-5) and (x < bx+w-220+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+	if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 		graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 	else
 		graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 	end
-	glText(quitColour .. 'Quit', bx+w-50, by+50, 16, "o")
-	glText(graphColour .. 'Show Graphs', bx+w-220, by+50, 16, "o")	
+	glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
+	glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")	
 end
 
 function gadget:ShutDown()

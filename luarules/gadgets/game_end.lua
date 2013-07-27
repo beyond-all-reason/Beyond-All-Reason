@@ -101,8 +101,7 @@ function gadget:Initialize()
 		playerQuitIsDead = 0 -- let player quit & rejoin in 1v1
 	end
 	
-	Spring.Echo(#GetTeamList())
-	
+
 	if #GetTeamList() <= 2 then -- sandbox mode (gaia + possibly one player)
 		gadgetHandler:RemoveGadget()
 		return
