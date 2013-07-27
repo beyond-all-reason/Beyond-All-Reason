@@ -97,9 +97,17 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 	end
 	local gaiaTeamID = Spring.GetGaiaTeamID()
-	if GetTeamList() == 3 then -- 2 teams + gaia
+	if #GetTeamList() == 3 then -- 2 teams + gaia
 		playerQuitIsDead = 0 -- let player quit & rejoin in 1v1
 	end
+	
+	Spring.Echo(#GetTeamList())
+	
+	if #GetTeamList() <= 2 then -- sandbox mode (gaia + possibly one player)
+		gadgetHandler:RemoveGadget()
+		return
+	end
+	
 	-- at start, fill in the table of all alive allyteams
 	for _,allyTeamID in ipairs(GetAllyTeamList()) do
 		local allyTeamInfo = {}
