@@ -39,7 +39,6 @@ local CMD_MOVE = CMD.MOVE
 
 local myTeamID = GetMyTeamID()
 local engineers = {}
-local moveUnits = {}
 local engineerDefs = {}
 local moveUnitsDefs = {}
 
@@ -77,12 +76,14 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam,builderID)
 		engineers[unitID] = {}
 	end
 	if builderID and moveUnitsDefs[unitDefID] and engineers[builderID] then
-		moveUnits[unitID] = builderID
+		local x, y, z = GetUnitPosition(unitID)
+		x = x + (random(1,2) == 1 and 1 or -1)*random(50,100)
+		z = z + (random(1,2) == 1 and 1 or -1)*random(50,100)
+		GiveOrderToUnit(unitID, CMD_MOVE, {x, y, z}, { "" })
 	end
 end
 
 function widget:UnitDestroyed(unitID)
-	moveUnits[unitID] = nil
 	engineers[unitID] = nil
 end
 
@@ -96,23 +97,6 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeam)
 	widget:UnitCreated(unitID, unitDefID, newTeam)
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	if unitTeam ~= myTeamID then
-		return
-	end
-	local builderID = moveUnits[unitID]
-	if not builderID then
-		return
-	end
-	moveUnits[unitID] = nil
-	if #GetCommandQueue(unitID) ~= 0 then
-		return
-	end 
-	local x, y, z = GetUnitPosition(unitID)
-	x = x + (random(1,2) == 1 and 1 or -1)*random(50,100)
-	z = z + (random(1,2) == 1 and 1 or -1)*random(50,100)
-	GiveOrderToUnit(unitID, CMD_MOVE, {x, y, z}, { "" })
-end
 
 
 
