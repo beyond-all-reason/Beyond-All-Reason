@@ -23,14 +23,13 @@ function widget:GetInfo()
 	}
 end
 local GetSpectatingState = Spring.GetSpectatingState
-local GetCommandQueue = Spring.GetCommandQueue
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitDirection = Spring.GetUnitDirection
 local GetMyTeamID = Spring.GetMyTeamID
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 
-local random = math.random
 
 local CMD_MOVE = CMD.MOVE
 
@@ -77,9 +76,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam,builderID)
 	end
 	if builderID and moveUnitsDefs[unitDefID] and engineers[builderID] then
 		local x, y, z = GetUnitPosition(unitID)
-		x = x + (random(1,2) == 1 and 1 or -1)*random(50,100)
-		z = z + (random(1,2) == 1 and 1 or -1)*random(50,100)
-		GiveOrderToUnit(unitID, CMD_MOVE, {x, y, z}, { "" })
+		local dx,dy,dz = GetUnitDirection(unitID)
+		local moveDist = 50
+		GiveOrderToUnit(unitID, CMD_MOVE, {x+dx*moveDist, y, z+dz*moveDist}, { "" })
 	end
 end
 
