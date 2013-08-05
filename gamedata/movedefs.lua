@@ -69,7 +69,7 @@ local moveDatas = {
 		minwaterdepth = 15,
 	},
 	HAKBOT4 = {
-		crushstrength = 250,
+		crushstrength = 252,
 		depthmod = 0,
 		footprintx = 4,
 		footprintz = 4,
@@ -139,7 +139,7 @@ local moveDatas = {
 		maxwaterdepth = 22,
 	},
 	HTKBOT4 = {
-		crushstrength = 250,
+		crushstrength = 252,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 80,
