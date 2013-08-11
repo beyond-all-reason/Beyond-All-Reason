@@ -519,24 +519,24 @@ function CreatePlayerFromTeam(teamID)
 	else
 	
 		if Spring_GetGameSeconds() < 0.1 then
-		
 			tname = "no player yet"
 			ttotake = false
 			tdead = false
+		end
 		
-		else
-		
-			if Spring_GetTeamUnitCount(teamID) > 0  then
+		if Spring_GetTeamUnitCount(teamID) > 0  then
+			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then			
 				tname = "- aband. units -"
 				ttotake = true
 				tdead = false
-			else
-				tname = "- dead team -"
-				ttotake = false
-				tdead = true
 			end
-		
+		else 
+			tname = "- dead team -"
+			ttotake = false
+			tdead = true
 		end
+		
+
 	end
 	
 	return{
@@ -925,13 +925,13 @@ function CreateMainList(tip)
 	
 	for i, drawObject in ipairs(drawList) do
 		if drawObject == -5 then
-			DrawLabel("SPECS", drawListOffset[i])
+			DrawLabel(" SPECS", drawListOffset[i])
 		elseif drawObject == -4 then
 			DrawSeparator(drawListOffset[i])
 		elseif drawObject == -3 then
-			DrawLabel("ENEMIES", drawListOffset[i])
+			DrawLabel(" ENEMIES", drawListOffset[i])
 		elseif drawObject == -2 then
-			DrawLabel("ALLIES", drawListOffset[i])
+			DrawLabel(" ALLIES", drawListOffset[i])
 		elseif drawObject == -1 then
 			leader = true
 		else
@@ -1517,12 +1517,12 @@ function widget:MousePress(x,y,button)
 							if clickedPlayer.totake == true then
 								if right == true then
 									if IsOnRect(x,y, widgetPosX - 57, posY - 1,widgetPosX - 12, posY + 17) then                            --take button
-										Take()                                                                                             --
+										Take(clickedPlayer.team, clickedPlayer.name)                                                                                             --
 										return true                                                                                        --
 									end                                                                                                    --
 								else                                                                                                       --
 									if IsOnRect(x,y, widgetPosX + widgetWidth + 12, posY-1,widgetPosX + widgetWidth + 57, posY + 17) then  --
-										Take()                                                                                             --
+										Take(clickedPlayer.team, clickedPlayer.name)                                                                                             --
 										return true
 									end
 								end
@@ -1994,12 +1994,14 @@ function GetNeed(resType,teamID)
 	return false
 end
 
-function Take()
+function Take(teamID,name)
 
 	-- sends the /take command to spring
 
-	Spring_SendCommands{"take"}
-	Spring_SendCommands{"say a: I took the abandoned units."}
+	Spring_SendCommands("luarules take2 " .. teamID)
+	Spring_SendCommands("say a: I took " .. colourNames(teamID) .. "abandoned units.")
+	
+
 	for i = 0,127 do
 		if player[i].allyteam == myAllyTeamID then
 			if player[i].totake == true then
