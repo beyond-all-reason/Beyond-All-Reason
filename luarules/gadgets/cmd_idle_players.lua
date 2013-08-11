@@ -52,7 +52,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	function onInitialQueueTime(_,_,words)
 		initialQueueTime = tonumber(words[1])
 		if initialQueueTime then
-			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
+			initialQueueTime = max(10,min(initialQueueTime,maxInitialQueueSlack))
 		end
 	end
 	
