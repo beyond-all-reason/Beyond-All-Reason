@@ -355,12 +355,14 @@ end
 
 
 function widget:Initialize()
+	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	UpdateRecentBroadcasters()
 	CreateLists()
 end
 
 
 function widget:Shutdown()
+	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	DeleteLists()
 end
 

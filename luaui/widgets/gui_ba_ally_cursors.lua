@@ -61,6 +61,16 @@ local clock					= os.clock
 
 local alliedCursorsPos = {}
 
+
+function widget:Initialize()
+	widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
+end
+
+
+function widget:Shutdown()
+	widgetHandler:DeregisterGlobal('MouseCursorEvent')
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -74,7 +84,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local playerPos = {}
-function widget:MouseCursorEvent(playerID,x,z,click)
+function MouseCursorEvent(playerID,x,z,click)
 	local playerPosList = playerPos[playerID] or {}
 	playerPosList[#playerPosList+1] = {x=x,z=z,click=click}
 	playerPos[playerID] = playerPosList
