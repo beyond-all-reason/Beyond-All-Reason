@@ -56,8 +56,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if not wreckDefID then
 		return --wreck not found
 	end
-	local currentFrame = GetGameFrame() 
-	local frameList = deadUnits[currentFrame] or {}
+	--wreck is created rezFrameDistance frames after unit died
+	local wreckFrame = GetGameFrame() + rezFrameDistance 
+	local frameList = deadUnits[wreckFrame] or {}
 	local wreckList = frameList[wreckDefID] or {}
 	wreckList[#wreckList+1] = {
 		location = {GetUnitPosition(unitID)},
@@ -65,13 +66,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		unitDefID = unitDefID,
 	}
 	frameList[wreckDefID] = wreckList
-	deadUnits[currentFrame] = frameList
+	deadUnits[wreckFrame] = frameList
 end
 
 function gadget:FeatureCreated(featureID)
 	local currentFrame = GetGameFrame()
-	--unit die exactly rezFrameDistance frames before feature is created
-	local featureList = deadUnits[currentFrame-rezFrameDistance]
+	local featureList = deadUnits[currentFrame]
 	if not featureList then
 		return
 	end
@@ -87,18 +87,19 @@ function gadget:FeatureCreated(featureID)
 				experience = wreckInfo.experience,
 				unitDefID = wreckInfo.unitDefID,
 			}
-			deadUnits[currentFrame-rezFrameDistance][featureDefID][index] = nil
+			deadUnits[currentFrame][featureDefID][index] = nil
 			return
 		end
 	end
 end
 
 function gadget:UnitCreated(unitID,unitDefID,unitTeam,builderID)
-	if builderID then
-		--if unit that created it cannot resurrect, it wasn't for sure a resurrection
-		if not UnitDefs[GetUnitDefID(builderID)].canResurrect then
-			return
-		end
+	if not builderID then
+		return
+	end
+	--if unit that created it cannot resurrect, it wasn't for sure a resurrection
+	if not UnitDefs[GetUnitDefID(builderID)].canResurrect then
+		return
 	end
 	rezzedUnits[unitDefID] = rezzedUnits[unitDefID] or {}
 	rezzedUnits[unitDefID][unitID] = {GetUnitPosition(unitID)}
@@ -119,7 +120,7 @@ function gadget:FeatureDestroyed(featureID)
 		if sqDist(unitPos,wreckLocation) < distThreshold then
 			SetUnitExperience(unitID,wreckInfo.experience)
 			rezzedUnits[wreckInfo.unitDefID][unitID] = nil
-			break
+			return
 		end
 	end 
 end
@@ -127,13 +128,13 @@ end
 
 
 function gadget:GameFrame()
-	local currentFrame = GetGameFrame()
 	--wrecks gets created exactly rezFrameDistance frames after unit death
 	
 	--UnitCreated gets called BEFORE FeatureDestroyed, but within the same frame
-	
+		
 	-- reset dead units vector, if wreck wasn't created since rezFrameDistance+1 frames, it will never be
-	deadUnits[currentFrame-(rezFrameDistance+1)] = nil
+	local currentFrame = GetGameFrame()
+	deadUnits[currentFrame-1] = nil
 
 	--reset rezzedUnits vector, if unit wasn't rezzed it will never be
 	rezzedUnits = {}
