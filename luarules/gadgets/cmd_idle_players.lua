@@ -325,7 +325,7 @@ else
 			end
 			teamList = {targetTeam}
 		end
-		for teamID in ipairs(teamList) do
+		for _,teamID in ipairs(teamList) do
 			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
 				-- transfer all units
 				for _,unitID in ipairs(GetTeamUnits(teamID)) do
@@ -335,7 +335,7 @@ else
 				for _,resourceName in ipairs(resourceList) do
 					local shareAmount = GetTeamResources( teamID, resourceName)
 					local current,storage = GetTeamResources(takerID,resourceName)
-					shareAmount = min(shareAmount,current-storage)
+					shareAmount = min(shareAmount,storage-current)
 					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
 				end
 			end
