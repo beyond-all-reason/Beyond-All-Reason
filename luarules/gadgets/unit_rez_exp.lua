@@ -36,11 +36,7 @@ local deadUnits = {} -- creationFrame: wreckDefID: {experience,location}
 --this is reset every frame
 local rezzedUnits = {} -- unitDefID: location
 
-function gadget:Initialize()
-	GG.GetFeatureExperience = GetFeatureExperience
-end
-
-function GetFeatureExperience(featureID)
+function GG.GetFeatureExperience(featureID)
 	if wreckInfos[featureID] then
 		return wreckInfos[featureID].experience
 	end
@@ -114,8 +110,7 @@ function gadget:FeatureDestroyed(featureID)
 	if not wreckInfo then
 		return
 	end
-	local unitDefID = wreckInfo.unitDefID
-	local rezzedList = rezzedUnits[unitDefID]
+	local rezzedList = rezzedUnits[wreckInfo.unitDefID]
 	if not rezzedList then
 		return
 	end
@@ -123,7 +118,7 @@ function gadget:FeatureDestroyed(featureID)
 	for unitID, unitPos in pairs(rezzedList) do
 		if sqDist(unitPos,wreckLocation) < distThreshold then
 			SetUnitExperience(unitID,wreckInfo.experience)
-			rezzedList[unitID] = nil
+			rezzedUnits[wreckInfo.unitDefID][unitID] = nil
 			break
 		end
 	end 
