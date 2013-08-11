@@ -463,11 +463,43 @@ function widget:GetTooltip(mx, my)
 	local bDef = UnitDefs[bDefID]
 	return string.format(tooltipFormat, bDef.humanName, bDef.tooltip, bDef.metalCost, bDef.energyCost, bDef.buildTime / sDef.buildSpeed)
 end
+
+function SetBuildFacing()
+	local wx,wy,_,_ = Spring.GetScreenGeometry()
+	local _, pos = Spring.TraceScreenRay(wx/2, wy/2, true)
+	if not pos then return end
+	local x = pos[1]
+	local z = pos[3]
+	
+    if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
+      if (2*x>Game.mapSizeX) then
+        facing=3
+      else
+        facing=1
+      end
+    else
+      if (2*z>Game.mapSizeZ) then
+        facing=2
+      else
+        facing=0
+      end
+    end
+	Spring.SetBuildFacing(facing)
+	
+end
+
+needBuildFacing = true
+
 function widget:MousePress(mx, my, mButton)
+
 
 	local tracedDefID = TraceDefID(mx, my)
 	if tracedDefID then
 		if mButton == 1 then
+		if needBuildFacing then
+			SetBuildFacing()
+			needBuildFacing = false
+		end
 			SetSelDefID(tracedDefID)
 			return true
 		elseif mButton == 3 then
