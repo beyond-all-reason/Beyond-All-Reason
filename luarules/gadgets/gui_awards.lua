@@ -126,7 +126,7 @@ function gadget:GameOver()
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
 		if teamInfo[teamID].ecoUsed == 0 then teamInfo[teamID].ecoUsed = 1 end --just in case
-		teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].ecoUsed
+		teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].ecoUsed * 100
 		teamInfo[teamID].dmgRec = stats[cur_max].damageReceived
 		teamInfo[teamID].ecoProd = stats[cur_max].energyProduced + 60 * stats[cur_max].metalProduced
 	end
@@ -426,7 +426,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 			
 			if winnerID >= 0 then
 				if pic == 'comwreath' then winnerScore = round(winnerScore, 2) end --we roudn ratios to 2dp
-				glText(colourNames(winnerID) .. winnerScore, bx + w/2 + 275, by + h - offset - 5, 17, "o")
+				glText(colourNames(winnerID) .. winnerScore, bx + w/2 + 275, by + h - offset - 5, 14, "o")
 			else
 				glText('-', bx + w/2 + 275, by + h - offset - 5, 17, "o")			
 			end
@@ -439,7 +439,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 			end
 			
 			if thirdScore > 0 then
-				if pic == 'comwreath' then thirdScore = round(thirdScore, 2) end --we roudn ratios to 2dp
+				if pic == 'comwreath' then thirdScore = round(thirdScore, 2) end --we round ratios to 2dp
 				glText(colourNames(thirdID) .. thirdName, bx + 520, by + h - offset - 45, 14, "o")
 				glText(colourNames(thirdID) .. thirdScore, bx + w/2 + 275, by + h - offset - 45, 14, "o")
 			end
