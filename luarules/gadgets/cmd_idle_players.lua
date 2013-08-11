@@ -51,9 +51,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	
 	function onInitialQueueTime(_,_,words)
 		initialQueueTime = tonumber(words[1])
-		if initialQueueTime then
-			initialQueueTime = max(10,min(initialQueueTime,maxInitialQueueSlack))
-		end
+		initialQueueTime = max(10,min(initialQueueTime,maxInitialQueueSlack))
 	end
 	
 	function onGameStart()
