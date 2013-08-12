@@ -535,8 +535,10 @@ function CreatePlayerFromTeam(teamID)
 			ttotake = false
 			tdead = true
 		end
-		
-
+	end
+	
+	if tname == nil then
+		tname = "- aband. units -"
 	end
 	
 	return{
