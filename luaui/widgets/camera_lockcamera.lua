@@ -327,7 +327,7 @@ function widget:Update(dt)
 	totalTime = totalTime + dt
 end
 
-function widget:CameraBroadcastEvent(playerID,cameraState)
+function CameraBroadcastEvent(playerID,cameraState)
 
 	--if cameraState is empty then transmission has stopped
 	if not cameraState then
