@@ -513,7 +513,7 @@ function CreatePlayerFromTeam(teamID)
 			tname = "AI:" .. tname
 		end
 		
-		tf = false
+		ttotake = false
 		tdead = false
 		
 	else
