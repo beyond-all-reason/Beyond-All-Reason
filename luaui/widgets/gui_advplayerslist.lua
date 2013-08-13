@@ -513,7 +513,7 @@ function CreatePlayerFromTeam(teamID)
 			tname = "AI:" .. tname
 		end
 		
-		ttotake = false
+		tf = false
 		tdead = false
 		
 	else
@@ -526,9 +526,9 @@ function CreatePlayerFromTeam(teamID)
 		
 		if Spring_GetTeamUnitCount(teamID) > 0  then
 			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then			
-				tname = "- aband. units -"
-				ttotake = true
-				tdead = false
+					tname = "- aband. units -"
+					ttotake = true
+					tdead = false
 			end
 		else 
 			tname = "- dead team -"
@@ -540,6 +540,7 @@ function CreatePlayerFromTeam(teamID)
 	if tname == nil then
 		tname = "- aband. units -"
 	end
+	
 	
 	return{
 		rank             = 8, -- "don't know which" value
@@ -1967,6 +1968,12 @@ function CheckPlayersChange()
 			player[i].cpuLvl  = GetCpuLvl(cpuUsage)
 			player[i].ping    = pingTime*1000-((pingTime*1000)%1)
 			player[i].cpu     = cpuUsage*100-((cpuUsage*100)%1)
+			if ((Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 ) and (Spring_GetTeamUnitCount(teamID) > 0)) then			
+				player[i].totake = true
+			else
+				player[i].name = name
+				player[i].totake = false
+			end
 		end
 	end
 	if sorting == true then    -- sorts the list again if change needs it
