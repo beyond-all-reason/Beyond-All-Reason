@@ -328,9 +328,6 @@ function widget:DrawScreen()
 		if #buildQueue > 0 then
 			local mCost, eCost, bCost = GetQueueCosts()
 			local buildTime = bCost / sDef.buildSpeed
-			if buildTime ~= totalTime then
-				Spring.SendCommands("luarules initialQueueTime " .. buildTime)
-			end
 			totalTime = buildTime
 			gl.Text(string.format(queueTimeFormat, mCost, eCost, buildTime), 0, 0, fontSize, 'do')
 		end
@@ -414,7 +411,7 @@ function widget:GameFrame(n)
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-
+	
 	-- Don't run if we didn't queue anything
 	if (#buildQueue == 0) then
 		widgetHandler:RemoveWidget(self)
@@ -422,6 +419,10 @@ function widget:GameFrame(n)
 	end
 
 	if (n < 2) then return end -- Give the unit frames 0 and 1 to spawn
+	
+	--inform gadget how long is our queue
+	Spring.SendCommands("luarules initialQueueTime " .. buildTime)
+	
 	if (n > 10) then
 		--Spring.Echo("> Starting unit never spawned !")
 		widgetHandler:RemoveWidget(self)

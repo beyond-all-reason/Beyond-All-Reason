@@ -15,6 +15,7 @@ local maxPing = 30 -- in seconds
 local finishedResumingPing = 2 --in seconds
 local maxInitialQueueSlack = 120 -- in seconds
 local takeCommand = "take2"
+local minTimeToTake = Game.gameSpeed*10 -- in seconds
 
 local AFKMessage = 'idleplayers '
 local AFKMessageSize = #AFKMessage
@@ -51,7 +52,9 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	
 	function onInitialQueueTime(_,_,words)
 		initialQueueTime = tonumber(words[1])
-		initialQueueTime = max(10,min(initialQueueTime,maxInitialQueueSlack))
+		if initialQueueTime then
+			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
+		end
 	end
 	
 	function onGameStart()
@@ -266,12 +269,12 @@ else
 		gadgetHandler:RemoveChatAction(takeCommand)
 	end
 
-	function gadget:GameStart()
-		SendToUnsynced("onGameStart")
-	end
 
 	function gadget:GameFrame(currentFrame)
 		currentGameFrame = currentFrame
+		if currentFrame == 10 then
+			SendToUnsynced("onGameStart")
+		end
 		if currentFrame%16 ~= 0 then
 			return
 		end
@@ -289,7 +292,7 @@ else
 		playerInfoTable[playerID] = playerInfoTableEntry
 		local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
 		if not spectator then
-			if currentGameFrame > 0 then
+			if currentGameFrame > minTimeToTake then
 				if previousPresent and not playerInfoTableEntry.present then
 					Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
 				elseif not previousPresent and playerInfoTableEntry.present then
@@ -306,7 +309,7 @@ else
 
 
 	function TakeTeam(cmd, line, words, playerID)
-		if currentGameFrame == 0 then
+		if currentGameFrame <= minTimeToTake then
 			return -- reject takes before the game has started
 		end
 		if not CheckPlayerState(playerID) then
