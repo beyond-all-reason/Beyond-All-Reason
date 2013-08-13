@@ -15,7 +15,7 @@ local maxPing = 30 -- in seconds
 local finishedResumingPing = 2 --in seconds
 local maxInitialQueueSlack = 120 -- in seconds
 local takeCommand = "take2"
-local minTimeToTake = Game.gameSpeed*10 -- in seconds
+local minTimeToTake = 10 -- in seconds
 
 local AFKMessage = 'idleplayers '
 local AFKMessageSize = #AFKMessage
@@ -171,10 +171,13 @@ else
 	local SetTeamShareLevel = Spring.SetTeamShareLevel
 	local GetTeamInfo = Spring.GetTeamInfo
 	local GetTeamList = Spring.GetTeamList
+	local SendMessageToPlayer = Spring.SendMessageToPlayer
+	local SendMessageToAllyTeam = Spring.SendMessageToAllyTeam
 	local Echo = Spring.Echo
 	
 	local resourceList = {"metal","energy"}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local gameSpeed = Game.gameSpeed
 	
 	local min = math.min
 
@@ -292,11 +295,11 @@ else
 		playerInfoTable[playerID] = playerInfoTableEntry
 		local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
 		if not spectator then
-			if currentGameFrame > minTimeToTake then
+			if currentGameFrame > minTimeToTake*gameSpeed then
 				if previousPresent and not playerInfoTableEntry.present then
-					Echo("Player " .. GetPlayerInfo(playerID) .. " went AFK")
+					SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " went AFK")
 				elseif not previousPresent and playerInfoTableEntry.present then
-					Echo("Player " .. GetPlayerInfo(playerID) .. " came back")
+					SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " came back")
 				end
 			end
 		end
@@ -309,7 +312,8 @@ else
 
 
 	function TakeTeam(cmd, line, words, playerID)
-		if currentGameFrame <= minTimeToTake then
+		if currentGameFrame <= minTimeToTake*gameSpeed then
+			SendMessageToPlayer(playerID,"Cannot take before " .. minTimeToTake .. "s")
 			return -- reject takes before the game has started
 		end
 		if not CheckPlayerState(playerID) then
@@ -322,12 +326,15 @@ else
 			local _,_,_,_,_,targetAllyTeamID = GetTeamInfo(targetTeam)
 			if targetAllyTeamID ~= allyTeamID then
 				--don't let enemies take
+				SendMessageToPlayer(playerID,"Cannot take enemy players")
 				return
 			end
 			teamList = {targetTeam}
 		end
+		local numToTake = 0
 		for _,teamID in ipairs(teamList) do
 			if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
+				numToTake = numToTake + 1
 				-- transfer all units
 				for _,unitID in ipairs(GetTeamUnits(teamID)) do
 					TransferUnit(unitID,takerID)
@@ -340,6 +347,9 @@ else
 					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
 				end
 			end
+		end
+		if numToTake == 0 then
+			SendMessageToPlayer(playerID,"Nothing to take")
 		end
 	end
 end
