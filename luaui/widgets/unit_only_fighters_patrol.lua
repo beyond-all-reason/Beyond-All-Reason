@@ -72,15 +72,15 @@ local function UnitHasPatrolOrder(unitID)
 end
 local function MustStop(unitID, unitDefID)
 	local ud=UnitDefs[unitDefID]
-	if ud and ud.canFly and (ud.weaponCount==0 or (not (ud.type == "Fighter")) or (ud.humanName=="Liche") or ud.noAutoFire) and UnitHasPatrolOrder(unitID) then
-		if (not opts.stop_builders)and ud and ud.builder then
+	if ud and ud.canFly and (ud.weaponCount==0 or (not (ud.isFighterAirUnit or ud.isFighter)) or (ud.humanName=="Liche") or ud.noAutoFire) and UnitHasPatrolOrder(unitID) then --isFighter kept for 94 compat only, remove after
+		if (not opts.stop_builders)and ud and ud.isBuilder then
 			return false
 		end
 		--[[
 		if opts.FactoryGuard_workaround then
 			local factoryGuard = widgetHandler.knownWidgets["FactoryGuard"]
 			if factoryGuard and factoryGuard.name and (widgetHandler.orderList[factoryGuard.name]>0) then
-				if ud and ud.builder and ud.canAssist then
+				if ud and ud.isBuilder and ud.canAssist then
 					return false
 				end
 			end			

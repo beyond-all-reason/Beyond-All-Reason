@@ -238,7 +238,7 @@ local function SetupBackgroundColor(ud)
     glColor(0.5, 0.5, 0.0, alpha)
   elseif (ud.floatOnWater) then
     glColor(0.0, 0.0, 0.5, alpha)
-  elseif (ud.builder) then
+  elseif (ud.isBuilder) then
     glColor(0.0, 0.5, 0.0, alpha)
   else
     glColor(.5, .5, .5, alpha)

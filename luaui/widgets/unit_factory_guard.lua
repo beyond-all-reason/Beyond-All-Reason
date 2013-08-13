@@ -67,7 +67,7 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
 
   -- can this unit assist?
   local ud = UnitDefs[unitDefID]
-  if (not (ud and ud.builder and ud.canAssist)) then
+  if (not (ud and ud.isBuilder and ud.canAssist)) then
     return
   end
 

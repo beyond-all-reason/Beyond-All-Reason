@@ -285,7 +285,7 @@ end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders) 
 	if unitTeam == myTeamID then 
     local ud = UnitDefs[unitDefID]
-    if (CONST_IGNORE_BUILDERS and ud.builder and ud.canAssist) then return end
+    if (CONST_IGNORE_BUILDERS and ud.isBuilder and ud.canAssist) then return end
 	if (CONST_IGNORE_GROUNDSCOUTS and ud.modCategories.groundscout) then return end
     if (IsTransportable(unitDefID) and not userOrders) then 
 --      Echo ("new unit from factory "..unitID)

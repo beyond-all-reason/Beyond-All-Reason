@@ -51,7 +51,7 @@ local hmsz = Game.mapSizeZ/2
 
 
 local function IsImmobileBuilder(ud)
-	return ud and ud.builder and not ud.canMove and not ud.isFactory
+	return ud and ud.isBuilder and not ud.canMove and not ud.isFactory
 end
 
 

@@ -84,7 +84,7 @@ local junoWeapons = {
 function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, aID, aDefID, aTeam)
     if junoWeapons[weaponID] and tokillUnits[uDefID] then
 		if uID and SpValidUnitID(uID) then
-			if aID then
+			if aID and SpValidUnitID(aID) then
 				SpDestroyUnit(uID, false, false, aID)
 			else
 				SpDestroyUnit(uID, false, false)
