@@ -344,8 +344,8 @@ else
 				--send all resources en-block to the taker
 				for _,resourceName in ipairs(resourceList) do
 					local shareAmount = GetTeamResources( teamID, resourceName)
-					local current,storage = GetTeamResources(takerID,resourceName)
-					shareAmount = min(shareAmount,storage-current)
+					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID,resourceName)
+					shareAmount = min(shareAmount,shareSlider*storage-current)
 					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
 				end
 			end
