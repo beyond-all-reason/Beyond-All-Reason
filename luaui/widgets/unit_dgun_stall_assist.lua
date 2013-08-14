@@ -52,7 +52,7 @@ function widget:Initialize()
 	end
 	
 	for uDefID, uDef in pairs(UnitDefs) do
-		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.customParams.iscommander) then
+		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.canManualFire) then
 			shouldWait[uDefID] = true
 			if uDef.isFactory then
 				isFactory[uDefID] = true

@@ -11,7 +11,7 @@ return {
 		buildpic = "ARMCOM.DDS",
 		buildtime = 75000,
 		cancapture = true,
-		candgun = true,
+		canmanualfire = true,
 		canmove = true,
 		capturespeed = 900,
 		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE",
