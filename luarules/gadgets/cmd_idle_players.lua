@@ -311,6 +311,11 @@ else
 		-- prevent resources to leak to uncontrolled teams
 		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0
 	end
+	
+	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
+		-- prevent units to be shared to uncontrolled teams
+		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0
+	end
 
 
 	function TakeTeam(cmd, line, words, playerID)
