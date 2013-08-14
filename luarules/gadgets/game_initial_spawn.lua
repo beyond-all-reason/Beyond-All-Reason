@@ -171,7 +171,7 @@ local function MakeStartPointTable()
 				local isTop = (zmin >= z) 
 				isplayerspot = (not isLeft) or (not isTop) 
 			end
-			Spring.Echo(teamIDs[i],x,z,y,my,isygood,isplayerspot,not isAIteam,not isspec,isactive)--DEBUG
+			--Spring.Echo(teamIDs[i],x,z,y,my,isygood,isplayerspot,not isAIteam,not isspec,isactive)--DEBUG
 			
 			if not isGaiateam then
 				if (isygood and ((not isAIteam) or isplayerspot) and (not isspec) and (isactive)) then --guess! engine has no callin that can check 
