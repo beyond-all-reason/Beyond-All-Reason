@@ -34,6 +34,7 @@ end
 --------------------------------------------------------------------------------
 
 local Spring_GetGameSeconds      = Spring.GetGameSeconds
+local Spring_GetGameFrame		 = Spring.GetGameFrame
 local Spring_GetAllyTeamList     = Spring.GetAllyTeamList
 local Spring_GetTeamInfo         = Spring.GetTeamInfo
 local Spring_GetTeamList         = Spring.GetTeamList
@@ -1520,12 +1521,12 @@ function widget:MousePress(x,y,button)
 							if clickedPlayer.totake == true then
 								if right == true then
 									if IsOnRect(x,y, widgetPosX - 57, posY - 1,widgetPosX - 12, posY + 17) then                            --take button
-										Take(clickedPlayer.team, clickedPlayer.name)                                                                                             --
+										Take(clickedPlayer.team, clickedPlayer.name, i)                                                                                             --
 										return true                                                                                        --
 									end                                                                                                    --
 								else                                                                                                       --
 									if IsOnRect(x,y, widgetPosX + widgetWidth + 12, posY-1,widgetPosX + widgetWidth + 57, posY + 17) then  --
-										Take(clickedPlayer.team, clickedPlayer.name)                                                                                             --
+										Take(clickedPlayer.team, clickedPlayer.name, i)                                                                                             --
 										return true
 									end
 								end
@@ -2003,22 +2004,35 @@ function GetNeed(resType,teamID)
 	return false
 end
 
-function Take(teamID,name)
+local reportTake = false
+local beforeE 
+local beforeM
+local beforeU
+local tookTeamID
+local tookFrame
+
+function Take(teamID,name, i)
 
 	-- sends the /take command to spring
 
-	Spring_SendCommands("luarules take2 " .. teamID)
-	Spring_SendCommands("say a: I took " .. colourNames(teamID) .. "abandoned units.")
+	reportTake = true
+	beforeE = Spring_GetTeamResources(teamID,"energy")
+	beforeM = Spring_GetTeamResources(teamID,"metal")
+	beforeU = Spring_GetTeamUnitCount(teamID)
+	tookTeamID = teamID
+	tookFrame = Spring.GetGameFrame()
 	
+	Spring_SendCommands("luarules take2 " .. teamID)
 
-	for i = 0,127 do
-		if player[i].allyteam == myAllyTeamID then
-			if player[i].totake == true then
-				player[i] = CreatePlayerFromTeam(player[i].team)
+	for j = 0,127 do
+		if player[j].allyteam == myAllyTeamID then
+			if player[j].totake == true then
+				player[j] = CreatePlayerFromTeam(player[j].team)
 				SortList()
 			end
 		end
-	end
+	end	
+	
 	return
 end
 
@@ -2032,6 +2046,27 @@ local updateRate = 0.5
 
 function widget:Update(delta) 
 	timeCounter = timeCounter + delta
+	
+		if reportTake and Spring_GetGameFrame() > tookFrame then
+		local teamID = tookTeamID
+		local afterE = Spring_GetTeamResources(teamID,"energy")
+		local afterM = Spring_GetTeamResources(teamID, "metal")
+		local afterU = Spring_GetTeamUnitCount(teamID)
+		local tookE = math.min(beforeE - afterE) --i can't find a way to get an exact value, this is a good guess but its ridiculous to report smth negative.
+		local tookM = math.min(beforeM - afterM)
+		local tookU = beforeU - afterU
+	
+		if tookE>0 or tookM>0 or tookU>0 then
+			Spring_SendCommands("say a: I took " .. tookU .. " abandoned units, " .. tookE .. " energy and " .. tookM .. " metals.")
+		end
+		
+		if afterE~=0 or afterM~=0 or  afterU~=0 then
+			Spring_SendCommands("say a: Left  " .. afterU .. " units, " .. afterE .. " energy, " .. afterM .. " metal remaining.")
+		end
+
+		reportTake = false
+	end
+	
 	if timeCounter < updateRate then
 		return
 	else
