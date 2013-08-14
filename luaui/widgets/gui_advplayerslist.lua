@@ -2052,8 +2052,8 @@ function widget:Update(delta)
 		local afterE = Spring_GetTeamResources(teamID,"energy")
 		local afterM = Spring_GetTeamResources(teamID, "metal")
 		local afterU = Spring_GetTeamUnitCount(teamID)
-		local tookE = math.min(beforeE - afterE) --i can't find a way to get an exact value, this is a good guess but its ridiculous to report smth negative.
-		local tookM = math.min(beforeM - afterM)
+		local tookE = math.max(beforeE - afterE,0) --i can't find a way to get an exact value, this is a good guess but its ridiculous to report smth negative.
+		local tookM = math.max(beforeM - afterM,0)
 		local tookU = beforeU - afterU
 	
 		if tookE>0 or tookM>0 or tookU>0 then
