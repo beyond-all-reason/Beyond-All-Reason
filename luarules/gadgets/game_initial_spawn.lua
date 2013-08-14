@@ -152,7 +152,7 @@ local function MakeStartPointTable()
 		for i=1,#teamIDs do
 			local x,y,z = Spring.GetTeamStartPosition(teamIDs[i])
 			local my = Spring.GetGroundHeight(x,z)
-			local isygood = ((y > -500) and (y + 50 > my)) --if the player/AI doesn't make a startpoint, the engine places one for the player/AI. AIs get y=-500 and players get y=-100.
+			local isygood = ((y > -500) and (y + 50 > my)) --if the player/AI doesn't make a startpoint, the engine places one for the player/AI. AIs get y=-500 and players get y=-100. this check fails in sea >50 deep.
 			local _,_,_,isAIteam,_,_,_,_ = Spring.GetTeamInfo(teamIDs[i]) 
 			local isGaiateam = (teamIDs[i] == GaiateamID)
 			
@@ -171,10 +171,10 @@ local function MakeStartPointTable()
 				local isTop = (zmin >= z) 
 				isplayerspot = (not isLeft) or (not isTop) 
 			end
-			--Spring.Echo(teamIDs[i],x,z,y,my,isygood,isplayerspot,not isAIteam,not isspec,isactive)--DEBUG
+			Spring.Echo(teamIDs[i],x,z,y,my,isygood,isplayerspot,not isAIteam,not isspec,isactive)--DEBUG
 			
 			if not isGaiateam then
-				if ((isygood or (not isAIteam)) and isplayerspot and (not isspec) and (isactive)) then --guess! engine has no callin that can check 
+				if (isygood and ((not isAIteam) or isplayerspot) and (not isspec) and (isactive)) then --guess! engine has no callin that can check 
 					StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 				else	
 					StartPointTable[teamIDs[i]]={-3*claimradius,-3*claimradius} --far enough out the way to not interfere with guessing routines of other teamIDs
