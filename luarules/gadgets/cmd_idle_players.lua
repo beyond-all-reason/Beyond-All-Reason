@@ -335,6 +335,7 @@ else
 			return -- reject takes before the game has started
 		end
 		if not CheckPlayerState(playerID) then
+			SendMessageToPlayer(playerID,"Cannot share to afk players")
 			return -- exclude taking rights from lagged players, etc
 		end
 		local targetTeam = tonumber(words[1])
