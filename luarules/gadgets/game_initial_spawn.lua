@@ -174,7 +174,7 @@ local function MakeStartPointTable()
 			--Spring.Echo(teamIDs[i],x,z,y,my,isygood,isplayerspot,not isAIteam,not isspec,isactive)--DEBUG
 			
 			if not isGaiateam then
-				if (isygood and ((not isAIteam) or isplayerspot) and (not isspec) and (isactive)) then --guess! engine has no callin that can check 
+				if (isygood and ((not isAIteam) or isplayerspot) and (not isspec)) then --guess! engine has no callin that can check 
 					StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
 				else	
 					StartPointTable[teamIDs[i]]={-3*claimradius,-3*claimradius} --far enough out the way to not interfere with guessing routines of other teamIDs
