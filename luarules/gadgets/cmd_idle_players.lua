@@ -182,6 +182,7 @@ else
 	local gameSpeed = Game.gameSpeed
 	
 	local min = math.min
+	local max = math.max
 
 	local function CheckPlayerState(playerID)
 		local newval = playerInfoTable[playerID]
@@ -258,10 +259,20 @@ else
 				TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
 			end
 		end
-
+		
 		for teamID,teamCount in ipairs(TeamToRemainingPlayers) do
+			-- don't allow teams to be marked afk when they are not takeable
+			if currentGameFrame <= minTimeToTake*gameSpeed then 
+				if teamCount then 
+					preTeamCount = max(1,teamCount)
+				else
+					preTeamCount = 1
+				end
+				SetTeamRulesParam(teamID, "numActivePlayers", preTeamCount )
+			else
+				SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
+						end
 			-- set to a public readble value that there's nobody controlling the team
-			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
 		end
 	end
 

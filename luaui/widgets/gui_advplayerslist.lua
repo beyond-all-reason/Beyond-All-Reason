@@ -525,15 +525,15 @@ function CreatePlayerFromTeam(teamID)
 			tdead = false
 		end
 		
-		if Spring_GetTeamUnitCount(teamID) > 0  then
-			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then			
-					tname = "- aband. units -"
-					ttotake = true
-					tdead = false
+
+		if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then			
+			if (Spring_GetTeamUnitCount(teamID) > 0) or (Spring_GetTeamResources(teamID,"energy") > 0) or (Spring_GetTeamResources(teamID,"metal") > 0) then
+				ttotake = true
+				tdead = false
 			end
-		else 
+		end
+		if Spring_GetTeamUnitCount(teamID) == 0 then
 			tname = "- dead team -"
-			ttotake = false
 			tdead = true
 		end
 	end
@@ -1969,8 +1969,10 @@ function CheckPlayersChange()
 			player[i].cpuLvl  = GetCpuLvl(cpuUsage)
 			player[i].ping    = pingTime*1000-((pingTime*1000)%1)
 			player[i].cpu     = cpuUsage*100-((cpuUsage*100)%1)
-			if ((Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 ) and (Spring_GetTeamUnitCount(teamID) > 0)) then			
-				player[i].totake = true
+			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+				if (Spring_GetTeamUnitCount(teamID) > 0) or (Spring_GetTeamResources(teamID,"energy") > 0) or (Spring_GetTeamResources(teamID,"metal") > 0) then			
+					player[i].totake = true
+				end
 			else
 				player[i].name = name
 				player[i].totake = false
@@ -2024,15 +2026,6 @@ function Take(teamID,name, i)
 	
 	Spring_SendCommands("luarules take2 " .. teamID)
 
-	for j = 0,127 do
-		if player[j].allyteam == myAllyTeamID then
-			if player[j].totake == true then
-				player[j] = CreatePlayerFromTeam(player[j].team)
-				SortList()
-			end
-		end
-	end	
-	
 	return
 end
 
@@ -2046,8 +2039,9 @@ local updateRate = 0.5
 
 function widget:Update(delta) 
 	timeCounter = timeCounter + delta
+	curFrame = Spring_GetGameFrame()
 	
-		if reportTake and Spring_GetGameFrame() > tookFrame then
+	if reportTake and curFrame >= 2 + tookFrame then --i have no idea why it takes two frames, but it does
 		local teamID = tookTeamID
 		local afterE = Spring_GetTeamResources(teamID,"energy")
 		local afterM = Spring_GetTeamResources(teamID, "metal")
@@ -2061,8 +2055,17 @@ function widget:Update(delta)
 		end
 		
 		if afterE~=0 or afterM~=0 or  afterU~=0 then
-			Spring_SendCommands("say a: Left  " .. afterU .. " units, " .. afterE .. " energy, " .. afterM .. " metal remaining.")
+			Spring_SendCommands("say a: Left  " .. afterU .. " units, " .. afterE .. " energy and " .. afterM .. " metal remaining.")
 		end
+		
+		for j = 0,127 do
+			if player[j].allyteam == myAllyTeamID then
+				if player[j].totake == true then
+					player[j] = CreatePlayerFromTeam(player[j].team)
+					SortList()
+				end
+			end
+		end	
 
 		reportTake = false
 	end
