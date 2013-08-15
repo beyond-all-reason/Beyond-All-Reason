@@ -229,7 +229,7 @@ else
 			local pingTreshold = maxPing
 			local oldPingOk = playerInfoTableEntry.pingOK
 			if oldPingOk == false then
-				pingTreshold = finishedResumingPing --use smaller treshold to determine finished resuming
+				pingTreshold = finishedResumingPing --use smaller threshold to determine finished resuming
 			end 
 			playerInfoTableEntry.pingOK = ping < pingTreshold
 			if not spectator then
@@ -261,18 +261,8 @@ else
 		end
 		
 		for teamID,teamCount in ipairs(TeamToRemainingPlayers) do
-			-- don't allow teams to be marked afk when they are not takeable
-			if currentGameFrame <= minTimeToTake*gameSpeed then 
-				if teamCount then 
-					preTeamCount = max(1,teamCount)
-				else
-					preTeamCount = 1
-				end
-				SetTeamRulesParam(teamID, "numActivePlayers", preTeamCount )
-			else
-				SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
-						end
-			-- set to a public readble value that there's nobody controlling the team
+			-- set to a public readable value that there's nobody controlling the team
+			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
 		end
 	end
 
@@ -330,10 +320,6 @@ else
 
 
 	function TakeTeam(cmd, line, words, playerID)
-		if currentGameFrame <= minTimeToTake*gameSpeed then
-			SendMessageToPlayer(playerID,"Cannot take before " .. minTimeToTake .. "s")
-			return -- reject takes before the game has started
-		end
 		if not CheckPlayerState(playerID) then
 			SendMessageToPlayer(playerID,"Cannot share to afk players")
 			return -- exclude taking rights from lagged players, etc
