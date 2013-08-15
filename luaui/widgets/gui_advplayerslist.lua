@@ -523,25 +523,23 @@ function CreatePlayerFromTeam(teamID)
 			tname = "no player yet"
 			ttotake = false
 			tdead = false
+		elseif Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+			local units = Spring_GetTeamUnitCount(teamID)
+			local energy = Spring_GetTeamResources(teamID,"energy")
+			local metal = Spring_GetTeamResources(teamID,"metal")
+			if (units > 0) or (energy > 0) or (metal > 0) then			
+				ttotake = true
+			end
+		else
+			ttotake = false					
 		end
 		
-
-		if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then			
-			if (Spring_GetTeamUnitCount(teamID) > 0) or (Spring_GetTeamResources(teamID,"energy") > 0) or (Spring_GetTeamResources(teamID,"metal") > 0) then
-				ttotake = true
-				tdead = false
-			end
-		end
-		if Spring_GetTeamUnitCount(teamID) == 0 then
-			tname = "- dead team -"
-			tdead = true
-		end
+		
 	end
 	
 	if tname == nil then
 		tname = "- aband. units -"
 	end
-	
 	
 	return{
 		rank             = 8, -- "don't know which" value
@@ -653,6 +651,7 @@ function SortAllyTeams(vOffset)
 		end
 	end
 	
+	
 	return vOffset
 end
 
@@ -731,7 +730,21 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 		table.insert(drawListOffset, vOffset)
 		table.insert(drawList, 64 + teamID)  -- no players team
 		player[64 + teamID].posY = vOffset
+		if Spring_GetGameFrame() > 0 then
+			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+				local units = Spring_GetTeamUnitCount(teamID)
+				local energy = Spring_GetTeamResources(teamID,"energy")
+				local metal = Spring_GetTeamResources(teamID,"metal")
+				if (units > 0) or (energy > 0) or (metal > 0) then			
+					player[64+teamID].totake = true
+				else
+					player[64+teamID].totake = false		
+				end
+			end
+		end
 	end
+	
+	
 	return vOffset
 end
 
@@ -995,6 +1008,7 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 	local posY     = widgetPosY + widgetHeight - vOffset
 	
 	if mouseY >= posY and mouseY <= posY + 16 then tipY = true end
+
 	
 	if spec == false then --player
 		if leader == true then                              -- take / share buttons
@@ -1969,13 +1983,19 @@ function CheckPlayersChange()
 			player[i].cpuLvl  = GetCpuLvl(cpuUsage)
 			player[i].ping    = pingTime*1000-((pingTime*1000)%1)
 			player[i].cpu     = cpuUsage*100-((cpuUsage*100)%1)
-			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-				if (Spring_GetTeamUnitCount(teamID) > 0) or (Spring_GetTeamResources(teamID,"energy") > 0) or (Spring_GetTeamResources(teamID,"metal") > 0) then			
+		end
+		if teamID and Spring_GetGameFrame() > 0 then
+			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 and player[i].totake == false then
+				local units = Spring_GetTeamUnitCount(teamID)
+				local energy = Spring_GetTeamResources(teamID,"energy")
+				local metal = Spring_GetTeamResources(teamID,"metal")
+				if (units > 0) or (energy > 0) or (metal > 0) then			
 					player[i].totake = true
+					sorting = true
 				end
 			else
 				player[i].name = name
-				player[i].totake = false
+				player[i].totake = false					
 			end
 		end
 	end
@@ -2040,7 +2060,7 @@ local updateRate = 0.5
 function widget:Update(delta) 
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
-	
+		
 	if reportTake and curFrame >= 2 + tookFrame then --i have no idea why it takes two frames, but it does
 		local teamID = tookTeamID
 		local afterE = Spring_GetTeamResources(teamID,"energy")
@@ -2080,7 +2100,6 @@ end
 
 function widget:TeamDied(teamID)
 	player[teamID+64]        = CreatePlayerFromTeam(teamID)
-	player[teamID+64].totake = false
 	SortList()
 end
 
