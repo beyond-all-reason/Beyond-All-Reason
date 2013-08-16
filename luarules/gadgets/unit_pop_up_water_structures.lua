@@ -31,44 +31,58 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   if (POP_UP_UNIT[unitDefID]) then 
     Spring.MoveCtrl.Enable(unitID)
-    popUps[unitID] = { velocity = 0.05, waterLine = POP_UP_UNIT[unitDefID].waterLine }
+    popUps[unitID] = { velocity = 0.05, waterLine = POP_UP_UNIT[unitDefID].waterLine , process = true}
   end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  popUps[unitID] = nil
+   popUps[unitID].process = false
 end
 
 function gadget:GameFrame(n)
   for unitID, defs in pairs(popUps) do
-    local x,y,z = Spring.GetUnitPosition(unitID)
-    if (y > defs.waterLine) then
-      local h = HeadingToFacing(Spring.GetUnitHeading(unitID))
-      Spring.MoveCtrl.Disable(unitID)
-      local newUnitID = Spring.CreateUnit(POP_UP_UNIT[Spring.GetUnitDefID(unitID)].unit,x,0,z,h,Spring.GetUnitTeam(unitID))
-      local cmds = Spring.GetUnitCommands(unitID)
-      for i,cmd in ipairs(cmds) do
-        local cmd = cmds[i]
-        Spring.GiveOrderToUnit(newUnitID, cmd.id, cmd.params, cmd.options.coded)
-      end
-      Spring.SetUnitHealth(newUnitID, select(1,Spring.GetUnitHealth(unitID)))
-      Spring.DestroyUnit(unitID, false, true)
-      Spring.SpawnCEG("watersplash_small",x,-5,z,0,0,0)
-      SendToUnsynced("splashsound", x,y,z)
-      popUps[unitID] = nil
-      local collisions = Spring.GetUnitsInSphere(x,0,z,35)
-      for _,colUnitID in ipairs(collisions) do
-        if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
-            Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
-        end
-      end
-    else 
-      Spring.MoveCtrl.SetRelativeVelocity(unitID,0,defs.velocity,0)
-      popUps[unitID].velocity = math.max(defs.velocity * 1.05, 1.75)
-      if (math.random() > 0.8) then
-        Spring.SpawnCEG("small_water_bubbles",x,y,z,0,1,0)
-      end
-    end
+	if defs.process = true then
+		local x,y,z = Spring.GetUnitPosition(unitID)
+		if (y > defs.waterLine) then
+			local h = HeadingToFacing(Spring.GetUnitHeading(unitID))
+			Spring.MoveCtrl.Disable(unitID)
+			local newUnitID = Spring.CreateUnit(POP_UP_UNIT[Spring.GetUnitDefID(unitID)].unit,x,0,z,h,Spring.GetUnitTeam(unitID))
+			local cmds = Spring.GetUnitCommands(unitID)
+			for i,cmd in ipairs(cmds) do
+				local cmd = cmds[i]
+				Spring.GiveOrderToUnit(newUnitID, cmd.id, cmd.params, cmd.options.coded)
+			end
+			Spring.SetUnitHealth(newUnitID, select(1,Spring.GetUnitHealth(unitID)))
+			Spring.DestroyUnit(unitID, false, true)
+	  
+			Spring.SpawnCEG("watersplash_small",x,-5,z,0,0,0)
+			SendToUnsynced("splashsound", x,y,z)
+			popUps[unitID].process = false
+			local collisions = Spring.GetUnitsInSphere(x,0,z,35)
+			for _,colUnitID in ipairs(collisions) do
+				if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
+					Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
+					if Spring.ValidUnitID(colUnitID) then
+						Spring.DestroyUnit(colUnitID, false, true)
+					end
+				end
+			end      
+			collisions = Spring.GetFeaturesInSphere(x,0,z,35)
+			for _,colFeatureID in ipairs(collisions) do
+				Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
+				if Spring.ValidFeatureID(colFeatureID) then
+					Spring.DestroyFeature(colFeatureID)
+				end        
+			end
+	  
+		else 
+			Spring.MoveCtrl.SetRelativeVelocity(unitID,0,defs.velocity,0)
+			popUps[unitID].velocity = math.max(defs.velocity * 1.05, 1.75)
+			if (math.random() > 0.8) then
+				Spring.SpawnCEG("small_water_bubbles",x,y,z,0,1,0)
+			end
+		end
+	end
   end
 end
 
