@@ -422,6 +422,7 @@ function widget:GameFrame(n)
 	if (n < 2) then return end -- Give the unit frames 0 and 1 to spawn
 	
 	--inform gadget how long is our queue
+	local buildTime = GetQueueBuildTime()
 	Spring.SendCommands("luarules initialQueueTime " .. buildTime)
 	
 	if (n > 10) then

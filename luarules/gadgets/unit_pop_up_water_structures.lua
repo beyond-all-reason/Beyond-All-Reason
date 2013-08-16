@@ -41,7 +41,7 @@ end
 
 function gadget:GameFrame(n)
   for unitID, defs in pairs(popUps) do
-	if defs.process = true then
+	if defs.process == true then
 		local x,y,z = Spring.GetUnitPosition(unitID)
 		if (y > defs.waterLine) then
 			local h = HeadingToFacing(Spring.GetUnitHeading(unitID))
