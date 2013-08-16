@@ -36,7 +36,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-   popUps[unitID].process = false
+   if (POP_UP_UNIT[unitDefID]) then
+		popUps[unitID].process = false
+	end
 end
 
 function gadget:GameFrame(n)
