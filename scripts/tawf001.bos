@@ -68,9 +68,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
 	sleep 150;
-	hide flare;
 }
 
 AimFromPrimary(piecenum)
