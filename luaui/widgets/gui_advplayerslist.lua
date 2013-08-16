@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+﻿--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  Copyright (C) 2008.
@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth.",
 		date      = "11.06.2013",
-		version   = "10",
+		version   = "11",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -28,6 +28,7 @@ end
 -- v9.0 (Bluestone): modifications to deal with twice as many players/specs; specs are rendered in a small font and cpu/ping does not show for them. 
 -- v9.1 ([teh]decay): added notification about shared resources
 -- v10  (Bluestone): Better use of opengl for a big speed increase & less spaghetti
+-- v11  (Bluestone): Get take info from cmd_idle_players
 
 --------------------------------------------------------------------------------
 -- SPEED UPS

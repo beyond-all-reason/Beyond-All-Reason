@@ -4,7 +4,7 @@ function widget:GetInfo()
 		name      = "Initial Queue",
 		desc      = "Allows you to queue buildings before game start",
 		author    = "Niobium",
-		version   = "1.4",
+		version   = "1.5",
 		date      = "7 April 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = -1, -- Puts it above minimap_startboxes with layer 0
@@ -14,6 +14,7 @@ function widget:GetInfo()
 end
 -- 12 jun 2012: "uDef.isMetalExtractor" was replaced by "uDef.extractsMetal > 0" to fix "metal" mode map switching (by [teh]decay, thx to vbs and Beherith)
 -- 20 march 2013: added keyboard support with BA keybinds (Bluestone)
+-- august 2013: send queue length to cmd_idle_players (BrainDamage)
 
 ------------------------------------------------------------
 -- Config
