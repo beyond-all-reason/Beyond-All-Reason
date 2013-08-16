@@ -1,4 +1,4 @@
-﻿--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  Copyright (C) 2008.
@@ -2116,7 +2116,3 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		widgetPosX  = widgetRight - widgetWidth
 	end
 end
-
-
--- Coord in % (resize) geometry will not be done
--- ajouter les d�cryptages de messages "widget:AddConsoleLine(line,priority)" appel� � chaque fois qu'il doit ajouter une ligne
