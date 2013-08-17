@@ -2034,10 +2034,8 @@ function GetNeed(resType,teamID)
 end
 
 local reportTake = false
-local beforeE 
-local beforeM
-local beforeU
 local tookTeamID
+local tookTeamName
 local tookFrame
 
 function Take(teamID,name, i)
@@ -2045,10 +2043,8 @@ function Take(teamID,name, i)
 	-- sends the /take command to spring
 
 	reportTake = true
-	beforeE = Spring_GetTeamResources(teamID,"energy")
-	beforeM = Spring_GetTeamResources(teamID,"metal")
-	beforeU = Spring_GetTeamUnitCount(teamID)
 	tookTeamID = teamID
+	tookTeamName = name
 	tookFrame = Spring.GetGameFrame()
 	
 	Spring_SendCommands("luarules take2 " .. teamID)
@@ -2073,13 +2069,8 @@ function widget:Update(delta)
 		local afterE = Spring_GetTeamResources(teamID,"energy")
 		local afterM = Spring_GetTeamResources(teamID, "metal")
 		local afterU = Spring_GetTeamUnitCount(teamID)
-		local tookE = math.max(beforeE - afterE,0) --i can't find a way to get an exact value, this is a good guess but its ridiculous to report smth negative.
-		local tookM = math.max(beforeM - afterM,0)
-		local tookU = beforeU - afterU
 	
-		if tookE>0 or tookM>0 or tookU>0 then
-			Spring_SendCommands("say a: I took " .. tookU .. " abandoned units, " .. tookE .. " energy and " .. tookM .. " metals.")
-		end
+		Spring_SendCommands("say a: I took " .. colourNames(tookTeamID) .. tookTeamName .. ".")
 		
 		if afterE~=0 or afterM~=0 or  afterU~=0 then
 			Spring_SendCommands("say a: Left  " .. afterU .. " units, " .. afterE .. " energy and " .. afterM .. " metal remaining.")
