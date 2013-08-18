@@ -2065,34 +2065,35 @@ function widget:Update(delta)
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
 
+	if curFrame >= 2 + tookFrame then
+		if lastTakeMsg + 120 < tookFrame and reportTake then --i have no idea why it takes two frames, but it does
+			local teamID = tookTeamID
+			local afterE = Spring_GetTeamResources(teamID,"energy")
+			local afterM = Spring_GetTeamResources(teamID, "metal")
+			local afterU = Spring_GetTeamUnitCount(teamID)
 	
-	if lastTakeMsg + 120 < tookFrame and reportTake and curFrame >= 2 + tookFrame then --i have no idea why it takes two frames, but it does
-		local teamID = tookTeamID
-		local afterE = Spring_GetTeamResources(teamID,"energy")
-		local afterM = Spring_GetTeamResources(teamID, "metal")
-		local afterU = Spring_GetTeamUnitCount(teamID)
-	
-		Spring_SendCommands("say a: I took " .. colourNames(tookTeamID) .. tookTeamName .. ".")
+			Spring_SendCommands("say a: I took " .. colourNames(tookTeamID) .. tookTeamName .. ".")
 		
-		if afterE and afterM and afterU then
-			if afterE > 1.0 or afterM > 1.0 or  afterU > 0 then
-				Spring_SendCommands("say a: Left  " .. math.floor(afterU) .. " units, " .. math.floor(afterE) .. " energy and " .. math.floor(afterM) .. " metal remaining.")
-			end
-		end
-		
-		for j = 0,127 do
-			if player[j].allyteam == myAllyTeamID then
-				if player[j].totake == true then
-					player[j] = CreatePlayerFromTeam(player[j].team)
-					SortList()
+			if afterE and afterM and afterU then
+				if afterE > 1.0 or afterM > 1.0 or  afterU > 0 then
+					Spring_SendCommands("say a: Left  " .. math.floor(afterU) .. " units, " .. math.floor(afterE) .. " energy and " .. math.floor(afterM) .. " metal remaining.")
 				end
 			end
-		end	
+		
+			for j = 0,127 do
+				if player[j].allyteam == myAllyTeamID then
+					if player[j].totake == true then
+						player[j] = CreatePlayerFromTeam(player[j].team)
+						SortList()
+					end
+				end
+			end	
 
-		lastTakeMsg = tookFrame
-		reportTake = false
-	else
-		reportTake = false
+			lastTakeMsg = tookFrame
+			reportTake = false
+		else
+			reportTake = false
+		end
 	end
 	
 	if timeCounter < updateRate then
