@@ -248,6 +248,9 @@ function gadget:PlayerChanged(playerID)
 	local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
 	teamInfo.players[playerID] = active and not spectator
 	teamInfo.hasLeader = select(2,GetTeamInfo(teamID)) >= 0
+	if not teamInfo.hasLeader then
+		KillTeam(teamID)
+	end
 	if not teamInfo.isAI then
 		--if team isn't ai controlled, then we need to check if we have attached players
 		teamInfo.isControlled = false
