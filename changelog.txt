@@ -1,3 +1,31 @@
+7.78 -> 7.79
+18/08/2013
+
+- Updated game end gadget 
+- Added awards gadget
+- Fixed Startpoint Assist not catching afk players
+- Lock Camera and Ally Cursors become gadgets, net traffic halved
+- Afk players are takeable (threshold is afk for 90s or afk at gamestart with no initial queue)
+- Take reminders are handled entirely through AdvPlayerList
+- Units remember exp when resurrected
+- Fixed Waypoint Dragger causing crashes for some mice
+- Fixed widget handler passing bad arguments in UnitCreated
+- Initial Queue orientates its first building towards the map center
+- Unit Moving widget moves units forwards instead of randomly
+- Wind Generator death explosion gives 'old' chaining behaviour
+- Remade impulse of Leveller & Janus 
+- Fixed dynamic collision vols that couldn't be hit by some weapons when closed
+- Fixed Dragons Teeth not getting crushed
+- Naval Engineers can't build Croc/Triton and T1 Amphib Constructors 
+- Increased Croc buildtime
+- Fixed torpedo bomber aiming
+- Increased death explosions of T1 Construction Ships and Tidal Generators
+
+
+
+~ Bluestone, BrainDamage, Nixtux, TheFatController, DeadnightWarrior 
+
+
 7.76 -> 7.78
 27/06/2013
 - Dots in Customformations are of consistent size depending on zoom and terrain height 
@@ -13,7 +41,7 @@
 - Fixed icon size when units are in ground/sea transports
 - Fixed Startpoint Guesser sometimes not recognizing genuine startpoints
 - Fixed passenger explosions on hover transport death
-- Reduced Can maxspeed reduced 1.35->1.25
+- Reduced Can maxspeed 1.35->1.25
 - Reduced Mercury/Screamer buildcost by about 10%
 - Commando only auto-builds mines when movestate is roam
 - Added draw/point spam blocker widget (default disabled)
