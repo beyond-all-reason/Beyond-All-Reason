@@ -36,7 +36,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-   if (POP_UP_UNIT[unitDefID]) then
+    if (POP_UP_UNIT[unitDefID]) and unitID and Spring.ValidUnitID(unitID) then
 		popUps[unitID].process = false
 	end
 end
