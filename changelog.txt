@@ -24,6 +24,7 @@
 - Unit Moving widget moves units forwards instead of randomly
 - Wind Generator death explosion gives 'old' chaining behaviour
 - Remade impulse of Leveller & Janus 
+- Fixed dynamic collision vols that couldn't be hit by some weapons when closed 
 - Fixed Dragons Teeth not getting crushed
 - Naval Engineers can't build Croc/Triton and T1 Amphib Constructors 
 - Increased Croc buildtime
