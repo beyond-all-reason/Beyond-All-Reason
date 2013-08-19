@@ -1,3 +1,15 @@
+7.80 -> 7.81
+18/08/2013
+
+- Fixed lua error when Pop-up Torpedo Launcher died on sea floor
+- Fixed units dying when Pop-up Torps rose
+- Hid specs after quit in AdvPlayerList
+- Fixed 'normal quits' caused by Awards gadgets
+- Fixed awards being given to spectators ;)
+- Fixed Ally Cursors showing spec cursors to players
+- Disabled Startpoint Assist until Spring 95.0
+
+
 7.79 -> 7.80
 18/08/2013
 
