@@ -261,7 +261,7 @@ local GL_LINE_LOOP = GL.LINE_LOOP
 local glText = gl.Text
 
 
-local drawAwards = false --DEBUG
+local drawAwards = false 
 local cx,cy --coords for center of screen
 local bx,by --coords for top left hand corner of box
 local w = 800 
@@ -472,13 +472,15 @@ local graphsX = 250
 
 function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
-	if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
-		Spring.SendCommands("quitforce")
+	if drawAwards then
+		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
+			Spring.SendCommands("quitforce")
+		end
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+			Spring.SendCommands('endgraph 1')
+			drawAwards = false
+		end	
 	end
-	if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
-		Spring.SendCommands('endgraph 1')
-		drawAwards = false
-	end	
 end
 
 
