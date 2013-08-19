@@ -1,3 +1,13 @@
+7.79 -> 7.80
+18/08/2013
+
+- Fixed specs not being white in Lock Camera and Ally Cursorss
+- Fixed not being able to resign when had 0 units left
+- Prevent spam of "i took" messages from over-enthusiastic takers & fixed text
+- Reduce "i took" to a single line and use rounded numbers 
+- Require players to use a few resources before getting the efficiency award
+- Fixed some other rare lua errors
+
 7.78 -> 7.79
 18/08/2013
 
@@ -14,16 +24,13 @@
 - Unit Moving widget moves units forwards instead of randomly
 - Wind Generator death explosion gives 'old' chaining behaviour
 - Remade impulse of Leveller & Janus 
-- Fixed dynamic collision vols that couldn't be hit by some weapons when closed
 - Fixed Dragons Teeth not getting crushed
 - Naval Engineers can't build Croc/Triton and T1 Amphib Constructors 
 - Increased Croc buildtime
 - Fixed torpedo bomber aiming
 - Increased death explosions of T1 Construction Ships and Tidal Generators
-
-
-
-~ Bluestone, BrainDamage, Nixtux, TheFatController, DeadnightWarrior 
+- Increased T1 Ship Cons builtime and reduced manouevability
+- Increased T1 Torpedo Launcher buildtime
 
 
 7.76 -> 7.78
