@@ -178,7 +178,12 @@ end
 
 
 local teamColors = {}
-local function SetTeamColor(teamID,a)
+local function SetTeamColor(teamID,a,playerID)
+	local _, _, isSpec = GetPlayerInfo(playerID)
+	if isSpec then
+		glColor(1,1,1,0.15)
+		return
+	end
 	local color = teamColors[teamID]
 	if color then
 		color[4]=a
@@ -218,7 +223,7 @@ function widget:DrawWorldPreUnit()
 
 			local gy = GetGroundHeight(wx,wz)
 			if (IsSphereInView(wx,gy,wz,QSIZE)) then
-				SetTeamColor(teamID,n*0.1)
+				SetTeamColor(teamID,n*0.1,playerID)
 				glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
 			end
 		end
