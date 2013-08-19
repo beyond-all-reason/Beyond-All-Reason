@@ -28,15 +28,23 @@ local function HeadingToFacing(heading)
 	return ((heading + 8192) / 16384) % 4
 end
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
   if (POP_UP_UNIT[unitDefID]) then 
+    popUps[unitID] = { velocity = 0.05, waterLine = POP_UP_UNIT[unitDefID].waterLine , process = false}
+  end
+end
+
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+  if (POP_UP_UNIT[unitDefID]) and unitID and Spring.ValidUnitID(unitID) then
     Spring.MoveCtrl.Enable(unitID)
-    popUps[unitID] = { velocity = 0.05, waterLine = POP_UP_UNIT[unitDefID].waterLine , process = true}
+    popUps[unitID].process = true	
   end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-    if (POP_UP_UNIT[unitDefID]) and unitID and Spring.ValidUnitID(unitID) then
+    if (POP_UP_UNIT[unitDefID]) and unitID then
 		popUps[unitID].process = false
 	end
 end
