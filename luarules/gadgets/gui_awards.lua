@@ -373,11 +373,24 @@ function round(num, idp)
   return string.format("%." .. (idp or 0) .. "f", num)
 end
 
+
+function FindPlayerName(teamID)
+	local plList = Spring.GetPlayerList(teamID)
+	for _,playerID in pairs(plList) do
+		local name,_,isSpec = Spring.GetPlayerInfo(playerID)
+		if not isSPec then
+			return name
+		end
+	end
+	local name = Spring.GetPlayerInfo(Spring.GetPlayerList(teamID)[1])
+	return name
+end
+
 function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, winnerScore, secondScore, thirdScore, offset)
 	local winnerName, winnerCoop, secondName, secondCoop, thirdName, thirdCoop
 	
 	if winnerID >= 0 then
-		winnerName = Spring.GetPlayerInfo(Spring.GetPlayerList(winnerID)[1])
+		winnerName = FindPlayerName(winnerID)
 		winnerCoop = (#(Spring.GetPlayerList(winnerID)) > 1)
 		if winnerCoop then winnerName = winnerName  .. ' (coop)' end
 	else
@@ -385,7 +398,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 	end
 	
 	if secondID >= 0 then
-		secondName = Spring.GetPlayerInfo(Spring.GetPlayerList(secondID)[1])
+		secondName = FindPlayerName(secondID)
 		secondCoop = (#(Spring.GetPlayerList(winnerID)) > 1)
 		if secondCoop then secondName = secondName  .. ' (coop)' end
 	else
@@ -393,7 +406,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 	end
 	
 	if thirdID >= 0 then
-		thirdName = Spring.GetPlayerInfo(Spring.GetPlayerList(thirdID)[1])
+		thirdName = FindPlayerName(thirdID)
 		thirdCoop = (#(Spring.GetPlayerList(winnerID)) > 1)
 		if thirdCoop then thirdName = thirdName  .. ' (coop)' end
 	else
