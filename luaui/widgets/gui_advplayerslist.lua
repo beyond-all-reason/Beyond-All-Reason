@@ -761,7 +761,7 @@ function SortSpecs(vOffset)
 	
 	for _,playerID in ipairs(playersList) do
 		_,active,spec = Spring_GetPlayerInfo(playerID)
-		if spec == true then
+		if spec and active then
 			if player[playerID].name ~= nil then
 				
 				-- add "Specs" label if first spec
