@@ -165,7 +165,8 @@ end
 --drawing
 ------------------------------------------------
 local function GetPlayerColor(playerID)
-	local _, _, _, teamID = GetPlayerInfo(playerID)
+	local _, _, isSpec, teamID = GetPlayerInfo(playerID)
+	if isSpec then return 1,1,1 end
 	if not teamID then return end
 	return GetTeamColor(teamID)
 end
