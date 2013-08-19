@@ -64,9 +64,6 @@ function gadget:GameFrame(n)
 			for _,colUnitID in ipairs(collisions) do
 				if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
 					Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
-					if Spring.ValidUnitID(colUnitID) then
-						Spring.DestroyUnit(colUnitID, false, true)
-					end
 				end
 			end      
 			collisions = Spring.GetFeaturesInSphere(x,0,z,35)
