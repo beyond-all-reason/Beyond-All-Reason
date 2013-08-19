@@ -2065,20 +2065,22 @@ function widget:Update(delta)
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
 
-	if curFrame >= 2 + tookFrame then
-		if lastTakeMsg + 120 < tookFrame and reportTake then --i have no idea why it takes two frames, but it does
+	if curFrame >= 30 + tookFrame then
+		if lastTakeMsg + 120 < tookFrame and reportTake then 
 			local teamID = tookTeamID
 			local afterE = Spring_GetTeamResources(teamID,"energy")
 			local afterM = Spring_GetTeamResources(teamID, "metal")
 			local afterU = Spring_GetTeamUnitCount(teamID)
 	
-			Spring_SendCommands("say a: I took " .. colourNames(tookTeamID) .. tookTeamName .. ".")
+			local toSay = "say a: I took " .. tookTeamName .. ". "
 		
 			if afterE and afterM and afterU then
 				if afterE > 1.0 or afterM > 1.0 or  afterU > 0 then
-					Spring_SendCommands("say a: Left  " .. math.floor(afterU) .. " units, " .. math.floor(afterE) .. " energy and " .. math.floor(afterM) .. " metal remaining.")
+					toSay = toSay .. "Left  " .. math.floor(afterU) .. " units, " .. math.floor(afterE) .. " energy and " .. math.floor(afterM) .. " metal."
 				end
 			end
+			
+			Spring_SendCommands(toSay)
 		
 			for j = 0,127 do
 				if player[j].allyteam == myAllyTeamID then
