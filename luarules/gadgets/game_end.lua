@@ -82,7 +82,7 @@ local AreTeamsAllied = Spring.AreTeamsAllied
 local allyTeamInfos = {}
 local teamToAllyTeam = {}
 local playerIDtoAIs = {}
-local playerQuitIsDead = 1
+local playerQuitIsDead = true
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -96,15 +96,20 @@ function gadget:Initialize()
 	if teamDeathMode == "none" then
 		gadgetHandler:RemoveGadget()
 	end
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	if #GetTeamList() == 3 then -- 2 teams + gaia
-		playerQuitIsDead = 0 -- let player quit & rejoin in 1v1
-	end
 	
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local teamCount = 0
+	for _,teamID in ipairs(GetTeamList()) do
+		if ignoreGaia ~= 1 or teamID ~= gaiaTeamID then
+			teamCount = teamCount + 1
+		end
+	end
 
-	if #GetTeamList() <= 2 then -- sandbox mode (gaia + possibly one player)
+	if teamCount < 2 then -- sandbox mode ( possibly gaia + possibly one player)
 		gadgetHandler:RemoveGadget()
 		return
+	elseif teamCount == 2 then
+		playerQuitIsDead = false -- let player quit & rejoin in 1v1
 	end
 	
 	-- at start, fill in the table of all alive allyteams
@@ -216,7 +221,7 @@ local function UpdateAllyTeamIsDead(allyTeamID)
 	local allyTeamInfo = allyTeamInfos[allyTeamID]
 	local dead = true
 	for teamID,teamInfo in pairs(allyTeamInfo.teams) do
-		if playerQuitIsDead == 0 then
+		if not playerQuitIsDead then
 			dead = dead and (teamInfo.dead or not teamInfo.hasLeader )
 		else
 			dead = dead and (teamInfo.dead or not teamInfo.isControlled )
