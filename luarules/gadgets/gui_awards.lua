@@ -378,7 +378,7 @@ function FindPlayerName(teamID)
 	local plList = Spring.GetPlayerList(teamID)
 	for _,playerID in pairs(plList) do
 		local name,_,isSpec = Spring.GetPlayerInfo(playerID)
-		if not isSPec then
+		if not isSpec then
 			return name
 		end
 	end
