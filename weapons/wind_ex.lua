@@ -3,7 +3,7 @@ return {
 		areaofeffect = 180,
 		craterboost = 0,
 		cratermult = 0,
-		edgeeffectiveness = 1,
+		edgeeffectiveness = 0.75,
 		explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
 		impulseboost = 0.12300000339746,
 		impulsefactor = 0.12300000339746,
