@@ -368,7 +368,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 			end
 			if target then
 				local alwaysSeen
-				if tonumber(target) then -- target is a specific unit
+				if tonumber(target) and spValidUnitID(target) then -- target is a specific unit
 					local targetUnitDef = spGetUnitDefID(target)
 					local tud = targetUnitDef and UnitDefs[targetUnitDef]
 					alwaysSeen = tud and (tud.isBuilding or tud.speed == 0)
