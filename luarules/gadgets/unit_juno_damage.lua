@@ -165,8 +165,8 @@ function gadget:GameFrame(frame)
 		end
 	end
 	
-	if ((#centers ~= 0) and (curtime - lastupdate > 1)) then --slow update (to make y re-match ground in unsync)
-		udpate = true
+	if ((#centers ~= 0) and (curtime - lastupdate > 1)) then --slow update (to re-match ground in unsync)
+		update = true
 	end
 	
 	if ((update==true) and (curtime - lastupdate > updategrain)) then 
