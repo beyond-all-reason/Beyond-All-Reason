@@ -17,6 +17,7 @@ return {
 		description = "Assault Mech",
 		energymake = 12,
 		energystorage = 120,
+		pushResistant = true,
 		explodeas = "BANTHA_DEATH",
 		footprintx = 3,
 		footprintz = 3,

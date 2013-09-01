@@ -24,6 +24,7 @@ return {
 		mass = 2000000,
 		maxdamage = 300000,
 		maxslope = 14,
+		pushResistant = true,
 		maxvelocity = 0.55000001192093,
 		maxwaterdepth = 12,
 		movementclass = "HKBOT5",

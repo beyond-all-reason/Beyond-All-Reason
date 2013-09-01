@@ -23,6 +23,7 @@ return {
 		collisionVolumeType = [[CylY]],
 		commander = true,
 		corpse = "DEAD",
+		pushResistant = true,
 		description = "Commander",
 		energymake = 25,
 		explodeas = "COMMANDER_BLAST",

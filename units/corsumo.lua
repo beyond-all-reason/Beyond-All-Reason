@@ -22,6 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 5001,
+		pushResistant = true,
 		maxdamage = 14000,
 		maxslope = 15,
 		maxvelocity = 0.75,

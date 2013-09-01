@@ -22,6 +22,7 @@ return {
 		collisionVolumeTest = 1,
 		collisionVolumeType = [[CylY]],
 		commander = true,
+		pushResistant = true,
 		corpse = "DEAD",
 		description = "Commander",
 		energymake = 25,

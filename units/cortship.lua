@@ -19,6 +19,7 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 4,
 		footprintz = 4,
+		pushResistant = true,
 		icontype = "sea",
 		autoheal = 5,
 		maxdamage = 11420,

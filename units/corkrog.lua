@@ -24,6 +24,7 @@ return {
 		idletime = 1800,
 		mass = 200000,
 		maxdamage = 133700,
+		pushResistant = true,
 		maxslope = 17,
 		maxvelocity = 1.1200000047684,
 		maxwaterdepth = 12,

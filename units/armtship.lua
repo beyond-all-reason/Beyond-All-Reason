@@ -35,7 +35,7 @@ return {
 		waterline = 11,
 		floater = true,
 		windgenerator = 0.001,
-		
+		pushResistant = true,
 		releaseheld = false,
 		transportcapacity = 40,
 		transportsize = 4,

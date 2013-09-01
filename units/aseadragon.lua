@@ -20,6 +20,7 @@ return {
 		energystorage = 1000,
 		energyuse = 150,
 		explodeas = "ATOMIC_BLAST",
+		pushResistant = true,
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
