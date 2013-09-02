@@ -1650,7 +1650,7 @@ function widget:MouseRelease(x,y,button)
 					Spring_SendCommands("say a: I need "..amountEM.." Energy!")
 				end
 			elseif amountEM > 0 then
-				eResources(energyPlayer.team, "energy", amountEM)
+				Spring_ShareResources(energyPlayer.team, "energy", amountEM)
 				Spring_SendCommands("say a: I sent "..amountEM.." energy to "..energyPlayer.name)
 			end
 			sliderOrigin = nil
