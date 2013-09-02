@@ -1649,8 +1649,8 @@ function widget:MouseRelease(x,y,button)
 				else
 					Spring_SendCommands("say a: I need "..amountEM.." Energy!")
 				end
-			else
-				Spring_ShareResources(energyPlayer.team, "energy", amountEM)
+			elseif amountEM > 0 then
+				eResources(energyPlayer.team, "energy", amountEM)
 				Spring_SendCommands("say a: I sent "..amountEM.." energy to "..energyPlayer.name)
 			end
 			sliderOrigin = nil
@@ -1667,7 +1667,7 @@ function widget:MouseRelease(x,y,button)
 				else
 					Spring_SendCommands("say a: I need "..amountEM.." Metal!")
 				end
-			else
+			elseif amountEM > 0 then
 				Spring_ShareResources(metalPlayer.team, "metal", amountEM)
 				Spring_SendCommands("say a: I sent "..amountEM.." metal to "..metalPlayer.name)
 			end
