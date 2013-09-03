@@ -631,22 +631,21 @@ FirePrimary()
 {
 	if( gun_1 )
 	{
-		gun_1 = pelvis;
-		show lfirept;
-		move lcannon to z-axis [-2.000000] speed [25.000000];
-		sleep 100;
-		hide lfirept;
-		move lcannon to z-axis [0.000000] speed [4.000000];
-	}
-	else
-	{
-		gun_1 = rfirept;
 		show rfirept;
 		move rcannon to z-axis [-2.000000] speed [25.000000];
 		sleep 100;
 		hide rfirept;
 		move rcannon to z-axis [0.000000] speed [4.000000];
 	}
+	else
+	{
+		show lfirept;
+		move lcannon to z-axis [-2.000000] speed [25.000000];
+		sleep 100;
+		hide lfirept;
+		move lcannon to z-axis [0.000000] speed [4.000000];
+	}
+	gun_1 = !gun_1;
 }
 
 Killed(severity, corpsetype)
