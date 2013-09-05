@@ -78,7 +78,7 @@ return {
 				avoidfriendly = false,
 				avoidfeature = true,			
 				burnblow = true,
-				--collidefriendly = false,
+				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
