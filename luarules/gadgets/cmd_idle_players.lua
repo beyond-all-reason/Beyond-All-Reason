@@ -144,6 +144,8 @@ if ( not gadgetHandler:IsSyncedCode()) then
 		return ""
 	end
 	
+	--this callin has never been implemented!
+	--[[
 	function gadget:AddConsoleLine(line)
 		if line:len() == 0 then
 			return
@@ -152,6 +154,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 			NotIdle()
 		end
 	end
+	]]--
 
 else
 
