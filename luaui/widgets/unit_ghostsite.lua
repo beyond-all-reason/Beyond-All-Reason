@@ -278,7 +278,6 @@ function CheckSpecState()
 	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
 		
 	if ( spec == true ) then
-		spEcho("<Ghost Site> Spectator mode. Widget removed.")
 		widgetHandler:RemoveWidget()
 		return false
 	end

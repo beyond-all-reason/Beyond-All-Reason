@@ -344,7 +344,6 @@ function CheckSpecState()
 	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
 		
 	if ( spec == true ) then
-		spEcho("<Easy Facing> Spectator mode. Widget removed.")
 		widgetHandler:RemoveWidget()
 		return false
 	end
