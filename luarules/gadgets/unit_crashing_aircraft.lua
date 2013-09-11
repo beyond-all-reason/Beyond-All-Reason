@@ -20,43 +20,31 @@ local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local SetUnitCosts		= Spring.SetUnitCosts
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 
+local COB_CRASHING = COB.CRASHING
+
 local crashing = {}
-local crashable  ={ --strafemovetype sometimes doesnt take the damage it is dealt. 
-	[UnitDefNames["armthund"].id] = true,
-	[UnitDefNames["armpeep"].id] = true,
-	[UnitDefNames["armfig"].id] = true,
-	[UnitDefNames["armcybr"].id] = true,
-	[UnitDefNames["armawac"].id] = true,
-	[UnitDefNames["armlance"].id] = true,
-	[UnitDefNames["armhawk"].id] = true,
-	[UnitDefNames["armpnix"].id] = true,
-	[UnitDefNames["armsehak"].id] = true,
-	[UnitDefNames["armsfig"].id] = true,
-	[UnitDefNames["armseap"].id] = true,
-	[UnitDefNames["armsb"].id] = true,
-	[UnitDefNames["corgripn"].id] = true,
-	[UnitDefNames["corawac"].id] = true,
-	[UnitDefNames["cortitan"].id] = true,
-	[UnitDefNames["corvamp"].id] = true,
-	[UnitDefNames["corhurc"].id] = true,
-	[UnitDefNames["corshad"].id] = true,
-	[UnitDefNames["corfink"].id] = true,
-	[UnitDefNames["corveng"].id] = true,
-	[UnitDefNames["corhunt"].id] = true,
-	[UnitDefNames["corseap"].id] = true,
-	[UnitDefNames["corsfig"].id] = true,
-	[UnitDefNames["corsb"].id] = true,
-}
+local crashable  = {}
+
+function gadget:Initialize()
+	--set up table to check against
+	for _,UnitDef in pairs(UnitDefs) do
+		if UnitDef.canFly == true then
+			crashable[UnitDef.id] = true
+		end
+	end
+
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if paralyzer then return damage,1 end --OOPS FORGOT THIS
+	if paralyzer then return damage,1 end 
 	if crashing[unitID] then 
 		return 0,0
 	end --hacky
-	if UnitDefs[unitDefID]["canFly"] == true and (damage>GetUnitHealth(unitID)) and random()<0.25 then
-	--NOTE: strafe airmovetype aircraft crash since 92. only
-		SetUnitCOBValue(unitID, COB.CRASHING, 1)
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and math.random()<0.25 then
+		crashing[unitID] = true
+		SetUnitCOBValue(unitID, COB_CRASHING, 1)
 		SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
-		crashing[unitID]=true
+		
 		SetUnitSensorRadius(unitID, "los", 0)
 		SetUnitSensorRadius(unitID, "radar", 0)
 		SetUnitSensorRadius(unitID, "sonar", 0)
