@@ -1,3 +1,6 @@
+- Arm Destroyer velocity reduced 15%, SightDistance reduced (550->490)
+- Core Destroyer velocity reduced 15%, SightDistance reduced (550->490)
+
 7.80 -> 7.81
 18/08/2013
 
@@ -44,7 +47,6 @@
 - Increased death explosions of T1 Construction Ships and Tidal Generators
 - Increased T1 Ship Cons builtime and reduced manouevability
 - Increased T1 Torpedo Launcher buildtime
-
 
 7.76 -> 7.78
 27/06/2013
