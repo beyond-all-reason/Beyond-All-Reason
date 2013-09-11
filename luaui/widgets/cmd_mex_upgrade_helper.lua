@@ -23,7 +23,7 @@ local GetSelectedUnits = Spring.GetSelectedUnits
 local TraceScreenRay = Spring.TraceScreenRay 
 local GetActiveCommand = Spring.GetActiveCommand 
 
-function widget:Initialize() 
+function widget:GameStart() 
   widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs) 
 end 
 
@@ -42,7 +42,7 @@ end
 
 
 function widget:GameFrame(n)
-	if n > 0 then
+	if n > 1 then
 		Spring.SendCommands({"luarules registerUpgradePairs 1"})
 		widgetHandler:RemoveCallIn("GameFrame")
 	end
