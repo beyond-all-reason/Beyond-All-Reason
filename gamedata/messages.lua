@@ -1,15 +1,52 @@
 
 local messages = {
-	[ [[Team %i (lead by %s) is no more]] ] = {
-		--AA/BA
-		"Team %i (%s) has been obliterated",
-		"Team %i (%s) has been liquidated",
-		"Team %i (%s) has been eradicated",
-		"Team %i (%s) has been terminated",
-		"Team %i (%s) has been fumigated",
-		"Team %i (%s) has been castrated",
+    -- [ "Player %i (%s) resigned and is now spectating!" ] -- these ones don't get parsed, wtf
+	
+	[ "Team %i is no more" ] = {
+	--ated
+	"Team %i has been obliterated",
+	"Team %i has been liquidated",
+	"Team %i has been eradicated",
+	"Team %i has been terminated",
+	"Team %i has been fumigated",
+	"Team %i has been castrated",
+	"Team %i has been expatriated",
+	"Team %i has been annihilated",
+	"Team %i has been obliterated",
+	"Team %i has been exterminated",
+	"Team %i has been incapacitated",
+	"Team %i has been co-immunoprecipitated",
+	"Team %i has been deliminated",
+	"Team %i has been devastated",
+	"Team %i has been dishabilitated",
+	"Team %i has been eliminated",
+	"Team %i has been annihilated",
+	"Team %i has been dominated", 
+	"Team %i has been lactated",
+	"Team %i has been spectated",
+	"Team %i has been glaciated",
+
+	--ized
+	"Team %i has been hospitalized",
+	"Team %i has been crystalized",
+	"Team %i has been brutalized",
+	"Team %i has been caramelized",
+	"Team %i has been metabolized",
+	"Team %i has been destablized",
+	"Team %i has been immoblized",
+	"Team %i has been oxidized",
+	"Team %i has been minimzed",
+	"Team %i has been neutralized",
+	"Team %i has been fossilized",
+	"Team %i has been vulcanized",
+	"Team %i has been exorcized", 
+	--TODO more of these
+		
+	},
+	
+	
+	[ "Team %i (lead by %s) is no more" ] = {		
 		"Team %i (%s) has been exported to pdf",
-		"Team %i (%s) has been repatriated",
 		"Team %i (%s) suffered an unmitigated disaster",
 		"Team %i (%s) should have stayed in bed",
 		"Team %i (%s) has bowed out",
@@ -17,8 +54,8 @@ local messages = {
 		"Team %i (%s) has entered purgatory",
 		"Team %i (%s) has gone to a better place",
 		"Team %i (%s) has been shown the door",
+		"Team %i (%s) exits stage left",
 		"Team %i (%s) has left the scene",
-		"Team %i (%s) has been annihilated",
 		"Team %i (%s) has gone to robot heaven",
 		"Team %i (%s) has left the building",
 		"Team %i (%s) is no longer with us",
@@ -26,7 +63,7 @@ local messages = {
 		"Team %i (%s) was unworthy of continued existence",
 		"Team %i (%s) made like Noize's pants, and split",
 		"Team %i (%s) made like TheFatControllers's lederhosen, and split",
-		"Team %i (%s) made like Beherith's brassiere, and split",
+		"Team %i (%s) made like Beherith's mankini, and split",
 		"Team %i (%s) couldn't even handle a few Bandits",
 		"Team %i (%s) has been played out",
 		"Team %i (%s) has been conquered",
@@ -35,7 +72,6 @@ local messages = {
 		"Team %i (%s) has succumbed",
 		"Team %i (%s) was helpless before the onslaught",
 		"Team %i (%s) has been damaged beyond repair",
-		"Team %i (%s) was dominated",
 		"Team %i (%s) has been slain",
 		"Team %i (%s) was outclassed",
 		"Team %i (%s) got taken down",
@@ -195,27 +231,63 @@ local messages = {
 		"Team %i (%s) did not get U.N. approval",
 		"Team %i (%s) is buying a stairway to heaven",
 		"Team %i (%s) is just another brick in the wall",
-		"Team %i (%s) was drinking whisky and rye",
+		"Team %i (%s) was drinking whisky and rye, singing ...",
 		"Team %i (%s) is never going to dance again",
 		"Team %i (%s) is easy come, easy go",
 		"Team %i (%s) was loyal to the true emperor, Marcus Aurelius",
 		"And like that, Team %i (%s) was gone",		
 		"Team %i (%s) passed into the realm of monsters and legends",
 		"The light still burns for Team %i (%s), but there is nobody home",
-		"Team %i (%s) is just tottering on the brink",
-		"Team %i (%s) is real in memory as was in flesh",
+		"Team %i (%s) tottered over  the brink",
+		"Team %i (%s) is as real in memory as was in flesh",
 		"Team %i (%s) will use the batropes!",
 		"Team %i (%s) lost life in the line of duty",
 		"Team %i (%s). That is all.", 
 		"Team %i (%s) will be sent a receipt",
 		"Team %i (%s) was just a story",
 		"Team %i (%s) is in a cold grave, under the deep deep sea",
-		"Team %i (%s) left behind small traces",
-	},	
+		"Team %i (%s) left behind small sticky traces",
+		"Team %i (%s) will be restored from a backup",
+		"Blamelist: Team %i (%s)",
+		"Team %i (%s) just needed more love",
+		"Team %i (%s) will be composted",
+		"Team %i (%s) reached the final frontier",
+		"Team %i (%s) was a little short for a stormtrooper",
+		"Team %i (%s) should watch the replay",
+		"Team %i (%s) phoned home",
+		"Team %i (%s) was dependent on the kindness of strangers",
+		"Team %i (%s) dreamed a dream in times gone by",
+		"Team %i (%s) had a dream",
+		"Team %i (%s) just didn't want to live any more",
+		"Houston, Team %i (%s) has a problem",
+		"Team %i (%s) wasn't in Kansas anymore",
+		"Team %i (%s) loved the smell of Napalm in the morning",
+		"Frankly, my dear, Team %i (%s) doesn't give a damn",
+		"Team %i (%s) sees dead people",
+		"Team %i (%s) lost its life but not its freedom",
+		"Every Team %i (%s) dies, but not every Team %i (%s) really lives",
+		"Team %i (%s) must remember that through all history, truth and love have always won",
+		"Team %i (%s) passed through nature to eternity",	
+		"Team %i (%s) is dust on the wind",
+		"Team %i (%s) was ravaged by the vikings",
+		"Team %i (%s) was printed on recycled paper",
+		"Team %i (%s) will be recycled",
+		"Team %i (%s) is now open to constructive criticism",
+		"Team %i (%s) has only themselves to blame",
+		"Team %i (%s) will be sent on a training course",
+		"Team %i (%s) is no more",
+		"Team %i (%s) will now describe what went wrong",
+		"Team %i (%s) would like to discuss this",
+		"Team %i (%s) knows what went wrong",
+	},
 }
+
+
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
 
 return messages
 
