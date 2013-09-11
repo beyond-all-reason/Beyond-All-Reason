@@ -40,7 +40,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if crashing[unitID] then 
 		return 0,0
 	end --hacky
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and math.random()<0.25 then
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.25 then
 		crashing[unitID] = true
 		SetUnitCOBValue(unitID, COB_CRASHING, 1)
 		SetUnitNoSelect(unitID,true) --cause setting to neutral still allows selection (wtf?)
