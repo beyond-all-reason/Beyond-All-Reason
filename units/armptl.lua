@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1450,
 		maxslope = 999,
-		minwaterdepth = 1,
+		minwaterdepth = 12,
 		name = "Harpoon",
 		objectname = "ARMTL",
 		seismicsignature = 0,

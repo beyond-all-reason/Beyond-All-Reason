@@ -20,7 +20,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1450,
-		minwaterdepth = 1,
+		minwaterdepth = 12,
 		name = "Harpoon",
 		objectname = "ARMTL",
 		seismicsignature = 0,

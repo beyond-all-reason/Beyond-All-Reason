@@ -21,7 +21,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1520,
 		maxslope = 10,
-		minwaterdepth = 1,
+		minwaterdepth = 12,
 		name = "Urchin",
 		objectname = "CORTL",
 		seismicsignature = 0,
