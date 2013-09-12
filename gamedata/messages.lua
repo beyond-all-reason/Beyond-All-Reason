@@ -2,7 +2,7 @@
 local messages = {
     -- [ "Player %i (%s) resigned and is now spectating!" ] -- these ones don't get parsed, wtf
 	
-	[ "Team %i is no more" ] = {
+	[ "Team %i is no more" ] = { --these happen when a team dies from a player resigning
 	--ated
 	"Team %i has been obliterated",
 	"Team %i has been liquidated",
@@ -39,13 +39,15 @@ local messages = {
 	"Team %i has been fossilized",
 	"Team %i has been vulcanized",
 	"Team %i has been exorcized", 
+	"Team %i has been pulverized"
+	"Team %i has been amortized",
 	--TODO more of these
 		
 	},
 	
 	
-	[ "Team %i (lead by %s) is no more" ] = {		
-		"Team %i (%s) has been exported to pdf",
+	[ "Team %i (lead by %s) is no more" ] = { --these happen when a team dies because 0 units left
+		"Team %i (%s) was exported to pdf",
 		"Team %i (%s) suffered an unmitigated disaster",
 		"Team %i (%s) should have stayed in bed",
 		"Team %i (%s) has bowed out",
@@ -264,11 +266,10 @@ local messages = {
 		"Frankly, my dear, Team %i (%s) doesn't give a damn",
 		"Team %i (%s) sees dead people",
 		"Team %i (%s) lost its life but not its freedom",
-		"Every Team %i (%s) dies, but not every Team %i (%s) really lives",
 		"Team %i (%s) must remember that through all history, truth and love have always won",
 		"Team %i (%s) passed through nature to eternity",	
 		"Team %i (%s) is dust on the wind",
-		"Team %i (%s) was ravaged by the vikings",
+		"Team %i (%s) was ravaged by viking invaders",
 		"Team %i (%s) was printed on recycled paper",
 		"Team %i (%s) will be recycled",
 		"Team %i (%s) is now open to constructive criticism",
@@ -278,6 +279,55 @@ local messages = {
 		"Team %i (%s) will now describe what went wrong",
 		"Team %i (%s) would like to discuss this",
 		"Team %i (%s) knows what went wrong",
+		"Team %i (%s) will be reimplemented in lua",
+		"Team %i (%s) got a special death message",
+		"Team %i (%s) was swiftly and painlessly destroyed",
+		"Team %i (%s) had it coming",
+		"Team %i (%s) needed repair",
+		"Team %i (%s) needed a resource bonus",
+		"Team %i (%s) died slowly and painfully",
+		"Team %i (%s) will be back for Christmas",
+		"Team %i (%s) went into hibernation",
+		"Team %i (%s) has been cremated",
+		"Team %i (%s) was a war hero",
+		"Team %i (%s) should try playing with both hands",
+		"Team %i (%s) soiled itself",
+		"Team %i (%s) went to infinity and beyond",
+		"Team %i (%s) had everything under control",
+		"Team %i (%s) went and got itself killed, again",
+		"Team %i (%s) seems to be dead",
+		"Team %i (%s) died a hero's death",
+		"Team %i (%s) might get posthumous honours",
+		"Team %i (%s) is boned",
+		"Team %i (%s) is dead as a doornail",
+		"Team %i (%s) did the Texas cakewalk",
+		"Team %i (%s) went west, where the sky is blue",
+		"Team %i (%s) will sleep in the sky",
+		"Team %i (%s) has met its maker",,
+		"Team %i (%s) popped its clogs".
+		"Team %i (%s) fell on its sword",
+		"Team %i (%s) couldn't stand the heat",
+		"Team %i (%s) upped it",
+		"Team %i (%s) is wearing a pine overcoat",
+		"Team %i (%s) is six foot under",
+		"Team %i (%s) shuffled off it's mortal coil",
+		"Team %i (%s) wears pants for no man",
+		"Team %i (%s) runs from no man",
+		"Team %i (%s) made the ultimate sacrifice",
+		"Team %i (%s) went to the big DSD in the sky",
+		"Team %i (%s) died with its boots on",
+		"Team %i (%s) answered the final summons",
+		"Team %i (%s) went beyond the veil",
+		"Team %i (%s) came to a sticky end",
+		"Team %i (%s) fell off its perch",
+		"Team %i (%s) is not dead, its just resting after a long squawk"
+		"Team %i (%s) is stone dead",
+		"Team %i (%s) will claim on its insurance",
+		"Team %i (%s) was prepared to die at any time",
+		"Team %i (%s) does not fear death",
+		"Team %i (%s) was cut out in little stars",
+		"Team %i (%s) got slippered",
+		"Team %i (%s) was bitten by a zombie",	
 	},
 }
 
