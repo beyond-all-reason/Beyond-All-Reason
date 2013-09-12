@@ -35,7 +35,7 @@ local messages = {
 	"Team %i has been destablized",
 	"Team %i has been immoblized",
 	"Team %i has been oxidized",
-	"Team %i has been minimzed",
+	"Team %i has been minimized",
 	"Team %i has been neutralized",
 	"Team %i has been fossilized",
 	"Team %i has been vulcanized",
