@@ -12,7 +12,6 @@ local messages = {
 	"Team %i has been castrated",
 	"Team %i has been expatriated",
 	"Team %i has been annihilated",
-	"Team %i has been obliterated",
 	"Team %i has been exterminated",
 	"Team %i has been incapacitated",
 	"Team %i has been co-immunoprecipitated",
