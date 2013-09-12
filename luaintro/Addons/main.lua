@@ -39,6 +39,7 @@ function addon.DrawLoadScreen()
 	
 	gl.PushMatrix()
 	gl.Scale(.4,.4,1)
+	gl.Translate(-0.1,0,0)
 	
 	gl.BeginEnd(GL.QUADS, function()
 		--shadow topleft
