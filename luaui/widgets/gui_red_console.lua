@@ -18,6 +18,61 @@ local SoundIncomingChatVolume = 1.0
 
 --todo: dont cut words apart when clipping text 
 
+
+local clock = os.clock
+local slen = string.len
+local ssub = string.sub
+local sgsub = string.gsub
+local sfind = string.find
+local sformat = string.format
+local schar = string.char
+local sgsub = string.gsub
+local mfloor = math.floor
+local sbyte = string.byte
+local mmax = math.max
+local glGetTextWidth = gl.GetTextWidth
+local sGetPlayerRoster = Spring.GetPlayerRoster
+local sGetTeamColor = Spring.GetTeamColor
+local sGetMyAllyTeamID = Spring.GetMyAllyTeamID
+local sGetModKeyState = Spring.GetModKeyState
+local spPlaySoundFile = Spring.PlaySoundFile
+
+
+--include the table messages from gui_red_death_messages.lua
+--format is messages[i]="deathmsg"
+include("Configs/death_messages.lua")
+local numDeathMsgs = #messages
+local seed = Game.gameID or math.floor(100*os.clock()) --in a multiplayer game all players use the same gameID, in an offline game gameID is nil so just use os.time()
+local n = 1 + (seed % numDeathMsgs)
+local p = 18839 --a reasonably large prime number
+function GetDeathMessage(teamID)
+	--randomness
+	n = 1 + (n * p) % numDeathMsgs
+	
+	local msg = messages[n]
+	if msg == nil then 
+		return "Team " .. teamID .. " got an error instead of a death message!"
+	end
+	
+	--fill in %i (%s) 
+	local plList = Spring.GetPlayerList(teamID)
+	local plNames = ""
+	for _,playerID in pairs(plList) do
+		local name = Spring.GetPlayerInfo(playerID)
+		plNames = plNames .. name .. ", "
+	end
+	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
+	if plNames ~= "" then
+		plNames = " (" .. plNames .. ")"
+	end
+	local toCut = "XX" 
+	local toPaste = "Team " .. teamID .. plNames 
+	local msg,_ = sgsub(msg, toCut, toPaste)
+
+	return msg
+end
+
+
 local Config = {
 	console = {
 		px = 300,py = 34+5, --default start position
@@ -58,22 +113,6 @@ local Config = {
 	},
 }
 
-local clock = os.clock
-local slen = string.len
-local ssub = string.sub
-local sfind = string.find
-local sformat = string.format
-local schar = string.char
-local sgsub = string.gsub
-local mfloor = math.floor
-local sbyte = string.byte
-local mmax = math.max
-local glGetTextWidth = gl.GetTextWidth
-local sGetPlayerRoster = Spring.GetPlayerRoster
-local sGetTeamColor = Spring.GetTeamColor
-local sGetMyAllyTeamID = Spring.GetMyAllyTeamID
-local sGetModKeyState = Spring.GetModKeyState
-local spPlaySoundFile = Spring.PlaySoundFile
 
 local function IncludeRedUIFrameworkFunctions()
 	New = WG.Red.New(widget)
@@ -373,6 +412,8 @@ local function processLine(line,g,cfg,newlinecolor)
 	local text = ""
 	local linetype = 0 --other
 	
+	local ignoreThisMessage = false
+	
 	if (not newlinecolor) then
 		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
 			linetype = 1 --playermessage
@@ -395,8 +436,29 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,3)
 		end		
     end
-	--mute--
-	local ignoreThisMessage = false
+	
+	--replace engine death/resigned messages 
+	if linetype == 0 then
+		--find 
+		local isTeamDiedMsg = sfind(line, " is no more")
+		local isPlayerDiedMsg = sfind(line, "resigned and is now spectating")
+		--replace
+		if isPlayerDiedMsg then
+			ignoreThisMessage = true
+		elseif isTeamDiedMsg then
+			local a = 6
+			local b = sfind(line, " ", 6) - 1
+			if a > b then
+				ignoreThisMessage = true --couldn't find teamID
+			else
+				local teamID = tonumber(ssub(line,a,b))
+				line = GetDeathMessage(teamID)
+			end
+		end
+	end
+	
+	
+	--ignore messages from muted--
 	if (mutedPlayers[name]) then 
 		ignoreThisMessage = true 
 		--Spring.Echo ("blocked message by " .. name)
