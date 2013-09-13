@@ -24,6 +24,7 @@ local messages = {
 	"Team %i has been lactated",
 	"Team %i has been spectated",
 	"Team %i has been glaciated",
+	"Team %i has been deactivated",
 
 	--ized
 	"Team %i has been hospitalized",
@@ -39,10 +40,10 @@ local messages = {
 	"Team %i has been fossilized",
 	"Team %i has been vulcanized",
 	"Team %i has been exorcized", 
-	"Team %i has been pulverized"
+	"Team %i has been pulverized",
 	"Team %i has been amortized",
-	--TODO more of these
-		
+	"Team %i has been vaporized",
+	
 	},
 	
 	
@@ -197,7 +198,7 @@ local messages = {
 		"Team %i (%s) will be back",
 		"Team %i (%s) is gone but not forgotten",
 		"Team %i (%s) needed more beans",
-		"Team %i (%s) fell into the fiery pits of Mt Doom",
+		"Team %i (%s) fell into the fiery pits of Mount Doom",
 		"Team %i (%s) won't respawn anytime soon",
 		"Team %i (%s) is with us in spirit",
 		"Team %i (%s) rode on into the sunset",
@@ -303,8 +304,8 @@ local messages = {
 		"Team %i (%s) did the Texas cakewalk",
 		"Team %i (%s) went west, where the sky is blue",
 		"Team %i (%s) will sleep in the sky",
-		"Team %i (%s) has met its maker",,
-		"Team %i (%s) popped its clogs".
+		"Team %i (%s) has gone to meet its maker",
+		"Team %i (%s) popped its clogs",
 		"Team %i (%s) fell on its sword",
 		"Team %i (%s) couldn't stand the heat",
 		"Team %i (%s) upped it",
@@ -320,14 +321,33 @@ local messages = {
 		"Team %i (%s) went beyond the veil",
 		"Team %i (%s) came to a sticky end",
 		"Team %i (%s) fell off its perch",
-		"Team %i (%s) is not dead, its just resting after a long squawk"
+		"Team %i (%s) is not dead, it's just resting after a long squawk",
 		"Team %i (%s) is stone dead",
 		"Team %i (%s) will claim on its insurance",
 		"Team %i (%s) was prepared to die at any time",
 		"Team %i (%s) does not fear death",
 		"Team %i (%s) was cut out in little stars",
 		"Team %i (%s) got slippered",
-		"Team %i (%s) was bitten by a zombie",	
+		"Team %i (%s) got bitten by zombies",	
+		"Team %i (%s) was abducted by martians and internally probed",
+		"Team %i (%s) was stomped on by angry kangaroos",
+		"Team %i (%s) was nil",
+		"Team %i (%s) ran out of antibiotics",
+		"Team %i (%s) needed tighter financial regulation",
+		"Team %i (%s) curled up and died",
+		"Team %i (%s) has been dismantled",
+		"Team %i (%s) was sent back for repairs",
+		"Team %i (%s) was reduced to rubble",
+		"Team %i (%s) is writing its memoirs",
+		"Team %i (%s) is out cold",
+		"Team %i (%s) was hit for six",
+		"Team %i (%s) reached pensionable age",
+		"Team %i (%s) should try performance enhancing supplements",
+		"Team %i (%s) fell off its horse",
+		"Team %i (%s) was tarred and feathered",
+		"Team %i (%s) was an evolutionary dead end",
+		"Team %i (%s) went down faster than the titanic",
+		"Team %i (%s) was hunted to extinction",
 	},
 }
 
