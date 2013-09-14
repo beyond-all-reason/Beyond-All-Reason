@@ -45,6 +45,7 @@ local numDeathMsgs = #messages
 local seed = Game.gameID or math.floor(100*os.clock()) --in a multiplayer game all players use the same gameID, in an offline game gameID is nil so just use os.time()
 local n = 1 + (seed % numDeathMsgs)
 local p = 18839 --a reasonably large prime number
+local playerListByTeam = {}
 function GetDeathMessage(teamID)
 	--randomness
 	n = 1 + (n * p) % numDeathMsgs
@@ -55,10 +56,9 @@ function GetDeathMessage(teamID)
 	end
 	
 	--fill in %i (%s) 
-	local plList = Spring.GetPlayerList(teamID)
+	local plList = playerListByTeam[teamID]
 	local plNames = ""
-	for _,playerID in pairs(plList) do
-		local name = Spring.GetPlayerInfo(playerID)
+	for _,name in pairs(plList) do
 		plNames = plNames .. name .. ", "
 	end
 	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
@@ -438,7 +438,7 @@ local function processLine(line,g,cfg,newlinecolor)
     end
 	
 	--replace engine death/resigned messages 
-	if linetype == 0 then
+	if linetype == 0 and Spring.GetGameFrame() > 0 then --people who resign before the game has started just get the boring 'XX has resigned and is now spectating' message
 		--find 
 		local isTeamDiedMsg = sfind(line, " is no more")
 		local isPlayerDiedMsg = sfind(line, "resigned and is now spectating")
@@ -684,6 +684,23 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
+end
+
+function widget:GameStart()
+	--load a list of players for each team into playerListByTeam
+	local teamList = Spring.GetTeamList()
+	for _,teamID in pairs(teamList) do
+		local playerList = Spring.GetPlayerList(teamID)
+		local list = {} --without specs
+		for _,playerID in pairs(playerList) do
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			if not isSpec then
+				table.insert(list, name)
+			end
+		end
+		playerListByTeam[teamID] = list
+	end
+
 end
 
 function widget:Shutdown()
