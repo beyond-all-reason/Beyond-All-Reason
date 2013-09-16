@@ -529,7 +529,7 @@ function CreatePlayerFromTeam(teamID)
 			local energy = Spring_GetTeamResources(teamID,"energy")
 			local metal = Spring_GetTeamResources(teamID,"metal")
 			if units and energy and metal then
-				if (units > 0) or (energy > 0) or (metal > 0) then			
+				if (units > 0) or (energy > 1000) or (metal > 100) then			
 					ttotake = true
 				end
 			end
@@ -739,7 +739,7 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 				local energy = Spring_GetTeamResources(teamID,"energy")
 				local metal = Spring_GetTeamResources(teamID,"metal")
 				if units and metal and energy then
-					if (units > 0) or (energy > 0) or (metal > 0) then			
+					if (units > 0) or (energy > 1000) or (metal > 100) then			
 						player[64+teamID].totake = true
 					else
 						player[64+teamID].totake = false	
@@ -1995,7 +1995,7 @@ function CheckPlayersChange()
 				local energy = Spring_GetTeamResources(teamID,"energy")
 				local metal = Spring_GetTeamResources(teamID,"metal")
 				if units and energy and metal then
-					if (units > 0) or (energy > 0) or (metal > 0) then			
+					if (units > 0) or (energy > 1000) or (metal > 100) then			
 						player[i].totake = true
 						sorting = true
 					end
