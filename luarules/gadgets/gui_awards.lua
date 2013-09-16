@@ -154,6 +154,7 @@ function gadget:GameOver()
 	local sleepAward, sleepScore = -1,0
 	for teamID,_ in pairs(teamInfo) do	
 		--deal with sleep times
+		--TODO check time is alive?
 		local curTime = Spring.GetGameSeconds()
 		if (curTime - teamInfo[teamID].lastKill > teamInfo[teamID].sleepTime) then
 			teamInfo[teamID].sleepTime = curTime - teamInfo[teamID].lastKill
@@ -283,6 +284,9 @@ local yellow = "\255"..string.char(251)..string.char(251)..string.char(11)
 local quitColour  
 local graphColour
 
+local playerListByTeam = {} --does not contain specs
+
+
 function gadget:Initialize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("RecieveAwards", ProcessAwards)	
@@ -295,6 +299,20 @@ function gadget:Initialize()
 	--ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,1,1,1,24378,1324,132,300) 
 	--CowAward = CreateAward('cow',1,'Doing everything',white,1,1,1,24378,1324,132,400) 	
 	--OtherAwards = CreateAward('',2,'',white,1,1,1,3,100,1000,400)
+
+	--load a list of players for each team into playerListByTeam
+	local teamList = Spring.GetTeamList()
+	for _,teamID in pairs(teamList) do
+		local playerList = Spring.GetPlayerList(teamID)
+		local list = {} --without specs
+		for _,playerID in pairs(playerList) do
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			if not isSpec then
+				table.insert(list, name)
+			end
+		end
+		playerListByTeam[teamID] = list
+	end
 	
 	
 end
@@ -305,7 +323,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						ecoAward, ecoScore, 
 						dmgRecAward, dmgRecScore, 
 						sleepAward, sleepScore)
-
+						
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
@@ -375,14 +393,17 @@ end
 
 
 function FindPlayerName(teamID)
-	local plList = Spring.GetPlayerList(teamID)
-	for _,playerID in pairs(plList) do
-		local name,_,isSpec = Spring.GetPlayerInfo(playerID)
-		if not isSpec then
-			return name
+	local plList = playerListByTeam[teamID]
+	local name 
+	if plList[1] then
+		name = plList[1]
+		if #plList > 1 then
+			name = name .. " (coop)"
 		end
+	else
+		name = "(unknown)"
 	end
-	local name = Spring.GetPlayerInfo(Spring.GetPlayerList(teamID)[1])
+
 	return name
 end
 
@@ -497,8 +518,6 @@ function gadget:MousePress(x,y,button)
 end
 
 
-
-
 function DrawScreen()
 	if not drawAwards then return end
 	
@@ -533,6 +552,8 @@ function DrawScreen()
 	glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
 	glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")	
 end
+
+
 
 function gadget:ShutDown()
 	Spring.SendCommands('endgraph 1')
