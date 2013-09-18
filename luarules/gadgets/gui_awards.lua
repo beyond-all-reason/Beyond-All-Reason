@@ -290,9 +290,7 @@ local playerListByTeam = {} --does not contain specs
 function gadget:Initialize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("RecieveAwards", ProcessAwards)	
-	
-	CreateBackground()
-	
+		
 	--for testing
 	--FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, 1,1,1,24378,1324,132,100) 
 	--SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, 1,1,1,24378,1324,132,200) 
@@ -323,7 +321,16 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						ecoAward, ecoScore, 
 						dmgRecAward, dmgRecScore, 
 						sleepAward, sleepScore)
-						
+
+	--fix geometry
+	local vsx,vsy = Spring.GetViewGeometry()
+    cx = vsx/2 
+    cy = vsy/2 
+	bx = cx - w/2
+	by = cy - h/2 - 50
+	
+	--create awards
+	CreateBackground()				
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
@@ -334,6 +341,8 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400)		
 	end
 	drawAwards = true
+	
+	--don't show graph
 	Spring.SendCommands('endgraph 0')		
 
 end
@@ -492,16 +501,8 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 end
 
 
-function gadget:ViewResize(vsx, vsy)
-        cx = vsx/2 
-        cy = vsy/2 
-		bx = cx - w/2
-		by = cy - h/2 - 50
-end
 
-gadget:ViewResize(Spring.GetViewGeometry())
-
-local quitX = 100
+		local quitX = 100
 local graphsX = 250
 
 function gadget:MousePress(x,y,button)
@@ -537,7 +538,7 @@ function DrawScreen()
 		glCallList(OtherAwards)
 	end
 	
-	--draw buttons, wastefully, but it doesnt matter now game is over
+	--draw buttons, wastefully, but it doesn't matter now game is over
 	local x,y = Spring.GetMouseState()
 	if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
 		quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
