@@ -108,7 +108,7 @@ return {
 				flighttime = 1.5,
 				impulseboost = 0,
 				impulsefactor = 0,
-				metalpershot = 60,
+				metalpershot = 0,
 				model = "ADVSAM",
 				name = "ADVSAM",
 				noselfdamage = true,
