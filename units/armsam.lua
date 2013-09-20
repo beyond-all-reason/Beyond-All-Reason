@@ -1,12 +1,12 @@
 return {
 	armsam = {
-		acceleration = 0.039599999785423,
-		airsightdistance = 800,
+		acceleration = 0.031,
+		airsightdistance = 900,
 		brakerate = 0.016499999910593,
 		buildcostenergy = 2027,
 		buildcostmetal = 140,
 		buildpic = "ARMSAM.DDS",
-		buildtime = 2945,
+		buildtime = 3415,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maxdamage = 700,
 		maxslope = 16,
-		maxvelocity = 1.7050000429153,
+		maxvelocity = 1.6,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Samson",
@@ -37,7 +37,7 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 32,
-		turnrate = 497,
+		turnrate = 370,
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -138,7 +138,8 @@ return {
 				weaponvelocity = 540,
 				damage = {
 					bombers = 80,
-					default = 38,
+					commanders = 22,
+					default = 32,
 					fighters = 80,
 					subs = 5,
 					vtol = 80,
@@ -150,6 +151,8 @@ return {
 				badtargetcategory = "NOTAIR",
 				def = "ARMTRUCK_MISSILE",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0 0 1",
+				maxangledif = 235,
 			},
 		},
 	},

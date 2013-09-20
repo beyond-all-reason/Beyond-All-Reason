@@ -1,12 +1,12 @@
 return {
 	cormist = {
-		acceleration = 0.035199999809265,
-		airsightdistance = 800,
+		acceleration = 0.027,
+		airsightdistance = 900,
 		brakerate = 0.016499999910593,
 		buildcostenergy = 2177,
 		buildcostmetal = 146,
 		buildpic = "CORMIST.DDS",
-		buildtime = 3065,
+		buildtime = 3435,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 1",
@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maxdamage = 740,
 		maxslope = 16,
-		maxvelocity = 1.5839999914169,
+		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Slasher",
@@ -38,7 +38,7 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
-		turnrate = 498,
+		turnrate = 370,
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -136,7 +136,8 @@ return {
 				weaponvelocity = 545,
 				damage = {
 					bombers = 120,
-					default = 56,
+					commanders = 32, 
+					default = 47,
 					fighters = 120,
 					subs = 5,
 					vtol = 120,
@@ -148,6 +149,8 @@ return {
 				badtargetcategory = "NOTAIR",
 				def = "CORTRUCK_MISSILE",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0 0 1",
+				maxangledif = 235,
 			},
 		},
 	},
