@@ -1,5 +1,21 @@
-- Arm Destroyer velocity reduced 15%, SightDistance reduced (550->490)
-- Core Destroyer velocity reduced 15%, SightDistance reduced (550->490)
+7.81 -> 7.82
+21/09/2013
+
+- Removed "I sent 0 e/m" messages from AdvPlayerList
+- AdvPlList doesn't flash a take button for just tiny e/m amounts
+- Added some more loadscreens (thanks Floris!)
+- Fixed death messages! (in RedUI only, until 95.0)
+- Reduced wind death explosion slightly
+- Arm & Core Destroyer velocity reduced, sightdistance reduced 
+- Removed metal cost from Screamer/Mercury missiles
+- Slasher/Samson handling reduced, won't fire backwards, buildtime and airsightdistance increased
+- Fixed Pitbull and Ambusher not being hittable by some weapons
+- Fixed awards gadget for spectators/coops 
+- Fixed awards gadget error on screen resize
+- Fixed Hammer barrel animations
+- Fixed torpedos hitting ally stuff
+- Fixed torpedo launchers being buildable in too shallow to fire water
+
 
 7.80 -> 7.81
 18/08/2013
