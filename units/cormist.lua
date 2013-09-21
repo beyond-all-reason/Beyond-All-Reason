@@ -29,7 +29,6 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Slasher",
-		nochasecategory = "VTOL",
 		objectname = "CORMIST",
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
