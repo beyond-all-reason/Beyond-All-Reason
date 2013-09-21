@@ -38,41 +38,6 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 
 
---include the table messages from gui_red_death_messages.lua
---format is messages[i]="deathmsg"
-include("Configs/death_messages.lua")
-local numDeathMsgs = #messages
-local seed = Game.gameID or math.floor(100*os.clock()) --in a multiplayer game all players use the same gameID, in an offline game gameID is nil so just use os.time()
-local n = 1 + (seed % numDeathMsgs)
-local p = 18839 --a reasonably large prime number
-local playerListByTeam = {}
-function GetDeathMessage(teamID)
-	--randomness
-	n = 1 + (n * p) % numDeathMsgs
-	
-	local msg = messages[n]
-	if msg == nil then 
-		return "Team " .. teamID .. " got an error instead of a death message!"
-	end
-	
-	--fill in %i (%s) 
-	local plList = playerListByTeam[teamID]
-	local plNames = ""
-	for _,name in pairs(plList) do
-		plNames = plNames .. name .. ", "
-	end
-	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
-	if plNames ~= "" then
-		plNames = " (" .. plNames .. ")"
-	end
-	local toCut = "XX" 
-	local toPaste = "Team " .. teamID .. plNames 
-	local msg,_ = sgsub(msg, toCut, toPaste)
-
-	return msg
-end
-
-
 local Config = {
 	console = {
 		px = 300,py = 34+5, --default start position
@@ -437,23 +402,12 @@ local function processLine(line,g,cfg,newlinecolor)
 		end		
     end
 	
-	--replace engine death/resigned messages 
-	if linetype == 0 and Spring.GetGameFrame() > 0 then --people who resign before the game has started just get the boring 'XX has resigned and is now spectating' message
-		--find 
+	--hide engine death/resigned messages except those before gamestart(this code can be removed with 95.0)
+	if linetype == 0 and Spring.GetGameFrame() > 0 then 
 		local isTeamDiedMsg = sfind(line, " is no more")
 		local isPlayerDiedMsg = sfind(line, "resigned and is now spectating")
-		--replace
-		if isPlayerDiedMsg then
+		if isPlayerDiedMsg or isTeamDiedMsg then
 			ignoreThisMessage = true
-		elseif isTeamDiedMsg then
-			local a = 6
-			local b = sfind(line, " ", 6) - 1
-			if a > b then
-				ignoreThisMessage = true --couldn't find teamID
-			else
-				local teamID = tonumber(ssub(line,a,b))
-				line = GetDeathMessage(teamID)
-			end
 		end
 	end
 	
@@ -684,23 +638,6 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
-end
-
-function widget:GameStart()
-	--load a list of players for each team into playerListByTeam
-	local teamList = Spring.GetTeamList()
-	for _,teamID in pairs(teamList) do
-		local playerList = Spring.GetPlayerList(teamID)
-		local list = {} --without specs
-		for _,playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
-			if not isSpec then
-				table.insert(list, name)
-			end
-		end
-		playerListByTeam[teamID] = list
-	end
-
 end
 
 function widget:Shutdown()
