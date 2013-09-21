@@ -41,7 +41,7 @@ function GetDeathMessage(teamID)
 	for _,name in pairs(plList) do
 		plNames = plNames .. name .. ", "
 	end
-	if slen(plNames)-2 < 1 
+	if slen(plNames)-2 < 1 then
 		return "Team " .. teamID .. " got an error instead of a death message!"
 	end
 	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
