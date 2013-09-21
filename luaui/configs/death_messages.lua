@@ -377,7 +377,7 @@ messages = {
 	"XX has an advanced case of Boogie Fever",
 	"XX was crushed under a falling sequoia",
 	"XX was optimized out by the compiler",
-	"XX was pecked to death by cassawarys",
+	"XX was pecked to death by cassowarys",
 	"XX was struck by a falling coconut",
 	"XX was felled by a beaver",
 	"XX was sawn in half by an inexperienced magician",
