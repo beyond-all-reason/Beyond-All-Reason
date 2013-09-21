@@ -339,7 +339,7 @@ messages = {
 	"XX won't cause any more trouble",
 	"XX entered into a permanent economic downturn",
 	"XX was stretchered off the battlefield",
-	"XX	lived fast and died young",
+	"XX lived fast and died young",
 	"XX will see you in Hell",
 	"XX ran out of steam",
 	"XX was put out to pasture",
