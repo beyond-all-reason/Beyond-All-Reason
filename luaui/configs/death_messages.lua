@@ -21,6 +21,7 @@ messages = {
 	"XX has been glaciated",
 	"XX has been deactivated",
 	"XX has been deprecated",
+	"XX has been incinerated",
 
 	--ized
 	"XX has been hospitalized",
@@ -231,7 +232,7 @@ messages = {
 	"And like that, XX was gone",		
 	"XX passed into the realm of monsters and legends",
 	"The light still burns for XX, but there is nobody home",
-	"XX tottered over  the brink",
+	"XX tottered over the brink",
 	"XX is as real in memory as was in flesh",
 	"XX will use the batropes!",
 	"XX lost its life in the line of duty",
@@ -369,6 +370,19 @@ messages = {
 	"XX got torn apart by rabid pumas",
 	"XX was retired from active service",
 	"XX longs for peace and harmony",
+	"Warning: Do not try XX at home",
+	"XX was covered with tuna and thrown into a pit of hungry kittens",
+	"XX got trampled by cows",
+	"XX died from a combination of indigestion and uncontrollable laughter",
+	"XX has an advanced case of Boogie Fever",
+	"XX was crushed under a falling sequoia",
+	"XX was optimized out by the compiler",
+	"XX was pecked to death by cassawarys",
+	"XX was struck by a falling coconut",
+	"XX was felled by a beaver",
+	"XX was sawn in half by an inexperienced magician",
+	"XX fell off a ladder",
+	"XX discovered the perils of mortality",	
 }
 
 
