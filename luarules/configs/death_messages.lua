@@ -17,8 +17,6 @@ messages = {
 	"XX has been eliminated",
 	"XX has been annihilated",
 	"XX has been dominated", 
-	"XX has been spectated",
-	"XX has been glaciated",
 	"XX has been deactivated",
 	"XX has been deprecated",
 	"XX has been incinerated",
