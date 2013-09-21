@@ -417,28 +417,22 @@ function FindPlayerName(teamID)
 end
 
 function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, winnerScore, secondScore, thirdScore, offset)
-	local winnerName, winnerCoop, secondName, secondCoop, thirdName, thirdCoop
+	local winnerName, secondName, thirdName
 	
 	if winnerID >= 0 then
 		winnerName = FindPlayerName(winnerID)
-		winnerCoop = (#(Spring.GetPlayerList(winnerID)) > 1)
-		if winnerCoop then winnerName = winnerName  .. ' (coop)' end
 	else
 		winnerName = "(not awarded)"
 	end
 	
 	if secondID >= 0 then
 		secondName = FindPlayerName(secondID)
-		secondCoop = (#(Spring.GetPlayerList(winnerID)) > 1)
-		if secondCoop then secondName = secondName  .. ' (coop)' end
 	else
 		secondName = "(not awarded)"
 	end
 	
 	if thirdID >= 0 then
 		thirdName = FindPlayerName(thirdID)
-		thirdCoop = (#(Spring.GetPlayerList(winnerID)) > 1)
-		if thirdCoop then thirdName = thirdName  .. ' (coop)' end
 	else
 		thirdName = "(not awarded)"
 	end
