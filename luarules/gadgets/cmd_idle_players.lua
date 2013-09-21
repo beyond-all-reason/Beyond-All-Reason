@@ -200,10 +200,6 @@ else
 		return ok
 	end
 
-	function gadget:PlayerChanged()
-		UpdatePlayerInfos()
-	end
-
 	local function UpdatePlayerInfos()
 		local TeamToRemainingPlayers = {}
 		local aiOwners = {}
@@ -268,7 +264,7 @@ else
 			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
 		end
 	end
-
+	
 	function gadget:Initialize()
   		gadgetHandler:AddChatAction(takeCommand, TakeTeam, "Take control of units and resouces from inactive players")
   		UpdatePlayerInfos()
