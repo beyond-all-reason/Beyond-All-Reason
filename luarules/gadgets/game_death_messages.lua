@@ -33,7 +33,7 @@ function GetDeathMessage(teamID)
 	local msg = messages[n]
 	local plList = playerListByTeam[teamID]
 	if msg == nil or plList == nil then 
-		return "Team " .. teamID .. " got an error instead of a death message!"
+		return "Team " .. teamID .. " got an error (no msg) instead of a death message!"
 	end
 	
 	--fill in XX 
@@ -42,7 +42,7 @@ function GetDeathMessage(teamID)
 		plNames = plNames .. name .. ", "
 	end
 	if slen(plNames)-2 < 1 then
-		return "Team " .. teamID .. " got an error instead of a death message!"
+		return "Team " .. teamID .. " got an error (no name) instead of a death message!"
 	end
 	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
 	if plNames ~= "" then
@@ -76,6 +76,10 @@ end
 
 
 function gadget:TeamDied(teamID)
+	--check it wasn't an AI team
+	local _,_,_,isAiTeam = Spring.GetTeamInfo(teamID) 
+	if isAiTeam then return end --fixme? this covers any team with an AI (even if it has human players too)
+	
 	--send death message
 	local frame = Spring.GetGameFrame()
 	if frame > 0 then
