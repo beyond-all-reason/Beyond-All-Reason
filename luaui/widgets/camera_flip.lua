@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "CameraFlip",
-		desc = "Press ctrl+f to flip the camera \n(with overhead or smooth cam)",
+		desc = "Press ctrl+shift+o to flip the camera \n(with overhead or smooth cam)",
 		author = "Bluestone",
 		date = "11/09/2013",
 		license = "WTFPL",
@@ -10,13 +10,15 @@ function widget:GetInfo()
 	}
 end
 
-local f = 102
+local o = 111 -- 'o' key
 
 function widget:KeyPress(key,mods,isRepeat)
-	if key ~= f then return end
+	--Spring.Echo(key)
+	if key ~= o then return end
 	if isRepeat then return end
 	if mods.ctrl ~= true then return end
-
+	if mods.shift ~= true then return end
+		
 	local camState = Spring.GetCameraState()
 	--Spring.Echo(camState.mode)
 	if camState.mode ~= 1 and camState.mode ~= 5 then return end --do nothing unless overhead cam or smooth cam
