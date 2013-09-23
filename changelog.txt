@@ -1,3 +1,11 @@
+7.82 -> 7.83
+23/09/2013
+
+- Fixed console crash related to joining game after gamestart
+- Death messages moved to gadget
+- Added CameraFlip widget (press ctrl+shift+o to flip overhead/smooth cam)
+
+
 7.81 -> 7.82
 21/09/2013
 
