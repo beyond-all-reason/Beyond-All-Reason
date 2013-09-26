@@ -458,7 +458,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 				heightoffset = heightoffset + 17
 			end
 			if thirdID >= 0  and thirdScore >= 12*60 then
-				glText(colourNames(secondID) .. thirdName .. white .. ' slept longest, for ' .. math.floor(thirdScore/60) .. ' minutes.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+				glText(colourNames(thirdID) .. thirdName .. white .. ' slept longest, for ' .. math.floor(thirdScore/60) .. ' minutes.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 			end
 		end
 		
