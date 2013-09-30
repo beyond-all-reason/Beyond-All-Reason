@@ -23,7 +23,7 @@ local GetSelectedUnits = Spring.GetSelectedUnits
 local TraceScreenRay = Spring.TraceScreenRay 
 local GetActiveCommand = Spring.GetActiveCommand 
 
-function widget:GameStart() 
+function widget:Initialize() 
   widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs) 
 end 
 
