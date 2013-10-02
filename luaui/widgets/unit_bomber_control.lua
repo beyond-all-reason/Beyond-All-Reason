@@ -36,7 +36,7 @@ local function AddUnit(unit_id, unit_udid_)
 		local ud=UnitDefs[unit_udid]
 		if ud and bomber_uds[unit_udid] then
 			if  ud.primaryWeapon then
-				local _,reloaded_,reloadFrame = GetUnitWeaponState(unit_id,ud.primaryWeapon-1)		
+				local _,reloaded_,reloadFrame = GetUnitWeaponState(unit_id,ud.primaryWeapon)		
 				my_bombers[unit_id]={reloaded=reloaded_, reload_frame}
 				--Spring.Echo("bomber added")
 			end
@@ -112,7 +112,7 @@ function widget:Update(dt)
 		    local udid = GetUnitDefID(bomber_id)
 			local ud = UnitDefs[udid or -1]
 			if ud and ud.primaryWeapon then
-				local _,reloaded,reload_frame = GetUnitWeaponState(bomber_id, ud.primaryWeapon-1)
+				local _,reloaded,reload_frame = GetUnitWeaponState(bomber_id, ud.primaryWeapon)
 				local did_shot=(bomber_data.reloaded and not reloaded) or (bomber_data.reload_frame~=reload_frame)
 				bomber_data.reloaded=reloaded
 				bomber_data.reload_frame=reload_frame
