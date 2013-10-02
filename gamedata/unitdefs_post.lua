@@ -1,3 +1,6 @@
+--NOTE: unitdefs_post does not deal with the normal lua UnitDefs table, it deals precisely with the UnitDef table from unit definition files.
+--also it's case sensitive
+
 if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
 
@@ -67,6 +70,18 @@ for name, ud in pairs(UnitDefs) do
 		ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
 		ud.turninplaceanglelimit = 140
 	end
+	if (ud.hoverattack) then
+		ud.turninplaceanglelimit = 360
+	end
+	
+	if (ud.brakerate) then 
+		if ud.canfly then
+			ud.brakerate = ud.brakerate * 0.04
+		else 
+			ud.brakerate = ud.brakerate * 3.0
+		end
+	end
+	
 	if ud.movementclass and (ud.movementclass:find("TANK",1,true) or ud.movementclass:find("HOVER",1,true)) then
 		--Spring.Echo('tank or hover:',ud.name,ud.movementclass)
 		if cons[name] then
@@ -95,17 +110,10 @@ for name, ud in pairs(UnitDefs) do
 		ud.cantbetransported=false
 	end
 	ud.minCollisionSpeed = 0.0
+	
 end
 
 -- Setting collisionvolumetest true for all units
 for name, ud in pairs(UnitDefs) do
 		ud.collisionvolumetest = 1
-end
-
---Remove for 95
-for name, ud in pairs(UnitDefs) do
-  if ud.movementclass and (ud.movementclass:find("HOVER",1,true)) then
-
-  	ud.canhover = true
-  end
 end
