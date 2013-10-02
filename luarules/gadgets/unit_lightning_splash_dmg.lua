@@ -37,7 +37,7 @@ local mRandom = math.random
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
     if sparkWeapons[weaponID] then
       local x,y,z = Spring.GetUnitPosition(unitID)
       local angle = math.rad(mRandom(1,360))

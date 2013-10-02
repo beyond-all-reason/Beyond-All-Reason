@@ -81,7 +81,7 @@ local junoWeapons = {
     [WeaponDefNames.cjuno_juno_pulse.id] = true,
 }
 
-function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, aID, aDefID, aTeam)
+function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
     if junoWeapons[weaponID] and tokillUnits[uDefID] then
 		if uID and SpValidUnitID(uID) then
 			if aID and SpValidUnitID(aID) then

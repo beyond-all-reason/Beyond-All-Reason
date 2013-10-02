@@ -368,6 +368,18 @@ local function processLine(line,g,cfg,newlinecolor)
 	g.vars.nextupdate = 0
 
 	local roster = sGetPlayerRoster()
+	--[[DEBUG
+	for i,el in pairs(roster) do
+		if i==1 then
+			Spring.Echo(#el)
+			for j,val in pairs(el) do
+				Spring.Echo(j,val)
+			end
+		end
+		Spring.Echo(i,el)
+	end
+	--]]
+	
 	local names = {}
 	for i=1,#roster do
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3]}
@@ -401,15 +413,6 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,3)
 		end		
     end
-	
-	--hide engine death/resigned messages except those before gamestart(this code can be removed with 95.0)
-	if linetype == 0 and Spring.GetGameFrame() > 0 then 
-		local isTeamDiedMsg = sfind(line, " is no more")
-		local isPlayerDiedMsg = sfind(line, "resigned and is now spectating")
-		if isPlayerDiedMsg or isTeamDiedMsg then
-			ignoreThisMessage = true
-		end
-	end
 	
 	
 	--ignore messages from muted--

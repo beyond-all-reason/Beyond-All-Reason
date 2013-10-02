@@ -39,7 +39,7 @@ function widget:Initialize()
     math.randomseed( os.time() )
 end
 
-function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, attackerID, attackerDefID, attackerTeam)
+function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
     if ( localTeamID ~= unitTeam )then
 		return
 	end
