@@ -22,7 +22,6 @@ end
 
 local GetUnitHealth = Spring.GetUnitHealth
 local SetUnitHealth = Spring.SetUnitHealth
-local newSpring = false
 
 local PWN_UNITS = {}
 PWN_UNITS[UnitDefNames["corpyro"].id] = true
