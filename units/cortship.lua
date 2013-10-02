@@ -25,7 +25,7 @@ return {
 		maxdamage = 11420,
 		maxvelocity = 3.22,
 		minwaterdepth = 0,
-		movementclass = "HOVERHACK1",
+		movementclass = "DBOAT6",
 		name = "Envoy",
 		nochasecategory = "ALL",
 		objectname = "CORTSHIP",
