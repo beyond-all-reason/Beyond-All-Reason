@@ -245,7 +245,7 @@ local options={
 		name   = "Startpoint Assist",
 		desc   = "Chooses sensible starting places for players/AIs who forgot to choose a startpoint for themselves",
 		type   = "bool",
-		def    = false,
+		def    = true,
 		section= "ba_options",
     },
 }

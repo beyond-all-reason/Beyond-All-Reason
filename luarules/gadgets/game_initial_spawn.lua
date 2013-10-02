@@ -105,7 +105,7 @@ if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
 end
 
 if (tonumber((Spring.GetModOptions() or {}).mo_startpoint_assist) == 1) and (Game.startPosType == 2) then
-	 StartPointAssist = true
+	StartPointAssist = true
 else
 	StartPointAssist = false
 end
@@ -114,85 +114,44 @@ end
 -- Spawning
 ----------------------------------------------------------------
 
--- prevent startpoints being placed outside or on the edge of the startbox, as a workaround for http://springrts.com/mantis/view.php?id=3737
-function gadget:AllowStartPosition(x,y,z,playerID)
-	--Spring.Echo(x,y,z)
-	--f = Spring.GetGameFrame()
-	--Spring.Echo(f)
-	--yh = Spring.GetGroundHeight(x,z)
-	--Spring.Echo(x,yh,z)
-	--if StartPointAssist == false then return true end
-	
-	local _,_,_,_,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
-	if allyteamID == nil then return true end
-	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
-	if xmin>=xmax or zmin>=zmax then return true end
-	local isoutsidestartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine round the placing of startpoints to integers but does not round the startbox (wtf)
-	if isoutsidestartbox then 
-		return false
-	else
-		return true
-	end
-	
-	return true
-end--
+function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+	local _,_,_,teamID,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 
---[[ 
-	Construct a table to tell us which startpoints have actually been placed.
-	This is very hacky because the engine does not have the appropriate callins (see http://springrts.com/mantis/view.php?id=3665).
-	At GameStart it seems all playerIDs "without" a startpoint have had a startpoint placed by the engine.
-	When the engine auto-places startpoints it puts them mostly at (xmin,-500,zmin) but in odd situations it puts them elsewhere too, as of 01/04/13.
-]]--
-local function MakeStartPointTable()
-	local GaiateamID = Spring.GetGaiaTeamID()
-	local allyTeamIDs = Spring.GetAllyTeamList()
-	for j=1,#allyTeamIDs do
-		local teamIDs = Spring.GetTeamList(allyTeamIDs[j])
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamIDs[j]) 
-		for i=1,#teamIDs do
-			local x,y,z = Spring.GetTeamStartPosition(teamIDs[i])
-			local my = Spring.GetGroundHeight(x,z)
-			local isygood = ((y > -500) and (y + 50 > my)) --if the player/AI doesn't make a startpoint, the engine places one for the player/AI. AIs get y=-500 and players get y=-100. this check fails in sea >50 deep.
-			local _,_,_,isAIteam,_,_,_,_ = Spring.GetTeamInfo(teamIDs[i]) 
-			local isGaiateam = (teamIDs[i] == GaiateamID)
-			
-			playerIDs = Spring.GetPlayerList(teamIDs[i])
-			local isactive = true
-			local isspec = false
-			if #playerIDs ~= 0 then
-				if playerIDs[1] ~= nil then
-					_,isactive,isspec,_,_,_,_,_,_,_ = Spring.GetPlayerInfo(playerIDs[1])
-				end
+	-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
+	if readyState ~= 2 then
+		if allyteamID == nil then return false end
+		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
+		if xmin>=xmax or zmin>=zmax then 
+			StartPointAssist = false --if we get here, something is very wrong
+			return true 
+		else
+			--Spring.Echo(x,z,xmin,xmax,zmin,zmax)
+			local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+			if isOutsideStartbox then 
+				return false
 			end
-			
-			local isplayerspot = true
-			if xmin and xmax then
-				local isLeft = (xmin >= x) 
-				local isTop = (zmin >= z) 
-				isplayerspot = (not isLeft) or (not isTop) 
-			end
-			--Spring.Echo(teamIDs[i],x,z,y,my,isygood,isplayerspot,not isAIteam,not isspec,isactive)--DEBUG
-			
-			if not isGaiateam then
-				if (isygood and ((not isAIteam) or isplayerspot) and (not isspec)) then --guess! engine has no callin that can check 
-					StartPointTable[teamIDs[i]]={x,z} --we believe this startpoint is genuine!
-				else	
-					StartPointTable[teamIDs[i]]={-3*claimradius,-3*claimradius} --far enough out the way to not interfere with guessing routines of other teamIDs
-				end
-			end			
 		end
 	end
-	return StartPointTable
+
+	-- record table of starting points for startpoint assist
+	if StartPointAssist == false then return true end
+	if readyState == 2 then 
+		StartPointTable[teamID]={-3*claimradius,-3*claimradius} --game was forced, player had no startpoint & did not click ready. make a point far away enough not to bother the placer
+	else		
+		StartPointTable[teamID]={x,z} --player placed startpoint (may or may not have clicked ready, also if readyState is somehow nil)
+	end	
+	return true
 end
 
 -- spawn starting unit
-local function SpawnTeamStartUnit(teamID, allyID, x, z)
+local function SpawnTeamStartUnit(teamID, allyID)
+	local x,_,z = Spring.GetTeamStartPosition(teamID)
 	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
-	if (StartPointAssist) then 
+	if StartPointAssist then 
 		-- guess points for the classified in StartPointTable as not genuine 
-		if (StartPointTable[teamID][1] < 0) then
+		if (not StartPointTable[teamID]) or (StartPointTable[teamID][1] < 0) then
 			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 		end
 	else
@@ -213,12 +172,8 @@ end
 
 -- cycle through teams and call spawn starting unit
 function gadget:GameStart() 
-	if StartPointAssist then 
-		StartPointTable = MakeStartPointTable() 
-	end
 	for teamID, allyID in pairs(spawnTeams) do
-		local startX, _, startZ = Spring.GetTeamStartPosition(teamID)
-		SpawnTeamStartUnit(teamID, allyID, startX, startZ) 
+		SpawnTeamStartUnit(teamID, allyID) 
 	end
 end
 
