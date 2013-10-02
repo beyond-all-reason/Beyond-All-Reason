@@ -46,7 +46,7 @@ local Bombers = { -- ALL BOMBER TYPE AIRCRAFT FAIL THIS CHECK
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- Note: this check must match the equiavelent function in customformations or commands will get modified
+-- Note: this check must match the equivalent function in customformations or commands will get modified
 -- TODO: make this into a table on init so as it doesnt have to be rechecked each time
 local function HasWaterWeapon(UnitDefID)
 	local haswaterweapon = false
