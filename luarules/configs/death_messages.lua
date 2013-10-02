@@ -380,7 +380,7 @@ messages = {
 	"XX was felled by a beaver",
 	"XX was sawn in half by an inexperienced magician",
 	"XX fell off a ladder",
-	"XX discovered the perils of mortality",	
+	"XX discovered the perils of mortality",	 
 }
 
 
