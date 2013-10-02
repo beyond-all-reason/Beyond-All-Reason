@@ -31,7 +31,6 @@ local modrules  = {
 
   system = {
         pathFinderSystem = (Spring.GetModOptions() and (Spring.GetModOptions().pathfinder == "qtpfs") and 1) or 0,
-	    luaThreadingModel = 4, -- As of 05/05/2013, we should regard luathreadingModel > 2 as experimental and possibly unstable. The lua wiki assumes 2 - for >2 unsynced/synced communication must be done in a special way. 
   },
 
 }
