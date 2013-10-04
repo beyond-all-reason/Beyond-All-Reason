@@ -22,7 +22,10 @@ function widget:Update()
 	if (Spring.GetGameSeconds() > 0) then
 		local x, y, z = Spring.GetTeamStartPosition(Spring.GetMyTeamID())
 		local id=Spring.GetMyPlayerID()
-		Spring.MarkerAddPoint(x, y, z, "Start " .. id )
+
+        local name = Spring.GetPlayerInfo(id) or id .. ""
+
+        Spring.MarkerAddPoint(x, y, z, name .. " started here" )
 		widgetHandler:RemoveWidget()
 	end
 end
