@@ -129,7 +129,7 @@ function gadget:Initialize()
       elseif (ud.isTransport) then
         -- transports
         Spring.SetUnitDefIcon(udid, "diamond.user")
-      elseif ((ud.minWaterDepth > 0) and (ud.speed > 0) and (ud.waterline > 10)) then
+      elseif ((ud.minWaterDepth > 0) and (ud.speed > 0) and (ud.waterline > 12)) then
         -- submarines
         Spring.SetUnitDefIcon(udid, "tri-down.user")
       elseif ((ud.minWaterDepth > 0) and (ud.speed > 0)) then
