@@ -6,6 +6,7 @@ function widget:GetInfo()
 		author    = 'Niobium',
 		date      = 'May 2011',
 		license   = 'GNU GPL, v2 or later',
+        version   = 2,
 		layer     = 0,
 		enabled   = true,
 	}
@@ -17,6 +18,8 @@ end
 local arm_anti = UnitDefNames.armamd.id
 local core_anti = UnitDefNames.corfmd.id
 
+local coverageRangeArm = WeaponDefs[UnitDefNames.armamd.weapons[1].weaponDef].coverageRange
+local coverageRangeCore = WeaponDefs[UnitDefNames.corfmd.weapons[1].weaponDef].coverageRange
 --------------------------------------------------------------------------------
 -- Speedups
 --------------------------------------------------------------------------------
@@ -41,7 +44,9 @@ function widget:DrawWorld()
             local bx, by, bz = spPos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
             glColor(1, 1, 1, 1)
             glDepthTest(true)
-            glDrawGroundCircle(bx, by, bz, 2000, 256)
+
+            local antiRange = cmdID == -arm_anti and coverageRangeArm or coverageRangeCore
+            glDrawGroundCircle(bx, by, bz, antiRange, 256)
         end
     end
 end
