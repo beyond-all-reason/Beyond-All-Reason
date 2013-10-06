@@ -103,7 +103,7 @@ return {
 				sizegrowth = 1.1000000238419,
 				soundstart = "Flamhvy1",
 				soundtrigger = false,
-				sprayangle = 1500,
+				sprayangle = 600,
 				tolerance = 2500,
 				turret = true,
 				weapontimer = 1.5,
