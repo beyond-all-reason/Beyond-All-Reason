@@ -190,7 +190,7 @@ local widgetPosX                                 = vsx-200
 local widgetPosY                                 = 0
 
 local expandDown                                 = false
-local expandLeft                                 = false
+local expandLeft                                 = true
 local right
 local localOffset    -- used by different functions to pass values
 local localLeft      -- used by different functions to pass values
@@ -1859,7 +1859,7 @@ function widget:GetConfigData(data)      -- send
 	return {
 		vsx                = vsx,
 		vsy                = vsy,
-		widgetPosX         = widgetPosX,
+		widgetPosXdiff     = widgetPosX,
 		widgetPosY         = widgetPosY,
 		widgetRight        = widgetRight,
 		widgetTop          = widgetTop,
@@ -1906,7 +1906,7 @@ function widget:SetConfigData(data)      -- load
 				widgetRight = vsx
 			end
 		else
-			widgetPosX  = data.widgetPosX
+			widgetPosX  = data.widgetPosXdiff
 		end
 	end
 	m_rank.active         = SetDefault(data.m_rankActive, false)
