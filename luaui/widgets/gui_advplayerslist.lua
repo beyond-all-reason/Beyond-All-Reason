@@ -497,6 +497,23 @@ function CreatePlayer(playerID)
 	
 end
 
+function IsTakeable(teamID)
+	if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+		local units = Spring_GetTeamUnitCount(teamID)
+		local energy = Spring_GetTeamResources(teamID,"energy")
+		local metal = Spring_GetTeamResources(teamID,"metal")
+		if units and energy and metal then
+			if (units > 0) or (energy > 1000) or (metal > 100) then			
+				return true
+			end
+		end
+	else
+		return false					
+	end
+end
+		
+
+
 function CreatePlayerFromTeam(teamID)
 
 	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
@@ -524,20 +541,9 @@ function CreatePlayerFromTeam(teamID)
 			tname = "no player yet"
 			ttotake = false
 			tdead = false
-		elseif Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-			local units = Spring_GetTeamUnitCount(teamID)
-			local energy = Spring_GetTeamResources(teamID,"energy")
-			local metal = Spring_GetTeamResources(teamID,"metal")
-			if units and energy and metal then
-				if (units > 0) or (energy > 1000) or (metal > 100) then			
-					ttotake = true
-				end
-			end
 		else
-			ttotake = false					
+			ttotake = IsTakeable(teamID)
 		end
-		
-		
 	end
 	
 	if tname == nil then
@@ -734,18 +740,7 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 		table.insert(drawList, 64 + teamID)  -- no players team
 		player[64 + teamID].posY = vOffset
 		if Spring_GetGameFrame() > 0 then
-			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-				local units = Spring_GetTeamUnitCount(teamID)
-				local energy = Spring_GetTeamResources(teamID,"energy")
-				local metal = Spring_GetTeamResources(teamID,"metal")
-				if units and metal and energy then
-					if (units > 0) or (energy > 1000) or (metal > 100) then			
-						player[64+teamID].totake = true
-					else
-						player[64+teamID].totake = false	
-					end
-				end
-			end
+			player[64+teamID].totake = IsTakeable(teamID)
 		end
 	end
 	
@@ -1859,7 +1854,7 @@ function widget:GetConfigData(data)      -- send
 	return {
 		vsx                = vsx,
 		vsy                = vsy,
-		widgetPosXdiff     = widgetPosX,
+		widgetPosX		   = widgetPosX,
 		widgetPosY         = widgetPosY,
 		widgetRight        = widgetRight,
 		widgetTop          = widgetTop,
@@ -1906,7 +1901,7 @@ function widget:SetConfigData(data)      -- load
 				widgetRight = vsx
 			end
 		else
-			widgetPosX  = data.widgetPosXdiff
+			widgetPosX  = data.widgetPosX
 		end
 	end
 	m_rank.active         = SetDefault(data.m_rankActive, false)
@@ -1989,23 +1984,18 @@ function CheckPlayersChange()
 			player[i].ping    = pingTime*1000-((pingTime*1000)%1)
 			player[i].cpu     = cpuUsage*100-((cpuUsage*100)%1)
 		end
+		
 		if teamID and Spring_GetGameFrame() > 0 then
-			if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 and player[i].totake == false then
-				local units = Spring_GetTeamUnitCount(teamID)
-				local energy = Spring_GetTeamResources(teamID,"energy")
-				local metal = Spring_GetTeamResources(teamID,"metal")
-				if units and energy and metal then
-					if (units > 0) or (energy > 1000) or (metal > 100) then			
-						player[i].totake = true
-						sorting = true
-					end
-				end
+			local totake = IsTakeable(teamID)
+			player[i].totake = totake
+			if totake then
+				sorting = true	
 			else
 				player[i].name = name
-				player[i].totake = false					
 			end
 		end
 	end
+
 	if sorting == true then    -- sorts the list again if change needs it
 		SortList()
 		SetModulesPositionX()    -- change the X size if needed (change of widest name)
