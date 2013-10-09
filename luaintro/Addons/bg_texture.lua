@@ -15,9 +15,6 @@ end
 ------------------------------------------
 
 local loadscreens = VFS.DirList("bitmaps/loadpictures/")
-for i=1,(math.floor(10*os.clock()))  do
-		math.random(#loadscreens) --because smth is wrong with math.randomseed(), see http://springrts.com/mantis/view.php?id=3962 (fixme!)
-end
 local screenNum = math.random(#loadscreens) 
 local backgroundTexture = loadscreens[screenNum]
 local aspectRatio
