@@ -53,16 +53,21 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 			x = x + random(featureDefs.minX,featureDefs.maxX)
 			z = z + random(featureDefs.minZ,featureDefs.maxZ)
 			y = y + (random() * featureDefs.y)
-			cegList[featureID] = {ceg = cegs[random(1,3)],x=x,y=y,z=z}
+			cegList[featureID] = {ceg = cegs[random(1,3)],x=x,y=y,z=z, enabled = true}
 		end
 	end
 end
 
 function gadget:GameFrame(n)
-  for i,v in pairs(cegList) do
-      SpawnCEG(v.ceg,v.x,v.y,v.z,0,1.0,0,0,0)
-  end
-  cegList = {}
+	for i,v in pairs(cegList) do
+		if v.enabled then
+			SpawnCEG(v.ceg,v.x,v.y,v.z,0,1.0,0,0,0)
+			cegList[i].enabled = false
+		end
+	end
+	if (n % 15 == 0) then
+		cegList = {}
+	end
 end
 
 --------------------------------------------------------------------------------
