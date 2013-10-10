@@ -1,0 +1,196 @@
+[reclaimshards1]
+{
+ [shards]
+ {
+	class=CSimpleParticleSystem;
+	[properties]
+	{
+		sizeGrowth=-0.2;
+		sizeMod=1.0;
+		pos=0,-0.5,0;
+		emitVector=0,0,0;
+		gravity=0,0.7,0;
+		colorMap=0.6 0.6 0.6 1  0.2 0.2 0.2 1;
+		Texture=shard1;
+		airdrag=0.7;
+		particleLife=5;
+		particleLifeSpread=14;
+		numParticles=1;
+		particleSpeed=2;
+		particleSpeedSpread=2;
+		particleSize=3;
+		particleSizeSpread=2;
+		emitRot=0;
+		emitRotSpread=360;
+		directional=1;
+	}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+ }
+}
+[reclaimshards2]
+{
+ [shards]
+ {
+	class=CSimpleParticleSystem;
+	[properties]
+	{
+		sizeGrowth=-0.15;
+		sizeMod=1.0;
+		pos=0,-0.25,0;
+		emitVector=0,0,0;
+		gravity=0,0.7,0;
+		colorMap=0.6 0.6 0.6 1  0.2 0.2 0.2 1;
+		Texture=shard2;
+		airdrag=0.7;
+		particleLife=4;
+		particleLifeSpread=12;
+		numParticles=1;
+		particleSpeed=2;
+		particleSpeedSpread=2;
+		particleSize=3;
+		particleSizeSpread=2;
+		emitRot=0;
+		emitRotSpread=360;
+		directional=1;
+	}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+ }
+}
+[reclaimshards3]
+{
+ [shards]
+ {
+	class=CSimpleParticleSystem;
+	[properties]
+	{
+		sizeGrowth=-0.1;
+		sizeMod=1.0;
+		pos=0,0,0;
+		emitVector=0,0,0;
+		gravity=0,0.7,0;
+		colorMap=0.6 0.6 0.6 1  0.2 0.2 0.2 1;
+		Texture=shard3;
+		airdrag=0.7;
+		particleLife=3;
+		particleLifeSpread=10;
+		numParticles=1;
+		particleSpeed=2;
+		particleSpeedSpread=5;
+		particleSize=3;
+		particleSizeSpread=2;
+		emitRot=0;
+		emitRotSpread=360;
+		directional=1;
+	}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+ }
+}
+
+
+
+
+[wreckshards1]
+{
+ [shards]
+ {
+	class=CSimpleParticleSystem;
+	[properties]
+	{
+		sizeGrowth=-0.15;
+		sizeMod=1.0;
+		pos=0,-0.5,0;
+		emitVector=0, 1, 0;
+		gravity		= 0, -0.25, 0;
+		colorMap=0.6 0.6 0.6 1  0.2 0.2 0.2 1;
+		Texture=shard1;
+		airdrag=0.96;
+		particleLife		= 2;
+		particleLifeSpread	= 16;
+		numParticles=1;
+		particleSpeed=2;
+		particleSpeedSpread=2;
+		particleSize=2;
+		particleSizeSpread=5;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+		directional=1;
+	}
+	air=1;
+	water=1;
+	ground=1;
+	count=3;
+ }
+}
+[wreckshards2]
+{
+ [shards]
+ {
+	class=CSimpleParticleSystem;
+	[properties]
+	{
+		sizeGrowth=-0.15;
+		sizeMod=1.0;
+		pos=0,-0.25,0;
+			emitVector=0, 1, 0;
+gravity		= 0, -0.35, 0;
+		colorMap=0.6 0.6 0.6 1  0.2 0.2 0.2 1;
+		Texture=shard2;
+			airdrag=0.96;
+		particleLife		= 2;
+		particleLifeSpread	= 18;
+		numParticles=1;
+		particleSpeed=2;
+		particleSpeedSpread=2;
+		particleSize=2;
+		particleSizeSpread=5;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+		directional=1;
+	}
+	air=1;
+	water=1;
+	ground=1;
+	count=3;
+ }
+}
+[wreckshards3]
+{
+ [shards]
+ {
+	class=CSimpleParticleSystem;
+	[properties]
+	{
+		sizeGrowth=-0.1;
+		sizeMod=1.0;
+		pos=0,0,0;
+			emitVector=0, 1, 0;
+gravity		= 0, -0.3, 0;
+		colorMap=0.6 0.6 0.6 1  0.2 0.2 0.2 1;
+		Texture=shard3;
+			airdrag=0.96;
+		particleLife		= 2;
+		particleLifeSpread	= 20;
+		numParticles=1;
+		particleSpeed=2;
+		particleSpeedSpread=4;
+		particleSize=2;
+		particleSizeSpread=5;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+		directional=1;
+	}
+	air=1;
+	water=1;
+	ground=1;
+	count=3;
+ }
+}
