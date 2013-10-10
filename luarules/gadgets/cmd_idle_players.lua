@@ -287,6 +287,7 @@ else
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
+		Spring.Echo("received message from playerID " .. playerID .. ":" .. msg)
 		if msg:sub(1,AFKMessageSize) ~= AFKMessage then --invalid message
 			return
 		end

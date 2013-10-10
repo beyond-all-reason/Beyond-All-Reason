@@ -80,14 +80,14 @@ widgetHandler = {
   autoUserWidgets = true,
 
   actionHandler = include("actions.lua"),
-  
+
   WG = {}, -- shared table for widgets
 
   globals = {}, -- global vars/funcs
 
   mouseOwner = nil,
   ownedButton = 0,
-  
+
   tweakMode = false,
 
   xViewSize    = 1,
@@ -242,8 +242,8 @@ function widgetHandler:LoadConfigData()
 	elseif (chunk() == nil) then
 		Spring.Log("bawidgets.lua", LOG.ERROR, 'Luaui config file was blank')
 		return {}
-	end 
-    local tmp = {} 
+	end
+    local tmp = {}
     setfenv(chunk, tmp)
     self.orderList = chunk().order
     self.configData = chunk().data
@@ -333,7 +333,7 @@ function widgetHandler:Initialize()
   Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
   local unsortedWidgets = {}
-  
+
   -- stuff the raw widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW_ONLY)
   for k,wf in ipairs(widgetFiles) do
@@ -353,8 +353,8 @@ function widgetHandler:Initialize()
       table.insert(unsortedWidgets, widget)
     end
   end
-  
-  -- sort the widgets  
+
+  -- sort the widgets
   table.sort(unsortedWidgets, function(w1, w2)
     local l1 = w1.whInfo.layer
     local l2 = w2.whInfo.layer
@@ -372,7 +372,7 @@ function widgetHandler:Initialize()
     end
   end)
 
-  -- add the widgets  
+  -- add the widgets
   for _,w in ipairs(unsortedWidgets) do
     local name = w.whInfo.name
     local basename = w.whInfo.basename
@@ -399,7 +399,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
     Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
     return nil
   end
-  
+
   local widget = widgetHandler:NewWidget()
   setfenv(chunk, widget)
   local success, err = pcall(chunk)
@@ -452,17 +452,17 @@ function widgetHandler:LoadWidget(filename, fromZip)
     Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
     return nil
   end
-    
+
     -- Get widget information
     local info  = widget:GetInfo()
-    
+
     -- Blacklisting
-    if info.name:upper():match('METAL[ _]*MAKER') or 
+    if info.name:upper():match('METAL[ _]*MAKER') or
         basename:upper():match('METAL[ _]*MAKER') then
         Spring.Echo('Failed to load: ' .. basename .. '  (Blacklisted)')
         return nil
     end
-    
+
     -- Enabling
     local order = self.orderList[name]
     if order then
@@ -474,7 +474,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
             order = 12345
         end
     end
-    
+
     if order then
         self.orderList[name] = order
     else
@@ -483,12 +483,12 @@ function widgetHandler:LoadWidget(filename, fromZip)
         return nil
     end
 
-  -- load the config data  
+  -- load the config data
   local config = self.configData[name]
   if (widget.SetConfigData and config) then
     widget:SetConfigData(config)
   end
-    
+
   return widget
 end
 
@@ -1075,7 +1075,7 @@ function widgetHandler:Shutdown()
 end
 
 function widgetHandler:Update()
-  local deltaTime = Spring.GetLastUpdateSeconds()  
+  local deltaTime = Spring.GetLastUpdateSeconds()
   -- update the hour timer
   hourTimer = (hourTimer + deltaTime) % 3600.0
   for _,w in ipairs(self.UpdateList) do
@@ -1189,7 +1189,7 @@ function widgetHandler:ViewResize(vsx, vsy)
     vsx = vsx.viewSizeX
     print('real ViewResize') -- FIXME
   end
-    
+
   for _,w in ipairs(self.ViewResizeList) do
     w:ViewResize(vsx, vsy)
   end
@@ -1703,18 +1703,18 @@ end
 
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam,
-                                   cmdId, cmdOpts, cmdParams)
+                                   cmdId, cmdOpts, cmdParams, cmdTag)
   for _,w in ipairs(self.UnitCommandList) do
     w:UnitCommand(unitID, unitDefID, unitTeam,
-                  cmdId, cmdOpts, cmdParams)
+                  cmdId, cmdOpts, cmdParams, cmdTag)
   end
   return
 end
 
 
-function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag)
+function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
   for _,w in ipairs(self.UnitCmdDoneList) do
-    w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag)
+    w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, cmdParams, cmdOpts)
   end
   return
 end
