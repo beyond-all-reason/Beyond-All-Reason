@@ -439,7 +439,8 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 		
 	thisAward = glCreateList(function()
 
-		if award ~= 2 then	--if its a normal award
+		--names
+		if award ~= 2 then	--if its a normal award or a cow award
 			glColor(1,1,1,1)
 			local pic = ':l:LuaRules/Images/' .. pic ..'.png'
 			glTexture(pic)
@@ -462,10 +463,11 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 			end
 		end
 		
+		--scores
 		if award == 0 then --normal awards	
 			
 			if winnerID >= 0 then
-				if pic == 'comwreath' then winnerScore = round(winnerScore, 2) end --we roudn ratios to 2dp
+				if pic == 'comwreath' then winnerScore = round(winnerScore, 2) else winnerScore = math.floor(winnerScore) end 
 				glText(colourNames(winnerID) .. winnerScore, bx + w/2 + 275, by + h - offset - 5, 14, "o")
 			else
 				glText('-', bx + w/2 + 275, by + h - offset - 5, 17, "o")			
@@ -473,19 +475,20 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 			glText('Runners up:', bx + 500, by + h - offset - 5, 14, "o")
 
 			if secondScore > 0 then
-				if pic == 'comwreath' then secondScore = round(secondScore, 2) end --we roudn ratios to 2dp
+				if pic == 'comwreath' then secondScore = round(secondScore, 2) else secondScore = math.floor(secondScore) end 
 				glText(colourNames(secondID) .. secondName, bx + 520, by + h - offset - 25, 14, "o")
 				glText(colourNames(secondID) .. secondScore, bx + w/2 + 275, by + h - offset - 25, 14, "o")
 			end
 			
 			if thirdScore > 0 then
-				if pic == 'comwreath' then thirdScore = round(thirdScore, 2) end --we round ratios to 2dp
+				if pic == 'comwreath' then thirdScore = round(thirdScore, 2) else thirdscore = math.floor (thirdScore) end
 				glText(colourNames(thirdID) .. thirdName, bx + 520, by + h - offset - 45, 14, "o")
 				glText(colourNames(thirdID) .. thirdScore, bx + w/2 + 275, by + h - offset - 45, 14, "o")
 			end
 		end
 		
-		if award == 1 then --extra text for cow award
+		--extra text for cow award
+		if award == 1 then 
 			glText(yellow .. 'Memorial WarCow', bx+9, by+15, 12, "o")
 		end
 	
