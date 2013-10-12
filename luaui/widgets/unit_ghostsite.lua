@@ -191,12 +191,29 @@ function ScanFeatures()
 	local features = spGetAllFeatures()
 	
 	if firstScan then
-	  local sfind = string.find
-	  for _, fID in ipairs(features) do
-	    local fDefId = spGetFeatureDefID(fID)
-	    local fName = FeatureDefs[fDefId].name
-	    if sfind(fName, 'tree') or sfind(fName, 'rock') then
-	      ignoreFeature[fDefId] = true
+	  if (Spring.GetGameFrame() == 0) then
+	      -- Ignore all the map features we can see before game start
+		  for _, fID in ipairs(features) do
+			local fDefId = spGetFeatureDefID(fID)
+			if not ignoreFeature[fDefId] then
+				local x, y, z = spGetFeaturePosition(fID)
+				local LosOrRadar, inLos, inRadar = spGetPositionLosState(x, y, z)
+				if not inLos then
+					ignoreFeature[fDefId] = true
+				end
+			end
+		  end
+	  else 
+	    -- Widget loaded mid game, just use original 'ignore trees and rocks' logic
+        local sfind = string.find
+	    for _, fID in ipairs(features) do
+	      if not ignoreFeature[fDefId] then
+	        local fDefId = spGetFeatureDefID(fID)
+	        local fText = string.lower(FeatureDefs[fDefId].name .. " " .. (FeatureDefs[fDefId].tooltip or ""))
+	        if sfind(fText, 'tree') or sfind(fText, 'rock') then
+	          ignoreFeature[fDefId] = true
+	        end
+	      end
 	    end
 	  end
 	  firstScan = false
