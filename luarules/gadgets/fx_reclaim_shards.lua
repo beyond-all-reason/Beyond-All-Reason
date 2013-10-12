@@ -29,7 +29,7 @@ local featureList = {}
 local cegList = {}
 
 for featureDefID, defs in pairs(FeatureDefs) do
-  if string.find(defs.tooltip, 'Wreckage') or string.find(defs.tooltip, 'Shards') or string.find(defs.tooltip, 'Rubble') then
+  if string.find(defs.tooltip, 'Wreckage') or string.find(defs.tooltip, 'Shards') or string.find(defs.tooltip, 'Rubble') or string.find(defs.tooltip, 'Heap') then
     featureList[featureDefID] = -1
   end
 end
