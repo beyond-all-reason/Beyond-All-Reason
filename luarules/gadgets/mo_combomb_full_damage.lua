@@ -19,7 +19,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local enabled = tonumber(Spring.GetModOptions().mo_combomb_full_damage) or 1
+local enabled = tonumber(Spring.GetModOptions().mo_combomb_full_damage) or 0
 if (enabled == 1) then 
 	return false
 end
