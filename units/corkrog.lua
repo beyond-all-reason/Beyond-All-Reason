@@ -160,6 +160,7 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				camerashake = 0.1,
 				damage = {
 					commanders = 1200,
 					default = 5500,
