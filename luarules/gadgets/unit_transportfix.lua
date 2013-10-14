@@ -41,11 +41,13 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	--Spring.Echo ("unloaded " .. unitID .. " (" .. unitDefID .. "), from transport " .. transportID)
 	
-	if (unitDefID ~= COMMANDO) then		
+	if (unitDefID ~= COMMANDO) then	
+		currentFrame = Spring.GetGameFrame()
 		if (not toKill[currentFrame+1]) then toKill[currentFrame+1] = {} end
 		toKill[currentFrame+1][unitID] = true
 		if (not fromtrans[currentFrame+1]) then fromtrans[currentFrame+1] = {} end
 		fromtrans[currentFrame+1][unitID] = transportID
+		--Spring.Echo("added killing request for " .. unitID .. " on frame " .. currentFrame+1 .. " from transport " .. transportID )
 	end
 end
 
