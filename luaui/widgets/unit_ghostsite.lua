@@ -73,6 +73,7 @@ local DeleteGhostSites
 local ResetGl
 local CheckSpecState
 local firstScan = true
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local dontTrackEnemyWrecks = tonumber(Spring.GetModOptions().mo_enemywrecks) or 0
 
@@ -191,6 +192,7 @@ function ScanFeatures()
 	local features = spGetAllFeatures()
 	
 	if firstScan then
+	  gaiaTeamID = Spring.GetGaiaTeamID()
 	  if (Spring.GetGameFrame() == 0) then
 	      -- Ignore all the map features we can see before game start
 		  for _, fID in ipairs(features) do
@@ -232,7 +234,7 @@ function ScanFeatures()
 
 			local resName, _ = spGetFeatureResurrect(fID)
 											
-			if ( (resName == "" or dontTrackEnemyWrecks == 0) and fAllyID ~= nil and fAllyID >= 0 and myAllyID ~= fAllyID and ghostFeatures[fID] == nil ) then
+			if ( fTeamID ~= gaiaTeamID and (resName == "" or dontTrackEnemyWrecks == 0) and fAllyID ~= nil and fAllyID >= 0 and myAllyID ~= fAllyID and ghostFeatures[fID] == nil ) then
 							
 				local x, y, z = spGetFeaturePosition(fID)
 				local dx,_,dz = spGetFeatureDirection(fID)
