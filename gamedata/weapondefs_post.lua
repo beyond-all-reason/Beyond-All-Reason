@@ -154,6 +154,5 @@ for id in pairs(WeaponDefs) do
 	if WeaponDefs[id].weapontype == "BeamLaser" then
 		WeaponDefs[id].soundhitdry = ""
 		WeaponDefs[id].soundtrigger = 1
-		WeaponDefs[id].sweepfire = false
 	end
 end
