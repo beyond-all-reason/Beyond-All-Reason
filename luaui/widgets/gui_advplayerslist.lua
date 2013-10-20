@@ -89,6 +89,7 @@ local cpuPingPic      = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/cpuping.png
 local sharePic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/share.png"
 local namePic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/name.png"
 local IDPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/ID.png"
+local tsPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/TS.png"
 local pointPic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/point.png"
 local chatPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/chat.png"
 local lowPic          = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/low.png"
@@ -267,12 +268,22 @@ m_name = {
 	pic       = namePic,
 }
 
+m_skill = {
+	spec      = true,
+	play      = true,
+	active    = false,
+	width     = 22,
+	position  = 6,
+	posX      = 0,
+	pic       = tsPic,		
+}
+
 m_cpuping = {
 	spec      = true,
 	play      = true,
 	active    = true,
 	width     = 24,
-	position  = 6,
+	position  = 7,
 	posX      = 0,
 	pic       = cpuPingPic,
 }
@@ -282,7 +293,7 @@ m_share = {
 	play      = true,
 	active    = true,
 	width     = 50,
-	position  = 7,
+	position  = 8,
 	posX      = 0,
 	pic       = sharePic,
 }
@@ -292,7 +303,7 @@ m_chat = {
 	play      = true,
     active    = true,
 	width     = 18,
-	position  = 8,
+	position  = 9,
 	posX      = 0,
 	pic       = chatPic,
 }
@@ -302,23 +313,14 @@ m_spec = {
 	play      = false,
 	active    = true,
 	width     = 18,
-	position  = 9,
+	position  = 10,
 	posX      = 0,
 	pic       = specPic,
 }
 
---[[m_diplo = {
-	spec      = false,
-	play      = true,
-	active    = false,
-	width     = 18,
-	position  = 10,
-	posX      = 0,
-	pic       = diplomacyPic,		
-}]]
-
 modules = {
 	m_rank,
+	m_skill,
 	m_ID,
 	m_side,
 	m_name,
@@ -326,7 +328,6 @@ modules = {
 	m_share,
 	m_spec,
 	m_chat,
---	m_diplo,
 }
 
 m_point = {
@@ -466,12 +467,38 @@ function widget:Initialize()
 	Init()
 end
 
+function round(num, idp)
+  local mult = 10^(idp or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 function CreatePlayer(playerID)
 
+	--generic player data
 	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID)
 	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam)
-	local tred, tgreen, tblue                                            = Spring_GetTeamColor(tteam)
-
+	local tred, tgreen, tblue  										     = Spring_GetTeamColor(tteam)
+	
+	--skill
+	local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
+	local preSkill = customtable.skill
+	local tskill 
+	if preSkill then
+		tskill = preSkill and tonumber(preSkill:match("%d+%.?%d*")) or 0
+		tskill = round(tskill,0)
+		
+		if string.find(preSkill, "?") then  --large variance
+			tskill = "\255"..string.char(215)..string.char(215)..string.char(215) .. tskill --light grey
+		elseif string.find(preSkill, ")") then --inferred from lobby rank
+			tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. tskill --dark grey
+		else --normal
+			tskill = "\255"..string.char(245)..string.char(245)..string.char(245) .. tskill --basically white
+		end
+	else --not known
+		tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. "?" --dark grey
+	end
+	
+	--cpu/ping
 	tpingLvl = GetPingLvl(tping)
 	tcpuLvl  = GetCpuLvl(tcpu)
 	tping    = tping * 1000 - ((tping * 1000) % 1)
@@ -479,6 +506,7 @@ function CreatePlayer(playerID)
 	
 	return {
 		rank             = trank,
+		skill			 = tskill,
 		name             = tname,
 		team             = tteam,
 		allyteam         = tallyteam,
@@ -497,28 +525,13 @@ function CreatePlayer(playerID)
 	
 end
 
-function IsTakeable(teamID)
-	if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-		local units = Spring_GetTeamUnitCount(teamID)
-		local energy = Spring_GetTeamResources(teamID,"energy")
-		local metal = Spring_GetTeamResources(teamID,"metal")
-		if units and energy and metal then
-			if (units > 0) or (energy > 1000) or (metal > 100) then			
-				return true
-			end
-		end
-	else
-		return false					
-	end
-end
-		
 
 
-function CreatePlayerFromTeam(teamID)
+function CreatePlayerFromTeam(teamID) --for when we don't have a human player occupying the slot
 
 	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
-	local tname, ttotake, tdead
+	local tname, ttotake, tdead, tskill, tuncert
 	
 	if isAI then
 	
@@ -550,8 +563,11 @@ function CreatePlayerFromTeam(teamID)
 		tname = "- aband. units -"
 	end
 	
+	tskill = ""
+	
 	return{
 		rank             = 8, -- "don't know which" value
+		skill			 = tskill,
 		name             = tname,
 		team             = teamID,
 		allyteam         = tallyteam,
@@ -566,6 +582,23 @@ function CreatePlayerFromTeam(teamID)
 	}
 	
 end
+
+
+function IsTakeable(teamID)
+	if Spring_GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
+		local units = Spring_GetTeamUnitCount(teamID)
+		local energy = Spring_GetTeamResources(teamID,"energy")
+		local metal = Spring_GetTeamResources(teamID,"metal")
+		if units and energy and metal then
+			if (units > 0) or (energy > 1000) or (metal > 100) then			
+				return true
+			end
+		end
+	else
+		return false					
+	end
+end
+		
 
 function SortList()
 	local teamList
@@ -845,7 +878,7 @@ end
 
 function CreateLists()
 		UpdateRessources()
-		CheckTime()		
+		CheckTime() --this also calls CheckPlayers		
 		--Create lists
 		CreateBackground()
 		CreateMainList()
@@ -988,6 +1021,7 @@ end
 function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 	tipY           = nil
 	local rank     = player[playerID].rank
+	local skill	   = player[playerID].skill
 	local name     = player[playerID].name
 	local team     = player[playerID].team
 	local allyteam = player[playerID].allyteam
@@ -1037,6 +1071,9 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 			end
 			if m_ID.active == true then
 					DrawID(team, posY, dark)
+			end
+			if m_skill.active == true then
+					DrawSkill(skill, posY, dark)
 			end
 		end
 		gl_Color(red,green,blue,1)
@@ -1225,6 +1262,11 @@ function DrawID(playerID, posY, dark)
 	else
 		gl_Text(colourNames(playerID) .. playerID .. ".", m_ID.posX + widgetPosX+2, posY + 3, 15, "o") 
 	end
+	gl_Color(1,1,1)
+end
+
+function DrawSkill(skill, posY, dark)
+	gl_Text(skill, m_skill.posX + widgetPosX+2, posY + 3, 15, "o")
 	gl_Color(1,1,1)
 end
 
@@ -1477,7 +1519,7 @@ function Spec(teamID)
 	specTarget = teamID
 end
 
-function widget:MousePress(x,y,button)
+function widget:MousePress(x,y,button) --super ugly code here
 	local t = false       -- true if the object is a team leader
 	local clickedPlayer
 	local posY
@@ -1723,14 +1765,15 @@ local function DrawTweakButtons()
 	if localBottom < 0 then localBottom = 0 end
 
 	
-	DrawTweakButton(m_rank, rankPic)
+	DrawTweakButton(m_rank, rankPic) --why are these hardcoded here when they are already part of the m_*** stuff?
 	DrawTweakButton(m_side, sidePic)	
 	DrawTweakButton(m_ID, IDPic)
 	DrawTweakButton(m_name, namePic)
+	DrawTweakButton(m_skill, tsPic)
 	DrawTweakButton(m_cpuping, cpuPingPic)
 	DrawTweakButton(m_share, sharePic)
 	DrawTweakButton(m_spec, specPic)
-	DrawTweakButton(m_point, pointbPic)
+	DrawTweakButton(m_point, pointPic)
 	DrawTweakButton(m_take, takebPic)
 	DrawTweakButton(m_seespec, seespecPic)
 	DrawTweakButton(m_chat, chatPic)
@@ -1787,10 +1830,11 @@ function widget:TweakMousePress(x,y,button)
 		if localBottom < 0 then localBottom = 0 end
 		if localLeft + 181 > vsx then localLeft = vsx - 181 end
 		
-		if checkButton(m_rank,    x, y) then return true end
+		if checkButton(m_rank,    x, y) then return true end -- these have to be in the same order as in DrawTweakButtons!
 		if checkButton(m_side,    x, y) then return true end
 		if checkButton(m_ID,      x, y) then return true end
 		if checkButton(m_name,    x, y) then return true end
+		if checkButton(m_skill,   x, y) then return true end
 		if checkButton(m_cpuping, x, y) then return true end
 		if checkButton(m_share,   x, y) then return true end
 		if checkButton(m_spec,    x, y) then return true end
@@ -1861,6 +1905,7 @@ function widget:GetConfigData(data)      -- send
 		expandDown         = expandDown,
 		expandLeft         = expandLeft,
 		m_rankActive       = m_rank.active,
+		m_skillActive	   = m_skill.active,
 		m_sideActive       = m_side.active,
 		m_IDActive         = m_ID.active,
 		m_nameActive       = m_name.active,
@@ -1905,6 +1950,7 @@ function widget:SetConfigData(data)      -- load
 		end
 	end
 	m_rank.active         = SetDefault(data.m_rankActive, false)
+	m_skill.active		  = SetDefault(data.m_skillActive, false)
 	m_side.active         = SetDefault(data.m_sideActive, true)
 	m_ID.active           = SetDefault(data.m_IDActive, false)
 	m_name.active         = SetDefault(data.m_nameActive, true)
