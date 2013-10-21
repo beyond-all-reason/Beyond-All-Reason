@@ -30,6 +30,7 @@ end
 -- v10  (Bluestone): Better use of opengl for a big speed increase & less spaghetti
 -- v11  (Bluestone): Get take info from cmd_idle_players
 -- v11.1 (Bluestone): Added TrueSkill column
+-- v11.2 (BLuestone): Remove lots of hardcoded crap about module names/pictures
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -82,20 +83,12 @@ local notFirstPic     = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/notfirst.pn
 local notFirstPicWO   = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/notfirstWO.png"
 local pingPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/ping.png"
 local cpuPic          = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/cpu.png"
-local specPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/spec.png"
 local selectPic       = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/select.png"
 local barPic          = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/bar.png"
 local amountPic       = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/amount.png"
-local cpuPingPic      = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/cpuping.png"
-local sharePic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/share.png"
-local namePic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/name.png"
-local IDPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/ID.png"
-local tsPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/TS.png"
 local pointPic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/point.png"
-local chatPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/chat.png"
 local lowPic          = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/low.png"
 local settingsPic     = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/settings.png"
-local sidePic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/side.png"
 local rankPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/ranks.png"
 local arrowPic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/arrow.png"
 local arrowdPic       = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/arrowd.png"
@@ -105,6 +98,17 @@ local pointbPic       = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/pointb.png"
 local takebPic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/takeb.png"
 local seespecPic      = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/seespec.png"
 
+--module pics
+local specPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/spec.png" 
+local chatPic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/chat.png"
+local sidePic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/side.png"
+local cpuPingPic      = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/cpuping.png"
+local sharePic        = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/share.png"
+local namePic         = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/name.png"
+local idPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/ID.png"
+local tsPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/TS.png"
+
+--rank pics
 local rank0      = "LuaUI/Images/advplayerslist/Ranks/rank0.png"
 local rank1      = "LuaUI/Images/advplayerslist/Ranks/rank1.png"
 local rank2      = "LuaUI/Images/advplayerslist/Ranks/rank2.png"
@@ -224,22 +228,27 @@ local m_cpuping;  modulesCount = modulesCount + 1
 local m_diplo;    modulesCount = modulesCount + 1
 local m_spec;     modulesCount = modulesCount + 1
 
-local m_point;    modulesCount = modulesCount + 1  -- those 3 are not considered as normal module since they dont take any place and wont affect other's position
+-- those 3 are not considered as normal module since they dont take any place and wont affect other's position
+-- (they have no module.width and are not part of modules)
+local m_point;    modulesCount = modulesCount + 1  
 local m_take;     modulesCount = modulesCount + 1
 local m_seespec;  modulesCount = modulesCount + 1
 
 
 m_rank = {
-	spec      = true,
-	play      = true,
-	active    = false,
+	name	  = "rank",
+	spec      = true, --display for specs?
+	play      = true, --display for players?
+	active    = false, --display? (overrides above)
+	default   = false, --display by default?
 	width     = 18,
 	position  = 2,
 	posX      = 0,
-	pic       = rank8,
+	pic       = rank2,
 }
 
 m_side = {
+	name	  = "side",
 	spec      = true,
 	play      = true,
 	active    = true,
@@ -250,16 +259,18 @@ m_side = {
 }
 
 m_ID = {
+	name	  = "id",
 	spec      = true,
 	play      = true,
 	active    = false,
 	width     = 22,
 	position  = 4,
 	posX      = 0,
-	pic       = IDPic,
+	pic       = idPic,
 }
 
 m_name = {
+	name      = "name",
 	spec      = true,
 	play      = true,
 	active    = true,
@@ -270,6 +281,7 @@ m_name = {
 }
 
 m_skill = {
+	name	  = "skill",
 	spec      = true,
 	play      = true,
 	active    = true,
@@ -280,6 +292,7 @@ m_skill = {
 }
 
 m_cpuping = {
+	name 	  = "cpuping",
 	spec      = true,
 	play      = true,
 	active    = true,
@@ -290,6 +303,7 @@ m_cpuping = {
 }
 
 m_share = {
+	name 	  = "share",
 	spec      = false,
 	play      = true,
 	active    = true,
@@ -300,6 +314,7 @@ m_share = {
 }
 	
 m_chat = {
+	name	  = "chat",
 	spec      = false,
 	play      = true,
     active    = true,
@@ -310,6 +325,7 @@ m_chat = {
 }
 
 m_spec = {
+	name	  = "spec", 
 	spec      = true,
 	play      = false,
 	active    = true,
@@ -333,16 +349,19 @@ modules = {
 
 m_point = {
 	active = true,
+	defaut = true,
 	pic = pointbPic,
 }
 
 m_take = {
 	active = true,
+	default = true,
 	pic = takePic,
 }
 
 m_seespec = {
 	active = true,
+	default = true,
 	pic = seespecPic,
 }
 
@@ -1753,8 +1772,8 @@ local function DrawGreyRect()
 	gl_Color(1,1,1,1)
 end
 
-local function DrawTweakButton(module, image)
-	gl_Texture(image)
+local function DrawTweakButton(module)
+	gl_Texture(module.pic)
 	gl_TexRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	if module.active ~= true then
 		gl_Texture(crossPic)
@@ -1768,24 +1787,15 @@ local function DrawTweakButtons()
 	local minSize = (modulesCount-1) * 16 + 2
 	localLeft     = widgetPosX
 	localBottom   = widgetPosY + widgetHeight - 28
-	localOffset   = 1
+	localOffset   = 1 --see func above, these track how far right we've got TODO: pass values
 	
-	if localLeft + minSize > vsx then localLeft = vsx - minSize end
+	if localLeft + minSize > vsx then localLeft = vsx - minSize end 
 	if localBottom < 0 then localBottom = 0 end
 
+	for n,module in pairs(modules) do
+		DrawTweakButton(module)
+	end
 	
-	DrawTweakButton(m_rank, rankPic) --why are these hardcoded here when they are already part of the m_*** stuff?
-	DrawTweakButton(m_side, sidePic)	
-	DrawTweakButton(m_ID, IDPic)
-	DrawTweakButton(m_name, namePic)
-	DrawTweakButton(m_skill, tsPic)
-	DrawTweakButton(m_cpuping, cpuPingPic)
-	DrawTweakButton(m_share, sharePic)
-	DrawTweakButton(m_spec, specPic)
-	DrawTweakButton(m_point, pointPic)
-	DrawTweakButton(m_take, takebPic)
-	DrawTweakButton(m_seespec, seespecPic)
-	DrawTweakButton(m_chat, chatPic)
 end
 
 local function DrawArrows()
@@ -1835,22 +1845,13 @@ function widget:TweakMousePress(x,y,button)
 		
 		localLeft = widgetPosX
 		localBottom = widgetPosY + widgetHeight - 28
-		localOffset = 1
+		localOffset = 1 --see func above, these track how far right we've got TODO: pass values
 		if localBottom < 0 then localBottom = 0 end
 		if localLeft + 181 > vsx then localLeft = vsx - 181 end
 		
-		if checkButton(m_rank,    x, y) then return true end -- these have to be in the same order as in DrawTweakButtons!
-		if checkButton(m_side,    x, y) then return true end
-		if checkButton(m_ID,      x, y) then return true end
-		if checkButton(m_name,    x, y) then return true end
-		if checkButton(m_skill,   x, y) then return true end
-		if checkButton(m_cpuping, x, y) then return true end
-		if checkButton(m_share,   x, y) then return true end
-		if checkButton(m_spec,    x, y) then return true end
-		if checkButton(m_point,   x, y) then return true end
-		if checkButton(m_take,    x, y) then return true end
-		if checkButton(m_seespec, x, y) then return true end
-		if checkButton(m_chat,    x, y) then return true end
+		for _,module in pairs(modules) do
+			if checkButton(module,x,y) then return true end
+		end
 
 		if IsOnRect(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
 			clickToMove = true
@@ -1904,32 +1905,37 @@ end
 
 function widget:GetConfigData(data)      -- send
 	if m_side ~= nil then
-	return {
-		vsx                = vsx,
-		vsy                = vsy,
-		widgetPosX		   = widgetPosX,
-		widgetPosY         = widgetPosY,
-		widgetRight        = widgetRight,
-		widgetTop          = widgetTop,
-		expandDown         = expandDown,
-		expandLeft         = expandLeft,
-		m_rankActive       = m_rank.active,
-		m_skillActive	   = m_skill.active,
-		m_sideActive       = m_side.active,
-		m_IDActive         = m_ID.active,
-		m_nameActive       = m_name.active,
-		m_cpupingActive    = m_cpuping.active,
-		m_shareActive      = m_share.active,
-		m_specActive       = m_spec.active,
-		m_pointActive      = m_point.active,
-		m_takeActive       = m_take.active,
-		m_seespecActive    = m_seespec.active,
-		m_chatActive       = m_chat.active,
-	}
+	
+		--put module.active into a table
+		local m_active_Table = {}
+		for n,module in pairs(modules) do
+			m_active_Table[module.name] = module.active
+		end
+	
+		local settings = {
+			--view
+			vsx                = vsx,
+			vsy                = vsy,
+			widgetPosX		   = widgetPosX,
+			widgetPosY         = widgetPosY,
+			widgetRight        = widgetRight,
+			widgetTop          = widgetTop,
+			expandDown         = expandDown,
+			expandLeft         = expandLeft,
+			--not technically modules
+			m_pointActive      = m_point.active,
+			m_takeActive       = m_take.active,
+			m_seespecActive    = m_seespec.active,
+			--modules
+			m_active_Table	   = m_active_Table
+		}
+		
+		return settings
 	end
 end
 
 function widget:SetConfigData(data)      -- load
+	--view
 	if data.expandDown ~= nil and data.widgetRight ~= nil then
 		expandDown   = data.expandDown
 		expandLeft   = data.expandLeft
@@ -1958,18 +1964,23 @@ function widget:SetConfigData(data)      -- load
 			widgetPosX  = data.widgetPosX
 		end
 	end
-	m_rank.active         = SetDefault(data.m_rankActive, false)
-	m_skill.active		  = SetDefault(data.m_skillActive, false)
-	m_side.active         = SetDefault(data.m_sideActive, true)
-	m_ID.active           = SetDefault(data.m_IDActive, false)
-	m_name.active         = SetDefault(data.m_nameActive, true)
-	m_cpuping.active      = SetDefault(data.m_cpupingActive, true)
-	m_share.active        = SetDefault(data.m_shareActive, true)
-	m_spec.active         = SetDefault(data.m_specActive, true)
-	m_point.active        = SetDefault(data.m_pointActive, true)
-	m_take.active         = SetDefault(data.m_takeActive, true)
-	m_seespec.active      = SetDefault(data.m_seespecActive, true)
-	m_chat.active         = SetDefault(data.m_chatActive, false)
+	--not technically modules
+	m_point.active         = SetDefault(data.m_pointActive, m_point.default)
+	m_take.active          = SetDefault(data.m_takeActive, m_take.default)
+	m_seespec.active       = SetDefault(data.m_pointActive, m_seespec.default)
+	
+	--load module.active from table
+	local m_active_Table = data.m_active_Table or {}
+	for name,active in pairs(m_active_Table) do
+		--find module with matching name 
+		for _,module in pairs(modules) do
+			if module.name == name then
+				module.active = SetDefault(active, module.default)
+			end
+		end
+	end
+		
+
 end
 
 function SetDefault(value, default)
@@ -2086,14 +2097,12 @@ local tookFrame = -120
 function Take(teamID,name, i)
 
 	-- sends the /take command to spring
-
 	reportTake = true
 	tookTeamID = teamID
 	tookTeamName = name
 	tookFrame = Spring.GetGameFrame()
 	
 	Spring_SendCommands("luarules take2 " .. teamID)
-
 	return
 end
 
