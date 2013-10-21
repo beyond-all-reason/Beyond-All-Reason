@@ -388,8 +388,7 @@ function SetModulesPositionX()
 				end
 			else
 				if module.play == true then
-					pos = pos + module.width
-					
+					pos = pos + module.width	
 				end
 			end
 		end
@@ -412,10 +411,9 @@ function SetModulesPositionX()
 end
 
 function SetMaxPlayerNameWidth()
-
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 15*gl_GetTextWidth("- aband. units -")+8 -- minimal width = minimal standard text width
+	local maxWidth = 15*gl_GetTextWidth("- aband. units -") + 8 -- 8 = minimal standard text width
 	local name = ""
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
@@ -429,6 +427,7 @@ function SetMaxPlayerNameWidth()
 end
 
 function GeometryChange()
+	--check if disappeared off the edge of screen
 	widgetRight = widgetWidth + widgetPosX
 	if widgetRight > vsx then
 		widgetRight = vsx
@@ -450,8 +449,8 @@ function widget:Initialize()
 		Spring.SendCommands("info 0")
 	end
 	
-	SetModulesPositionX()
 	GeometryChange()
+	SetModulesPositionX()
 	SetSidePics() 
 	InitializePlayers()
 	SortList()	
@@ -571,7 +570,7 @@ function CreatePlayer(playerID)
 		elseif string.find(preSkill, ")") then --inferred from lobby rank
 			tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. tskill --dark grey
 		else --normal
-			tskill = "\255"..string.char(240)..string.char(240)..string.char(240) .. tskill --basically white
+			tskill = "\255"..string.char(247)..string.char(247)..string.char(247) .. tskill --basically white
 		end
 	else --not known
 		tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. "?" --dark grey
@@ -1907,7 +1906,7 @@ end
 --  Save/load
 ---------------------------------------------------------------------------------------------------
 
-function widget:GetConfigData(data)      -- send
+function widget:GetConfigData(data)      -- save
 	if m_side ~= nil then
 	
 		--put module.active into a table
@@ -1920,7 +1919,8 @@ function widget:GetConfigData(data)      -- send
 			--view
 			vsx                = vsx,
 			vsy                = vsy,
-			widgetRelPosX	   = vsx - widgetPosX, --align to bottom right of screen
+			widgetRelRight	   = vsx - widgetRight, 
+			widgetPosX         = widgetPosX,
 			widgetPosY         = widgetPosY,
 			widgetRight        = widgetRight,
 			widgetTop          = widgetTop,
@@ -1960,12 +1960,14 @@ function widget:SetConfigData(data)      -- load
 			widgetPosY = data.widgetPosY
 		end
 		if expandLeft == true then
-			widgetRight = data.widgetRight + dx
+			relRight = data.widgetRelRight or 0
+			widgetRight = vsx - relRight + dx --align right of widget to right of screen
+			widgetPosX = widgetRight - widgetWidth
 			if widgetRight > vsx then
 				widgetRight = vsx
 			end
 		else
-			widgetPosX  = vsx - data.widgetPosX
+			widgetPosX  = data.widgetPosX --align left of widget to left of screen
 		end
 	end
 	--not technically modules
@@ -1984,7 +1986,7 @@ function widget:SetConfigData(data)      -- load
 		end
 	end
 		
-
+	SetModulesPositionX()
 end
 
 function SetDefault(value, default)
