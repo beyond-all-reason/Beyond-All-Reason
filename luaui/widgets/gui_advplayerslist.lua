@@ -160,7 +160,7 @@ local tipText
 local myAllyTeamID                           
 local myTeamID			
 local myPlayerID
-local mySpecStatus = false
+local mySpecStatus,_,_ = Spring.GetSpectatingState()
 
 --General players/spectator count and tables
 local player = {}
@@ -448,9 +448,9 @@ function widget:Initialize()
 	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
 		Spring.SendCommands("info 0")
 	end
-	
+
+	GeometryChange()	
 	SetModulesPositionX() 
-	GeometryChange()
 	SetSidePics() 
 	InitializePlayers()
 	SortList()	
@@ -546,7 +546,7 @@ function round(num, idp)
 end
 
 function GetSkill(playerID)
-	local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
+	local customtable = select(10,Spring_GetPlayerInfo(playerID)) -- player custom table
 	local preSkill = customtable.skill
 	local preUncert = customtable.skilluncertainty -- 0 is most certain, 3 is most uncertain
 	local tskill 
@@ -558,9 +558,9 @@ function GetSkill(playerID)
 		
 		if tuncert == 1 then  
 			tskill = "\255"..string.char(215)..string.char(215)..string.char(215) .. tskill --light grey
-		elseif tuncert >= 2 then 
+		elseif tuncert == 2 then 
 			tskill = "\255"..string.char(185)..string.char(185)..string.char(185) .. tskill --medium grey
-		elseif string.find(preSkill, ")") then --inferred from lobby rank
+		elseif tuncert == 3 or string.find(preSkill, ")") then -- ")" means inferred from lobby rank
 			tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. tskill --dark grey
 		else --normal
 			tskill = "\255"..string.char(247)..string.char(247)..string.char(247) .. tskill --basically white
