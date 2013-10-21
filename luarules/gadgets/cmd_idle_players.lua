@@ -179,6 +179,7 @@ else
 	local SendMessageToPlayer = Spring.SendMessageToPlayer
 	local SendMessageToAllyTeam = Spring.SendMessageToAllyTeam
 	local Echo = Spring.Echo
+	local IsCheatingEnabled = Spring.IsCheatingEnabled
 
 	local resourceList = {"metal","energy"}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -314,7 +315,7 @@ else
 
 	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
 		-- prevent units to be shared to uncontrolled teams
-		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0
+		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
 	end
 
 
