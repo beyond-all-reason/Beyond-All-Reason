@@ -30,7 +30,8 @@ end
 -- v10  (Bluestone): Better use of opengl for a big speed increase & less spaghetti
 -- v11  (Bluestone): Get take info from cmd_idle_players
 -- v11.1 (Bluestone): Added TrueSkill column
--- v11.2 (BLuestone): Remove lots of hardcoded crap about module names/pictures
+-- v11.2 (Bluestone): Remove lots of hardcoded crap about module names/pictures
+-- v11.3 (Bluestone): More cleaning up 
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -144,7 +145,6 @@ local now             = 0
 
 local tipIdleTime = 1000     -- last time mouse moved (for tip)
 local tipText
-local oldMouseX,oldMouseY    -- used to determine idle status (mouse moved or not)
 
 --------------------------------------------------------------------------------
 -- Players counts and info
@@ -198,9 +198,6 @@ local widgetPosY                                 = 0
 local expandDown                                 = false
 local expandLeft                                 = true
 local right
-local localOffset    -- used by different functions to pass values
-local localLeft      -- used by different functions to pass values
-local localBottom    -- used by different functions to pass values
 
 local activePlayers   = {}
 local labelOffset     = 20
@@ -1772,28 +1769,28 @@ local function DrawGreyRect()
 	gl_Color(1,1,1,1)
 end
 
-local function DrawTweakButton(module)
+local function DrawTweakButton(module,  localLeft, localOffset, localBottom)
 	gl_Texture(module.pic)
 	gl_TexRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	if module.active ~= true then
 		gl_Texture(crossPic)
 		gl_TexRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	end
-	localOffset = localOffset + 16
 end
 
 local function DrawTweakButtons()
 	
 	local minSize = (modulesCount-1) * 16 + 2
-	localLeft     = widgetPosX
-	localBottom   = widgetPosY + widgetHeight - 28
-	localOffset   = 1 --see func above, these track how far right we've got TODO: pass values
+	local localLeft     = widgetPosX
+	local localBottom   = widgetPosY + widgetHeight - 28
+	local localOffset   = 1 --see func above, these track how far right we've got TODO: pass values
 	
 	if localLeft + minSize > vsx then localLeft = vsx - minSize end 
 	if localBottom < 0 then localBottom = 0 end
 
 	for n,module in pairs(modules) do
-		DrawTweakButton(module)
+		DrawTweakButton(module, localLeft, localOffset, localBottom)
+		localOffset = localOffset + 16
 	end
 	
 end
@@ -1828,14 +1825,12 @@ end
 
 
 
-local function checkButton(module, x, y)
+function checkButton(module, x, y, localLeft, localOffset, localBottom)
 		if IsOnRect(x, y, localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27) then
 			module.active = not module.active
-			SetModulesPositionX()
-			localOffset = localOffset + 16
+			SetModulesPositionX() --why?
 			return true
 		else
-			localOffset = localOffset + 16
 			return false
 		end
 end
@@ -1843,14 +1838,15 @@ end
 function widget:TweakMousePress(x,y,button)
 	if button == 1 then
 		
-		localLeft = widgetPosX
-		localBottom = widgetPosY + widgetHeight - 28
-		localOffset = 1 --see func above, these track how far right we've got TODO: pass values
+		local localLeft = widgetPosX
+		local localBottom = widgetPosY + widgetHeight - 28
+		local localOffset = 1 
 		if localBottom < 0 then localBottom = 0 end
 		if localLeft + 181 > vsx then localLeft = vsx - 181 end
 		
 		for _,module in pairs(modules) do
-			if checkButton(module,x,y) then return true end
+			if checkButton(module,x,y,localLeft,localOffset,localBottom) then return true end
+			localOffset = localOffset + 16
 		end
 
 		if IsOnRect(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
@@ -1916,7 +1912,7 @@ function widget:GetConfigData(data)      -- send
 			--view
 			vsx                = vsx,
 			vsy                = vsy,
-			widgetPosX		   = widgetPosX,
+			widgetRelPosX	   = vsx - widgetPosX, --align to bottom right of screen
 			widgetPosY         = widgetPosY,
 			widgetRight        = widgetRight,
 			widgetTop          = widgetTop,
@@ -1961,7 +1957,7 @@ function widget:SetConfigData(data)      -- load
 				widgetRight = vsx
 			end
 		else
-			widgetPosX  = data.widgetPosX
+			widgetPosX  = vsx - data.widgetPosX
 		end
 	end
 	--not technically modules
