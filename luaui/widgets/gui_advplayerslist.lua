@@ -1243,7 +1243,7 @@ function DrawRank(rank, posY, dark)
 	elseif rank == 7 then
 		DrawRankImage(rank7, posY)
 	else
-		DrawRankImage(rank8, posY)
+		--DrawRankImage(rank8, posY)
 	end
 	gl_Color(1,1,1,1)
 end
