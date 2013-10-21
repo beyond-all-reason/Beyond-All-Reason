@@ -406,7 +406,6 @@ end
 function SetMaxPlayerNameWidth()
 
 	-- determines the maximal player name width (in order to set the width of the widget)
-
 	local t = Spring_GetPlayerList()
 	local maxWidth = 15*gl_GetTextWidth("- aband. units -")+8 -- minimal width = minimal standard text width
 	local name = ""
@@ -434,6 +433,31 @@ function GeometryChange()
 	end
 end
 
+---------------------------------------------------------------------------------------------------
+--  Init/GameStart 
+---------------------------------------------------------------------------------------------------
+
+function widget:Initialize()
+	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
+		Spring.SendCommands("info 0")
+	end
+	
+	Init()
+end
+
+function widget:GameStart()
+	Init()
+	SetSidePics()
+end
+
+function Init()
+	SetSidePics()
+	SetPingCpuColors()
+	InitializePlayers()
+	SortList()
+	SetModulesPositionX()
+	GeometryChange()
+end
 
 function InitializePlayers()
 	myPlayerID = Spring_GetLocalPlayerID()
@@ -467,22 +491,7 @@ function GetAllPlayers()
 	end
 end
 
-function Init()
-	SetSidePics()
-	SetPingCpuColors()
-	InitializePlayers()
-	SortList()
-	SetModulesPositionX()
-	GeometryChange()
-end
 
-function widget:Initialize()
-	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
-		Spring.SendCommands("info 0")
-	end
-	
-	Init()
-end
 
 function round(num, idp)
   local mult = 10^(idp or 0)
@@ -678,6 +687,12 @@ function SortList()
 	end
 	
 end
+
+
+
+---------------------------------------------------------------------------------------------------
+--  Sorting player data
+---------------------------------------------------------------------------------------------------
 
 function SortAllyTeams(vOffset)
 	-- adds ally teams to the draw list (own ally team first)
@@ -1544,6 +1559,10 @@ function Spec(teamID)
 	specTarget = teamID
 end
 
+---------------------------------------------------------------------------------------------------
+--  Mouse 
+---------------------------------------------------------------------------------------------------
+
 function widget:MousePress(x,y,button) --super ugly code here
 	local t = false       -- true if the object is a team leader
 	local clickedPlayer
@@ -1742,16 +1761,11 @@ function widget:MouseRelease(x,y,button)
 	end
 end
 
-function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)
-	if m_point.active == true then
-		if cmdType == "point" then
-			player[playerID].pointX = px
-			player[playerID].pointY = py
-			player[playerID].pointZ = pz
-			player[playerID].pointTime = now + 20
-		end
-	end
-end
+
+
+---------------------------------------------------------------------------------------------------
+--  Tweak mode
+---------------------------------------------------------------------------------------------------
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 
@@ -1899,6 +1913,10 @@ function widget:TweakMouseRelease(x,y,button)
 	clickToMove = nil                                              -- ends the share slider process
 end
 
+---------------------------------------------------------------------------------------------------
+--  Save/load
+---------------------------------------------------------------------------------------------------
+
 function widget:GetConfigData(data)      -- send
 	if m_side ~= nil then
 	
@@ -1987,6 +2005,10 @@ function SetDefault(value, default)
 	end
 end
 
+---------------------------------------------------------------------------------------------------
+--  Player related changes
+---------------------------------------------------------------------------------------------------
+
 function CheckPlayersChange()
 	local sorting = false
 	for i = 0,63 do
@@ -2031,8 +2053,8 @@ function CheckPlayersChange()
 				updateTake(allyTeamID)
 				sorting = true
 			end
--------------------------------------------------------------------------------------- Update stall / cpu / ping info for each player
-
+			
+			-- Update stall / cpu / ping info for each player
 			if player[i].spec == false then
 				player[i].needm   = GetNeed("metal",player[i].team)
 				player[i].neede   = GetNeed("energy",player[i].team)
@@ -2065,13 +2087,7 @@ function CheckPlayersChange()
 
 end
 
-function updateTake(allyTeamID)
-	for i = 0,teamN-1 do
-		if player[i + 64].allyTeam == allyTeamID then
-			player[i + 64] = CreatePlayerFromTeam(i)
-		end
-	end
-end
+
 
 function GetNeed(resType,teamID)
 	local current, _, pull, income = Spring_GetTeamResources(teamID, resType)
@@ -2090,6 +2106,14 @@ local tookTeamID
 local tookTeamName
 local tookFrame = -120
 
+function updateTake(allyTeamID)
+	for i = 0,teamN-1 do
+		if player[i + 64].allyTeam == allyTeamID then
+			player[i + 64] = CreatePlayerFromTeam(i)
+		end
+	end
+end
+
 function Take(teamID,name, i)
 
 	-- sends the /take command to spring
@@ -2102,16 +2126,20 @@ function Take(teamID,name, i)
 	return
 end
 
-function widget:GameStart()
-	Init()
-	SetSidePics()
+function widget:TeamDied(teamID)
+	player[teamID+64]        = CreatePlayerFromTeam(teamID)
+	SortList()
 end
+
+---------------------------------------------------------------------------------------------------
+--  Take related stuff
+---------------------------------------------------------------------------------------------------
 
 local timeCounter = 0
 local updateRate = 0.5
 local lastTakeMsg = -120
 
-function widget:Update(delta) 
+function widget:Update(delta) --handles takes & related messages 
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
 
@@ -2156,10 +2184,11 @@ function widget:Update(delta)
 	end
 end
 
-function widget:TeamDied(teamID)
-	player[teamID+64]        = CreatePlayerFromTeam(teamID)
-	SortList()
-end
+
+---------------------------------------------------------------------------------------------------
+--  Other callins
+---------------------------------------------------------------------------------------------------
+
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	local dx, dy = vsx - viewSizeX, vsy - viewSizeY
@@ -2171,5 +2200,16 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	if expandLeft == true then
 		widgetRight = widgetRight - dx
 		widgetPosX  = widgetRight - widgetWidth
+	end
+end
+
+function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)
+	if m_point.active == true then
+		if cmdType == "point" then
+			player[playerID].pointX = px
+			player[playerID].pointY = py
+			player[playerID].pointZ = pz
+			player[playerID].pointTime = now + 20
+		end
 	end
 end
