@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth.",
 		date      = "11.06.2013",
-		version   = "11",
+		version   = "11.1",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -29,6 +29,7 @@ end
 -- v9.1 ([teh]decay): added notification about shared resources
 -- v10  (Bluestone): Better use of opengl for a big speed increase & less spaghetti
 -- v11  (Bluestone): Get take info from cmd_idle_players
+-- v11.1 (Bluestone): Added TrueSkill column
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -271,8 +272,8 @@ m_name = {
 m_skill = {
 	spec      = true,
 	play      = true,
-	active    = false,
-	width     = 22,
+	active    = true,
+	width     = 19,
 	position  = 6,
 	posX      = 0,
 	pic       = tsPic,		
@@ -482,17 +483,22 @@ function CreatePlayer(playerID)
 	--skill
 	local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
 	local preSkill = customtable.skill
+	local preUncert = customtable.skilluncertainty -- 0 is most certain, 3 is most uncertain
 	local tskill 
+
 	if preSkill then
 		tskill = preSkill and tonumber(preSkill:match("%d+%.?%d*")) or 0
-		tskill = round(tskill,0)
+		tskill = round(tskill,0) 
+		tuncert = tonumber(preUncert) or 0 
 		
-		if string.find(preSkill, "?") then  --large variance
+		if tuncert == 1 then  
 			tskill = "\255"..string.char(215)..string.char(215)..string.char(215) .. tskill --light grey
+		elseif tuncert >= 2 then 
+			tskill = "\255"..string.char(185)..string.char(185)..string.char(185) .. tskill --medium grey
 		elseif string.find(preSkill, ")") then --inferred from lobby rank
 			tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. tskill --dark grey
 		else --normal
-			tskill = "\255"..string.char(245)..string.char(245)..string.char(245) .. tskill --basically white
+			tskill = "\255"..string.char(240)..string.char(240)..string.char(240) .. tskill --basically white
 		end
 	else --not known
 		tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. "?" --dark grey
@@ -531,7 +537,7 @@ function CreatePlayerFromTeam(teamID) --for when we don't have a human player oc
 
 	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
-	local tname, ttotake, tdead, tskill, tuncert
+	local tname, ttotake, tdead, tskill
 	
 	if isAI then
 	
@@ -1073,7 +1079,7 @@ function DrawPlayerTip(playerID, leader, vOffset, mouseX, mouseY)
 					DrawID(team, posY, dark)
 			end
 			if m_skill.active == true then
-					DrawSkill(skill, posY, dark)
+					DrawSkill(skill, posY, dark, name)
 			end
 		end
 		gl_Color(red,green,blue,1)
@@ -1266,7 +1272,10 @@ function DrawID(playerID, posY, dark)
 end
 
 function DrawSkill(skill, posY, dark)
-	gl_Text(skill, m_skill.posX + widgetPosX+2, posY + 3, 15, "o")
+	if skill == nil then
+		Spring.Echo("skill is nil for " .. name)
+	end
+	gl_Text(skill, m_skill.posX + widgetPosX+2, posY + 3, 13, "o")
 	gl_Color(1,1,1)
 end
 
