@@ -449,8 +449,8 @@ function widget:Initialize()
 		Spring.SendCommands("info 0")
 	end
 	
+	SetModulesPositionX() 
 	GeometryChange()
-	SetModulesPositionX()
 	SetSidePics() 
 	InitializePlayers()
 	SortList()	
@@ -545,19 +545,12 @@ function round(num, idp)
   return math.floor(num * mult + 0.5) / mult
 end
 
-function CreatePlayer(playerID)
-
-	--generic player data
-	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID)
-	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam)
-	local tred, tgreen, tblue  										     = Spring_GetTeamColor(tteam)
-	
-	--skill
+function GetSkill(playerID)
 	local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
 	local preSkill = customtable.skill
 	local preUncert = customtable.skilluncertainty -- 0 is most certain, 3 is most uncertain
 	local tskill 
-
+	
 	if preSkill then
 		tskill = preSkill and tonumber(preSkill:match("%d+%.?%d*")) or 0
 		tskill = round(tskill,0) 
@@ -575,6 +568,21 @@ function CreatePlayer(playerID)
 	else --not known
 		tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. "?" --dark grey
 	end
+
+	return tskill
+end
+
+
+function CreatePlayer(playerID)
+
+	--generic player data
+	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID)
+	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam)
+	local tred, tgreen, tblue  										     = Spring_GetTeamColor(tteam)
+	
+	--skill
+	local tskill 
+	tskill = GetSkill(playerID)
 	
 	--cpu/ping
 	tpingLvl = GetPingLvl(tping)
@@ -1355,9 +1363,6 @@ function DrawID(playerID, posY, dark)
 end
 
 function DrawSkill(skill, posY, dark)
-	if skill == nil then
-		Spring.Echo("skill is nil for " .. name)
-	end
 	gl_Text(skill, m_skill.posX + widgetPosX+2, posY + 3, 13, "o")
 	gl_Color(1,1,1)
 end
@@ -2035,6 +2040,7 @@ function CheckPlayersChange()
 				player[i].team = teamID
 				player[i].red, player[i].green, player[i].blue = Spring_GetTeamColor(teamID)
 				player[i].dark = GetDark(player[i].red, player[i].green, player[i].blue)
+				player[i].skill = GetSkill(i)
 				sorting = true
 			end
 			if player[i].name == nil then
