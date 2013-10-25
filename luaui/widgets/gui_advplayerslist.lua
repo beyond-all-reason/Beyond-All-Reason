@@ -580,7 +580,6 @@ function GetSkill(playerID)
 			end
 		end
 	else
-		Spring.Echo(tsMu, tsSigma)
 		tskill = "\255"..string.char(160)..string.char(160)..string.char(160) .. "?"
 	end
 	return tskill
