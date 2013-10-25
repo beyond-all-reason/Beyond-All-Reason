@@ -413,12 +413,14 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 15*gl_GetTextWidth("- aband. units -") + 8 -- 8 = minimal standard text width
+	local maxWidth = 15*gl_GetTextWidth("- aband. units -") + 8 -- 8 is minimal width
 	local name = ""
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
-		name = Spring_GetPlayerInfo(wplayer)
-		nextWidth = 15*gl_GetTextWidth(name)+8
+		name,_,spec = Spring_GetPlayerInfo(wplayer)
+		local charSize
+		if spec then charSize = 13 else charSize = 15 end
+		nextWidth = charSize*gl_GetTextWidth(name)+8
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end
@@ -547,28 +549,40 @@ end
 
 function GetSkill(playerID)
 	local customtable = select(10,Spring_GetPlayerInfo(playerID)) -- player custom table
-	local preSkill = customtable.skill
-	local preUncert = customtable.skilluncertainty -- 0 is most certain, 3 is most uncertain
-	local tskill 
-	
-	if preSkill then
-		tskill = preSkill and tonumber(preSkill:match("%d+%.?%d*")) or 0
-		tskill = round(tskill,0) 
-		tuncert = tonumber(preUncert) or 0 
-		
-		if tuncert == 1 then  
-			tskill = "\255"..string.char(215)..string.char(215)..string.char(215) .. tskill --light grey
-		elseif tuncert == 2 then 
-			tskill = "\255"..string.char(185)..string.char(185)..string.char(185) .. tskill --medium grey
-		elseif tuncert == 3 or string.find(preSkill, ")") then -- ")" means inferred from lobby rank
-			tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. tskill --dark grey
-		else --normal
-			tskill = "\255"..string.char(247)..string.char(247)..string.char(247) .. tskill --basically white
+	local tsMu = customtable.skill
+	local tsSigma = customtable.skilluncertainty
+	local tskill = ""
+	if tsMu then
+		tskill = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 0
+		tskill = round(tskill,0)
+		if string.find(tsMu, ")") then
+			tskill = "\255"..string.char(190)..string.char(140)..string.char(140) .. tskill -- ')' means inferred from lobby rank
+		else
+			if tsSigma then -- 0 is low sigma, 3 is high sigma
+				tsSigma=tonumber(tsSigma)
+				local tsRed, tsGreen, tsBlue 
+				if tsSigma > 2 then
+					tsRed, tsGreen, tsBlue = 190, 130, 130
+				elseif tsSigma == 2 then
+					tsRed, tsGreen, tsBlue = 140, 140, 140
+				elseif tsSigma == 1 then
+					tsRed, tsGreen, tsBlue = 195, 195, 195
+				elseif tsSigma < 1 then
+					if string.find(tsMu, "~") then -- '~' means privacy mode is on
+						tsRed, tsGreen, tsBlue = 250, 250, 250
+					else
+						tsRed, tsGreen, tsBlue = 250, 250, 250
+					end
+				end
+				tskill = "\255"..string.char(tsRed)..string.char(tsGreen)..string.char(tsBlue) .. tskill
+			else
+				tskill = "\255"..string.char(200)..string.char(200)..string.char(200) .. tskill --should never happen
+			end
 		end
-	else --not known
-		tskill = "\255"..string.char(150)..string.char(150)..string.char(150) .. "?" --dark grey
+	else
+		Spring.Echo(tsMu, tsSigma)
+		tskill = "\255"..string.char(160)..string.char(160)..string.char(160) .. "?"
 	end
-
 	return tskill
 end
 
@@ -1754,6 +1768,7 @@ end
 function Spec(teamID)
 	Spring_SendCommands{"specteam "..teamID}
 	specTarget = teamID
+	SortList()
 end
 
 
