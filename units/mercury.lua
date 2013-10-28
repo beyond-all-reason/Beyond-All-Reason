@@ -94,14 +94,14 @@ return {
 		},
 		weapondefs = {
 			arm_advsam = {
-				areaofeffect = 370,
+				areaofeffect = 425,
 				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.8,
+				edgeeffectiveness = 0.6,
 				energypershot = 1800,
 				explosiongenerator = "custom:BURNTEAL",
 				firestarter = 90,
