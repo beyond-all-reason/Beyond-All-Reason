@@ -2,7 +2,7 @@ return {
 	armsub = {
 		acceleration = 0.03,
 		activatewhenbuilt = true,
-		brakerate = 0.22499999403954,
+		brakerate = 0.0225,
 		buildcostenergy = 3724,
 		buildcostmetal = 651,
 		buildpic = "ARMSUB.DDS",
@@ -23,7 +23,7 @@ return {
 		idleautoheal = 8 ,
 		idletime = 900 ,
 		maxdamage = 835,
-		maxvelocity = 2.7699999809265,
+		maxvelocity = 2.49,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
 		name = "Lurker",

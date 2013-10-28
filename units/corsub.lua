@@ -2,7 +2,7 @@ return {
 	corsub = {
 		acceleration = 0.04,
 		activatewhenbuilt = true,
-		brakerate = 0.25,
+		brakerate = 0.025,
 		buildcostenergy = 3902,
 		buildcostmetal = 679,
 		buildpic = "CORSUB.DDS",
@@ -23,7 +23,7 @@ return {
 		idleautoheal = 8 ,
 		idletime = 900 ,
 		maxdamage = 835,
-		maxvelocity = 2.7000000476837,
+		maxvelocity = 2.4000000476837,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
 		name = "Snake",
