@@ -288,7 +288,7 @@ m_skill = {
 	spec      = true,
 	play      = true,
 	active    = true,
-	width     = 19,
+	width     = 29,
 	position  = 6,
 	posX      = 0,
 	pic       = tsPic,		
@@ -558,6 +558,14 @@ function GetSkill(playerID)
 		if string.find(tsMu, ")") then
 			tskill = "\255"..string.char(190)..string.char(140)..string.char(140) .. tskill -- ')' means inferred from lobby rank
 		else
+		
+			-- show privacy mode
+			local priv = ""
+			if string.find(tsMu, "~") then -- '~' means privacy mode is on
+				priv = "\255"..string.char(200)..string.char(200)..string.char(200) .. "*" 		
+			end
+			
+			--show sigma
 			if tsSigma then -- 0 is low sigma, 3 is high sigma
 				tsSigma=tonumber(tsSigma)
 				local tsRed, tsGreen, tsBlue 
@@ -568,15 +576,11 @@ function GetSkill(playerID)
 				elseif tsSigma == 1 then
 					tsRed, tsGreen, tsBlue = 195, 195, 195
 				elseif tsSigma < 1 then
-					if string.find(tsMu, "~") then -- '~' means privacy mode is on
 						tsRed, tsGreen, tsBlue = 250, 250, 250
-					else
-						tsRed, tsGreen, tsBlue = 250, 250, 250
-					end
 				end
-				tskill = "\255"..string.char(tsRed)..string.char(tsGreen)..string.char(tsBlue) .. tskill
+				tskill = priv .. "\255"..string.char(tsRed)..string.char(tsGreen)..string.char(tsBlue) .. tskill
 			else
-				tskill = "\255"..string.char(200)..string.char(200)..string.char(200) .. tskill --should never happen
+				tskill = priv .. "\255"..string.char(195)..string.char(195)..string.char(195) .. tskill --should never happen
 			end
 		end
 	else
@@ -694,6 +698,7 @@ end
 		
 ---------------------------------------------------------------------------------------------------
 --  Sorting player data
+-- note: SPADS ensures that order of playerIDs/teams/allyteams as appropriate reflects TS (mu) order
 ---------------------------------------------------------------------------------------------------
 
 
@@ -763,7 +768,7 @@ function SortAllyTeams(vOffset)
 	local firstEnnemy = true
 	allyTeamsCount = table.maxn(allyTeamList)-1
 	
-	-- find own ally team
+	--find own ally team
 	for allyTeamID = 0, allyTeamsCount - 1 do
 		if allyTeamID == myAllyTeamID  then
 			vOffset = vOffset + labelOffset - 2
@@ -801,20 +806,11 @@ function SortTeams(allyTeamID, vOffset)
 	local teamID
 	local teamsList = Spring_GetTeamList(allyTeamID)
 	
-	-- add own team first (if in own ally team)
-	if myAllyTeamID == allyTeamID then
-		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, -1)
-		vOffset = SortPlayers(myTeamID,allyTeamID,vOffset) -- adds players from the team	
-	end
-	
-	-- add other teams
+	--add teams 
 	for _,teamID in ipairs(teamsList) do
-		if teamID ~= myTeamID then
 			table.insert(drawListOffset, vOffset)
 			table.insert(drawList, -1)
-			vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
-		end  
+			vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team 
 	end
 	
 	return vOffset
@@ -881,7 +877,6 @@ end
 
 function SortSpecs(vOffset)
 	-- Adds specs to the draw list
-	
 	local playersList = Spring_GetPlayerList(_,true)
 	local noSpec = true
 	
@@ -1376,7 +1371,7 @@ function DrawID(playerID, posY, dark)
 end
 
 function DrawSkill(skill, posY, dark)
-	gl_Text(skill, m_skill.posX + widgetPosX+2, posY + 3, 13, "o")
+	gl_Text(skill, m_skill.posX + widgetPosX + m_skill.width - 1, posY + 3, 13, "or")
 	gl_Color(1,1,1)
 end
 
@@ -1893,13 +1888,13 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 				
 		if widgetPosY <= 0 then
 			widgetPosY = 0
-			expandDown = false
+			expandDown = false --expandDown=false only if we are right on the bottom of the screen
 		end
 		if widgetPosY + widgetHeight >= vsy then
 			widgetPosY = vsy - widgetHeight
 			expandDown = true
 		end
-		if widgetPosX <= 0 then
+		if widgetPosX <= 0 then --expandLeft=false only when we are precisely on the left edge of the screen
 			widgetPosX = 0
 			expandLeft = false
 		end
@@ -1980,7 +1975,7 @@ function widget:SetConfigData(data)      -- load
 		end
 		if expandLeft == true then
 			relRight = data.widgetRelRight or 0
-			widgetRight = vsx - relRight + dx --align right of widget to right of screen
+			widgetRight = vsx - relRight --align right of widget to right of screen
 			widgetPosX = widgetRight - widgetWidth
 			if widgetRight > vsx then
 				widgetRight = vsx
