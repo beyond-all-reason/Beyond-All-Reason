@@ -1,7 +1,7 @@
 return {
 	corshad = {
 		acceleration = 0.083999998867512,
-		brakerate = 1.5,
+		brakerate = 5.5,
 		buildcostenergy = 4595,
 		buildcostmetal = 146,
 		buildpic = "CORSHAD.DDS",

@@ -76,10 +76,17 @@ for name, ud in pairs(UnitDefs) do
 	
 	if (ud.brakerate) then 
 		if ud.canfly then
-			ud.brakerate = ud.brakerate * 0.04
+			if ud.hoverattack then
+				ud.brakerate = ud.brakerate * 0.1
+			else
+				ud.brakerate = ud.brakerate * 0.01
+			end
 		else 
 			ud.brakerate = ud.brakerate * 3.0
 		end
+	end
+	if ud.canfly and not ud.hoverattack then
+		ud.acceleration = ud.acceleration * 0.33
 	end
 	
 	if ud.movementclass and (ud.movementclass:find("TANK",1,true) or ud.movementclass:find("HOVER",1,true)) then

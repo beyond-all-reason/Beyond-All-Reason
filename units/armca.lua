@@ -1,7 +1,7 @@
 return {
 	armca = {
 		acceleration = 0.071999996900558,
-		brakerate = 1.875,
+		brakerate = 4.275,
 		buildcostenergy = 4320,
 		buildcostmetal = 105,
 		builddistance = 136,
@@ -20,6 +20,7 @@ return {
 		explodeas = "CA_EX",
 		footprintx = 2,
 		footprintz = 2,
+		hoverattack = true,
 		icontype = "air",
 		idleautoheal = 5 ,
 		idletime = 1800 ,

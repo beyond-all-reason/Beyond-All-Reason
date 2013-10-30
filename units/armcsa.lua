@@ -1,7 +1,7 @@
 return {
 	armcsa = {
 		acceleration = 0.083999998867512,
-		brakerate = 1.875,
+		brakerate = 4.275,
 		buildcostenergy = 7072,
 		buildcostmetal = 154,
 		builddistance = 136,
@@ -20,6 +20,7 @@ return {
 		energyuse = 20,
 		explodeas = "CA_EX",
 		floater = true,
+		hoverattack = true,
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",

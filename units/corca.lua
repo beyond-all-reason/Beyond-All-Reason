@@ -1,7 +1,7 @@
 return {
 	corca = {
 		acceleration = 0.059999998658895,
-		brakerate = 2.125,
+		brakerate = 4.275,
 		buildcostenergy = 4580,
 		buildcostmetal = 110,
 		builddistance = 136,
@@ -20,6 +20,7 @@ return {
 		explodeas = "CA_EX",
 		footprintx = 3,
 		footprintz = 3,
+		hoverattack = true,
 		icontype = "air",
 		idleautoheal = 5 ,
 		idletime = 1800 ,
