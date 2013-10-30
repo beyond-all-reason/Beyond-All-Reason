@@ -417,7 +417,7 @@ messages = {
 	"XX didn't pass quality control",
 	"XX couldn't counter the five-point-palm-exploding-heart technique",
 	"XX flew a kite in a thunderstorm",
-	"XX built his house on sand",
+	"XX built its house on sand",
 	"The big bad wolf huffed and he puffed and he blew XX's house away",
 	"XX was reserved for the majority leader and his designee",
 	"XX was swept over the great waterfall at the end of the world",
@@ -430,6 +430,18 @@ messages = {
 	"XX went to a placid island of ignorance in the midst of the black seas of infinity",
 	"XX felt the call of Cthulhu",
 	"XX was eaten by the very hungry caterpillar",
+	"XX lacked the will of the warrior",
+	"XX has lost its sheep and doesn't know where to find them",
+	"XX followed a trail of candy into the deep dark forest",
+	"XX fell down a disused mineshaft",
+	"XX was struck by an iceberg",
+	"XX went up the brown coloured creek and merrily discarded its one and only paddle",
+	"XX was collapsed to a point by the Ricci flow",
+	"XX converged to minus infinity",
+	"XX was not uniformly integrable",
+	"XX failed the Weierstrass M-test",
+	"XX was one egg short of a dozen",
+	"XX needed more hamsters",
 }
 
 
