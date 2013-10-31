@@ -365,7 +365,7 @@ messages = {
 	"XX rode away in a chariot of fire",
 	"XX faced the final curtain",
 	"XX reached the bottom of the bottle",
-	"The greatest trick XX ever player was convincing the world it didn't exist",
+	"The greatest trick XX ever played was convincing the world it didn't exist",
 	"XX got torn apart by rabid pumas",
 	"XX was retired from active service",
 	"XX longs for peace and harmony",
