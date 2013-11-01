@@ -106,12 +106,9 @@ local inertialessWeapons = {
 
 -- local modOptions = Spring.GetModOptions() -- this crashes the mission editor and is not actually used here.
 
--- Adjustment of terrain damage, kinetic force of weapons, avoidfeature==false for short range and explosive weapons, and add water hit sounds
 for id in pairs(WeaponDefs) do
+	-- Adjustment of terrain damage, kinetic force of weapons, and add water hit sounds
 	WeaponDefs[id].soundhitwet = ""
-	if WeaponDefs[id].range and tonumber(WeaponDefs[id].range) < 550 or explosiveWeapons[WeaponDefs[id].weapontype] then
-		WeaponDefs[id].avoidfeature = false
-	end
 	if explosiveWeapons[WeaponDefs[id].weapontype] then
 		if WeaponDefs[id].weapontype == "TorpedoLauncher" then
 			WeaponDefs[id].soundhitwet = WeaponDefs[id].soundhitdry
@@ -154,5 +151,10 @@ for id in pairs(WeaponDefs) do
 	if WeaponDefs[id].weapontype == "BeamLaser" then
 		WeaponDefs[id].soundhitdry = ""
 		WeaponDefs[id].soundtrigger = 1
+	end
+	
+	-- don't let features get in the way of firing, except commandos minelayer weapon
+	if WeaponDefs[id].name ~= commando_minelayer then 
+		WeaponDefs[id].avoidfeature = false
 	end
 end

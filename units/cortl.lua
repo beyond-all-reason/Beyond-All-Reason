@@ -76,7 +76,6 @@ return {
 				areaofeffect = 48,
 				edgeeffectiveness = 0.4,
 				avoidfriendly = false,
-				avoidfeature = true,			
 				burnblow = true,
 				collidefriendly = false,
 				craterboost = 0,
