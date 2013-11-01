@@ -154,7 +154,7 @@ for id in pairs(WeaponDefs) do
 	end
 	
 	-- don't let features get in the way of firing, except commandos minelayer weapon
-	if WeaponDefs[id].name ~= commando_minelayer then 
+	if WeaponDefs[id].name ~= "commando_minelayer" then 
 		WeaponDefs[id].avoidfeature = false
 	end
 end
