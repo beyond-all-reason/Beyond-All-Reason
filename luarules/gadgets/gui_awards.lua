@@ -234,6 +234,7 @@ function gadget:GameOver()
 									ecoAward, ecoScore, 
 									dmgRecAward, dmgRecScore, 
 									sleepAward, sleepScore)
+	
 end
 
 
@@ -342,8 +343,19 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	drawAwards = true
 	
 	--don't show graph
-	Spring.SendCommands('endgraph 0')		
+	Spring.SendCommands('endgraph 0')	
 
+	--send some lua rules messages with which teamIDs won what, to be picked up when the replay site processes the demo
+	Spring.SendLuaUIMsg('/150' .. tostring(ecoKillAward) .. '/150' .. tostring(ecoKillAwardSec) .. '/150' .. tostring(ecoKillAwardThi))
+	Spring.SendLuaUIMsg('/151' .. tostring(fightKillAward) .. '/151' .. tostring(fightKillAwardSec) .. '/151' .. tostring(fightKillAwardThi))
+	Spring.SendLuaUIMsg('/152' .. tostring(effKillAward) .. '/152' .. tostring(effKillAwardSec) .. '/152' .. tostring(effKillAwardThi))
+	if CowAward then
+		Spring.SendLuaUIMsg('/153' .. tostring(ecoKillAward))
+	else
+		Spring.SendLuaUIMsg('/154' .. tostring(ecoAward))
+		Spring.SendLuaUIMsg('/155' .. tostring(dmgRecAward))
+		Spring.SendLuaUIMsg('/156' .. tostring(sleepAward))
+	end
 end
 
 function ProcessOtherAwards(a,b,c,d,e,f,g)
