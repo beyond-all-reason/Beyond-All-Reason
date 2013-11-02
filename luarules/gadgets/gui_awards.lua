@@ -154,7 +154,6 @@ function gadget:GameOver()
 	local sleepAward, sleepScore = -1,0
 	for teamID,_ in pairs(teamInfo) do	
 		--deal with sleep times
-		--TODO check time is alive?
 		local curTime = Spring.GetGameSeconds()
 		if (curTime - teamInfo[teamID].lastKill > teamInfo[teamID].sleepTime) then
 			teamInfo[teamID].sleepTime = curTime - teamInfo[teamID].lastKill
@@ -359,8 +358,6 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	end
 end
 
-function ProcessOtherAwards(a,b,c,d,e,f,g)
-end
 
 function CreateBackground()	
 	if Background then
