@@ -83,6 +83,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	-- add destroyed unitID cost to stats for attackerTeamID
 	if not attackerTeamID then return end
+	if attackerTeamID == gaiaTeamID then return end
 	if not present[attackerTeamID] then return end
 	if (not unitDefID) or (not teamID) then return end
 	if SpAreTeamsAllied(teamID, attackerTeamID) then return end
@@ -345,7 +346,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	--don't show graph
 	Spring.SendCommands('endgraph 0')	
 
-	--send some lua rules messages with which teamIDs won what, to be picked up when the replay site processes the demo
+	--send some lua ui messages with which teamIDs won what, to be picked up when the replay site processes the demo
 	Spring.SendLuaUIMsg('/150' .. tostring(ecoKillAward) .. '/150' .. tostring(ecoKillAwardSec) .. '/150' .. tostring(ecoKillAwardThi))
 	Spring.SendLuaUIMsg('/151' .. tostring(fightKillAward) .. '/151' .. tostring(fightKillAwardSec) .. '/151' .. tostring(fightKillAwardThi))
 	Spring.SendLuaUIMsg('/152' .. tostring(effKillAward) .. '/152' .. tostring(effKillAwardSec) .. '/152' .. tostring(effKillAwardThi))
