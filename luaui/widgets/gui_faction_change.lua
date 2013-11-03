@@ -48,6 +48,7 @@ local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
 local commanderDefID = spGetTeamRulesParam(myTeamID, 'startUnit')
+local amNewbie = (spGetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 --------------------------------------------------------------------------------
 -- Funcs
@@ -65,7 +66,7 @@ end
 function widget:Initialize()
 	if spGetSpectatingState() or
 	   Spring.GetGameFrame() > 0 or
-	   tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) ~= 1 then
+	   tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) ~= 1 or amNewbie then
 		widgetHandler:RemoveWidget(self)
 	end
 end

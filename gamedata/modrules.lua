@@ -37,11 +37,6 @@ local modrules  = {
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
---[[if modrules.movement.useClassicGroundMoveType then 
-	Spring.Echo('Using ClassicGroundMoveType')
-else
-	Spring.Echo('Using vanilla groundmovetype')
-end]]
 if modrules.movement.allowPushingEnemyUnits then 
 	Spring.Echo('Allowing pushing enemy units')
 else
