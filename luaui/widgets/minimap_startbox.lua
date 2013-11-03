@@ -302,7 +302,8 @@ function widget:DrawWorld()
     local _,_,spec = Spring.GetPlayerInfo(leader)
     if ((not spec) and (teamID ~= gaiaTeamID)) then
       local x, y, z = Spring.GetTeamStartPosition(teamID)
-      if (x ~= nil and x > 0 and z > 0 and y > -500) then
+	  local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
+	  if (x ~= nil and x > 0 and z > 0 and y > -500) and not isNewbie then
         local color = GetTeamColor(teamID)
         local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
         gl.PushMatrix()
@@ -327,7 +328,8 @@ function widget:DrawScreenEffects()
   for _, teamID in ipairs(Spring.GetTeamList()) do
     local _,leader = Spring.GetTeamInfo(teamID)
     local name,_,spec = Spring.GetPlayerInfo(leader)
-    if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) then
+	local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
+    if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) and not isNewbie then
       local colorStr, outlineStr = GetTeamColorStr(teamID)
       local x, y, z = Spring.GetTeamStartPosition(teamID)
       if (x ~= nil and x > 0 and z > 0 and y > -500) then
