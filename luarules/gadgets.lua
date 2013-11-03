@@ -1099,6 +1099,14 @@ function gadgetHandler:PlayerRemoved(playerID, reason)
   return
 end
 
+function gadgetHandler:GameSetup(state, ready, playerStates)
+  local success, newReady
+  for _,g in ipairs(self.GameSetupList) do
+    success, newReady = g:GameSetup(state,ready,playerStates)
+  end
+  return success, newReady
+end
+
 
 --------------------------------------------------------------------------------
 --
