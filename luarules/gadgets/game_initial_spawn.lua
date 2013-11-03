@@ -100,7 +100,8 @@ function isNewbie(teamID)
 	local customtable = select(10,Spring.GetPlayerInfo(playerID)) or {}
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
-	if myRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not confirmed as genuine non-newb by SLDB
+	Spring.Echo(teamID,tsMu,tsSigma)
+	if playerRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not confirmed as genuine non-newb by SLDB
 		return true
 	else
 		return false
@@ -145,6 +146,7 @@ function gadget:Initialize()
 			else
 				newbieParam = 0
 			end
+			Spring.Echo(teamID,newbieParam)
 			spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, public) --some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
 		end
 	end
