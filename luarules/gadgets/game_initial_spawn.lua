@@ -86,10 +86,18 @@ end
 function isNewbie(teamID)
 	if not NewbiePlacer then return false end
 	--if its on, work out if i'm a newbie
-	local playerID = (Spring.GetPlayerList())[1]
-	local _,_,_,_,_,_,_,_,myRank = Spring.GetPlayerInfo(playerID) 
-	myRank = tonumber(myRank) or 0
-	local customtable = select(10,Spring.GetPlayerInfo(playerID)) 
+	local playerList = Spring.GetTeamList(teamID)
+	local playerID, playerRank 
+	for _,pID in pairs(playerList) do
+		local _,_,isSpec,_,_,_,_,_,pRank = Spring.GetPlayerInfo(pID) 
+		if not isSpec then
+			playerID = pID 
+			playerRank = tonumber(pRank) or 0
+			break
+		end
+	end
+	if not playerID then return false end
+	local customtable = select(10,Spring.GetPlayerInfo(playerID)) or {}
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
 	if myRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not confirmed as genuine non-newb by SLDB
