@@ -213,25 +213,13 @@ local options={
 	  },
   },
   {
-      key     = "movetype",
-      name    = "Movetype",
-      desc    = "Switch ground move type to classic mode (2009) or latest. Default is latest",
-      type    = "list",
-      def     = "normal",
-      section = "ba_options",
-	  items={
-		  {key="normal", name="Normal", desc="Spring latest groundmovetype"},
-		  {key="classic", name="Classic", desc="Old classic groundmovetype"},
-	  },
-  },
-  	{
 		key    = "mo_enemypushing",
 		name   = "Allow pushing enemy units",
 		desc   = "Enemy and friendly units can push past each other",
 		type   = "bool",
 		def    = false,
 		section= "ba_options",
-    },
+  },
   {
 		key    = "mo_no_close_spawns",
 		name   = "No close spawns",
@@ -239,14 +227,14 @@ local options={
 		type   = "bool",
 		def    = true,
 		section= "ba_options",
-    },
- {
+  },
+  {
 		key    = "mo_startpoint_assist",
 		name   = "Startpoint Assist",
 		desc   = "Chooses sensible starting places for players/AIs who forgot to choose a startpoint for themselves",
 		type   = "bool",
 		def    = true,
 		section= "ba_options",
-    },
+  },
 }
 return options

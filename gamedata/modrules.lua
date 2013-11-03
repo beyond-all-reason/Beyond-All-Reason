@@ -21,9 +21,9 @@ local modrules  = {
   },
 
   movement = {
-	--allowUnitCollisionDamage = true, -- defaults to false, Do unit-unit (skidding) collisions cause damage? 
+	allowUnitCollisionDamage = false, -- defaults to false, Do unit-unit (skidding) collisions cause damage? 
 	allowPushingEnemyUnits = (Spring.GetModOptions() and (Spring.GetModOptions().mo_enemypushing) or (not Spring.GetModOptions())),
-	useClassicGroundMoveType =  (Spring.GetModOptions() and (Spring.GetModOptions().movetype == "classic")),
+	useClassicGroundMoveType = false, --here because some historical reason means only for BA the engine defaults to classicgroundmovetype = true
 	allowUnitCollisionOverlap = false,--Can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'. 
   },
   
@@ -37,11 +37,11 @@ local modrules  = {
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-if modrules.movement.useClassicGroundMoveType then 
+--[[if modrules.movement.useClassicGroundMoveType then 
 	Spring.Echo('Using ClassicGroundMoveType')
 else
 	Spring.Echo('Using vanilla groundmovetype')
-end
+end]]
 if modrules.movement.allowPushingEnemyUnits then 
 	Spring.Echo('Allowing pushing enemy units')
 else
