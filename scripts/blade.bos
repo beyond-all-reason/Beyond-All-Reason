@@ -13,8 +13,6 @@ static-var  gun_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 deactivatescr()
@@ -47,6 +45,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep sleeptime;
 	}
 }
+
 StopMoving()
 {
 	signal SIG_MOVE;
@@ -113,17 +112,9 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 }
 
-
-
 SweetSpot(piecenum)
 {
 	piecenum = base;
-}
-
-RestoreAfterDelay()
-{
-	sleep Static_Var_2;
-	turn body to y-axis <0.000000> speed <150.000000>;
 }
 
 QueryPrimary(piecenum)
@@ -140,11 +131,6 @@ QueryPrimary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	turn body to y-axis heading speed <100.000000>;
-	wait-for-turn body around y-axis;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -153,8 +139,16 @@ AimFromPrimary(piecenum)
 	piecenum = body;
 }
 
-Shot1()
+FirePrimary()
 {
+	if( gun_1 == 0 )
+	{
+		sleep 150;
+	}
+	if( gun_1 == 1 )
+	{
+		sleep 150;
+	}
 	gun_1 = !gun_1;
 }
 
