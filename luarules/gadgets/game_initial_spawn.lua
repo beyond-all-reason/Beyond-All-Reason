@@ -86,7 +86,6 @@ end
 --check if a player is to be considered as a 'newbie', in terms of startpoint placements
 function isNewbie(teamID)
 	if not NewbiePlacer then return false end
-	--if its on, work out if i'm a newbie
 	local playerList = Spring.GetPlayerList(teamID) or {}
 	local playerID, playerRank 
 	for _,pID in pairs(playerList) do
@@ -106,7 +105,7 @@ function isNewbie(teamID)
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
 	local isNewbie
-	if playerRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not confirmed as genuine non-newb by SLDB
+	if playerRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not enough ts data
 		isNewbie = true
 	else
 		isNewbie = false
@@ -232,7 +231,7 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
-	--pick location
+	--pick location if didn't place
 	if StartPointAssist then 
 		-- guess points for the classified in StartPointTable as not genuine (newbies will not have a genuine startpoint)
 		if (not StartPointTable[teamID]) or (StartPointTable[teamID][1] < 0) then
@@ -349,10 +348,20 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 	
 	for i=1,#freemetalspots do
 		local ix,iz = freemetalspots[i][1], freemetalspots[i][2]
-		for j=1,i-1 do
-			if ix ~= jz and iz ~= jz then
-				local jx,jz = freemetalspots[j][1],freemetalspots[j][2]
-				local score = 1/(((math.abs(ix-jx))^2+(math.abs(iz-jz))^2)^(2/3)) -- Magic formula. Assumes all metal spots are of equal production value, TODO...
+		for j=1,#freemetalspots do
+			local jx,jz = freemetalspots[j][1],freemetalspots[j][2]
+			if ix ~= jx or iz ~= jz then
+				local r = ((math.abs(ix-jx))^2+(math.abs(iz-jz))^2)^(1/2)
+				local iy = Spring.GetGroundHeight(ix,iz)
+				local jy = Spring.GetGroundHeight(jx,jz)
+				local iswithinclaimradius = (r <= claimradius)
+				local iswithinclaimheight = (math.abs(iy-jy) <= claimheight)
+				local score -- Magic formula. Assumes all metal spots are of equal production value, TODO...
+				if iswithinclaimradius and iswithinclaimheight then
+					score = 10
+				else
+					score = r^(-1/2)
+				end
 				freemetalspotscores[i] = freemetalspotscores[i] + score
 			end
 		end
@@ -383,7 +392,7 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 		end
 	end
 	
-	-- if it wasn't possible to find a nearest free spot, or some error caused us to find ourselves, start on the mex
+	-- if it wasn't possible to find a nearest free spot
 	if nx==nil or nx==bx or nz==nil or nz==bz then 
 		nx=bx+1
 		nz=bx+1
@@ -396,6 +405,35 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 	local disp = 120
 	x = bx + disp * (dispx)
 	z = bz + disp * (dispz)
+	
+	--see how steep the terrain around (x,z) is
+	--fixme!
+	local steep
+	local mtta = math.acos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety 
+	local a1,a2,a3,a4 = 0,0,0,0
+	local d = 5
+	local y = Spring.GetGroundHeight(x,z)
+	local y1 = Spring.GetGroundHeight(x+d,z)
+	if math.abs(y1 - y) > 0.1 then a1 = math.atan((y1-y)/d) end
+	local y2 = Spring.GetGroundHeight(x,z+d)
+	if math.abs(y2 - y) > 0.1 then a2 = math.atan((y2-y)/d) end
+	local y3 = Spring.GetGroundHeight(x-d,z)
+	if math.abs(y3 - y) > 0.1 then a3 = math.atan((y3-y)/d) end
+	local y4 = Spring.GetGroundHeight(x,z+d)
+	if math.abs(y4 - y) > 0.1 then a4 = math.atan((y4-y)/d) end
+	if math.abs(a1) > mtta or math.abs(a2) > mtta or math.abs(a3) > mtta or math.abs(a4) > mtta then 
+		steep = true
+	else
+		steep = false
+	end
+	--Spring.Echo(teamID,y-y1,y-y2,y-y3,y-y4,a1,a2,a3,a4,mtta,steep) --debug
+	--Spring.MarkerAddPoint(x,y,z,tostring(teamID))
+	
+	-- if the terrain nearby was too steep, just start on the mex (-> assume mex is passable)
+	if steep then
+		x = bx
+		z = bz
+	end
 	
 	return x,z
 end
@@ -435,7 +473,7 @@ function gadget:MousePress(sx,sy)
 	if amNewbie then
 		local target,_ = Spring.TraceScreenRay(sx,sy)
 		if target == "ground" then
-			Spring.Echo("On this host, newbies (rank 0) have a faction and startpoint chosen for them!")
+			Spring.Echo("In this game, newbies (rank 0) will have a faction and startpoint chosen for them!")
 		end
 	end
 end
