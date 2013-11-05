@@ -473,7 +473,7 @@ function gadget:MousePress(sx,sy)
 	if amNewbie then
 		local target,_ = Spring.TraceScreenRay(sx,sy)
 		if target == "ground" then
-			Spring.Echo("In this game, newbies (rank 0) will have a faction and startpoint chosen for them!")
+			Spring.Echo("In this match, newbies (rank 0) will have a faction and startpoint chosen for them!")
 		end
 	end
 end
