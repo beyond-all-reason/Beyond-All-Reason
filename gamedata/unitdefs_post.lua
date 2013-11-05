@@ -70,10 +70,11 @@ for name, ud in pairs(UnitDefs) do
 		ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
 		ud.turninplaceanglelimit = 140
 	end
+	
+	--todo: build these into the unitdefs
 	if (ud.hoverattack) then
 		ud.turninplaceanglelimit = 360
 	end
-	
 	if (ud.brakerate) then 
 		if ud.canfly then
 			if ud.hoverattack then
