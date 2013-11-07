@@ -1,3 +1,30 @@
+7.83 -> 7.84
+08/11/2013
+
+- Updates for Spring 95.0 
+- Added LUA loadscreen
+- Fixed StartPointAssist and enabled
+- Added NewbiePlacer as modoption 
+- Added support for queueing in Set Target
+- Restored nanoframe reclaim 
+- Made AdvPlList relative to bottom right corner of screen
+- Added TrueSkill column to AdvPlList
+- Fixed Mex Upgrader not working after rejoin
+- Added more death messages
+- Fixed SleepAward name colour
+- Fixed battleships having sub icon
+- Added shards effect for wreck/heap damage
+- Increased delay in Autoquit slightly
+- All weapons can target features (including dt/walls)
+- Fixed Chainsaw/Eradicator sometimes not firing
+- Fixed Kroggy footcrusher weapon
+- Reduced hp of Fortification Wall, increased m cost
+- Reduced closed & open hp of Doomsday Machine, increased e cost
+- Reduced T1 subs speed slightly
+- Increased Mercury/Screamer aoe, reduced edgeeffectiveness
+- Increased Merl/Diplomat speed, tweaked weapon 
+
+
 
 7.82 -> 7.83
 23/09/2013
