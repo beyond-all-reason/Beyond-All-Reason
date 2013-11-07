@@ -1,6 +1,6 @@
 return {
 	corvroc = {
-		acceleration = 0.020899999886751,
+		acceleration = 0.025,
 		brakerate = 0.041799999773502,
 		buildcostenergy = 6270,
 		buildcostmetal = 827,
@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1250,
 		maxslope = 16,
-		maxvelocity = 0.93500000238419,
+		maxvelocity = 1.2,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Diplomat",
@@ -33,6 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 221,
+		stealth = true,
 		trackstrength = 8,
 		tracktype = "StdTank",
 		trackwidth = 38,
@@ -114,7 +115,7 @@ return {
 				name = "Rocket",
 				noselfdamage = true,
 				range = 1240,
-				reloadtime = 20,
+				reloadtime = 16,
 				smoketrail = true,
 				soundhit = "xplomed4",
 				soundstart = "Rockhvy1",
@@ -126,7 +127,7 @@ return {
 				weaponvelocity = 415,
 				damage = {
 					commanders = 810,
-					default = 1800,
+					default = 1700,
 					subs = 5,
 				},
 			},

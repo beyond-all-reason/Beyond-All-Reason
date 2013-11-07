@@ -1,6 +1,6 @@
 return {
 	armmerl = {
-		acceleration = 0.019799999892712,
+		acceleration = 0.026,
 		brakerate = 0.037399999797344,
 		buildcostenergy = 6146,
 		buildcostmetal = 862,
@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1100,
 		maxslope = 16,
-		maxvelocity = 0.96799999475479,
+		maxvelocity = 1.2,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Merl",
@@ -33,6 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 247,
+		stealth = true,
 		trackoffset = 15,
 		trackstrength = 8,
 		tracktype = "StdTank",
@@ -115,7 +116,7 @@ return {
 				name = "Rocket",
 				noselfdamage = true,
 				range = 1215,
-				reloadtime = 16,
+				reloadtime = 18,
 				smoketrail = true,
 				soundhit = "xplomed4",
 				soundstart = "Rockhvy1",
@@ -127,7 +128,7 @@ return {
 				weaponvelocity = 380,
 				damage = {
 					commanders = 625,
-					default = 1440,
+					default = 1900,
 					subs = 5,
 				},
 			},
