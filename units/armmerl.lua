@@ -13,7 +13,7 @@ return {
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylZ]],
 		corpse = "DEAD",
-		description = "Mobile Rocket Launcher",
+		description = "Stealthy Rocket Launcher",
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "BIG_UNITEX",
