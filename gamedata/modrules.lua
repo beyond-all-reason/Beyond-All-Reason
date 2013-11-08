@@ -1,8 +1,8 @@
 local modrules  = {
 
   reclaim = {
-    multiReclaim  = 1;
-    reclaimMethod = 0;
+    multiReclaim  = 1,
+    reclaimMethod = 0,
   },
 
 
