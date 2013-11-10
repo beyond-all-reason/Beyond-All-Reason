@@ -135,12 +135,12 @@ local options={
 		name="Enemy Transporting",
 		desc="Toggle which enemy units you can kidnap with an air transport",
 		type="list",
-		def="all",
+		def="none",
 		section="ba_options",
 		items={
-      {key="none", name="Allow All", desc="All enemy units can be napped"},
-			{key="com", name="All But Commanders", desc="Only commanders are immune to napping"},
-			{key="all", name="Disallow All", desc="No enemy units can be napped"},
+			{key="all", name="Allow All", desc="All enemy units can be napped"},
+			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
+			{key="none", name="Disallow All", desc="No enemy units can be napped"},
 		}
 	},
 	{
