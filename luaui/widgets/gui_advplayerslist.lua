@@ -733,7 +733,7 @@ function SortList()
 	vOffset = SortAllyTeams(vOffset) 
 	
 	-- calls the sortings for specs if see spec is on
-	if m_seespec.active == true then
+	if m_chat.active == true then
 		vOffset = SortSpecs(vOffset) 
 	end
 	
@@ -1195,7 +1195,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 	else -- spectator
 		gl_Color(1,1,1,1)	
-		if m_name.active == true then
+		if m_chat.active == true and m_name.active == true then
 			DrawSmallName(name, posY, false)
 		end		
 	end
@@ -1846,6 +1846,7 @@ function checkButton(module, x, y, localLeft, localOffset, localBottom)
 		if IsOnRect(x, y, localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27) then
 			module.active = not module.active
 			SetModulesPositionX() --why?
+			SortList()
 			return true
 		else
 			return false
