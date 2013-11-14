@@ -221,7 +221,7 @@ function gadget:GameOver()
 			dmgRecAward = teamID		
 		end
 		--longest sleeper award
-		if sleepScore < teamInfo[teamID].sleepTime then
+		if sleepScore < teamInfo[teamID].sleepTime and teamInfo[teamID].sleepTime > 12*60 then
 			sleepScore = teamInfo[teamID].sleepTime
 			sleepAward = teamID		
 		end
@@ -350,12 +350,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	local ecoKillLine    = '\161' .. tostring(ecoKillAward) .. '\161' .. tostring(ecoKillAwardSec) .. '\161' .. tostring(ecoKillAwardThi)  
 	local fightKillLine  = '\162' .. tostring(fightKillAward) .. '\162' .. tostring(fightKillAwardSec) .. '\162' .. tostring(fightKillAwardThi) 
 	local effKillLine    = '\163' .. tostring(effKillAward) .. '\163' .. tostring(effKillAwardSec) .. '\163' .. tostring(effKillAwardThi)
-	local otherLine
-	if CowAward then
-		otherLine = '\164' .. tostring(ecoKillAward)
-	else
-		otherLine = '\165' ..  tostring(ecoAward) .. '\166' .. tostring(dmgRecAward) ..'\167' .. tostring(sleepAward)
-	end
+	local otherLine      = '\164' .. tostring(ecoKillAward) .. '\165' ..  tostring(ecoAward) .. '\166' .. tostring(dmgRecAward) ..'\167' .. tostring(sleepAward)
 	local awardsMsg = "AwardsMsg -> " .. ecoKillLine .. " " .. fightKillLine .. " " .. effKillLine .. " " .. otherLine
 	Spring.SendMessageToPlayer(myPlayerID, awardsMsg)
 end
@@ -469,7 +464,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 				glText(colourNames(secondID) .. secondName .. white .. ' took the most damage (' .. math.floor(secondScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 				heightoffset = heightoffset + 17
 			end
-			if thirdID >= 0  and thirdScore >= 12*60 then
+			if thirdID >= 0 then
 				glText(colourNames(thirdID) .. thirdName .. white .. ' slept longest, for ' .. math.floor(thirdScore/60) .. ' minutes.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 			end
 		end
