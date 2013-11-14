@@ -337,7 +337,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
 	if (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 then
 		cow = true
-		cowAward = ecoKillAward
+		cowAward = ecoKillAward or -1
 		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400) 	
 	else
 		cowAward = -1
@@ -349,12 +349,13 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	Spring.SendCommands('endgraph 0')	
 
 	--record who won which awards in chat message (for demo parsing by replays.springrts.com)
-	local ecoKillLine    = '\161' .. tostring(ecoKillAward) .. '\161' .. tostring(ecoKillAwardSec) .. '\161' .. tostring(ecoKillAwardThi)  
-	local fightKillLine  = '\162' .. tostring(fightKillAward) .. '\162' .. tostring(fightKillAwardSec) .. '\162' .. tostring(fightKillAwardThi) 
-	local effKillLine    = '\163' .. tostring(effKillAward) .. '\163' .. tostring(effKillAwardSec) .. '\163' .. tostring(effKillAwardThi)
-	local otherLine      = '\164' .. tostring(cowAward) .. '\165' ..  tostring(ecoAward) .. '\166' .. tostring(dmgRecAward) ..'\167' .. tostring(sleepAward)
-	local awardsMsg = "AwardsMsg -> " .. ecoKillLine .. " " .. fightKillLine .. " " .. effKillLine .. " " .. otherLine
-	Spring.SendMessageToPlayer(myPlayerID, awardsMsg)
+	--make all values positive, as unsigned ints are easier to parse
+	local ecoKillLine    = '\161' .. tostring(1+ecoKillAward) .. '\161' .. tostring(1+ecoKillAwardSec) .. '\161' .. tostring(1+ecoKillAwardThi)  
+	local fightKillLine  = '\162' .. tostring(1+fightKillAward) .. '\162' .. tostring(1+fightKillAwardSec) .. '\162' .. tostring(1+fightKillAwardThi) 
+	local effKillLine    = '\163' .. tostring(1+effKillAward) .. '\163' .. tostring(1+effKillAwardSec) .. '\163' .. tostring(1+effKillAwardThi)
+	local otherLine      = '\164' .. tostring(1+cowAward) .. '\165' ..  tostring(1+ecoAward) .. '\166' .. tostring(1+dmgRecAward) ..'\167' .. tostring(1+sleepAward)
+	local awardsMsg = ecoKillLine .. fightKillLine .. effKillLine .. otherLine
+	Spring.SendLuaRulesMsg(awardsMsg)
 end
 
 
