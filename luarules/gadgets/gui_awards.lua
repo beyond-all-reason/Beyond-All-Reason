@@ -273,7 +273,7 @@ local Background
 local FirstAward
 local SecondAward
 local ThirdAward
-local CowAwards
+local CowAward
 local OtherAwards
 
 local red = "\255"..string.char(171)..string.char(51)..string.char(51)
@@ -337,8 +337,10 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
 	if (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 then
 		cow = true
+		cowAward = ecoKillAward
 		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400) 	
 	else
+		cowAward = -1
 		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400)		
 	end
 	drawAwards = true
@@ -350,7 +352,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	local ecoKillLine    = '\161' .. tostring(ecoKillAward) .. '\161' .. tostring(ecoKillAwardSec) .. '\161' .. tostring(ecoKillAwardThi)  
 	local fightKillLine  = '\162' .. tostring(fightKillAward) .. '\162' .. tostring(fightKillAwardSec) .. '\162' .. tostring(fightKillAwardThi) 
 	local effKillLine    = '\163' .. tostring(effKillAward) .. '\163' .. tostring(effKillAwardSec) .. '\163' .. tostring(effKillAwardThi)
-	local otherLine      = '\164' .. tostring(ecoKillAward) .. '\165' ..  tostring(ecoAward) .. '\166' .. tostring(dmgRecAward) ..'\167' .. tostring(sleepAward)
+	local otherLine      = '\164' .. tostring(cowAward) .. '\165' ..  tostring(ecoAward) .. '\166' .. tostring(dmgRecAward) ..'\167' .. tostring(sleepAward)
 	local awardsMsg = "AwardsMsg -> " .. ecoKillLine .. " " .. fightKillLine .. " " .. effKillLine .. " " .. otherLine
 	Spring.SendMessageToPlayer(myPlayerID, awardsMsg)
 end
@@ -425,6 +427,8 @@ end
 function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, winnerScore, secondScore, thirdScore, offset)
 	local winnerName, secondName, thirdName
 	
+	--award is: 0 for a normal award, 1 for the cow award, 2 for the no-cow awards
+	
 	if winnerID >= 0 then
 		winnerName = FindPlayerName(winnerID)
 	else
@@ -470,8 +474,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 		end
 		
 		--scores
-		if award == 0 then --normal awards	
-			
+		if award == 0 then --normal awards			
 			if winnerID >= 0 then
 				if pic == 'comwreath' then winnerScore = round(winnerScore, 2) else winnerScore = math.floor(winnerScore) end 
 				glText(colourNames(winnerID) .. winnerScore, bx + w/2 + 275, by + h - offset - 5, 14, "o")
