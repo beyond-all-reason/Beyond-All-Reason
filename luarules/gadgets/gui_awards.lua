@@ -285,6 +285,7 @@ local quitColour
 local graphColour
 
 local playerListByTeam = {} --does not contain specs
+local myPlayerID = Spring.GetMyPlayerID()
 
 
 function gadget:Initialize()
@@ -345,17 +346,18 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	--don't show graph
 	Spring.SendCommands('endgraph 0')	
 
-	--send some lua ui messages with which teamIDs won what, to be picked up when the replay site processes the demo
-	Spring.SendLuaUIMsg('/150' .. tostring(ecoKillAward) .. '/150' .. tostring(ecoKillAwardSec) .. '/150' .. tostring(ecoKillAwardThi))
-	Spring.SendLuaUIMsg('/151' .. tostring(fightKillAward) .. '/151' .. tostring(fightKillAwardSec) .. '/151' .. tostring(fightKillAwardThi))
-	Spring.SendLuaUIMsg('/152' .. tostring(effKillAward) .. '/152' .. tostring(effKillAwardSec) .. '/152' .. tostring(effKillAwardThi))
+	--record who won which awards in chat message (for demo parsing by replays.springrts.com)
+	local ecoKillLine    = '\161' .. tostring(ecoKillAward) .. '\161' .. tostring(ecoKillAwardSec) .. '\161' .. tostring(ecoKillAwardThi)  
+	local fightKillLine  = '\162' .. tostring(fightKillAward) .. '\162' .. tostring(fightKillAwardSec) .. '\162' .. tostring(fightKillAwardThi) 
+	local effKillLine    = '\163' .. tostring(effKillAward) .. '\163' .. tostring(effKillAwardSec) .. '\163' .. tostring(effKillAwardThi)
+	local otherLine
 	if CowAward then
-		Spring.SendLuaUIMsg('/153' .. tostring(ecoKillAward))
+		otherLine = '\164' .. tostring(ecoKillAward)
 	else
-		Spring.SendLuaUIMsg('/154' .. tostring(ecoAward))
-		Spring.SendLuaUIMsg('/155' .. tostring(dmgRecAward))
-		Spring.SendLuaUIMsg('/156' .. tostring(sleepAward))
+		otherLine = '\165' ..  tostring(ecoAward) .. '\166' .. tostring(dmgRecAward) ..'\167' .. tostring(sleepAward)
 	end
+	local awardsMsg = "AwardsMsg -> " .. ecoKillLine .. " " .. fightKillLine .. " " .. effKillLine .. " " .. otherLine
+	Spring.SendMessageToPlayer(myPlayerID, awardsMsg)
 end
 
 

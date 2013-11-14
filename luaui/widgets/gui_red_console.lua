@@ -414,6 +414,19 @@ local function processLine(line,g,cfg,newlinecolor)
 		end		
     end
 	
+	if linetype==0 then
+		--filter out some engine messages; 
+		--2 lines (instead of 4) appears when player connects
+		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') then
+			ignoreThisMessage = true
+		end
+		
+		--filter out the chatline recorded by gui_awards, that gets picked up by the replay site
+		if sfind(line,'AwardsMsg') then
+			ignoreThisMessage = true
+		end	
+	end
+	
 	
 	--ignore messages from muted--
 	if (mutedPlayers[name]) then 
@@ -500,7 +513,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		line = textcolor.."> "..text
 	else --every other message
 		local c = cfg.cmisctext
-		textcolor = newlinecolor or convertColor(c[1],c[2],c[3])
+		textcolor = convertColor(c[1],c[2],c[3])
 		
 		line = textcolor..line
 	end
@@ -509,7 +522,8 @@ local function processLine(line,g,cfg,newlinecolor)
 		g.vars.consolehistory = {}
 	end
 	local history = g.vars.consolehistory	
-	
+
+
 	if (not ignoreThisMessage) then		--mute--
 		local lineID = #history+1	
 		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
