@@ -145,7 +145,7 @@ return {
 				startvelocity = 140,
 				tolerance = 1000,
 				tracks = true,
-				turnrate = 3000,
+				turnrate = 4000,
 				turret = true,
 				flighttime = 1.25,
 				predictboost = 0,
