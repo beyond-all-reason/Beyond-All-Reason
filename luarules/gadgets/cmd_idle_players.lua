@@ -235,7 +235,7 @@ else
 			if not spectator then
 				if oldPingOk and not playerInfoTableEntry.pingOK then
 					Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
-				elseif oldPingOk == false and playerInfoTableEntry.pingOK then
+				elseif oldPingOk == false and playerInfoTableEntry.pingOK and playerInfoTableEntry.connected then
 					Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
 				end
 			end
