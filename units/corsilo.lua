@@ -12,7 +12,7 @@ return {
 		buildpic = "CORSILO.DDS",
 		buildtime = 181243,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -18 -2",
+		collisionvolumeoffsets = "0 18 -2",
 		collisionvolumescales = "90 38 84",
 		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
