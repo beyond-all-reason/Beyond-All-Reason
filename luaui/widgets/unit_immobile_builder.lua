@@ -25,6 +25,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local CMD_PASSIVE			= 34571
 local CMD_MOVE_STATE		= CMD.MOVE_STATE
 local CMD_REPEAT			= CMD.REPEAT
 local CMD_PATROL			= CMD.PATROL
@@ -98,6 +99,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if IsImmobileBuilder(UnitDefs[unitDefID]) then
+		spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {})
 		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
 		SetupUnit(unitID)
 	end
