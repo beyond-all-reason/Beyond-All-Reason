@@ -5,14 +5,10 @@ return {
 		brakerate = 0.20000000298023,
 		buildcostenergy = 8219,
 		buildcostmetal = 128,
-		builder = true,
 		buildpic = "ARMSPY.DDS",
 		buildtime = 17631,
-		canassist = false,
 		canguard = false,
 		canmove = true,
-		canrepair = false,
-		canrestore = false,
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "19 24 26",
@@ -44,7 +40,6 @@ return {
 		stealth = true,
 		turnrate = 1375,
 		upright = true,
-		workertime = 50,
 		featuredefs = {
 			dead = {
 				blocking = true,
