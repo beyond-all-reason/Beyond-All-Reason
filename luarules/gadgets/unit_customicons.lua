@@ -117,10 +117,12 @@ function gadget:Initialize()
       elseif (ud.canFly) then
         -- aircraft
         Spring.SetUnitDefIcon(udid, "tri-up.user")
-      elseif ((ud.speed <= 0) and ud.hasShield) then
+      elseif ((ud.speed <= 0) and ud.shieldWeaponDef) then
         -- immobile shields
         Spring.SetUnitDefIcon(udid, "hemi-up.user")
-      elseif ((ud.extractsMetal > 0) or (ud.makesMetal > 0)) then
+      elseif ((ud.extractsMetal > 0) or (ud.makesMetal > 0)) or
+	(ud.name=="armmakr") or (ud.name=="armfmkr") or (ud.name=="armmmkr") or (ud.name=="armuwmmm") or
+	(ud.name=="cormakr") or (ud.name=="corfmkr") or (ud.name=="cormmkr") or (ud.name=="coruwmmm") then
         -- metal extractors and makers
         Spring.SetUnitDefIcon(udid, "m.user")
       elseif ((ud.totalEnergyOut > 10) and (ud.speed <= 0)) then
