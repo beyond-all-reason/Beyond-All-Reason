@@ -43,7 +43,6 @@ local IsSphereInView		= Spring.IsSphereInView
 local GetSpectatingState	= Spring.GetSpectatingState
 local GetMyPlayerID			= Spring.GetMyPlayerID
 local GetMyTeamID 	 		= Spring.GetMyTeamID
-local GetPlayerRoster 		= Spring.GetPlayerRoster
 
 local glTexCoord			= gl.TexCoord
 local glVertex				= gl.Vertex
@@ -55,7 +54,6 @@ local glBeginEnd			= gl.BeginEnd
 local GL_ALWAYS				= GL.ALWAYS
 
 local floor					= math.floor
-local tanh					= math.tanh
 local min					= math.min
 local GL_QUADS				= GL.QUADS
 
@@ -128,17 +126,17 @@ end
 
 --------------------------------------------------------------------------------
 
-local QSIZE = 24
+local QSIZE = 12
 
 local function DrawGroundquad(wx,gy,wz)
 	glTexCoord(0,0)
 	glVertex(wx-QSIZE,gy+12,wz-QSIZE)
 	glTexCoord(0,1)
-	glVertex(wx-QSIZE,gy+12,wz)
+	glVertex(wx-QSIZE,gy+12,wz+QSIZE)
 	glTexCoord(1,1)
-	glVertex(wx,gy+12,wz)
+	glVertex(wx+QSIZE,gy+12,wz+QSIZE)
 	glTexCoord(1,0)
-	glVertex(wx,gy+12,wz-QSIZE)
+	glVertex(wx+QSIZE,gy+12,wz-QSIZE)
 end
 
 
@@ -181,24 +179,24 @@ function widget:DrawWorldPreUnit()
 	glPolygonOffset(-7,-10)
 	time = clock()
 	for playerID,data in pairs(alliedCursorsPos) do 
-		for n=0,numTrails do
 		teamID = data[#data]
-		wx,wz = data[1],data[2]
-		lastUpdatedDiff = time-data[#data-2] + 0.025 * n
+		for n=0,numTrails do
+			wx,wz = data[1],data[2]
+			lastUpdatedDiff = time-data[#data-2] + 0.025 * n
 
-		if (lastUpdatedDiff<sendPacketEvery) then
-			scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
-			iscale = math.min(floor(scale),numMousePos-1)
-			fscale = scale-iscale
-			wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
-			wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
-		end
+			if (lastUpdatedDiff<sendPacketEvery) then
+				scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
+				iscale = min(floor(scale),numMousePos-1)
+				fscale = scale-iscale
+				wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
+				wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
+			end
 
-		gy = GetGroundHeight(wx,wz)
-		if (IsSphereInView(wx,gy,wz,QSIZE)) then
-			SetTeamColor(teamID,playerID,n)
-			glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
-		end
+			gy = GetGroundHeight(wx,wz)
+			if (IsSphereInView(wx,gy,wz,QSIZE)) then
+				SetTeamColor(teamID,playerID,n)
+				glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
+			end
 		end
 	end
 
