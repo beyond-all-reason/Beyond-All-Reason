@@ -4,52 +4,22 @@
 if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
 
-  if (modOptions.mo_transportenemy == "com") then
+  if (modOptions.mo_transportenemy == "notcoms") then
   	for name,ud in pairs(UnitDefs) do  
       if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
         ud.transportbyenemy = false
       end
     end
-  elseif (modOptions.mo_transportenemy == "all") then
+  elseif (modOptions.mo_transportenemy == "none") then
   	for name, ud in pairs(UnitDefs) do  
 			ud.transportbyenemy = false
 		end
   end
-  if (modOptions.mo_storageowner == "com") then
-  	for name, ud in pairs(UnitDefs) do  
-      if (name == "armcom" or name == "corcom") then
-        ud.energyStorage = modOptions.startenergy or 1000
-        ud.metalStorage = modOptions.startmetal or 1000
-      end
-    end
-  end
-	
+  
 end
 
-				-- const float reqTurnAngle = math::fabs(180.0f * (owner->heading - wantedHeading) / SHORTINT_MAXVALUE);
-				-- const float maxTurnAngle = (turnRate / SPRING_CIRCLE_DIVS) * 360.0f;
 
-				-- float turnSpeed = (reversing)? maxReverseSpeed: maxSpeed;
 
-				-- if (reqTurnAngle != 0.0f) {
-					-- turnSpeed *= (maxTurnAngle / reqTurnAngle);
-				-- }
-
-				-- if (waypointDir.SqLength() > 0.1f) {
-					-- if (!ud->turnInPlace) {
-						-- targetSpeed = std::max(ud->turnInPlaceSpeedLimit, turnSpeed);
-					-- } else {
-						-- if (reqTurnAngle > ud->turnInPlaceAngleLimit) {
-							-- targetSpeed = turnSpeed;
-						-- }
-					-- }
-				-- }
-
-				-- if (atEndOfPath) {
-					-- // at this point, Update() will no longer call GetNextWayPoint()
-					-- // and we must slow down to prevent entering an infinite circle
-					-- targetSpeed = std::min(targetSpeed, (currWayPointDist * PI) / (SPRING_CIRCLE_DIVS / turnRate));
-				-- }
 local cons = {['armcv'] = true,
 	['armacv']  = true,
 	['consul'] = true,
@@ -59,12 +29,15 @@ local cons = {['armcv'] = true,
 	['coracv'] = true,
 	['cormuskrat'] = true,
 	['corch'] = true,}
+	
 local turninplacebots= {['corck'] = true,
 	['corack'] = true,
 	['corfast'] = true,
 	['armck'] = true,
 	['armack'] = true,
 	['armfark'] = true,}
+	
+	
 for name, ud in pairs(UnitDefs) do
 	if (ud.maxvelocity) then 
 		ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0

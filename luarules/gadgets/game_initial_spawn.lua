@@ -14,8 +14,6 @@ end
 
 -- Note: (31/03/13) mo_coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
---TODO: once startpointassist is properly tested, remove its modoption 
-
 ----------------------------------------------------------------
 -- Synced 
 ----------------------------------------------------------------
@@ -46,33 +44,13 @@ GG.playerStartingUnits = playerStartingUnits -- Share it to other gadgets
 -- guessing vars for StartPointAssist
 local claimradius = 250*2.3 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
 local claimheight = 300 -- the height difference relative your own startpoint in which, within the claimradius, the startpoint guesser regards you as claiming mexes (coms can build up a cliff ~200 high but not much more).
+local StartPointTable = {}
 
 ----------------------------------------------------------------
 -- Modoptions
 ----------------------------------------------------------------
 
 local modOptions = Spring.GetModOptions() or {}
-
---starting res
-local startMetal  = tonumber(modOptions.startmetal)  or 1000
-local startEnergy = tonumber(modOptions.startenergy) or 1000
-
---whether storage is owned by com or team
-local comStorage 
-if ((modOptions.mo_storageowner) and (modOptions.mo_storageowner == "com")) then
-	comStorage = true
-else
-	comStorage = false
-end
-
---Start Point Assist (places sensible startpoints for players who don't do it themselves)
-local StartPointAssist 
-local StartPointTable = {}
-if (tonumber((Spring.GetModOptions() or {}).mo_startpoint_assist) == 1) and (Game.startPosType == 2) then --type 2 is choose ingame
-	StartPointAssist = true
-else
-	StartPointAssist = false
-end
 
 --Newbie Placer (prevents newbies from choosing their own a startpoint and faction)
 local NewbiePlacer
@@ -158,16 +136,14 @@ function gadget:Initialize()
 end
 
 -- keep track of choosing faction ingame
-if tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) == 1 then
-	function gadget:RecvLuaMsg(msg, playerID)
-		local startUnit = tonumber(msg:match(changeStartUnitRegex))
-		if startUnit and validStartUnits[startUnit] then
-			local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
-			if not playerIsSpec then
-				playerStartingUnits[playerID] = startUnit
-				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public) --public so as advplayerlist can check faction at GameStart (todo: don't make public until gamestart?)
-				return true
-			end
+function gadget:RecvLuaMsg(msg, playerID)
+	local startUnit = tonumber(msg:match(changeStartUnitRegex))
+	if startUnit and validStartUnits[startUnit] then
+		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
+		if not playerIsSpec then
+			playerStartingUnits[playerID] = startUnit
+			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public) --public so as advplayerlist can check faction at GameStart (todo: don't make public until gamestart?)
+			return true
 		end
 	end
 end
@@ -191,7 +167,6 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		if allyteamID == nil then return false end
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
 		if xmin>=xmax or zmin>=zmax then 
-			StartPointAssist = false --if we get here, something is very wrong
 			return true 
 		else
 			local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
@@ -203,7 +178,6 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	
 	
 	-- record table of starting points for startpoint assist to use
-	if StartPointAssist == false then return true end
 	if readyState == 2 then 
 		StartPointTable[teamID]={-3*claimradius,-3*claimradius} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother the placer
 	else		
@@ -232,11 +206,9 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
 	--pick location if didn't place
-	if StartPointAssist then 
+	if (not StartPointTable[teamID]) or (StartPointTable[teamID][1] < 0) then
 		-- guess points for the classified in StartPointTable as not genuine (newbies will not have a genuine startpoint)
-		if (not StartPointTable[teamID]) or (StartPointTable[teamID][1] < 0) then
-			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
-		end
+		x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 	else
 		--fallback 
 		if (x<=0) or (z<=0) then
@@ -259,16 +231,11 @@ function SpawnTeamStartUnit(teamID, allyID)
 	--spawn starting unit
 	local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
 	
-	--set up starting storage
-	if (comStorage) then
-	  Spring.AddUnitResource(unitID, 'm', startMetal)
-	  Spring.AddUnitResource(unitID, 'e', startEnergy)
-	end
 end
 
 
 ----------------------------------------------------------------
---- StartPointAssist Placing Routines ---
+--- StartPoint Placing Routines ---
 ----------------------------------------------------------------
 
 function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)

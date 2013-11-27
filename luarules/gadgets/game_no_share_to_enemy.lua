@@ -1,7 +1,7 @@
 function gadget:GetInfo()
   return {
-    name      = "mo_noshare",
-    desc      = "mo_noshare",
+    name      = "game_no_share_to_enemy",
+    desc      = "Disallows sharing to enemies",
     author    = "TheFatController",
     date      = "19 Jan 2008",
     license   = "GNU GPL, v2 or later",
@@ -15,12 +15,6 @@ end
 
 if (not gadgetHandler:IsSyncedCode()) then
   return
-end
-
-local enabled = tonumber(Spring.GetModOptions().mo_noshare) or 0
-
-if (enabled == 0) then 
-  return false
 end
 
 local AreTeamsAllied = Spring.AreTeamsAllied

@@ -66,7 +66,7 @@ end
 function widget:Initialize()
 	if spGetSpectatingState() or
 	   Spring.GetGameFrame() > 0 or
-	   tonumber((Spring.GetModOptions() or {}).mo_allowfactionchange) ~= 1 or amNewbie then
+	   amNewbie then
 		widgetHandler:RemoveWidget(self)
 	end
 end
