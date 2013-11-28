@@ -35,14 +35,20 @@ end
 
 local toKillUnits = {}
 local toKillFrame = {}
+local toKill = {} 
+
 local isArmageddon = false
 local hadArmageddon = false 
  
 local spGetUnitDefID 	= Spring.GetUnitDefID
-local spValidUnitID	= Spring.ValidUnitID
+local spValidUnitID		= Spring.ValidUnitID
 local spDestroyUnit		= Spring.DestroyUnit 
+local spGetGameFrame	= Spring.GetGameFrame
+ 
  
 function gadget:GameFrame(n)
+
+	-- cause the armageddon; kill everything immobile
     if n == armageddonFrame - 1 then
 		isArmageddon = true
 		hadArmageddon = true
@@ -67,6 +73,16 @@ function gadget:GameFrame(n)
 	elseif n == armageddonFrame + (armageddonDuration + 1) * 30 then
 		isArmageddon = false
 	end
+	
+	-- kill anything that is created
+	if toKill[n] then
+		for i=1,#(toKill[n]) do
+			if spValidUnitID(toKill[n][i]) then
+				spDestroyUnit(toKill[n][i],true)
+			end
+		end
+		toKill[n] = nil
+	end
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -81,8 +97,11 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 
-function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
+function gadget:UnitFinished(unitID, unitDefID, teamID, builderID)
 	if hadArmageddon then
-		spDestroyUnit(unitID,true) --lol
+		local n = spGetGameFrame()
+		if not toKill[n+1] then toKill[n+1] = {} end
+		local k = #(toKill[n+1])+1
+		toKill[n+1][k] = unitID --destroying units on the same simframe as they are created is a bad idea 
 	end
 end
