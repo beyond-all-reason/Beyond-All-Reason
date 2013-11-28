@@ -781,8 +781,10 @@ function widget:DrawWorld()
 		zoomY = camY - max(spGetGroundHeight(camX, camZ), 0)
 	end
 	if zoomY < 6 then zoomY = 6 end
-	local unitCount = spGetSelectedUnitsCount()
-	DrawFormationDots(tVerts, zoomY, unitCount)
+	if lineLength > 0 then  --don't try and draw if the command was cancelled by having two mouse buttons pressed at once
+		local unitCount = spGetSelectedUnitsCount()
+		DrawFormationDots(tVerts, zoomY, unitCount)
+	end
   end
 end
 
