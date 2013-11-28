@@ -35,3 +35,7 @@ function widget:DrawScreen()
         end
     end
 end
+
+function widget:GameOver()
+	widgetHandler:RemoveWidget()
+end
