@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		author	= 'Niobium',
 		date	= 'May 2011',
 		license	= 'GNU GPL, v2 or later',
-		layer	= 1,
+		layer	= 1, --should run after game_initial_spawn
 		enabled	= true
 	}
 end
@@ -21,17 +21,14 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Synced Var
 	----------------------------------------------------------------
-	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z} -- Also acts as is-player-a-coop-player
-	
-	GG.coopStartPoints = coopStartPoints -- Share it to other gadgets
+	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z}, also acts as is-player-a-coop-player
+	GG.coopStartPoints = coopStartPoints -- Share to other gadgets
 	
 	----------------------------------------------------------------
-	-- Synced Callins
+	-- Setting up
 	----------------------------------------------------------------
 	
-	-- Commented out Initialize due to set of GG.coopMode and layer of 1
-	-- Previously layer was -1 (and so initialize ran first), however this made the unsynced drawing code draw UNDER the green startbox
-	-- Could have a separate :GetInfo in both synced and unsynced sections, but that is asking for trouble
+	-- for debug echos
    	local function to_string(data, indent)
 		local str = ""
 
@@ -80,7 +77,6 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("CoopStartPoint", playerID, x, y, z)
 	end
 	
-	--function gadget:Initialize()
 	do
 		local coopHasEffect = false
 		local teamHasPlayers = {}
@@ -100,11 +96,14 @@ if gadgetHandler:IsSyncedCode() then
 		
 		if coopHasEffect then
 			GG.coopMode = true -- Inform other gadgets that coop needs to be taken into account
-		--else
-		-- Could remove the gadget here, but spring does not like gadgets removing themselves on initialize.
-		-- Get the same problem with trying to remove the unsynced side (It won't be drawing anything though, so it's not too bad)
 		end
 	end
+
+
+	----------------------------------------------------------------
+	-- Synced Callins
+	----------------------------------------------------------------
+	
 	
 	function gadget:AllowStartPosition(x, y, z, playerID)
 		--Spring.Echo('allowstart',x,z,playerID)
@@ -116,11 +115,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if coopStartPoints[playerID] then
 			-- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
-			-- To catch this, we don't recognise a coop start position if it is identical to their teams spring start position
+			-- To catch this, we don't recognise a coop start position if it is identical to their teams 'normal' start position
 			-- This has the side-effect that a coop player cannot intentionally start directly on their teammate, but this is OK
 			
-			--Since spring is a bitch, and if the host (the guy who places the real start point) readies up first, and the client second, then the host will have his start point overwritten by the client
-			-- this can be prevented by not allowing the host to place on client either.
+			-- Since spring is a bitch, and if the first player (the guy who places the real start point) readies up first, and 
+			-- his coop buddy readies up after, then the first will have his start point overwritten by the second.
+			-- This can be prevented by not allowing the first to place on second, either.
+			
 			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
 			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
 			if x ~= osx or z ~= osz then
@@ -152,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end
 	
-	function gadget:GameFrame(n)
+	function gadget:GameStart()
 		
 		if GG.coopMode then
 			--Spring.Echo('coop dbg7',to_string(coopStartPoints))
@@ -307,6 +308,7 @@ else
 		end
 	end
 	
+	-- for debug echos
 	function to_string(data, indent)
 		local str = ""
 
@@ -348,15 +350,3 @@ else
 	end
 end
 
-
--- [f=0000000] coop dbg6, 1, 1868, 144.53125, 619, 1:
-  -- 1: 1868
-  -- 2: 144.53125
-  -- 3: 619
-
--- [f=0000000] coop dbg5, CoopStartPoint, 1, 1868, 144.53125, 
--- [f=0000000] coop dbg3, 1, CoopStartPoint, klj
--- , CoopStartPoint:
-  -- 1: 1
-  -- 2: 1868
-  -- 3: 144.53125
