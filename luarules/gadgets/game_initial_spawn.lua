@@ -38,19 +38,23 @@ local validStartUnits = {
 }
 local spawnTeams = {} -- spawnTeams[teamID] = allyID
 
+
+--each player gets to choose a faction
 local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
-GG.playerStartingUnits = playerStartingUnits -- Share it to other gadgets
+GG.playerStartingUnits = playerStartingUnits 
+
+--each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by mo_coop
+local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
+GG.teamStartPoints = teamStartPoints 
 
 -- guessing vars for StartPointAssist
 local claimradius = 250*2.3 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
 local claimheight = 300 -- the height difference relative your own startpoint in which, within the claimradius, the startpoint guesser regards you as claiming mexes (coms can build up a cliff ~200 high but not much more).
-local StartPointTable = {}
+local startPointTable = {} --temporary, only for use within this gadget
 
 ----------------------------------------------------------------
--- Modoptions
+-- NewbiePlacer
 ----------------------------------------------------------------
-
-local modOptions = Spring.GetModOptions() or {}
 
 --Newbie Placer (prevents newbies from choosing their own a startpoint and faction)
 local NewbiePlacer
@@ -135,6 +139,11 @@ function gadget:Initialize()
 	processedNewbies = true
 end
 
+
+----------------------------------------------------------------
+-- Factions
+----------------------------------------------------------------
+
 -- keep track of choosing faction ingame
 function gadget:RecvLuaMsg(msg, playerID)
 	local startUnit = tonumber(msg:match(changeStartUnitRegex))
@@ -147,6 +156,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		end
 	end
 end
+
 
 ----------------------------------------------------------------
 -- Startpoints
@@ -175,13 +185,12 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 			end
 		end
 	end
-	
-	
+		
 	-- record table of starting points for startpoint assist to use
 	if readyState == 2 then 
-		StartPointTable[teamID]={-3*claimradius,-3*claimradius} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother the placer
+		startPointTable[teamID]={-3*claimradius,-3*claimradius} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother the placer
 	else		
-		StartPointTable[teamID]={x,z} --player placed startpoint (may or may not have clicked ready)
+		startPointTable[teamID]={x,z} --player placed startpoint (may or may not have clicked ready)
 	end	
 
 	return true
@@ -206,8 +215,8 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
 	--pick location if didn't place
-	if (not StartPointTable[teamID]) or (StartPointTable[teamID][1] < 0) then
-		-- guess points for the classified in StartPointTable as not genuine (newbies will not have a genuine startpoint)
+	if (not startPointTable[teamID]) or (startPointTable[teamID][1] < 0) then
+		-- guess points for the classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
 		x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 	else
 		--fallback 
@@ -229,8 +238,11 @@ function SpawnTeamStartUnit(teamID, allyID)
 	end
 
 	--spawn starting unit
-	local unitID = spCreateUnit(startUnit, x, spGetGroundHeight(x, z), z, 0, teamID) 
+	local y = spGetGroundHeight(x,z)
+	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID) 
+	teamStartPoints[teamID] = {x,y,z}
 	
+	--team storage is set up in basecontent gadget
 end
 
 
@@ -245,12 +257,12 @@ function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 	-- Try our guesses
 	local x,z = GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 	if x>=0 and z>=0 then
-		StartPointTable[teamID]={x,z} 
+		startPointTable[teamID]={x,z} 
 		return x,z 
 	else
 		x,z = GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax)
 		if x>=0 and z>=0 then 
-				StartPointTable[teamID]={x,z} 
+				startPointTable[teamID]={x,z} 
 			return x,z 
 		end
 	end
@@ -259,7 +271,7 @@ function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 	-- GIVE UP, fuuuuuuuuuuuuu --
 	x = (xmin + xmax) / 2
 	z = (zmin + zmax) / 2
-	StartPointTable[teamID]={x,z} 
+	startPointTable[teamID]={x,z} 
 	return x,z
 end
 
@@ -288,7 +300,7 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 		local iswithinstartbox = (xmin < mx) and (mx < xmax) and (zmin < mz) and (mz < zmax)
 		
 		local isfree = true
-		for _,startpoint in pairs(StartPointTable) do -- we avoid enemy startpoints too, to prevent unnecessary explosions and to deal with the case of having no startboxes
+		for _,startpoint in pairs(startPointTable) do -- we avoid enemy startpoints too, to prevent unnecessary explosions and to deal with the case of having no startboxes
 			local sx,sz = startpoint[1],startpoint[2]
 			local sy = Spring.GetGroundHeight(sx,sz)
 			local iswithinclaimradius = ((sx-mx)*(sx-mx)+(sz-mz)*(sz-mz) <= (claimradius)*(claimradius))
@@ -374,7 +386,6 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax)
 	z = bz + disp * (dispz)
 	
 	--see how steep the terrain around (x,z) is
-	--fixme!
 	local steep
 	local mtta = math.acos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety 
 	local a1,a2,a3,a4 = 0,0,0,0
@@ -407,7 +418,9 @@ end
 
 -- guess based on map startpoints --
 function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax)
-	return -1,-1 --TODO: cycle through map startpoints looking for one that isn't close to an already placed startpoint
+	return -1,-1 --TODO: 
+				 -- cycle through map startpoints looking for one that isn't close to an already placed startpoint
+				 -- also try looking for mexes that are just outside of the startbox
 end
 
 
@@ -419,6 +432,7 @@ else
 
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
+local amNewbie
 
 --set my readystate to true if i am a newbie
 function gadget:GameSetup(state,ready,playerStates)
