@@ -81,8 +81,8 @@ if gadgetHandler:IsSyncedCode() then
 				
 				--Spring.Echo('vs',x,z,playerID, startPos[1],startPos[3])
 				local tooClose = (((startPos[1]-x)*(startPos[1]-x)+(startPos[2]-y)*(startPos[2]-y)+(startPos[3]-z)*(startPos[3]-z)) < spawndist^2)
-				local _,_,playerTeamID,_ = Spring.GetPlayerInfo(playerID)
-				local _,_,otherPlayerTeamID,_ = Spring.GetPlayerInfo(otherPlayerID)
+				local _,_,_,playerTeamID,_ = Spring.GetPlayerInfo(playerID)
+				local _,_,_,otherPlayerTeamID,_ = Spring.GetPlayerInfo(otherPlayerID)
 				local sameTeam = (playerTeamID == otherPlayerTeamID) -- are they cooped?
 				if tooClose and not sameTeam then 
 					Spring.SendMessageToPlayer(playerID,"You cannot place a start position inside of the D-Gun range of an Ally")
