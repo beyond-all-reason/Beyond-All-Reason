@@ -17,7 +17,7 @@ local spawndist = 300
 
 local mapx = Game.mapX
 local mapz = Game.mapY -- misnomer in API
-local smallmap = (mapx^2 + mapz^2 < 6^2)
+local smallmap = (mapx^2 + mapz^2 < 6^2) --TODO: improve this
 
 if (enabled == 0) or (Game.startPosType ~= 2) or smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
 	return false
@@ -76,13 +76,16 @@ if gadgetHandler:IsSyncedCode() then
 	
     function gadget:AllowStartPosition(x, y, z, playerID)
 		--Spring.Echo('allowstart',x,z,playerID,to_string(startpoints))
-		for otherplayerID, startPos in pairs(startpoints) do
-			if otherplayerID ~= playerID then
+		for otherPlayerID, startPos in pairs(startpoints) do
+			if otherPlayerID ~= playerID then
 				
 				--Spring.Echo('vs',x,z,playerID, startPos[1],startPos[3])
-				if ((startPos[1]-x)*(startPos[1]-x)+(startPos[2]-y)*(startPos[2]-y)+(startPos[3]-z)*(startPos[3]-z))<spawndist^2 then -- a little more than a dgun range away from everyone else
+				local tooClose = (((startPos[1]-x)*(startPos[1]-x)+(startPos[2]-y)*(startPos[2]-y)+(startPos[3]-z)*(startPos[3]-z)) < spawndist^2)
+				local _,_,playerTeamID,_ = Spring.GetPlayerInfo(playerID)
+				local _,_,otherPlayerTeamID,_ = Spring.GetPlayerInfo(otherPlayerID)
+				local sameTeam = (playerTeamID == otherPlayerTeamID) -- are they cooped?
+				if tooClose and not sameTeam then 
 					Spring.SendMessageToPlayer(playerID,"You cannot place a start position inside of the D-Gun range of an Ally")
-				--	Spring.Echo('canceled start')
 					return false
 				end
 			end
