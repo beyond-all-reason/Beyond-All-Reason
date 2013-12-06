@@ -86,15 +86,16 @@ end
 else -- begin unsynced section
 -----------------------------
 
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local allyTeamList = Spring.GetAllyTeamList()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local _,_,_,_,_,gaiaAllyTeamID,_,_ = Spring.GetTeamInfo(gaiaTeamID) 
+
+local dgunLimitList
 local prevUpdateTime = 0
 local curTime = 0  
-local dgunLimitList
-
 local divLength = 10
 
 function DrawGroundLine(x1,z1,x2,z2)
@@ -179,10 +180,10 @@ function gadget:GameOver()
 end
 
 function gadget:DrawWorldPreUnit() 
-	if dgunLimitList then
+	if dgunLimitList and not spIsGUIHidden() then
 		gl.DepthTest(GL.ALWAYS)
 		gl.CallList(dgunLimitList)
-		--gl.DepthTest(false)
+		gl.DepthTest(false)
 	end
 end
 
