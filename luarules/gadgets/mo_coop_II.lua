@@ -143,7 +143,7 @@ if gadgetHandler:IsSyncedCode() then
 		if GG.playerStartingUnits then --use that player specific start unit if available
 			startUnit = GG.playerStartingUnits[playerID] or startUnit
 		end 
-		if x <= 0 or z <= 0 then
+		if x <= 0 or z <= 0 then --TODO: improve this
 			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
 			x = 0.5 * (xmin + xmax)
 			z = 0.5 * (zmin + zmax)
@@ -153,9 +153,9 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end
 	
-	function gadget:GameStart()
-		
-		if GG.coopMode then
+	function gadget:GameFrame(n)		
+		--spawn cooped coms
+		if n==0 and GG.coopMode then
 			--Spring.Echo('coop dbg7',to_string(coopStartPoints))
 			for playerID, startPos in pairs(coopStartPoints) do
 				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
