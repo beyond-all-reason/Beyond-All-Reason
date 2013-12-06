@@ -1,4 +1,4 @@
-include("colors.h.lua")
+-- modinclude("colors.h.lua")
 include("keysym.h.lua")
 
 local versionNumber = "6.32"
@@ -10,7 +10,7 @@ function widget:GetInfo()
 		author    = "very_bad_soldier",
 		date      = "October 21, 2007",
 		license   = "GNU GPL v2",
-		layer     = 0,
+		layer     = -10000000,
 		enabled   = true
 	}
 end
@@ -110,8 +110,8 @@ modConfig["BA"]["dps"]["air"]["max"] = 500
 -- BA
 --to support other mods
 --table initialized and unitList is needed!
-modConfig["BAR"] = {}
-modConfig["BAR"]["unitList"] = 
+modConfig["BARC"] = {}
+modConfig["BARC"]["unitList"] = 
 							{ 
 								armclaw = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
@@ -173,16 +173,16 @@ modConfig["BAR"]["unitList"] =
 
 --implement this if you want dps-depending ring-colors
 --colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
-modConfig["BAR"]["armorTags"] = {}
-modConfig["BAR"]["armorTags"]["air"] = "vtol"
-modConfig["BAR"]["armorTags"]["ground"] = "else"
-modConfig["BAR"]["dps"] = {}
-modConfig["BAR"]["dps"]["ground"] = {}
-modConfig["BAR"]["dps"]["air"] = {}
-modConfig["BAR"]["dps"]["ground"]["min"] = 50
-modConfig["BAR"]["dps"]["ground"]["max"] = 500
-modConfig["BAR"]["dps"]["air"]["min"] = 80
-modConfig["BAR"]["dps"]["air"]["max"] = 500
+modConfig["BARC"]["armorTags"] = {}
+modConfig["BARC"]["armorTags"]["air"] = "vtol"
+modConfig["BARC"]["armorTags"]["ground"] = "else"
+modConfig["BARC"]["dps"] = {}
+modConfig["BARC"]["dps"]["ground"] = {}
+modConfig["BARC"]["dps"]["air"] = {}
+modConfig["BARC"]["dps"]["ground"]["min"] = 50
+modConfig["BARC"]["dps"]["ground"]["max"] = 500
+modConfig["BARC"]["dps"]["air"]["min"] = 80
+modConfig["BARC"]["dps"]["air"]["max"] = 500
 
 --implement this if you want custom colors - we dont want it for BA
 --[[
@@ -502,6 +502,35 @@ local DrawRanges
 --------------------------------------------------------------------------------
 
 
+function widget:TextCommand(command)
+	--Spring.Echo("DEFRANGE", command, mycommand)
+	local mycommand=false --buttonConfig["enabled"]["enemy"][tag] 
+
+	if (string.find(command, "defrange")) then 
+		mycommand=true
+		local ally='ally'
+		local rangetype='ground'
+		local enabled=false		
+		if (string.find(command, "enemy")) then 
+			ally='enemy'
+		end
+		if (string.find(command, "air")) then 
+			rangetype='air'
+		elseif  (string.find(command, "nuke")) then 
+			rangetype='nuke'
+		end
+		if (string.find(command, "+")) then 
+			enabled=true
+		end
+		buttonConfig["enabled"][ally][rangetype]=enabled
+		Spring.Echo("Range visibility of "..ally.." "..rangetype.." defenses set to",enabled)
+		return true
+	end
+	
+	return false
+end
+
+
 function widget:Initialize()
 	state["myPlayerID"] = spGetLocalTeamID()
 	
@@ -540,7 +569,12 @@ function UnitDetected( unitID, allyTeam, teamId )
 		--printDebug("Unit ignored: weaponCount is 0")
 		return
 	end
-
+	--SINCE THIS DOESNT EVEN FUCKING PICK UP MOBILE ANTI's, WHY IS NOT BAILING EARLY ON MOBILE UNITS?
+	if udef.speed and udef.speed  > 0.0001 then 
+		--Spring.Echo('Defense range bailing on unit with no acceleration',udef.name)
+		return
+	end
+	
 	printDebug( udef.name )
 	local foundWeapons = {}
 			
@@ -555,7 +589,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 			--printDebug("Weapon #" .. i .. " Range: " .. range .. " Type: " .. weaponDef.type )
 
 			type = currentModConfig["unitList"][udef.name]["weapons"][i]
-								
+							
 			local dam = weaponDef.damages
 			local dps
 			local damage
@@ -767,7 +801,7 @@ function widget:DrawScreen()
     	enabled = true
     end
 
-    DrawButtonGL(data[2], coords[1][1], coords[1][2], coords[2][1], coords[2][2], doHighLight, enemy, enabled)
+    --DrawButtonGL(data[2], coords[1][1], coords[1][2], coords[2][1], coords[2][2], doHighLight, enemy, enabled)
   end
   	
 	ResetGl()
@@ -1087,6 +1121,8 @@ function CheckDrawTodo( def, weaponIdx )
 			return true
 		elseif ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["ground"] ) then
 			return true
+		else
+			return false
 		end	
 	end
 			
@@ -1095,7 +1131,9 @@ function CheckDrawTodo( def, weaponIdx )
 			return true
 		elseif ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) then
 			return true
-		end	
+		else
+			return false
+		end
 	end
 			
 	if ( def.weapons[weaponIdx]["type"] == 3 ) then
@@ -1123,15 +1161,20 @@ function DrawRanges()
 
 	local color
 	local range
-	for _, def in pairs(defences) do
-	
+	for test, def in pairs(defences) do
+		--Spring.Echo('defrangre drawrranges test',test, #def["weapons"])
 		for i, weapon in pairs(def["weapons"]) do
 			local execDraw = false
+			if (false) then --3.9 % cpu, 45 fps
+				if ( spIsSphereInView( def["pos"][1], def["pos"][2], def["pos"][3], weapon["range"] ) ) then
+					execDraw = CheckDrawTodo( def, i )			
+				end
+			else--faster: 3.0% cpu, 46fps
 			
-			if ( spIsSphereInView( def["pos"][1], def["pos"][2], def["pos"][3], weapon["range"] ) ) then
-				execDraw = CheckDrawTodo( def, i )			
+				if (  CheckDrawTodo( def, i )) then 
+					execDraw =spIsSphereInView( def["pos"][1], def["pos"][2], def["pos"][3], weapon["range"] )
+				end
 			end
-			
 			if ( execDraw ) then
 				color = weapon["color1"]
 				range = weapon["range"]
@@ -1171,6 +1214,10 @@ function DrawRanges()
 end
 
 function widget:DrawWorld()
+
+	if spIsGUIHidden() then
+		return
+	end
 	DrawRanges()
 	
 	ResetGl()
@@ -1212,6 +1259,7 @@ function printDebug( value )
 		end
 	end
 end
+
 
 
 --SAVE / LOAD CONFIG FILE
