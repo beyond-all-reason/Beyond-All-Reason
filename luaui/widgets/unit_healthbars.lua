@@ -41,7 +41,10 @@ local drawFeatureHealth  = true
 local featureTitlesAlpha = featureBarAlpha * titlesAlpha/barAlpha
 local featureHpThreshold = 0.85
 
-local infoDistance = 700000
+local infoDistance = 250000 --max squared distance at which text it drawn for healthbars
+local  maxFeatureInfoDistance = 150000 --max squared distance at which text it drawn for features
+local maxFeatureDistance = 250000 --max squared distance at which any info is drawn for features
+local maxUnitDistance = 9000000 --max squared distance at which any info is drawn for units  MUST BE LARGER THAN FOR FEATURES!
 
 local minReloadTime = 4 --// in seconds
 
@@ -88,7 +91,7 @@ local gameFrame = 0;
 local empDecline = 32/30/40;
 
 local cx, cy, cz = 0,0,0;  --// camera pos
-
+local smoothheight = 0 -- smoothmesh under camera
 local paraUnits   = {};
 
 local barShader;
@@ -467,7 +470,7 @@ do
     dx, dy, dz = ux-cx, uy-cy, uz-cz
     dist = dx*dx + dy*dy + dz*dz
     if (dist > infoDistance) then
-      if (dist > 9000000) then
+      if (dist > maxUnitDistance) then
         return
       end
       fullText = false
@@ -732,53 +735,65 @@ local visibleUnits = {}
 
 do
   local GetCameraPosition    = Spring.GetCameraPosition
+  local GetSmoothMeshHeight    = Spring.GetSmoothMeshHeight
   local GetUnitDefID         = Spring.GetUnitDefID
+  local IsGUIHidden         = Spring.IsGUIHidden
   local glDepthMask          = gl.DepthMask
 
   function widget:DrawWorld()
+  
     if (#visibleUnits+#visibleFeatures==0) then
       return
     end
 
-    --gl.Fog(false)
-    --gl.DepthTest(true)
-    glDepthMask(true)
-
     cx, cy, cz = GetCameraPosition()
+	
+	--if the camera is too far up, higher than maxDistance on smoothmesh, dont even call any visibility checks or nothing 
+	local smoothheight=GetSmoothMeshHeight(cx,cz) --clamps x and z
+	if (not IsGUIHidden() and (cy-smoothheight)^2 < maxUnitDistance) then 
+		
+		--gl.Fog(false)
+		--gl.DepthTest(true)
+		glDepthMask(true)
+		
+		if (barShader) then gl.UseShader(barShader); glMyText(0); end
 
-    if (barShader) then gl.UseShader(barShader); glMyText(0); end
+		--// draw bars of units
+		local unitID,unitDefID,unitDef
+		for i=1,#visibleUnits do
+		  unitID    = visibleUnits[i]
+		  unitDefID = GetUnitDefID(unitID)
+		  unitDef   = UnitDefs[unitDefID or -1]
+		  if (unitDef) then
+			DrawUnitInfos(unitID, unitDefID, unitDef)
+		  end
+		end
 
-    --// draw bars of units
-    local unitID,unitDefID,unitDef
-    for i=1,#visibleUnits do
-      unitID    = visibleUnits[i]
-      unitDefID = GetUnitDefID(unitID)
-      unitDef   = UnitDefs[unitDefID or -1]
-      if (unitDef) then
-        DrawUnitInfos(unitID, unitDefID, unitDef)
-      end
-    end
-
-    --// draw bars for features
-    local wx, wy, wz, dx, dy, dz, dist
-    local featureInfo
-    for i=1,#visibleFeatures do
-      featureInfo = visibleFeatures[i]
-      wx, wy, wz = featureInfo[1],featureInfo[2],featureInfo[3]
-      dx, dy, dz = wx-cx, wy-cy, wz-cz
-      dist = dx*dx + dy*dy + dz*dz
-      if (dist < 6000000) then
-        if (dist < infoDistance) then
-          DrawFeatureInfos(featureInfo[4], featureInfo[5], true, wx,wy,wz)
-        else
-          DrawFeatureInfos(featureInfo[4], featureInfo[5], false, wx,wy,wz)
-        end
-      end
-    end
-
-    if (barShader) then gl.UseShader(0) end
-    glDepthMask(false)
-
+		--// draw bars for features
+		if ((cy-smoothheight)^2 < maxFeatureDistance) then
+			
+			local wx, wy, wz, dx, dy, dz, dist
+			local featureInfo
+			for i=1,#visibleFeatures do
+			  featureInfo = visibleFeatures[i]
+			  wx, wy, wz = featureInfo[1],featureInfo[2],featureInfo[3]
+			  dx, dy, dz = wx-cx, wy-cy, wz-cz
+			  dist = dx*dx + dy*dy + dz*dz
+			  if (dist < maxFeatureDistance) then
+				if (dist < maxFeatureInfoDistance) then
+				  DrawFeatureInfos(featureInfo[4], featureInfo[5], true, wx,wy,wz)
+				else
+				  DrawFeatureInfos(featureInfo[4], featureInfo[5], false, wx,wy,wz)
+				end
+			  end
+			end
+		--else
+			--Spring.Echo('healthbars cam too high to draw features')
+		end
+		
+		if (barShader) then gl.UseShader(0) end
+		glDepthMask(false)
+	end
     DrawOverlays()
 
     glColor(1,1,1,1)
@@ -793,6 +808,7 @@ do
   local GetFeatureDefID      = Spring.GetFeatureDefID
   local GetFeaturePosition   = Spring.GetFeaturePosition
   local GetFeatureResources  = Spring.GetFeatureResources
+  local IsGUIHidden         = Spring.IsGUIHidden
   local select = select
 
   local sec = 0
@@ -800,6 +816,7 @@ do
   local sec2 = 0
 
   local videoFrame   = 0
+  
 
   function widget:Update(dt)
     sec=sec+dt
@@ -809,18 +826,23 @@ do
 
     videoFrame = videoFrame+1
     sec1=sec1+dt
-    if (sec1>1/25) then
+	
+	if IsGUIHidden() == true then 
+		return
+	end
+	
+    if (sec1>1/25) and ((cy-smoothheight)^2 < maxUnitDistance) then
       sec1 = 0
       visibleUnits = GetVisibleUnits(-1,nil,false)
     end
 
     sec2=sec2+dt
-    if (sec2>1/3) then
+    if (sec2>1/3) and  ((cy-smoothheight)^2 < maxFeatureDistance)  then
       sec2 = 0
       visibleFeatures = GetVisibleFeatures(-1,nil,false,false)
       local cnt = #visibleFeatures
       local featureID,featureDefID,featureDef
-      for i=cnt,1,-1 do
+      for i=cnt,1,-1 do  --TODO:  this is very inefficient 
         featureID    = visibleFeatures[i]
         featureDefID = GetFeatureDefID(featureID) or -1
         featureDef   = FeatureDefs[featureDefID]
