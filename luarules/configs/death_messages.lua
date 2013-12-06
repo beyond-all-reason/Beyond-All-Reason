@@ -445,7 +445,7 @@ messages = {
 	"XX needed to build more parks and raise taxes",
 	"XX got tasered",
 	"XX tried to cross the Ford river and it's oxen died",
-	"XX put the 'grrr' in swinger baby! Yeah!",
+	"XX put the 'grrr' into swinger baby! Yeah!",
 	"XX was travelling through Dallas in an open-topped limousine",
 }
 

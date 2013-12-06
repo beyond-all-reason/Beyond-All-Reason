@@ -25,6 +25,7 @@ local playerListByTeam = {} --loaded up at game start, doesn't include specs, do
 --format is messages[i]="deathmsg"
 include("luarules/configs/death_messages.lua")
 local numDeathMsgs = #messages
+local msgColour = "\255\255\255\255" 
 
 --construct death message for team
 function GetDeathMessage(teamID)
@@ -52,7 +53,7 @@ function GetDeathMessage(teamID)
 	local toPaste = "Team " .. teamID .. plNames 
 	local msg,_ = sgsub(msg, toCut, toPaste)
 
-	return msg
+	return msgColour .. msg
 end
 
 
