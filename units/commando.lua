@@ -48,7 +48,7 @@ return {
 			[1] = "corvalk",
 			[2] = "corfink",
 			[3] = "corroach",
-			[4] = "cormine2",
+			[4] = "cormine4",
 			[5] = "cormaw",
 			[6] = "cordrag",
 			[7] = "coreyes",
