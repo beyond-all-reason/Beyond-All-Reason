@@ -22,6 +22,7 @@ local spGetMyPlayerID		= Spring.GetMyPlayerID
 local spGetPlayerInfo		= Spring.GetPlayerInfo
 local spGetGroundHeight		= Spring.GetGroundHeight
 local spIsSphereInView		= Spring.IsSphereInView
+local spValidUnitID			= Spring.ValidUnitID
 
 
 local glDepthTest 			= gl.DepthTest
@@ -48,6 +49,7 @@ function widget:Initialize()
 end
 
 function addCom(unitID)
+	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
 	local x,y,z = Spring.GetUnitPosition(unitID)
 	comCenters[unitID] = {x,y,z}
 end
@@ -154,16 +156,18 @@ function widget:GameFrame(n)
 	-- check com movement
 	for unitID in pairs(comCenters) do
 		local x,y,z = spGetUnitPosition(unitID)
-		local yg = spGetGroundHeight(x,z) 
-		local draw = true
-		-- check if com is off the ground
-		if y-yg>10 then 
-			draw = false
-		-- check if is in view
-		elseif not spIsSphereInView(x,y,z,blastRadius) then
-			draw = false
+		if x then
+			local yg = spGetGroundHeight(x,z) 
+			local draw = true
+			-- check if com is off the ground
+			if y-yg>10 then 
+				draw = false
+			-- check if is in view
+			elseif not spIsSphereInView(x,y,z,blastRadius) then
+				draw = false
+			end
+			comCenters[unitID] = {x,y,z,draw}
 		end
-		comCenters[unitID] = {x,y,z,draw}
 	end	
 end
 
