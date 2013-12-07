@@ -1,3 +1,24 @@
+7.84 -> 7.85
+07/12/2013
+
+- Awards are passed to the replay site
+- Tidied up modoptions
+- Limit Dgun Range now prevents dgunning within enemy startboxes
+- Made Armageddon Mode more fun; only the immobile units explode
+- NoCloseSpawns doesn't affect cooped players
+- Fixed NoCloseSpawns somtimes preventing ok startpoints
+- Added widget to show comblast and Dgun range (default disabled)
+- Death messages show in white
+- Hid superfluous connection/quit messages in Red Console
+- Fixed not being able to toggle specs in AdvPlList
+- Hotfix for non-waterweapons trying to shoot underwater in 95.0
+- Fixed battlesubs ignoring orders while attacking
+- Fixed rez subs often not being hit
+- Torpedos won't fire at floating mines
+- Increased build time of Commandos mines slightly
+- Nanos default to passive
+
+
 7.83 -> 7.84
 08/11/2013
 
@@ -6,7 +27,6 @@
 - Fixed StartPointAssist and enabled
 - Added NewbiePlacer as modoption 
 - Added support for queueing in Set Target
-- Restored nanoframe reclaim 
 - Made AdvPlList relative to bottom right corner of screen
 - Added TrueSkill column to AdvPlList
 - Fixed Mex Upgrader not working after rejoin
@@ -23,7 +43,6 @@
 - Reduced T1 subs speed slightly
 - Increased Mercury/Screamer aoe, reduced edgeeffectiveness
 - Increased Merl/Diplomat speed, tweaked weapon 
-
 
 
 7.82 -> 7.83
