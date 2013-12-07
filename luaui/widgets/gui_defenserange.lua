@@ -282,74 +282,7 @@ modConfig["XTA"]["color"]["ally"] = modConfig["BA"]["color"]["enemy"]
 --end of custom colors
 --end of XTA
 
--- CA
-modConfig["CA"] = {}
-modConfig["CA"]["unitList"] = 
-							{ 
-								--ARM
-								armamd = { weapons = { 3 } },		--antinuke
-								armrl = { weapons = { 4 } },
-								armllt = { weapons = { 4 } },
-								armhlt = { weapons = { 4 } },
-								armartic = { weapons = { 4 } },
-								armdeva = { weapons = { 4 } },
-								armpb = { weapons = { 4 } },
-								mahlazer = { weapons = { 4 } },
-								
-								armemp = { weapons = { 1 } },
-								mercury = { weapons = { 2 } },
-								
-								armanni = { weapons = { 1 } },
-								armbrtha = { weapons = { 1 } },		--bertha
-								
-								armarch = { weapons = { 2 } },		--packo
-								armcir = { weapons = { 2 } },		--chainsaw
-								
-								armdl = { weapons = { 1 } },
-								
-								armtd = { weapons = { 1 } },		--torpedo launcher
-								armatl = { weapons = { 1 } },		--adv torpedo launcher
-								
-								--CORE
-								corrl = { weapons = { 4 } },
-								corllt = { weapons = { 4 } },
-								corhlt = { weapons = { 4 } },
-								corpre = { weapons = { 4 } },
-								corvipe = { weapons = { 4 } },
-								cordoom = { weapons = { 1, 4 } },
-								cordl = { weapons = { 1 } },		--jellyfish
 
-								corrazor = { weapons = { 2 } },
-								corflak = { weapons = { 2 } },
-								screamer = { weapons = { 2 } },
-
-								cortron = { weapons = { 1 } },
-								
-								corint = { weapons = { 1 } },		--bertha
-								corbhmth = { weapons = { 1 } },		--behemoth
-																
-								corpre = { weapons = { 4 } },		--
-								
-								cortl = { weapons = { 1 } },		--torpedo launcher
-								coratl = { weapons = { 1 } },		--adv torpedo launcher
-																
-								corfmd = { weapons = { 3 } }		--antinuke
-							}
-
---implement this if you want dps-depending ring-colors
---colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
-modConfig["CA"]["armorTags"] = {}
-modConfig["CA"]["armorTags"]["air"] = "planes"
-modConfig["CA"]["armorTags"]["ground"] = "else"
-modConfig["CA"]["dps"] = {}
-modConfig["CA"]["dps"]["ground"] = {}
-modConfig["CA"]["dps"]["air"] = {}
-modConfig["CA"]["dps"]["ground"]["min"] = 90
-modConfig["CA"]["dps"]["ground"]["max"] = 750 --doomsday does 450 and 750
-modConfig["CA"]["dps"]["air"]["min"] = 90
-modConfig["CA"]["dps"]["air"]["max"] = 400 --core flak
---end of dps-colors
---end of CA
 	
 --DEFAULT COLOR CONFIG
 --is used when no game-specfic color config is found in current game-definition
@@ -388,11 +321,17 @@ buttonConfig["currentWidth"] = 0 --do not change
 buttonConfig["nextOrigin"] = {{0,0}, 0, 0, 0, 0} --do not change
 buttonConfig["enabled"] = { ally = { ground = false, air = false, nuke = false }, enemy = { ground = true, air = true, nuke = true } }
 
-buttonConfig["highlightColor"] = { 1.0, 1.0, 0.0, 1.0 }
 buttonConfig["baseColorEnemy"] = { 0.6, 0.0, 0.0, 0.6 }
 buttonConfig["baseColorAlly"] = { 0.0, 0.3, 0.0, 0.6 }
 buttonConfig["enabledColorAlly"] = { 0.0, .80, 0.0, 1.9 }
 buttonConfig["enabledColorEnemy"] = { 1.00, 0.0, 0.0, 0.95 }
+
+local buttonList --glList for drawing buttons
+local rangeCircleList --glList for drawing range circles
+local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should change the alpha/linewidth based on camheight
+
+
+
 
 
 local tooltips = {
@@ -423,6 +362,7 @@ local lineConfig = {}
 lineConfig["lineWidth"] = 1.0 -- calcs dynamic now
 lineConfig["alphaValue"] = 0.0 --> dynamic behavior can be found in the function "widget:Update"
 lineConfig["circleDivs"] = 40.0 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local GL_LINE_LOOP          = GL.LINE_LOOP
@@ -446,6 +386,9 @@ local glVertex              = gl.Vertex
 local glAlphaTest			= gl.AlphaTest
 local glBlending			= gl.Blending
 local glRect				= gl.Rect
+local glCallList		 	= gl.CallList
+local glCreateList			= gl.CreateList
+local glDeleteList			= gl.DeleteList
 
 local huge                  = math.huge
 local max					= math.max
@@ -565,13 +508,12 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local weaponDef
 	
 	if ( #udef.weapons == 0  ) then
-		--not intresting, has no weapons, lame
-		--printDebug("Unit ignored: weaponCount is 0")
+		--not interesting, has no weapons, lame
 		return
 	end
-	--SINCE THIS DOESNT EVEN FUCKING PICK UP MOBILE ANTI's, WHY IS NOT BAILING EARLY ON MOBILE UNITS?
-	if udef.speed and udef.speed  > 0.0001 then 
-		--Spring.Echo('Defense range bailing on unit with no acceleration',udef.name)
+
+	if udef.canMove then 
+		--not interesting, it moves
 		return
 	end
 	
@@ -643,6 +585,8 @@ function UnitDetected( unitID, allyTeam, teamId )
 	printDebug("Adding UnitID " .. unitID .. " WeaponCount: " .. #foundWeapons ) --.. "W1: " .. foundWeapons[1]["type"])
 	defences[unitID] = { allyState = ( allyTeam == false ), pos = {x, y, z}, unitId = unitID }
 	defences[unitID]["weapons"] = foundWeapons
+	
+	UpdateCircleList()
 end
 
 function GetColorsByTypeAndDps( dps, type, isEnemy )
@@ -765,20 +709,26 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:DrawScreen()	
-
-	if spIsGUIHidden() then
-		return
+	if not spIsGUIHidden() then
+		if buttonList then
+			glCallList(buttonList)
+		else
+			UpdateButtonList()
+		end
 	end
-	
-  local mx,my,lmb,mmb,rmb = spGetMouseState()
-  local currButton = GetButton(mx, my)
-  local highlightIndex = (currButton and currButton[1]) or -1
+end
 
+
+function UpdateButtonList()
+  --delete old list
+  if buttonList then
+    glDeleteList(buttonList)
+  end
+
+  --create new list
+  buttonList = glCreateList(function()
+  
   for num, data in pairs(buttons) do
-    local doHighLight = false
-    if (highlightIndex == data[1]) then
-      doHighLight = true
-    end
     local coords = data[3]
     
     local enemy = true
@@ -801,13 +751,16 @@ function widget:DrawScreen()
     	enabled = true
     end
 
-    --DrawButtonGL(data[2], coords[1][1], coords[1][2], coords[2][1], coords[2][2], doHighLight, enemy, enabled)
+    DrawButtonGL(data[2], coords[1][1], coords[1][2], coords[2][1], coords[2][2], enemy, enabled)
   end
-  	
-	ResetGl()
+  
+  ResetGl()
+  
+  end)
+
 end
 
-function DrawButtonGL(text, xmin, ymin, xmax, ymax, highlight, enemy, enabled )
+function DrawButtonGL(text, xmin, ymin, xmax, ymax, enemy, enabled )
 	-- draw button body
 	local bgColor = buttonConfig["baseColorAlly"]
 	if ( enemy ) then
@@ -843,11 +796,7 @@ function DrawButtonGL(text, xmin, ymin, xmax, ymax, highlight, enemy, enabled )
   glTexture(false)
 
    -- draw the outline
-  if (highlight) then
-   	glColor(buttonConfig["highlightColor"])
-  else
-	  glColor(buttonConfig["borderColor"])
-  end
+   glColor(buttonConfig["borderColor"])
   
   local function Draw()
     glVertex(xmin, ymin)
@@ -884,10 +833,12 @@ end
 
 function ButtonAllyPressed(tag)
 	buttonConfig["enabled"]["ally"][tag] = not buttonConfig["enabled"]["ally"][tag]
+	UpdateButtonList()
 end
 
 function ButtonEnemyPressed(tag)
 	buttonConfig["enabled"]["enemy"][tag] = not buttonConfig["enabled"]["enemy"][tag]
+	UpdateButtonList()
 end
 
 function widget:MouseRelease(x, y, button)
@@ -922,8 +873,9 @@ function CheckSpecState()
 		return false
 	end
 	
-	return true	
+	return true
 end
+
 
 function widget:Update()
 	local timef = spGetGameSeconds()
@@ -932,18 +884,25 @@ function widget:Update()
 	if ( (timef - updateTimes["line"]) > 0.2 and timef ~= updateTimes["line"] ) then	
 		updateTimes["line"] = timef
 		
-		--adjust line width and alpha by camera height
+		--adjust line width and alpha by camera height (is this really worth it?!)
 		_, camy, _ = spGetCameraPosition()
-		if ( camy < 700 ) then
+		if ( camy < 700 ) and ( oldcamy >= 700 ) then
+			oldcamy = camy
 			lineConfig["lineWidth"] = 2.0
 			lineConfig["alphaValue"] = 0.25
-		elseif ( camy < 1800 ) then
+			UpdateCircleList()
+		elseif ( camy < 1800 ) and ( oldcamy >= 1800 ) then
+			oldcamy = camy
 			lineConfig["lineWidth"] = 1.5
 			lineConfig["alphaValue"] = 0.3
-		else 
+			UpdateCircleList()
+		elseif ( camy > 1800 ) and ( oldcamy <= 1800 ) then
+			oldcamy = camy
 			lineConfig["lineWidth"] = 1.0
 			lineConfig["alphaValue"] = 0.35
+			UpdateCircleList()
 		end
+		
 	end
 	
 	-- update timers once every <updateInt> seconds
@@ -968,6 +927,7 @@ function widget:Update()
 				if (udefID == nil) then
 					printDebug("Unit killed.")
 					defences[k] = nil
+					UpdateCircleList()
 				end
 			end				
 		end	
@@ -1044,7 +1004,7 @@ function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity
 	end	
 end
 
---hopefully acurate reimplementation of the spring engine's ballistic circle code
+--hopefully accurate reimplementation of the spring engine's ballistic circle code
 function CalcBallisticCircle( x, y, z, range, weaponDef ) 
 	local rangeLineStrip = {}
 	local slope = 0.0
@@ -1162,7 +1122,7 @@ function DrawRanges()
 	local color
 	local range
 	for test, def in pairs(defences) do
-		--Spring.Echo('defrangre drawrranges test',test, #def["weapons"])
+		--Spring.Echo('defrange drawrranges test',test, #def["weapons"])
 		for i, weapon in pairs(def["weapons"]) do
 			local execDraw = false
 			if (false) then --3.9 % cpu, 45 fps
@@ -1213,14 +1173,28 @@ function DrawRanges()
 	glDepthTest(false)
 end
 
-function widget:DrawWorld()
 
-	if spIsGUIHidden() then
-		return
+function UpdateCircleList()
+	--delete old list
+	if rangeCircleList then
+		glDeleteList(rangeCircleList)
 	end
-	DrawRanges()
 	
-	ResetGl()
+	rangeCircleList = glCreateList(function()
+		--create new list
+		DrawRanges()
+		ResetGl()
+	end)
+end
+
+function widget:DrawWorld()
+	if not spIsGUIHidden() then
+		if rangeCircleList then
+			glCallList(rangeCircleList)
+		else
+			UpdateCircleList()
+		end
+	end
 end
 
 -- needed for GetTooltip
