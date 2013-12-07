@@ -111,7 +111,7 @@ end
 ----------------------------------------------------------------
 
 local NoCloseSpawns
-local closeSpawnDist = 300
+local closeSpawnDist = 350
 local mapx = Game.mapX
 local mapz = Game.mapY -- misnomer in API
 local smallmap = (mapx^2 + mapz^2 < 6^2) --TODO: improve this
@@ -207,7 +207,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		local sameTeam = (teamID == otherTeamID)
 		local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
 		local sameAllyTeam = (allyTeamID == otherAllyTeamID)
-		if tooClose and sameAllyTeam and not sameTeam then
+		if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
 			Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another start position")
 			return false
 		end
