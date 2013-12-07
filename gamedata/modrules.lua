@@ -3,7 +3,7 @@ local modrules  = {
   reclaim = {
     multiReclaim  = 1,
     reclaimMethod = 0,
-	unitMethod = 0,
+	unitMethod = 1,
   },
 
 
