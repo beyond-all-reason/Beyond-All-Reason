@@ -49,20 +49,6 @@ SweetSpot(piecenum)
 
 AimPrimary(heading,pitch)
 {
-    signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
- 	while( 255 > heading )
-	{
-		set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
-		heading = heading + 1000;
-		sleep 1;
-	}
-	while( heading > 255 )
-	{
-		set UNKNOWN_UNIT_VALUE(82) to 1000 + get UNKNOWN_UNIT_VALUE(82);
-		heading = heading - 1000;
-		sleep 1;
-	}	
 	return (1);
 }
 
