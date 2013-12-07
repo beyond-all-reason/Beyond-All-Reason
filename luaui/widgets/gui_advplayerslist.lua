@@ -956,7 +956,7 @@ function widget:DrawScreen()
 	if MainList then
 		gl_CallList(MainList)
 	else
-		CreateMainLIst()
+		CreateMainList()
 	end
 
 	-- draws share energy/metal sliders
