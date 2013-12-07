@@ -208,7 +208,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
 		local sameAllyTeam = (allyTeamID == otherAllyTeamID)
 		if tooClose and sameAllyTeam and not sameTeam then
-			Spring.SendMessageToPlayer(playerID,"You cannot place your start position to close to another start position")
+			Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another start position")
 			return false
 		end
 	end
