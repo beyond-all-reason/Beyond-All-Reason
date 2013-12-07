@@ -925,7 +925,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	-- decides when to updates lists 
+	-- update lists frequently if there is mouse interaction
 	local NeedUpdate = false 
 	local mouseX,mouseY = Spring_GetMouseState()
 	if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
@@ -938,34 +938,32 @@ function widget:DrawScreen()
 		end
 	end
 	
-	if NeedUpdate then
-
-		--Spring.Echo(GameFrame)
 	
-		--local vOffset                 = 0         -- position of the next object to draw
-		--local firstDrawnPlayer, firstEnemy, previousAllyTeam = true, true, nil
-			
+	if NeedUpdate then
+		--Spring.Echo("DS APL update")			
 		CreateLists()
 		PrevGameFrame = GameFrame
-	else
-	if (not Background) then CreateBackground() end
-	if (not MainList) then CreateMainList() end
-	if (not ShareSlider) then CreateShareSlider() end
 	end
 	
 	-- draws the background
 	if Background then
 		gl_CallList(Background)
+	else
+		CreateBackground()
 	end
 	
 	-- draws the main list
 	if MainList then
 		gl_CallList(MainList)
+	else
+		CreateMainLIst()
 	end
 
 	-- draws share energy/metal sliders
 	if ShareSlider then
 		gl_CallList(ShareSlider)
+	else
+		CreateShareSlider()
 	end
 end
 
@@ -2160,7 +2158,7 @@ end
 		
 --timers
 local timeCounter = 0
-local updateRate = 0.5
+local updateRate = 1
 local lastTakeMsg = -120
 
 function widget:Update(delta) --handles takes & related messages 
@@ -2200,6 +2198,7 @@ function widget:Update(delta) --handles takes & related messages
 		end
 	end
 	
+	-- update lists every now and then, just to make sure
 	if timeCounter < updateRate then
 		return
 	else
