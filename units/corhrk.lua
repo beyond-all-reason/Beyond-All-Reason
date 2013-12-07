@@ -103,7 +103,7 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:STARFIRE",
 				firestarter = 100,
-				flighttime = 6.2,
+				flighttime = 6.6,
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				metalpershot = 0,
