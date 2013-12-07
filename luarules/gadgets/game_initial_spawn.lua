@@ -177,8 +177,8 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
-	local _,_,_,teamID,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
-	if not teamID or not allyteamID then return false end
+	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
+	if not teamID or not allyTeamID then return false end
 	
 	-- NewbiePlacer
 	if NewbiePlacer then
@@ -188,8 +188,8 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	
 	-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
 	if readyState ~= 2 then
-		if allyteamID == nil then return false end
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyteamID)
+		if allyTeamID == nil then return false end
+		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 		if xmin>=xmax or zmin>=zmax then 
 			return true 
 		else
@@ -208,7 +208,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
 		local sameAllyTeam = (allyTeamID == otherAllyTeamID)
 		if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
-			Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another start position")
+			Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another player")
 			return false
 		end
 	end
