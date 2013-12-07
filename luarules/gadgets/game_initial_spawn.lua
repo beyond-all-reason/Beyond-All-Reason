@@ -64,7 +64,7 @@ local walkRadius = 250*3 -- the radius outside of the startbox that we regard as
 local startPointTable = {} --temporary, only for use within this gadget
 
 ----------------------------------------------------------------
--- NewbiePlacer
+-- NewbiePlacer (modoption)
 ----------------------------------------------------------------
 
 --Newbie Placer (prevents newbies from choosing their own a startpoint and faction)
@@ -106,6 +106,20 @@ function isNewbie(teamID)
 	return isNewbie
 end
 
+----------------------------------------------------------------
+-- NoCloseSpawns (modoption)
+----------------------------------------------------------------
+
+local NoCloseSpawns
+local closeSpawnDist = 300
+local mapx = Game.mapX
+local mapz = Game.mapY -- misnomer in API
+local smallmap = (mapx^2 + mapz^2 < 6^2) --TODO: improve this
+if (tonumber(Spring.GetModOptions().mo_no_close_spawns) or 1) and (Game.startPosType ~= 2) and smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
+	NoCloseSpawns = true
+else
+	NoCloseSpawns = false
+end
 
 
 ----------------------------------------------------------------
@@ -166,7 +180,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	local _,_,_,teamID,allyteamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if not teamID or not allyteamID then return false end
 	
-	-- no placing by 'newbies'
+	-- NewbiePlacer
 	if NewbiePlacer then
 		if not processedNewbies then return false end
 		if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then return false end
@@ -185,10 +199,23 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 			end
 		end
 	end
+	
+	-- NoCloseSpawns
+	for otherTeamID,startpoint in pairs(startPointTable) do
+		local sx,sz = startpoint[1],startpoint[2]
+		local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
+		local sameTeam = (teamID == otherTeamID)
+		local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
+		local sameAllyTeam = (allyTeamID == otherAllyTeamID)
+		if tooClose and sameAllyTeam and not sameTeam then
+			Spring.SendMessageToPlayer(playerID,"You cannot place your start position to close to another start position")
+			return false
+		end
+	end
 		
 	-- record table of starting points for startpoint assist to use
 	if readyState == 2 then 
-		startPointTable[teamID]={-3*claimRadius,-3*claimRadius} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother the placing guesser
+		startPointTable[teamID]={-3*claimRadius,-3*claimRadius} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother anything else
 	else		
 		startPointTable[teamID]={x,z} --player placed startpoint (may or may not have clicked ready)
 	end	
