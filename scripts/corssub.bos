@@ -14,8 +14,6 @@ static-var  gun_1;
 Create()
 {
 	gun_1 = door1;
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 StartMoving()
@@ -35,22 +33,8 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
-AimPrimary(heading,pitch)
+AimPrimary(heading, pitch)
 {
-    signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
- 	while( 255 > heading )
-	{
-		set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
-		heading = heading + 1000;
-		sleep 1;
-	}
-	while( heading > 255 )
-	{
-		set UNKNOWN_UNIT_VALUE(82) to 1000 + get UNKNOWN_UNIT_VALUE(82);
-		heading = heading - 1000;
-		sleep 1;
-	}	
 	return (1);
 }
 
