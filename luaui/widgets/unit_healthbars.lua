@@ -41,9 +41,9 @@ local drawFeatureHealth  = true
 local featureTitlesAlpha = featureBarAlpha * titlesAlpha/barAlpha
 local featureHpThreshold = 0.85
 
-local infoDistance = 250000 --max squared distance at which text it drawn for healthbars
-local  maxFeatureInfoDistance = 150000 --max squared distance at which text it drawn for features
-local maxFeatureDistance = 250000 --max squared distance at which any info is drawn for features
+local infoDistance = 300000 --max squared distance at which text it drawn for healthbars
+local maxFeatureInfoDistance = 300000 --max squared distance at which text it drawn for features
+local maxFeatureDistance = 900000 --max squared distance at which any info is drawn for features
 local maxUnitDistance = 9000000 --max squared distance at which any info is drawn for units  MUST BE LARGER THAN FOR FEATURES!
 
 local minReloadTime = 4 --// in seconds
