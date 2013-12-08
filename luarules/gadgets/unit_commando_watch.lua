@@ -23,7 +23,7 @@ end
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
 local COMMANDO = UnitDefNames["commando"].id
-local MINE2 = UnitDefNames["cormine2"].id
+local MINE2 = UnitDefNames["cormine4"].id
 local MINE_BLAST = {}
 MINE_BLAST[WeaponDefNames["mine_light"].id] = true
 MINE_BLAST[WeaponDefNames["mine_medium"].id] = true
