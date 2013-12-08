@@ -146,7 +146,7 @@ local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,gy --keep memory always allo
 
 
 local function SetTeamColor(teamID,playerID,a)
-	color = teamColors[teamID]
+	color = teamColors[playerID]
 	if color then
 		glColor(color[1],color[2],color[3],color[4]*a/numTrails)
 		return
@@ -160,7 +160,7 @@ local function SetTeamColor(teamID,playerID,a)
 	elseif r and g and b then
 		color = {r, g, b, 0.75}
 	end
-	teamColors[teamID] = color
+	teamColors[playerID] = color
 	glColor(color)
 	return
 end
@@ -175,7 +175,7 @@ function widget:PlayerChanged(playerID)
 	elseif r and g and b then
 		color = {r, g, b, 0.75}
 	end
-	teamColors[teamID] = color
+	teamColors[playerID] = color
 end
 
 
