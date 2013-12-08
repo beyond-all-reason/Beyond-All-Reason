@@ -34,7 +34,7 @@ function gadget:GameFrame(n)
 				local sqrSpeed = (x-prevPos[unitID][1])^2+(y-prevPos[unitID][2])^2+(z-prevPos[unitID][3])^2
 				local sqrMaxSpeed = (reg*maxSpeeds[unitID]/30)^2 -- /30 because ud.speed comes in elmos 'per second' = 30 frames
 				--Spring.Echo(math.sqrt(sqrSpeed), math.sqrt(sqrMaxSpeed))
-				if (0.9)^2*sqrSpeed >= sqrMaxSpeed then 
+				if (0.9)^2*sqrSpeed >= sqrMaxSpeed and Spring.ValidUnitID(unitID) then 
 					Spring.SetUnitVelocity(unitID,0,0,0)
 				end
 			end
