@@ -1,3 +1,12 @@
+7.86 -> 7.87
+08/12/2013
+
+- Fixed Ally Cursors spec colour
+- Fixed Commandos mine detonation
+- Fixed Depthcharge Launcher firing at land
+- Fixed rez progress bars sometimes not showing
+
+
 7.85 -> 7.86
 07/12/2013
 
