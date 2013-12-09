@@ -26,7 +26,7 @@ end
 
 local sendPacketEvery		= 0.8
 local numMousePos			= 2 --//num mouse pos in 1 packet
-local numTrails				= 2
+local numTrails				= 2 --//must be >= 1
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ end
 local teamColors = {}
 local color
 local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,gy --keep memory always allocated for these since they are referenced so frequently
-
+local notIdle = {}
 
 local function SetTeamColor(teamID,playerID,a)
 	color = teamColors[playerID]
@@ -179,6 +179,7 @@ function widget:PlayerChanged(playerID)
 end
 
 
+
 function widget:DrawWorldPreUnit()
 	glDepthTest(GL_ALWAYS)
 	glTexture('LuaUI/Images/AlliedCursors.png')
@@ -189,7 +190,7 @@ function widget:DrawWorldPreUnit()
 		for n=0,numTrails do
 			wx,wz = data[1],data[2]
 			lastUpdatedDiff = time-data[#data-2] + 0.025 * n
-
+			
 			if (lastUpdatedDiff<sendPacketEvery) then
 				scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
 				iscale = min(floor(scale),numMousePos-1)
@@ -197,12 +198,26 @@ function widget:DrawWorldPreUnit()
 				wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
 				wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
 			end
-
-			gy = GetGroundHeight(wx,wz)
-			if (IsSphereInView(wx,gy,wz,QSIZE)) then
-				SetTeamColor(teamID,playerID,n)
-				glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
+			
+			if notIdle[playerID] then
+				--draw a cursor
+				gy = GetGroundHeight(wx,wz)
+				if (IsSphereInView(wx,gy,wz,QSIZE)) then
+					SetTeamColor(teamID,playerID,n)
+					glBeginEnd(GL_QUADS,DrawGroundquad,wx,gy,wz)
+				end
+			else
+				--mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
+				if (n~=0) and wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
+					notIdle[playerID] = true
+					wx_old = nil
+					wz_old = nil
+				else
+					wx_old = wx
+					wz_old = wz
+				end
 			end
+			
 		end
 	end
 
