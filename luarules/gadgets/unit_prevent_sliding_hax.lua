@@ -28,9 +28,10 @@ end
 function gadget:GameFrame(n)
 	if n % reg == 0 then
 		for unitID,playerID in pairs(directControlUnits) do
+			
 			--check its not travelling to fast & stop it dead if so
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			if prevPos[unitID] then
+			if x and prevPos[unitID] then
 				local sqrSpeed = (x-prevPos[unitID][1])^2+(y-prevPos[unitID][2])^2+(z-prevPos[unitID][3])^2
 				local sqrMaxSpeed = (reg*maxSpeeds[unitID]/30)^2 -- /30 because ud.speed comes in elmos 'per second' = 30 frames
 				--Spring.Echo(math.sqrt(sqrSpeed), math.sqrt(sqrMaxSpeed))
@@ -42,7 +43,7 @@ function gadget:GameFrame(n)
 			
 			--check if still in fps mode
 			local uID = Spring.GetPlayerControlledUnit(playerID)
-			if unitID ~= uID then
+			if unitID ~= uID or (not Spring.ValidUnitID(unitID)) then
 				directControlUnits[unitID] = nil
 				prevPos[unitID] = nil
 				maxSpeeds[unitID] = nil
