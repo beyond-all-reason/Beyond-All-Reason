@@ -22,7 +22,6 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 
 	if (unitDefID == COMMANDO) then		
 		local x,y,z = SpGetUnitVelocity(transportID)
-		Spring.Echo(x,y,z)
 		if x > 10 then x = 10 elseif x <- 10 then x = -10 end -- 10 is well above 'normal' airtrans velocity
 		if z > 10 then z = 10 elseif z <- 10 then z = -10 end		
 		SpSetUnitVelocity(unitID, x, y,z)

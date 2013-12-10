@@ -1,5 +1,5 @@
 7.87 -> 7.88
-01/12/2013
+10/12/2013
 
 - Fixed error spam from prevent_sliding 
 - Ally Cursors doesn't show idle cursors
