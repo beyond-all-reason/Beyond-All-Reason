@@ -1,3 +1,10 @@
+7.87 -> 7.88
+01/12/2013
+
+- Fixed error spam from prevent_sliding 
+- Ally Cursors doesn't show idle cursors
+- Fixed comgate
+
 7.86 -> 7.87
 08/12/2013
 
