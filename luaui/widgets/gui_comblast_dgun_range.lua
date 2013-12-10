@@ -167,6 +167,11 @@ function widget:GameFrame(n)
 				draw = false
 			end
 			comCenters[unitID] = {x,y,z,draw}
+		else
+			--couldn't get position, check if its still a unit 
+			if not spValidUnitID(unitID) then
+				removeCom(unitID)
+			end
 		end
 	end	
 end
