@@ -218,13 +218,12 @@ function widget:DrawWorldPreUnit()
   glPolygonOffset(false)
 
   --
-  -- Blink the selected units
+  -- Mark selected units 
   --
 
   glDepthTest(false)
 
-  local diffTime = spDiffTimers(spGetTimer(), startTimer)
-  local alpha = 1.8 * math.abs(0.5 - (diffTime * 3.0 % 1.0))
+  local alpha = 0.3
   glColor(1, 1, 1, alpha)
 
   for _,unitID in ipairs(spGetSelectedUnits()) do
@@ -235,11 +234,11 @@ function widget:DrawWorldPreUnit()
         local x, y, z = spGetUnitBasePosition(unitID)
         local gx, gy, gz = spGetGroundNormal(x, z)
         local degrot = math.acos(gy) * 180 / math.pi
-        glDrawListAtUnit(unitID, circleLines, false,
+        glDrawListAtUnit(unitID, circlePolys, false,
                          radius, 1.0, radius,
                           degrot, gz, 0, -gx)
       else
-        glDrawListAtUnit(unitID, circleLines, false,
+        glDrawListAtUnit(unitID, circlePolys, false,
                          radius, 1.0, radius)
       end
     end
