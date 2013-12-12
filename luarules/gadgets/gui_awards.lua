@@ -49,7 +49,7 @@ local econUnitDefIDs = { --better to hardcode these since its complicated to pic
 
 
 function gadget:GameStart()
-	--make table of teams eligable for awards
+	--make table of teams eligible for awards
 	local allyTeamIDs = Spring.GetAllyTeamList()
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	for i=1,#allyTeamIDs do
@@ -59,12 +59,24 @@ function gadget:GameStart()
 			local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= "")
 			local isGaiaTeam = (teamIDs[j] == gaiaTeamID)
 			if ((not isAiTeam) and (not isLuaAi) and (not isGaiaTeam)) then
-				local playerIDs = Spring.GetPlayerList(teamIDs[j])	
-				present[teamIDs[j] ] = true
-				teamInfo[teamIDs[j] ] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, present=true,}
-				coopInfo[teamIDs[j] ] = {players=#playerIDs,}
+				local playerIDs = Spring.GetPlayerList(teamIDs[j])
+				local numPlayers = 0
+				for _,playerID in pairs(playerIDs) do
+					local _,_,isSpec = Spring.GetPlayerInfo(playerID) 
+					if not isSpec then 
+						numPlayers = numPlayers + 1
+					end
+				end
+				
+				if numPlayers > 0 then
+					present[teamIDs[j]] = true
+					teamInfo[teamIDs[j]] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, present=true,}
+					coopInfo[teamIDs[j]] = {players=numPlayers,}
+				else
+					present[teamIDs[j]] = false
+				end
 			else
-				present[teamIDs[j] ] = false
+				present[teamIDs[j]] = false
 			end
 		end
 	end
