@@ -132,13 +132,24 @@ end
 
 
 function gadget:GameOver()
-	--get stuff from engine stats
+	--calculate average damage dealt
+	local avgTeamDmg = 0 
+	local numTeams = 0
+	for teamID,_ in pairs(teamInfo) do
+		local cur_max = Spring.GetTeamStatsHistory(teamID)
+		local stats = Spring.GetTeamStatsHistory(teamID, 0, cur_max)
+		avgTeamDmg = avgTeamDmg + stats[cur_max].damageDealt / coopInfo[teamID].players
+		numTeams = numTeams + 1
+	end
+	avgTeamDmg = avgTeamDmg / (math.max(1,numTeams))
+	
+	--get other stuff from engine stats
 	for teamID,_ in pairs(teamInfo) do
 		local cur_max = Spring.GetTeamStatsHistory(teamID)
 		local stats = Spring.GetTeamStatsHistory(teamID, 0, cur_max)
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
-		if teamInfo[teamID].ecoUsed > 5000 and teamInfo[teamID].dmgDealt > 12000 then
+		if teamInfo[teamID].ecoUsed > 5000 and teamInfo[teamID].dmgDealt > 12000  and ((numTeams >= 4) or teamInfo[teamID].dmgDealt > avgTeamDmg) then
 			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].ecoUsed * 100
 		else
 			teamInfo[teamID].dmgRatio = 0
@@ -149,14 +160,15 @@ function gadget:GameOver()
 
 	--take account of coop
 	for teamID,_ in pairs(teamInfo) do
-		if coopInfo[teamID].players == 0 then coopInfo[teamID].players = 1 end --should never happen
 		teamInfo[teamID].ecoDmg = teamInfo[teamID].ecoDmg / coopInfo[teamID].players
 		teamInfo[teamID].fightDmg = teamInfo[teamID].fightDmg / coopInfo[teamID].players
 		teamInfo[teamID].otherDmg = teamInfo[teamID].otherDmg / coopInfo[teamID].players
 		teamInfo[teamID].dmgRec = teamInfo[teamID].dmgRec / coopInfo[teamID].players 
-		--no need to divide dmgRatio since it's a ratio
+		teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgRatio / coopInfo[teamID].players
 	end
-		
+	
+
+	
 	--award awards
 	local ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi = -1,-1,-1,0,0,0
 	local fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi = -1,-1,-1,0,0,0
