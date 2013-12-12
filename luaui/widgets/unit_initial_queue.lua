@@ -406,6 +406,10 @@ end
 ------------------------------------------------------------
 -- Game start
 ------------------------------------------------------------
+
+local comGate = tonumber(Spring.GetModOptions().mo_comgate) or 0 --if comgate is on, all orders are blocked before frame 105
+
+
 function widget:GameFrame(n)
 
 	-- Don't run if we are a spec
@@ -446,7 +450,7 @@ function widget:GameFrame(n)
 			end
 		end
 	end
-	if tasker then
+	if tasker and (comGate~=0 or Spring.GetGameFrame() > 105) then
 		--Spring.Echo("sending queue to unit")
 		for b = 1, #buildQueue do
 			local buildData = buildQueue[b]

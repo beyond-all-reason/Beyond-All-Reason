@@ -19,6 +19,7 @@ if (enabled == 0) then
   return false
 end
 
+--synced
 if (gadgetHandler:IsSyncedCode()) then
 
 local hiddenUnits = {}
@@ -26,15 +27,13 @@ local initdone = false
 local gameStart = false
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
+
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-  if (not gameStart) and (UnitDefs[unitDefID].name == 'armcom') or (UnitDefs[unitDefID].name == 'corcom') then
-    Spring.SetUnitNoDraw(unitID, true)
-    Spring.SetUnitNeutral(unitID, true)
-    Spring.SetUnitNoMinimap(unitID, true)
-	Spring.SetUnitCloak(unitID, 4)
-	Spring.TransferUnit(unitID, gaiaTeamID)
-    hiddenUnits[unitID] = teamID
-  end
+	if (not gameStart) then
+		local x,y,z = Spring.GetUnitPosition(unitID)
+		hiddenUnits[unitID] = {x,y,z,teamID}
+		Spring.SetUnitNoDraw(unitID,true) 
+	end
 end
 
 function gadget:GameFrame(n)
@@ -43,31 +42,29 @@ function gadget:GameFrame(n)
     Spring.Echo("Initializing Commander Gate")   
   end
   if (n == 20) then
-    for _, defs in ipairs(hiddenUnits) do
-      Spring.SpawnCEG("COMGATE",defs.x,defs.y,defs.z,0,0,0)
-      SendToUnsynced("gatesound", Spring.GetUnitTeam(defs.unitID), defs.x, defs.y+90, defs.z)
+    for _,data in pairs(hiddenUnits) do
+		Spring.SpawnCEG("COMGATE",data[1],data[2],data[3],0,0,0)
+		SendToUnsynced("gatesound", data[4], data[1], data[2]+90, data[3])
     end
   end
   if (n == 105) then
-    for unitID, teamID in ipairs(hiddenUnits) do
-	if Spring.ValidUnitID(defs.unitID) then
-		Spring.SetUnitCloak(unitID, false)
-		Spring.TransferUnit(unitID,teamID,false)
-        Spring.SetUnitNoDraw(unitID, false)
-        Spring.SetUnitNeutral(unitID, false)
-        Spring.SetUnitNoMinimap(unitID, false)
-        Spring.SetUnitHealth(unitID, {paralyze=0})
-        Spring.GiveOrderToUnit(unitID, CMD.INSERT, {0, CMD.STOP, CMD.OPT_SHIFT, defs.unitID}, CMD.OPT_ALT)
-      end
+    for unitID,_ in pairs(hiddenUnits) do
+		Spring.SetUnitNoDraw(unitID,false)
     end
     Spring.Echo("Commander Gate Complete")
     gadgetHandler:RemoveGadget()
   end
 end
 
-else
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	local n = Spring.GetGameFrame()
+	if n < 105 then return false end
+	return true
+end
 
-local preloadmodels = (UnitDefNames["corcom"].radius + UnitDefNames["armcom"].radius)
+
+--unsynced
+else
 
 function gadget:Initialize()
   gadgetHandler:AddSyncAction("gatesound", GateSound)
