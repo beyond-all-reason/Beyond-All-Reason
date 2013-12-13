@@ -12,7 +12,7 @@
 
 --DestroyUnit(ID, true, true) will trigger self d explosion, won't leave a wreck but won't cause an explosion either
 --DestroyUnit(ID, true, false) won't leave a wreck but won't cause the self d explosion either
---AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same framce as the trans dies results in a crash.
+--AddUnitDamage (ID, math.huge) makes a normal death explo but leaves wreck. Calling this for the transportee on the same frame as the trans dies results in a crash.
 
 
 function gadget:GetInfo()
