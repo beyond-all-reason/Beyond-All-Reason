@@ -150,7 +150,7 @@ function gadget:GameOver()
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
 		if teamInfo[teamID].ecoUsed > 5000 and teamInfo[teamID].dmgDealt > 12000  and ((numTeams <= 4) or teamInfo[teamID].dmgDealt > avgTeamDmg) then
-			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].ecoUsed * 100
+			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / math.max(1,teamInfo[teamID].ecoUsed) * 100
 		else
 			teamInfo[teamID].dmgRatio = 0
 		end
