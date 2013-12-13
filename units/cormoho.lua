@@ -18,7 +18,6 @@ return {
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylY]],
 		corpse = "DEAD",
-		damagemodifier = 0.25,
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,
 		explodeas = "SMALL_BUILDINGEX",
