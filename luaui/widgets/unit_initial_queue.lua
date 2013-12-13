@@ -48,6 +48,7 @@ local sDef -- UnitDefs[sDefID]
 local selDefID = nil -- Currently selected def ID
 local buildQueue = {}
 local buildNameToID = {}
+local gameStarted = false 
 
 local wl, wt = 500, 300
 local cellRows = {} -- {{bDefID, bDefID, ...}, ...}
@@ -337,6 +338,8 @@ function widget:DrawScreen()
 	gl.PopMatrix()
 end
 function widget:DrawWorld()
+	--don't draw anything once the game has started; after that engine can draw queues itself
+	if gameStarted then return end
 
 	-- Set up gl
 	gl.LineWidth(1.49)
@@ -412,6 +415,10 @@ local comGate = tonumber(Spring.GetModOptions().mo_comgate) or 0 --if comgate is
 
 function widget:GameFrame(n)
 
+	if not gameStarted then
+		gameStarted = true
+	end
+
 	-- Don't run if we are a spec
 	local areSpec = Spring.GetSpectatingState()
 	if areSpec then
@@ -431,32 +438,35 @@ function widget:GameFrame(n)
 	local buildTime = GetQueueBuildTime()
 	Spring.SendCommands("luarules initialQueueTime " .. buildTime)
 	
-	if (n > 10) then
+	if (n == 107) then
 		--Spring.Echo("> Starting unit never spawned !")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
+	
 
-	local tasker
-	-- Search for our starting unit
-	local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
-	for u = 1, #units do
-		local uID = units[u]
-		if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
-			tasker = uID
-			if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
-				--we found our com even if cooping, assing queue to this particular unit
-				break
+	if (comGate==0 or Spring.GetGameFrame() == 106) then --comGate takes up until frame 105
+		local tasker
+		-- Search for our starting unit
+		local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+		for u = 1, #units do
+			local uID = units[u]
+			if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
+				tasker = uID
+				if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
+					--we found our com even if cooping, assigning queue to this particular unit
+					break
+				end
 			end
 		end
-	end
-	if tasker and (comGate~=0 or Spring.GetGameFrame() > 105) then
-		--Spring.Echo("sending queue to unit")
-		for b = 1, #buildQueue do
-			local buildData = buildQueue[b]
-			Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+		if tasker then
+			--Spring.Echo("sending queue to unit")
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+			end
+			widgetHandler:RemoveWidget(self)
 		end
-		widgetHandler:RemoveWidget(self)
 	end
 end
 
