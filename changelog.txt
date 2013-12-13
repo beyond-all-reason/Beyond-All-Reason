@@ -1,3 +1,13 @@
+s7.88 -> 7.89
+13/12/2013
+
+- Removed closed damage mods for core t1/t2 Mex (not Moho Exploiter)
+- Remade Eradicator/Chainsaw weapon
+- Fixed player 0 not recieving some awards
+- Effectiveness award requires greater than average damage dealt
+- Made Team Platter less annoying
+- Various minor fixes
+
 7.87 -> 7.88
 10/12/2013
 
