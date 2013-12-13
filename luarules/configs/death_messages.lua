@@ -447,6 +447,14 @@ messages = {
 	"XX tried to cross the Ford river and it's oxen died",
 	"XX put the 'grrr' into swinger baby! Yeah!",
 	"XX was travelling through Dallas in an open-topped limousine",
+	"XX had a beef train shunted into its tuna station",
+	"XX is a lumberjack and he's ok",
+	"XX got rodgered by a Hippo",
+	"XX should have taken the blue pill",
+	"XX will be placed in solitary confinement",
+	"XX would like some sodium thiopental, please",
+	"XX impaled itself on a curling iron",
+	"XX fell into a vat of steaming porridge",
 }
 
 
