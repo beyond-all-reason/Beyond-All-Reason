@@ -16,6 +16,8 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 local SoundIncomingChat  = 'sounds/beep4.wav'
 local SoundIncomingChatVolume = 1.0
 
+local gameOver = false
+
 --todo: dont cut words apart when clipping text 
 
 
@@ -425,6 +427,12 @@ local function processLine(line,g,cfg,newlinecolor)
 		if sfind(line,'AwardsMsg') then
 			ignoreThisMessage = true
 		end	
+		
+		if gameOver then
+			if sfind(line,'left the game') then
+				ignoreThisMessage = true
+			end
+		end
 	end
 	
 	
@@ -655,6 +663,10 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
+end
+
+function widget:GameOver()
+	gameOver = true
 end
 
 function widget:Shutdown()
