@@ -6,10 +6,14 @@ return {
 		buildcostenergy = 11452,
 		buildcostmetal = 156,
 		builddistance = 136,
+		builder = true,
 		buildpic = "CORSPY.DDS",
 		buildtime = 22247,
+		canassist = false,
 		canguard = false,
 		canmove = true,
+		canrepair = false,
+		canrestore = false,
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 50,
 		cloakcostmoving = 100,
@@ -41,6 +45,7 @@ return {
 		stealth = true,
 		turnrate = 1320,
 		upright = true,
+		workertime = 50,
 		featuredefs = {
 			dead = {
 				blocking = true,
