@@ -1,4 +1,12 @@
-s7.88 -> 7.89
+7.89 -> 7.90
+14/12/2013
+
+- Fixed Initial Queue 
+- Increased Buzzsaw/Vulcan buildtime, e per shot
+- Spies can reclaim again, when cloaked default action is move
+- Hid player/spec quit messages after game over
+
+7.88 -> 7.89
 13/12/2013
 
 - Removed closed damage mods for core t1/t2 Mex (not Moho Exploiter)
@@ -22,7 +30,6 @@ s7.88 -> 7.89
 - Fixed Commandos mine detonation
 - Fixed Depthcharge Launcher firing at land
 - Fixed rez progress bars sometimes not showing
-
 
 7.85 -> 7.86
 07/12/2013
