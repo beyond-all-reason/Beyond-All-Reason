@@ -28,7 +28,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 960,
-		maxslope = 32,
+		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Castro",
 		objectname = "CORJAMT",
