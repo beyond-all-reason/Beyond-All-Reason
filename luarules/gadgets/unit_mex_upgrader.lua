@@ -29,6 +29,8 @@ local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc 
 local EditUnitCmdDesc = Spring.EditUnitCmdDesc
 local SendMessageToTeam = Spring.SendMessageToTeam
+local ValidUnitID = Spring.ValidUnitID
+local GetUnitIsDead = Spring.GetUnitIsDead
 
 local builderDefs = {} 
 local mexDefs = {} 
@@ -483,8 +485,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, _)
     
     return false 
   elseif cmdID ~= CMD_AUTOMEX then 
-    if builder and builder.targetMex and getUnitPhase(unitID, teamID) == RECLAIMING then 
-      mexes[teamID][builder.targetMex].assignedBuilder = nil 
+    if builder and builder.targetMex and ValidUnitID(builder.targetMex) and (not GetUnitIsDead(builder.targetMex)) and (getUnitPhase(unitID, teamID) == RECLAIMING) then 
+	  mexes[teamID][builder.targetMex].assignedBuilder = nil 
     end 
     return true 
   end 
