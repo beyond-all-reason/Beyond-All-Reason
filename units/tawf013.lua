@@ -31,6 +31,7 @@ return {
 		name = "Shellshocker",
 		nochasecategory = "VTOL",
 		objectname = "TAWF013",
+		pushResistant = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 364,
