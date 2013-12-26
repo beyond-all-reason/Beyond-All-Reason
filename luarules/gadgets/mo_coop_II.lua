@@ -137,13 +137,13 @@ if gadgetHandler:IsSyncedCode() then
 				local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
 				if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then 
 					Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
-					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint (to be picked up and assigned properly later), don't display anything
+					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
+					return true --because if we don't the cooped players won't appear readied (even though they are) 
 				else
 					SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) --record coop start point, display it
+					return false
 				end
-			end
-			--Spring.Echo('allowstart false',x,z,playerID)
-			return false
+			end		
 		end
 		---Spring.Echo('allowstart true',x,z,playerID)
 		   
