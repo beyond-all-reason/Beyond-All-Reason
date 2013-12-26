@@ -1046,9 +1046,9 @@ end
 --  Game call-ins
 --
 
-function gadgetHandler:GameOver()
+function gadgetHandler:GameOver(winningAllyTeams)
   for _,g in ipairs(self.GameOverList) do
-    g:GameOver()
+    g:GameOver(winningAllyTeams)
   end
   return
 end
