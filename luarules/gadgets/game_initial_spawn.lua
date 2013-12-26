@@ -495,10 +495,12 @@ local amNewbie
 
 --set my readystate to true if i am a newbie
 function gadget:GameSetup(state,ready,playerStates)
-	if (not ready) then 
+	Spring.Echo(myPlayerID,state,ready)
+	if not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie then 
-			return true, true 
+		Spring.Echo(myPlayerID,amNewbie)
+		if amNewbie then
+			return true, true --first param controls whether to hide the gamestart interface, second says whether or not you are ready
 		end
 	end
 end

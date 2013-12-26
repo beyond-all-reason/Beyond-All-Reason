@@ -211,7 +211,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		--Spring.Echo("MCreal",teamID,x,z)
+		Spring.Echo("MCreal",teamID,x,z)
 	
 		--create
 		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
