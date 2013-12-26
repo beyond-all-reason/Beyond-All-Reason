@@ -131,7 +131,7 @@ function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 
-function gadget:GameOver()
+function gadget:GameOver(winningAllyTeams)
 	--calculate average damage dealt
 	local avgTeamDmg = 0 
 	local numTeams = 0
@@ -149,7 +149,7 @@ function gadget:GameOver()
 		local stats = Spring.GetTeamStatsHistory(teamID, 0, cur_max)
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
-		if teamInfo[teamID].ecoUsed > 5000 and teamInfo[teamID].dmgDealt > 12000  and ((numTeams <= 4) or teamInfo[teamID].dmgDealt > avgTeamDmg) then
+		if true then --teamInfo[teamID].ecoUsed > 5000 and teamInfo[teamID].dmgDealt > 12000  and ((numTeams <= 4) or teamInfo[teamID].dmgDealt > avgTeamDmg) then
 			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / math.max(1,teamInfo[teamID].ecoUsed) * 100
 		else
 			teamInfo[teamID].dmgRatio = 0
@@ -251,13 +251,30 @@ function gadget:GameOver()
 		end
 	end	
 	
+	--is the cow awarded?
+	local cowAward = -1
+	if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 then --check if some team got all the awards
+		if winningAllyTeams and winningAllyTeams[1] then
+			local won = false
+			local _,_,_,_,_,cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward)
+			for _,allyTeamID in pairs(winningAllyTeams) do
+				if cowAllyTeamID == allyTeamID then --check if this team won the game
+					cowAward = ecoKillAward 
+					break
+				end
+			end
+		end
+	end
+
+	
 	--tell unsynced
 	SendToUnsynced("RecieveAwards", ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
 									fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 
 									effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 
 									ecoAward, ecoScore, 
 									dmgRecAward, dmgRecScore, 
-									sleepAward, sleepScore)
+									sleepAward, sleepScore,
+									cowAward)
 	
 end
 
@@ -292,7 +309,6 @@ local bx,by --coords for top left hand corner of box
 local w = 800 
 local h = 500
 
-local cow = false
 local Background
 local FirstAward
 local SecondAward
@@ -345,7 +361,8 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 
 						ecoAward, ecoScore, 
 						dmgRecAward, dmgRecScore, 
-						sleepAward, sleepScore)
+						sleepAward, sleepScore,
+						cowAward)
 
 	--fix geometry
 	local vsx,vsy = Spring.GetViewGeometry()
@@ -359,12 +376,9 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
-	if (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 then
-		cow = true
-		cowAward = ecoKillAward or -1
+	if cowAward ~= -1 then
 		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400) 	
 	else
-		cowAward = -1
 		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400)		
 	end
 	drawAwards = true
@@ -563,7 +577,7 @@ function DrawScreen()
 		glCallList(ThirdAward)
 	end
 	
-	if cow and CowAward then
+	if CowAward then
 		glCallList(CowAward)
 	elseif OtherAwards then
 		glCallList(OtherAwards)
