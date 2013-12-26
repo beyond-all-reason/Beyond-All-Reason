@@ -271,7 +271,6 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local y = spGetGroundHeight(x,z)
 	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID) 
 	teamStartPoints[teamID] = {x,y,z}
-	Spring.Echo("IS:",teamID,x,z)
 	
 	--team storage is set up in basecontent gadget
 end

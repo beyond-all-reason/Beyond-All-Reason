@@ -193,12 +193,12 @@ if gadgetHandler:IsSyncedCode() then
 			if GG.teamStartPoints then
 				tx = GG.teamStartPoints[teamID][1]
 				tz = GG.teamStartPoints[teamID][3]
-				Spring.Echo("MC",teamID,tx,tz)
 			else
 				tx = (xmin+xmax)/2
 				tz = (zmin+zmax)/2
 			end
-			for theta = 0,15 do
+			local thetaStart = math.random(15)-1
+			for theta = thetaStart,15+thetaStart do
 				local sx = tx + 45*math.cos((math.pi/8)*theta)
 				local sz = tz + 45*math.sin((math.pi/8)*theta)
 				if not IsSteep(sx,sz) then
@@ -211,7 +211,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		Spring.Echo("MCreal",teamID,x,z)
 	
 		--create
 		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
