@@ -24,6 +24,9 @@ if gadgetHandler:IsSyncedCode() then
 	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z}, also acts as is-player-a-coop-player
 	GG.coopStartPoints = coopStartPoints -- Share to other gadgets
 	
+	local armcomDefID = UnitDefNames.armcom.id
+	local corcomDefID = UnitDefNames.corcom.id
+	
 	----------------------------------------------------------------
 	-- Setting up
 	----------------------------------------------------------------
@@ -106,6 +109,7 @@ if gadgetHandler:IsSyncedCode() then
 	
 	
 	function gadget:AllowStartPosition(x, y, z, playerID)
+		
 		--Spring.Echo('allowstart',x,z,playerID)
 		for otherplayerID, startPos in pairs(coopStartPoints) do
 			if startPos[1]==x and startPos[3]==z then
@@ -125,10 +129,18 @@ if gadgetHandler:IsSyncedCode() then
 			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
 			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
 			if x ~= osx or z ~= osz then
-				local bx1, bz1, bx2, bz2 = Spring.GetAllyTeamStartBox(allyID)
-				x = math.min(math.max(x, bx1), bx2)
-				z = math.min(math.max(z, bz1), bz2)
-				SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z)
+				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+				x = math.min(math.max(x, xmin), xmax)
+				z = math.min(math.max(z, zmin), zmax)
+				
+				--NewbiePlacer
+				local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
+				if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then 
+					Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
+					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint (to be picked up and assigned properly later), don't display anything
+				else
+					SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) --record coop start point, display it
+				end
 			end
 			--Spring.Echo('allowstart false',x,z,playerID)
 			return false
@@ -138,17 +150,73 @@ if gadgetHandler:IsSyncedCode() then
 	   return true
 	end
 	
+	function IsSteep(x,z)
+		--check if the position (x,z) is too step to start a commander on or not
+		local mtta = math.acos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety 
+		local a1,a2,a3,a4 = 0,0,0,0
+		local d = 5
+		local y = Spring.GetGroundHeight(x,z)
+		local y1 = Spring.GetGroundHeight(x+d,z)
+		if math.abs(y1 - y) > 0.1 then a1 = math.atan((y1-y)/d) end
+		local y2 = Spring.GetGroundHeight(x,z+d)
+		if math.abs(y2 - y) > 0.1 then a2 = math.atan((y2-y)/d) end
+		local y3 = Spring.GetGroundHeight(x-d,z)
+		if math.abs(y3 - y) > 0.1 then a3 = math.atan((y3-y)/d) end
+		local y4 = Spring.GetGroundHeight(x,z+d)
+		if math.abs(y4 - y) > 0.1 then a4 = math.atan((y4-y)/d) end
+		if math.abs(a1) > mtta or math.abs(a2) > mtta or math.abs(a3) > mtta or math.abs(a4) > mtta then 
+			return true --too steep
+		else
+			return false --ok
+		end	
+	end
+	
 	local function SpawnTeamStartUnit(playerID,teamID, allyID, x, z)
-		local startUnit = Spring.GetTeamRulesParam(teamID, 'startUnit')
+		local startUnit = Spring.GetTeamRulesParam(teamID, 'startUnit') 
 		if GG.playerStartingUnits then --use that player specific start unit if available
 			startUnit = GG.playerStartingUnits[playerID] or startUnit
-		end 
-		if x <= 0 or z <= 0 then --TODO: improve this
-			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
-			x = 0.5 * (xmin + xmax)
-			z = 0.5 * (zmin + zmax)
 		end
+
+		--Newbie Placer chooses random faction for newbies
+		if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or (startUnit==nil) then
+			if math.random() > 0.5 then
+				startUnit = corcomDefID
+			else
+				startUnit = armcomDefID
+			end
+		end
+		
+		--Newbie Placer chooses a start point for newbies (the coop teams start point will have already been set in initial_spawn, just place close to that)
+		if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) or x <= 0 or z <= 0 then --TODO: improve this
+			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+			local tx,tz
+			if GG.teamStartPoints then
+				tx = GG.teamStartPoints[teamID][1]
+				tz = GG.teamStartPoints[teamID][3]
+				Spring.Echo("MC",teamID,tx,tz)
+			else
+				tx = (xmin+xmax)/2
+				tz = (zmin+zmax)/2
+			end
+			for theta = 0,15 do
+				local sx = tx + 45*math.cos((math.pi/8)*theta)
+				local sz = tz + 45*math.sin((math.pi/8)*theta)
+				if not IsSteep(sx,sz) then
+					x = math.max(xmin,math.min(sx,xmax))
+					z = math.max(zmin,math.min(sz,zmax))
+					break
+				else --fallback
+					x=tx
+					z=tz
+				end
+			end
+		end
+		--Spring.Echo("MCreal",teamID,x,z)
+	
+		--create
 		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+		coopStartPoints[playerID] = {x,z}
+		GG.playerStartingUnits[playerID] = startUnit
 		--we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue
 		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end

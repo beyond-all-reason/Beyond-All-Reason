@@ -77,31 +77,34 @@ else
 end
 
 --check if a player is to be considered as a 'newbie', in terms of startpoint placements
-function isNewbie(teamID)
-	if not NewbiePlacer then return false end
-	local playerList = Spring.GetPlayerList(teamID) or {}
-	local playerID, playerRank 
-	for _,pID in pairs(playerList) do
-		local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID) 
-		if not isSpec then
-			playerID = pID 
-			playerRank = tonumber(pRank) or 0
-			break
-		end
-	end
+function isPlayerNewbie(pID)
 	local customtable
-	if playerID then 
-		customtable = select(10,Spring.GetPlayerInfo(playerID)) or {}
-	else
-		customtable = {}
-	end
+	local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID) 
+	playerRank = tonumber(pRank) or 0
+	customtable = select(10,Spring.GetPlayerInfo(pID)) or {}
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
 	local isNewbie
-	if playerRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not enough ts data
+	if pRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not enough ts data
 		isNewbie = true
 	else
 		isNewbie = false
+	end
+	return isNewbie
+end
+
+--a team is a newbie team if it contains at least one newbie player
+function isNewbie(teamID)
+	if not NewbiePlacer then return false end
+	local playerList = Spring.GetPlayerList(teamID) or {}
+	local isNewbie = false
+	for _,playerID in pairs(playerList) do
+		if playerID then
+		local _,_,isSpec,_ = Spring.GetPlayerInfo(playerID) 
+			if not isSpec then
+				isNewbie = isNewbie or isPlayerNewbie(playerID)
+			end
+		end
 	end
 	return isNewbie
 end
@@ -268,6 +271,7 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local y = spGetGroundHeight(x,z)
 	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID) 
 	teamStartPoints[teamID] = {x,y,z}
+	Spring.Echo("IS:",teamID,x,z)
 	
 	--team storage is set up in basecontent gadget
 end
