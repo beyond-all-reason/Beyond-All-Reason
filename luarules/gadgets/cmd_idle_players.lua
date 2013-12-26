@@ -310,7 +310,7 @@ else
 
 	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
 		-- prevent resources to leak to uncontrolled teams
-		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0
+		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
 	end
 
 	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
