@@ -455,6 +455,12 @@ messages = {
 	"XX would like some sodium thiopental, please",
 	"XX impaled itself on a curling iron",
 	"XX fell into a vat of steaming porridge",
+	"XX was wearing the wrong trousers",
+	"XX took a long walk on a short pier",
+	"All the King's horses and all the King's men couldn't but XX together again",
+	"XX got ketchup on its fur burger",
+	"XX couldn't keep its pecker up",
+	"XX wants to be a man, mancub",
 }
 
 

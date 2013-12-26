@@ -180,6 +180,9 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+
+	if Game.startPosType == 3 then return true end --choose before game mode
+
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if not teamID or not allyTeamID then return false end
 	
@@ -245,14 +248,17 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
 
 	--pick location if didn't place
-	if (not startPointTable[teamID]) or (startPointTable[teamID][1] < 0) then
-		-- guess points for the classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
-		x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
-	else
-		--fallback 
-		if (x<=0) or (z<=0) then
-			x = (xmin + xmax) / 2
-			z = (zmin + zmax) / 2
+	local isAIStartPoint = (Game.startPosType == 3) and ((x>0) or (z>0)) --AIs only place startpoints of their own with choose-before-game mode
+	if not isAIStartPoint then
+		if ((not startPointTable[teamID]) or (startPointTable[teamID][1] < 0)) then
+			-- guess points for the classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
+			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
+		else
+			--fallback 
+			if (x<=0) or (z<=0) then
+				x = (xmin + xmax) / 2
+				z = (zmin + zmax) / 2
+			end
 		end
 	end
 	
