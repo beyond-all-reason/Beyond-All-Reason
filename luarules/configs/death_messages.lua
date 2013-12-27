@@ -330,7 +330,7 @@ messages = {
 	"XX fell off its horse",
 	"XX was tarred and feathered",
 	"XX was an evolutionary dead end",
-	"XX went down faster than the titanic",
+	"XX went down faster than the Titanic",
 	"XX was hunted to extinction",
 	"XX was ground up and fed to cattle",
 	"XX was not fit for further existence",
@@ -444,7 +444,7 @@ messages = {
 	"XX needed more hamsters",
 	"XX needed to build more parks and raise taxes",
 	"XX got tasered",
-	"XX tried to cross the Ford river and it's oxen died",
+	"XX tried to cross the Ford river and its oxen died",
 	"XX put the 'grrr' into swinger baby! Yeah!",
 	"XX was travelling through Dallas in an open-topped limousine",
 	"XX had a beef train shunted into its tuna station",
@@ -461,6 +461,7 @@ messages = {
 	"XX got ketchup on its fur burger",
 	"XX couldn't keep its pecker up",
 	"XX wants to be a man, mancub",
+	
 }
 
 
