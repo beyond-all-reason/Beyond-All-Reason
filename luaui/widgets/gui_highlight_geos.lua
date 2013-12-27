@@ -25,6 +25,19 @@ local glDepthTest = gl.DepthTest
 local glCallList = gl.CallList
 local glColor = gl.Color
 local spGetMapDrawMode = Spring.GetMapDrawMode
+local SpGetSelectedUnits = Spring.GetSelectedUnits
+
+local am_geo = UnitDefNames.amgeo.id
+local arm_geo = UnitDefNames.armgeo.id
+local arm_gmm = UnitDefNames.armgmm.id
+local cm_geo = UnitDefNames.cmgeo.id
+local corbhmth_geo = UnitDefNames.corbhmth.id
+local cor_geo = UnitDefNames.corgeo.id
+
+
+
+
+
 
 ----------------------------------------------------------------
 -- Functions
@@ -57,8 +70,9 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
-	
-	if spGetMapDrawMode() == 'metal' then
+    local _, cmdID = Spring.GetActiveCommand()
+	if spGetMapDrawMode() == 'metal' or cmdID == -am_geo or cmdID == -arm_geo or cmdID == -cm_geo
+	or cmdID == -corbhmth_geo or cmdID == -cor_geo or cmdID == -arm_gmm then
 		
 		if not geoDisplayList then
 			geoDisplayList = gl.CreateList(HighlightGeos)
@@ -67,7 +81,7 @@ function widget:DrawWorld()
 		glLineWidth(20)
 		glDepthTest(true)
 		glCallList(geoDisplayList)
-        glColor(1, 1, 1, 1)
+		glColor(1, 1, 1, 1)
 		glLineWidth(1)
 	end
 end
