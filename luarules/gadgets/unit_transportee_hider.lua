@@ -13,6 +13,7 @@ end
 local SetUnitNoDraw			= Spring.SetUnitNoDraw
 local SetUnitNeutral		= Spring.SetUnitNeutral
 local SetUnitStealth		= Spring.SetUnitStealth
+local SetUnitSonarStealth	= Spring.SetUnitSonarStealth
 local GetUnitDefID			= Spring.GetUnitDefID
 local GetUnitPosition 		= Spring.GetUnitPosition
 local GetUnitTransporter 	= Spring.GetUnitTransporter
@@ -73,6 +74,7 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
 	if (not transportDef.springCategories.vtol) then 
 		SetUnitNoDraw(unitID, true)
 		SetUnitStealth(unitID, true)
+		SetUnitSonarStealth(unitID, true)
 	end
 end
 
@@ -86,6 +88,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if (not transportDef.springCategories.vtol) then 
 		SetUnitNoDraw(unitID, false)
 		SetUnitStealth(unitID, false)
+		SetUnitSonarStealth(unitID, false)
 	end
 end
 
