@@ -16,6 +16,7 @@ local finishedResumingPing = 2 --in seconds
 local maxInitialQueueSlack = 120 -- in seconds
 local takeCommand = "take2"
 local minTimeToTake = 10 -- in seconds
+local checkQueueTime = 25 -- in seconds 
 --in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
 minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 
@@ -27,6 +28,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local GetMouseState = Spring.GetMouseState
+	local GetGameSeconds = 	Spring.GetGameSeconds
 
 	local min = math.min
 	local max = math.max
@@ -36,6 +38,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	local lastActionTime = 0
 	local timer = 0
 	local updateTimer = 0
+	local gameStartTime = 0
 	local isIdle = true
 	local updateRefreshTime = 1 --in seconds
 	local initialQueueTime
@@ -65,6 +68,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 			-- allow the user to slack while initial queue is unrolling
 			lastActionTime = timer + initialQueueTime
 		end
+		gameStartTime = timer
 	end
 
 	function WentIdle()
@@ -90,6 +94,31 @@ if ( not gadgetHandler:IsSyncedCode()) then
 			return
 		end
 		updateTimer = 0
+		
+		-- 
+		if checkQueueTime and GetGameSeconds() > checkQueueTime then
+			local playerID = Spring.GetMyPlayerID()
+			local teamID = Spring.GetMyTeamID()
+			local myUnits = Spring.GetTeamUnits(teamID)
+			local queueTime = 0
+			for _,unitID in pairs(myUnits) do
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				local thisQueueTime = 0
+				if UnitDefs[unitDefID].isBuilder then 
+					local buildSpeed = UnitDefs[unitDefID].buildSpeed
+					local buildQueue = Spring.GetRealBuildQueue(unitID) 
+					if buildQueue then
+						for uDID,_ in pairs(buildQueue) do
+							thisQueueTime = thisQueueTime + UnitDefs[uDID].buildTime / buildSpeed
+						end
+					end
+				end
+				queueTime = max(queueTime, thisQueueTime)
+			end
+			lastActionTime = min(max(lastActionTime, timer+queueTime),gameStartTime+maxInitialQueueSlack) --treat this queue as though is was an initial queue
+			checkQueueTime = nil 
+		end
+		
 		-- ugly code to check if the mouse moved since the call-in doesn't work
 		local x,y = GetMouseState()
 		if mx ~= x or my ~= y then
