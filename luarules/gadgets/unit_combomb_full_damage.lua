@@ -1,6 +1,6 @@
 --all we care about is how high the commander is when the COM_BLAST happens
 --this is much simper than checking if the com has just been unloaded from a trans or not, with essentially the same gameplay; coms don't levitate/bounce much
---if the com is more than 10 off the ground, the combaslt damage is reduced. consequence is that COM_BLAST should not be used for anything else 
+--if the com is more than 10 off the ground, the comblast damage is reduced. consequence is that COM_BLAST should not be used for anything else 
 
 function gadget:GetInfo()
   return {
