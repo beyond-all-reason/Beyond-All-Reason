@@ -37,9 +37,6 @@ function gadget:GameFrame(f)
 						Spring.DestroyUnit(unitID)
 				end
 			end
-			if (y>2500) then
-				Spring.DestroyUnit(unitID)
-			end
 		end
 	end
 end
