@@ -272,37 +272,18 @@ local function AddFNode(pos)
 	return true
 end
 
-local function HasWaterWeapon(UnitDefID)
-	local haswaterweapon = false
-	local numweapons = #(UnitDefs[UnitDefID]["weapons"])
-	for j=1, numweapons do
-		local weapondefid = UnitDefs[UnitDefID]["weapons"][j]["weaponDef"]
-		local iswaterweapon = WeaponDefs[weapondefid]["waterWeapon"]
-		if iswaterweapon then haswaterweapon=true end
-	end	
-	return haswaterweapon
-end
 
 local function GetInterpNodes(mUnits)
 		
 	local number = #mUnits
 	local spacing = fDists[#fNodes] / (#mUnits - 1)
 
-	local haswaterweapon = {}
-	for i=1, number do
-		local UnitDefID = spGetUnitDefID(mUnits[i])
-		haswaterweapon[i] = HasWaterWeapon(UnitDefID)
-	end
-	--result of this and code below is that the height of the aimpoint for a unit [i] will be:
-	--(a) on GetGroundHeight(units aimed position), if the unit has a waterweapon
-	--(b) on whichever is highest out of water surface (=0) and GetGroundHeight(units aimed position), if the unit does not have water weapon. 
-	--in BA this must match the behaviour of prevent_range_hax or commands will get modified.
-	
 	local interpNodes = {}
 	
 	local sPos = fNodes[1]
 	local sX = sPos[1]
 	local sZ = sPos[3]
+	local sY=spGetGroundHeight(sX, sZ)
 	local sDist = 0
 	
 	local eIdx = 2
@@ -310,10 +291,8 @@ local function GetInterpNodes(mUnits)
 	local eX = ePos[1]
 	local eZ = ePos[3]
 	local eDist = fDists[2]
-	
-	local sY 
-	if haswaterweapon[1] then sY=spGetGroundHeight(sX, sZ) else sY=math.max(0,spGetGroundHeight(sX,sZ)) end
-	interpNodes[1] = {sX, sY, sZ}
+
+	interpNodes[1] = {sX, sY, sZ}	
 	
 	for n = 1, number - 2 do
 		
@@ -342,8 +321,7 @@ local function GetInterpNodes(mUnits)
 	ePos = fNodes[#fNodes]
 	eX = ePos[1]
 	eZ = ePos[3]
-	local eY 
-	if haswaterweapon[number] then  eY=spGetGroundHeight(eX, eZ) else eY=math.max(0,spGetGroundHeight(eX, eZ)) end
+	eY=spGetGroundHeight(eX, eZ) 
 	interpNodes[number] = {eX, eY, eZ}
 	
 	--DEBUG for i=1,number do Spring.Echo(interpNodes[i]) end
