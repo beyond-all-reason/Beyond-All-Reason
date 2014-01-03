@@ -461,7 +461,12 @@ messages = {
 	"XX got ketchup on its fur burger",
 	"XX couldn't keep its pecker up",
 	"XX wants to be a man, mancub",
-	
+	"XX fell into a vat of toxic waste",
+	"XX wore a spacesuit filled with angry bees",
+	"XX did a Sean Bean",
+	"XX was smashed up by a sonically created power yeti",
+	"XX fell into a wood-chipper",
+	"XX accidentally turned a children's book into three three-hour-long movies",	
 }
 
 
