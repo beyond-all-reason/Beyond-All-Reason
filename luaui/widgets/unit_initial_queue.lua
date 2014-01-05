@@ -498,19 +498,15 @@ function widget:DrawWorld()
         local buildData = buildQueue[b]
         local buildDataId = buildData[1]
         if sDef.id == ARMCOM then
-            Spring.Echo("Arm Com Detected")
             if coreToArm[buildDataId] ~= nil then
                 buildData[1] = coreToArm[buildDataId]
                 buildQueue[b] = buildData
             end
         elseif sDef.id == CORCOM then
-            Spring.Echo("Core Com Detected")
             if armToCore[buildDataId] ~= nil then
                 buildData[1] = armToCore[buildDataId]
                 buildQueue[b] = buildData
             end
-        else
-            Spring.Echo("!!!!")
         end
     end
 
