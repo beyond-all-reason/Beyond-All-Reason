@@ -388,10 +388,10 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 
 	--record who won which awards in chat message (for demo parsing by replays.springrts.com)
 	--make all values positive, as unsigned ints are easier to parse
-	local ecoKillLine    = '\161' .. tostring(1+ecoKillAward) .. '\161' .. tostring(1+ecoKillAwardSec) .. '\161' .. tostring(1+ecoKillAwardThi)  
-	local fightKillLine  = '\162' .. tostring(1+fightKillAward) .. '\162' .. tostring(1+fightKillAwardSec) .. '\162' .. tostring(1+fightKillAwardThi) 
-	local effKillLine    = '\163' .. tostring(1+effKillAward) .. '\163' .. tostring(1+effKillAwardSec) .. '\163' .. tostring(1+effKillAwardThi)
-	local otherLine      = '\164' .. tostring(1+cowAward) .. '\165' ..  tostring(1+ecoAward) .. '\166' .. tostring(1+dmgRecAward) ..'\167' .. tostring(1+sleepAward)
+	local ecoKillLine    = '\161' .. tostring(1+ecoKillAward) .. ':' .. tostring(ecoKillScore) .. '\161' .. tostring(1+ecoKillAwardSec) .. ':' .. tostring(ecoKillScoreSec) .. '\161' .. tostring(1+ecoKillAwardThi) .. ':' .. tostring(ecoKillScoreThi)  
+	local fightKillLine  = '\162' .. tostring(1+fightKillAward) .. ':' .. tostring(fightKillScore) .. '\162' .. tostring(1+fightKillAwardSec) .. ':' .. tostring(fightKillScireSec) .. '\162' .. tostring(1+fightKillAwardThi) .. ':' .. tostring(fightKillScoreThi)
+	local effKillLine    = '\163' .. tostring(1+effKillAward) ..  ':' .. tostring(effKillScore) .. '\163' .. tostring(1+effKillAwardSec) .. ':' .. tostring(effKillScoreSec) .. '\163' .. tostring(1+effKillAwardThi) .. ':' .. tostring(effKillScoreThi)
+	local otherLine      = '\164' .. tostring(1+cowAward) .. '\165' ..  tostring(1+ecoAward) .. ':' .. tostring(ecoScore).. '\166' .. tostring(1+dmgRecAward) .. ':' .. tostring(dmgRecScore) ..'\167' .. tostring(1+sleepAward) .. ':' .. tostring(sleepScore)
 	local awardsMsg = ecoKillLine .. fightKillLine .. effKillLine .. otherLine
 	Spring.SendLuaRulesMsg(awardsMsg)
 end

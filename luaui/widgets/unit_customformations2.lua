@@ -313,7 +313,7 @@ local function GetInterpNodes(mUnits)
 		local nFrac = (reqDist - sDist) / (eDist - sDist)
 		local nX = sX * (1 - nFrac) + eX * nFrac
 		local nZ = sZ * (1 - nFrac) + eZ * nFrac
-		local nY = math.max(0,spGetGroundHeight(nX, nZ)) 
+		local nY = spGetGroundHeight(nX, nZ) 
 		interpNodes[n + 1] = {nX, nY, nZ}
 	end
 	
