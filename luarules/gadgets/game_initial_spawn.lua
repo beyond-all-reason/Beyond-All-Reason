@@ -507,7 +507,7 @@ function gadget:GameSetup(state,ready,playerStates)
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 		if amNewbie then
 			readied = true
-			return true, false --ready up, hide the list of playernames
+			return true, true --ready up
 		end
 	end
 end
@@ -547,11 +547,11 @@ function gadget:Initialize()
 	local lines = 8
 	local width = 650
 
-	local dx = vsx*0.1
-	local dy = vsy-vsy*0.3
 	local gapSize = textSize*1.5
 	local lineHeight = textSize*1.15
 	local height = gaps*gapSize + (lines+1)*lineHeight
+	local dx = vsx*0.5-width/2
+	local dy = vsy*0.5 + height/2
 	local curPos = 0
 	
 	keyInfo = gl.CreateList(function()

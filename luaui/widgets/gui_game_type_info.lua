@@ -84,7 +84,7 @@ function widget:DrawScreen()
 
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
   glPushMatrix()
-  glTranslate((vsx * 0.5), (vsy * 0.31), 0)
+  glTranslate((vsx * 0.5), (vsy * 0.3), 0)
   glScale(1.5, 1.5, 1)
 --  glRotate(30 * math.sin(math.pi * 0.5 * timer), 0, 0, 1)
   if (fh) then
