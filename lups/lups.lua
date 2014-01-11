@@ -663,7 +663,7 @@ local function DrawParticlesOpaque()
   vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
   if (vsx~=oldVsx)or(vsy~=oldVsy) then
     for _,partClass in pairs(fxClasses) do
-      if partClass.ViewResize then partClass.ViewResize(viewSizeX, viewSizeY) end
+      if partClass.ViewResize then partClass.ViewResize(vsx, vsy) end
     end
     oldVsx, oldVsy = vsx, vsy
   end
