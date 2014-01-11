@@ -100,6 +100,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	--Reduces the diameter of default (unspecified) collision volume for 3DO models,
 	--for S3O models it's not needed and will in fact result in wrong collision volume
 	--also handles per piece collision volume definitions
+	--also makes sure subs are underwater
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if (pieceCollisionVolume[UnitDefs[unitDefID].name]) then
 			local t = pieceCollisionVolume[UnitDefs[unitDefID].name]
@@ -123,7 +124,8 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		elseif UnitDefs[unitDefID].model.type=="3do" then
 			local rs, hs, ws
-			if (spGetUnitRadius(unitID)>47 and not UnitDefs[unitDefID].canFly) then
+			local r = spGetUnitRadius(unitID) 
+			if (r>47 and not UnitDefs[unitDefID].canFly) then
 				rs, hs, ws = 0.68, 0.68, 0.68
 			elseif (not UnitDefs[unitDefID].canFly) then
 				rs, hs, ws = 0.75, 0.75, 0.75
@@ -141,11 +143,20 @@ if (gadgetHandler:IsSyncedCode()) then
 			  end
 			end
 			
+			-- set aircraft size 
 			if UnitDefs[unitDefID].canFly and UnitDefs[unitDefID].transportCapacity>0 then
 				spSetUnitRadiusAndHeight(unitID, 16, 16)
 			else
 				spSetUnitRadiusAndHeight(unitID, spGetUnitRadius(unitID)*rs, spGetUnitHeight(unitID)*hs)
 			end
+			
+			-- make sure underwater units are really underwater (need midpoint + model radius <0)
+			local h = spGetUnitHeight(unitID)
+			local wd = UnitDefs[unitDefID].minWaterDepth
+			if UnitDefs[unitDefID].modCategories['underwater'] and wd and wd+r>0 then
+				spSetUnitRadiusAndHeight(unitID, wd-1, h)
+			end
+			
 		end
 	end
 
