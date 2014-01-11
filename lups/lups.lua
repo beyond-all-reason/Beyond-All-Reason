@@ -258,8 +258,7 @@ end
 --------------------------------------------------------------------------------
 
 --// some global vars (so the effects can use them)
-vsx, vsy        = 0,0
-vpx, vpy        = 0,0  --// view pos (only unequal zero, if dualscreen+minimapOnTheLeft)
+vsx, vsy, vpx, vpy = Spring.GetViewGeometry() --// screen pos & view pos (view pos only unequal zero if dualscreen+minimapOnTheLeft)
 LocalAllyTeamID = 0
 thisGameFrame   = 0
 frameOffset     = 0
@@ -663,6 +662,7 @@ local function DrawParticlesOpaque()
   vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
   if (vsx~=oldVsx)or(vsy~=oldVsy) then
     for _,partClass in pairs(fxClasses) do
+	  Spring.Echo(vsx,vsy,viewSizeX,viewSizeY)
       if partClass.ViewResize then partClass.ViewResize(vsx, vsy) end
     end
     oldVsx, oldVsy = vsx, vsy
