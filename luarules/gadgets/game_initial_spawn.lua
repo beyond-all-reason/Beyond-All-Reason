@@ -150,7 +150,7 @@ function gadget:Initialize()
 			else
 				newbieParam = 0
 			end
-			spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, 4) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
+			spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, {public=true}) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
 		end
 	end
 	processedNewbies = true
@@ -168,7 +168,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
 		if not playerIsSpec then
 			playerStartingUnits[playerID] = startUnit
-			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, 1) -- visible to allies 
+			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, {allied=true, public=false}) -- visible to allies 
 			return true
 		end
 	end
@@ -271,7 +271,7 @@ function SpawnTeamStartUnit(teamID, allyID)
 		end
 	end
 	
-	spSetTeamRulesParam(teamID, startUnitParamName, startUnit, 4) -- visible to all (and picked up by advpllist)
+	spSetTeamRulesParam(teamID, startUnitParamName, startUnit, {public=true}) -- visible to all (and picked up by advpllist)
 
 	--spawn starting unit
 	local y = spGetGroundHeight(x,z)
