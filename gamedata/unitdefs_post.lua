@@ -39,6 +39,7 @@ local turninplacebots= {['corck'] = true,
 	
 	
 for name, ud in pairs(UnitDefs) do
+
 	if (ud.maxvelocity) then 
 		ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
 		ud.turninplaceanglelimit = 140
@@ -87,11 +88,21 @@ for name, ud in pairs(UnitDefs) do
 		end
 	end
 
+	-- allow nanos to be transported
 	if (name == 'armnanotc' or name == 'cornanotc') then
-		ud.cantbetransported=false
+		ud.cantbetransported = false
 	end
 	ud.minCollisionSpeed = 0.0
 	
+	-- make all heaps non-rezzable
+	fDefs = ud.featuredefs
+	if fDefs then
+		for fName, fd in pairs(fDefs) do
+			if fd.category == "heaps" then
+				fd["resurrectable"] = false
+			end	
+		end
+	end	
 end
 
 -- Setting collisionvolumetest true for all units
