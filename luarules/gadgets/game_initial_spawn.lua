@@ -150,7 +150,7 @@ function gadget:Initialize()
 			else
 				newbieParam = 0
 			end
-			spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, public) --some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
+			spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, 4) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
 		end
 	end
 	processedNewbies = true
@@ -168,7 +168,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
 		if not playerIsSpec then
 			playerStartingUnits[playerID] = startUnit
-			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, public) --public so as advplayerlist can check faction at GameStart (todo: don't make public until gamestart?)
+			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, 1) -- visible to allies 
 			return true
 		end
 	end
@@ -266,12 +266,12 @@ function SpawnTeamStartUnit(teamID, allyID)
 	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
 		if math.random() > 0.5 then
 			startUnit = corcomDefID
-			spSetTeamRulesParam(teamID, startUnitParamName, corcomDefID)
 		else
 			startUnit = armcomDefID
-			spSetTeamRulesParam(teamID, startUnitParamName, armcomDefID)
 		end
 	end
+	
+	spSetTeamRulesParam(teamID, startUnitParamName, startUnit, 4) -- visible to all (and picked up by advpllist)
 
 	--spawn starting unit
 	local y = spGetGroundHeight(x,z)

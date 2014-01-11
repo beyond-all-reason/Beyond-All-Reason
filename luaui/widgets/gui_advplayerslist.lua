@@ -2161,6 +2161,7 @@ end
 --timers
 local timeCounter = 0
 local updateRate = 1
+local updateRatePreStart = 0.25
 local lastTakeMsg = -120
 
 function widget:Update(delta) --handles takes & related messages 
@@ -2197,6 +2198,17 @@ function widget:Update(delta) --handles takes & related messages
 			reportTake = false
 		else
 			reportTake = false
+		end
+	end
+	
+	-- update lists to take account of allyteam faction changes before gamestart
+	if not curFrame or curFrame <=0 then 
+		if timeCounter < updateRatePreStart then
+			return
+		else
+			timeCounter = 0
+			SetSidePics() --if the game hasn't started, update factions
+			CreateLists()
 		end
 	end
 	
