@@ -481,7 +481,6 @@ function widget:DrawWorld()
 	local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
 	local startChosen = (sx ~= -100)
 	if startChosen then
-
 		-- Correction for start positions in the air
 		sy = Spring.GetGroundHeight(sx, sz)
 

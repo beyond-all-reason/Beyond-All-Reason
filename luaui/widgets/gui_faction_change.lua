@@ -154,8 +154,8 @@ function widget:MousePress(mx, my, mButton)
 			end
 			if newCom then
 				commanderDefID = newCom
-				spSendLuaRulesMsg('\138' .. tostring(commanderDefID))
-				if WG["faction_change"] then
+				spSendLuaRulesMsg('\138' .. tostring(commanderDefID)) -- tell initial_spawn
+				if WG["faction_change"] then -- tell initial_queue
 					WG["faction_change"](commanderDefID)
 				end
 				return true

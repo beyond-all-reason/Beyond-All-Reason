@@ -470,7 +470,7 @@ messages = {
 	"XX was eaten by a gnu",
 	"XX ate all the pies",
 	"XX trod on a mine",
-	"XX was relieved off its duty",
+	"XX was relieved of its duty",
 	"XX went permanently afk",
 	"Colonel Mustard did it in the library with XX",
 	"XX will be donated to charity",

@@ -464,8 +464,9 @@ function widget:GameStart()
 	SortList()
 end
 
-function SetSidePics() --set factions, from TeamRulesParam when possible and from initial info if not
-	
+function SetSidePics() 
+
+	--set factions, from TeamRulesParam when possible and from initial info if not
 	teamList = Spring_GetTeamList()
 	for _, team in ipairs(teamList) do
 		local teamside
@@ -479,6 +480,7 @@ function SetSidePics() --set factions, from TeamRulesParam when possible and fro
 		else
 			_,_,_,_,teamside = Spring_GetTeamInfo(team)
 		end
+	
 		-- first look if there is any image in the mod file for the specific side, then looks in the user files for specific side
 		-- if none of those are found, uses default image and notify the missing image
 		if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside..".png") then
