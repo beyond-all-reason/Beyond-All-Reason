@@ -498,6 +498,8 @@ local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
 local readied = false --make sure we return true,true for newbies at least once
+local vsx,vsy = Spring.GetViewGeometry()
+local keyList --glList for keybind info
 
 --set my readystate to true if i am a newbie
 function gadget:GameSetup(state,ready,playerStates)
@@ -505,24 +507,96 @@ function gadget:GameSetup(state,ready,playerStates)
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 		if amNewbie then
 			readied = true
-			return true, true 
+			return true, false --ready up, hide the list of playernames
 		end
 	end
 end
 
---message when trying to place startpoint but can't
 function gadget:MousePress(sx,sy)
-	if Spring.GetGameFrame() > 0 then 
-		gadgetHandler:RemoveGadget()
-		return
-	end
-	
+	--message when trying to place startpoint but can't
 	if amNewbie then
 		local target,_ = Spring.TraceScreenRay(sx,sy)
 		if target == "ground" then
 			Spring.Echo("In this match, newbies (rank 0) will have a faction and startpoint chosen for them!")
 		end
 	end
+end
+
+function gadget:DrawScreen()
+	--remove if after gamestart
+	if Spring.GetGameFrame() > 0 then 
+		if keyList then 
+			gl.DeleteList(keyList)
+		end
+		gadgetHandler:RemoveGadget()
+		return
+	end
+
+	--draw key bind info for newbies
+	if amNewbie and keyInfo then
+		gl.CallList(keyInfo)
+	end
+end
+
+-- make draw list for newbie info (TODO: for ba:r, transfer to chili)
+function gadget:Initialize()
+	local indent = 15
+	local textSize = 16
+
+	local gaps = 4
+	local lines = 8
+	local width = 650
+
+	local dx = vsx*0.1
+	local dy = vsy-vsy*0.3
+	local gapSize = textSize*1.5
+	local lineHeight = textSize*1.15
+	local height = gaps*gapSize + (lines+1)*lineHeight
+	local curPos = 0
+	
+	keyInfo = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0.1,0.1,.45,0.18)                              
+		gl.Rect(dx-5,dy+textSize, dx+width, dy-height)
+	
+		-- draws black border
+		gl.Color(0,0,0,1)
+		gl.BeginEnd(GL.LINE_LOOP, function()
+			gl.Vertex(dx-5,dy+textSize)
+			gl.Vertex(dx-5,dy-height)
+			gl.Vertex(dx+width,dy-height)
+			gl.Vertex(dx+width,dy+textSize)
+		end)
+		gl.Color(1,1,1,1)
+	
+		-- draws text
+		gl.Text("Welcome to BA! Some useful info:", dx, dy, textSize, "o")
+		curPos = curPos + gapSize
+		gl.Text("Click left mouse and drag to select units.", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("Click the right mouse to move units", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("To give other orders or build commands, use the unit menu and the left mouse", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("Select multiple units and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + gapSize
+		gl.Text("\255\250\250\0Energy\255\255\255\255 comes from solar collectors, wind/tidal generators and fusions", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("\255\20\20\20Metal\255\255\255\255 comes from metal extractors, which should be placed onto metal spots", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("You can also get metal by using constructors to reclaim dead units!", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + gapSize
+		gl.Text("BA has many keybinds", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("Check out the Balanced Annihilation forum on springrts.com for a list of them", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + gapSize	
+		gl.Text("For your first few games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("After that you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + lineHeight
+		gl.Text("Good luck!", dx+indent, dy-curPos, textSize, "o")
+
+	end)
 end
 
 

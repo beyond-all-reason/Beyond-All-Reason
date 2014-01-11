@@ -84,7 +84,7 @@ function widget:DrawScreen()
 
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
   glPushMatrix()
-  glTranslate((vsx * 0.5), (vsy * 0.5) - 50, 0)
+  glTranslate((vsx * 0.5), (vsy * 0.31), 0)
   glScale(1.5, 1.5, 1)
 --  glRotate(30 * math.sin(math.pi * 0.5 * timer), 0, 0, 1)
   if (fh) then
@@ -94,5 +94,9 @@ function widget:DrawScreen()
     glText(msg, 0, 0, 24, "oc")
   end
   glPopMatrix()
+end
+
+function widget:GameOver()
+  widgetHandler:RemoveWidget()
 end
 
