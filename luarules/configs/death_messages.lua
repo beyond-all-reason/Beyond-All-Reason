@@ -467,6 +467,22 @@ messages = {
 	"XX was smashed up by a sonically created power yeti",
 	"XX fell into a wood-chipper",
 	"XX accidentally turned a children's book into three three-hour-long movies",	
+	"XX was eaten by a gnu",
+	"XX ate all the pies",
+	"XX trod on a mine",
+	"XX was relieved off its duty",
+	"XX went permanently afk",
+	"Colonel Mustard did it in the library with XX",
+	"XX will be donated to charity",
+	"XX was struck by a projectile cowpat",
+	"XX fell into a crevasse",
+	"XX was cut into small pieces and encased in concrete",
+	"XX flew low over power lines",
+	"XX fell down a rabbit hole",
+	"XX got its meat skewer stuck in a toaster",
+	"XX got slapped around with a large peewee",
+	"XX was reclassified as an apology",
+	
 }
 
 
