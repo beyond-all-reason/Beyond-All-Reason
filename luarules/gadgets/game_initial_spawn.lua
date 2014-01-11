@@ -168,7 +168,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
 		if not playerIsSpec then
 			playerStartingUnits[playerID] = startUnit
-			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, {allied=true, public=false}) -- visible to allies 
+			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, {allied=true, public=false}) -- visible to allies only, set visible to all on GameStart
 			return true
 		end
 	end

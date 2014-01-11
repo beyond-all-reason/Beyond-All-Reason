@@ -419,14 +419,9 @@ local function processLine(line,g,cfg,newlinecolor)
 	if linetype==0 then
 		--filter out some engine messages; 
 		--2 lines (instead of 4) appears when player connects
-		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') then
+		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
 			ignoreThisMessage = true
 		end
-		
-		--filter out the chatline recorded by gui_awards, that gets picked up by the replay site
-		if sfind(line,'AwardsMsg') then
-			ignoreThisMessage = true
-		end	
 		
 		if gameOver then
 			if sfind(line,'left the game') then
