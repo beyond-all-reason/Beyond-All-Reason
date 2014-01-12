@@ -1,15 +1,24 @@
 7.90 -> 7.91
-??/??/2014
+12/01/2014
 - Improved initial queue detection in Idle Players 
-- Made NewbiePlacer work with Coop
-- Fixed AdvPlList displaying faction change before gamestart
+- Made Newbie Placer work with Coop Mode
+- Added basic 'how to play' info into Newbie Placer
+- Initial Queue switches whole queue on faction change
+- Fixed AdvPlList faction change display before gamestart
 - Fixed AI choose-before-game start positions
-- Fixed crash caused by Set Target eating mem
+- Fixed crash caused by lua mem excess
+- Fixed mex upgrader nil error 
+- Fixed some subs being visible on radar
+- Fixed spawn for asteroid maps
+- Fixed some heaps being rezzable
+- Fixed heap reclaiming
+- Fixed transportees in non-air transports showing radar/sonar blips
+- Fixed ambusher not closing 
 - Warcow is only awarded within the winning team
 - T1 artillery is push resistant
 - T1 jammers can only be built on flat-ish ground
-- Fixed mex upgrader nil error 
-- Transportees of non-air transports don't show radar/sonar blips
+- Reduced shield power, increased regen speed, removed E drain on repulse
+- Increased buildtime of T1 subs, slightly reduced handling
 - Minor updates for Spring 96.0
 
 
