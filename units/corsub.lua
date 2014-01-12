@@ -1,12 +1,12 @@
 return {
 	corsub = {
-		acceleration = 0.04,
+		acceleration = 0.027,
 		activatewhenbuilt = true,
 		brakerate = 0.025,
 		buildcostenergy = 3902,
 		buildcostmetal = 679,
 		buildpic = "CORSUB.DDS",
-		buildtime = 9729,
+		buildtime = 10895,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionVolumeScales		= [[35 17 50]],
@@ -23,7 +23,7 @@ return {
 		idleautoheal = 8 ,
 		idletime = 900 ,
 		maxdamage = 835,
-		maxvelocity = 2.4000000476837,
+		maxvelocity = 2.3,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
 		name = "Snake",

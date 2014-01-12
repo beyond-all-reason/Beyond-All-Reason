@@ -1,12 +1,12 @@
 return {
 	armsub = {
-		acceleration = 0.03,
+		acceleration = 0.025,
 		activatewhenbuilt = true,
 		brakerate = 0.0225,
 		buildcostenergy = 3724,
 		buildcostmetal = 651,
 		buildpic = "ARMSUB.DDS",
-		buildtime = 9894,
+		buildtime = 10983,
 		canmove = true,
 		category = "UNDERWATER ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionVolumeScales		= [[35 17 50]],
@@ -23,7 +23,7 @@ return {
 		idleautoheal = 8 ,
 		idletime = 900 ,
 		maxdamage = 835,
-		maxvelocity = 2.49,
+		maxvelocity = 2.4,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
 		name = "Lurker",
