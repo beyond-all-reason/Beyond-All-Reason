@@ -53,6 +53,12 @@ end
 -- no need to transfer rez % since heaps are not rezzable
 local featuresCreatedThisFrame = {}
 
+function gadget:FeatureCreated(featureID, allyTeamID)
+	--record feature creation
+	--Spring.Echo("created:",featureID)
+	featuresCreatedThisFrame[#featuresCreatedThisFrame+1] = featureID
+end
+
 function gadget:FeatureDestroyed(featureID, allyTeamID)
 	local bpx,bpy,bpz = GetFeaturePosition(featureID)
 	local _,_,_,_, reclaimLeft = GetFeatureResources(featureID)
@@ -60,7 +66,6 @@ function gadget:FeatureDestroyed(featureID, allyTeamID)
 
 	--seek out heap, if one exists
 	local replaceFID
-	local nbpx,nbpy,nbpz 
 	for i=1,#featuresCreatedThisFrame do 
 		local nbpx, nbpy, nbpz = GetFeaturePosition(featuresCreatedThisFrame[i])
 		--Spring.Echo("possible", featuresCreatedThisFrame[i], bpx,bpy,bpz,nbpx,nbpy,nbpz)
@@ -75,12 +80,6 @@ function gadget:FeatureDestroyed(featureID, allyTeamID)
 		SetFeatureReclaim(replaceFID, reclaimLeft)
 	end
 	
-end
-
-function gadget:FeatureCreated(featureID, allyTeamID)
-	--record feature creation
-	--Spring.Echo("created:",featureID)
-	featuresCreatedThisFrame[#featuresCreatedThisFrame+1] = featureID
 end
 
 function gadget:GameFrame()
