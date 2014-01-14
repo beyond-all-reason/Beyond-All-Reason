@@ -2247,7 +2247,6 @@
 		[properties] {
 			sizegrowth=-.2;
 			sizemod=1;
-			size=0.1;
 			pos=-3, -1, 0;
 			emitVector=1, 0, 0;
 			gravity=0, 0, 0;
