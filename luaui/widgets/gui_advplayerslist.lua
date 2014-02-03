@@ -120,8 +120,9 @@ local rank6      = "LuaUI/Images/advplayerslist/Ranks/rank6.png"
 local rank7      = "LuaUI/Images/advplayerslist/Ranks/rank7.png"
 local rank8      = "LuaUI/Images/advplayerslist/Ranks/rank_unknown.png"
 
-local sidePics        = {}  -- loaded in Sem_sidePics function
-local sidePicsWO      = {}  -- loaded in Sem_sidePics function
+local sidePics        = {}  -- loaded in SetSidePics function
+local sidePicsWO      = {}  -- loaded in SetSidePics function
+local originalColourNames ={} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
 --------------------------------------------------------------------------------
 -- Colors
@@ -461,6 +462,7 @@ end
 function widget:GameStart()
 	SetSidePics()
 	InitializePlayers()
+	SetOriginalColourNames()
 	SortList()
 end
 
@@ -632,7 +634,7 @@ end
 
 
 
-function CreatePlayerFromTeam(teamID) --for when we don't have a human player occupying the slot
+function CreatePlayerFromTeam(teamID) -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
 
 	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
@@ -693,6 +695,20 @@ function GetDark(red,green,blue)
 	-- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
 	if red*1.2 + green*1.1 + blue*0.8 < 0.9 then return true end
 	return false
+end
+
+
+function SetOriginalColourNames()
+	-- Saves the original team colours associated to team teamID
+	for playerID,_ in pairs(player) do
+		if player[playerID].name then
+			if player[playerID].spec then
+				originalColourNames[playerID] = "\255\255\255\255"
+			else
+				originalColourNames[playerID] = colourNames(player[playerID].team)
+			end
+		end
+	end
 end
 
 
@@ -1196,7 +1212,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	else -- spectator
 		gl_Color(1,1,1,1)	
 		if m_chat.active == true and m_name.active == true then
-			DrawSmallName(name, posY, false)
+			DrawSmallName(name, posY, false, playerID)
 		end		
 	end
 
@@ -1356,7 +1372,10 @@ function DrawName(name, team, posY, dark)
 	gl_Color(1,1,1)
 end
 
-function DrawSmallName(name, posY, dark)
+function DrawSmallName(name, posY, dark, playerID)
+	if originalColourNames[playerID] then
+		name = originalColourNames[playerID] .. name
+	end
 	gl_Text(name, m_name.posX + widgetPosX + 3, posY + 3, 12, "o")
 	gl_Color(1,1,1)
 end
