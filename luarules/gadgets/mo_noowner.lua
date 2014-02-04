@@ -43,7 +43,7 @@ function GetTeamIsTakeable(teamID)
 	for _, playerID in pairs(players) do
 		local name, active, spec = GetPlayerInfo(playerID)
 		allResigned = allResigned and spec
-		noneControlling = noneControlling and active and spec
+		noneControlling = noneControlling and not active and spec
 	end
 	return noneControlling, allResigned
 end
