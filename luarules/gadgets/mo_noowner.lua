@@ -19,7 +19,7 @@ end
 
 local enabled = tonumber(Spring.GetModOptions().mo_noowner) or 0
 
-if (enabled == 0) then 
+if (enabled == 0) then
 	return false
 end
 
@@ -30,28 +30,35 @@ local GetTeamUnits = Spring.GetTeamUnits
 local DestroyUnit = Spring.DestroyUnit
 local GetUnitTransporter = Spring.GetUnitTransporter
 local spGetAIInfo = Spring.GetAIInfo
+local GetGameFrame = Spring.GetGameFrame
+local Echo = Spring.Echo
 local deadTeam = {}
 local droppedTeam = {}
 deadTeam[Spring.GetGaiaTeamID()] = true
 
 function GetTeamIsTakeable(teamID)
 	local players = GetPlayerList(teamID)
+	local allResigned = true
+	local noneControlling = true
 	for _, playerID in pairs(players) do
-		local _, active, spec = GetPlayerInfo(playerID)
-		if active and not spec then
-			return false
-		end
+		local name, active, spec = GetPlayerInfo(playerID)
+		allResigned = allResigned and spec
+		noneControlling = noneControlling and active and spec
 	end
-	return true
+	return noneControlling, allResigned
 end
 
 function gadget:TeamDied(teamID)
 	deadTeam[teamID] = true
 end
 
-local function destroyTeam(teamID, nowrecks)
+local function destroyTeam(teamID)
 	local teamUnits = GetTeamUnits(teamID)
-	frame=Spring.GetGameFrame()
+	local frame = GetGameFrame()
+	local nowrecks = false
+	if frame < 30*120 then
+		nowrecks=true
+	end
 	for _, unitID in pairs(teamUnits) do
 		if not GetUnitTransporter(unitID) then
 			if nowrecks then --teams dying before 2 minutes dont leave wrecks
@@ -71,19 +78,21 @@ end
 
 function gadget:GameFrame(n)
 	if ((n % 30) < 1) then
-		for _, teamID in ipairs(GetTeamList()) do
-			Spring.Echo(not deadTeam[teamID], GetTeamIsTakeable(teamID), not spGetAIInfo(teamID))
-			if (not deadTeam[teamID]) and GetTeamIsTakeable(teamID) and (not spGetAIInfo(teamID)) then
-				if (not droppedTeam[teamID]) then
-					if n<30*120 then
-						Spring.Echo("No Owner Mode: Team " .. teamID .. " has 1 minute to reconnect")
-					else 
-						Spring.Echo("No Owner Mode: Team " .. teamID .. " has 3 minutes to reconnect")
+		for _, teamID in pairs(GetTeamList()) do
+			local noneControlling, allResigned = GetTeamIsTakeable(teamID)
+			if not deadTeam[teamID] and noneControlling and not spGetAIInfo(teamID) then
+				if not droppedTeam[teamID] then
+					if allResigned then
+						destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
+					elseif n<30*120 then
+						Echo("No Owner Mode: Team " .. teamID .. " has 1 minute to reconnect")
+					else
+						Echo("No Owner Mode: Team " .. teamID .. " has 3 minutes to reconnect")
 					end
 					droppedTeam[teamID] = n
 				end
 			elseif droppedTeam[teamID] then
-				Spring.Echo("No Owner Mode: Team " .. teamID .. " reconnected")
+				Echo("No Owner Mode: Team " .. teamID .. " reconnected")
 				droppedTeam[teamID] = nil
 			end
 		end
@@ -92,12 +101,8 @@ function gadget:GameFrame(n)
 			if time < 30*120 then
 				graceperiod = 1800 --1 minute grace period for early droppers
 			end
-			if (n - time) > graceperiod then  
-				if time < 30*120 then 
-					destroyTeam(teamID,true) --nowrecks=true
-				else
-					destroyTeam(teamID,false) --nowrecks=false
-				end
+			if (n - time) > graceperiod then
+				destroyTeam(teamID)
 				droppedTeam[teamID] = nil
 			end
 		end
@@ -105,12 +110,8 @@ function gadget:GameFrame(n)
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
-	if deadTeam[newTeam] then
-		return false
-	else
-		return true
-	end
+	return not deadTeam[newTeam]
 end
- 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
