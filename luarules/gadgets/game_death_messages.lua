@@ -90,21 +90,3 @@ function gadget:TeamDied(teamID)
 end
 
 
-function gadget:PlayerChanged(playerID)
-	--send message to others in coop on resign from coop (if the coop team still has players left)
-	--send message to all on resign before game start
-	local name,teamID = Spring.GetPlayerInfo(playerID)
-	if not name or not teamID then return end
-	local team = Spring.GetTeamList(teamID)
-	if not team then return end
-	local frame = Spring.GetGameFrame()
-	
-	
-	local resignedFromCoop = (#(playerListByTeam[teamID]) > 1)
-	local msg = "Player " .. playerID .. " (" .. name .. ") resigned from coop (Team " .. teamID ..")"
-	if not frame or frame==0 then
-		Spring.SendMessage(msg)
-	elseif resignedFromCoop and #team > 0 then
-		Spring.SendMessageToTeam(teamID,msg)
-	end
-end
