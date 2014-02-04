@@ -27,6 +27,17 @@ else
 function gadget:PlayerChanged(playerID)
 	local _,active,spec,teamID = Spring.GetPlayerInfo(playerID)
 	if active and not spec then return end
+	local team = Spring.GetTeamList(teamID)
+	
+	-- check team is empty
+	for _,pID in pairs(team) do
+		_,active,spec = Spring.GetPlayerInfo(pID)
+		if active and not spec then
+			return
+		end
+	end
+	
+	-- cancel any self d orders
 	local units = Spring.GetTeamUnits(teamID)
 	for _,unitID in pairs(units) do
 		  if (Spring.GetUnitSelfDTime(unitID) > 0) then
