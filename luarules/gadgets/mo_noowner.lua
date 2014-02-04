@@ -34,11 +34,11 @@ local deadTeam = {}
 local droppedTeam = {}
 deadTeam[Spring.GetGaiaTeamID()] = true
 
-function GetTeamIsTakeable(team)
-	local players = GetPlayerList(true)
-	for _, player in ipairs(players) do
-		local _, _, _, playerTeam = GetPlayerInfo(player)
-		if (playerTeam == team) then
+function GetTeamIsTakeable(teamID)
+	local players = GetPlayerList(teamID)
+	for _, playerID in pairs(players) do
+		local _, active, spec = GetPlayerInfo(playerID)
+		if active and not spec then
 			return false
 		end
 	end
@@ -49,8 +49,8 @@ function gadget:TeamDied(teamID)
 	deadTeam[teamID] = true
 end
 
-local function destroyTeam(team, nowrecks)
-	local teamUnits = GetTeamUnits(team)
+local function destroyTeam(teamID, nowrecks)
+	local teamUnits = GetTeamUnits(teamID)
 	frame=Spring.GetGameFrame()
 	for _, unitID in pairs(teamUnits) do
 		if not GetUnitTransporter(unitID) then
@@ -62,42 +62,43 @@ local function destroyTeam(team, nowrecks)
 		end
 	end
 	if nowrecks then
-		Spring.Echo("No Owner Mode: Removing Team " .. team)
+		Spring.Echo("No Owner Mode: Removing Team " .. teamID)
 	else
-		Spring.Echo("No Owner Mode: Destroying Team " .. team)
+		Spring.Echo("No Owner Mode: Destroying Team " .. teamID)
 	end
-	deadTeam[team] = true
+	deadTeam[teamID] = true
 end
 
 function gadget:GameFrame(n)
 	if ((n % 30) < 1) then
-		for _, team in ipairs(GetTeamList()) do
-			if (not deadTeam[team]) and GetTeamIsTakeable(team) and (not spGetAIInfo(team)) then
-				if (not droppedTeam[team]) then
+		for _, teamID in ipairs(GetTeamList()) do
+			Spring.Echo(not deadTeam[teamID], GetTeamIsTakeable(teamID), not spGetAIInfo(teamID))
+			if (not deadTeam[teamID]) and GetTeamIsTakeable(teamID) and (not spGetAIInfo(teamID)) then
+				if (not droppedTeam[teamID]) then
 					if n<30*120 then
-						Spring.Echo("No Owner Mode: Team " .. team .. " has 1 minute to reconnect")
+						Spring.Echo("No Owner Mode: Team " .. teamID .. " has 1 minute to reconnect")
 					else 
-						Spring.Echo("No Owner Mode: Team " .. team .. " has 3 minutes to reconnect")
+						Spring.Echo("No Owner Mode: Team " .. teamID .. " has 3 minutes to reconnect")
 					end
-					droppedTeam[team] = n
+					droppedTeam[teamID] = n
 				end
-			elseif droppedTeam[team] then
-				Spring.Echo("No Owner Mode: Team " .. team .. " reconnected")
-				droppedTeam[team] = nil
+			elseif droppedTeam[teamID] then
+				Spring.Echo("No Owner Mode: Team " .. teamID .. " reconnected")
+				droppedTeam[teamID] = nil
 			end
 		end
-		for team,time in pairs(droppedTeam) do
+		for teamID,time in pairs(droppedTeam) do
 			local graceperiod = 5400 --3 minute grace period
 			if time < 30*120 then
 				graceperiod = 1800 --1 minute grace period for early droppers
 			end
 			if (n - time) > graceperiod then  
 				if time < 30*120 then 
-					destroyTeam(team,true) --nowrecks=true
+					destroyTeam(teamID,true) --nowrecks=true
 				else
-					destroyTeam(team,false) --nowrecks=false
+					destroyTeam(teamID,false) --nowrecks=false
 				end
-				droppedTeam[team] = nil
+				droppedTeam[teamID] = nil
 			end
 		end
 	end
