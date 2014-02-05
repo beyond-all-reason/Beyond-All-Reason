@@ -285,6 +285,27 @@ local function UpdateShowList()
 	newBroadcaster = false
 end
 
+local function Order(info1, info2)
+	local pID1 = info1[1]
+	local pID2 = info2[1]
+	local _,_,spec1 = Spring.GetPlayerInfo(pID1)
+	local _,_,spec2 = Spring.GetPlayerInfo(pID2)
+	if spec1 then
+		if spec2 then
+			return (pID2 < pID1)
+		else
+			return true
+		end
+	else
+		if spec2 then
+			return false
+		else
+			return (pID2 < pID1)
+		end
+	end
+
+end
+
 local function UpdateRecentBroadcasters()
 	recentBroadcasters = {}
 	local i = 1
@@ -296,6 +317,8 @@ local function UpdateRecentBroadcasters()
 		end
 	end
 
+	table.sort(recentBroadcasters, Order)
+	
 	if show then
 		UpdateShowList()
 	end
