@@ -136,7 +136,11 @@ function widget:MousePress(x, y, button)
   local cs = spGetCameraState()
   if (blockModeSwitching and (cs.name ~= 'ta') and (cs.name ~= 'free')) then
     local a,c,m,s = spGetModKeyState()
-    return (c or s)  --  block the mode toggling
+	if c or s then
+		return true  
+	else
+		return false
+	end
   end
   if (cs.name == 'free') then
     local a,c,m,s = spGetModKeyState()
