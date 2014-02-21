@@ -1,7 +1,7 @@
 return {
 	armca = {
 		acceleration = 0.071999996900558,
-		brakerate = 4.275,
+		brakerate = 0.4275,
 		buildcostenergy = 4320,
 		buildcostmetal = 105,
 		builddistance = 136,
@@ -36,6 +36,7 @@ return {
 		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 390,
 		terraformspeed = 225,
+		turninplaceanglelimit = 360,
 		turnrate = 110,
 		workertime = 45,
 		buildoptions = {

@@ -1,8 +1,8 @@
 return {
 	corsfig = {
-		acceleration = 0.45600000023842,
+		acceleration = 0.152,
 		airsightdistance = 700,
-		brakerate = 7.5,
+		brakerate = 0.075,
 		buildcostenergy = 3558,
 		buildcostmetal = 64,
 		buildpic = "CORSFIG.DDS",

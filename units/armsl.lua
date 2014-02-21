@@ -1,7 +1,7 @@
 return {
 	armsl = {
 		acceleration = 0.15000000596046,
-		brakerate = 5,
+		brakerate = 0.5,
 		buildcostenergy = 6091,
 		buildcostmetal = 344,
 		buildpic = "ARMSL.DDS",
@@ -36,6 +36,7 @@ return {
 		sightdistance = 260,
 		transportcapacity = 30,
 		transportsize = 15,
+		turninplaceanglelimit = 360,
 		turnrate = 380,
 		upright = true,
 		sounds = {

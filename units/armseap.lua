@@ -1,7 +1,7 @@
 return {
 	armseap = {
-		acceleration = 0.32400000095367,
-		brakerate = 5,
+		acceleration = 0.108,
+		brakerate = 0.05,
 		buildcostenergy = 6619,
 		buildcostmetal = 243,
 		buildpic = "ARMSEAP.DDS",

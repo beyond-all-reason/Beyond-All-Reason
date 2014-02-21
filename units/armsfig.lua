@@ -1,8 +1,8 @@
 return {
 	armsfig = {
-		acceleration = 0.47999998927116,
+		acceleration = 0.16,
 		airsightdistance = 700,
-		brakerate = 10,
+		brakerate = 0.1,
 		buildcostenergy = 4274,
 		buildcostmetal = 72,
 		buildpic = "ARMSFIG.DDS",

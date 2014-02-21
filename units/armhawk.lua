@@ -1,8 +1,8 @@
 return {
 	armhawk = {
-		acceleration = 0.47999998927116,
+		acceleration = 0.16,
 		airsightdistance = 800,
-		brakerate = 11.25,
+		brakerate = 0.01125,
 		buildcostenergy = 4593,
 		buildcostmetal = 114,
 		buildpic = "ARMHAWK.DDS",

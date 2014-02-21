@@ -1,7 +1,7 @@
 return {
 	corseap = {
-		acceleration = 0.3120000064373,
-		brakerate = 4.75,
+		acceleration = 0.104,
+		brakerate = 0.0475,
 		buildcostenergy = 6785,
 		buildcostmetal = 234,
 		buildpic = "CORSEAP.DDS",

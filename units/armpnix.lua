@@ -1,7 +1,7 @@
 return {
 	armpnix = {
-		acceleration = 0.071999996900558,
-		brakerate = 3.5,
+		acceleration = 0.0023,
+		brakerate = 0.035,
 		buildcostenergy = 10624,
 		buildcostmetal = 229,
 		buildpic = "ARMPNIX.DDS",

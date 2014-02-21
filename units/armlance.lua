@@ -1,7 +1,7 @@
 return {
 	armlance = {
-		acceleration = 0.23999999463558,
-		brakerate = 7.5,
+		acceleration = 0.08,
+		brakerate = 0.075,
 		buildcostenergy = 6598,
 		buildcostmetal = 306,
 		buildpic = "ARMLANCE.DDS",

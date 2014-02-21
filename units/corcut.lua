@@ -1,7 +1,7 @@
 return {
 	corcut = {
 		acceleration = 0.125,
-		brakerate = 3.9379999637604,
+		brakerate = 0.39379999637604,
 		buildcostenergy = 5897,
 		buildcostmetal = 220,
 		buildpic = "CORCUT.DDS",
@@ -32,6 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 595,
+		turninplaceanglelimit = 360,
 		turnrate = 828,
 		sounds = {
 			build = "nanlath1",

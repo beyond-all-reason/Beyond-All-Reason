@@ -1,7 +1,7 @@
 return {
 	armsaber = {
 		acceleration = 0.28799998760223,
-		brakerate = 4.6129999160767,
+		brakerate = 0.46,
 		buildcostenergy = 5984,
 		buildcostmetal = 192,
 		buildpic = "ARMSABER.DDS",
@@ -32,6 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 595,
+		turninplaceanglelimit = 360,
 		turnrate = 931,
 		sounds = {
 			build = "nanlath1",

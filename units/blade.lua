@@ -1,7 +1,7 @@
 return {
 	blade = {
 		acceleration = 0.60000002384186,
-		brakerate = 3.5,
+		brakerate = 0.35,
 		buildcostenergy = 20315,
 		buildcostmetal = 1192,
 		buildpic = "BLADE.DDS",
@@ -31,6 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 624,
+		turninplaceanglelimit = 360,
 		turnrate = 720,
 		sounds = {
 			canceldestruct = "cancel2",

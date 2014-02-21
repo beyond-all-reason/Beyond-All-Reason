@@ -1,5 +1,4 @@
---NOTE: unitdefs_post does not deal with the normal lua UnitDefs table, it deals precisely with the UnitDef table from unit definition files.
---also it's case sensitive
+--NOTE: unitdefs_post does not deal with the normal lua UnitDefs table, it deals with the UnitDefs table built from unit definition files.
 
 if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
@@ -40,28 +39,14 @@ local turninplacebots= {['corck'] = true,
 	
 for name, ud in pairs(UnitDefs) do
 
-	if (ud.maxvelocity) then 
-		ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
-		ud.turninplaceanglelimit = 140
-	end
-	
-	--todo: build these into the unitdefs
-	if (ud.hoverattack) then
-		ud.turninplaceanglelimit = 360
-	end
-	if (ud.brakerate) then 
-		if ud.canfly then
-			if ud.hoverattack then
-				ud.brakerate = ud.brakerate * 0.1
-			else
-				ud.brakerate = ud.brakerate * 0.01
-			end
-		else 
-			ud.brakerate = ud.brakerate * 3.0
+	if not ud.canfly then
+		if ud.maxvelocity then
+			ud.turninplacespeedlimit = (ud.maxvelocity*0.66) or 0
+			ud.turninplaceanglelimit = 140
+		end	
+		if ud.brakerate then
+			ud.brakerate = ud.brakerate * 3.0		
 		end
-	end
-	if ud.canfly and not ud.hoverattack then
-		ud.acceleration = ud.acceleration * 0.33
 	end
 	
 	if ud.movementclass and (ud.movementclass:find("TANK",1,true) or ud.movementclass:find("HOVER",1,true)) then
@@ -87,12 +72,6 @@ for name, ud in pairs(UnitDefs) do
 			ud.turninplaceanglelimit = 140
 		end
 	end
-
-	-- allow nanos to be transported
-	if (name == 'armnanotc' or name == 'cornanotc') then
-		ud.cantbetransported = false
-	end
-	ud.minCollisionSpeed = 0.0
 	
 	-- make all heaps non-rezzable
 	fDefs = ud.featuredefs

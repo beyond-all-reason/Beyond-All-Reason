@@ -1,7 +1,7 @@
 return {
 	armatlas = {
 		acceleration = 0.090000003576279,
-		brakerate = 7.5,
+		brakerate = 0.75,
 		buildcostenergy = 1239,
 		buildcostmetal = 64,
 		buildpic = "ARMATLAS.DDS",
@@ -34,6 +34,7 @@ return {
 		transportcapacity = 1,
         transportmass = 5000,
 		transportsize = 3,
+		turninplaceanglelimit = 360,
 		turnrate = 550,
 		sounds = {
 			canceldestruct = "cancel2",

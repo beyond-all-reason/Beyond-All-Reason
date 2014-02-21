@@ -1,7 +1,7 @@
 return {
 	corgripn = {
-		acceleration = 0.47999998927116,
-		brakerate = 4.0,
+		acceleration = 0.16,
+		brakerate = 0.04,
 		buildcostenergy = 16366,
 		buildcostmetal = 162,
 		buildpic = "CORGRIPN.DDS",

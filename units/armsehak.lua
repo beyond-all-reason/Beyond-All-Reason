@@ -1,7 +1,7 @@
 return {
 	armsehak = {
-		acceleration = 0.071999996900558,
-		brakerate = 5,
+		acceleration = 0.023,
+		brakerate = 0.05,
 		buildcostenergy = 6624,
 		buildcostmetal = 119,
 		buildpic = "ARMSEHAK.DDS",

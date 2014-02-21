@@ -1,8 +1,8 @@
 return {
 	corveng = {
-		acceleration = 2.5,
+		acceleration = 0.83,
 		airsightdistance = 700,
-		brakerate = 6.5,
+		brakerate = 0.065,
 		buildcostenergy = 2636,
 		buildcostmetal = 68,
 		buildpic = "CORVENG.DDS",

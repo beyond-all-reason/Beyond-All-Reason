@@ -1,7 +1,7 @@
 return {
 	bladew = {
 		acceleration = 0.26399999856949,
-		brakerate = 5.5,
+		brakerate = 0.55,
 		buildcostenergy = 1200,
 		buildcostmetal = 54,
 		buildpic = "BLADEW.DDS",
@@ -30,6 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "TINY_BUILDINGEX",
 		sightdistance = 364,
+		turninplaceanglelimit = 360,
 		turnrate = 1144,
 		upright = true,
 		usesmoothmesh = 0,

@@ -1,7 +1,7 @@
 return {
 	armpeep = {
-		acceleration = 0.60000002384186,
-		brakerate = 11.25,
+		acceleration = 0.2,
+		brakerate = 0.01125,
 		buildcostenergy = 1475,
 		buildcostmetal = 30,
 		buildpic = "ARMPEEP.DDS",

@@ -1,8 +1,8 @@
 return {
 	corvamp = {
-		acceleration = 0.49200001358986,
+		acceleration = 0.166,
 		airsightdistance = 800,
-		brakerate = 8.75,
+		brakerate = 0.0875,
 		buildcostenergy = 3448,
 		buildcostmetal = 98,
 		buildpic = "CORVAMP.DDS",

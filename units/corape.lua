@@ -1,7 +1,7 @@
 return {
 	corape = {
 		acceleration = 0.15199999511242,
-		brakerate = 3.5629999637604,
+		brakerate = 0.356,
 		buildcostenergy = 6467,
 		buildcostmetal = 345,
 		buildpic = "CORAPE.DDS",
@@ -31,6 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 550,
+		turninplaceanglelimit = 360,
 		turnrate = 594,
 		sounds = {
 			canceldestruct = "cancel2",

@@ -1,7 +1,7 @@
 return {
 	corsb = {
-		acceleration = 0.083999998867512,
-		brakerate = 1.5,
+		acceleration = 0.0276,
+		brakerate = 0.015,
 		buildcostenergy = 7936,
 		buildcostmetal = 182,
 		buildpic = "CORSB.DDS",

@@ -1,7 +1,7 @@
 return {
 	armkam = {
 		acceleration = 0.15399999916553,
-		brakerate = 3.75,
+		brakerate = 0.375,
 		buildcostenergy = 2226,
 		buildcostmetal = 125,
 		buildpic = "ARMKAM.DDS",
@@ -30,6 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 520,
+		turninplaceanglelimit = 360,
 		turnrate = 693,
 		sounds = {
 			canceldestruct = "cancel2",

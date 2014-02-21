@@ -1,7 +1,7 @@
 return {
 	corca = {
 		acceleration = 0.059999998658895,
-		brakerate = 4.275,
+		brakerate = 0.4275,
 		buildcostenergy = 4580,
 		buildcostmetal = 110,
 		builddistance = 136,
@@ -37,6 +37,7 @@ return {
 		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 351,
 		terraformspeed = 225,
+		turninplaceanglelimit = 360,
 		turnrate = 94,
 		workertime = 45,
 		buildoptions = {

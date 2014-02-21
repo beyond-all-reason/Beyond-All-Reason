@@ -1,7 +1,7 @@
 return {
 	armcybr = {
-		acceleration = 0.39599999785423,
-		brakerate = 5,
+		acceleration = 0.13,
+		brakerate = 0.05,
 		buildcostenergy = 40371,
 		buildcostmetal = 2103,
 		buildpic = "ARMCYBR.DDS",

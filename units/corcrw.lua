@@ -2,7 +2,7 @@ return {
 	corcrw = {
 		acceleration = 0.15399999916553,
 		activatewhenbuilt = true,
-		brakerate = 3.75,
+		brakerate = 0.375,
 		buildcostenergy = 68088,
 		buildcostmetal = 4758,
 		buildpic = "CORCRW.DDS",
@@ -30,6 +30,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
 		sightdistance = 494,
+		turninplaceanglelimit = 360,
 		turnrate = 297,
 		upright = true,
 		sounds = {
