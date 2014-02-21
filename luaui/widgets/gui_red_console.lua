@@ -31,6 +31,7 @@ local schar = string.char
 local sgsub = string.gsub
 local mfloor = math.floor
 local sbyte = string.byte
+local sreverse = string.reverse
 local mmax = math.max
 local glGetTextWidth = gl.GetTextWidth
 local sGetPlayerRoster = Spring.GetPlayerRoster
@@ -289,23 +290,58 @@ local function createconsole(r)
 	}
 end
 
+local function lineColour(prevline) -- search prevline and find the final instance of a colour code
+
+	local prevlineReverse = sreverse(prevline)
+	local newlinecolour = ""
+	
+	local colourCodePosReverse = sfind(prevlineReverse, "\255") --search string from back to front
+
+	if colourCodePosReverse then
+		for i = 0,2 do
+			if ssub(prevlineReverse, colourCodePosReverse + 3 - i, colourCodePosReverse + 3 - i) == "\255" then
+				colourCodePosReverse = colourCodePosReverse + 3 - i
+				break
+			end
+		end
+
+		local colourCodePos = slen(prevline) - colourCodePosReverse + 1 	
+		if slen(ssub(prevline, colourCodePos)) >= 4 then
+			newlinecolour = ssub(prevline, colourCodePos, colourCodePos+3)
+		end
+	end	
+
+	return newlinecolour
+end
+
 local function clipLine(line,fontsize,maxwidth)
 	local clipped = {}
 		
 	local firstclip = line:len()
 	local firstpass = true
-	while (1) do
+	while (1) do --loops over lines
 		local linelen = slen(line)
 		local i=1
-		while (1) do
+		while (1) do -- loop through potential positions where we might need to clip
 			if (glGetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
+				local test = line
+				local newlinecolour = ""
+				
+				-- set colour of new clipped line
+				if firstpass == nil then
+					newlinecolour = lineColour(clipped[#clipped])
+				end
+				
+				local newline = newlinecolour .. ssub(test,1,i)
+				
+				clipped[#clipped+1] = newline
+				line = ssub(line,i+1)
+	
 				if (firstpass) then
 					firstclip = i
 					firstpass = nil
 				end
-				local test = line
-				clipped[#clipped+1] = ssub(test,1,i)
-				line = ssub(line,i+1)
+				
 				break
 			end
 			i=i+1
@@ -314,12 +350,20 @@ local function clipLine(line,fontsize,maxwidth)
 			end
 		end
 		
+		-- check if we need to clip again
 		local width = glGetTextWidth(line)*fontsize
 		if (width <= maxwidth) then
 			break
 		end
 	end
-	clipped[#clipped+1] = line
+	
+	-- put remainder of line into final clipped line
+	local newlinecolour = ""
+	if #clipped > 0 then 
+		newlinecolour = lineColour(clipped[#clipped])
+	end
+	clipped[#clipped+1] = newlinecolour .. line
+	
 	return clipped,firstclip
 end
 
