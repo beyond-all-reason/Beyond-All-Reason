@@ -170,6 +170,9 @@ local player = {}
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
+--Name for absent/resigned players
+local absentName = " --- "
+
 --------------------------------------------------------------------------------
 -- Button check variable
 --------------------------------------------------------------------------------
@@ -414,7 +417,7 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 15*gl_GetTextWidth("- aband. units -") + 8 -- 8 is minimal width
+	local maxWidth = 15*gl_GetTextWidth(absentName) + 8 -- 8 is minimal width
 	local name = ""
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
@@ -658,7 +661,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	else
 	
 		if Spring_GetGameSeconds() < 0.1 then
-			tname = "no player yet"
+			tname = absentName
 			ttotake = false
 			tdead = false
 		else
@@ -667,7 +670,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	end
 	
 	if tname == nil then
-		tname = "- aband. units -"
+		tname = absentName
 	end
 	
 	tskill = ""
