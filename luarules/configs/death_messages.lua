@@ -484,7 +484,7 @@ messages = {
 	"XX turned into a pumpkin and two mice",
 	"XX sat around eating risotto and drinking Chateau du Chasselas",
 	"XX solemnly promises never to do that again",
-	"XX will put in a cat-basket and sent to the edge of the universe",
+	"XX will be put in a cat-basket and sent to the edge of the universe",
 	"XX wagged its tail and rang the bell",
 	"The part of XX was played by Sean Bean",
 	"XX needs new underwear",
@@ -506,7 +506,18 @@ messages = {
 	"XX loved lamp",
 	"XX was not so think as you drunk I am",
 	"XX flew the blue lady of the skies into the sunset",
+	"XX opened the pod bay doors",
+	"Here's looking at you, XX",
+	"XX found a cause worth dying for",
+	"XX can checkout any time it likes but it can never leave",
+	"XX didn't last forever, like cold November rain",
+	"XX's heart will go onnnn annnd onnnnn",
+	"XX was a cold and broken Hallelujah",
+	"XX kissed the sky",
+	"XX shined on like a crazy diamond",
+
 	
+
 
 }
 
