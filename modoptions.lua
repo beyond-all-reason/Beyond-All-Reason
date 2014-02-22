@@ -174,7 +174,7 @@ local options={
 		items={
 			{key="off", name="Off", desc="D-Gun works everywhere"},
 			{key="startpoints", name="Start Points", desc="D-Gun cannot be used near enemy startpoints"},
-			{key="startboxes", name="Start Boxes", desc="D-Gun cannot be used near enemy startboxes"},
+			{key="startboxes", name="Start Boxes", desc="D-Gun cannot be used inside enemy startboxes"},
 		}
   },
 }
