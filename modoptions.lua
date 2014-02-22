@@ -1,3 +1,4 @@
+--see engineoptions.lua for explanantion
 local options={
 	{
 	   key    = "StartingResources",
@@ -45,7 +46,7 @@ local options={
     {
 		key    = "mo_noowner",
 		name   = "FFA Mode",
-		desc   = "Units with no player control are instantly removed/destroyed",
+		desc   = "Units with no player control are removed/destroyed",
 		type   = "bool",
 		def    = false,
 		section= "ba_modes",
@@ -53,9 +54,9 @@ local options={
     {
         key    = 'mo_coop',
         name   = 'Cooperative mode',
-        desc   = 'Adds extra commanders to idsharing teams, to 1 per player',
+        desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
         type   = 'bool',
-        def    = true,
+        def    = false,
         section= 'ba_modes',
     },
     {
@@ -89,14 +90,6 @@ local options={
 		type   = "bool",
 		def    = false,
 		section= "ba_ooptions",
-    },
-    {
-		key    = "mo_enemywrecks",
-		name   = "Show Enemy Wrecks",
-		desc   = "Gives you LOS of enemy wreckage",
-		type   = "bool",
-		def    = true,
-		section= "ba_options",
     },
 	{
 		key    = "mo_nowrecks",
@@ -156,18 +149,6 @@ local options={
       }
    },
   {
-      key     = "pathfinder",
-      name    = "Pathfinder",
-      desc    = "Switch Pathfinding System",
-      type    = "list",
-      def     = "normal",
-      section = "ba_options",
-	  items={
-		  {key="normal", name="Normal", desc="Spring vanilla pathfinder"},
-		  {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
-	  },
-  },
-  {
 		key    = "mo_no_close_spawns",
 		name   = "No close spawns",
 		desc   = "Prevents players startpoints being placed close together (on large enough maps)",
@@ -182,6 +163,19 @@ local options={
 		type   = "bool",
 		def    = false,
 		section= "ba_options",
+  },
+  {
+		key    = 'LimitDgun',
+		name   = 'Limit D-Gun range',
+		desc   = "The commander's D-Gun weapon cannot be used near enemy start points",
+		type   = 'list',
+		def    = false,
+		section= "ba_options",
+		items={
+			{key="off", name="Off", desc="D-Gun works everywhere"},
+			{key="startpoints", name="Start Points", desc="D-Gun cannot be used near enemy startpoints"},
+			{key="startboxes", name="Start Boxes", desc="D-Gun cannot be used near enemy startboxes"},
+		}
   },
 }
 return options

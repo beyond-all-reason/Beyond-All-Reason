@@ -6,7 +6,7 @@
 --
 --  These keywords must be lowercase for LuaParser to read them.
 --
---  key:      the string used in the script.txt
+--  key:      the string used in the script.txt, must be lower case
 --  name:     the displayed name
 --  desc:     the description (could be used as a tooltip)
 --  type:     the option type
@@ -46,17 +46,26 @@ local options =
     section= "ba_others",
 
   },
-
   {
-    key    = 'LimitDgun',
-    name   = 'Limit D-Gun range',
-    desc   = "The commander's D-Gun weapon will be usable only close to the player's starting location",
-    type   = 'bool',
-    def    = false,
-    section= "ba_others",
-
+    key     = "pathfinder",
+    name    = "Pathfinder",
+    desc    = "Switch Pathfinding System",
+    type    = "list",
+    def     = "normal",
+    section = "ba_others",
+	items={
+	  {key="normal", name="Normal", desc="Spring vanilla pathfinder"},
+	  {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
+	},
   },
-
+  {
+	key    = "mo_enemywrecks",
+	name   = "Show Enemy Wrecks",
+	desc   = "Gives you LOS of enemy wreckage",
+	type   = "bool",
+	def    = true,
+	section= "ba_others",
+  },
   {
     key    = 'GhostedBuildings',
     name   = 'Ghosted buildings',
