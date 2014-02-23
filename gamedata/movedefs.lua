@@ -81,6 +81,11 @@ local moveDatas = {
 		footprintz = 3,
 		maxslope = 36,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	HKBOT4 = {
 		crushstrength = 1400,
@@ -88,6 +93,11 @@ local moveDatas = {
 		footprintz = 4,
 		maxslope = 36,
 		maxwaterdepth = 26,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	HKBOT5 = {
 		crushstrength = 1400,
@@ -95,6 +105,11 @@ local moveDatas = {
 		footprintz = 5,
 		maxslope = 36,
 		maxwaterdepth = 30,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	HOVER3 = {
 		badslope = 22,
@@ -120,6 +135,11 @@ local moveDatas = {
 		footprintz = 3,
 		maxslope = 18,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	HTANK4 = {
 		crushstrength = 250,
@@ -127,6 +147,11 @@ local moveDatas = {
 		footprintz = 4,
 		maxslope = 18,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	HTKBOT4 = {
 		crushstrength = 252,
@@ -134,6 +159,11 @@ local moveDatas = {
 		footprintz = 4,
 		maxslope = 80,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	KBOT1 = {
 		crushstrength = 5,
@@ -141,6 +171,12 @@ local moveDatas = {
 		footprintz = 1,
 		maxslope = 36,
 		maxwaterdepth = 5,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+		
 	},
 	KBOT2 = {
 		crushstrength = 10,
@@ -148,6 +184,11 @@ local moveDatas = {
 		footprintz = 2,
 		maxslope = 36,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	TANK2 = {
 		crushstrength = 15,
@@ -155,6 +196,11 @@ local moveDatas = {
 		footprintz = 2,
 		maxslope = 18,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	TANK3 = {
 		crushstrength = 30,
@@ -162,18 +208,33 @@ local moveDatas = {
 		footprintz = 3,
 		maxslope = 18,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	TKBOT2 = {
 		crushstrength = 15,
 		footprintx = 2,
 		footprintz = 2,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	TKBOT3 = {
 		crushstrength = 15,
 		footprintx = 3,
 		footprintz = 3,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
 	},
 	VKBOT3 = {
 		crushstrength = 1400,
