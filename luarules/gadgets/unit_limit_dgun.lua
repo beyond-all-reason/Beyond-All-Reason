@@ -85,7 +85,7 @@ function GameStart()
 		end
 		--list startpoints and send them to unsynced
 		local teamStartPoints = GG.teamStartPoints
-		local coopStartPoints = GG.coopStartPoints
+		local coopStartPoints = GG.coopStartPoints or {} 
 		for teamID,startPoint in pairs(teamStartPoints) do
 			local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
 			if allyTeamID ~= gaiaAllyTeamID then
@@ -157,7 +157,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 function gadget:GameFrame(n) --TODO in 97: move this to unsynced
-	if n==0 then
+	if n==3 then
 		GameStart()
 	elseif n%90==0 then --update once every 3 game seconds
 		SendToUnsynced("RemakeDgunLimitList")
@@ -278,7 +278,7 @@ function CreateList()
 	end	
 end
 
-function RecieveLimitType(epicWTFparam, seBoxesRec, usePointsRec, pointRadiusRec) --first param seems to be function name...
+function RecieveLimitType(epicWTFparam, useBoxesRec, usePointsRec, pointRadiusRec) --first param seems to be function name...
 	useBoxes = useBoxesRec
 	usePoints = usePointsRec
 	pointRadius = pointRadiusRec
