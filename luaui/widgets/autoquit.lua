@@ -46,7 +46,7 @@ function widget:Update(dt)
   if endTime then
     local nmx,nmy = GetMouseState()
     if nmx~=mx or nmy~=my then
-      Echo("<autoquit> Autoquit canceled.")
+      --Echo("<autoquit> Autoquit canceled.")
       endTime = false
       -- widgetHandler:RemoveWidget()
     elseif DiffTimers(GetTimer(), endTime) > delay then
