@@ -233,7 +233,7 @@ messages = {
 	"The light still burns for XX, but there is nobody home",
 	"XX tottered over the brink",
 	"XX is as real in memory as was in flesh",
-	"XX will use the batropes!",
+	"XX should have used the shark repellent bat spray",
 	"XX lost its life in the line of duty",
 	"XX. That is all.", 
 	"XX will be sent a receipt",
@@ -515,10 +515,11 @@ messages = {
 	"XX was a cold and broken Hallelujah",
 	"XX kissed the sky",
 	"XX shined on like a crazy diamond",
-
+	"XX would rather be a hammer than a nail",
+	"XX was on a whiskey diet",
+	"XX was full of misery, loneliness and suffering - and it's all over much too soon",
+	"XX is not the messiah, XX is a very naughty boy!",
 	
-
-
 }
 
 
