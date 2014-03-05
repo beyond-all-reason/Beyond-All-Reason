@@ -278,7 +278,7 @@ function SpawnTeamStartUnit(teamID, allyID)
 	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID) 
 	teamStartPoints[teamID] = {x,y,z}
 	
-	--team storage is set up in basecontent gadget
+	--team storage is set up by game_team_resources
 end
 
 
