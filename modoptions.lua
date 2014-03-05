@@ -34,7 +34,7 @@ local options={
     {
         key    = 'mo_armageddontime',
         name   = 'Armageddon time (minutes)',
-        desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left!',
+        desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
         type   = 'number',
         def    = true,
         section= 'ba_modes',
