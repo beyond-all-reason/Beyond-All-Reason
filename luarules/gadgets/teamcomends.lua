@@ -15,10 +15,8 @@ end
 -- the allyteam is out
 
 -- the deathmode modoption must be set to one of the following to enable this
-
-local endmodes= {
+local endmodes = {
 	com=true,
-	comcontrol=true,
 }
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -48,6 +46,15 @@ local deathTimeBoost = 1
 local function getSqrDistance(x1,z1,x2,z2)
   local dx,dz = x1-x2,z1-z2
   return (dx*dx)+(dz*dz)
+end
+
+function gadget:Initialize()
+	if not endmodes[Spring.GetModOptions().deathmode] then
+		gadgetHandler:RemoveGadget() -- in particular, this gadget is removed if deathmode is "killall" or "none"
+	end
+	for _,t in ipairs(Spring.GetAllyTeamList()) do
+		aliveCount[t] = 0
+	end
 end
 
 function gadget:GameFrame(t)
@@ -127,15 +134,6 @@ function gadget:UnitTaken(u, ud, team)
 			local x,y,z = Spring.GetUnitPosition(u)
 			destroyQueue[allyTeam] = {x = x, y = y, z = z}
 		end
-	end
-end
-
-function gadget:Initialize()
-	if not endmodes[Spring.GetModOptions().deathmode] then
-		gadgetHandler:RemoveGadget()
-	end
-	for _,t in ipairs(Spring.GetAllyTeamList()) do
-		aliveCount[t] = 0
 	end
 end
 

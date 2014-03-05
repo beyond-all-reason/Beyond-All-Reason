@@ -31,16 +31,17 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local modOptions = Spring.GetModOptions()
-
--- teamDeathMode possible values: "none", "teamzerounits" , "allyzerounits"
-local teamDeathMode = modOptions.teamdeathmode or "allyzerounits"
+-- An allyteam is declared dead when it no longer has any units
+-- Allyteam death when no coms are left is implemented in teamcomends.lua
+local teamDeathMode = "allyteamzerounits"
+-- teamDeathMode = "teamzerounits" is also implemented in this gadget but we don't allow it
+-- teamzerounits means that a team is automatically killed when it has 0 units left
 
 -- sharedDynamicAllianceVictory is a C-like bool
 local sharedDynamicAllianceVictory = tonumber(modOptions.shareddynamicalliancevictory) or 0
 
 -- ignoreGaia is a C-like bool
-local ignoreGaia = tonumber(modOptions.ignoregaiawinner) or 1
+local ignoreGaia = 1
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -93,7 +94,7 @@ function gadget:GameOver()
 end
 
 function gadget:Initialize()
-	if teamDeathMode == "none" then
+	if tostring(Spring.GetModOptions().deathmode) == "none" then
 		gadgetHandler:RemoveGadget()
 	end
 	
