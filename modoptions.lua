@@ -26,9 +26,9 @@ local options={
 		def="com",
 		section="ba_modes",
 		items={
-			{key="killall", name="Kill Everything", desc="Every last unit must be eliminated, no exceptions!"},
-			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left it loses"},
-			{key="comcontrol", name="No Commander, No Control", desc="A player without a Commander cannot issue orders"},
+			{key="neverend", name="None", desc="Teams are never eliminated"},
+			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
 		}
 	},
     {
@@ -135,36 +135,23 @@ local options={
        step   = 1,  -- quantization is aligned to the def value
                     -- (step <= 0) means that there is no quantization
 	},  
-	{
-      key="teamdeathmode",
-      name="Team Game End Mode",
-      desc="What it takes to eliminate a Team",
-      type="list",
-	  section= 'ba_modes',
-      def="allyzerounits",
-      items={
-         {key="none", name="Never Die", desc="All Teams will stay alive regardless of what happends, gameover will never arrive."},
-         {key="teamzerounits", name="Team Death on Zero Units", desc="The Team will die when it has 0 units."},
-         {key="allyzerounits", name="AllyTeam Death on Zero units", desc="The Team will die when every Team in his AllyTeam have 0 units."},
-      }
-   },
-  {
+    {
 		key    = "mo_no_close_spawns",
 		name   = "No close spawns",
 		desc   = "Prevents players startpoints being placed close together (on large enough maps)",
 		type   = "bool",
 		def    = true,
 		section= "ba_options",
-  },
-  {
+    },
+    {
 		key    = "mo_newbie_placer",
 		name   = "Newbie Placer",
 		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
 		type   = "bool",
 		def    = false,
 		section= "ba_options",
-  },
-  {
+    },
+    {
 		key    = 'LimitDgun',
 		name   = 'Limit D-Gun range',
 		desc   = "The commander's D-Gun weapon cannot be used near enemy start points",
@@ -176,6 +163,6 @@ local options={
 			{key="startpoints", name="Start Points", desc="D-Gun cannot be used near enemy startpoints"},
 			{key="startboxes", name="Start Boxes", desc="D-Gun cannot be used inside enemy startboxes"},
 		}
-  },
+    },
 }
 return options
