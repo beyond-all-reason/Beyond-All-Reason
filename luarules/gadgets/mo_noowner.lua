@@ -113,5 +113,9 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 	return not deadTeam[newTeam]
 end
 
+function gadget:GameOver()
+	gadgetHandler:RemoveGadget()
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
