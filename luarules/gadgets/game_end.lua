@@ -38,7 +38,7 @@ local teamDeathMode = "allyteamzerounits"
 -- teamzerounits means that a team is automatically killed when it has 0 units left
 
 -- sharedDynamicAllianceVictory is a C-like bool
-local sharedDynamicAllianceVictory = tonumber(modOptions.shareddynamicalliancevictory) or 0
+local sharedDynamicAllianceVictory = tonumber(Spring.GetModOptions().shareddynamicalliancevictory) or 0
 
 -- ignoreGaia is a C-like bool
 local ignoreGaia = 1
