@@ -514,12 +514,19 @@ messages = {
 	"XX's heart will go onnnn annnd onnnnn",
 	"XX was a cold and broken Hallelujah",
 	"XX kissed the sky",
-	"XX shined on like a crazy diamond",
+	"XX thought it could tell blue skies from pain",
 	"XX would rather be a hammer than a nail",
 	"XX was on a whiskey diet",
 	"XX was full of misery, loneliness and suffering - and it's all over much too soon",
 	"XX is not the messiah, XX is a very naughty boy!",
-	
+	"Do, or do not. There is no XX!",
+	"XX did not waste its last days trying to prolong them",
+	"Once XX has been eliminated, the remainder, however improbable, must be the truth",
+	"XX should stop posting naked pictures of itself on the internet",
+	"XX dug a hole and jumped into it",
+	"XX flew a commercial aeroplane into a tall building",
+	"XX went over the Niagara Falls in a steamboat",
+	"XX is going to Amarillo and wishes people would stop asking the way",
 }
 
 
