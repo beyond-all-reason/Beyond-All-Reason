@@ -67,8 +67,16 @@ local options =
 	section= "ba_others",
   },
   {
+	key    = "mo_enemycomcount",
+	name   = "Enemy Com Counter",
+	desc   = "Tells each team the total number of commanders alive in enemy teams",
+	type   = "bool",
+	def    = false,
+	section= "ba_others",
+  },
+  {
     key    = 'GhostedBuildings',
-    name   = 'Ghosted buildings',
+    name   = 'Ghosted Buildings',
     desc   = "Once an enemy building will be spotted\na ghost trail will be placed to memorize location even after the loss of the line of sight",
     type   = 'bool',
     def    = true,

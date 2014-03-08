@@ -1,9 +1,9 @@
 function widget:GetInfo()
 	return {
 		name		= "Com Counter",
-		desc		= "Shows the number of coms left on each team",
-		author		= "BD",
-		date		= "Dec 27, 2012",
+		desc		= "Shows the number of coms left",
+		author		= "BD,Bluestone",
+		date		= "Feb, 2014",
 		license		= "GNU GPL, v2 or later",
 		layer		= 0,
 		enabled		= true
@@ -14,50 +14,16 @@ end
 --  Declarations
 ---------------------------------------------------------------------------------------------------
 
--- Config
 local flashIcon				= true
 local markers				= false
-local flagWarningTime		= 30*10
--- whenever reclaim/rez/damage labels should be placed even if the player has LOS
-local warnLOS				= false
-local specMarkers			= false
 
-local spEcho				= Spring.Echo
-local X, Y					= Spring.GetViewGeometry()
-local spGetMyPlayerID		= Spring.GetMyPlayerID
-local spGetMyAllyTeamID		= Spring.GetMyAllyTeamID
+local VFSFileExists = VFS.FileExists
+
+local armcomDefID = UnitDefNames.armcom.id
+local corcomDefID = UnitDefNames.corcom.id
+
 local spGetMyTeamID			= Spring.GetMyTeamID
-local spGetTeamList			= Spring.GetTeamList
-local spGetAllyTeamList		= Spring.GetAllyTeamList
-local spGetTeamList			= Spring.GetTeamList
-local spGetTeamUnits		= Spring.GetTeamUnits
-local spGetAllUnits			= Spring.GetAllUnits
-local spGetPlayerList		= Spring.GetPlayerList
-local spGetPlayerInfo		= Spring.GetPlayerInfo
-local spGetTeamColour		= Spring.GetTeamColor
-local spIsUnitAllied		= Spring.IsUnitAllied
-local spGetUnitDefID		= Spring.GetUnitDefID
-local spGetUnitAllyTeam		= Spring.GetUnitAllyTeam
-local spGetUnitTeam			= Spring.GetUnitTeam
-local spGetUnitPosition		= Spring.GetUnitPosition
 local spGetGameFrame		= Spring.GetGameFrame
-local spGetAllFeatures		= Spring.GetAllFeatures
-local spGetFeatureTeam		= Spring.GetFeatureTeam
-local spGetFeatureAllyTeam	= Spring.GetFeatureAllyTeam
-local spGetFeatureDefID		= Spring.GetFeatureDefID
-local spGetFeaturePosition	= Spring.GetFeaturePosition
-local spGetFeatureHealth	= Spring.GetFeatureHealth
-local spGetFeatureResources	= Spring.GetFeatureResources
-local spMarkerAddPoint		= Spring.MarkerAddPoint
-local spMarkerErasePosition	= Spring.MarkerErasePosition
-local spGetSpectatingState	= Spring.GetSpectatingState
-local spGetTeamInfo			= Spring.GetTeamInfo
-local spIsPosInLos			= Spring.IsPosInLos
-local spAreTeamsAllied		= Spring.AreTeamsAllied
-local spGetGaiaTeamID		= Spring.GetGaiaTeamID
-local spValidFeatureID		= Spring.ValidFeatureID
-
-local VFSFileExists			= VFS.FileExists
 
 local glTranslate			= gl.Translate
 local glColor				= gl.Color
@@ -72,49 +38,31 @@ local glCreateList			= gl.CreateList
 local glCallList			= gl.CallList
 local glDeleteList			= gl.DeleteList
 
-local floor					= math.floor
-local max					= math.max
-local min					= math.min
-local toChar				= string.char
-
-local textSize				= 20
+local textSize				= 12
 local xPos, yPos
 local xRelPos, yRelPos		= 0.80, 0.85
 local vsx, vsy				= gl.GetViewSizes()
-local panelWidth			= 100
-local panelHeight			= 50
-local panelColor			= {0, 0, 0, 0.5}
 local check1x, check1y		= 6, 28
 local check2x, check2y		= 6, 6
 local allyComs				= 0
-local enemyComs				= 0
-local teamComs				= {}
-local deadComs				= {}
-local featureToProcess		= {}
-local lastAllyComMarked		= false
-local lastEnemyComMarked	= false
-local amISpec				= spGetSpectatingState()
-local myTeamID				= spGetMyTeamID()
-local myAllyTeamID			= spGetMyAllyTeamID()
-local myPlayerID			= spGetMyPlayerID()
+local enemyComs				= 0 -- if we are counting ourselves because we are a spec
+local enemyComCount			= 0 -- if we are receiving a count from the gadget part (needs modoption on)
+local prevEnemyComCount		= 0
+local panelWidth 			= 47
+local panelHeight 			= 50
+local amISpec				= Spring.GetSpectatingState()
+local myTeamID 				= spGetMyTeamID()
+local myAllyTeamID			= Spring.GetMyAllyTeamID()
+local inProgress			= spGetGameFrame() > 0
 local countChanged			= true
 local displayList			= nil
 local flickerLastState		= nil
-local newFeatures			= {}
-local toClean				= {}
-local is1v1					= #spGetTeamList() == 3 -- +1 because of gaia
-local coopOn				= Spring.GetModOptions().mo_coop == "1" or true
---------------------------------------------------------------------------------
+local is1v1					= Spring.GetTeamList() == 3 -- +1 because of gaia
+local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 
-
-function placeLabel(x, y, z, msg)
-	if markers and (specMarkers or not amISpec) then
-		spMarkerAddPoint(x, y, z, msg)
-		local eraseFrame = spGetGameFrame() + flagWarningTime
-		toClean[eraseFrame] = toClean[eraseFrame] or {}
-		toClean[eraseFrame][#toClean[eraseFrame]+1] = {x,y,z}
-	end
-end
+---------------------------------------------------------------------------------------------------
+--  Counting
+---------------------------------------------------------------------------------------------------
 
 function isCom(unitID,unitDefID)
 	if not unitDefID and unitID then
@@ -124,407 +72,143 @@ function isCom(unitID,unitDefID)
 		return false
 	end
 	return UnitDefs[unitDefID].customParams.iscommander ~= nil
-
 end
 
-function isDeadCom(fName)
-	return fName == "corcom_dead" or fName == "armcom_dead" -- or fName == "corcom_heap" or fName == "armcom_heap"
-end
-
-function colourNames(teamID) -- I didn't make this, but thank you to whoever did!
-	nameColourR, nameColourG, nameColourB, nameColourA = spGetTeamColour(teamID)
-	R255 = floor(nameColourR*255)
-	G255 = floor(nameColourG*255)
-	B255 = floor(nameColourB*255)
-	if ( R255%10 == 0) then
-		R255 = R255+1
-	end
-	if( G255%10 == 0) then
-		G255 = G255+1
-	end
-	if ( B255%10 == 0) then
-		B255 = B255+1
-	end
-	return "\255"..toChar(R255)..toChar(G255)..toChar(B255)
+function CheckStatus()
+	--update my identity
+	amISpec	= Spring.GetSpectatingState()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myTeamID = Spring.GetMyTeamID()
 end
 
 function flicker()
 	return spGetGameFrame() % 12 < 6
-end
+end 
 
-
-function appendComToTeam(teamID,numComs)
-	countChanged = true
-	numComs = numComs or 1
-	teamComs[teamID] = ( teamComs[teamID] or 0 ) + numComs
-	if spAreTeamsAllied(myTeamID,teamID) then
-		lastAllyComMarked = false
-		allyComs = allyComs + numComs
-	else
-		lastEnemyComMarked = false
-		enemyComs = enemyComs + numComs
-	end
-end
-
-function removeComFromTeam(teamID,numComs)
-	countChanged = true
-	numComs = numComs or 1
-	teamComs[teamID] = ( teamComs[teamID] or 0 ) + numComs
-	if spAreTeamsAllied(myTeamID,teamID) then
-		allyComs = allyComs - numComs
-	else
-		enemyComs = enemyComs - numComs
-	end
-end
-
-function checkTeamComCount(allyID)
-	local comCount = {}
-	local totalNum = 0
-	for _, teamID in ipairs(spGetTeamList(allyID)) do
-		comCount[teamID] = comCount[teamID] or 0
-		for _, unitID in ipairs(spGetTeamUnits(teamID)) do
-			if isCom(unitID) then
-				comCount[teamID] = comCount[teamID] + 1
-				totalNum = totalNum + 1
-			end
-		end
-	end
-	return totalNum, comCount
-end
-
-function recountAllComs()
-	if not amISpec then
-		-- this function will not work unless we have full LOS
-		return
-	end
-	countChanged = true
-	enemyComs = 0
+function Recount()
+	-- recount my own ally team coms
 	allyComs = 0
-	teamComs = {}
-	for _,allyTeamID in ipairs(spGetAllyTeamList()) do
-		local _, comList = checkTeamComCount(allyTeamID)
-		for teamID, amount in pairs(comList) do
-			appendComToTeam(teamID,amount)
-		end
+	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+	for _,teamID in ipairs(myAllyTeamList) do
+		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 	end
-end
-
-
-function widget:Initialize()
-	xPos, yPos = xRelPos * vsx,yRelPos * vsy
-	if spGetGameFrame() ~= 0 then
-		if amISpec then
-			recountAllComs()
-		else
-			widgetHandler:RemoveWidget()
-		end
-	else
-		if not amISpec then --we can use UnitCreated reliably
-			local teamToPlayers = {}
-			for _, playerID in ipairs(spGetPlayerList()) do
-				local _, _, spec, tID, aID = spGetPlayerInfo(playerID)
-				if not spec then
-					teamToPlayers[tID] = teamToPlayers[tID] or {}
-					teamToPlayers[tID][#teamToPlayers[tID]+1] = playerID
-				end
-			end
-			local gaiaTeam = spGetGaiaTeamID()
-			for _,teamID in ipairs(spGetTeamList()) do
-				local numComs = 1
-				if teamID == gaiaTeam then
-					numComs = 0
-				elseif coopOn and teamToPlayers[teamID] then -- in coop mode, 1 team per player
-					numComs = #teamToPlayers[teamID]
-				end
-				if not spAreTeamsAllied(myTeamID,teamID) then -- we can use UnitCreated for allies
-					appendComToTeam(teamID,numComs)
+	countChanged = true
+	
+	if amISpec then
+		-- recount enemy ally team coms
+		enemyComs = 0
+		local allyTeamList = Spring.GetAllyTeamList()
+		for _,allyTeamID in ipairs(allyTeamList) do
+			if allyTeamID ~= myAllyTeamID then
+				local teamList = Spring.GetTeamList(allyTeamID)
+				for _,teamID in ipairs(teamList) do
+					enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 				end
 			end
 		end
 	end
+	
 end
 
-function widget:Shutdown()
-	glDeleteList(displayList)
-end
+--------------------------------------------------------------------------------
 
-
-function widget:PlayerChanged(playerID)
-	if playerID == myPlayerID then
-		IChanged()
-	end
-end
-
-function widget:IChanged()
-	amISpec = spGetSpectatingState()
-	myTeamID = spGetMyTeamID()
-	myPlayerID = spGetMyPlayerID()
-	myAllyTeamID = spGetMyAllyTeamID()
-	recountAllComs()
-end
-
-
---atm this works reliably only when spectating
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not isCom(unitID,unitDefID) then
 		return
 	end
-	--ignore enemy rez even if in los, because it's handled by featured died logic
-	if amISpec or spAreTeamsAllied(myTeamID, unitTeam) then
-		appendComToTeam(unitTeam)
+	
+	--record com created
+	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(unitTeam)
+	if allyTeamID == myAllyTeamID then
+		allyComs = allyComs + 1
+	elseif amISpec then
+		enemyComs = enemyComs + 1
 	end
+	countChanged = true
 end
 
-
-function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if not isCom(unitID,unitDefID) then
 		return
 	end
-	removeComFromTeam(oldTeam)
-	appendComToTeam(newTeam)
-end
-
-function UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if not isCom(unitID,unitDefID) then
-		return
+	
+	--record com died
+	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(unitTeam)
+	if allyTeamID == myAllyTeamID then
+		allyComs = allyComs - 1
+	elseif amISpec then
+		enemyComs = enemyComs - 1
 	end
-	removeComFromTeam(oldTeam)
-	appendComToTeam(newTeam)
+	countChanged = true
 end
 
-function widget:FeatureCreated(featureID,allyTeamID)
-	featureToProcess[#featureToProcess+1] = {true,featureID,allyTeamID}
-end
+-- BA does not allow sharing to enemy, so no need to check Given, Taken, etc
 
-function widget:FeatureDestroyed(featureID,allyTeamID)
-	featureToProcess[#featureToProcess+1] = {false,featureID,allyTeamID}
-end
-
--- keep progress of reclaim/resurrect/damage done in each frame, calc delta
--- last time a change happened, and try to predict next value to guesstimate a
--- reason why a feature disappeared
-function wreckProcessChange(gameFrame,position,data,newValue,labelPositive,labelNegative)
-	data.delta = newValue - data.status
-	data.status = newValue
-	-- we'll use a linear interpolation to estimate which operation was successful
-	data.nextValue = data.status + 2*data.delta
-	if data.delta ~= 0 then
-		if (data.lastUpdate + flagWarningTime) < gameFrame then
-			-- don't annoy players when they can see themselves
-			if warnLOS or not spIsPosInLos(position.fX, position.fY, position.fZ, myAllyTeamID ) then
-				if data.delta > 0 then
-					if labelPositive then
-						placeLabel(position.fX, position.fY, position.fZ, labelPositive)
-					end
-				elseif data.delta < 0 then
-					if labelNegative then
-						placeLabel(position.fX, position.fY, position.fZ, labelNegative)
-					end
-				end
-			end
-		end
-		data.lastUpdate = gameFrame
+function widget:Initialize()
+	--recount needed in case GameStart not called
+	if Spring.GetGameFrame() > 0 then
+		Recount()
 	end
 end
 
-function markCom(unitID,teamID)
- 	if is1v1 then
- 		return false
- 	end
-	local markAllyCom = allyComs == 1 and not lastAllyComMarked
-	local markEnemyCom = enemyComs == 1 and not lastEnemyComMarked
-	if not markAllyCom and not markEnemyCom then
-		return false
-	end
-	if not isCom(unitID) then
-		return false
-	end
-	local ally = spAreTeamsAllied(myTeamID,teamID)
-	local _, _, _, uX, uY, uZ = spGetUnitPosition(unitID, true, false)
-	if ally and markAllyCom then
-		if markers then --we don't use placeLabel so it works as spec too
-			spMarkerAddPoint(uX, uY, uZ, colourNames(teamID).."Our last Com")
-		end
-		lastAllyComMarked = true
-	elseif not ally and markEnemyCom then
-		if markers then --we don't use placeLabel so it works as spec too
-			spMarkerAddPoint(uX, uY, uZ, colourNames(teamID).."Their last Com")
-		end
-		lastEnemyComMarked = true
-	end
-	return true
+function widget:GameStart()
+	inProgress = true
+	CheckStatus()
+	Recount()
 end
-
-function widget:UnitEnteredRadar(unitID, unitTeam)
-	markCom(unitID, unitTeam)
-end
-
-function widget:UnitEnteredLos(unitID, teamID)
-	markCom(unitID, teamID)
-end
-
-function markComs()
-	local markAllyCom = allyComs == 1 and not lastAllyComMarked
-	local markEnemyCom = enemyComs == 1 and not lastEnemyComMarked
-	if not markAllyCom and not markEnemyCom then
-		return
-	end
-	for _,allyTeamID in ipairs(spGetAllyTeamList()) do
-		for _, teamID in ipairs(spGetTeamList(allyTeamID)) do
-			for _, unitID in ipairs(spGetTeamUnits(teamID)) do
-				if markCom(unitID, teamID) then
-					return
-				end
-			end
-		end
-	end
-end
-
 
 function widget:GameFrame(n)
-	-- ugly workaround to account if we change who we watch as spec
-	if myTeamID ~= spGetMyTeamID() then
-		IChanged()
+	-- check if the team that we are spectating changed
+	if amISpec and myTeamID ~= spGetMyTeamID() then
+		CheckStatus()
+		Recount()
 	end
-	for _, featureInfo in ipairs(featureToProcess) do
-		if featureInfo[1] then
-			newFeature(featureInfo[2],featureInfo[3])
-		else
-			delFeature(featureInfo[2],featureInfo[3])
+	
+	-- check if we have received a TeamRulesParam from the gadget part
+	if not amISpec and receiveCount then
+		enemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+		if enemyComCount ~= prevEnemyComCount then
+			countChanged = true
+			prevEnemyComCount = enemyComCount
 		end
-	end
-	featureToProcess = {}
-	for featureID,data  in pairs(deadComs) do
-		if not spValidFeatureID(featureID) then
-			delFeature(featureID)
-		end
-		local Hp, maxHp, fRez = spGetFeatureHealth(featureID)
-		local _,_,_,_,reclaimLeft = spGetFeatureResources(featureID)
-		if Hp and maxHp then
-			wreckProcessChange(n,data.position,data.variables.damage,Hp/maxHp)
-		end
-		if fRez then
-			fRez = 1-fRez -- have completion to 0 instead of 1, to make it consistent with rest
-			wreckProcessChange(n,data.position,data.variables.rez,fRez,nil,"Com is being resurrected")
-		end
-		if reclaimLeft then
-			wreckProcessChange(n,data.position,data.variables.reclaim,reclaimLeft,"Com is being resurrected","Com is being reclaimed")
-		end
-	end
-	if toClean[n] then
-		for _,coords in ipairs(toClean[n]) do
-			spMarkerErasePosition( coords[1], coords[2], coords[3] )
-		end
-	end
-	toClean[n] = nil
-end
-
-function initVec(value)
-	return {status=value,delta=0,lastUpdate=0,nextValue=value}
-end
-
-function newFeature(featureID)
-	if not featureID then
-		return
-	end
-	local fDefID = spGetFeatureDefID(featureID)
-	if not fDefID then
-		return
-	end
-	local fName = FeatureDefs[fDefID].name
-	if not isDeadCom(fName) then
-		return
-	end
-	local fTeamID = spGetFeatureTeam(featureID)
-	local _,fPlayerID = spGetTeamInfo(fTeamID)
-	local pName = spGetPlayerInfo(fPlayerID) or ""
-	local fX,fY,fZ = spGetFeaturePosition(featureID, true, false)
-	local Hp, maxHp, fRez = spGetFeatureHealth(featureID)
-	local _,_,_,_,reclaimLeft = spGetFeatureResources(featureID)
-	local position = {fX=fX,fY=fY,fZ=fZ}
-	deadComs[featureID] = {
-		position=position,
-		variables = {
-			rez=initVec(fRez),
-			damage=initVec(Hp/maxHp),
-			reclaim=initVec(reclaimLeft),
-		},
-	}
-	removeComFromTeam(fTeamID)
-	markComs() -- mark last com if necessary
-	if spAreTeamsAllied(myTeamID,fTeamID) then
-		placeLabel(fX, fY, fZ, colourNames(fTeamID)..pName.." (ally) just lost their Com")
-	else
-		placeLabel(fX, fY, fZ, colourNames(fTeamID)..pName.." (enemy) just lost their Com")
 	end
 end
 
-function delFeature(featureID)
-	if not featureID then
-		return
-	end
-	local data = deadComs[featureID]
-	if not data then
-		return -- it's either not a com or we got no info on it anyway
-	end
-	local position = data.position
-	local reasonVec = {}
-	local reasonReverseVec = {}
-	for name, info in pairs(data.variables) do
-		reasonVec[#reasonVec+1] = info.nextValue
-		reasonReverseVec[info.nextValue] = name
-	end
-	table.sort(reasonVec)
-	local reason = ""
-	if reasonVec[1] <= 0 then
-		reason = reasonReverseVec[reasonVec[1]]
-	end
-	-- use the linearry interpolated value to see which operation was successful
-	if reason == "rez" then
-		--need to figure out a better way to find who resurrected the com, then we
-		--can keep track the amount of coms per team
-		if not amISpec then --as spectator, we can use UnitCreated alone
-			if allyComs == checkTeamComCount(myAllyTeamID) then --we can see the com with UnitCreated if allied 
-				countChanged = true
-				lastEnemyComMarked = false
-				enemyComs = enemyComs + 1
-			end
-		end
-	end
-	-- don't annoy players when they can see themselves
-	if warnLOS or not spIsPosInLos(position.fX, position.fY, position.fZ, myAllyTeamID ) then
-		if reason == "rez" then
-			placeLabel(position.fX, position.fY, position.fZ, "Com has been resurrected")
-		elseif reason == "reclaim" then
-			placeLabel(position.fX, position.fY, position.fZ, "Com has been reclaimed")
-		elseif reason == "damage" then
-			placeLabel(position.fX, position.fY, position.fZ, "Com wreck destroyed")
-		else
-			placeLabel(position.fX, position.fY, position.fZ, "Com wreck disappeared")
-		end
-	else
-		-- if in los we can always remove the landmark without risking to remove important labels
-		spMarkerErasePosition( position.fX, position.fY, position.fZ )
-	end
-	deadComs[featureID] = nil
+function widget:PlayerChanged()
+	-- probably not needed but meh, its cheap
+	CheckStatus()
+	Recount()
 end
+
+function widget:GameOver()
+	inProgress = false
+end
+
+---------------------------------------------------------------------------------------------------
+--  GUI
+---------------------------------------------------------------------------------------------------
 
 function widget:DrawScreen()
 	if widgetHandler:InTweakMode() then
 		return
 	end
-	if spGetGameFrame() == 0 then
+	if not inProgress then
 		return
 	end
+	
 	local flickerState = allyComs == 1 and flashIcon and flicker()
 	if countChanged or flickerLastState ~= flickerState then
 		countChanged = false
+		CheckStatus()
+		
 		glDeleteList(displayList)
 		-- regenerate the display list
 		displayList = glCreateList( function()
 			glTranslate(xPos, yPos, 0)
-			glColor(panelColor)
+			--background
+			glColor(0, 0, 0, 0.5)
 			glRect(0, 0, panelWidth, panelHeight)
+			--com pic
 			if flickerState then
 				glColor(1,0.6,0,0.6)
 			else
@@ -533,28 +217,47 @@ function widget:DrawScreen()
 			if VFSFileExists('LuaUI/Images/comIcon.png') then
 				glTexture('LuaUI/Images/comIcon.png')
 			end
-			x,y = 33, 5
-			glTexRect(x, y, x+34, y+40)
+			glTexRect(panelWidth/2-34/2, 5, panelWidth/2+34/2, 5+40)
 			glTexture(false)
-			glColor(0,1,0,1)
-			glText(allyComs, (33-(gl.GetTextWidth(allyComs)*textSize))/2, 18, textSize)
+			--ally coms
+			if allyComs >0 then
+				glColor(0,1,0,1)	
+				local text = tostring(allyComs)
+				local width = glGetTextWidth(text)*22
+				glText(text, panelWidth/2 - width/2 + 1, 20, 22)
+			end
+			--enemy coms
 			glColor(1,0,0,1)
-			glText(enemyComs, 66+(33-(gl.GetTextWidth(enemyComs)*textSize))/2, 18, textSize)
+			if amISpec then
+				text = tostring(enemyComs)
+				width = glGetTextWidth(text)*14
+				glText(text, panelWidth - width - 3, 3, 14)
+			elseif receiveCount then
+				text = tostring(enemyComCount)
+				width = glGetTextWidth(text)*14
+				glText(text, panelWidth - width - 3, 3, 14)			
+			end
 		end)
+		flickerLastState = flickerState
 	end
-	flickerLastState = flickerState
+	
 	glPushMatrix()
-		glCallList(displayList)
+	glCallList(displayList)
 	glPopMatrix()
+	
 end
+
+---------------------------------------------------------------------------------------------------
+-- Tweak mode, settings
+---------------------------------------------------------------------------------------------------
 
 function widget:TweakDrawScreen()
 	glPushMatrix()
 		glTranslate(xPos, yPos, 0)
-		glColor(panelColor)
-		glRect(0, 0, panelWidth, panelHeight)
-		drawCheckbox(check1x, check1y, markers, "Place Markers")
-		drawCheckbox(check2x, check2y, flashIcon, "Flashing Icon")
+		glColor(0, 0, 0, 0.5)
+		glRect(0, 0, 100, panelHeight)
+		drawCheckbox(check1x, check1y, flashIcon, "Flashing Icon")
+		-- drawCheckbox(check2x, check2y, markers, "Place Markers") --currently does nothing, maybe implement this?
 	glPopMatrix()
 end
 
