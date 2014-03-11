@@ -121,7 +121,7 @@ messages = {
 	"XX forgot to pay their protection money",
 	"XX got taken to the mattresses",
 	"XX got whacked",
-	"XX didn't fully close their microwave",
+	"XX didn't fully close the microwave",
 	"XX choked on a gerbil",
 	"XX got a terminal case of rust",
 	"XX was converted to nuclear waste",
@@ -156,7 +156,7 @@ messages = {
 	"XX kicked the oxygen habit",
 	"XX got knocked off",
 	"XX is living-impaired",
-	"XX mailed in their warranty card",
+	"XX mailed in its warranty card",
 	"XX has passed on",
 	"XX got pasted",
 	"XX is permanently out of print",
@@ -449,7 +449,7 @@ messages = {
 	"XX was travelling through Dallas in an open-topped limousine",
 	"XX had a beef train shunted into its tuna station",
 	"XX is a lumberjack and he's ok",
-	"XX got rodgered by a Hippo",
+	"XX got rogered by a Hippo",
 	"XX should have taken the blue pill",
 	"XX will be placed in solitary confinement",
 	"XX would like some sodium thiopental, please",
@@ -526,7 +526,18 @@ messages = {
 	"XX dug a hole and jumped into it",
 	"XX flew a commercial aeroplane into a tall building",
 	"XX went over the Niagara Falls in a steamboat",
-	"XX is going to Amarillo and wishes people would stop asking the way",
+	"XX was eaten by a hungry streptococcus",
+	"XX was first against the wall when the revolution came",
+	"XX lost its flower at the tender age of fifteen",
+	"XX contained traces of horse DNA",
+	"XX expected, got nil",
+	"XX put its pants on its head and stuck two pencils up its nose",
+	"XX will be returned to sender",
+	"XX donated itself to charity",
+	
+	
+	
+	
 }
 
 
