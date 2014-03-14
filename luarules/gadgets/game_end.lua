@@ -32,10 +32,10 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 -- An allyteam is declared dead when it no longer has any units
--- Allyteam death when no coms are left is implemented in teamcomends.lua
-local teamDeathMode = "allyteamzerounits"
+-- Ally team explosion when no coms are left is implemented in teamcomends.lua
+local teamDeathMode = "allyzerounits"
 -- teamDeathMode = "teamzerounits" is also implemented in this gadget but we don't allow it
--- teamzerounits means that a team is automatically killed when it has 0 units left
+-- teamzerounits means that each team is killed when it has 0 units left
 
 -- sharedDynamicAllianceVictory is a C-like bool
 local sharedDynamicAllianceVictory = tonumber(Spring.GetModOptions().shareddynamicalliancevictory) or 0
@@ -105,7 +105,7 @@ function gadget:Initialize()
 			teamCount = teamCount + 1
 		end
 	end
-
+	
 	if teamCount < 2 then -- sandbox mode ( possibly gaia + possibly one player)
 		gadgetHandler:RemoveGadget()
 		return
@@ -308,6 +308,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 	if allyTeamInfo.isGaia and ignoreGaia == 1 then
 		return
 	end
+	
 	if teamDeathMode == "teamzerounits" and teamUnitCount == 0 then
 		KillTeam(unitTeamID)
 	elseif teamDeathMode == "allyzerounits" and allyTeamUnitCount == 0 then
