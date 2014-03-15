@@ -1,3 +1,26 @@
+7.91 -> 7.92
+15/03/2014
+
+- Added new mode to Limit DGun; when enabled DGun won't fire within radius 450 of an enemy startpos
+- Removed defunct Game End modes, simplified modoptions 
+- AdvPlList remembers colour of resigned players
+- Lock Camera sorts its list to match AdvPlList
+- Added more death messages
+- Added mod option for Com Counter to count enemy coms, default off
+- Fixed Com Counter miscounting
+- Fixed aircraft always crashing on death
+- Fixed FFA mode not recognizing when a team has resigned
+- Fixed Red Console using wrong colour after line break
+- Fixed non-amphib land units moving too slowly in shallow water
+- Reduced Zeus target move error 
+- Increased T2 Bomber E costs and buildtimes
+- Increased Sniper costs and buildtime
+- EMP Spiders are stealthy, increased health
+- Lots of internal tidying up
+
+
+
+
 7.90 -> 7.91
 12/01/2014
 - Improved initial queue detection in Idle Players 
