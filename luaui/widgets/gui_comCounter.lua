@@ -69,7 +69,7 @@ local lastMarkerFrame		= -1
 
 function isCom(unitID,unitDefID)
 	if not unitDefID and unitID then
-		unitDefID =  spGetUnitDefID(unitID)
+		unitDefID =  Spring.GetUnitDefID(unitID)
 	end
 	if not unitDefID or not UnitDefs[unitDefID] or not UnitDefs[unitDefID].customParams then
 		return false
@@ -311,10 +311,12 @@ function MarkComs()
 	-- place a mark on each com
 	for i=1,#units do
 		if Spring.GetUnitAllyTeam(units[i]) == myAllyTeamID then
-			local x,y,z = Spring.GetUnitPosition(units[i])
-			Spring.MarkerAddPoint(x,y,z,"",true)
-			comMarkers[#comMarkers+1] = {x,y,z}
-			removeMarkerFrame = Spring.GetGameFrame() + 30*5
+			if isCom(units[i],_) then
+				local x,y,z = Spring.GetUnitPosition(units[i])
+				Spring.MarkerAddPoint(x,y,z,"",true)
+				comMarkers[#comMarkers+1] = {x,y,z}
+				removeMarkerFrame = Spring.GetGameFrame() + 30*5
+			end
 		end
 	end
 end
