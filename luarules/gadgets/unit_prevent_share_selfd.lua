@@ -1,7 +1,7 @@
 function gadget:GetInfo()
   return {
     name      = "No Self-D",
-    desc      = "Prevents self-destruction when a unit changes hands or a player leaves.",
+    desc      = "Prevents self-destruction when a unit changes hands or a player leaves",
     author    = "quantum, Bluestone",
     date      = "July 13, 2008",
     license   = "GNU GPL, v2 or later",
@@ -27,21 +27,23 @@ else
 function gadget:PlayerChanged(playerID)
 	local _,active,spec,teamID = Spring.GetPlayerInfo(playerID)
 	if active and not spec then return end
-	local team = Spring.GetTeamList(teamID)
+	local team = Spring.GetPlayerList(teamID)
 	
-	-- check team is empty
-	for _,pID in pairs(team) do
-		_,active,spec = Spring.GetPlayerInfo(pID)
-		if active and not spec then
-			return
+	if team then
+		-- check team is empty
+		for _,pID in pairs(team) do
+			_,active,spec = Spring.GetPlayerInfo(pID)
+			if active and not spec then
+				return
+			end
 		end
-	end
 	
-	-- cancel any self d orders
-	local units = Spring.GetTeamUnits(teamID)
-	for _,unitID in pairs(units) do
-		  if (Spring.GetUnitSelfDTime(unitID) > 0) then
-			Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, {})
+		-- cancel any self d orders
+		local units = Spring.GetTeamUnits(teamID)
+		for _,unitID in pairs(units) do
+			if (Spring.GetUnitSelfDTime(unitID) > 0) then
+				Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, {})
+			end
 		end
 	end
 end
