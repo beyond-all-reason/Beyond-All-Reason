@@ -44,7 +44,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0,0
 	end 
 
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.25 and weaponDefID ~= COM_BLAST then 
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.5 and weaponDefID ~= COM_BLAST then 
 		-- make it crash
 		crashing[unitID] = true
 		SetUnitCOBValue(unitID, COB_CRASHING, 1)
