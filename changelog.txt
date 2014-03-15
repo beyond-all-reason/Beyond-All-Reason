@@ -1,3 +1,7 @@
+7.92 -> 7.93
+16/03/2014
+- Fix lua error in Prevet Share Self D
+
 7.91 -> 7.92
 15/03/2014
 
