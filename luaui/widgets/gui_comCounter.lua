@@ -286,13 +286,19 @@ function widget:MousePress(mx, my, button)
 	if not widget:IsAbove(mx,my) then
 		return false
 	end
-	if (mx - xPos) > (panelWidth / 2) then
-		lastEnemyComMarked = false
-	else
-		lastAllyComMarked = false
-	end
-	markComs()
+	MarkComs()
 	return true
+end
+
+function MarkComs()
+	local units = Spring.GetAllUnits()
+	-- place a mark on each com
+	for i=1,#units do
+		if Spring.GetUnitAllyTeam(units[i]) == myAllyTeamID then
+			local x,y,z = Spring.GetUnitPosition(units[i])
+			Spring.MarkerAddPoint(x,y,z,"",true)
+		end
+	end
 end
 
 function widget:TweakMousePress(mx, my)
