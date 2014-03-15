@@ -59,6 +59,9 @@ local displayList			= nil
 local flickerLastState		= nil
 local is1v1					= Spring.GetTeamList() == 3 -- +1 because of gaia
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
+local comMarkers			= {}
+local removeMarkerFrame		= -1
+local lastMarkerFrame		= -1
 
 ---------------------------------------------------------------------------------------------------
 --  Counting
@@ -172,6 +175,13 @@ function widget:GameFrame(n)
 			prevEnemyComCount = enemyComCount
 		end
 	end
+	
+	-- remove all markers
+	if markers and n == removeMarkerFrame then
+		for i=1,#comMarkers do
+			Spring.MarkerErasePosition(comMarkers[i][1], comMarkers[i][2], comMarkers[i][3])
+		end
+	end
 end
 
 function widget:PlayerChanged()
@@ -248,7 +258,7 @@ function widget:DrawScreen()
 end
 
 ---------------------------------------------------------------------------------------------------
--- Tweak mode, settings
+-- Tweak mode, settings, mouse stuff
 ---------------------------------------------------------------------------------------------------
 
 function widget:TweakDrawScreen()
@@ -256,8 +266,8 @@ function widget:TweakDrawScreen()
 		glTranslate(xPos, yPos, 0)
 		glColor(0, 0, 0, 0.5)
 		glRect(0, 0, 100, panelHeight)
-		drawCheckbox(check1x, check1y, flashIcon, "Flashing Icon")
-		-- drawCheckbox(check2x, check2y, markers, "Place Markers") --currently does nothing, maybe implement this?
+		drawCheckbox(check1x, check1y, markers, "Place Markers") 
+		drawCheckbox(check2x, check2y, flashIcon, "Flashing Icon")
 	glPopMatrix()
 end
 
@@ -286,7 +296,12 @@ function widget:MousePress(mx, my, button)
 	if not widget:IsAbove(mx,my) then
 		return false
 	end
-	MarkComs()
+	
+	local frame = Spring.GetGameFrame()
+	if markers and frame > lastMarkerFrame + 2.5*30 then --prevent marker spam
+		lastMarkerFrame = frame
+		MarkComs()
+	end
 	return true
 end
 
@@ -297,6 +312,8 @@ function MarkComs()
 		if Spring.GetUnitAllyTeam(units[i]) == myAllyTeamID then
 			local x,y,z = Spring.GetUnitPosition(units[i])
 			Spring.MarkerAddPoint(x,y,z,"",true)
+			comMarkers[#comMarkers+1] = {x,y,z}
+			removeMarkerFrame = Spring.GetGameFrame() + 30*5
 		end
 	end
 end
