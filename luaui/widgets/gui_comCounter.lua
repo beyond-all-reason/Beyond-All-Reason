@@ -180,6 +180,7 @@ function widget:GameFrame(n)
 	if markers and n == removeMarkerFrame then
 		for i=1,#comMarkers do
 			Spring.MarkerErasePosition(comMarkers[i][1], comMarkers[i][2], comMarkers[i][3])
+			comMarkers[i] = nil
 		end
 	end
 end
