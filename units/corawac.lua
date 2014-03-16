@@ -1,6 +1,6 @@
 return {
 	corawac = {
-		acceleration = 0.032,
+		acceleration = 0.114,
 		brakerate = 0.0375,
 		buildcostenergy = 7824,
 		buildcostmetal = 169,

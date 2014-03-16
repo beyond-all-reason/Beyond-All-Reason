@@ -1,6 +1,6 @@
 return {
 	armsehak = {
-		acceleration = 0.023,
+		acceleration = 0.069,
 		brakerate = 0.05,
 		buildcostenergy = 6624,
 		buildcostmetal = 119,

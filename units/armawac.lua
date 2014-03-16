@@ -1,6 +1,6 @@
 return {
 	armawac = {
-		acceleration = 0.038,
+		acceleration = 0.114,
 		brakerate = 0.05,
 		buildcostenergy = 8062,
 		buildcostmetal = 165,

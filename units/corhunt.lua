@@ -1,6 +1,6 @@
 return {
 	corhunt = {
-		acceleration = 0.02,
+		acceleration = 0.06,
 		brakerate = 0.0375,
 		buildcostenergy = 6421,
 		buildcostmetal = 122,
