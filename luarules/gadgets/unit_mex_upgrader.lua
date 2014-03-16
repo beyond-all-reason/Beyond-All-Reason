@@ -518,7 +518,7 @@ end
 function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) 
   --Echo("CF " .. cmdID)  
 
-  if cmdID ~= CMD_UPGRADEMEX then 
+  if cmdID ~= CMD_UPGRADEMEX or not unitID or not unitDefID then 
     return false 
   end 
   
