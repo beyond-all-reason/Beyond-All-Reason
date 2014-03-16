@@ -169,7 +169,11 @@ else -- begin unsynced section
 -----------------------------
 
 local spIsGUIHidden = Spring.IsGUIHidden
+local spGetMyTeamID = Spring.GetMyTeamID
 
+local tID
+local amISpec = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local allyTeamList = Spring.GetAllyTeamList()
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -306,6 +310,14 @@ function gadget:GameOver()
 end
 
 function gadget:DrawWorldPreUnit() 
+	-- check if we changed who we are spectating, if we are a spec
+	tID = spGetMyTeamID()
+	if myTeamID ~= tID then
+		myTeamID = tID
+		myAllyTeamID = Spring.GetMyAllyTeamID()
+		CreateList()
+	end
+	
 	if dgunLimitList and not spIsGUIHidden() then
 		gl.DepthTest(GL.ALWAYS)
 		gl.CallList(dgunLimitList)
