@@ -149,7 +149,7 @@ function gadget:Initialize()
 		allyTeamInfos[allyTeamID] = allyTeamInfo
 	end
 	for _,playerID in ipairs(GetPlayerList()) do
-		gadget:PlayerChanged(playerID)
+		CheckPlayer(playerID)
 	end
 end
 
