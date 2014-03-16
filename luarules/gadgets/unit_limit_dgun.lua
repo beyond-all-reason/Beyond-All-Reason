@@ -310,7 +310,7 @@ function gadget:GameOver()
 end
 
 function gadget:DrawWorldPreUnit() 
-	-- check if we changed who we are spectating, if we are a spec
+	-- check if we changed team (or if we changed which team we spec)
 	tID = spGetMyTeamID()
 	if myTeamID ~= tID then
 		myTeamID = tID
