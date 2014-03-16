@@ -233,7 +233,7 @@ end
 
 function gadget:GameFrame()
 	for _,playerID in ipairs(GetPlayerList()) do
-		gadget:PlayerChanged(playerID)
+		CheckPlayer(playerID) -- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
 	end
 	local winners
 	if sharedDynamicAllianceVictory == 0 then
@@ -248,7 +248,7 @@ function gadget:GameFrame()
 end
 
 
-function gadget:PlayerChanged(playerID)
+function CheckPlayer(playerID)
 	local _,active,spectator,teamID = GetPlayerInfo(playerID) 
 	local allyTeamID = teamToAllyTeam[teamID] 
 	local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
@@ -258,7 +258,7 @@ function gadget:PlayerChanged(playerID)
 		KillTeam(teamID)
 	end
 	if not teamInfo.isAI then
-		--if team isn't ai controlled, then we need to check if we have attached players
+		--if team isn't AI controlled, then we need to check if we have attached players
 		teamInfo.isControlled = false
 		for _,isControlling in pairs(teamInfo.players) do
 			if isControlling then
