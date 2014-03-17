@@ -1,6 +1,13 @@
-7.92 -> 7.93
+7.93 -> 7.94
 16/03/2014
-- Fix lua error in Prevet Share Self D
+- Fixed T2 radar plane acceleration
+- Fixed Com Counter markers
+- Fixed DGun Limiter not changing colour for specs
+- Fixed sometimes getting two Death Messages 
+
+7.92 -> 7.93
+15/03/2014
+- Fixed lua error in Prevet Share Self D
 
 7.91 -> 7.92
 15/03/2014
