@@ -15,7 +15,7 @@ return {
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylY]],
 		corpse = "DEAD",
-		description = "Tech Level 3",
+		description = "Tech Level 2",
 		energymake = 20,
 		energystorage = 100,
 		energyuse = 20,
