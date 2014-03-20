@@ -1,3 +1,5 @@
+-- license: BA/BAR only.
+
 messages = {
 	--ated
 	"XX has been obliterated",
@@ -534,7 +536,12 @@ messages = {
 	"XX put its pants on its head and stuck two pencils up its nose",
 	"XX will be returned to sender",
 	"XX donated itself to charity",
-	
+	"XX came. XX saw. XX died really horribly.",
+	"XX didn't just buy the farm. XX bought a country house, stables, outdoor toilet, a tree-lined driveway and half of Wiltshire.",
+	"XX played chess with the grim reaper and came second",
+	"The fat lady finished singing for XX and went home",
+	"XX should remember that death is a useful lesson in ones own limitations",
+	"XX entered into the afterlife of recrimination",
 	
 	
 	
