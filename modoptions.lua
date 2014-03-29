@@ -46,7 +46,7 @@ local options={
     {
 		key    = "mo_noowner",
 		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed",
+		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
 		type   = "bool",
 		def    = false,
 		section= "ba_modes",
