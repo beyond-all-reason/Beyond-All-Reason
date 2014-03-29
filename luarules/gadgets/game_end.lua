@@ -31,11 +31,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
--- An allyteam is declared dead when it no longer has any units
--- Ally team explosion when no coms are left is implemented in teamcomends.lua
-local teamDeathMode = "allyzerounits"
--- teamDeathMode = "teamzerounits" is also implemented in this gadget but we don't allow it
--- teamzerounits means that each team is killed when it has 0 units left
+-- In this gadget, an allyteam is declared dead when it no longer has any units
+-- Allyteam explosion when no coms are left (killing all remaining units of that allyteam) is implemented in teamcomends.lua
 
 -- sharedDynamicAllianceVictory is a C-like bool
 local sharedDynamicAllianceVictory = tonumber(Spring.GetModOptions().shareddynamicalliancevictory) or 0
@@ -254,8 +251,9 @@ function CheckPlayer(playerID)
 	local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
 	teamInfo.players[playerID] = active and not spectator
 	teamInfo.hasLeader = select(2,GetTeamInfo(teamID)) >= 0
-	if not teamInfo.hasLeader then
+	if not teamInfo.hasLeader and not teamInfo.dead then
 		KillTeam(teamID)
+		Script.LuaRules.TeamDeathMessage(teamID)
 	end
 	if not teamInfo.isAI then
 		--if team isn't AI controlled, then we need to check if we have attached players
@@ -284,7 +282,9 @@ function gadget:TeamDied(teamID)
 	allyTeamInfo.teams[teamID].dead = true
 	allyTeamInfos[allyTeamID] = allyTeamInfo
 	UpdateAllyTeamIsDead(allyTeamID)
+	Script.LuaRules.TeamDeathMessage(teamID)
 end
+
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
 	local allyTeamID = teamToAllyTeam[unitTeamID]
@@ -309,9 +309,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		return
 	end
 	
-	if teamDeathMode == "teamzerounits" and teamUnitCount == 0 then
-		KillTeam(unitTeamID)
-	elseif teamDeathMode == "allyzerounits" and allyTeamUnitCount == 0 then
+	if allyTeamUnitCount == 0 then
+		Script.LuaRules.AllyTeamDeathMessage(allyTeamID) 
 		for teamID in pairs(allyTeamInfo.teams) do
 			KillTeam(teamID)
 		end

@@ -1,6 +1,6 @@
 -- license: BA/BAR only.
 
-messages = {
+allyTeamDeathMessages = {
 	--ated
 	"XX has been obliterated",
 	"XX has been liquidated",
@@ -23,6 +23,7 @@ messages = {
 	"XX has been deprecated",
 	"XX has been incinerated",
 	"XX has been secreted",
+	"XX has been decapitated",
 
 	--ized
 	"XX has been hospitalized",
@@ -42,7 +43,27 @@ messages = {
 	"XX has been amortized",
 	"XX has been vaporized",
 	
-	--other
+	--lled
+	"XX has been steamrolled",
+	"XX has been levelled",
+	"XX has been uninstalled",
+	"XX has been chargrilled",
+	"XX has been cudgelled",
+	"XX has been cancelled",
+	"XX has been anulled",
+	"XX has been jackrolled",
+	"XX has been mothballed",
+	"XX has been bedevilled",
+	"XX has been expelled",
+	"XX has been disembowelled",
+	"XX has been killed",
+	"XX has been unravelled",
+	
+	 
+}	
+	
+teamDeathMessages = {
+
 	"XX was exported to pdf",
 	"XX suffered an unmitigated disaster",
 	"XX should have stayed in bed",
@@ -130,7 +151,6 @@ messages = {
 	"XX has been burned for witchery",
 	"XX was gunned down by angry circus people",
 	"XX drowned in a toilet",
-	"XX was steamrolled",
 	"XX has been decommissioned",
 	"XX won't be bothering you anymore, m'ame",
 	"XX forgot to turn off the gas",
@@ -151,7 +171,6 @@ messages = {
 	"XX will go home feet first",
 	"XX is goin' to a dance pawty wit' Gawd!",
 	"XX got their just reward",
-	"XX got levelled",
 	"XX went on to the bonus round",
 	"XX is mortally challenged",
 	"XX lost alignment",
@@ -572,7 +591,24 @@ messages = {
 	"XX rubbed itself out",
 	"XX was a highway to the danger zone",
 	"XX put out on the first date",
-	"XX plunged into a canyon,"
+	"XX plunged into a canyon",
+	"XX would like to know how to rotate buildings",
+	"XX needs more cowbell",
+	"XX has a mouse but it doesn't have a house",
+	"XX is going down in a blaze of glory",
+	"XX needs some tissues",
+	"XX could make a fortune just laying on its back",
+	"XX was sent to landfill",
+	"XX is biodegradable",
+	"XX fell off its ninja rope into the water",
+	"XX is a bell-end",
+	"XX will be courtmartialled",
+	"XX was jellied",
+	
+	
+	
+	
+	
 	
 	
 	
