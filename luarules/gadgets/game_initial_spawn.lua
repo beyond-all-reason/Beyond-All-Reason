@@ -56,13 +56,26 @@ GG.playerStartingUnits = playerStartingUnits
 --each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by mo_coop
 local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
 GG.teamStartPoints = teamStartPoints 
-local startPointTable = {} --temporary, only for use within this gadget
+local startPointTable = {} --temporary, only for use within this gadget & its libs
+
+local nAllyTeams
+local allyTeams = {} --allyTeams[allyTeamID] is non-nil if this allyTeam will spawn at least one starting unit
 
 ----------------------------------------------------------------
--- Libs
+-- Start Point Guesser
 ----------------------------------------------------------------
 
 include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing routines
+
+----------------------------------------------------------------
+-- FFA Startpoints (modoption)
+----------------------------------------------------------------
+
+if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
+	if VFS.FileExists("luarules/configs/ffa_startpoints.lua") then
+		include("luarules/configs/ffa_startpoints.lua") --loads the ffaStartPoints table (if map has it)
+	end
+end
 
 ----------------------------------------------------------------
 -- NewbiePlacer (modoption)
@@ -152,9 +165,19 @@ function gadget:Initialize()
 				newbieParam = 0
 			end
 			spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, {public=true}) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
+		
+			--record that this allyteam will spawn something
+			local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+			allyTeams[allyTeamID] = allyTeamID
 		end
 	end
 	processedNewbies = true
+	
+	-- count allyteams
+	nAllyTeams = 0
+	for k,v in pairs(allyTeams) do
+		nAllyTeams = nAllyTeams + 1
+	end
 end
 
 
@@ -183,9 +206,9 @@ end
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 
 	if Game.startPosType == 3 then return true end --choose before game mode
-
+	
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
-	if not teamID or not allyTeamID then return false end
+	if not teamID or not allyTeamID then return false end --fail
 	
 	-- NewbiePlacer
 	if NewbiePlacer then
@@ -230,29 +253,90 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	return true
 end
 
+
 ----------------------------------------------------------------
 -- Spawning
 ----------------------------------------------------------------
 
--- cycle through teams and call spawn starting unit
 function gadget:GameStart() 
-	for teamID, allyID in pairs(spawnTeams) do
-		SpawnTeamStartUnit(teamID, allyID) 
+	-- ffa mode spawning
+	if ffaStartPoints then
+		if ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
+		-- cycle over ally teams and spawn starting units
+			local allyTeamSpawn = SetFFASpawns()
+			for teamID, allyTeamID in pairs(spawnTeams) do
+				SpawnFFAStartUnit(nAllyTeams, allyTeamID, allyTeamSpawn[allyTeamID], teamID) 
+			end
+			
+			gadgetHandler:RemoveGadget()
+			return
+		end
 	end
+	
+	-- normal spawning (also used as fallback if ffaStartPoints fails)
+	-- cycle through teams and call spawn team starting unit 
+	for teamID, allyTeamID in pairs(spawnTeams) do
+		SpawnTeamStartUnit(teamID, allyTeamID) 
+	end
+	
 	gadgetHandler:RemoveGadget()
 end
 
+function SetFFASpawns()
+	-- construct a random permutation of [1,...,nAllyTeams] and call it perm (using a Knuth shuffle)
+	local perm = {}
+	for i=1,nAllyTeams do
+		perm[i] = i
+	end
+	for i=1,nAllyTeams-1 do
+		local j = math.random(i,nAllyTeams)
+		local temp = perm[i]
+		perm[i] = perm[j]
+		perm[j] = temp
+	end
 
-function SpawnTeamStartUnit(teamID, allyID)
+	-- construct bijective random map from active allyTeams to [1,...,nAllyTeams] and call it allyTeamSpawn
+	local allyTeamSpawn = {}
+	local slot = 1
+	for allyTeamID in pairs(allyTeams) do
+		allyTeamSpawn[allyTeamID] = perm[slot]
+		slot = slot + 1
+	end
+
+	return allyTeamSpawn
+end
+
+function SpawnFFAStartUnit(nAllyTeams, allyTeamID, allyTeamSpawnID, teamID)
+	-- get allyTeam start pos
+	local startPos = ffaStartPoints[nAllyTeams][allyTeamSpawnID]
+	local x = startPos.x
+	local z = startPos.z
+	
+	-- get team start pos; randomly move slightly to make it look nicer and (w.h.p.) avoid coms in same place in team ffa
+	local r = math.random(200)
+	local theta = math.random(50)
+	theta = theta / 100 * 2 * math.pi
+	local cx = x + r*math.cos(theta)
+	local cz = z + r*math.sin(theta)
+	if not IsSteep(cx,cz) then --IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
+		x = cx
+		z = cz
+	end
+	
+	-- spawn
+	SpawnStartUnit(teamID, x, z)
+end
+
+
+function SpawnTeamStartUnit(teamID, allyTeamID)
 	local x,_,z = Spring.GetTeamStartPosition(teamID)
-	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
-	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyID) 
+	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID) 
 
-	--pick location if didn't place
+	--pick location 
 	local isAIStartPoint = (Game.startPosType == 3) and ((x>0) or (z>0)) --AIs only place startpoints of their own with choose-before-game mode
 	if not isAIStartPoint then
 		if ((not startPointTable[teamID]) or (startPointTable[teamID][1] < 0)) then
-			-- guess points for the classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
+			-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
 			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 		else
 			--fallback 
@@ -263,6 +347,15 @@ function SpawnTeamStartUnit(teamID, allyID)
 		end
 	end
 	
+	--spawn
+	SpawnStartUnit(teamID, x, z)
+end
+
+
+function SpawnStartUnit(teamID, x, z)
+	--get starting unit
+	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
+
 	--overwrite startUnit with random faction for newbies 
 	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
 		if math.random() > 0.5 then
@@ -272,13 +365,14 @@ function SpawnTeamStartUnit(teamID, allyID)
 		end
 	end
 	
-	spSetTeamRulesParam(teamID, startUnitParamName, startUnit, {public=true}) -- visible to all (and picked up by advpllist)
-
 	--spawn starting unit
 	local y = spGetGroundHeight(x,z)
 	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID) 
+
+	--share info
 	teamStartPoints[teamID] = {x,y,z}
-	
+	spSetTeamRulesParam(teamID, startUnitParamName, startUnit, {public=true}) -- visible to all (and picked up by advpllist)
+
 	--team storage is set up by game_team_resources
 end
 
@@ -286,7 +380,6 @@ end
 ----------------------------------------------------------------
 --- StartPoint Guessing ---
 ----------------------------------------------------------------
-
 
 function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
 	--Sanity check
