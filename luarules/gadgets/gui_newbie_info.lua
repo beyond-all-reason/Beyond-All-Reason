@@ -11,12 +11,16 @@ function gadget:GetInfo()
 	}
 end
 
+--unsynced only
+if gadgetHandler:IsSyncedCode() then
+	return false
+end
+
 local vsx,vsy = Spring.GetViewGeometry()
 local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
-
 
 function gadget:DrawScreen()
 	-- are we are newbie?
