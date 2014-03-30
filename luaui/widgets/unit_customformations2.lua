@@ -51,9 +51,9 @@ local formationCmds = {
 
 -- What commands require alt to be held (Must also appear in formationCmds)
 local requiresAlt = {
-	[CMD.ATTACK] = true,
+	--[CMD.ATTACK] = true,
 	[CMD.UNLOAD_UNIT] = true,
-	[34923] = true -- set target
+	--[34923] = true -- set target
 }
 
 -- Context-based default commands that can be overridden (i.e. guard when mouseover unit)
@@ -70,6 +70,19 @@ local positionCmds = {
 	[CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
 	[34923] = true -- set target
 }
+
+
+function widget:Initialize()
+	if not requiresAlt[CMD.ATTACK] then
+		Spring.SendCommands('bind Alt+a areaattack')
+	end
+end
+
+function widget:ShutDown()
+	if not requiresAlt[CMD.ATTACK] then
+		Spring.SendCommands('unbind Alt+a areaattack')
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Globals
