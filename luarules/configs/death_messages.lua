@@ -22,7 +22,6 @@ allyTeamDeathMessages = {
 	"XX has been deactivated",
 	"XX has been deprecated",
 	"XX has been incinerated",
-	"XX has been secreted",
 	"XX has been decapitated",
 
 	--ized
@@ -58,7 +57,6 @@ allyTeamDeathMessages = {
 	"XX has been disembowelled",
 	"XX has been killed",
 	"XX has been unravelled",
-	
 	 
 }	
 	
@@ -570,7 +568,7 @@ teamDeathMessages = {
 	"XX was pushing an elephant up the stairs",
 	"XX wouldn't believe its wireless radio",
 	"XX looked back in anger",
-	"XX lived in a house, a very big house in the country",
+	"XX lives in a house, a very big house in the country",
 	"XX was the story of a charmless man",
 	"XX ran to the hills",
 	"XX is just a teenage dirtbag, baby",
@@ -601,9 +599,14 @@ teamDeathMessages = {
 	"XX was sent to landfill",
 	"XX is biodegradable",
 	"XX fell off its ninja rope into the water",
-	"XX is a bell-end",
-	"XX will be courtmartialled",
+	"XX is a bell end",
+	"XX will be court-martialled for this",
 	"XX was jellied",
+	"XX believes in angels",
+	"XX was evicted from the Big Brother household",
+	"XX was the weakest link, goodbye",
+	"XX remembered it was a womble",
+	
 	
 	
 	
