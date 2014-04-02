@@ -39,14 +39,15 @@ local unitIncreaseThresh	= 0.85 -- We only increase maxUnits if the units are gr
 local lineFadeRate = 2.0
 
 -- What commands are eligible for custom formations
+local CMD_SETTARGET = 34923
+
 local formationCmds = {
 	[CMD.MOVE] = true,
 	[CMD.FIGHT] = true,
 	[CMD.ATTACK] = true,
 	[CMD.PATROL] = true,
 	[CMD.UNLOAD_UNIT] = true,
-	[38521] = true, -- Jump
-	[34923] = true -- set target
+	[CMD_SETTARGET] = true -- set target
 }
 
 -- What commands require alt to be held (Must also appear in formationCmds)
@@ -61,14 +62,16 @@ local requiresAlt = {
 -- Normal logic will follow after override, i.e. must be a formationCmd to get formation, alt must be held if requiresAlt, etc.
 local overrideCmds = {
 	[CMD.GUARD] = CMD.MOVE,
+	[CMD.ATTACK] = CMD.ATTACK,
+	[CMD_SETTARGET] = CMD_SETTARGET, 
 }
 
 -- What commands are issued at a position or unit/feature ID (Only used by GetUnitPosition)
 local positionCmds = {
 	[CMD.MOVE]=true,		[CMD.ATTACK]=true,		[CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
-	[CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.MANUALFIRE]=true,		[38521]=true, -- jump
+	[CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.MANUALFIRE]=true,	
 	[CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-	[34923] = true -- set target
+	[CMD_SETTARGET] = true -- set target
 }
 
 
@@ -230,7 +233,7 @@ local function SetColor(cmdID, alpha)
 	if     cmdID == CMD_MOVE       then glColor(0.5, 1.0, 0.5, alpha) -- Green
 	elseif cmdID == CMD_ATTACK     then glColor(1.0, 0.2, 0.2, alpha) -- Red
 	elseif cmdID == CMD_UNLOADUNIT then glColor(1.0, 1.0, 0.0, alpha) -- Yellow
-	elseif cmdID == 34923		   then glColor(1.0, 0.7, 0.0, alpha) -- Orange
+	elseif cmdID == CMD_SETTARGET  then glColor(1.0, 0.7, 0.0, alpha) -- Orange
 	else                                glColor(0.5, 0.5, 1.0, alpha) -- Blue
 	end
 end
@@ -394,17 +397,18 @@ function widget:MousePress(mx, my, mButton)
 	local _, activeCmdID = spGetActiveCommand()
 	if activeCmdID then
 		if mButton ~= 1 then return false end
-		
+
 		usingCmd = activeCmdID
 		usingRMB = false
 	else
 		if mButton ~= 3 then return false end
-		
+
 		local _, defaultCmdID = spGetDefaultCommand()
 		if not defaultCmdID then return false end
 		
 		local overrideCmdID = overrideCmds[defaultCmdID]
 		if overrideCmdID then
+		
 			
 			local targType, targID = spTraceScreenRay(mx, my, false, inMinimap)
 			if targType == 'unit' then
@@ -531,7 +535,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Override checking
 	if overriddenCmd then
-		
+	
 		local targetID
 		local targType, targID = spTraceScreenRay(mx, my, false, inMinimap)
 		if targType == 'unit' then
@@ -575,9 +579,27 @@ function widget:MouseRelease(mx, my, mButton)
 		if fDists[#fNodes] < minFormationLength then
 			-- We should check if any units are able to execute it,
 			-- but the order is small enough network-wise that the tiny bug potential isn't worth it.
-			GiveNotifyingOrder(usingCmd, fNodes[1], cmdOpts)
+			
+			-- Check if this order was meant to target a unit
+			local targetID
+			if overrideCmds[usingCmd] then
+				local targType, targID = spTraceScreenRay(mx, my, false, inMinimap)
+				if targType == 'unit' then
+					targetID = targID
+				elseif targType == 'feature' then
+					targetID = targID + maxUnits
+				end
+			end
+			
+			-- Give order 
+			if targetID then
+				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
+			else
+				GiveNotifyingOrder(usingCmd, fNodes[1], cmdOpts)
+			end
+			
 		else
-			-- Order is a formation
+			-- Order is a formation; line was drawn
 			-- Are any units able to execute it?
 			local mUnits = GetExecutingUnits(usingCmd)
 			
