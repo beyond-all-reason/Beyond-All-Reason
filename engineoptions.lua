@@ -75,15 +75,6 @@ local options =
 	section= "ba_others",
   },
   {
-    key    = 'GhostedBuildings',
-    name   = 'Ghosted Buildings',
-    desc   = "Once an enemy building will be spotted\na ghost trail will be placed to memorize location even after the loss of the line of sight",
-    type   = 'bool',
-    def    = true,
-    section= "ba_others",
-
-  },
-  {
     key    = 'FixedAllies',
     name   = 'Fixed ingame alliances',
     desc   = 'Disables the possibility of players to dynamically change alliances ingame',
