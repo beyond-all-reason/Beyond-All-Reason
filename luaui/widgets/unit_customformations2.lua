@@ -14,9 +14,11 @@ function widget:GetInfo()
 end
 
 -- 06/04/13 -- Cleaned up commands in Custom Formations:
-			-- To line attack: press a, then right click & drag
-			-- To attack units with an area: press a, then left click and drag
-			-- To area attack (bombers etc only): press a, hold alt, left click
+			-- To give a line command: press a, then right click & drag
+			-- To give a command within an area: press a, then left click and drag
+			-- To area attack (bombers etc only): press a, hold alt, left click and drag
+			-- To deselect non-default command and return to default command: right click and don't drag
+			-- To deselect default command: left click 
 
 -- 29/05/13 -- Dots are of consistent size depending on zoom and terrain height
 -- 25/05/13 -- Fixed crash bug that was triggered by pressing the left mouse button during line drawing with right mouse button. Also improved visuals.
@@ -596,6 +598,8 @@ function widget:MouseRelease(mx, my, mButton)
 			if targetID then
 				-- Give order (i.e. pass the command to the engine to use as normal)
 				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
+			elseif usingCmd == CMD_MOVE then 
+				GiveNotifyingOrder(usingCmd, fNodes[1], cmdOpts)			
 			else
 				-- Deselect command, select default command instead
 				spSetActiveCommand(0)
