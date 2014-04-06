@@ -3,11 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base;
+piece  base, detonation;
 
 
 Create()
 {
+	hide detonation;
 	dont-shade base;
 	dont-cache base;
 	set ARMORED to 0;
@@ -28,6 +29,6 @@ Deactivate()
 FireWeapon1()
 {
 	sleep 500; //A slight delay
-	emit-sfx 4096 + 1 from base; //Weapon2 detonates the mine once weapon1 fires
+	emit-sfx 4096 + 1 from detonation;; //Weapon2 detonates the mine once weapon1 fires
 }
 
