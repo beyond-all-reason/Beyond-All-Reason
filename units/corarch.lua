@@ -203,14 +203,17 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "GA2",
 				onlytargetcategory = "VTOL",
 			},
 			[3] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "MOBILEFLAK",
 				onlytargetcategory = "VTOL",
 			},

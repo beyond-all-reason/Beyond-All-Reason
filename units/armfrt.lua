@@ -116,6 +116,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMRL_MISSILE",
 				onlytargetcategory = "VTOL",
 			},

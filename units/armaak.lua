@@ -236,24 +236,29 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMAAKBOT_MISSILE1",
 				onlytargetcategory = "VTOL",
 			},
 			[3] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMAAKBOT_MISSILE2",
 				onlytargetcategory = "VTOL",
 				slaveto = 2,
 			},
 			[4] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMAAKBOT_MISSILE2",
 				onlytargetcategory = "VTOL",
 				slaveto = 1,
 			},
 			[5] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "AAKFLAK",
 				onlytargetcategory = "VTOL",
 			},

@@ -173,6 +173,7 @@ return {
 				onlytargetcategory = "VTOL",
 			},
 			[3] = {
+				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "MOBILEFLAK",
 				onlytargetcategory = "VTOL",
 			},
