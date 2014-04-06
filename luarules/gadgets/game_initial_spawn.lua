@@ -180,7 +180,9 @@ function gadget:Initialize()
 	end
 	
 	-- make the relevant part of ffaStartPoints accessible to all 
-	GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID, because of slight displacement in actual spawning pos
+	if ffaStartPoints then
+		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID, because of slight displacement in actual spawning pos
+	end
 end
 
 
@@ -317,9 +319,8 @@ function SpawnFFAStartUnit(nAllyTeams, allyTeamID, allyTeamSpawnID, teamID)
 	local z = startPos.z
 	
 	-- get team start pos; randomly move slightly to make it look nicer and (w.h.p.) avoid coms in same place in team ffa
-	local r = math.random(200)
-	local theta = math.random(50)
-	theta = theta / 100 * 2 * math.pi
+	local r = math.random(50,120)
+	local theta = math.random(100) / 100 * 2 * math.pi
 	local cx = x + r*math.cos(theta)
 	local cz = z + r*math.sin(theta)
 	if not IsSteep(cx,cz) then --IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
