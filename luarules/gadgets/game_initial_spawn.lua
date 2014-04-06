@@ -178,6 +178,9 @@ function gadget:Initialize()
 	for k,v in pairs(allyTeams) do
 		nAllyTeams = nAllyTeams + 1
 	end
+	
+	-- make the relevant part of ffaStartPoints accessible to all 
+	GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID, because of slight displacement in actual spawning pos
 end
 
 
