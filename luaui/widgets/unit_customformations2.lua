@@ -14,9 +14,10 @@ function widget:GetInfo()
 end
 
 -- 06/04/13 -- Cleaned up commands in Custom Formations:
-			-- To give a line command: press a, then right click & drag
-			-- To give a command within an area: press a, then left click and drag
-			-- To area attack (bombers etc only): press a, hold alt, left click and drag
+			-- To give a line command: select command, then right click & drag
+			-- To give a command within an area: select command, then left click and drag
+			-- To give a command at a point: select command, left click and don't drag
+			-- To area attack (bombers etc only): select command, hold alt, left click and drag
 			-- To deselect non-default command and return to default command: right click and don't drag
 			-- To deselect default command: left click 
 
