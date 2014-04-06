@@ -206,6 +206,7 @@ end
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 
 	if Game.startPosType == 3 then return true end --choose before game mode
+	if ffaStartPoints then return true end
 	
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if not teamID or not allyTeamID then return false end --fail
@@ -414,13 +415,14 @@ else
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
+local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local readied = false --make sure we return true,true for newbies at least once
 
 --set my readystate to true if i am a newbie
 function gadget:GameSetup(state,ready,playerStates)
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie then
+		if amNewbie or ffaMode then
 			readied = true
 			return true, true --ready up
 		end
