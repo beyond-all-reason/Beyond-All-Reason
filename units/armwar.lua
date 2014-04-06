@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMWAR.DDS",
 		buildtime = 3828,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL ANTIGATOR NOTSUB ANTIEMG NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB ANTIEMG NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumescales		= [[26 32 26]],
 		collisionvolumeoffsets	= [[0 0 1]],
 		collisionvolumetest	    = 1,
