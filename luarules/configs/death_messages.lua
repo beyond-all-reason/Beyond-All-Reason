@@ -593,7 +593,7 @@ teamDeathMessages = {
 	"XX would like to know how to rotate buildings",
 	"XX needs more cowbell",
 	"XX has a mouse but it doesn't have a house",
-	"XX is going down in a blaze of glory",
+	"XX went down in a blaze of glory",
 	"XX needs some tissues",
 	"XX could make a fortune just laying on its back",
 	"XX was sent to landfill",
@@ -606,7 +606,6 @@ teamDeathMessages = {
 	"XX was evicted from the Big Brother household",
 	"XX was the weakest link, goodbye",
 	"XX remembered it was a womble",
-	
 	
 	
 	

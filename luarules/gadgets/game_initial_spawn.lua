@@ -181,7 +181,7 @@ function gadget:Initialize()
 	
 	-- make the relevant part of ffaStartPoints accessible to all 
 	if ffaStartPoints then
-		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID, because of slight displacement in actual spawning pos
+		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID
 	end
 end
 
