@@ -11,7 +11,6 @@ function gadget:GetInfo()
 end
 
 if (not gadgetHandler:IsSyncedCode()) then
-	gadgetHandler:RemoveGadget()
 	return
 end
 
