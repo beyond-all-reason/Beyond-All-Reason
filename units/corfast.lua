@@ -1,6 +1,6 @@
 return {
 	corfast = {
-		acceleration = 0.11999999731779,
+		acceleration = 0.10,
 		brakerate = 0.25,
 		buildcostenergy = 3583,
 		buildcostmetal = 192,
@@ -19,7 +19,7 @@ return {
 		energymake = 15,
 		energystorage = 100,
 		energyuse = 15,
-		explodeas = "BIG_UNITEX",
+		explodeas = "BIG_UNIT",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -39,7 +39,7 @@ return {
 		terraformspeed = 750,
 		turnrate = 1210,
 		upright = true,
-		workertime = 150,
+		workertime = 125,
 		buildoptions = {
 			[10] = "hllt",
 			[11] = "corvipe",
