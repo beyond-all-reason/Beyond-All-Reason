@@ -1,3 +1,21 @@
+7.94 -> 7.95
+07/04/2014
+
+- Added new FFA startpoint mode (see [2246])
+- Different death messages for teams/allyteams
+- Added basic keybind info to Newbie Placer message
+- Cleaned up mouse drag commands in Custom Formations:
+   -> To give a line command: select command, right click & drag
+   -> To give a area command: select command, left click and drag
+   -> To area attack (bombers etc only): press a, press alt, left click and drag
+- Fixed Arm Medium Mine not exploding
+- Fixed Anti-nuke not reaching the edge of their range
+- Reduced Leveller damage per shot
+- Reduced EMP launcher stockpiletime (65s) and paralysertime (35s), slightly increased area of effect
+- Increased freaker death explosion, reduced workertime and handling
+- Anti-air will preferentially not target Fink and Peeper 
+
+
 7.93 -> 7.94
 16/03/2014
 - Fixed T2 radar plane acceleration
@@ -7,7 +25,7 @@
 
 7.92 -> 7.93
 15/03/2014
-- Fixed lua error in Prevet Share Self D
+- Fixed lua error in Prevent Share Self D
 
 7.91 -> 7.92
 15/03/2014
