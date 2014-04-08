@@ -35,6 +35,8 @@ function gadget:DrawScreen()
 		return
 	end
 
+	Spring.Echo(amNewbie, keyInfo)
+	
 	--draw key bind info for newbies
 	if amNewbie and keyInfo then
 		gl.CallList(keyInfo)
@@ -48,7 +50,7 @@ function gadget:Initialize()
 	local textSize = 16
 
 	local gaps = 4
-	local lines = 10
+	local lines = 11
 	local width = 650
 
 	local gapSize = textSize*1.5
@@ -80,9 +82,11 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		gl.Text("Click the right mouse to move units", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("To give other orders or build commands, use the unit menu and the left mouse", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("To select orders or build commands, use the unit menu or hotkeys", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("Select multiple units and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")	
+		curPos = curPos + gapSize
+		gl.Text("Select multiple units and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + gapSize
 		gl.Text("\255\250\250\0Energy\255\255\255\255 comes from solar collectors, wind/tidal generators and fusions", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
@@ -92,7 +96,7 @@ function gadget:Initialize()
 		curPos = curPos + gapSize
 		gl.Text("BA has many keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0w\255\255\255\255ait", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0f\255\255\255\255ight, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0w\255\255\255\255ait", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
