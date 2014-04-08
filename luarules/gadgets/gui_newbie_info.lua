@@ -35,8 +35,6 @@ function gadget:DrawScreen()
 		return
 	end
 
-	Spring.Echo(amNewbie, keyInfo)
-	
 	--draw key bind info for newbies
 	if amNewbie and keyInfo then
 		gl.CallList(keyInfo)
