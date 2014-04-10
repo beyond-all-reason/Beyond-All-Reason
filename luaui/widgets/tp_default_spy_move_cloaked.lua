@@ -17,11 +17,34 @@ local spies  = {
 
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetUnitStates = Spring.GetUnitStates
+local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local GetPlayerInfo = Spring.GetPlayerInfo
 
 local CMD_MOVE = CMD.MOVE
 
+local myPlayerID = Spring.GetMyPlayerID()
+
+function UnloadIfSpec()
+	local _, _, spec, _, _, _, _, _ = GetPlayerInfo(myPlayerID)
+	if ( spec == true ) then
+		widgetHandler:RemoveWidget()
+		return 
+	end
+	return 
+end
+
+function widget:Initialize()
+	UnloadIfSpec()
+end
+
+function widget:PlayerChanged()
+	UnloadIfSpec()
+end
 
 function widget:DefaultCommand()
+	local count = GetSelectedUnitsCount()
+	if count>10 then return end --we aren't micro-ing spies here...
+	
 	local selectedUnittypes = GetSelectedUnitsSorted()
 	for spyDefID in pairs(spies) do
 		if selectedUnittypes[spyDefID] then
