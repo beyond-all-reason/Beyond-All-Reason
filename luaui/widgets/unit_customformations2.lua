@@ -531,7 +531,7 @@ function widget:MouseRelease(mx, my, mButton)
 		if shift then
 			endShift = true -- Reset on release of shift
 		else
-			spSetActiveCommand(0) -- Reset immediately
+			spSetActiveCommand(0) -- Deselect command
 		end
 	end
 	
@@ -648,6 +648,7 @@ function widget:MouseRelease(mx, my, mButton)
 					end
 				end
 
+			spSetActiveCommand(0) -- Deselect command
 			end
 		end
 		
