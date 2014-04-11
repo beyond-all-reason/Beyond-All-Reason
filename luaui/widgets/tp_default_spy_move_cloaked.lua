@@ -43,7 +43,7 @@ end
 
 function widget:DefaultCommand()
 	local count = GetSelectedUnitsCount()
-	if count>10 then return end --we aren't micro-ing spies here...
+	if count==0 or count>10 then return end --we aren't micro-ing spies here...
 	
 	local selectedUnittypes = GetSelectedUnitsSorted()
 	for spyDefID in pairs(spies) do
