@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 1150,
 		buildpic = "CORMABM.DDS",
 		buildtime = 42000,
+		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",

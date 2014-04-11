@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 1100,
 		buildpic = "ARMSCAB.DDS",
 		buildtime = 40000,
+		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 3 0",
