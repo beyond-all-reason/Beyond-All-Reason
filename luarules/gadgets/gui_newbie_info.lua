@@ -47,7 +47,7 @@ function gadget:Initialize()
 	local indent = 15
 	local textSize = 16
 
-	local gaps = 4
+	local gaps = 5
 	local lines = 11
 	local width = 650
 
@@ -55,7 +55,7 @@ function gadget:Initialize()
 	local lineHeight = textSize*1.15
 	local height = gaps*gapSize + (lines+1)*lineHeight
 	local dx = vsx*0.5-width/2
-	local dy = vsy*0.5 + height/2
+	local dy = vsy*0.47 + height/2
 	local curPos = 0
 	
 	keyInfo = gl.CreateList(function()
@@ -84,7 +84,9 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		gl.Text("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + gapSize
-		gl.Text("Select multiple units and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")	
+		gl.Text("Select multiple units, right click and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")	
+		curPos = curPos + lineHeight
+		gl.Text("Hold shift to queue multiple orders", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + gapSize
 		gl.Text("\255\250\250\0Energy\255\255\255\255 comes from solar collectors, wind/tidal generators and fusions", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
@@ -102,7 +104,7 @@ function gadget:Initialize()
 		curPos = curPos + gapSize	
 		gl.Text("For your first few games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("After that you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("After that, you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("Good luck!", dx+indent, dy-curPos, textSize, "o")
 

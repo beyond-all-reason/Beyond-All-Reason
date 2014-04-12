@@ -606,6 +606,12 @@ teamDeathMessages = {
 	"XX was evicted from the Big Brother household",
 	"XX was the weakest link, goodbye",
 	"XX remembered it was a womble",
+	"XX was struck by the dreaded batter pudding hurler of Bexhill-on-sea",
+	"XX was punched up the conk",
+	"XX has the Spon Plague",
+	"XX rolled out the barrel",
+	"XX was ridden by the valkyries",
+	
 	
 	
 	
