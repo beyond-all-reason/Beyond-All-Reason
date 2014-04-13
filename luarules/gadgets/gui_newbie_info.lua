@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		version	= 'v1.0',
 		date	= 'March 2014',
 		license	= 'GNU GPL, v2 or later',
-		layer	= 1,
+		layer	= -1, --must run before game_initial_spawn, because game_initial_spawn must control the return of GameSteup
 		enabled	= true
 	}
 end
@@ -49,6 +49,13 @@ function gadget:GameSetup()
 		end
 		gadgetHandler:RemoveGadget()	
 	end
+end
+
+function gadget:GameOver()
+		if keyInfo then 
+			gl.DeleteList(keyInfo)
+		end
+		gadgetHandler:RemoveGadget()	
 end
 
 
