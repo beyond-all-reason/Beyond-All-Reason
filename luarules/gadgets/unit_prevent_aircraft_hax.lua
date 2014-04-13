@@ -33,7 +33,7 @@ function gadget:GameFrame(f)
 			x,y,z = SpringGetUnitPosition(unitID)
 			if (z==nil or x==nil) then
 			else
-				if ( z <-2500 or x< -2500 or z> mapZ+2500 or x> mapX+2500) then
+				if ( z <-1500 or x< -1500 or z> mapZ+1500 or x> mapX+1500) then
 						Spring.DestroyUnit(unitID)
 				end
 			end
