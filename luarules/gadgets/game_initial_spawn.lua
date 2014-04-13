@@ -185,9 +185,15 @@ function gadget:Initialize()
 	end
 
 	-- mark all players as 'not yet placed'	
+	local initState 
+	if Game.startPosType ~= 2 or ffaStartPoints then
+		initState = -1 -- if players won't be allowed to place startpoints
+	else
+		initState = 0 -- players will be allowed to place startpoints
+	end
 	local playerList = Spring.GetPlayerList()
 	for _,playerID in pairs(playerList) do
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 0)
+		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , initState)
 	end
 	
 end
@@ -217,10 +223,13 @@ end
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	-- communicate readyState to all
-	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game force started & player absent
-	-- for some reason 2 is sometimes used in place of 1 before the game was forcestarted and is always used for the last player to become ready
-	Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
-
+	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game forcestarted & player absent
+	-- for some reason 2 is sometimes used in place of 1 and is always used for the last player to become ready
+	-- we also add (only used in Initialize) -1: players will not be allowed to place startpoints; automatically readied once ingame
+	if Game.startPosType == 2 then -- choose in game mode
+		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
+	end
+	
 	if Game.startPosType == 3 then return true end --choose before game mode
 	if ffaStartPoints then return true end
 	
@@ -468,6 +477,11 @@ function gadget:Initialize()
 end
 
 function gadget:GameSetup(state,ready,playerStates)
+	-- if we can't choose startpositions, no need for ready button etc
+	if Game.startPosType ~= 2 then
+		return true,true
+	end
+
 	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
@@ -482,7 +496,7 @@ function gadget:GameSetup(state,ready,playerStates)
 		end
 	end
 
-	-- set my readystate to true if i am a newbie
+	-- set my readyState to true if i am a newbie
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 		if amNewbie or ffaMode then
@@ -490,7 +504,7 @@ function gadget:GameSetup(state,ready,playerStates)
 			return true, true 
 		end
 	end
-		
+	
 	if not ready and readied then -- check if we just readied
 		ready = true
 	elseif ready and not readied then	-- check if we just reconnected 
@@ -502,7 +516,7 @@ end
 
 function gadget:MousePress(sx,sy)
 	-- pressing ready
-	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 then
+	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 then
 		readied = true
 		return true 
 	end
@@ -521,7 +535,7 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:DrawScreen()
-	if not readied and readyButton then
+	if not readied and readyButton and Game.startPosType == 2 then
 		-- draw 'ready' button
 		gl.CallList(readyButton)
 		
