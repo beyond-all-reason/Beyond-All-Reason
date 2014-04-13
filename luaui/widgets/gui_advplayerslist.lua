@@ -488,28 +488,12 @@ function SetSidePics()
 	
 		-- first look if there is any image in the mod file for the specific side, then looks in the user files for specific side
 		-- if none of those are found, uses default image and notify the missing image
-		if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside..".png") then
-			sidePics[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside..".png"
-			if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside.."WO.png") then
-				sidePicsWO[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."WO.png"
-			else
-				sidePicsWO[team] = ":n:LuaUI/Images/Advplayerslist/noWO.png"
-			end
+		if teamside then
+			sidePics[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."_default.png"
+			sidePicsWO[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."WO_default.png"
 		else
-			if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside.."_default.png") then
-				sidePics[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."_default.png"
-				if VFS.FileExists(LUAUI_DIRNAME.."Images/Advplayerslist/"..teamside.."WO_default.png") then
-					sidePicsWO[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."WO_default.png"
-				else
-					sidePicsWO[team] = ":n:LuaUI/Images/Advplayerslist/noWO.png"
-				end
-			else
-				if teamside ~= "" then
-					Echo("Image missing for side "..teamside..", using default.")
-				end
-				sidePics[team] = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/default.png"
-				sidePicsWO[team] = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/defaultWO.png"
-			end
+			sidePics[team] = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/default.png"
+			sidePicsWO[team] = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/defaultWO.png"
 		end
 	end
 end
