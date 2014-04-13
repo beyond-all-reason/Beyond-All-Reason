@@ -183,6 +183,13 @@ function gadget:Initialize()
 	if ffaStartPoints then
 		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID
 	end
+
+	-- mark all players as 'not yet placed'	
+	local playerList = Spring.GetPlayerList()
+	for _,playerID in pairs(playerList) do
+		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 0)
+	end
+	
 end
 
 
@@ -209,6 +216,10 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+	-- communicate readyState to all
+	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game force started & player absent
+	-- for some reason 2 is sometimes used in place of 1 before the game was forcestarted and is always used for the last player to become ready
+	Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
 
 	if Game.startPosType == 3 then return true end --choose before game mode
 	if ffaStartPoints then return true end
@@ -219,7 +230,9 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	-- NewbiePlacer
 	if NewbiePlacer then
 		if not processedNewbies then return false end
-		if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then return false end
+		if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then 
+			return false 
+		end
 	end
 	
 	-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
@@ -422,19 +435,74 @@ local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local readied = false --make sure we return true,true for newbies at least once
 
---set my readystate to true if i am a newbie
+local vsx, vsy = Spring.GetViewGeometry()
+function gadget:ViewResize(viewSizeX, viewSizeY)
+  vsx = viewSizeX
+  vsy = viewSizeY
+end
+
+local readyX = vsx * 0.8
+local readyY = vsy * 0.8 
+local readyH = 30
+local readyW = 80
+
+local pStates = {} --local copy of playerStates table
+
 function gadget:GameSetup(state,ready,playerStates)
+	-- set my readystate to true if i am a newbie
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 		if amNewbie or ffaMode then
 			readied = true
-			return true, true --ready up
+			return true, true 
 		end
 	end
+	
+	-- copy playerStates table
+	for k,v in pairs(playerStates) do
+		pStates[k] = v
+	end
+	
+	if not ready and readied then -- check if we just readied
+		ready = true
+	elseif ready and not readied then	-- check if we just reconnected 
+		ready = false
+	end
+	
+	return true, ready
 end
 
+function gadget:Initialize()
+	-- create ready button
+	readyButton = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0.1,0.1,.45,0.18)                              
+		gl.Rect(readyX,readyY+readyH, readyX+readyW, readyY)
+	
+		-- draws black border
+		gl.Color(0,0,0,1)
+		gl.BeginEnd(GL.LINE_LOOP, function()
+			gl.Vertex(readyX,readyY)
+			gl.Vertex(readyX,readyY+readyH)
+			gl.Vertex(readyX+readyW,readyY+readyH)
+			gl.Vertex(readyX+readyW,readyY)
+		end)
+		gl.Color(1,1,1,1)
+		
+	end)
+
+
+end
+
+
 function gadget:MousePress(sx,sy)
-	--message when trying to place startpoint but can't
+	-- pressing ready
+	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 then
+		readied = true
+		return true 
+	end
+
+	-- message when trying to place startpoint but can't
 	if amNewbie then
 		local target,_ = Spring.TraceScreenRay(sx,sy)
 		if target == "ground" then
@@ -443,7 +511,26 @@ function gadget:MousePress(sx,sy)
 	end
 end
 
+function gadget:MouseRelease(x,y)
+	return false 
+end
+
 function gadget:DrawScreen()
+	if not readied and readyButton then
+		-- draw 'ready' button
+		gl.CallList(readyButton)
+		
+		-- ready text
+		local x,y = Spring.GetMouseState()
+		if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
+			colorString = "\255\255\230\0"
+		else
+			colorString = "\255\255\255\255"
+		end
+		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 20, "o")
+		gl.Color(1,1,1,1)
+	end
+	
 	--remove if after gamestart
 	if Spring.GetGameFrame() > 0 then 
 		gadgetHandler:RemoveGadget()

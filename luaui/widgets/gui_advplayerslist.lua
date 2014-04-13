@@ -122,8 +122,8 @@ local rank8      = "LuaUI/Images/advplayerslist/Ranks/rank_unknown.png"
 
 local sidePics        = {}  -- loaded in SetSidePics function
 local sidePicsWO      = {}  -- loaded in SetSidePics function
-local originalColourNames ={} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
-
+local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
+local readyTexture = "LuaUI/Images/advplayerslist/blob_small.png"
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
@@ -165,6 +165,7 @@ local mySpecStatus,_,_ = Spring.GetSpectatingState()
 
 --General players/spectator count and tables
 local player = {}
+local playerReadyState = {}
 
 --To determine faction at start
 local armcomDefID = UnitDefNames.armcom.id
@@ -173,6 +174,8 @@ local corcomDefID = UnitDefNames.corcom.id
 --Name for absent/resigned players
 local absentName = " --- "
 
+--Did the game start yet?
+local gameStarted = false
 --------------------------------------------------------------------------------
 -- Button check variable
 --------------------------------------------------------------------------------
@@ -463,6 +466,7 @@ function widget:Initialize()
 end
 
 function widget:GameStart()
+	gameStarted = true
 	SetSidePics()
 	InitializePlayers()
 	SetOriginalColourNames()
@@ -470,6 +474,11 @@ function widget:GameStart()
 end
 
 function SetSidePics() 
+	--record readyStates
+	playerList = Spring.GetPlayerList()
+	for _,playerID in pairs (playerList) do
+		playerReadyState[playerID] = Spring.GetGameRulesParam("player_" .. tostring(playerID) .. "_readyState")
+	end
 
 	--set factions, from TeamRulesParam when possible and from initial info if not
 	teamList = Spring_GetTeamList()
@@ -486,8 +495,6 @@ function SetSidePics()
 			_,_,_,_,teamside = Spring_GetTeamInfo(team)
 		end
 	
-		-- first look if there is any image in the mod file for the specific side, then looks in the user files for specific side
-		-- if none of those are found, uses default image and notify the missing image
 		if teamside then
 			sidePics[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."_default.png"
 			sidePicsWO[team] = ":n:LuaUI/Images/Advplayerslist/"..teamside.."WO_default.png"
@@ -1190,7 +1197,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		gl_Color(red,green,blue,1)
 		if m_side.active == true then                        
-			DrawSidePic(team, posY, leader, dark)   
+			DrawSidePic(team, playerID, posY, leader, dark)   
 		end
 		gl_Color(red,green,blue,1)	
 		if m_name.active == true then
@@ -1288,24 +1295,37 @@ function DrawChatButton(posY)
 	gl_TexRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
 end
 
-function DrawSidePic(team, posY, leader, dark)
-	if leader == true then
-		gl_Texture(sidePics[team])                       -- sets side image (for leaders)
-	else
-		gl_Texture(notFirstPic)                          -- sets image for not leader of team players
-	end
-	gl_TexRect(m_side.posX + widgetPosX  + 1, posY, m_side.posX + widgetPosX  + 17, posY + 16) -- draws side image
-	if dark == true then	-- draws outline if player color is dark
-		gl_Color(1,1,1)
+function DrawSidePic(team, playerID, posY, leader, dark)
+	if gameStarted then
 		if leader == true then
-			gl_Texture(sidePicsWO[team])
+			gl_Texture(sidePics[team])                       -- sets side image (for leaders)
 		else
-			gl_Texture(notFirstPicWO)
+			gl_Texture(notFirstPic)                          -- sets image for not leader of team players
 		end
-		gl_TexRect(m_side.posX + widgetPosX +1, posY,m_side.posX + widgetPosX +17, posY + 16)
+		gl_TexRect(m_side.posX + widgetPosX  + 1, posY, m_side.posX + widgetPosX  + 17, posY + 16) -- draws side image
+		if dark == true then	-- draws outline if player color is dark
+			gl_Color(1,1,1)
+			if leader == true then
+				gl_Texture(sidePicsWO[team])
+			else
+				gl_Texture(notFirstPicWO)
+			end
+			gl_TexRect(m_side.posX + widgetPosX + 1, posY,m_side.posX + widgetPosX + 17, posY + 16)
+			gl_Texture(false)
+		end
 		gl_Texture(false)
+	else
+		-- are we ready?
+		local ready = (playerReadyState[playerID]==1) or (playerReadyState[playerID]==2)
+		if ready then
+			gl_Color(0.1,0.95,0.2,1)
+		else
+			gl_Color(0.8,0.1,0.1,1)		
+		end
+		gl_Texture(readyTexture)
+		gl_TexRect(m_side.posX + widgetPosX + 2, posY - 1, m_side.posX + widgetPosX + 18, posY + 15)			
+		gl_Color(1,1,1,1)
 	end
-	gl_Texture(false)	
 end
 
 function DrawRank(rank, posY, dark)
