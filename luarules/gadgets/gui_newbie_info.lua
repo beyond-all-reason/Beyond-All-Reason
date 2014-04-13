@@ -41,6 +41,16 @@ function gadget:DrawScreen()
 	end
 end
 
+-- remove when countdown starts
+function gadget:GameSetup()
+	if (Spring.GetPlayerTraffic(-1, 4) or 0) > 0 then
+		if keyInfo then 
+			gl.DeleteList(keyInfo)
+		end
+		gadgetHandler:RemoveGadget()	
+	end
+end
+
 
 -- make draw list for newbie info (TODO: for ba:r, transfer to chili)
 function gadget:Initialize()
