@@ -448,30 +448,6 @@ local readyW = 80
 
 local pStates = {} --local copy of playerStates table
 
-function gadget:GameSetup(state,ready,playerStates)
-	-- set my readystate to true if i am a newbie
-	if not readied or not ready then 
-		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie or ffaMode then
-			readied = true
-			return true, true 
-		end
-	end
-	
-	-- copy playerStates table
-	for k,v in pairs(playerStates) do
-		pStates[k] = v
-	end
-	
-	if not ready and readied then -- check if we just readied
-		ready = true
-	elseif ready and not readied then	-- check if we just reconnected 
-		ready = false
-	end
-	
-	return true, ready
-end
-
 function gadget:Initialize()
 	-- create ready button
 	readyButton = gl.CreateList(function()
@@ -488,12 +464,41 @@ function gadget:Initialize()
 			gl.Vertex(readyX+readyW,readyY)
 		end)
 		gl.Color(1,1,1,1)
-		
 	end)
-
-
 end
 
+function gadget:GameSetup(state,ready,playerStates)
+	-- set my readystate to true if i am a newbie
+	if not readied or not ready then 
+		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
+		if amNewbie or ffaMode then
+			readied = true
+			return true, true 
+		end
+	end
+	
+	-- copy playerStates table
+	for playerID,readyState in pairs(playerStates) do
+		if pStates[playerID] ~= readyState then
+			if readyState == "ready" then
+				Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
+			elseif readyState == "missing" then
+				Script.LuaUI.PlayerReadyStateChanged(playerID, 3)
+			else
+				Script.LuaUI.PlayerReadyStateChanged(playerID, 0) --unready
+			end
+			pStates[playerID] = readyState
+		end
+	end
+	
+	if not ready and readied then -- check if we just readied
+		ready = true
+	elseif ready and not readied then	-- check if we just reconnected 
+		ready = false
+	end
+	
+	return true, ready
+end
 
 function gadget:MousePress(sx,sy)
 	-- pressing ready
