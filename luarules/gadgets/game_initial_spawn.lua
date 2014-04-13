@@ -468,16 +468,7 @@ function gadget:Initialize()
 end
 
 function gadget:GameSetup(state,ready,playerStates)
-	-- set my readystate to true if i am a newbie
-	if not readied or not ready then 
-		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie or ffaMode then
-			readied = true
-			return true, true 
-		end
-	end
-	
-	-- copy playerStates table
+	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
 			if readyState == "ready" then
@@ -490,7 +481,16 @@ function gadget:GameSetup(state,ready,playerStates)
 			pStates[playerID] = readyState
 		end
 	end
-	
+
+	-- set my readystate to true if i am a newbie
+	if not readied or not ready then 
+		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
+		if amNewbie or ffaMode then
+			readied = true
+			return true, true 
+		end
+	end
+		
 	if not ready and readied then -- check if we just readied
 		ready = true
 	elseif ready and not readied then	-- check if we just reconnected 
