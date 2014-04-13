@@ -559,7 +559,7 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:DrawScreen()
-	if not readied and readyButton and Game.startPosType == 2 then
+	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil then
 		-- draw 'ready' button
 		gl.CallList(readyButton)
 		
