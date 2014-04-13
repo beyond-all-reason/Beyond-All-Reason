@@ -231,6 +231,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	end
 	
 	if Game.startPosType == 3 then return true end --choose before game mode
+	if readyState == 2 then return false end --otherwise clicking the 'ready' button would place a startpoint at the location of the click!
 	if ffaStartPoints then return true end
 	
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
@@ -245,16 +246,14 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	end
 	
 	-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
-	if readyState ~= 2 then
-		if allyTeamID == nil then return false end
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		if xmin>=xmax or zmin>=zmax then 
-			return true 
-		else
-			local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
-			if isOutsideStartbox then 
-				return false
-			end
+	if allyTeamID == nil then return false end
+	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+	if xmin>=xmax or zmin>=zmax then 
+		return true 
+	else
+		local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+		if isOutsideStartbox then 
+			return false
 		end
 	end
 	
@@ -276,6 +275,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		startPointTable[teamID]={-5000,-5000} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother anything else
 	else		
 		startPointTable[teamID]={x,z} --player placed startpoint (may or may not have clicked ready)
+		SendToUnsynced("StartPointChosen", playerID)
 	end	
 
 	return true
@@ -443,6 +443,7 @@ local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID)
 local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local readied = false --make sure we return true,true for newbies at least once
+local startPointChosen = false
 
 local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the 3.2.1 countdown
 local SYSTEM_ID = -1 -- see LuaUnsyncedRead::GetPlayerTraffic, playerID to get hosts traffic from
@@ -463,6 +464,9 @@ local readyW = 80
 local pStates = {} --local copy of playerStates table
 
 function gadget:Initialize()
+	-- add function to receive when startpoints were chosen
+	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
+	
 	-- create ready button
 	readyButton = gl.CreateList(function()
 		-- draws background rectangle
@@ -479,6 +483,12 @@ function gadget:Initialize()
 		end)
 		gl.Color(1,1,1,1)
 	end)
+end
+
+function StartPointChosen(_,playerID)
+	if playerID == myPlayerID then
+		startPointChosen = true 
+	end
 end
 
 function gadget:GameSetup(state,ready,playerStates)
@@ -527,8 +537,12 @@ end
 function gadget:MousePress(sx,sy)
 	-- pressing ready
 	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil then
-		readied = true
-		return true 
+		if startPointChosen then
+			readied = true
+			return true
+		else
+			Spring.Echo("Please choose a start point!")
+		end
 	end
 
 	-- message when trying to place startpoint but can't
@@ -541,7 +555,7 @@ function gadget:MousePress(sx,sy)
 end
 
 function gadget:MouseRelease(x,y)
-	return false 
+	return false
 end
 
 function gadget:DrawScreen()
