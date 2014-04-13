@@ -444,6 +444,11 @@ local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local readied = false --make sure we return true,true for newbies at least once
 
+local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the 3.2.1 countdown
+local SYSTEM_ID = -1 -- see LuaUnsyncedRead::GetPlayerTraffic, playerID to get hosts traffic from
+local gameStarting
+local timer = 0
+
 local vsx, vsy = Spring.GetViewGeometry()
 function gadget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
@@ -477,8 +482,13 @@ function gadget:Initialize()
 end
 
 function gadget:GameSetup(state,ready,playerStates)
+	-- check when the 3.2.1 countdown starts
+	if gameStarting==nil and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then --ugly but effective (can also detect by parsing state string)
+		gameStarting = true
+	end
+
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 then
+	if Game.startPosType ~= 2 or ffaMode then
 		return true,true
 	end
 
@@ -516,7 +526,7 @@ end
 
 function gadget:MousePress(sx,sy)
 	-- pressing ready
-	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 then
+	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil then
 		readied = true
 		return true 
 	end
@@ -548,6 +558,17 @@ function gadget:DrawScreen()
 		end
 		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 20, "o")
 		gl.Color(1,1,1,1)
+	end
+	
+	if gameStarting then
+		timer = timer + Spring.GetLastUpdateSeconds()
+		if timer % 0.75 <= 0.375 then
+			colorString = "\255\200\200\20"
+		else
+			colorString = "\255\255\255\255"
+		end
+		local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
+		gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*20, vsy*0.71, 20, "o")
 	end
 	
 	--remove if after gamestart
