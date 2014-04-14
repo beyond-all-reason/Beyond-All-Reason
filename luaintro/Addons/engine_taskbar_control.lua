@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadget:GetInfo()
+function addon:GetInfo()
   return {
     name      = "Engine Taskbar Stuff",
     desc      = 'Icon, name',
@@ -14,19 +14,8 @@ function gadget:GetInfo()
 end
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
-  return false  --  silent removal
-end
-
-local function noFunc() end
-
-local SetWMIcon = Spring.SetWMIcon or noFunc
-local SetWMCaption = Spring.SetWMCaption or noFunc
-
-function gadget:Initialize()
+function addon:Initialize()
 	local name = Game.modName
-	SetWMIcon("bitmaps/balogo.bmp")
-	SetWMCaption(name .. " (Spring " .. Game.version .. ")", name)
-	gadgetHandler:RemoveGadget()
+	Spring.SetWMIcon("bitmaps/balogo.bmp")
+	Spring.SetWMCaption(name .. " (Spring " .. Game.version .. ")", name)
 end
