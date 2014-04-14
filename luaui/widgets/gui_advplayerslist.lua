@@ -1318,10 +1318,15 @@ function DrawSidePic(team, playerID, posY, leader, dark)
 		-- are we ready?
 		-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
 		local ready = (playerReadyState[playerID]==1) or (playerReadyState[playerID]==2) or (playerReadyState[playerID]==-1)
+		local hasStartPoint = (playerReadyState[playerID]==4)
 		if ready then
 			gl_Color(0.1,0.95,0.2,1)
 		else
-			gl_Color(0.8,0.1,0.1,1)		
+			if hasStartPoint then
+				gl_Color(1,0.65,0.1,1)
+			else
+				gl_Color(0.8,0.1,0.1,1)	
+			end
 		end
 		gl_Texture(readyTexture)
 		gl_TexRect(m_side.posX + widgetPosX + 2, posY - 1, m_side.posX + widgetPosX + 18, posY + 15)			
