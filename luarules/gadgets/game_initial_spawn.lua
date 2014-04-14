@@ -222,7 +222,6 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
-	Spring.Echo(x,y,z,playerID,readyState)
 	-- communicate readyState to all
 	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game forcestarted & player absent
 	-- for some reason 2 is sometimes used in place of 1 and is always used for the last player to become ready
@@ -278,7 +277,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	else		
 		startPointTable[teamID]={x,z} --player placed startpoint but has not clicked ready
 		if readyState ~= 1 then
-			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4) 
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4) --made startpoint but didn't click ready
 		end
 		SendToUnsynced("StartPointChosen", playerID)
 	end	
@@ -495,6 +494,9 @@ end
 function StartPointChosen(_,playerID)
 	if playerID == myPlayerID then
 		startPointChosen = true 
+		if not readied then
+			Script.LuaUI.PlayerReadyStateChanged(playerID, 4)
+		end
 	end
 end
 
@@ -512,7 +514,6 @@ function gadget:GameSetup(state,ready,playerStates)
 	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
-		Spring.Echo(playerID,readyState)
 			if readyState == "ready" then
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
 			elseif readyState == "missing" then
