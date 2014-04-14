@@ -660,6 +660,8 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		else
 			ttotake = IsTakeable(teamID)
 		end
+		
+		tai = false
 	end
 	
 	if tname == nil then
@@ -682,7 +684,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		totake           = ttotake,
 		dead             = tdead,
 		spec             = false,
-		ai 				 = true,
+		ai 				 = tai,
 	}
 	
 end
@@ -1324,8 +1326,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 		local ready = (playerReadyState[playerID]==1) or (playerReadyState[playerID]==2) or (playerReadyState[playerID]==-1)
 		local hasStartPoint = (playerReadyState[playerID]==4)
 		if ai then
-			gl_Color(0.1,0.1,0.95,1)
-			
+			gl_Color(0.1,0.1,0.9,1)
 		else 
 			if ready then
 				gl_Color(0.1,0.95,0.2,1)
