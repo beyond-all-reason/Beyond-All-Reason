@@ -222,6 +222,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+	Spring.Echo(x,y,z,playerID,readyState)
 	-- communicate readyState to all
 	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game forcestarted & player absent
 	-- for some reason 2 is sometimes used in place of 1 and is always used for the last player to become ready
@@ -231,7 +232,6 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	end
 	
 	if Game.startPosType == 3 then return true end --choose before game mode
-	if readyState == 2 then return false end --otherwise clicking the 'ready' button would place a startpoint at the location of the click!
 	if ffaStartPoints then return true end
 	
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
@@ -505,9 +505,11 @@ function gadget:GameSetup(state,ready,playerStates)
 	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
+		Spring.Echo(playerID,readyState)
 			if readyState == "ready" then
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
 			elseif readyState == "missing" then
+				readied = false
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 3)
 			else
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 0) --unready
@@ -516,7 +518,7 @@ function gadget:GameSetup(state,ready,playerStates)
 		end
 	end
 
-	-- set my readyState to true if i am a newbie
+	-- set my readyState to true if i am a newbie, or if ffa 
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 		if amNewbie or ffaMode then
@@ -527,7 +529,7 @@ function gadget:GameSetup(state,ready,playerStates)
 	
 	if not ready and readied then -- check if we just readied
 		ready = true
-	elseif ready and not readied then	-- check if we just reconnected 
+	elseif ready and not readied then	-- check if we just reconnected/dropped
 		ready = false
 	end
 	
