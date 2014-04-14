@@ -226,7 +226,9 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	-- communicate readyState to all
 	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game forcestarted & player absent
 	-- for some reason 2 is sometimes used in place of 1 and is always used for the last player to become ready
-	-- we also add (only used in Initialize) -1: players will not be allowed to place startpoints; automatically readied once ingame
+	-- we also add (only used in Initialize) the following
+	-- -1: players will not be allowed to place startpoints; automatically readied once ingame
+	--  4: player has placed a startpoint but is not yet ready
 	if Game.startPosType == 2 then -- choose in game mode
 		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
 	end
@@ -274,9 +276,14 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	if readyState == 2 then 
 		startPointTable[teamID]={-5000,-5000} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother anything else
 	else		
-		startPointTable[teamID]={x,z} --player placed startpoint (may or may not have clicked ready)
+		startPointTable[teamID]={x,z} --player placed startpoint but has not clicked ready
+		if readyState ~= 1 then
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4) 
+		end
 		SendToUnsynced("StartPointChosen", playerID)
 	end	
+	
+
 
 	return true
 end
