@@ -622,6 +622,7 @@ function CreatePlayer(playerID)
 		cpu              = tcpu,
 		tdead            = false,
 		spec             = tspec,
+		ai				 = false,
 	}
 	
 end
@@ -648,6 +649,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		
 		ttotake = false
 		tdead = false
+		tai = true
 		
 	else
 	
@@ -680,6 +682,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		totake           = ttotake,
 		dead             = tdead,
 		spec             = false,
+		ai 				 = true,
 	}
 	
 end
@@ -1154,6 +1157,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	local needm    = player[playerID].needm
 	local neede    = player[playerID].neede
 	local dead     = player[playerID].dead
+	local ai	   = player[playerID].ai
 	local posY     = widgetPosY + widgetHeight - vOffset
 	
 	if mouseY >= posY and mouseY <= posY + 16 then tipY = true end
@@ -1197,7 +1201,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		gl_Color(red,green,blue,1)
 		if m_side.active == true then                        
-			DrawSidePic(team, playerID, posY, leader, dark)   
+			DrawSidePic(team, playerID, posY, leader, dark, ai)   
 		end
 		gl_Color(red,green,blue,1)	
 		if m_name.active == true then
@@ -1295,7 +1299,7 @@ function DrawChatButton(posY)
 	gl_TexRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
 end
 
-function DrawSidePic(team, playerID, posY, leader, dark)
+function DrawSidePic(team, playerID, posY, leader, dark, ai)
 	if gameStarted then
 		if leader == true then
 			gl_Texture(sidePics[team])                       -- sets side image (for leaders)
@@ -1319,13 +1323,18 @@ function DrawSidePic(team, playerID, posY, leader, dark)
 		-- note that adv pl list uses a phantom pID for absent players, so this will always show unready for players not ingame
 		local ready = (playerReadyState[playerID]==1) or (playerReadyState[playerID]==2) or (playerReadyState[playerID]==-1)
 		local hasStartPoint = (playerReadyState[playerID]==4)
-		if ready then
-			gl_Color(0.1,0.95,0.2,1)
-		else
-			if hasStartPoint then
-				gl_Color(1,0.65,0.1,1)
+		if ai then
+			gl_Color(0.1,0.1,0.95,1)
+			
+		else 
+			if ready then
+				gl_Color(0.1,0.95,0.2,1)
 			else
-				gl_Color(0.8,0.1,0.1,1)	
+				if hasStartPoint then
+					gl_Color(1,0.65,0.1,1)
+				else
+					gl_Color(0.8,0.1,0.1,1)	
+				end
 			end
 		end
 		gl_Texture(readyTexture)
