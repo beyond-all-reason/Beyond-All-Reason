@@ -445,7 +445,7 @@ else
 ----------------------------------------------------------------
 
 local myPlayerID = Spring.GetMyPlayerID()
-local _,spec,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
+local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local readied = false --make sure we return true,true for newbies at least once
