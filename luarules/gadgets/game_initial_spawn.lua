@@ -445,7 +445,7 @@ else
 ----------------------------------------------------------------
 
 local myPlayerID = Spring.GetMyPlayerID()
-local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
+local _,spec,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local readied = false --make sure we return true,true for newbies at least once
@@ -546,7 +546,7 @@ end
 
 function gadget:MousePress(sx,sy)
 	-- pressing ready
-	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil then
+	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
 		if startPointChosen then
 			readied = true
 			return true
@@ -569,7 +569,7 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:DrawScreen()
-	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil then
+	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec then
 		-- draw 'ready' button
 		gl.CallList(readyButton)
 		
