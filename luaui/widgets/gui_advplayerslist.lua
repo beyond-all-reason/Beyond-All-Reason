@@ -1326,7 +1326,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 		local ready = (playerReadyState[playerID]==1) or (playerReadyState[playerID]==2) or (playerReadyState[playerID]==-1)
 		local hasStartPoint = (playerReadyState[playerID]==4)
 		if ai then
-			gl_Color(0.1,0.1,0.9,1)
+			gl_Color(0.1,0.1,0.97,1)
 		else 
 			if ready then
 				gl_Color(0.1,0.95,0.2,1)
