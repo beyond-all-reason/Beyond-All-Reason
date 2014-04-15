@@ -1,3 +1,10 @@
+7.95 -> 7.96
+15/04/2014
+
+Integrated ready states into Adv Pl List
+Fixed Custom Formations not reverting to default command after line command
+Fixed mobile antinukes trying to attack 
+
 7.94 -> 7.95
 07/04/2014
 
