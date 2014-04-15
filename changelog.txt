@@ -1,4 +1,4 @@
-7.96 -> 7.97
+7.96 -> 7.98
 15/04/2014
 
 - Fixed ready button showing for spectators
