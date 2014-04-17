@@ -457,6 +457,10 @@ function widget:Initialize()
 	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
 		Spring.SendCommands("info 0")
 	end
+	
+	if Spring.GetGameFrame()>0 then
+		gameStarted = true
+	end
 
 	GeometryChange()	
 	SetModulesPositionX() 
