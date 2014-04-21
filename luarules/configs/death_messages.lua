@@ -611,6 +611,17 @@ teamDeathMessages = {
 	"XX has the Spon Plague",
 	"XX rolled out the barrel",
 	"XX was ridden by the valkyries",
+	"XX was dropped into a pit of boiling tar",
+	"XX spent too long standing under a loose stalactite",
+	"XX was guillotined",
+	"XX ate too many Easter eggs",
+	"XX got whopped",
+	"XX was covered in barbecue sauce and served up at a Hillybilly Ho-down",
+	"XX violated GPL",
+	"XX had a God delusion",
+	"XX had a mid-life crisis",
+	
+	
 	
 	
 	
