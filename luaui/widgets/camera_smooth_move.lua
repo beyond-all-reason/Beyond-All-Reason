@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  file:    camera_smooth_scroll.lua
+--  file:    camera_smooth_move.lua
 --  brief:   Alternate camera scrolling for the middle mouse button
 --  author:  Dave Rodgers
 --
@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "Feb 27, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 1,     --  after the normal widgets
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -229,7 +229,7 @@ local green = { 0, 1, 0 }
 local black = { 0, 0, 0 }
 local white = { 1, 1, 1 }
 
-
+--[[
 function widget:DrawScreen()
   if (active) then
     local x, y = spGetMouseState()
@@ -248,7 +248,7 @@ function widget:DrawScreen()
     glPointSize(1)
   end
 end
-
+]]
 
 --------------------------------------------------------------------------------
 
