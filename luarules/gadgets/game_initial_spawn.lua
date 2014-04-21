@@ -457,9 +457,8 @@ local gameStarting
 local timer = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
-function gadget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+function gadget:ViewResize()
+  vsx,vsy = Spring.GetViewGeometry()
 end
 
 local readyX = vsx * 0.8
