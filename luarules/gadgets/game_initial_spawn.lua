@@ -595,7 +595,7 @@ function gadget:DrawScreen()
 	end
 	
 	--remove if after gamestart
-	if Spring.GetGameFrame() > 0 then 
+	if Spring.GetGameFrame() > 0 or Spring.IsReplay() then 
 		gadgetHandler:RemoveGadget()
 		return
 	end
