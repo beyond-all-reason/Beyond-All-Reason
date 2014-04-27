@@ -110,20 +110,20 @@ local idPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/ID.png"
 local tsPic           = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/TS.png"
 
 --rank pics
-local rank0      = "LuaUI/Images/advplayerslist/Ranks/rank0.png"
-local rank1      = "LuaUI/Images/advplayerslist/Ranks/rank1.png"
-local rank2      = "LuaUI/Images/advplayerslist/Ranks/rank2.png"
-local rank3      = "LuaUI/Images/advplayerslist/Ranks/rank3.png"
-local rank4      = "LuaUI/Images/advplayerslist/Ranks/rank4.png"
-local rank5      = "LuaUI/Images/advplayerslist/Ranks/rank5.png"
-local rank6      = "LuaUI/Images/advplayerslist/Ranks/rank6.png"
-local rank7      = "LuaUI/Images/advplayerslist/Ranks/rank7.png"
-local rank8      = "LuaUI/Images/advplayerslist/Ranks/rank_unknown.png"
+local rank0      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank0.png"
+local rank1      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank1.png"
+local rank2      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank2.png"
+local rank3      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank3.png"
+local rank4      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank4.png"
+local rank5      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank5.png"
+local rank6      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank6.png"
+local rank7      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank7.png"
+local rank8      = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/Ranks/rank_unknown.png"
 
 local sidePics        = {}  -- loaded in SetSidePics function
 local sidePicsWO      = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
-local readyTexture = "LuaUI/Images/advplayerslist/blob_small.png"
+local readyTexture = ":n:"..LUAUI_DIRNAME.."Images/Advplayerslist/blob_small.png"
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
