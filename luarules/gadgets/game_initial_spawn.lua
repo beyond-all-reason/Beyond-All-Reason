@@ -516,7 +516,6 @@ function gadget:GameSetup(state,ready,playerStates)
 			if readyState == "ready" then
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
 			elseif readyState == "missing" then
-				readied = false
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 3)
 			else
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 0) --unready
