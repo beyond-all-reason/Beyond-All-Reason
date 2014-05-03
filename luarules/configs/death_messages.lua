@@ -639,7 +639,7 @@ teamDeathMessages = {
 	"XX violated GPL",
 	"XX had a God delusion",
 	"XX had a mid-life crisis",
-	"XX will put up for auction",
+	"XX will be put up for auction",
 	"XX has pneumonoultramicroscopicsilicovolcanoconiosis",
 	
 	

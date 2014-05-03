@@ -1,6 +1,20 @@
+7.98 -> 7.99
+03/05/2014
+
+- Added widget that Sets Target for each attack command (default off)
+- Reduced debris damage 
+- Replaced Prevent Draw modoption with Prevent Combomb mod option (default off)
+- Dead ally teams start points/boxes are removed from Limit Dgun list
+- Fixed FFA mode not removing afk players
+- Fixed ready button sometimes reappearing
+- Fixed Attack/Move notifications showing for specs 
+- Fixed mobile Anti-Nukes not reaching the edge of their range
+- Reduced Bantha selfd & death explosions
+- Reduced Tac Nuke range 
+
+
 7.96 -> 7.98
 15/04/2014
-
 - Fixed ready button showing for spectators
 
 7.95 -> 7.96
