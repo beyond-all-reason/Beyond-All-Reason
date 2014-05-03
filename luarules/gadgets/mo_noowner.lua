@@ -48,7 +48,7 @@ function GetTeamIsTakeable(teamID)
 	local players = GetPlayerList(teamID)
 	local allResigned = true
 	local noneControlling = true
-	if teamID == gaiaTeamID or GetTeamLuaAI(teamID) then
+	if teamID == gaiaTeamID or GetTeamLuaAI(teamID) ~= "" then
 		--team is handled by lua scripts
 		allResigned,noneControlling = false,false
 	end
@@ -109,7 +109,7 @@ function gadget:GameFrame(gameFrame)
 					destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
 				elseif not droppedTeam[teamID] then
 					local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
-					Echo("No Owner Mode: Team " .. teamID .. " has " .. floor(gracePeriod/(Game.gameSpeed * 60)) .. " minute(s) to reconnect")
+					Echo("No Owner Mode: Team " .. teamID .. " has " .. math.floor(gracePeriod/(Game.gameSpeed * 60)) .. " minute(s) to reconnect")
 					droppedTeam[teamID] = gameFrame
 				end
 			elseif droppedTeam[teamID] then
