@@ -21,12 +21,14 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 -- remove gadget if modoption is not set
+--[[
 function gadget:Initialize()
 	if not (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
 		gadgetHandler:RemoveGadget(self)
 		return false
 	end
 end
+]]
 
 local GetTeamInfos = Spring.GetTeamInfos
 local GetUnitPosition = Spring.GetUnitPosition
@@ -64,8 +66,8 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
 	
 	local hp,_ = Spring.GetUnitHealth(unitID) 
 	hp = hp or 0
-	local comBombDamage = math.min(hp*0.4, math.max(0,hp-200-math.random(1,10))) -- lose hp*0.4 damage but don't let health get <200
-	combombDamage = math.min(damage,comBombDamage) 
+	local combombDamage = math.min(hp*0.33, math.max(0,hp-200-math.random(1,10))) -- lose hp*0.4 damage but don't let health get <200
+	combombDamage = math.min(damage,combombDamage) 
 
 	if DGUN[weaponID] then
 		if immuneDgunList[unitID] then
