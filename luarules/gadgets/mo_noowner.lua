@@ -102,20 +102,20 @@ function gadget:GameFrame(gameFrame)
 		teamsWithUnitsToKill[teamID] = nil
 	end
 	for _, teamID in pairs(GetTeamList()) do
-		local noneControlling, allResigned = GetTeamIsTakeable(teamID)
-		if not deadTeam[teamID] and noneControlling then
-			if not droppedTeam[teamID] then
+		if not deadTeam[teamID] then
+			local noneControlling, allResigned = GetTeamIsTakeable(teamID)
+			if noneControlling then
 				if allResigned then
 					destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
-				else
+				elseif not droppedTeam[teamID] then
 					local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
 					Echo("No Owner Mode: Team " .. teamID .. " has " .. floor(gracePeriod/(Game.gameSpeed * 60)) .. " minute(s) to reconnect")
+					droppedTeam[teamID] = gameFrame
 				end
-				droppedTeam[teamID] = gameFrame
+			elseif droppedTeam[teamID] then
+				Echo("No Owner Mode: Team " .. teamID .. " reconnected")
+				droppedTeam[teamID] = nil
 			end
-		elseif droppedTeam[teamID] then
-			Echo("No Owner Mode: Team " .. teamID .. " reconnected")
-			droppedTeam[teamID] = nil
 		end
 	end
 	for teamID,time in pairs(droppedTeam) do
