@@ -45,6 +45,8 @@ local _,_,_,_,_,gaiaAllyTeamID,_ = Spring.GetTeamInfo(gaiaTeamID)
 local limitType = tostring(Spring.GetModOptions().limitdgun) or "Off"
 -- can be "Off", "StartPoints" or "Startboxes"
 
+local teamsToCheck = {}
+
 
 -- set what type of dgun limit we will use 
 if limitType == "startpoints" then
@@ -162,7 +164,37 @@ function gadget:GameFrame(n) --TODO in 97: move this to unsynced
 	elseif n%90==0 then --update once every 3 game seconds
 		SendToUnsynced("RemakeDgunLimitList")
 	end
+
+	-- check if the allyTeam just died; if so then remove its startpoints 
+	-- we have to wait until (one frame) after TeamDied was called to check if the allyteam is dead
+	for teamID,_ in pairs(teamsToCheck) do
+		local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+		local died = true 
+		local teamList = Spring.GetTeamList(allyTeamID)
+	
+		for _,tID in pairs(teamList) do
+			local _,_,isDead = Spring.GetTeamInfo(tID)
+			if not isDead then  
+				died = false 
+				break
+			end
+		end
+	
+		if died then
+			points[allyTeamID] = nil
+			SendToUnsynced("RemoveStartPoints", allyTeamID)
+		end
+		
+		teamsToCheck[teamID] = nil
+	end
+
 end
+
+function gadget:TeamDied(teamID)
+	if not usePoints then return end
+	teamsToCheck[teamID] = true
+end
+
 
 -----------------------------
 else -- begin unsynced section
@@ -295,10 +327,16 @@ function RecieveStartPoint(epicWTFparam, allyTeamID, pointID, x, y, z)
 	points[allyTeamID][pointID] = {x,y,z}
 end
 
+function RemoveStartPoints(epicWTFparam, allyTeamID)
+	points[allyTeamID] = nil
+	CreateList()
+end
+
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction("RemakeDgunLimitList", CreateList)
 	gadgetHandler:AddSyncAction("RecieveLimitType", RecieveLimitType)
 	gadgetHandler:AddSyncAction("RecieveStartPoint", RecieveStartPoint)
+	gadgetHandler:AddSyncAction("RemoveStartPoints", RemoveStartPoints)
 	CreateList()
 end
 
