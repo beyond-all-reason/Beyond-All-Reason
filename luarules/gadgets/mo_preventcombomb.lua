@@ -21,14 +21,12 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 -- remove gadget if modoption is not set
---[[
 function gadget:Initialize()
 	if not (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
 		gadgetHandler:RemoveGadget(self)
 		return false
 	end
 end
-]]
 
 local GetTeamInfos = Spring.GetTeamInfos
 local GetUnitPosition = Spring.GetUnitPosition
