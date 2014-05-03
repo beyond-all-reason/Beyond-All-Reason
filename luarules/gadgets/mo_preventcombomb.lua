@@ -22,7 +22,8 @@ end
 
 -- remove gadget if modoption is not set
 function gadget:Initialize()
-	if not (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
+	if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) == 0 then
+		Spring.Echo("Moo")
 		gadgetHandler:RemoveGadget(self)
 		return false
 	end
@@ -57,6 +58,7 @@ local cantFall = {}
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
                             weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	Spring.Echo("UPD")
 	--falling & debris damage
 	if weaponID < 0 and cantFall[unitID] then
 		return 0, 0
@@ -78,11 +80,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
 			return combombDamage, 0
 		end
 	elseif weaponID == COM_BLAST and COMMANDER[unitDefID] then
+		Spring.Echo("lasered")
 		if unitID ~= attackerID then
 			--prevent falling damage to the unitID, and lock position
 			MoveCtrl.Enable(unitID)
 			ctrlCom[unitID] = GetGameFrame() + 30
 			cantFall[unitID] = GetGameFrame() + 30
+			Spring.Echo("moo",combombDamage)
 			return combombDamage, 0
 		else
 			--com blast hurts the attackerID 
