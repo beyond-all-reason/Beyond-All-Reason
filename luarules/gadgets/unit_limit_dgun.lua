@@ -167,12 +167,12 @@ function gadget:GameFrame(n) --TODO in 97: move this to unsynced
 
 	-- check if the allyTeam just died; if so then remove its startpoints 
 	-- we have to wait until (one frame) after TeamDied was called to check if the allyteam is dead
-	for teamID,_ in pairs(teamsToCheck) do
+	for i,teamID in ipairs(teamsToCheck) do
 		local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
 		local died = true 
 		local teamList = Spring.GetTeamList(allyTeamID)
 	
-		for _,tID in pairs(teamList) do
+		for _,tID in ipairs(teamList) do
 			local _,_,isDead = Spring.GetTeamInfo(tID)
 			if not isDead then  
 				died = false 
@@ -185,14 +185,14 @@ function gadget:GameFrame(n) --TODO in 97: move this to unsynced
 			SendToUnsynced("RemoveStartPoints", allyTeamID)
 		end
 		
-		teamsToCheck[teamID] = nil
+		teamsToCheck[i] = nil
 	end
 
 end
 
 function gadget:TeamDied(teamID)
 	if not usePoints then return end
-	teamsToCheck[teamID] = true
+	teamsToCheck[#teamsToCheck+1] = teamID
 end
 
 
