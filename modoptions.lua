@@ -68,9 +68,9 @@ local options={
       def    = false,
     },
     {
-		key    = "mo_preventdraw",
-		name   = "Commander Ends No Draw",
-		desc   = "Last Com alive is immune to comblast, D-gunning the last enemy Com with your last Com disqualifies you",
+		key    = "mo_preventcombomb",
+		name   = "Prevent Combombs",
+		desc   = "Commanders survive DGuns and other commanders explosions",
 		type   = "bool",
 		def    = false,
 		section= "ba_modes",

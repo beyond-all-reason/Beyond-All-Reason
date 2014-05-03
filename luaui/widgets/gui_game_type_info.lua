@@ -37,6 +37,8 @@ local glText           = gl.Text
 local glTranslate      = gl.Translate
 local spGetGameSeconds = Spring.GetGameSeconds
 
+local message = ""
+local message2 = ""
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -55,6 +57,21 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   vsy = viewSizeY
 end
 
+function widget:Initialize()
+  if Spring.GetModOptions().deathmode=="com" then
+    message = "Kill all enemy Commanders"
+  elseif Spring.GetModOptions().deathmode=="killall" then
+    message = "Kill all enemy units"
+  elseif Spring.GetModOptions().deathmode=="neverend" then
+    widgetHandler:RemoveWidget()
+  end
+
+  if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
+	message2 = "Commanders survive DGuns and commander explosions"
+  end
+end
+	
+
 
 function widget:DrawScreen()
   if (spGetGameSeconds() > 1) then
@@ -63,36 +80,15 @@ function widget:DrawScreen()
   
   local timer = widgetHandler:GetHourTimer()
   local colorStr = WhiteStr
-  local message
-	
-	
- if (Game.gameMode == 1) then
-	message = "Commander Ends"
-  elseif (Game.gameMode == 2) then
-	message = "Lineage"
-  else
-	message = "Commander Continues"
-	if Spring.GetModOptions().deathmode=="com" then
-		message = "Kill all enemy Commanders"
-	elseif Spring.GetModOptions().deathmode=="comcontrol" then
-		message = "Lose your Commander, Lose Control!"
-	elseif Spring.GetModOptions().deathmode=="minors" then
-		message = "changeme" -- depends on mod
-	end
-  end
-		
-
+ 		
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
+  local msg2 = colorStr .. message2
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.22), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
 --  glRotate(30 * math.sin(math.pi * 0.5 * timer), 0, 0, 1)
-  if (fh) then
-    fh = fontHandler.UseFont(font)
-    fontHandler.DrawCentered(msg)
-  else
-    glText(msg, 0, 0, 24, "oc")
-  end
+  glText(msg, 0, 0, 24, "oc")
+  glText(msg2, 0, -30, 14, "oc")
   glPopMatrix()
 end
 

@@ -3,8 +3,8 @@
 
 function gadget:GetInfo()
   return {
-    name      = "mo_preventdraw",
-    desc      = "mo_preventdraw",
+    name      = "mo_preventcombomb",
+    desc      = "Commanders survive commander blast and DGun",
     author    = "TheFatController",
     date      = "Aug 31, 2009",
     license   = "GNU GPL, v2 or later",
@@ -20,10 +20,9 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local preventAllCombomb = (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0
-local preventDraw = (tonumber(Spring.GetModOptions().mo_preventdraw) or 0) ~= 0
-
-if not preventDraw and not preventAllCombomb then
+-- remove gadget if modoption is not set
+if not (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
+	gadgetHandler:RemoveGadget(self)
 	return false
 end
 
@@ -50,75 +49,52 @@ local COMMANDER = {
 }
 
 
-local allyTeamComCount = {}
-
 local immuneDgunList = {}
 local ctrlCom = {}
 local cantFall = {}
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if COMMANDER[unitDefID] then
-		local allyTeamID = select(6,GetTeamInfos(unitTeam))
-		allyTeamComCount[allyTeamID] = (allyTeamComCount[allyTeamID] or 0) + 1
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if COMMANDER[unitDefID] then
-		local allyTeamID = select(6,GetTeamInfos(unitTeam))
-		allyTeamComCount[allyTeamID] = (allyTeamComCount[allyTeamID] or 0) - 1
-	end
-end
-
-function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	gadget:UnitCreated(unitID, unitDefID, unitTeam)
-end
-
-function gadget:UnitTaken(unitID, unitDefID, oldTeam,newTeam)
-	gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-end
-
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
                             weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
-	--falling damage
+	--falling & debris damage
 	if weaponID < 0 and cantFall[unitID] then
 		return 0, 0
 	end
+	
+	local hp,_ = Spring.GetUnitHealth(unitID) 
+	hp = hp or 0
+	local comBombDamage = math.min(hp*0.4, math.max(0,hp-200-math.random(1,10))) -- lose hp*0.4 damage but don't let health get <200
+	combombDamage = math.min(damage,comBombDamage) 
+
 	if DGUN[weaponID] then
 		if immuneDgunList[unitID] then
+			-- immune
 			return 0, 0
 		elseif COMMANDER[attackerDefID] and COMMANDER[unitDefID] then
-			local targetAllyTeamID = select(6,Spring.GetTeamInfos(unitTeam))
-			if preventAllCombomb or allyTeamComCount[targetAllyTeamID] == 1 then
-				--enemy's last com
-				immuneDgunList[unitID] = GetGameFrame() + 30
-				DestroyUnit(attackerID,false,false,unitID)
-				return 0, 0
-			else
-				return damage
-			end
+			-- make unitID immune to DGun, kill attackedID
+			immuneDgunList[unitID] = GetGameFrame() + 45
+			DestroyUnit(attackerID,false,false,unitID)
+			return combombDamage, 0
 		end
 	elseif weaponID == COM_BLAST and COMMANDER[unitDefID] then
-		local targetAllyTeamID = select(6,Spring.GetTeamInfos(unitTeam))
-		if unitID ~= attackerID and (allyTeamComCount[targetAllyTeamID] == 1 or preventAllCombomb ) then
-			--prevent falling damage to the unit, and lock position
+		if unitID ~= attackerID then
+			--prevent falling damage to the unitID, and lock position
 			MoveCtrl.Enable(unitID)
 			ctrlCom[unitID] = GetGameFrame() + 30
 			cantFall[unitID] = GetGameFrame() + 30
-			return 0, 0
+			return combombDamage, 0
 		else
-			--com blast hurts the attacker
+			--com blast hurts the attackerID 
 			return damage
 		end
 	end
-	return damage,1
+	
+	return damage
 end
 
 function gadget:GameFrame(currentFrame)
-	for _,expirationTime in pairs(immuneDgunList) do
+	for unitID,expirationTime in pairs(immuneDgunList) do
 		if currentFrame > expirationTime then
-			expirationTime = nil
+			immuneDgunList[unitID] = nil
 		end
 	end
 	for unitID,expirationTime in pairs(ctrlCom) do
@@ -135,12 +111,12 @@ function gadget:GameFrame(currentFrame)
 				cantFall[unitID] = nil
 			end
 
-			expirationTime = nil
+			ctrlCom[unitID] = nil
 		end
 	end
-	for _,expirationTime in pairs(cantFall) do
+	for unitID,expirationTime in pairs(cantFall) do
 		if currentFrame > expirationTime then
-			expirationTime = nil
+			cantFall[unitID] = nil
 		end
 	end
 end

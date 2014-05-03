@@ -171,7 +171,9 @@ local buildQueue = {}
 local buildNameToID = {}
 local gameStarted = false 
 
-local wl, wt = 500, 300
+local wWidth, wHeight = Spring.GetWindowGeometry()
+local wl, wt = 50, 0.5*wHeight
+
 local cellRows = {} -- {{bDefID, bDefID, ...}, ...}
 local panelList = nil -- Display list for panel
 local areDragging = false
@@ -423,15 +425,17 @@ end
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
+--[[
 function widget:GetConfigData()
 	local wWidth, wHeight = Spring.GetWindowGeometry()
 	return {wl / wWidth, wt / wHeight}
 end
 function widget:SetConfigData(data)
 	local wWidth, wHeight = Spring.GetWindowGeometry()
-	wl = math.floor(wWidth * (data[1] or 0.25))
-	wt = math.floor(wHeight * (data[2] or 0.50))
+	wl = math.floor(wWidth * (data[1] or 0.40))
+	wt = math.floor(wHeight * (data[2] or 0.10))
 end
+]]
 
 ------------------------------------------------------------
 -- Drawing

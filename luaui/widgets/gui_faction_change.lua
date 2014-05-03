@@ -14,7 +14,8 @@ end
 --------------------------------------------------------------------------------
 -- Var
 --------------------------------------------------------------------------------
-local px, py = 300, 300
+local wWidth, wHeight = Spring.GetWindowGeometry()
+local px, py = 300, 0.35*wHeight
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -177,15 +178,5 @@ end
 
 function widget:GameStart()
 	widgetHandler:RemoveWidget(self)
-end
-
-function widget:GetConfigData()
-	local vsx, vsy = gl.GetViewSizes()
-	return {px / vsx, py / vsy}
-end
-function widget:SetConfigData(data)
-	local vsx, vsy = gl.GetViewSizes()
-	px = math.floor(math.max(0, vsx * math.min(data[1] or 0, 0.95)))
-	py = math.floor(math.max(0, vsy * math.min(data[2] or 0, 0.95)))
 end
 
