@@ -1,6 +1,6 @@
 return {
 	bantha_nuke = {
-		areaofeffect = 1280,
+		areaofeffect = 800,
 		avoidfriendly = 0,
 		collidefriendly = 0,
 		commandfire = 1,
@@ -8,7 +8,7 @@ return {
 		cratermult = 3,
 		edgeeffectiveness = 0.30000001192093,
 		energypershot = 125000,
-		explosiongenerator = "custom:FLASHNUKE1280",
+		explosiongenerator = "custom:FLASHNUKE960",
 		firestarter = 0,
 		flighttime = 400,
 		impulseboost = 0.5,
@@ -30,7 +30,7 @@ return {
 		weaponvelocity = 1600,
 		damage = {
 			commanders = 2000,
-			default = 5500,
+			default = 4500,
 		},
 	},
 }

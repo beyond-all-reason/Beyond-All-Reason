@@ -1,6 +1,6 @@
 return {
 	bantha_death = {
-		areaofeffect = 600,
+		areaofeffect = 500,
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.30000001192093,
@@ -16,7 +16,7 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			commanders = 1250,
-			default = 4000,
+			default = 3500,
 		},
 	},
 }
