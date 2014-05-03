@@ -16,7 +16,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	-- debris damage occurs when weaponDefID == -1
 	-- in this case attackerID and attackerDefID are nil
 	if weaponDefID == -1 then 
-		return math.random(15,35), nil
+		return math.min(damage, math.random(15,35)), nil
 	end
 	return damage, nil
 end
