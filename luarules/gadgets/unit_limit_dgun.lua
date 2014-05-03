@@ -114,6 +114,14 @@ function GameStart()
 		end
 	end
 	
+	-- send startboxes if needed
+	if useBoxes then
+		for allyTeamID, box in pairs(boxes) do
+			SendToUnsynced("RecieveStartBox", allyTeamID, box[1], box[2], box[3], box[4])
+		end
+	end
+	
+	
 	-- tell unsynced to make its gllist
 	SendToUnsynced("RemakeDgunLimitList")
 end
@@ -136,6 +144,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		for allyTeamID,box in pairs(boxes) do
 			if unitAllyTeamID ~= allyTeamID then
 				if (box[1] <= unitX) and (unitX <= box[3]) and (box[2] <= unitZ) and (unitZ <= box[4]) then 
+					Spring.SendMessageToTeam(teamID, "You cannot DGun inside an enemy start box!")
 					return false 
 				end
 			end
@@ -148,6 +157,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			if allyTeamID ~= unitAllyTeamID then
 				for _,startPoint in pairs(pointTable) do
 					if (unitX-startPoint[1])^2 + (unitZ-startPoint[3])^2 <= pointRadiusSqrd then
+						Spring.SendMessageToTeam(teamID, "You cannot DGun near an enemy start point!")
 						return false
 					end
 				end
@@ -181,8 +191,12 @@ function gadget:GameFrame(n) --TODO in 97: move this to unsynced
 		end
 	
 		if died then
-			points[allyTeamID] = nil
-			SendToUnsynced("RemoveStartPoints", allyTeamID)
+			if usePoints then
+				points[allyTeamID] = nil
+			elseif useBoxes then
+				boxes[allyTeamID] = nil				
+			end
+			SendToUnsynced("RemoveAllyTeam", allyTeamID)
 		end
 		
 		teamsToCheck[i] = nil
@@ -191,7 +205,6 @@ function gadget:GameFrame(n) --TODO in 97: move this to unsynced
 end
 
 function gadget:TeamDied(teamID)
-	if not usePoints then return end
 	teamsToCheck[#teamsToCheck+1] = teamID
 end
 
@@ -215,6 +228,7 @@ local useBoxes
 local usePoints
 local pointRadius
 local points  = {}
+local boxes = {}
 
 local dgunLimitList
 local prevUpdateTime = 0
@@ -275,19 +289,16 @@ function CreateList()
 		dgunLimitList = gl.CreateList(function()
 			--show enemy's boxes in black
 			gl.Color(0,0,0,0.5) 
-			for _,allyTeamID in pairs(allyTeamList) do
+			for allyTeamID,box in pairs(boxes) do
 				if myAllyTeamID ~= allyTeamID and allyTeamID ~= gaiaAllyTeamID then
-					local x1,z1,x2,z2 = Spring.GetAllyTeamStartBox(allyTeamID)
-					if x1 < x2 and z1 < z2  then
-						DrawGroundBox(x1,z1,x2,z2)
-					end
+					DrawGroundBox(box[1],box[2],box[3],box[4])
 				end
 			end
 			--show my own box in white
 			gl.Color(1,1,1,0.5)
-			local x1,z1,x2,z2 = Spring.GetAllyTeamStartBox(myAllyTeamID)
-			if x1 < x2 and z1 < z2 then
-				DrawGroundBox(x1,z1,x2,z2)
+			local box = boxes[myAllyTeamID]
+			if box then
+				DrawGroundBox(box[1],box[2],box[3],box[4])
 			end
 		end)
 	end
@@ -327,8 +338,22 @@ function RecieveStartPoint(epicWTFparam, allyTeamID, pointID, x, y, z)
 	points[allyTeamID][pointID] = {x,y,z}
 end
 
-function RemoveStartPoints(epicWTFparam, allyTeamID)
-	points[allyTeamID] = nil
+function RecieveStartBox(epicWTDparam, allyTeamID, x1, z1, x2, z2)
+	if not boxes[allyTeamID] then
+			boxes[allyTeamID] = {}
+	end
+	boxes[allyTeamID][1] = x1
+	boxes[allyTeamID][2] = z1
+	boxes[allyTeamID][3] = x2
+	boxes[allyTeamID][4] = z2
+end
+
+function RemoveAllyTeam(epicWTFparam, allyTeamID)
+	if usePoints then
+		points[allyTeamID] = nil
+	elseif useBoxes then
+		boxes[allyTeamID] = nil
+	end
 	CreateList()
 end
 
@@ -336,7 +361,8 @@ function gadget:Initialize()
 	gadgetHandler:AddSyncAction("RemakeDgunLimitList", CreateList)
 	gadgetHandler:AddSyncAction("RecieveLimitType", RecieveLimitType)
 	gadgetHandler:AddSyncAction("RecieveStartPoint", RecieveStartPoint)
-	gadgetHandler:AddSyncAction("RemoveStartPoints", RemoveStartPoints)
+	gadgetHandler:AddSyncAction("RecieveStartBox", RecieveStartBox)
+	gadgetHandler:AddSyncAction("RemoveAllyTeam", RemoveAllyTeam)
 	CreateList()
 end
 
