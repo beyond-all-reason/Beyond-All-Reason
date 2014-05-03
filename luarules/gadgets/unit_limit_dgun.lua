@@ -30,7 +30,7 @@ end
 if gadgetHandler:IsSyncedCode() then 
 -----------------------------
 
-local pointRadius = 450 -- radius of circle about enemy startpoints inside of which we can't dgun, in StartPoints mode
+local pointRadius = 525 -- radius of circle about enemy startpoints inside of which we can't dgun, in StartPoints mode
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetTeamInfo = Spring.GetTeamInfo
