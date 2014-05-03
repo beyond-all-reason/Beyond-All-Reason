@@ -23,6 +23,7 @@ allyTeamDeathMessages = {
 	"XX has been deprecated",
 	"XX has been incinerated",
 	"XX has been decapitated",
+	"XX has been floccinaucinihilipilificated",
 
 	--ized
 	"XX has been hospitalized",
@@ -57,7 +58,25 @@ allyTeamDeathMessages = {
 	"XX has been disembowelled",
 	"XX has been killed",
 	"XX has been unravelled",
-	 
+	
+	--oned
+	"XX has been bludgeoned",
+	"XX has been unbuttoned",
+	"XX has been imprisoned",
+	"XX has been outreasoned",
+	"XX has been chaperoned",
+	"XX has been dethroned",
+	"XX has been harpooned",
+	"XX has been stoned",
+	"XX has been poisoned",
+	"XX has been unreckoned",
+	"XX has been doggoned",
+	"XX has been gudgeoned",
+	"XX has been picarooned",
+	"XX has been dragooned",
+	"XX has been pensioned",
+	"XX has been sectioned",
+
 }	
 	
 teamDeathMessages = {
@@ -620,6 +639,9 @@ teamDeathMessages = {
 	"XX violated GPL",
 	"XX had a God delusion",
 	"XX had a mid-life crisis",
+	"XX will put up for auction",
+	"XX has pneumonoultramicroscopicsilicovolcanoconiosis",
+	
 	
 	
 	
