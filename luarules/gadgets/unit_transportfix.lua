@@ -1,5 +1,5 @@
 --in BA "commando" unit always survives being shot down during transport
---when a com dies in mid air the damage done is controlled by mo_combomb_full_damage 
+--when a com dies in mid air the damage done is controlled by unit_combomb_full_damage 
 
 --several other ways to code this do not work because:
 --when UnitDestroyed() is called, Spring.GetUnitIsTransporting is already empty -> meh
