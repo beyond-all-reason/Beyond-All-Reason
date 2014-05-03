@@ -77,10 +77,7 @@ end
 function destroyTeam(teamID)
 	local teamUnits = GetTeamUnits(teamID)
 	local gameFrame = GetGameFrame()
-	local nowrecks = false
-	if gameFrame < noWrecksLimit then
-		nowrecks = true
-	end
+	local nowrecks = gameFrame < noWrecksLimit
 	for _, unitID in pairs(teamUnits) do
 		if not GetUnitTransporter(unitID) then
 			if nowrecks then
