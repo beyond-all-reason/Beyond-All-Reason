@@ -20,8 +20,8 @@ end
 local enabled = tonumber(Spring.GetModOptions().mo_noowner) or 0
 
 --teams dying before this mark don't leave wrecks
-local noWrecksLimit = Game.gameSpeed * 60 * 2--in frames
-local earlyDropLimit = noWrecksLimit -- in frames
+local noWrecksLimit = Game.gameSpeed * 60 * 5--in frames
+local earlyDropLimit = Game.gameSpeed * 60 * 2 -- in frames
 local earlyDropGrace = Game.gameSpeed * 60 * 1 -- in frames
 local lateDropGrace = Game.gameSpeed * 60 * 3 -- in frames
 
@@ -74,10 +74,9 @@ function gadget:TeamDied(teamID)
 end
 
 
-function destroyTeam(teamID)
+function destroyTeam(teamID,dropTime)
 	local teamUnits = GetTeamUnits(teamID)
-	local gameFrame = GetGameFrame()
-	local nowrecks = gameFrame < noWrecksLimit
+	local nowrecks = dropTime < noWrecksLimit
 	for _, unitID in pairs(teamUnits) do
 		if not GetUnitTransporter(unitID) then
 			if nowrecks then
@@ -98,7 +97,7 @@ end
 
 function gadget:GameFrame(gameFrame)
 	for teamID in pairs(teamsWithUnitsToKill) do
-		destroyTeam(teamID)
+		destroyTeam(teamID,gameFrame)
 		teamsWithUnitsToKill[teamID] = nil
 	end
 	for _, teamID in pairs(GetTeamList()) do
@@ -106,7 +105,7 @@ function gadget:GameFrame(gameFrame)
 			local noneControlling, allResigned = GetTeamIsTakeable(teamID)
 			if noneControlling then
 				if allResigned then
-					destroyTeam(teamID) -- destroy the team immediately if all players in it resigned
+					destroyTeam(teamID,gameFrame) -- destroy the team immediately if all players in it resigned
 				elseif not droppedTeam[teamID] then
 					local gracePeriod = gameFrame < earlyDropLimit and earlyDropGrace or lateDropGrace
 					Echo("No Owner Mode: Team " .. teamID .. " has " .. math.floor(gracePeriod/(Game.gameSpeed * 60)) .. " minute(s) to reconnect")
@@ -120,7 +119,7 @@ function gadget:GameFrame(gameFrame)
 	end
 	for teamID,time in pairs(droppedTeam) do
 		if (gameFrame - time) > ( time < earlyDropLimit and earlyDropGrace or lateDropGrace ) then
-			destroyTeam(teamID)
+			destroyTeam(teamID,time)
 			droppedTeam[teamID] = nil
 		end
 	end
