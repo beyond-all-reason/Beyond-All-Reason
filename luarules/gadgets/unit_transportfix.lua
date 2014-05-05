@@ -56,13 +56,13 @@ end
 
 function gadget:GameFrame (currentFrame) 
 	if (toKill[currentFrame]) then --kill units as requested from above
-		for i,u in pairs (toKill[currentFrame]) do
-			t = fromtrans[currentFrame][i]
-			--Spring.Echo ("delayed killing check called for unit " .. i .. " and trans " .. t .. ". ")
+		for uID,_ in pairs (toKill[currentFrame]) do
+			tID = fromtrans[currentFrame][uID]
+			--Spring.Echo ("delayed killing check called for unit " .. uID .. " and trans " .. tID .. ". ")
 			--check that trans is dead/crashing and unit is still alive 
-			if ((not Spring.GetUnitIsDead(i)) and (Spring.GetUnitIsDead(t) or (Spring.GetUnitMoveTypeData(t).aircraftState=="crashing")))	then	
-				--Spring.Echo("killing unit " .. i)
-				Spring.DestroyUnit (i, true, false) 
+			if ((not Spring.GetUnitIsDead(uID)) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing")))	then	
+				--Spring.Echo("killing unit " .. uID)
+				Spring.DestroyUnit (uID, true, false) 
 			end
 		end
 	toKill[currentFrame] = nil
