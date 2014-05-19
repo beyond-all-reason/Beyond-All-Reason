@@ -91,7 +91,7 @@ function gadget:GameOver()
 end
 
 function gadget:Initialize()
-	if tostring(Spring.GetModOptions().deathmode) == "none" then
+	if tostring(Spring.GetModOptions().deathmode) == "neverend" then
 		gadgetHandler:RemoveGadget()
 	end
 	
