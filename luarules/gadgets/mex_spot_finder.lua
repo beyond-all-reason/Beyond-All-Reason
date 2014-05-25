@@ -470,18 +470,21 @@ end
 function gadget:Initialize()
 	
 	if type(SYNCED.metalSpots) == "table" then
-		for i, v in spairs(SYNCED.metalSpots) do
-			local x = v.x
-			local z = v.z
-			metalSpots[i] = {
-				x = x,
-				y = v.y,
-				z = z,
-				metal = v.metal
-			}
-			--Spring.MarkerAddPoint(x,0,z,x .. ", " .. z)
-			metalSpotsByPos[x] = metalSpotsByPos[x] or {}
-			metalSpotsByPos[x][z] = i
+		local metalSpotsSYNCED = SYNCED.metalSpots
+		if metalSpotsSYNCED ~= nil then
+			for i, v in pairs(metalSpotsSYNCED) do
+				local x = v.x
+				local z = v.z
+				metalSpots[i] = {
+					x = x,
+					y = v.y,
+					z = z,
+					metal = v.metal
+				}
+				--Spring.MarkerAddPoint(x,0,z,x .. ", " .. z)
+				metalSpotsByPos[x] = metalSpotsByPos[x] or {}
+				metalSpotsByPos[x][z] = i
+			end
 		end
 	else
 		metalSpots = false
