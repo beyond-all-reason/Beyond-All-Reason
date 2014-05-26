@@ -81,7 +81,14 @@ end
 
 --------------------------------------------------------------------------------
 
-local lastGameUpdate = Spring.GetGameSeconds()
+local SpGetGameSeconds = Spring.GetGameSeconds
+local SpIsUnitInView = Spring.IsUnitInView
+local SpValidUnitID = Spring.ValidUnitID
+local SpGetCameraPosition = Spring.GetCameraPosition
+local SpGetSmoothMeshHeight = Spring.GetSmoothMeshHeight
+local SpIsGUIHidden = Spring.IsGUIHidden
+
+local lastGameUpdate = -1
 
 function widget:Update(dt)
 
@@ -91,7 +98,7 @@ function widget:Update(dt)
   end
 
   local gs = Spring.GetGameSeconds()
-  if (gs == lastGameUpdate) then
+  if (gs - lastGameUpdate < 0.1) then
     return
   end
   lastGameUpdate = gs
@@ -201,14 +208,25 @@ local function DrawEtaText(timeLeft,yoffset)
   gl.Text(etaStr, 0, 0, 8, "c")
 end
 
+local maxUnitDistance = 9000000 --max squared distance at which any info is drawn for units (matches unit_healthbars)
+
 function widget:DrawWorld()
+  -- do the same check as healthbars; don't draw if too far zoomed out
+  cx, cy, cz = SpGetCameraPosition()
+  local smoothheight = SpGetSmoothMeshHeight(cx,cz) --clamps x and z
+  if ((cy-smoothheight)^2 >= maxUnitDistance) or SpIsGUIHidden() then 
+	return
+  end
+
   gl.DepthTest(true)
 
   gl.Color(1, 1, 1)
   --fontHandler.UseDefaultFont()
 
   for unitID, bi in pairs(etaTable) do
-    gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft,bi.yoffset)
+	if SpIsUnitInView(unitID) then
+	  gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft,bi.yoffset)
+	end
   end
 
   gl.DepthTest(false)
