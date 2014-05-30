@@ -13,9 +13,15 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal('PlayerReadyStateChanged', PlayerReadyStateChanged)
+	-- list of all Script.LuaUI calls in BA
+	widgetHandler:RegisterGlobal('PlayerReadyStateChanged', Foo)
+	widgetHandler:RegisterGlobal('CameraBroadcastEvent', Foo)
+	widgetHandler:RegisterGlobal('MouseCursorEvent', Foo)
+	widgetHandler:RegisterGlobal('SendMetalSpots', Foo)
+	widgetHandler:RegisterGlobal('registerUPgradePairs', Foo)
 end 
 
-function PlayerReadyStateChanged()
-	--moo
+function Foo()
+	--Bar
+	--This wtf widget exists because of http://springrts.com/mantis/view.php?id=4368
 end
