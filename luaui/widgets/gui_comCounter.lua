@@ -152,6 +152,12 @@ function widget:Initialize()
 	if Spring.GetGameFrame() > 0 then
 		Recount()
 	end
+    
+    --set position if it wasn't in config
+    if not xPos or not yPos then
+        xPos = 0.80
+        yPos = 0.85
+    end
 end
 
 function widget:GameStart()
