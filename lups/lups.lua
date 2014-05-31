@@ -747,7 +747,24 @@ end
 local function CreateVisibleFxList()
   local removeFX = {}
   local removeCnt = 1
-
+  
+  local cx, cy, cz = Spring.GetCameraPosition()
+  local smoothheight = Spring.GetSmoothMeshHeight(cx,cz)
+  if ((cy-smoothheight)^2 >= 27000000) then 
+    -- if the camera is this high up, don't render lups anymore
+	-- TODO: might be better if we stopped rendering at the point at which units become icons
+	for layerID,layer in pairs(RenderSequence) do
+      for partClass,Units in pairs(layer) do
+        for unitID,UnitEffects in pairs(Units) do
+          for i=1,#UnitEffects do
+            UnitEffects[i].visible = false
+		  end
+		end
+	  end
+	end
+	return
+  end
+  
   for layerID,layer in pairs(RenderSequence) do
     for partClass,Units in pairs(layer) do
       for unitID,UnitEffects in pairs(Units) do
