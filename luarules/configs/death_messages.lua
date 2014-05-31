@@ -641,7 +641,7 @@ teamDeathMessages = {
 	"XX had a mid-life crisis",
 	"XX will be put up for auction",
 	"XX has pneumonoultramicroscopicsilicovolcanoconiosis",
-	"XX is having lobster thermidor aux crevettes, with a mornay sauce garnished with truffle pate, brandy and a fried egg on top and spam"
+	"XX is having lobster thermidor aux crevettes, with a mornay sauce garnished with truffle pate, brandy and a fried egg on top and spam",
 	"XX died while balls deep in a squealing hog, firing a shotgun into the air",
 	"XX will clean up the chunks of dead prostitute",
 	"XX acted out one too many lumberjack fantasies",
