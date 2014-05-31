@@ -18,7 +18,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', Foo)
 	widgetHandler:RegisterGlobal('MouseCursorEvent', Foo)
 	widgetHandler:RegisterGlobal('SendMetalSpots', Foo)
-	widgetHandler:RegisterGlobal('registerUPgradePairs', Foo)
+	widgetHandler:RegisterGlobal('registerUpgradePairs', Foo)
 end 
 
 function Foo()
