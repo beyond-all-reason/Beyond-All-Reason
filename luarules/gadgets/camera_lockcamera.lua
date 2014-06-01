@@ -287,8 +287,10 @@ else
 				return
 			end
 		end
-		Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
-	end
+        if Script.LuaUI("CameraBroadcastEvent") then
+            Script.LuaUI.CameraBroadcastEvent(playerID,cameraState)
+        end
+    end
 
 	function gadget:Update()
 		local dt = GetLastUpdateSeconds()

@@ -105,7 +105,9 @@ function handleMousePosEvent(_,playerID,x,z,click)
 			return
 		end
 	end
-	Script.LuaUI.MouseCursorEvent(playerID,x,z,click)
+    if Script.LuaUI("MouseCursorEvent")
+        Script.LuaUI.MouseCursorEvent(playerID,x,z,click)
+    end
 end
 
 function gadget:Update()

@@ -570,7 +570,10 @@ else
 local bDefs = {} 
 
 local function RegisterUpgradePairs(_, val)
-	Script.LuaUI.registerUpgradePairs(bDefs)
+    if Script.LuaUI("registerUpgradePairs") then
+        Script.LuaUI.registerUpgradePairs(bDefs)
+    end
+    return true
 end
 
 function gadget:Initialize()

@@ -493,7 +493,7 @@ end
 function StartPointChosen(_,playerID)
 	if playerID == myPlayerID then
 		startPointChosen = true 
-		if not readied then
+		if not readied and Script.LuaUI("PlayerReadyStateChanged") then
 			Script.LuaUI.PlayerReadyStateChanged(playerID, 4)
 		end
 	end
@@ -513,13 +513,15 @@ function gadget:GameSetup(state,ready,playerStates)
 	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
-			if readyState == "ready" then
-				Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
-			elseif readyState == "missing" then
-				Script.LuaUI.PlayerReadyStateChanged(playerID, 3)
-			else
-				Script.LuaUI.PlayerReadyStateChanged(playerID, 0) --unready
-			end
+            if Script.LuaUI("PlayerReadyStateChanged") then
+                if readyState == "ready" then
+                    Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
+                elseif readyState == "missing" then
+                    Script.LuaUI.PlayerReadyStateChanged(playerID, 3)
+                else
+                    Script.LuaUI.PlayerReadyStateChanged(playerID, 0) --unready
+                end
+            end
 			pStates[playerID] = readyState
 		end
 	end
