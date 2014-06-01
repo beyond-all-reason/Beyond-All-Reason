@@ -34,7 +34,7 @@ for featureDefID, defs in pairs(FeatureDefs) do
   end
 end
 
-function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, attackerID, attackerDefID, attackerTeam)
+function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if not cegList[featureID] and (damage > 5) then
 		local featureDefs = featureList[featureDefID] or nil
 		if featureDefs then
