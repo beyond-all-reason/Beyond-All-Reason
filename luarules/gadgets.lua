@@ -886,10 +886,6 @@ function gadgetHandler:GotChatMsg(msg, player)
     end
   end
 
-  if (IsSyncedCode()) then
-    SendToUnsynced(player, msg)
-  end
-
   return false
 end
 
