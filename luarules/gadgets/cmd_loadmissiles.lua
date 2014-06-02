@@ -22,6 +22,7 @@ function LoadMissiles()
 		Spring.SetUnitStockpile(unitID, 5) --no effect if the unit can't stockpile
 	end
 
+    return true
 end
 
 

@@ -60,6 +60,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 		if initialQueueTime then
 			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
 		end
+        return true
 	end
 
 	function onGameStart()

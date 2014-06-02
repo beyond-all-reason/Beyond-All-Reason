@@ -507,12 +507,14 @@ end
 
 function handleUnitTargetDrawEvent(_,_,params)
 	drawTarget[tonumber(params[1])] = true
+    return true
 end
 
 function handleTargetDrawEvent(_,_,params)
 	local teamID = tonumber(params[1])
 	local doDraw = tonumber(params[2]) ~= 0
 	drawAllTargets[teamID] = doDraw
+    return true
 end
 
 function handleTargetChangeEvent(_,unitID,dataA,dataB,dataC)
@@ -523,6 +525,7 @@ function handleTargetChangeEvent(_,unitID,dataA,dataB,dataC)
 		--3d coordinates format
 		unitTargets[unitID] = {dataA,dataB,dataC}
 	end
+    return true
 end
 
 local function pos2func(u2)
