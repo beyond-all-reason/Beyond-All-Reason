@@ -1,7 +1,7 @@
 function widget:GetInfo()
   return {
-    name      = "MoreSounds",
-    desc      = "More sounds",
+    name      = "Unit Finished Sounds",
+    desc      = "Plays a sound when a unit is built",
     author    = "TheFatController",
     date      = "30 Sep 2009",
     license   = "GNU GPL, v2 or later",
