@@ -152,12 +152,6 @@ function widget:Initialize()
 	if Spring.GetGameFrame() > 0 then
 		Recount()
 	end
-    
-    --set position if it wasn't in config
-    if not xPos or not yPos then
-        xPos = 0.80
-        yPos = 0.85
-    end
 end
 
 function widget:GameStart()
@@ -358,7 +352,7 @@ end
 function widget:SetConfigData(data)
 	xRelPos = data.xRelPos or xRelPos
 	yRelPos = data.yRelPos or yRelPos
-	xPos = yRelPos * vsx
+	xPos = xRelPos * vsx
 	yPos = yRelPos * vsy
 	markers = data.markers or markers
 	flashIcon = data.flashIcon or flashIcon
