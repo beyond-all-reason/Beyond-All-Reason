@@ -32,24 +32,11 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local enabled = true
+-- direct control ("fps mode") is blocked for all units because commands given in fps mode bypass lua & would bypass all anti-hax gadgets
+local enabled = false
 
 local badUnitDefs = {
-	UnitDefNames['cormexp'].id,
-	UnitDefNames['corvipe'].id,
-	UnitDefNames['armraven'].id,
-	UnitDefNames['armsptk'].id,
-	UnitDefNames['cortron'].id,
-	UnitDefNames['cortl'].id,
-	UnitDefNames['armtl'].id,
-	UnitDefNames['cormship'].id,
-	UnitDefNames['armmship'].id,
-	UnitDefNames['corhurc'].id,
-	UnitDefNames['corvroc'].id,
-	UnitDefNames['cormship'].id,
+    -- if enabled, block particular UnitDefIDs here
 }
 
 
@@ -107,8 +94,8 @@ end
 
 
 function gadget:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID)
-  if (not enabled) then
-    return true
+  if (not enabled) and (not Spring.IsCheatingEnabled()) then
+    return false
   end
   
   if (select(3,Spring.GetPlayerInfo(playerID)) == true) then
