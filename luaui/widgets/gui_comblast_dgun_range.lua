@@ -178,7 +178,7 @@ end
 
 -- draw circles
 function widget:DrawWorldPreUnit()
-	glDepthTest(GL_ALWAYS)
+	glDepthTest(true)
 	for _,center in pairs(comCenters) do
 		if center[4] then
 			glColor(1, 0.8, 0, .6)
