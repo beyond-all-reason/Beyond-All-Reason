@@ -215,6 +215,7 @@ else -- begin unsynced section
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetMyTeamID = Spring.GetMyTeamID
+local spGetCameraPosition = Spring.GetCameraPosition
 
 local tID
 local amISpec = Spring.GetSpectatingState()
@@ -233,7 +234,10 @@ local boxes = {}
 local dgunLimitList
 local prevUpdateTime = 0
 local curTime = 0  
-local divLength = 10
+local divLength = 5
+
+local gy = Spring.GetGroundHeight(Game.mapSizeX/2, Game.mapSizeZ/2)
+local prev_cy = 0
 
 function DrawGroundLine(x1,z1,x2,z2)
 	--draw a line 'on the ground' from (x1,z1) to (x2,z2)
@@ -241,7 +245,7 @@ function DrawGroundLine(x1,z1,x2,z2)
 		--first point
 		local y = Spring.GetGroundHeight(x1,z1)
 		local prevY = y
-		gl.Vertex(x1,y,z1)
+		gl.Vertex(x1,y+5,z1)
 		--middle points
 		local length = math.floor(math.sqrt( (x2-x1)*(x2-x1) + (z2-z1)*(z2-z1) ))
 		local divs = math.max(0, (math.floor(length/divLength))-1) 
@@ -251,14 +255,14 @@ function DrawGroundLine(x1,z1,x2,z2)
 			x = x + (x2-x1)/divs
 			z = z + (z2-z1)/divs
 			y = Spring.GetGroundHeight(x,z)
-			if math.abs(y-prevY) > 5 then --only add in middle vertices when the ground changes height
+			if math.abs(y-prevY) > 2 then --only add in middle vertices when the ground changes height
 				prevY = y
-				gl.Vertex(x,y,z)
+				gl.Vertex(x,y+5,z)
 			end
 		end
 		--last point
 		y = Spring.GetGroundHeight(x2,z2)
-		gl.Vertex(x2,y,z2)
+		gl.Vertex(x2,y+5,z2)
 	end)
 end
 
@@ -278,24 +282,30 @@ function DrawGroundBox(x1,z1,x2,z2)
 	end
 end
 
-function CreateList()
+function CreateList(epicWTFparam, cy)
 	--remove old list
 	if dgunLimitList then
 		gl.DeleteList(dgunLimitList)
 	end
 	
+    --calculate opacity
+    if not cy then
+        cy = select(2,spGetCameraPosition())
+    end
+    local opacity = math.max(0.1, 0.5 - (cy-gy-3000) * (1/10000))
+    
 	--generate list
 	if useBoxes then
 		dgunLimitList = gl.CreateList(function()
 			--show enemy's boxes in black
-			gl.Color(0,0,0,0.5) 
+			gl.Color(0,0,0,opacity) 
 			for allyTeamID,box in pairs(boxes) do
 				if myAllyTeamID ~= allyTeamID and allyTeamID ~= gaiaAllyTeamID then
 					DrawGroundBox(box[1],box[2],box[3],box[4])
 				end
 			end
 			--show my own box in white
-			gl.Color(1,1,1,0.5)
+			gl.Color(1,1,1,opacity)
 			local box = boxes[myAllyTeamID]
 			if box then
 				DrawGroundBox(box[1],box[2],box[3],box[4])
@@ -306,7 +316,7 @@ function CreateList()
 	if usePoints then
 		dgunLimitList = gl.CreateList(function()
 			--show enemy circles in black
-			gl.Color(0,0,0,0.5)
+			gl.Color(0,0,0,opacity)
 			for allyTeamID,pointTable in pairs(points) do
 				if allyTeamID ~= myAllyTeamID then
 					for _,point in pairs(pointTable) do
@@ -315,7 +325,7 @@ function CreateList()
 				end
 			end		
 			--show my own allyTeams circles in white
-			gl.Color(1,1,1,0.5)
+			gl.Color(1,1,1,opacity)
 			if points[myAllyTeamID] then
 				for _,point in pairs(points[myAllyTeamID]) do
 					gl.DrawGroundCircle(point[1],point[2],point[3],pointRadius,120)
@@ -338,7 +348,7 @@ function RecieveStartPoint(epicWTFparam, allyTeamID, pointID, x, y, z)
 	points[allyTeamID][pointID] = {x,y,z}
 end
 
-function RecieveStartBox(epicWTDparam, allyTeamID, x1, z1, x2, z2)
+function RecieveStartBox(epicWTFparam, allyTeamID, x1, z1, x2, z2)
 	if not boxes[allyTeamID] then
 			boxes[allyTeamID] = {}
 	end
@@ -379,11 +389,18 @@ function gadget:DrawWorldPreUnit()
 	if myTeamID ~= tID then
 		myTeamID = tID
 		myAllyTeamID = Spring.GetMyAllyTeamID()
-		CreateList()
+		CreateList(_,select(2,spGetCameraPosition()))
 	end
 	
+    -- remake list if cam height changed enough
+    local _,cy,_ = spGetCameraPosition()
+    if math.abs(cy-prev_cy) > 500 then
+        prev_cy = cy
+        CreateList(_,cy)
+    end
+
 	if dgunLimitList and not spIsGUIHidden() then
-		gl.DepthTest(GL.ALWAYS)
+		gl.DepthTest(true)
 		gl.CallList(dgunLimitList)
 		gl.DepthTest(false)
 	end
