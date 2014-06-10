@@ -1,3 +1,21 @@
+8.00 -> 8.01
+??/??/??
+- Updates fors Spring 97.0
+- Players who drop before the game starts can be replaced by specs
+
+7.99 -> 8.00
+31/05/2014
+
+- Players who drop before 5 minutes in FFA mode won't leave wrecks (increased from 2 minutes)
+- Units cannot be closed/opened while emp'ed
+- Disabled FPS mode
+- Fixed game ending in "never end" mode
+- Fixed build ETAs showing with GUI disabled
+- Fixed comblast/dgun range circles showing through hills
+- Limit DGun lines fade out as camera zooms out
+- LUPS won't render for units that are drawn as icons or too far away 
+
+
 7.98 -> 7.99
 03/05/2014
 
@@ -15,7 +33,9 @@
 
 7.96 -> 7.98
 15/04/2014
+
 - Fixed ready button showing for spectators
+
 
 7.95 -> 7.96
 15/04/2014
@@ -23,6 +43,7 @@
 - Integrated ready states into Adv Pl List
 - Fixed Custom Formations not reverting to default command after line command
 - Fixed mobile antinukes trying to attack 
+
 
 7.94 -> 7.95
 07/04/2014
@@ -44,17 +65,22 @@
 
 7.93 -> 7.94
 16/03/2014
+
 - Fixed T2 radar plane acceleration
 - Fixed Com Counter markers
 - Fixed DGun Limiter not changing colour for specs
 - Fixed sometimes getting two Death Messages 
 
+
 7.92 -> 7.93
 15/03/2014
+
 - Fixed lua error in Prevent Share Self D
+
 
 7.91 -> 7.92
 15/03/2014
+
 
 - Added new mode to Limit DGun; when enabled DGun won't fire within radius 450 of an enemy startpos
 - Removed defunct Game End modes, simplified modoptions 
@@ -72,8 +98,6 @@
 - Increased Sniper costs and buildtime
 - EMP Spiders are stealthy, increased health
 - Lots of internal tidying up
-
-
 
 
 7.90 -> 7.91
@@ -108,6 +132,7 @@
 - Spies can reclaim again, when cloaked default action is move
 - Hid player/spec quit messages after game over
 
+
 7.88 -> 7.89
 13/12/2013
 
@@ -118,12 +143,14 @@
 - Made Team Platter less annoying
 - Various minor fixes
 
+
 7.87 -> 7.88
 10/12/2013
 
 - Fixed error spam from prevent_sliding 
 - Ally Cursors doesn't show idle cursors
 - Fixed comgate
+
 
 7.86 -> 7.87
 08/12/2013
@@ -133,10 +160,12 @@
 - Fixed Depthcharge Launcher firing at land
 - Fixed rez progress bars sometimes not showing
 
+
 7.85 -> 7.86
 07/12/2013
 
 - (forgot to enable waterline hotfix)
+
 
 7.84 -> 7.85
 07/12/2013
