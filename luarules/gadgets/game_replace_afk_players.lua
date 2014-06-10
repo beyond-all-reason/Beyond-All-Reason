@@ -21,7 +21,6 @@ end
 if gadgetHandler:IsSyncedCode() then 
 -----------------------------
 
-local tsRegex = '^\144(%d+)$'
 local substitutes = {}
 local players = {}
 local absent = {}
@@ -30,10 +29,22 @@ local replaced = false
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function gadget:RecvLuaMsg(msg, playerID)
-	local ts = tonumber(msg:match(tsRegex))
-    if ts~=nil then
-        substitutes[playerID] = ts
-        Spring.Echo("recieved", playerID, ts)
+	if msg=='\145' then
+        substitutes[playerID] = nil
+        --Spring.Echo("received removal", playerID)
+    end
+    if msg=='\144' then
+        -- do the same eligibility check as in unsynced
+        local customtable = select(10,Spring.GetPlayerInfo(playerID))
+        local tsMu = customtable.skill 
+        local tsSigma = customtable.skilluncertainty
+        ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+        tsSigma = tonumber(tsSigma)
+        local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID]) or true
+        if eligible then
+            substitutes[playerID] = ts
+        end
+        --Spring.Echo("received", playerID, eligible, ts)
     end
 end
 
@@ -65,7 +76,7 @@ function gadget:GameStart()
         if not present then
             local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
             local tsMu = customtable.skill
-            ts = 25 --tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
+            ts = tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
             if ts then
                 absent[playerID] = ts
                 --Spring.Echo("absent:", playerID, ts)
@@ -91,7 +102,7 @@ function gadget:GameStart()
             
             local incoming,_ = Spring.GetPlayerInfo(sID)
             local outgoing,_ = Spring.GetPlayerInfo(playerID)            
-            Spring.Echo("Player " .. playerID .. " (" .. outgoing .. ") was replaced with Player " .. sID .. " (" .. incoming .. ")")
+            Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
         end
     end
 
@@ -143,31 +154,102 @@ local x = 500
 local y = 500
 
 local myPlayerID = Spring.GetMyPlayerID()
-local amISpec = Spring.GetSpectatingState()
+local spec = Spring.GetSpectatingState()
 
 local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
 local tsMu = customtable.skill 
 local tsSigma = customtable.skilluncertainty
 ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 tsSigma = tonumber(tsSigma)
-local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) 
+local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec or true
 
-function gadget:DrawScreen()
-    -- ask each spectator if they would like to replace an absent player
-
+local vsx, vsy = Spring.GetViewGeometry()
+function gadget:ViewResize()
+  vsx,vsy = Spring.GetViewGeometry()
 end
 
---function gadget:MousePress(mx,my)
-local temp 
+local subsButton
+local bX = vsx * 0.8
+local bY = vsy * 0.8 
+local bH = 30
+local bW = 140
+local offer = false
+
+
+function MakeButton()
+	subsButton = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0.1,0.1,.45,0.18)                              
+		gl.Rect(bX,bY+bH, bX+bW, bY)
+	
+		-- draws black border
+		gl.Color(0,0,0,1)
+		gl.BeginEnd(GL.LINE_LOOP, function()
+			gl.Vertex(bX,bY)
+			gl.Vertex(bX,bY+bH)
+			gl.Vertex(bX+bW,bY+bH)
+			gl.Vertex(bX+bW,bY)
+		end)
+		gl.Color(1,1,1,1)
+	end)
+end
+
+function Initialize()
+    MakeButton()
+end
+
+
 function gadget:DrawScreen()
-    if not temp then -- tell luarules that user offered to be a substitute
-        ts = 25
-        Spring.Echo("sent", myPlayerID, ts)
-        Spring.SendLuaRulesMsg('\144' .. tostring(ts))
-        temp = true
+    if eligible then
+        -- ask each spectator if they would like to replace an absent player
+		-- draw button
+		gl.CallList(subsButton)
+		
+		-- text
+		local x,y = Spring.GetMouseState()
+		if x > bX and x < bX+bW and y > bY and y < bY+bH then
+			colorString = "\255\255\230\0"
+		else
+			colorString = "\255\255\255\255"
+		end
+        local textString
+        if not offer then
+            textString = "Offer to play"
+        else
+            textString = "Withdraw offer"
+        end
+		gl.Text(colorString .. textString, bX+10, bY+9, 20, "o")
+		gl.Color(1,1,1,1)
     end
 end
 
+function gadget:MousePress(sx,sy)
+	-- pressing b
+	if sx > bX and sx < bX+bW and sy > bY and sy < bY+bH and eligible then
+        --Spring.Echo("sent", myPlayerID, ts)
+        if not offer then
+            Spring.SendLuaRulesMsg('\144')
+            Spring.Echo("If player(s) are afk when the game starts, you might be used as a substitute")
+            offer = true
+            bW = 160
+            MakeButton()
+        else
+            Spring.SendLuaRulesMsg('\145')
+            Spring.Echo("Your offer to substitute has been withdrawn")
+            offer = false
+            bW = 140
+            MakeButton()
+        end
+	end
+end
+
+function gadget:MouseRelease(x,y)
+	return false
+end
+
+function gadget:GameStart()
+    gadgetHandler:RemoveGadget()
+end
 
 
 -----------------------------
