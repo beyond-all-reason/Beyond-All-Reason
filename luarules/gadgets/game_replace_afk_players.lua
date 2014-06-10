@@ -40,7 +40,7 @@ function gadget:RecvLuaMsg(msg, playerID)
         local tsSigma = customtable.skilluncertainty
         ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
         tsSigma = tonumber(tsSigma)
-        local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID]) or true
+        local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID]) 
         if eligible then
             substitutes[playerID] = ts
         end
@@ -139,12 +139,29 @@ function gadget:GameFrame(n)
                 end
             end
             name = string.sub(name, 1, math.max(string.len(name)-2,1)) --remove final ", "
-            Spring.MarkerAddPoint(p[1], p[2], p[3], name, true)
+            Spring.MarkerAddPoint(p[1], p[2], p[3], colorNames(tID) .. name, true)
         end
     end
 
     gadgetHandler:RemoveGadget()
 end
+
+function colourNames(teamID)
+    	nameColourR,nameColourG,nameColourB,nameColourA = Spring.GetTeamColor(teamID)
+		R255 = math.floor(nameColourR*255)  
+        G255 = math.floor(nameColourG*255)
+        B255 = math.floor(nameColourB*255)
+        if ( R255%10 == 0) then
+                R255 = R255+1
+        end
+        if( G255%10 == 0) then
+                G255 = G255+1
+        end
+        if ( B255%10 == 0) then
+                B255 = B255+1
+        end
+	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
+end 
 
 -----------------------------
 else -- begin unsynced section
@@ -161,7 +178,7 @@ local tsMu = customtable.skill
 local tsSigma = customtable.skilluncertainty
 ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 tsSigma = tonumber(tsSigma)
-local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec or true
+local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
 
 local vsx, vsy = Spring.GetViewGeometry()
 function gadget:ViewResize()
