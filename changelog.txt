@@ -4,7 +4,7 @@
 - Players who drop before the game starts can be replaced by specs
 
 7.99 -> 8.00
-31/05/2014
+10/06/2014
 
 - Players who drop before 5 minutes in FFA mode won't leave wrecks (increased from 2 minutes)
 - Units cannot be closed/opened while emp'ed
