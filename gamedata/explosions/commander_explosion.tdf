@@ -1,9 +1,94 @@
 [COMMANDER_EXPLOSION]
 {
-	usedefaultexplosions=1;
+	[pop1]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      	{
+            alwaysVisible=1;
+            texture=fireball;
+            heat = 10;
+            maxheat = 10;
+            heatFalloff = 0.4;
+
+            size = 1;
+            sizeGrowth = 37;
+
+            pos = r-10 r10, 0, r-10 r10;
+            speed=0, 0, 0;
+      	}
+        air=1;
+        water=1;
+        ground=1;
+        count=2;
+	} 
+
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      	{
+            alwaysVisible=1;
+            texture=purpleexplo;
+            heat = 10;
+            maxheat = 15;
+            heatFalloff = 0.6;
+
+            size = 1;
+            sizeGrowth = 30;
+
+        	pos = r-150 r150, 0, r-300 r150;
+        	speed=0, 0, 0;
+      	}
+        air=1;
+      	water=1;
+      	ground=1;
+      	count=5;
+	} 
+    
+    [smoke]
+	{
+	class=CSimpleParticleSystem;
+		[properties]
+		{
+		alwaysVisible=1;
+		sizeGrowth=3;
+		sizeMod=1.0;
+
+        pos = r-1 r1, 0, r-1 r1;
+        emitVector=0, 1, 0;
+		gravity= 0, 0.5, 0;
+
+		colorMap=1 0.5 0.5 0.2	   0.5 0.3 0.0 0.05    0.5 0.5 0.5 1.0    0 0 0 0.01;
+		Texture=graysmoke;
+
+		airdrag=0.8;
+
+		particleLife=25;
+		particleLifeSpread=65;
+
+		numParticles=400;
+
+		particleSpeed=5;
+		particleSpeedSpread=55;
+		particleSize=1;
+		particleSizeSpread=0;
+
+		emitRot=75;
+		emitRotSpread=10;
+
+		directional=1;
+		}
+	water=0;
+	air=1;
+	ground=1;
+	count=1;
+	}
 	[GROUNDFLASH]
 	{
-		flashsize=1472;
+		flashsize=1280;
 		flashalpha=2.4;
 		circlegrowth=25;
 		circlealpha=4;
