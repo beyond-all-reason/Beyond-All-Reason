@@ -23,6 +23,7 @@ local spGetPlayerInfo		= Spring.GetPlayerInfo
 local spGetGroundHeight		= Spring.GetGroundHeight
 local spIsSphereInView		= Spring.IsSphereInView
 local spValidUnitID			= Spring.ValidUnitID
+local spIsGUIHidden         = Spring.IsGUIHidden
 
 
 local glDepthTest 			= gl.DepthTest
@@ -178,6 +179,7 @@ end
 
 -- draw circles
 function widget:DrawWorldPreUnit()
+    if spIsGUIHidden() then return end
 	glDepthTest(true)
 	for _,center in pairs(comCenters) do
 		if center[4] then
