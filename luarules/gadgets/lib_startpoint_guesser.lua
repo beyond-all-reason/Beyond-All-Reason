@@ -1,6 +1,7 @@
 -- Start Point Guessing functions used by initial_spawn
 
 local claimRadius = 250*2.3 -- the radius about your own startpoint which the startpoint guesser regards as containing mexes that you've claimed for yourself (dgun range=250)
+local claimRadius2 = 250*1.5 -- as above, but for continuous metal dist instead of spots
 local claimHeight = 300 -- the height difference relative your own startpoint in which, within the claimRadius, the startpoint guesser regards you as claiming mexes (coms can build up a cliff ~200 high but not much more).
 local walkRadius = 250*3 -- the radius outside of the startbox that we regard as being able to walk to a mex on
 
@@ -173,7 +174,78 @@ end
 
 
 
-function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
-	return -1,-1 --TODO: 
-				 -- cycle through map startpoints looking for one that isn't close to an already placed startpoint
+function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable) --TODO: make this more efficient, atm it akes 1-2 sec to run
+	-- search over metal map and find a point with a reasonable amount of non-claimed metal near to it
+    local mmapx,mmapz = Spring.GetMetalMapSize() -- metal map cords * 16 = world coords
+    local xres = math.max(1,math.floor(mmapx/16))
+    local zres = math.max(1,math.floor(mmapz/16))
+    
+    local points = {} --possible startpoints point[id] = {x,z,metal}, grid over metalmap of sidelength res
+    local x = xres
+    local z = zres
+    while true do --i hate lua
+        local y = Spring.GetGroundHeight(x*16,z*16)
+        local isWithinStartBox = (xmin < 16*x) and (16*x < xmax) and (zmin < 16*z) and (16*z < zmax)
+        if isWithinStartBox then
+            points[#points+1] = {x=x, y=y, z=z, m=0}
+        end
+        x = x + xres       
+        if x > mmapx then
+            x = 1
+            z = z + zres
+        end
+        if z > mmapz then
+            break
+        end
+    end
+    
+    -- count metal for each point (sample metalmap at points in square grid of sidelength res2)
+    local xres2 = math.max(1,math.floor(xres/4))
+    local zres2 = math.max(1,math.floor(zres/4))
+    for x=1,mmapx,xres2 do
+    for z=1,mmapz,zres2 do
+        -- is this metal aready claimed?
+        local isFree = true
+        for _,startpoint in pairs(startPointTable) do -- we avoid enemy startpoints too, to prevent unnecessary explosions and to deal with the case of having no startboxes
+            local sx,sz = startpoint[1],startpoint[2]
+            local sy = Spring.GetGroundHeight(sx,sz)
+            local y = Spring.GetGroundHeight(x*16,z*16)
+            local isWithinClaimRadius = ((sx-x*16)*(sx-x*16)+(sz-z*16)*(sz-z*16) <= (claimRadius2)*(claimRadius2))
+            local isWithinClaimHeight = (math.abs(sy-y) <= claimHeight)
+            if isWithinClaimRadius and isWithinClaimHeight then 
+                isFree = false 
+                break
+            end
+        end		
+        
+        -- if it is, add this metal into points 
+        local m = Spring.GetMetalAmount(x,z)
+		if isFree and m > 0.1 then
+            local y = Spring.GetGroundHeight(x*16,z*16)
+            for _,p in ipairs(points) do
+                if m and (p.x-x)*(p.x-x)+(p.z-z)*(p.z-z) <= (claimRadius2/16)*(claimRadius2/16) and math.abs(p.y-y) <= claimHeight then
+                    p.m = p.m + m 
+                end
+            end
+        end 
+    end
+    end
+    
+    -- find which point within the startbox that has the most metal
+    local best 
+    local bestM = 0
+    for id,p in ipairs(points) do
+        if bestM < p.m then
+            best = id
+            bestM = p.m
+        end
+    end
+    
+    -- return best
+    if best then
+        return (points[best].x)*16, (points[best].z)*16
+    end
+    
+    -- give up
+    return -1,-1 
 end
