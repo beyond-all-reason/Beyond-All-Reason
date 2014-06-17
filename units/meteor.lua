@@ -75,7 +75,7 @@ unitDef = {
 	  weaponvelocity=2000,
 	  startvelocity=2000,
 	  weaponacceleration=120,
-	  edgeeffectiveness=0,
+	  edgeeffectiveness=0.6,
 	  areaofeffect=450,
 	  metalpershot=0,
 	  wobble=0,
@@ -83,7 +83,7 @@ unitDef = {
       craterMult              = 0,
 
 	  soundhit="xplonuk4",
-	  explosionGenerator      = "custom:COMM_EXPLOSION",
+	  explosionGenerator      = "custom:meteor_explosion",
 
 	  firestarter=70,
 	  smokedelay=0.1,

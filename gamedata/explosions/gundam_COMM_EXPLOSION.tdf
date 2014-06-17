@@ -1,4 +1,5 @@
-[COMM_EXPLOSION]
+//originally gundams COMM_EXPLOSION
+[meteor_explosion]
 {
 	[pop1]
 	{
