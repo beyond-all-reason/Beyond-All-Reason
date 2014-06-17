@@ -39,7 +39,7 @@ local glCallList			= gl.CallList
 local glDeleteList			= gl.DeleteList
 
 local textSize				= 12
-local xPos, yPos
+local xPos, yPos            = 0.80, 0.85
 local xRelPos, yRelPos		= 0.80, 0.85
 local vsx, vsy				= gl.GetViewSizes()
 local check1x, check1y		= 6, 28
