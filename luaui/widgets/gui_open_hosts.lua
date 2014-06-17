@@ -160,10 +160,10 @@ local function SocketDataReceived(sock, data)
             -- i hate lua
             battle.ID           = tonumber(battle.ID)
             battle.passworded   = toboolean(battle.passworded)
-            battle.rankLimit    = tonumber(battle.rankLimit)
+            battle.rankLimit    = tonumber(battle.rankLimit) or 0
             battle.locked       = toboolean(battle.locked)
-            battle.specCount    = tonumber(battle.specCount)
-            battle.playerCount  = tonumber(battle.playerCount)
+            battle.specCount    = tonumber(battle.specCount) or 0
+            battle.playerCount  = tonumber(battle.playerCount) or 0
             battle.isInGame     = toboolean(battle.isInGame)
             
             -- add battle to list
