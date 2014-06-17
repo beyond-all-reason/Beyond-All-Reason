@@ -1,0 +1,64 @@
+[ASTEROIDTRAIL_Expl]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		alwaysVisible=1;
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			alwaysVisible=1;
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap= 0 0 0  0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=fireball;
+			airdrag=0.95;
+			particleLife=10;
+			particleLifeSpread=3;
+			numParticles=1;
+			particleSpeed=6;
+			particleSpeedSpread=1;
+			particleSize=45;
+			particleSizeSpread=45;
+			emitRot=360;
+			emitRotSpread=360;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			alwaysVisible=1;
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  0.3 0.3 0.3 0.7	0.3 0.3 0.3 0.7	0.3 0.3 0.3 0.6	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=40;
+			particleLifeSpread=25;
+			numParticles=1;
+			particleSpeed=6;
+			particleSpeedSpread=1;
+			particleSize=70;
+			particleSizeSpread=45;
+			emitRot=360;
+			emitRotSpread=360;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+}

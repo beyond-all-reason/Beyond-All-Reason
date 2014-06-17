@@ -85,7 +85,7 @@ function gadget:Initialize()
   
     if (ud ~= nil) then
       
-      if (ud.name=="roost") then
+      if (ud.name=="roost") or (ud.name=="meteor") then
         Spring.SetUnitDefIcon(udid, "star.user")
       elseif (ud.name=="armwin") or (ud.name=="corwin") then
         Spring.SetUnitDefIcon(udid, "e.user")

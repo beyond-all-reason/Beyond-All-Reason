@@ -1,0 +1,122 @@
+[COMM_EXPLOSION]
+{
+	[pop1]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		alwaysVisible=1;
+		texture=fireball;
+      		heat = 10;
+      		maxheat = 10;
+      		heatFalloff = 0.4;
+
+      		size = 1;
+      		sizeGrowth = 37;
+
+         	pos = r-10 r10, 0, r-10 r10;
+         	speed=0, 0, 0;
+      		}
+	air=1;
+      	water=1;
+      	ground=1;
+      	count=2;
+	} 
+
+	[pop2]
+	{
+	class=heatcloud;
+   	
+		[properties]
+      		{
+		alwaysVisible=1;
+		texture=purpleexplo;
+      		heat = 10;
+      		maxheat = 15;
+      		heatFalloff = 0.6;
+
+      		size = 1;
+      		sizeGrowth = 30;
+
+         	pos = r-150 r150, 0, r-300 r150;
+         	speed=0, 0, 0;
+      		}
+	air=1;
+      	water=1;
+      	ground=1;
+      	count=5;
+	} 
+
+	[dirt2]
+	{
+	class=CSimpleParticleSystem;
+		[properties]
+		{
+		alwaysVisible=1;
+		sizeGrowth=3;
+		sizeMod=1.0;
+
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity= 0, 0.2, 0;
+
+		colorMap=1 1 1 0.01	0.5 0.3 0.0 0.05    0.5 0.5 0.5 1.0    0 0 0 0.01;
+		Texture=dirt;
+
+		airdrag=0.9;
+
+		particleLife=30;
+		particleLifeSpread=0;
+
+		numParticles=50;
+
+		particleSpeed=5;
+		particleSpeedSpread=57;
+		particleSize=60;
+		particleSizeSpread=10;
+
+		emitRot=90;
+		emitRotSpread=10;
+
+		directional=1;
+		useAirLos=1;
+		}
+	water=1;
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+	[dirt]
+	{
+		[properties]
+		{
+		alwaysVisible=1;
+		size=20;
+		color=0.2, 0.1, 0.05;
+		alphaFalloff=2;
+		speed= r1.5 r-1.5, 2, r1.5 r-1.5;
+		pos=r-10 r10, 0, r-10 r10;
+		}
+		ground=1;
+		count=4;
+	}
+
+	[groundflash]
+   	{
+	alwaysVisible=1;
+      	ttl = 17;
+      	flashSize = 120;
+      	flashAlpha = 0.9;
+
+      	circleGrowth = 8;
+      	circleAlpha = 0.5;
+
+      	color = 0.7, 0.0, 0.5;
+
+	air=1;
+     	ground=1;
+      	water=1;
+	}
+}
