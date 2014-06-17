@@ -4,7 +4,7 @@ return {
 		craterboost = 6,
 		cratermult = 3,
 		edgeeffectiveness = 0.25,
-		explosiongenerator = "custom:FLASHNUKE1280",
+		explosiongenerator = "custom:COMMANDER_EXPLOSION",
 		impulseboost = 3,
 		impulsefactor = 3,
 		name = "Matter/AntimatterExplosion",

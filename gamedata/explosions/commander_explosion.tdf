@@ -1,0 +1,13 @@
+[COMMANDER_EXPLOSION]
+{
+	usedefaultexplosions=1;
+	[GROUNDFLASH]
+	{
+		flashsize=1472;
+		flashalpha=2.4;
+		circlegrowth=25;
+		circlealpha=4;
+		ttl=35;
+		color=1,0.7,0.7;
+	}
+}
