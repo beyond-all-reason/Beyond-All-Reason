@@ -4,7 +4,7 @@ return {
 		craterboost = 6,
 		cratermult = 3,
 		edgeeffectiveness = 0.25,
-		explosiongenerator = "custom:BLANK" -- COMMANDER_EXPLOSION is called from gadget unit_commmander_blast
+		explosiongenerator = "custom:BLANK", -- COMMANDER_EXPLOSION is called from gadget unit_commmander_blast
 		impulseboost = 3,
 		impulsefactor = 3,
 		name = "Matter/AntimatterExplosion",
