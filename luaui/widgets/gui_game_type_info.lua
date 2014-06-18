@@ -67,7 +67,7 @@ function widget:Initialize()
     widgetHandler:RemoveWidget()
   end
   
-  if (Spring.GetModOptions().mo_preventcombomb or 0) ~= 0 then
+  if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
 	message2 = "Commanders survive DGuns and commander explosions"
   end
   
