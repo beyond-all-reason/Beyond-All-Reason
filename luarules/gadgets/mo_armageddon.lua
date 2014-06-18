@@ -52,10 +52,10 @@ local numZ = Game.mapY-1
 local nSquares = numX*numZ
 
 local meteorDefID = UnitDefNames["meteor"].id
+local METEOR_EXPLOSION = WeaponDefNames["meteor_weapon"].id
 local nextStrike = armageddonFrame
-local meteorStrike = math.max(10,math.sqrt(15*math.floor(numX*numZ))) -- how many meteors in the strike (give or take some randomness) 
+local meteorStrike = math.max(10,math.sqrt(15*math.floor(numX*numZ))) 
 local pStrike = meteorStrike / (armageddonDuration * 30)
- 
 
 
 local meteorCount = {}
@@ -88,8 +88,8 @@ function FireMeteor()
     local N = 0
     for x=1,numX do
     for z=1,numZ do
-        chanceOfSquare[id] = {p=nMost+1-meteorCount[x][z], x=x, z=z} --p is marginal probability  
-        N = N + chanceOfSquare[id].p --total probability
+        chanceOfSquare[id] = {p=nMost+1-meteorCount[x][z], x=x, z=z} 
+        N = N + chanceOfSquare[id].p 
         id = id + 1
     end
     end
@@ -98,7 +98,7 @@ function FireMeteor()
     for i,v in ipairs(chanceOfSquare) do
         c = c + v.p
         if sq <= c then
-            id = i --found the winning square
+            id = i --found the winning square, (distribution v -> v.p/N)
             break
         end
     end
@@ -123,7 +123,7 @@ function gadget:GameFrame(n)
 			unitDefID = spGetUnitDefID(unitID)
 			if UnitDefs[unitDefID].isImmobile then
 				toKillUnits[#toKillUnits+1] = unitID
-				toKillFrame[#toKillFrame+1] = armageddonFrame + 3*30 + math.floor((armageddonDuration-3) * 30 * math.random())
+				toKillFrame[#toKillFrame+1] = armageddonFrame + math.floor(armageddonDuration * 30 * math.random())
 			end
         end
     elseif n >= armageddonFrame and n <= armageddonFrame + armageddonDuration * 30 + 1 then
@@ -135,25 +135,37 @@ function gadget:GameFrame(n)
 				end
 			end
         end  
-        -- meteor shower
-        if math.random() < pStrike then
-            FireMeteor()
-        end
 	elseif n == armageddonFrame + (armageddonDuration + 1) * 30 then
 		isArmageddon = false
 	end
 	
-    if hadArmageddon then
-        -- fire the occasional meteor, just for good measure
-        if n >= armageddonFrame + armageddonDuration * 30 and n <= armageddonFrame + armageddonDuration * 30 * 2 then
+    -- meteor shower 
+    if n>=armageddonFrame then
+        if n==argmageddonFrame then
+            FireMeteor()   
+        elseif n > armageddonFrame and n <= armageddonFrame + 6*30 then 
+            if math.random() < pStrike/4 then
+                FireMeteor()
+            end
+        elseif n > armageddonFrame + 6*30 and  n <= armageddonFrame + 10*30 then
             if math.random() < pStrike/2 then
                 FireMeteor()
             end
+        elseif n > armageddonFrame + 10*30 and n <= armageddonFrame + 14*30 then
+            if math.random() < pStrike then
+                FireMeteor()
+            end
+        elseif n > armageddonFrame + 14*30 and n <= armageddonFrame + 18*30 then
+            if math.random() < pStrike/3 then
+                FireMeteor()
+            end
         end
-        if n == nextStrike then
-            FireMeteor()
-            nextStrike = nextStrike + 5 * math.random(25) --about twice every second
-        end
+    end
+    
+    -- keep firing meteors, slower rate
+    if n == nextStrike then
+        FireMeteor()
+        nextStrike = nextStrike + 5 * math.random(25) --about twice every second
     end
     
 	-- kill anything that is created (as instructed by UnitFinished)
@@ -178,7 +190,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
                 return h/4
             end
         end
-	end
+        --anything immobile that gets hit by a meteor explodes
+        if UnitDefs[unitDefID].isImmobile and weaponDefID == METEOR_EXPLOSION then
+            if spValidUnitID(unitID) then
+                spDestroyUnit(unitID,true)
+            end
+        end
+    end
 end
 
 
@@ -203,5 +221,6 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
         Spring.SetUnitNoDraw(unitID, true)
 		Spring.SetUnitStealth(unitID, true)
 		Spring.SetUnitSonarStealth(unitID, true)
+        Spring.SetUnitNeutral(unitID, true)
     end
 end
