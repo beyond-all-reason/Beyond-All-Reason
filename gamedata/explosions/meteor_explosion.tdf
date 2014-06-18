@@ -60,24 +60,24 @@
 
         	pos = r-1 r1, r-1 r1, r-1 r1;
          	emitVector=0, 1, 0;
-		gravity= 0, 0.2, 0;
+		gravity= 0, 0.3, 0;
 
 		colorMap=1 1 1 0.01	0.5 0.3 0.0 0.05    0.5 0.5 0.5 1.0    0 0 0 0.01;
 		Texture=dirt;
 
 		airdrag=0.9;
 
-		particleLife=30;
-		particleLifeSpread=0;
+		particleLife=25;
+		particleLifeSpread=25;
 
-		numParticles=50;
+		numParticles=100;
 
 		particleSpeed=5;
-		particleSpeedSpread=57;
-		particleSize=60;
-		particleSizeSpread=10;
+		particleSpeedSpread=60;
+		particleSize=5;
+		particleSizeSpread=40;
 
-		emitRot=90;
+		emitRot=75;
 		emitRotSpread=10;
 
 		directional=1;
