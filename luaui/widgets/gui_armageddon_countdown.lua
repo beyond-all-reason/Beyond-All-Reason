@@ -22,9 +22,15 @@ end
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
+
+local gameStarterd = false
+function widget:GameStart()
+    gameStarted = true
+end
+
 function widget:DrawScreen()
     local timeLeft = math.max(0, armageddonTime - Spring.GetGameSeconds())
-    if timeLeft <= 300 then
+    if timeLeft <= 300 and gameStarted then
         local vsx, vsy = gl.GetViewSizes()
         if timeLeft <= 0 then
             gl.Text('\255\255\1\1ARMAGEDDON', 0.5 * vsx, 0.25 * vsy, 20, 'cvo')

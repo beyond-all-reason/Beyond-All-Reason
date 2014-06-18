@@ -39,6 +39,7 @@ local spGetGameSeconds = Spring.GetGameSeconds
 
 local message = ""
 local message2 = ""
+local message3 = ""
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -65,16 +66,24 @@ function widget:Initialize()
   elseif Spring.GetModOptions().deathmode=="neverend" then
     widgetHandler:RemoveWidget()
   end
-
-  if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
+  
+  if (Spring.GetModOptions().mo_preventcombomb or 0) ~= 0 then
 	message2 = "Commanders survive DGuns and commander explosions"
+  end
+  
+  if (tonumber(Spring.GetModOptions().mo_armageddontime) or -1) > 0 then
+    plural = ""
+    if tonumber(Spring.GetModOptions().mo_armageddontime) ~= 1 then
+        plural = "s"
+    end
+    message3 = "Armageddon at " .. Spring.GetModOptions().mo_armageddontime .. " minute" .. plural
   end
 end
 	
 
 
 function widget:DrawScreen()
-  if (spGetGameSeconds() > 1) then
+  if (spGetGameSeconds() > 0) then
     widgetHandler:RemoveWidget()
   end
   
@@ -83,12 +92,13 @@ function widget:DrawScreen()
  		
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
   local msg2 = colorStr .. message2
+  local msg3 = "\255\255\0\0" .. message3
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.22), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
---  glRotate(30 * math.sin(math.pi * 0.5 * timer), 0, 0, 1)
   glText(msg, 0, 0, 24, "oc")
   glText(msg2, 0, -30, 14, "oc")
+  glText(msg3, 0, -50, 12, "oc")
   glPopMatrix()
 end
 
