@@ -370,7 +370,7 @@ function SpawnTeamStartUnit(teamID, allyTeamID)
 	if not isAIStartPoint then
 		if ((not startPointTable[teamID]) or (startPointTable[teamID][1] < 0)) then
 			-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
-			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
+			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		else
 			--fallback 
 			if (x<=0) or (z<=0) then
@@ -409,35 +409,6 @@ function SpawnStartUnit(teamID, x, z)
 	--team storage is set up by game_team_resources
 end
 
-
-----------------------------------------------------------------
---- StartPoint Guessing ---
-----------------------------------------------------------------
-
-function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax)
-	--Sanity check
-	if (xmin >= xmax) or (zmin>=zmax) then return 0,0 end 
-	
-	-- Try our guesses
-	local x,z = GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
-	if x>=0 and z>=0 then
-		startPointTable[teamID]={x,z} 
-		return x,z 
-	end
-	
-	x,z = GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
-	if x>=0 and z>=0 then 
-		startPointTable[teamID]={x,z} 
-		return x,z 
-	end
-	
-	
-	-- GIVE UP, fuuuuuuuuuuuuu --
-	x = (xmin + xmax) / 2
-	z = (zmin + zmax) / 2
-	startPointTable[teamID]={x,z} 
-	return x,z
-end
 
 ----------------------------------------------------------------
 -- Unsynced

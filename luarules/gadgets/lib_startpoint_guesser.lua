@@ -249,3 +249,29 @@ function GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable) --TOD
     -- give up
     return -1,-1 
 end
+
+
+function GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
+	--Sanity check
+	if (xmin >= xmax) or (zmin>=zmax) then return 0,0 end 
+	
+	-- Try our guesses
+	local x,z = GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
+	if x>=0 and z>=0 then
+		startPointTable[teamID]={x,z} 
+		return x,z 
+	end
+	
+	x,z = GuessTwo(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
+	if x>=0 and z>=0 then 
+		startPointTable[teamID]={x,z} 
+		return x,z 
+	end
+	
+	
+	-- GIVE UP, fuuuuuuuuuuuuu --
+	x = (xmin + xmax) / 2
+	z = (zmin + zmax) / 2
+	startPointTable[teamID]={x,z} 
+	return x,z
+end
