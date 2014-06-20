@@ -185,7 +185,7 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
     local cDefs = convertCapacities[uDefID]
     if cDefs then
         local _, _, _, _, buildProg = spGetUnitHealth(uID)
-        if buildProg == 1 then
+        if buildProg == 1 and cDefs then
           if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
             teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
           end
