@@ -35,6 +35,7 @@ local updateTime = 10
 local prevTimer = Spring.GetTimer()
 local needUpdate = true
 
+local singlePlayer = #(Spring.GetPlayerList())
 
 local myPlayerID = Spring.GetMyPlayerID()
 local amISpec = Spring.GetSpectatingState()
@@ -187,8 +188,12 @@ local function SocketClosed(sock)
 end
 
 function widget:Update()
-    amISpec = Spring.GetSpectatingState()
-    if not amISpec then return end
+    if not singlePlayer then 
+        amISpec = Spring.GetSpectatingState()
+        if not amISpec then
+            return 
+        end
+    end
 
 	if set==nil or #set<=0 then
 		return -- no sockets?
