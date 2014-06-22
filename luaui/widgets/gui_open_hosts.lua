@@ -36,7 +36,7 @@ local prevTimer = Spring.GetTimer()
 local lastRequest = Spring.GetTimer()
 local needUpdate = true
 
-local singlePlayer = #(Spring.GetPlayerList())
+local singlePlayer = (#(Spring.GetPlayerList()) == 1)
 
 local myPlayerID = Spring.GetMyPlayerID()
 local amISpec = Spring.GetSpectatingState()
@@ -489,7 +489,7 @@ function DeleteLists()
 end
 
 function widget:DrawScreen()
-    if not amISpec or spIsGUIHidden() then return end
+    if (not singlePlayer and not amISpec) or spIsGUIHidden() then return end
     if not buttonGL then
         buttonGL = gl.CreateList(DrawButton)
     end
