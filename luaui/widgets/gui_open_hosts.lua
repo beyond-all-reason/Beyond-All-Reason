@@ -205,15 +205,14 @@ function widget:Update()
     local diffSecs = Spring.DiffTimers(timer,prevTimer)
     if diffSecs < updateTime and not needUpdate then 
         return
-    end
-    prevTimer = timer
-    
+    end    
     -- if we need to update, limit the rate at which we send such requests
     local diffSecs = Spring.DiffTimers(timer,lastRequest)
-    if diffSecs < 0.5 then 
+    if diffSecs < 2 then 
         return
     end
-    lastResquest = timer
+    prevTimer = timer
+    lastRequest = timer
             
 	-- update socket state
 	local readable, writeable, err = socket.select(set, set, 0)
