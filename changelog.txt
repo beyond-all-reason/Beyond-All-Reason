@@ -1,7 +1,17 @@
 8.00 -> 8.01
 ??/??/??
-- Updates fors Spring 97.0
+- Updates for Spring 98.0
 - Players who drop before the game starts can be replaced by specs
+- Added widget to display a list of open hosts to specs
+- Added backup startpoint guessing routine to handle continuous metal maps
+- Added meteors to Armageddon mode
+- Added special smoke to Commander explosion for top 20 & top 5 players
+- Fixed comblast/dgun range circles showing when GUI was disabled
+- Fixed minelayers attacking things that weren't mines
+ 
+
+
+
 
 7.99 -> 8.00
 10/06/2014

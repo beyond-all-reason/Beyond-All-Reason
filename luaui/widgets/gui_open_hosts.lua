@@ -33,6 +33,7 @@ local port = 8222
 local battleList = {}
 local updateTime = 10
 local prevTimer = Spring.GetTimer()
+local lastRequest = Spring.GetTimer()
 local needUpdate = true
 
 local singlePlayer = #(Spring.GetPlayerList())
@@ -142,7 +143,7 @@ local function SocketDataReceived(sock, data)
     while data do
         local battle  = {}
         line,data = getLine(data)
-        -- Spring.Echo(line)
+        --Spring.Echo(line)
         if line and not (string.find(line,"START") or string.find(line,"END") or string.find(line,"battleID")) then --ignore the three 'padding' lines
             --extract battle info from line            
             battle.ID, line         = extract(line) 
@@ -206,6 +207,13 @@ function widget:Update()
         return
     end
     prevTimer = timer
+    
+    -- if we need to update, limit the rate at which we send such requests
+    local diffSecs = Spring.DiffTimers(timer,lastRequest)
+    if diffSecs < 0.5 then 
+        return
+    end
+    lastResquest = timer
             
 	-- update socket state
 	local readable, writeable, err = socket.select(set, set, 0)
