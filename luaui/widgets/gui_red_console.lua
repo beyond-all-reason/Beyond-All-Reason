@@ -476,7 +476,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	
 	
 	--ignore messages from muted--
-	if (mutedPlayers[name]) then 
+	if WG.mutedPlayers and WG.mutedPlayers[name] then 
 		ignoreThisMessage = true 
 		--Spring.Echo ("blocked message by " .. name)
 	end
@@ -742,49 +742,4 @@ function widget:SetConfigData(data) --load config
 		Config.console.px = data.Config.console.px
 		Config.console.py = data.Config.console.py
 	end
-end
-
---mute--
-function widget:TextCommand(s)     
-     local token = {}
-	 local n = 0
-	 --for w in string.gmatch(s, "%a+") do
-	 for w in string.gmatch(s, "%S+") do
-		n = n +1
-		token[n] = w		
-     end
-	 
-	--for i = 1,n do Spring.Echo (token[i]) end
-	 
-	 if (token[1] == "mute") then
-		--Spring.Echo ("geht ums muten")
-		 for i = 2,n do
-			mutePlayer (token[i])
-			Spring.Echo ("*muting " .. token[i] .. "*")
-		end
-	end
-	
-	if (token[1] == "unmute") then
-		--Spring.Echo ("geht ums UNmuten")
-		 for i = 2,n do
-			unmutePlayer (token[i])
-			Spring.Echo ("*unmuting " .. token[i] .."*")
-		end
-		if (n==1) then unmuteAll() Spring.Echo ("unmuting everybody") end
-	end
-	
-end
-
---mute
-mutedPlayers = {}
-function mutePlayer (playername)
-	mutedPlayers[playername] = true
-end
-
-function unmutePlayer (playername)
-	mutedPlayers[playername] = nil
-end
-
-function unmuteAll ()
-	mutedPlayers = {}
 end

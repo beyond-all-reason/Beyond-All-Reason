@@ -332,7 +332,7 @@ function BattleType(battle)
     return nil
 end
 
-function DrawBattles()
+function DrawBattles() --TODO: clean this up
     -- select which battles to display
     local tID_1, tID_2, ffaID, oID, cID  
     for ID,battle in pairs(battleList) do
@@ -384,7 +384,7 @@ function DrawBattles()
         if battleList[cID].specCount > 1 then plural_s = "s" end
         local ingame
         if battleList[cID].isInGame then ingame = "\255\255\0\0ingame\255\255\255\255" else ingame = "\255\0\255\0open\255\255\255\255" end
-        ctext = "Chickens: " .. battleList[cID].founder .. " (" .. battleList[cID].playerCount .. " player" .. plural_p .. ", " .. battleList[cID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
+        ctext = "\255\100\100\0Chickens:\255\255\255\255 " .. battleList[cID].founder .. " (" .. battleList[cID].playerCount .. " player" .. plural_p .. ", " .. battleList[cID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
         w = math.max(w,gl.GetTextWidth(ctext))
         n = n + 1
     end
@@ -395,7 +395,7 @@ function DrawBattles()
         if battleList[ffaID].specCount > 1 then plural_s = "s" end
         local ingame
         if battleList[ffaID].isInGame then ingame = "\255\255\0\0ingame\255\255\255\255" else ingame = "\255\0\255\0open\255\255\255\255" end
-        ffatext = "FFA: " .. battleList[ffaID].founder .. " (" .. battleList[ffaID].playerCount .. " player" .. plural_p .. ", " .. battleList[ffaID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
+        ffatext = "\255\100\100\0FFA:\255\255\255\255 " .. battleList[ffaID].founder .. " (" .. battleList[ffaID].playerCount .. " player" .. plural_p .. ", " .. battleList[ffaID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
         w = math.max(w,gl.GetTextWidth(ffatext))
         n = n + 1
     end
@@ -406,7 +406,7 @@ function DrawBattles()
         if battleList[oID].specCount > 1 then plural_s = "s" end
         local ingame
         if battleList[oID].isInGame then ingame = "\255\255\0\0ingame\255\255\255\255" else ingame = "\255\0\255\0open\255\255\255\255" end
-        otext = "1v1: " .. battleList[oID].founder .. " (" .. battleList[oID].playerCount .. " player" .. plural_p .. ", " .. battleList[oID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
+        otext = "\255\100\100\01v1:\255\255\255\255 " .. battleList[oID].founder .. " (" .. battleList[oID].playerCount .. " player" .. plural_p .. ", " .. battleList[oID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
         w = math.max(w,gl.GetTextWidth(otext))
         n = n + 1
     end
@@ -417,7 +417,7 @@ function DrawBattles()
         if battleList[tID_2].specCount > 1 then plural_s = "s" end
         local ingame
         if battleList[tID_2].isInGame then ingame = "\255\255\0\0ingame\255\255\255\255" else ingame = "\255\0\255\0open\255\255\255\255" end
-        t2text = "Team: " .. battleList[tID_2].founder .. " (" .. battleList[tID_2].playerCount .. " player" .. plural_p .. ", " .. battleList[tID_2].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
+        t2text = "\255\100\100\0Team:\255\255\255\255 " .. battleList[tID_2].founder .. " (" .. battleList[tID_2].playerCount .. " player" .. plural_p .. ", " .. battleList[tID_2].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
         w = math.max(w,gl.GetTextWidth(t2text))
         n = n + 1
     end
@@ -428,7 +428,7 @@ function DrawBattles()
         if battleList[tID_1].specCount > 1 then plural_s = "s" end
         local ingame
         if battleList[tID_1].isInGame then ingame = "\255\255\0\0ingame\255\255\255\255" else ingame = "\255\0\255\0open\255\255\255\255" end
-        t1text = "Team: " .. battleList[tID_1].founder .. " (" .. battleList[tID_1].playerCount .. " player" .. plural_p .. ", " .. battleList[tID_1].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
+        t1text = "\255\100\100\0Team:\255\255\255\255 " .. battleList[tID_1].founder .. " (" .. battleList[tID_1].playerCount .. " player" .. plural_p .. ", " .. battleList[tID_1].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
         w = math.max(w,gl.GetTextWidth(t1text))
         n = n + 1
     end    
