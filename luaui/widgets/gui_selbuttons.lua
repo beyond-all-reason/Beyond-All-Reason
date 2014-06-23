@@ -91,6 +91,8 @@ end
 --  Selection Icons (rough around the edges)
 --
 
+local picList
+
 local useModels = false
 
 local unitTypes = 0
@@ -113,6 +115,33 @@ local rectMaxY = 0
 -------------------------------------------------------------------------------
 
 function widget:DrawScreen()
+  if picList then
+    gl.CallList(picList)
+    -- draw the highlights
+    local x,y,lb,mb,rb = spGetMouseState()
+    local mouseIcon = MouseOverIcon(x, y)
+    if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
+      if (lb or mb or rb) then
+        DrawIconQuad(mouseIcon, { 1, 0, 0, 0.333 })  --  red highlight
+      else
+        DrawIconQuad(mouseIcon, { 0, 0, 1, 0.333 })  --  blue highlight
+      end
+    end
+  end    
+end
+
+function widget:CommandsChanged()
+  if picList then
+    gl.DeleteList(picList)
+  end
+  picList = gl.CreateList(DrawPicList) 
+end
+
+function widget:Initialize()
+  picList = gl.CreateList(DrawPicList) 
+end
+
+function DrawPicList()
   unitCounts = spGetSelectedUnitsCounts()
   unitTypes = unitCounts.n;
   if (unitTypes <= 0) then
@@ -127,9 +156,6 @@ function widget:DrawScreen()
   -- unit model rendering uses the depth-buffer
   glClear(GL_DEPTH_BUFFER_BIT)
 
-  local x,y,lb,mb,rb = spGetMouseState()
-  local mouseIcon = MouseOverIcon(x, y)
-
   -- draw the buildpics
   unitCounts.n = nil  
   local icon = 0
@@ -139,20 +165,7 @@ function widget:DrawScreen()
     else
       DrawUnitDefTexture(udid, icon, count)
     end
-      
-    if (icon == mouseIcon) then
-      currentDef = UnitDefs[udid]
-    end
     icon = icon + 1
-  end
-
-  -- draw the highlights
-  if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
-    if (lb or mb or rb) then
-      DrawIconQuad(mouseIcon, { 1, 0, 0, 0.333 })  --  red highlight
-    else
-      DrawIconQuad(mouseIcon, { 0, 0, 1, 0.333 })  --  blue highlight
-    end
   end
 end
 
