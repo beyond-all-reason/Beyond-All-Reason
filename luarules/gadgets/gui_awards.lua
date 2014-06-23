@@ -132,6 +132,8 @@ end
 
 
 function gadget:GameOver(winningAllyTeams)
+    if Spring.GetGameFrame()<=0 then return end
+
 	--calculate average damage dealt
 	local avgTeamDmg = 0 
 	local numTeams = 0
