@@ -129,14 +129,10 @@ end
 
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-    if true then Spring.Echo("Command " .. (cmdID or "??") .. ", " .. (CMD[cmdID] or "??") .. " given to unit " .. unitID) end
-
     if not (cmdID == CMD_MANUALFIRE or (cmdID==CMD_INSERT and cmdParams[2]==CMD_MANUALFIRE)) then --non-dgun commands
         return true
 	end
 
-   if true then Spring.Echo("DGun attempt by " .. unitID .. ", teamID " .. teamID) end
-     
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
 	if not unitX or not unitZ then --wtf
 		return true
@@ -150,7 +146,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 			if unitAllyTeamID ~= allyTeamID then
 				if (box[1] <= unitX) and (unitX <= box[3]) and (box[2] <= unitZ) and (unitZ <= box[4]) then 
 					Spring.SendMessageToTeam(teamID, "You cannot DGun inside an enemy start box!")
-                    if true then Spring.Echo("DGun blocked for " .. unitID .. ", teamID " .. teamID) end
 					return false 
 				end
 			end
@@ -164,7 +159,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 				for _,startPoint in pairs(pointTable) do
 					if (unitX-startPoint[1])^2 + (unitZ-startPoint[3])^2 <= pointRadiusSqrd then
 						Spring.SendMessageToTeam(teamID, "You cannot DGun near an enemy start point!")
-                        if true then Spring.Echo("DGun blocked for " .. unitID .. ", teamID " .. teamID) end
 						return false
 					end
 				end
@@ -172,7 +166,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	end
 	
-    if true then Spring.Echo("Dgun allowed for " .. unitID .. ", teamID " .. teamID) end
 	return true
 end
 
