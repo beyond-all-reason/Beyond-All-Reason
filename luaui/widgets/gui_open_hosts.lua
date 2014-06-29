@@ -223,7 +223,7 @@ function widget:Update()
 		-- some error happened in select
 		if err=="timeout" then
 			-- nothing to do, return
-            Spring.Echo("Socket timed out")
+            --Spring.Echo("Socket timed out")
 			return
 		end
 		Spring.Echo("Error in socket.select: " .. error)
@@ -333,6 +333,18 @@ function BattleType(battle)
 end
 
 function DrawBattles() --TODO: clean this up
+
+    if #battleList==0 then
+        local etext = "(no battles found)"
+        gl.BeginText()
+        gl.Text(etext,textMargin,textMargin+1.1,textSize,"no")
+        gl.EndText()
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glColor(0, 0, 0, 0.2)
+        glRect(0, 1, gl.GetTextWidth(etext), 2)
+        return
+    end
+
     -- select which battles to display
     local tID_1, tID_2, ffaID, oID, cID  
     for ID,battle in pairs(battleList) do
