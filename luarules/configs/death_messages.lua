@@ -649,6 +649,7 @@ teamDeathMessages = {
 	"XX was too busy perming its ears",
 	"XX jumped under a fleet of oncoming buses",
     "XX painted matchstalk men and matchstalk cats and dogs",
+    "XX went the same way as FPS mode",
 
 	
 	
