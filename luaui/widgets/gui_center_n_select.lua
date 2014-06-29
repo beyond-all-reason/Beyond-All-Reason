@@ -22,7 +22,7 @@ end
 function widget:Update()
   local t = Spring.GetGameSeconds()
   _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
-  if (spectator or t > 10) then
+  if spectator or t > 10 or Game.gameVersion == "$VERSION" then
     widgetHandler:RemoveWidget()
     return
   end
