@@ -93,6 +93,7 @@ end
 function gadget:Initialize()
 	if tostring(Spring.GetModOptions().deathmode) == "neverend" or Spring.GetModOptions().deathmode == nil then
 		gadgetHandler:RemoveGadget()
+        return
 	end
 	
 	local gaiaTeamID = Spring.GetGaiaTeamID()
