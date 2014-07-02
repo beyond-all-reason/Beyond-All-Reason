@@ -324,7 +324,7 @@ function BattleType(battle)
         return "team"
     elseif founder=="BlackHoleHost3" or founder=="[ACE]Sure" then
         return "ffa"
-    elseif founder=="BlackHoleHost5" or founder=="[ACE]Censur" or founder=="[ACE]Embleur" then
+    elseif founder=="BlackHoleHost5" or founder=="[ACE]Censeur" or founder=="[ACE]Embleur" then
         return "1v1"
     elseif founder=="[ACE]Sombri" then
         return "chickens" 
@@ -418,7 +418,7 @@ function DrawBattles() --TODO: clean this up
         if battleList[oID].specCount > 1 then plural_s = "s" end
         local ingame
         if battleList[oID].isInGame then ingame = "\255\255\0\0ingame\255\255\255\255" else ingame = "\255\0\255\0open\255\255\255\255" end
-        otext = "\255\100\100\01v1:\255\255\255\255 " .. battleList[oID].founder .. " (" .. battleList[oID].playerCount .. " player" .. plural_p .. ", " .. battleList[oID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
+        otext = "\255\100\100\0" .. "1v1:\255\255\255\255 " .. battleList[oID].founder .. " (" .. battleList[oID].playerCount .. " player" .. plural_p .. ", " .. battleList[oID].specCount .. " spec" .. plural_s .. ", " .. ingame .. ")"
         w = math.max(w,gl.GetTextWidth(otext))
         n = n + 1
     end
