@@ -874,7 +874,7 @@ function CheckSpecState()
 	local playerID = spGetMyPlayerID()
 	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
 		
-	if ( spec == true ) and false then
+	if ( spec == true ) then
 		widgetHandler:RemoveWidget()
 		return false
 	end
