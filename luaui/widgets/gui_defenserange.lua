@@ -476,10 +476,16 @@ end
 
 function widget:Initialize()
 	state["myPlayerID"] = spGetLocalTeamID()
-	
+
+    widgetHandler:RegisterGlobal('SetOpacity_Defense_Range', SetOpacity)
+
 	DetectMod()
 
 	UpdateButtons()
+end
+
+function widget:ShutDown()
+    widgetHandler:DeregisterGlobal('SetOpacity_Defense_Range', SetOpacity)
 end
 
 function widget:UnitCreated( unitID,  unitDefID,  unitTeam)	
@@ -868,12 +874,17 @@ function CheckSpecState()
 	local playerID = spGetMyPlayerID()
 	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
 		
-	if ( spec == true ) then
+	if ( spec == true ) and false then
 		widgetHandler:RemoveWidget()
 		return false
 	end
 	
 	return true
+end
+
+local darkOpacity = 0
+function SetOpacity(dark,light)
+    darkOpacity = dark
 end
 
 
@@ -884,7 +895,8 @@ function widget:Update()
 	if ( (timef - updateTimes["line"]) > 0.2 and timef ~= updateTimes["line"] ) then	
 		updateTimes["line"] = timef
 		
-		--adjust line width and alpha by camera height (is this really worth it?!)
+		--adjust line width and alpha by camera height (old code, kept for refence)
+        --[[
 		_, camy, _ = spGetCameraPosition()
 		if ( camy < 700 ) and ( oldcamy >= 700 ) then
 			oldcamy = camy
@@ -902,8 +914,14 @@ function widget:Update()
 			lineConfig["alphaValue"] = 0.35
 			UpdateCircleList()
 		end
-		
+        ]]
+        
+        lineConfig["lineWidth"] = 1.0
+        lineConfig["alphaValue"] = darkOpacity
+        UpdateCircleList()
+	
 	end
+    
 	
 	-- update timers once every <updateInt> seconds
 	if (time % updateTimes["removeInterval"] == 0 and time ~= updateTimes["remove"] ) then	

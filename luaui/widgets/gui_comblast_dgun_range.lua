@@ -44,6 +44,8 @@ local inSpecFullView = false
 -- track coms --
 
 function widget:Initialize()
+    widgetHandler:RegisterGlobal('SetOpacity_Comblast_DGun_Range', SetOpacity)
+
     checkComs()
 	checkSpecView()
     return true
@@ -113,6 +115,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GameOver()
+    widgetHandler:DeregisterGlobal('SetOpacity_Comblast_DGun_Range', SetOpacity)
 	widgetHandler:RemoveWidget()
 end
 
@@ -177,15 +180,23 @@ function widget:GameFrame(n)
 	end	
 end
 
+-- opacity control
+local darkOpacity = 0
+local lightOpacity = 0
+function SetOpacity(dark, light)
+    darkOpacity = dark
+    lightOpacity = light
+end
+
 -- draw circles
 function widget:DrawWorldPreUnit()
     if spIsGUIHidden() then return end
 	glDepthTest(true)
 	for _,center in pairs(comCenters) do
 		if center[4] then
-			glColor(1, 0.8, 0, .6)
+			glColor(1, 0.8, 0, lightOpacity)
 			glDrawGroundCircle(center[1], center[2], center[3], dgunRange, circleDivs)
-			glColor(1, 0, 0, .35)
+			glColor(1, 0, 0, darkOpacity)
 			glDrawGroundCircle(center[1], center[2], center[3], blastRadius, circleDivs)
 		end
 	end
