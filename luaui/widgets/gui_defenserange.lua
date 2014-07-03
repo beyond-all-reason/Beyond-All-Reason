@@ -482,6 +482,15 @@ function widget:Initialize()
 	DetectMod()
 
 	UpdateButtons()
+	
+	--Recheck units on widget reload
+	local myAllyTeam = Spring.GetMyAllyTeamID()
+	local units = Spring.GetAllUnits()
+	for i=1,#units do
+		local unitID = units[i]
+		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+		UnitDetected(unitID, unitAllyTeam == myAllyTeam)
+	end
 end
 
 function widget:ShutDown()
