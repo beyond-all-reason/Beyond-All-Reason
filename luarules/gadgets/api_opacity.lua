@@ -15,6 +15,9 @@ end
                  The widget then needs to use widgetHandler:RegisterGlobal and widgetHandler:DeregisterGlobal to allow api_opacity to call it
 ]]
 
+if gadgetHandler:IsSyncedCode() then
+    return false
+end
 
 --mapBaseHeight
 local mapBaseHeight 
