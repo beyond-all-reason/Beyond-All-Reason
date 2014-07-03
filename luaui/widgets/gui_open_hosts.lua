@@ -180,7 +180,7 @@ end
 -- called when a socket is open and we want to send something to it
 local function SocketSendRequest(sock)
     --Spring.Echo("Sending to socket")
-    sock:send("ALL MOD balanc\r\n") --see http://imolarpg.dyndns.org/trac/balatest/ticket/562 for what info can be requested
+    sock:send("ALL MOD balanced annihilation|ba chickens\r\n") --see http://imolarpg.dyndns.org/trac/balatest/ticket/562 for what info can be requested
 end
 
 -- called when a connection is closed
