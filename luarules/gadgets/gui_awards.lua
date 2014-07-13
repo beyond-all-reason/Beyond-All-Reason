@@ -268,7 +268,7 @@ function gadget:GameOver(winningAllyTeams)
 
 	
 	--tell unsynced
-	SendToUnsynced("RecieveAwards", ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
+	SendToUnsynced("ReceiveAwards", ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
 									fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 
 									effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 
 									ecoAward, ecoScore, 
@@ -330,7 +330,7 @@ local myPlayerID = Spring.GetMyPlayerID()
 
 function gadget:Initialize()
 	--register actions to SendToUnsynced messages
-	gadgetHandler:AddSyncAction("RecieveAwards", ProcessAwards)	
+	gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)	
 		
 	--for testing
 	--FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, 1,1,1,24378,1324,132,100) 
