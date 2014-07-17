@@ -1,5 +1,5 @@
 return {
-	armshltx = {
+	armshltxuw = {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 54540,
@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 10,
 		buildinggrounddecaltype = "armshltx_aoplane.dds",
-		buildpic = "ARMSHLTX.DDS",
+		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 61380,
 		canmove = true,
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
@@ -18,7 +18,7 @@ return {
 		collisionVolumeTest	    = 1,
 		collisionVolumeType	    = [[CylY]],
 		corpse = "ARMSHLT_DEAD",
-		description = "Produces Level 3 Units",
+		description = "Produces Large Amphibious Units",
 		energystorage = 1400,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 9,
@@ -28,8 +28,9 @@ return {
 		idletime = 1800,
 		maxdamage = 14400,
 		maxslope = 18,
-		maxwaterdepth = 0,
+		maxwaterdepth = 85,
 		metalstorage = 800,
+        minwaterdepth = 30,
 		name = "Experimental Gantry",
 		objectname = "ARMSHLTX",
 		seismicsignature = 0,
@@ -41,10 +42,9 @@ return {
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
 			[1] = "armbanth",
-			[2] = "armraz",
-			[3] = "marauder",
-			[4] = "armshock",
-            [5] = "armlun",
+			[2] = "marauder",
+            [3] = "armlun",
+            [4] = "armcroc",
 		},
 		featuredefs = {
 			armshlt_dead = {

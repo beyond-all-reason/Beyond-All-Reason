@@ -33,8 +33,8 @@ local convertCapacities = {
         [UnitDefNames.corfmkr.id]  = { c = (60/32), e = (1/55) },
         [UnitDefNames.armmmkr.id]  = { c = (600/32), e = (1/50) }, 
         [UnitDefNames.cormmkr.id]  = { c = (600/32), e = (1/50) },
-        [UnitDefNames.armuwmmm.id] = { c = (600/32), e = (1/46) }, 
-        [UnitDefNames.coruwmmm.id] = { c = (600/32), e = (1/46) }
+        [UnitDefNames.armuwmmm.id] = { c = (650/32), e = (1/50) }, 
+        [UnitDefNames.coruwmmm.id] = { c = (650/32), e = (1/50) }
     }
 
 ----------------------------------------------------------------

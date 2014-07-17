@@ -1,6 +1,6 @@
 return {
-  name='Balanced Annihilation',
-  description='Balanced Annihilation',
+  name='Balanced Annihilation (test)',
+  description='Balanced Annihilation (test)',
   shortname='BA',
   version='$VERSION',
   mutator='Official',

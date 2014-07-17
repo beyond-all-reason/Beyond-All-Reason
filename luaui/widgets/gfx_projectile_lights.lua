@@ -103,7 +103,7 @@ function widget:Initialize() -- create lighttable
 				weaponID=UnitDefs[u]['weapons'][w]['weaponDef']
 				--Spring.Echo(UnitDefs[u]['name']..'_'..WeaponDefs[weaponID]['name'])
 				--WeaponDefs[weaponID]['name'] returns: armcom_armcomlaser
-				if (WeaponDefs[weaponID]['type'] == 'Cannon') then
+				if (WeaponDefs[weaponID]['type'] == 'Cannon') and (not WeaponDefs[weaponID]['waterWeapon']) then --hack! for armlun/corsok
 					--Spring.Echo('Cannon',WeaponDefs[weaponID]['name'],'size', WeaponDefs[weaponID]['size'])
 					size=WeaponDefs[weaponID]['size']
 					plighttable[WeaponDefs[weaponID]['name']]={1,1,0.5,0.5*((size-1)/3)}

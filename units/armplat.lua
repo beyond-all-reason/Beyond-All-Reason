@@ -2,8 +2,8 @@ return {
 	armplat = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 19426,
-		buildcostmetal = 2667,
+		buildcostenergy = 17221,
+		buildcostmetal = 2404,
 		builder = true,
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 19248,
