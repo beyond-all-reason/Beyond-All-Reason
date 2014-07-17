@@ -26,8 +26,6 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
---TODO: Fix depthcharge launchers not making a splash
-
 local CORE_SEADVBOMB = WeaponDefNames['corsb_core_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 
 local splashCEG1					= "watersplash_extrasmall"
