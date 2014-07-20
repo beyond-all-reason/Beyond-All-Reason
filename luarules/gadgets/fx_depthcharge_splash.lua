@@ -37,7 +37,6 @@ function gadget:Initialize()
     for wDID,_ in pairs(depthChargeWeapons) do
         Script.SetWatchWeapon(wDID, true)
     end
-    --torpedo planes?
 end
 
 local missiles = {} --Depthcharges that are above the surface still
