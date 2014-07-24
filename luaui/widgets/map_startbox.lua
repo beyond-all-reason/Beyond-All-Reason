@@ -13,8 +13,8 @@
 
 function widget:GetInfo()
   return {
-    name      = "MiniMap Start Boxes",
-    desc      = "MiniMap Start Boxes",
+    name      = "Start Boxes",
+    desc      = "Displays Start Boxes and Start Points",
     author    = "trepan, jK",
     date      = "2007-2009",
     license   = "GNU GPL, v2 or later",
