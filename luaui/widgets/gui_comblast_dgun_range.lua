@@ -13,6 +13,9 @@ end
 -- locals --
 
 local pairs					= pairs
+local sqrt                  = math.sqrt
+local min                   = math.min
+local max                   = math.max
 
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetUnitDefID 		= Spring.GetUnitDefID
@@ -24,6 +27,8 @@ local spGetGroundHeight		= Spring.GetGroundHeight
 local spIsSphereInView		= Spring.IsSphereInView
 local spValidUnitID			= Spring.ValidUnitID
 local spIsGUIHidden         = Spring.IsGUIHidden
+local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
+local spGetUnitPosition     = Spring.GetUnitPosition
 
 
 local glDepthTest 			= gl.DepthTest
@@ -54,7 +59,7 @@ end
 function addCom(unitID)
 	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	comCenters[unitID] = {x,y,z}
+	comCenters[unitID] = {x,y,z,false,0}
 end
 
 function removeCom(unitID)
@@ -163,6 +168,18 @@ function widget:GameFrame(n)
 		if x then
 			local yg = spGetGroundHeight(x,z) 
 			local draw = true
+            local opacity 
+            local wantedOpacity
+            -- check if there is an enemy unit nearby
+            local enemyUnitID = spGetUnitNearestEnemy(unitID,2*blastRadius,false)
+			if enemyUnitID then
+				local ex,ey,ez = spGetUnitPosition(enemyUnitID)
+				local distance = sqrt((x-ex)^2 + (y-ey)^2 + (z-ez)^2)
+                wantedOpacity = 0.8 - 0.8*max(distance-blastRadius,0)/blastRadius
+            else
+                wantedOpacity = 0
+            end
+            opacity = comCenters[unitID][5]*(29/30) +  wantedOpacity*(1/30) --change gently
 			-- check if com is off the ground
 			if y-yg>10 then 
 				draw = false
@@ -170,7 +187,7 @@ function widget:GameFrame(n)
 			elseif not spIsSphereInView(x,y,z,blastRadius) then
 				draw = false
 			end
-			comCenters[unitID] = {x,y,z,draw}
+			comCenters[unitID] = {x,y,z,draw,opacity}
 		else
 			--couldn't get position, check if its still a unit 
 			if not spValidUnitID(unitID) then
@@ -194,9 +211,9 @@ function widget:DrawWorldPreUnit()
 	glDepthTest(true)
 	for _,center in pairs(comCenters) do
 		if center[4] then
-			glColor(1, 0.8, 0, lightOpacity)
+			glColor(1, 0.8, 0, min(center[5],lightOpacity))
 			glDrawGroundCircle(center[1], center[2], center[3], dgunRange, circleDivs)
-			glColor(1, 0, 0, darkOpacity)
+			glColor(1, 0, 0, min(center[5],darkOpacity))
 			glDrawGroundCircle(center[1], center[2], center[3], blastRadius, circleDivs)
 		end
 	end
