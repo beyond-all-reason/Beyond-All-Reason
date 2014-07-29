@@ -52,18 +52,18 @@ function widget:Initialize()
     widgetHandler:RegisterGlobal('SetOpacity_Comblast_DGun_Range', SetOpacity)
 
     checkComs()
-	checkSpecView()
+    checkSpecView()
     return true
 end
 
 function addCom(unitID)
-	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
-	local x,y,z = Spring.GetUnitPosition(unitID)
-	comCenters[unitID] = {x,y,z,false,0}
+    if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
+    local x,y,z = Spring.GetUnitPosition(unitID)
+    comCenters[unitID] = {x,y,z,false,0}
 end
 
 function removeCom(unitID)
-	comCenters[unitID] = nil
+    comCenters[unitID] = nil
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -121,24 +121,24 @@ end
 
 function widget:GameOver()
     widgetHandler:DeregisterGlobal('SetOpacity_Comblast_DGun_Range', SetOpacity)
-	widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget()
 end
 
 function checkSpecView()
-	--check if we became a spec
+    --check if we became a spec
     local _,_,spec,_ = spGetPlayerInfo(spGetMyPlayerID())
     if spec ~= amSpec then
         amSpec = spec 
-		checkComs()
+        checkComs()
     end
 end
 
 function checkComs()
-	--remake list of coms
-	for k,_ in pairs(comCenters) do
-		comCenters[k] = nil
-	end
-	
+    --remake list of coms
+    for k,_ in pairs(comCenters) do
+        comCenters[k] = nil
+    end
+    
     local visibleUnits = spGetAllUnits()
     if visibleUnits ~= nil then
         for _, unitID in ipairs(visibleUnits) do
@@ -155,46 +155,46 @@ end
  
 -- map out what to draw
 function widget:GameFrame(n)
-	-- check if we are in spec full view
-	local _, specFullView, _ = spGetSpectatingState()
+    -- check if we are in spec full view
+    local _, specFullView, _ = spGetSpectatingState()
     if specFullView ~= inSpecFullView then
-		checkComs()
-		inSpecFullView = specFullView
+        checkComs()
+        inSpecFullView = specFullView
     end
 
-	-- check com movement
-	for unitID in pairs(comCenters) do
-		local x,y,z = spGetUnitPosition(unitID)
-		if x then
-			local yg = spGetGroundHeight(x,z) 
-			local draw = true
+    -- check com movement
+    for unitID in pairs(comCenters) do
+        local x,y,z = spGetUnitPosition(unitID)
+        if x then
+            local yg = spGetGroundHeight(x,z) 
+            local draw = true
             local opacity 
             local wantedOpacity
             -- check if there is an enemy unit nearby
             local enemyUnitID = spGetUnitNearestEnemy(unitID,2*blastRadius,false)
-			if enemyUnitID then
-				local ex,ey,ez = spGetUnitPosition(enemyUnitID)
-				local distance = sqrt((x-ex)^2 + (y-ey)^2 + (z-ez)^2)
+            if enemyUnitID then
+                local ex,ey,ez = spGetUnitPosition(enemyUnitID)
+                local distance = sqrt((x-ex)^2 + (y-ey)^2 + (z-ez)^2)
                 wantedOpacity = 0.8 - 0.8*max(distance-blastRadius,0)/blastRadius
             else
                 wantedOpacity = 0
             end
             opacity = comCenters[unitID][5]*(29/30) +  wantedOpacity*(1/30) --change gently
-			-- check if com is off the ground
-			if y-yg>10 then 
-				draw = false
-			-- check if is in view
-			elseif not spIsSphereInView(x,y,z,blastRadius) then
-				draw = false
-			end
-			comCenters[unitID] = {x,y,z,draw,opacity}
-		else
-			--couldn't get position, check if its still a unit 
-			if not spValidUnitID(unitID) then
-				removeCom(unitID)
-			end
-		end
-	end	
+            -- check if com is off the ground
+            if y-yg>10 then 
+                draw = false
+            -- check if is in view
+            elseif not spIsSphereInView(x,y,z,blastRadius) then
+                draw = false
+            end
+            comCenters[unitID] = {x,y,z,draw,opacity}
+        else
+            --couldn't get position, check if its still a unit 
+            if not spValidUnitID(unitID) then
+                removeCom(unitID)
+            end
+        end
+    end	
 end
 
 -- opacity control
@@ -208,14 +208,14 @@ end
 -- draw circles
 function widget:DrawWorldPreUnit()
     if spIsGUIHidden() then return end
-	glDepthTest(true)
-	for _,center in pairs(comCenters) do
-		if center[4] then
-			glColor(1, 0.8, 0, min(center[5],lightOpacity))
-			glDrawGroundCircle(center[1], center[2], center[3], dgunRange, circleDivs)
-			glColor(1, 0, 0, min(center[5],darkOpacity))
-			glDrawGroundCircle(center[1], center[2], center[3], blastRadius, circleDivs)
-		end
-	end
-	glDepthTest(false)
+    glDepthTest(true)
+    for _,center in pairs(comCenters) do
+        if center[4] then
+            glColor(1, 0.8, 0, min(center[5],lightOpacity))
+            glDrawGroundCircle(center[1], center[2], center[3], dgunRange, circleDivs)
+            glColor(1, 0, 0, min(center[5],darkOpacity))
+            glDrawGroundCircle(center[1], center[2], center[3], blastRadius, circleDivs)
+        end
+    end
+    glDepthTest(false)
 end
