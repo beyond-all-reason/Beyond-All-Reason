@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-	name      = "Mutelist", --version 4.1
-	desc      = "Adds /muteplayer <name>, /unmuteplayer <name>, /mutelist\n(puts mutedPlayers table into WG)",
+	name      = "ignorelist", --version 4.1
+	desc      = "Adds /ignoreplayer <name>, /unignoreplayer <name>, /ignorelist\n(puts ignoredPlayers table into WG)",
 	author    = "Bluestone",
 	date      = "June 2014", --last change September 10,2009
 	license   = "GNU GPL, v3 or later",
@@ -12,13 +12,14 @@ function widget:GetInfo()
 end
 
 --[[
-NOTE: This widget will block map draw commands from muted players.
-      It is up to the chat console widget to check WG.mutedPlayers[playerName] and block chat 
+NOTE: This widget will block map draw commands from ignored players.
+      It is up to the chat console widget to check WG.ignoredPlayers[playerName] and block chat 
 ]]
 
 local pID_table = {}
-local mutedPlayers = {}
-WG.mutedPlayers = mutedPlayers
+local ignoredPlayers = {}
+WG.ignoredPlayers = ignoredPlayers
+local myName,_ = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
 
 function CheckPIDs()
     local playerList = Spring.GetPlayerList()
@@ -57,7 +58,7 @@ function colourPlayer(playerName)
 	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
 end 
 
---mute--
+--ignore--
 function widget:TextCommand(s)     
      local token = {}
 	 local n = 0
@@ -69,88 +70,93 @@ function widget:TextCommand(s)
 	 
 	--for i = 1,n do Spring.Echo (token[i]) end
 	 
-	 if (token[1] == "muteplayer" or token[1] == "muteplayers") then
+	 if (token[1] == "ignoreplayer" or token[1] == "ignoreplayers") then
 		 for i = 2,n do
-			MutePlayer (token[i])
+			ignorePlayer(token[i])
 		end
 	end
 	
-	if (token[1] == "unmuteplayer" or token[1] == "unmuteplayers") then
+	if (token[1] == "unignoreplayer" or token[1] == "unignoreplayers") then
         if n==1 then
-            UnMuteAll() 
+            UnignoreAll() 
         else
             for i=2,n do
-                UnMutePlayer(token[i])
+                UnignorePlayer(token[i])
             end
         end
     end
         
-	if (token[1] == "mutelist") then
-        MuteList()
+	if (token[1] == "ignorelist") then
+        ignoreList()
     end
 end
 
-function MuteList ()
+function ignoreList ()
     local luaSucks = 0
-    for _,iHateLua in pairs(mutedPlayers) do
+    for _,iHateLua in pairs(ignoredPlayers) do
         luaSucks = 1
         break
     end
     if luaSucks>0 then
-        Spring.Echo("Muted players:")
-        for playerName,_ in pairs(mutedPlayers) do
+        Spring.Echo("Ignored players:")
+        for playerName,_ in pairs(ignoredPlayers) do
             Spring.Echo(colourPlayer(playerName) .. playerName)
         end
     else
-        Spring.Echo("No muted players")
+        Spring.Echo("No ignored players")
     end
 end
 
-function MutePlayer (playerName)
-	mutedPlayers[playerName] = true
-    WG.mutedPlayers = mutedPlayers
-    Spring.Echo ("Muted " .. colourPlayer(playerName) .. playerName)
+function ignorePlayer (playerName)
+    if playerName==myName then
+        Spring.Echo("You cannot ignore yourself")
+        return
+    end
+    
+	ignoredPlayers[playerName] = true
+    WG.ignoredPlayers = ignoredPlayers
+    Spring.Echo ("Ignored " .. colourPlayer(playerName) .. playerName)
 end
 
-function UnMutePlayer (playerName)
-	mutedPlayers[playerName] = nil
-    WG.mutedPlayers = mutedPlayers
-    Spring.Echo("Unmuted " .. colourPlayer(playerName) .. playerName)
+function UnignorePlayer (playerName)
+	ignoredPlayers[playerName] = nil
+    WG.ignoredPlayers = ignoredPlayers
+    Spring.Echo("Un-ignored " .. colourPlayer(playerName) .. playerName)
 end
 
-function UnMuteAll ()
+function UnignoreAll ()
     local luaSucks = 0
-    for _,iHateLua in pairs(mutedPlayers) do
+    for _,iHateLua in pairs(ignoredPlayers) do
         luaSucks = 1
         break
     end
     if luaSucks > 0 then
-        local text = "Unmuted "
-        for playerName,_ in pairs(mutedPlayers) do
+        local text = "Un-ignored "
+        for playerName,_ in pairs(ignoredPlayers) do
             text = text .. colourPlayer(playerName) .. playerName .. ", "
         end
         text = string.sub(text, 1, string.len(text)-2) --remove final ", "
         Spring.Echo(text)
     else
-        Spring.Echo("No players to unmute")
+        Spring.Echo("No players to unignore")
     end
 
-	mutedPlayers = {}
-    WG.mutedPlayers = mutedPlayers    
+	ignoredPlayers = {}
+    WG.ignoredPlayers = ignoredPlayers    
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
     local name,_ = Spring.GetPlayerInfo(playerID)
-    if mutedPlayers[name] then
+    if ignoredPlayers[name] then
         return false
     end
     return true
 end
 
 function widget:GetConfigData()
-	return mutedPlayers
+	return ignoredPlayers
 end
 
 function widget:SetConfigData(data)
-    mutedPlayers = data or {}
+    ignoredPlayers = data or {}
 end
