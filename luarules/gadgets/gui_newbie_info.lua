@@ -24,7 +24,7 @@ local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID)
 
 function gadget:DrawScreen()
 	-- are we are newbie?
-	amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
+	amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) and not Spring.GetSpectatingState()
 
 	--remove if after gamestart
 	if Spring.GetGameFrame() > 0 then 
