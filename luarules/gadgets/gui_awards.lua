@@ -130,22 +130,25 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     local ud = UnitDefs[unitDefID]
 	local cost = ud.energyCost + 60 * ud.metalCost
     
-    if #(ud.weapons) > 0 and not ud.iscommander then
+    if #(ud.weapons) > 0 and not ud.customParams.iscommander then
         teamInfo[teamID].unitsCost = teamInfo[teamID].unitsCost + cost   
     end
-    Spring.Echo(teamInfo[teamID].unitsCost)
+    --Spring.Echo(teamID, teamInfo[teamID].unitsCost)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if not newTeam then return end 
+    if newTeam==gaiaTeamID then return end
 	if not present[newTeam] then return end
 	if not unitDefID then return end --should never happen
 
 	local ud = UnitDefs[unitDefID]
 	local cost = ud.energyCost + 60 * ud.metalCost
 
-	teamInfo[newTeam].ecoUsed = ud.energyCost + 60 * ud.metalCost 
-    teamInfo[teamID].unitsCost = teamInfo[teamID].unitsCost + cost   
+	teamInfo[newTeam].ecoUsed = teamInfo[newTeam].ecoUsed + cost 
+    if #(ud.weapons) > 0 then
+        teamInfo[teamID].unitsCost = teamInfo[teamID].unitsCost + cost   
+    end
 end
 
 
@@ -167,7 +170,7 @@ function gadget:GameOver(winningAllyTeams)
 		local stats = Spring.GetTeamStatsHistory(teamID, 0, cur_max)
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
-		if teamInfo[teamID].unitCost > 200000 then 
+		if teamInfo[teamID].unitCost > 175000 then 
 			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].unitsCost * 100
 		else
 			teamInfo[teamID].dmgRatio = 0
