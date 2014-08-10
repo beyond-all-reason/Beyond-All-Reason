@@ -70,7 +70,7 @@ function gadget:GameStart()
 				
 				if numPlayers > 0 then
 					present[teamIDs[j]] = true
-					teamInfo[teamIDs[j]] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, present=true,}
+					teamInfo[teamIDs[j]] = {ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, dmgRatio=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, unitsCost=0, present=true,}
 					coopInfo[teamIDs[j]] = {players=numPlayers,}
 				else
 					present[teamIDs[j]] = false
@@ -121,13 +121,31 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	--Spring.Echo(teamInfo[attackerTeamID].fightDmg, teamInfo[attackerTeamID].ecoDmg, teamInfo[attackerTeamID].otherDmg)
 end
 
+function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
+    if not teamID then return end
+    if teamID==gaiaTeamID then return end
+    if not present[teamID] then return end
+    if not unitDefID then return end
+    
+    local ud = UnitDefs[unitDefID]
+	local cost = ud.energyCost + 60 * ud.metalCost
+    
+    if #(ud.weapons) > 0 and not ud.iscommander then
+        teamInfo[teamID].unitsCost = teamInfo[teamID].unitsCost + cost   
+    end
+    Spring.Echo(teamInfo[teamID].unitsCost)
+end
+
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if not newTeam then return end 
 	if not present[newTeam] then return end
 	if not unitDefID then return end --should never happen
 
 	local ud = UnitDefs[unitDefID]
+	local cost = ud.energyCost + 60 * ud.metalCost
+
 	teamInfo[newTeam].ecoUsed = ud.energyCost + 60 * ud.metalCost 
+    teamInfo[teamID].unitsCost = teamInfo[teamID].unitsCost + cost   
 end
 
 
@@ -149,8 +167,8 @@ function gadget:GameOver(winningAllyTeams)
 		local stats = Spring.GetTeamStatsHistory(teamID, 0, cur_max)
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
-		if true then --teamInfo[teamID].ecoUsed > 5000 and teamInfo[teamID].dmgDealt > 12000  and ((numTeams <= 4) or teamInfo[teamID].dmgDealt > avgTeamDmg) then
-			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / math.max(1,teamInfo[teamID].ecoUsed) * 100
+		if teamInfo[teamID].unitCost > 200000 then 
+			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].unitsCost * 100
 		else
 			teamInfo[teamID].dmgRatio = 0
 		end
@@ -167,7 +185,6 @@ function gadget:GameOver(winningAllyTeams)
 		teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgRatio / coopInfo[teamID].players
 	end
 	
-
 	
 	--award awards
 	local ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi = -1,-1,-1,0,0,0
