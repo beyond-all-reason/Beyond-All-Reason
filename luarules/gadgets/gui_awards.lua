@@ -170,7 +170,7 @@ function gadget:GameOver(winningAllyTeams)
 		local stats = Spring.GetTeamStatsHistory(teamID, 0, cur_max)
 		teamInfo[teamID].dmgDealt = teamInfo[teamID].dmgDealt + stats[cur_max].damageDealt	
 		teamInfo[teamID].ecoUsed = teamInfo[teamID].ecoUsed + stats[cur_max].energyUsed + 60 * stats[cur_max].metalUsed
-		if teamInfo[teamID].unitCost > 175000 then 
+		if teamInfo[teamID].unitsCost > 175000 then 
 			teamInfo[teamID].dmgRatio = teamInfo[teamID].dmgDealt / teamInfo[teamID].unitsCost * 100
 		else
 			teamInfo[teamID].dmgRatio = 0
