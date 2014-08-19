@@ -29,6 +29,7 @@ local GetCameraNames = Spring.GetCameraNames
 local GetMouseState = Spring.GetMouseState
 local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 local GetMyPlayerID = Spring.GetMyPlayerID
+local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 local GetSpectatingState = Spring.GetSpectatingState
 local GetPlayerInfo = Spring.GetPlayerInfo
 
@@ -281,9 +282,8 @@ else
 		end
 		local spec, fullView = GetSpectatingState()
 		if not spec or not fullView then
-			local _,_,_,_,myAllyTeamID = GetPlayerInfo(myPlayerID)
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID)
-			if targetSpec or allyTeamID ~= myAllyTeamID then
+			if targetSpec or allyTeamID ~= GetMyAllyTeamID() then
 				return
 			end
 		end
