@@ -24,8 +24,8 @@ end
 local CMD_PASSIVE = 34571
 local stallMargin = 0.01
 
-local canPassive = {} -- canPassive[uDefID] = nil / true
-local cost = {} -- cost[uDefID] = {metal=value,energy=value}
+local canPassive = {} -- canPassive[unitDefID] = nil / true
+local cost = {} -- cost[unitDefID] = {metal=value,energy=value}
 local costID = {}
 local teamStalling = {} -- teamStalling[teamID] = {resName=leftover}
 local passiveCons = {}
@@ -54,7 +54,6 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local simSpeed = Game.gameSpeed
@@ -63,12 +62,12 @@ local simSpeed = Game.gameSpeed
 -- Callins
 ----------------------------------------------------------------
 function gadget:Initialize()
-	for uDefID, uDef in pairs(UnitDefs) do
-		canPassive[uDefID] = ((uDef.canAssist and uDef.buildSpeed > 0) or #uDef.buildOptions > 0)
-		cost[uDefID] = {}
-		cost[uDefID].buildTime = uDef.buildTime
+	for unitDefID, uDef in pairs(UnitDefs) do
+		canPassive[unitDefID] = ((uDef.canAssist and uDef.buildSpeed > 0) or #uDef.buildOptions > 0)
+		cost[unitDefID] = {}
+		cost[unitDefID].buildTime = uDef.buildTime
 		for _,resName in pairs(resTable) do
-			cost[uDefID][resName] = uDef[resName .. "Cost"]
+			cost[unitDefID][resName] = uDef[resName .. "Cost"]
 		end
 	end
 	for _,unitID in pairs(Spring.GetAllUnits()) do
@@ -76,28 +75,40 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:UnitCreated(uID, uDefID, uTeam)
-	if canPassive[uDefID] then
-		spInsertUnitCmdDesc(uID, cmdPassiveDesc)
+function gadget:UnitCreated(unitID, unitDefID, teamID)
+	if canPassive[unitDefID] then
+		spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
 	end
-	passiveCons[uID] = spGetUnitRulesParam(uID,ruleName) == 1 or nil
-	costID[uID] = cost[uDefID]
+	passiveCons[teamID] = passiveCons[teamID] or {}
+	passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
+	costID[unitID] = cost[unitDefID]
 end
 
-function gadget:UnitDestroyed(uID, uDefID, uTeam)
-	costID[uID] = nil
-	passiveCons[uID] = nil
+function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+	passiveCons[newTeamID] = passiveCons[newTeamID] or {}
+	passiveCons[newTeamID][unitID] = passiveCons[oldTeamID][unitID]
+	passiveCons[oldTeamID][unitID] = nil
+end
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, teamID)
+	costID[unitID] = nil
+	passiveCons[teamID][unitID] = nil
 end
 
 
-function gadget:AllowCommand(uID, uDefID, uTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-	if cmdID == CMD_PASSIVE and canPassive[uDefID] then
-		local cmdIdx = spFindUnitCmdDesc(uID, CMD_PASSIVE)
-		local cmdDesc = spGetUnitCmdDescs(uID, cmdIdx, cmdIdx)[1]
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	if cmdID == CMD_PASSIVE and canPassive[unitDefID] then
+		local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PASSIVE)
+		local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
 		cmdDesc.params[1] = cmdParams[1]
-		spEditUnitCmdDesc(uID, cmdIdx, cmdDesc)
-		spSetUnitRulesParam(uID,ruleName,cmdParams[1])
-		passiveCons[uID] = cmdParams[1] == 1 or nil
+		spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+		spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
+		passiveCons[teamID] = passiveCons[teamID] or {}
+		passiveCons[teamID][unitID] = cmdParams[1] == 1 or nil
 		return false -- Allowing command causes command queue to be lost if command is unshifted
 	end
 	return true
@@ -109,14 +120,13 @@ function gadget:GameFrame(n)
 	for _,teamID in pairs(spGetTeamList()) do
 		--calculate how much pull passive cons would require
 		local passiveConsPull = {}
-		for unitID in pairs(passiveCons) do
+		for unitID in pairs(passiveCons[teamID] or {}) do
 			local builtUnit = spGetUnitIsBuilding(unitID)
 			if builtUnit then
 				local targetCosts = costID[builtUnit]
-				local step = spGetUnitCurrentBuildPower(unitID)/targetCosts.buildTime
+				local rate = spGetUnitCurrentBuildPower(unitID)/targetCosts.buildTime
 				for _,resName in pairs(resTable) do
-					local costTick = targetCosts[resName]*step
-					passiveConsPull[resName] = (passiveConsPull[resName] or 0 ) + costTick
+					passiveConsPull[resName] = (passiveConsPull[resName] or 0 ) + targetCosts[resName]*rate
 				end
 			end
 		end
@@ -130,14 +140,14 @@ function gadget:GameFrame(n)
 	end
 end
 
-function gadget:AllowUnitBuildStep(builderID, builderTeamID, uID, uDefID, step)
-	if step <= 0 or not passiveCons[builderID] then
+function gadget:AllowUnitBuildStep(builderID, builderTeamID, unitID, unitDefID, step)
+	if step <= 0 or not passiveCons[builderTeamID][builderID] then
 		return true
 	end
 	local newPulls = {}
 	local wouldStall = false
 	for resName,allocatedPull in pairs(teamStalling[builderTeamID]) do
-		newPulls[resName] = allocatedPull - step*cost[uDefID][resName]
+		newPulls[resName] = allocatedPull - step*cost[unitDefID][resName]
 		if newPulls[resName] <= 0 then
 			wouldStall = true
 		end
