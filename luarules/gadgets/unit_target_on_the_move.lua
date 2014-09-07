@@ -18,6 +18,17 @@ local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_CANCEL_TARGET = 34924
 local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
 
+--export to CMD table
+CMD.UNIT_SET_TARGET = CMD_UNIT_SET_TARGET
+CMD[CMD_UNIT_SET_TARGET] = 'UNIT_SET_TARGET'
+CMD.UNIT_CANCEL_TARGET = CMD_UNIT_SET_TARGET
+CMD[CMD_UNIT_CANCEL_TARGET] = 'UNIT_CANCEL_TARGET'
+CMD.UNIT_SET_TARGET_RECTANGLE = CMD_UNIT_SET_TARGET_RECTANGLE
+CMD[CMD_UNIT_SET_TARGET_RECTANGLE] = 'UNIT_SET_TARGET_RECTANGLE'
+
+
+local deleteMaxDistance = 30
+
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
 
 function GG.GetUnitTarget(unitID)
@@ -60,6 +71,8 @@ local spGetUnitWeaponTryTarget	= Spring.GetUnitWeaponTryTarget
 local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
 
 local tremove					= table.remove
+
+local diag						= math.diag
 
 local CMD_STOP					= CMD.STOP
 
@@ -191,6 +204,10 @@ local function removeUnseenTarget(targetData,attackerAllyTeam)
 	return false
 end
 
+local function distance(posA,posB)
+	diag(posA[1]-posB[1],posA[2]-posB[2],posA[3]-posB[3])
+end
+
 --------------------------------------------------------------------------------
 -- Unit adding/removal
 
@@ -258,6 +275,14 @@ function removeTarget(unitID,index)
 	end
 end
 
+function GG.getUnitTargetList(unitID)
+	return unitTargets[unitID] and unitTargets[unitID].targets
+end
+
+function GG.getUnitTargetIndex(unitID)
+	return unitTargets[unitID] and unitTargets[unitID].currentIndex
+end
+
 function gadget:Initialize()
 	-- register command
 	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
@@ -312,7 +337,7 @@ local function getTargetList(unitID, unitDefID, team, choiceUnits )
 end
 
 local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_UNIT_CANCEL_TARGET then
+	if cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 		if validUnits[unitDefID] then
 			local append = cmdOptions.shift
 			local userTarget = not cmdOptions.internal
@@ -392,6 +417,36 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					targetData.userTarget = userTarget
 				end
 				addUnitTargets(unitID, unitDefID, targets, append )
+			end
+		end
+		return true
+	elseif cmdID == CMD_UNIT_CANCEL_TARGET then
+		if unitTargets[unitID] then
+			if cmdParams == 0 then
+				removeUnit(unitID)
+			elseif cmdParams == 1 and cmdOptions.alt then
+				--it's a position in the queue
+				removeTarget(unitID,cmdParams[1])
+			elseif cmdParams == 1 and not cmdOptions.alt then
+				--target is unitID
+				for index,val in ipairs(unitTargets[unitID].targets) do
+					if tonumber(val) then --element is a unitID
+						if val == cmdParams[1] then
+							removeTarget(unitID,index)
+							break
+						end
+					end
+				end
+			elseif cmdParams == 3 then
+				--target is a location
+				for index,val in ipairs(unitTargets[unitID].targets) do
+					if not tonumber(val) and val then --element is not a unitID
+						if distance(val,cmdParams) < deleteMaxDistance then
+							removeTarget(unitID,index)
+							break
+						end
+					end
+				end
 			end
 		end
 		return true
