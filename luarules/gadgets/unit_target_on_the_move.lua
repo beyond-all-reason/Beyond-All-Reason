@@ -581,6 +581,14 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveSyncAction("targetIndex")
 end
 
+function GG.getUnitTargetList(unitID)
+	return targetList[unitID] and targetList[unitID].targets
+end
+
+function GG.getUnitTargetIndex(unitID)
+	return targetList[unitID] and targetList[unitID].currentIndex
+end
+
 function handleTargetListEvent(_,unitID,index,alwaysSeen,ignoreStop,userTarget,targetA,targetB,targetC)
 	if index == 0 then
 		targetList[unitID] = nil
