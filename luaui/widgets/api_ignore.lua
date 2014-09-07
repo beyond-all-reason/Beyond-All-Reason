@@ -148,9 +148,9 @@ end
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
     local name,_ = Spring.GetPlayerInfo(playerID)
     if ignoredPlayers[name] then
-        return false
+        return true
     end
-    return true
+    return nil
 end
 
 function widget:GetConfigData()
