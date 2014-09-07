@@ -227,9 +227,13 @@ local function addUnitTargets(unitID, unitDefID, targets, append)
 			return
 		end
 		unitTargets[unitID] = data
-		setTarget(unitID,data.targets[1])
-		SendToUnsynced("targetIndex",unitID,1)
 		sendTargetsToUnsynced(unitID)
+		if setTarget(unitID,data.targets[1]) then
+			if data.currentIndex ~= 1 then
+				unitTargets[unitID].currentIndex = 1
+				SendToUnsynced("targetIndex",unitID,1)
+			end
+		end
 	end
 end
 
@@ -293,10 +297,6 @@ end
 
 --------------------------------------------------------------------------------
 -- Command Tracking
-
-local function disSQ(x1,y1,x2,y2)
-	return (x1 - x2)^2 + (y1 - y2)^2
-end
 
 local function getTargetList(unitID, unitDefID, team, choiceUnits )
 	local unitList = {}
@@ -440,7 +440,10 @@ function gadget:GameFrame(n)
 					end
 				end
 			end
-			SendToUnsynced("targetIndex",unitID,targetIndex)
+			if unitData.currentIndex ~= targetIndex then
+				unitData.currentIndex = targetIndex
+				SendToUnsynced("targetIndex",unitID,targetIndex)
+			end
 		end
 	end
 
@@ -532,12 +535,11 @@ function handleTargetListEvent(_,unitID,index,alwaysSeen,ignoreStop,userTarget,t
 	if index == 1 then
 		targetList[unitID].targets = {}
 	end
-	local target = (not tonumber(targetB) and targetA ) or {targetA,targetB,targetC}
 	targetList[unitID].targets[index] = {
 		alwaysSeen = alwaysSeen,
 		ignoreStop = ignoreStop,
 		userTarget = userTarget,
-		target = target,
+		target = (not tonumber(targetB) and targetA ) or {targetA,targetB,targetC},
 	}
 end
 
