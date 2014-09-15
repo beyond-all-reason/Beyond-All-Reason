@@ -22,7 +22,8 @@ end
 -- Var
 ----------------------------------------------------------------
 local CMD_PASSIVE = 34571
-local stallMargin = 0.01
+local stallMarginInc = 0.2
+local stallMarginSto = 0.005
 
 local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = {metal=value,energy=value}
@@ -57,6 +58,8 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 local simSpeed = Game.gameSpeed
+
+local min = math.min
 
 ----------------------------------------------------------------
 -- Callins
@@ -124,9 +127,11 @@ function gadget:GameFrame(n)
 			local builtUnit = spGetUnitIsBuilding(unitID)
 			if builtUnit then
 				local targetCosts = costID[builtUnit]
-				local rate = spGetUnitCurrentBuildPower(unitID)/targetCosts.buildTime
-				for _,resName in pairs(resTable) do
-					passiveConsPull[resName] = (passiveConsPull[resName] or 0 ) + targetCosts[resName]*rate
+				if targetCosts then
+					local rate = spGetUnitCurrentBuildPower(unitID)/targetCosts.buildTime
+					for _,resName in pairs(resTable) do
+						passiveConsPull[resName] = (passiveConsPull[resName] or 0 ) + targetCosts[resName]*rate
+					end
 				end
 			end
 		end
@@ -135,7 +140,7 @@ function gadget:GameFrame(n)
 			local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
 			stor = stor * share -- consider capacity only up to the share slider
 			local reservedExpense = pull - (passiveConsPull[resName] or 0) -- we don't want to touch this part of expense
-			teamStalling[teamID][resName] = cur - stor*stallMargin +(inc+rec-sent-reservedExpense)/simSpeed --amount of res available to assign to passive builders ( in current sim frame )
+			teamStalling[teamID][resName] = cur - min(inc*stallMarginInc,stor*stallMarginSto) - 1 +(inc+rec-sent-reservedExpense)/simSpeed --amount of res available to assign to passive builders ( in current sim frame )
 		end
 	end
 end
