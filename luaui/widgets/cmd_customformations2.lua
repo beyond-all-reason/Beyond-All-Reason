@@ -69,8 +69,8 @@ local requiresAlt = {
 -- Normal logic will follow after override, i.e. must be a formationCmd to get formation, alt must be held if requiresAlt, etc.
 local overrideCmds = {
 	[CMD.GUARD] = CMD.MOVE,
-	[CMD.ATTACK] = CMD.ATTACK,
-	[CMD_SETTARGET] = CMD_SETTARGET, 
+	[CMD.ATTACK] = CMD.MOVE, 
+	[CMD_SETTARGET] = CMD.MOVE
 }
 
 -- What commands can be issued at a position or unit/feature ID (Only used by GetUnitPosition)
@@ -405,7 +405,6 @@ function widget:MousePress(mx, my, mButton)
 	
 	-- Get command that would've been issued
 	local _, activeCmdID = spGetActiveCommand()
-	--Spring.Echo("cmd:", CMD[activeCmdID])
 	if activeCmdID then
 		usingCmd = activeCmdID
 		usingRMB = true
