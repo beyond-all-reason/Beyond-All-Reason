@@ -20,6 +20,7 @@ return {
 		explodeas = "ATOMIC_BLAST",
 		footprintx = 5,
 		footprintz = 4,
+		hidedamage = true,
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
