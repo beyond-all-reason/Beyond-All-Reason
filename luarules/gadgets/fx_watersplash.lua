@@ -26,7 +26,7 @@ local nonexplosiveWeapons = {
 	LightningCannon = true,
 }
 
-local CORE_SEADVBOMB = WeaponDefNames['corsb_core_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
+local CORE_SEAADVBOMB = WeaponDefNames['corsb_core_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 
 local splashCEG1					= "watersplash_extrasmall"
 local splashCEG2					= "watersplash_small"
