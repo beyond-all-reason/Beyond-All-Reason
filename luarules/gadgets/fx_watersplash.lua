@@ -28,10 +28,10 @@ local nonexplosiveWeapons = {
 
 local CORE_SEAADVBOMB = WeaponDefNames['corsb_core_seaadvbomb'].id --corsb gets a special ceg with less particles, because it has lots of bouncing bombs
 
-local splashCEG1					= "watersplash_extrasmall"
-local splashCEG2					= "watersplash_small"
-local splashCEG3					= "watersplash_large"
-local splashCEG4					= "watersplash_extralarge"
+local splashCEG1 = "watersplash_extrasmall"
+local splashCEG2 = "watersplash_small"
+local splashCEG3 = "watersplash_large"
+local splashCEG4 = "watersplash_extralarge"
 	
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	local isWater = Spring.GetGroundHeight(px,pz) < 0
