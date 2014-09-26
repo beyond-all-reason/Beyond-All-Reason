@@ -807,7 +807,7 @@ end
 function gadgetHandler:GameSetup(state, ready, playerStates)
   local success, newReady = false, ready
   for _,g in ipairs(self.GameSetupList) do
-    success, newReady = g:GameSetup(state, ready, playerStates)
+    success, newReady = g:GameSetup(state, newReady, playerStates)
   end
   return success, newReady
 end
