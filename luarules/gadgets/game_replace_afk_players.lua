@@ -112,7 +112,7 @@ function FindSubs(real)
                 Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
             end
         end
-        if not real and Script.LuaUI("SubstituteInfo") then
+        if not real then
             -- tell luaui who we would substitute if the game started now
             Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub)
         end
