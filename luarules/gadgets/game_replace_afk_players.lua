@@ -121,7 +121,7 @@ function FindSubs(real)
         end
         if not real then
             -- tell luaui who we would substitute if the game started now
-            Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub)
+            Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub and 1 or 0)
         end
     end
 
@@ -211,6 +211,8 @@ local bH = 30
 local bW = 140
 local offer = false
 
+function gadget:GameSetup()
+end --wierdness
 
 function MakeButton()
 	subsButton = gl.CreateList(function()
