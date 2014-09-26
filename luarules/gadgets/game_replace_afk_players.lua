@@ -67,8 +67,11 @@ function gadget:Initialize()
     end
 end
 
+function gadget:GameSetup()
+    FindSubs(false)
+end
 
-function gadget:GameStart()
+function FindSubs(real)
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
         local _,active,spec = Spring.GetPlayerInfo(playerID)
@@ -93,18 +96,32 @@ function gadget:GameStart()
                 validSubs[#validSubs+1] = subID
             end
         end
+        local willSub = false
         if #validSubs>0 then
-            local sID = validSubs[math.random(1,#validSubs)]
-            local teamID = players[playerID]
-            Spring.AssignPlayerToTeam(sID, teamID)
             substitutes[sID] = nil
-            replaced = true
-            
-            local incoming,_ = Spring.GetPlayerInfo(sID)
-            local outgoing,_ = Spring.GetPlayerInfo(playerID)            
-            Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
+            willSub = true
+            if real then
+                -- do the replacement 
+                local sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
+                local teamID = players[playerID]
+                Spring.AssignPlayerToTeam(sID, teamID)
+                replaced = true
+                
+                local incoming,_ = Spring.GetPlayerInfo(sID)
+                local outgoing,_ = Spring.GetPlayerInfo(playerID)            
+                Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
+            end
+        end
+        if not real and Script.LuaUI("SubstituteInfo") then
+            -- tell luaui who we would substitute if the game started now
+            Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub)
         end
     end
+
+end
+
+function gadget:GameStart()
+    FindSubs(true)
 
     if replaced then
         Spring.Echo("Revealing start positions to all")
@@ -171,7 +188,7 @@ local x = 500
 local y = 500
 
 local myPlayerID = Spring.GetMyPlayerID()
-local spec = Spring.GetSpectatingState()
+local spec,_ = Spring.GetSpectatingState()
 
 local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
 local tsMu = customtable.skill 
@@ -179,6 +196,7 @@ local tsSigma = customtable.skilluncertainty
 ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 tsSigma = tonumber(tsSigma)
 local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
+Spring.Echo(eligible, tsMu, tsSigma, (tsSigma<=2), string.find(tsMu, ")"), spec)
 
 local vsx, vsy = Spring.GetViewGeometry()
 function gadget:ViewResize()
