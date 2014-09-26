@@ -78,7 +78,7 @@ function FindSubs(real)
         local present = active and not spec
         if not present then
             local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
-            local tsMu = customtable.skill
+            local tsMu = "30" --customtable.skill
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
             if ts then
                 absent[playerID] = ts
@@ -225,13 +225,13 @@ end
 
 function Initialize()
     local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
-    local tsMu = customtable.skill 
-    local tsSigma = customtable.skilluncertainty
+    local tsMu = "30" -- customtable.skill 
+	local tsSigma = "0" --customtable.skilluncertainty
     ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
     tsSigma = tonumber(tsSigma)
-    local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
-    Spring.Echo(eligible, tsMu, tsSigma, spec)
-
+    eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
+    Spring.Echo(tsMu, tsSigma, spec)
+    
     MakeButton()
 end
 
