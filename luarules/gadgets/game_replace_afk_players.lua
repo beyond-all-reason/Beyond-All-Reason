@@ -67,8 +67,9 @@ function gadget:Initialize()
     end
 end
 
-function gadget:GameSetup()
+function gadget:GameSetup(state, newReady, playerStates)
     FindSubs(false)
+    return true, newReady
 end
 
 function FindSubs(real)
@@ -211,7 +212,8 @@ local bH = 30
 local bW = 140
 local offer = false
 
-function gadget:GameSetup()
+function gadget:GameSetup(state, newReady, playerStates)
+    return true, newReady
 end --wierdness
 
 function MakeButton()
