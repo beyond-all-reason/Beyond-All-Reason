@@ -190,13 +190,7 @@ local y = 500
 local myPlayerID = Spring.GetMyPlayerID()
 local spec,_ = Spring.GetSpectatingState()
 
-local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
-local tsMu = customtable.skill 
-local tsSigma = customtable.skilluncertainty
-ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
-tsSigma = tonumber(tsSigma)
-local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
-Spring.Echo(eligible, tsMu, tsSigma, (tsSigma<=2), string.find(tsMu, ")"), spec)
+local eligible
 
 local vsx, vsy = Spring.GetViewGeometry()
 function gadget:ViewResize()
@@ -230,6 +224,14 @@ function MakeButton()
 end
 
 function Initialize()
+    local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
+    local tsMu = customtable.skill 
+    local tsSigma = customtable.skilluncertainty
+    ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+    tsSigma = tonumber(tsSigma)
+    local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
+    Spring.Echo(eligible, tsMu, tsSigma, spec)
+
     MakeButton()
 end
 
