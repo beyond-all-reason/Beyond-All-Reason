@@ -72,6 +72,13 @@ function gadget:GameSetup()
 end
 
 function FindSubs(real)
+    -- make a copy of the substitutes table
+    local substitutesLocal = {}
+    for k,v in pairs(substitutes) do
+        substitutesLocal[k] = v
+    end
+    absent = {}
+
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
         local _,active,spec = Spring.GetPlayerInfo(playerID)
@@ -90,7 +97,7 @@ function FindSubs(real)
     -- for each one, try and find a suitable replacement & substitute if so
     for playerID,ts in pairs(absent) do
         local validSubs = {}
-        for subID,subts in pairs(substitutes) do
+        for subID,subts in pairs(substitutesLocal) do
             local _,active,spec = Spring.GetPlayerInfo(subID)
             if active and spec and math.abs(ts-subts)<=4.5 then 
                 validSubs[#validSubs+1] = subID
@@ -98,7 +105,7 @@ function FindSubs(real)
         end
         local willSub = false
         if #validSubs>0 then
-            substitutes[sID] = nil
+            substitutesLocal[sID] = nil
             willSub = true
             if real then
                 -- do the replacement 
