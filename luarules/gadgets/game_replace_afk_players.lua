@@ -37,7 +37,7 @@ function gadget:RecvLuaMsg(msg, playerID)
         -- do the same eligibility check as in unsynced
         local customtable = select(10,Spring.GetPlayerInfo(playerID))
         local tsMu = customtable.skill 
-        local tsSigma customtable.skilluncertainty
+        local tsSigma = customtable.skilluncertainty
         ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
         tsSigma = tonumber(tsSigma)
         local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID]) 
