@@ -37,7 +37,7 @@ function gadget:RecvLuaMsg(msg, playerID)
         -- do the same eligibility check as in unsynced
         local customtable = select(10,Spring.GetPlayerInfo(playerID))
         local tsMu = customtable.skill 
-        local tsSigma = customtable.skilluncertainty
+        local tsSigma customtable.skilluncertainty
         ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
         tsSigma = tonumber(tsSigma)
         local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID]) 
@@ -79,14 +79,14 @@ function FindSubs(real)
         substitutesLocal[k] = v
     end
     absent = {}
-
+    
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
         local _,active,spec = Spring.GetPlayerInfo(playerID)
         local present = active and not spec
         if not present then
             local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
-            local tsMu = "30" --customtable.skill
+            local tsMu = customtable.skill
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
             if ts then
                 absent[playerID] = ts
@@ -94,6 +94,7 @@ function FindSubs(real)
             end
         end
     end
+    --Spring.Echo(#absent)
     
     -- for each one, try and find a suitable replacement & substitute if so
     for playerID,ts in pairs(absent) do
@@ -105,12 +106,12 @@ function FindSubs(real)
             end
         end
         local willSub = false
+        --Spring.Echo(#validSubs, #substitutesLocal)
         if #validSubs>0 then
-            substitutesLocal[sID] = nil
-            willSub = true
+            local sID
             if real then
                 -- do the replacement 
-                local sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
+                sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
                 local teamID = players[playerID]
                 Spring.AssignPlayerToTeam(sID, teamID)
                 replaced = true
@@ -119,6 +120,8 @@ function FindSubs(real)
                 local outgoing,_ = Spring.GetPlayerInfo(playerID)            
                 Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
             end
+            substitutesLocal[sID] = nil
+            willSub = true
         end
         if not real then
             -- tell luaui who we would substitute if the game started now
@@ -130,63 +133,44 @@ end
 
 function gadget:GameStart()
     FindSubs(true)
-
-    if replaced then
-        Spring.Echo("Revealing start positions to all")
-    end
 end
 
 function gadget:GameFrame(n)
     if n~=1 then return end
 
-   -- if at least one player was replaced, reveal startpoints to all
     if replaced then
-        local coopStartPoints = GG.coopStartPoints or {}
+        -- if at least one player was replaced, reveal startpoints to all
+        Spring.Echo("Revealing start points to all")
+       
+        local coopStartPoints = GG.coopStartPoints or {} 
         local revealed = {}
-        for pID,p in pairs(coopStartPoints) do
-            local name,_ = Spring.GetPlayerInfo(pID)
-            Spring.MarkerAddPoint(p[1], p[2], p[3], name, true)
+        for pID,p in pairs(coopStartPoints) do --first do the coop starts
+            local name,_,tID = Spring.GetPlayerInfo(pID)
+            SendToUnsynced("MarkStartPoint", p[1], p[2], p[3], name, tID)
             revealed[pID] = true
         end
-        
+            
         local teamStartPoints = GG.teamStartPoints or {}
         for tID,p in pairs(teamStartPoints) do
             p = teamStartPoints[tID]
             local playerList = Spring.GetPlayerList(tID)
             local name = ""
-            for _,pID in pairs(playerList) do --get all pIDs for this team which were not coop starts
+            for _,pID in pairs(playerList) do --now do all pIDs for this team which were not coop starts
                 if not revealed[pID] then
                     local pName,_ = Spring.GetPlayerInfo(pID) 
-                    if pName and absent[pID]==nil then -- AIs might not have a name, don't write the name of the dropped player
+                    if pName and absent[pID]==nil then --AIs might not have a name, don't write the name of the dropped player
                         name = name .. pName .. ", "
                         revealed[pID] = true
                     end
                 end
             end
             name = string.sub(name, 1, math.max(string.len(name)-2,1)) --remove final ", "
-            Spring.MarkerAddPoint(p[1], p[2], p[3], colorNames(tID) .. name, true)
+            SendToUnsynced("MarkStartPoint", p[1], p[2], p[3], name, tID)
         end
     end
-
+    
     gadgetHandler:RemoveGadget()
 end
-
-function colourNames(teamID)
-    	nameColourR,nameColourG,nameColourB,nameColourA = Spring.GetTeamColor(teamID)
-		R255 = math.floor(nameColourR*255)  
-        G255 = math.floor(nameColourG*255)
-        B255 = math.floor(nameColourB*255)
-        if ( R255%10 == 0) then
-                R255 = R255+1
-        end
-        if( G255%10 == 0) then
-                G255 = G255+1
-        end
-        if ( B255%10 == 0) then
-                B255 = B255+1
-        end
-	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
-end 
 
 -----------------------------
 else -- begin unsynced section
@@ -235,13 +219,14 @@ function MakeButton()
 end
 
 function Initialize()
+    gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
+    
     local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
-    local tsMu = "30" -- customtable.skill 
-	local tsSigma = "0" --customtable.skilluncertainty
+    local tsMu = customtable.skill 
+	local tsSigma = customtable.skilluncertainty
     ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
     tsSigma = tonumber(tsSigma)
     eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
-    Spring.Echo(tsMu, tsSigma, spec)
     
     MakeButton()
 end
@@ -295,10 +280,32 @@ function gadget:MouseRelease(x,y)
 	return false
 end
 
-function gadget:GameStart()
-    gadgetHandler:RemoveGadget()
+function MarkStartPoint(_,x,y,z,name,tID)
+    Spring.MarkerAddPoint(x, y, z, colourNames(tID) .. name, true)
 end
 
+function colourNames(teamID)
+    	nameColourR,nameColourG,nameColourB,nameColourA = Spring.GetTeamColor(teamID)
+		R255 = math.floor(nameColourR*255)  
+        G255 = math.floor(nameColourG*255)
+        B255 = math.floor(nameColourB*255)
+        if ( R255%10 == 0) then
+                R255 = R255+1
+        end
+        if( G255%10 == 0) then
+                G255 = G255+1
+        end
+        if ( B255%10 == 0) then
+                B255 = B255+1
+        end
+	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
+end 
+
+function gadget:GameFrame(n)
+    if n>=5 then
+        gadgetHandler:RemoveGadget()
+    end
+end
 
 -----------------------------
 end -- end unsynced section
