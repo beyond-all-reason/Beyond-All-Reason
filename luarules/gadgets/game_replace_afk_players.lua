@@ -13,10 +13,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
-	gadgetHandler:RemoveGadget() -- don't run in FFA mode
-end
-
 -----------------------------
 if gadgetHandler:IsSyncedCode() then 
 -----------------------------
@@ -46,39 +42,45 @@ function gadget:RecvLuaMsg(msg, playerID)
         end
         --Spring.Echo("received", playerID, eligible, ts)
     end
+
+    FindSubs(false)    
+end
+
+function gadget:PlayerChanged()
+    FindSubs(false)
 end
 
 function gadget:Initialize()
+    if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
+        gadgetHandler:RemoveGadget() -- don't run in FFA mode
+        return 
+    end
+
     -- record a list of which playersIDs are players on which teamID
-    local allyTeamList = Spring.GetAllyTeamList()
-    for _,allyTeamID in pairs(allyTeamList) do
-        local teamList = Spring.GetTeamList(allyTeamID)
-        for _,teamID in pairs(teamList) do
-        if teamID~=gaiaTeamID then
-            local playerList = Spring.GetPlayerList(teamID)
-            for _,playerID in pairs(playerList) do
-                local _,_,spec = Spring.GetPlayerInfo(playerID)
-                if not spec then
-                    players[playerID] = teamID
-                end
+    local teamList = Spring.GetTeamList()
+    for _,teamID in pairs(teamList) do
+    if teamID~=gaiaTeamID then
+        local playerList = Spring.GetPlayerList(teamID)
+        for _,playerID in pairs(playerList) do
+            local _,_,spec = Spring.GetPlayerInfo(playerID)
+            if not spec then
+                players[playerID] = teamID
             end
         end
-        end
     end
-end
-
-function gadget:GameSetup(state, newReady, playerStates)
-    FindSubs(false)
-    return true, newReady
+    end
 end
 
 function FindSubs(real)
     -- make a copy of the substitutes table
     local substitutesLocal = {}
+    local i = 0
     for k,v in pairs(substitutes) do
         substitutesLocal[k] = v
+        i = i + 1
     end
     absent = {}
+    --Spring.Echo("subs: " .. i)
     
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
@@ -94,24 +96,24 @@ function FindSubs(real)
             end
         end
     end
-    --Spring.Echo(#absent)
+    --Spring.Echo("absent: " .. #absent)
     
     -- for each one, try and find a suitable replacement & substitute if so
     for playerID,ts in pairs(absent) do
         local validSubs = {}
         for subID,subts in pairs(substitutesLocal) do
             local _,active,spec = Spring.GetPlayerInfo(subID)
-            if active and spec and math.abs(ts-subts)<=4.5 then 
+            if active and spec and math.abs(ts-subts)<=4 then 
                 validSubs[#validSubs+1] = subID
             end
         end
         local willSub = false
-        --Spring.Echo(#validSubs, #substitutesLocal)
+        --Spring.Echo("valid: " .. #validSubs .. " for pID " .. playerID)
         if #validSubs>0 then
             local sID
+            sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
             if real then
                 -- do the replacement 
-                sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
                 local teamID = players[playerID]
                 Spring.AssignPlayerToTeam(sID, teamID)
                 replaced = true
@@ -123,8 +125,10 @@ function FindSubs(real)
             substitutesLocal[sID] = nil
             willSub = true
         end
+        --Spring.Echo("willSub: " .. (sID or "-1") .. " for pID " .. playerID)
         if not real then
             -- tell luaui who we would substitute if the game started now
+            --Spring.Echo(playerID, willSub)
             Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub and 1 or 0)
         end
     end
@@ -170,6 +174,7 @@ function gadget:GameFrame(n)
     end
     
     gadgetHandler:RemoveGadget()
+    return
 end
 
 -----------------------------
@@ -196,10 +201,6 @@ local bH = 30
 local bW = 140
 local offer = false
 
-function gadget:GameSetup(state, newReady, playerStates)
-    return true, newReady
-end --wierdness
-
 function MakeButton()
 	subsButton = gl.CreateList(function()
 		-- draws background rectangle
@@ -219,6 +220,11 @@ function MakeButton()
 end
 
 function Initialize()
+    if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
+        gadgetHandler:RemoveGadget() -- don't run in FFA mode
+        return 
+    end
+
     gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
     
     local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
@@ -274,6 +280,7 @@ function gadget:MousePress(sx,sy)
             MakeButton()
         end
 	end
+    return true
 end
 
 function gadget:MouseRelease(x,y)
@@ -303,7 +310,9 @@ end
 
 function gadget:GameFrame(n)
     if n>=5 then
+        gadgetHandler:RemoveSyncAction("MarkStartPoint")
         gadgetHandler:RemoveGadget()
+        return
     end
 end
 

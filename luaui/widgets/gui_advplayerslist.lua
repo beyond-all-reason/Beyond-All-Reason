@@ -1211,7 +1211,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		gl_Color(red,green,blue,1)	
 		if m_name.active == true then
-			DrawName(name, team, posY, dark)
+			DrawName(name, team, playerID, posY, dark)
 		end
 	else -- spectator
 		gl_Color(1,1,1,1)	
@@ -1394,8 +1394,13 @@ function colourNames(teamID)
 	return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
 end 
 
-function DrawName(name, team, posY, dark)
-	gl_Text(colourNames(team) .. name, m_name.posX + widgetPosX + 3, posY + 3, 15, "o") -- draws name
+function DrawName(name, team, playerID, posY, dark)
+    local willSub = ""
+    if not gameStarted and playerID>=64 then
+        willSub = (Spring.GetGameRulesParam("Player" .. (playerID-64) .. "willSub")==1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
+    end
+    local nameText = name .. willSub    
+	gl_Text(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3, posY + 3, 15, "o") -- draws name
 	gl_Color(1,1,1)
 end
 
