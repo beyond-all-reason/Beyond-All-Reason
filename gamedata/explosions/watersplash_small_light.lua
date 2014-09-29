@@ -7,10 +7,10 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = false,
-      underwater         = 1,
+      underwater         = true,
       water              = true,
       properties = {
-        airdrag            = 1,
+        airdrag            = true,
         colormap           = [[0 0 0 0  0.8 0.8 1 .1     0.9 .9 0.95 .8  	0 0 0 0.01]],
         directional        = true,
         emitrot            = 30,
@@ -36,7 +36,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = false,
-      underwater         = 1,
+      underwater         = true,
       water              = true,
       properties = {
         airdrag            = 1,
@@ -65,7 +65,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = false,
-      underwater         = 1,
+      underwater         = true,
       water              = true,
       properties = {
         airdrag            = 1,
@@ -91,9 +91,12 @@ return {
     },
     
     dirtcloud = {
+      air                = false,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
+      water              = false,
+      underwater         = false,
       properties = {
         airdrag            = 0.9,
         colormap           = [[0.7 0.4 0.3 0.8  0.5 0.4 0.3 0.6  0 0 0 0]],
@@ -117,9 +120,12 @@ return {
     },
 
     droplets = {
+      air                = false,
       class              = [[dirt]],
       count              = 1,
+      ground             = false,
       water              = true,
+      underwater         = true,
       properties = {
         alphafalloff       = 1,
         color              = [[0.75, 0.75, 1]],
