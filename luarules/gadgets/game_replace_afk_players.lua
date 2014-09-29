@@ -17,6 +17,11 @@ end
 if gadgetHandler:IsSyncedCode() then 
 -----------------------------
 
+-- TS difference required for substitutions 
+-- idealDiff is used if possible, validDiff as fall-back, otherwise no
+local validDiff = 4 
+local idealDiff = 2
+
 local substitutes = {}
 local players = {}
 local absent = {}
@@ -100,18 +105,32 @@ function FindSubs(real)
     
     -- for each one, try and find a suitable replacement & substitute if so
     for playerID,ts in pairs(absent) do
+        -- construct a table of who is ideal/valid 
+        local idealSubs = {}
         local validSubs = {}
         for subID,subts in pairs(substitutesLocal) do
             local _,active,spec = Spring.GetPlayerInfo(subID)
-            if active and spec and math.abs(ts-subts)<=4 then 
-                validSubs[#validSubs+1] = subID
+            if active and spec then
+                if  math.abs(ts-subts)<=validDiff then 
+                    validSubs[#validSubs+1] = subID
+                elseif math.abs(ts-subts)<=idealDiff then
+                    idealSubs[#idealSubs+1] = subID 
+                end
             end
         end
-        local willSub = false
+        --Spring.Echo("ideal: " .. #idealSubs .. " for pID " .. playerID)
         --Spring.Echo("valid: " .. #validSubs .. " for pID " .. playerID)
+
+        local willSub = false
         if #validSubs>0 then
+            -- choose who
             local sID
-            sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
+            if #idealSubs>0 then
+                sID = (#idealSubs>1) and idealSubs[math.random(1,#idealSubs)] or idealSubs[1]
+            else
+                sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
+            end
+            
             if real then
                 -- do the replacement 
                 local teamID = players[playerID]
@@ -126,9 +145,9 @@ function FindSubs(real)
             willSub = true
         end
         --Spring.Echo("willSub: " .. (sID or "-1") .. " for pID " .. playerID)
+        
         if not real then
             -- tell luaui who we would substitute if the game started now
-            --Spring.Echo(playerID, willSub)
             Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub and 1 or 0)
         end
     end
