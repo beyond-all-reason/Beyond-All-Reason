@@ -272,19 +272,20 @@ function gadget:MousePress(sx,sy)
             offer = true
             bW = 160
             MakeButton()
+            return true
         else
             Spring.SendLuaRulesMsg('\145')
             Spring.Echo("Your offer to substitute has been withdrawn")
             offer = false
             bW = 140
             MakeButton()
+            return true
         end
 	end
-    return true
+    return false
 end
 
 function gadget:MouseRelease(x,y)
-	return false
 end
 
 function MarkStartPoint(_,x,y,z,name,tID)
