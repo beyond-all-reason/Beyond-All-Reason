@@ -113,7 +113,8 @@ function FindSubs(real)
             if active and spec then
                 if  math.abs(ts-subts)<=validDiff then 
                     validSubs[#validSubs+1] = subID
-                elseif math.abs(ts-subts)<=idealDiff then
+                end
+				if math.abs(ts-subts)<=idealDiff then
                     idealSubs[#idealSubs+1] = subID 
                 end
             end
