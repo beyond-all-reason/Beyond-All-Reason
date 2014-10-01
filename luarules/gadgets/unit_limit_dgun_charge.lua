@@ -1,10 +1,3 @@
---  author:  Andrea Piras, modified by Bluestone
---  Copyright (C) 2010,2013
-
--- Overrides the file of the same name in basecontent.
--- This version simply prevents firing dgun within enemy startboxes.
-
-
 function gadget:GetInfo()
   return {
     name      = "Limit Dgun Use (Charge)",
@@ -12,7 +5,7 @@ function gadget:GetInfo()
     author    = "Bluestone",
     date      = "Sept 2014",
     license   = "GNU GPL, v3 or later",
-    layer     = 1, --run after game_intial_spawn 
+    layer     = 0, 
     enabled   = true  
   }
 end
