@@ -78,6 +78,7 @@ local barColors = {
   stock   = { 0.50,0.50,0.50,barAlpha },
   reload  = { 0.00,0.60,0.60,barAlpha },
   shield  = { 0.20,0.60,0.60,barAlpha },
+  dguncharge = { 1.00,0.80,0.00,barAlpha },
   resurrect = { 1.00,0.50,0.00,featureBarAlpha },
   reclaim   = { 0.75,0.75,0.75,featureBarAlpha },
 }
@@ -443,6 +444,7 @@ do
   local ux, uy, uz
   local dx, dy, dz, dist
   local health,maxHealth,paralyzeDamage,capture,build
+  local dgunCharge = ((tostring(Spring.GetModOptions().limitdgun) or "off") == "charge")
   local hp, hp100, emp
   local reload,reloaded,reloadFrame
   local numStockpiled,numStockpileQued
@@ -555,6 +557,14 @@ do
           reload = 1 - ((reloadFrame-gameFrame)/30) / ci.reloadTime;
           reload = math.max(reload,0)
           AddBar("reload",reload,"reload",(fullText and floor(reload*100)..'%') or '')
+        end
+      end
+      
+      --// DGUN CHARGE
+      if dgunCharge then
+        local charge = Spring.GetUnitRulesParam(unitID,"charge")
+        if charge and charge<=99 then
+          AddBar("dgun charge",math.max(charge/100,0),"dguncharge",(fullText and floor(charge)..'%') or '')
         end
       end
 

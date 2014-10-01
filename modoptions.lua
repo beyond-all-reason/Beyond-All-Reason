@@ -162,6 +162,7 @@ local options={
 			{key="off", name="Off", desc="D-Gun works everywhere"},
 			{key="startpoints", name="Start Points", desc="D-Gun cannot be used near enemy startpoints"},
 			{key="startboxes", name="Start Boxes", desc="D-Gun cannot be used inside enemy startboxes"},
+            {key="charge", name="Charge", desc="D-Gun needs to have enough charge before it can fire"},
 		}
     },
 }
