@@ -562,7 +562,7 @@ do
       
       --// DGUN CHARGE
       if dgunCharge then
-        local charge = Spring.GetUnitRulesParam(unitID,"charge")
+        local charge = GetUnitRulesParam(unitID,"charge")
         if charge and charge<=99 then
           AddBar("dgun charge",math.max(charge/100,0),"dguncharge",(fullText and floor(charge)..'%') or '')
         end
