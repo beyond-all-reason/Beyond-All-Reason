@@ -17,6 +17,7 @@ local COMMANDO = UnitDefNames["commando"].id
 local SpSetUnitVelocity = Spring.SetUnitVelocity
 local SpGetUnitVelocity = Spring.GetUnitVelocity
 local SpGetGroundHeight = Spring.GetGroundHeight
+local SpGetUnitPosition = Spring.GetUnitPosition
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if unitID == nil or unitDefID == nil or transportID == nil then return end
@@ -25,8 +26,8 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		local x,y,z = SpGetUnitVelocity(transportID)
 		if x > 10 then x = 10 elseif x <- 10 then x = -10 end -- 10 is well above 'normal' air-trans velocity
 		if z > 10 then z = 10 elseif z <- 10 then z = -10 end		
-        local bx,by,bz = Spring.GetUnitPosition(unitID)
-        if by-Spring.GetGroundHeight(bx,bz) < 5 then
+        local bx,by,bz = SpGetUnitPosition(unitID)
+        if by-SpGetGroundHeight(bx,bz) < 5 then
             x = 0; y = 0; z = 0 --in particular, don't give any velocity if the transport has placed the unit slightly underground (or wierdness...)
         end
 		SpSetUnitVelocity(unitID, x, y, z)
