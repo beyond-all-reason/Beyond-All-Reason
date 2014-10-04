@@ -320,9 +320,9 @@ function widget:DrawScreen()
 	gl.ResetMatrices()
 	----
 	
-    gl.SlaveMiniMap(true)
+    --gl.SlaveMiniMap(true)
     gl.DrawMiniMap()
-    gl.SlaveMiniMap(false)
+    --gl.SlaveMiniMap(false)
 	
 	-- this makes jK rage
 	gl.ResetState()
