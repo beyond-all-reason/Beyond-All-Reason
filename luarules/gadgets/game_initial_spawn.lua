@@ -79,10 +79,10 @@ end
 
 function GetFFAStartPoints()
     if VFS.FileExists("luarules/configs/ffa_startpoints.lua") then
-        --load the ffaStartPoints table (if map has it)		
+        --load the ffaStartPoints table from the map, if it has it		
         include("luarules/configs/ffa_startpoints.lua") 
     else
-        --see if we have a backup ffaStartPoints table for this map
+        --if not, see if we have a backup table for this map
         include("luarules/configs/ffa_startpoints/ffa_startpoints.lua")
     end
 end
@@ -189,15 +189,6 @@ function gadget:Initialize()
 		nAllyTeams = nAllyTeams + 1
 	end
 	
-    -- create the ffaStartPoints table, if we need it & can get it
-    if useFFAStartPoints then
-        GetFFAStartPoints() 
-    end
-	-- make the relevant part of ffaStartPoints accessible to all, if it is use-able
-    if ffaStartPoints then
-		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID
-	end
-
 	-- mark all players as 'not yet placed'	
 	local initState 
 	if Game.startPosType ~= 2 or ffaStartPoints then
@@ -247,7 +238,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	end
 	
 	if Game.startPosType == 3 then return true end --choose before game mode
-	if ffaStartPoints then return true end
+	if useFFAStartPoints then return true end
 	
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
 	if not teamID or not allyTeamID then return false end --fail
@@ -306,8 +297,9 @@ end
 
 function gadget:GameStart() 
 	-- ffa mode spawning
-	if ffaStartPoints then
-		if ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
+	if useFFAStartPoints then
+        GetFFAStartPoints()		
+        if ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
 		-- cycle over ally teams and spawn starting units
 			local allyTeamSpawn = SetFFASpawns()
 			for teamID, allyTeamID in pairs(spawnTeams) do
