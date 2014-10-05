@@ -8,6 +8,9 @@ local fileNames = {
 
     --Throne
     ["Throne_v5"] = "Throne",
+    
+    --Blindside
+    ["Blindside_v2"] = "Blindside",
 }
 
 local thisMap = Game.mapName
