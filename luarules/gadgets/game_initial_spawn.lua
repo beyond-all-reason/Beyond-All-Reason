@@ -299,7 +299,7 @@ function gadget:GameStart()
 	-- ffa mode spawning
 	if useFFAStartPoints then
         GetFFAStartPoints()		
-        if ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
+        if ffaStartPoints and ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
 		-- cycle over ally teams and spawn starting units
 			local allyTeamSpawn = SetFFASpawns()
 			for teamID, allyTeamID in pairs(spawnTeams) do
