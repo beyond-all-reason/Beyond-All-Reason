@@ -71,10 +71,20 @@ include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing ro
 -- FFA Startpoints (modoption)
 ----------------------------------------------------------------
 
+-- ffaStartPoints is "global"
+local useFFAStartPoints = false
 if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
-	if VFS.FileExists("luarules/configs/ffa_startpoints.lua") then
-		include("luarules/configs/ffa_startpoints.lua") --loads the ffaStartPoints table (if map has it)
-	end
+    useFFAStartPoints = true
+end
+
+function GetFFAStartPoints()
+    if VFS.FileExists("luarules/configs/ffa_startpoints.lua") then
+        --load the ffaStartPoints table (if map has it)		
+        include("luarules/configs/ffa_startpoints.lua") 
+    else
+        --see if we have a backup ffaStartPoints table for this map
+        include("luarules/configs/ffa_startpoints/ffa_startpoints.lua")
+    end
 end
 
 ----------------------------------------------------------------
@@ -179,8 +189,12 @@ function gadget:Initialize()
 		nAllyTeams = nAllyTeams + 1
 	end
 	
-	-- make the relevant part of ffaStartPoints accessible to all 
-	if ffaStartPoints then
+    -- create the ffaStartPoints table, if we need it & can get it
+    if useFFAStartPoints then
+        GetFFAStartPoints() 
+    end
+	-- make the relevant part of ffaStartPoints accessible to all, if it is use-able
+    if ffaStartPoints then
 		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID
 	end
 
@@ -282,8 +296,6 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		SendToUnsynced("StartPointChosen", playerID)
 	end	
 	
-
-
 	return true
 end
 
