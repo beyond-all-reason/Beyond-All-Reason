@@ -196,7 +196,7 @@ local ffaStartPointsAll = { --ffaStartPointsAll[#allyteams][id] = {table of keys
 }
 
 -- check that each of the above entries has the right length table
-
+--[[
 for i=1,16 do
 	for j,v in pairs(ffaStartPointsAll[i]) do
 		if #v ~= i then
@@ -204,6 +204,7 @@ for i=1,16 do
 		end
 	end
 end
+]]
 
 
 -- now construct (in global namespace) the ffa startpoints by randomly picking one element from each of the subtables of ffaStartPointsAll

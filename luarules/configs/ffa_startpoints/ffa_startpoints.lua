@@ -1,5 +1,5 @@
 -- general ffa_startpoints.lua
--- finds the appropriate ffa stratpoints file and calls it
+-- finds the appropriate ffa startpoints file and calls it
 
 local fileNames = {
     --Dworld
