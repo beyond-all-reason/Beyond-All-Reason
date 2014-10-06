@@ -57,7 +57,7 @@ function gadget:GameFrame(n)
 			local h = HeadingToFacing(Spring.GetUnitHeading(unitID))
 			Spring.MoveCtrl.Disable(unitID)
 			local newUnitID = Spring.CreateUnit(POP_UP_UNIT[Spring.GetUnitDefID(unitID)].unit,x,0,z,h,Spring.GetUnitTeam(unitID))
-			local cmds = Spring.GetUnitCommands(unitID)
+			local cmds = Spring.GetUnitCommands(unitID,20)
 			for i,cmd in ipairs(cmds) do
 				local cmd = cmds[i]
 				Spring.GiveOrderToUnit(newUnitID, cmd.id, cmd.params, cmd.options.coded)

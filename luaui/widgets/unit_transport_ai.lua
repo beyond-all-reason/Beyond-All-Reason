@@ -84,7 +84,7 @@ end
 
 
 function IsEmbarkCommand(unitID)
- local queue = GetCommandQueue(unitID);        
+ local queue = GetCommandQueue(unitID,20);        
  if (queue ~= nil and #queue>=1 and IsEmbark(queue[1])) then 
    return true
  end
@@ -106,7 +106,7 @@ function IsDisembark(cmd)
 end
   
 function IsWaitCommand(unitID)
- local queue = GetCommandQueue(unitID);        
+ local queue = GetCommandQueue(unitID,20);        
  if (queue ~= nil and queue[1].id == CMD.WAIT and not queue[1].options.alt) then 
    return true
  end
@@ -114,7 +114,7 @@ function IsWaitCommand(unitID)
 end
 
 function IsIdle(unitID) 
-  local queue = GetCommandQueue(unitID)
+  local queue = GetCommandQueue(unitID,20)
   if (queue == nil or #queue==0) then 
     return true
   else
@@ -290,7 +290,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
     if (IsTransportable(unitDefID) and not userOrders) then 
 --      Echo ("new unit from factory "..unitID)
 
-      for _,v in ipairs(GetCommandQueue(unitID)) do
+      for _,v in ipairs(GetCommandQueue(unitID,20)) do
         if (IsEmbark(v)) then 
           priorityUnits[unitID] = unitDefID
           return
@@ -382,7 +382,7 @@ end
 function widget:UnitLoaded(unitID, unitDefID, teamID, transportID) 
   if (teamID ~= myTeamID or toPick[transportID]==nil) then return end
 
-  local queue = GetCommandQueue(unitID);
+  local queue = GetCommandQueue(unitID,20);
   if (queue == nil) then return end
 
 --  Echo("unit loaded " .. transportID .. " " ..unitID)
@@ -448,7 +448,7 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     GiveOrderToUnit(unitID, x[1], x[2], x[3])
   end
   storedQueue[unitID] = nil
-  local queue = GetCommandQueue(unitID)
+  local queue = GetCommandQueue(unitID,2)
   if (queue and queue[1] and queue[1].id == CMD.WAIT) then GiveOrderToUnit(unitID, CMD.WAIT, {}, {}) end -- workaround: clears wait order if STOP fails to do so
 end
 
@@ -573,7 +573,7 @@ function GetPathLength(unitID)
   if (h > maxi) then maxi = h end
 
   local d = 0
-  local queue = GetCommandQueue(unitID);
+  local queue = GetCommandQueue(unitID,20);
   if (queue == nil) then return 0 end
   for k, v in ipairs(queue) do
     if (v.id == CMD.MOVE or v.id==CMD.WAIT) then

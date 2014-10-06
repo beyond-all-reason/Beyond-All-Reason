@@ -62,7 +62,7 @@ local function UnitCanTargetAir(unitDefID)
 end
 ]]--
 local function UnitHasPatrolOrder(unitID)
-	local queue=GetCommandQueue(unitID)
+	local queue=GetCommandQueue(unitID,20)
 	for i,cmd in ipairs(queue) do
 		if cmd.id==CMD.PATROL then
 			return true

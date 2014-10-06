@@ -193,7 +193,7 @@ function gadget:GameFrame(n)
   scheduledBuilders = {} 
 
   for unitID, _ in pairs(addFakeReclaim) do 
-    local commands = GetCommandQueue(unitID) 
+    local commands = GetCommandQueue(unitID,20) 
     for i, cmd in ipairs(commands) do 
       if cmd.id == CMD_UPGRADEMEX and not (commands[i+1] and commands[i+1].id == CMD_RECLAIM) then 
         GiveOrderToUnit(unitID, CMD_INSERT, {i, CMD_RECLAIM, CMD_OPT_INTERNAL+1, cmd.params[1]}, {"alt"}) 

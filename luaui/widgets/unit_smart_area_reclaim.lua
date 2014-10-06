@@ -158,7 +158,7 @@ function widget:CommandNotify(id, params, options)
 				
 				local ux, uy, uz = GetUnitPosition(uid)
 				if (options.shift) then
-					local cmds = GetUnitCommands(uid)
+					local cmds = GetUnitCommands(uid,100)
 					for ci=#cmds, 1, -1 do
 						local cmd = cmds[ci]
 						if (cmd.id == MOVE) then

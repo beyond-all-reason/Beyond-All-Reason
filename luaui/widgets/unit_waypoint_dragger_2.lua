@@ -167,7 +167,7 @@ local function GetWayPointsNearCursor(wpTbl, mx, my)
 	
 	for i = 1, #selUnitsTbl do
 		local unitID = selUnitsTbl[i]
-		local commands = sprGetCommandQueue(unitID)
+		local commands = sprGetCommandQueue(unitID,20)
 		for cmdNum = 1, #commands do
 			local curCmd      = commands[cmdNum    ]
 			if cmdColorsTbl[curCmd.id] then
@@ -261,7 +261,7 @@ local function UpdateWayPoints(wpTbl)
 		local cmdUnitID = wpData[7]
 		local cmdValid  = false
 
-		local unitCmds = sprGetCommandQueue(cmdUnitID)
+		local unitCmds = sprGetCommandQueue(cmdUnitID,20)
 
 		-- check if the command has not been completed
 		-- since the MousePress() event occurred (tags

@@ -205,7 +205,7 @@ local function GetUnitFinalPosition(uID)
 	
 	local ux, uy, uz = spGetUnitPosition(uID)
 	
-	local cmds = spGetCommandQueue(uID)
+	local cmds = spGetCommandQueue(uID,5000)
 	for i = #cmds, 1, -1 do
 		
 		local cmd = cmds[i]
