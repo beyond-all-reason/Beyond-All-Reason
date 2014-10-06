@@ -1,5 +1,5 @@
 -- general ffa_startpoints.lua
--- finds the appropriate subdir and calls the ffa_startpoints.lua inside it
+-- finds the appropriate ffa stratpoints file and calls it
 
 local fileNames = {
     --Dworld
@@ -11,6 +11,9 @@ local fileNames = {
     
     --Blindside
     ["Blindside_v2"] = "Blindside",
+    
+    --Mearth
+    ["Mearth_v4"] = "Mearth",
 }
 
 local thisMap = Game.mapName
