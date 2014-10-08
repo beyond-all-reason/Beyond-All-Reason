@@ -161,7 +161,7 @@ end
 
 function widget:MouseRelease(x, y, button)
   active = false
-  return -1
+  return false
 end
 
 
@@ -229,7 +229,6 @@ local green = { 0, 1, 0 }
 local black = { 0, 0, 0 }
 local white = { 1, 1, 1 }
 
---[[
 function widget:DrawScreen()
   if (active) then
     local x, y = spGetMouseState()
@@ -248,7 +247,6 @@ function widget:DrawScreen()
     glPointSize(1)
   end
 end
-]]
 
 --------------------------------------------------------------------------------
 

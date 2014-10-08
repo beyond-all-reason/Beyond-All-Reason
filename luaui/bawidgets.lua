@@ -1414,12 +1414,12 @@ function widgetHandler:MouseRelease(x, y, button)
     if (mo and mo.MouseRelease) then
       return mo:MouseRelease(x, y, button)
     end
-    return -1
+    return false
   else
     if (mo and mo.TweakMouseRelease) then
       mo:TweakMouseRelease(x, y, button)
     end
-    return -1
+    return false
   end
 end
 
