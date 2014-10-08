@@ -2,10 +2,10 @@ return {
 	corstorm = {
 		acceleration = 0.10800000280142,
 		brakerate = 0.1879999935627,
-		buildcostenergy = 853,
-		buildcostmetal = 81,
+		buildcostenergy = 1058,
+		buildcostmetal = 105,
 		buildpic = "CORSTORM.DDS",
-		buildtime = 1722,
+		buildtime = 1949,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumescales		= [[26.637012481689 28.637012481689 17.637012481689]],

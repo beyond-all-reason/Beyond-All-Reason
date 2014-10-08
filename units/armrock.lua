@@ -2,10 +2,10 @@ return {
 	armrock = {
 		acceleration = 0.11999999731779,
 		brakerate = 0.1879999935627,
-		buildcostenergy = 944,
-		buildcostmetal = 97,
+		buildcostenergy = 990,
+		buildcostmetal = 112,
 		buildpic = "ARMROCK.DDS",
-		buildtime = 1887,
+		buildtime = 2015,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumescales		= [[26.637012481689 28.637012481689 17.637012481689]],
