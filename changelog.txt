@@ -1,16 +1,42 @@
 8.00 -> 8.01
-??/??/??
+08/10/2014
+
 - Updates for Spring 98.0
-- Players who drop before the game starts can be replaced by specs
-- Added widget to display a list of open hosts to specs
-- Added backup startpoint guessing routine to handle continuous metal maps
-- Added meteors to Armageddon mode
-- Added special smoke to Commander explosion for top 20 & top 5 players
-- Fixed comblast/dgun range circles showing when GUI was disabled
+- Players who drop before the game starts can be substituted by specs (provided the TS difference is small enough)
+- Added Open Hosts widget to display a list of currently active hosts to specs
+- Added (unsynced) commands /muteplayer <name>, /unmuteplayer <name>, /mutelist 
+- Muted player list is remembered between games
+- Added a meteor shower to Armageddon
+- Added a new Limit DGun mode "charge"; if set, firing DGun uses/needs 10% charge, charge replenishes by 1%/s, is set to 0% on unload
+- Added a startpoint guessing routine for continuous metal maps
+- Added FFA startpoints for Throne, Dworld, Mearth and Blindside (see **)
+- Added special smoke to Commander explosion for top ranked players
+- Comblast/Dgun range only shows when an enemy unit is nearby
+- Passive Builders behave more intelligently
+- Improved scoring for efficiency award: (dmg dealt)/(cost of units)
+- Default line command is always move
+- Fixed Lock Camera interaction with SpecFullView
+- Fixed commandos sometimes sliding across the map on unload
 - Fixed minelayers attacking things that weren't mines
- 
+- Engineers don't build Viper/Pitbull
+- Slightly increased Rocko/Storm costs and buildtime
 
-
+- T2 Sea Revamp:
+ -Seaplane Platform is slightly cheaper
+ -Seaplane Con is more expensive, has more health and workertime, doesn't build U/W Fusion or Moho Metal Maker
+ -Seaplane Torpedo Bombers are now Torpedo Gunships
+ -Seaplane Bombers/Gunships are more like (normal air) T2 Bombers/Gunships
+ -Core Seaplane Bomber drops "dambuster" bouncing bombs, Arm drops "normal" firebombs
+ -Arm Seaplane Gunship fires lightning, Core fires plasma
+ -T2 Torp Launchers removed -> converted to Anti-Air Torpedos, buildable only by T1 Sea Cons
+ -T2 Sea Labs are slighty cheaper, T2 Sub Cons are more expensive
+ -T2 Missile Ships are very long range/very slow reload (Core paralyses, Arm damages)
+ -T2 Sea Fusion and Metal Makers are more expensive
+ -T2 Sea Metal Makers float, have same conversion ratio as land T2 MMs
+ -Added a T3 hovercraft, "Sokolov" for Core, "Lun" for Arm
+ -Added T2/3 amphibious gantry, buildable by Sub Con, builds T2/3 amphibious units
+ -Fixed Depthcharges and Torpedo (from Bombers/Gunships) not making a splash
+ -Fixed UW fusions displaying health to enemies
 
 
 7.99 -> 8.00
