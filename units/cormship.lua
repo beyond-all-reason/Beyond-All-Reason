@@ -102,6 +102,7 @@ return {
 			armship_missile = {
 				areaofeffect = 48,
 				canattackground = false,
+                commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
