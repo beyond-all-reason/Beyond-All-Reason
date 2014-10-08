@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMFMKR.DDS",
 		buildtime = 2958,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		description = "Converts up to 60 energy into 1.1 metal per second",
+		description = "Converts up to 60 energy into 1.2 metal per second",
 		explodeas = "ARMESTOR_BUILDINGEX",
 		footprintx = 3,
 		footprintz = 3,
