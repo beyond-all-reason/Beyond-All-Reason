@@ -31,6 +31,7 @@ local substitutes = {}
 local players = {}
 local absent = {}
 local replaced = false
+local gameStarted = false
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -57,7 +58,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 end
 
 function gadget:PlayerChanged()
-    FindSubs(false)
+    if not gameStarted then
+        FindSubs(false)
+    end
 end
 
 function gadget:Initialize()
@@ -161,6 +164,7 @@ function FindSubs(real)
 end
 
 function gadget:GameStart()
+    gameStarted = true
     FindSubs(true)
 end
 
