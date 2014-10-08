@@ -11,6 +11,7 @@
 - Added a startpoint guessing routine for continuous metal maps
 - Added FFA startpoints for Throne, Dworld, Mearth and Blindside (see **)
 - Added special smoke to Commander explosion for top ranked players
+- Added queue functionality to Set Target
 - Comblast/Dgun range only shows when an enemy unit is nearby
 - Passive Builders behave more intelligently
 - Improved scoring for efficiency award: (dmg dealt)/(cost of units)
