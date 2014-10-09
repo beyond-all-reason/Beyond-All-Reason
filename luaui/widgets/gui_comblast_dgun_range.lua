@@ -173,12 +173,12 @@ function widget:GameFrame(n)
             local wantedOpacity
             -- check if there is an enemy unit nearby
             local enemyUnitID = spGetUnitNearestEnemy(unitID,2*blastRadius,false)
-            if enemyUnitID then
+            if spIsUnitSelected(unitID) then
+                wantedOpacity = 0.8
+            elseif enemyUnitID then
                 local ex,ey,ez = spGetUnitPosition(enemyUnitID)
                 local distance = sqrt((x-ex)^2 + (y-ey)^2 + (z-ez)^2)
                 wantedOpacity = 0.8 - 0.8*max(distance-blastRadius,0)/blastRadius
-            elseif spIsUnitSelected(unitID) then
-                wantedOpacity = 0.8
             else
                 wantedOpacity = 0
             end
