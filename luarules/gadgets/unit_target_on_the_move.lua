@@ -422,12 +422,12 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 		return true
 	elseif cmdID == CMD_UNIT_CANCEL_TARGET then
 		if unitTargets[unitID] then
-			if cmdParams == 0 then
+			if #cmdParams == 0 then
 				removeUnit(unitID)
-			elseif cmdParams == 1 and cmdOptions.alt then
+			elseif #cmdParams == 1 and cmdOptions.alt then
 				--it's a position in the queue
 				removeTarget(unitID,cmdParams[1])
-			elseif cmdParams == 1 and not cmdOptions.alt then
+			elseif #cmdParams == 1 and not cmdOptions.alt then
 				--target is unitID
 				for index,val in ipairs(unitTargets[unitID].targets) do
 					if tonumber(val) then --element is a unitID
@@ -437,7 +437,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 						end
 					end
 				end
-			elseif cmdParams == 3 then
+			elseif #cmdParams == 3 then
 				--target is a location
 				for index,val in ipairs(unitTargets[unitID].targets) do
 					if not tonumber(val) and val then --element is not a unitID
