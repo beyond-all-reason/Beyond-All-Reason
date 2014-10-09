@@ -437,7 +437,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 						end
 					end
 				end
-			elseif #cmdParams == 3 then
+			elseif  #cmdParams == 3 then
 				--target is a location
 				for index,val in ipairs(unitTargets[unitID].targets) do
 					if not tonumber(val) and val then --element is not a unitID
@@ -642,7 +642,7 @@ local function pos2func(unitID)
 end
 
 local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
-	if targetData and targetData.usertarget and tonumber(targetData.target) and spValidUnitID(targetData.target) then
+	if targetData and targetData.userTarget and tonumber(targetData.target) and spValidUnitID(targetData.target) then
 		--single unit target
 		if spectator then
 			local _,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true)
@@ -654,7 +654,7 @@ local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
 				glVertex(CallAsTeam(myTeam, pos2func, targetData.target))
 			end
 		end
-	elseif targetData and targetData.usertarget and not tonumber(targetData.target) and targetData.target then
+	elseif targetData and targetData.userTarget and not tonumber(targetData.target) and targetData.target then
 		-- 3d coordinate target
 		glVertex(targetData.target)
 	end
