@@ -49,7 +49,6 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
         if (nearUnit ~= unitID) and (not immuneToSplash[nearUnitDefID]) then
           local nx,ny,nz = Spring.GetUnitPosition(nearUnit)
           Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
-	  SendToUnsynced("sparksound", nx, ny, nz)
           Spring.AddUnitDamage(nearUnit, damage*sparkWeapons[weaponID].forkdamage, 0, attackerID)
           count = count + 1
         end
@@ -58,17 +57,8 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 end
 
 else
-
 ----------------------------------------------------------------
 -- Unsynced
 ----------------------------------------------------------------
-
-function gadget:Initialize()
-  gadgetHandler:AddSyncAction("sparksound", SparkSound)
-end
-
-function SparkSound(_, x, y, z)
-    Spring.PlaySoundFile("sounds/zapzap.wav", 10, x,y,z)
-end
 
 end
