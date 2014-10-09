@@ -120,6 +120,9 @@ local binds={
 	"bind shift+v buildunit_armsy",
 	"bind v buildunit_corsy",
 	"bind shift+v buildunit_corsy",
+    
+    -- temporary stuff added for 98.0
+    "bind f6 mutesound",
 }
 local unbinds={
 	"bind any+c controlunit",
@@ -131,6 +134,8 @@ local unbinds={
 	"bind z buildspacing inc",
 	"bindaction buildspacing inc",
 
+    -- temporary stuff added for 98.0
+    "bind f6 mutesound",    
 }
 function widget:Initialize()
 	for k,v in ipairs(unbinds) do
