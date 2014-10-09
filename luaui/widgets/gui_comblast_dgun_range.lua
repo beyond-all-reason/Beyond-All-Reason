@@ -29,6 +29,7 @@ local spValidUnitID			= Spring.ValidUnitID
 local spIsGUIHidden         = Spring.IsGUIHidden
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local spGetUnitPosition     = Spring.GetUnitPosition
+local spIsUnitSelected      = Spring.IsUnitSelected
 
 
 local glDepthTest 			= gl.DepthTest
@@ -176,6 +177,8 @@ function widget:GameFrame(n)
                 local ex,ey,ez = spGetUnitPosition(enemyUnitID)
                 local distance = sqrt((x-ex)^2 + (y-ey)^2 + (z-ez)^2)
                 wantedOpacity = 0.8 - 0.8*max(distance-blastRadius,0)/blastRadius
+            elseif spIsUnitSelected(unitID) then
+                wantedOpacity = 0.8
             else
                 wantedOpacity = 0
             end
