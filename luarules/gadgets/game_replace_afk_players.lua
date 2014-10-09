@@ -190,14 +190,16 @@ function gadget:GameFrame(n)
             local name = ""
             for _,pID in pairs(playerList) do --now do all pIDs for this team which were not coop starts
                 if not revealed[pID] then
-                    local pName,_ = Spring.GetPlayerInfo(pID) 
-                    if pName and absent[pID]==nil then --AIs might not have a name, don't write the name of the dropped player
+                    local pName,active,spec = Spring.GetPlayerInfo(pID) 
+                    if pName and absent[pID]==nil and active and not spec then --AIs might not have a name, don't write the name of the dropped player
                         name = name .. pName .. ", "
                         revealed[pID] = true
                     end
                 end
             end
-            name = string.sub(name, 1, math.max(string.len(name)-2,1)) --remove final ", "
+            if name ~= "" then
+                name = string.sub(name, 1, math.max(string.len(name)-2,1)) --remove final ", "
+            end
             SendToUnsynced("MarkStartPoint", p[1], p[2], p[3], name, tID)
         end
     end
@@ -318,7 +320,10 @@ function gadget:MouseRelease(x,y)
 end
 
 function MarkStartPoint(_,x,y,z,name,tID)
-    Spring.MarkerAddPoint(x, y, z, colourNames(tID) .. name, true)
+    local _,_,spec = Spring.GetPlayerInfo(myPlayerID)
+    if not spec then
+        Spring.MarkerAddPoint(x, y, z, colourNames(tID) .. name, true)
+    end
 end
 
 function colourNames(teamID)
