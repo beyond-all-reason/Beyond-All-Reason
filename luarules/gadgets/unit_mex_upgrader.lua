@@ -404,12 +404,14 @@ function getDistance(unitID, mexID, teamID)
   local x1, _, y1 = GetUnitPosition(unitID) 
   local mex = mexes[teamID][mexID] 
   local x2, y2 = mex.x, mex.z 
+  if not (x1 and y1 and x2 and y2) then return math.huge end --hack
   return math.sqrt((x1-x2)^2 + (y1-y2)^2) 
 end 
 
 function getDistanceFromPosition(x1, y1, mexID, teamID) 
   local mex = mexes[teamID][mexID] 
   local x2, y2 = mex.x, mex.z 
+  if not (x2 and y2) then return math.huge end --hack
   return math.sqrt((x1-x2)^2 + (y1-y2)^2) 
 end 
 
