@@ -1,3 +1,13 @@
+8.01 -> 8.02
+09/10/2014
+
+- Fixed mapmark names after substitituion
+- Fixed cancel target command
+- Added "Alternate Chat Keys" widget, with old style keys, default off
+- Added , and . keys to rotate buildings (hopefully works on all keyboards)
+- Hotfixes for f6 and backspace keys
+- Removed lightning sound
+
 8.00 -> 8.01
 08/10/2014
 
