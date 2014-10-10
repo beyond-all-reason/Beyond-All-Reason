@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-	name      = "API Ignore List", --version 4.1
+	name      = "Ignore List API", --version 4.1
 	desc      = "Adds /ignoreplayer <name>, /unignoreplayer <name>, /ignorelist\n(puts ignoredPlayers table into WG)",
 	author    = "Bluestone",
 	date      = "June 2014", --last change September 10,2009

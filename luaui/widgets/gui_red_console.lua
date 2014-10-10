@@ -476,7 +476,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	
 	
 	--ignore messages from muted--
-	if WG.mutedPlayers and WG.mutedPlayers[name] then 
+	if WG.ignoredPlayers and WG.ignoredPlayers[name] then 
 		ignoreThisMessage = true 
 		--Spring.Echo ("blocked message by " .. name)
 	end
