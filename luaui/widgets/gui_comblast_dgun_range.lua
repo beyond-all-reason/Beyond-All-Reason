@@ -30,7 +30,7 @@ local spIsGUIHidden         = Spring.IsGUIHidden
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spIsUnitSelected      = Spring.IsUnitSelected
-
+local spAreTeamAllied       = Spring.AreTeamsAllied
 
 local glDepthTest 			= gl.DepthTest
 local glDrawGroundCircle 	= gl.DrawGroundCircle
@@ -46,6 +46,11 @@ local drawList
 local amSpec = false
 local inSpecFullView = false
 
+local myTeamID = Spring.GetMyTeamID()
+
+function widget:PlayerChanged()
+    myTeamID = Spring.GetMyTeamID()    
+end
 
 -- track coms --
 
@@ -60,7 +65,10 @@ end
 function addCom(unitID)
     if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
     local x,y,z = Spring.GetUnitPosition(unitID)
-    comCenters[unitID] = {x,y,z,false,0}
+    local teamID = Spring.GetUnitTeam(unitID)
+    if x and teamID then
+        comCenters[unitID] = {x=x,y=y,z=z,draw=false,opacity=0,teamID=teamID}
+    end
 end
 
 function removeCom(unitID)
@@ -157,23 +165,23 @@ end
 -- map out what to draw
 function widget:GameFrame(n)
     -- check if we are in spec full view
-    local _, specFullView, _ = spGetSpectatingState()
+    local spec,specFullView,_ = spGetSpectatingState()
     if specFullView ~= inSpecFullView then
         checkComs()
         inSpecFullView = specFullView
     end
 
     -- check com movement
-    for unitID in pairs(comCenters) do
+    for unitID,_ in pairs(comCenters) do
         local x,y,z = spGetUnitPosition(unitID)
         if x then
             local yg = spGetGroundHeight(x,z) 
             local draw = true
             local opacity 
             local wantedOpacity
-            -- check if there is an enemy unit nearby
+            -- show if (1) unit is selected (2) com is enemy and we are not a spec (3) com has an enemy unit nearby
             local enemyUnitID = spGetUnitNearestEnemy(unitID,2*blastRadius,false)
-            if spIsUnitSelected(unitID) then
+            if spIsUnitSelected(unitID) or (not spec and not spAreTeamAllied(myTeamID,comCenters[unitID].teamID)) then
                 wantedOpacity = 0.8
             elseif enemyUnitID then
                 local ex,ey,ez = spGetUnitPosition(enemyUnitID)
@@ -182,7 +190,7 @@ function widget:GameFrame(n)
             else
                 wantedOpacity = 0
             end
-            opacity = comCenters[unitID][5]*(29/30) +  wantedOpacity*(1/30) --change gently
+            opacity = comCenters[unitID].opacity*(29/30) +  wantedOpacity*(1/30) --change gently
             -- check if com is off the ground
             if y-yg>10 then 
                 draw = false
@@ -190,7 +198,11 @@ function widget:GameFrame(n)
             elseif not spIsSphereInView(x,y,z,blastRadius) then
                 draw = false
             end
-            comCenters[unitID] = {x,y,z,draw,opacity}
+            comCenters[unitID].x = x
+            comCenters[unitID].y = y
+            comCenters[unitID].z = z
+            comCenters[unitID].draw = draw
+            comCenters[unitID].opacity = opacity
         else
             --couldn't get position, check if its still a unit 
             if not spValidUnitID(unitID) then
@@ -213,11 +225,11 @@ function widget:DrawWorldPreUnit()
     if spIsGUIHidden() then return end
     glDepthTest(true)
     for _,center in pairs(comCenters) do
-        if center[4] then
-            glColor(1, 0.8, 0, min(center[5],lightOpacity))
-            glDrawGroundCircle(center[1], center[2], center[3], dgunRange, circleDivs)
-            glColor(1, 0, 0, min(center[5],darkOpacity))
-            glDrawGroundCircle(center[1], center[2], center[3], blastRadius, circleDivs)
+        if center.draw then
+            glColor(1, 0.8, 0, min(center.opacity,lightOpacity))
+            glDrawGroundCircle(center.x, center.y, center.z, dgunRange, circleDivs)
+            glColor(1, 0, 0, min(center.opacity,darkOpacity))
+            glDrawGroundCircle(center.x, center.y, center.z, blastRadius, circleDivs)
         end
     end
     glDepthTest(false)
