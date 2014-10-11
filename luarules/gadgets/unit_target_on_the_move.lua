@@ -140,7 +140,12 @@ local unitCancelTargetCmdDesc = {
 -- Target Handling
 
 local function AreUnitsAllied(unitID,targetID)
-	return spAreTeamsAllied(spGetUnitTeam(unitID),spGetUnitTeam(targetID))
+	--if a unit dies the unitID will still be valid for current frame unit UnitDestroyed is called
+	--this means that code can reach here and spGetUnitTeam returns nil, therefore we'll nil check before
+	--executing spAreTeamsAllied, returning true to being allied disables rest of the code without having
+	--to pass weird nil threestate to be further checked
+	local ownTeam,enemyTeam = spGetUnitTeam(unitID),spGetUnitTeam(targetID)
+	return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam,enemyTeam)
 end
 
 local function TargetCanBeReached(unitID,teamID,weaponList,target)
