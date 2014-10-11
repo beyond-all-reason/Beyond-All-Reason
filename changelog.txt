@@ -1,3 +1,12 @@
+8.02 -> 8.03
+11/10/2014
+
+- Comblast/Dgun range always shows for selected coms and enemy coms
+- Fixed Ignore List
+- Fixed Set Target errors
+- Added "o" to rotate buildings (hopefully _everyone_ has an o key...)
+- Hotfix that should prevent most of getting stuck in draw mode
+
 8.01 -> 8.02
 09/10/2014
 
