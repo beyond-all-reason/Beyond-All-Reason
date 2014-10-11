@@ -19,6 +19,12 @@ function widget:GetInfo()
   }
 end
 
+include('keysym.h.lua')
+local pluskey								= KEYSYMS.PLUS 
+local minuskey								= KEYSYMS.MINUS 
+local pluskey2								= KEYSYMS.KP_PLUS 
+local minuskey2								= KEYSYMS.KP_MINUS 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- SETTINGS, internal, don't edit
@@ -36,10 +42,6 @@ local dt									= -1
 local TEST_SOUND 							= LUAUI_DIRNAME .. 'sounds/volume_osd/pop.wav'
 local font         							= "luaui/fonts/freesansbold_14"
 local step 									= 2 -- how many steps to change sound volume on one key press
-local pluskey								= 270 -- numpad+ (look in uikeys.txt in spring folder for key symbols)
-local minuskey								= 269 -- numpad-
-local pluskey2								= 61 -- +key (duplicate key for volume+, set to same as primary to disable)
-local minuskey2								= 45 -- -key  
 local dtime									= 3 --How long time the volume display is drawn, in seconds
 local ftime 								= 2.5 --How long time before the volume display starts fading, in seconds
 local widgetWidth							= vsx/2.5 -- in pixels (changed from 400)
