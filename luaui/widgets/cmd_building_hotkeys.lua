@@ -121,11 +121,12 @@ local binds={
 	"bind v buildunit_corsy",
 	"bind shift+v buildunit_corsy",
     
-    "bind ,	buildfacing inc", --because some keyboards don't have [ and ] keys
-    "bind .	buildfacing dec",
 
     -- hotfixes for 98.0
     "bind f6 mutesound", --http://springrts.com/mantis/view.php?id=4576
+    "bind ,	buildfacing inc", --because some keyboards don't have [ and ] keys
+    "bind .	buildfacing dec",
+    "bind o buildfacing inc", --apparently some keyboards don't have , and . either...
 }
     
 local unbinds={
@@ -161,22 +162,15 @@ function widget:Shutdown()
 	end
 end
 
---[[
+-- hacky hotfix for http://springrts.com/mantis/view.php?id=4455
 include('keysym.h.lua')
 local BACKQUOTE = KEYSYMS.BACKQUOTE
 local BACKSLASH = KEYSYMS.BACKSLASH
+--local TILDE = -- i have no idea
 local RETURN = KEYSYMS.RETURN
 local wasDrawKey = false
 function widget:KeyPress(key, mods, isRepeat)
-    Spring.Echo(key,isRepeat)
-    if wasDrawKey and key==RETURN then
-        -- at this point the user is (probably) stuck in draw mode but i can't think of a way to help them...
-        return
-    end
-    if key==BACKQUOTE or key==BACKSLASH then
-        wasDrawKey=true
-    else
-        wasDrawKey=false
+    if key==RETURN and (Spring.GetKeyState(BACKQUOTE) or Spring.GetKeyState(BACKSLASH)) then
+        return true
     end
 end
-]]
