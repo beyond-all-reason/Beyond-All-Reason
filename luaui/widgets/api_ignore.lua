@@ -18,7 +18,6 @@ NOTE: This widget will block map draw commands from ignored players.
 
 local pID_table = {}
 local ignoredPlayers = {}
-WG.ignoredPlayers = ignoredPlayers
 local myName,_ = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
 
 function CheckPIDs()
@@ -31,6 +30,7 @@ end
 
 function widget:Initialize()
     CheckPIDs()
+    WG.ignoredPlayers = ignoredPlayers
 end
 
 function widget:PlayerChanged()
