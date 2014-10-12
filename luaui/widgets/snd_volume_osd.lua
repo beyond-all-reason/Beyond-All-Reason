@@ -21,6 +21,7 @@ end
 
 include('keysym.h.lua')
 local pluskey								= KEYSYMS.PLUS 
+local equalskey								= KEYSYMS.EQUALS -- same key as + on most qwerty keyboards
 local minuskey								= KEYSYMS.MINUS 
 local pluskey2								= KEYSYMS.KP_PLUS 
 local minuskey2								= KEYSYMS.KP_MINUS 
@@ -59,7 +60,7 @@ function widget:Initialize()
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if (key == pluskey or key == pluskey2) and (not mods.alt) and (not mods.shift) then -- KEY = pluskey
+	if (key == pluskey or key == pluskey2 or key == equalskey) and (not mods.alt) and (not mods.shift) then -- KEY = pluskey
 		volume = Spring.GetConfigInt("snd_volmaster", 60)
 		volume = volume + step
 		if volume < 0 then volume = 0 end
