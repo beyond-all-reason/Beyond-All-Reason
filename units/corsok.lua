@@ -35,6 +35,8 @@ return {
         name = "Sokolov",
         nochasecategory = "VTOL",
         objectname = "CORSOK",
+        radardistance = 0,
+        sonardistance = 700,
         selfdestructas = "BIG_UNIT",
         side = "CORE",
         sightdistance = 650,
