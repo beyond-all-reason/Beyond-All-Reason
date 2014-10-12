@@ -661,17 +661,10 @@ teamDeathMessages = {
     "XX was almost a Jill sandwich",
     "XX prepared for unforeseen consequences",
     "XX was all outta gum",
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+    "Give it to XX baby, uhuh, uhuh",
+    "XX cannot DGun inside an enemy startbox",
+    "A problem has been detected and XX has been shut down to prevent damage to your computer",
+    "XX has performed an illegal operation",
 	
 	
 }
