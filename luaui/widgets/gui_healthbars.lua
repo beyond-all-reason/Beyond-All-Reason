@@ -444,7 +444,6 @@ do
   local ux, uy, uz
   local dx, dy, dz, dist
   local health,maxHealth,paralyzeDamage,capture,build
-  local dgunCharge = ((tostring(Spring.GetModOptions().limitdgun) or "off") == "charge")
   local hp, hp100, emp
   local reload,reloaded,reloadFrame
   local numStockpiled,numStockpileQued
@@ -561,11 +560,9 @@ do
       end
       
       --// DGUN CHARGE
-      if dgunCharge then
-        local charge = GetUnitRulesParam(unitID,"charge")
-        if charge and charge<=99 then
-          AddBar("dgun charge",math.max(charge/100,0),"dguncharge",(fullText and floor(charge)..'%') or '')
-        end
+      local charge = GetUnitRulesParam(unitID,"charge")
+      if charge and charge<=99 then
+        AddBar("dgun charge",math.max(charge/100,0),"dguncharge",(fullText and floor(charge)..'%') or '')
       end
 
     if (barsN>0)or(numStockpiled) then

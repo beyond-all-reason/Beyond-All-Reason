@@ -159,19 +159,5 @@ local options={
 		def    = false,
 		section= "ba_options",
     },
-    {
-		key    = 'LimitDgun',
-		name   = 'Limit D-Gun range',
-		desc   = "The commander's D-Gun weapon cannot be used near enemy start points",
-		type   = 'list',
-		def    = false,
-		section= "ba_options",
-		items={
-			{key="off", name="Off", desc="D-Gun works everywhere"},
-			{key="startpoints", name="Start Points", desc="D-Gun cannot be used near enemy startpoints"},
-			{key="startboxes", name="Start Boxes", desc="D-Gun cannot be used inside enemy startboxes"},
-            {key="charge", name="Charge", desc="D-Gun needs to have enough charge before it can fire"},
-		}
-    },
 }
 return options

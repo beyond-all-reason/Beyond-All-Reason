@@ -47,10 +47,6 @@ function SetWeaponNum(uID, uDID)
 end
 
 function gadget:Initialize()
-    if (tostring(Spring.GetModOptions().limitdgun) or "off") ~= "charge" then
-        gadgetHandler:RemoveGadget()
-    end
-    
     for wDID,_ in pairs(dgunWeapons) do
         Script.SetWatchWeapon(wDID, true)
     end    
@@ -114,15 +110,23 @@ end
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
     -- set charge to 0 
     if coms[unitID] then
+        coms[unitID] = 0 --safety
+    end
+end
+
+function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+    -- set charge to 0 
+    if coms[unitID] then
         coms[unitID] = 0
     end
 end
+
 
 function gadget:GameFrame(n)
     -- increment the charge, set UnitRulesParam
     if n%5==0 then
         for uID,_ in pairs(coms) do
-            if coms[uID]<100 then
+            if coms[uID]<100 and not Spring.GetUnitTransporter(uID) then
                 coms[uID] = coms[uID] + (reloadRate/6)
             end
             if coms[uID]>100 then coms[uID] = 100 end
