@@ -52,14 +52,6 @@ local options={
 		section= "ba_modes",
     },
     {
-		key    = "mo_subs",
-		name   = "Allow substitutes",
-		desc   = "Players with similar TS can substitute afk players",
-		type   = "bool",
-		def    = true,
-		section= "ba_modes",
-    },
-    {
         key    = 'mo_coop',
         name   = 'Cooperative mode',
         desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',

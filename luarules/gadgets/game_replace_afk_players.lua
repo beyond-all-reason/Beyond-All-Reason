@@ -13,11 +13,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- kill switch (just in case... this gadget is  hard to test fully)
-if (tonumber((Spring.GetModOptions() or {}).mo_subs) or 0) == 0 then
-	return false
-end
-
 -----------------------------
 if gadgetHandler:IsSyncedCode() then 
 -----------------------------
