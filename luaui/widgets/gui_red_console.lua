@@ -466,6 +466,11 @@ local function processLine(line,g,cfg,newlinecolor)
 		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
 			ignoreThisMessage = true
 		end
+
+        if sfind(line,"Wrong network version") then
+            local n,_ = sfind(line,"Message")
+            line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
+        end
 		
 		if gameOver then
 			if sfind(line,'left the game') then
