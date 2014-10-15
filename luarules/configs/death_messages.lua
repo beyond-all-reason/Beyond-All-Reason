@@ -664,9 +664,16 @@ teamDeathMessages = {
     "Give it to XX baby, uhuh, uhuh",
     "XX cannot DGun inside an enemy startbox",
     "A problem has been detected and XX has been shut down to prevent damage to your computer",
-    "XX has performed an illegal operation",
-	
-	
+    "Shoot all the blue jays you want, if you can hit em, but remember that it's a sin to kill a XX",
+    "XX is no hot-house flower, but a wild plant, born of a wet night, born of an hour of sunshine",
+    "XX ran with scissors",
+    "XX screamed in agony as the potato slid deeper",
+    "XX left behind a small damp patch",
+    "XX had its clock cleaned",
+    "XX tossed its caber",
+    "XX gave its dog a bone",
+    "XX is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE",
+    
 }
 
 
