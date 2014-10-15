@@ -59,14 +59,6 @@ local options =
 	},
   },
   {
-	key    = "mo_enemywrecks",
-	name   = "Show Enemy Wrecks",
-	desc   = "Gives you LOS of enemy wreckage",
-	type   = "bool",
-	def    = true,
-	section= "ba_others",
-  },
-  {
 	key    = "mo_enemycomcount",
 	name   = "Enemy Com Counter",
 	desc   = "Tells each team the total number of commanders alive in enemy teams",
