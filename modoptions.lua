@@ -69,7 +69,7 @@ local options={
     },
     {
 		key    = "mo_preventcombomb",
-		name   = "Prevent Combombs",
+		name   = "1v1 Mode (Prevent Combombs)",
 		desc   = "Commanders survive DGuns and other commanders explosions",
 		type   = "bool",
 		def    = false,
@@ -81,15 +81,7 @@ local options={
 		desc   = "Commanders warp in at gamestart with a shiny teleport effect",
 		type   = "bool",
 		def    = false,
-		section= "ba_options",
-    },
-	{
-		key    = "mo_progmines",
-		name   = "Progressive Mining",
-		desc   = "New mines take some time to become fully established, death resets progress",
-		type   = "bool",
-		def    = false,
-		section= "ba_ooptions",
+		section= "ba_others",
     },
     {
 		key="mo_transportenemy",
@@ -103,30 +95,22 @@ local options={
 			{key="none", name="Disallow All", desc="No enemy units can be napped"},
 		}
 	},
-	{
-       key    = "startmetal",
-       name   = "Starting metal",
-       desc   = "Determines amount of metal and metal storage that each player will start with",
-       type   = "number",
-       section= "StartingResources",
-       def    = 1000,
-       min    = 0,
-       max    = 10000,
-       step   = 1,  -- quantization is aligned to the def value
-                    -- (step <= 0) means that there is no quantization
-	},
-	{
-       key    = "startenergy",
-       name   = "Starting energy",
-       desc   = "Determines amount of energy and energy storage that each player will start with",
-       type   = "number",
-       section= "StartingResources",
-       def    = 1000,
-       min    = 0,
-       max    = 10000,
-       step   = 1,  -- quantization is aligned to the def value
-                    -- (step <= 0) means that there is no quantization
-	},  
+    {
+        key    = "mo_enemycomcount",
+        name   = "Enemy Com Counter",
+        desc   = "Tells each team the total number of commanders alive in enemy teams",
+        type   = "bool",
+        def    = false,
+        section= "ba_others",
+    },
+    {
+        key    = 'FixedAllies',
+        name   = 'Fixed ingame alliances',
+        desc   = 'Disables the possibility of players to dynamically change alliances ingame',
+        type   = 'bool',
+        def    = false,
+        section= "ba_others",
+    },
     {
 		key    = "mo_no_close_spawns",
 		name   = "No close spawns",

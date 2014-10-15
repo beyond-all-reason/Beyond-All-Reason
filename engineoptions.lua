@@ -41,9 +41,8 @@ local options =
     def    = 500,
     min    = 1,
     max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
-    step   = 1,  -- quantization is aligned to the def value
-                    -- (step <= 0) means that there is no quantization
-    section= "ba_others",
+    step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
+    section= "ba_options",
 
   },
   {
@@ -59,30 +58,33 @@ local options =
 	},
   },
   {
-	key    = "mo_enemycomcount",
-	name   = "Enemy Com Counter",
-	desc   = "Tells each team the total number of commanders alive in enemy teams",
-	type   = "bool",
-	def    = false,
-	section= "ba_others",
+    key    = "startmetal",
+    name   = "Starting metal",
+    desc   = "Determines amount of metal and metal storage that each player will start with",
+    type   = "number",
+    section= "StartingResources",
+    def    = 1000,
+    min    = 0,
+    max    = 10000,
+    step   = 1,
   },
   {
-    key    = 'FixedAllies',
-    name   = 'Fixed ingame alliances',
-    desc   = 'Disables the possibility of players to dynamically change alliances ingame',
-    type   = 'bool',
-    def    = false,
-    section= "ba_others",
-
-  },
-
+    key    = "startenergy",
+    name   = "Starting energy",
+    desc   = "Determines amount of energy and energy storage that each player will start with",
+    type   = "number",
+    section= "StartingResources",
+    def    = 1000,
+    min    = 0,
+    max    = 10000,
+    step   = 1,
+  },  
   {
     key    = 'LimitSpeed',
     name   = 'Speed Restriction',
     desc   = 'Limits maximum and minimum speed that the players will be allowed to change to',
     type   = 'section',
   },
-
   {
     key    = 'MaxSpeed',
     name   = 'Maximum game speed',
@@ -92,8 +94,8 @@ local options =
     def    = 3,
     min    = 0.1,
     max    = 100,
-    step   = 0.1,  -- quantization is aligned to the def value
-                    -- (step <= 0) means that there is no quantization
+    step   = 0.1,
+
   },
 
   {
@@ -105,17 +107,15 @@ local options =
     def    = 0.3,
     min    = 0.1,
     max    = 100,
-    step   = 0.1,  -- quantization is aligned to the def value
-                    -- (step <= 0) means that there is no quantization
+    step   = 0.1,  
   },
-
   {
     key    = 'DisableMapDamage',
     name   = 'Undeformable map',
     desc   = 'Prevents the map shape from being changed by weapons',
     type   = 'bool',
     def    = false,
-    section= "ba_others",
+    section= "ba_options",
 
   },
 --[[
