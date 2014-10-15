@@ -91,14 +91,6 @@ local options={
 		def    = false,
 		section= "ba_ooptions",
     },
-	{
-		key    = "mo_nowrecks",
-		name   = "No Unit Wrecks",
-		desc   = "Removes all unit wrecks from the game",
-		type   = "bool",
-		def    = false,
-		section= "ba_options",
-    },
     {
 		key="mo_transportenemy",
 		name="Enemy Transporting",
