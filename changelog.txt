@@ -1,3 +1,12 @@
+8.03 -> 8.04
+16/10/2014
+
+- Removed no longer used DGun Limit modes
+- Fixed Red Console not catching spammed "wrong version" connect messages
+- Fixed UW Gantry not being buildable in deep water
+- Fixed Sokolov and Lun missing sonar
+- Cleaned up modoptions
+
 8.02 -> 8.03
 11/10/2014
 
