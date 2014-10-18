@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Building Hotkeys",
-		desc = "Enables Building Hotkeys for ZXCV" ,
+		desc = "Enables Building Hotkeys for ZXCV,BN,O" ,
 		author = "Beherith",
 		date = "23 march 2012",
 		license = "GNU LGPL, v2.1 or later",
@@ -13,7 +13,6 @@ end
 local binds={
 	"bind any+b buildspacing inc",
 	"bind any+n buildspacing dec",
-	"bind any+q controlunit",
 	"bind z buildunit_armmex",
 	"bind shift+z buildunit_armmex",
 	"bind z buildunit_armamex",
@@ -121,9 +120,18 @@ local binds={
 	"bind v buildunit_corsy",
 	"bind shift+v buildunit_corsy",
     
-
+    -- numpad movement
+    "bind numpad2 moveback",
+    "bind numpad6 moveright",
+    "bind numpad4 moveleft",
+    "bind numpad8 moveforward",
+    "bind numpad9 moveup",
+    "bind numpad3 movedown",
+    "bind numpad1 movefast",
+    
     -- hotfixes for 98.0
     "bind f6 mutesound", --http://springrts.com/mantis/view.php?id=4576
+    "bind q drawinmap",
     "bind ,	buildfacing inc", --because some keyboards don't have [ and ] keys
     "bind .	buildfacing dec",
     "bind o buildfacing inc", --apparently some keyboards don't have , and . either...
@@ -141,9 +149,10 @@ local unbinds={
 
     -- hotfixes for 98.0
     "bind backspace	mousestate", --http://springrts.com/mantis/view.php?id=4578
-    --"bind any+` drawlabel",
-    --"bind any+` drawinmap",
+    "bind , prevmenu",
+    "bind . nextmenu",
 }
+
 function widget:Initialize()
 	for k,v in ipairs(unbinds) do
 		Spring.SendCommands("un"..v)
