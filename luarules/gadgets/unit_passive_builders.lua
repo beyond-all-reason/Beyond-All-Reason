@@ -1,6 +1,6 @@
 -- OUTLINE:
 -- Passive cons build either at their full speed or not at all.
--- The amount of res expense for non-passive cons is calculated (as total expense - passive cons expensive) and the remainder is available to the passive cons, if any.
+-- The amount of res expense for non-passive cons is calculated (as total expense - passive cons expense) and the remainder is available to the passive cons, if any.
 -- We cycle through the passive cons and allocate this expense until it runs out. All other passive cons have their buildspeed set to 0.
 
 -- ACTUALLY:
@@ -14,22 +14,22 @@
 -- AllowUnitBuildStep is damn expensive and is a serious perf hit if it is used for all this.
 
 function gadget:GetInfo()
-	return {
-		name      = 'Passive Builders v3',
-		desc      = 'Builders marked as passive only use resources after others builder have taken their share',
-		author    = 'BD, Bluestone',
-		date      = 'Why is date even relevant',
-		license   = 'GNU GPL, v2 or later',
-		layer     = 0,
-		enabled   = true
-	}
+    return {
+        name      = 'Passive Builders v3',
+        desc      = 'Builders marked as passive only use resources after others builder have taken their share',
+        author    = 'BD, Bluestone',
+        date      = 'Why is date even relevant',
+        license   = 'GNU GPL, v2 or later',
+        layer     = 0,
+        enabled   = true
+    }
 end
 
 ----------------------------------------------------------------
 -- Synced only
 ----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
-	return false
+    return false
 end
 
 ----------------------------------------------------------------
@@ -57,12 +57,12 @@ local ruleName = "passiveBuilders"
 local resTable = {"metal","energy"}
 
 local cmdPassiveDesc = {
-	  id      = CMD_PASSIVE,
-	  name    = 'passive',
-	  action  = 'passive',
-	  type    = CMDTYPE.ICON_MODE,
-	  tooltip = 'Building Mode: Passive wont build when stalling',
-	  params  = {0, 'Active', 'Passive'}
+      id      = CMD_PASSIVE,
+      name    = 'passive',
+      action  = 'passive',
+      type    = CMDTYPE.ICON_MODE,
+      tooltip = 'Building Mode: Passive wont build when stalling',
+      params  = {0, 'Active', 'Passive'}
 }
 
 ----------------------------------------------------------------
@@ -91,30 +91,30 @@ local min = math.min
 ----------------------------------------------------------------
 function gadget:Initialize()
     -- build the list of which unitdef can have passive mode
-	for unitDefID, uDef in pairs(UnitDefs) do
-		canPassive[unitDefID] = ((uDef.canAssist and uDef.buildSpeed > 0) or #uDef.buildOptions > 0)
-		cost[unitDefID] = {}
-		cost[unitDefID].buildTime = uDef.buildTime
-		for _,resName in pairs(resTable) do
-			cost[unitDefID][resName] = uDef[resName .. "Cost"]
-		end
-	end
+    for unitDefID, uDef in pairs(UnitDefs) do
+        canPassive[unitDefID] = ((uDef.canAssist and uDef.buildSpeed > 0) or #uDef.buildOptions > 0)
+        cost[unitDefID] = {}
+        cost[unitDefID].buildTime = uDef.buildTime
+        for _,resName in pairs(resTable) do
+            cost[unitDefID][resName] = uDef[resName .. "Cost"]
+        end
+    end
     
-	for _,unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
-	end
+    for _,unitID in pairs(Spring.GetAllUnits()) do
+        gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+    end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-	if canPassive[unitDefID] then
-		spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
+    if canPassive[unitDefID] then
+        spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
         passiveCons[teamID] = passiveCons[teamID] or {}
         passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
         realBuildSpeed[unitID] = UnitDefs[unitDefID].buildSpeed or 0
         currentBuildSpeed[unitID] = realBuildSpeed[unitID]
         spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
-	end
-	costID[unitID] = cost[unitDefID]
+    end
+    costID[unitID] = cost[unitDefID]
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
@@ -126,13 +126,13 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
-	gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
+    gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
-	costID[unitID] = nil
+    costID[unitID] = nil
     passiveCons[teamID] = passiveCons[teamID] or {}    
-	passiveCons[teamID][unitID] = nil
+    passiveCons[teamID][unitID] = nil
     realBuildSpeed[unitID] = nil
     currentBuildSpeed[unitID] = nil
     buildTargetOwners[unitID] = nil
@@ -141,23 +141,23 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
     -- track which cons are set to passive
-	if cmdID == CMD_PASSIVE and canPassive[unitDefID] then
-		local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PASSIVE)
-		local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
-		cmdDesc.params[1] = cmdParams[1]
-		spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
-		spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
+    if cmdID == CMD_PASSIVE and canPassive[unitDefID] then
+        local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PASSIVE)
+        local cmdDesc = spGetUnitCmdDescs(unitID, cmdIdx, cmdIdx)[1]
+        cmdDesc.params[1] = cmdParams[1]
+        spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
+        spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
         passiveCons[teamID] = passiveCons[teamID] or {}
         if cmdParams[1] == 1 then --
             passiveCons[teamID][unitID] = true
-		else
+        else
             spSetUnitBuildSpeed(unitID, realBuildSpeed[unitID])
             currentBuildSpeed[unitID] = realBuildSpeed[unitID]
             passiveCons[teamID][unitID] = nil        
         end
         return false -- Allowing command causes command queue to be lost if command is unshifted
-	end
-	return true
+    end
+    return true
 end
 
 function gadget:GameFrame(n)
@@ -176,18 +176,18 @@ function gadget:GameFrame(n)
     if n%interval~=0 then return end
     
     buildTargets = {}
-	for _,teamID in pairs(spGetTeamList()) do
-		--calculate how much expense passive cons would require
-		local passiveConsTotalExpense = {}
+    for _,teamID in pairs(spGetTeamList()) do
+        --calculate how much expense passive cons would require
+        local passiveConsTotalExpense = {}
         local passiveConsExpense = {}
-		for builderID in pairs(passiveCons[teamID] or {}) do
-			passiveConsExpense[builderID] = {}
+        for builderID in pairs(passiveCons[teamID] or {}) do
+            passiveConsExpense[builderID] = {}
             local builtUnit = spGetUnitIsBuilding(builderID)
             local targetCosts = builtUnit and costID[builtUnit] or nil
-			if builtUnit and targetCosts then
+            if builtUnit and targetCosts then
                 local rate = realBuildSpeed[builderID]/targetCosts.buildTime
-				for _,resName in pairs(resTable) do
-					passiveConsTotalExpense[resName] = (passiveConsTotalExpense[resName] or 0 ) + targetCosts[resName]*rate
+                for _,resName in pairs(resTable) do
+                    passiveConsTotalExpense[resName] = (passiveConsTotalExpense[resName] or 0 ) + targetCosts[resName]*rate
                     passiveConsExpense[builderID][resName] = targetCosts[resName]*rate
                 end
                 if not buildTargets[builtUnit] then
@@ -195,19 +195,19 @@ function gadget:GameFrame(n)
                     buildTargets[builtUnit] = true
                 end
             else
-				for _,resName in pairs(resTable) do
+                for _,resName in pairs(resTable) do
                     passiveConsExpense[builderID][resName] = 0
                 end            
-			end
-		end
+            end
+        end
         
         --calculate how much pull passive cons will be allowed
-		teamStalling[teamID] = {}
-		for _,resName in pairs(resTable) do
-			local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
-			stor = stor * share -- consider capacity only up to the share slider
-			local reservedExpense = exp - (passiveConsTotalExpense[resName] or 0) -- we don't want to touch this part of expense
-			teamStalling[teamID][resName] = cur - min(inc*stallMarginInc,stor*stallMarginSto) - 1 - (interval)*(inc+rec-sent-reservedExpense)/simSpeed --amount of res available to assign to passive builders (in current sim frame); leave a tiny bit left over to avoid engines own "stall mode"
+        teamStalling[teamID] = {}
+        for _,resName in pairs(resTable) do
+            local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
+            stor = stor * share -- consider capacity only up to the share slider
+            local reservedExpense = exp - (passiveConsTotalExpense[resName] or 0) -- we don't want to touch this part of expense
+            teamStalling[teamID][resName] = cur - min(inc*stallMarginInc,stor*stallMarginSto) - 1 - (interval)*(inc+rec-sent-reservedExpense)/simSpeed --amount of res available to assign to passive builders (in current sim frame); leave a tiny bit left over to avoid engines own "stall mode"
         end
         
         --work through passive cons allocating as much expense as we have left
@@ -245,5 +245,5 @@ function gadget:GameFrame(n)
             
             --Spring.Echo(currentBuildSpeed[builderID])
         end
-	end
+    end
 end
