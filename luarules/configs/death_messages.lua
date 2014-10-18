@@ -601,7 +601,7 @@ teamDeathMessages = {
 	"XX ate its last waterbiscuit",
 	"XX was torn apart by angry weasels",
 	"XX didn't want to play this silly game anyway",
-	"XX is a starman, waiting in the sky",
+	"There's a XX, waiting in the sky",
 	"Ground control to XX: your circuits gone, there's something wrong",
 	"XX put Basil in the ratatouille",
 	"XX was duck without orange or cherries",
@@ -673,6 +673,10 @@ teamDeathMessages = {
     "XX tossed its caber",
     "XX gave its dog a bone",
     "XX is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE",
+    "How to rotate XX?",
+    "XX, James XX",
+    "XX claims it was shooting blanks",
+    "XX stole Christmas",
     
 }
 
