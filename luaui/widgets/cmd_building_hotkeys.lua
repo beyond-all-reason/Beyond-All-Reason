@@ -131,7 +131,7 @@ local binds={
     
     -- hotfixes for 98.0
     "bind f6 mutesound", --http://springrts.com/mantis/view.php?id=4576
-    "bind q drawinmap",
+    "bind q drawinmap", --some keyboards don't have ` or \
     "bind ,	buildfacing inc", --because some keyboards don't have [ and ] keys
     "bind .	buildfacing dec",
     "bind o buildfacing inc", --apparently some keyboards don't have , and . either...
