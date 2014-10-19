@@ -29,7 +29,6 @@ return {
 		minwaterdepth = 25,
 		name = "Underwater Fusion Plant",
 		objectname = "ARMUWFUS",
-		seismicsignature = 0,
 		selfdestructas = "MINE_NUKE",
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
