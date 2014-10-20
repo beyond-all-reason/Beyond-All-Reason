@@ -40,7 +40,7 @@ end
 local CMD_PASSIVE = 34571
 
 local stallMarginInc = 0.2
-local stallMarginSto = 0.025
+local stallMarginSto = 0.01
 
 local canPassive = {} -- canPassive[unitDefID] = nil / true
 
@@ -255,7 +255,7 @@ function UpdatePassiveBuilders(teamID, interval)
         local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
         stor = stor * share -- consider capacity only up to the share slider
         local reservedExpense = nonPassiveConsTotalExpense[resName] or 0 -- we don't want to touch this part of expense
-        teamStalling[teamID][resName] = cur - min(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
+        teamStalling[teamID][resName] = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
         wouldStall = wouldStall or teamStalling[teamID][resName] <= 0
         --Spring.Echo(resName, cur, min(inc*stallMarginInc,stor*stallMarginSto)+1, (interval)*(inc+rec-sent-reservedExpense)/simSpeed, wouldStall)
     end
