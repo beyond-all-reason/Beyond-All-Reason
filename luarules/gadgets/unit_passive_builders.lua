@@ -90,6 +90,8 @@ local spValidUnitID = Spring.ValidUnitID
 local simSpeed = Game.gameSpeed
 
 local min = math.min
+local max = math.max
+local floor = math.floor
 
 ----------------------------------------------------------------
 -- Callins
@@ -210,13 +212,13 @@ function GetUpdateInterval(teamID)
         local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
         local resMaxInterval
         if inc>0 then
-            resMaxInterval = math.floor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
+            resMaxInterval = floor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
         else
             resMaxInterval = 6
         end
-        maxInterval = math.max(maxInterval, resMaxInterval)
+        maxInterval = max(maxInterval, resMaxInterval)
     end
-    maxInterval = math.min(6, maxInterval)
+    maxInterval = min(6, maxInterval)
     --Spring.Echo("interval: "..maxInterval)
     return maxInterval
 end
