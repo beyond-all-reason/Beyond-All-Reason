@@ -176,11 +176,12 @@ end
 include('keysym.h.lua')
 local BACKQUOTE = KEYSYMS.BACKQUOTE
 local BACKSLASH = KEYSYMS.BACKSLASH
-local PAR = KEYSYMS.WORLD_23 
+local PAR = KEYSYMS.WORLD_23
+local Q = KEYSYMS.Q 
 local RETURN = KEYSYMS.RETURN
 local wasDrawKey = false
 function widget:KeyPress(key, mods, isRepeat)
-    if key==RETURN and (Spring.GetKeyState(BACKQUOTE) or Spring.GetKeyState(BACKSLASH) or Spring.GetKeyState(PAR)) then
+    if key==RETURN and (Spring.GetKeyState(BACKQUOTE) or Spring.GetKeyState(BACKSLASH) or Spring.GetKeyState(PAR) or Spring.GetKeyState(Q)) then
         return true
     end
 end
