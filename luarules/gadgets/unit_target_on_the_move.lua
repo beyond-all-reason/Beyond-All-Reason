@@ -55,7 +55,6 @@ local spGetUnitAllyTeam			= Spring.GetUnitAllyTeam
 local spSetUnitTarget			= Spring.SetUnitTarget
 local spValidUnitID				= Spring.ValidUnitID
 local spGetUnitPosition			= Spring.GetUnitPosition
-local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetUnitLosState			= Spring.GetUnitLosState
 local spGetUnitSeparation		= Spring.GetUnitSeparation
@@ -329,35 +328,6 @@ end
 
 --------------------------------------------------------------------------------
 -- Command Tracking
-
-local function filterTargetList(unitID, unitDefID, teamID, choiceTargets, unitWeapons )
-	local targetList = {}
-	if choiceTargets then
-		for _,target in pairs(choiceTargets) do
-			--accept either coordinate targets or enemy units
-			if not tonumber(target) or not spAreTeamsAllied(teamID,spGetUnitTeam(target)) then
-				local validTarget = false
-				for weaponID in ipairs(unitWeapons) do
-					--unit test target only tests the validity of the target type, not range or other variable things
-					if tonumber(target) then
-						--unitID target
-						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target)
-					else
-						--coordinate target
-						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
-					end
-					if validTarget then
-						break
-					end
-				end
-				if validTarget then
-					targetList[#targetList+1] = {target=target}
-				end
-			end
-		end
-	end
-	return targetList
-end
 
 local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
