@@ -139,7 +139,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
     if canBuild[oldTeamID] and canBuild[oldTeamID][unitID] then
         canBuild[newTeamID] = canBuild[newTeamID] or {}
         canBuild[newTeamID][unitID] = true
-        canBuild[oldTeamID][unitID] = false
+        canBuild[oldTeamID][unitID] = nil
     end
 end
 
