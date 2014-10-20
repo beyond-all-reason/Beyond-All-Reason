@@ -55,7 +55,6 @@ local spGetUnitAllyTeam			= Spring.GetUnitAllyTeam
 local spSetUnitTarget			= Spring.SetUnitTarget
 local spValidUnitID				= Spring.ValidUnitID
 local spGetUnitPosition			= Spring.GetUnitPosition
-local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetUnitLosState			= Spring.GetUnitLosState
 local spGetUnitSeparation		= Spring.GetUnitSeparation
@@ -68,6 +67,7 @@ local spGetUnitsInCylinder		= Spring.GetUnitsInCylinder
 local spSetUnitRulesParam		= Spring.SetUnitRulesParam
 local spGetCommandQueue     	= Spring.GetCommandQueue
 local spGetUnitWeaponTryTarget	= Spring.GetUnitWeaponTryTarget
+local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
 
 local tremove					= table.remove
@@ -151,6 +151,7 @@ end
 local function TargetCanBeReached(unitID,teamID,weaponList,target)
 	return CallAsTeam(teamID, function()
 		for weaponID in pairs(weaponList) do
+			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
 			if tonumber(target) and  spGetUnitWeaponTryTarget(unitID,weaponID,target) then
 				return weaponID
 			elseif not tonumber(target) and spGetUnitWeaponTryTarget(unitID,weaponID,target[1],target[2],target[3]) then
@@ -328,34 +329,45 @@ end
 --------------------------------------------------------------------------------
 -- Command Tracking
 
-local function getTargetList(unitID, unitDefID, team, choiceUnits )
-	local unitList = {}
-	if choiceUnits then
-		for i = 1, #choiceUnits do
-			local tTeam = spGetUnitTeam(choiceUnits[i])
-			if tTeam and not spAreTeamsAllied(team,tTeam) then
-				unitList[#unitList+1] = {target=choiceUnits[i]}
+local function filterTargetList(unitID, unitDefID, teamID, choiceTargets, unitWeapons )
+	local targetList = {}
+	if choiceTargets then
+		for _,target in pairs(choiceTargets) do
+			--accept either coordinate targets or enemy units
+			if not tonumber(target) or not spAreTeamsAllied(teamID,spGetUnitTeam(target)) then
+				local validTarget = false
+				for weaponID in ipairs(unitWeapons) do
+					--unit test target only tests the validity of the target type, not range or other variable things
+					if tonumber(target) then
+						--unitID target
+						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target)
+					else
+						--coordinate target
+						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
+					end
+					if validTarget then
+						break
+					end
+				end
+				if validTarget then
+					targetList[#targetList+1] = {target=target}
+				end
 			end
 		end
 	end
-	return unitList
+	return targetList
 end
 
 local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	if cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 		if validUnits[unitDefID] then
+			local weaponList = UnitDefs[unitDefID].weapons
 			local append = cmdOptions.shift
 			local userTarget = not cmdOptions.internal
 			local ignoreStop = cmdOptions.ctrl
 			local targets = {}
 			if #cmdParams == 6 then
 				--rectangle
-				local team = spGetUnitTeam(unitID)
-
-				if not team then
-					return true
-				end
-
 				local top, bot, left, right
 				if cmdParams[1] < cmdParams[4] then
 					left = cmdParams[1]
@@ -373,12 +385,11 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					top = cmdParams[3]
 				end
 
-				local units = CallAsTeam(team, function()
+				targets = CallAsTeam(teamID, function()
 					return spGetUnitsInRectangle(left,top,right,bot)
 				end)
 				--TODO: perhaps we should insert a new order on top of queue without cancelling area order
 				-- much like area reclaim, etc, until there are no enemies available
-				targets = getTargetList(unitID, unitDefID, team, units )
 
 
 			elseif #cmdParams == 4 then
@@ -386,30 +397,26 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 				if cmdParams[4] == 0 then
 					--coordinate
 					cmdParams[4] = nil
-					targets = {{target=cmdParams}}
+					targets = {cmdParams}
 				else
 					--circle
-					local team = spGetUnitTeam(unitID)
-
-					if not team then
-						return true
-					end
-					local units = CallAsTeam(team, function()
+					targets = CallAsTeam(teamID, function()
 						return spGetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])
 					end)
 					-- perhaps we should insert a new order on top of queue without cancelling area order
-					targets = getTargetList(unitID, unitDefID, team, units )
 				end
 			elseif #cmdParams == 3 then
 				--coordinate
-				targets = {{target=cmdParams}}
+				targets = {cmdParams}
 			elseif #cmdParams == 1 then
 				--single target
-				targets = {{target=cmdParams[1]}}
+				targets = cmdParams
 			elseif #cmdParams == 0 then
 				--no param, unset target
 				removeUnit(unitID)
 			end
+			--filter out invalid targets
+			targets = filterTargetList(unitID, unitDefID, teamID, targets, weaponList )
 			if #targets > 0 then
 				for _,targetData in pairs(targets) do
 					targetData.alwaysSeen = not tonumber(targetData.target)
