@@ -1,5 +1,5 @@
 8.03 -> 8.04
-??/??/????
+20/10/2014
 
 - Improved performance of Passive Builders gadget
 - Passive builders don't show as resource pull unless they are using resources
