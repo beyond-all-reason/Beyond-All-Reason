@@ -55,6 +55,7 @@ local spGetUnitAllyTeam			= Spring.GetUnitAllyTeam
 local spSetUnitTarget			= Spring.SetUnitTarget
 local spValidUnitID				= Spring.ValidUnitID
 local spGetUnitPosition			= Spring.GetUnitPosition
+local spGetGroundHeight			= Spring.GetGroundHeight
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetUnitLosState			= Spring.GetUnitLosState
 local spGetUnitSeparation		= Spring.GetUnitSeparation
@@ -415,20 +416,40 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 				--no param, unset target
 				removeUnit(unitID)
 			end
-			--filter out invalid targets
-			targets = filterTargetList(unitID, unitDefID, teamID, targets, weaponList )
-			if #targets > 0 then
-				for _,targetData in pairs(targets) do
-					targetData.alwaysSeen = not tonumber(targetData.target)
-					if tonumber(targetData.target) and spValidUnitID(targetData.target) then -- target is a specific unit
-						local targetUnitDef = spGetUnitDefID(targetData.target)
-						local tud = targetUnitDef and UnitDefs[targetUnitDef]
-						targetData.alwaysSeen = tud and (tud.isBuilding or tud.speed == 0)
+			--filter target list
+			if targets then
+				local targetList = {}
+				for _,target in ipairs(targets) do
+					--accept either coordinate targets or enemy units
+					if not tonumber(target) or ( spValidUnitID(target) and not spAreTeamsAllied(teamID,spGetUnitTeam(target))) then
+						local validTarget = false
+						--only accept valid targets
+						for weaponID in ipairs(weaponList) do
+							--unit test target only tests the validity of the target type, not range or other variable things
+							if tonumber(target) then
+								--unitID target
+								validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target)
+							else
+								--coordinate target
+								validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
+							end
+							if validTarget then
+								break
+							end
+						end
+						if validTarget then
+							targetList[#targetList+1] = {
+								alwaysSeen = not tonumber(target) or UnitDefs[spGetUnitDefID(target)].isBuilding or UnitDefs[spGetUnitDefID(target)].speed == 0,
+								ignoreStop = ignoreStop,
+								userTarget = userTarget,
+								target = target,
+							}
+						end
 					end
-					targetData.ignoreStop = ignoreStop
-					targetData.userTarget = userTarget
 				end
-				addUnitTargets(unitID, unitDefID, targets, append )
+				if #targetList > 0 then
+					addUnitTargets(unitID, unitDefID, targetList, append )
+				end
 			end
 		end
 		return true
