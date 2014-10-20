@@ -248,7 +248,7 @@ function UpdatePassiveBuilders(teamID, interval)
         end
     end
     
-    --calculate how much pull passive cons will be allowed
+    --calculate how much expense passive cons will be allowed
     teamStalling[teamID] = {}
     local wouldStall = false
     for _,resName in pairs(resTable) do
