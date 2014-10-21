@@ -1,4 +1,12 @@
-8.03 -> 8.04
+8.05 -> 8.06
+??/10/2014
+
+- Fixed passive builders lua error
+- Spies have sonar stealth
+- Fixed Set Target on ally units
+- Improved hotfix for stuck in draw mode
+
+8.04 -> 8.05
 20/10/2014
 
 - Improved performance of Passive Builders gadget
