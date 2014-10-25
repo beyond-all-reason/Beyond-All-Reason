@@ -227,16 +227,28 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
-	-- communicate readyState to all
-	-- 0: unready, 1: ready, 2: game forcestarted & player not ready, 3: game forcestarted & player absent
-	-- for some reason 2 is sometimes used in place of 1 and is always used for the last player to become ready
+    -- readyState:
+	-- 0: player placed a startpoint, is unready 
+    -- 1: game starting, player is ready
+    -- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this will have the wrong x,z)
+    -- 3: game forcestarted & player absent
+
 	-- we also add (only used in Initialize) the following
 	-- -1: players will not be allowed to place startpoints; automatically readied once ingame
 	--  4: player has placed a startpoint but is not yet ready
-	if Game.startPosType == 2 then -- choose in game mode
+	
+	-- communicate readyState to all
+    if Game.startPosType == 2 then -- choose in game mode
 		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
 	end
-	
+    
+    --[[
+    -- for debugging
+    local name,_,_,tID = Spring.GetPlayerInfo(playerID) 
+    Spring.Echo(name,tID,x,z,readyState, (startPointTable[tID]~=nil))
+    Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
+	]]
+    
 	if Game.startPosType == 3 then return true end --choose before game mode
 	if useFFAStartPoints then return true end
 	
@@ -278,13 +290,18 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 		
 	-- record table of starting points for startpoint assist to use
 	if readyState == 2 then 
-		startPointTable[teamID]={-5000,-5000} --player readied or game was forced started, but player did not place a startpoint.  make a point far away enough not to bother anything else
-	else		
-		startPointTable[teamID]={x,z} --player placed startpoint but has not clicked ready
-		if readyState ~= 1 then
-			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4) --made startpoint but didn't click ready
+        -- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
+		if not startPointTable[teamID] then
+            startPointTable[teamID]={-5000,-5000} -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
+        end
+    else		
+        -- player placed startpoint OR game is starting and player is ready
+        startPointTable[teamID]={x,z} 
+		if readyState ~= 1 then 
+            -- game is not starting (therefore, player cannot yet have pressed ready)
+            Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4) 
+            SendToUnsynced("StartPointChosen", playerID)
 		end
-		SendToUnsynced("StartPointChosen", playerID)
 	end	
 	
 	return true
