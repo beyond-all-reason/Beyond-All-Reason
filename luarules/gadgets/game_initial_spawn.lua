@@ -238,9 +238,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
 	--  4: player has placed a startpoint but is not yet ready
 	
 	-- communicate readyState to all
-    if Game.startPosType == 2 then -- choose in game mode
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
-	end
+    Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState) 
     
     --[[
     -- for debugging
@@ -249,7 +247,7 @@ function gadget:AllowStartPosition(x,y,z,playerID,readyState)
     Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
 	]]
     
-	if Game.startPosType == 3 then return true end --choose before game mode
+	if Game.startPosType ~= 2 then return true end -- accept blindly unless we are in choose-in-game mode
 	if useFFAStartPoints then return true end
 	
 	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
@@ -386,15 +384,14 @@ function SpawnTeamStartUnit(teamID, allyTeamID)
 	local x,_,z = Spring.GetTeamStartPosition(teamID)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID) 
 
-	--pick location 
-	local isAIStartPoint = (Game.startPosType == 3) and ((x>0) or (z>0)) --AIs only place startpoints of their own with choose-before-game mode
-	if not isAIStartPoint then
+	-- if its choose-in-game mode, see if we need to autoplace anyone
+	if Game.startPosType==2 then
 		if ((not startPointTable[teamID]) or (startPointTable[teamID][1] < 0)) then
 			-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
 			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		else
 			--fallback 
-			if (x<=0) or (z<=0) then
+			if x<=0 or z<=0 then
 				x = (xmin + xmax) / 2
 				z = (zmin + zmax) / 2
 			end
