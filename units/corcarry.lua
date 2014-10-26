@@ -33,6 +33,7 @@ return {
 		idletime = 600,
 		isairbase = true,
 		losemitheight = 50,
+        mass = 10000,
 		maxdamage = 7950,
 		maxvelocity = 2.6400001049042,
 		metalstorage = 1500,
