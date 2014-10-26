@@ -10,6 +10,7 @@ return {
 		buildpic = "CORCARRY.DDS",
 		buildtime = 20800,
 		canassist = false,
+        canattack = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
@@ -150,9 +151,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTAIR",
+				badtargetcategory = "ALL",
 				def = "FMD_ROCKET",
-				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

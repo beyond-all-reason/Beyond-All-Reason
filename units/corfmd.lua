@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "corfmd_aoplane.dds",
 		buildpic = "CORFMD.DDS",
 		buildtime = 60000,
+        canattack = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -19 0",
 		collisionvolumescales = "48 78 48",
@@ -137,9 +138,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTAIR",
+				badtargetcategory = "ALL",
 				def = "FMD_ROCKET",
-				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

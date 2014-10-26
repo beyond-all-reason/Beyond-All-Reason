@@ -10,6 +10,7 @@ return {
 		buildpic = "ARMCARRY.DDS",
 		buildtime = 20800,
 		canassist = false,
+        canattack = false,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
@@ -151,9 +152,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "NOTAIR",
+				badtargetcategory = "ALL",
 				def = "AMD_ROCKET",
-				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

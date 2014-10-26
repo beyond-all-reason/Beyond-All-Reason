@@ -142,9 +142,8 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
+				badtargetcategory = "ALL",
 				def = "CORMABM_WEAPON",
-				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
