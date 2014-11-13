@@ -113,13 +113,13 @@ function gadget:Initialize()
 		curPos = curPos + gapSize
 		gl.Text("BA has many keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0f\255\255\255\255ight, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0w\255\255\255\255ait", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0f\255\255\255\255ight, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0s\255\255\255\255top", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("Check out the Balanced Annihilation forum on springrts.com for a list of them", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize	
-		gl.Text("For your first few games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("For your first few (multiplayer) games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("After that, you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
