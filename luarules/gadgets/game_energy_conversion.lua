@@ -36,6 +36,16 @@ local convertCapacities = {
         [UnitDefNames.armuwmmm.id] = { c = (650/32), e = (1/50) }, 
         [UnitDefNames.coruwmmm.id] = { c = (650/32), e = (1/50) }
     }
+local function SetMMRulesParams()
+    -- make convertCapacities accessible to all
+    for uDID,conv in pairs(convertCapacties) do
+        local unitName = unitDefs[uDID].name or ""
+        local capacity = conv.c
+        local ration = conv.e
+        Spring.SetGameRulesParam(unitName .. "_" .. c .. "_" .. capacity)
+        Spring.SetGameRulesParam(unitName .. "_" .. e .. "_" .. ratio)        
+    end
+end
 
 ----------------------------------------------------------------
 -- Vars
@@ -103,6 +113,7 @@ end
 -- Callins
 ----------------------------------------------------------------
 function gadget:Initialize()
+    SetMMRulesParams() 
     local i = 1
     for defid, defs in pairs(convertCapacities) do
 		local inTable = false
