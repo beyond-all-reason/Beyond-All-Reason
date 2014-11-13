@@ -31,8 +31,8 @@ allyTeamDeathMessages = {
 	"XX has been brutalized",
 	"XX has been caramelized",
 	"XX has been metabolized",
-	"XX has been destablized",
-	"XX has been immoblized",
+	"XX has been destabilized",
+	"XX has been immobilized",
 	"XX has been oxidized",
 	"XX has been minimized",
 	"XX has been neutralized",
@@ -677,6 +677,7 @@ teamDeathMessages = {
     "XX, James XX",
     "XX claims it was shooting blanks",
     "XX stole Christmas",
+    "XX sniffed too many Naegleria Fowleri",
     
 }
 

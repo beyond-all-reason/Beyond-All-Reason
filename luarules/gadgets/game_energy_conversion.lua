@@ -38,7 +38,7 @@ local convertCapacities = {
     }
 local function SetMMRulesParams()
     -- make convertCapacities accessible to all
-    for uDID,conv in pairs(convertCapacties) do
+    for uDID,conv in pairs(convertCapacities) do
         local unitName = unitDefs[uDID].name or ""
         local capacity = conv.c
         local ration = conv.e
