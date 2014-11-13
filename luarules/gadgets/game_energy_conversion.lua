@@ -39,11 +39,11 @@ local convertCapacities = {
 local function SetMMRulesParams()
     -- make convertCapacities accessible to all
     for uDID,conv in pairs(convertCapacities) do
-        local unitName = unitDefs[uDID].name or ""
+        local unitName = UnitDefs[uDID].name or ""
         local capacity = conv.c
-        local ration = conv.e
-        Spring.SetGameRulesParam(unitName .. "_" .. c .. "_" .. capacity)
-        Spring.SetGameRulesParam(unitName .. "_" .. e .. "_" .. ratio)        
+        local ratio = conv.e
+        Spring.SetGameRulesParam(unitName .. "_mm_capacity", capacity)
+        Spring.SetGameRulesParam(unitName .. "_mm_ratio", ratio)        
     end
 end
 
