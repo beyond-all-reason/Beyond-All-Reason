@@ -165,10 +165,12 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 			["0"]={32,80,32,0,20,0,1,1},
 			["2"]={30,30,71,0,24,0,1,2},
 			["3"]={8,8,42,0,1,70,1,2},
+			offsets={0,45,0}
 	}
 	pieceCollisionVolume["corint"] = {
 			["0"]={73,103,73,0,50,0,1,1},
 			["2"]={13,13,48,0,1,55,1,2},
+			offsets={0,51,0}
 	}		
 	pieceCollisionVolume["armveil"] = {
 			["0"]={25,58,25,0,30,0,1,1},
