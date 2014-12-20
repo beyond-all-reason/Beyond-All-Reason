@@ -25,6 +25,7 @@ return {
 		maxvelocity = 1.7200000286102,
 		maxwaterdepth = 12,
 		movementclass = "TKBOT3",
+        mygravity = 10000,
 		name = "Recluse",
 		nochasecategory = "VTOL",
 		objectname = "ARMSPTK",

@@ -26,6 +26,7 @@ return {
 		maxvelocity = 1.6100000143051,
 		maxwaterdepth = 30,
 		movementclass = "TKBOT3",
+        mygravity = 10000,
 		name = "Termite",
 		nochasecategory = "VTOL",
 		objectname = "CORTERMITE",
