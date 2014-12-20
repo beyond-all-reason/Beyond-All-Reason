@@ -444,6 +444,7 @@ local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the
 local SYSTEM_ID = -1 -- see LuaUnsyncedRead::GetPlayerTraffic, playerID to get hosts traffic from
 local gameStarting
 local timer = 0
+local timer2 = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
 function gadget:ViewResize()
@@ -452,8 +453,8 @@ end
 
 local readyX = vsx * 0.8
 local readyY = vsy * 0.8 
-local readyH = 30
-local readyW = 80
+local readyH = 35
+local readyW = 100
 
 local pStates = {} --local copy of playerStates table
 
@@ -567,9 +568,14 @@ function gadget:DrawScreen()
 		if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
 			colorString = "\255\255\230\0"
 		else
-			colorString = "\255\255\255\255"
+            timer2 = timer2 + Spring.GetLastUpdateSeconds()
+            if timer2 % 0.75 <= 0.375 then
+                colorString = "\255\200\200\20"
+            else
+                colorString = "\255\255\255\255"
+            end
 		end
-		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 20, "o")
+		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 25, "o")
 		gl.Color(1,1,1,1)
 	end
 	
