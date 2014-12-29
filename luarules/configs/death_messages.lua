@@ -456,7 +456,7 @@ teamDeathMessages = {
 	"XX couldn't counter the five-point-palm-exploding-heart technique",
 	"XX flew a kite in a thunderstorm",
 	"XX built its house on sand",
-	"The big bad wolf huffed and he puffed and he blew XX's house away",
+	"The big bad wolf huffed and he puffed and he blew XX away",
 	"XX was reserved for the majority leader and his designee",
 	"XX was swept over the great waterfall at the end of the world",
 	"XX can now be crossed off the list of endangered species",
@@ -678,6 +678,17 @@ teamDeathMessages = {
     "XX claims it was shooting blanks",
     "XX stole Christmas",
     "XX sniffed too many Naegleria Fowleri",
+    "XX was mauled by rabid badgers",
+    "XX had its face melted",
+    "XX talked about Fight Club",
+    "XX learned to stop worrying and love the bomb",
+    "XX said hello to my little friend",
+    "XX coulda had class, coulda been a contender, coulda been somebody.",
+    "XX will never let go, Jack",
+    "Let's talk about XX",
+    "XX flew home in a wooden box",
+    
+    
     
 }
 
