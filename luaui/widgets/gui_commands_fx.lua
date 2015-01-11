@@ -326,9 +326,9 @@ function widget:DrawWorldPreUnit()
                 for j=1,commands[i].queueSize do
                     --Spring.Echo(CMD[commands[i].queue[j].id]) --debug
                     local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)                                
-                    local invalidCoord = X<0 or X>mapX or Z<0 or Z>mapZ 
+                    local validCoord = X and Z and X>=0 and X<=mapX and Z>=0 and Z<=mapZ
                     -- draw
-                    if X and not invalidCoord then
+                    if X and validCoord then
                         -- lines
                         local lineColour = CONFIG[commands[i].queue[j].id].colour
                         local lineAlpha = opacity * lineColour[4] * (1-progress)
