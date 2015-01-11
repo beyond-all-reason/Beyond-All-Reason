@@ -65,6 +65,9 @@ local duration      = 1.25
 local lineWidth	    = 6
 local dotRadius     = 28		
 
+local mapX = Game.mapSizeX
+local mapZ = Game.mapSizeZ
+
 local CONFIG = {  
     [CMD_ATTACK] = {
         sizeMult = 1.4,
@@ -323,8 +326,9 @@ function widget:DrawWorldPreUnit()
                 for j=1,commands[i].queueSize do
                     --Spring.Echo(CMD[commands[i].queue[j].id]) --debug
                     local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)                                
+                    local invalidCoord = X<0 or X>mapX or Z<0 or Z>mapZ 
                     -- draw
-                    if X then
+                    if X and not invalidCoord then
                         -- lines
                         local lineColour = CONFIG[commands[i].queue[j].id].colour
                         local lineAlpha = opacity * lineColour[4] * (1-progress)
