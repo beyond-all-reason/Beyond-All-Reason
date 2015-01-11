@@ -11,62 +11,77 @@ function gadget:GetInfo()
 	}
 end
 
---unsynced only
+--synced
 if gadgetHandler:IsSyncedCode() then
-	return false
+--
+
+
+function gadget:RecvLuaMsg(msg, playerID)
+    --if playerID~=Spring.GetMyPlayerID() then return false end
+    if msg=="togglehelp" then
+        SendToUnsynced("ToggleHelp", playerID)
+        return true
+    end
 end
+
+
+--unsynced    
+else
+--
 
 local vsx,vsy = Spring.GetViewGeometry()
 local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
+local show = false 
+local gameStarted = false
+
+function ToggleHelp(_,playerID) -- RecvLuaMsg is synced only
+    if playerID==myPlayerID and not (amNewbie and not gameStarted) then
+        show = not show
+    end
+end
+
 
 function gadget:DrawScreen()
-	-- are we are newbie?
-	amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) and not Spring.GetSpectatingState()
-
-	--remove if after gamestart
-	if Spring.GetGameFrame() > 0 then 
-		if keyInfo then 
-			gl.DeleteList(keyInfo)
-		end
-		gadgetHandler:RemoveGadget()
-		return
-	end
-
-	--draw key bind info for newbies
-	if amNewbie and keyInfo then
+	--draw help
+	if (show or (amNewbie and not gameStarted)) and keyInfo then
 		gl.CallList(keyInfo)
 	end
 end
 
 -- remove when countdown starts
 function gadget:GameSetup()
+    amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) and not Spring.GetSpectatingState()
+    show = show or amNewbie
+    
 	if (Spring.GetPlayerTraffic(-1, 4) or 0) > 0 then
-		if keyInfo then 
-			gl.DeleteList(keyInfo)
-		end
-		gadgetHandler:RemoveGadget()	
+		gameStarted = true
+        show = false
 	end
+end
+function gadget:GameStart()
+    gameStarted = true
 end
 
 function gadget:GameOver()
-		if keyInfo then 
-			gl.DeleteList(keyInfo)
-		end
-		gadgetHandler:RemoveGadget()	
+    if keyInfo then 
+		gl.DeleteList(keyInfo)
+	end
+	gadgetHandler:RemoveGadget()	
 end
 
 
--- make draw list for newbie info (TODO: for ba:r, transfer to chili)
 function gadget:Initialize()
+	gadgetHandler:AddSyncAction("ToggleHelp", ToggleHelp)	
+
 	local indent = 15
 	local textSize = 16
 
 	local gaps = 5
 	local lines = 11
-	local width = 650
+	local width = 700
 
 	local gapSize = textSize*1.5
 	local lineHeight = textSize*1.15
@@ -97,7 +112,7 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		gl.Text("Click the right mouse to move units", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("To select orders or build commands, use the unit menu or hotkeys", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("To select orders or build commands, use the unit menu or keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + gapSize
@@ -117,13 +132,24 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		gl.Text("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("Check out the Balanced Annihilation forum on springrts.com for a list of them", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("Check out the Balanced Annihilation forum on \255\210\210\255springrts.com\255\255\255\255 for a list of all keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize	
 		gl.Text("For your first few (multiplayer) games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("After that, you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
-		curPos = curPos + lineHeight
-		gl.Text("Good luck!", dx+indent, dy-curPos, textSize, "o")
+		curPos = curPos + gapSize
+		gl.Text("\255\210\255\210Good luck!", dx+indent, dy-curPos, textSize, "o")
 
 	end)
 end
+
+function gadget:ShutDown()
+    if keyInfo then
+        gl.DeleteList(keyInfo)
+	end
+    gadgetHandler:RemoveSyncAction("ToggleHelp")	
+end
+
+--
+end
+--
