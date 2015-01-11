@@ -326,7 +326,7 @@ function BattleType(battle)
         return "ffa"
     elseif founder=="BlackHoleHost5" or founder=="[ACE]Censeur" or founder=="[ACE]Embleur" then
         return "1v1"
-    elseif founder=="[ACE]Sombri" then
+    elseif founder=="[ACE]Synchrone" or founder=="[ACE]Synchronous" then
         return "chickens" 
     end
     return nil
