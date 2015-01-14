@@ -674,7 +674,7 @@ teamDeathMessages = {
     "XX gave its dog a bone",
     "XX is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE",
     "How to rotate XX?",
-    "XX, James XX",
+    "The name's XX, James XX",
     "XX claims it was shooting blanks",
     "XX stole Christmas",
     "XX sniffed too many Naegleria Fowleri",
@@ -687,6 +687,15 @@ teamDeathMessages = {
     "XX will never let go, Jack",
     "Let's talk about XX",
     "XX flew home in a wooden box",
+    "XX don't need no stinking badges!",
+    "XX is like a box of chocolates",
+    "XX hopped on the last rattler",
+    "XX joined the great majority",
+    "XX pegged out",
+    "XX rode the pale horse",
+    "XX went Tango Uniform",
+    "XX took the last train to glory",
+    "XX went bung",
     
     
     
