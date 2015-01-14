@@ -14,6 +14,7 @@ end
 if (not gadgetHandler:IsSyncedCode()) then
  
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+  -- remove self d commands on shared units
   if (Spring.GetUnitSelfDTime(unitID) > 0) then
     Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, {})
   end
@@ -24,6 +25,7 @@ end
 
 else
 
+-- remove self d orders from empty teams
 function gadget:PlayerChanged(playerID)
 	local _,active,spec,teamID = Spring.GetPlayerInfo(playerID)
 	if active and not spec then return end
