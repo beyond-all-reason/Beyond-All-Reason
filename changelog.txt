@@ -1,5 +1,26 @@
+8.06 -> 8.07
+18/01/2015
+
+- Fixed spiders slipping while climbing steep cliffs
+- Fixed start screen being non-random
+- Fixed startpos sometimes being after reconnect
+- Fixed carriers drifting when landed on
+- Added Commands FX widget (thanks Floris!)
+- Added "help" tab to display Newbie Info ingame
+- Added Factory Hold Position widget (default disabled)
+- Added Widget Profiler
+- Ready button flashes
+- Slightly increased Sokolov range, removed MaxAngleDif
+- Lowered damage reduction of T3 Hovertanks Vs land
+- Commando doesn't build crawling bombs, slightly reduced build range
+- Changed units build by engineers: Freaker builds (Commando, Pyro, Gimp), Consul builds (Rocket Spider, Fido, Maverick)
+- Made Gimp sonar stealthy, increased dps of torpedos
+- Reduced cost and buildtime of Seaplane Platforms
+- Reduced Zeus health
+
+
 8.05 -> 8.06
-??/10/2014
+21/10/2014
 
 - Fixed passive builders lua error
 - Spies have sonar stealth
