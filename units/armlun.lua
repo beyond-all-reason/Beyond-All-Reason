@@ -150,9 +150,9 @@ return {
                 weaponvelocity = 250,
                 damage = {
                     default = 540,
-                    notship = 360,
-                    nothover = 360,
-                    notsub = 360,
+                    notship = 400,
+                    nothover = 400,
+                    notsub = 400,
                 },
             },
         },
