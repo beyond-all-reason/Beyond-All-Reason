@@ -22,7 +22,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
   for _,buildOrder in pairs(buildQ) do
     for uDID,count in pairs(buildOrder) do
         for i=1,count do
-            Spring.GiveOrderToUnit(unitID, -uDID, {}, {"right"}) --syntax err?!
+            Spring.GiveOrderToUnit(unitID, -uDID, {}, {"right"}) 
         end
     end
   end
