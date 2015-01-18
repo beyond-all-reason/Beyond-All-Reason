@@ -199,9 +199,13 @@ function gadget:GameFrame(n)
         end
     end
     
+    -- check if any coms still don't have owners, if so try to find a suitable one & auto-give 
+    
     gadgetHandler:RemoveGadget()
     return
 end
+
+-- block unit transfer until we've done our stuff
 
 -----------------------------
 else -- begin unsynced section
