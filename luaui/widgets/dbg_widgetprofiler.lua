@@ -313,7 +313,7 @@ end
     gl.Text("\255\255\064\064total time", x+150, y-1-(12)*j, 10)
     gl.Text("\255\255\064\064"..('%.3fs'):format(allOverTimeSec), x+105, y-1-(12)*j, 10)
     j = j + 1
-    gl.Text("\255\255\064\064total FPS cost", x+150, y-1-(12)*j, 10)
+    gl.Text("\255\255\064\064current load", x+150, y-1-(12)*j, 10)
     gl.Text("\255\255\064\064"..('%.1f%%'):format(allOverTime), x+105, y-1-(12)*j, 10)
     gl.EndText()
   end
