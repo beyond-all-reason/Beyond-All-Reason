@@ -92,10 +92,12 @@ return {
 				noselfdamage = true,
 				predictboost = 0,
 				range = 400,
-				reloadtime = 8,
+				reloadtime = 6,
+                sonarstealth = true,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 75,
+				turnrate = 1700,
 				turret = true,
 				waterweapon = true,
 				weaponacceleration = 5,
@@ -103,7 +105,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 100,
 				damage = {
-					default = 200,
+					default = 250,
 				},
 			},
 			coramph_weapon2 = {

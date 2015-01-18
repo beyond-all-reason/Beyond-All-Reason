@@ -51,7 +51,7 @@ return {
 			[17] = "corcrash",
 			[18] = "commando",
 			[19] = "corpyro",
-			[20] = "corcan",
+			[20] = "coramph",
 			[21] = "corcs",
 			[22] = "corroy",
 			[1] = "corsolar",
