@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "",
 		license = "Anyone who uses this widget has to email me a horse",
 		layer = 0,
-		enabled = false
+		enabled = true
 	}
 end
 
