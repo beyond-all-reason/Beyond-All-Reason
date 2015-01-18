@@ -13,7 +13,7 @@ return {
 		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "All-terrain Assault Vehicle",
+		description = "Heavy All-terrain Assault Spider",
 		energymake = 0.69999998807907,
 		energyuse = 0.69999998807907,
 		explodeas = "BIG_UNITEX",
