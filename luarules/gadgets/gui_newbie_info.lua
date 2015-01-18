@@ -22,6 +22,9 @@ function gadget:RecvLuaMsg(msg, playerID)
         SendToUnsynced("ToggleHelp", playerID)
         return true
     end
+    if msg=="closehelp" then
+        SendToUnsynced("CloseHelp", playerID)
+    end
 end
 
 
@@ -43,6 +46,11 @@ function ToggleHelp(_,playerID) -- RecvLuaMsg is synced only
     end
 end
 
+function CloseHelp(_,playerID)
+    if playerID==myPlayerID and not (amNewbie and not gameStarted) then
+        show = false
+    end
+end
 
 function gadget:DrawScreen()
 	--draw help
@@ -75,6 +83,7 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction("ToggleHelp", ToggleHelp)	
+	gadgetHandler:AddSyncAction("CloseHelp", CloseHelp)	
 
 	local indent = 15
 	local textSize = 16
@@ -148,6 +157,7 @@ function gadget:ShutDown()
         gl.DeleteList(keyInfo)
 	end
     gadgetHandler:RemoveSyncAction("ToggleHelp")	
+    gadgetHandler:RemoveSyncAction("CloseHelp")	
 end
 
 --

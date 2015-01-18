@@ -1,7 +1,7 @@
 
 function widget:GetInfo()
 return {
-	name    = "Newbie Info Help",
+	name    = "Help - Newbie Info",
 	desc    = "Makes newbie info accessible by clicking 'help'",
 	author  = "Bluestone",
 	date    = "Jan 2015",
@@ -110,4 +110,8 @@ function widget:MousePress(x, y, button)
     if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
 
     Spring.SendLuaRulesMsg("togglehelp")
+end
+
+function widget:Shutdown()
+    Spring.SendLuaRulesMsg("closehelp")
 end
