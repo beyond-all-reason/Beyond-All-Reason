@@ -111,7 +111,7 @@ function gadget:Initialize()
         else
           Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
         end
-      elseif (ud.stockpileWeaponDef ~= nil) and (not ud.weapons[1].onlyTargets["vtol"]) then
+      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="mercury" or ud.name=="screamer") then
       	-- nuke / antinuke ( stockpile weapon, but not mercury/screamer )
       	Spring.SetUnitDefIcon(udid, "nuke.user")
       elseif (ud.canFly) then

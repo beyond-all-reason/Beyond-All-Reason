@@ -15,7 +15,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = "Mobile Anti-missile Defense",
+		description = "Mobile Anti-Nuke",
 		energymake = 200,
 		energystorage = 1000,
 		explodeas = "LARGE_BUILDINGEX",
