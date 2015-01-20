@@ -172,7 +172,7 @@ local function DrawDot(size, r,g,b,a, x,y,z)
 end
 
 local function DrawLine(x1,y1,z1, x2,y2,z2, width) -- long thin rectangle
-    local theta	= atan((z2-z1)/(x2-x1))
+    local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
     local xOffset = sin(pi-theta) * width / 2
     
