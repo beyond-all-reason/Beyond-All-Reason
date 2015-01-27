@@ -18,6 +18,25 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-- make a table of the names of user widgets 
+local userWidgets = {}
+function widget:Initialize()
+    for name,wData in pairs(widgetHandler.knownWidgets) do
+        userWidgets[name] = (not wData.fromZip)
+    end
+end
+
+-- special widgets (things with a right to high usage that the user should not touch!)
+local specialWidgets = {
+    ["Lups"] = true,
+    ["API Chili"] = true,
+    ["Red_UI_Framework"] = true,
+    ["Red_Drawing"] = true,
+}
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 local callinTimes       = {}
 
 local oldUpdateWidgetCallIn
@@ -223,21 +242,79 @@ local loadAverages = {}
 
 local function CalcLoad(old_load, new_load, t)
   return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t)) 
-  --return (old_load-new_load)*math.exp(-tick/t) + new_load
 end
 
 local maximum = 0
+local avg = 0
 local totalLoads = {}
 local allOverTime = 0
 local allOverTimeSec = 0
 
 local sortedList = {}
 local function SortFunc(a,b)
-  --if (a[2]==b[2]) then
-    return a[1]<b[1]
-  --else
-  --  return a[2]>b[2]
-  --end
+    return a.plainname < b.plainname
+end
+
+local maxLines = 50
+local deltaTime
+local redStrength = {}
+
+function DrawWidgetList(list,name,x,y,j)
+    if j>=maxLines-5 then x = x - 350; j = 0; end
+    j = j + 1
+    gl.Text("\255\160\255\160"..name.." WIDGETS", x+150, y-1-(12)*j, 10)
+    j = j + 2
+    
+    for i=1,#list do
+      if j>=maxLines then x = x - 350; j = 0; end
+      local v = list[i]
+      local name = v.plainname
+      local wname = v.fullname
+      local tLoad = v.tLoad
+      local colour = v.colourString
+      gl.Text(wname, x+150, y+1-(12)*j, 10)
+      gl.Text(colour .. ('%.3f%%'):format(tLoad), x+105, y+1-(12)*j, 10)	  
+
+	  j = j + 1
+    end
+    
+    gl.Text("\255\255\064\064total load ("..string.lower(name)..")", x+150, y+1-(12)*j, 10)
+    gl.Text("\255\255\064\064"..('%.3f%%'):format(list.allOverTime), x+105, y+1-(12)*j, 10)	  
+    j = j + 1
+    
+    return x,j
+end
+
+function ColourString(R,G,B)
+	R255 = math.floor(R*255)  
+    G255 = math.floor(G*255)
+    B255 = math.floor(B*255)
+    if (R255%10 == 0) then R255 = R255+1 end
+    if (G255%10 == 0) then G255 = G255+1 end
+    if (B255%10 == 0) then B255 = B255+1 end
+	return "\255"..string.char(R255)..string.char(G255)..string.char(B255)
+end 
+
+local minTime = 0.002 -- above this value, we fade in how heavy we mark a widget
+local maxTime = 0.01 -- above this value, we mark a widget as heavy
+local minFPS = 30 -- above this value, we fade out how red we mark heavy widgets 
+local maxFPS = 60 -- above this value, we don't mark any widgets red
+
+function CheckLoad(v) --tLoad is %
+    local tTime = v.tTime
+    local name = v.plainname
+    local FPS = Spring.GetFPS() 
+    
+    if tTime>maxTime then tTime = maxTime end
+    if tTime<minTime then tTime = minTime end
+    if FPS>maxFPS then FPS = maxFPS end
+    if FPS<minFPS then FPS = minFPS end
+    
+    local new_r = ((tTime-minTime)/(maxTime-minTime)) * ((maxFPS-FPS)/(maxFPS-minFPS))
+    local u = math.exp(-deltaTime/5) --magic colour changing rate
+    redStrength[name] = u*redStrength[name] + (1-u)*new_r
+    local r,g,b = 1, 1-redStrength[name]*((255-64)/255), 1-redStrength[name]*((255-64)/255)
+    return ColourString(r,g,b)
 end
 
   function widget:DrawScreen()
@@ -245,14 +322,16 @@ end
       return --// nothing to do
     end
 
-    local deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTimer)
+    deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTimer)
 
+    -- sort & count timing
     if (deltaTime>=tick) then
       startTimer = Spring.GetTimer()
 	  sortedList = {}
 	  
       totalLoads = {}
       maximum = 0
+      avg = 0
       allOverTime = 0
       local n = 1
       for wname,callins in pairs(callinTimes) do
@@ -275,11 +354,13 @@ end
         allOverTimeSec = allOverTimeSec + total
 
         local tLoad = loadAverages[wname]
-        sortedList[n] = {wname..'('..cmaxname..')',tLoad}
+        sortedList[n] = {plainname=wname, fullname=wname..'('..cmaxname..')', tLoad=tLoad, tTime=total}
         allOverTime = allOverTime + tLoad
+        avg = avg + tLoad
         if (maximum<tLoad) then maximum=tLoad end
         n = n + 1
       end
+      avg = avg/n
 	  
       table.sort(sortedList,SortFunc)
     end
@@ -288,35 +369,59 @@ end
       return --// nothing to do
     end
 
+    -- add to category and set colour
+    local userList = {}
+    local gameList = {}
+    local specialList = {}
+    userList.allOverTime = 0
+    gameList.allOverTime = 0
+    specialList.allOverTime = 0
+    for i=1,#sortedList do
+        redStrength[sortedList[i].plainname] = redStrength[sortedList[i].plainname] or 0
+        if userWidgets[sortedList[i].plainname] then
+            sortedList[i].colourString = CheckLoad(sortedList[i])
+            userList[#userList+1] = sortedList[i]
+            userList.allOverTime = userList.allOverTime + sortedList[i].tLoad
+        elseif specialWidgets[sortedList[i].plainname] then
+            sortedList[i].colourString = "\255\255\255\255"
+            specialList[#specialList+1] = sortedList[i]
+            specialList.allOverTime = specialList.allOverTime + sortedList[i].tLoad  
+        else
+            sortedList[i].colourString = CheckLoad(sortedList[i])
+            gameList[#gameList+1] = sortedList[i]
+            gameList.allOverTime = gameList.allOverTime + sortedList[i].tLoad
+        end
+    end
+    
+    -- draw
     local vsx, vsy = gl.GetViewSizes()
     local x,y = vsx-350, vsy-150
 
     gl.Color(1,1,1,1)
     gl.BeginText()
-	local j = 0
-    for i=1,#sortedList do
-	  j = j +1
-      local v = sortedList[i]
-      local wname = v[1]
-      local tLoad = v[2]
-      if maximum > 0 then
-        gl.Rect(x+100-tLoad/maximum*100, y+1-(12)*j, x+100, y+9-(12)*j)
-      end
-      gl.Text(wname, x+150, y+1-(12)*j, 10)
-      gl.Text(('%.3f%%'):format(tLoad), x+105, y+1-(12)*j, 10)
-	  if i%50==0 then
-		x = x - 350
-		j = 0
-	  end
-    end
+	local j = -1 --line number
+    
+    x,j = DrawWidgetList(gameList,"GAME",x,y,j)
+    x,j = DrawWidgetList(specialList,"API & SPECIAL",x,y,j)
+    x,j = DrawWidgetList(userList,"USER",x,y,j)
+    
+    if j>=maxLines-5 then x = x - 350; j = 0; end
+    j = j + 1
+    gl.Text("\255\180\255\180TOTAL", x+150, y-1-(12)*j, 10)
+    j = j + 1
+
+    if j>=maxLines-5 then x = x - 350; j = 0; end
 	j = j + 1
+    gl.Text("\255\255\064\064total load", x+150, y-1-(12)*j, 10)
+    gl.Text("\255\255\064\064"..('%.1f%%'):format(allOverTime), x+105, y-1-(12)*j, 10)
+    j = j + 1
     gl.Text("\255\255\064\064total time", x+150, y-1-(12)*j, 10)
     gl.Text("\255\255\064\064"..('%.3fs'):format(allOverTimeSec), x+105, y-1-(12)*j, 10)
-    j = j + 1
-    gl.Text("\255\255\064\064current load", x+150, y-1-(12)*j, 10)
-    gl.Text("\255\255\064\064"..('%.1f%%'):format(allOverTime), x+105, y-1-(12)*j, 10)
     gl.EndText()
+  
   end
+  
+  
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
