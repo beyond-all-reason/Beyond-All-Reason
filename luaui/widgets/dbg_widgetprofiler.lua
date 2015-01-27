@@ -295,8 +295,8 @@ function ColourString(R,G,B)
 	return "\255"..string.char(R255)..string.char(G255)..string.char(B255)
 end 
 
-local minTime = 0.002 -- above this value, we fade in how heavy we mark a widget
-local maxTime = 0.01 -- above this value, we mark a widget as heavy
+local minTime = 0.005 -- above this value, we fade in how heavy we mark a widget
+local maxTime = 0.02 -- above this value, we mark a widget as heavy
 local minFPS = 30 -- above this value, we fade out how red we mark heavy widgets 
 local maxFPS = 60 -- above this value, we don't mark any widgets red
 
@@ -354,7 +354,7 @@ end
         allOverTimeSec = allOverTimeSec + total
 
         local tLoad = loadAverages[wname]
-        sortedList[n] = {plainname=wname, fullname=wname..'('..cmaxname..')', tLoad=tLoad, tTime=total}
+        sortedList[n] = {plainname=wname, fullname=wname..'('..cmaxname..')', tLoad=tLoad, tTime=total/deltaTime}
         allOverTime = allOverTime + tLoad
         avg = avg + tLoad
         if (maximum<tLoad) then maximum=tLoad end
