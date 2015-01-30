@@ -321,7 +321,6 @@ function gadget:GameStart()
 				SpawnFFAStartUnit(nAllyTeams, allyTeamID, allyTeamSpawn[allyTeamID], teamID) 
 			end
 			
-			gadgetHandler:RemoveGadget()
 			return
 		end
 	end
@@ -330,9 +329,11 @@ function gadget:GameStart()
 	-- cycle through teams and call spawn team starting unit 
 	for teamID, allyTeamID in pairs(spawnTeams) do
 		SpawnTeamStartUnit(teamID, allyTeamID) 
-	end
-	
-	gadgetHandler:RemoveGadget()
+	end	
+end
+
+function gadget:GameFrame()
+	gadgetHandler:RemoveGadget(self)
 end
 
 function SetFFASpawns()
@@ -592,7 +593,7 @@ function gadget:DrawScreen()
 	
 	--remove if after gamestart
 	if Spring.GetGameFrame() > 0 or Spring.IsReplay() then 
-		gadgetHandler:RemoveGadget()
+		gadgetHandler:RemoveGadget(self)
 		return
 	end
 end
