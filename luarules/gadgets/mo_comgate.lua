@@ -52,7 +52,7 @@ function gadget:GameFrame(n)
 		Spring.SetUnitNoDraw(unitID,false)
     end
     Spring.Echo("Commander Gate Complete")
-    gadgetHandler:RemoveGadget()
+    gadgetHandler:RemoveGadget(self)
   end
 end
 

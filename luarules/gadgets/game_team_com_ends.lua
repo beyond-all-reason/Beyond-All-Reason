@@ -50,7 +50,7 @@ end
 
 function gadget:Initialize()
 	if not endmodes[Spring.GetModOptions().deathmode] then
-		gadgetHandler:RemoveGadget() -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
 	end
 	for _,t in ipairs(Spring.GetAllyTeamList()) do
 		aliveCount[t] = 0

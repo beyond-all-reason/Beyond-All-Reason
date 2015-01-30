@@ -87,12 +87,12 @@ local playerQuitIsDead = true
 
 function gadget:GameOver()
 	-- remove ourself after successful game over
-	gadgetHandler:RemoveGadget()
+	gadgetHandler:RemoveGadget(self)
 end
 
 function gadget:Initialize()
 	if tostring(Spring.GetModOptions().deathmode) == "neverend" or Spring.GetModOptions().deathmode == nil then
-		gadgetHandler:RemoveGadget()
+		gadgetHandler:RemoveGadget(self)
         return
 	end
 	
@@ -105,7 +105,7 @@ function gadget:Initialize()
 	end
 	
 	if teamCount < 2 then -- sandbox mode ( possibly gaia + possibly one player)
-		gadgetHandler:RemoveGadget()
+		gadgetHandler:RemoveGadget(self)
 		return
 	elseif teamCount == 2 then
 		playerQuitIsDead = false -- let player quit & rejoin in 1v1

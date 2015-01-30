@@ -77,7 +77,7 @@ function gadget:GameOver()
     if keyInfo then 
 		gl.DeleteList(keyInfo)
 	end
-	gadgetHandler:RemoveGadget()	
+	gadgetHandler:RemoveGadget(self)	
 end
 
 

@@ -130,7 +130,7 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
 end
 
 function gadget:GameOver()
-	gadgetHandler:RemoveGadget()
+	gadgetHandler:RemoveGadget(self)
 end
 
 --------------------------------------------------------------------------------
