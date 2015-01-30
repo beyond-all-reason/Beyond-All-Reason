@@ -31,6 +31,8 @@ local gameStarted = false
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function gadget:RecvLuaMsg(msg, playerID)
+    local checkChange = (msg=='\144' or msg=='\145')
+
 	if msg=='\145' then
         substitutes[playerID] = nil
         --Spring.Echo("received removal", playerID)
@@ -49,11 +51,15 @@ function gadget:RecvLuaMsg(msg, playerID)
         --Spring.Echo("received", playerID, eligible, ts)
     end
 
-    FindSubs(false)    
+    if checkChange then
+        Spring.Echo("FindSubs", "RecvLuaMsg")
+        FindSubs(false)
+    end
 end
 
 function gadget:PlayerChanged()
     if not gameStarted then
+        --Spring.Echo("FindSubs", "PlayerChanged")
         FindSubs(false)
     end
 end
@@ -80,15 +86,20 @@ function gadget:Initialize()
 end
 
 function FindSubs(real)
+    --Spring.Echo("FindSubs", "real=", real)
+    
     -- make a copy of the substitutes table
     local substitutesLocal = {}
     local i = 0
-    for k,v in pairs(substitutes) do
-        substitutesLocal[k] = v
+    for pID,ts in pairs(substitutes) do
+        substitutesLocal[pID] = ts
         i = i + 1
     end
     absent = {}
-    --Spring.Echo("subs: " .. i)
+    
+    --local theSubs = ""
+    --for k,v in pairs(substitutesLocal) do theSubs = theSubs .. tostring(k) .. "[" .. v .. "]" .. "," end
+    --Spring.Echo("#subs: " .. i , theSubs)
     
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
@@ -104,7 +115,7 @@ function FindSubs(real)
             end
         end
     end
-    --Spring.Echo("absent: " .. #absent)
+    --Spring.Echo("#absent: " .. #absent)
     
     -- for each one, try and find a suitable replacement & substitute if so
     for playerID,ts in pairs(absent) do
@@ -131,10 +142,13 @@ function FindSubs(real)
             local sID
             if #idealSubs>0 then
                 sID = (#idealSubs>1) and idealSubs[math.random(1,#idealSubs)] or idealSubs[1]
+                --Spring.Echo("picked ideal sub", sID)
             else
                 sID = (#validSubs>1) and validSubs[math.random(1,#validSubs)] or validSubs[1]
+                --Spring.Echo("picked valid sub", sID)
             end
             
+            --Spring.Echo("real", real)
             if real then
                 -- do the replacement 
                 local teamID = players[playerID]
@@ -199,9 +213,9 @@ function gadget:GameFrame(n)
         end
     end
     
-    -- check if any coms still don't have owners, if so try to find a suitable one & auto-give 
+    -- TODO? check if any coms still don't have owners, if so try to find a suitable one & auto-give 
     
-    gadgetHandler:RemoveGadget()
+    gadgetHandler:RemoveGadget(self)
     return
 end
 
@@ -345,7 +359,7 @@ end
 function gadget:GameFrame(n)
     if n>=5 then
         gadgetHandler:RemoveSyncAction("MarkStartPoint")
-        gadgetHandler:RemoveGadget()
+        gadgetHandler:RemoveGadget(self)
         return
     end
 end
