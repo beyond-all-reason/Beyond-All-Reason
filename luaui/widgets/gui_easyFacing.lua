@@ -9,7 +9,7 @@ function widget:GetInfo()
 		date      = "2009.08.10",
 		license   = "GNU GPL v2",
 		layer     = 0,
-		enabled   = true
+		enabled   = false
 	}
 end
 
@@ -22,7 +22,7 @@ local sens = 150	--rotate mouse sensitivity - length of mouse movement vector
 local drawForAll = false --draw facing direction also for other buildings than labs
 --------------------------------------------------------------------------------
 local inDrag = false
-local metaStart = false
+local mmbStart = false
 local mouseDeltaX = 0
 local mouseDeltaY = 0
 local mouseXStartRotate = 0
@@ -178,34 +178,29 @@ function manipulateFacing()
 	local mx,my,lmb,mmb,rmb = spGetMouseState()
 	local alt,ctrl,meta,shift = spGetModKeyState()
 	
-	if ( lmb and mouseLbLast == false) or ( meta and not inDrag and not lmb ) then
-		--in
+	if (lmb and mmb) then
+		--in       
+        if not inDrag then
+            mouseDeltaX = 0
+            mouseDeltaY = 0
+            mouseXStartRotate = mx
+            mouseYStartRotate = my
+            mouseXStartDrag = mx
+            mouseYStartDrag = my
+        end
+        
 		inDrag = true
-		mouseDeltaX = 0
-		mouseDeltaY = 0
-		mouseXStartRotate = mx
-		mouseYStartRotate = my
-		mouseXStartDrag = mx
-		mouseYStartDrag = my
-		printDebug("IN")
-		
-		if ( meta and not lmb ) then
-			metaStart = true
-		else
-			metaStart = false
-		end
-	elseif ( metaStart == false and lmb == false and mouseLbLast == true ) or ( metaStart and not meta and inDrag ) then
+		printDebug("IN")        
+	else 
 		--out
 		printDebug("OUT")
 		inDrag = false
 	end
-	mouseLbLast = lmb
 		
 	--check if valid command
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 	if (not cmd_id) then return end
 
-	
 	--check if build command
 	local cmdDesc = spGetActiveCmdDesc( idx )
 	if ( cmdDesc["type"] ~= 20 ) then
@@ -214,20 +209,15 @@ function manipulateFacing()
 	end
 	
 	if ( inDrag ) then
-		if (shift == true and meta == false) then
-			mouseXStartRotate = mx
-			mouseYStartRotate = my
-		end
-		
 		local curDeltaX = mx - mouseXStartRotate
 		mouseDeltaX = mouseDeltaX + curDeltaX
 		local curDeltaY = my - mouseYStartRotate
 		mouseDeltaY = mouseDeltaY + curDeltaY
-		
+        
 		local newFacing = getFacingByMouseDelta( mouseDeltaX, mouseDeltaY )
 		if ( newFacing ~= nil ) then
 			mouseDeltaX = 0
-			mouseDeltaY = 0 --added. was it missing?
+			mouseDeltaY = 0 
 			
 			if ( newFacing ~= spGetBuildFacing() ) then
 				spSetBuildFacing( newFacing )
