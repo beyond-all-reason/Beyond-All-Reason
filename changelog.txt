@@ -1,3 +1,13 @@
+8.07 -> 8.08
+31/01/2015
+
+- Nicer GUI for Widget Profiler
+- Fixed Help not hiding when widget was removed
+- Fixed Substitutions
+- Fixed Built Split and Easy Facing not working together; Use the middle mouse button while queueing to activate Easy Facing
+- Added State Remover widget, removes return fire and roam states (default disabled)
+
+
 8.06 -> 8.07
 18/01/2015
 
@@ -13,7 +23,7 @@
 - Slightly increased Sokolov range, removed MaxAngleDif
 - Lowered damage reduction of T3 Hovertanks Vs land
 - Commando doesn't build crawling bombs, slightly reduced build range
-- Changed units build by engineers: Freaker builds (Commando, Pyro, Gimp), Consul builds (Rocket Spider, Fido, Maverick)
+- Changed units built by engineers: Freaker builds (Commando, Pyro, Gimp), Consul builds (Rocket Spider, Fido, Maverick)
 - Made Gimp sonar stealthy, increased dps of torpedos
 - Reduced cost and buildtime of Seaplane Platforms
 - Reduced Zeus health
