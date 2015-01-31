@@ -52,7 +52,7 @@ function gadget:RecvLuaMsg(msg, playerID)
     end
 
     if checkChange then
-        Spring.Echo("FindSubs", "RecvLuaMsg")
+        --Spring.Echo("FindSubs", "RecvLuaMsg")
         FindSubs(false)
     end
 end
