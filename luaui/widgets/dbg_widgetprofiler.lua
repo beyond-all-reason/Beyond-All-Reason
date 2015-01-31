@@ -410,7 +410,6 @@ end
     gl.Text("\255\180\255\180TOTAL", x+150, y-1-(12)*j, 10)
     j = j + 1
 
-    if j>=maxLines-5 then x = x - 350; j = 0; end
 	j = j + 1
     gl.Text("\255\255\064\064total load", x+150, y-1-(12)*j, 10)
     gl.Text("\255\255\064\064"..('%.1f%%'):format(allOverTime), x+105, y-1-(12)*j, 10)
