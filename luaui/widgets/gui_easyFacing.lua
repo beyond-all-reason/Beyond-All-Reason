@@ -4,7 +4,7 @@ local versionNumber = "1.5"
 function widget:GetInfo()
 	return {
 		name      = "Easy Facing",
-		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Enables changing building facing by holding left mouse button. Press (META) to change facing when using shift.",
+		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Enables changing building facing by holding left mouse button. Hold the middle mouse button to change facing while queueing.",
 		author    = "very_bad_soldier",
 		date      = "2009.08.10",
 		license   = "GNU GPL v2",
