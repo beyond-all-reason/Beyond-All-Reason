@@ -154,11 +154,21 @@ function widget:MouseWheel(up, value)
 end
 
 
-local function SortWidgetListFunc(nd1, nd2)
-  if (nd1[2].fromZip ~= nd2[2].fromZip) then
-    return nd1[2].fromZip  -- mod widgets first
+local function SortWidgetListFunc(nd1, nd2) --does nd1 come before nd2?
+  -- widget profiler on top
+  if nd1[1]=="Widget Profiler" then 
+    return true 
+  elseif nd2[1]=="Widget Profiler" then
+    return false
   end
-  return (nd1[1] < nd2[1]) -- sort by name
+  
+  -- mod widgets first, then user widgets
+  if (nd1[2].fromZip ~= nd2[2].fromZip) then
+    return nd1[2].fromZip  
+  end
+  
+  -- sort by name
+  return (nd1[1] < nd2[1]) 
 end
 
 

@@ -3,7 +3,7 @@
 
 function widget:GetInfo()
   return {
-    name      = "WidgetProfiler",
+    name      = "Widget Profiler",
     desc      = "",
     author    = "jK",
     version   = "2.0",
