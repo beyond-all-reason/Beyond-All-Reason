@@ -148,6 +148,8 @@ end
 
 
 function widget:MouseWheel(up, value)
+  if not show then return false end
+  
   local a,c,m,s = Spring.GetModKeyState()
   if (a or m) then
     return false  -- alt and meta allow normal control
@@ -477,7 +479,7 @@ end
 
 
 function widget:MousePress(x, y, button)
-  if (Spring.IsGUIHidden()) then
+  if (Spring.IsGUIHidden()) or not show then
     return false
   end
 
@@ -532,17 +534,18 @@ end
 
 
 function widget:MouseMove(x, y, dx, dy, button)
-  if activescrollbar then
+  if show and activescrollbar then
     startEntry = math.max(0, math.min(math.floor((#fullWidgetsList * ((sby1 - sbsize) - (y - math.min(scrollbargrabpos, sbsize))) / sbheight) + 0.5), 
     #fullWidgetsList - maxEntries)) + 1
     UpdateListScroll()
+    return true
   end
   return false
 end
 
 
 function widget:MouseRelease(x, y, mb)
-  if (Spring.IsGUIHidden()) then
+  if (Spring.IsGUIHidden()) or not show then
     return -1
   end
 
@@ -643,6 +646,8 @@ end
 
 
 function widget:GetTooltip(x, y)
+  if not show then return nil end 
+
   UpdateList()  
   local namedata = self:AboveLabel(x, y)
   if (not namedata) then
