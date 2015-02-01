@@ -92,9 +92,12 @@ local show = false
 
 
 
-local b1Text = "Disable User Widgets"
-local b2Text = "Disable All Widgets"
-local buttonFontSizeMult = 1.25
+local buttons = { --see MouseRelease for which functions are called by which buttons
+    [1] = "Disable User Widgets",
+    [2] = "Disable ALL Widgets",
+}
+local buttonFontSize = 14
+local buttonHeight = 20
 
 -------------------------------------------------------------------------------
 
@@ -267,18 +270,16 @@ function widget:DrawScreen()
 
 
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
+  local tcol = WhiteStr
   
   -- draw the buttons
-  local tcol = WhiteStr
-  if minx < mx and mx < minx + b1TextWidth and miny - 20 < my and my < miny then
-    tcol = '\255\031\031\255'
+  for i,name in ipairs(buttons) do
+    tcol = WhiteStr
+    if minx < mx and mx < maxx and miny - i*buttonHeight < my and my < miny - (i-1)*buttonHeight then
+      tcol = '\255\031\031\255'
+    end
+    gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - i*buttonHeight + 5, buttonFontSize, "oc")
   end
-  gl.Text(tcol .. b1Text, (minx+maxx)/2, miny - 15, fontSize * buttonFontSizeMult, "oc")
-  tcol = WhiteStr
-  if minx < mx and mx < minx + b2TextWidth and miny - 40 < my and my < miny - 20 then
-    tcol = '\255\031\031\255'
-  end
-  gl.Text(tcol .. b2Text, (minx+maxx)/2, miny - 35, fontSize * buttonFontSizeMult, "oc")
   
   
   -- draw the widgets
@@ -546,21 +547,28 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 
-function widget:MouseRelease(x, y, button)
+function widget:MouseRelease(x, y, mb)
   if (Spring.IsGUIHidden()) then
     return -1
   end
 
   UpdateList()
   
-  if button == 1 and activescrollbar then
+  if mb == 1 and activescrollbar then
     activescrollbar = false
     scrollbargrabpos = 0.0
     return -1
   end
 
-  if button == 1 then
-    if minx < x and x < maxx and miny - 20 < y and y < miny then
+  if mb == 1 then
+    local buttonID = nil
+    for i,_ in ipairs(buttons) do
+        if minx < x and x < maxx and miny - i*buttonHeight < y and y < miny - (i-1)*buttonHeight then
+            buttonID = i
+            break
+        end
+    end
+    if buttonID == 1 then
       -- set all user widgets off, set all game widgets to default state
       for _,namedata in ipairs(fullWidgetsList) do
         if not namedata[2].fromZip then
@@ -570,7 +578,7 @@ function widget:MouseRelease(x, y, button)
       Spring.Echo("Unloaded all user widgets")
       return -1
     end
-    if minx < x and x < maxx and miny - 40 < y and y < miny - 20 then
+    if buttonID == 2 then
       -- disable all widgets
       for _,namedata in ipairs(fullWidgetsList) do
         widgetHandler:DisableWidget(namedata[1])
@@ -588,7 +596,7 @@ function widget:MouseRelease(x, y, button)
   local name = namedata[1]
   local data = namedata[2]
   
-  if (button == 1) then
+  if (mb == 1) then
     widgetHandler:ToggleWidget(name)
   elseif ((button == 2) or (button == 3)) then
     local w = widgetHandler:FindWidget(name)
@@ -623,7 +631,7 @@ end
 function widget:IsAbove(x, y)
   UpdateList()
   if ((x < minx) or (x > maxx + yStep) or
-      (y < miny - 20) or (y > maxy)) then
+      (y < miny - #buttons*buttonHeight) or (y > maxy)) then
     return false
   end
   return true
