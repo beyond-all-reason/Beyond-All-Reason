@@ -30,7 +30,7 @@ local gl = gl
 local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '.lua'
 local WIDGET_DIRNAME     = LUAUI_DIRNAME .. 'Widgets/'
 
-local SELECTOR_BASENAME = 'selector.lua'
+local SELECTOR_BASENAME = 'widget_selector.lua'
 
 local SAFEWRAP = 1
 -- 0: disabled
@@ -1099,7 +1099,7 @@ function widgetHandler:ConfigureLayout(command)
         return true  -- there can only be one
       end
     end
-    local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME)
+    local sw = self:LoadWidget(WIDGET_DIRNAME .. SELECTOR_BASENAME) -- load BAs widget_selector.lua, instead of the default selector.lua
     self:InsertWidget(sw)
     self:RaiseWidget(sw)
     return true
