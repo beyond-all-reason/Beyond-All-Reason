@@ -23,7 +23,7 @@ function widget:GetInfo()
     author    = "trepan",
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
-    layer     = -9,
+    layer     = math.huge,
     handler   = true, --  needs the real widgetHandler
     enabled   = true  --  loaded by default?
   }
@@ -54,16 +54,8 @@ local yStep = fontSize + fontSpace
 
 local entryFont  = "LuaUI/Fonts/FreeMonoBold_12"
 local headerFont  = "LuaUI/Fonts/FreeMonoBold_12"
---local headerFont = "LuaUI/Fonts/FreeMonoBold_16"
---local entryFont  = "LuaUI/Fonts/mephisto_12"
---local entryFont  = "LuaUI/Fonts/VeraMoBd_12"
---local entryFont  = "LuaUI/Fonts/fragileb_16"
---local entryFont  = "LuaUI/Fonts/edenmb___16"
---local headerFont = "LuaUI/Fonts/abaddon_22"
-if (1 > 0) then
-  entryFont  = ":n:" .. entryFont
-  headerFont = ":n:" .. headerFont
-end
+entryFont  = ":n:" .. entryFont
+headerFont = ":n:" .. headerFont
 
 
 local maxWidth = 0.01
@@ -256,7 +248,7 @@ function widget:DrawScreen()
   gl.BeginText()
 
   -- draw the header
-  gl.Text("Widget Selector", midx, maxy + 5, fontSize * 1.25, "oc")
+  gl.Text("Widget Selector", midx, maxy + 7, fontSize * 1.25, "oc")
 
   -- draw the box
   gl.Color(0.3, 0.3, 0.3, 1.0)
@@ -274,7 +266,7 @@ function widget:DrawScreen()
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   local tcol = WhiteStr
   
-  -- draw the buttons
+  -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
     tcol = WhiteStr
     if minx < mx and mx < maxx and miny - i*buttonHeight < my and my < miny - (i-1)*buttonHeight then
@@ -565,15 +557,13 @@ function widget:MouseRelease(x, y, mb)
   if mb == 1 then
     local buttonID = nil
     for i,_ in ipairs(buttons) do
-    Spring.Echo(i)
         if minx < x and x < maxx and miny - i*buttonHeight < y and y < miny - (i-1)*buttonHeight then
             buttonID = i
             break
         end
     end
-    Spring.Echo(buttonID)
     if buttonID == 1 then
-      -- set all user widgets off, set all game widgets to default state
+      -- set all user widgets off
       for _,namedata in ipairs(fullWidgetsList) do
         if not namedata[2].fromZip then
           widgetHandler:DisableWidget(namedata[1])        
