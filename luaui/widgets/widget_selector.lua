@@ -636,6 +636,7 @@ end
 
 
 function widget:IsAbove(x, y)
+  if not show the return false end 
   UpdateList()
   if ((x < minx) or (x > maxx + yStep) or
       (y < miny - #buttons*buttonHeight) or (y > maxy)) then
