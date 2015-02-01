@@ -232,11 +232,11 @@ function widget:KeyPress(key, mods, isRepeat)
     show = not show
     return true
   end
-  if (key == KEYSYMS.PAGEUP) then
+  if (show and key == KEYSYMS.PAGEUP) then
     ScrollUp(pageStep)
     return true
   end
-  if (key == KEYSYMS.PAGEDOWN) then
+  if (show and key == KEYSYMS.PAGEDOWN) then
     ScrollDown(pageStep)
     return true
   end
