@@ -95,6 +95,8 @@ local show = false
 local buttons = { --see MouseRelease for which functions are called by which buttons
     [1] = "Disable User Widgets",
     [2] = "Disable ALL Widgets",
+    --[3] = "Reload LuaUI", --not implemented (yet) because luaui can't reload itself
+    --[4] = "Reset LuaUI",
 }
 local buttonFontSize = 14
 local buttonHeight = 20
@@ -490,7 +492,7 @@ function widget:MousePress(x, y, button)
   UpdateList()
 
   if button == 1 then
-    if minx < x and x < maxx and miny - 40 < y and y < miny then
+    if minx < x and x < maxx and miny - #buttons*buttonHeight < y and y < miny then
       return true
     end
   
@@ -563,11 +565,13 @@ function widget:MouseRelease(x, y, mb)
   if mb == 1 then
     local buttonID = nil
     for i,_ in ipairs(buttons) do
+    Spring.Echo(i)
         if minx < x and x < maxx and miny - i*buttonHeight < y and y < miny - (i-1)*buttonHeight then
             buttonID = i
             break
         end
     end
+    Spring.Echo(buttonID)
     if buttonID == 1 then
       -- set all user widgets off, set all game widgets to default state
       for _,namedata in ipairs(fullWidgetsList) do
@@ -586,6 +590,16 @@ function widget:MouseRelease(x, y, mb)
       widgetHandler:SaveConfigData()    
       return -1
     end
+    --[[
+    if buttonID == 3 then
+        Spring.SendCommands("luaui reload")
+        return -1
+    end
+    if buttonID == 4 then
+        --widgetHandler:ResetLuaUI() 
+        return -1
+    end
+    ]]
   end
   
   local namedata = self:AboveLabel(x, y)
