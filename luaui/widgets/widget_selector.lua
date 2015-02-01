@@ -90,11 +90,11 @@ local scrollbargrabpos = 0.0
 
 local show = false
 
-local lbText = "Disable User Widgets"
-local rbText = "Disable All Widgets"
+
+
+local b1Text = "Disable User Widgets"
+local b2Text = "Disable All Widgets"
 local buttonFontSizeMult = 1.25
-local lbTextWidth = gl.GetTextWidth(lbText) * fontSize * buttonFontSizeMult
-local rbTextWidth = gl.GetTextWidth(rbText) * fontSize * buttonFontSizeMult
 
 -------------------------------------------------------------------------------
 
@@ -124,6 +124,7 @@ local function UpdateListScroll()
   local wCount = #fullWidgetsList
   local lastStart = lastStart or wCount - maxEntries + 1
   if (lastStart < 1) then lastStart = 1 end
+  if (lastStart > wCount - maxEntries + 1) then lastStart = 1 end
   if (startEntry > lastStart) then startEntry = lastStart end
   if (startEntry < 1) then startEntry = 1 end
   
@@ -265,21 +266,22 @@ function widget:DrawScreen()
   gl.Texture(false)
 
 
-  -- draw the widget/button labels
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   
+  -- draw the buttons
   local tcol = WhiteStr
-  if minx < mx and mx < minx + lbTextWidth and miny - 20 < my and my < miny then
+  if minx < mx and mx < minx + b1TextWidth and miny - 20 < my and my < miny then
     tcol = '\255\031\031\255'
   end
-  gl.Text(tcol .. lbText, minx, miny - 15, fontSize * buttonFontSizeMult, "ol")
+  gl.Text(tcol .. b1Text, (minx+maxx)/2, miny - 15, fontSize * buttonFontSizeMult, "oc")
   tcol = WhiteStr
-  if maxx - rbTextWidth < mx and mx < maxx and miny - 20 < my and my < miny then
+  if minx < mx and mx < minx + b2TextWidth and miny - 40 < my and my < miny - 20 then
     tcol = '\255\031\031\255'
   end
-  gl.Text(tcol .. rbText, maxx, miny - 15, fontSize * buttonFontSizeMult, "or")
+  gl.Text(tcol .. b2Text, (minx+maxx)/2, miny - 35, fontSize * buttonFontSizeMult, "oc")
   
   
+  -- draw the widgets
   local nd = not widgetHandler.tweakMode and self:AboveLabel(mx, my)
   local pointedY = nil
   local pointedEnabled = false
@@ -487,10 +489,7 @@ function widget:MousePress(x, y, button)
   UpdateList()
 
   if button == 1 then
-    if minx < x and x < minx + 30 and miny - 20 < y and y < miny then
-      return true
-    end
-    if maxx - 50 < x and x < maxx and miny - 20 < y and y < miny then  
+    if minx < x and x < maxx and miny - 40 < y and y < miny then
       return true
     end
   
@@ -561,8 +560,7 @@ function widget:MouseRelease(x, y, button)
   end
 
   if button == 1 then
-    if minx < x and x < minx + lbTextWidth and miny - 20 < y and y < miny then
-      -- left button below list was pressed
+    if minx < x and x < maxx and miny - 20 < y and y < miny then
       -- set all user widgets off, set all game widgets to default state
       for _,namedata in ipairs(fullWidgetsList) do
         if not namedata[2].fromZip then
@@ -572,8 +570,7 @@ function widget:MouseRelease(x, y, button)
       Spring.Echo("Unloaded all user widgets")
       return -1
     end
-    if maxx - rbTextWidth < x and x < maxx and miny - 20 < y and y < miny then
-      -- right button below list was pressed
+    if minx < x and x < maxx and miny - 40 < y and y < miny - 20 then
       -- disable all widgets
       for _,namedata in ipairs(fullWidgetsList) do
         widgetHandler:DisableWidget(namedata[1])
