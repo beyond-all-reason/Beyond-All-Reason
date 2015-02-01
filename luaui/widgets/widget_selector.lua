@@ -226,7 +226,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, mods, isRepeat)
-  if ((key == KEYSYMS.ESCAPE) or
+  if (show and (key == KEYSYMS.ESCAPE) or
       ((key == KEYSYMS.F11) and not isRepeat and
        not (mods.alt or mods.ctrl or mods.meta or mods.shift))) then
     show = not show
