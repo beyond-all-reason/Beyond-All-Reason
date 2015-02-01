@@ -122,7 +122,7 @@ end
 
 local function UpdateListScroll()
   local wCount = #fullWidgetsList
-  local lastStart = wCount - maxEntries + 1
+  local lastStart = lastStart or wCount - maxEntries + 1
   if (lastStart < 1) then lastStart = 1 end
   if (startEntry > lastStart) then startEntry = lastStart end
   if (startEntry < 1) then startEntry = 1 end
