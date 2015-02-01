@@ -12,6 +12,7 @@
 --------------------------------------------------------------------------------
 -- changes:
 --   jK (April@2009) - updated to new font system
+--   Bluestone (Jan 2015) - added to BA as a widget, added various stuff 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -43,7 +44,7 @@ local fullWidgetsList = {}
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 
-local maxEntries = 20
+local maxEntries = 25
 local startEntry = 1
 local pageStep  = math.floor(maxEntries / 2) - 1
 
@@ -87,10 +88,19 @@ local sbheight = 0.0
 local activescrollbar = false
 local scrollbargrabpos = 0.0
 
+local show = false
+
+local lbText = "Disable User Widgets"
+local rbText = "Disable All Widgets"
+local buttonFontSizeMult = 1.25
+local lbTextWidth = gl.GetTextWidth(lbText) * fontSize * buttonFontSizeMult
+local rbTextWidth = gl.GetTextWidth(rbText) * fontSize * buttonFontSizeMult
+
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
   widgetHandler.knownChanged = true
+  Spring.SendCommands('unbindkeyset f11')
 end
 
 
@@ -209,8 +219,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
-  --UpdateList()
-  --UpdateGeometry()
+  UpdateGeometry()
 end
 
 
@@ -220,7 +229,7 @@ function widget:KeyPress(key, mods, isRepeat)
   if ((key == KEYSYMS.ESCAPE) or
       ((key == KEYSYMS.F11) and not isRepeat and
        not (mods.alt or mods.ctrl or mods.meta or mods.shift))) then
-    widgetHandler:RemoveWidget(self)
+    show = not show
     return true
   end
   if (key == KEYSYMS.PAGEUP) then
@@ -236,6 +245,7 @@ end
 
 
 function widget:DrawScreen()
+  if not show then return end
   UpdateList()
   gl.BeginText()
 
@@ -255,19 +265,19 @@ function widget:DrawScreen()
   gl.Texture(false)
 
 
-  -- draw the widget labels
+  -- draw the widget/button labels
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   
   local tcol = WhiteStr
-  if minx < mx and mx < minx + 30 and miny - 20 < my and my < miny then
+  if minx < mx and mx < minx + lbTextWidth and miny - 20 < my and my < miny then
     tcol = '\255\031\031\255'
   end
-  gl.Text(tcol .. 'All', minx + 15, miny - 15, fontSize * 1.25, "oc")
+  gl.Text(tcol .. lbText, minx, miny - 15, fontSize * buttonFontSizeMult, "ol")
   tcol = WhiteStr
-  if maxx - 50 < mx and mx < maxx and miny - 20 < my and my < miny then
+  if maxx - rbTextWidth < mx and mx < maxx and miny - 20 < my and my < miny then
     tcol = '\255\031\031\255'
   end
-  gl.Text(tcol .. 'None', maxx - 25, miny - 15, fontSize * 1.25, "oc")
+  gl.Text(tcol .. rbText, maxx, miny - 15, fontSize * buttonFontSizeMult, "or")
   
   
   local nd = not widgetHandler.tweakMode and self:AboveLabel(mx, my)
@@ -551,16 +561,22 @@ function widget:MouseRelease(x, y, button)
   end
 
   if button == 1 then
-    if minx < x and x < minx + 30 and miny - 20 < y and y < miny then
+    if minx < x and x < minx + lbTextWidth and miny - 20 < y and y < miny then
+      -- left button below list was pressed
+      -- set all user widgets off, set all game widgets to default state
       for _,namedata in ipairs(fullWidgetsList) do
-        widgetHandler:EnableWidget(namedata[1])
+        if not namedata[2].fromZip then
+          widgetHandler:DisableWidget(namedata[1])        
+        end
       end
+      Spring.Echo("Unloaded all user widgets")
       return -1
     end
-    if maxx - 50 < x and x < maxx and miny - 20 < y and y < miny then
+    if maxx - rbTextWidth < x and x < maxx and miny - 20 < y and y < miny then
+      -- right button below list was pressed
+      -- disable all widgets
       for _,namedata in ipairs(fullWidgetsList) do
         widgetHandler:DisableWidget(namedata[1])
-        widgetHandler.orderList[namedata[1]] = 0
       end
       widgetHandler:SaveConfigData()    
       return -1
@@ -642,6 +658,10 @@ function widget:GetTooltip(x, y)
     tt = tt..RedStr..' (mod widget)'
   end
   return tt
+end
+
+function widget:ShutDown()
+  spSendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
 end
 
 

@@ -30,7 +30,7 @@ local gl = gl
 local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '.lua'
 local WIDGET_DIRNAME     = LUAUI_DIRNAME .. 'Widgets/'
 
-local SELECTOR_BASENAME = 'widget_selector.lua'
+local SELECTOR_BASENAME = 'selector.lua'
 
 local SAFEWRAP = 1
 -- 0: disabled
@@ -419,7 +419,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
   self:FinalizeWidget(widget, filename, basename)
   local name = widget.whInfo.name
   if (basename == SELECTOR_BASENAME) then
-    self.orderList[name] = 1  --  always enabled
+    self.orderList[name] = 1  -- always load the widget selector
   end
 
   err = self:ValidateWidget(widget)
@@ -1099,7 +1099,7 @@ function widgetHandler:ConfigureLayout(command)
         return true  -- there can only be one
       end
     end
-    local sw = self:LoadWidget(WIDGET_DIRNAME .. SELECTOR_BASENAME) -- load BAs widget_selector.lua, instead of the default selector.lua
+    local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME) -- load BAs widget_selector.lua, instead of the default selector.lua
     self:InsertWidget(sw)
     self:RaiseWidget(sw)
     return true
