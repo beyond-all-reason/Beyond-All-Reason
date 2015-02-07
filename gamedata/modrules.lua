@@ -6,7 +6,6 @@ local modrules  = {
 	unitMethod = 1,
   },
 
-
   sensors = {   
     los = {
       losMipLevel = 2, 
@@ -23,10 +22,12 @@ local modrules  = {
 
   movement = {
 	allowUnitCollisionDamage = false, -- defaults to false, Do unit-unit (skidding) collisions cause damage? 
-	allowUnitCollisionOverlap = false,--Can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'. 
+	allowUnitCollisionOverlap = false,-- can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'. 
   },
   
-  featureLOS = { featureVisibility = 2; },
+  featureLOS = { 
+    featureVisibility = 3; -- all features visible to all
+  },
 
   system = {
         pathFinderSystem = (Spring.GetModOptions() and (Spring.GetModOptions().pathfinder == "qtpfs") and 1) or 0,
