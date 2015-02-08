@@ -20,12 +20,12 @@ function widget:GetInfo()
   return {
     name      = "WidgetSelector",
     desc      = "Widget selection widget",
-    author    = "trepan",
+    author    = "trepan, Bluestone",
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = math.huge,
-    handler   = true, --  needs the real widgetHandler
-    enabled   = true  --  loaded by default?
+    handler   = true, 
+    enabled   = true  
   }
 end
 
@@ -44,9 +44,11 @@ local fullWidgetsList = {}
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 
-local maxEntries = 25
+local minMaxEntries = 15 
+local curMaxEntries = 25
+
 local startEntry = 1
-local pageStep  = math.floor(maxEntries / 2) - 1
+local pageStep  = math.floor(curMaxEntries / 2) - 1
 
 local fontSize = 11
 local fontSpace = 5
@@ -105,7 +107,7 @@ end
 
 local function UpdateGeometry()
   midx  = vsx * 0.5
-  midy  = vsy * 0.5
+  midy  = vsy * 0.45
 
   local halfWidth = maxWidth * fontSize * 0.5
   minx = floor(midx - halfWidth - borderx)
@@ -119,15 +121,15 @@ end
 
 local function UpdateListScroll()
   local wCount = #fullWidgetsList
-  local lastStart = lastStart or wCount - maxEntries + 1
+  local lastStart = lastStart or wCount - curMaxEntries + 1
   if (lastStart < 1) then lastStart = 1 end
-  if (lastStart > wCount - maxEntries + 1) then lastStart = 1 end
+  if (lastStart > wCount - curMaxEntries + 1) then lastStart = 1 end
   if (startEntry > lastStart) then startEntry = lastStart end
   if (startEntry < 1) then startEntry = 1 end
   
   widgetsList = {}
   local se = startEntry
-  local ee = se + maxEntries - 1
+  local ee = se + curMaxEntries - 1
   local n = 1
   for i = se, ee do
     widgetsList[n],n = fullWidgetsList[i],n+1
@@ -250,7 +252,22 @@ function widget:DrawScreen()
   gl.BeginText()
 
   -- draw the header
-  gl.Text("Widget Selector", midx, maxy + 7, fontSize * 1.25, "oc")
+  gl.Text("Widget Selector", midx, maxy + 7, buttonFontSize, "oc")
+  
+  local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
+  local tcol = WhiteStr
+    
+  -- draw the -/+ buttons
+  if maxx-10 < mx and mx < maxx and maxy < my and my < maxy + buttonFontSize + 7 then
+    tcol = '\255\031\031\255'
+  end
+  gl.Text(tcol.."+", maxx, maxy + 7, buttonFontSize, "or")
+  tcol = WhiteStr
+  if minx < mx and mx < minx+10 and maxy < my and my < maxy + buttonFontSize + 7 then
+    tcol = '\255\031\031\255'
+  end
+  gl.Text(tcol.."-", minx, maxy + 7, buttonFontSize, "ol")
+  tcol = WhiteStr
 
   -- draw the box
   gl.Color(0.3, 0.3, 0.3, 1.0)
@@ -263,10 +280,6 @@ function widget:DrawScreen()
     { v = { minx, maxy }, t = { minx * ts, maxy * ts } } 
   })
   gl.Texture(false)
-
-
-  local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
-  local tcol = WhiteStr
   
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
@@ -329,7 +342,7 @@ function widget:DrawScreen()
     	((sby1 - sbsize) - 
     	(my - math.min(scrollbargrabpos, sbsize)))
     	 / sbheight + 0.5), 
-                         #fullWidgetsList - maxEntries)) + 1
+                         #fullWidgetsList - curMaxEntries)) + 1
     end
     local sizex = maxx - minx
     sbposx = minx + sizex + 1.0
@@ -486,25 +499,36 @@ function widget:MousePress(x, y, button)
   UpdateList()
 
   if button == 1 then
+    -- above a button
     if minx < x and x < maxx and miny - #buttons*buttonHeight < y and y < miny then
       return true
     end
-  
+    
+    -- above the -/+ 
+    if maxx-10 < x and x < maxx and maxy < y and y < maxy + buttonFontSize + 7 then
+      return true
+    end
+    if minx < x and x < minx+10 and maxy < y and y < maxy + buttonFontSize + 7 then
+      return true
+    end
+    
+    -- above the list    
     if sbposx < x and x < sbposx + sbsizex and sbposy < y and y < sbposy + sbsizey then
       activescrollbar = true
       scrollbargrabpos = y - sbposy
       return true
     elseif sbposx < x and x < sbposx + sbsizex and sby2 < y and y < sby2 + sbheight then
       if y > sbposy + sbsizey then
-        startEntry = math.max(1, math.min(startEntry - maxEntries, #fullWidgetsList - maxEntries + 1))
+        startEntry = math.max(1, math.min(startEntry - curMaxEntries, #fullWidgetsList - curMaxEntries + 1))
       elseif y < sbposy then
-        startEntry = math.max(1, math.min(startEntry + maxEntries, #fullWidgetsList - maxEntries + 1))
+        startEntry = math.max(1, math.min(startEntry + curMaxEntries, #fullWidgetsList - curMaxEntries + 1))
       end
       UpdateListScroll()
       return true   
     end
   end
 
+  -- above the scrollbar
   if ((x >= minx) and (x <= maxx + yStep)) then
     if ((y >= (maxy - bordery)) and (y <= maxy)) then
       if x > maxx then
@@ -536,7 +560,7 @@ end
 function widget:MouseMove(x, y, dx, dy, button)
   if show and activescrollbar then
     startEntry = math.max(0, math.min(math.floor((#fullWidgetsList * ((sby1 - sbsize) - (y - math.min(scrollbargrabpos, sbsize))) / sbheight) + 0.5), 
-    #fullWidgetsList - maxEntries)) + 1
+    #fullWidgetsList - curMaxEntries)) + 1
     UpdateListScroll()
     return true
   end
@@ -555,6 +579,27 @@ function widget:MouseRelease(x, y, mb)
     activescrollbar = false
     scrollbargrabpos = 0.0
     return -1
+  end
+  
+  if mb == 1 then
+    if maxx-10 < x and x < maxx and maxy < y and y < maxy + buttonFontSize + 7 then
+      -- + button
+      curMaxEntries = curMaxEntries + 1
+      UpdateListScroll()
+      UpdateGeometry()
+      Spring.WarpMouse(x, y+0.5*(fontSize+fontSpace))
+      return -1
+    end
+    if minx < x and x < minx+10 and maxy < y and y < maxy + buttonFontSize + 7 then
+      -- - button
+      if curMaxEntries > minMaxEntries then
+        curMaxEntries = curMaxEntries - 1
+        UpdateListScroll()
+        UpdateGeometry()
+        Spring.WarpMouse(x, y-0.5*(fontSize+fontSpace))
+      end
+      return -1
+    end
   end
 
   if mb == 1 then
@@ -676,12 +721,14 @@ function widget:GetTooltip(x, y)
 end
 
 function widget:GetConfigData()
-    local data = {startEntry=startEntry} 
+    local data = {startEntry=startEntry, curMaxEntries=curMaxEntries, show=show} 
     return data
 end
 
 function widget:SetConfigData(data)
     startEntry = data.startEntry or startEntry
+    curMaxEntries = data.curMaxEntries or curMaxEntries
+    show = data.show or show
 end
 
 function widget:ShutDown()
