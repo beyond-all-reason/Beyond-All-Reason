@@ -82,7 +82,7 @@ function GuessOne(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
 		end
 		
 		-- find nearest walkable metal spot to startbox
-		local bx,bz -- will contain nearest point in startbox to nearest walkable mex
+		local bx,bz = -1,-1 -- will contain nearest point in startbox to nearest walkable mex
 		local bestDist = 2*walkRadius
 		for i=1,#walkableMetalSpots do
 			local mx,mz = walkableMetalSpots[i][1], walkableMetalSpots[i][2]
