@@ -1,3 +1,13 @@
+8.08 -> 8.09
+??/02/2015
+
+- Widget Selector remembers scroll position, has more useful options
+- Widget Selector has +/- buttons to increase/decrease size
+- Widget Selector puts Widget Profiler at the top
+- Fixed LuaUI not recieving FeatureCreated/FeatureDestroyed for enemy features
+- Stop commands also stop self destruction
+- Liche does not drop target after firing 
+
 8.07 -> 8.08
 31/01/2015
 
@@ -6,7 +16,6 @@
 - Fixed Substitutions
 - Fixed Built Split and Easy Facing not working together; Use the middle mouse button while queueing to activate Easy Facing
 - Added State Remover widget, removes return fire and roam states (default disabled)
-
 
 8.06 -> 8.07
 18/01/2015

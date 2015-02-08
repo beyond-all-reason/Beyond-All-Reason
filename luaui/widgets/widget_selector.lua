@@ -20,7 +20,7 @@ function widget:GetInfo()
   return {
     name      = "WidgetSelector",
     desc      = "Widget selection widget",
-    author    = "trepan, Bluestone",
+    author    = "trepan, jK, Bluestone",
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = math.huge,
