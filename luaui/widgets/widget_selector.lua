@@ -675,6 +675,15 @@ function widget:GetTooltip(x, y)
   return tt
 end
 
+function widget:GetConfigData()
+    local data = {startEntry=startEntry} 
+    return data
+end
+
+function widget:SetConfigData(data)
+    startEntry = data.startEntry or startEntry
+end
+
 function widget:ShutDown()
   spSendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
 end
