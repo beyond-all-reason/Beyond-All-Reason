@@ -1,6 +1,6 @@
 function gadget:GetInfo()
   return {
-    name      = "No Self-D",
+    name      = "No Share Self-D",
     desc      = "Prevents self-destruction when a unit changes hands or a player leaves",
     author    = "quantum, Bluestone",
     date      = "July 13, 2008",
