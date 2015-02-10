@@ -696,7 +696,14 @@ teamDeathMessages = {
     "XX went Tango Uniform",
     "XX took the last train to glory",
     "XX went bung",
-    
+    "XX wrote its own lobby protocol",
+    "XX went pear shaped",
+    "XX went arse over elbow",
+    "XX had a knuckle sandwich",
+    "XX was made redundant",
+    "XX was snookered",
+    "XX went to see a man about a dog",
+    "XX only lived once",
     
     
 }
