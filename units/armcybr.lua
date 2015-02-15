@@ -25,7 +25,7 @@ return {
 		maxvelocity = 10.35000038147,
 		maxwaterdepth = 0,
 		name = "Liche",
-		noautofire = true,
+		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "ARMCYBR",
 		seismicsignature = 0,
