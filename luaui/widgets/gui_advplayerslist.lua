@@ -1617,6 +1617,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 	local clickedPlayer
 	local posY
 	if button == 1 then
+        local alt,ctrl,meta,shift = Spring.GetModKeyState()
 		sliderPosition = 0
 		amountEM = 0
 		if mySpecStatus == true then
@@ -1633,6 +1634,10 @@ function widget:MousePress(x,y,button) --super ugly code here
 							return true
 						end
 					end
+                    if m_name.active and ctrl and IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+16) and clickedPlayer.name ~= absentName then
+                        Spring_SendCommands{"toggleignore "..clickedPlayer.name}
+                        return true
+                    end
 				end
 				
 				if i == -1 then
@@ -1658,6 +1663,14 @@ function widget:MousePress(x,y,button) --super ugly code here
 							end
 						end
 					end
+                    if m_name.active and ctrl and i>-1 and i<64 then 
+                        clickedPlayer = player[i]
+                        posY = widgetPosY + widgetHeight - clickedPlayer.posY
+                        if IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+16) and clickedPlayer.name ~= absentName then
+                            Spring_SendCommands{"toggleignore "..clickedPlayer.name}
+                            return true
+                        end
+                    end
 				end
 			end
 		else
@@ -1713,6 +1726,10 @@ function widget:MousePress(x,y,button) --super ugly code here
 								return true
 							end
 						end
+                        if m_name.active and ctrl and IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+12) and clickedPlayer.name ~= absentName then
+                            Spring_SendCommands{"toggleignore "..clickedPlayer.name}
+                            return true
+                        end
 					end
 				end
 				if i == -1 then
@@ -1745,6 +1762,14 @@ function widget:MousePress(x,y,button) --super ugly code here
 								end
 							end
 						end
+                        if m_name.active and ctrl and i>-1 and i<64 then 
+                            clickedPlayer = player[i]
+                            posY = widgetPosY + widgetHeight - clickedPlayer.posY
+                            if IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+12) and clickedPlayer.name ~= absentName then
+                                Spring_SendCommands{"toggleignore "..clickedPlayer.name}
+                                return true
+                            end
+                        end
 					end
 				end
 			end
