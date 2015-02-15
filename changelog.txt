@@ -1,11 +1,18 @@
+8.09 -> 8.10
+15/02/2015
+
+- Ctrl+click on name in AdvPlList toggles ignoreplayer on/off
+- Fixed Liche auto-firing 
+- Fixed ghosted features
+
 8.08 -> 8.09
-??/02/2015
+08/02/2015
 
 - Widget Selector remembers scroll position, has more useful options
 - Widget Selector has +/- buttons to increase/decrease size
 - Widget Selector puts Widget Profiler at the top
-- Fixed LuaUI not recieving FeatureCreated/FeatureDestroyed for enemy features
 - Stop commands also stop self destruction
+- LuaUI recieves FeatureCreated/FeatureDestroyed callins for all features
 - Liche does not drop target after firing 
 
 8.07 -> 8.08
