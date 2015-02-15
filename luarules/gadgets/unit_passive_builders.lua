@@ -234,6 +234,7 @@ function UpdatePassiveBuilders(teamID, interval)
             local rate = realBuildSpeed[builderID]/targetCosts.buildTime
             for _,resName in pairs(resTable) do
                 local expense = targetCosts[resName]*rate
+                passiveCons[teamID] = passiveCons[teamID] or {}
                 if passiveCons[teamID][builderID] then
                     passiveConsExpense[builderID] = passiveConsExpense[builderID] or {}
                     passiveConsExpense[builderID][resName] = expense
