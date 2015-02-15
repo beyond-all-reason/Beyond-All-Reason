@@ -20,6 +20,9 @@ local pID_table = {}
 local ignoredPlayers = {}
 local myName,_ = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
 
+local specColStr = "\255\255\255\1"
+local whiteStr = "\255\255\255\1"
+
 function CheckPIDs()
     local playerList = Spring.GetPlayerList()
     for _,pID in ipairs(playerList) do
@@ -39,9 +42,10 @@ end
 
 function colourPlayer(playerName)
         local playerID = pID_table[playerName]
-        if not playerID then return "" end
+        if not playerID then return whiteStr end
         
-        local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
+        local _,_,spec,teamID = Spring.GetPlayerInfo(playerID)
+        if spec then return specColStr end
     	nameColourR,nameColourG,nameColourB,nameColourA = Spring.GetTeamColor(teamID)
 		R255 = math.floor(nameColourR*255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
         G255 = math.floor(nameColourG*255)
