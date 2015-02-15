@@ -14,6 +14,7 @@ return {
 		description = "Atomic Bomber",
 		energyuse = 40,
 		explodeas = "SMALL_BUILDING",
+        firestate = 0,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
