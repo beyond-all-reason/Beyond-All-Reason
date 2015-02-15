@@ -438,6 +438,8 @@ local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
+local isReplay = Spring.IsReplay()
+
 local readied = false --make sure we return true,true for newbies at least once
 local startPointChosen = false
 
@@ -560,7 +562,7 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:DrawScreen()
-	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec then
+	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
 		-- draw 'ready' button
 		gl.CallList(readyButton)
 		
@@ -580,7 +582,7 @@ function gadget:DrawScreen()
 		gl.Color(1,1,1,1)
 	end
 	
-	if gameStarting then
+	if gameStarting and not isReplay then 
 		timer = timer + Spring.GetLastUpdateSeconds()
 		if timer % 0.75 <= 0.375 then
 			colorString = "\255\200\200\20"
@@ -592,10 +594,14 @@ function gadget:DrawScreen()
 	end
 	
 	--remove if after gamestart
-	if Spring.GetGameFrame() > 0 or Spring.IsReplay() then 
+	if Spring.GetGameFrame() > 0 then 
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
+end
+
+function gadget:ShutDown()
+    gl.DeleteList(replayButton)
 end
 
 ----------------------------------------------------------------
