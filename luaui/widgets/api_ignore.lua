@@ -72,7 +72,7 @@ function widget:TextCommand(s)
 	 
 	 if (token[1] == "ignoreplayer" or token[1] == "ignoreplayers") then
 		 for i = 2,n do
-			ignorePlayer(token[i])
+			IgnorePlayer(token[i])
 		end
 	end
 	
@@ -83,6 +83,17 @@ function widget:TextCommand(s)
             for i=2,n do
                 UnignorePlayer(token[i])
             end
+        end
+    end
+    
+    if (token[1] == "toggleignore") and n>=2 then
+        for i=2,n do
+            local playerName = token[i]
+            if ignoredPlayers[playerName] then
+                UnignorePlayer(playerName)
+            else
+                IgnorePlayer(playerName)
+            end               
         end
     end
         
@@ -107,7 +118,7 @@ function ignoreList ()
     end
 end
 
-function ignorePlayer (playerName)
+function IgnorePlayer (playerName)
     if playerName==myName then
         Spring.Echo("You cannot ignore yourself")
         return
