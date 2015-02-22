@@ -1072,7 +1072,7 @@ end
 
 function widgetHandler:Shutdown()
   if self.blankOutConfig then
-    table.save({["__DISABLE_RAW"]=true}, CONFIG_FILENAME, '-- Widget Custom data and order')  
+    table.save({["__DISABLE_RAW"]=self.disableRaw}, CONFIG_FILENAME, '-- Widget Custom data and order')  
   else
     self:SaveConfigData()
   end

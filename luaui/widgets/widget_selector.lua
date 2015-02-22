@@ -87,13 +87,15 @@ local show = false
 
 
 local buttons = { --see MouseRelease for which functions are called by which buttons
-    [1] = "Disable User Widgets",
-    [2] = "Disable ALL Widgets",
-    [3] = "Reload LuaUI", --not implemented (yet) because luaui can't reload itself
+    [1] = "Reload LuaUI", 
+    [2] = "Disable User Widgets",
+    [3] = "Disable ALL Widgets",
     [4] = "Reset LuaUI",
+    [5] = "Factory Reset LuaUI",
 }
 local buttonFontSize = 14
 local buttonHeight = 20
+local buttonTop = 3 -- offset between top of buttons and bottom of widget
 
 -------------------------------------------------------------------------------
 
@@ -284,10 +286,10 @@ function widget:DrawScreen()
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
     tcol = WhiteStr
-    if minx < mx and mx < maxx and miny - i*buttonHeight < my and my < miny - (i-1)*buttonHeight then
+    if minx < mx and mx < maxx and miny - buttonTop- i*buttonHeight < my and my < miny - buttonTop - (i-1)*buttonHeight then
       tcol = '\255\031\031\255'
     end
-    gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - i*buttonHeight + 5, buttonFontSize, "oc")
+    gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - buttonTop - i*buttonHeight + 5, buttonFontSize, "oc")
   end
   
   
@@ -500,7 +502,7 @@ function widget:MousePress(x, y, button)
 
   if button == 1 then
     -- above a button
-    if minx < x and x < maxx and miny - #buttons*buttonHeight < y and y < miny then
+    if minx < x and x < maxx and miny - buttonTop - #buttons*buttonHeight < y and y < miny - buttonTop then
       return true
     end
     
@@ -605,12 +607,16 @@ function widget:MouseRelease(x, y, mb)
   if mb == 1 then
     local buttonID = nil
     for i,_ in ipairs(buttons) do
-        if minx < x and x < maxx and miny - i*buttonHeight < y and y < miny - (i-1)*buttonHeight then
+        if minx < x and x < maxx and miny - buttonTop - i*buttonHeight < y and y < miny - buttonTop - (i-1)*buttonHeight then
             buttonID = i
             break
         end
     end
     if buttonID == 1 then
+      Spring.SendCommands("luarules reloadluaui")
+      return -1
+    end
+    if buttonID == 2 then
       -- set all user widgets off
       for _,namedata in ipairs(fullWidgetsList) do
         if not namedata[2].fromZip then
@@ -620,7 +626,7 @@ function widget:MouseRelease(x, y, mb)
       Spring.Echo("Unloaded all user widgets")
       return -1
     end
-    if buttonID == 2 then
+    if buttonID == 3 then
       -- disable all widgets
       for _,namedata in ipairs(fullWidgetsList) do
         widgetHandler:DisableWidget(namedata[1])
@@ -628,12 +634,12 @@ function widget:MouseRelease(x, y, mb)
       widgetHandler:SaveConfigData()    
       return -1
     end
-    if buttonID == 3 then
-      Spring.SendCommands("luarules reloadluaui")
-      return -1
-    end
     if buttonID == 4 then
       Spring.SendCommands("luaui reset")
+      return -1
+    end
+    if buttonID == 5 then
+      Spring.SendCommands("luaui factoryreset")
       return -1
     end
   end
@@ -739,6 +745,11 @@ function widget:TextCommand(s)
   end
   if n==1 and token[1]=="reset" then
     widgetHandler.blankOutConfig = true
+    Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
+  end
+  if n==1 and token[1]=="factoryreset" then
+    widgetHandler.blankOutConfig = true
+    widgetHandler.disableRaw = true
     Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
   end
 end
