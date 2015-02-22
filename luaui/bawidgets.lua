@@ -375,7 +375,6 @@ function widgetHandler:Initialize()
   end)
 
   -- add the widgets
-  -- don't include user widgets if this was a luaui reset
   for _,w in ipairs(unsortedWidgets) do
     local name = w.whInfo.name
     local basename = w.whInfo.basename
