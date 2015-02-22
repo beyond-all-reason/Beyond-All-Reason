@@ -89,8 +89,8 @@ local show = false
 local buttons = { --see MouseRelease for which functions are called by which buttons
     [1] = "Disable User Widgets",
     [2] = "Disable ALL Widgets",
-    --[3] = "Reload LuaUI", --not implemented (yet) because luaui can't reload itself
-    --[4] = "Reset LuaUI",
+    [3] = "Reload LuaUI", --not implemented (yet) because luaui can't reload itself
+    [4] = "Reset LuaUI",
 }
 local buttonFontSize = 14
 local buttonHeight = 20
@@ -628,16 +628,14 @@ function widget:MouseRelease(x, y, mb)
       widgetHandler:SaveConfigData()    
       return -1
     end
-    --[[
     if buttonID == 3 then
-        Spring.SendCommands("luaui reload")
-        return -1
+      Spring.SendCommands("luarules reloadluaui")
+      return -1
     end
     if buttonID == 4 then
-        --widgetHandler:ResetLuaUI() 
-        return -1
+      Spring.SendCommands("luaui reset")
+      return -1
     end
-    ]]
   end
   
   local namedata = self:AboveLabel(x, y)
@@ -730,6 +728,22 @@ function widget:SetConfigData(data)
     curMaxEntries = data.curMaxEntries or curMaxEntries
     show = data.show or show
 end
+
+function widget:TextCommand(s) 
+  -- process request to tell the widgetHandler to blank out the widget config when it shuts down
+  local token = {}
+  local n = 0
+  for w in string.gmatch(s, "%S+") do
+    n = n + 1
+    token[n] = w		
+  end
+  if n==1 and token[1]=="reset" then
+    widgetHandler.blankOutConfig = true
+    Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
+  end
+end
+        
+
 
 function widget:ShutDown()
   spSendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.

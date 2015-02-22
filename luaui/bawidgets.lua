@@ -1067,11 +1067,22 @@ end
 --
 
 function widgetHandler:Shutdown()
-  self:SaveConfigData()
+  if self.blankOutConfig then
+    table.save({}, CONFIG_FILENAME, '-- Widget Custom data and order')  
+  else
+    self:SaveConfigData()
+  end
+  
   for _,w in ipairs(self.ShutdownList) do
     w:Shutdown()
   end
   return
+end
+
+function widgetHandler:BlankOut()
+  for _,w in ipairs(self.ShutdownList) do
+    w:Shutdown()
+  end
 end
 
 function widgetHandler:Update()
