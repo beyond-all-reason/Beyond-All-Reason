@@ -15,7 +15,10 @@ end
 
 -- block them from being healed
 -- prevent the cursor from offering heal commands as default
--- make them not auto-attacked by enemy units
+-- make them neutral, radar stealthy & not appear on the minimap
+-- transfer them all to gaia (to avoid unit limit)
+-- make them vulnerable while being built
+-- ignore them from area attack commands
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -27,12 +30,17 @@ local isWall = {
     [UnitDefNames["cordrag"].id] = true,
     [UnitDefNames["armfort"].id] = true,
     [UnitDefNames["corfort"].id] = true,
+    [UnitDefNames["corfdrag"].id] = true,
+    [UnitDefNames["armfdrag"].id] = true,
 }
 
+local gaiaTeamID = Spring.GetGaiaTeamID()
 local spValidUnitID = Spring.ValidUnitID
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitHealth = Spring.GetUnitHealth
 local CMD_REPAIR = CMD.REPAIR
 local CMD_INSERT = CMD.INSERT
+local max = math.max
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 	if cmdID ~= CMD_REPAIR and cmdID ~= CMD_INSERT then return true end
@@ -61,12 +69,24 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	return true
 end
 
-function UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if isWall[unitDefID] then
-          SetUnitNeutral(unitID, true)    
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+    if isWall[unitDefID] and Spring.ValidUnitID(unitID) then
+        Spring.TransferUnit(unitID, gaiaTeamID, false)
+        Spring.SetUnitStealth(unitID, true)
+        Spring.SetUnitSonarStealth(unitID, true)
+        Spring.SetUnitNeutral(unitID, true)    
     end
 end
 
+function gadgetUnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+    if walls[unitDefID] then
+        local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
+        if buildProgress < 0.99 then
+            return max(damage,maxHealth/2), nil
+        end
+    end
+    return damage, nil 
+end
 
 else --UNSYNCED
 
@@ -75,9 +95,9 @@ local isWall = {
     [UnitDefNames["cordrag"].id] = true,
     [UnitDefNames["armfort"].id] = true,
     [UnitDefNames["corfort"].id] = true,
+    [UnitDefNames["corfdrag"].id] = true,
+    [UnitDefNames["armfdrag"].id] = true,
 }
-
--- change the command when hovering over a isWall unit to move
 
 local CMD_MOVE = CMD.MOVE
 local spGetMouseState = Spring.GetMouseState
@@ -88,27 +108,22 @@ local spGetUnitIsActive = Spring.GetUnitIsActive
 local mx,my,s,uID,sDefID
 local changeCMD
 
--- keep track of if mouse is hovering over (for perf reasons; Update is called much less than DefaultCommand)
-function gadget:Update()
+function gadget:DefaultCommand()
 	mx,my = spGetMouseState()
 	s,uID = spTraceScreenRay(mx,my)
 	if s ~= "unit" then return end
 	sDefID = spGetUnitDefID(uID)
 	if isWall[sDefID] then 
-        changeCMD = true
-    else
-        changeCMD = false
+        return CMD_MOVE
     end
-end
-
-function gadget:DefaultCommand()
-	if changeCMD then 
-		return CMD_MOVE
-	end
 	return
 end
 
-
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+    if isWall[unitDefID] and Spring.ValidUnitID(unitID) then
+        Spring.SetUnitNoMinimap(unitID, true)
+    end
+end
 
 
 end

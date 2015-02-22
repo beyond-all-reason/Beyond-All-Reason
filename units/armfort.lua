@@ -24,7 +24,6 @@ return {
 		description = "Fortification Wall",
 		footprintx = 2,
 		footprintz = 2,
-        hidedamage = true,
 		idleautoheal = 0,
 		isfeature = true,
 		levelground = false,
