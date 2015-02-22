@@ -247,6 +247,7 @@ function widgetHandler:LoadConfigData()
     setfenv(chunk, tmp)
     self.orderList = chunk().order
     self.configData = chunk().data
+    self.__DISABLE_RAW = chunk().__DISABLE_RAW
     if (not self.orderList) then
 		self.orderList = {} -- safety
     end
@@ -343,7 +344,8 @@ function widgetHandler:Initialize()
       table.insert(unsortedWidgets, widget)
     end
   end
-
+  self.__DISABLE_RAW = nil
+  
   -- stuff the zip widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP_ONLY)
   for k,wf in ipairs(widgetFiles) do
@@ -373,12 +375,13 @@ function widgetHandler:Initialize()
   end)
 
   -- add the widgets
+  -- don't include user widgets if this was a luaui reset
   for _,w in ipairs(unsortedWidgets) do
     local name = w.whInfo.name
     local basename = w.whInfo.basename
     local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
     Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-
+    
     widgetHandler:InsertWidget(w)
   end
 
@@ -470,12 +473,13 @@ function widgetHandler:LoadWidget(filename, fromZip)
            order = nil
         end
     else
-        if info.enabled and (knownInfo.fromZip or self.autoUserWidgets) then
+        if info.enabled then
             order = 12345
         end
     end
 
-    if order then
+    local wantToEnable = knownInfo.fromZip or (not self.__DISABLE_RAW and self.autoUserWidgets)
+    if order and wantToEnable then
         self.orderList[name] = order
     else
         self.orderList[name] = 0
@@ -1068,7 +1072,7 @@ end
 
 function widgetHandler:Shutdown()
   if self.blankOutConfig then
-    table.save({}, CONFIG_FILENAME, '-- Widget Custom data and order')  
+    table.save({["__DISABLE_RAW"]=true}, CONFIG_FILENAME, '-- Widget Custom data and order')  
   else
     self:SaveConfigData()
   end
