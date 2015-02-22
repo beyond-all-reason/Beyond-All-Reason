@@ -78,7 +78,7 @@ for name, ud in pairs(UnitDefs) do
 	if fDefs then
 		for fName, fd in pairs(fDefs) do
 			if fd.category == "heaps" then
-				fd.resurrectable = false
+				fd.resurrectable = 0
 			end	
 		end
 	end	
