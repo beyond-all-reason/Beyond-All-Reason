@@ -473,7 +473,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
            order = nil
         end
     else
-        if info.enabled then
+        if info.enabled and (knownInfo.fromZip or self.autoUserWidgets) then
             order = 12345
         end
     end
