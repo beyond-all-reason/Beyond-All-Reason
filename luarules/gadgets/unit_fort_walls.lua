@@ -13,12 +13,11 @@ function gadget:GetInfo()
   }
 end
 
--- block them from being healed
--- prevent the cursor from offering heal commands as default
--- make them neutral, radar stealthy & not appear on the minimap
--- transfer them all to gaia (to avoid unit limit)
+-- make them neutral, radar stealthy, not appear on the minimap
 -- make them vulnerable while being built
--- ignore them from area attack commands
+-- once built, prevent them from being healed
+
+-- would be good if they were omitted from area attacks but this is not currently possible
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -49,40 +48,43 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
     local targetID
     if cmdID == CMD_REPAIR then
         if not cmdParams[1] then return true end
-        if cmdParams[2] then return true end -- area reclaim
+        if cmdParams[2] then return true end -- area repair
         targetID = cmdParams[1]
     else
         if not cmdParams[1] or not cmdParams then return true end
         if cmdParams[1]~=CMD_RECLAIM then return true end
-        if cmdParams[4] then return true end -- insert area reclaim
+        if cmdParams[4] then return true end -- insert area repair
         if not cmdParams[3] then return true end
         targetID = cmdParams[3]    
     end
 
     if not spValidUnitID(targetID) then return true end
     local targetDefID = spGetUnitDefID(targetID)
+    local _,_,_,_,p = Spring.GetUnitHealth(targetID)
 
-    if isWall[targetDefID] then
+    if isWall[targetDefID] and p==1 then
         return false
     end
 
 	return true
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if isWall[unitDefID] and Spring.ValidUnitID(unitID) then
-        Spring.TransferUnit(unitID, gaiaTeamID, false)
+        --Spring.TransferUnit(unitID, gaiaTeamID, false) --could transfer to gaia to avoid counting towards unit limit, but then you can area attack your own walls :/
+        --local _,_,_,_,_,aID = Spring.GetTeamInfo(teamID)
+        --Spring.SetUnitLosMask(unitID, aID, 1)
         Spring.SetUnitStealth(unitID, true)
         Spring.SetUnitSonarStealth(unitID, true)
-        Spring.SetUnitNeutral(unitID, true)    
+        Spring.SetUnitNeutral(unitID, true)
     end
 end
 
-function gadgetUnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-    if walls[unitDefID] then
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+    if isWall[unitDefID] then
         local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
         if buildProgress < 0.99 then
-            return max(damage,maxHealth/2), nil
+            return max(damage,maxHealth/3), nil
         end
     end
     return damage, nil 
@@ -100,21 +102,23 @@ local isWall = {
 }
 
 local CMD_MOVE = CMD.MOVE
+local CMD_REPAIR = CMD.REPAIR
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsActive = Spring.GetUnitIsActive
 
 local mx,my,s,uID,sDefID
-local changeCMD
-
 function gadget:DefaultCommand()
 	mx,my = spGetMouseState()
 	s,uID = spTraceScreenRay(mx,my)
 	if s ~= "unit" then return end
 	sDefID = spGetUnitDefID(uID)
 	if isWall[sDefID] then 
-        return CMD_MOVE
+        local _,_,_,_,p = Spring.GetUnitHealth(uID)
+        if p==1 then
+            return CMD_MOVE
+        end
     end
 	return
 end
@@ -124,6 +128,17 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
         Spring.SetUnitNoMinimap(unitID, true)
     end
 end
+
+function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+    local uDID = Spring.GetUnitDefID(targetID)
+    Spring.Echo(targetID, uDID)
+    if targetID and isWall[targetID] then
+        return math.huge
+    end
+    return defPriority
+end
+
+
 
 
 end

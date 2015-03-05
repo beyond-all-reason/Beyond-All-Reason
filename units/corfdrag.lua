@@ -19,6 +19,7 @@ return {
 		description = "Shark's Teeth",
 		footprintx = 2,
 		footprintz = 2,
+        hidedamage = true,
 		idleautoheal = 0,
 		maxdamage = 15000,
 		maxslope = 32,

@@ -23,6 +23,7 @@ return {
 		description = "Dragons Teeth",
 		footprintx = 2,
 		footprintz = 2,
+        hidedamage = true,
 		idleautoheal = 0,
 		levelground = false,
 		maxdamage = 2500,
