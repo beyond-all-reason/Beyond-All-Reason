@@ -181,9 +181,7 @@ function gadget:GameFrame(n)
     if n~=1 then return end
 
     if replaced then
-        -- if at least one player was replaced, reveal startpoints to all
-        Spring.Echo("Revealing start points to all")
-       
+        -- if at least one player was replaced, reveal startpoints to all       
         local coopStartPoints = GG.coopStartPoints or {} 
         local revealed = {}
         for pID,p in pairs(coopStartPoints) do --first do the coop starts
@@ -332,10 +330,12 @@ end
 function gadget:MouseRelease(x,y)
 end
 
+local revealed = false
 function MarkStartPoint(_,x,y,z,name,tID)
     local _,_,spec = Spring.GetPlayerInfo(myPlayerID)
     if not spec then
         Spring.MarkerAddPoint(x, y, z, colourNames(tID) .. name, true)
+        revealed = true
     end
 end
 
@@ -358,6 +358,9 @@ end
 
 function gadget:GameFrame(n)
     if n>=5 then
+        if revealed then    
+            Spring.Echo("Substitution occurred, revealed start positions to all")
+        end
         gadgetHandler:RemoveSyncAction("MarkStartPoint")
         gadgetHandler:RemoveGadget(self)
         return
