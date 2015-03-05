@@ -129,17 +129,5 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     end
 end
 
-function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-    local uDID = Spring.GetUnitDefID(targetID)
-    Spring.Echo(targetID, uDID)
-    if targetID and isWall[targetID] then
-        return math.huge
-    end
-    return defPriority
-end
-
-
-
-
 end
 
