@@ -16,7 +16,7 @@ return {
 		collisionvolumescales = "37 70 37",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
-		description = "Perimeter Defense",
+		description = "Shark's Teeth",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 0,
