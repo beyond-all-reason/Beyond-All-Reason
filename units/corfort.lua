@@ -26,7 +26,6 @@ return {
 		footprintz = 2,
         hidedamage = true,
 		idleautoheal = 0,
-		isfeature = true,
 		levelground = false,
 		maxdamage = 8000,
 		maxslope = 24,
