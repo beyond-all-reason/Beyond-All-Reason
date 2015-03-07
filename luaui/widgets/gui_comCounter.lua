@@ -155,13 +155,20 @@ function widget:Initialize()
 end
 
 function widget:GameStart()
-	inProgress = true
+    inProgress = true
 	CheckStatus()
 	Recount()
 end
 
 function widget:GameFrame(n)
-	-- check if the team that we are spectating changed
+	-- turn on if not already (workaround for http://imolarpg.dyndns.org/trac/balatest/ticket/845#comment:3)
+    if not inProgress then
+        inProgress = true
+		CheckStatus()
+		Recount()        
+    end
+    
+    -- check if the team that we are spectating changed
 	if amISpec and myTeamID ~= spGetMyTeamID() then
 		CheckStatus()
 		Recount()
@@ -192,7 +199,7 @@ function widget:PlayerChanged()
 end
 
 function widget:GameOver()
-	inProgress = false
+    widgetHandler:RemoveWidget(self)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -204,8 +211,8 @@ function widget:DrawScreen()
 		return
 	end
 	if not inProgress then
-		return
-	end
+        return
+    end
 	
 	local flickerState = allyComs == 1 and flashIcon and flicker()
 	if countChanged or flickerLastState ~= flickerState then
