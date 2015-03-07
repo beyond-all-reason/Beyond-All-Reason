@@ -36,12 +36,10 @@ local max = math.max
 
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if isWall[unitDefID] and Spring.ValidUnitID(unitID) then
-        --Spring.TransferUnit(unitID, gaiaTeamID, false) --could transfer to gaia to avoid counting towards unit limit, but then you can area attack your own walls :/
-        --local _,_,_,_,_,aID = Spring.GetTeamInfo(teamID)
-        --Spring.SetUnitLosMask(unitID, aID, 1)
         Spring.SetUnitStealth(unitID, true)
         Spring.SetUnitSonarStealth(unitID, true)
         Spring.SetUnitNeutral(unitID, true)
+        Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
     end
 end
 

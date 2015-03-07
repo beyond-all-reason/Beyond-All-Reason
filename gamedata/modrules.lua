@@ -23,6 +23,7 @@ local modrules  = {
   movement = {
 	allowUnitCollisionDamage = false, -- defaults to false, Do unit-unit (skidding) collisions cause damage? 
 	allowUnitCollisionOverlap = false,-- can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'. 
+    allowCrushingAlliedUnits = true,
   },
   
   featureLOS = { 
