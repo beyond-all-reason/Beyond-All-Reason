@@ -25,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 520,
 		maxslope = 14,
-		maxvelocity = 1.26,
+		maxvelocity = 1.18,
 		maxwaterdepth = 22,
 		mincloakdistance = 80,
 		movementclass = "KBOT2",
