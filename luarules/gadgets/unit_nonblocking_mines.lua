@@ -48,14 +48,14 @@ function gadget:UnitCreated(uID, uDefID, uTeam)
 		--Spring.Echo('its a mine!',#mines,nummines)
 		local x,_,z= Spring.GetUnitPosition(uID)
 		mines[uID]={x,y,z}
-        spSetUnitBlocking(uID,false,false,false) -- ( number unitID, boolean blocking [, boolean collide [, boolean crushable]] )
+        spSetUnitBlocking(uID,false,false,false)
     end
 end
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
     if minedefs[uDefID] and mines[uID] then
 		--nummines=nummines-1
 		mines[uID] = nil
-        spSetUnitBlocking(uID,false,false,false) -- ( number unitID, boolean blocking [, boolean collide [, boolean crushable]] )
+        spSetUnitBlocking(uID,false,false,false)
     end
 end
 function gadget:AllowUnitCreation(unitDefID, builderID,builderTeam, x, y, z) 
