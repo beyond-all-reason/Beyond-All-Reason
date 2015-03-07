@@ -32,6 +32,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Fortification Wall",
 		objectname = "CORFORT",
+        repairable = false,
 		seismicsignature = 0,
 		sightdistance = 1,
 		usebuildinggrounddecal = true,

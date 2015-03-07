@@ -26,6 +26,7 @@ return {
 		minwaterdepth = 1,
 		name = "Shark's Teeth",
 		objectname = "CORFDRAG",
+        repairable = false,
 		seismicsignature = 0,
 		sightdistance = 1,
 		waterline = 3,
