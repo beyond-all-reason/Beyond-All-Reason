@@ -466,7 +466,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams,
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if spGetCommandQueue(unitID, -1, false) == 0 or not cmdOptions.shift then
+	if spGetCommandQueue(unitID, -1, false) == 0 or not cmdOptions.meta then
 		if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 			return false --command was used & fully processed, so block command
 		elseif cmdID == CMD_STOP then
