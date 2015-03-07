@@ -81,10 +81,10 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-    if isWall[unitDefID] then
+    if isWall[unitDefID] and not paralyzer then
         local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
-        if buildProgress < 0.99 then
-            return max(damage,maxHealth/3), nil
+        if buildProgress and maxHealth and buildProgress < 0.99 then
+            return max(0,(damage/100)*maxHealth), nil
         end
     end
     return damage, nil 
