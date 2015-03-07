@@ -49,15 +49,19 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	local costFraction = getCost(unitDefID) / maverickCost
 	local expIncrease = damageFraction*costFraction*0.3
 	if curExp > 3 then expIncrease = expIncrease / (curExp/3) end --linear up to 3, then level off. exp 3 is about the point at which the health increase becomes negligable.
-    if curExp > 4 then expIncrease = 0 end --safety   
+	if curExp > 4 then expIncrease = expIncrease / (curExp) end 
+	if curExp > 5 then expIncrease = expIncrease / (curExp*10) end 
+	if curExp > 6 then expIncrease = 0 end --safety
 	curExp = curExp + expIncrease
     
+    local newRange = maverickOriginalRange * (1+curExp/10)
+    SetUnitWeaponState(attackerID, 1, "range", newRange)
+
 	SetUnitExperience(attackerID,curExp)
     mavericks[attackerID] = curExp
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
-    Spring.Echo(unitID, unitDefID, teamID, builderID, maverickUnitDefID)
 	if unitDefID == maverickUnitDefID then
 		mavericks[unitID] = 0
 	end
