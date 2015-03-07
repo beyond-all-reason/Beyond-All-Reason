@@ -1,3 +1,15 @@
+8.10 -> 8.11
+07/03/2015
+
+- Added 'luaui reset' and 'luaui factory reset' commands to Widget Selector
+- Use meta (space) to queue set target commands
+- Fixed walls being visible to enemies without LOS
+- Fixed maverick exp growth
+- Mavericks gain range bonus with exp (multiplier 1+exp/10)
+- Slightly reduced sniper speed
+
+
+
 8.09 -> 8.10
 15/02/2015
 
