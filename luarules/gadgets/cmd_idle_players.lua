@@ -143,7 +143,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
         
         -- tell synced what our ping is (lol...)
 		local _,_,_,_,_,ping = GetPlayerInfo(myPlayerID)
-        ping = floor(ping)
+        ping = floor(ping*1000)
         SendLuaRulesMsg(PingMessage .. tostring(ping))
 	end
 
@@ -337,7 +337,7 @@ else
                 end
             end
         elseif msg:sub(1,PingMessageSize) == PingMessage then 
-            local ping = tonumber(msg:sub(PingMessageSize+1))
+            local ping = tonumber(msg:sub(PingMessageSize+1))/1000
             local pingTreshold = maxPing
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
 			local oldPingOk = playerInfoTableEntry.pingOK
