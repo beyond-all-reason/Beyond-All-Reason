@@ -113,6 +113,15 @@ local function AutoResizeObjects() --autoresize v2
 	end
 end
 
+local function getEditedCurrentTooltip()
+	local text = sGetCurrentTooltip()
+	--extract the exp value with regexp
+	local expPattern = "Experience (%d+%.%d%d)"
+	local currentExp = tonumber(text:match(expPattern))
+	--replace with limexp: exp/(1+exp) since all spring exp effects are linear in limexp, multiply by 10 because people like big numbers instead of [0,1]
+	return currentExp and text:gsub(expPattern,string.format("Experience %.2f", 10*currentExp/(1+currentExp)) ) or text
+end
+
 local function createtooltip(r)
 	local text = {"text",
 		px=r.px+r.margin,py=r.py+r.margin,
@@ -131,7 +140,7 @@ local function createtooltip(r)
 			if (self._mouseoverself) then
 				self.caption = self.caption..r.tooltip.background
 			else
-				self.caption = self.caption..(GetSetTooltip() or sGetCurrentTooltip())
+				self.caption = self.caption..(getEditedCurrentTooltip() or sGetCurrentTooltip())
 			end
 		end
 	}
