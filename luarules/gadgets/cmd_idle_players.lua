@@ -49,9 +49,11 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	local updateTimer = 0
 	local gameStartTime = 0
 	local isIdle = true
+    local oldPingOK = nil
 	local updateRefreshTime = 1 --in seconds
 	local initialQueueTime
-
+    
+    
 	local mx,my = GetMouseState()
 
 	function gadget:Initialize()
@@ -141,11 +143,21 @@ if ( not gadgetHandler:IsSyncedCode()) then
 			WentIdle()
 		end
         
-        -- tell synced what our ping is (lol...)
+        
+        -- tell synced about out ping
 		local _,_,_,_,_,ping = GetPlayerInfo(myPlayerID)
-        ping = floor(ping*1000)
-        SendLuaRulesMsg(PingMessage .. tostring(ping))
-	end
+        ping = Spring.GetGameFrame()/30 --DEBUG
+        local pingTreshold = maxPing
+		if oldPingOk == "0" then
+			pingTreshold = finishedResumingPing 
+		end
+		local pingOK = (ping < pingTreshold) and "1" or "0"
+        if pingOK ~= oldPingOK then
+            SendLuaRulesMsg(PingMessage .. pingOK)
+            Spring.Echo("sendmsg", pingOK, oldPingOK)
+            oldPingOK = pingOK
+        end
+    end
 
 	-- MouseMove isn't called either??!
 	function gadget:MouseMove()
@@ -242,6 +254,7 @@ else
 		ok = ok and newval.player
 		ok = ok and newval.pingOK
 		ok = ok and newval.present
+        Spring.Echo(playerID,newval.connected,newval.player,newval.pingOK,newval.present)
 		return ok
 	end
 
@@ -261,8 +274,10 @@ else
 			if GetTeamLuaAI(teamID) ~= "" or teamID == gaiaTeamID then
 				--luaai and gaia are always controlled
 				TeamToRemainingPlayers[teamID] = 1
+                Spring.Echo("active gaia", teamID)
 			else
 				TeamToRemainingPlayers[teamID] = 0
+                Spring.Echo("empty team", teamID)
 			end
 		end
 		for _,playerID in ipairs(GetPlayerList()) do -- update player infos
@@ -270,7 +285,6 @@ else
 			local playerInfoTableEntry = playerInfoTable[playerID] or {}
 			playerInfoTableEntry.connected = active
 			playerInfoTableEntry.player = not spectator
-            -- note: can't set playerInfoTable[playerID].pingOK here because of https://springrts.com/mantis/view.php?id=4637
 			if playerInfoTableEntry.present == nil then
 				playerInfoTableEntry.present = false -- initialize to afk
 			end
@@ -282,20 +296,24 @@ else
 				--a player only needs to be connected and low enough ping to host an ai
 				if playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK then
 					for _,aiTeamID in ipairs(hostedAis) do
-						TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] +1
+						TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
+                        Spring.Echo("active AI", TeamToRemainingPlayers[teamID])
 					end
 				end
 			end
 
 			if CheckPlayerState(playerID) then -- bump amount of active players in a team
 				TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
-			end
+                Spring.Echo("active player", TeamToRemainingPlayers[teamID], playerID)
+			end            
 		end
 
-		for teamID,teamCount in ipairs(TeamToRemainingPlayers) do
+		for teamID,teamCount in pairs(TeamToRemainingPlayers) do
 			-- set to a public readable value that there's nobody controlling the team
 			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
+            Spring.Echo(teamID, teamCount)
 		end
+        
 	end
 
 	function gadget:Initialize()
@@ -320,11 +338,12 @@ else
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,AFKMessageSize) == AFKMessage then --invalid message
+		if msg:sub(1,AFKMessageSize) == AFKMessage then -- handle afk 
             local afk = tonumber(msg:sub(AFKMessageSize+1))
+            Spring.Echo("afkmsg",playerID, afk)
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
             local previousPresent = playerInfoTableEntry.present
-            playerInfoTableEntry.present = afk == 0
+            playerInfoTableEntry.present = (afk==0)
             playerInfoTable[playerID] = playerInfoTableEntry
             local _,active,spectator,teamID,allyTeamID,_ = GetPlayerInfo(playerID)
             if not spectator then
@@ -336,15 +355,14 @@ else
                     end
                 end
             end
-        elseif msg:sub(1,PingMessageSize) == PingMessage then 
-            local ping = tonumber(msg:sub(PingMessageSize+1))/1000
-            local pingTreshold = maxPing
+        elseif msg:sub(1,PingMessageSize) == PingMessage then -- handle ping
+            local pingOK = tonumber(msg:sub(PingMessageSize+1))
+            Spring.Echo("pingmsg",playerID, pingOK)
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
-			local oldPingOk = playerInfoTableEntry.pingOK
-			if oldPingOk == false then
-				pingTreshold = finishedResumingPing 
-			end
-			playerInfoTableEntry.pingOK = (ping < pingTreshold)
+            local oldPingOK = playerInfoTableEntry.pingOK
+			playerInfoTableEntry.pingOK = (pingOK==1)                   
+            playerInfoTable[playerID] = playerInfoTableEntry
+            local _,active,spectator,teamID,allyTeamID,_ = GetPlayerInfo(playerID)
 			if not spectator then
 				if oldPingOk and not playerInfoTableEntry.pingOK then
 					Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
@@ -367,6 +385,7 @@ else
 
 
 	function TakeTeam(cmd, line, words, playerID)
+        Spring.Echo("take", playerID)
 		if not CheckPlayerState(playerID) then
 			SendMessageToPlayer(playerID,"Cannot share to afk players")
 			return -- exclude taking rights from lagged players, etc
