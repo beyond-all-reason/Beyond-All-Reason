@@ -118,8 +118,16 @@ local function getEditedCurrentTooltip()
 	--extract the exp value with regexp
 	local expPattern = "Experience (%d+%.%d%d)"
 	local currentExp = tonumber(text:match(expPattern))
+	local limExp = currentExp and currentExp/(1+currentExp) or 1
 	--replace with limexp: exp/(1+exp) since all spring exp effects are linear in limexp, multiply by 10 because people like big numbers instead of [0,1]
-	return currentExp and text:gsub(expPattern,string.format("Experience %.2f", 10*currentExp/(1+currentExp)) ) or text
+	text = currentExp and text:gsub(expPattern,string.format("Experience %.2f", 10*limExp) ) or text
+	if text:find("Maverick") then --special hack to show mav updated maxrange
+		local rangePattern = "Range (%d+)"
+		local currentRange = tonumber(text:match(rangePattern))
+		--replace with limexp: exp/(1+exp) since all spring exp effects are linear in limexp, multiply by 10 because people like big numbers instead of [0,1]
+		text = currentExp and currentRange and text:gsub(rangePattern,string.format("Range %d", currentRange*(1+limExp)) ) or text
+	end
+	return text
 end
 
 local function createtooltip(r)
