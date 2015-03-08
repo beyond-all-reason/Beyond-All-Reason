@@ -1,3 +1,9 @@
+8.11 -> 8.12
+08/03/2015
+
+- Workaround for engine bug that caused desyncs in replays
+- Fixed Com Counter sometimes not showing
+
 8.10 -> 8.11
 07/03/2015
 
