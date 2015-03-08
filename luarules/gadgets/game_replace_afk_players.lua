@@ -5,7 +5,7 @@ function gadget:GetInfo()
     author    = "Bluestone",
     date      = "June 2014",
     license   = "GNU GPL, v3 or later",
-    layer     = 1, --run after game_intial_spawn 
+    layer     = 2, --run after game_intial_spawn & mo_coop
     enabled   = true  
   }
 end
@@ -64,6 +64,12 @@ function gadget:PlayerChanged()
     end
 end
 
+function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+    FindSubs(false)
+    return nil
+end
+
+
 function gadget:Initialize()
     if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
         gadgetHandler:RemoveGadget(self) -- don't run in FFA mode
@@ -104,7 +110,8 @@ function FindSubs(real)
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
         local _,active,spec = Spring.GetPlayerInfo(playerID)
-        local present = active and not spec
+        local noStartPoint = (Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")==3) or false
+        local present = active and (not spec) and (not noStartPoint)
         if not present then
             local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
             local tsMu = customtable.skill
@@ -269,7 +276,8 @@ function Initialize()
 
     gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
     
-    local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) -- player custom table
+    -- match the equivalent check in synced
+    local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) 
     local tsMu = customtable.skill 
 	local tsSigma = customtable.skilluncertainty
     ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))

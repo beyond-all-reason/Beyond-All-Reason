@@ -1396,8 +1396,12 @@ end
 
 function DrawName(name, team, playerID, posY, dark)
     local willSub = ""
-    if not gameStarted and playerID>=64 then
-        willSub = (Spring.GetGameRulesParam("Player" .. (playerID-64) .. "willSub")==1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
+    if not gameStarted then 
+        if playerID>=64 then
+            willSub = (Spring.GetGameRulesParam("Player" .. (playerID-64) .. "willSub")==1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
+        else
+            willSub = (Spring.GetGameRulesParam("Player" .. (playerID) .. "willSub")==1) and " (sub)" or "" 
+        end
     end
     local nameText = name .. willSub    
 	gl_Text(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3, posY + 3, 15, "o") -- draws name
