@@ -66,13 +66,14 @@ function gadget:Initialize()
   Spring.AddUnitIcon("sphere.user", "LuaUI/Icons/ba_sphere.png",1.1)
   Spring.AddUnitIcon("sphere2.user", "LuaUI/Icons/ba_sphere.png",1.35)
   Spring.AddUnitIcon("sphere3.user", "LuaUI/Icons/ba_sphere.png",1.7)
-  Spring.AddUnitIcon("tiny-sphere.user", "LuaUI/Icons/ba_sphere.png",0.55)
   Spring.AddUnitIcon("square.user", "LuaUI/Icons/square.png")
   Spring.AddUnitIcon("square_+.user", "LuaUI/Icons/square_+.png")
   Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x.png")
   Spring.AddUnitIcon("square_x_factory.user", "LuaUI/Icons/square_x.png",1.5)
   Spring.AddUnitIcon("star-dark.user", "LuaUI/Icons/star-dark.png")
   Spring.AddUnitIcon("star.user", "LuaUI/Icons/star.png")
+  Spring.AddUnitIcon("tiny-sphere.user", "LuaUI/Icons/ba_sphere.png",0.55)
+  Spring.AddUnitIcon("tiny-square.user", "LuaUI/Icons/square.png",0.55)
   Spring.AddUnitIcon("tri-down.user", "LuaUI/Icons/tri-down.png",1.3)
   Spring.AddUnitIcon("tri-up.user", "LuaUI/Icons/tri-up.png",1.4)
   Spring.AddUnitIcon("tri-up_fighter.user", "LuaUI/Icons/tri-up.png",0.9)
@@ -176,6 +177,14 @@ function gadget:Initialize()
   Spring.SetUnitDefIcon(UnitDefNames["armpw"].id, "tiny-sphere.user")
   Spring.SetUnitDefIcon(UnitDefNames["armflea"].id, "tiny-sphere.user")
   
+  -- Walls
+  Spring.SetUnitDefIcon(UnitDefNames["cordrag"].id, "tiny-square.user")
+  Spring.SetUnitDefIcon(UnitDefNames["armdrag"].id, "tiny-square.user")
+  Spring.SetUnitDefIcon(UnitDefNames["corfort"].id, "tiny-square.user")
+  Spring.SetUnitDefIcon(UnitDefNames["armfort"].id, "tiny-square.user")
+  Spring.SetUnitDefIcon(UnitDefNames["corfdrag"].id, "tiny-square.user")
+  Spring.SetUnitDefIcon(UnitDefNames["armfdrag"].id, "tiny-square.user")
+
 end
 
 --------------------------------------------------------------------------------

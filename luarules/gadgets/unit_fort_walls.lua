@@ -85,11 +85,5 @@ function gadget:DefaultCommand()
 	return
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if isWall[unitDefID] and Spring.ValidUnitID(unitID) then
-        Spring.SetUnitNoMinimap(unitID, true)
-    end
-end
-
 end
 
