@@ -228,12 +228,12 @@ end
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
     -- readyState:
-	-- 0: player placed a startpoint, is unready 
+	-- 0: player did not place startpoint, is unready 
     -- 1: game starting, player is ready
-    -- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this will have the wrong x,z)
+    -- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this case will have the wrong x,z)
     -- 3: game forcestarted & player absent
 
-	-- we also add (only used in Initialize) the following
+	-- we also add the following
 	-- -1: players will not be allowed to place startpoints; automatically readied once ingame
 	--  4: player has placed a startpoint but is not yet ready
 	

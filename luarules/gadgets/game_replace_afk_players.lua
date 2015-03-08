@@ -5,7 +5,7 @@ function gadget:GetInfo()
     author    = "Bluestone",
     date      = "June 2014",
     license   = "GNU GPL, v3 or later",
-    layer     = 2, --run after game_intial_spawn & mo_coop
+    layer     = 2, --run after game initial spawn and mo_coop (because we use readyStates)
     enabled   = true  
   }
 end
@@ -66,7 +66,7 @@ end
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
     FindSubs(false)
-    return nil
+    return true
 end
 
 
@@ -110,7 +110,8 @@ function FindSubs(real)
     -- make a list of absent players (only ones with valid ts)
     for playerID,_ in pairs(players) do
         local _,active,spec = Spring.GetPlayerInfo(playerID)
-        local noStartPoint = (Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")==3) or false
+        local readyState = Spring.GetGameRulesParam("player_" .. playerID .. "_readyState")
+        local noStartPoint = (readyState==3) or (readyState==0)
         local present = active and (not spec) and (not noStartPoint)
         if not present then
             local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
@@ -118,7 +119,7 @@ function FindSubs(real)
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
             if ts then
                 absent[playerID] = ts
-                --Spring.Echo("absent:", playerID, ts)
+                Spring.Echo("absent:", playerID, ts)
             end
         end
     end
@@ -278,8 +279,8 @@ function Initialize()
     
     -- match the equivalent check in synced
     local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) 
-    local tsMu = customtable.skill 
-	local tsSigma = customtable.skilluncertainty
+    local tsMu = "30"--customtable.skill 
+	local tsSigma = "0"--customtable.skilluncertainty
     ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
     tsSigma = tonumber(tsSigma)
     eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
