@@ -119,7 +119,7 @@ function FindSubs(real)
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
             if ts then
                 absent[playerID] = ts
-                Spring.Echo("absent:", playerID, ts)
+                --Spring.Echo("absent:", playerID, ts)
             end
         end
     end
