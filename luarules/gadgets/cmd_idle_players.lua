@@ -143,10 +143,8 @@ if ( not gadgetHandler:IsSyncedCode()) then
 			WentIdle()
 		end
         
-        
         -- tell synced about out ping
 		local _,_,_,_,_,ping = GetPlayerInfo(myPlayerID)
-        ping = Spring.GetGameFrame()/30 --DEBUG
         local pingTreshold = maxPing
 		if oldPingOk == "0" then
 			pingTreshold = finishedResumingPing 
@@ -154,7 +152,6 @@ if ( not gadgetHandler:IsSyncedCode()) then
 		local pingOK = (ping < pingTreshold) and "1" or "0"
         if pingOK ~= oldPingOK then
             SendLuaRulesMsg(PingMessage .. pingOK)
-            Spring.Echo("sendmsg", pingOK, oldPingOK)
             oldPingOK = pingOK
         end
     end
@@ -254,7 +251,6 @@ else
 		ok = ok and newval.player
 		ok = ok and newval.pingOK
 		ok = ok and newval.present
-        Spring.Echo(playerID,newval.connected,newval.player,newval.pingOK,newval.present)
 		return ok
 	end
 
@@ -274,10 +270,8 @@ else
 			if GetTeamLuaAI(teamID) ~= "" or teamID == gaiaTeamID then
 				--luaai and gaia are always controlled
 				TeamToRemainingPlayers[teamID] = 1
-                Spring.Echo("active gaia", teamID)
 			else
 				TeamToRemainingPlayers[teamID] = 0
-                Spring.Echo("empty team", teamID)
 			end
 		end
 		for _,playerID in ipairs(GetPlayerList()) do -- update player infos
@@ -297,21 +291,18 @@ else
 				if playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK then
 					for _,aiTeamID in ipairs(hostedAis) do
 						TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
-                        Spring.Echo("active AI", TeamToRemainingPlayers[teamID])
 					end
 				end
 			end
 
 			if CheckPlayerState(playerID) then -- bump amount of active players in a team
 				TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
-                Spring.Echo("active player", TeamToRemainingPlayers[teamID], playerID)
 			end            
 		end
 
 		for teamID,teamCount in pairs(TeamToRemainingPlayers) do
 			-- set to a public readable value that there's nobody controlling the team
 			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
-            Spring.Echo(teamID, teamCount)
 		end
         
 	end
@@ -340,7 +331,6 @@ else
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,AFKMessageSize) == AFKMessage then -- handle afk 
             local afk = tonumber(msg:sub(AFKMessageSize+1))
-            Spring.Echo("afkmsg",playerID, afk)
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
             local previousPresent = playerInfoTableEntry.present
             playerInfoTableEntry.present = (afk==0)
@@ -357,7 +347,6 @@ else
             end
         elseif msg:sub(1,PingMessageSize) == PingMessage then -- handle ping
             local pingOK = tonumber(msg:sub(PingMessageSize+1))
-            Spring.Echo("pingmsg",playerID, pingOK)
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
             local oldPingOK = playerInfoTableEntry.pingOK
 			playerInfoTableEntry.pingOK = (pingOK==1)                   
@@ -385,7 +374,6 @@ else
 
 
 	function TakeTeam(cmd, line, words, playerID)
-        Spring.Echo("take", playerID)
 		if not CheckPlayerState(playerID) then
 			SendMessageToPlayer(playerID,"Cannot share to afk players")
 			return -- exclude taking rights from lagged players, etc
