@@ -457,6 +457,10 @@ local function processLine(line,g,cfg,newlinecolor)
 		elseif (ssub(line,1,1) == ">") then
 			linetype = 4 --gamemessage
 			text = ssub(line,3)
+            if ssub(line,1,3) == "> <" then --player speaking in battleroom
+                local i = sfind(ssub(line,4,slen(line)), ">")
+                name = ssub(line,4,i+2)
+            end
 		end		
     end
 	
@@ -478,7 +482,6 @@ local function processLine(line,g,cfg,newlinecolor)
 			end
 		end
 	end
-	
 	
 	--ignore messages from muted--
 	if WG.ignoredPlayers and WG.ignoredPlayers[name] then 
