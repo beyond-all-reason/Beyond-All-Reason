@@ -29,6 +29,8 @@ local replaced = false
 local gameStarted = false
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
+local SpGetPlayerList = Spring.GetPlayerList
+local SpIsCheatingEnabled = Spring.IsCheatingEnabled
 
 function gadget:RecvLuaMsg(msg, playerID)
     local checkChange = (msg=='\144' or msg=='\145')
@@ -64,11 +66,6 @@ end
 
 
 function gadget:Initialize()
-    if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
-        gadgetHandler:RemoveGadget(self) -- don't run in FFA mode
-        return 
-    end
-
     -- record a list of which playersIDs are players on which teamID
     local teamList = Spring.GetTeamList()
     for _,teamID in pairs(teamList) do
@@ -211,8 +208,8 @@ function gadget:GameFrame(n)
         end
     end
     
-    if n%10==0 then
-        CheckJoined()
+    if n%5==0 then
+        CheckJoined() -- there is no PlayerChanged or PlayerAdded in synced code
     end
 end
 
@@ -220,12 +217,17 @@ end
 --------------------------- 
 
 function CheckJoined()
-    local pList = Spring.GetPlayerList()
+    local pList = SpGetPlayerList(true)
+    local cheatsOn = SpIsCheatingEnabled() 
+    if cheatsOn then return end
+    
     for _,pID in ipairs(pList) do
-        local _,active,spec,_,aID = Spring.GetPlayerInfo(pID)
-        if not players[pID] and active and not spec and not Spring.IsCheatingEnabled() then 
-            --Spring.Echo("handle join", pID, active, spec)
-            HandleJoinedPlayer(pID,aID)
+        if not players[pID] then
+            local _,active,spec,_,aID = Spring.GetPlayerInfo(pID)
+            if active and not spec then 
+                --Spring.Echo("handle join", pID, active, spec)
+                HandleJoinedPlayer(pID,aID)
+            end
         end
     end
 end
