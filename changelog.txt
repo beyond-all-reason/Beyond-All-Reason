@@ -1,3 +1,12 @@
+8.12 -> 8.13
+20/03/2015
+
+- Tweak Mavericks, more range growth, more initial hp, less hp growth 
+- In-game ignore also affects players talking from the battleroom
+- Show limexp in tooltip instead of exp
+- Allow substitution for players who don't place a startpoint
+- Players who join midgame are allocated to empty teams
+
 8.11 -> 8.12
 08/03/2015
 
@@ -13,8 +22,6 @@
 - Fixed maverick exp growth
 - Mavericks gain range bonus with exp (multiplier 1+exp/10)
 - Slightly reduced sniper speed
-
-
 
 8.09 -> 8.10
 15/02/2015
