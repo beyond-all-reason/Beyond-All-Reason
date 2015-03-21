@@ -39,7 +39,7 @@ return {
 		terraformspeed = 450,
 		turnrate = 1100,
 		upright = true,
-		workertime = 90,
+		workertime = 80,
 		buildoptions = {
 			[10] = "armalab",
 			[11] = "armlab",

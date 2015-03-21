@@ -39,7 +39,7 @@ return {
 		terraformspeed = 450,
 		turnrate = 1045,
 		upright = true,
-		workertime = 90,
+		workertime = 80,
 		buildoptions = {
 			[10] = "coralab",
 			[11] = "corlab",

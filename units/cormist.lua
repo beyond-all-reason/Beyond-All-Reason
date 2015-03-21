@@ -148,8 +148,6 @@ return {
 				badtargetcategory = "NOTAIR",
 				def = "CORTRUCK_MISSILE",
 				onlytargetcategory = "NOTSUB",
-				maindir = "0 0 1",
-				maxangledif = 235,
 			},
 		},
 	},
