@@ -1,3 +1,11 @@
+8.12 -> 8.14
+20/03/2015
+
+- Fix AdvPlList reporting phantom substitutions
+- Missile trucks can fire backwards (removed maxangledif)
+- Slightly reduced workertime of Kbot cons
+
+
 8.12 -> 8.13
 20/03/2015
 
