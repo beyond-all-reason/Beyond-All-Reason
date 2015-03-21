@@ -112,6 +112,10 @@ function FindSubs(real)
                 --Spring.Echo("absent:", playerID, ts)
             end
         end
+        -- if present, tell LuaUI that won't be substituted
+        if not absent[playerID] then
+            Spring.SetGameRulesParam("Player" .. playerID .. "willSub", 0)
+        end
     end
     --Spring.Echo("#absent: " .. #absent)
     
@@ -134,7 +138,7 @@ function FindSubs(real)
         --Spring.Echo("ideal: " .. #idealSubs .. " for pID " .. playerID)
         --Spring.Echo("valid: " .. #validSubs .. " for pID " .. playerID)
 
-        local willSub = false
+        local willSub = false --are we going to substitute anyone (for real)
         if #validSubs>0 then
             -- choose who
             local sID
@@ -160,13 +164,12 @@ function FindSubs(real)
             end
             substitutesLocal[sID] = nil
             willSub = true
-        end
-        --Spring.Echo("willSub: " .. (sID or "-1") .. " for pID " .. playerID)
-        
-        if not real then
-            -- tell luaui who we would substitute if the game started now
+
+            -- tell luaui that we would substitute if the game started now
+            --Spring.Echo("wouldSub: " .. (sID or "-1") .. " for pID " .. playerID)
             Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub and 1 or 0)
         end
+
     end
 
 end
