@@ -26,10 +26,12 @@ local updateList = {}
 function gadget:GameFrame(n)
 	for unitID in pairs(updateList) do
 		local curExp = GetUnitExperience(unitID)
-		local limExp = curExp/(1+curExp)
-		local newRange = maverickOriginalRange * ( 1 + limExp )
-		SetUnitWeaponState(unitID, 1, "range", newRange)
-	end
+        if curExp then
+            local limExp = curExp/(1+curExp)
+            local newRange = maverickOriginalRange * ( 1 + limExp )
+            SetUnitWeaponState(unitID, 1, "range", newRange)
+        end
+    end
 	updateList = {}
 end
 
