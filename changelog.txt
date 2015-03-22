@@ -1,3 +1,9 @@
+8.14 -> 8.15
+22/03/2015
+
+- Fix luaui reload from widget selector
+- Reduced metal in missile truck wrecks
+
 8.13 -> 8.14
 21/03/2015
 
