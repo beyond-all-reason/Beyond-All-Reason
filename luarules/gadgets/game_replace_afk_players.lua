@@ -138,7 +138,7 @@ function FindSubs(real)
         --Spring.Echo("ideal: " .. #idealSubs .. " for pID " .. playerID)
         --Spring.Echo("valid: " .. #validSubs .. " for pID " .. playerID)
 
-        local willSub = false --are we going to substitute anyone (for real)
+        local wouldSub = false --are we going to substitute anyone (for real)
         if #validSubs>0 then
             -- choose who
             local sID
@@ -163,13 +163,12 @@ function FindSubs(real)
                 Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
             end
             substitutesLocal[sID] = nil
-            willSub = true
-
-            -- tell luaui that we would substitute if the game started now
-            --Spring.Echo("wouldSub: " .. (sID or "-1") .. " for pID " .. playerID)
-            Spring.SetGameRulesParam("Player" .. playerID .. "willSub", willSub and 1 or 0)
+            wouldSub = true
         end
-
+        
+        -- tell luaui that if would substitute if the game started now
+        --Spring.Echo("wouldSub: " .. (sID or "-1") .. " for pID " .. playerID)
+        Spring.SetGameRulesParam("Player" .. playerID .. "wouldSub", wouldSub and 1 or 0)
     end
 
 end
