@@ -1,3 +1,4 @@
+
 return {
 	armmship = {
 		acceleration = 0.01,
@@ -117,7 +118,7 @@ return {
 				name = "Rocket",
 				noselfdamage = true,
 				range = 2475,
-				reloadtime = 7.5,
+				reloadtime = 75,
 				smoketrail = true,
 				soundhit = "xplomed4",
 				soundstart = "Rockhvy1",
