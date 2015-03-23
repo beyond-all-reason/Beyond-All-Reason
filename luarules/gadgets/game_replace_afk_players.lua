@@ -138,7 +138,7 @@ function FindSubs(real)
         --Spring.Echo("ideal: " .. #idealSubs .. " for pID " .. playerID)
         --Spring.Echo("valid: " .. #validSubs .. " for pID " .. playerID)
 
-        local wouldSub = false --are we going to substitute anyone (for real)
+        local wouldSub = false -- would we substitute this player if the game started now
         if #validSubs>0 then
             -- choose who
             local sID
