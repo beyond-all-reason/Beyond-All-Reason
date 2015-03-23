@@ -117,7 +117,7 @@ return {
 				name = "Rocket",
 				noselfdamage = true,
 				range = 2475,
-				reloadtime = 75,
+				reloadtime = 7.5,
 				smoketrail = true,
 				soundhit = "xplomed4",
 				soundstart = "Rockhvy1",
