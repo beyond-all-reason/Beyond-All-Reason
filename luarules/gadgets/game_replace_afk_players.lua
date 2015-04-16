@@ -235,18 +235,6 @@ function CheckJoined()
 end
 
 function HandleJoinedPlayer(jID, aID)
-    -- see if we can find a missing player to sub in for within the joined ally team, force spec if not
-    local playerList = Spring.GetPlayerList()
-    for _,pID in ipairs(playerList) do
-        local _,active,spec,teamID,allyTeamID = Spring.GetPlayerInfo(pID)
-        if aID==allyTeamID and jID~=pID and (not active or spec) and gameStarted then
-            Spring.AssignPlayerToTeam(jID, teamID) 
-            --Spring.Echo("allow joinas", jID, tID)
-            players[jID] = teamID
-            return
-        end
-    end
-    --Spring.Echo("deny joinas", jID)
     SendToUnsynced("ForceSpec", jID)
 end
 
@@ -409,6 +397,7 @@ end
 function ForceSpec(_,pID)
     local myID = Spring.GetMyPlayerID()
     if pID==myID then
+		Spring.Echo("You have been made a spectator - adding players is only allowed before the game starts!")
         Spring.SendCommands("spectator")
     end
 end
