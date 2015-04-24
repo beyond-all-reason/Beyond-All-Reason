@@ -126,7 +126,7 @@ end
 -- callins
 --------------------------------------------------------------------------------
 
-function widget:Initialize()
+function CheckAllComs()
   local allUnits = GetAllUnits()
   for _, unitID in pairs(allUnits) do
     local unitDefID = GetUnitDefID(unitID)
@@ -136,6 +136,15 @@ function widget:Initialize()
   end
 end
 
+function widget:Initialize()
+    CheckAllComs()
+end
+
+function widget:PlayerChanged()
+    if Spring.GetGameFrame()<30 then
+        CheckAllComs() -- handle substitutions, etc
+    end
+end
 
 function spGetUnitPieceMap(unitID,piecename)
   local pieceMap = {}
