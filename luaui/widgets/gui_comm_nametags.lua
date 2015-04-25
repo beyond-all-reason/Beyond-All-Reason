@@ -29,6 +29,7 @@ local fontSize = 6
 local GetUnitTeam         = Spring.GetUnitTeam
 local GetTeamInfo         = Spring.GetTeamInfo
 local GetPlayerInfo       = Spring.GetPlayerInfo
+local GetPlayerList       = Spring.GetPlayerList
 local GetTeamColor        = Spring.GetTeamColor
 local GetUnitViewPosition = Spring.GetUnitViewPosition
 local GetVisibleUnits     = Spring.GetVisibleUnits
@@ -81,8 +82,15 @@ local function GetCommAttributes(unitID, unitDefID)
   if team == nil then
     return nil
   end
-  local _, player = GetTeamInfo(team)
-  local name = GetPlayerInfo(player) or 'Robert Paulson'
+  local players = GetPlayerList(teamID)
+  local name = (#players>0) and GetPlayerInfo(players[1]) or 'Robert Paulson'
+  for _,pID in ipairs(players) do
+    local pname,active = GetPlayerInfo(pID)
+    if active then
+      name = pname
+      break
+    end
+  end
   local r, g, b, a = GetTeamColor(team)
   local height = UnitDefs[unitDefID].height + heightOffset
   local pm = spGetUnitPieceMap(unitID)
