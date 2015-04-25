@@ -18,7 +18,7 @@
 
 function widget:GetInfo()
   return {
-    name      = "WidgetSelector",
+    name      = "Widget Selector",
     desc      = "Widget selection widget",
     author    = "trepan, jK, Bluestone",
     date      = "Jan 8, 2007",

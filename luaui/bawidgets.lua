@@ -323,6 +323,10 @@ local function GetWidgetInfo(name, mode)
   end
 end
 
+local zipOnly = {
+    ["Widget Selector"] = true,
+    ["Widget Profiler"] = true,
+}
 
 function widgetHandler:Initialize()
   self:LoadConfigData()
@@ -340,7 +344,7 @@ function widgetHandler:Initialize()
   for k,wf in ipairs(widgetFiles) do
     GetWidgetInfo(wf, VFS.RAW_ONLY)
     local widget = self:LoadWidget(wf, false)
-    if (widget) then
+    if (widget) and not zipOnly[widget.whInfo.name] then
       table.insert(unsortedWidgets, widget)
     end
   end
@@ -457,13 +461,6 @@ function widgetHandler:LoadWidget(filename, fromZip)
 
     -- Get widget information
     local info  = widget:GetInfo()
-
-    -- Blacklisting
-    if info.name:upper():match('METAL[ _]*MAKER') or
-        basename:upper():match('METAL[ _]*MAKER') then
-        Spring.Echo('Failed to load: ' .. basename .. '  (Blacklisted)')
-        return nil
-    end
 
     -- Enabling
     local order = self.orderList[name]
