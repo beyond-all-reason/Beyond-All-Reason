@@ -77,7 +77,7 @@ widgetHandler = {
   customCommands = {},
   inCommandsChanged = false,
 
-  autoUserWidgets = true,
+  allowUserWidgets = true,
 
   actionHandler = include("actions.lua"),
 
@@ -247,7 +247,7 @@ function widgetHandler:LoadConfigData()
     setfenv(chunk, tmp)
     self.orderList = chunk().order
     self.configData = chunk().data
-    self.__DISABLE_RAW = chunk().__DISABLE_RAW
+    self.allowUserWidgets = chunk().allowUserWidgets
     if (not self.orderList) then
 		self.orderList = {} -- safety
     end
@@ -268,6 +268,7 @@ function widgetHandler:SaveConfigData()
   end
   filetable.order = self.orderList
   filetable.data = self.configData
+  filetable.allowUserWidgets = self.allowUserWidgets
   table.save( filetable, CONFIG_FILENAME, '-- Widget Custom data and order, order = 0 disabled widget')
 end
 
@@ -331,24 +332,34 @@ local zipOnly = {
 function widgetHandler:Initialize()
   self:LoadConfigData()
 
-  local autoUserWidgets = Spring.GetConfigInt('LuaAutoEnableUserWidgets', 1)
-  self.autoUserWidgets = (autoUserWidgets ~= 0)
-
+  -- do we allow userland widgets?
+  --local autoUserWidgets = Spring.GetConfigInt('LuaAutoEnableUserWidgets', 1)
+  --self.autoUserWidgets = (autoUserWidgets ~= 0)
+  if self.allowUserWidgets==nil then 
+    self.allowUserWidgets = true 
+  end
+  if self.allowUserWidgets then
+    Spring.Echo("LuaUI: Allowing User Widgets")
+  else
+    Spring.Echo("LuaUI: Disallowing User Widgets")
+  end
+  
   -- create the "LuaUI/Config" directory
   Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
   local unsortedWidgets = {}
 
   -- stuff the raw widgets into unsortedWidgets
-  local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW_ONLY)
-  for k,wf in ipairs(widgetFiles) do
-    GetWidgetInfo(wf, VFS.RAW_ONLY)
-    local widget = self:LoadWidget(wf, false)
-    if (widget) and not zipOnly[widget.whInfo.name] then
-      table.insert(unsortedWidgets, widget)
+  if self.allowUserWidgets then
+    local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW_ONLY)
+    for k,wf in ipairs(widgetFiles) do
+      GetWidgetInfo(wf, VFS.RAW_ONLY)
+      local widget = self:LoadWidget(wf, false)
+      if (widget) and not zipOnly[widget.whInfo.name] then
+        table.insert(unsortedWidgets, widget)
+      end
     end
   end
-  self.__DISABLE_RAW = nil
   
   -- stuff the zip widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP_ONLY)
@@ -469,13 +480,12 @@ function widgetHandler:LoadWidget(filename, fromZip)
            order = nil
         end
     else
-        if info.enabled and (knownInfo.fromZip or self.autoUserWidgets) then
+        if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
             order = 12345
         end
     end
 
-    local wantToEnable = knownInfo.fromZip or (not self.__DISABLE_RAW and self.autoUserWidgets)
-    if order and wantToEnable then
+    if order then
         self.orderList[name] = order
     else
         self.orderList[name] = 0
@@ -1067,8 +1077,14 @@ end
 --
 
 function widgetHandler:Shutdown()
-  if self.blankOutConfig then
-    table.save({["__DISABLE_RAW"]=self.disableRaw}, CONFIG_FILENAME, '-- Widget Custom data and order')  
+  -- record if we will allow user widgets on next load
+  if self.__allowUserWidgets~=nil then 
+      self.allowUserWidgets = self.__allowUserWidgets
+  end
+
+  -- save config
+  if self.__blankOutConfig then
+    table.save({["allowUserWidgets"]=self.allowUserWidgets}, CONFIG_FILENAME, '-- Widget Custom data and order')  
   else
     self:SaveConfigData()
   end

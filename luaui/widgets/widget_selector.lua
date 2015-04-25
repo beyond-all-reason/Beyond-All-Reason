@@ -32,6 +32,9 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+-- relies on a gadget to implement "luarules reloadluaui"
+-- relies on custom stuff in widgetHandler to implement blankOutConfig and allowUserWidgets
+
 include("colors.h.lua")
 include("keysym.h.lua")
 include("fonts.lua")
@@ -88,8 +91,8 @@ local show = false
 
 local buttons = { --see MouseRelease for which functions are called by which buttons
     [1] = "Reload LuaUI", 
-    [2] = "Disable User Widgets",
-    [3] = "Disable ALL Widgets",
+    [2] = "Unload ALL Widgets",
+    [3] = "Allow/Disallow User Widgets",
     [4] = "Reset LuaUI",
     [5] = "Factory Reset LuaUI",
 }
@@ -102,6 +105,12 @@ local buttonTop = 3 -- offset between top of buttons and bottom of widget
 function widget:Initialize()
   widgetHandler.knownChanged = true
   Spring.SendCommands('unbindkeyset f11')
+  
+  if widgetHandler.allowUserWidgets then
+    buttons[3] = "Disallow User Widgets"
+  else
+    buttons[3] = "Allow User Widgets"
+  end
 end
 
 
@@ -617,21 +626,22 @@ function widget:MouseRelease(x, y, mb)
       return -1
     end
     if buttonID == 2 then
-      -- set all user widgets off
-      for _,namedata in ipairs(fullWidgetsList) do
-        if not namedata[2].fromZip then
-          widgetHandler:DisableWidget(namedata[1])        
-        end
-      end
-      Spring.Echo("Unloaded all user widgets")
-      return -1
-    end
-    if buttonID == 3 then
-      -- disable all widgets
+      -- disable all widgets, but don't reload
       for _,namedata in ipairs(fullWidgetsList) do
         widgetHandler:DisableWidget(namedata[1])
       end
       widgetHandler:SaveConfigData()    
+      return -1
+    end
+    if buttonID == 3 then
+      if widgetHandler.allowUserWidgets then
+        widgetHandler.__allowUserWidgets = false
+        Spring.Echo("Disallowed user widgets, reloading...")
+      else
+        widgetHandler.__allowUserWidgets = true
+        Spring.Echo("Allowed user widgets, reloading...")      
+      end
+      Spring.SendCommands("luarules reloadluaui")
       return -1
     end
     if buttonID == 4 then
@@ -748,8 +758,8 @@ function widget:TextCommand(s)
     Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
   end
   if n==1 and token[1]=="factoryreset" then
-    widgetHandler.blankOutConfig = true
-    widgetHandler.disableRaw = true
+    widgetHandler.__blankOutConfig = true
+    widgetHandler.__allowUserWidgets = false
     Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
   end
 end
