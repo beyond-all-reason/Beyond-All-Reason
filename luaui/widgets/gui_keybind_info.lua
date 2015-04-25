@@ -75,7 +75,7 @@ function DrawButton()
     glText("Keybinds", textMargin, textMargin, textSize, "no")
 end
 
--- help info
+-- keybind info
 
 include("configs/BA_HotkeyInfo.lua")
 local blue = "\255\21\21\255"
@@ -122,17 +122,6 @@ end
 
 --
 
-function DeleteLists()
-    if buttonGL then
-        glDeleteList(buttonGL)
-        buttonGL = nil
-    end
-    if help then
-        glDeleteList(help)
-        help = nil
-    end
-end
-
 function widget:DrawScreen()
     if spIsGUIHidden() then return end
     if amNewbie and not gameStarted then return end
@@ -172,4 +161,15 @@ function widget:MousePress(x, y, button)
     if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
 
     show = not show
+end
+
+function widget:Shutdown()
+    if buttonGL then
+        glDeleteList(buttonGL)
+        buttonGL = nil
+    end
+    if keybinds then
+        glDeleteList(keybinds)
+        keybinds = nil
+    end
 end
