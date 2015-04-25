@@ -1,10 +1,10 @@
 
 function widget:GetInfo()
 return {
-	name    = "Help - Newbie Info",
-	desc    = "Makes newbie info accessible by clicking 'help'",
+	name    = "Keybind Info",
+	desc    = "Provides menu to display default keybinds",
 	author  = "Bluestone",
-	date    = "Jan 2015",
+	date    = "April 2015",
 	license = "Mouthwash",
 	layer   = 0,
 	enabled = true,
@@ -13,6 +13,7 @@ end
 
 
 local spIsGUIHidden = Spring.IsGUIHidden
+local showHelp = false
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -37,6 +38,7 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 local vsx, vsy = Spring.GetViewGeometry()
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
+  if keybinds then gl.DeleteList(keybinds) end
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -46,6 +48,7 @@ function widget:GameStart()
     gameStarted = true
 end
 
+-- button
 local textSize = 0.75
 local textMargin = 0.125
 local lineWidth = 0.0625
@@ -69,23 +72,72 @@ function DrawButton()
     glColor(0, 0, 0, 0.2)
     glRect(0, 0, 8, 1)
     DrawL()
-    glText("Help", textMargin, textMargin, textSize, "no")
+    glText("Keybinds", textMargin, textMargin, textSize, "no")
 end
+
+-- help info
+
+include("configs/BA_HotkeyInfo.lua")
+local blue = "\255\21\21\255"
+local white = "\255\255\255\255"
+local green = "\255\151\255\151"
+
+function DrawTextTable(t,x,y)
+    local j = 0
+    for _,t in pairs(t) do
+      if t.blankLine then
+        -- nothing here
+      elseif t.title then
+        -- title line
+        local title = t[1] or ""
+        local line = " " .. green .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
+        gl.Text(line, x+10, y-(13)*j, 11)     
+      else
+        -- keybind line
+        local bind = t[1] or ""
+        local effect = t[2] or ""
+        local line = blue .. bind .. " : " .. white .. effect
+        gl.Text(line, x, y-(13)*j, 11) 
+      end
+      
+	  j = j + 1
+    end
+    
+    return x,j
+end
+
+function KeyBindScreen()
+    local vsx,vsy = Spring.GetViewGeometry()
+    local x = vsx*0.2 --rightwards
+    local y = vsy*(1-0.27) --upwards
+    
+    DrawTextTable(General,x,y)
+    x = x + 350
+    DrawTextTable(Units_I_II,x,y)
+    x = x + 350
+    DrawTextTable(Units_III,x,y)   
+
+    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", vsx*0.2, y-43*11, 11)
+end
+
+--
 
 function DeleteLists()
     if buttonGL then
         glDeleteList(buttonGL)
         buttonGL = nil
     end
-    if battlesGL then
-        glDeleteList(battlesGL)
-        battlesGL = nil
+    if help then
+        glDeleteList(help)
+        help = nil
     end
 end
 
 function widget:DrawScreen()
     if spIsGUIHidden() then return end
     if amNewbie and not gameStarted then return end
+    
+    -- draw the button
     if not buttonGL then
         buttonGL = gl.CreateList(DrawButton)
     end
@@ -100,18 +152,24 @@ function widget:DrawScreen()
 
     glColor(1, 1, 1, 1)
     glLineWidth(1)
+    
+    -- draw the help
+    if not keybinds then
+        keybinds = gl.CreateList(KeyBindScreen)
+    end
+    
+    if show then
+        glCallList(keybinds)
+    end
 end
 
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
+    if amNewbie and not gameStarted then return end
     
 	tx = (x - posX*vsx)/16
     ty = (y - posY*vsy)/16
     if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
 
-    Spring.SendLuaRulesMsg("togglehelp")
-end
-
-function widget:Shutdown()
-    Spring.SendLuaRulesMsg("closehelp")
+    show = not show
 end
