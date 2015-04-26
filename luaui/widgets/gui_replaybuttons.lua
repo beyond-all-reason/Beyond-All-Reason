@@ -1,8 +1,7 @@
---http://springrts.com/phpbb/viewtopic.php?f=23&t=30560
 function widget:GetInfo()
 	return {
-		name = "replay buttons",
-		desc = "click buttons to change replay speed",
+		name = "Replay Speed Buttons",
+		desc = "Add buttons to change replay speed",
 		author = "knorke",
 		version = "1",
 		date = "June 2013",
@@ -20,9 +19,8 @@ wPos = {x=0.00, y=0.15}
 local isPaused = false
 local isActive = true --is the widget shown and reacts to clicks?
 
-function widget:Initialize()	
+function widget:Initialize()
 	if (not Spring.IsReplay()) then
-		Spring.Echo ("replaycontrol: Not a replay, removing myself.")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
@@ -40,27 +38,11 @@ function widget:Initialize()
 	
 end
 
-function widget:Shutdown()	
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('replaybuttons')
-	end
-end
-
 function speedButtonColor (i)
 	return{0,0+i/10,1,0.4}
 end
 
 function widget:DrawScreen()
-	if (WG['guishader_api'] ~= nil) then
-		if isActive then
-			local h = 0.04	
-			local dy = (#speeds +1) * h
-			WG['guishader_api'].InsertRect(sX(wPos.x), sY(wPos.y), sX(wPos.x+0.05), sY(wPos.y+dy), 'replaybuttons')
-		else
-			WG['guishader_api'].RemoveRect('replaybuttons')
-		end
-	end
-	
 	if not isActive then return end
 	draw_buttons(speedbuttons)
 	draw_buttons(buttons)
@@ -260,9 +242,6 @@ function clicked_button (b)
 	local mousey=uiY(my)
 	for i = 1, #b, 1 do	
 		if (click == true and point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  mousex, mousey)) then return b[i].name, i end
-		--if (mouse_was_down == false and click == true and point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  mousex, mousey)) then mouse_was_down = true end
 		end
-	--keyboard:
-	--if (enter_was_down and active_button > 0 and active_button < #buttons+1) then enter_was_down = false return b[active_button].name, active_button end
 	return "NOBUTTONCLICKED"
 end
