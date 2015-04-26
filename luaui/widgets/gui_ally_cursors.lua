@@ -9,8 +9,8 @@
 
 function widget:GetInfo()
 	return {
-		name	= "BA_AllyCursors",
-		desc	= "Shows the mouse pos of allied players",
+		name	= "Ally Cursors",
+		desc	= "Shows the mouse position of other players",
 		author	= "jK,TheFatController",
 		date	= "Apr,2009",
 		license	= "GNU GPL, v2 or later",

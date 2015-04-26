@@ -50,7 +50,7 @@ local selWayPtsTbl = {}
 
 function widget:GetInfo()
 	return {
-		name      = "BA Waypoint Dragger",
+		name      = "Waypoint Dragger",
 		desc      = "Enables Waypoint Dragging",
 		author    = "Kloot",
 		date      = "Aug. 8, 2007 [updated Aug. 14, 2009]",
