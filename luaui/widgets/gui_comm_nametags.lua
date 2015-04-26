@@ -91,7 +91,7 @@ local function GetCommAttributes(unitID, unitDefID)
       break
     end
   end
-  local r, g, b, a = GetTeamColor(team)
+  local r, g, b, a = GetTeamColor(teamID)
   local height = UnitDefs[unitDefID].height + heightOffset
   local pm = spGetUnitPieceMap(unitID)
   local pmt = pm["torso"]
