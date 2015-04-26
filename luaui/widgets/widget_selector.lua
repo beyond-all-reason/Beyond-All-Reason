@@ -634,6 +634,7 @@ function widget:MouseRelease(x, y, mb)
       return -1
     end
     if buttonID == 3 then
+      -- tell the widget handler that we allow/disallow user widgets and reload
       if widgetHandler.allowUserWidgets then
         widgetHandler.__allowUserWidgets = false
         Spring.Echo("Disallowed user widgets, reloading...")
@@ -754,13 +755,15 @@ function widget:TextCommand(s)
     token[n] = w		
   end
   if n==1 and token[1]=="reset" then
+    -- tell the widget handler to reload with a blank config
     widgetHandler.blankOutConfig = true
-    Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
+    Spring.SendCommands("luarules reloadluaui") 
   end
   if n==1 and token[1]=="factoryreset" then
+    -- tell the widget handler to disallow user widgets and reload with a blank config
     widgetHandler.__blankOutConfig = true
     widgetHandler.__allowUserWidgets = false
-    Spring.SendCommands("luarules reloadluaui") --tell luarules to request a luaui reload (luaui cannot reload itself!)
+    Spring.SendCommands("luarules reloadluaui") 
   end
 end
         
