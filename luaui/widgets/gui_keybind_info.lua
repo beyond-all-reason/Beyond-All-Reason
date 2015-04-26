@@ -1,8 +1,8 @@
 
 function widget:GetInfo()
 return {
-	name    = "Keybind Info",
-	desc    = "Provides menu to display default keybinds",
+	name    = "Keybind/Mouse Info",
+	desc    = "Provides information on the controls",
 	author  = "Bluestone",
 	date    = "April 2015",
 	license = "Mouthwash",
