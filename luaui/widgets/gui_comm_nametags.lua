@@ -149,7 +149,7 @@ function widget:Initialize()
 end
 
 function widget:PlayerChanged()
-    if Spring.GetGameFrame()<30 then
+    if Spring.GetGameFrame()<30*5 then
         CheckAllComs() -- handle substitutions, etc
     end
 end
