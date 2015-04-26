@@ -1,8 +1,12 @@
+8.16 -> 8.17
+26/04/2015
+- Fix typo
+
 8.15 -> 8.16
 26/04/2015
 - Added widget for changing game speed in replays
 - Added widget to display blast radius when placing buildings (press meta/space)
-- Add widget to swap Y and Z for AZERTY keyboards
+- Added widget to swap Y and Z for AZERTY keyboards
 - Added allow/disallow user widgets option to widget selector
 - Replaced Newbie Help widget with Keybind Info widget
 - Joinas results in becoming a spectator
