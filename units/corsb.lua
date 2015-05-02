@@ -1,4 +1,3 @@
-
 return {
 	corsb = {
 		acceleration = 0.0276,
@@ -103,9 +102,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORE_SEAADVBOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

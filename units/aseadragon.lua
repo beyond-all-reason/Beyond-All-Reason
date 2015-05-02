@@ -1,4 +1,3 @@
-
 return {
 	aseadragon = {
 		acceleration = 0.028,
@@ -11,10 +10,10 @@ return {
 		buildtime = 299523,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -6 3",
-		collisionVolumeScales = "71 71 162",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -6 3",
+		collisionvolumescales = "71 71 162",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Flagship",
 		energymake = 150,
@@ -35,7 +34,7 @@ return {
 		movementclass = "DBOAT6",
 		name = "Epoch",
 		objectname = "ASEADRAGON",
-		pushResistant = true,
+		pushresistant = true,
 		radardistance = 1530,
 		radaremitheight = 52,
 		seismicsignature = 0,

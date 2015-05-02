@@ -1,4 +1,3 @@
-
 return {
 	armyork = {
 		acceleration = 0.0396,
@@ -10,10 +9,10 @@ return {
 		buildtime = 9964,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -2 0",
-		collisionVolumeScales = "31 31 38",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -2 0",
+		collisionvolumescales = "31 31 38",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Anti-Air Flak Vehicle",
 		energymake = 0.5,

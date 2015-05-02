@@ -1,4 +1,3 @@
-
 return {
 	cordrag = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	armbeaver = {
 		acceleration = 0.06,

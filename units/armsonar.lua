@@ -1,4 +1,3 @@
-
 return {
 	armsonar = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	armspid = {
 		acceleration = 0.18,

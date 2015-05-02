@@ -1,4 +1,3 @@
-
 return {
 	corwin = {
 		acceleration = 0,

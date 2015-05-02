@@ -1,4 +1,3 @@
-
 return {
 	corsumo = {
 		acceleration = 0.048,
@@ -30,7 +29,7 @@ return {
 		name = "Sumo",
 		nochasecategory = "VTOL",
 		objectname = "CORSUMO",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 510,

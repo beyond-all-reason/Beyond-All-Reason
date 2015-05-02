@@ -1,8 +1,5 @@
-
 return {
 	corfgate = {
-		MinWaterDepth = 16,
-		WaterLine = 0,
 		acceleration = 0,
 		activatewhenbuilt = true,
 		bmcode = 0,
@@ -14,9 +11,9 @@ return {
 		buildpic = "corfgate.pcx",
 		buildtime = 59060,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
-		collisionVolumeOffsets = "0 -25 0",
-		collisionVolumeScales = "60 70 60",
-		collisionVolumeType = "cyly",
+		collisionvolumeoffsets = "0 -25 0",
+		collisionvolumescales = "60 70 60",
+		collisionvolumetype = "cyly",
 		corpse = "DEAD",
 		description = "Floating Plasma Deflector",
 		energystorage = 2000,
@@ -31,6 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 0,
 		metalstorage = 0,
+		minwaterdepth = 16,
 		name = "Atoll",
 		noautofire = 0,
 		norestrict = 1,
@@ -46,6 +44,7 @@ return {
 		turninplacespeedlimit = 0,
 		turnrate = 0,
 		unitname = "corfgate",
+		waterline = 0,
 		workertime = 0,
 		customparams = {},
 		featuredefs = {

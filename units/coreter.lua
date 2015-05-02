@@ -1,4 +1,3 @@
-
 return {
 	coreter = {
 		acceleration = 0.0407,

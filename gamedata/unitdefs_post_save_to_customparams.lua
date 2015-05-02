@@ -14,7 +14,7 @@ end
 function table.key_to_str ( k )
   if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
     if k == "else" then k = "default" end -- handles deprecated ["else"] damage class
-    return k
+    return string.lower(k) -- make all key values lower case
   else
     return "[" .. table.val_to_str( k ) .. "]"
   end

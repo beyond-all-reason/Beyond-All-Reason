@@ -1,4 +1,3 @@
-
 return {
 	corsub = {
 		acceleration = 0.027,
@@ -11,10 +10,10 @@ return {
 		buildtime = 10895,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
-		collisionVolumeOffsets = "0 -4 0",
-		collisionVolumeScales = "35 17 50",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "box",
+		collisionvolumeoffsets = "0 -4 0",
+		collisionvolumescales = "35 17 50",
+		collisionvolumetest = 1,
+		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Submarine",
 		explodeas = "SMALL_UNITEX",
@@ -139,11 +138,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "HOVER NOTSHIP",
+				badtargetcategory = "HOVER NOTSHIP",
 				def = "ARM_TORPEDO",
 				maindir = "0 0 1",
 				maxangledif = 90,
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

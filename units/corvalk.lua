@@ -1,4 +1,3 @@
-
 return {
 	corvalk = {
 		acceleration = 0.09,

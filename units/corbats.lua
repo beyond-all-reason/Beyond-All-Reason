@@ -1,4 +1,3 @@
-
 return {
 	corbats = {
 		acceleration = 0.03,
@@ -10,10 +9,10 @@ return {
 		buildtime = 60640,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -15 -2",
-		collisionVolumeScales = "62 62 139",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -15 -2",
+		collisionvolumescales = "62 62 139",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Battleship",
 		energymake = 46,

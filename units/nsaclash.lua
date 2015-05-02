@@ -1,4 +1,3 @@
-
 return {
 	nsaclash = {
 		acceleration = 0.072,

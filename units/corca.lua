@@ -1,4 +1,3 @@
-
 return {
 	corca = {
 		acceleration = 0.06,

@@ -1,4 +1,3 @@
-
 return {
 	corsh = {
 		acceleration = 0.12,

@@ -1,4 +1,3 @@
-
 return {
 	cormex = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "CORMEX.DDS",
 		buildtime = 1874,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 3 0",
-		collisionVolumeScales = "48 33 48",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 3 0",
+		collisionvolumescales = "48 33 48",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "SMALL_BUILDINGEX",

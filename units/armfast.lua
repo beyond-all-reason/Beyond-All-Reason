@@ -1,4 +1,3 @@
-
 return {
 	armfast = {
 		acceleration = 0.36,

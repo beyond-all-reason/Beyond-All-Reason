@@ -1,4 +1,3 @@
-
 return {
 	armack = {
 		acceleration = 0.432,

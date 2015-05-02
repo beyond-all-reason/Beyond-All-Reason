@@ -1,4 +1,3 @@
-
 return {
 	armpincer = {
 		acceleration = 0.011,

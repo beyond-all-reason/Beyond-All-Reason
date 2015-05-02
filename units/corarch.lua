@@ -1,4 +1,3 @@
-
 return {
 	corarch = {
 		acceleration = 0.042,
@@ -11,10 +10,10 @@ return {
 		buildtime = 9791,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -4 0",
-		collisionVolumeScales = "37 37 82",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -4 0",
+		collisionvolumescales = "37 37 82",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Anti-Air Ship",
 		energymake = 8,

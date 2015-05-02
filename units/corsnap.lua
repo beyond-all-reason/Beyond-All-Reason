@@ -1,4 +1,3 @@
-
 return {
 	corsnap = {
 		acceleration = 0.078,
@@ -9,10 +8,10 @@ return {
 		buildtime = 3791,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
-		collisionVolumeOffsets = "0 1 0",
-		collisionVolumeScales = "32 16 32",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 1 0",
+		collisionvolumescales = "32 16 32",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Hovertank",
 		energymake = 2.1,

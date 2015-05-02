@@ -1,4 +1,3 @@
-
 return {
 	armcv = {
 		acceleration = 0.121,

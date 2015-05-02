@@ -1,4 +1,3 @@
-
 return {
 	corvamp = {
 		acceleration = 0.166,
@@ -93,14 +92,14 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "CORVTOL_ADVMISSILE",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "CORVTOL_ADVMISSILE",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

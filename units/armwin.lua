@@ -1,4 +1,3 @@
-
 return {
 	armwin = {
 		acceleration = 0,

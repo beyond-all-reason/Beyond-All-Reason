@@ -1,4 +1,3 @@
-
 return {
 	armfdrag = {
 		acceleration = 0,

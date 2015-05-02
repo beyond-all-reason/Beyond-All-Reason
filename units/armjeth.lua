@@ -1,4 +1,3 @@
-
 return {
 	armjeth = {
 		acceleration = 0.12,

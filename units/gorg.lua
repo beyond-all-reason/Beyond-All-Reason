@@ -1,4 +1,3 @@
-
 return {
 	gorg = {
 		acceleration = 0.048,
@@ -9,10 +8,10 @@ return {
 		buildtime = 629630,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 5",
-		collisionVolumeScales = "96 84 96",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 5",
+		collisionvolumescales = "96 84 96",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "(barely) Mobile Heavy Turret",
 		energymake = 35,
@@ -31,7 +30,7 @@ return {
 		name = "Juggernaut",
 		nochasecategory = "VTOL",
 		objectname = "GORG",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "CRAWL_BLAST",
 		sightdistance = 720,

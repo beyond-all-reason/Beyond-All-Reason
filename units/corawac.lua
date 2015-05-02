@@ -1,4 +1,3 @@
-
 return {
 	corawac = {
 		acceleration = 0.114,

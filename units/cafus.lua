@@ -1,4 +1,3 @@
-
 return {
 	cafus = {
 		acceleration = 0,
@@ -13,10 +12,10 @@ return {
 		buildpic = "CAFUS.DDS",
 		buildtime = 226272,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "84 95 84",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "84 95 84",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.95,
 		description = "Enhanced Energy Output",

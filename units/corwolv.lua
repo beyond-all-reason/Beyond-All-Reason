@@ -1,4 +1,3 @@
-
 return {
 	corwolv = {
 		acceleration = 0.011,
@@ -31,7 +30,7 @@ return {
 		name = "Wolverine",
 		nochasecategory = "VTOL",
 		objectname = "CORWOLV",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 299,

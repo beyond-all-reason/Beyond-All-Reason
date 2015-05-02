@@ -1,4 +1,3 @@
-
 return {
 	meteor = {
 		acceleration = 0,

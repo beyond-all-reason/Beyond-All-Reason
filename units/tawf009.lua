@@ -1,4 +1,3 @@
-
 return {
 	tawf009 = {
 		acceleration = 0.08,
@@ -138,11 +137,11 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "HOVER NOTSHIP",
+				badtargetcategory = "HOVER NOTSHIP",
 				def = "TAWF009_WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 75,
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

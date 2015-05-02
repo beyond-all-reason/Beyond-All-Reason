@@ -1,4 +1,3 @@
-
 return {
 	armacsub = {
 		acceleration = 0.038,
@@ -11,10 +10,10 @@ return {
 		buildtime = 23900,
 		canmove = true,
 		category = "UNDERWATER ALL NOTLAND MOBILE NOWEAPON NOTAIR NOTHOVER",
-		collisionVolumeOffsets = "0 0 -1",
-		collisionVolumeScales = "31 30 73",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 0 -1",
+		collisionvolumescales = "31 30 73",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Tech Level 2",
 		energymake = 30,

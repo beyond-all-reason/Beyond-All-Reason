@@ -1,4 +1,3 @@
-
 return {
 	cormuskrat = {
 		acceleration = 0.06,

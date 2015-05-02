@@ -1,4 +1,3 @@
-
 return {
 	armpt = {
 		acceleration = 0.096,
@@ -11,10 +10,10 @@ return {
 		buildtime = 2062,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -6 0",
-		collisionVolumeScales = "21 21 63",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -6 0",
+		collisionvolumescales = "21 21 63",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Patrol Boat/Light Anti-Air",
 		energymake = 0.2,

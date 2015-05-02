@@ -1,4 +1,3 @@
-
 return {
 	corack = {
 		acceleration = 0.408,

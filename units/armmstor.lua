@@ -1,4 +1,3 @@
-
 return {
 	armmstor = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "ARMMSTOR.DDS",
 		buildtime = 2925,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "63 31 63",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "63 31 63",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (3000)",
 		explodeas = "SMALL_BUILDINGEX",

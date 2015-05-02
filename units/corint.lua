@@ -1,4 +1,3 @@
-
 return {
 	corint = {
 		acceleration = 0,

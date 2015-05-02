@@ -1,4 +1,3 @@
-
 return {
 	armthund = {
 		acceleration = 0.032,
@@ -88,9 +87,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "ARMBOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

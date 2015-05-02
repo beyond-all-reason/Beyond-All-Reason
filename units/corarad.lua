@@ -1,4 +1,3 @@
-
 return {
 	corarad = {
 		acceleration = 0,

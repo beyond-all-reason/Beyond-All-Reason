@@ -1,4 +1,3 @@
-
 return {
 	corcv = {
 		acceleration = 0.1144,

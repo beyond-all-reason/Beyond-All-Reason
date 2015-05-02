@@ -1,4 +1,3 @@
-
 return {
 	armrecl = {
 		acceleration = 0.14,
@@ -14,11 +13,10 @@ return {
 		canmove = true,
 		canresurrect = true,
 		category = "ALL UNDERWATER CONSTR NOWEAPON NOTAIR NOTHOVER",
-		collisionVolumeOffsets = "0 -5 0",
-		collisionVolumeScales = "38 17 50",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "box",
 		collisionvolumeoffsets = "0 0 2",
+		collisionvolumescales = "38 17 50",
+		collisionvolumetest = 1,
+		collisionvolumetype = "box",
 		description = "Ressurection Sub",
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,

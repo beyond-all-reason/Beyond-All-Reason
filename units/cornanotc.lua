@@ -1,4 +1,3 @@
-
 return {
 	cornanotc = {
 		acceleration = 0,
@@ -11,10 +10,10 @@ return {
 		buildtime = 5312,
 		cantbetransported = false,
 		category = "ALL NOTSUB CONSTR NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "31 32 31",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "31 32 31",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		description = "Repairs and builds in large radius",
 		energyuse = 30,
 		explodeas = "NANOBOOM2",

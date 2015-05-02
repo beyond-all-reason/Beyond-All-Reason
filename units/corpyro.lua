@@ -1,4 +1,3 @@
-
 return {
 	corpyro = {
 		acceleration = 0.45,

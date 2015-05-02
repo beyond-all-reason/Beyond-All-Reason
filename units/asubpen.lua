@@ -1,4 +1,3 @@
-
 return {
 	asubpen = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	armcybr = {
 		acceleration = 0.13,
@@ -95,7 +94,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARM_PIDR",
 				onlytargetcategory = "SURFACE",
 			},

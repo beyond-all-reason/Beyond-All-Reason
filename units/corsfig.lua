@@ -1,4 +1,3 @@
-
 return {
 	corsfig = {
 		acceleration = 0.152,
@@ -94,9 +93,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "CORSFIG_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

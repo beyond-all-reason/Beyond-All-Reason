@@ -1,4 +1,3 @@
-
 return {
 	armfido = {
 		acceleration = 0.12,

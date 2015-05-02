@@ -1,4 +1,3 @@
-
 return {
 	consul = {
 		acceleration = 0.165,
@@ -11,10 +10,10 @@ return {
 		buildtime = 6793,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 2",
-		collisionVolumeScales = "33 17 33",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 2",
+		collisionvolumescales = "33 17 33",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Combat Engineer",
 		energymake = 15,

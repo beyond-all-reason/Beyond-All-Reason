@@ -1,4 +1,3 @@
-
 return {
 	corcs = {
 		acceleration = 0.1,
@@ -11,10 +10,10 @@ return {
 		buildtime = 8306,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -7 0",
-		collisionVolumeScales = "26 26 79",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -7 0",
+		collisionvolumescales = "26 26 79",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 15,

@@ -1,4 +1,3 @@
-
 return {
 	armfboy = {
 		acceleration = 0.12,
@@ -30,7 +29,7 @@ return {
 		name = "Fatboy",
 		nochasecategory = "VTOL",
 		objectname = "ARMFBOY",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 510,

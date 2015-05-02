@@ -1,4 +1,3 @@
-
 return {
 	armtarg = {
 		acceleration = 0,

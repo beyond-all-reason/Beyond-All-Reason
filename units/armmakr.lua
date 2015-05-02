@@ -1,4 +1,3 @@
-
 return {
 	armmakr = {
 		acceleration = 0,

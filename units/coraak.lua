@@ -1,4 +1,3 @@
-
 return {
 	coraak = {
 		acceleration = 0.12,

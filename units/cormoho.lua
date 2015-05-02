@@ -1,4 +1,3 @@
-
 return {
 	cormoho = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "CORMOHO.DDS",
 		buildtime = 14125,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "79 37 79",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "79 37 79",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,

@@ -1,4 +1,3 @@
-
 return {
 	corlevlr = {
 		acceleration = 0.0364,

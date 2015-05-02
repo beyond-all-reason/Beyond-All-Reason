@@ -1,4 +1,3 @@
-
 return {
 	corsent = {
 		acceleration = 0.0528,

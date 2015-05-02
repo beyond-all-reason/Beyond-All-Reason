@@ -1,4 +1,3 @@
-
 return {
 	armsam = {
 		acceleration = 0.031,

@@ -1,4 +1,3 @@
-
 return {
 	armsolar = {
 		acceleration = 0,

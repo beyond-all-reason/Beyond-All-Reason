@@ -1,4 +1,3 @@
-
 return {
 	armca = {
 		acceleration = 0.072,

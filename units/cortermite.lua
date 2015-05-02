@@ -1,4 +1,3 @@
-
 return {
 	cortermite = {
 		acceleration = 0.171,

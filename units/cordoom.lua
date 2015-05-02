@@ -1,4 +1,3 @@
-
 return {
 	cordoom = {
 		acceleration = 0,

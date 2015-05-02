@@ -1,4 +1,3 @@
-
 return {
 	armmship = {
 		acceleration = 0.01,
@@ -10,10 +9,10 @@ return {
 		buildtime = 24817,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -5 -3",
-		collisionVolumeScales = "44 44 108",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -5 -3",
+		collisionvolumescales = "44 44 108",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Cruise Missile Ship",
 		energymake = 0.8,

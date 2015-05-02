@@ -1,4 +1,3 @@
-
 return {
 	armamex = {
 		acceleration = 0,
@@ -15,10 +14,10 @@ return {
 		buildtime = 1800,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		cloakcost = 12,
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "49 26 49",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "49 26 49",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Stealthy Cloakable Metal Extractor",
 		explodeas = "TWILIGHT",

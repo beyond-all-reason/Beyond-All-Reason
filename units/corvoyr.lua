@@ -1,4 +1,3 @@
-
 return {
 	corvoyr = {
 		acceleration = 0.049,

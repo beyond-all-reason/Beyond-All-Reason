@@ -1,4 +1,3 @@
-
 return {
 	armfmine3 = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		category = "ALL WEAPON MINE KAMIKAZE NOTSUB NOTAIR HOVER SURFACE",
 		cloakcost = 2,
 		collide = false,
-		collisionVolumeOffsets = "0 -1.5 0",
-		collisionVolumeScales = "22 5 22",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1.5 0",
+		collisionvolumescales = "22 5 22",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		description = "Heavy Mine, Naval Series",
 		explodeas = "FMINE_HEAVY",
 		firestate = 2,

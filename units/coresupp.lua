@@ -1,4 +1,3 @@
-
 return {
 	coresupp = {
 		acceleration = 0.072,
@@ -11,10 +10,10 @@ return {
 		buildtime = 6660,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -4 -1",
-		collisionVolumeScales = "25 25 69",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -4 -1",
+		collisionvolumescales = "25 25 69",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Corvette",
 		energymake = 3,

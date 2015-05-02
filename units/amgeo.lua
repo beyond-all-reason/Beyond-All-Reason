@@ -1,4 +1,3 @@
-
 return {
 	amgeo = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "AMGEO.DDS",
 		buildtime = 33152,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "-2 -2 6",
-		collisionVolumeScales = "69 69 107",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "-2 -2 6",
+		collisionvolumescales = "69 69 107",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		description = "Hazardous Energy Source",
 		energymake = 1250,
 		energystorage = 12000,

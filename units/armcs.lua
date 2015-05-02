@@ -1,4 +1,3 @@
-
 return {
 	armcs = {
 		acceleration = 0.1,
@@ -11,10 +10,10 @@ return {
 		buildtime = 7686,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -5 -1",
-		collisionVolumeScales = "30 30 78",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -5 -1",
+		collisionvolumescales = "30 30 78",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 15,

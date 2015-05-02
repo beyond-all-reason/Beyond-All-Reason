@@ -1,4 +1,3 @@
-
 return {
 	cortitan = {
 		acceleration = 0.06,
@@ -90,9 +89,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTSHIP",
+				badtargetcategory = "NOTSHIP",
 				def = "ARMAIR_TORPEDO",
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

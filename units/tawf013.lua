@@ -1,4 +1,3 @@
-
 return {
 	tawf013 = {
 		acceleration = 0.0154,
@@ -31,7 +30,7 @@ return {
 		name = "Shellshocker",
 		nochasecategory = "VTOL",
 		objectname = "TAWF013",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 364,

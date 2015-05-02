@@ -1,4 +1,3 @@
-
 return {
 	armawac = {
 		acceleration = 0.114,

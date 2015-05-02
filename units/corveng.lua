@@ -1,4 +1,3 @@
-
 return {
 	corveng = {
 		acceleration = 0.83,
@@ -91,9 +90,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "CORVTOL_MISSILE_A2A",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

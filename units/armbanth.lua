@@ -1,4 +1,3 @@
-
 return {
 	armbanth = {
 		acceleration = 0.103,
@@ -10,10 +9,10 @@ return {
 		buildtime = 276057,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -10 0",
-		collisionVolumeScales = "48 76 48",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -10 0",
+		collisionvolumescales = "48 76 48",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Assault Mech",
 		energymake = 12,
@@ -32,7 +31,7 @@ return {
 		name = "Bantha",
 		nochasecategory = "VTOL",
 		objectname = "ARMBANTH",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "BANTHA_NUKE",
 		selfdestructcountdown = 10,

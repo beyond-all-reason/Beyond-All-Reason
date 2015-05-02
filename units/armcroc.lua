@@ -1,4 +1,3 @@
-
 return {
 	armcroc = {
 		acceleration = 0.0528,
@@ -9,10 +8,10 @@ return {
 		buildtime = 13367,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 -3",
-		collisionVolumeScales = "53 23 53",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 -3",
+		collisionvolumescales = "53 23 53",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Heavy Amphibious Tank",
 		energymake = 0.5,

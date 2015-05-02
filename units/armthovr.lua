@@ -1,4 +1,3 @@
-
 return {
 	armthovr = {
 		acceleration = 0.043,
@@ -11,10 +10,10 @@ return {
 		canmove = true,
 		cantbetransported = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
-		collisionVolumeOffsets = "-1 -1 0",
-		collisionVolumeScales = "56 56 96",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "-1 -1 0",
+		collisionvolumescales = "56 56 96",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Transport Hovercraft",
 		energymake = 2.4,

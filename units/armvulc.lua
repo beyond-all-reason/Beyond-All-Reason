@@ -1,4 +1,3 @@
-
 return {
 	armvulc = {
 		acceleration = 0,

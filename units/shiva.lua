@@ -1,4 +1,3 @@
-
 return {
 	shiva = {
 		acceleration = 0.06,

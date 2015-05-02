@@ -1,4 +1,3 @@
-
 return {
 	coracv = {
 		acceleration = 0.066,
@@ -11,10 +10,10 @@ return {
 		buildtime = 12882,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -3 0",
-		collisionVolumeScales = "36 36 47",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -3 0",
+		collisionvolumescales = "36 36 47",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Tech Level 2",
 		energymake = 20,

@@ -1,4 +1,3 @@
-
 return {
 	armfav = {
 		acceleration = 0.12,

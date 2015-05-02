@@ -1,4 +1,3 @@
-
 return {
 	krogtaar = {
 		acceleration = 0.144,

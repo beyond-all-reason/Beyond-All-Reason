@@ -1,4 +1,3 @@
-
 return {
 	armfmkr = {
 		acceleration = 0,

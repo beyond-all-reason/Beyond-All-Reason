@@ -1,4 +1,3 @@
-
 return {
 	corfink = {
 		acceleration = 0.16,

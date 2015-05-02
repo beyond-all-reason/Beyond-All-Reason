@@ -1,4 +1,3 @@
-
 return {
 	armsfig = {
 		acceleration = 0.16,
@@ -94,9 +93,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTAIR",
+				badtargetcategory = "NOTAIR",
 				def = "ARMSFIG_WEAPON",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

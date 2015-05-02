@@ -1,4 +1,3 @@
-
 return {
 	corgripn = {
 		acceleration = 0.16,
@@ -11,10 +10,10 @@ return {
 		canmove = true,
 		category = "ALL MOBILE WEAPON VTOL NOTSUB NOTHOVER",
 		collide = false,
-		collisionVolumeOffsets = "0 -3 0",
-		collisionVolumeScales = "24 9 24",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -3 0",
+		collisionvolumescales = "24 9 24",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		cruisealt = 220,
 		description = "EMP Bomber",
 		energymake = 15,
@@ -93,9 +92,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "CORGRIPN_BOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -1,4 +1,3 @@
-
 return {
 	armsjam = {
 		acceleration = 0.09,
@@ -10,10 +9,10 @@ return {
 		buildtime = 6708,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -2 0",
-		collisionVolumeScales = "22 22 64",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -2 0",
+		collisionvolumescales = "22 22 64",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Radar Jammer Ship",
 		energymake = 18,

@@ -1,4 +1,3 @@
-
 return {
 	armstump = {
 		acceleration = 0.0287,

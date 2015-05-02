@@ -1,4 +1,3 @@
-
 return {
 	armcarry = {
 		acceleration = 0.026,
@@ -16,10 +15,10 @@ return {
 		canreclaim = false,
 		canrepair = false,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "-1 -7 4",
-		collisionVolumeScales = "64 64 155",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "-1 -7 4",
+		collisionvolumescales = "64 64 155",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Aircraft Carrier with Anti-Nuke",
 		energymake = 250,

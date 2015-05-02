@@ -1,4 +1,3 @@
-
 return {
 	corcan = {
 		acceleration = 0.12,

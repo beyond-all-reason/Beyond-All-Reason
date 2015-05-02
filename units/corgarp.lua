@@ -1,4 +1,3 @@
-
 return {
 	corgarp = {
 		acceleration = 0.011,

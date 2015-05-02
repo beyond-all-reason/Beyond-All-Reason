@@ -1,4 +1,3 @@
-
 return {
 	armsnipe = {
 		acceleration = 0.12,

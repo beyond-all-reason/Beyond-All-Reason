@@ -1,4 +1,3 @@
-
 return {
 	armalab = {
 		acceleration = 0,

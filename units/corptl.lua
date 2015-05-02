@@ -1,4 +1,3 @@
-
 return {
 	corptl = {
 		acceleration = 0,

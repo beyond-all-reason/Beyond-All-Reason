@@ -1,4 +1,3 @@
-
 return {
 	armjanus = {
 		acceleration = 0.0198,

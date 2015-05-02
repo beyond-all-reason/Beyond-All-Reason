@@ -1,4 +1,3 @@
-
 return {
 	corsd = {
 		activatewhenbuilt = true,

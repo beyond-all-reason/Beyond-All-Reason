@@ -1,4 +1,3 @@
-
 return {
 	cormist = {
 		acceleration = 0.027,

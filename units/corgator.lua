@@ -1,4 +1,3 @@
-
 return {
 	corgator = {
 		acceleration = 0.055,

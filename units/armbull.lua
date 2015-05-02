@@ -1,4 +1,3 @@
-
 return {
 	armbull = {
 		acceleration = 0.0396,
@@ -9,10 +8,10 @@ return {
 		buildtime = 17228,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 2",
-		collisionVolumeScales = "43 23 43",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 2",
+		collisionvolumescales = "43 23 43",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Heavy Assault Tank",
 		energymake = 0.8,

@@ -1,4 +1,3 @@
-
 return {
 	armason = {
 		acceleration = 0,

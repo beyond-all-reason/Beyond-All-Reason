@@ -1,4 +1,3 @@
-
 return {
 	corgant = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildtime = 67321,
 		canmove = true,
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -5 8",
-		collisionVolumeScales = "150 43 150",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -5 8",
+		collisionvolumescales = "150 43 150",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Produces Level 3 Units",
 		energystorage = 1400,

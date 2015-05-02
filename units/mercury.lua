@@ -1,4 +1,3 @@
-
 return {
 	mercury = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "MERCURY.DDS",
 		buildtime = 30190,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "-1 -1 0",
-		collisionVolumeScales = "60 68 60",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "-1 -1 0",
+		collisionvolumescales = "60 68 60",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Long Range Anti-Air Tower",
 		explodeas = "BIG_UNITEX",

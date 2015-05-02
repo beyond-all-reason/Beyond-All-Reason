@@ -1,4 +1,3 @@
-
 return {
 	cortarg = {
 		acceleration = 0,

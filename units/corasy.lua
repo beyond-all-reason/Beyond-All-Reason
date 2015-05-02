@@ -1,4 +1,3 @@
-
 return {
 	corasy = {
 		acceleration = 0,

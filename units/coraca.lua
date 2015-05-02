@@ -1,4 +1,3 @@
-
 return {
 	coraca = {
 		acceleration = 0.066,

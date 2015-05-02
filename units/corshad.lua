@@ -1,4 +1,3 @@
-
 return {
 	corshad = {
 		acceleration = 0.028,
@@ -88,9 +87,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "COREBOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

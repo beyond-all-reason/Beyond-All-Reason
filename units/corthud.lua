@@ -1,4 +1,3 @@
-
 return {
 	corthud = {
 		acceleration = 0.113,

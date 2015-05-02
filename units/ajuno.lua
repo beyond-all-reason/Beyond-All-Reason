@@ -1,4 +1,3 @@
-
 return {
 	ajuno = {
 		acceleration = 0,

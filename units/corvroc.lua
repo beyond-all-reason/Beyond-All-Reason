@@ -1,4 +1,3 @@
-
 return {
 	corvroc = {
 		acceleration = 0.025,

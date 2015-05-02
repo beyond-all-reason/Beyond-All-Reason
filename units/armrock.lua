@@ -1,4 +1,3 @@
-
 return {
 	armrock = {
 		acceleration = 0.12,

@@ -1,4 +1,3 @@
-
 return {
 	armsilo = {
 		acceleration = 0,

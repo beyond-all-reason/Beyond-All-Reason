@@ -1,4 +1,3 @@
-
 return {
 	corstorm = {
 		acceleration = 0.108,

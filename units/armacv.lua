@@ -1,4 +1,3 @@
-
 return {
 	armacv = {
 		acceleration = 0.0726,
@@ -11,10 +10,10 @@ return {
 		buildtime = 12397,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "39 26 39",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "39 26 39",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Tech Level 2",
 		energymake = 20,

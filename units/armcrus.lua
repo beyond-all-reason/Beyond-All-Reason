@@ -1,4 +1,3 @@
-
 return {
 	armcrus = {
 		acceleration = 0.048,
@@ -11,10 +10,10 @@ return {
 		buildtime = 19789,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -11 0",
-		collisionVolumeScales = "40 40 98",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -11 0",
+		collisionvolumescales = "40 40 98",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Cruiser",
 		energymake = 2.6,

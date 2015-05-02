@@ -1,4 +1,3 @@
-
 return {
 	corjamt = {
 		acceleration = 0,

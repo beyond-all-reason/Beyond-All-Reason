@@ -1,4 +1,3 @@
-
 return {
 	corvrad = {
 		acceleration = 0.03,

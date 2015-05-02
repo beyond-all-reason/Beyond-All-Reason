@@ -1,4 +1,3 @@
-
 return {
 	corason = {
 		acceleration = 0,

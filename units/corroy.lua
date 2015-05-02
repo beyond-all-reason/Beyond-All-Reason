@@ -1,4 +1,3 @@
-
 return {
 	corroy = {
 		acceleration = 0.05,
@@ -11,10 +10,10 @@ return {
 		buildtime = 13368,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -5 0",
-		collisionVolumeScales = "34 34 80",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -5 0",
+		collisionvolumescales = "34 34 80",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Destroyer",
 		energymake = 1.9,

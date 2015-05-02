@@ -1,4 +1,3 @@
-
 return {
 	cormls = {
 		acceleration = 0.046,
@@ -11,10 +10,10 @@ return {
 		buildtime = 5352,
 		canmove = true,
 		category = "ALL NOWEAPON MINELAYER SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "-2 -3 5",
-		collisionVolumeScales = "24 24 62",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "-2 -3 5",
+		collisionvolumescales = "24 24 62",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Naval Engineer",
 		energymake = 0.5,

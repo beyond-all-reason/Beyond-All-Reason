@@ -1,4 +1,3 @@
-
 return {
 	armclaw = {
 		acceleration = 0,

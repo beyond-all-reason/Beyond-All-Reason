@@ -1,4 +1,3 @@
-
 return {
 	correap = {
 		acceleration = 0.044,

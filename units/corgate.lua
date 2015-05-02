@@ -1,4 +1,3 @@
-
 return {
 	corgate = {
 		acceleration = 0,
@@ -15,10 +14,10 @@ return {
 		buildtime = 57166,
 		canattack = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -4 1",
-		collisionVolumeScales = "57 38 57",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -4 1",
+		collisionvolumescales = "57 38 57",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Plasma Deflector",
 		energystorage = 1500,

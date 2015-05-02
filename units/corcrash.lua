@@ -1,4 +1,3 @@
-
 return {
 	corcrash = {
 		acceleration = 0.12,

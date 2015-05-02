@@ -1,4 +1,3 @@
-
 return {
 	corasp = {
 		acceleration = 0,

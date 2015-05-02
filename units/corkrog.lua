@@ -1,4 +1,3 @@
-
 return {
 	corkrog = {
 		acceleration = 0.108,
@@ -9,10 +8,10 @@ return {
 		buildtime = 552145,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -6 -5",
-		collisionVolumeScales = "97 160 97",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -6 -5",
+		collisionvolumescales = "97 160 97",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Experimental Assault Kbot",
 		energymake = 35,
@@ -32,7 +31,7 @@ return {
 		name = "Krogoth",
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "CORKROG",
-		pushResistant = true,
+		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "CRBLMSSL",
 		selfdestructcountdown = 10,

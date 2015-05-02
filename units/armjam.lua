@@ -1,4 +1,3 @@
-
 return {
 	armjam = {
 		acceleration = 0.035,

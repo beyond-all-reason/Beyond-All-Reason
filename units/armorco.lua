@@ -1,4 +1,3 @@
-
 return {
 	armorco = {
 		acceleration = 0.108,

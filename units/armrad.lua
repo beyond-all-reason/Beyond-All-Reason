@@ -1,4 +1,3 @@
-
 return {
 	armrad = {
 		acceleration = 0,

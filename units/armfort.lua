@@ -1,4 +1,3 @@
-
 return {
 	armfort = {
 		acceleration = 0,

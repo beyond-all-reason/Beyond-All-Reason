@@ -1,4 +1,3 @@
-
 return {
 	cmgeo = {
 		acceleration = 0,

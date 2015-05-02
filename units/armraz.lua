@@ -1,4 +1,3 @@
-
 return {
 	armraz = {
 		acceleration = 0.206,

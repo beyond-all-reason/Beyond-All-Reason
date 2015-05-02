@@ -1,4 +1,3 @@
-
 return {
 	corsjam = {
 		acceleration = 0.096,
@@ -10,10 +9,10 @@ return {
 		buildtime = 7025,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -8 0",
-		collisionVolumeScales = "28 28 71",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -8 0",
+		collisionvolumescales = "28 28 71",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Radar Jammer Ship",
 		energymake = 20,

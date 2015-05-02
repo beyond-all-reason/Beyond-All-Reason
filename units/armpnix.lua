@@ -1,4 +1,3 @@
-
 return {
 	armpnix = {
 		acceleration = 0.0023,
@@ -88,9 +87,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "ARMADVBOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

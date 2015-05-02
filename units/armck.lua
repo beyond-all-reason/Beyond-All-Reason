@@ -1,4 +1,3 @@
-
 return {
 	armck = {
 		acceleration = 0.48,
@@ -11,10 +10,10 @@ return {
 		buildtime = 3453,
 		canmove = true,
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "27 27 27",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "27 27 27",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 7,

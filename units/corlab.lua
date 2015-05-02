@@ -1,4 +1,3 @@
-
 return {
 	corlab = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	armscab = {
 		acceleration = 0.018,

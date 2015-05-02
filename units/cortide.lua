@@ -1,4 +1,3 @@
-
 return {
 	cortide = {
 		acceleration = 0,
@@ -10,10 +9,10 @@ return {
 		buildpic = "CORTIDE.DDS",
 		buildtime = 2094,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "-3 0 -1",
-		collisionVolumeScales = "28 26 33",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "Box",
+		collisionvolumeoffsets = "-3 0 -1",
+		collisionvolumescales = "28 26 33",
+		collisionvolumetest = 1,
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 50,

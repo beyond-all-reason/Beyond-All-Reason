@@ -1,4 +1,3 @@
-
 return {
 	armaak = {
 		acceleration = 0.12,

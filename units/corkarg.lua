@@ -1,4 +1,3 @@
-
 return {
 	corkarg = {
 		acceleration = 0.096,

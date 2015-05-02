@@ -1,4 +1,3 @@
-
 return {
 	armflash = {
 		acceleration = 0.06,

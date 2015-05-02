@@ -1,4 +1,3 @@
-
 return {
 	corcut = {
 		acceleration = 0.125,
@@ -95,7 +94,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "VTOL_ROCKET2",
 				onlytargetcategory = "SURFACE",
 			},

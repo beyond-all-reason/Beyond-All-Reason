@@ -1,4 +1,3 @@
-
 return {
 	corhrk = {
 		acceleration = 0.11,

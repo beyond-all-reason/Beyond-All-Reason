@@ -1,4 +1,3 @@
-
 return {
 	armfflak = {
 		acceleration = 0,

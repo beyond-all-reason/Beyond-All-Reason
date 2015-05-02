@@ -1,4 +1,3 @@
-
 return {
 	armroy = {
 		acceleration = 0.054,
@@ -11,10 +10,10 @@ return {
 		buildtime = 13391,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -10 -2",
-		collisionVolumeScales = "35 35 77",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -10 -2",
+		collisionvolumescales = "35 35 77",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Destroyer",
 		energymake = 2,

@@ -1,4 +1,3 @@
-
 return {
 	corparrow = {
 		acceleration = 0.015,

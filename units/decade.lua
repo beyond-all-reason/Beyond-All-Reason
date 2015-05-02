@@ -1,4 +1,3 @@
-
 return {
 	decade = {
 		acceleration = 0.084,

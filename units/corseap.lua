@@ -1,4 +1,3 @@
-
 return {
 	corseap = {
 		acceleration = 0.104,
@@ -100,9 +99,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "NOTSHIP",
+				badtargetcategory = "NOTSHIP",
 				def = "ARMSEAP_WEAPON1",
-				onlyTargetCategory = "NOTHOVER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

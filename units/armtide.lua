@@ -1,4 +1,3 @@
-
 return {
 	armtide = {
 		acceleration = 0,
@@ -10,10 +9,10 @@ return {
 		buildpic = "ARMTIDE.DDS",
 		buildtime = 2188,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 -4",
-		collisionVolumeScales = "27 26 39",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "Box",
+		collisionvolumeoffsets = "0 0 -4",
+		collisionvolumescales = "27 26 39",
+		collisionvolumetest = 1,
+		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 50,

@@ -1,4 +1,3 @@
-
 return {
 	corhunt = {
 		acceleration = 0.06,

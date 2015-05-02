@@ -1,4 +1,3 @@
-
 return {
 	cormine2 = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		category = "ALL NOTLAND WEAPON MINE KAMIKAZE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 1,
 		collide = false,
-		collisionVolumeOffsets = "0 5 0",
-		collisionVolumeScales = "15 14 15",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 5 0",
+		collisionvolumescales = "15 14 15",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		description = "Medium Mine",
 		explodeas = "MINE_MEDIUM",
 		firestate = 2,

@@ -1,4 +1,3 @@
-
 return {
 	cormship = {
 		acceleration = 0.012,
@@ -10,10 +9,10 @@ return {
 		buildtime = 22126,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -8 0",
-		collisionVolumeScales = "43 43 111",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -8 0",
+		collisionvolumescales = "43 43 111",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "EMP Missile Ship",
 		energymake = 0.9,

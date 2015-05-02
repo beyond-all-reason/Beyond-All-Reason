@@ -1,4 +1,3 @@
-
 return {
 	coramph = {
 		acceleration = 0.09,

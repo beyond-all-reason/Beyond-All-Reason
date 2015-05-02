@@ -1,4 +1,3 @@
-
 return {
 	corblackhy = {
 		acceleration = 0.026,
@@ -11,10 +10,10 @@ return {
 		buildtime = 309264,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -14 10",
-		collisionVolumeScales = "70 70 170",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -14 10",
+		collisionvolumescales = "70 70 170",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Flagship",
 		energymake = 175,
@@ -35,7 +34,7 @@ return {
 		movementclass = "DBOAT6",
 		name = "Black Hydra",
 		objectname = "CORBLACKHY",
-		pushResistant = true,
+		pushresistant = true,
 		radardistance = 1510,
 		radaremitheight = 64,
 		seismicsignature = 0,

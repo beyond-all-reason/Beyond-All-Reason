@@ -1,4 +1,3 @@
-
 return {
 	corplat = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	armfatf = {
 		acceleration = 0,

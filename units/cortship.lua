@@ -1,7 +1,5 @@
-
 return {
 	cortship = {
-		WaterLine = 1,
 		acceleration = 0.09,
 		autoheal = 5,
 		brakerate = 0.255,
@@ -23,7 +21,7 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "sea",
-		loadingRadius = 250,
+		loadingradius = 250,
 		maxdamage = 11420,
 		maxvelocity = 3.22,
 		minwaterdepth = 0,
@@ -31,7 +29,7 @@ return {
 		name = "Envoy",
 		nochasecategory = "ALL",
 		objectname = "CORTSHIP",
-		pushResistant = true,
+		pushresistant = true,
 		releaseheld = false,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
@@ -43,6 +41,7 @@ return {
 		turninplacespeedlimit = 2.1252,
 		turnrate = 410,
 		unloadspread = 1,
+		waterline = 1,
 		windgenerator = 0.001,
 		customparams = {},
 		featuredefs = {

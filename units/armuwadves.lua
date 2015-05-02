@@ -1,4 +1,3 @@
-
 return {
 	armuwadves = {
 		buildangle = 8192,
@@ -11,10 +10,10 @@ return {
 		buildpic = "ARMUWADVES.DDS",
 		buildtime = 20302,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -4 8",
-		collisionVolumeScales = "62 39 62",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -4 8",
+		collisionvolumescales = "62 39 62",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (40000)",
 		energystorage = 40000,

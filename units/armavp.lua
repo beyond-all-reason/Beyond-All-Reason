@@ -1,4 +1,3 @@
-
 return {
 	armavp = {
 		acceleration = 0,

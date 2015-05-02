@@ -1,4 +1,3 @@
-
 return {
 	intruder = {
 		acceleration = 0.33,

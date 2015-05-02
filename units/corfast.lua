@@ -1,4 +1,3 @@
-
 return {
 	corfast = {
 		acceleration = 0.2,

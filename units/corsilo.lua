@@ -1,4 +1,3 @@
-
 return {
 	corsilo = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	tawf114 = {
 		acceleration = 0.0209,

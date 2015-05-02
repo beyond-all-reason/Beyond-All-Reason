@@ -1,4 +1,3 @@
-
 return {
 	corak = {
 		acceleration = 0.384,

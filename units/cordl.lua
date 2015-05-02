@@ -1,4 +1,3 @@
-
 return {
 	cordl = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "CORDL.DDS",
 		buildtime = 4280,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "38 51 38",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "38 51 38",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Depthcharge Launcher",
 		energymake = 0.1,

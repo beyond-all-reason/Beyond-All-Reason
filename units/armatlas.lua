@@ -1,4 +1,3 @@
-
 return {
 	armatlas = {
 		acceleration = 0.09,

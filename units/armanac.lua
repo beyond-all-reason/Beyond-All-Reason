@@ -1,4 +1,3 @@
-
 return {
 	armanac = {
 		acceleration = 0.084,

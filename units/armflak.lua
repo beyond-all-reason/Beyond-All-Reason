@@ -1,4 +1,3 @@
-
 return {
 	armflak = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "ARMFLAK.DDS",
 		buildtime = 19005,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -9 0",
-		collisionVolumeScales = "32 40 32",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -9 0",
+		collisionvolumescales = "32 40 32",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti-Air Flak Gun",
 		explodeas = "MEDIUM_BUILDINGEX",

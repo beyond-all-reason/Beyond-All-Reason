@@ -1,4 +1,3 @@
-
 return {
 	cjuno = {
 		acceleration = 0,

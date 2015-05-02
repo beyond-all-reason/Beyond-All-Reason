@@ -1,4 +1,3 @@
-
 return {
 	marauder = {
 		acceleration = 0.22,

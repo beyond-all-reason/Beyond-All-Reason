@@ -1,4 +1,3 @@
-
 return {
 	armsehak = {
 		acceleration = 0.069,

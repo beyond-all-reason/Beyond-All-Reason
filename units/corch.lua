@@ -1,4 +1,3 @@
-
 return {
 	corch = {
 		acceleration = 0.12,
@@ -11,10 +10,10 @@ return {
 		buildtime = 4576,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE",
-		collisionVolumeOffsets = "0 1 0",
-		collisionVolumeScales = "30 12 30",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 1 0",
+		collisionvolumescales = "30 12 30",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 11,

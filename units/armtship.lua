@@ -1,4 +1,3 @@
-
 return {
 	armtship = {
 		acceleration = 0.09,
@@ -12,10 +11,10 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -7 -4",
-		collisionVolumeScales = "75 75 120",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -7 -4",
+		collisionvolumescales = "75 75 120",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Armored Transport Ship",
 		explodeas = "BIG_UNITEX",
@@ -23,7 +22,7 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "sea",
-		loadingRadius = 250,
+		loadingradius = 250,
 		maxdamage = 11010,
 		maxvelocity = 3.34,
 		minwaterdepth = 0,
@@ -31,7 +30,7 @@ return {
 		name = "Hulk",
 		nochasecategory = "ALL",
 		objectname = "ARMTSHIP",
-		pushResistant = true,
+		pushresistant = true,
 		releaseheld = false,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",

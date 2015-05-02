@@ -1,4 +1,3 @@
-
 return {
 	corbuzz = {
 		acceleration = 0,

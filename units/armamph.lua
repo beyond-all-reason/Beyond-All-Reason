@@ -1,4 +1,3 @@
-
 return {
 	armamph = {
 		acceleration = 0.12,
@@ -9,10 +8,10 @@ return {
 		buildtime = 5182,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE",
-		collisionVolumeOffsets = "0 0 -4",
-		collisionVolumeScales = "27 27 33",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 0 -4",
+		collisionvolumescales = "27 27 33",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Amphibious Kbot",
 		energymake = 0.4,

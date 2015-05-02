@@ -1,4 +1,3 @@
-
 return {
 	corsolar = {
 		acceleration = 0,

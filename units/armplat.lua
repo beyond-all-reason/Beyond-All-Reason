@@ -1,4 +1,3 @@
-
 return {
 	armplat = {
 		acceleration = 0,

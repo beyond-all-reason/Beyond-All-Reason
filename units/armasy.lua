@@ -1,4 +1,3 @@
-
 return {
 	armasy = {
 		acceleration = 0,

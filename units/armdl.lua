@@ -1,4 +1,3 @@
-
 return {
 	armdl = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "ARMDL.DDS",
 		buildtime = 4180,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -3 0",
-		collisionVolumeScales = "44 55 44",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -3 0",
+		collisionvolumescales = "44 55 44",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Depthcharge Launcher",
 		energymake = 0.1,

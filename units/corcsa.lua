@@ -1,4 +1,3 @@
-
 return {
 	corcsa = {
 		acceleration = 0.072,

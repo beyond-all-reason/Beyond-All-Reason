@@ -1,8 +1,5 @@
-
 return {
 	armfgate = {
-		MinWaterDepth = 16,
-		WaterLine = 0,
 		acceleration = 0,
 		activatewhenbuilt = true,
 		bmcode = 0,
@@ -14,9 +11,9 @@ return {
 		buildpic = "armfgate.pcx",
 		buildtime = 59060,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
-		collisionVolumeOffsets = "0 -30 0",
-		collisionVolumeScales = "53 65 53",
-		collisionVolumeType = "cyly",
+		collisionvolumeoffsets = "0 -30 0",
+		collisionvolumescales = "53 65 53",
+		collisionvolumetype = "cyly",
 		corpse = "DEAD",
 		description = "Floating Plasma Deflector",
 		energystorage = 2000,
@@ -31,6 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 0,
 		metalstorage = 0,
+		minwaterdepth = 16,
 		name = "Aurora",
 		noautofire = 0,
 		norestrict = 1,
@@ -46,6 +44,7 @@ return {
 		turninplacespeedlimit = 0,
 		turnrate = 0,
 		unitname = "armfgate",
+		waterline = 0,
 		workertime = 0,
 		customparams = {},
 		featuredefs = {

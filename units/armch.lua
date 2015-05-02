@@ -1,4 +1,3 @@
-
 return {
 	armch = {
 		acceleration = 0.144,
@@ -11,10 +10,10 @@ return {
 		buildtime = 4472,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "31 12 31",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "31 12 31",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Tech Level 1",
 		energymake = 11,

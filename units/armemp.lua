@@ -1,4 +1,3 @@
-
 return {
 	armemp = {
 		acceleration = 0,

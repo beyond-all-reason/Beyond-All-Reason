@@ -1,4 +1,3 @@
-
 return {
 	corgol = {
 		acceleration = 0.0242,

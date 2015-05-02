@@ -1,4 +1,3 @@
-
 return {
 	armckfus = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	armmoho = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "ARMMOHO.DDS",
 		buildtime = 14938,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "70 46 70",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "70 46 70",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,

@@ -1,4 +1,3 @@
-
 return {
 	armsd = {
 		activatewhenbuilt = true,
@@ -12,10 +11,10 @@ return {
 		buildpic = "ARMSD.DDS",
 		buildtime = 11877,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -6 0",
-		collisionVolumeScales = "75 23 75",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -6 0",
+		collisionvolumescales = "75 23 75",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Intrusion Countermeasure System",
 		energyuse = 125,

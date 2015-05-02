@@ -1,4 +1,3 @@
-
 return {
 	commando = {
 		acceleration = 0.35,

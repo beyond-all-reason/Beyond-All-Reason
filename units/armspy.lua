@@ -1,4 +1,3 @@
-
 return {
 	armspy = {
 		acceleration = 0.24,

@@ -1,4 +1,3 @@
-
 return {
 	armsb = {
 		acceleration = 0.096,
@@ -92,9 +91,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "ARM_SEAADVBOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -1,4 +1,3 @@
-
 return {
 	armpeep = {
 		acceleration = 0.2,

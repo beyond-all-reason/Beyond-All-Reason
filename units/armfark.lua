@@ -1,4 +1,3 @@
-
 return {
 	armfark = {
 		acceleration = 0.432,

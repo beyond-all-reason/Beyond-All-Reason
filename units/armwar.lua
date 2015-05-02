@@ -1,4 +1,3 @@
-
 return {
 	armwar = {
 		acceleration = 0.072,

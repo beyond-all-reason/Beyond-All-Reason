@@ -1,4 +1,3 @@
-
 return {
 	armham = {
 		acceleration = 0.12,
@@ -9,10 +8,10 @@ return {
 		buildtime = 2210,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -2 -3",
-		collisionVolumeScales = "29 28 29",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -2 -3",
+		collisionvolumescales = "29 28 29",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Light Plasma Kbot",
 		energymake = 0.6,

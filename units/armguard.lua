@@ -1,4 +1,3 @@
-
 return {
 	armguard = {
 		acceleration = 0,
@@ -13,10 +12,10 @@ return {
 		buildpic = "ARMGUARD.DDS",
 		buildtime = 21377,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "45 28 45",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "45 28 45",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Medium Range Plasma Battery",
 		explodeas = "MEDIUM_BUILDINGEX",

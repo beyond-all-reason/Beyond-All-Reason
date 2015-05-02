@@ -1,4 +1,3 @@
-
 return {
 	armbrawl = {
 		acceleration = 0.24,
@@ -92,7 +91,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "VTOL_EMG",
 				onlytargetcategory = "SURFACE",
 			},

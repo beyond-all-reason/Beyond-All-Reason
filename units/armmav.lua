@@ -1,4 +1,3 @@
-
 return {
 	armmav = {
 		acceleration = 0.12,

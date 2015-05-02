@@ -1,4 +1,3 @@
-
 return {
 	madsam = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "MADSAM.DDS",
 		buildtime = 5237,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "-1 5 -2",
-		collisionVolumeScales = "45 54 45",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "-1 5 -2",
+		collisionvolumescales = "45 54 45",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Hardened Missile Battery",
 		energyuse = 5,

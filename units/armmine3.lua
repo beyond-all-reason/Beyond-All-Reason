@@ -1,4 +1,3 @@
-
 return {
 	armmine3 = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		category = "ALL NOTLAND WEAPON MINE NOTSUB KAMIKAZE NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 1.5,
 		collide = false,
-		collisionVolumeOffsets = "0 5 0",
-		collisionVolumeScales = "15 14 15",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 5 0",
+		collisionvolumescales = "15 14 15",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		description = "Heavy Mine",
 		explodeas = "MINE_HEAVY",
 		firestate = 2,

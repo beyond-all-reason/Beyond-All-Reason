@@ -1,4 +1,3 @@
-
 return {
 	armmanni = {
 		acceleration = 0.0132,
@@ -9,10 +8,10 @@ return {
 		buildtime = 25706,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -6 2",
-		collisionVolumeScales = "39 49 39",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "box",
+		collisionvolumeoffsets = "0 -6 2",
+		collisionvolumescales = "39 49 39",
+		collisionvolumetest = 1,
+		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Mobile Tachyon Weapon",
 		energymake = 5.2,

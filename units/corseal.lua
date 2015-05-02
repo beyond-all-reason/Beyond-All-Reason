@@ -1,4 +1,3 @@
-
 return {
 	corseal = {
 		acceleration = 0.0462,

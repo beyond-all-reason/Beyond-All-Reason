@@ -1,4 +1,3 @@
-
 return {
 	coracsub = {
 		acceleration = 0.035,
@@ -11,10 +10,10 @@ return {
 		buildtime = 24205,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE NOTLAND NOWEAPON NOTAIR NOTHOVER",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "38 9 80",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "box",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "38 9 80",
+		collisionvolumetest = 1,
+		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Tech Level 2",
 		energymake = 30,

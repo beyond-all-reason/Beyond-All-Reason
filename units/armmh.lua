@@ -1,4 +1,3 @@
-
 return {
 	armmh = {
 		acceleration = 0.072,

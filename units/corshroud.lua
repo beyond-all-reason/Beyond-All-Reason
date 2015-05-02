@@ -1,4 +1,3 @@
-
 return {
 	corshroud = {
 		acceleration = 0,

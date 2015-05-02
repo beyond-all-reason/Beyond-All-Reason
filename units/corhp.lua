@@ -1,4 +1,3 @@
-
 return {
 	corhp = {
 		acceleration = 0,

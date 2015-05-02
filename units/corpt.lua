@@ -1,4 +1,3 @@
-
 return {
 	corpt = {
 		acceleration = 0.096,

@@ -1,4 +1,3 @@
-
 return {
 	corexp = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "COREXP.DDS",
 		buildtime = 2724,
 		category = "ALL NOTLAND NOTSUB ANTIEMG NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -5 0",
-		collisionVolumeScales = "40 51 40",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -5 0",
+		collisionvolumescales = "40 51 40",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Armed Metal Extractor",
 		explodeas = "MEDIUM_BUILDINGEX",

@@ -1,4 +1,3 @@
-
 return {
 	armrectr = {
 		acceleration = 0.2,
@@ -13,10 +12,10 @@ return {
 		canmove = true,
 		canresurrect = true,
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "21 32 21",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "21 32 21",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Stealthy Rez Kbot",
 		energymake = 1.75,

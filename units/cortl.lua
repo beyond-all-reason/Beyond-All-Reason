@@ -1,4 +1,3 @@
-
 return {
 	cortl = {
 		acceleration = 0,

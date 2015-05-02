@@ -1,4 +1,3 @@
-
 return {
 	corhurc = {
 		acceleration = 0.02,
@@ -88,9 +87,9 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "MOBILE",
+				badtargetcategory = "MOBILE",
 				def = "CORADVBOMB",
-				onlyTargetCategory = "NOTSUB",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

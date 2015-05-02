@@ -1,4 +1,3 @@
-
 return {
 	armdecom = {
 		acceleration = 0.18,
@@ -16,10 +15,10 @@ return {
 		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 30,
 		cloakcostmoving = 180,
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "27 39 27",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "27 39 27",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		decoyfor = "armcom",
 		description = "Decoy Commander",
 		energymake = 15,

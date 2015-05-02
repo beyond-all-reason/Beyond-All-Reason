@@ -1,4 +1,3 @@
-
 return {
 	armsl = {
 		acceleration = 0.15,
@@ -11,10 +10,10 @@ return {
 		canmove = true,
 		category = "ALL NOTSUB VTOL NOWEAPON NOTHOVER",
 		collide = false,
-		collisionVolumeOffsets = "1 -3 0",
-		collisionVolumeScales = "52 21 52",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "1 -3 0",
+		collisionvolumescales = "52 21 52",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		cruisealt = 150,
 		description = "Assault Transport",
 		energymake = 3,

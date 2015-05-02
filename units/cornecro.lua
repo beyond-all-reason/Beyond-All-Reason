@@ -1,4 +1,3 @@
-
 return {
 	cornecro = {
 		acceleration = 0.2,

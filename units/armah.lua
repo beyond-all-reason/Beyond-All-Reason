@@ -1,4 +1,3 @@
-
 return {
 	armah = {
 		acceleration = 0.096,

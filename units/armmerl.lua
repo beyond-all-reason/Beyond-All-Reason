@@ -1,4 +1,3 @@
-
 return {
 	armmerl = {
 		acceleration = 0.026,
@@ -9,10 +8,10 @@ return {
 		buildtime = 15592,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -9 0",
-		collisionVolumeScales = "40 40 50",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -9 0",
+		collisionvolumescales = "40 40 50",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Stealthy Rocket Launcher",
 		energymake = 0.5,

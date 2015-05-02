@@ -1,4 +1,3 @@
-
 return {
 	corfort = {
 		acceleration = 0,

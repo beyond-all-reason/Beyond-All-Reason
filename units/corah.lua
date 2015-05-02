@@ -1,4 +1,3 @@
-
 return {
 	corah = {
 		acceleration = 0.096,
@@ -11,11 +10,10 @@ return {
 		canhover = true,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
-		collisionVolumeOffsets = "0 -1 0",
-		collisionVolumeScales = "28 16 28",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
-		collisionvolumeoffsets = "0 1 0",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "28 16 28",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti-Air Hovercraft",
 		energymake = 2.6,

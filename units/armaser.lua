@@ -1,4 +1,3 @@
-
 return {
 	armaser = {
 		acceleration = 0.12,

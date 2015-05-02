@@ -1,4 +1,3 @@
-
 return {
 	corspec = {
 		acceleration = 0.1,

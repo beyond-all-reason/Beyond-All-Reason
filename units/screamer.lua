@@ -1,4 +1,3 @@
-
 return {
 	screamer = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "SCREAMER.DDS",
 		buildtime = 30220,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "63 57 63",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "63 57 63",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Long Range Anti-Air Tower",
 		explodeas = "BIG_UNITEX",

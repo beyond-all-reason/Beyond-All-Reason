@@ -1,4 +1,3 @@
-
 return {
 	corgeo = {
 		acceleration = 0,

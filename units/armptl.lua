@@ -1,4 +1,3 @@
-
 return {
 	armptl = {
 		acceleration = 0,

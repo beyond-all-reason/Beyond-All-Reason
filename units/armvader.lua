@@ -1,4 +1,3 @@
-
 return {
 	armvader = {
 		acceleration = 0.132,

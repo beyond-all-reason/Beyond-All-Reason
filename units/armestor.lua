@@ -1,4 +1,3 @@
-
 return {
 	armestor = {
 		acceleration = 0,

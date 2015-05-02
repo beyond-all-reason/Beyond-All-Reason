@@ -1,4 +1,3 @@
-
 return {
 	aafus = {
 		acceleration = 0,

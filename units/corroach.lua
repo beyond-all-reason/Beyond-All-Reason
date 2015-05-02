@@ -1,4 +1,3 @@
-
 return {
 	corroach = {
 		acceleration = 0.12,

@@ -1,4 +1,3 @@
-
 return {
 	armmark = {
 		acceleration = 0.045,

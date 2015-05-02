@@ -1,4 +1,3 @@
-
 return {
 	corape = {
 		acceleration = 0.152,
@@ -96,7 +95,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badTargetCategory = "VTOL",
+				badtargetcategory = "VTOL",
 				def = "VTOL_ROCKET",
 				onlytargetcategory = "SURFACE",
 			},

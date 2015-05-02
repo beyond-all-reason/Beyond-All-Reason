@@ -1,4 +1,3 @@
-
 return {
 	armdf = {
 		acceleration = 0,

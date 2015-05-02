@@ -1,4 +1,3 @@
-
 return {
 	armmex = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 0",
-		collisionVolumeScales = "41 26 41",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = "41 26 41",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "TINY_BUILDINGEX",

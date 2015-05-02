@@ -1,4 +1,3 @@
-
 return {
 	corflak = {
 		acceleration = 0,

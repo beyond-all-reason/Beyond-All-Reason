@@ -1,4 +1,3 @@
-
 return {
 	coradvsol = {
 		acceleration = 0,
@@ -14,10 +13,10 @@ return {
 		buildpic = "CORADVSOL.DDS",
 		buildtime = 8143,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 0 -2",
-		collisionVolumeScales = "57 55 57",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 0 -2",
+		collisionvolumescales = "57 55 57",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.9,
 		description = "Produces Energy",

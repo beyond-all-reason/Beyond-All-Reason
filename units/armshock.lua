@@ -1,4 +1,3 @@
-
 return {
 	armshock = {
 		acceleration = 0.023,
@@ -9,10 +8,10 @@ return {
 		buildtime = 101218,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -1 1",
-		collisionVolumeScales = "57 54 57",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylY",
+		collisionvolumeoffsets = "0 -1 1",
+		collisionvolumescales = "57 54 57",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "All-Terrain Heavy Plasma Cannon",
 		explodeas = "SHOCKER",

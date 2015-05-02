@@ -1,4 +1,3 @@
-
 return {
 	corthovr = {
 		acceleration = 0.036,

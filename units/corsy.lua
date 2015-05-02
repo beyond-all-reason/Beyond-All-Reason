@@ -1,4 +1,3 @@
-
 return {
 	corsy = {
 		acceleration = 0,

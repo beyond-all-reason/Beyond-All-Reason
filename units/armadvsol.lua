@@ -1,4 +1,3 @@
-
 return {
 	armadvsol = {
 		acceleration = 0,

@@ -1,4 +1,3 @@
-
 return {
 	coruwfus = {
 		acceleration = 0,

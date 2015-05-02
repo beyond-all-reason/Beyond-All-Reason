@@ -1,4 +1,3 @@
-
 return {
 	armpw = {
 		acceleration = 0.36,

@@ -1,4 +1,3 @@
-
 return {
 	armlatnk = {
 		acceleration = 0.125,

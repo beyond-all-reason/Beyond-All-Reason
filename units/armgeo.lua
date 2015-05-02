@@ -1,4 +1,3 @@
-
 return {
 	armgeo = {
 		acceleration = 0,

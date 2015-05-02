@@ -1,4 +1,3 @@
-
 return {
 	armaas = {
 		acceleration = 0.048,
@@ -11,10 +10,10 @@ return {
 		buildtime = 8628,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeOffsets = "0 -5 0",
-		collisionVolumeScales = "31 31 82",
-		collisionVolumeTest = 1,
-		collisionVolumeType = "CylZ",
+		collisionvolumeoffsets = "0 -5 0",
+		collisionvolumescales = "31 31 82",
+		collisionvolumetest = 1,
+		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Anti-Air Ship",
 		energymake = 7,
