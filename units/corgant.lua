@@ -1,3 +1,4 @@
+
 return {
 	corgant = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildtime = 67321,
 		canmove = true,
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[150 43 150]],
-		collisionVolumeOffsets	= [[0 -5 8]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -5 8",
+		collisionVolumeScales = "150 43 150",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Produces Level 3 Units",
 		energystorage = 1400,
@@ -47,8 +48,9 @@ return {
 			[3] = "gorg",
 			[4] = "shiva",
 			[5] = "armraven",
-            [6] = "corsok",
+			[6] = "corsok",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -86,6 +88,7 @@ return {
 				metal = 2040,
 				object = "7X7B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

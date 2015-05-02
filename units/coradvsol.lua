@@ -1,3 +1,4 @@
+
 return {
 	coradvsol = {
 		acceleration = 0,
@@ -13,12 +14,12 @@ return {
 		buildpic = "CORADVSOL.DDS",
 		buildtime = 8143,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[57 55 57]],
-		collisionVolumeOffsets	= [[0 0 -2]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 0 -2",
+		collisionVolumeScales = "57 55 57",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.89999997615814,
+		damagemodifier = 0.9,
 		description = "Produces Energy",
 		energymake = 75,
 		energystorage = 100,
@@ -38,6 +39,7 @@ return {
 		sightdistance = 260,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +76,7 @@ return {
 				metal = 92,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},

@@ -1,8 +1,9 @@
+
 return {
 	armjam = {
-		acceleration = 0.035000000149012,
+		acceleration = 0.035,
 		activatewhenbuilt = true,
-		brakerate = 0.012000000104308,
+		brakerate = 0.036,
 		buildcostenergy = 1621,
 		buildcostmetal = 97,
 		buildpic = "armjam.jpg",
@@ -10,9 +11,8 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = [[0 -3 0]],
-		collisionvolumescales = [[22.6 22.6 32.6]],
-		collisionvolumetest = 1,
+		collisionvolumeoffsets = "0 -3 0",
+		collisionvolumescales = "22.6 22.6 32.6",
 		collisionvolumetype = "CylZ",
 		corpse = "dead",
 		description = "Radar Jammer Vehicle",
@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maxdamage = 460,
 		maxslope = 16,
-		maxvelocity = 1.2000000476837,
+		maxvelocity = 1.2,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Jammer",
@@ -41,7 +41,11 @@ return {
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 22,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.792,
 		turnrate = 505,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +80,7 @@ return {
 				metal = 39,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -117,7 +122,7 @@ return {
 				turnrate = 33000,
 				turret = true,
 				weaponacceleration = 101,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {

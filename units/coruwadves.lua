@@ -1,3 +1,4 @@
+
 return {
 	coruwadves = {
 		buildangle = 7822,
@@ -12,7 +13,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -16 0",
 		collisionvolumescales = "90 65 90",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (40000)",
@@ -33,6 +33,7 @@ return {
 		sightdistance = 192,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -68,6 +69,7 @@ return {
 				metal = 206,
 				object = "5X5A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},

@@ -1,8 +1,9 @@
+
 return {
 	armaser = {
-		acceleration = 0.11999999731779,
+		acceleration = 0.12,
 		activatewhenbuilt = true,
-		brakerate = 0.15000000596046,
+		brakerate = 0.45,
 		buildcostenergy = 1326,
 		buildcostmetal = 73,
 		buildpic = "ARMASER.DDS",
@@ -12,7 +13,6 @@ return {
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 -2",
 		collisionvolumescales = "26 48 24",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Radar Jammer Kbot",
@@ -25,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 305,
 		maxslope = 32,
-		maxvelocity = 1.6100000143051,
+		maxvelocity = 1.61,
 		maxwaterdepth = 112,
 		movementclass = "KBOT2",
 		name = "Eraser",
@@ -36,7 +36,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 260,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.0626,
 		turnrate = 1045,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +76,7 @@ return {
 				metal = 19,
 				object = "1X1A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -114,7 +118,7 @@ return {
 				turnrate = 33000,
 				turret = true,
 				weaponacceleration = 101,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {

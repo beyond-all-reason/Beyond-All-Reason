@@ -1,3 +1,4 @@
+
 return {
 	armmakr = {
 		acceleration = 0,
@@ -33,6 +34,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		sounds = {
 			activate = "metlon1",
 			canceldestruct = "cancel2",

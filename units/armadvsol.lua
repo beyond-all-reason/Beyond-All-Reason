@@ -1,3 +1,4 @@
+
 return {
 	armadvsol = {
 		acceleration = 0,
@@ -15,10 +16,9 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "49 11 49",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.89999997615814,
+		damagemodifier = 0.9,
 		description = "Produces Energy",
 		energymake = 75,
 		energystorage = 100,
@@ -38,6 +38,7 @@ return {
 		sightdistance = 260,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oooo yooy yooy",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +75,7 @@ return {
 				metal = 89,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},

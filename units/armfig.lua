@@ -1,3 +1,4 @@
+
 return {
 	armfig = {
 		acceleration = 0.83,
@@ -19,7 +20,7 @@ return {
 		icontype = "air",
 		maxdamage = 150,
 		maxslope = 10,
-		maxvelocity = 9.6400003433228,
+		maxvelocity = 9.64,
 		maxwaterdepth = 255,
 		name = "Freedom Fighter",
 		nochasecategory = "NOTAIR",
@@ -28,6 +29,7 @@ return {
 		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 200,
 		turnrate = 891,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

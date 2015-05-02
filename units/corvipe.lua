@@ -1,3 +1,4 @@
+
 return {
 	corvipe = {
 		acceleration = 0,
@@ -33,6 +34,7 @@ return {
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -87,6 +89,7 @@ return {
 				metal = 61,
 				object = "2X2F",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -122,8 +125,8 @@ return {
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2nd",
 				firestarter = 70,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "missile",
 				name = "Sabot",
 				noselfdamage = true,
@@ -133,14 +136,14 @@ return {
 				soundhit = "SabotHit",
 				soundstart = "SabotFire",
 				startvelocity = 700,
-				targetmoveerror = 0.20000000298023,
+				targetmoveerror = 0.2,
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
 				tracks = true,
 				turnrate = 4000,
 				turret = true,
 				weaponacceleration = 300,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
 				damage = {

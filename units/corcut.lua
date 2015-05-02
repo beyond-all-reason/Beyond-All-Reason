@@ -1,7 +1,8 @@
+
 return {
 	corcut = {
 		acceleration = 0.125,
-		brakerate = 0.39379999637604,
+		brakerate = 0.3938,
 		buildcostenergy = 5097,
 		buildcostmetal = 215,
 		buildpic = "CORCUT.DDS",
@@ -13,8 +14,8 @@ return {
 		collide = false,
 		cruisealt = 100,
 		description = "Seaplane Gunship",
-		energymake = 0.60000002384186,
-		energyuse = 0.60000002384186,
+		energymake = 0.6,
+		energyuse = 0.6,
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -24,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1135,
 		maxslope = 10,
-		maxvelocity = 5.0799999237061,
+		maxvelocity = 5.08,
 		maxwaterdepth = 255,
 		name = "Cutlass",
 		nochasecategory = "VTOL",
@@ -34,6 +35,7 @@ return {
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 828,
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -61,9 +63,9 @@ return {
 		weapondefs = {
 			vtol_rocket2 = {
 				areaofeffect = 18,
+				burnblow = true,
 				burst = 2,
 				burstrate = 0.1,
-				burnblow = true,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
@@ -74,7 +76,7 @@ return {
 				range = 430,
 				reloadtime = 1.3,
 				rgbcolor = "0.8 0.8 0.1",
-				size = 3.0,
+				size = 3,
 				soundhit = "xplosml3",
 				soundstart = "canlite3",
 				soundtrigger = true,

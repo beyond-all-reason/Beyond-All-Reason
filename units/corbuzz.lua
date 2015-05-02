@@ -1,3 +1,4 @@
+
 return {
 	corbuzz = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -14 0",
 		collisionvolumescales = "80 162 80",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Rapid-Fire Long-Range Plasma Cannon",
@@ -34,6 +34,7 @@ return {
 		sightdistance = 700,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +71,7 @@ return {
 				metal = 8440,
 				object = "7X7A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -107,7 +109,7 @@ return {
 				avoidground = false,
 				craterboost = 0.25,
 				cratermult = 0.25,
-				edgeeffectiveness = 0.80000001192093,
+				edgeeffectiveness = 0.8,
 				energypershot = 15725,
 				explosiongenerator = "custom:FLASHBIGBUILDING",
 				gravityaffected = "true",
@@ -117,7 +119,7 @@ return {
 				noselfdamage = true,
 				range = 6100,
 				reloadtime = 0.5,
-				rgbcolor = [[1, 0.4, 0]],
+				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpc3",
 				soundstart = "XPLONUK4",
 				turret = true,

@@ -1,3 +1,4 @@
+
 return {
 	corlab = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		canmove = true,
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumescales = "88 28 88",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Kbots",
@@ -35,7 +35,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
-		sightdistance = 287.29998779297,
+		sightdistance = 287.29999,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
 		workertime = 100,
@@ -48,6 +48,7 @@ return {
 			[5] = "corthud",
 			[6] = "corcrash",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -85,6 +86,7 @@ return {
 				metal = 177,
 				object = "6X6B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

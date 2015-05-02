@@ -1,6 +1,7 @@
+
 return {
 	armsl = {
-		acceleration = 0.15000000596046,
+		acceleration = 0.15,
 		brakerate = 0.5,
 		buildcostenergy = 6091,
 		buildcostmetal = 344,
@@ -10,20 +11,20 @@ return {
 		canmove = true,
 		category = "ALL NOTSUB VTOL NOWEAPON NOTHOVER",
 		collide = false,
-		collisionVolumeScales = [[52 21 52]],
-		collisionVolumeOffsets = [[1 -3 0]],
+		collisionVolumeOffsets = "1 -3 0",
+		collisionVolumeScales = "52 21 52",
 		collisionVolumeTest = 1,
-		collisionVolumeType = [[CylY]],
+		collisionVolumeType = "CylY",
 		cruisealt = 150,
 		description = "Assault Transport",
 		energymake = 3,
 		explodeas = "SMALL_UNITEX",
 		footprintx = 4,
 		footprintz = 4,
-		hoverattack = true, -- so as armsl is recognized as a gunship and won't crashland (to match armdfly)
+		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1800,
 		maxslope = 10,
 		maxvelocity = 7,
@@ -39,6 +40,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 380,
 		upright = true,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

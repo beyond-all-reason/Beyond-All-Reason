@@ -1,3 +1,4 @@
+
 return {
 	armshltx = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildtime = 61380,
 		canmove = true,
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[150 43 150]],
-		collisionVolumeOffsets	= [[0 -5 8]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -5 8",
+		collisionVolumeScales = "150 43 150",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "ARMSHLT_DEAD",
 		description = "Produces Level 3 Units",
 		energystorage = 1400,
@@ -44,8 +45,9 @@ return {
 			[2] = "armraz",
 			[3] = "marauder",
 			[4] = "armshock",
-            [5] = "armlun",
+			[5] = "armlun",
 		},
+		customparams = {},
 		featuredefs = {
 			armshlt_dead = {
 				blocking = true,
@@ -83,6 +85,7 @@ return {
 				metal = 1923,
 				object = "7X7B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

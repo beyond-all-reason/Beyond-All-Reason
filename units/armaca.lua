@@ -1,6 +1,7 @@
+
 return {
 	armaca = {
-		acceleration = 0.078000001609325,
+		acceleration = 0.078,
 		brakerate = 0.4275,
 		buildcostenergy = 9096,
 		buildcostmetal = 220,
@@ -22,13 +23,13 @@ return {
 		footprintz = 2,
 		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 180,
 		maxslope = 10,
-		maxvelocity = 8.3999996185303,
+		maxvelocity = 8.4,
 		maxwaterdepth = 0,
-		metalmake = 0.10000000149012,
+		metalmake = 0.1,
 		metalstorage = 50,
 		name = "Advanced Construction Aircraft",
 		objectname = "ARMACA",
@@ -71,6 +72,7 @@ return {
 			[28] = "armaap",
 			[29] = "armplat",
 		},
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

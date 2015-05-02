@@ -1,3 +1,4 @@
+
 return {
 	armamd = {
 		acceleration = 0,
@@ -11,11 +12,10 @@ return {
 		buildinggrounddecaltype = "armamd_aoplane.dds",
 		buildpic = "ARMAMD.DDS",
 		buildtime = 60000,
-        canattack = false,
+		canattack = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "33 48 33",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -37,6 +37,7 @@ return {
 		sightdistance = 201,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +74,7 @@ return {
 				metal = 374,
 				object = "5X5B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -110,8 +112,8 @@ return {
 				explosiongenerator = "custom:FLASH4",
 				firestarter = 100,
 				flighttime = 120,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
 				model = "amdrocket",

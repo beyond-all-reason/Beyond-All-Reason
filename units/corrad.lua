@@ -1,3 +1,4 @@
+
 return {
 	corrad = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 99 30",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Early Warning System",
@@ -42,6 +42,7 @@ return {
 		sightdistance = 680,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +79,7 @@ return {
 				metal = 14,
 				object = "2X2D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

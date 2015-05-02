@@ -1,6 +1,7 @@
+
 return {
 	corcsa = {
-		acceleration = 0.071999996900558,
+		acceleration = 0.072,
 		brakerate = 0.4275,
 		buildcostenergy = 24047,
 		buildcostmetal = 256,
@@ -23,13 +24,13 @@ return {
 		footprintz = 2,
 		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 390,
 		maxslope = 10,
-		maxvelocity = 8.5100002288818,
+		maxvelocity = 8.51,
 		maxwaterdepth = 255,
-		metalmake = 0.20000000298023,
+		metalmake = 0.2,
 		metalstorage = 75,
 		name = "Construction Seaplane",
 		objectname = "CORCSA",
@@ -54,7 +55,8 @@ return {
 			[11] = "corenaa",
 			[12] = "coratl",
 			[13] = "corason",
-			},
+		},
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -63,7 +65,7 @@ return {
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
-				},
+			},
 			count = {
 				[1] = "count6",
 				[2] = "count5",

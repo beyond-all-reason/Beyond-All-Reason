@@ -1,6 +1,7 @@
+
 return {
 	corca = {
-		acceleration = 0.059999998658895,
+		acceleration = 0.06,
 		brakerate = 0.4275,
 		buildcostenergy = 4580,
 		buildcostmetal = 110,
@@ -22,13 +23,13 @@ return {
 		footprintz = 3,
 		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 145,
 		maxslope = 10,
-		maxvelocity = 7.6999998092651,
+		maxvelocity = 7.7,
 		maxwaterdepth = 0,
-		metalmake = 0.050000000745058,
+		metalmake = 0.05,
 		metalstorage = 25,
 		name = "Construction Aircraft",
 		objectname = "CORCA",
@@ -73,6 +74,7 @@ return {
 			[30] = "cjuno",
 			[31] = "corsy",
 		},
+		customparams = {},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

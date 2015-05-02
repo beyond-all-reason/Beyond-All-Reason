@@ -1,3 +1,4 @@
+
 return {
 	corpun = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -13 0",
 		collisionvolumescales = "52 60 52",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Medium Range Plasma Battery",
@@ -36,6 +36,7 @@ return {
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +73,7 @@ return {
 				metal = 449,
 				object = "4X4B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -108,12 +110,12 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
+				impulseboost = 0.123,
 				impulsefactor = 0.5,
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				range = 1245,
-				reloadtime = 3.1949999332428,
+				reloadtime = 3.195,
 				soundhit = "xplomed2",
 				soundstart = "cannhvy5",
 				turret = true,
@@ -136,8 +138,8 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 1.3999999761581,
+				impulseboost = 0.123,
+				impulsefactor = 1.4,
 				name = "PlasmaCannon",
 				noselfdamage = true,
 				proximitypriority = -2,

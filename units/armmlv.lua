@@ -1,8 +1,9 @@
+
 return {
 	armmlv = {
-		acceleration = 0.071000002324581,
+		acceleration = 0.071,
 		activatewhenbuilt = true,
-		brakerate = 0.55000001192093,
+		brakerate = 1.65,
 		buildcostenergy = 1031,
 		buildcostmetal = 53,
 		builddistance = 96,
@@ -20,7 +21,6 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "15 14 28",
 		collisionvolumetype = "Box",
-		collisionvolumetest = 1,
 		corpse = "DEAD",
 		description = "Stealthy Minelayer/Minesweeper",
 		energymake = 1,
@@ -34,7 +34,7 @@ return {
 		mass = 1500,
 		maxdamage = 155,
 		maxslope = 16,
-		maxvelocity = 2.5239999294281,
+		maxvelocity = 2.524,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
 		name = "Podger",
@@ -50,6 +50,9 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 18,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.66584,
 		turnrate = 629,
 		workertime = 40,
 		buildoptions = {
@@ -58,6 +61,7 @@ return {
 			[3] = "armdrag",
 			[4] = "armeyes",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -94,6 +98,7 @@ return {
 				metal = 14,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -140,7 +145,7 @@ return {
 				thickness = 0,
 				tolerance = 100,
 				turret = true,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 3650,
 				damage = {

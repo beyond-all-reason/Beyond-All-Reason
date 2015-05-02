@@ -1,3 +1,4 @@
+
 return {
 	corfhlt = {
 		acceleration = 0,
@@ -11,12 +12,11 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "46 70 46",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Floating Heavy Laser Tower",
-		energystorage = 200,
 		energymake = 5,
+		energystorage = 200,
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -33,6 +33,7 @@ return {
 		sightdistance = 612,
 		waterline = 3,
 		yardmap = "wwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -105,8 +106,8 @@ return {
 				weaponvelocity = 900,
 				damage = {
 					bombers = 52,
-					default = 231,
 					commanders = 350,
+					default = 231,
 					fighters = 52,
 					subs = 5,
 					vtol = 52,

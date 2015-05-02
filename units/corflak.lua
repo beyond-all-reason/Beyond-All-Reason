@@ -1,3 +1,4 @@
+
 return {
 	corflak = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "28 34 28",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti-Air Flak Gun",
@@ -36,6 +36,7 @@ return {
 		sightdistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +73,7 @@ return {
 				metal = 206,
 				object = "2X2D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -110,7 +112,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargeting = 1,
-				edgeeffectiveness = 0.85000002384186,
+				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:FLASH3",
 				gravityaffected = "true",
 				impulseboost = 0,
@@ -120,8 +122,8 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 775,
-				reloadtime = 0.55000001192093,
-				rgbcolor = [[1, 0.5, 0]],
+				reloadtime = 0.55,
+				rgbcolor = "1, 0.5, 0",
 				soundhit = "flakhit",
 				soundstart = "flakfire",
 				toairweapon = true,
@@ -130,7 +132,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2450,
 				damage = {
-					["else"] = 10,
 					bombers = 250,
 					commanders = 10,
 					crawlingbombs = 10,

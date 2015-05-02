@@ -1,7 +1,8 @@
+
 return {
 	corgol = {
-		acceleration = 0.02419999986887,
-		brakerate = 0.049499999731779,
+		acceleration = 0.0242,
+		brakerate = 0.1485,
 		buildcostenergy = 19892,
 		buildcostmetal = 1567,
 		buildpic = "CORGOL.DDS",
@@ -10,7 +11,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Very Heavy Assault Tank",
@@ -25,7 +25,7 @@ return {
 		mass = 5001,
 		maxdamage = 7000,
 		maxslope = 12,
-		maxvelocity = 1.4500000476837,
+		maxvelocity = 1.45,
 		maxwaterdepth = 12,
 		movementclass = "HTANK4",
 		name = "Goliath",
@@ -38,7 +38,11 @@ return {
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 49,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.957,
 		turnrate = 220,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +80,7 @@ return {
 				metal = 378,
 				object = "4X4C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -113,8 +118,8 @@ return {
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				range = 650,

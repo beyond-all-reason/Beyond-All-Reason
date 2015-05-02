@@ -1,3 +1,4 @@
+
 return {
 	armuwadves = {
 		buildangle = 8192,
@@ -10,10 +11,10 @@ return {
 		buildpic = "ARMUWADVES.DDS",
 		buildtime = 20302,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[62 39 62]],
-		collisionVolumeOffsets	= [[0 -4 8]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -4 8",
+		collisionVolumeScales = "62 39 62",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (40000)",
 		energystorage = 40000,
@@ -33,6 +34,7 @@ return {
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -68,6 +70,7 @@ return {
 				metal = 201,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},

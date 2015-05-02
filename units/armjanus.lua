@@ -1,7 +1,8 @@
+
 return {
 	armjanus = {
-		acceleration = 0.019799999892712,
-		brakerate = 0.054999999701977,
+		acceleration = 0.0198,
+		brakerate = 0.165,
 		buildcostenergy = 2361,
 		buildcostmetal = 226,
 		buildpic = "ARMJANUS.DDS",
@@ -11,7 +12,6 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "35 22 49",
 		collisionvolumetype = "Box",
-		collisionvolumetest = 1,
 		corpse = "DEAD",
 		description = "Twin Medium Rocket Launcher",
 		energymake = 0.5,
@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 880,
 		maxslope = 10,
-		maxvelocity = 1.9579999446869,
+		maxvelocity = 1.958,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Janus",
@@ -37,7 +37,11 @@ return {
 		trackstrength = 6,
 		tracktype = "StdTank",
 		trackwidth = 24,
-		turnrate = 338.79998779297,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.29228,
+		turnrate = 338.79999,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +78,7 @@ return {
 				metal = 59,
 				object = "2X2C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -120,7 +125,7 @@ return {
 				startvelocity = 190,
 				texture2 = "armsmoketrail",
 				tracks = true,
-				trajectoryheight = 0.40000000596046,
+				trajectoryheight = 0.4,
 				turnrate = 22000,
 				turret = true,
 				weaponacceleration = 100,

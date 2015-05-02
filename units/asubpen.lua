@@ -1,3 +1,4 @@
+
 return {
 	asubpen = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "118 40 119",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Amphibious/Underwater Units",
@@ -50,6 +50,7 @@ return {
 			[7] = "armsub",
 			[8] = "armrecl",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

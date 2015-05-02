@@ -1,3 +1,4 @@
+
 return {
 	cormakr = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "46 22 35",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		description = "Converts up to 60 energy into 1 metal per second",
 		explodeas = "ARMESTOR_BUILDINGEX",
@@ -34,6 +34,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo",
+		customparams = {},
 		sounds = {
 			activate = "metlon2",
 			canceldestruct = "cancel2",

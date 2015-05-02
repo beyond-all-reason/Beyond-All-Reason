@@ -1,3 +1,4 @@
+
 return {
 	armtarg = {
 		acceleration = 0,
@@ -34,6 +35,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +72,7 @@ return {
 				metal = 197,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	cormoho = {
 		acceleration = 0,
@@ -13,15 +14,15 @@ return {
 		buildpic = "CORMOHO.DDS",
 		buildtime = 14125,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[79 37 79]],
-		collisionVolumeOffsets	= [[0 -1 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -1 0",
+		collisionVolumeScales = "79 37 79",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,
 		explodeas = "SMALL_BUILDINGEX",
-		extractsmetal = 0.0040000001899898,
+		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -39,6 +40,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +77,7 @@ return {
 				metal = 137,
 				object = "5X5A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

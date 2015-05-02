@@ -1,3 +1,4 @@
+
 return {
 	armap = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL NOTLAND PLANT NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "11 -17 -22",
 		collisionvolumescales = "85 39 51",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Aircraft",
@@ -49,6 +49,7 @@ return {
 			[5] = "armatlas",
 			[6] = "armkam",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -86,6 +87,7 @@ return {
 				metal = 221,
 				object = "6X6B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

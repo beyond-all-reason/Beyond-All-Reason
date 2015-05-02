@@ -1,3 +1,4 @@
+
 return {
 	armdf = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "91 57 59",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		decoyfor = "armfus",
@@ -36,6 +36,7 @@ return {
 		sightdistance = 210,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +73,7 @@ return {
 				metal = 89,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

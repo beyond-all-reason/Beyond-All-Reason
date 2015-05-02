@@ -1,3 +1,4 @@
+
 return {
 	corsy = {
 		acceleration = 0,
@@ -11,10 +12,10 @@ return {
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "124 56 128",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Ships",
+		energymake = 15,
 		energystorage = 100,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 8,
@@ -24,7 +25,6 @@ return {
 		idletime = 1800,
 		maxdamage = 3850,
 		metalmake = 0.5,
-		energymake = 15,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		name = "Shipyard",
@@ -45,6 +45,7 @@ return {
 			[6] = "corsub",
 			[7] = "correcl",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

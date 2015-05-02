@@ -1,3 +1,4 @@
+
 return {
 	corhunt = {
 		acceleration = 0.06,
@@ -19,11 +20,11 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 660,
 		maxslope = 10,
-		maxvelocity = 10.810000419617,
+		maxvelocity = 10.81,
 		maxwaterdepth = 255,
 		name = "Hunter",
 		objectname = "CORHUNT",
@@ -33,6 +34,7 @@ return {
 		sightdistance = 1130,
 		sonardistance = 900,
 		turnrate = 450,
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

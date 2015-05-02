@@ -1,7 +1,8 @@
+
 return {
 	corkarg = {
-		acceleration = 0.096000000834465,
-		brakerate = 0.23800000548363,
+		acceleration = 0.096,
+		brakerate = 0.714,
 		buildcostenergy = 34764,
 		buildcostmetal = 1560,
 		buildpic = "CORKARG.DDS",
@@ -10,7 +11,6 @@ return {
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0.0 -2.0 -1.0",
 		collisionvolumescales = "56.0 60.0 40.0",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "All-Terrain Assault Mech",
@@ -31,8 +31,11 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "MECH_BLAST",
 		sightdistance = 455,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.99,
 		turnrate = 528,
 		upright = true,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -162,13 +165,13 @@ return {
 				explosiongenerator = "custom:KARGMISSILE_EXPLOSION",
 				firestarter = 5,
 				flighttime = 3,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "missile",
 				name = "KarganethMissiles",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 0.30000001192093,
+				reloadtime = 0.3,
 				smoketrail = true,
 				soundhit = "xplosml2",
 				soundstart = "rocklit1",

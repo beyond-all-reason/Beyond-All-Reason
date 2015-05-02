@@ -1,3 +1,4 @@
+
 return {
 	armuwmmm = {
 		acceleration = 0,
@@ -15,12 +16,11 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "120 120 120",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		description = "Converts up to 650 energy into 13 metal per second",
 		explodeas = "ATOMIC_BLASTSML",
-        floater = true,
+		floater = true,
 		footprintx = 5,
 		footprintz = 4,
 		icontype = "building",
@@ -35,8 +35,9 @@ return {
 		selfdestructas = "ATOMIC_BLAST",
 		sightdistance = 156,
 		usebuildinggrounddecal = true,
-        yardmap = "oooooooooooooooooooo",
-        waterline = 5,
+		waterline = 5,
+		yardmap = "oooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +74,7 @@ return {
 				metal = 99,
 				object = "4X4C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

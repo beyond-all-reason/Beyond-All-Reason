@@ -1,8 +1,9 @@
+
 return {
 	corvrad = {
-		acceleration = 0.029999999329448,
+		acceleration = 0.03,
 		activatewhenbuilt = true,
-		brakerate = 0.012000000104308,
+		brakerate = 0.036,
 		buildcostenergy = 1209,
 		buildcostmetal = 86,
 		buildpic = "corvrad.jpg",
@@ -10,10 +11,9 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = [[0 0 1]],
-		collisionvolumescales = [[24 18 29]],
-		collisionvolumetest = 1,
-		collisionvolumetype = [[box]],
+		collisionvolumeoffsets = "0 0 1",
+		collisionvolumescales = "24 18 29",
+		collisionvolumetype = "box",
 		corpse = "dead",
 		description = "Radar Vehicle",
 		energymake = 8,
@@ -39,7 +39,11 @@ return {
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 23,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.825,
 		turnrate = 210,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +80,7 @@ return {
 				metal = 48,
 				object = "2X2F",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

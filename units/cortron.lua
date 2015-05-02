@@ -1,3 +1,4 @@
+
 return {
 	cortron = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 47 59",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Tactical Nuke Launcher",
@@ -34,6 +34,7 @@ return {
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +71,7 @@ return {
 				metal = 178,
 				object = "3X3A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -103,13 +105,13 @@ return {
 				commandfire = true,
 				craterboost = 4,
 				cratermult = 1.75,
-				edgeeffectiveness = 0.40000000596046,
+				edgeeffectiveness = 0.4,
 				energypershot = 17437,
 				explosiongenerator = "custom:FLASHNUKE480",
 				firestarter = 0,
 				flighttime = 400,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				metalpershot = 550,
 				model = "empmisl",
 				name = "TacticalNuke",

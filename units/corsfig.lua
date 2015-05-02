@@ -1,3 +1,4 @@
+
 return {
 	corsfig = {
 		acceleration = 0.152,
@@ -20,7 +21,7 @@ return {
 		icontype = "air",
 		maxdamage = 181,
 		maxslope = 10,
-		maxvelocity = 10.520000457764,
+		maxvelocity = 10.52,
 		maxwaterdepth = 255,
 		name = "Voodoo",
 		nochasecategory = "NOTAIR",
@@ -29,6 +30,7 @@ return {
 		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 200,
 		turnrate = 1547,
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -67,7 +69,7 @@ return {
 				name = "GuidedMissiles",
 				noselfdamage = true,
 				range = 520,
-				reloadtime = 0.85000002384186,
+				reloadtime = 0.85,
 				smoketrail = true,
 				soundhit = "xplosml2",
 				soundstart = "Rocklit3",

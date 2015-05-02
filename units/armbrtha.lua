@@ -1,3 +1,4 @@
+
 return {
 	armbrtha = {
 		acceleration = 0,
@@ -70,6 +71,7 @@ return {
 				metal = 1088,
 				object = "3X3E",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	corarad = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "35 98 35",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Long-Range Radar",
@@ -42,6 +42,7 @@ return {
 		sightdistance = 780,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +79,7 @@ return {
 				metal = 136,
 				object = "3X3C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

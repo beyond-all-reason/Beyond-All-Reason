@@ -1,3 +1,4 @@
+
 return {
 	corshroud = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "32 93 32",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Long-Range Jamming Tower",
@@ -39,6 +39,7 @@ return {
 		sightdistance = 155,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +76,7 @@ return {
 				metal = 32,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	armrad = {
 		acceleration = 0,
@@ -39,6 +40,7 @@ return {
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +77,7 @@ return {
 				metal = 14,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,7 +1,8 @@
+
 return {
 	armspid = {
 		acceleration = 0.18,
-		brakerate = 0.188,
+		brakerate = 0.564,
 		buildcostenergy = 3170,
 		buildcostmetal = 166,
 		buildpic = "ARMSPID.DDS",
@@ -10,7 +11,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 15 28",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "All-Terrain EMP Spider",
@@ -25,15 +25,18 @@ return {
 		maxvelocity = 2.65,
 		maxwaterdepth = 16,
 		movementclass = "TKBOT2",
-        mygravity = 10000,
+		mygravity = 10000,
 		name = "Spider",
 		nochasecategory = "ALL",
 		objectname = "ARMSPID",
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
-		stealth = true,
 		sightdistance = 550,
+		stealth = true,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.749,
 		turnrate = 1122,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -70,6 +73,7 @@ return {
 				metal = 43,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

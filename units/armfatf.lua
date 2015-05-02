@@ -1,3 +1,4 @@
+
 return {
 	armfatf = {
 		acceleration = 0,
@@ -11,7 +12,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "52 44 52",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Enhanced Radar Targeting",
@@ -34,6 +34,7 @@ return {
 		sightdistance = 273,
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +71,7 @@ return {
 				metal = 187,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	cmgeo = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "3 -5 0",
 		collisionvolumescales = "92 43 71",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		description = "Hazardous Energy Source",
 		energymake = 1250,
@@ -36,6 +36,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooo ooooooo oGGoooo oGGoooo ooooooo",
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

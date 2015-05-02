@@ -1,3 +1,4 @@
+
 return {
 	armpeep = {
 		acceleration = 0.2,
@@ -12,17 +13,17 @@ return {
 		collide = false,
 		cruisealt = 180,
 		description = "Scout Plane",
-		energymake = 0.20000000298023,
-		energyuse = 0.20000000298023,
+		energymake = 0.2,
+		energyuse = 0.2,
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 80,
 		maxslope = 10,
-		maxvelocity = 13.800000190735,
+		maxvelocity = 13.8,
 		maxwaterdepth = 0,
 		name = "Peeper",
 		objectname = "ARMPEEP",
@@ -32,6 +33,7 @@ return {
 		selfdestructcountdown = 1,
 		sightdistance = 865,
 		turnrate = 880,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

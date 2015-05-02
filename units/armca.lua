@@ -1,6 +1,7 @@
+
 return {
 	armca = {
-		acceleration = 0.071999996900558,
+		acceleration = 0.072,
 		brakerate = 0.4275,
 		buildcostenergy = 4320,
 		buildcostmetal = 105,
@@ -22,13 +23,13 @@ return {
 		footprintz = 2,
 		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 140,
 		maxslope = 10,
-		maxvelocity = 7.9400000572205,
+		maxvelocity = 7.94,
 		maxwaterdepth = 0,
-		metalmake = 0.050000000745058,
+		metalmake = 0.05,
 		metalstorage = 25,
 		name = "Construction Aircraft",
 		objectname = "ARMCA",
@@ -72,6 +73,7 @@ return {
 			[30] = "ajuno",
 			[31] = "armsy",
 		},
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

@@ -1,3 +1,4 @@
+
 return {
 	armsd = {
 		activatewhenbuilt = true,
@@ -11,10 +12,10 @@ return {
 		buildpic = "ARMSD.DDS",
 		buildtime = 11877,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[75 23 75]],
-		collisionVolumeOffsets	= [[0 -6 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -6 0",
+		collisionVolumeScales = "75 23 75",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Intrusion Countermeasure System",
 		energyuse = 125,
@@ -37,6 +38,7 @@ return {
 		sightdistance = 240,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +75,7 @@ return {
 				metal = 227,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

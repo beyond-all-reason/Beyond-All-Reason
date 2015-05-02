@@ -1,3 +1,4 @@
+
 return {
 	corbhmth = {
 		acceleration = 0,
@@ -34,6 +35,7 @@ return {
 		sightdistance = 650,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +72,7 @@ return {
 				metal = 767,
 				object = "5X5C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -95,13 +98,13 @@ return {
 				areaofeffect = 192,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.69999998807907,
+				edgeeffectiveness = 0.7,
 				energypershot = 150,
 				explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
 				firestarter = 99,
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				name = "PlasmaBattery",
 				noselfdamage = true,
 				range = 1650,

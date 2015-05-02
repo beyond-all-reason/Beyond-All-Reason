@@ -1,3 +1,4 @@
+
 return {
 	corhp = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		canmove = true,
 		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumescales = "120 32 108",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Builds Hovercraft",
@@ -48,6 +48,7 @@ return {
 			[6] = "nsaclash",
 			[7] = "corthovr",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -85,6 +86,7 @@ return {
 				metal = 265,
 				object = "7X7D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

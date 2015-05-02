@@ -1,8 +1,9 @@
+
 return {
 	armmark = {
-		acceleration = 0.045000001788139,
+		acceleration = 0.045,
 		activatewhenbuilt = true,
-		brakerate = 0.01799999922514,
+		brakerate = 0.054,
 		buildcostenergy = 1152,
 		buildcostmetal = 95,
 		buildpic = "armmark.jpg",
@@ -12,7 +13,6 @@ return {
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "26 24 16",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "dead",
 		description = "Radar Kbot",
@@ -25,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 320,
 		maxslope = 16,
-		maxvelocity = 1.3500000238419,
+		maxvelocity = 1.35,
 		maxwaterdepth = 0,
 		movementclass = "KBOT2",
 		name = "Marky",
@@ -35,7 +35,10 @@ return {
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 900,
 		sonardistance = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.891,
 		turnrate = 505,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +73,7 @@ return {
 				metal = 38,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

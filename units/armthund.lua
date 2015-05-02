@@ -1,3 +1,4 @@
+
 return {
 	armthund = {
 		acceleration = 0.032,
@@ -12,8 +13,8 @@ return {
 		collide = false,
 		cruisealt = 165,
 		description = "Bomber",
-		energymake = 1.1000000238419,
-		energyuse = 1.1000000238419,
+		energymake = 1.1,
+		energyuse = 1.1,
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -22,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 560,
 		maxslope = 10,
-		maxvelocity = 8.3999996185303,
+		maxvelocity = 8.4,
 		maxwaterdepth = 0,
 		name = "Thunder",
 		noautofire = true,
@@ -32,6 +33,7 @@ return {
 		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 195,
 		turnrate = 829,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -59,12 +61,12 @@ return {
 				areaofeffect = 144,
 				avoidfeature = false,
 				burst = 5,
-				burstrate = 0.30000001192093,
+				burstrate = 0.3,
 				collidefriendly = false,
 				commandfire = false,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.40000000596046,
+				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:T1ARMBOMB",
 				gravityaffected = "true",
 				impulseboost = 0.5,

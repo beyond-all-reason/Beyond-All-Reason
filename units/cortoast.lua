@@ -1,3 +1,4 @@
+
 return {
 	cortoast = {
 		acceleration = 0,
@@ -35,6 +36,7 @@ return {
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -88,6 +90,7 @@ return {
 				metal = 241,
 				object = "3X3A",
 				reclaimable = true,
+				resurrectable = 0,
 				world = "All Worlds",
 			},
 		},
@@ -123,13 +126,13 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
+				impulseboost = 0.123,
 				impulsefactor = 0.5,
 				name = "PopupCannon",
 				noselfdamage = true,
-				predictboost = 0.20000000298023,
+				predictboost = 0.2,
 				range = 1335,
-				reloadtime = 2.0999999046326,
+				reloadtime = 2.1,
 				soundhit = "xplomed2",
 				soundstart = "cannhvy5",
 				turret = true,
@@ -151,7 +154,7 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
+				impulseboost = 0.123,
 				impulsefactor = 2,
 				name = "PopupCannon",
 				noselfdamage = true,

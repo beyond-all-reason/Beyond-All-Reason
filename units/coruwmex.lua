@@ -1,3 +1,4 @@
+
 return {
 	coruwmex = {
 		acceleration = 0,
@@ -16,7 +17,7 @@ return {
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "SMALL_BUILDINGEX",
-		extractsmetal = 0.0010000000474975,
+		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -34,6 +35,7 @@ return {
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -68,6 +70,7 @@ return {
 				metal = 14,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

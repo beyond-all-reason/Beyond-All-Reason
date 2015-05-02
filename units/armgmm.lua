@@ -1,3 +1,4 @@
+
 return {
 	armgmm = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 6 0",
 		collisionvolumescales = "62 53 62",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		description = "Safe Geothermal Powerplant",
 		energymake = 750,
@@ -36,6 +36,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

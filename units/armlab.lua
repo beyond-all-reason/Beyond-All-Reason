@@ -1,3 +1,4 @@
+
 return {
 	armlab = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "95 22 95",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Kbots",
@@ -51,6 +51,7 @@ return {
 			[7] = "armwar",
 			[8] = "armflea",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -88,6 +89,7 @@ return {
 				metal = 183,
 				object = "5X5B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

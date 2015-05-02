@@ -1,3 +1,4 @@
+
 return {
 	corptl = {
 		acceleration = 0,
@@ -11,8 +12,8 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Pop-up Torpedo Launcher",
-		energymake = 0.20000000298023,
-		energyuse = 0.20000000298023,
+		energymake = 0.2,
+		energyuse = 0.2,
 		explodeas = "MEDIUM_BUILDINGEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -28,6 +29,7 @@ return {
 		selfdestructas = "MEDIUM_BUILDING",
 		sightdistance = 300,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -79,13 +81,13 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "torpedo",
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				range = 550,
-				reloadtime = 1.8999999761581,
+				reloadtime = 1.9,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 200,
@@ -107,7 +109,7 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "COAX_TORPEDO",
-				onlytargetcategory = "VTOL", -- this is a deliberate, lazy way to make it unable to attack
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},

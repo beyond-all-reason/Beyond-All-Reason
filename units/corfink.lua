@@ -1,3 +1,4 @@
+
 return {
 	corfink = {
 		acceleration = 0.16,
@@ -12,17 +13,17 @@ return {
 		collide = false,
 		cruisealt = 110,
 		description = "Scout Plane",
-		energymake = 0.20000000298023,
-		energyuse = 0.20000000298023,
+		energymake = 0.2,
+		energyuse = 0.2,
 		explodeas = "SMALL_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 90,
 		maxslope = 10,
-		maxvelocity = 12.64999961853,
+		maxvelocity = 12.65,
 		maxwaterdepth = 0,
 		name = "Fink",
 		objectname = "CORFINK",
@@ -32,6 +33,7 @@ return {
 		selfdestructcountdown = 1,
 		sightdistance = 835,
 		turnrate = 770,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -1,6 +1,7 @@
+
 return {
 	armsb = {
-		acceleration = 0.096000000834465,
+		acceleration = 0.096,
 		brakerate = 1.5,
 		buildcostenergy = 28513,
 		buildcostmetal = 293,
@@ -13,8 +14,8 @@ return {
 		collide = false,
 		cruisealt = 210,
 		description = "Seaplane Bomber",
-		energymake = 1.1000000238419,
-		energyuse = 1.1000000238419,
+		energymake = 1.1,
+		energyuse = 1.1,
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -23,7 +24,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1550,
 		maxslope = 10,
-		maxvelocity = 8.9099998474121,
+		maxvelocity = 8.91,
 		maxwaterdepth = 255,
 		name = "Tsunami",
 		noautofire = true,
@@ -33,6 +34,7 @@ return {
 		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 455,
 		turnrate = 392,
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -72,7 +74,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "bomb",
-                mygravity = 0.4,
+				mygravity = 0.4,
 				name = "SeaAdvancedBombs",
 				noselfdamage = true,
 				range = 1280,
@@ -81,7 +83,7 @@ return {
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
 				damage = {
-                    antibomber = 100,
+					antibomber = 100,
 					bombers = 5,
 					default = 290,
 					subs = 5,

@@ -1,3 +1,4 @@
+
 return {
 	corfus = {
 		acceleration = 0,
@@ -34,6 +35,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +72,7 @@ return {
 				metal = 1171,
 				object = "5X5D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

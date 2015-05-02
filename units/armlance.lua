@@ -1,3 +1,4 @@
+
 return {
 	armlance = {
 		acceleration = 0.08,
@@ -18,11 +19,11 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 1727,
 		maxslope = 10,
-		maxvelocity = 10.920000076294,
+		maxvelocity = 10.92,
 		maxwaterdepth = 255,
 		name = "Lancet",
 		nochasecategory = "VTOL",
@@ -31,6 +32,7 @@ return {
 		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 455,
 		turnrate = 462,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -62,8 +64,8 @@ return {
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
 				flighttime = 1.5,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "torpedo",
 				name = "TorpedoLauncher",
 				noselfdamage = true,
@@ -90,7 +92,7 @@ return {
 			[1] = {
 				badTargetCategory = "NOTSHIP",
 				def = "ARMAIR_TORPEDO",
-				onlyTargetCategory= "NOTHOVER",
+				onlyTargetCategory = "NOTHOVER",
 			},
 		},
 	},

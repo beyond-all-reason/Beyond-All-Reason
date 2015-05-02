@@ -1,3 +1,4 @@
+
 return {
 	armsfig = {
 		acceleration = 0.16,
@@ -20,7 +21,7 @@ return {
 		icontype = "air",
 		maxdamage = 255,
 		maxslope = 10,
-		maxvelocity = 10.359999656677,
+		maxvelocity = 10.36,
 		maxwaterdepth = 255,
 		name = "Tornado",
 		nochasecategory = "NOTAIR",
@@ -29,6 +30,7 @@ return {
 		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 200,
 		turnrate = 1625,
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -67,7 +69,7 @@ return {
 				name = "GuidedMissiles",
 				noselfdamage = true,
 				range = 550,
-				reloadtime = 0.85000002384186,
+				reloadtime = 0.85,
 				smoketrail = true,
 				soundhit = "xplosml2",
 				soundstart = "Rocklit3",

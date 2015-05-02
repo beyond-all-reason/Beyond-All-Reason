@@ -1,3 +1,4 @@
+
 return {
 	corason = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "45 28 45",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Extended Sonar",
@@ -40,6 +40,7 @@ return {
 		sonardistance = 2400,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

@@ -1,8 +1,9 @@
+
 return {
 	corspy = {
-		acceleration = 0.23999999463558,
+		acceleration = 0.24,
 		activatewhenbuilt = true,
-		brakerate = 0.17499999701977,
+		brakerate = 0.525,
 		buildcostenergy = 11452,
 		buildcostmetal = 156,
 		builddistance = 136,
@@ -19,7 +20,6 @@ return {
 		cloakcostmoving = 100,
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "26 25 30",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Radar-Invisible Spy Kbot",
@@ -31,7 +31,7 @@ return {
 		idletime = 1800,
 		maxdamage = 340,
 		maxslope = 32,
-		maxvelocity = 2.0699999332428,
+		maxvelocity = 2.07,
 		maxwaterdepth = 112,
 		mincloakdistance = 75,
 		movementclass = "KBOT2",
@@ -42,11 +42,14 @@ return {
 		selfdestructas = "SPYBOMBX",
 		selfdestructcountdown = 1,
 		sightdistance = 550,
+		sonarstealth = true,
 		stealth = true,
-        sonarstealth = true,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.3662,
 		turnrate = 1320,
 		upright = true,
 		workertime = 50,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -81,6 +84,7 @@ return {
 				metal = 40,
 				object = "1X1A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,8 +1,9 @@
+
 return {
 	cormlv = {
-		acceleration = 0.070000000298023,
+		acceleration = 0.07,
 		activatewhenbuilt = true,
-		brakerate = 0.55000001192093,
+		brakerate = 1.65,
 		buildcostenergy = 1217,
 		buildcostmetal = 57,
 		builddistance = 96,
@@ -17,11 +18,10 @@ return {
 		canrepair = false,
 		canrestore = false,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		corpse = "DEAD",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "19 10 29",
 		collisionvolumetype = "Box",
-		collisionvolumetest = 1,
+		corpse = "DEAD",
 		description = "Stealthy Minelayer/Minesweeper",
 		energymake = 1,
 		energyuse = 1,
@@ -34,7 +34,7 @@ return {
 		mass = 1500,
 		maxdamage = 155,
 		maxslope = 16,
-		maxvelocity = 2.4579999446869,
+		maxvelocity = 2.458,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
 		name = "Spoiler",
@@ -50,6 +50,9 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 15,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.62228,
 		turnrate = 580,
 		workertime = 40,
 		buildoptions = {
@@ -58,6 +61,7 @@ return {
 			[3] = "cordrag",
 			[4] = "coreyes",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -94,6 +98,7 @@ return {
 				metal = 15,
 				object = "3X3F",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -141,7 +146,7 @@ return {
 				thickness = 0,
 				tolerance = 100,
 				turret = true,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 3650,
 				damage = {

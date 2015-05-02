@@ -1,7 +1,8 @@
+
 return {
 	cormls = {
-		acceleration = 0.046000000089407,
-		brakerate = 0.059999998658895,
+		acceleration = 0.046,
+		brakerate = 0.18,
 		buildcostenergy = 3902,
 		buildcostmetal = 241,
 		builddistance = 136,
@@ -10,10 +11,10 @@ return {
 		buildtime = 5352,
 		canmove = true,
 		category = "ALL NOWEAPON MINELAYER SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[24 24 62]],
-		collisionVolumeOffsets	= [[-2 -3 5]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylZ]],
+		collisionVolumeOffsets = "-2 -3 5",
+		collisionVolumeScales = "24 24 62",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylZ",
 		corpse = "DEAD",
 		description = "Naval Engineer",
 		energymake = 0.5,
@@ -26,7 +27,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1438,
-		maxvelocity = 2.0999999046326,
+		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "BOAT4",
 		name = "Pathfinder",
@@ -36,9 +37,11 @@ return {
 		sightdistance = 260,
 		terraformspeed = 2000,
 		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.386,
 		turnrate = 377,
 		waterline = 3,
-		windgenerator = 0.0010000000474975,
+		windgenerator = 0.001,
 		workertime = 400,
 		buildoptions = {
 			[1] = "cortide",
@@ -60,6 +63,7 @@ return {
 			[17] = "coramph",
 			[18] = "corfmine3",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -95,6 +99,7 @@ return {
 				metal = 66,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

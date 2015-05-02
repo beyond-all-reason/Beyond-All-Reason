@@ -1,3 +1,4 @@
+
 return {
 	corvamp = {
 		acceleration = 0.166,
@@ -19,7 +20,7 @@ return {
 		icontype = "air",
 		maxdamage = 260,
 		maxslope = 10,
-		maxvelocity = 12.64999961853,
+		maxvelocity = 12.65,
 		maxwaterdepth = 0,
 		name = "Vamp",
 		nochasecategory = "NOTAIR",
@@ -29,6 +30,7 @@ return {
 		sightdistance = 200,
 		stealth = true,
 		turnrate = 1337,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

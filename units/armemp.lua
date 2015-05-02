@@ -1,3 +1,4 @@
+
 return {
 	armemp = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "48 28 48",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "EMP Missile Launcher",
@@ -34,6 +34,7 @@ return {
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +71,7 @@ return {
 				metal = 390,
 				object = "3X3A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

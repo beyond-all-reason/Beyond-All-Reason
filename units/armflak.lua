@@ -1,3 +1,4 @@
+
 return {
 	armflak = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildpic = "ARMFLAK.DDS",
 		buildtime = 19005,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[32 40 32]],
-		collisionVolumeOffsets	= [[0 -9 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -9 0",
+		collisionVolumeScales = "32 40 32",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Anti-Air Flak Gun",
 		explodeas = "MEDIUM_BUILDINGEX",
@@ -36,6 +37,7 @@ return {
 		sightdistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +74,7 @@ return {
 				metal = 200,
 				object = "2X2C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -111,7 +114,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargeting = 1,
-				edgeeffectiveness = 0.85000002384186,
+				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:FLASH3",
 				gravityaffected = "true",
 				impulseboost = 0,
@@ -121,7 +124,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 775,
-				reloadtime = 0.55000001192093,
+				reloadtime = 0.55,
 				soundhit = "flakhit",
 				soundstart = "flakfire",
 				toairweapon = true,
@@ -130,7 +133,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2450,
 				damage = {
-					["else"] = 10,
 					bombers = 250,
 					commanders = 10,
 					crawlingbombs = 10,

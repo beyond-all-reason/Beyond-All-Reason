@@ -1,3 +1,4 @@
+
 return {
 	corasy = {
 		acceleration = 0,
@@ -11,10 +12,10 @@ return {
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -13 -3",
 		collisionvolumescales = "192 61 180",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 2 Ships",
+		energymake = 25,
 		energystorage = 200,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 12,
@@ -24,7 +25,6 @@ return {
 		idletime = 1800,
 		maxdamage = 5300,
 		metalmake = 1,
-		energymake = 25,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		name = "Advanced Shipyard",
@@ -32,15 +32,12 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
-		sightdistance = 301.60000610352,
+		sightdistance = 301.60001,
 		terraformspeed = 1000,
 		waterline = 32,
 		workertime = 400,
 		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
 		buildoptions = {
-			[9] = "corblackhy",
-			[10] = "corcarry",
-			[11] = "corsjam",
 			[1] = "coracsub",
 			[2] = "cormls",
 			[3] = "corshark",
@@ -49,7 +46,11 @@ return {
 			[6] = "corcrus",
 			[7] = "corbats",
 			[8] = "cormship",
+			[9] = "corblackhy",
+			[10] = "corcarry",
+			[11] = "corsjam",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

@@ -1,7 +1,8 @@
+
 return {
 	armzeus = {
-		acceleration = 0.11999999731779,
-		brakerate = 0.25,
+		acceleration = 0.12,
+		brakerate = 0.75,
 		buildcostenergy = 5668,
 		buildcostmetal = 329,
 		buildpic = "ARMZEUS.DDS",
@@ -10,7 +11,6 @@ return {
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -11 -3",
 		collisionvolumescales = "27 33 14",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Assault Kbot",
@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 2650,
 		maxslope = 15,
-		maxvelocity = 1.5800000429153,
+		maxvelocity = 1.58,
 		maxwaterdepth = 23,
 		movementclass = "KBOT2",
 		name = "Zeus",
@@ -31,8 +31,11 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 331.5,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.0428,
 		turnrate = 1056,
 		upright = true,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -69,6 +72,7 @@ return {
 				metal = 86,
 				object = "2X2E",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

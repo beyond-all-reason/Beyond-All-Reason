@@ -1,3 +1,4 @@
+
 return {
 	tawf001 = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 85 33",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Beam Laser Turret",
@@ -35,6 +35,7 @@ return {
 		sightdistance = 475,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -71,6 +72,7 @@ return {
 				metal = 46,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -102,15 +104,15 @@ return {
 			tawf001_weapon = {
 				areaofeffect = 8,
 				beamtime = 0.5,
-				corethickness = 0.22499999403954,
+				corethickness = 0.225,
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 6,
 				explosiongenerator = "custom:SMALL_BURN_WHITE",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				laserflaresize = 12,
 				name = "BeamLaser",
 				noselfdamage = true,
@@ -119,8 +121,8 @@ return {
 				rgbcolor = "0 0 1",
 				soundstart = "build2",
 				soundtrigger = true,
-				targetmoveerror = 0.050000000745058,
-				thickness = 2.2000000476837,
+				targetmoveerror = 0.05,
+				thickness = 2.2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",

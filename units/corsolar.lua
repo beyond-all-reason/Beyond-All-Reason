@@ -1,3 +1,4 @@
+
 return {
 	corsolar = {
 		acceleration = 0,
@@ -37,6 +38,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooooo ooooo ooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +76,7 @@ return {
 				metal = 29,
 				object = "5X5C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

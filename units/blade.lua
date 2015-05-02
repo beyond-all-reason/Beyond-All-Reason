@@ -1,6 +1,7 @@
+
 return {
 	blade = {
-		acceleration = 0.60000002384186,
+		acceleration = 0.6,
 		brakerate = 0.35,
 		buildcostenergy = 20315,
 		buildcostmetal = 1192,
@@ -12,8 +13,8 @@ return {
 		collide = false,
 		cruisealt = 110,
 		description = "Rapid Assault Gunship",
-		energymake = 0.80000001192093,
-		energyuse = 0.89999997615814,
+		energymake = 0.8,
+		energyuse = 0.9,
 		explodeas = "GUNSHIPEX",
 		footprintx = 2,
 		footprintz = 2,
@@ -33,6 +34,7 @@ return {
 		sightdistance = 624,
 		turninplaceanglelimit = 360,
 		turnrate = 720,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -66,7 +68,7 @@ return {
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 70,
 				impulseboost = 1,
-				impulsefactor = 0.12300000339746,
+				impulsefactor = 0.123,
 				model = "missile",
 				name = "Sabotrocket",
 				noselfdamage = true,

@@ -1,3 +1,4 @@
+
 return {
 	armcir = {
 		acceleration = 0,
@@ -31,6 +32,7 @@ return {
 		sightdistance = 350,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -67,6 +69,7 @@ return {
 				metal = 182,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -130,7 +133,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1500,
 				damage = {
-					["else"] = 10,
 					bombers = 265,
 					commanders = 10,
 					crawlingbombs = 10,

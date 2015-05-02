@@ -1,3 +1,4 @@
+
 return {
 	corgantuw = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildtime = 67321,
 		canmove = true,
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[150 43 150]],
-		collisionVolumeOffsets	= [[0 -5 8]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -5 8",
+		collisionVolumeScales = "150 43 150",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Produces Large Amphibious Units",
 		energystorage = 1400,
@@ -34,7 +35,7 @@ return {
 		name = "Experimental Gantry",
 		objectname = "CORGANT",
 		radardistance = 50,
-		script = 'corgant.cob',
+		script = "corgant.cob",
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
 		sightdistance = 273,
@@ -46,10 +47,11 @@ return {
 		buildoptions = {
 			[1] = "corkrog",
 			[2] = "shiva",
-            [3] = "corsok",
-            [4] = "corseal",
-            [5] = "corparrow",
-        },
+			[3] = "corsok",
+			[4] = "corseal",
+			[5] = "corparrow",
+		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -87,6 +89,7 @@ return {
 				metal = 2040,
 				object = "7X7B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

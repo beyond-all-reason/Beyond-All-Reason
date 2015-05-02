@@ -1,3 +1,4 @@
+
 return {
 	armshltxuw = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildtime = 61380,
 		canmove = true,
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[150 43 150]],
-		collisionVolumeOffsets	= [[0 -5 8]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -5 8",
+		collisionVolumeScales = "150 43 150",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "ARMSHLT_DEAD",
 		description = "Produces Large Amphibious Units",
 		energystorage = 1400,
@@ -44,9 +45,10 @@ return {
 		buildoptions = {
 			[1] = "armbanth",
 			[2] = "marauder",
-            [3] = "armlun",
-            [4] = "armcroc",
+			[3] = "armlun",
+			[4] = "armcroc",
 		},
+		customparams = {},
 		featuredefs = {
 			armshlt_dead = {
 				blocking = true,
@@ -84,6 +86,7 @@ return {
 				metal = 1923,
 				object = "7X7B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

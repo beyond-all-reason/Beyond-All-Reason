@@ -1,3 +1,4 @@
+
 return {
 	armgate = {
 		acceleration = 0,
@@ -14,10 +15,10 @@ return {
 		buildtime = 54139,
 		canattack = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[57 37 57]],
-		collisionVolumeOffsets	= [[0 -4 1]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],		
+		collisionVolumeOffsets = "0 -4 1",
+		collisionVolumeScales = "57 37 57",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Plasma Deflector",
 		energystorage = 1500,
@@ -38,6 +39,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +76,7 @@ return {
 				metal = 918,
 				object = "2X2D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -103,28 +106,34 @@ return {
 			repulsor = {
 				name = "PlasmaRepulsor",
 				range = 500,
+				weapontype = "Shield",
+				damage = {
+					default = 100,
+				},
 				shield = {
 					alpha = 0.5,
-					badcolor = {1, 0.2, 0.2},
 					energyuse = 0,
 					force = 2.5,
-					goodcolor = {0.2, 1, 0.2},
 					intercepttype = 1,
-					--maxspeed = 500,
 					power = 6500,
 					powerregen = 105,
 					powerregenenergy = 562.5,
 					radius = 500,
-					--rechargedelay = 1,
 					repulser = true,
-					startingpower = 2500,
 					smart = true,
+					startingpower = 2500,
 					visible = true,
 					visiblehitframes = 70,
-				},
-				weapontype = "Shield",
-				damage = {
-					default = 100,
+					badcolor = {
+						[1] = 1,
+						[2] = 0.2,
+						[3] = 0.2,
+					},
+					goodcolor = {
+						[1] = 0.2,
+						[2] = 1,
+						[3] = 0.2,
+					},
 				},
 			},
 		},

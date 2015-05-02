@@ -1,3 +1,4 @@
+
 return {
 	screamer = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildpic = "SCREAMER.DDS",
 		buildtime = 30220,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[63 57 63]],
-		collisionVolumeOffsets	= [[0 0 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 0 0",
+		collisionVolumeScales = "63 57 63",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Long Range Anti-Air Tower",
 		explodeas = "BIG_UNITEX",
@@ -35,6 +36,7 @@ return {
 		sightdistance = 350,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +72,7 @@ return {
 				metal = 458,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -118,22 +121,21 @@ return {
 				smoketrail = true,
 				soundhit = "impact",
 				soundstart = "launch",
-				startvelocity = 1000,
-				stockpile = true, 	-- gadget unit_merscr_stockpile limits stockpile to 5
-				stockpiletime = 14,
 				sprayangle = 10000,
+				startvelocity = 1000,
+				stockpile = true,
+				stockpiletime = 14,
 				texture2 = "coresmoketrail",
 				toairweapon = true,
 				tolerance = 10000,
 				tracks = true,
-				trajectoryheight = 0.55000001192093,
+				trajectoryheight = 0.55,
 				turnrate = 99000,
 				turret = true,
 				weaponacceleration = 1200,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1800,
 				damage = {
-					["else"] = 10,
 					commanders = 10,
 					crawlingbombs = 10,
 					default = 750,

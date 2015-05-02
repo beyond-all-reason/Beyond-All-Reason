@@ -1,3 +1,4 @@
+
 return {
 	corfmd = {
 		acceleration = 0,
@@ -11,11 +12,10 @@ return {
 		buildinggrounddecaltype = "corfmd_aoplane.dds",
 		buildpic = "CORFMD.DDS",
 		buildtime = 60000,
-        canattack = false,
+		canattack = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -19 0",
 		collisionvolumescales = "48 78 48",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -37,6 +37,7 @@ return {
 		sightdistance = 195,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +74,7 @@ return {
 				metal = 392,
 				object = "5X5D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -110,8 +112,8 @@ return {
 				explosiongenerator = "custom:FLASH4",
 				firestarter = 100,
 				flighttime = 120,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
 				model = "fmdmisl",

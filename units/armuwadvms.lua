@@ -1,3 +1,4 @@
+
 return {
 	armuwadvms = {
 		buildangle = 5049,
@@ -12,7 +13,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "45 48 45",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (10000)",
@@ -33,6 +33,7 @@ return {
 		sightdistance = 195,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -68,6 +69,7 @@ return {
 				metal = 183,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},

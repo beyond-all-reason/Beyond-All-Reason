@@ -1,3 +1,4 @@
+
 return {
 	armmine1 = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		category = "ALL NOTLAND WEAPON MINE NOTSUB KAMIKAZE NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 0.5,
 		collide = false,
-		collisionVolumeScales		= [[15 14 15]],
-		collisionVolumeOffsets	= [[0 5 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 5 0",
+		collisionVolumeScales = "15 14 15",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		description = "Light Mine",
 		explodeas = "MINE_LIGHT",
 		firestate = 2,
@@ -37,8 +38,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "MINE_LIGHT",
 		selfdestructcountdown = 0,
-		sightdistance = 83.199996948242,
+		sightdistance = 83.2,
 		stealth = true,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -73,7 +75,7 @@ return {
 				impulsefactor = 0,
 				name = "Mine Detonator",
 				range = 1,
-				reloadtime = 0.10000000149012,
+				reloadtime = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
@@ -92,7 +94,7 @@ return {
 				impulsefactor = 0,
 				name = "Crawlingbomb Dummy Weapon",
 				range = 64,
-				reloadtime = 0.10000000149012,
+				reloadtime = 0.1,
 				tolerance = 100000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,

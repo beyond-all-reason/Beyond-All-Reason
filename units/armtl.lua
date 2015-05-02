@@ -1,3 +1,4 @@
+
 return {
 	armtl = {
 		acceleration = 0,
@@ -11,8 +12,8 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Torpedo Launcher",
-		energymake = 0.10000000149012,
-		energyuse = 0.10000000149012,
+		energymake = 0.1,
+		energyuse = 0.1,
 		explodeas = "MEDIUM_BUILDINGEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -28,6 +29,7 @@ return {
 		sightdistance = 455,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -73,16 +75,16 @@ return {
 		weapondefs = {
 			coax_torpedo = {
 				areaofeffect = 48,
-				edgeeffectiveness = 0.4,
 				avoidfriendly = false,
 				burnblow = true,
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
+				edgeeffectiveness = 0.4,
 				explosiongenerator = "custom:FLASH2",
 				flighttime = 1.35,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "torpedo",
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,

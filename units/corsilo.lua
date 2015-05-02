@@ -1,3 +1,4 @@
+
 return {
 	corsilo = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 18 -2",
 		collisionvolumescales = "90 38 84",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Nuclear ICBM Launcher",
@@ -35,6 +35,7 @@ return {
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -71,6 +72,7 @@ return {
 				metal = 1869,
 				object = "3X3A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -104,7 +106,7 @@ return {
 				commandfire = true,
 				craterboost = 6,
 				cratermult = 3,
-				edgeeffectiveness = 0.30000001192093,
+				edgeeffectiveness = 0.3,
 				energypershot = 187500,
 				explosiongenerator = "custom:FLASHNUKE1920",
 				firestarter = 0,

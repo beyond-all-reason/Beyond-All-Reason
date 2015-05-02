@@ -1,7 +1,8 @@
+
 return {
 	armscab = {
-		acceleration = 0.01799999922514,
-		brakerate = 0.034000001847744,
+		acceleration = 0.018,
+		brakerate = 0.102,
 		buildcostenergy = 28000,
 		buildcostmetal = 1100,
 		buildpic = "ARMSCAB.DDS",
@@ -11,7 +12,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "43 23 43",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -35,7 +35,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
 		sightdistance = 450,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.122,
 		turnrate = 473,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +75,7 @@ return {
 				metal = 374,
 				object = "3X3D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -109,8 +113,8 @@ return {
 				explosiongenerator = "custom:FLASH4",
 				firestarter = 100,
 				flighttime = 120,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
 				model = "amdrocket",

@@ -1,8 +1,9 @@
+
 return {
 	armfark = {
-		acceleration = 0.21600000560284,
+		acceleration = 0.432,
 		autoheal = 5,
-		brakerate = 0.75,
+		brakerate = 4.5,
 		buildcostenergy = 2793,
 		buildcostmetal = 201,
 		builddistance = 136,
@@ -13,7 +14,6 @@ return {
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 -4",
 		collisionvolumescales = "21 24 17",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Fast Assist/Repair Kbot",
@@ -27,9 +27,9 @@ return {
 		idletime = 1800,
 		maxdamage = 300,
 		maxslope = 14,
-		maxvelocity = 2.6400001049042,
+		maxvelocity = 2.64,
 		maxwaterdepth = 22,
-		metalmake = 0.11999999731779,
+		metalmake = 0.12,
 		metalstorage = 25,
 		movementclass = "KBOT2",
 		name = "Fark",
@@ -40,6 +40,9 @@ return {
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 377,
 		terraformspeed = 600,
+		turninplace = 1,
+		turninplaceanglelimit = 60,
+		turninplacespeedlimit = 1.7424,
 		turnrate = 1100,
 		upright = true,
 		workertime = 120,
@@ -52,6 +55,7 @@ return {
 			[6] = "armmark",
 			[7] = "armaser",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -88,6 +92,7 @@ return {
 				metal = 52,
 				object = "2X2D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

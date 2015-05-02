@@ -1,3 +1,4 @@
+
 return {
 	armvulc = {
 		acceleration = 0,
@@ -31,6 +32,7 @@ return {
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -67,6 +69,7 @@ return {
 				metal = 8812,
 				object = "7X7A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -113,8 +116,8 @@ return {
 				name = "RapidfireLRPC",
 				noselfdamage = true,
 				range = 5750,
-				reloadtime = 0.40000000596046,
-				rgbcolor = [[1, 0.4, 0]],
+				reloadtime = 0.4,
+				rgbcolor = "1, 0.4, 0",
 				soundhit = "rflrpc3",
 				soundstart = "XPLONUK4",
 				turret = true,

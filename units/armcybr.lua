@@ -1,3 +1,4 @@
+
 return {
 	armcybr = {
 		acceleration = 0.13,
@@ -14,7 +15,7 @@ return {
 		description = "Atomic Bomber",
 		energyuse = 40,
 		explodeas = "SMALL_BUILDING",
-        firestate = 0,
+		firestate = 0,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -22,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 2050,
 		maxslope = 10,
-		maxvelocity = 10.35000038147,
+		maxvelocity = 10.35,
 		maxwaterdepth = 0,
 		name = "Liche",
 		noautofire = false,
@@ -32,6 +33,7 @@ return {
 		selfdestructas = "BIG_UNITEX",
 		sightdistance = 455,
 		turnrate = 535,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -65,7 +67,7 @@ return {
 				explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
 				firestarter = 100,
 				flighttime = 1.5,
-				impulseboost = 0.12300000339746,
+				impulseboost = 0.123,
 				impulsefactor = 2,
 				model = "plasmafire",
 				name = "PlasmaImplosionDumpRocket",

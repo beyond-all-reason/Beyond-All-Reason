@@ -1,3 +1,4 @@
+
 return {
 	cafus = {
 		acceleration = 0,
@@ -12,12 +13,12 @@ return {
 		buildpic = "CAFUS.DDS",
 		buildtime = 226272,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[84 95 84]],
-		collisionVolumeOffsets	= [[0 -1 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -1 0",
+		collisionVolumeScales = "84 95 84",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.94999998807907,
+		damagemodifier = 0.95,
 		description = "Enhanced Energy Output",
 		energymake = 3000,
 		energystorage = 9000,
@@ -37,6 +38,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +75,7 @@ return {
 				metal = 2576,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

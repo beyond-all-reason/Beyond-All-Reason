@@ -1,3 +1,4 @@
+
 return {
 	corshad = {
 		acceleration = 0.028,
@@ -12,8 +13,8 @@ return {
 		collide = false,
 		cruisealt = 165,
 		description = "Bomber",
-		energymake = 0.89999997615814,
-		energyuse = 0.89999997615814,
+		energymake = 0.9,
+		energyuse = 0.9,
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
 		footprintz = 3,
@@ -22,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 615,
 		maxslope = 10,
-		maxvelocity = 8.0500001907349,
+		maxvelocity = 8.05,
 		maxwaterdepth = 0,
 		name = "Shadow",
 		noautofire = true,
@@ -32,6 +33,7 @@ return {
 		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 169,
 		turnrate = 807,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -59,7 +61,7 @@ return {
 				areaofeffect = 168,
 				avoidfeature = false,
 				burst = 5,
-				burstrate = 0.28000000119209,
+				burstrate = 0.28,
 				collidefriendly = false,
 				commandfire = false,
 				craterboost = 0,
@@ -67,8 +69,8 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:T1COREBOMB",
 				gravityaffected = "true",
-				impulseboost = 0.30000001192093,
-				impulsefactor = 0.30000001192093,
+				impulseboost = 0.3,
+				impulsefactor = 0.3,
 				model = "bomb",
 				name = "Bombs",
 				noselfdamage = true,

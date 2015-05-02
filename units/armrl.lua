@@ -1,3 +1,4 @@
+
 return {
 	armrl = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "36 57 36",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti-air Tower",
@@ -35,6 +35,7 @@ return {
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -71,6 +72,7 @@ return {
 				metal = 20,
 				object = "3X3C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -105,14 +107,14 @@ return {
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 70,
 				flighttime = 3,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
 				name = "Missiles",
 				noselfdamage = true,
 				range = 765,
-				reloadtime = 1.7000000476837,
+				reloadtime = 1.7,
 				smoketrail = true,
 				soundhit = "xplomed2",
 				soundstart = "rockhvy2",

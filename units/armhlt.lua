@@ -1,3 +1,4 @@
+
 return {
 	armhlt = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "36 89 36",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Heavy Laser Tower",
@@ -36,6 +36,7 @@ return {
 		sightdistance = 494,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +73,7 @@ return {
 				metal = 108,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -102,24 +104,24 @@ return {
 		weapondefs = {
 			arm_laserh1 = {
 				areaofeffect = 14,
-				beamtime = 0.15000000596046,
-				corethickness = 0.20000000298023,
+				beamtime = 0.15,
+				corethickness = 0.2,
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 75,
 				explosiongenerator = "custom:LARGE_GREEN_LASER_BURN",
 				firestarter = 90,
 				impactonly = 1,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				laserflaresize = 10,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
 				range = 620,
-				reloadtime = 1.7999999523163,
+				reloadtime = 1.8,
 				rgbcolor = "0 1 0",
 				soundstart = "Lasrmas2",
-				targetmoveerror = 0.20000000298023,
+				targetmoveerror = 0.2,
 				thickness = 3,
 				tolerance = 10000,
 				turret = true,

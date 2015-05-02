@@ -1,3 +1,4 @@
+
 return {
 	corgeo = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "2 -6 0",
 		collisionvolumescales = "63 45 59",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "dead",
 		description = "Produces Energy / Storage",
@@ -37,6 +37,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oGGo oGGo oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +74,7 @@ return {
 				metal = 131,
 				object = "4X4B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

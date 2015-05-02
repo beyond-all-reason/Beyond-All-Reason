@@ -1,3 +1,4 @@
+
 return {
 	corplat = {
 		acceleration = 0,
@@ -40,6 +41,7 @@ return {
 			[5] = "corsfig",
 			[6] = "corhunt",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

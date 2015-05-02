@@ -1,3 +1,4 @@
+
 return {
 	armalab = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		canmove = true,
 		category = "ALL NOTLAND PLANT NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumescales = "75 32 91",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 2 Kbots",
@@ -41,15 +41,6 @@ return {
 		workertime = 300,
 		yardmap = "occccooccccooccccooccccooccccoocccco",
 		buildoptions = {
-			[10] = "armfboy",
-			[11] = "armspid",
-			[12] = "armaak",
-			[13] = "armvader",
-			[14] = "armdecom",
-			[15] = "armscab",
-			[16] = "armaser",
-			[17] = "armspy",
-			[18] = "armmark",
 			[1] = "armack",
 			[2] = "armfark",
 			[3] = "armfast",
@@ -59,7 +50,17 @@ return {
 			[7] = "armsptk",
 			[8] = "armfido",
 			[9] = "armsnipe",
+			[10] = "armfboy",
+			[11] = "armspid",
+			[12] = "armaak",
+			[13] = "armvader",
+			[14] = "armdecom",
+			[15] = "armscab",
+			[16] = "armaser",
+			[17] = "armspy",
+			[18] = "armmark",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -97,6 +98,7 @@ return {
 				metal = 887,
 				object = "5X5A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

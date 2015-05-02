@@ -1,3 +1,4 @@
+
 return {
 	armfrt = {
 		acceleration = 0,
@@ -12,11 +13,10 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "36 59 36",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Floating Anti-air Tower",
-		energyuse = 0.10000000149012,
+		energyuse = 0.1,
 		explodeas = "BIG_UNITEX",
 		footprintx = 4,
 		footprintz = 4,
@@ -31,8 +31,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 468,
-		waterline = 0.30000001192093,
+		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -81,18 +82,18 @@ return {
 				canattackground = false,
 				craterboost = 0,
 				cratermult = 0,
+				edgeeffectiveness = 0.6,
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 70,
 				flighttime = 3,
-				edgeeffectiveness = 0.6;
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
 				name = "Missiles",
 				noselfdamage = true,
-				range = 765,
 				proximitypriority = 1,
+				range = 765,
 				reloadtime = 1.2,
 				smoketrail = true,
 				soundhit = "xplomed2",

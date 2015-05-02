@@ -1,3 +1,4 @@
+
 return {
 	packo = {
 		acceleration = 0,
@@ -15,7 +16,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 12,
 		corpse = "DEAD",
-		damagemodifier = 0.20000000298023,
+		damagemodifier = 0.2,
 		description = "Pop-Up Missile Battery",
 		explodeas = "BIG_UNITEX",
 		footprintx = 3,
@@ -35,6 +36,7 @@ return {
 		sightdistance = 375,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -71,6 +73,7 @@ return {
 				metal = 110,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -108,8 +111,8 @@ return {
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 72,
 				flighttime = 3,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
 				name = "AA2Missile",

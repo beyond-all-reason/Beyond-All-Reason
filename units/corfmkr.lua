@@ -1,3 +1,4 @@
+
 return {
 	corfmkr = {
 		acceleration = 0,
@@ -26,6 +27,7 @@ return {
 		sightdistance = 273,
 		waterline = 24,
 		yardmap = "wwwwwwwww",
+		customparams = {},
 		sounds = {
 			activate = "metlon2",
 			canceldestruct = "cancel2",

@@ -1,3 +1,4 @@
+
 return {
 	aafus = {
 		acceleration = 0,
@@ -14,10 +15,9 @@ return {
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 71 67",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		damagemodifier = 0.94999998807907,
+		damagemodifier = 0.95,
 		description = "Enhanced Energy Output",
 		energymake = 3000,
 		energystorage = 9000,
@@ -37,6 +37,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +74,7 @@ return {
 				metal = 2576,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

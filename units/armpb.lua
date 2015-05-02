@@ -1,3 +1,4 @@
+
 return {
 	armpb = {
 		acceleration = 0,
@@ -34,6 +35,7 @@ return {
 		sightdistance = 598,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +72,7 @@ return {
 				metal = 140,
 				object = "3X3D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -104,15 +107,15 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2nd",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				name = "GaussCannon",
 				noselfdamage = true,
 				range = 730,
 				reloadtime = 1.625,
 				soundhit = "xplomed2",
 				soundstart = "cannhvy1",
-				targetmoveerror = 0.20000000298023,
+				targetmoveerror = 0.2,
 				tolerance = 8000,
 				turret = true,
 				weapontype = "Cannon",

@@ -1,3 +1,4 @@
+
 return {
 	armckfus = {
 		acceleration = 0,
@@ -11,7 +12,6 @@ return {
 		cloakcost = 100,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "77 51 51",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Energy / Storage",
@@ -34,6 +34,7 @@ return {
 		selfdestructas = "MINE_NUKE",
 		sightdistance = 273,
 		yardmap = "oooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +71,7 @@ return {
 				metal = 1240,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

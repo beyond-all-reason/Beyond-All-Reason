@@ -1,8 +1,9 @@
+
 return {
 	coreter = {
-		acceleration = 0.040699999779463,
+		acceleration = 0.0407,
 		activatewhenbuilt = true,
-		brakerate = 0.019799999892712,
+		brakerate = 0.0594,
 		buildcostenergy = 1757,
 		buildcostmetal = 100,
 		buildpic = "CORETER.DDS",
@@ -10,9 +11,8 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = [[0 -3 0]],
-		collisionvolumescales = [[26.5 26.5 47.5]],
-		collisionvolumetest = 1,
+		collisionvolumeoffsets = "0 -3 0",
+		collisionvolumescales = "26.5 26.5 47.5",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Radar Jammer Vehicle",
@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maxdamage = 520,
 		maxslope = 16,
-		maxvelocity = 1.4520000219345,
+		maxvelocity = 1.452,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Deleter",
@@ -40,7 +40,11 @@ return {
 		trackstrength = 6,
 		tracktype = "StdTank",
 		trackwidth = 27,
-		turnrate = 619.29998779297,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.95832,
+		turnrate = 619.29999,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +81,7 @@ return {
 				metal = 26,
 				object = "3X3F",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -118,7 +123,7 @@ return {
 				turnrate = 33000,
 				turret = true,
 				weaponacceleration = 101,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {

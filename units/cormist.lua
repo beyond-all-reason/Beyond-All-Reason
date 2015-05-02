@@ -1,8 +1,9 @@
+
 return {
 	cormist = {
 		acceleration = 0.027,
 		airsightdistance = 900,
-		brakerate = 0.016499999910593,
+		brakerate = 0.0495,
 		buildcostenergy = 2177,
 		buildcostmetal = 146,
 		buildpic = "CORMIST.DDS",
@@ -12,7 +13,6 @@ return {
 		collisionvolumeoffsets = "0 -6 1",
 		collisionvolumescales = "34 18 43",
 		collisionvolumetype = "Box",
-		collisionvolumetest = 1,
 		corpse = "DEAD",
 		description = "Missile Truck",
 		energymake = 0.5,
@@ -37,7 +37,11 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.99,
 		turnrate = 370,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +78,7 @@ return {
 				metal = 46,
 				object = "3X3F",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -112,8 +117,8 @@ return {
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 70,
 				flighttime = 3.5,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
 				name = "Missiles",
@@ -135,7 +140,7 @@ return {
 				weaponvelocity = 545,
 				damage = {
 					bombers = 120,
-					commanders = 32, 
+					commanders = 32,
 					default = 47,
 					fighters = 120,
 					subs = 5,

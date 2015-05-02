@@ -13,7 +13,7 @@ end
 
 function table.key_to_str ( k )
   if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
-    if k == "else" then k = "other" end --temp
+    if k == "else" then k = "default" end -- handles deprecated ["else"] damage class
     return k
   else
     return "[" .. table.val_to_str( k ) .. "]"

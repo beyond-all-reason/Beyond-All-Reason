@@ -1,3 +1,4 @@
+
 return {
 	corawac = {
 		acceleration = 0.114,
@@ -18,11 +19,11 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 890,
 		maxslope = 10,
-		maxvelocity = 10.699999809265,
+		maxvelocity = 10.7,
 		maxwaterdepth = 0,
 		name = "Vulture",
 		objectname = "CORAWAC",
@@ -32,6 +33,7 @@ return {
 		sightdistance = 1250,
 		sonardistance = 1200,
 		turnrate = 402,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

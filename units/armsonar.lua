@@ -1,3 +1,4 @@
+
 return {
 	armsonar = {
 		acceleration = 0,
@@ -12,7 +13,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 41 28",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Locates Water Units",
@@ -35,6 +35,7 @@ return {
 		sightdistance = 515,
 		sonardistance = 1200,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

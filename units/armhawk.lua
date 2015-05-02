@@ -1,3 +1,4 @@
+
 return {
 	armhawk = {
 		acceleration = 0.16,
@@ -19,7 +20,7 @@ return {
 		icontype = "air",
 		maxdamage = 335,
 		maxslope = 10,
-		maxvelocity = 11.960000038147,
+		maxvelocity = 11.96,
 		maxwaterdepth = 0,
 		name = "Hawk",
 		nochasecategory = "NOTAIR",
@@ -29,6 +30,7 @@ return {
 		sightdistance = 200,
 		stealth = true,
 		turnrate = 1425,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

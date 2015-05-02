@@ -1,6 +1,7 @@
+
 return {
 	armcsa = {
-		acceleration = 0.083999998867512,
+		acceleration = 0.084,
 		brakerate = 0.4275,
 		buildcostenergy = 24072,
 		buildcostmetal = 254,
@@ -23,13 +24,13 @@ return {
 		footprintz = 2,
 		hoverattack = true,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 365,
 		maxslope = 10,
-		maxvelocity = 8.9700002670288,
+		maxvelocity = 8.97,
 		maxwaterdepth = 255,
-		metalmake = 0.20000000298023,
+		metalmake = 0.2,
 		metalstorage = 75,
 		name = "Construction Seaplane",
 		objectname = "ARMCSA",
@@ -55,6 +56,7 @@ return {
 			[12] = "armatl",
 			[13] = "armason",
 		},
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

@@ -1,3 +1,4 @@
+
 return {
 	corhurc = {
 		acceleration = 0.02,
@@ -22,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1371,
 		maxslope = 10,
-		maxvelocity = 9.0,
+		maxvelocity = 9,
 		maxwaterdepth = 0,
 		name = "Hurricane",
 		noautofire = true,
@@ -32,6 +33,7 @@ return {
 		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 221,
 		turnrate = 220,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

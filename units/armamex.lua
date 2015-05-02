@@ -1,3 +1,4 @@
+
 return {
 	armamex = {
 		acceleration = 0,
@@ -13,15 +14,15 @@ return {
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[49 26 49]],
-		collisionVolumeOffsets	= [[0 0 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
 		cloakcost = 12,
+		collisionVolumeOffsets = "0 0 0",
+		collisionVolumeScales = "49 26 49",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Stealthy Cloakable Metal Extractor",
 		explodeas = "TWILIGHT",
-		extractsmetal = 0.0010000000474975,
+		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -43,6 +44,7 @@ return {
 		stealth = true,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +80,7 @@ return {
 				metal = 41,
 				object = "3X3A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	armsy = {
 		acceleration = 0,
@@ -11,10 +12,10 @@ return {
 		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-2 -3 -3",
 		collisionvolumescales = "116 63 116",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Ships",
+		energymake = 15,
 		energystorage = 125,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 8,
@@ -24,7 +25,6 @@ return {
 		idletime = 1800,
 		maxdamage = 3700,
 		metalmake = 0.5,
-		energymake = 15,
 		metalstorage = 125,
 		minwaterdepth = 30,
 		name = "Shipyard",
@@ -46,6 +46,7 @@ return {
 			[6] = "armsub",
 			[7] = "armrecl",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

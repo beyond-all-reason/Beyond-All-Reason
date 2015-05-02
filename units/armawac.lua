@@ -1,3 +1,4 @@
+
 return {
 	armawac = {
 		acceleration = 0.114,
@@ -18,11 +19,11 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 800,
 		maxslope = 10,
-		maxvelocity = 10.579999923706,
+		maxvelocity = 10.58,
 		maxwaterdepth = 0,
 		name = "Eagle",
 		objectname = "ARMAWAC",
@@ -32,6 +33,7 @@ return {
 		sightdistance = 1275,
 		sonardistance = 1200,
 		turnrate = 392,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

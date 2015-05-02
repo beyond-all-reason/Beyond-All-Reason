@@ -1,3 +1,4 @@
+
 return {
 	armanni = {
 		acceleration = 0,
@@ -38,6 +39,7 @@ return {
 		sightdistance = 780,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +76,7 @@ return {
 				metal = 776,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -103,22 +106,22 @@ return {
 			ata = {
 				areaofeffect = 16,
 				beamtime = 1.5,
-				corethickness = 0.20000000298023,
+				corethickness = 0.2,
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 1500,
 				explosiongenerator = "custom:BURN_WHITE",
 				firestarter = 90,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				laserflaresize = 20,
 				name = "ATA",
 				noselfdamage = true,
 				range = 1400,
-				reloadtime = 9.8999996185303,
+				reloadtime = 9.9,
 				rgbcolor = "0 0 1",
 				soundstart = "annigun1",
-				targetmoveerror = 0.30000001192093,
+				targetmoveerror = 0.3,
 				thickness = 7,
 				tolerance = 10000,
 				turret = true,

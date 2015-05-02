@@ -1,3 +1,4 @@
+
 return {
 	armfmine3 = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		category = "ALL WEAPON MINE KAMIKAZE NOTSUB NOTAIR HOVER SURFACE",
 		cloakcost = 2,
 		collide = false,
-		collisionVolumeScales		= [[22 5 22]],
-		collisionVolumeOffsets	= [[0 -1.5 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 -1.5 0",
+		collisionVolumeScales = "22 5 22",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		description = "Heavy Mine, Naval Series",
 		explodeas = "FMINE_HEAVY",
 		firestate = 2,
@@ -39,6 +40,7 @@ return {
 		sightdistance = 78,
 		stealth = true,
 		waterline = 1,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -73,7 +75,7 @@ return {
 				impulsefactor = 0,
 				name = "Mine Detonator",
 				range = 1,
-				reloadtime = 0.10000000149012,
+				reloadtime = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
@@ -92,7 +94,7 @@ return {
 				impulsefactor = 0,
 				name = "Crawlingbomb Dummy Weapon",
 				range = 64,
-				reloadtime = 0.10000000149012,
+				reloadtime = 0.1,
 				tolerance = 100000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,

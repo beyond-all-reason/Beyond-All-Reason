@@ -1,3 +1,4 @@
+
 return {
 	corenaa = {
 		acceleration = 0,
@@ -12,11 +13,10 @@ return {
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 44 42",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti-Air Flak Gun - Naval Series",
-		energyuse = 0.10000000149012,
+		energyuse = 0.1,
 		explodeas = "BIG_UNITEX",
 		footprintx = 4,
 		footprintz = 4,
@@ -30,8 +30,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 550,
-		waterline = 0.30000001192093,
+		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -88,7 +89,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargeting = 1,
-				edgeeffectiveness = 0.85000002384186,
+				edgeeffectiveness = 0.85,
 				explosiongenerator = "custom:FLASH3",
 				gravityaffected = "true",
 				impulseboost = 0,
@@ -98,8 +99,8 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 775,
-				reloadtime = 0.55000001192093,
-				rgbcolor = [[1, 0.5, 0]],
+				reloadtime = 0.55,
+				rgbcolor = "1, 0.5, 0",
 				soundhit = "flakhit",
 				soundstart = "flakfire",
 				toairweapon = true,
@@ -108,7 +109,6 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 2450,
 				damage = {
-					["else"] = 10,
 					bombers = 250,
 					commanders = 10,
 					crawlingbombs = 10,

@@ -1,3 +1,4 @@
+
 return {
 	armasy = {
 		acceleration = 0,
@@ -11,10 +12,10 @@ return {
 		category = "ALL NOTLAND PLANT NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -9 -2",
 		collisionvolumescales = "180 60 176",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 2 Ships",
+		energymake = 25,
 		energystorage = 200,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 12,
@@ -24,7 +25,6 @@ return {
 		idletime = 1800,
 		maxdamage = 5415,
 		metalmake = 1,
-		energymake = 25,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		name = "Advanced Shipyard",
@@ -38,9 +38,6 @@ return {
 		workertime = 400,
 		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
 		buildoptions = {
-			[9] = "aseadragon",
-			[10] = "armcarry",
-			[11] = "armsjam",
 			[1] = "armacsub",
 			[2] = "armmls",
 			[3] = "armsubk",
@@ -49,7 +46,11 @@ return {
 			[6] = "armcrus",
 			[7] = "armbats",
 			[8] = "armmship",
+			[9] = "aseadragon",
+			[10] = "armcarry",
+			[11] = "armsjam",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

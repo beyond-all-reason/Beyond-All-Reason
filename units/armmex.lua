@@ -1,3 +1,4 @@
+
 return {
 	armmex = {
 		acceleration = 0,
@@ -13,14 +14,14 @@ return {
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[41 26 41]],
-		collisionVolumeOffsets	= [[0 0 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 0 0",
+		collisionVolumeScales = "41 26 41",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "TINY_BUILDINGEX",
-		extractsmetal = 0.0010000000474975,
+		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -39,6 +40,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +77,7 @@ return {
 				metal = 13,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	coraap = {
 		acceleration = 0,
@@ -15,7 +16,6 @@ return {
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -12 -22",
 		collisionvolumescales = "104 32 52",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 2 Aircraft",
@@ -49,6 +49,7 @@ return {
 			[7] = "armsl",
 			[8] = "corcrw",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -86,6 +87,7 @@ return {
 				metal = 968,
 				object = "6X6A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

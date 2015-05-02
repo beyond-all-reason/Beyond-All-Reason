@@ -1,7 +1,8 @@
+
 return {
 	cormabm = {
-		acceleration = 0.019799999892712,
-		brakerate = 0.037399999797344,
+		acceleration = 0.0198,
+		brakerate = 0.1122,
 		buildcostenergy = 30400,
 		buildcostmetal = 1150,
 		buildpic = "CORMABM.DDS",
@@ -11,7 +12,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "40 21 30",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
@@ -40,7 +40,11 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 34,
-		turnrate = 520.29998779297,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.188,
+		turnrate = 520.29999,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +81,7 @@ return {
 				metal = 392,
 				object = "3X3D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -114,8 +119,8 @@ return {
 				explosiongenerator = "custom:FLASH4",
 				firestarter = 100,
 				flighttime = 120,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				interceptor = 1,
 				metalpershot = 150,
 				model = "fmdmisl",

@@ -1,3 +1,4 @@
+
 return {
 	armamb = {
 		acceleration = 0,
@@ -36,6 +37,7 @@ return {
 		sightdistance = 442,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -90,6 +92,7 @@ return {
 				metal = 244,
 				object = "3X3B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -126,13 +129,13 @@ return {
 				edgeeffectiveness = 0.25,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
+				impulseboost = 0.123,
 				impulsefactor = 0.5,
 				name = "PopupCannon",
 				noselfdamage = true,
-				predictboost = 0.20000000298023,
+				predictboost = 0.2,
 				range = 1320,
-				reloadtime = 1.7999999523163,
+				reloadtime = 1.8,
 				soundhit = "xplomed2",
 				soundstart = "cannhvy5",
 				turret = true,
@@ -149,12 +152,12 @@ return {
 			armamb_gun_high = {
 				accuracy = 400,
 				areaofeffect = 224,
-				craterboost = 0.12300000339746,
-				cratermult = 0.12300000339746,
+				craterboost = 0.123,
+				cratermult = 0.123,
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:FLASH96",
 				gravityaffected = "true",
-				impulseboost = 0.12300000339746,
+				impulseboost = 0.123,
 				impulsefactor = 2,
 				name = "PopupCannon",
 				noselfdamage = true,

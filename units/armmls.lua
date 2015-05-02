@@ -1,7 +1,8 @@
+
 return {
 	armmls = {
-		acceleration = 0.050000000745058,
-		brakerate = 0.070000000298023,
+		acceleration = 0.05,
+		brakerate = 0.21,
 		buildcostenergy = 3725,
 		buildcostmetal = 213,
 		builddistance = 136,
@@ -10,10 +11,10 @@ return {
 		buildtime = 5247,
 		canmove = true,
 		category = "ALL NOTSUB MINELAYER SHIP NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[25 25 66]],
-		collisionVolumeOffsets	= [[0 -7 2]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylZ]],
+		collisionVolumeOffsets = "0 -7 2",
+		collisionVolumeScales = "25 25 66",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylZ",
 		corpse = "DEAD",
 		description = "Naval Engineer",
 		energymake = 0.5,
@@ -26,7 +27,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1314,
-		maxvelocity = 2.4000000953674,
+		maxvelocity = 2.4,
 		minwaterdepth = 15,
 		movementclass = "BOAT4",
 		name = "Valiant",
@@ -36,9 +37,11 @@ return {
 		sightdistance = 260,
 		terraformspeed = 2000,
 		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.584,
 		turnrate = 388,
 		waterline = 2,
-		windgenerator = 0.0010000000474975,
+		windgenerator = 0.001,
 		workertime = 400,
 		buildoptions = {
 			[1] = "armtide",
@@ -60,6 +63,7 @@ return {
 			[17] = "armamph",
 			[18] = "armfmine3",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -95,6 +99,7 @@ return {
 				metal = 66,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

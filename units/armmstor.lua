@@ -1,3 +1,4 @@
+
 return {
 	armmstor = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildpic = "ARMMSTOR.DDS",
 		buildtime = 2925,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[63 31 63]],
-		collisionVolumeOffsets	= [[0 0 0]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "0 0 0",
+		collisionVolumeScales = "63 31 63",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (3000)",
 		explodeas = "SMALL_BUILDINGEX",
@@ -36,6 +37,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +74,7 @@ return {
 				metal = 79,
 				object = "4X4E",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

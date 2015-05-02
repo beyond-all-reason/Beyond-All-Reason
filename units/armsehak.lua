@@ -1,3 +1,4 @@
+
 return {
 	armsehak = {
 		acceleration = 0.069,
@@ -19,11 +20,11 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
-		idleautoheal = 5 ,
-		idletime = 1800 ,
+		idleautoheal = 5,
+		idletime = 1800,
 		maxdamage = 520,
 		maxslope = 10,
-		maxvelocity = 11.270000457764,
+		maxvelocity = 11.27,
 		maxwaterdepth = 255,
 		name = "Seahawk",
 		objectname = "ARMSEHAK",
@@ -33,6 +34,7 @@ return {
 		sightdistance = 1100,
 		sonardistance = 900,
 		turnrate = 402,
+		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

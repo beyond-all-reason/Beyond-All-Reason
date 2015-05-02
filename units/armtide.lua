@@ -1,3 +1,4 @@
+
 return {
 	armtide = {
 		acceleration = 0,
@@ -9,10 +10,10 @@ return {
 		buildpic = "ARMTIDE.DDS",
 		buildtime = 2188,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[27 26 39]],
-		collisionVolumeOffsets	= [[0 0 -4]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[Box]],
+		collisionVolumeOffsets = "0 0 -4",
+		collisionVolumeScales = "27 26 39",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "Box",
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 50,
@@ -34,6 +35,7 @@ return {
 		tidalgenerator = 1,
 		waterline = 10,
 		yardmap = "wwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -44,6 +46,7 @@ return {
 				damage = 145,
 				description = "Tidal Generator Wreckage",
 				energy = 0,
+				featuredead = "HEAP",
 				footprintx = 3,
 				footprintz = 3,
 				height = 4,
@@ -53,7 +56,6 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
-				featuredead = "HEAP",
 			},
 			heap = {
 				blocking = false,
@@ -69,6 +71,7 @@ return {
 				metal = 17,
 				object = "2X2B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

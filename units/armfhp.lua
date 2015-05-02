@@ -1,3 +1,4 @@
+
 return {
 	armfhp = {
 		acceleration = 0,
@@ -41,6 +42,7 @@ return {
 			[5] = "armmh",
 			[6] = "armthovr",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

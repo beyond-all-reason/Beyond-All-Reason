@@ -1,3 +1,4 @@
+
 return {
 	coruwfus = {
 		acceleration = 0,
@@ -34,6 +35,7 @@ return {
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -68,6 +70,7 @@ return {
 				metal = 1240,
 				object = "5X5A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

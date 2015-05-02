@@ -1,3 +1,4 @@
+
 return {
 	armllt = {
 		acceleration = 0,
@@ -14,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 73 32",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Light Laser Tower",
@@ -36,6 +36,7 @@ return {
 		sightdistance = 494,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +73,7 @@ return {
 				metal = 21,
 				object = "2X2B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -102,25 +104,25 @@ return {
 		weapondefs = {
 			arm_lightlaser = {
 				areaofeffect = 12,
-				beamtime = 0.11999999731779,
-				corethickness = 0.17499999701977,
+				beamtime = 0.12,
+				corethickness = 0.175,
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 20,
 				explosiongenerator = "custom:SMALL_RED_BURN",
 				firestarter = 30,
 				impactonly = 1,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				laserflaresize = 10,
 				name = "LightLaser",
 				noselfdamage = true,
 				range = 430,
-				reloadtime = 0.47999998927116,
+				reloadtime = 0.48,
 				rgbcolor = "1 0 0",
 				soundstart = "lasrfir3",
 				soundtrigger = true,
-				targetmoveerror = 0.10000000149012,
+				targetmoveerror = 0.1,
 				thickness = 2.5,
 				tolerance = 10000,
 				turret = true,

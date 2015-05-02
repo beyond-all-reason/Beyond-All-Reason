@@ -1,3 +1,4 @@
+
 return {
 	armuwfus = {
 		acceleration = 0,
@@ -33,6 +34,7 @@ return {
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -67,6 +69,7 @@ return {
 				metal = 1214,
 				object = "5X5C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

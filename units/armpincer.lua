@@ -1,7 +1,8 @@
+
 return {
 	armpincer = {
-		acceleration = 0.010999999940395,
-		brakerate = 0.010999999940395,
+		acceleration = 0.011,
+		brakerate = 0.033,
 		buildcostenergy = 1921,
 		buildcostmetal = 187,
 		buildpic = "ARMPINCER.DDS",
@@ -11,7 +12,6 @@ return {
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "31 13 31",
 		collisionvolumetype = "Box",
-		collisionvolumetest = 1,
 		corpse = "DEAD",
 		description = "Light Amphibious Tank",
 		energymake = 0.5,
@@ -37,7 +37,11 @@ return {
 		trackstrength = 6,
 		tracktype = "StdTank",
 		trackwidth = 30,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.485,
 		turnrate = 398,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -87,8 +91,8 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:LIGHT_PLASMA",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				name = "PincerCannon",
 				noselfdamage = true,
 				range = 305,

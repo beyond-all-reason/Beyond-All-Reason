@@ -1,8 +1,9 @@
+
 return {
 	corspec = {
-		acceleration = 0.10000000149012,
+		acceleration = 0.1,
 		activatewhenbuilt = true,
-		brakerate = 0.11999999731779,
+		brakerate = 0.36,
 		buildcostenergy = 1453,
 		buildcostmetal = 70,
 		buildpic = "corspec.jpg",
@@ -12,7 +13,6 @@ return {
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "24 27 25",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "dead",
 		description = "Radar Jammer Kbot",
@@ -25,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 310,
 		maxslope = 32,
-		maxvelocity = 1.2999999523163,
+		maxvelocity = 1.3,
 		maxwaterdepth = 112,
 		movementclass = "KBOT2",
 		name = "Spectre",
@@ -36,8 +36,11 @@ return {
 		radardistancejam = 450,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 250,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.858,
 		turnrate = 945,
 		upright = true,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +75,7 @@ return {
 				metal = 28,
 				object = "2X2B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -113,7 +117,7 @@ return {
 				turnrate = 33000,
 				turret = true,
 				weaponacceleration = 101,
-				weapontimer = 0.10000000149012,
+				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 650,
 				damage = {

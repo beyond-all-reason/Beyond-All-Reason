@@ -1,3 +1,4 @@
+
 return {
 	armavp = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL NOTLAND PLANT NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 2",
 		collisionvolumescales = "96 34 90",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 2 Vehicles",
@@ -37,15 +37,12 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "LARGE_BUILDING",
-		sightdistance = 283.39999389648,
+		sightdistance = 283.39999,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
 		workertime = 300,
 		yardmap = "occcccoocccccoocccccoocccccoocccccooccccco",
 		buildoptions = {
-			[10] = "armyork",
-			[11] = "armseer",
-			[12] = "armjam",
 			[1] = "armacv",
 			[2] = "consul",
 			[3] = "armcroc",
@@ -55,7 +52,11 @@ return {
 			[7] = "armmart",
 			[8] = "armmerl",
 			[9] = "armmanni",
+			[10] = "armyork",
+			[11] = "armseer",
+			[12] = "armjam",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -93,6 +94,7 @@ return {
 				metal = 877,
 				object = "6X6D",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

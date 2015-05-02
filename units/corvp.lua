@@ -1,3 +1,4 @@
+
 return {
 	corvp = {
 		acceleration = 0,
@@ -6,7 +7,7 @@ return {
 		buildcostenergy = 1772,
 		buildcostmetal = 723,
 		builder = true,
-		buildinggrounddecaldecayspeed = 0.0099999997764826,
+		buildinggrounddecaldecayspeed = 0.01,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "asphalt512c.dds",
@@ -16,7 +17,6 @@ return {
 		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "90 30 90",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Vehicles",
@@ -43,7 +43,6 @@ return {
 		workertime = 100,
 		yardmap = "yyyyyyyyyoooyyooooooooocccoooocccoooocccoooocccoo",
 		buildoptions = {
-			[10] = "cormist",
 			[1] = "corcv",
 			[2] = "cormuskrat",
 			[3] = "cormlv",
@@ -53,7 +52,9 @@ return {
 			[7] = "corraid",
 			[8] = "corlevlr",
 			[9] = "corwolv",
+			[10] = "cormist",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -91,6 +92,7 @@ return {
 				metal = 188,
 				object = "7X7B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

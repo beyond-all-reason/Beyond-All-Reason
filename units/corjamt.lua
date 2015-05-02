@@ -1,3 +1,4 @@
+
 return {
 	corjamt = {
 		acceleration = 0,
@@ -16,7 +17,6 @@ return {
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 32 30",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Short-Range Jamming Device",
@@ -39,6 +39,7 @@ return {
 		sightdistance = 104,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

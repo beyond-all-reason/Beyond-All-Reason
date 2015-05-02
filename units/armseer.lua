@@ -1,8 +1,9 @@
+
 return {
 	armseer = {
-		acceleration = 0.041799999773502,
+		acceleration = 0.0418,
 		activatewhenbuilt = true,
-		brakerate = 0.016499999910593,
+		brakerate = 0.0495,
 		buildcostenergy = 1941,
 		buildcostmetal = 115,
 		buildpic = "ARMSEER.DDS",
@@ -10,9 +11,8 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = [[0 -4 0]],
-		collisionvolumescales = [[25.5 25.5 31.0]],
-		collisionvolumetest = 1,
+		collisionvolumeoffsets = "0 -4 0",
+		collisionvolumescales = "25.5 25.5 31.0",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Radar Vehicle",
@@ -26,7 +26,7 @@ return {
 		leavetracks = true,
 		maxdamage = 880,
 		maxslope = 16,
-		maxvelocity = 2.0239999294281,
+		maxvelocity = 2.024,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Seer",
@@ -40,7 +40,11 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 25,
+		turninplace = 0,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +81,7 @@ return {
 				metal = 48,
 				object = "3X3E",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

@@ -1,3 +1,4 @@
+
 return {
 	cjuno = {
 		acceleration = 0,
@@ -13,7 +14,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "44 88 44",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti Radar/Jammer/Minefield/ScoutSpam Weapon",
@@ -34,6 +34,7 @@ return {
 		stealth = true,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +71,7 @@ return {
 				metal = 192,
 				object = "4X4A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
@@ -130,7 +132,6 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				damage = {
-					["else"] = 1,
 					bombers = 1,
 					commanders = 1,
 					crawlingbombs = 1,

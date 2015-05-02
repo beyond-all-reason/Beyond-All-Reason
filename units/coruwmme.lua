@@ -1,3 +1,4 @@
+
 return {
 	coruwmme = {
 		acceleration = 0,
@@ -14,11 +15,11 @@ return {
 		buildtime = 34783,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
-		damagemodifier = 0.34999999403954,
+		damagemodifier = 0.35,
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,
 		explodeas = "SMALL_BUILDINGEX",
-		extractsmetal = 0.0040000001899898,
+		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -36,6 +37,7 @@ return {
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -71,6 +73,7 @@ return {
 				metal = 220,
 				object = "5X5C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

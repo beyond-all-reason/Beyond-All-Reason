@@ -1,3 +1,4 @@
+
 return {
 	corfhp = {
 		acceleration = 0,
@@ -42,6 +43,7 @@ return {
 			[6] = "nsaclash",
 			[7] = "corthovr",
 		},
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

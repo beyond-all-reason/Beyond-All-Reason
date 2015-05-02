@@ -1,3 +1,4 @@
+
 return {
 	corasp = {
 		acceleration = 0,
@@ -17,7 +18,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "135 27 135",
-		collisionvolumetest = 1,
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Automatically Repairs Aircraft",
@@ -42,6 +42,7 @@ return {
 		usebuildinggrounddecal = true,
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +80,7 @@ return {
 				metal = 131,
 				object = "4X4C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

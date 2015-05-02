@@ -1,8 +1,9 @@
+
 return {
 	corvoyr = {
-		acceleration = 0.0489999987185,
+		acceleration = 0.049,
 		activatewhenbuilt = true,
-		brakerate = 0.014999999664724,
+		brakerate = 0.045,
 		buildcostenergy = 1283,
 		buildcostmetal = 93,
 		buildpic = "CORVOYR.DDS",
@@ -12,7 +13,6 @@ return {
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "23 24 23",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Radar Kbot",
@@ -35,7 +35,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 925,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.99,
 		turnrate = 583,
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +75,7 @@ return {
 				metal = 24,
 				object = "2X2A",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

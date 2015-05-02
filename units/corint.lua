@@ -1,3 +1,4 @@
+
 return {
 	corint = {
 		acceleration = 0,
@@ -70,6 +71,7 @@ return {
 				metal = 1125,
 				object = "3X3C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

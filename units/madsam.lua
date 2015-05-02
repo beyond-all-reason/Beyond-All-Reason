@@ -1,3 +1,4 @@
+
 return {
 	madsam = {
 		acceleration = 0,
@@ -13,10 +14,10 @@ return {
 		buildpic = "MADSAM.DDS",
 		buildtime = 5237,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionVolumeScales		= [[45 54 45]],
-		collisionVolumeOffsets	= [[-1 5 -2]],
-		collisionVolumeTest	    = 1,
-		collisionVolumeType	    = [[CylY]],
+		collisionVolumeOffsets = "-1 5 -2",
+		collisionVolumeScales = "45 54 45",
+		collisionVolumeTest = 1,
+		collisionVolumeType = "CylY",
 		corpse = "DEAD",
 		description = "Hardened Missile Battery",
 		energyuse = 5,
@@ -36,6 +37,7 @@ return {
 		sightdistance = 375,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -71,6 +73,7 @@ return {
 				metal = 103,
 				object = "2X2C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},
@@ -108,8 +111,8 @@ return {
 				explosiongenerator = "custom:FLASH2",
 				firestarter = 72,
 				flighttime = 3,
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "missile",
 				name = "AA2Missile",
 				noselfdamage = true,

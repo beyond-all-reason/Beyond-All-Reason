@@ -1,3 +1,4 @@
+
 return {
 	coreyes = {
 		acceleration = 0,
@@ -31,6 +32,7 @@ return {
 		stealth = true,
 		waterline = 5,
 		yardmap = "o",
+		customparams = {},
 		featuredefs = {
 			cdragonseyes_dead = {
 				blocking = false,
@@ -49,6 +51,7 @@ return {
 				metal = 12,
 				object = "1X1B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

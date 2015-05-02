@@ -1,3 +1,4 @@
+
 return {
 	corfrad = {
 		acceleration = 0,
@@ -12,7 +13,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "32 95 32",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Early Warning System",
@@ -38,6 +38,7 @@ return {
 		sightdistance = 740,
 		waterline = 4,
 		yardmap = "wwwwwwwww",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

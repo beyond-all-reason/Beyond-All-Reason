@@ -1,3 +1,4 @@
+
 return {
 	corveng = {
 		acceleration = 0.83,
@@ -19,7 +20,7 @@ return {
 		icontype = "air",
 		maxdamage = 140,
 		maxslope = 10,
-		maxvelocity = 9.9200000762939,
+		maxvelocity = 9.92,
 		maxwaterdepth = 255,
 		name = "Avenger",
 		nochasecategory = "NOTAIR",
@@ -28,6 +29,7 @@ return {
 		selfdestructas = "SMALL_UNIT_AIR",
 		sightdistance = 200,
 		turnrate = 839,
+		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

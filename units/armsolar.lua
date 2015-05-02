@@ -1,3 +1,4 @@
+
 return {
 	armsolar = {
 		acceleration = 0,
@@ -37,6 +38,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "yyoyy yoooy ooooo yoooy yyoyy",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +76,7 @@ return {
 				metal = 30,
 				object = "5X5B",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},

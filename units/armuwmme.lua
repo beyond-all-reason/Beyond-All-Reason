@@ -1,3 +1,4 @@
+
 return {
 	armuwmme = {
 		acceleration = 0,
@@ -17,7 +18,7 @@ return {
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,
 		explodeas = "SMALL_BUILDINGEX",
-		extractsmetal = 0.0040000001899898,
+		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -35,6 +36,7 @@ return {
 		sightdistance = 182,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +72,7 @@ return {
 				metal = 156,
 				object = "5X5C",
 				reclaimable = true,
+				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
