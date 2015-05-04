@@ -81,10 +81,9 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		on={57,60,57,0,-7,0,1,1,1,0,20,0},    --{Xscale,Yscale,Zscale, Xoffset,Yoffset,Zoffset, vType,tType,axis,aimOffsetX,aimOffsetY,aimOffsetZ}
 		off={24,34,24,0,10,0,1,1,1,0,28,0},
 	}
-	--FIXME: this is absolutely misaligned with the actual model's graphics
 	unitCollisionVolume["armamb"] = {
-		on={49,45,49,-0.5,-6,0,1,1,1},
-		off={49,26,49,-0.5,-6,0,1,1,1},
+		on={49,45,49,-0.5,-6,-13,1,1,1},
+		off={49,26,49,-0.5,-6,-13,1,1,1},
 	}
 	unitCollisionVolume["armanni"] = {
 		on={54,81,54,0,-2,0,2,1,0,0,54,0},
@@ -157,10 +156,6 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 	unitCollisionVolume["packo"] = {
 		on={49,51,49,-0.5,-10,0,1,1,1,0,15,0},
 		off={49,23,49,-0.5,-10,0,1,1,1,0,5,0},
-	}
-	unitCollisionVolume["shiva"] = {
-		on={50,50,50,0,2,-1,1,1,1},
-		off={54,45,54,0,-4,-1,1,1,1},
 	}
 	pieceCollisionVolume["armbrtha"] = {
 			["0"]={32,80,32,0,20,0,1,1},
