@@ -62,9 +62,11 @@ return {
 		weapondefs = {
 			vtol_rocket2 = {
 				areaofeffect = 18,
+				avoidfeature = false,
 				burnblow = true,
 				burst = 2,
 				burstrate = 0.1,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
@@ -77,6 +79,8 @@ return {
 				rgbcolor = "0.8 0.8 0.1",
 				size = 3,
 				soundhit = "xplosml3",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "canlite3",
 				soundtrigger = true,
 				turret = false,

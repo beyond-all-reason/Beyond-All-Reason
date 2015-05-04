@@ -101,6 +101,8 @@ return {
 		weapondefs = {
 			bfido = {
 				areaofeffect = 72,
+				avoidfeature = false,
+				craterareaofeffect = 72,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -112,6 +114,8 @@ return {
 				range = 650,
 				reloadtime = 3.186,
 				soundhit = "xplomed2",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
@@ -126,6 +130,8 @@ return {
 			},
 			gauss = {
 				areaofeffect = 8,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH1nd",
@@ -137,6 +143,8 @@ return {
 				range = 650,
 				reloadtime = 1.79,
 				soundhit = "xplomed2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				turret = true,
 				weapontype = "Cannon",

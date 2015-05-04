@@ -16,7 +16,6 @@ return {
 		cloakcost = 12,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "49 26 49",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Stealthy Cloakable Metal Extractor",

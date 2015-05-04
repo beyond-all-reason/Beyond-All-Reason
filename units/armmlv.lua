@@ -129,7 +129,9 @@ return {
 		weapondefs = {
 			minesweep = {
 				areaofeffect = 512,
+				avoidfeature = false,
 				collidefriendly = false,
+				craterareaofeffect = 512,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.25,

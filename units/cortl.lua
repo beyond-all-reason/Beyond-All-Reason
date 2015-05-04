@@ -75,9 +75,11 @@ return {
 		weapondefs = {
 			coax_torpedo = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,

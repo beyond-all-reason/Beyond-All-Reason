@@ -12,7 +12,6 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",
 		collisionvolumescales = "34 34 80",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Destroyer",
@@ -105,6 +104,8 @@ return {
 		weapondefs = {
 			core_roy = {
 				areaofeffect = 64,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH4",
@@ -116,6 +117,8 @@ return {
 				range = 710,
 				reloadtime = 2.5,
 				soundhit = "xplomed2",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				turret = true,
 				weapontype = "Cannon",
@@ -130,9 +133,11 @@ return {
 			},
 			depthcharge = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.75,

@@ -106,6 +106,8 @@ return {
 		weapondefs = {
 			janus_rocket = {
 				areaofeffect = 128,
+				avoidfeature = false,
+				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:VEHROCKET_EXPLOSION",
@@ -119,6 +121,8 @@ return {
 				smoketrail = true,
 				soundhit = "xplosml2",
 				soundhitvolume = 8,
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				soundstartvolume = 7,
 				startvelocity = 190,

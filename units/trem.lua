@@ -108,6 +108,8 @@ return {
 			trem1 = {
 				accuracy = 1400,
 				areaofeffect = 160,
+				avoidfeature = false,
+				craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH4",
@@ -120,6 +122,8 @@ return {
 				range = 1275,
 				reloadtime = 0.4,
 				soundhit = "xplomed4",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",

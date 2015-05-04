@@ -54,7 +54,9 @@ return {
 		weapondefs = {
 			corvtol_advmissile = {
 				areaofeffect = 8,
+				avoidfeature = false,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -70,6 +72,8 @@ return {
 				reloadtime = 1,
 				smoketrail = true,
 				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rocklit3",
 				startvelocity = 650,
 				texture2 = "coresmoketrail",

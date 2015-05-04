@@ -99,10 +99,12 @@ return {
 		weapondefs = {
 			cor_erad = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				burnblow = true,
 				burst = 4,
 				burstrate = 0.25,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:CORE_FIRE_SMALL",
@@ -119,6 +121,8 @@ return {
 				reloadtime = 1.6,
 				smoketrail = true,
 				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				soundtrigger = true,
 				startvelocity = 80,

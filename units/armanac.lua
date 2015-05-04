@@ -99,6 +99,8 @@ return {
 		weapondefs = {
 			armanac_weapon = {
 				areaofeffect = 32,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -110,6 +112,8 @@ return {
 				range = 320,
 				reloadtime = 1.4,
 				soundhit = "xplosml3",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "canlite3",
 				turret = true,
 				weapontype = "Cannon",

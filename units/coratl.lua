@@ -75,10 +75,12 @@ return {
 		weapondefs = {
 			coratl_torpedo = {
 				areaofeffect = 260,
+				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
 				collidefriendly = false,
+				craterareaofeffect = 260,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH3",
@@ -93,6 +95,8 @@ return {
 				reloadtime = 1.4,
 				smoketrail = true,
 				soundhit = "",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "launch",
 				startvelocity = 235,
 				submissile = true,

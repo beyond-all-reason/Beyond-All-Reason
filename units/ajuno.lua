@@ -104,7 +104,9 @@ return {
 		weapondefs = {
 			juno_pulse = {
 				areaofeffect = 1400,
+				avoidfeature = false,
 				commandfire = true,
+				craterareaofeffect = 1400,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 1,

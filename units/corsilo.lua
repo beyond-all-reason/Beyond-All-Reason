@@ -100,11 +100,13 @@ return {
 		weapondefs = {
 			crblmssl = {
 				areaofeffect = 1920,
+				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
 				commandfire = true,
-				craterboost = 6,
-				cratermult = 3,
+				craterareaofeffect = 1920,
+				craterboost = 2.4,
+				cratermult = 1.2,
 				edgeeffectiveness = 0.3,
 				energypershot = 187500,
 				explosiongenerator = "custom:FLASHNUKE1920",

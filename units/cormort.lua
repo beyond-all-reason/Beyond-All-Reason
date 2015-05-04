@@ -99,7 +99,9 @@ return {
 		weapondefs = {
 			core_mort = {
 				areaofeffect = 36,
+				avoidfeature = false,
 				avoidfriendly = true,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:CORE_FIRE_SMALL",
@@ -111,6 +113,8 @@ return {
 				range = 850,
 				reloadtime = 1.6,
 				soundhit = "xplomed3",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",

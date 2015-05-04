@@ -105,6 +105,8 @@ return {
 		weapondefs = {
 			core_parrow = {
 				areaofeffect = 160,
+				avoidfeature = false,
+				craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH96",
@@ -116,6 +118,8 @@ return {
 				range = 575,
 				reloadtime = 1.8,
 				soundhit = "xplomed1",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "largegun",
 				turret = true,
 				weapontype = "Cannon",

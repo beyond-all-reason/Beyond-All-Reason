@@ -101,7 +101,9 @@ return {
 		weapondefs = {
 			armamph_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -117,6 +119,8 @@ return {
 				reloadtime = 2,
 				smoketrail = true,
 				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 650,
 				texture2 = "armsmoketrail",
@@ -135,6 +139,8 @@ return {
 			},
 			armmech_cannon = {
 				areaofeffect = 12,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -146,6 +152,8 @@ return {
 				range = 350,
 				reloadtime = 0.7,
 				soundhit = "XploMed2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "KroGun1",
 				targetmoveerror = 0.15,
 				turret = true,

@@ -16,7 +16,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "57 38 57",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Plasma Deflector",
@@ -103,8 +102,14 @@ return {
 		},
 		weapondefs = {
 			repulsor = {
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
 				name = "PlasmaRepulsor",
 				range = 500,
+				soundhitwet = "sizzle",
+				soundhitwetvolume = 0.5,
 				weapontype = "Shield",
 				damage = {
 					default = 100,

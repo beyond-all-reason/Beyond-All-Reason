@@ -58,10 +58,12 @@ return {
 		weapondefs = {
 			vtol_sabot = {
 				areaofeffect = 32,
+				avoidfeature = false,
 				burnblow = true,
 				burst = 2,
 				burstrate = 0.2,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -75,6 +77,8 @@ return {
 				reloadtime = 2.275,
 				smoketrail = true,
 				soundhit = "SabotHit",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "SabotFire",
 				soundtrigger = true,
 				startvelocity = 700,

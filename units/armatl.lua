@@ -75,10 +75,12 @@ return {
 		weapondefs = {
 			armatl_torpedo = {
 				areaofeffect = 255,
+				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
 				collidefriendly = false,
+				craterareaofeffect = 255,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH3",
@@ -93,6 +95,8 @@ return {
 				reloadtime = 1.5,
 				smoketrail = true,
 				soundhit = "",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "launch",
 				startvelocity = 250,
 				submissile = true,

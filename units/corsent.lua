@@ -107,7 +107,9 @@ return {
 		weapondefs = {
 			bogus_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				impulseboost = 0,
@@ -116,6 +118,8 @@ return {
 				name = "Missiles",
 				range = 800,
 				reloadtime = 0.5,
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				startvelocity = 450,
 				toairweapon = true,
 				tolerance = 9000,
@@ -132,8 +136,10 @@ return {
 			mobileflak = {
 				accuracy = 1000,
 				areaofeffect = 140,
+				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
+				craterareaofeffect = 140,
 				craterboost = 0,
 				cratermult = 0,
 				cylindertargeting = 1,
@@ -149,6 +155,8 @@ return {
 				reloadtime = 0.75,
 				rgbcolor = "1, 0.5, 0",
 				soundhit = "flakhit",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "flakfire",
 				toairweapon = true,
 				turret = true,

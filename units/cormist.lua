@@ -111,6 +111,8 @@ return {
 		weapondefs = {
 			cortruck_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -126,6 +128,8 @@ return {
 				reloadtime = 2.5,
 				smoketrail = true,
 				soundhit = "xplomed2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "rockhvy2",
 				startvelocity = 450,
 				texture2 = "coresmoketrail",

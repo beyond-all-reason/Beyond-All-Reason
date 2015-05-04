@@ -109,6 +109,8 @@ return {
 			arm_artillery = {
 				accuracy = 900,
 				areaofeffect = 120,
+				avoidfeature = false,
+				craterareaofeffect = 120,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -121,6 +123,8 @@ return {
 				range = 935,
 				reloadtime = 2.25,
 				soundhit = "xplomed4",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",

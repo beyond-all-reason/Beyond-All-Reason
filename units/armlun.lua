@@ -100,8 +100,10 @@ return {
 		weapondefs = {
 			armlun_depthcharge = {
 				areaofeffect = 170,
+				avoidfeature = false,
 				burst = 2,
 				burstrate = 0.35,
+				craterareaofeffect = 170,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH1",
@@ -114,6 +116,8 @@ return {
 				range = 800,
 				reloadtime = 2.5,
 				soundhitdry = "xplomed2",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "Mavgun2",
 				tolerance = 4000,
 				tracks = true,
@@ -132,6 +136,8 @@ return {
 			armlun_starburst = {
 				acceleration = 200,
 				areaofeffect = 130,
+				avoidfeature = false,
+				craterareaofeffect = 130,
 				craterboost = 0,
 				cratermult = 0,
 				firestarter = 70,
@@ -146,6 +152,8 @@ return {
 				smokedelay = 0.1,
 				smoketrail = false,
 				soundhitdry = "xplomed4",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "torpedo1",
 				startsmoke = 1,
 				startvelocity = 300,

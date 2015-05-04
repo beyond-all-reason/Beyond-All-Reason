@@ -77,7 +77,9 @@ return {
 		weapondefs = {
 			armrl_missile = {
 				areaofeffect = 64,
+				avoidfeature = false,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.6,
@@ -95,6 +97,8 @@ return {
 				reloadtime = 1.2,
 				smoketrail = true,
 				soundhit = "xplomed2",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "rockhvy2",
 				startvelocity = 400,
 				texture2 = "armsmoketrail",

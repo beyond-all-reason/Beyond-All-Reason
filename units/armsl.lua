@@ -12,7 +12,6 @@ return {
 		collide = false,
 		collisionvolumeoffsets = "1 -3 0",
 		collisionvolumescales = "52 21 52",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		cruisealt = 150,
 		description = "Assault Transport",

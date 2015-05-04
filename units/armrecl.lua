@@ -15,7 +15,6 @@ return {
 		category = "ALL UNDERWATER CONSTR NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "38 17 50",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		description = "Ressurection Sub",
 		explodeas = "SMALL_UNITEX",

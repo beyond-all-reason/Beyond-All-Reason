@@ -17,7 +17,6 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-1 -7 0",
 		collisionvolumescales = "61 61 153",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Aircraft Carrier with Anti-Nuke",
@@ -119,9 +118,11 @@ return {
 		weapondefs = {
 			fmd_rocket = {
 				areaofeffect = 420,
+				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
 				coverage = 2000,
+				craterareaofeffect = 420,
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 7500,
@@ -139,6 +140,8 @@ return {
 				reloadtime = 2,
 				smoketrail = true,
 				soundhit = "xplomed4",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				stockpile = true,
 				stockpiletime = 90,

@@ -108,6 +108,8 @@ return {
 		weapondefs = {
 			bogus_ground_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				impulseboost = 0,
@@ -116,6 +118,8 @@ return {
 				name = "Missiles",
 				range = 800,
 				reloadtime = 0.5,
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				startvelocity = 450,
 				tolerance = 9000,
 				turnrate = 33000,

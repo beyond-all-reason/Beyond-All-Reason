@@ -99,6 +99,8 @@ return {
 		weapondefs = {
 			armmh_weapon = {
 				areaofeffect = 64,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH3",
@@ -114,6 +116,8 @@ return {
 				reloadtime = 6,
 				smoketrail = true,
 				soundhit = "xplomed4",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				tolerance = 4000,
 				turnrate = 24384,

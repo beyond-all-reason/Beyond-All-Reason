@@ -101,7 +101,9 @@ return {
 		weapondefs = {
 			bogus_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				impulseboost = 0,
@@ -110,6 +112,8 @@ return {
 				name = "Missiles",
 				range = 800,
 				reloadtime = 0.5,
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				startvelocity = 450,
 				toairweapon = true,
 				tolerance = 9000,
@@ -125,7 +129,9 @@ return {
 			},
 			corekbot_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -141,6 +147,8 @@ return {
 				reloadtime = 2,
 				smoketrail = true,
 				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 650,
 				texture2 = "coresmoketrail",

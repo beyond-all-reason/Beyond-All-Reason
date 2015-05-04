@@ -111,6 +111,10 @@ return {
 		},
 		weapondefs = {
 			sea_repulsor = {
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
 				name = "NavalPlasmaRepulsor",
 				range = 600,
 				shieldalpha = 0.35,
@@ -127,6 +131,8 @@ return {
 				shieldrepulser = true,
 				shieldstartingpower = 2000,
 				smartshield = true,
+				soundhitwet = "sizzle",
+				soundhitwetvolume = 0.5,
 				visibleshield = true,
 				visibleshieldhitframes = 70,
 				visibleshieldrepulse = true,

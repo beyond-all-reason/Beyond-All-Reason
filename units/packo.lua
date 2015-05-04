@@ -103,7 +103,9 @@ return {
 		weapondefs = {
 			packo_missile = {
 				areaofeffect = 16,
+				avoidfeature = false,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 0,
@@ -122,6 +124,8 @@ return {
 				reloadtime = 0.85,
 				smoketrail = true,
 				soundhit = "packohit",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 800,

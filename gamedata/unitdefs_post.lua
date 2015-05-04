@@ -1,16 +1,34 @@
 --NOTE: unitdefs_post does not deal with the normal lua UnitDefs table, it deals with the UnitDefs table built from unit definition files.
 
+for name,ud in pairs(UnitDefs) do
 
-
-
-
+    -- slow update fix for 99.0
+    --[[
+    if ud.buildcostmetal then ud.buildcostmetal = ud.buildcostmetal * (16/15) end
+    if ud.buildcostenergy then ud.buildcostenergy = ud.buildcostenergy * (16/15) end
+    if ud.weapons then
+        for wname,wd in pairs(ud.weapons) do
+            if wd.energypershot then wd.energypershot = wd.energypershot * (16/15) end
+            if wd.metalpershot then wd.metalpershot = wd.metalpershot * (16/15) end        
+        end    
+    end
+    ]]
+        
+    if ud.weapondefs then
+        for name,wd in pairs(ud.weapondefs) do
+        
+        
+        end
+    end
+    
+end
 
 
 -------------------------
 
--- save raw unitdef tables to a string in custom params, can then be written to file as widget
+-- save raw unitdef tables to a string in custom params, can then be written to file by widget
 -- this allows stuff in unitdefs_post to be painlessly baked into unitdef files
---VFS.Include("gamedata/unitdefs_post_save_to_customparams.lua")
+VFS.Include("gamedata/unitdefs_post_save_to_customparams.lua")
 
 --------------------------
 

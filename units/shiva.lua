@@ -100,6 +100,8 @@ return {
 		weapondefs = {
 			shiva_gun = {
 				areaofeffect = 176,
+				avoidfeature = false,
+				craterareaofeffect = 176,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH96",
@@ -111,6 +113,8 @@ return {
 				range = 650,
 				reloadtime = 3,
 				soundhit = "xplomed4",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",
@@ -125,6 +129,8 @@ return {
 			},
 			shiva_rocket = {
 				areaofeffect = 60,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -141,6 +147,8 @@ return {
 				reloadtime = 7,
 				smoketrail = true,
 				soundhit = "xplomed4",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				turnrate = 28384,
 				weaponacceleration = 100,

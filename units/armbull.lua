@@ -10,7 +10,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "43 23 43",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Heavy Assault Tank",
@@ -112,6 +111,8 @@ return {
 		weapondefs = {
 			arm_bull = {
 				areaofeffect = 140,
+				avoidfeature = false,
+				craterareaofeffect = 140,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH72",
@@ -123,6 +124,8 @@ return {
 				range = 460,
 				reloadtime = 1.12,
 				soundhit = "xplomed2",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannon3",
 				turret = true,
 				weapontype = "Cannon",

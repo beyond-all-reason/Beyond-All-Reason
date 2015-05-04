@@ -99,9 +99,11 @@ return {
 		weapondefs = {
 			armemp_weapon = {
 				areaofeffect = 312,
+				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
 				commandfire = true,
+				craterareaofeffect = 312,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 1,
@@ -121,6 +123,8 @@ return {
 				reloadtime = 2,
 				smoketrail = true,
 				soundhit = "xplomed4",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "misicbm1",
 				stockpile = true,
 				stockpiletime = 65,

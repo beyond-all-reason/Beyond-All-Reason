@@ -109,6 +109,8 @@ return {
 			core_artillery = {
 				accuracy = 960,
 				areaofeffect = 129,
+				avoidfeature = false,
+				craterareaofeffect = 129,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -121,6 +123,8 @@ return {
 				range = 905,
 				reloadtime = 3,
 				soundhit = "xplomed4",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy2",
 				turret = true,
 				weapontype = "Cannon",

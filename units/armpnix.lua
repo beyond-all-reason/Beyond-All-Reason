@@ -57,10 +57,12 @@ return {
 		weapondefs = {
 			armadvbomb = {
 				areaofeffect = 168,
+				avoidfeature = false,
 				burst = 5,
 				burstrate = 0.2,
 				collidefriendly = false,
 				commandfire = false,
+				craterareaofeffect = 168,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.7,
@@ -75,6 +77,8 @@ return {
 				range = 1280,
 				reloadtime = 7,
 				soundhit = "xplomed2",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
 				damage = {

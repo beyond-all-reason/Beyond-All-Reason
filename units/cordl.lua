@@ -15,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "38 51 38",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Depthcharge Launcher",
@@ -105,11 +104,13 @@ return {
 		},
 		weapondefs = {
 			coax_depthcharge = {
+				avoidfeature = false,
 				avoidfriendly = false,
 				bouncerebound = 0.6,
 				bounceslip = 0.6,
 				burnblow = true,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",

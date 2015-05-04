@@ -100,11 +100,13 @@ return {
 		weapondefs = {
 			nuclear_missile = {
 				areaofeffect = 1280,
+				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
 				commandfire = true,
-				craterboost = 6,
-				cratermult = 3,
+				craterareaofeffect = 1280,
+				craterboost = 2.4,
+				cratermult = 1.2,
 				edgeeffectiveness = 0.3,
 				energypershot = 125000,
 				explosiongenerator = "custom:FLASHNUKE1280",

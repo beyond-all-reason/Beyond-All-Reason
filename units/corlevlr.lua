@@ -106,7 +106,9 @@ return {
 		weapondefs = {
 			corlevlr_weapon = {
 				areaofeffect = 144,
+				avoidfeature = false,
 				burnblow = true,
+				craterareaofeffect = 144,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.75,
@@ -117,6 +119,8 @@ return {
 				range = 315,
 				reloadtime = 1.8,
 				soundhit = "xplosml3",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "canlite3",
 				turret = true,
 				weapontype = "Cannon",

@@ -111,6 +111,8 @@ return {
 		weapondefs = {
 			core_reap = {
 				areaofeffect = 64,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH72",
@@ -122,6 +124,8 @@ return {
 				range = 410,
 				reloadtime = 0.7,
 				soundhit = "xplomed2",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannon3",
 				turret = true,
 				weapontype = "Cannon",

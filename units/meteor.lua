@@ -50,8 +50,10 @@ return {
 		weapondefs = {
 			weapon = {
 				areaofeffect = 450,
+				avoidfeature = false,
 				cegtag = "ASTEROIDTRAIL_Expl",
 				collidefriendly = 1,
+				craterareaofeffect = 450,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.6,
@@ -68,6 +70,8 @@ return {
 				smokedelay = 0.1,
 				smoketrail = 1,
 				soundhit = "xplonuk4",
+				soundhitwet = "sizzle",
+				soundhitwetvolume = 0.5,
 				startsmoke = 1,
 				startvelocity = 2000,
 				turret = 1,

@@ -101,7 +101,9 @@ return {
 		weapondefs = {
 			vipersabot = {
 				areaofeffect = 24,
+				avoidfeature = false,
 				burnblow = true,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2nd",
@@ -115,6 +117,8 @@ return {
 				reloadtime = 2,
 				smoketrail = true,
 				soundhit = "SabotHit",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "SabotFire",
 				startvelocity = 700,
 				targetmoveerror = 0.2,

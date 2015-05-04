@@ -10,7 +10,6 @@ return {
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 -3",
 		collisionvolumescales = "29 28 29",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Light Plasma Kbot",
@@ -103,6 +102,8 @@ return {
 		weapondefs = {
 			arm_ham = {
 				areaofeffect = 36,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:LIGHT_PLASMA",
@@ -115,6 +116,8 @@ return {
 				range = 380,
 				reloadtime = 1.75,
 				soundhit = "xplomed3",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",

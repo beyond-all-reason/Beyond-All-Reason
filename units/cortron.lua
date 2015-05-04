@@ -99,11 +99,13 @@ return {
 		weapondefs = {
 			cortron_weapon = {
 				areaofeffect = 512,
+				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
 				commandfire = true,
-				craterboost = 4,
-				cratermult = 1.75,
+				craterareaofeffect = 512,
+				craterboost = 1.6,
+				cratermult = 0.7,
 				edgeeffectiveness = 0.4,
 				energypershot = 17437,
 				explosiongenerator = "custom:FLASHNUKE480",

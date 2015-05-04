@@ -61,6 +61,7 @@ return {
 		weapondefs = {
 			core_seaadvbomb = {
 				areaofeffect = 100,
+				avoidfeature = false,
 				bounceexplosiongenerator = "custom:watersplash_small_light",
 				bouncerebound = 0.15,
 				bounceslip = 0.75,
@@ -68,6 +69,7 @@ return {
 				burstrate = 0.15,
 				collidefriendly = false,
 				commandfire = false,
+				craterareaofeffect = 100,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -87,7 +89,8 @@ return {
 				rgbcolor = "0.8 0.8 0.25",
 				size = 8,
 				soundhitdry = "xplomed2",
-				soundhitwet = "",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				sprayangle = 6000,
 				waterbounce = true,

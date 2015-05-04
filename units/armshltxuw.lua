@@ -15,7 +15,6 @@ return {
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 8",
 		collisionvolumescales = "150 43 150",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "ARMSHLT_DEAD",
 		description = "Produces Large Amphibious Units",

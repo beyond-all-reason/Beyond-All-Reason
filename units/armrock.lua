@@ -106,6 +106,8 @@ return {
 		weapondefs = {
 			arm_kbot_rocket = {
 				areaofeffect = 48,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:VSMLMISSILE_EXPLOSION",
@@ -120,6 +122,8 @@ return {
 				reloadtime = 3.8,
 				smoketrail = true,
 				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 190,
 				texture2 = "armsmoketrail",

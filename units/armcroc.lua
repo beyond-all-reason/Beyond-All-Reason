@@ -10,7 +10,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "53 23 53",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Heavy Amphibious Tank",
@@ -104,6 +103,8 @@ return {
 		weapondefs = {
 			arm_triton = {
 				areaofeffect = 96,
+				avoidfeature = false,
+				craterareaofeffect = 96,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH64",
@@ -115,6 +116,8 @@ return {
 				range = 480,
 				reloadtime = 1.5,
 				soundhit = "xplomed4",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannon2",
 				turret = true,
 				weapontype = "Cannon",

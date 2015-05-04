@@ -106,8 +106,10 @@ return {
 		weapondefs = {
 			emgx = {
 				areaofeffect = 8,
+				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.1,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:EMG_HIT",
@@ -120,6 +122,8 @@ return {
 				reloadtime = 0.31,
 				rgbcolor = "1 0.95 0.4",
 				size = 1.75,
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "flashemg",
 				sprayangle = 1180,
 				tolerance = 5000,

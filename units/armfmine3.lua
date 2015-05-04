@@ -15,7 +15,6 @@ return {
 		collide = false,
 		collisionvolumeoffsets = "0 -1.5 0",
 		collisionvolumescales = "22 5 22",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		description = "Heavy Mine, Naval Series",
 		explodeas = "FMINE_HEAVY",
@@ -64,6 +63,8 @@ return {
 		weapondefs = {
 			mine_detonator = {
 				areaofeffect = 5,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
@@ -75,6 +76,8 @@ return {
 				name = "Mine Detonator",
 				range = 1,
 				reloadtime = 0.1,
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
 				damage = {
@@ -84,6 +87,8 @@ return {
 			},
 			mine_dummy = {
 				areaofeffect = 0,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
@@ -94,6 +99,8 @@ return {
 				name = "Crawlingbomb Dummy Weapon",
 				range = 64,
 				reloadtime = 0.1,
+				soundhitwet = "sizzle",
+				soundhitwetvolume = 0.5,
 				tolerance = 100000,
 				weapontype = "Melee",
 				weaponvelocity = 100000,

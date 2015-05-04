@@ -101,8 +101,10 @@ return {
 		weapondefs = {
 			spider = {
 				areaofeffect = 8,
+				avoidfeature = false,
 				beamtime = 0.1,
 				corethickness = 0.2,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				duration = 0.01,
@@ -118,8 +120,11 @@ return {
 				range = 220,
 				reloadtime = 1.75,
 				rgbcolor = "1 1 0",
+				soundhitdry = "",
+				soundhitwet = "sizzle",
+				soundhitwetvolume = 0.5,
 				soundstart = "hackshot",
-				soundtrigger = true,
+				soundtrigger = 1,
 				targetmoveerror = 0.3,
 				thickness = 1,
 				turret = true,

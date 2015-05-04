@@ -11,7 +11,6 @@ return {
 		category = "UNDERWATER ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0.5 0 0",
 		collisionvolumescales = "20 15 64",
-		collisionvolumetest = 1,
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Submarine Killer",
@@ -103,9 +102,11 @@ return {
 		weapondefs = {
 			armsmart_torpedo = {
 				areaofeffect = 16,
+				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",

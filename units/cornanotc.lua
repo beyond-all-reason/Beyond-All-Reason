@@ -12,7 +12,6 @@ return {
 		category = "ALL NOTSUB CONSTR NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		description = "Repairs and builds in large radius",
 		energyuse = 30,

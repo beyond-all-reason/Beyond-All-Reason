@@ -100,8 +100,10 @@ return {
 		weapondefs = {
 			adv_rocket = {
 				areaofeffect = 72,
+				avoidfeature = false,
 				burst = 3,
 				burstrate = 0.3,
+				craterareaofeffect = 72,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -117,6 +119,8 @@ return {
 				reloadtime = 3,
 				smoketrail = true,
 				soundhit = "xplosml1",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "rockhvy3",
 				soundtrigger = true,
 				startvelocity = 120,

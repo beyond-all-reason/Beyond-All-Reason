@@ -58,7 +58,9 @@ return {
 		weapondefs = {
 			vtol_rocket = {
 				areaofeffect = 128,
+				avoidfeature = false,
 				burnblow = true,
+				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:KARGMISSILE_EXPLOSION",
@@ -72,6 +74,8 @@ return {
 				reloadtime = 1.1,
 				smoketrail = true,
 				soundhit = "explode",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "rocklit3",
 				soundtrigger = true,
 				startvelocity = 300,

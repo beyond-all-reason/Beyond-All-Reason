@@ -15,7 +15,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-1 5 -2",
 		collisionvolumescales = "45 54 45",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Hardened Missile Battery",
@@ -103,8 +102,10 @@ return {
 		weapondefs = {
 			madsam_missile = {
 				areaofeffect = 16,
+				avoidfeature = false,
 				burnblow = true,
 				canattackground = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -121,6 +122,8 @@ return {
 				reloadtime = 0.85,
 				smoketrail = true,
 				soundhit = "packohit",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 800,

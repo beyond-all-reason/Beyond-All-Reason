@@ -99,6 +99,8 @@ return {
 		weapondefs = {
 			cormh_weapon = {
 				areaofeffect = 80,
+				avoidfeature = false,
+				craterareaofeffect = 80,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH4",
@@ -115,6 +117,8 @@ return {
 				reloadtime = 9,
 				smoketrail = true,
 				soundhit = "xplomed4",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				tolerance = 4000,
 				turnrate = 24384,

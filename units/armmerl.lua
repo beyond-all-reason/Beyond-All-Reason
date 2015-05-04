@@ -10,7 +10,6 @@ return {
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "40 40 50",
-		collisionvolumetest = 1,
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Stealthy Rocket Launcher",
@@ -108,6 +107,8 @@ return {
 		weapondefs = {
 			armtruck_rocket = {
 				areaofeffect = 150,
+				avoidfeature = false,
+				craterareaofeffect = 150,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
@@ -124,6 +125,8 @@ return {
 				reloadtime = 18,
 				smoketrail = true,
 				soundhit = "xplomed4",
+				soundhitwet = "splslrg",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				tolerance = 4000,
 				turnrate = 24384,

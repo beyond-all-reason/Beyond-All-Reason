@@ -53,7 +53,9 @@ return {
 		weapondefs = {
 			armvtol_missile_a2a = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				collidefriendly = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -68,6 +70,8 @@ return {
 				reloadtime = 0.9,
 				smoketrail = true,
 				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "Rocklit3",
 				startvelocity = 625,
 				texture2 = "armsmoketrail",

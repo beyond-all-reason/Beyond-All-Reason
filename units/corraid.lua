@@ -107,6 +107,7 @@ return {
 			arm_lightcannon = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:LIGHT_PLASMA",
@@ -119,6 +120,8 @@ return {
 				range = 350,
 				reloadtime = 1.19,
 				soundhit = "xplosml3",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "canlite3",
 				turret = true,
 				weapontype = "Cannon",

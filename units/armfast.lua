@@ -100,8 +100,10 @@ return {
 		weapondefs = {
 			arm_fast = {
 				areaofeffect = 16,
+				avoidfeature = false,
 				burst = 5,
 				burstrate = 0.1,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:EMG_HIT",
@@ -114,6 +116,8 @@ return {
 				reloadtime = 0.5,
 				rgbcolor = "1 0.95 0.4",
 				size = 1.5,
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "fastemg",
 				turret = true,
 				weapontimer = 0.6,

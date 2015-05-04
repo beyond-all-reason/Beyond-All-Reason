@@ -100,6 +100,10 @@ return {
 		weapondefs = {
 			armmav_weapon = {
 				areaofeffect = 8,
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
 				explosiongenerator = "custom:FLASH1",
 				impactonly = 1,
 				name = "GaussCannon",
@@ -108,6 +112,8 @@ return {
 				range = 365,
 				reloadtime = 0.945,
 				soundhit = "xplomed2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "Mavgun2",
 				tolerance = 4000,
 				turret = true,

@@ -111,8 +111,10 @@ return {
 		weapondefs = {
 			armtruck_missile = {
 				areaofeffect = 48,
+				avoidfeature = false,
 				burst = 2,
 				burstrate = 0.25,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:FLASH2",
@@ -128,6 +130,8 @@ return {
 				reloadtime = 3.34,
 				smoketrail = true,
 				soundhit = "xplomed2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "rockhvy2",
 				soundtrigger = true,
 				startvelocity = 450,

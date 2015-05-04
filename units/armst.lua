@@ -109,6 +109,8 @@ return {
 		weapondefs = {
 			armst_gauss = {
 				areaofeffect = 8,
+				avoidfeature = false,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:LIGHT_PLASMA",
@@ -119,6 +121,8 @@ return {
 				range = 220,
 				reloadtime = 3,
 				soundhit = "xplomed2",
+				soundhitwet = "splshbig",
+				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
 				turret = true,
 				weapontype = "Cannon",

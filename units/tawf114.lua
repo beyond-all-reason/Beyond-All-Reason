@@ -108,6 +108,8 @@ return {
 		weapondefs = {
 			tawf_banisher = {
 				areaofeffect = 128,
+				avoidfeature = false,
+				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
@@ -123,6 +125,8 @@ return {
 				reloadtime = 7.5,
 				smoketrail = true,
 				soundhit = "TAWF114b",
+				soundhitwet = "splsmed",
+				soundhitwetvolume = 0.5,
 				soundstart = "TAWF114a",
 				startvelocity = 400,
 				tolerance = 9000,
