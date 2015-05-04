@@ -1,7 +1,7 @@
---NOTE: unitdefs_post does not deal with the normal lua UnitDefs table, it deals with the UnitDefs table built from unit definition files.
+--NOTE: unitdefs_post does not deal with the normal lua UnitDefs table, it deals with the UnitDefs table built from unit definition files
 
-for name,ud in pairs(UnitDefs) do
-
+-- process unitdef
+local function UnitDef_Post(name,ud)
     -- slow update fix for 99.0
     --[[
     if ud.buildcostmetal then ud.buildcostmetal = ud.buildcostmetal * (16/15) end
@@ -13,22 +13,28 @@ for name,ud in pairs(UnitDefs) do
         end    
     end
     ]]
-        
-    if ud.weapondefs then
-        for name,wd in pairs(ud.weapondefs) do
-        
-        
-        end
-    end
-    
 end
 
+-- process weapondef
+local function WeaponDef_Post(wname,wd)
+
+end
+
+
+for name,ud in pairs(UnitDefs) do
+    UnitDef_Post(name,ud)  
+    if ud.weapondefs then
+        for wname,wd in pairs(ud.weapondefs) do
+            WeaponDef_Post(wname,wd)
+        end
+    end
+end
 
 -------------------------
 
 -- save raw unitdef tables to a string in custom params, can then be written to file by widget
 -- this allows stuff in unitdefs_post to be painlessly baked into unitdef files
-VFS.Include("gamedata/unitdefs_post_save_to_customparams.lua")
+--VFS.Include("gamedata/unitdefs_post_save_to_customparams.lua")
 
 --------------------------
 

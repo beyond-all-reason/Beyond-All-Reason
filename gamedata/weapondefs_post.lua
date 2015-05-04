@@ -1,6 +1,9 @@
 --------------------------------------------------------------------------------
 -- Default Engine Weapon Definitions Post-processing
 --------------------------------------------------------------------------------
+-- BA stores weapondefs in the unitdef files 
+-- use unitdefs_post for all other nit/weapon post-processing
+--------------------------------------------------------------------------------
 
 local function isbool(x)   return (type(x) == 'boolean') end
 local function istable(x)  return (type(x) == 'table')   end
@@ -85,10 +88,6 @@ for udName, ud in pairs(UnitDefs) do
 end
 
 --------------------------------------------------------------------------------
--- BA Weapon Definitions Post-processing
---------------------------------------------------------------------------------
 
-for id in pairs(WeaponDefs) do
-
-
-end
+--for id in pairs(WeaponDefs) do
+--end
