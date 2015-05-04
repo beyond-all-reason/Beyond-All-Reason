@@ -99,7 +99,7 @@ Units_III = {
     {"Drawing", title=true},
     {"q + dbl click",       "Place map mark"},
     {"q + drag left mouse", "Draw on map"},
-    {"q + draw right mouse","Erase drawings and markers"},
+    {"q + drag right mouse","Erase drawings and markers"},
     {blankLine=true},
     {"Console commands", title=true},
     {"/clearmapmarks",  "Erase all drawings and markes"},
