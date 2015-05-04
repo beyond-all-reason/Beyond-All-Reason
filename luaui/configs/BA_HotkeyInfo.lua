@@ -16,6 +16,7 @@ General = {
     {"arrow keys / mouse at screen edge", "Move camera"},
     {"ctrl + scrollwheel",          "Change camera angle"},
     {"middle click (+ drag)",       "Drag camera"},
+    {"ctrl + shift + o",            "Flip camera"},
     {blankLine=true},
     {"Camera modes", title=true},
     {"ctrl + f1,2,3,4,5",           "Change camera type"},
