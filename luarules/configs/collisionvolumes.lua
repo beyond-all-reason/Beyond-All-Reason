@@ -78,36 +78,37 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 
 
 	unitCollisionVolume["armason"] = {
-		on={57,60,57,0,-7,0,1,1,1},    --{Xscale,Yscale,Zscale, Xoffset,Yoffset,Zoffset, vType,tType,axis}
-		off={24,34,24,0,10,0,1,1,1},
+		on={57,60,57,0,-7,0,1,1,1,0,20,0},    --{Xscale,Yscale,Zscale, Xoffset,Yoffset,Zoffset, vType,tType,axis,aimOffsetX,aimOffsetY,aimOffsetZ}
+		off={24,34,24,0,10,0,1,1,1,0,28,0},
 	}
+	--FIXME: this is absolutely misaligned with the actual model's graphics
 	unitCollisionVolume["armamb"] = {
 		on={49,45,49,-0.5,-6,0,1,1,1},
 		off={49,26,49,-0.5,-6,0,1,1,1},
 	}
 	unitCollisionVolume["armanni"] = {
-		on={54,81,54,0,-2,0,2,1,0},
-		off={54,56,54,0,-15,0,2,1,0},
+		on={54,81,54,0,-2,0,2,1,0,0,54,0},
+		off={54,56,54,0,-15,0,2,1,0,0,25,0},
 	}
 	unitCollisionVolume["armlab"] = {
 		on={95,22,95,0,-1,0,1,1,1},
 		off={95,22,95,0,-1,0,1,1,1},
 	}
 	unitCollisionVolume["armclaw"] = {
-		on={32,39,32,0,-6,0,1,1,1},
-		off={32,32,32,0,-13.5,0,0,1,1},
+		on={32,39,32,0,-6,0,1,1,1,0,19,0},
+		off={32,32,32,0,-13.5,0,0,1,1,0,10,0},
 	}	
 	unitCollisionVolume["armmmkr"] = {
-		on={60,70,60,0,7,0,1,1,1},
-		off={60,50,60,0,-4,0,1,1,1},
+		on={60,70,60,0,7,0,1,1,1,0,38,0},
+		off={60,50,60,0,-4,0,1,1,1,0,25,0},
 	}
 	unitCollisionVolume["armpb"] = {
-		on={39,78,39,0,-11,0,1,1,1},
-		off={39,40,39,0,-20,0,1,1,1},
+		on={39,78,39,0,-11,0,1,1,1,0,23,0},
+		off={39,40,39,0,-20,0,1,1,1,0,10,0},
 	}
 	unitCollisionVolume["armplat"] = {
-		on={105,66,105,0,33,0,2,1,0},
-		off={105,44,105,0,0,0,2,1,0},
+		on={105,66,105,0,33,0,2,1,0,0,45,0},
+		off={105,44,105,0,0,0,2,1,0,0,20,0},
 	}
 	unitCollisionVolume["armsolar"] = {
 		on={83,76,83,0,-18,1,1,1,1},
@@ -122,28 +123,28 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		off={90,34,92,0,0,0,2,1,0},
 	}
 	unitCollisionVolume["cordoom"] = {
-		on={63,112,63,0,12,0,1,1,1},
-		off={45,87,45,0,0,0,2,1,0},
+		on={63,112,63,0,12,0,1,1,1,0,65,0},
+		off={45,87,45,0,0,0,2,1,0,0,30,0},
 	}
 	unitCollisionVolume["corfmkr"] = {
-		on={48,46,48,0,0,0,1,1,1},
-		off={48,43,48,0,-16,0,1,1,1},
+		on={48,46,48,0,0,0,1,1,1,0,23,0},
+		off={48,43,48,0,-16,0,1,1,1,0,10,0},
 	}
 	unitCollisionVolume["cormaw"] = {
-		on={32,39,32,0,-6,0,1,1,1},
-		off={32,32,32,0,-13,0,0,1,1},
+		on={32,39,32,0,-6,0,1,1,1,0,19,0},
+		off={32,32,32,0,-13,0,0,1,1,0,10,0},
 	}
 	unitCollisionVolume["cormexp"] = {
-		on={83,77,83,0,-27,0,1,1,1},
-		off={90,135,90,0,-27,0,1,1,1},
+		on={83,77,83,0,-27,0,1,1,1,0,15,0},
+		off={90,135,90,0,-27,0,1,1,1,0,35,0},
 	}
 	unitCollisionVolume["cormmkr"] = {
 		on={60,60,60,0,0,0,1,1,1},
 		off={55,92,55,0,-22.5,0,1,1,1},
 	}
 	unitCollisionVolume["corplat"] = {
-		on={112,60,112,0,28,0,1,1,1},
-		off={112,35,112,0,0,0,1,1,1},
+		on={112,60,112,0,28,0,1,1,1,0,45,0},
+		off={112,35,112,0,0,0,1,1,1,0,15,0},
 	}
 	unitCollisionVolume["corsolar"] = {
 		on={86,78,86,0,-25,0,1,1,1},
@@ -154,8 +155,8 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		off={38,20,38,0,0,0,1,1,1},
 	}
 	unitCollisionVolume["packo"] = {
-		on={49,51,49,-0.5,-10,0,1,1,1},
-		off={49,23,49,-0.5,-10,0,1,1,1},
+		on={49,51,49,-0.5,-10,0,1,1,1,0,15,0},
+		off={49,23,49,-0.5,-10,0,1,1,1,0,5,0},
 	}
 	unitCollisionVolume["shiva"] = {
 		on={50,50,50,0,2,-1,1,1,1},
@@ -202,18 +203,22 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		on = {
 			["1"]={44,23,44,0,0,0,2,0},
 			["7"]={10,10,60,0,3,13,1,2},
+			["offsets"]={0,12,0},
 		},
 		off = {
 			["1"]={51,51,51,0,-9,0,0,1},
+			["offsets"]={0,10,0},
 		}
 	}
 	dynamicPieceCollisionVolume["corvipe"] = {
 		on = {
 			["0"]={40,12,30,0,0,0,2,0},
 			["5"]={25,46,25,0,25,0,1,1},
+			["offsets"]={0,23,0},
 		},
 		off = {
 			["0"]={39,39,39,0,-2,0,0,1},
+			["offsets"]={0,10,0},
 		}
 	}
 
