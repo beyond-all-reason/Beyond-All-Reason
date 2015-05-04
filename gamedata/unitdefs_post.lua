@@ -3,7 +3,6 @@
 -- process unitdef
 local function UnitDef_Post(name,ud)
     -- slow update fix for 99.0
-    --[[
     if ud.buildcostmetal then ud.buildcostmetal = ud.buildcostmetal * (16/15) end
     if ud.buildcostenergy then ud.buildcostenergy = ud.buildcostenergy * (16/15) end
     if ud.weapons then
@@ -12,7 +11,6 @@ local function UnitDef_Post(name,ud)
             if wd.metalpershot then wd.metalpershot = wd.metalpershot * (16/15) end        
         end    
     end
-    ]]
 end
 
 -- process weapondef
