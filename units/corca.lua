@@ -73,7 +73,6 @@ return {
 			[30] = "cjuno",
 			[31] = "corsy",
 		},
-		customparams = {},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

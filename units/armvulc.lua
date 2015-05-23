@@ -31,7 +31,6 @@ return {
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

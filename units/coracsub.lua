@@ -58,7 +58,6 @@ return {
 			[13] = "corenaa",
 			[14] = "coratl",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

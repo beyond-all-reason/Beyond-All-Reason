@@ -38,7 +38,6 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.782,
 		turnrate = 1507,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

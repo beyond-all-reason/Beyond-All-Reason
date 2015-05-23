@@ -55,7 +55,6 @@ return {
 			[12] = "armatl",
 			[13] = "armason",
 		},
-		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

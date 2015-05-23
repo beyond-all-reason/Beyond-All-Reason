@@ -88,7 +88,6 @@ return {
 			[41] = "armfrt",
 			[42] = "armptl",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

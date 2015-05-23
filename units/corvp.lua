@@ -53,7 +53,6 @@ return {
 			[9] = "corwolv",
 			[10] = "cormist",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

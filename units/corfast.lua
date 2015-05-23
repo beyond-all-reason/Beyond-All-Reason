@@ -66,7 +66,6 @@ return {
 			[21] = "corcs",
 			[22] = "corroy",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

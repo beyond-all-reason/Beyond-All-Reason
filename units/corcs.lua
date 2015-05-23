@@ -66,7 +66,6 @@ return {
 			[20] = "corfhlt",
 			[21] = "corplat",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

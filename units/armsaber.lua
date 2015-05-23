@@ -34,7 +34,6 @@ return {
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 931,
-		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

@@ -38,7 +38,6 @@ return {
 		turnrate = 0,
 		upright = true,
 		usebuildinggrounddecal = true,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				autoreclaimable = 0,

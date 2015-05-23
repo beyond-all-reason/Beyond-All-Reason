@@ -50,7 +50,6 @@ return {
 			[9] = "corgripn",
 			[10] = "armcybr",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

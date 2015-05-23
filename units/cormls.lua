@@ -61,7 +61,6 @@ return {
 			[17] = "coramph",
 			[18] = "corfmine3",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

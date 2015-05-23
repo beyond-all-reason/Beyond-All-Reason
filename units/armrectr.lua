@@ -42,7 +42,6 @@ return {
 		turnrate = 1122,
 		upright = true,
 		workertime = 200,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

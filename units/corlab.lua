@@ -47,7 +47,6 @@ return {
 			[5] = "corthud",
 			[6] = "corcrash",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

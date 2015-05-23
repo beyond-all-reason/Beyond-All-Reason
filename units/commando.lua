@@ -54,7 +54,6 @@ return {
 			[6] = "coreyes",
 			[7] = "corjamt",
 		},
-		customparams = {},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

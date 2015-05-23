@@ -30,6 +30,5 @@ return {
 		sightdistance = 1,
 		waterline = 3,
 		yardmap = "wwww",
-		customparams = {},
 	},
 }

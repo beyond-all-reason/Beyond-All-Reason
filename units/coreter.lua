@@ -43,7 +43,6 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.95832,
 		turnrate = 619.29999,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

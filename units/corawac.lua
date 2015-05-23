@@ -32,7 +32,6 @@ return {
 		sightdistance = 1250,
 		sonardistance = 1200,
 		turnrate = 402,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

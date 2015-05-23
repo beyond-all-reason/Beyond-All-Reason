@@ -44,7 +44,6 @@ return {
 		turninplacespeedlimit = 1.056,
 		turnrate = 290,
 		waterline = 7,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

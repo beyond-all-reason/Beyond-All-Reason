@@ -45,7 +45,6 @@ return {
 			[4] = "armshock",
 			[5] = "armlun",
 		},
-		customparams = {},
 		featuredefs = {
 			armshlt_dead = {
 				blocking = true,

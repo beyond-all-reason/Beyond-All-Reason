@@ -46,7 +46,6 @@ return {
 		unitname = "corfgate",
 		waterline = 0,
 		workertime = 0,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

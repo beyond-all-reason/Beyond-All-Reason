@@ -33,7 +33,6 @@ return {
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

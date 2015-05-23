@@ -33,7 +33,6 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo",
-		customparams = {},
 		sounds = {
 			activate = "metlon2",
 			canceldestruct = "cancel2",

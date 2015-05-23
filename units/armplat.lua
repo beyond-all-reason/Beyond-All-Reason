@@ -40,7 +40,6 @@ return {
 			[5] = "armsfig",
 			[6] = "armsehak",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

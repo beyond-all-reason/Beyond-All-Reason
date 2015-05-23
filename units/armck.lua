@@ -74,7 +74,6 @@ return {
 			[29] = "ajuno",
 			[30] = "armsy",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

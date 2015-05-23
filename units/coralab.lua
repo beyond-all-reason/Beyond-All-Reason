@@ -59,7 +59,6 @@ return {
 			[16] = "corspec",
 			[17] = "commando",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

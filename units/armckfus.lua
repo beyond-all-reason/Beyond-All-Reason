@@ -33,7 +33,6 @@ return {
 		selfdestructas = "MINE_NUKE",
 		sightdistance = 273,
 		yardmap = "oooooooooooooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

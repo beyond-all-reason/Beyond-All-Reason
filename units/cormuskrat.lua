@@ -89,7 +89,6 @@ return {
 			[41] = "corfrt",
 			[42] = "corptl",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

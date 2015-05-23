@@ -36,7 +36,6 @@ return {
 		usebuildinggrounddecal = true,
 		waterline = 5,
 		yardmap = "oooooooooooooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

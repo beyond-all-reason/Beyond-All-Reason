@@ -34,7 +34,6 @@ return {
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

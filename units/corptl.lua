@@ -28,7 +28,6 @@ return {
 		selfdestructas = "MEDIUM_BUILDING",
 		sightdistance = 300,
 		yardmap = "ooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

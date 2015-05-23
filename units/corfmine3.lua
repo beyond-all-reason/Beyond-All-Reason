@@ -38,7 +38,6 @@ return {
 		sightdistance = 71.5,
 		stealth = true,
 		waterline = 1,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

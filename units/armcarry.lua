@@ -55,7 +55,6 @@ return {
 		waterline = 7,
 		windgenerator = 0.001,
 		workertime = 1000,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

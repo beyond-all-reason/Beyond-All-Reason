@@ -47,7 +47,6 @@ return {
 			[6] = "nsaclash",
 			[7] = "corthovr",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

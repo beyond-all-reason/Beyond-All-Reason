@@ -34,7 +34,6 @@ return {
 		sightdistance = 515,
 		sonardistance = 1200,
 		yardmap = "oooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

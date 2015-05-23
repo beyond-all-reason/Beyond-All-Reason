@@ -40,7 +40,6 @@ return {
 		turnrate = 193,
 		waterline = 3.5,
 		windgenerator = 0.001,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

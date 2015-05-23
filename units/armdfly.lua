@@ -40,7 +40,6 @@ return {
 		transportsize = 15,
 		turninplaceanglelimit = 360,
 		turnrate = 420,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -33,7 +33,6 @@ return {
 		sightdistance = 1100,
 		sonardistance = 900,
 		turnrate = 402,
-		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

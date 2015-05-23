@@ -73,7 +73,6 @@ return {
 			[27] = "corlab",
 			[28] = "coralab",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

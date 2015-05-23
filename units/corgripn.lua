@@ -35,7 +35,6 @@ return {
 		sightdistance = 390,
 		stealth = true,
 		turnrate = 396,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

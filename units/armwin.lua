@@ -35,7 +35,6 @@ return {
 		usebuildinggrounddecal = true,
 		windgenerator = 25,
 		yardmap = "ooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

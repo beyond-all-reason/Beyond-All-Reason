@@ -48,7 +48,6 @@ return {
 			[7] = "armsl",
 			[8] = "corcrw",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

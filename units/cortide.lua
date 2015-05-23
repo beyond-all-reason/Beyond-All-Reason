@@ -33,7 +33,6 @@ return {
 		tidalgenerator = 1,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

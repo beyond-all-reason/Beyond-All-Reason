@@ -51,7 +51,6 @@ return {
 			[9] = "corsub",
 			[10] = "correcl",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

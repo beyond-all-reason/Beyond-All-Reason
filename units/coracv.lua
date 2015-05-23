@@ -76,7 +76,6 @@ return {
 			[27] = "corvp",
 			[28] = "coravp",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

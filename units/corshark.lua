@@ -38,7 +38,6 @@ return {
 		turnrate = 289,
 		upright = true,
 		waterline = 30,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

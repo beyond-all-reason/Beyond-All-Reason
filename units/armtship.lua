@@ -43,7 +43,6 @@ return {
 		unloadspread = 1,
 		waterline = 11,
 		windgenerator = 0.001,
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

@@ -38,7 +38,6 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 380,
 		upright = true,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

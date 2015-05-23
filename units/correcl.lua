@@ -40,7 +40,6 @@ return {
 		turnrate = 600,
 		waterline = 17,
 		workertime = 450,
-		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

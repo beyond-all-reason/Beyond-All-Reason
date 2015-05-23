@@ -52,7 +52,6 @@ return {
 			[9] = "armjanus",
 			[10] = "armsam",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

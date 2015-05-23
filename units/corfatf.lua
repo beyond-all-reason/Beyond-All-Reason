@@ -33,7 +33,6 @@ return {
 		sightdistance = 273,
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

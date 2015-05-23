@@ -61,7 +61,6 @@ return {
 			[17] = "armamph",
 			[18] = "armfmine3",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

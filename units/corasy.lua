@@ -49,7 +49,6 @@ return {
 			[10] = "corcarry",
 			[11] = "corsjam",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

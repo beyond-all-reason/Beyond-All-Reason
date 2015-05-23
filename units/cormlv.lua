@@ -60,7 +60,6 @@ return {
 			[3] = "cordrag",
 			[4] = "coreyes",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

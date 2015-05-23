@@ -58,7 +58,6 @@ return {
 			[13] = "armfflak",
 			[14] = "armatl",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

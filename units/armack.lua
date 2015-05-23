@@ -74,7 +74,6 @@ return {
 			[28] = "armlab",
 			[29] = "armalab",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

@@ -56,7 +56,6 @@ return {
 			[13] = "coreter",
 			[14] = "corvrad",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

@@ -35,7 +35,6 @@ return {
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 195,
 		yardmap = "oooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

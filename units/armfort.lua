@@ -36,7 +36,6 @@ return {
 		sightdistance = 1,
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
-		customparams = {},
 		featuredefs = {
 			rockteethx = {
 				animating = 0,

@@ -77,7 +77,6 @@ return {
 			[28] = "armvp",
 			[29] = "armavp",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

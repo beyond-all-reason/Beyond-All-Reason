@@ -48,7 +48,6 @@ return {
 			[5] = "armraven",
 			[6] = "corsok",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

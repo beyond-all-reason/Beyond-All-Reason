@@ -42,7 +42,6 @@ return {
 		waterline = 0,
 		workertime = 0,
 		yardmap = "ooooooooo",
-		customparams = {},
 		featuredefs = {},
 		sfxtypes = {
 			explosiongenerators = {},

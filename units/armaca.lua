@@ -71,7 +71,6 @@ return {
 			[28] = "armaap",
 			[29] = "armplat",
 		},
-		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

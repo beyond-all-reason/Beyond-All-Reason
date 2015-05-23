@@ -66,7 +66,6 @@ return {
 			[20] = "armfhlt",
 			[21] = "armplat",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

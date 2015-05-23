@@ -59,7 +59,6 @@ return {
 			[17] = "armspy",
 			[18] = "armmark",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

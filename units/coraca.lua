@@ -70,7 +70,6 @@ return {
 			[27] = "coraap",
 			[28] = "corplat",
 		},
-		customparams = {},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

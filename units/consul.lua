@@ -70,7 +70,6 @@ return {
 			[21] = "armcs",
 			[22] = "armroy",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

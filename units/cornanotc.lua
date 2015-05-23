@@ -35,7 +35,6 @@ return {
 		turnrate = 1,
 		upright = true,
 		workertime = 200,
-		customparams = {},
 		sounds = {
 			build = "nanlath2",
 			canceldestruct = "cancel2",

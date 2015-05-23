@@ -49,7 +49,6 @@ return {
 			[7] = "armsub",
 			[8] = "armrecl",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

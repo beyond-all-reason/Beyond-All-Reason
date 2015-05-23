@@ -55,7 +55,6 @@ return {
 			[12] = "coratl",
 			[13] = "corason",
 		},
-		customparams = {},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

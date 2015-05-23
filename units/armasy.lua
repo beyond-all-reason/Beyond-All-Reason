@@ -49,7 +49,6 @@ return {
 			[10] = "armcarry",
 			[11] = "armsjam",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

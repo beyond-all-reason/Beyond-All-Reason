@@ -39,7 +39,6 @@ return {
 		sonardistance = 2400,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = false,

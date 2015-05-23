@@ -49,7 +49,6 @@ return {
 			[4] = "corseal",
 			[5] = "corparrow",
 		},
-		customparams = {},
 		featuredefs = {
 			dead = {
 				blocking = true,

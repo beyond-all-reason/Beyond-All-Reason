@@ -32,7 +32,6 @@ return {
 		selfdestructas = "BIG_UNIT_AIR",
 		sightdistance = 221,
 		turnrate = 220,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

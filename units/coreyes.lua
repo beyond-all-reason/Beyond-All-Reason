@@ -31,7 +31,6 @@ return {
 		stealth = true,
 		waterline = 5,
 		yardmap = "o",
-		customparams = {},
 		featuredefs = {
 			cdragonseyes_dead = {
 				blocking = false,

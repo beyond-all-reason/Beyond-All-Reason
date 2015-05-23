@@ -34,7 +34,6 @@ return {
 		turnrate = 1144,
 		upright = true,
 		usesmoothmesh = 0,
-		customparams = {},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

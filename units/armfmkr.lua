@@ -26,7 +26,6 @@ return {
 		sightdistance = 273,
 		waterline = 4,
 		yardmap = "wwwwwwwww",
-		customparams = {},
 		sounds = {
 			activate = "metlon1",
 			canceldestruct = "cancel2",
