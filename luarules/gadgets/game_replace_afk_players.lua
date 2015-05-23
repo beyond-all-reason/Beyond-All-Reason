@@ -280,7 +280,7 @@ function MakeButton()
 	end)
 end
 
-function Initialize()
+function gadget:Initialize()
     if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
         gadgetHandler:RemoveGadget() -- don't run in FFA mode
         return 
