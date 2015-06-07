@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local camName
+local defaultCamName = 'ta'
 
 function GetModeFromName(name)
     local camNames = Spring.GetCameraNames()
@@ -19,7 +20,7 @@ function GetModeFromName(name)
 end
 
 function widget:SetConfigData(data)
-    camName = data and data.name
+    camName = data and data.name or defaultCamName
 end
 
 function widget:Initialize()
