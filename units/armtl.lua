@@ -76,7 +76,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				collidefriendly = false,
+				collidefriendly = true,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
