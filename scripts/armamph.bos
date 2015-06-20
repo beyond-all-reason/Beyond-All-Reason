@@ -1573,6 +1573,16 @@ AimFromTertiary(piecenum)
 	return (0);
 }
 
+AimFromSecondary(piecenum)
+{
+	piecenum = lasturret;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = misturret;
+}
+
 QueryTertiary(piecenum)
 {
 	if( gun_3 == 0 )

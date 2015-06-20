@@ -508,6 +508,16 @@ QueryPrimary(piecenum)
 	piecenum = lfirept;
 }
 
+AimFromSecondary(piecenum)
+{
+	piecenum = lfirept;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = lfirept;
+}
+
 AimPrimary(heading, pitch)
 {
 	if( Static_Var_4 == 1 )
