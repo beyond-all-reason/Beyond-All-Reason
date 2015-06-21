@@ -503,16 +503,6 @@ AimFromPrimary(piecenum)
 	piecenum = torso;
 }
 
-QueryPrimary(piecenum)
-{
-	piecenum = lfirept;
-}
-
-AimFromSecondary(piecenum)
-{
-	piecenum = lfirept;
-}
-
 QuerySecondary(piecenum)
 {
 	piecenum = lfirept;
