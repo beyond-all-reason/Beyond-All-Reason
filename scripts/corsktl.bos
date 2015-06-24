@@ -63,6 +63,30 @@ StopMoving()
 	sleep 150;
 }
 
+QueryWeapon1(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = base;
+}
+
+QueryWeapon2(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromWeapon2(piecenum)
+{
+	piecenum = base;
+}
+
+FireWeapon2()
+{
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;
