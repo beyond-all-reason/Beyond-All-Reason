@@ -10,8 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
--- Because of https://springrts.com/mantis/view.php?id=4637 GetPlayerInfo returns ping which is unsynced, and in replays depends on the local gamespeed
-
 local maxIdleTreshold = 60 --in seconds
 local maxPing = 30 -- in seconds
 local finishedResumingPing = 2 --in seconds
@@ -24,10 +22,6 @@ minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 
 local AFKMessage = 'idleplayers '
 local AFKMessageSize = #AFKMessage
-local PingMessage = 'pingms '
-local PingMessageSize = #PingMessage
-
-
 if ( not gadgetHandler:IsSyncedCode()) then
 -- UNSYNCED code
 
@@ -35,25 +29,20 @@ if ( not gadgetHandler:IsSyncedCode()) then
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local GetMouseState = Spring.GetMouseState
 	local GetGameSeconds = 	Spring.GetGameSeconds
-	local GetPlayerInfo = Spring.GetPlayerInfo
 
 	local min = math.min
 	local max = math.max
-    local floor = math.floor
 
 	local nameEnclosingPatterns = {{""," added point"},{"<","> "},{"> <","> "},{"[","] "}}
-    local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID)
+	local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
 	local lastActionTime = 0
 	local timer = 0
 	local updateTimer = 0
 	local gameStartTime = 0
 	local isIdle = true
-    local oldPingOK = nil
 	local updateRefreshTime = 1 --in seconds
 	local initialQueueTime
-    
-    
+
 	local mx,my = GetMouseState()
 
 	function gadget:Initialize()
@@ -142,19 +131,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 		if timer-lastActionTime > maxIdleTreshold then
 			WentIdle()
 		end
-        
-        -- tell synced about out ping
-		local _,_,_,_,_,ping = GetPlayerInfo(myPlayerID)
-        local pingTreshold = maxPing
-		if oldPingOk == "0" then
-			pingTreshold = finishedResumingPing 
-		end
-		local pingOK = (ping < pingTreshold) and "1" or "0"
-        if pingOK ~= oldPingOK then
-            SendLuaRulesMsg(PingMessage .. pingOK)
-            oldPingOK = pingOK
-        end
-    end
+	end
 
 	-- MouseMove isn't called either??!
 	function gadget:MouseMove()
@@ -237,7 +214,7 @@ else
 	local resourceList = {"metal","energy"}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
-    
+
 	local min = math.min
 	local max = math.max
 
@@ -275,10 +252,23 @@ else
 			end
 		end
 		for _,playerID in ipairs(GetPlayerList()) do -- update player infos
-            local _,active,spectator,teamID,allyTeamID,_ = GetPlayerInfo(playerID)
+			local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
 			local playerInfoTableEntry = playerInfoTable[playerID] or {}
 			playerInfoTableEntry.connected = active
 			playerInfoTableEntry.player = not spectator
+			local pingTreshold = maxPing
+			local oldPingOk = playerInfoTableEntry.pingOK
+			if oldPingOk == false then
+				pingTreshold = finishedResumingPing --use smaller threshold to determine finished resuming
+			end
+			playerInfoTableEntry.pingOK = ping < pingTreshold
+			if not spectator then
+				if oldPingOk and not playerInfoTableEntry.pingOK then
+					Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
+				elseif oldPingOk == false and playerInfoTableEntry.pingOK and playerInfoTableEntry.connected then
+					Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
+				end
+			end
 			if playerInfoTableEntry.present == nil then
 				playerInfoTableEntry.present = false -- initialize to afk
 			end
@@ -290,25 +280,24 @@ else
 				--a player only needs to be connected and low enough ping to host an ai
 				if playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK then
 					for _,aiTeamID in ipairs(hostedAis) do
-						TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
+						TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] +1
 					end
 				end
 			end
 
 			if CheckPlayerState(playerID) then -- bump amount of active players in a team
 				TeamToRemainingPlayers[teamID] = TeamToRemainingPlayers[teamID] + 1
-			end            
+			end
 		end
 
-		for teamID,teamCount in pairs(TeamToRemainingPlayers) do
+		for teamID,teamCount in ipairs(TeamToRemainingPlayers) do
 			-- set to a public readable value that there's nobody controlling the team
 			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
 		end
-        
 	end
 
 	function gadget:Initialize()
-  		gadgetHandler:AddChatAction(takeCommand, TakeTeam, "Take control of units and resources from inactive players")
+  		gadgetHandler:AddChatAction(takeCommand, TakeTeam, "Take control of units and resouces from inactive players")
   		UpdatePlayerInfos()
 	end
 
@@ -329,34 +318,21 @@ else
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,AFKMessageSize) == AFKMessage then -- handle afk 
-            local afk = tonumber(msg:sub(AFKMessageSize+1))
-            local playerInfoTableEntry = playerInfoTable[playerID] or {}
-            local previousPresent = playerInfoTableEntry.present
-            playerInfoTableEntry.present = (afk==0)
-            playerInfoTable[playerID] = playerInfoTableEntry
-            local _,active,spectator,teamID,allyTeamID,_ = GetPlayerInfo(playerID)
-            if not spectator then
-                if currentGameFrame > minTimeToTake*gameSpeed then
-                    if previousPresent and not playerInfoTableEntry.present then
-                        SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " went AFK")
-                    elseif not previousPresent and playerInfoTableEntry.present then
-                        SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " came back")
-                    end
-                end
-            end
-        elseif msg:sub(1,PingMessageSize) == PingMessage then -- handle ping
-            local pingOK = tonumber(msg:sub(PingMessageSize+1))
-            local playerInfoTableEntry = playerInfoTable[playerID] or {}
-            local oldPingOK = playerInfoTableEntry.pingOK
-			playerInfoTableEntry.pingOK = (pingOK==1)                   
-            playerInfoTable[playerID] = playerInfoTableEntry
-            local _,active,spectator,teamID,allyTeamID,_ = GetPlayerInfo(playerID)
-			if not spectator then
-				if oldPingOk and not playerInfoTableEntry.pingOK then
-					Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
-				elseif oldPingOk == false and playerInfoTableEntry.pingOK and playerInfoTableEntry.connected then
-					Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
+		if msg:sub(1,AFKMessageSize) ~= AFKMessage then --invalid message
+			return
+		end
+		local afk = tonumber(msg:sub(AFKMessageSize+1))
+		local playerInfoTableEntry = playerInfoTable[playerID] or {}
+		local previousPresent = playerInfoTableEntry.present
+		playerInfoTableEntry.present = afk == 0
+		playerInfoTable[playerID] = playerInfoTableEntry
+		local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
+		if not spectator then
+			if currentGameFrame > minTimeToTake*gameSpeed then
+				if previousPresent and not playerInfoTableEntry.present then
+					SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " went AFK")
+				elseif not previousPresent and playerInfoTableEntry.present then
+					SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " came back")
 				end
 			end
 		end
