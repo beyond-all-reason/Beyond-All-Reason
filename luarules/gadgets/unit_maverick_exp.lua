@@ -17,6 +17,7 @@ end
 
 local SetUnitWeaponState = Spring.SetUnitWeaponState
 local GetUnitExperience = Spring.GetUnitExperience
+local SetUnitMaxRange = Spring.SetUnitMaxRange
 
 local maverickUnitDefID = UnitDefNames["armmav"].id
 local maverickOriginalRange = WeaponDefNames["armmav_armmav_weapon"].range
@@ -30,6 +31,7 @@ function gadget:GameFrame(n)
             local limExp = curExp/(1+curExp)
             local newRange = maverickOriginalRange * ( 1 + limExp )
             SetUnitWeaponState(unitID, 1, "range", newRange)
+            SetUnitMaxRange(unitID,newRange)
         end
     end
 	updateList = {}
