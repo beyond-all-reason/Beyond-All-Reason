@@ -1,0 +1,226 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  lwing, rwing, flare1, flare2, base, wake1, wake2, bombdrop;
+
+static-var  gun_3, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn rwing to y-axis <0.000000> now;
+		turn rwing to y-axis <24.527473> speed <17.554945>;
+		turn lwing to y-axis <0.000000> now;
+		turn lwing to y-axis <-24.065934> speed <17.225275>;
+		sleep 1397;
+	}
+	sleep 55;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move lwing to x-axis [-0.105304] now;
+		move lwing to z-axis [0.469208] now;
+		move rwing to x-axis [0.084198] now;
+		move rwing to z-axis [0.381543] now;
+		move flare1 to x-axis [5.015796] now;
+		move flare1 to y-axis [0.650000] now;
+		move flare1 to z-axis [6.618451] now;
+		move flare2 to x-axis [-5.194684] now;
+		move flare2 to y-axis [0.650000] now;
+		move flare2 to z-axis [6.480786] now;
+		turn lwing to y-axis <-24.065934> now;
+		turn lwing to y-axis <0.000000> speed <16.505495>;
+		turn rwing to y-axis <24.527473> now;
+		turn rwing to y-axis <0.000000> speed <16.824176>;
+		sleep 1458;
+	}
+	sleep 66;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	gun_3 = lwing;
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		if( Static_Var_2 == 3 )
+		{
+			emit-sfx 256 | 3 from wake1;
+			emit-sfx 256 | 3 from wake2;
+			emit-sfx 256 | 3 from flare1;
+			emit-sfx 256 | 3 from flare2;
+			emit-sfx 256 | 3 from lwing;
+			emit-sfx 256 | 3 from rwing;
+			emit-sfx 256 | 3 from bombdrop;
+			emit-sfx 256 | 3 from base;
+		}
+		sleep 150;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+}
+
+FireWeapon1()
+{
+}
+
+QueryWeapon1(piecenum)
+{
+	piecenum = bombdrop;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = bombdrop;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode bombdrop type BITMAPONLY | BITMAP2;
+		explode flare1 type BITMAPONLY | BITMAP3;
+		explode flare2 type BITMAPONLY | BITMAP4;
+		explode lwing type BITMAPONLY | BITMAP5;
+		explode rwing type BITMAPONLY | BITMAP1;
+		explode wake1 type BITMAPONLY | BITMAP2;
+		explode wake2 type BITMAPONLY | BITMAP3;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode bombdrop type FALL | BITMAP2;
+		explode flare1 type FALL | BITMAP3;
+		explode flare2 type FALL | BITMAP4;
+		explode lwing type BITMAPONLY | BITMAP5;
+		explode rwing type BITMAPONLY | BITMAP1;
+		explode wake1 type FALL | BITMAP2;
+		explode wake2 type FALL | BITMAP3;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode bombdrop type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode flare1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode flare2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode lwing type BITMAPONLY | BITMAP5;
+		explode rwing type BITMAPONLY | BITMAP1;
+		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		return (0);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode bombdrop type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode flare1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode flare2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode lwing type BITMAPONLY | BITMAP5;
+	explode rwing type BITMAPONLY | BITMAP1;
+	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+}
+
+setSFXoccupy(state)
+{
+	Static_Var_2 = state;
+}

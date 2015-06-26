@@ -411,6 +411,16 @@ QueryTertiary(piecenum)
 	piecenum = rfirept + gun_3;
 }
 
+QueryWeapon1(piecenum)
+{
+	piecenum = torso;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = rfirept + gun_3;
+}
+
 Killed(severity, corpsetype)
 {
 	hide rfirept;
