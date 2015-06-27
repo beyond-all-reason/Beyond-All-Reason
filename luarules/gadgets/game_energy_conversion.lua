@@ -27,14 +27,14 @@ local mmLevelParamName = 'mmLevel'
 local mmCapacityParamName = 'mmCapacity'
 local mmUseParamName = 'mmUse'
 local convertCapacities = {
-        [UnitDefNames.armmakr.id]  = { c = (60/32), e = (1/60) }, 
-        [UnitDefNames.cormakr.id]  = { c = (60/32), e = (1/60) },
-        [UnitDefNames.armfmkr.id]  = { c = (60/32), e = (1/55) },
-        [UnitDefNames.corfmkr.id]  = { c = (60/32), e = (1/55) },
-        [UnitDefNames.armmmkr.id]  = { c = (600/32), e = (1/50) }, 
-        [UnitDefNames.cormmkr.id]  = { c = (600/32), e = (1/50) },
-        [UnitDefNames.armuwmmm.id] = { c = (650/32), e = (1/50) }, 
-        [UnitDefNames.coruwmmm.id] = { c = (650/32), e = (1/50) }
+        [UnitDefNames.armmakr.id]  = { c = (60/30), e = (1/60) }, 
+        [UnitDefNames.cormakr.id]  = { c = (60/30), e = (1/60) },
+        [UnitDefNames.armfmkr.id]  = { c = (60/30), e = (1/55) },
+        [UnitDefNames.corfmkr.id]  = { c = (60/30), e = (1/55) },
+        [UnitDefNames.armmmkr.id]  = { c = (600/30), e = (1/50) }, 
+        [UnitDefNames.cormmkr.id]  = { c = (600/30), e = (1/50) },
+        [UnitDefNames.armuwmmm.id] = { c = (650/30), e = (1/50) }, 
+        [UnitDefNames.coruwmmm.id] = { c = (650/30), e = (1/50) }
     }
 local function SetMMRulesParams()
     -- make convertCapacities accessible to all
@@ -148,7 +148,7 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(n)
-    local postUsages = (n % 16 == 0)
+    local postUsages = (n % 15 == 0)
     for i = 1, #teamList do
         local tID = teamList[i]
         local eCur, eStor = spGetTeamResources(tID, 'energy')
@@ -185,7 +185,7 @@ end
 function gadget:UnitFinished(uID, uDefID, uTeam)
     local cDefs = convertCapacities[uDefID]
     if cDefs then
-        teamMMList[uTeam][cDefs.e][uID] = {capacity=cDefs.c*32, status=1}
+        teamMMList[uTeam][cDefs.e][uID] = {capacity=cDefs.c*30, status=1}
         teamActiveMM[uTeam] = teamActiveMM[uTeam] + 1
         spSetUnitCOBValue(uID,1024,1)
         AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)

@@ -311,7 +311,7 @@ else
 		if currentFrame == 10 then
 			SendToUnsynced("onGameStart")
 		end
-		if currentFrame%16 ~= 0 then
+		if currentFrame%15 ~= 0 then
 			return
 		end
 		UpdatePlayerInfos()

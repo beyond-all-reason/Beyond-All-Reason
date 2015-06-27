@@ -482,8 +482,8 @@ end
 -- Target update
 
 function gadget:GameFrame(n)
-	if n%16 == 15 then -- timing synced with slow update to reduce attack jittering
-		-- 15 causes attack command to override target command
+	if n%15 == 14 then -- timing synced with slow update to reduce attack jittering
+		-- 14 causes attack command to override target command
 		-- 0 causes target command to take precedence
 
 		for unitID, unitData in pairs(unitTargets) do

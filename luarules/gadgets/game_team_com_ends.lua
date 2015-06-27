@@ -58,7 +58,7 @@ function gadget:Initialize()
 end
 
 function gadget:GameFrame(t)
-	if t % 16 < .1 then
+	if t % 15 < .1 then
 		for at,defs in pairs(destroyQueue) do
 			if aliveCount[at] <= 0 then --safety check, triggers on transferring the last com otherwise
 				for _,team in ipairs(GetTeamList(at)) do
