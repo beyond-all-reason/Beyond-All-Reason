@@ -2,8 +2,8 @@ return {
 	armmerl = {
 		acceleration = 0.026,
 		brakerate = 0.1122,
-		buildcostenergy = 6146,
-		buildcostmetal = 862,
+		buildcostenergy = 6556,
+		buildcostmetal = 919,
 		buildpic = "ARMMERL.DDS",
 		buildtime = 15592,
 		canmove = true,

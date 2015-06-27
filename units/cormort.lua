@@ -2,8 +2,8 @@ return {
 	cormort = {
 		acceleration = 0.132,
 		brakerate = 0.675,
-		buildcostenergy = 2065,
-		buildcostmetal = 382,
+		buildcostenergy = 2203,
+		buildcostmetal = 407,
 		buildpic = "CORMORT.DDS",
 		buildtime = 5139,
 		canmove = true,

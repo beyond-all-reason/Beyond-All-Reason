@@ -2,8 +2,8 @@ return {
 	nsaclash = {
 		acceleration = 0.072,
 		brakerate = 0.225,
-		buildcostenergy = 12211,
-		buildcostmetal = 600,
+		buildcostenergy = 13025,
+		buildcostmetal = 640,
 		buildpic = "NSACLASH.DDS",
 		buildtime = 12907,
 		canmove = true,

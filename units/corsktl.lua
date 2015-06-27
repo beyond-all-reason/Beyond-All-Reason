@@ -2,8 +2,8 @@ return {
 	corsktl = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 24723,
-		buildcostmetal = 506,
+		buildcostenergy = 26371,
+		buildcostmetal = 540,
 		buildpic = "CORSKTL.DDS",
 		buildtime = 16975,
 		canmove = true,

@@ -2,8 +2,8 @@ return {
 	corhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4065,
-		buildcostmetal = 1019,
+		buildcostenergy = 4336,
+		buildcostmetal = 1087,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,

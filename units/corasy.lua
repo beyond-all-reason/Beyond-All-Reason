@@ -2,8 +2,8 @@ return {
 	corasy = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 9763,
-		buildcostmetal = 2930,
+		buildcostenergy = 10414,
+		buildcostmetal = 3125,
 		builder = true,
 		buildpic = "CORASY.DDS",
 		buildtime = 15696,

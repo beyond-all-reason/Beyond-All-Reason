@@ -2,8 +2,8 @@ return {
 	corgantuw = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 58524,
-		buildcostmetal = 7848,
+		buildcostenergy = 62426,
+		buildcostmetal = 8371,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 10,

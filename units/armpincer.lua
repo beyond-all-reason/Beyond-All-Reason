@@ -2,8 +2,8 @@ return {
 	armpincer = {
 		acceleration = 0.011,
 		brakerate = 0.033,
-		buildcostenergy = 1921,
-		buildcostmetal = 187,
+		buildcostenergy = 2049,
+		buildcostmetal = 199,
 		buildpic = "ARMPINCER.DDS",
 		buildtime = 2613,
 		canmove = true,

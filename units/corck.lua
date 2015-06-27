@@ -2,8 +2,8 @@ return {
 	corck = {
 		acceleration = 0.456,
 		brakerate = 2.85,
-		buildcostenergy = 1622,
-		buildcostmetal = 113,
+		buildcostenergy = 1730,
+		buildcostmetal = 121,
 		builddistance = 130,
 		builder = true,
 		buildpic = "CORCK.DDS",

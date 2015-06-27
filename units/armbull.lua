@@ -2,8 +2,8 @@ return {
 	armbull = {
 		acceleration = 0.0396,
 		brakerate = 0.165,
-		buildcostenergy = 12405,
-		buildcostmetal = 844,
+		buildcostenergy = 13232,
+		buildcostmetal = 900,
 		buildpic = "ARMBULL.DDS",
 		buildtime = 17228,
 		canmove = true,

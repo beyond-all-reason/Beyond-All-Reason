@@ -2,8 +2,8 @@ return {
 	armrectr = {
 		acceleration = 0.2,
 		brakerate = 0.75,
-		buildcostenergy = 1400,
-		buildcostmetal = 102,
+		buildcostenergy = 1493,
+		buildcostmetal = 109,
 		builddistance = 96,
 		builder = true,
 		buildpic = "ARMRECTR.DDS",

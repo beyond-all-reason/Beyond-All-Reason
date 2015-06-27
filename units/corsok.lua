@@ -2,8 +2,8 @@ return {
 	corsok = {
 		acceleration = 0.09,
 		brakerate = 0.135,
-		buildcostenergy = 58466,
-		buildcostmetal = 3910,
+		buildcostenergy = 62364,
+		buildcostmetal = 4171,
 		builder = false,
 		buildtime = 63001,
 		canattack = true,

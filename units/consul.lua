@@ -2,8 +2,8 @@ return {
 	consul = {
 		acceleration = 0.165,
 		brakerate = 0.825,
-		buildcostenergy = 4028,
-		buildcostmetal = 236,
+		buildcostenergy = 4297,
+		buildcostmetal = 252,
 		builddistance = 136,
 		builder = true,
 		buildpic = "CONSUL.DDS",

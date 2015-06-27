@@ -2,8 +2,8 @@ return {
 	armfboy = {
 		acceleration = 0.12,
 		brakerate = 0.375,
-		buildcostenergy = 11193,
-		buildcostmetal = 1418,
+		buildcostenergy = 11939,
+		buildcostmetal = 1513,
 		buildpic = "ARMFBOY.DDS",
 		buildtime = 22397,
 		canmove = true,

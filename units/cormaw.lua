@@ -2,8 +2,8 @@ return {
 	cormaw = {
 		acceleration = 0,
 		buildangle = 8192,
-		buildcostenergy = 1412,
-		buildcostmetal = 273,
+		buildcostenergy = 1506,
+		buildcostmetal = 291,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,

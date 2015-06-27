@@ -2,8 +2,8 @@ return {
 	ajuno = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 16581,
-		buildcostmetal = 597,
+		buildcostenergy = 17686,
+		buildcostmetal = 637,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,

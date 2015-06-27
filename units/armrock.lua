@@ -2,8 +2,8 @@ return {
 	armrock = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 990,
-		buildcostmetal = 112,
+		buildcostenergy = 1056,
+		buildcostmetal = 119,
 		buildpic = "ARMROCK.DDS",
 		buildtime = 2015,
 		canmove = true,

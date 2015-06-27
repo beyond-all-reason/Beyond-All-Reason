@@ -2,8 +2,8 @@ return {
 	trem = {
 		acceleration = 0.0528,
 		brakerate = 0.33,
-		buildcostenergy = 45350,
-		buildcostmetal = 1951,
+		buildcostenergy = 48373,
+		buildcostmetal = 2081,
 		buildpic = "TREM.DDS",
 		buildtime = 31103,
 		canmove = true,

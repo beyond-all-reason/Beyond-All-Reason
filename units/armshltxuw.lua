@@ -2,8 +2,8 @@ return {
 	armshltxuw = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 54540,
-		buildcostmetal = 7396,
+		buildcostenergy = 58176,
+		buildcostmetal = 7889,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 10,

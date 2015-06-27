@@ -2,8 +2,8 @@ return {
 	armack = {
 		acceleration = 0.432,
 		brakerate = 2.7,
-		buildcostenergy = 5105,
-		buildcostmetal = 290,
+		buildcostenergy = 5445,
+		buildcostmetal = 309,
 		builddistance = 136,
 		builder = true,
 		buildpic = "ARMACK.DDS",

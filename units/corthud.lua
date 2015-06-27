@@ -2,8 +2,8 @@ return {
 	corthud = {
 		acceleration = 0.113,
 		brakerate = 0.675,
-		buildcostenergy = 1061,
-		buildcostmetal = 132,
+		buildcostenergy = 1132,
+		buildcostmetal = 141,
 		buildpic = "CORTHUD.DDS",
 		buildtime = 1971,
 		canmove = true,

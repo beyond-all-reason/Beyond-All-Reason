@@ -2,8 +2,8 @@ return {
 	armacsub = {
 		acceleration = 0.038,
 		brakerate = 0.75,
-		buildcostenergy = 10768,
-		buildcostmetal = 995,
+		buildcostenergy = 11486,
+		buildcostmetal = 1061,
 		builddistance = 160,
 		builder = true,
 		buildpic = "ARMACSUB.DDS",

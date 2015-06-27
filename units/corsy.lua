@@ -2,8 +2,8 @@ return {
 	corsy = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 750,
-		buildcostmetal = 415,
+		buildcostenergy = 800,
+		buildcostmetal = 443,
 		builder = true,
 		buildpic = "CORSY.DDS",
 		buildtime = 6000,

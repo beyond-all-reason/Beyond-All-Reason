@@ -2,8 +2,8 @@ return {
 	cormart = {
 		acceleration = 0.0204,
 		brakerate = 0.3696,
-		buildcostenergy = 3005,
-		buildcostmetal = 263,
+		buildcostenergy = 3205,
+		buildcostmetal = 281,
 		buildpic = "CORMART.DDS",
 		buildtime = 4270,
 		canmove = true,

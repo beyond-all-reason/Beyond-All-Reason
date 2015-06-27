@@ -2,8 +2,8 @@ return {
 	shiva = {
 		acceleration = 0.06,
 		brakerate = 0.714,
-		buildcostenergy = 21874,
-		buildcostmetal = 1442,
+		buildcostenergy = 23332,
+		buildcostmetal = 1538,
 		buildpic = "SHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,

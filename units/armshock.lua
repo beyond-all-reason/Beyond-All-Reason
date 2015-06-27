@@ -2,8 +2,8 @@ return {
 	armshock = {
 		acceleration = 0.023,
 		brakerate = 0.3,
-		buildcostenergy = 65687,
-		buildcostmetal = 3120,
+		buildcostenergy = 70066,
+		buildcostmetal = 3328,
 		buildpic = "ARMSHOCK.DDS",
 		buildtime = 101218,
 		canmove = true,

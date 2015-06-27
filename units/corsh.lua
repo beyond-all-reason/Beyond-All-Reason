@@ -2,8 +2,8 @@ return {
 	corsh = {
 		acceleration = 0.12,
 		brakerate = 0.336,
-		buildcostenergy = 1439,
-		buildcostmetal = 71,
+		buildcostenergy = 1535,
+		buildcostmetal = 76,
 		buildpic = "CORSH.DDS",
 		buildtime = 4079,
 		canmove = true,

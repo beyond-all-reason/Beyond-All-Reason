@@ -2,8 +2,8 @@ return {
 	corak = {
 		acceleration = 0.384,
 		brakerate = 0.75,
-		buildcostenergy = 826,
-		buildcostmetal = 34,
+		buildcostenergy = 881,
+		buildcostmetal = 36,
 		buildpic = "CORAK.DDS",
 		buildtime = 1279,
 		canmove = true,

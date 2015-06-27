@@ -2,8 +2,8 @@ return {
 	armwar = {
 		acceleration = 0.072,
 		brakerate = 0.714,
-		buildcostenergy = 2944,
-		buildcostmetal = 248,
+		buildcostenergy = 3140,
+		buildcostmetal = 265,
 		buildpic = "ARMWAR.DDS",
 		buildtime = 3828,
 		canmove = true,

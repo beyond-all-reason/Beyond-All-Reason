@@ -2,8 +2,8 @@ return {
 	corfhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5082,
-		buildcostmetal = 1100,
+		buildcostenergy = 5421,
+		buildcostmetal = 1173,
 		builder = true,
 		buildpic = "CORFHP.DDS",
 		buildtime = 17817,

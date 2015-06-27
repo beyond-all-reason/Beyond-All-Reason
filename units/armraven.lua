@@ -2,8 +2,8 @@ return {
 	armraven = {
 		acceleration = 0.108,
 		brakerate = 0.564,
-		buildcostenergy = 75625,
-		buildcostmetal = 4551,
+		buildcostenergy = 80667,
+		buildcostmetal = 4854,
 		buildpic = "ARMRAVEN.DDS",
 		buildtime = 126522,
 		canmove = true,

@@ -2,8 +2,8 @@ return {
 	corack = {
 		acceleration = 0.408,
 		brakerate = 2.55,
-		buildcostenergy = 5428,
-		buildcostmetal = 319,
+		buildcostenergy = 5790,
+		buildcostmetal = 340,
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORACK.DDS",

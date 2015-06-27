@@ -2,8 +2,8 @@ return {
 	coracsub = {
 		acceleration = 0.035,
 		brakerate = 0.636,
-		buildcostenergy = 10911,
-		buildcostmetal = 990,
+		buildcostenergy = 11638,
+		buildcostmetal = 1056,
 		builddistance = 160,
 		builder = true,
 		buildpic = "CORACSUB.DDS",

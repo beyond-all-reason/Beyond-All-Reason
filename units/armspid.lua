@@ -2,8 +2,8 @@ return {
 	armspid = {
 		acceleration = 0.18,
 		brakerate = 0.564,
-		buildcostenergy = 3170,
-		buildcostmetal = 166,
+		buildcostenergy = 3381,
+		buildcostmetal = 177,
 		buildpic = "ARMSPID.DDS",
 		buildtime = 5090,
 		canmove = true,

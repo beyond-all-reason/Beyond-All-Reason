@@ -2,8 +2,8 @@ return {
 	armch = {
 		acceleration = 0.144,
 		brakerate = 0.45,
-		buildcostenergy = 2523,
-		buildcostmetal = 136,
+		buildcostenergy = 2691,
+		buildcostmetal = 145,
 		builddistance = 112,
 		builder = true,
 		buildpic = "ARMCH.DDS",

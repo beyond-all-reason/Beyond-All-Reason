@@ -2,8 +2,8 @@ return {
 	corsnap = {
 		acceleration = 0.078,
 		brakerate = 0.3,
-		buildcostenergy = 3106,
-		buildcostmetal = 296,
+		buildcostenergy = 3313,
+		buildcostmetal = 316,
 		buildpic = "CORSNAP.DDS",
 		buildtime = 3791,
 		canmove = true,

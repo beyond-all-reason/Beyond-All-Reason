@@ -2,8 +2,8 @@ return {
 	corsumo = {
 		acceleration = 0.048,
 		brakerate = 0.375,
-		buildcostenergy = 33562,
-		buildcostmetal = 2020,
+		buildcostenergy = 35799,
+		buildcostmetal = 2155,
 		buildpic = "CORSUMO.DDS",
 		buildtime = 50975,
 		canmove = true,

@@ -2,8 +2,8 @@ return {
 	armsaber = {
 		acceleration = 0.288,
 		brakerate = 0.46,
-		buildcostenergy = 5984,
-		buildcostmetal = 201,
+		buildcostenergy = 6383,
+		buildcostmetal = 214,
 		buildpic = "ARMSABER.DDS",
 		buildtime = 9016,
 		canfly = true,

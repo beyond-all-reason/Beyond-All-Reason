@@ -2,8 +2,8 @@ return {
 	armfido = {
 		acceleration = 0.12,
 		brakerate = 1.125,
-		buildcostenergy = 5264,
-		buildcostmetal = 253,
+		buildcostenergy = 5615,
+		buildcostmetal = 270,
 		buildpic = "ARMFIDO.DDS",
 		buildtime = 6232,
 		canmove = true,

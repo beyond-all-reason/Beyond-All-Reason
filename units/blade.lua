@@ -2,8 +2,8 @@ return {
 	blade = {
 		acceleration = 0.6,
 		brakerate = 0.35,
-		buildcostenergy = 20315,
-		buildcostmetal = 1192,
+		buildcostenergy = 21669,
+		buildcostmetal = 1271,
 		buildpic = "BLADE.DDS",
 		buildtime = 23964,
 		canfly = true,

@@ -2,8 +2,8 @@ return {
 	armpb = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 12896,
-		buildcostmetal = 638,
+		buildcostenergy = 13756,
+		buildcostmetal = 681,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,

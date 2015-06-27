@@ -2,8 +2,8 @@ return {
 	corvalk = {
 		acceleration = 0.09,
 		brakerate = 0.75,
-		buildcostenergy = 1347,
-		buildcostmetal = 69,
+		buildcostenergy = 1437,
+		buildcostmetal = 74,
 		buildpic = "CORVALK.DDS",
 		buildtime = 4122,
 		canfly = true,

@@ -2,8 +2,8 @@ return {
 	cjuno = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 15124,
-		buildcostmetal = 617,
+		buildcostenergy = 16132,
+		buildcostmetal = 658,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,

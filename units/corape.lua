@@ -2,8 +2,8 @@ return {
 	corape = {
 		acceleration = 0.152,
 		brakerate = 0.356,
-		buildcostenergy = 6467,
-		buildcostmetal = 345,
+		buildcostenergy = 6898,
+		buildcostmetal = 368,
 		buildpic = "CORAPE.DDS",
 		buildtime = 14500,
 		canfly = true,

@@ -2,8 +2,8 @@ return {
 	krogtaar = {
 		acceleration = 0.144,
 		brakerate = 0.714,
-		buildcostenergy = 50499,
-		buildcostmetal = 6784,
+		buildcostenergy = 53866,
+		buildcostmetal = 7236,
 		buildpic = "krogtaar.DDS",
 		buildtime = 101125,
 		canmove = true,

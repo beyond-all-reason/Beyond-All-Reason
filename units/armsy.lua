@@ -2,8 +2,8 @@ return {
 	armsy = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 775,
-		buildcostmetal = 425,
+		buildcostenergy = 827,
+		buildcostmetal = 453,
 		builder = true,
 		buildpic = "ARMSY.DDS",
 		buildtime = 6050,

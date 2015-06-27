@@ -3,18 +3,6 @@
 -- process unitdef
 local function UnitDef_Post(name,ud)
 
-    -- slow update fix for 99.0
-    -- TODO: bake this
-    if (Game.version:find('98.0.1') == 1) or (Game.version:find('99.0.1') == 1) or (Game.version=='99') then
-        if ud.buildcostmetal then ud.buildcostmetal = ud.buildcostmetal * (16/15) end
-        if ud.buildcostenergy then ud.buildcostenergy = ud.buildcostenergy * (16/15) end
-        if ud.weapons then
-            for wname,wd in pairs(ud.weapons) do
-                if wd.energypershot then wd.energypershot = wd.energypershot * (16/15) end
-                if wd.metalpershot then wd.metalpershot = wd.metalpershot * (16/15) end        
-            end    
-        end
-    end
 end
 
 -- process weapondef

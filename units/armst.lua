@@ -2,8 +2,8 @@ return {
 	armst = {
 		acceleration = 0.04,
 		brakerate = 0.165,
-		buildcostenergy = 3480,
-		buildcostmetal = 212,
+		buildcostenergy = 3712,
+		buildcostmetal = 226,
 		buildpic = "ARMST.DDS",
 		buildtime = 6704,
 		canmove = true,

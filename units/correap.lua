@@ -2,8 +2,8 @@ return {
 	correap = {
 		acceleration = 0.044,
 		brakerate = 0.198,
-		buildcostenergy = 9646,
-		buildcostmetal = 589,
+		buildcostenergy = 10289,
+		buildcostmetal = 628,
 		buildpic = "CORREAP.DDS",
 		buildtime = 11501,
 		canmove = true,

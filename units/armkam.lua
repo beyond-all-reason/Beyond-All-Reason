@@ -2,8 +2,8 @@ return {
 	armkam = {
 		acceleration = 0.154,
 		brakerate = 0.375,
-		buildcostenergy = 2226,
-		buildcostmetal = 125,
+		buildcostenergy = 2374,
+		buildcostmetal = 133,
 		buildpic = "ARMKAM.DDS",
 		buildtime = 5046,
 		canfly = true,

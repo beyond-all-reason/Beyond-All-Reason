@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		blocking = false,
 		brakerate = 0,
-		buildcostenergy = 250,
+		buildcostenergy = 267,
 		buildcostmetal = 5,
 		buildpic = "ARMMINE1.DDS",
 		buildtime = 50,

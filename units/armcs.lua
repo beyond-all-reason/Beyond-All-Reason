@@ -2,8 +2,8 @@ return {
 	armcs = {
 		acceleration = 0.1,
 		brakerate = 0.3,
-		buildcostenergy = 2130,
-		buildcostmetal = 255,
+		buildcostenergy = 2272,
+		buildcostmetal = 272,
 		builddistance = 200,
 		builder = true,
 		buildpic = "ARMCS.DDS",

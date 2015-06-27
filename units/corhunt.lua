@@ -2,8 +2,8 @@ return {
 	corhunt = {
 		acceleration = 0.06,
 		brakerate = 0.0375,
-		buildcostenergy = 6421,
-		buildcostmetal = 122,
+		buildcostenergy = 6849,
+		buildcostmetal = 130,
 		buildpic = "CORHUNT.DDS",
 		buildtime = 9512,
 		canfly = true,

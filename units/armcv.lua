@@ -2,8 +2,8 @@ return {
 	armcv = {
 		acceleration = 0.121,
 		brakerate = 1.2408,
-		buildcostenergy = 1802,
-		buildcostmetal = 128,
+		buildcostenergy = 1922,
+		buildcostmetal = 137,
 		builddistance = 130,
 		builder = true,
 		buildpic = "ARMCV.DDS",

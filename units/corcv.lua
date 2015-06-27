@@ -2,8 +2,8 @@ return {
 	corcv = {
 		acceleration = 0.1144,
 		brakerate = 1.0692,
-		buildcostenergy = 1979,
-		buildcostmetal = 134,
+		buildcostenergy = 2111,
+		buildcostmetal = 143,
 		builddistance = 130,
 		builder = true,
 		buildpic = "CORCV.DDS",

@@ -2,8 +2,8 @@ return {
 	armfhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4947,
-		buildcostmetal = 1031,
+		buildcostenergy = 5277,
+		buildcostmetal = 1100,
 		builder = true,
 		buildpic = "ARMFHP.DDS",
 		buildtime = 17362,

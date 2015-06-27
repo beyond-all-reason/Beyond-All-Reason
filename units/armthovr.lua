@@ -3,8 +3,8 @@ return {
 		acceleration = 0.043,
 		brakerate = 0.186,
 		buildangle = 16384,
-		buildcostenergy = 7938,
-		buildcostmetal = 665,
+		buildcostenergy = 8467,
+		buildcostmetal = 709,
 		buildpic = "ARMTHOVR.DDS",
 		buildtime = 20341,
 		canmove = true,
@@ -84,5 +84,5 @@ return {
 				[1] = "hovlgsl1",
 			},
 		},
-        },
+	},
 }
