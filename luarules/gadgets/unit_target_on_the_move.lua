@@ -76,6 +76,8 @@ local diag						= math.diag
 
 local CMD_STOP					= CMD.STOP
 
+local SlowUpdate				= 15
+
 
 --------------------------------------------------------------------------------
 -- Config
@@ -148,21 +150,19 @@ local function AreUnitsAllied(unitID,targetID)
 	return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam,enemyTeam)
 end
 
-local function TargetCanBeReached(unitID,teamID,weaponList,target)
-	return CallAsTeam(teamID, function()
-		for weaponID in pairs(weaponList) do
-			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
-			if tonumber(target) and  spGetUnitWeaponTryTarget(unitID,weaponID,target) then
-				return weaponID
-			elseif not tonumber(target) and spGetUnitWeaponTryTarget(unitID,weaponID,target[1],target[2],target[3]) then
-				return weaponID
-			end
+local function TargetCanBeReached(unitID, teamID, weaponList, target)
+	for weaponID in pairs(weaponList) do
+		--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
+		if tonumber(target) and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then
+			return weaponID
+		elseif not tonumber(target) and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target[1], target[2], target[3]) then
+			return weaponID
 		end
-	end)
+	end
 end
 
 local function checkTarget(unitID, target)
-	return ( tonumber(target) and spValidUnitID(target) and not AreUnitsAllied(unitID,target) ) or (not tonumber(target) and target )
+	return (tonumber(target) and spValidUnitID(target) and not AreUnitsAllied(unitID,target)) or (not tonumber(target) and target )
 end
 
 
@@ -171,9 +171,10 @@ local function setTarget(unitID, targetData)
 	if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
 		return false
 	end
-
 	if tonumber(targetData.target) then
-		spSetUnitTarget(unitID, targetData.target,false,targetData.userTarget)
+		if not spSetUnitTarget(unitID, targetData.target,false,targetData.userTarget) then
+			return false
+		end
 
 		spSetUnitRulesParam(unitID,"targetID",targetData.target)
 		spSetUnitRulesParam(unitID,"targetCoordX",-1)
@@ -182,7 +183,9 @@ local function setTarget(unitID, targetData)
 
 	elseif not tonumber(targetData.target) then
 
-		spSetUnitTarget(unitID, targetData.target[1],targetData.target[2],targetData.target[3],false,targetData.userTarget)
+		if not spSetUnitTarget(unitID, targetData.target[1],targetData.target[2],targetData.target[3],false,targetData.userTarget) then
+			return false
+		end
 
 		spSetUnitRulesParam(unitID,"targetID",-1)
 		spSetUnitRulesParam(unitID,"targetCoordX",targetData.target[1])
@@ -356,9 +359,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					top = cmdParams[3]
 				end
 
-				targets = CallAsTeam(teamID, function()
-					return spGetUnitsInRectangle(left,top,right,bot)
-				end)
+				targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot)
 				--TODO: perhaps we should insert a new order on top of queue without cancelling area order
 				-- much like area reclaim, etc, until there are no enemies available
 
@@ -371,9 +372,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					targets = {cmdParams}
 				else
 					--circle
-					targets = CallAsTeam(teamID, function()
-						return spGetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])
-					end)
+					targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4])
 					-- perhaps we should insert a new order on top of queue without cancelling area order
 				end
 			elseif #cmdParams == 3 then
@@ -482,8 +481,9 @@ end
 -- Target update
 
 function gadget:GameFrame(n)
-	if n%15 == 14 then -- timing synced with slow update to reduce attack jittering
-		-- 14 causes attack command to override target command
+	if n%SlowUpdate == SlowUpdate-1 then 
+		-- timing synced with slow update to reduce attack jittering
+		-- SlowUpdate-1 causes attack command to override target command
 		-- 0 causes target command to take precedence
 
 		for unitID, unitData in pairs(unitTargets) do
@@ -640,7 +640,7 @@ function handleTargetChangeEvent(_,unitID,dataA,dataB,dataC)
 end
 
 local function pos2func(unitID)
-	local _,_,_,x2,y2,z2 = spGetUnitPosition(unitID,true)
+	local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(unitID,true,true)
 	return x2,y2,z2
 end
 
@@ -648,7 +648,7 @@ local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
 	if targetData and targetData.userTarget and tonumber(targetData.target) and spValidUnitID(targetData.target) then
 		--single unit target
 		if spectator then
-			local _,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true)
+			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
 			glVertex(x2,y2,z2)
 		else
 			local los = spGetUnitLosState(targetData.target, myAllyTeam, false)
@@ -663,6 +663,21 @@ local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
 	end
 end
 
+local function drawCurrentTarget(unitID, unitData, spectator, myTeam, myAllyTeam)
+	local _,_,_,x1,y1,z1 = spGetUnitPosition(unitID,true)
+	glVertex(x1,y1,z1)
+	--TODO: show cursor animation at target point
+	drawTargetCommand(unitData.targets[unitData.targetIndex],spectator,myTeam,myAllyTeam)
+end
+
+local function drawTargetQueue(unitID, unitData, spectator, myTeam, myAllyTeam)
+	local _,_,_,x1,y1,z1 = spGetUnitPosition(unitID,true)
+	glVertex(x1,y1,z1)
+	for _,targetData in ipairs(unitData.targets) do
+		drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
+	end
+end
+
 function gadget:DrawWorld()
 	local spectator = spGetSpectatingState()
 	glPushAttrib(GL.LINE_BITS)
@@ -673,21 +688,10 @@ function gadget:DrawWorld()
 		if drawTarget[unitID] or drawAllTargets[spGetUnitTeam(unitID)] or spIsUnitSelected(unitID) then
 			if spectator or spGetUnitAllyTeam(unitID) == myAllyTeam then
 				glColor(queueColour)
-				glBeginEnd(GL_LINE_STRIP, function()
-					local _,_,_,x1,y1,z1 = spGetUnitPosition(unitID,true)
-					glVertex(x1,y1,z1)
-					for _,targetData in ipairs(unitData.targets) do
-						drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
-					end
-				end)
+				glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitID, unitData, spectator, myTeam, myAllyTeam)
 				if unitData.targetIndex then
 					glColor(commandColour)
-					glBeginEnd(GL_LINES, function()
-						local _,_,_,x1,y1,z1 = spGetUnitPosition(unitID,true)
-						glVertex(x1,y1,z1)
-						--TODO: show cursor animation at target point
-						drawTargetCommand(unitData.targets[unitData.targetIndex],spectator,myTeam,myAllyTeam)
-					end)
+					glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData, spectator, myTeam, myAllyTeam)
 				end
 			end
 		end
