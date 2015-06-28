@@ -75,8 +75,10 @@ local spGetUnitWeaponTarget		= Spring.GetUnitWeaponTarget
 local tremove					= table.remove
 
 local diag						= math.diag
+local huge						= math.huge
 
 local CMD_STOP					= CMD.STOP
+
 
 local SlowUpdate				= 15
 
@@ -270,7 +272,7 @@ local function addUnitTargets(unitID, unitDefID, targets, append)
 end
 
 local function removeUnit(unitID)
-	spSetUnitTarget(unitID, 0) --unsets target
+	spSetUnitTarget(unitID, huge, huge, huge) --unsets target with a hack setting it to an impossible location
 	spSetUnitRulesParam(unitID,"targetID",-1)
 	spSetUnitRulesParam(unitID,"targetCoordX",-1)
 	spSetUnitRulesParam(unitID,"targetCoordY",-1)
