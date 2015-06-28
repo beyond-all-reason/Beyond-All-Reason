@@ -32,7 +32,7 @@ local CMD_RESURRECT = CMD.RESURRECT
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
   if step > 0 then return true end
-  local reclaimspeed = (UnitDefs[GetUnitDefID(builderID)].reclaimSpeed / 32)
+  local reclaimspeed = (UnitDefs[GetUnitDefID(builderID)].reclaimSpeed / 30)
   local reclaimtime = FeatureDefs[featureDefID].reclaimTime
   local oldformula = (((100 + reclaimspeed) * 0.02) / math.max(10, reclaimtime))
   local newformula = (reclaimspeed / reclaimtime)
