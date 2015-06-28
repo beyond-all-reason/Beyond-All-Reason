@@ -47,8 +47,8 @@ function RecieveGameMode(mode)
     -- remove old versions
     local max_version = -1
     for k,_ in pairs(stats) do
-        if stats[k].versionNumber then
-            max_version = math.max(max_version, stats[k].versionNumber)
+        if tonumber(stats[k].versionNumber) then
+            max_version = math.max(max_version, tonumber(stats[k].versionNumber))
         end
     end
     for k,_ in pairs(stats) do
