@@ -52,7 +52,9 @@ function RecieveGameMode(mode)
         end
     end
     for k,_ in pairs(stats) do
-        if stats[k].versionNumber and tonumber(stats[k].versionNumber) < max_version then
+        if stats[k].versionNumber and tonumber(stats[k].versionNumber) == nil then
+            stats[k] = nil
+        elseif tonumber(stats[k].versionNumber) < max_version then
             stats[k] = nil
         elseif not stats[k].versionNumber then
             stats[k] = {} --wipe $VERSION stats clean every time
