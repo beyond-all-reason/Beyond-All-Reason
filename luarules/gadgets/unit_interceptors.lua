@@ -32,7 +32,6 @@ end
 function gadget:Initialize()
 	for wdid, wd in pairs(WeaponDefs) do
 		if wd.interceptor > 0 and wd.coverageRange then
-			Spring.Echo(wd.name)
 			Script.SetWatchWeapon(wdid, true)
 		end
 	end
