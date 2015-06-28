@@ -73,7 +73,7 @@ include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing ro
 
 -- ffaStartPoints is "global"
 local useFFAStartPoints = false
-if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
+if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
     useFFAStartPoints = true
 end
 

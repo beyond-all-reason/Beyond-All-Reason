@@ -1,6 +1,6 @@
 function gadget:GetInfo()
 	return {
-		name			= "mo_noowner",
+		name			= "mo_ffa",
 		desc			= "Noowner code for FFA games. Removes abandoned teams",
 		author		= "TheFatController",
 		date			= "19 Jan 2008",
@@ -17,7 +17,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return
 end
 
-local enabled = tonumber(Spring.GetModOptions().mo_noowner) or 0
+local enabled = tonumber(Spring.GetModOptions().mo_ffa) or 0
 
 --teams dying before this mark don't leave wrecks
 local noWrecksLimit = Game.gameSpeed * 60 * 5--in frames
