@@ -40,3 +40,12 @@ QueryNanoPiece(piecenum)
 	piecenum = base;
 }
 
+QueryWeapon1(piecenum)
+{
+	piecenum = base;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = base;
+}

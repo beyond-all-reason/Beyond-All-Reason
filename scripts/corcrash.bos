@@ -230,6 +230,24 @@ SweetSpot(piecenum)
 	return (0);
 }
 
+QueryWeapon1(piecenum)
+{
+	piecenum = turret;
+}
+
+AimFromWeapon1(piecenum)
+{
+	if( gun_3 == 0 )
+	{
+		piecenum = firept1;
+	}
+	if( gun_3 == 0 )
+	{
+		piecenum = firept2;
+	}
+	return (0);
+}
+
 AimFromTertiary(piecenum)
 {
 	piecenum = turret;

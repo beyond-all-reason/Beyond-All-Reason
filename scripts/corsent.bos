@@ -131,6 +131,16 @@ QueryTertiary(piecenum)
 	piecenum = flare1;
 }
 
+QueryWeapon1(piecenum)
+{
+	piecenum = turret;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = flare1;
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = turret;
