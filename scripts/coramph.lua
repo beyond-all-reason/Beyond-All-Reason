@@ -272,7 +272,7 @@ end
 
 function script.AimWeapon(num, heading, pitch)
 	local _, basepos, _ = Spring.GetUnitPosition(unitID)
-	if num == 1 then
+	if num == 2 then
 		Signal( SIG_AIM)
 		SetSignalMask( SIG_AIM)
 		Turn( head , y_axis, heading , math.rad(200.000000) )
@@ -284,7 +284,7 @@ function script.AimWeapon(num, heading, pitch)
 		else
 			return false
 		end
-	elseif num == 3 then
+	elseif num == 1 then
 		Signal( SIG_AIM_3)
 		SetSignalMask( SIG_AIM_3)
 		Turn( head , y_axis, heading , math.rad(60.000000) )
@@ -300,7 +300,7 @@ function script.AimWeapon(num, heading, pitch)
 end
 
 function script.FireWeapon(num)
-	if num == 1 then
+	if num == 2 then
 		if gun_1 == 1 then
 			Sleep( 200)
 		else
@@ -310,20 +310,19 @@ function script.FireWeapon(num)
 		if gun_1 == 3 then
 		  gun_1 = 1
 		end
-	elseif num == 3 then
+	elseif num == 1 then
 		Sleep( 200)
 	end
 end
 
 function script.AimFromWeapon(num)
-
 	return head
 end
 
 function script.QueryWeapon(num)
-	  if num == 3 then
+	  if num == 1 then
 		    return head
-	  elseif num == 1 then
+	  elseif num == 2 then
 		    if gun_1 == 1 then
 		    return gunflare --laserflare
 		  else
