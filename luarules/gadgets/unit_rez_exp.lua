@@ -27,6 +27,7 @@ local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitExperience = Spring.GetUnitExperience
 local SetUnitExperience = Spring.SetUnitExperience
 local GetGameFrame = Spring.GetGameFrame
+local requestMaverickExpUpdate = GG.requestMaverickExpUpdate
 
 --wreckinfos is the only permanent storage across frames
 local wreckInfos = {} -- featureID: unitDefID, experience
@@ -119,6 +120,7 @@ function gadget:FeatureDestroyed(featureID)
 	for unitID, unitPos in pairs(rezzedList) do
 		if sqDist(unitPos,wreckLocation) < distThreshold then
 			SetUnitExperience(unitID,wreckInfo.experience)
+			requestMaverickExpUpdate(unitID)
 			rezzedUnits[wreckInfo.unitDefID][unitID] = nil
 			return
 		end

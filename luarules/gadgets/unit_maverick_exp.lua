@@ -18,6 +18,7 @@ end
 local SetUnitWeaponState = Spring.SetUnitWeaponState
 local GetUnitExperience = Spring.GetUnitExperience
 local SetUnitMaxRange = Spring.SetUnitMaxRange
+local GetUnitDefID = Spring.GetUnitDefID
 
 local maverickUnitDefID = UnitDefNames["armmav"].id
 local maverickOriginalRange = WeaponDefNames["armmav_armmav_weapon"].range
@@ -35,6 +36,14 @@ function gadget:GameFrame(n)
         end
     end
 	updateList = {}
+end
+
+function GG.requestMaverickExpUpdate(unitID)
+	if GetUnitDefID(unitID) ~= maverickUnitDefID then
+		return
+	end
+	--schedule an update of range next frame when exp has been updated
+    updateList[unitID] = true
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
