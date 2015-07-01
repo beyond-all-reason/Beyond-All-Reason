@@ -17,23 +17,18 @@ end
 function LoadMissiles()
 	if not Spring.IsCheatingEnabled() then return end
 
-    -- give all stockpilable units 5 missiles
-	local units = Spring.GetAllUnits()
-	for _,unitID in ipairs(units) do
-		Spring.SetUnitStockpile(unitID, 5) --no effect if the unit can't stockpile
+	for _,unitID in pairs(Spring.GetAllUnits()) do
+		Spring.SetUnitStockpile(unitID, select(2,Spring.GetUnitStockpile(unitID)) or 0) --no effect if the unit can't stockpile
 	end
 
-    return true
 end
 
 function gadget:HalfHealth()
 	if not Spring.IsCheatingEnabled() then return end
 
     -- reduce all units health to 1/2 of its current value
-    local units = Spring.GetAllUnits()
-    for _,unitID in pairs(units) do
-        local h = Spring.GetUnitHealth(unitID)
-        Spring.SetUnitHealth(unitID,h/2)    
+    for _,unitID in pairs(Spring.GetAllUnits()) do
+        Spring.SetUnitHealth(unitID,Spring.GetUnitHealth(unitID)/2)    
     end
 end
 
