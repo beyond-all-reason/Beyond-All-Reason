@@ -166,7 +166,6 @@ return {
 				soundstart = "rocklit1",
 				startvelocity = 650,
 				texture2 = "armsmoketrail",
-				toairweapon = true,
 				tolerance = 9000,
 				tracks = true,
 				turnrate = 63000,

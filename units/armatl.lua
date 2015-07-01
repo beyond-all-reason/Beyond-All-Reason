@@ -99,7 +99,6 @@ return {
 				soundstart = "launch",
 				startvelocity = 250,
 				submissile = true,
-				toairweapon = true,
 				tolerance = 1167,
 				tracks = true,
 				turnrate = 99000,

@@ -77,7 +77,6 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.01,
-				landbounce = false,
 				mygravity = 0.4,
 				name = "CoreSeaAdvancedBombs",
 				noselfdamage = true,

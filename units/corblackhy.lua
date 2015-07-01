@@ -202,7 +202,6 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "Rocklit3",
 				startvelocity = 650,
-				toairweapon = true,
 				tolerance = 8000,
 				tracks = true,
 				turnrate = 72000,

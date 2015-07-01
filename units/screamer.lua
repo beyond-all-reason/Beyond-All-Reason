@@ -127,7 +127,6 @@ return {
 				stockpile = true,
 				stockpiletime = 14,
 				texture2 = "coresmoketrail",
-				toairweapon = true,
 				tolerance = 10000,
 				tracks = true,
 				trajectoryheight = 0.55,

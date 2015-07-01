@@ -128,7 +128,6 @@ return {
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
 				soundstart = "flakfire",
-				toairweapon = true,
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",

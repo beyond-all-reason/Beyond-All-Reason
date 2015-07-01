@@ -124,7 +124,6 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "torpedo1",
 				soundtrigger = true,
-				startsmoke = 1,
 				startvelocity = 270,
 				tolerance = 15000,
 				tracks = true,

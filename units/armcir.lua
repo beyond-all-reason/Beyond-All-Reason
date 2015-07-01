@@ -126,7 +126,6 @@ return {
 				soundtrigger = true,
 				startvelocity = 90,
 				texture2 = "armsmoketrail",
-				toairweapon = true,
 				tolerance = 100000,
 				tracks = true,
 				turnrate = 42000,
