@@ -21,7 +21,6 @@ local red = "\255\255\1\1"
 
 function gadget:GameStart()
     local reportedMajorVersion = string.sub(Game.version,1,3)
-    Spring.Echo(reportedMajorVersion, minEngineVersion)
     if reportedMajorVersion and tonumber(reportedMajorVersion) then
         if tonumber(reportedMajorVersion)<minEngineVersion then
             Spring.Echo(red .. "WARNING: YOU ARE USING SPRING " .. Game.version .. " WHICH IS TOO OLD FOR THIS GAME.")

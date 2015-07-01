@@ -34,7 +34,6 @@ function gadget:Initialize()
     local tList = Spring.GetTeamList()
     local aList = Spring.GetAllyTeamList()
     local playersPerTeam = #tList / #aList
-    Spring.Echo(#tList, #aList)
     if #tList <= 2 then gameType = "single player" -- and gaia
     elseif playersPerTeam <=3 then gameType = "small team" 
     elseif  playersPerTeam <= 5 then gameType = "medium team"
