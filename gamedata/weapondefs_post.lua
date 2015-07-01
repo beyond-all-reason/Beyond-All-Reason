@@ -2,7 +2,8 @@
 -- Default Engine Weapon Definitions Post-processing
 --------------------------------------------------------------------------------
 -- BA stores weapondefs in the unitdef files 
--- use unitdefs_post for all other nit/weapon post-processing
+-- use unitdefs_post for all other unit/weapon post-processing
+-- basically, DONT TOUCH this! 
 --------------------------------------------------------------------------------
 
 local function isbool(x)   return (type(x) == 'boolean') end
