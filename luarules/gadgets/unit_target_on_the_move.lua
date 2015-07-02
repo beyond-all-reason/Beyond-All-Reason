@@ -271,7 +271,7 @@ local function addUnitTargets(unitID, unitDefID, targets, append)
 end
 
 local function removeUnit(unitID)
-	spSetUnitTarget(unitID, Game.mapSizeX + 1, 0, Game.mapSizeZ + 1) --unsets target with a hack setting it to an impossible location
+	spSetUnitTarget(unitID)
 	spSetUnitRulesParam(unitID,"targetID",-1)
 	spSetUnitRulesParam(unitID,"targetCoordX",-1)
 	spSetUnitRulesParam(unitID,"targetCoordY",-1)
