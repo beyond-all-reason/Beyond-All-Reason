@@ -17,7 +17,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "EMP Missile Launcher",
-		explodeas = "CORGRIPN_BOMB",
+		explodeas = "EMP_MEDIUM",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",

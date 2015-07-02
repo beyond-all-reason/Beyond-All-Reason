@@ -1,11 +1,10 @@
 return {
-	corgripn_bomb = {
+	emp_medium = {
 		areaofeffect = 240,
 		collidefriendly = 0,
 		commandfire = 1,
 		craterboost = 0,
 		cratermult = 0,
-		dropped = 1,
 		edgeeffectiveness = 0.75,
 		explosiongenerator = "custom:EMPFLASH240",
 		firestarter = 90,
