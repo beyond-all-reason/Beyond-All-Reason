@@ -1,8 +1,8 @@
 
 function gadget:GetInfo()
     return {
-        name      = 'Paralyse Multiplier',
-        desc      = 'Handles Paralyze damage resistance',
+        name      = 'Paralyze Damage Multiplier',
+        desc      = 'Applies Paralyze damage resistance',
         author    = 'Niobium',
         version   = 'v1.0',
         date      = 'April 2011',
@@ -35,6 +35,7 @@ end
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
     if paralyzer then
+        -- apply customParams paralyse multiplier
         local paralyzeMultiplier = paralyzeMultipliers[uDefID]
         return damage * paralyzeMultiplier, paralyzeMultiplier
     end
