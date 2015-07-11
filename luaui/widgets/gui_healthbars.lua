@@ -89,7 +89,7 @@ local barColors = {
 local blink = false;
 local gameFrame = 0;
 
-local empDecline = 32/30/40;
+local empDecline = 1/40; --magic
 
 local cx, cy, cz = 0,0,0;  --// camera pos
 local smoothheight = 0 -- smoothmesh under camera
