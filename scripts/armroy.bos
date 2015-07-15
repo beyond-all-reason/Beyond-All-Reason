@@ -175,12 +175,12 @@ AimSecondary(heading, pitch)
 
 AimFromSecondary(piecenum)
 {
-	piecenum = flareb;
+	piecenum = base;
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = base;
+	piecenum = flareb;
 }
 
 AimPrimary(heading, pitch)
