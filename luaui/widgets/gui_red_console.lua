@@ -473,7 +473,9 @@ local function processLine(line,g,cfg,newlinecolor)
 
         if sfind(line,"Wrong network version") then
             local n,_ = sfind(line,"Message")
-            line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
+            if n ~= nil then
+				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
+			end
         end
 		
 		if gameOver then
