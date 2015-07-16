@@ -1,3 +1,23 @@
+8.17 -> 8.18
+16/07/2015
+
+- Updates for Spring 100.0
+- Baked unitdefs_post and weapondefs_post into unitdefs
+- Added widget(+gadget) to collect unit statistics 
+- Added widget to remember the camera mode
+- Added widget to enable LOS view (default disabled)
+- Added widget to stop self destruct orders with a stop order
+- Added warning when using too old/new Spring version
+- More death messages
+- Fixed lagging players sometimes not being takeable
+- Fixed toaster sometimes not being resurrectable
+- Fixed anti-nukes shooting at nukes that fly overhead
+- Fixed Mavericks fight command at increased range
+- Anti-nuke missiles fly faster
+- Increased Corvette health
+- Max paralysis time of mobile units is 15 seconds, except for mobile anti-nukes
+
+
 8.16 -> 8.17
 26/04/2015
 - Fix typo
