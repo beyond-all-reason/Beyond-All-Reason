@@ -14,7 +14,7 @@
 - Fixed anti-nukes shooting at nukes that fly overhead
 - Fixed Mavericks fight command at increased range
 - Anti-nuke missiles fly faster
-- Increased Corvette health
+- Increased Corvette health 1650 -> 1900
 - Max paralysis time of mobile units is 15 seconds, except for mobile anti-nukes
 
 
