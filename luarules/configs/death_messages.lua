@@ -741,6 +741,17 @@ teamDeathMessages = {
     "XX was terminated",
     "XX was fresh out of Chlorine",
     "XX is just gonna stand there and bleed",
+    "XX democratically voted against paying its own debts",
+    "XX took its final shower",
+    "XX turned over to the dark side",
+    "XX can into relevance",
+    "XX was fifty shades of fucked-up, Anastasia",
+    "XX was a bright cold day in April",
+    "XX was a queer, sultry summer",
+    "XX, light of my life, fear of my loins",
+    "XX was eloquently, lovingly and pugnaciously drunk",
+    "XX was one of the reasons the Chinese never invented custard",
+    "XX used to be Snow White",
 }
 
 
