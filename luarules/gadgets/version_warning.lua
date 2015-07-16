@@ -20,7 +20,7 @@ local maxEngineVersion = 101 -- don't forget to update it!
 local red = "\255\255\1\1"
 
 function gadget:GameStart()
-    local n = string.find(Game.version,".") or string.len(Game.version)
+    local n = string.find(Game.version,".",1,true) or string.len(Game.version) -- see http://stackoverflow.com/questions/15258313/finding-with-string-find, lua is so *** stupid
     local reportedMajorVersion = string.sub(Game.version,1,n+1)
     if reportedMajorVersion and tonumber(reportedMajorVersion) then
         if tonumber(reportedMajorVersion)<minEngineVersion then
