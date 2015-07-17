@@ -28,13 +28,21 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
 	local ox, _, oz = Spring.GetUnitPosition(interceptorUnitID)
 
     --Spring.GetProjectileTarget( number projectileID ) -> nil | [number targetTypeInt, number targetID | table targetPos = {x, y, z}]
-	local target_type_or_targetPos, targetID = Spring.GetProjectileTarget(targetProjectileID)
+	local targetType, targetID = Spring.GetProjectileTarget(targetProjectileID)
 
-    if targetID then -- target = unit
-        local tx,_, tz = Spring.GetUnitPosition(targetID)
-        return (ox - tx) ^ 2 + (oz - tz) ^ 2 < wd.coverageRange ^ 2
-    elseif target_type_or_targetPos then -- table with coordinates
-        local tx, _, tz = unpack(target_type_or_targetPos)
+    if targetType then
+        local tx, ty, tz;
+
+        if targetType == string.byte('u') then -- unit
+            tx, ty,  tz = Spring.GetUnitPosition(targetID)
+        elseif targetType == string.byte('f') then -- feature
+            tx, ty,  tz = Spring.GetFeaturePosition(targetID)
+        elseif targetType == string.byte('p') then --PROJECTILE
+            tx, ty,  tz = Spring.GetProjectilePosition(targetID)
+        elseif targetType == string.byte('g') then -- ground
+            tx, ty, tz = unpack(targetID)
+        end
+
         return (ox - tx) ^ 2 + (oz - tz) ^ 2 < wd.coverageRange ^ 2
     end
 end
