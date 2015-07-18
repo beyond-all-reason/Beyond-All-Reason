@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date      = "",
 		license   = "Round Objects",
 		layer     = 0,
-		enabled   = false
+		enabled   = true
 	}
 end
 
