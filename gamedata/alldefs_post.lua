@@ -15,7 +15,7 @@
 -- strictly speaking, alldefs.lua is a misnomer since this file does not handle armordefs, featuredefs or movedefs
 
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
-SaveDefsToCustomParams = true
+SaveDefsToCustomParams = false
 
 
 -------------------------
