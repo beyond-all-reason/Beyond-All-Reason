@@ -2,7 +2,8 @@
 -- Default Engine Weapon Definitions Post-processing
 --------------------------------------------------------------------------------
 -- BA stores weapondefs in the unitdef files 
--- use unitdefs_post for all other unit/weapon post-processing
+-- Here we load those defs into the WeaponDefs table
+-- Then we call alldefs_post.lua, in which post processing of defs should take place
 -- basically, DONT TOUCH this! 
 --------------------------------------------------------------------------------
 
@@ -25,10 +26,9 @@ local function tobool(val)
   return false
 end
 
-
 --------------------------------------------------------------------------------
 
-local function ProcessUnitDef(udName, ud)
+local function ExtractWeaponDefs(udName, ud)
 
   local wds = ud.weapondefs
   if (not istable(wds)) then
@@ -79,16 +79,45 @@ end
 
 --------------------------------------------------------------------------------
 
--- Process the unitDefs
-local UnitDefs = DEFS.unitDefs
+-- see alldefs.lua for documentation
 
-for udName, ud in pairs(UnitDefs) do
+-- load the games _Post functions for defs, and find out if saving to custom params is wanted
+VFS.Include("gamedata/alldefs_post.lua")
+
+-- load functionality for saving to custom params
+VFS.Include("gamedata/post_save_to_customparams.lua")
+
+-- handle standalone weapondefs
+for name,wd in pairs(WeaponDefs) do
+    WeaponDef_Post(name,wd)
+    
+    if SaveDefsToCustomParams then
+        SaveDefToCustomParams("WeaponDefs", name, wd)    
+    end
+end
+
+-- handle unitdefs and the weapons they contain
+local UnitDefs = DEFS.unitDefs
+for name,ud in pairs(UnitDefs) do
+  UnitDef_Post(name,wd)
+  if ud.weapondefs then
+	for wname,wd in pairs(ud.weapondefs) do
+	  WeaponDef_Post(wname,wd)
+	end
+  end 
+  
+  if SaveDefsToCustomParams then
+      SaveDefToCustomParams("UnitDefs", name, ud)    
+  end
+end
+  
+-- extract weapondefs from the unitdefs
+for udName,ud in pairs(UnitDefs) do
   if (isstring(udName) and istable(ud)) then
-    ProcessUnitDef(udName, ud)
+    ExtractWeaponDefs(udName, ud)
   end
 end
 
---------------------------------------------------------------------------------
+-- apply mod options that need _post 
+ModOptions_Post(UnitDefs, WeaponDefs)
 
---for id in pairs(WeaponDefs) do
---end

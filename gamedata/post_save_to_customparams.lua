@@ -35,9 +35,9 @@ function table.tostring( tbl )
   return "{" .. table.concat( result, "," ) .. "}"
 end
 
-for name,ud in pairs(UnitDefs) do
-    local ud_string = table.tostring(ud)
-    ud.customparams = ud.customparams or {}
-    ud.customparams.__ud = table.tostring(ud)
-    Spring.Echo("saved UnitDefs." .. name .. " to customparams.__ud as string")
+function SaveDefToCustomParams(defType, name, def)
+    local def_string = table.tostring(def)
+    def.customparams = def.customparams or {}
+    def.customparams.__def = table.tostring(def)
+    Spring.Echo("saved " .. defType .. "." .. name .. " to customparams.__def as string")
 end
