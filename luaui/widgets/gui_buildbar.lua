@@ -69,6 +69,15 @@ local useBlurShader   = false   -- it has a fallback, if the gfx don't support g
 local blured          = false
 local blurFullscreen  = function() return end
 
+
+local bgcorner		= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local repeatPic		= ':n:LuaUI/Images/repeat.png'
+
+local GL_ONE                   = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA             = GL.SRC_ALPHA
+local glBlending               = gl.Blending
+
 -------------------------------------------------------------------------------
 -- SOUNDS
 -------------------------------------------------------------------------------
@@ -128,9 +137,9 @@ end
 
 local function UpdateIconSizes()
   iconSizeX = math.floor(bar_iconSizeBase+((vsx-800)/38))
-  iconSizeY = math.floor(iconSizeX * 0.75)
-  fontSize  = iconSizeY * 0.25
-  repIcoSize = math.floor(iconSizeY*0.6)
+  iconSizeY = math.floor(iconSizeX * 0.9)
+  fontSize  = iconSizeY * 0.27
+  repIcoSize = math.floor(iconSizeY*0.4)
 end
 
 
@@ -201,7 +210,7 @@ function widget:SetConfigData(data)
   bar_side         = data.side         or 2
   bar_offset       = data.offset       or 0
   bar_align        = data.align        or 0
-  bar_iconSizeBase = data.iconSizeBase or 65
+  bar_iconSizeBase = data.bar_iconSizeBase or 28
   bar_openByClick  = data.openByClick  or false
   bar_autoclose    = data.autoclose    or (not bar_openByClick)
 
@@ -250,8 +259,34 @@ end
 -------------------------------------------------------------------------------
 local function DrawRect(rect, color)
   glColor(color)
-  glRect(rect[1],rect[2],rect[3],rect[4])
+  --glRect(rect[1],rect[2],rect[3],rect[4])
+  RectRound(rect[1],rect[4],rect[3],rect[2],(rect[3]-rect[1])/8)
   glColor(1,1,1,1)
+end
+
+function RectRound(px,py,sx,sy,cs)
+	
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
+	
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
+	
+	gl.Texture(bgcorner)
+	
+	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	
+	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	gl.Texture(false)
 end
 
 local function DrawLineRect(rect, color, width)
@@ -315,6 +350,13 @@ local function DrawBuildProgress(left,top,right,bottom, progress, color)
   end
 
   glShape(GL.TRIANGLE_FAN, list)
+  
+  -- adding additive overlay
+  glColor(color[1],color[2],color[3],color[4]/10)
+  glBlending(GL_SRC_ALPHA, GL_ONE)
+  glShape(GL.TRIANGLE_FAN, list)
+  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+  
   glColor(1,1,1,1)
 end
 
@@ -332,30 +374,36 @@ local function DrawButton(rect, unitDefID, options)
 
   -- Progress
   if (options.progress or -1)>-1 then
-    DrawBuildProgress(rect[1],rect[2],rect[3],rect[4], options.progress, { 1, 1, 1, 0.5 })
+    DrawBuildProgress(rect[1],rect[2],rect[3],rect[4], options.progress, { 1, 1, 1, 0.4 })
   end
 
   -- loop status?
   if options['repeat'] then
-    DrawTexRect({rect[3]-repIcoSize,rect[2],rect[3],rect[2]-repIcoSize}, 'LuaUI/Images/repeat.png', 0.65)
+    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic, 0.65)
   end
 
   -- hover or pressed?
   if (options.hovered_repeat) then
-    DrawTexRect({rect[3]-repIcoSize,rect[2],rect[3],rect[2]-repIcoSize}, 'LuaUI/Images/repeat.png')
+    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic)
   elseif (options.pressed) then
-    DrawRect(rect, { 0, 0, 0, 0.35 })  -- pressed
+    DrawRect(rect, { 1, 0.6, 0, 0.3 })  -- pressed
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+      DrawRect(rect, { 1, 0.6, 0, 0.35 })  -- pressed
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   elseif (options.hovered) then
-    DrawRect(rect, { 1, 1, 1, 0.35 })  -- hover
+    DrawRect(rect, { 1, 1, 1, 0.2})  -- hover
+    glBlending(GL_SRC_ALPHA, GL_ONE)
+      DrawRect(rect, { 1, 1, 1, 0.24 })  -- hover
+    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
 
   -- amount
   if ((options.amount or 0)>0) then
-    glText( options.amount ,rect[1]+2,rect[4]+2,fontSize,"o")
+    glText( options.amount ,rect[1]+5,rect[4]+6.5,fontSize,"o")
   end
 
   -- draw border
-  if (options.waypoint) then
+  --[[if (options.waypoint) then
     DrawRect(rect, { 0.5,1.0,0.5,0.45 })
     DrawLineRect(rect, { 0, 0, 0, 1 },borderSize+2)
   elseif (options.selected)and(not options.pressed) then
@@ -363,7 +411,7 @@ local function DrawButton(rect, unitDefID, options)
     DrawLineRect(rect, { 0, 0, 0, 1 },borderSize+2)
   else
     DrawLineRect(rect, { 0, 0, 0, 1 })
-  end
+  end]]--
 end
 
 
@@ -470,8 +518,8 @@ function widget:DrawScreen()
           if (n==1) then count=count-1 end -- cause we show the actual in building unit instead of the factory icon
 
           if (count>0) then
-            DrawTexRect(bopt_rec,"#"..unitBuildDefID,0.55)
-            if (count>1) then glText( count ,bopt_rec[1]+2,bopt_rec[4]+2,fontSize,"o") end
+            DrawTexRect(bopt_rec,"#"..unitBuildDefID,0.5)
+            if (count>1) then glText( count ,bopt_rec[1]+5,bopt_rec[4]+6.5,fontSize,"o") end
 
             OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])
             j = j-1
@@ -487,7 +535,7 @@ function widget:DrawScreen()
   end
 
   -- draw border around factory list
-  if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2.5) end
+  --if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2) end
 end
 
 
