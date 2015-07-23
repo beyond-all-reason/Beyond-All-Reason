@@ -4,7 +4,7 @@ function widget:GetInfo()
 		name      = "Initial Queue",
 		desc      = "Allows you to queue buildings before game start",
 		author    = "Niobium",
-		version   = "1.5",
+		version   = "1.6",
 		date      = "7 April 2010",
 		license   = "GNU GPL, v2 or later",
 		layer     = -1, -- Puts it above minimap_startboxes with layer 0
@@ -15,19 +15,33 @@ end
 -- 12 jun 2012: "uDef.isMetalExtractor" was replaced by "uDef.extractsMetal > 0" to fix "metal" mode map switching (by [teh]decay, thx to vbs and Beherith)
 -- 20 march 2013: added keyboard support with BA keybinds (Bluestone)
 -- august 2013: send queue length to cmd_idle_players (BrainDamage)
+-- june 2015: guishader + rounded corners + hover effect + widget scales with resolution + remembers queue after /luaui reload (Floris)
+
 
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
 -- Panel
-local iconSize = 40
-local borderSize = 1
+local iconWidth = 50
+local iconHeight = 44
+local iconPadding = 2
+local borderSize = 0
 local maxCols = 5
-local fontSize = 16
+local fontSize = 17
+local margin = 6
+local backgroundColor = {0,0,0,0.6}
+local hoverColor = {1,1,1,0.33}
+local pushedColor = {1,0.1,0,0.44}
+local clickColor = {0.66,1,0,0.33}
+--local pressColor = {1,0,0,0.44}
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local buttonhighlight = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
+local buttonpushed = ":n:"..LUAUI_DIRNAME.."Images/button-pushed.dds"
+local customScale = 0.95
 
 -- Colors
-local buildDistanceColor = {0.3, 1.0, 0.3, 0.7}
-local buildLinesColor = {0.3, 1.0, 0.3, 0.7}
+local buildDistanceColor = {0.3, 1.0, 0.3, 0.6}
+local buildLinesColor = {0.3, 1.0, 0.3, 0.6}
 local borderNormalColor = {0.3, 1.0, 0.3, 0.5}
 local borderClashColor = {0.7, 0.3, 0.3, 1.0}
 local borderValidColor = {0.0, 1.0, 0.0, 1.0}
@@ -38,6 +52,9 @@ local metalColor = '\255\196\196\255' -- Light blue
 local energyColor = '\255\255\255\128' -- Light yellow
 local buildColor = '\255\128\255\128' -- Light green
 local whiteColor = '\255\255\255\255' -- White
+
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = 1	-- will adjust based on resolution
 
 -- Building ids
 local ARMCOM = UnitDefNames["armcom"].id
@@ -97,9 +114,6 @@ local CORDL = UnitDefNames["cordl"].id
 
 local ARMAP = UnitDefNames["armap"].id
 local CORAP = UnitDefNames["corap"].id
-
-
-
 
 
 local ARMFRAD = UnitDefNames["armfrad"].id
@@ -194,9 +208,9 @@ local totalTime
 -- Local functions
 ------------------------------------------------------------
 local function TraceDefID(mx, my)
-	local overRow = cellRows[1 + math.floor((wt - my) / (iconSize + borderSize))]
+	local overRow = cellRows[1 + math.floor((wt - my) / ((iconHeight + borderSize)*widgetScale))]
 	if not overRow then return nil end
-	return overRow[1 + math.floor((mx - wl) / (iconSize + borderSize))]
+	return overRow[1 + math.floor((mx - wl) / ((iconWidth + borderSize)*widgetScale))]
 end
 local function GetBuildingDimensions(uDefID, facing)
 	local bDef = UnitDefs[uDefID]
@@ -326,6 +340,7 @@ end
 ------------------------------------------------------------
 -- Initialize/shutdown
 ------------------------------------------------------------
+
 function widget:Initialize()
 	if (Game.startPosType == 1) or			-- Don't run if start positions are random
 	   (Spring.GetGameFrame() > 0) or		-- Don't run if game has already started
@@ -345,6 +360,42 @@ function widget:Initialize()
 		InitializeFaction(sDefID)
 		WG["faction_change"] = InitializeFaction
 	end
+	processGuishader()
+end
+
+function processGuishader()
+	if (WG['guishader_api'] ~= nil) then
+		local sBuilds = UnitDefs[sDefID].buildOptions
+		local numCols = math.min(#sBuilds, maxCols)
+		local numRows = math.ceil(#sBuilds / numCols)
+		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
+		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
+		WG['guishader_api'].InsertRect(wl-(margin*widgetScale), wt-bgheight, wl+bgwidth, wt+margin*widgetScale, 'initialqueue')
+	end
+end
+
+function RectRound(px,py,sx,sy,cs)
+	
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
+	
+	gl.Texture(bgcorner)
+	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	
+	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	gl.Texture(false)
 end
 
 function InitializeFaction(sDefID)
@@ -365,30 +416,37 @@ function InitializeFaction(sDefID)
 	for b = 0, #sBuilds - 1 do
 		cellRows[1 + math.floor(b / numCols)][1 + b % numCols] = sBuilds[b + 1]
 	end
-
+	
+			
 	-- Set up drawing function
 	local drawFunc = function()
 
 		gl.PushMatrix()
 			gl.Translate(0, borderSize, 0)
 
+			-- background
+			local bgheight = ((#cellRows*iconHeight)+margin)
+			local bgwidth = ((maxCols*iconWidth)+margin)
+			gl.Color(backgroundColor)
+			RectRound(-(margin), -bgheight, bgwidth, margin, ((iconWidth+iconPadding+iconPadding)/7))
+
 			for r = 1, #cellRows do
 				local cellRow = cellRows[r]
-
-				gl.Translate(0, -iconSize - borderSize, 0)
+				
+				gl.Translate(0, -((iconHeight - borderSize)), 0)
 				gl.PushMatrix()
-
+					
 					for c = 1, #cellRow do
 
 						gl.Color(0, 0, 0, 1)
-						gl.Rect(-borderSize, -borderSize, iconSize + borderSize, iconSize + borderSize)
+						--gl.Rect(-borderSize, -borderSize, iconWidth + borderSize, iconHeight + borderSize)
 
 						gl.Color(1, 1, 1, 1)
 						gl.Texture("#" .. cellRow[c])
-							gl.TexRect(0, 0, iconSize, iconSize)
+							gl.TexRect(iconPadding, iconPadding, (iconWidth-iconPadding), (iconHeight-iconPadding))
 						gl.Texture(false)
 
-						gl.Translate(iconSize + borderSize, 0, 0)
+						gl.Translate((iconWidth + borderSize), 0, 0)
 					end
 				gl.PopMatrix()
 			end
@@ -420,22 +478,66 @@ function widget:Shutdown()
 		gl.DeleteList(panelList)
 	end
 	WG["faction_change"] = nil
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('initialqueue')
+	end
 end
+
 
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
---[[
+
 function widget:GetConfigData()
-	local wWidth, wHeight = Spring.GetWindowGeometry()
-	return {wl / wWidth, wt / wHeight}
+	if (Spring.GetSpectatingState()) then return end
+	--local wWidth, wHeight = Spring.GetWindowGeometry()
+	--return {wl / wWidth, wt / wHeight}
+	local _, _, _, _, mySide = Spring.GetTeamInfo(Spring.GetMyTeamID())
+	if Spring.GetGameSeconds() <= 0 and  mySide ~= "" then
+		local startUnitName = Spring.GetSideData(mySide)
+		local sDefID = UnitDefNames[startUnitName].id
+		local sBuilds = UnitDefs[sDefID].buildOptions
+		local numCols = math.min(#sBuilds, maxCols)
+		local numRows = math.ceil(#sBuilds / numCols)
+		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
+		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
+		
+		savedTable = {}
+		savedTable.buildQueue	= buildQueue
+		savedTable.wt			= wt
+		savedTable.wl			= wl
+		savedTable.bgheight		= bgheight
+		savedTable.bgwidth		= bgwidth
+		savedTable.osclock		= os.clock()
+		return savedTable
+	end
 end
 function widget:SetConfigData(data)
-	local wWidth, wHeight = Spring.GetWindowGeometry()
-	wl = math.floor(wWidth * (data[1] or 0.40))
-	wt = math.floor(wHeight * (data[2] or 0.10))
+	--if (Spring.GetSpectatingState()) then return end
+	--local wWidth, wHeight = Spring.GetWindowGeometry()
+	--wl = math.floor(wWidth * (data[1] or 0.40))
+	--wt = math.floor(wHeight * (data[2] or 0.10))
+	if data.wt ~= nil and data.wl ~= nil and data.bgwidth ~= nil and data.bgheight ~= nil then
+		wt = data.wt
+		wl = data.wl
+		if wl < 0 then 
+			wl = 0
+		end
+		if wl > vsx+data.bgwidth then
+			wl = vsx+data.bgwidth
+		end
+		if wt < data.bgheight then
+			wt = data.bgwidth
+		end
+		if wt > vsy then 
+			wt = vsy
+		end
+	end
+	if Spring.GetGameSeconds() <= 0 and data.osclock and data.buildQueue and (data.osclock + 8) > os.clock() then		-- 8 sec graceperiod to complete a /luaui reload
+		buildQueue = data.buildQueue
+	end
 end
-]]
+
 
 ------------------------------------------------------------
 -- Drawing
@@ -450,18 +552,51 @@ local queueTimeFormat = whiteColor .. 'Queued ' .. metalColor .. '%dm ' .. energ
 
 
 
+
 function widget:DrawScreen()
 	gl.PushMatrix()
 		gl.Translate(wl, wt, 0)
+		gl.Scale(widgetScale,widgetScale,widgetScale)
 		gl.CallList(panelList)
+		gl.Scale(1/widgetScale,1/widgetScale,1/widgetScale)
 		if #buildQueue > 0 then
 			local mCost, eCost, bCost = GetQueueCosts()
 			local buildTime = bCost / sDef.buildSpeed
 			totalTime = buildTime
-			gl.Text(string.format(queueTimeFormat, mCost, eCost, buildTime), 0, 0, fontSize, 'do')
+			gl.Text(string.format(queueTimeFormat, mCost, eCost, buildTime), 0, margin*widgetScale, fontSize*widgetScale, 'do')
+		end
+		
+		-- draw hover
+		local CurMouseState = {Spring.GetMouseState()} --{mx,my,m1,m2,m3}
+		local row = 1 + math.floor((wt - CurMouseState[2]) / ((iconHeight + borderSize)*widgetScale))
+		local col = 1 + math.floor((wl - CurMouseState[1]) / ((iconWidth + borderSize)*widgetScale))
+		
+		if TraceDefID(CurMouseState[1], CurMouseState[2]) then
+			gl.Translate(-((iconWidth*widgetScale)*col), -((iconHeight*widgetScale)*row), 0)
+			gl.Texture(buttonhighlight)
+			gl.Color(hoverColor)
+			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			if CurMouseState[3] then
+				gl.Color(clickColor)
+				gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+				lastClickedRow = row
+				lastClickedCol = col
+			end
+			gl.Texture(false)
+			gl.Translate(((iconWidth*widgetScale)*col), ((iconHeight*widgetScale)*row), 0)
+		end
+		if selDefID ~= nil and lastClickedRow ~= nil and lastClickedCol ~= nil then
+			local row, col = lastClickedRow, lastClickedCol
+			gl.Translate(-((iconWidth*widgetScale)*col), -((iconHeight*widgetScale)*row), 0)
+			gl.Texture(buttonpushed)
+			gl.Color(pushedColor)
+			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			gl.Texture(false)
+			gl.Translate(((iconWidth*widgetScale)*col), ((iconHeight*widgetScale)*row), 0)
 		end
 	gl.PopMatrix()
 end
+
 function widget:DrawWorld()
 	--don't draw anything once the game has started; after that engine can draw queues itself
 	if gameStarted then return end
@@ -651,8 +786,6 @@ end
 needBuildFacing = true
 
 function widget:MousePress(mx, my, mButton)
-
-
 	local tracedDefID = TraceDefID(mx, my)
 	if tracedDefID then
 		if mButton == 1 then
@@ -715,14 +848,51 @@ function widget:MousePress(mx, my, mButton)
 		end
 	end
 end
+
 function widget:MouseMove(mx, my, dx, dy, mButton)
 	if areDragging then
-		wl = wl + dx
-		wt = wt + dy
+		local sBuilds = UnitDefs[sDefID].buildOptions
+		local numCols = math.min(#sBuilds, maxCols)
+		local numRows = math.ceil(#sBuilds / numCols)
+		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
+		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
+		
+		if wl + dx >= 0 and wl + bgwidth + dx - 1 <= vsx then 
+			wl = wl + dx
+		end
+		if wt + dy >= bgheight and wt + bgheight + dy - 1 <= vsy+bgheight then 
+			wt = wt + dy
+		end
+		if wl < 0 then 
+			wl = 0
+		end
+		if wl > vsx-bgwidth then
+			wl = vsx-bgwidth
+		end
+		if wt < bgheight then
+			wt = bgheight
+		end
+		if wt > vsy then 
+			wt = vsy
+		end
+		processGuishader()
 	end
 end
+
+
 function widget:MouseRelease(mx, my, mButton)
 	areDragging = false
+	local tracedDefID = TraceDefID(mx, my)
+	if tracedDefID then
+		if mButton == 1 then
+		if needBuildFacing then
+			SetBuildFacing()
+			needBuildFacing = false
+		end
+			SetSelDefID(tracedDefID)
+			return true
+		end
+	end
 end
 
 ------------------------------------------------------------
@@ -790,6 +960,31 @@ function widget:KeyPress(key,mods,isrepeat)
 			else 								SetSelDefID(CORLAB)		
 			end
 		end	
+	end
+end
+
+function widget:ViewResize(newX,newY)
+	vsx, vsy = newX, newY
+	widgetScale = (0.6 + (vsx*vsy / 4000000)) * customScale
+	processGuishader()
+	
+	local sBuilds = UnitDefs[sDefID].buildOptions
+	local numCols = math.min(#sBuilds, maxCols)
+	local numRows = math.ceil(#sBuilds / numCols)
+	local bgheight = ((numRows*iconHeight)+margin)*widgetScale
+	local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
+	
+	if wl < 0 then 
+		wl = 0
+	end
+	if wl > vsx-bgwidth then
+		wl = vsx-bgwidth
+	end
+	if wt < bgheight then
+		wt = bgheight
+	end
+	if wt > vsy then 
+		wt = vsy
 	end
 end
 
