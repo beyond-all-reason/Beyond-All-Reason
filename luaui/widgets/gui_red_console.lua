@@ -3,7 +3,7 @@ function widget:GetInfo()
 	name      = "Red Console", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
-	date      = "August 13, 2009", --last change September 10,2009
+	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
 	enabled   = true, --enabled by default
@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 local NeededFrameworkVersion = 8
-local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
+local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 local SoundIncomingChat  = 'sounds/beep4.wav'
 local SoundIncomingChatVolume = 1.0
@@ -43,17 +43,17 @@ local spPlaySoundFile = Spring.PlaySoundFile
 
 local Config = {
 	console = {
-		px = 300,py = 34+5, --default start position
-		sx = 605, --background size
+		px = 375,py = 34, --default start position
+		sx = 516, --background size
 		
-		fontsize = 12,
+		fontsize = 11.5,
 		
 		minlines = 1, --minimal number of lines to display
-		maxlines = 10,
+		maxlines = 7,
 		
-		maxage = 15, --max time for a message to be displayed, in seconds
+		maxage = 30, --max time for a message to be displayed, in seconds
 		
-		margin = 5, --distance from background border
+		margin = 7, --distance from background border
 		
 		fadetime = 0.25, --fade effect time, in seconds
 		fadedistance = 100, --distance from cursor at which console shows up when empty
@@ -69,14 +69,14 @@ local Config = {
 		cmisctext = {0.78,0.78,0.78,1}, --everything else
 		cgametext = {0.4,1,1,1}, --server (autohost) chat
 		
-		cbackground = {0,0,0,0.1},
-		cborder = {0,0,0,0.5},
+		cbackground = {0,0,0,0.12},
+		cborder = {0,0,0,0.0},
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the console around.\n\n"..
-			"Press \255\255\255\1CTRL\255\255\255\255 while mouse is above the console to activate chatlog viewing.\n"..
-			"Use mousewheel (+hold \255\255\255\1SHIFT\255\255\255\255 for speedup) to scroll through the chatlog.",
+			background ="- Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the console.\n"..
+			"- Press \255\255\255\1CTRL\255\255\255\255 while mouse is above the \nconsole to activate chatlog viewing.\n"..
+			"- Use mousewheel (+hold \255\255\255\1SHIFT\255\255\255\255 for speedup)\n to scroll through the chatlog.",
 		},
 	},
 }
@@ -157,6 +157,7 @@ local function AutoResizeObjects() --autoresize v2
 	end
 end
 
+
 local function createconsole(r)
 	local vars = {}
 	
@@ -197,7 +198,7 @@ local function createconsole(r)
 		end,
 	}
 
-	local background = {"rectangle",
+	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.sx,sy=r.maxlines*r.fontsize+r.margin*2,
 		color=r.cbackground,
@@ -224,7 +225,7 @@ local function createconsole(r)
 		if (not self._mousenotover) then
 			background.active = nil --activate
 			if (vars._empty) then
-				background.sy = r.minlines*lines.fontsize + (lines.px-background.px)*2
+				background.sy = (r.minlines*lines.fontsize + (lines.px-background.px)*2)
 			end
 			local alt,ctrl,meta,shift = Spring.GetModKeyState()
 			if (ctrl and not vars.browsinghistory) then
@@ -369,7 +370,10 @@ end
 
 local function clipHistory(g,oneline)
 	local history = g.vars.consolehistory
-	local maxsize = g.background.sx - (g.lines.px-g.background.px)
+	--local maxsize = g.background.sx - (g.lines.px-g.background.px)
+	
+	local scale = Screen.vsx/LastAutoResizeX
+	local maxsize = g.background.sx - ((Config.console.margin * 4) * scale)
 	local fontsize = g.lines.fontsize
 	
 	if (oneline) then
@@ -464,6 +468,11 @@ local function processLine(line,g,cfg,newlinecolor)
 		end		
     end
 	
+	-- filter shadows config changes
+	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
+		ignoreThisMessage = true
+	end
+	
 	if linetype==0 then
 		--filter out some engine messages; 
 		--2 lines (instead of 4) appears when player connects
@@ -477,6 +486,7 @@ local function processLine(line,g,cfg,newlinecolor)
 				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
 			end
         end
+
 		
 		if gameOver then
 			if sfind(line,'left the game') then
@@ -485,6 +495,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		end
 	end
 	
+
 	--ignore messages from muted--
 	if WG.ignoredPlayers and WG.ignoredPlayers[name] then 
 		ignoreThisMessage = true 
@@ -702,6 +713,7 @@ local function updateconsole(g,cfg)
 	end
 	
 	g.lines.caption = display
+	g.lines.sx = 100
 end
 
 function widget:Initialize()

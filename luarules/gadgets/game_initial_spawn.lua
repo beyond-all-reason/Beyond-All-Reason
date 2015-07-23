@@ -456,11 +456,31 @@ end
 
 local readyX = vsx * 0.8
 local readyY = vsy * 0.8 
-local readyH = 35
-local readyW = 100
+local readyH = 50
+local readyW = 120
 
 local pStates = {} --local copy of playerStates table
 
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+function RectRound(px,py,sx,sy,cs)
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	gl.Texture(false)
+end
 function gadget:Initialize()
 	-- add function to receive when startpoints were chosen
 	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
@@ -469,16 +489,35 @@ function gadget:Initialize()
 	readyButton = gl.CreateList(function()
 		-- draws background rectangle
 		gl.Color(0.1,0.1,.45,0.18)                              
-		gl.Rect(readyX,readyY+readyH, readyX+readyW, readyY)
-	
-		-- draws black border
+		--gl.Rect(readyX,readyY+readyH, readyX+readyW, readyY)
+		RectRound(readyX,readyY+readyH, readyX+readyW, readyY, readyH/8)
+		
+		--[[ draws black border
 		gl.Color(0,0,0,1)
 		gl.BeginEnd(GL.LINE_LOOP, function()
 			gl.Vertex(readyX,readyY)
 			gl.Vertex(readyX,readyY+readyH)
 			gl.Vertex(readyX+readyW,readyY+readyH)
 			gl.Vertex(readyX+readyW,readyY)
-		end)
+		end)]]--
+		gl.Color(1,1,1,1)
+	end)
+	-- create ready hover button
+	readyButtonHover = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0.1,0.1,.45,0.18)                              
+		--gl.Rect(readyX,readyY+readyH, readyX+readyW, readyY)
+		local margin = 2
+		RectRound(readyX-margin,readyY+readyH-margin, readyX+readyW+margin, readyY+margin, (readyH-margin-margin)/8)
+		
+		--[[ draws black border
+		gl.Color(0,0,0,1)
+		gl.BeginEnd(GL.LINE_LOOP, function()
+			gl.Vertex(readyX,readyY)
+			gl.Vertex(readyX,readyY+readyH)
+			gl.Vertex(readyX+readyW,readyY+readyH)
+			gl.Vertex(readyX+readyW,readyY)
+		end)]]--
 		gl.Color(1,1,1,1)
 	end)
 end
@@ -561,6 +600,7 @@ function gadget:MouseRelease(x,y)
 	return false
 end
 
+
 function gadget:DrawScreen()
 	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
 		-- draw 'ready' button
@@ -570,6 +610,7 @@ function gadget:DrawScreen()
 		local x,y = Spring.GetMouseState()
 		if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
 			colorString = "\255\255\230\0"
+			gl.CallList(readyButtonHover)
 		else
             timer2 = timer2 + Spring.GetLastUpdateSeconds()
             if timer2 % 0.75 <= 0.375 then
@@ -578,7 +619,7 @@ function gadget:DrawScreen()
                 colorString = "\255\255\255\255"
             end
 		end
-		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 25, "o")
+		gl.Text(colorString .. "Ready", readyX+14, readyY+11, 28, "o")
 		gl.Color(1,1,1,1)
 	end
 	

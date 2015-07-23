@@ -1,33 +1,36 @@
 function widget:GetInfo()
 	return {
-	name      = "Red Resource Bars", --version 7
+	name      = "Red Resource Bars",
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
-	date      = "August 6, 2009", --last change September 10,2009
+	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
 	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
+
+local barTexture = LUAUI_DIRNAME.."Images/resbar.dds"
+
 local NeededFrameworkVersion = 8
-local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
+local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
 local Config = {
 	metal = {
-		px = 300,py = 0, --default start position
-		sx = 300,sy = 34, --background size
+		px = 370,py = 0, --default start position
+		sx = 260,sy = 28, --background size
 		
-		barsy = 5, --width of the actual bar
-		fontsize = 12,
+		barsy = 4, --width of the actual bar
+		fontsize = 10,
 		
 		margin = 5, --distance from background border
 		
 		expensefadetime = 0.25, --fade effect time, in seconds
 		
-		cbackground = {0,0,0,0.5}, --color {r,g,b,alpha}
-		cborder = {0,0,0,1},
+		cbackground = {0,0,0,0.6}, --color {r,g,b,alpha}
+		cborder = {0,0,0,0.88},
 		cbarbackground = {0,0,0,1},
 		cbar = {1,1,1,1},
 		cindicator = {1,0,0,0.8},
@@ -40,7 +43,7 @@ local Config = {
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource display around.\n\n"..
+			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
 			"\255\255\255\1Leftclick\255\255\255\255 on the bar to set team share.",
 			income = "Your metal income.",
 			pull = "Your metal pull.",
@@ -51,18 +54,18 @@ local Config = {
 	},
 	
 	energy = {
-		px = 605,py = 0,
-		sx = 300,sy = 34,
+		px = 636,py = 0,
+		sx = 260,sy = 28, --background size
 		
-		barsy = 5,
-		fontsize = 12,
+		barsy = 4, --width of the actual bar
+		fontsize = 10,
 		
 		margin = 5,
 		
 		expensefadetime = 0.25,
 		
-		cbackground = {0,0,0,0.5},
-		cborder = {0,0,0,1},
+		cbackground = {0,0,0,0.6},
+		cborder = {0,0,0,0.88},
 		cbarbackground = {0,0,0,1},
 		cbar = {1,1,0,1},
 		cindicator = {1,0,0,0.8},
@@ -75,7 +78,7 @@ local Config = {
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource display around.\n\n"..
+			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
 			"\255\255\255\1Leftclick\255\255\255\255 on the bar to set team share.",
 			income = "Your energy income.",
 			pull = "Your energy pull.",
@@ -180,7 +183,7 @@ local function short(n,f)
 end
 
 local function createbar(r)
-	local background = {"rectangle",
+	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.sx,sy=r.sy,
 		color=r.cbackground,
@@ -205,14 +208,20 @@ local function createbar(r)
 		px=background.px+income.getwidth()+r.margin,py=income.py,
 		sx=background.sx-income.getwidth()-r.margin*2,sy=r.barsy,
 		color=r.cbarbackground,
+		texture = barTexture,
+		texturecolor = {0.15,0.15,0.15,1},
 	}
 
 	local barborder = Copy(barbackground)
 	barborder.color = nil
 	barborder.border = r.cborder
+	barborder.texture = nil
+	barborder.texturecolor = nil
 	
 	local bar = Copy(barbackground)
 	bar.color = r.cbar
+	bar.texture = barTexture
+	bar.texturecolor = r.cbar
 	
 	local shareindicator = Copy(barbackground)
 	shareindicator.color = r.cindicator
@@ -220,6 +229,8 @@ local function createbar(r)
 	shareindicator.sx = barbackground.sy
 	shareindicator.sy = shareindicator.sy +4
 	shareindicator.border = r.cborder
+	shareindicator.texture = barTexture
+	shareindicator.texturecolor = r.cindicator
 
 	New(barbackground)
 	New(bar)

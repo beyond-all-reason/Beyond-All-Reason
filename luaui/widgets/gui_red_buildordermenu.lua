@@ -1,17 +1,21 @@
 function widget:GetInfo()
 	return {
-	version   = "8",
+	version   = "9",
 	name      = "Red Build/Order Menu",
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
-	date      = "August 9, 2009", --last change September 10,2009
+	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
 	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
-local NeededFrameworkVersion = 8
+
+local stateTexture		= LUAUI_DIRNAME.."Images/resbar.dds"
+local buttonTexture		= LUAUI_DIRNAME.."Images/button.dds"
+
+local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
@@ -19,50 +23,64 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 
 local Config = {
 	buildmenu = {
-		px = 0,py = CanvasY -(12*6+5*2) -(35*8+0*7+5*2) -5, --default start position
+		menuname = "buildmenu",
+		px = 0,py = CanvasY - 411, --default start position
 		
-		isx = 50,isy = 35, --icon size
-		ix = 4,iy = 7, --icons x/y
+		isx = 46,isy = 39.5, --icon size
+		ix = 5,iy = 8, --icons x/y
+		
+		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
+		
+		iconscale = 0.92,
+		iconhoverscale = 0.92,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
 		
-		fadetime = 0.25, --fade effect time, in seconds
+		fadetime = 0.14, --fade effect time, in seconds
+		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
-		cbackground = {0,0,0,0.5},
+		cbackground = {0,0,0,0.6},
 		cborder = {0,0,0,1},
 		cbuttonbackground = {0.1,0.1,0.1,1},
-		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the buildmenu around.",
+			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the buildmenu.",
 		},
 	},
 	
 	ordermenu = {
-		px = 0,py = CanvasY -(12*6+5*2) -(35*8+0*7+5*2) -5 -(35*5+0*4+5*2) -5,
+		menuname = "ordermenu",
+		px = 0,py = CanvasY - 411 - 145,
 		
-		isx = 50,isy = 35,
-		ix = 4,iy = 4,
+		isx = 46,isy = 33,
+		ix = 5,iy = 4,
 		
+		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
+		
+		iconscale = 0.92,
+		iconhoverscale = 0.92,
 		ispreadx=0,ispready=0,
 		
 		margin = 5,
 		
-		fadetime = 0.25,
+		fadetime = 0.14,
+		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1},
-		cbackground = {0,0,0,0.5},
+		cbackground = {0,0,0,0.6},
 		cborder = {0,0,0,1},
 		cbuttonbackground={0.1,0.1,0.1,1},
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the ordermenu around.",
+			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the ordermenu.",
 		},
 	},
 }
+
+local guishaderEnabled = WG['guishader_api'] or false
 
 local sGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local sGetActiveCommand = Spring.GetActiveCommand
@@ -145,10 +163,10 @@ local function AutoResizeObjects() --autoresize v2
 end
 
 local function CreateGrid(r)
-	local background = {"rectangle",
+	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.isx*r.ix+r.ispreadx*(r.ix-1) +r.margin*2,
-		sy=r.isy*(r.iy+1)+r.ispready*(r.iy) +r.margin*2,
+		sy=r.isy*(r.iy)+r.ispready*(r.iy) +r.margin*2,
 		color=r.cbackground,
 		border=r.cborder,
 		movable=r.dragbutton,
@@ -158,15 +176,20 @@ local function CreateGrid(r)
 		
 		effects = {
 			fadein_at_activation = r.fadetime,
-			fadeout_at_deactivation = r.fadetime,
+			fadeout_at_deactivation = r.fadetimeOut,
 		},
 	}
 	
-	local selecthighlight = {"rectangle",
+	local selecthighlight = {"rectanglerounded",
+		roundedsize = math.floor(r.isy*r.roundedPercentage),
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
-		color={1,0,0,0.3},
-		border={0.8,0,0,1},
+		iconscale=r.iconscale,
+		color={1,0,0,0.26},
+		border={0.8,0,0,0},
+		glone=0.12,
+		texture = LUAUI_DIRNAME.."Images/button-pushed.dds",
+		texturecolor={1,0,0,0.18},
 		
 		active=false,
 		onupdate=function(self)
@@ -175,19 +198,26 @@ local function CreateGrid(r)
 	}
 	
 	local mouseoverhighlight = Copy(selecthighlight,true)
-	mouseoverhighlight.color={1,1,1,0.3}
-	mouseoverhighlight.border={1,1,1,0.3}
+	mouseoverhighlight.color={1,1,1,0.17}
+	mouseoverhighlight.border={1,1,1,0}
+	mouseoverhighlight.texture = LUAUI_DIRNAME.."Images/button-highlight.dds"
+	mouseoverhighlight.texturecolor={1,1,1,0.2}
 	
 	local heldhighlight = Copy(selecthighlight,true)
-	heldhighlight.color={1,1,0,0.3}
-	heldhighlight.border={1,1,0,0.3}
+	heldhighlight.color={1,0.8,0,0.2}
+	heldhighlight.border={1,1,0,0}
+	heldhighlight.texture = LUAUI_DIRNAME.."Images/button-pushed.dds"
+	heldhighlight.texturecolor={1,0.8,0,0.2}
 	
 	local icon = {"rectangle",
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
-		color=r.cbuttonbackground,
-		border=r.cborder,
-		
+		iconscale=r.iconscale,
+		iconhoverscale=r.iconhoverscale,
+		iconnormalscale=r.iconscale,
+		roundedsize = math.floor(r.isy*r.roundedPercentage),
+		color={0,0,0,0},
+		border={0,0,0,0},
 		options="n", --disable colorcodes
 		captioncolor=r.ctext,
 		
@@ -196,21 +226,48 @@ local function CreateGrid(r)
 		
 		mouseheld={
 			{1,function(mx,my,self)
+				self.iconscale=self.iconhoverscale
+				heldhighlight.iconscale=self.iconhoverscale
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
 			end},
 		},
+		
+			--[[mouserelease={
+			{1,function(mx,my,self)
+				if r.menuname == "buildmenu" then
+					self.iconscale=self.iconhoverscale
+					heldhighlight.iconscale=self.iconhoverscale
+					heldhighlight.px = self.px
+					heldhighlight.py = self.py
+					heldhighlight.active = nil
+				end
+			end},
+		},]]--
+		
 		mouseover=function(mx,my,self)
+			self.iconscale=self.iconhoverscale
+			mouseoverhighlight.iconscale=self.iconhoverscale
 			mouseoverhighlight.px = self.px
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
-			
 			SetTooltip(self.tooltip)
+			--[[
+			if r.menuname == "buildmenu" then
+				local CurMouseState = {Spring.GetMouseState()} --{mx,my,m1,m2,m3}
+				if CurMouseState[3] or CurMouseState[5] then
+					if self.cmdid ~= nil then
+						Spring.SetActiveCommand(Spring.GetCmdDescIndex(self.cmdid),1,true,false,Spring.GetModKeyState())
+					end
+				end
+			end]]--
 		end,
 		
 		onupdate=function(self)
 			local _,_,_,curcmdname = sGetActiveCommand()
+			self.iconscale=self.iconnormalscale
+			selecthighlight.iconscale = self.iconhoverscale
 			if (curcmdname ~= nil) then
 				if (self.cmdname == curcmdname) then
 					selecthighlight.px = self.px
@@ -224,12 +281,14 @@ local function CreateGrid(r)
 		
 		active=false,
 	}
+	
 	New(background)
 	
 	local backward = New(Copy(icon,true))
-	backward.caption = "  <--  " --should be replaced with a shiny texture
+	backward.texture = LUAUI_DIRNAME.."Images/backward.dds"
+
 	local forward = New(Copy(icon,true))
-	forward.caption = "  -->  "
+	forward.texture = LUAUI_DIRNAME.."Images/forward.dds"
 	
 	local indicator = New({"rectangle",
 		px=0,py=0,
@@ -249,13 +308,12 @@ local function CreateGrid(r)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
 			table.insert(background.movableslaves,b)
 			icons[#icons+1] = b
-			
 			if ((y==r.iy) and (x==r.ix)) then
 				backward.px = icons[#icons-r.ix+1].px
 				forward.px = icons[#icons].px
 				indicator.px = (forward.px + backward.px)/2
 				
-				backward.py = icons[#icons].py + r.isy + r.ispready
+				backward.py = icons[#icons-r.ix].py + r.isy + r.ispready
 				forward.py = backward.py
 				indicator.py = backward.py
 			end
@@ -264,7 +322,8 @@ local function CreateGrid(r)
 	
 	local staterect = {"rectangle",
 		border = r.cborder,
-		
+		texture = stateTexture,
+		texturecolor = r.cborder,
 		effects = background.effects,
 	}
 	local staterectangles = {}
@@ -277,6 +336,7 @@ local function CreateGrid(r)
 	background.mouseover = function(mx,my,self) SetTooltip(r.tooltip.background) end
 	
 	return {
+		["menuname"] = r.menuname,
 		["background"] = background,
 		["icons"] = icons,
 		["backward"] = backward,
@@ -286,6 +346,7 @@ local function CreateGrid(r)
 		["staterect"] = staterect,
 	}
 end
+
 
 local function UpdateGrid(g,cmds,ordertype)
 	if (#cmds==0) then
@@ -298,14 +359,19 @@ local function UpdateGrid(g,cmds,ordertype)
 	local icons = g.icons
 	local page = {{}}
 	
+	local visibleIconCount = #icons
+	if #cmds > #icons then
+		visibleIconCount = visibleIconCount - Config[g.menuname].ix
+	end
 	for i=1,#cmds do
-		local index = i-(#page-1)*#icons
+		local index = i-(#page-1)*visibleIconCount
 		page[#page][index] = cmds[i]
-		if ((i == (#icons*#page)) and (i~=#cmds)) then
+		if ((i == (visibleIconCount*#page)) and (i~=#cmds)) then
 			page[#page+1] = {}
 		end
 	end
 	g.pagecount = #page
+	
 	
 	if (curpage > g.pagecount) then
 		curpage = 1
@@ -329,7 +395,7 @@ local function UpdateGrid(g,cmds,ordertype)
 		icon.tooltip = cmd.tooltip
 		icon.active = nil --activate
 		icon.cmdname = cmd.name
-		
+		icon.cmdid = cmd.id
 		icon.texture = nil
 		if (cmd.texture) then
 			if (cmd.texture ~= "") then
@@ -354,17 +420,27 @@ local function UpdateGrid(g,cmds,ordertype)
 		if (ordertype == 1) then --build orders
 			icon.texture = "#"..cmd.id*-1
 			if (cmd.params[1]) then
-				icon.caption = "\n\n"..cmd.params[1].."          "
+				icon.options = "o"
+				icon.caption = "\n\n"..cmd.params[1].."        "
 			else
 				icon.caption = nil
 			end
 		else
+			if buttonTexture ~= nil then
+				icon.texture = buttonTexture
+			end
 			if (cmd.type == 5) then --state cmds (fire at will, etc)
 				icon.caption = " "..(cmd.params[cmd.params[1]+2] or cmd.name).." "
 				
 				local statecount = #cmd.params-1 --number of states for the cmd
 				local curstate = cmd.params[1]+1
 				
+				local scale = icon.iconscale * 0.9
+				local px = icon.px + ((icon.sx * (1-scale))/2)
+				local py = icon.py + ((icon.sy * (1-scale))/2)
+				local sx = icon.sx * scale
+				local sy = icon.sy * scale
+					
 				for i=1,statecount do
 					usedstaterectangles = usedstaterectangles + 1
 					local s = g.staterectangles[usedstaterectangles]
@@ -375,11 +451,17 @@ local function UpdateGrid(g,cmds,ordertype)
 					end
 					s.active = nil --activate
 					
+					
 					local spread = 2
-					s.sx = (icon.sx-(spread*(statecount-1+2)))/statecount
-					s.sy = icon.sy/7
-					s.px = icon.px+spread + (s.sx+spread)*(i-1)
-					s.py = icon.py + icon.sy - s.sy -spread
+					s.sx = (sx-(spread*(statecount-1+2)))/statecount
+					s.sy = (sy/6.75)
+					s.px = px+spread + (s.sx+spread)*(i-1)
+					s.py = py + sy - s.sy -spread
+					
+					--s.sx = (icon.sx-(spread*(statecount-1+2)))/statecount
+					--s.sy = (icon.sy/7)
+					--s.px = icon.px+spread + (s.sx+spread)*(i-1)
+					--s.py = icon.py + icon.sy - s.sy -spread
 					
 					if (i == curstate) then
 						if (statecount < 4) then
@@ -399,6 +481,11 @@ local function UpdateGrid(g,cmds,ordertype)
 						end
 					else
 						s.color = nil
+					end
+					if s.color == nil then
+						s.texturecolor = s.border
+					else
+						s.texturecolor = s.color
 					end
 				end
 			else
@@ -429,7 +516,7 @@ local function UpdateGrid(g,cmds,ordertype)
 		g.backward.active = nil --activate
 		g.forward.active = nil
 		g.indicator.active = nil
-		g.indicator.caption = "    "..curpage.."    "
+		g.indicator.caption = "   "..curpage.." / "..#page.."   "
 	else
 		g.backward.active = false
 		g.forward.active = false
@@ -440,9 +527,9 @@ end
 function widget:Initialize()
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
-		
-	buildmenu = CreateGrid(Config.buildmenu)
+	
 	ordermenu = CreateGrid(Config.ordermenu)
+	buildmenu = CreateGrid(Config.buildmenu)		-- the list with the largest grid must be last or it will get buggy with mousehovers
 	
 	buildmenu.page = 1
 	ordermenu.page = 1
@@ -456,8 +543,8 @@ local function onNewCommands(buildcmds,othercmds)
 		ordermenu.page = 1
 	end
 
-	UpdateGrid(buildmenu,buildcmds,1)
 	UpdateGrid(ordermenu,othercmds,2)
+	UpdateGrid(buildmenu,buildcmds,1)
 end
 
 local function onWidgetUpdate() --function widget:Update()
@@ -590,7 +677,23 @@ end
 function widget:CommandsChanged()
 	haxlayout()
 end
-function widget:Update()
+local sec = 0
+local guishaderCheckInterval = 1
+function widget:Update(dt)
+	sec=sec+dt
+	if (sec>1/guishaderCheckInterval) then
+		sec = 0
+		if (WG['guishader_api'] ~= guishaderEnabled) then
+			guishaderEnabled = WG['guishader_api']
+			if (guishaderEnabled) then
+				Config.buildmenu.fadetimeOut = 0.02
+				Config.ordermenu.fadetimeOut = 0.02
+			else
+				Config.buildmenu.fadetimeOut = Config.buildmenu.fadetime*0.66
+				Config.ordermenu.fadetimeOut = Config.ordermenu.fadetime*0.66
+			end
+		end
+	end
 	onWidgetUpdate()
 	if (updatehax or firstupdate) then
 		if (firstupdate) then

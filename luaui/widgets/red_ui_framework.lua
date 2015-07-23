@@ -1,10 +1,10 @@
 function widget:GetInfo()
 	return {
-	version   = "8",
+	version   = "9",
 	name      = "Red_UI_Framework",
 	desc      = "Red UI Framework",
-	author    = "Regret",
-	date      = "July 30, 2009", --last change August 29,2009
+	author    = "Regret (enhanced by Floris)",
+	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = -99999, --lowest go first
 	enabled   = true, --loaded by default
@@ -12,9 +12,13 @@ function widget:GetInfo()
 	}
 end
 
+local useRoundedRectangles = true
+local roundedSizeMultiplier = 1
+local usedRoundedSize = roundedSize
+
 local TN = "Red"
 local DrawingTN = "Red_Drawing" --WG name for drawing function list
-local version = 8
+local version = 9
 
 local clock = os.clock
 local glGetTextWidth = gl.GetTextWidth
@@ -37,6 +41,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = widgetHandler:GetViewSizes()
 	Main.vsx,Main.vsy = vsx,vsy
 	Main.Screen.vsx,Main.Screen.vsy = vsx,vsy
+	usedRoundedSize = 4 + math.floor((((vsx*vsy) / 900000))) * roundedSizeMultiplier
 end
 
 
@@ -81,105 +86,188 @@ end
 
 --Objects
 local F = {
-[1] = function(o) --rectangle
-	if (o.draw == false) then
-		return
-	end
-	
-	local color = o.color
-	local border = o.border	--color
-	local texturecolor = o.texturecolor
-	local captioncolor = o.captioncolor
-	
-	local texture = o.texture
-	local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
-	
-	local alphamult = o.alphamult
-	if (alphamult~=nil) then
+	[1] = function(o) --rectangle
+		if (o.draw == false) then
+			return
+		end
+		
+		local color = o.color
+		local border = o.border	--color
+		local texturecolor = o.texturecolor
+		local captioncolor = o.captioncolor
+		local iconscale = 1
+		if o.iconscale ~= nil then
+			iconscale = o.iconscale
+		end
+		
+		local texture = o.texture
+		local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
+		
+		local alphamult = o.alphamult
+		if (alphamult~=nil) then
+			if (color) then
+				color = copytable(color)
+				color[4] = o.color[4]*alphamult
+			end
+			if (border) then
+				border = copytable(border)
+				border[4] = o.border[4]*alphamult
+			end
+			if (captioncolor) then
+				captioncolor = copytable(captioncolor)
+				captioncolor[4] = o.captioncolor[4]*alphamult
+			end
+			if (texturecolor) then
+				texturecolor = copytable(texturecolor)
+				texturecolor[4] = o.texturecolor[4]*alphamult
+			else
+				texturecolor = {1,1,1,alphamult}
+			end
+		end
+		
 		if (color) then
-			color = copytable(color)
-			color[4] = o.color[4]*alphamult
+			Rect(px,py,sx,sy,color,iconscale)
 		end
-		if (border) then
-			border = copytable(border)
-			border[4] = o.border[4]*alphamult
+		
+		if (texture) then
+			TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
 		end
-		if (captioncolor) then
-			captioncolor = copytable(captioncolor)
-			captioncolor[4] = o.captioncolor[4]*alphamult
+		
+		if (o.caption) then
+			local px2,py2 = px,py
+			local text = o.caption
+			local width = glGetTextWidth(text)
+			local linecount = getLineCount(text)
+			local fontsize = sx/width
+			local height = linecount*fontsize
+			if (height > sy) then
+				fontsize = sy/linecount
+				px2 = px2 + (sx - width*fontsize) /2 --center
+			else
+				py2 = py2 + (sy - height) /2 --center
+			end
+			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
+			o.autofontsize = fontsize
 		end
-		if (texturecolor) then
-			texturecolor = copytable(texturecolor)
-			texturecolor[4] = o.texturecolor[4]*alphamult
-		else
-			texturecolor = {1,1,1,alphamult}
+		
+		if (border) then --todo: border styles
+			Border(px,py,sx,sy,o.borderwidth,border)
 		end
-	end
-	
-	if (color) then
-		Rect(px,py,sx,sy,color)
-	end
-	
-	if (texture) then
-		TexRect(px,py,sx,sy,texture,texturecolor)
-	end
-	
-	if (o.caption) then
-		local px2,py2 = px,py
-		local text = o.caption
-		local width = glGetTextWidth(text)
-		local linecount = getLineCount(text)
-		local fontsize = sx/width
-		local height = linecount*fontsize
-		if (height > sy) then
-			fontsize = sy/linecount
-			px2 = px2 + (sx - width*fontsize) /2 --center
-		else
-			py2 = py2 + (sy - height) /2 --center
-		end
-		Text(px2,py2,fontsize,text,o.options,captioncolor)
-		o.autofontsize = fontsize
-	end
-	
-	if (border) then --todo: border styles
-		Border(px,py,sx,sy,o.borderwidth,border)
-	end
-end,
+	end,
 
-[2] = function(o) --text
-	if (o.draw == false) then
-		return
-	end
-	
-	local color = o.color
-	local captioncolor = o.captioncolor
-	
-	local alphamult = o.alphamult
-	if (alphamult~=nil) then
+	[2] = function(o) --text
+		if (o.draw == false) then
+			return
+		end
+		
+		local color = o.color
+		local captioncolor = o.captioncolor
+		
+		local alphamult = o.alphamult
+		if (alphamult~=nil) then
+			if (color) then
+				color = copytable(color)
+				color[4] = o.color[4]*alphamult
+			elseif (captioncolor) then
+				captioncolor = copytable(captioncolor)
+				captioncolor[4] = o.captioncolor[4]*alphamult
+			end
+		end
+		
+		local px,py = o.px,o.py	
+		local fontsize = o.fontsize
+		
+		Text(px,py,fontsize,o.caption,o.options,color or captioncolor)
+	end,
+
+	[3] = function(o) --area
+		--plain dummy
+	end,
+
+	[4] = function(o) --rectangle rounded
+		if (o.draw == false) then
+			return
+		end
+		
+		local color = o.color
+		local border = o.border	--color
+		local texturecolor = o.texturecolor
+		local captioncolor = o.captioncolor
+		local iconscale = 1
+		if o.iconscale ~= nil then
+			iconscale = o.iconscale
+		end
+		
+		local texture = o.texture
+		local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
+		
+		local alphamult = o.alphamult
+		if (alphamult~=nil) then
+			if (color) then
+				color = copytable(color)
+				color[4] = o.color[4]*alphamult
+			end
+			if (border) then
+				border = copytable(border)
+				border[4] = o.border[4]*alphamult
+			end
+			if (captioncolor) then
+				captioncolor = copytable(captioncolor)
+				captioncolor[4] = o.captioncolor[4]*alphamult
+			end
+			if (texturecolor) then
+				texturecolor = copytable(texturecolor)
+				texturecolor[4] = o.texturecolor[4]*alphamult
+			else
+				texturecolor = {1,1,1,alphamult}
+			end
+		end
 		if (color) then
-			color = copytable(color)
-			color[4] = o.color[4]*alphamult
-		elseif (captioncolor) then
-			captioncolor = copytable(captioncolor)
-			captioncolor[4] = o.captioncolor[4]*alphamult
+			local roundedSize = usedRoundedSize
+			if o.roundedsize ~= nil then
+				roundedSize = o.roundedsize
+			end
+			RectRound(px,py,sx,sy,color,roundedSize,iconscale)
+			if o.glone ~= nil and o.glone > 0 then
+				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true)
+			end
 		end
-	end
-	
-	local px,py = o.px,o.py	
-	local fontsize = o.fontsize
-	
-	Text(px,py,fontsize,o.caption,o.options,color or captioncolor)
-end,
-
-[3] = function(o) --area
-	--plain dummy
-end,
+		
+		if (texture) then
+			TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
+		end
+		
+		if (o.caption) then
+			local px2,py2 = px,py
+			local text = o.caption
+			local width = glGetTextWidth(text)
+			local linecount = getLineCount(text)
+			local fontsize = sx/width
+			local height = linecount*fontsize
+			if (height > sy) then
+				fontsize = sy/linecount
+				px2 = px2 + (sx - width*fontsize) /2 --center
+			else
+				py2 = py2 + (sy - height) /2 --center
+			end
+			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
+			o.autofontsize = fontsize
+		end
+		
+		if (border) then --todo: border styles
+			--Border(px,py,sx,sy,o.borderwidth,border)
+		end
+	end,
 }
+if useRoundedRectangles == false then
+	F[4] = F[1]
+end
 
 local otypes = {
 	["rectangle"] = 1,
 	["text"] = 2,
 	["area"] = 3,
+	["rectanglerounded"] = 4,
 }
 -------------------------
 
@@ -253,11 +341,13 @@ end
 
 local WheelState = nil
 function widget:MouseWheel(up,value) --up = true/false , value = -1/1
+	if Spring.IsGUIHidden() then return end
 	WheelState = up
 	return dropWheel
 end
 
 function widget:MousePress(mx,my,mb)
+	if Spring.IsGUIHidden() then return end
 	if (type(dropClick)=="table") then
 		for i=1,#dropClick do
 			if (dropClick[i] == mb) then
@@ -275,6 +365,7 @@ end
 
 local LastMouseState = {sGetMouseState()}
 local function handleMouse()
+	if Spring.IsGUIHidden() then return end
 	--reset status
 	dropClick = false
 	dropWheel = false
@@ -607,6 +698,7 @@ function widget:Update()
 			end
 			Color = X.Color
 			Rect = X.Rect
+			RectRound = X.RectRound
 			TexRect = X.TexRect
 			Border = X.Border
 			Text = X.Text

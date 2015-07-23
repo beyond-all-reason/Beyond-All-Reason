@@ -11,8 +11,10 @@ function widget:GetInfo()
 	handler   = true, --can use widgetHandler:x()
 	}
 end
+local rescalevalue = 1.3
+local buttonScale = 0.44
 local NeededFrameworkVersion = 8
-local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
+local CanvasX,CanvasY = 1272/rescalevalue,734/rescalevalue --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
 local Config = {
@@ -130,7 +132,7 @@ local function createminimap(r)
 	
 	local resizebutton = {"rectangle",
 		px=r.px+r.sx-r.bsx,py=r.py+r.sy-1,
-		sx=r.bsx,sy=r.bsy,
+		sx=r.bsx*buttonScale,sy=r.bsy*buttonScale,
 		
 		color=r.cresizebackground,
 		texturecolor=r.cmovecolor,
@@ -139,16 +141,17 @@ local function createminimap(r)
 		movable=r.dragbutton,
 		overridecursor = true,
 		overrideclick = r.dragbutton,
+		roundedsize = math.floor(r.bsy*0.15),
 		
 		effects = {
 			fadein_at_activation = r.fadetime,
 			fadeout_at_deactivation = r.fadetime,
 		},
 	}
-	
+	local offsetcorrection = r.bsx - ((r.bsx * buttonScale))
 	local movebutton = {"rectangle",
-		px=r.px+r.sx-r.bsx*2+1,py=r.py+r.sy-1,
-		sx=r.bsx,sy=r.bsy,
+		px=r.px+r.sx-r.bsx*2+1 + offsetcorrection,py=r.py+r.sy-1,
+		sx=r.bsx*buttonScale,sy=r.bsy*buttonScale,
 		
 		color=r.cmovebackground,
 		texturecolor=r.cmovecolor,
@@ -159,6 +162,7 @@ local function createminimap(r)
 		obeyscreenedge = true,
 		overridecursor = true,
 		overrideclick = r.dragbutton,
+		roundedsize = math.floor(r.bsy*0.15),
 		
 		effects = {
 			fadein_at_activation = r.fadetime,
@@ -257,8 +261,9 @@ local function createminimap(r)
 end
 
 function widget:Initialize()
-	oldMinimapGeometry = Spring.GetConfigString("MiniMapGeometry","2 2 200 200") -- store original geometry
-
+	--oldMinimapGeometry = Spring.GetConfigString("MiniMapGeometry","2 2 200 200") -- store original geometry
+	oldMinimapGeometry = sGetMiniMapGeometry()
+	
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 	

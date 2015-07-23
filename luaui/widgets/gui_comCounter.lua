@@ -115,6 +115,12 @@ end
 
 --------------------------------------------------------------------------------
 
+function widget:Shutdown()
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('comcounter')
+	end
+end
+
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not isCom(unitID,unitDefID) then
 		return
@@ -226,6 +232,10 @@ function widget:DrawScreen()
 			--background
 			glColor(0, 0, 0, 0.5)
 			glRect(0, 0, panelWidth, panelHeight)
+			if (WG['guishader_api'] ~= nil) then
+				WG['guishader_api'].InsertRect(xPos,yPos,xPos+panelWidth,yPos+panelHeight,'comcounter')
+			end
+
 			--com pic
 			if flickerState then
 				glColor(1,0.6,0,0.6)

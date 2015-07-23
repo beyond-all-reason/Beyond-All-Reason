@@ -10,6 +10,8 @@ function gadget:GetInfo()
   }
 end
 
+local bgcorner = ":n:LuaRules/Images/bgcorner.png"
+
 if (gadgetHandler:IsSyncedCode()) then 
 
 local SpAreTeamsAllied = Spring.AreTeamsAllied
@@ -417,30 +419,64 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 end
 
 
+function RectRound(px,py,sx,sy,c,cs)
+	if (c) then
+		glColor(c[1],c[2],c[3],c[4])
+	else
+		glColor(1,1,1,1)
+	end
+	
+	glRect(px+cs, py, sx-cs, sy)
+	glRect(sx-cs, py+cs, sx, sy-cs)
+	glRect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	glTexture(false)
+end
+
 function CreateBackground()	
 	if Background then
 		glDeleteList(Background)
 	end
 	
-	Background = glCreateList(function()	
-	-- draws background rectangle
-	glColor(0,0,0.15,0.75)                              
-	glRect(bx, by, bx + w, by + h)	
-
-	-- draws black border
-	glBeginEnd(GL_LINE_LOOP, function()
-	glColor(0,0,0,1)
-	glVertex(bx, by)
-	glVertex(bx, by+h)
-	glVertex(bx+w, by+h)
-	glVertex(bx+w, by)
-	end)
-
-	glColor(1,1,1,1)
-	glTexture(':l:LuaRules/Images/awards.png')
-	glTexRect(bx + w/2 - 220, by + h - 75, bx + w/2 + 120, by + h - 5)
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].InsertRect(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),'awards')
+	end
 	
-	glText('Score', bx + w/2 + 275, by + h - 65, 15, "o") 
+	Background = glCreateList(function()
+		
+		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0.15,0.75},12)
+		
+		
+		--[[ draws background rectangle
+		glColor(0,0,0.15,0.75)                              
+		glRect(bx, by, bx + w, by + h)	
+
+		-- draws black border
+		glBeginEnd(GL_LINE_LOOP, function()
+		glColor(0,0,0,1)
+		glVertex(bx, by)
+		glVertex(bx, by+h)
+		glVertex(bx+w, by+h)
+		glVertex(bx+w, by)
+		end)
+		]]--
+		glColor(1,1,1,1)
+		glTexture(':l:LuaRules/Images/awards.png')
+		glTexRect(bx + w/2 - 220, by + h - 75, bx + w/2 + 120, by + h - 5)
+		
+		glText('Score', bx + w/2 + 275, by + h - 65, 15, "o") 
 	
 	end)	
 end
@@ -578,6 +614,9 @@ function gadget:MousePress(x,y,button)
 		end
 		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
+			if (WG['guishader_api'] ~= nil) then
+				WG['guishader_api'].RemoveRect('awards')
+			end
 			drawAwards = false
 		end	
 	end
@@ -585,6 +624,7 @@ end
 
 
 function DrawScreen()
+
 	if not drawAwards then return end
 	
 	if Background then
@@ -623,6 +663,9 @@ end
 
 function gadget:ShutDown()
 	Spring.SendCommands('endgraph 1')
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('awards')
+	end
 end
 
 end

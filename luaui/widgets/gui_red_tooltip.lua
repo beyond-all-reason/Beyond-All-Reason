@@ -1,9 +1,9 @@
 function widget:GetInfo()
 	return {
-	name      = "Red Tooltip", --version 4
+	name      = "Red Tooltip",
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
-	date      = "August 11, 2009", --last change September 10,2009
+	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = -100,
 	enabled   = true, --enabled by default
@@ -11,26 +11,26 @@ function widget:GetInfo()
 	}
 end
 local NeededFrameworkVersion = 8
-local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
+local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
 --todo: sy adjustment
 
 local Config = {
 	tooltip = {
-		px = 0,py = CanvasY-(12*6+5*2), --default start position
-		sx = 300,sy = 12*6+5*2, --background size
+		px = 0,py = CanvasY-82, --default start position
+		sx = 270,sy = 82, --background size
 		
-		fontsize = 12,
+		fontsize = 11,
 		
-		margin = 5, --distance from background border
+		margin = 11, --distance from background border
 		
-		cbackground = {0,0,0,0.5}, --color {r,g,b,alpha}
-		cborder = {0,0,0,1},
+		cbackground = {0,0,0,0.6}, --color {r,g,b,alpha}
+		cborder = {0,0,0,0.2},
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the tooltip display around.",
+			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this element.",
 		},
 	},
 }
@@ -112,18 +112,15 @@ local function AutoResizeObjects() --autoresize v2
 		LastAutoResizeX,LastAutoResizeY = vsx,vsy
 	end
 end
-
-local function getEditedCurrentTooltip()
-	local text = sGetCurrentTooltip()
-	--extract the exp value with regexp
-	local expPattern = "Experience (%d+%.%d%d)"
-	local currentExp = tonumber(text:match(expPattern))
-	local limExp = currentExp and currentExp/(1+currentExp) or 1
-	--replace with limexp: exp/(1+exp) since all spring exp effects are linear in limexp, multiply by 10 because people like big numbers instead of [0,1]
-	text = currentExp and text:gsub(expPattern,string.format("Experience %.2f", 10*limExp) ) or text
-	return text
-end
-
+local function getEditedCurrentTooltip() 
+	local text = sGetCurrentTooltip() 
+	--extract the exp value with regexp 
+	local expPattern = "Experience (%d+%.%d%d)" 
+	local currentExp = tonumber(text:match(expPattern)) 
+	--replace with limexp: exp/(1+exp) since all spring exp effects are linear in limexp, multiply by 10 because people like big numbers instead of [0,1] 
+	return currentExp and text:gsub(expPattern,string.format("Experience %.2f", 10*currentExp/(1+currentExp)) ) or text 
+end 
+ 	
 local function createtooltip(r)
 	local text = {"text",
 		px=r.px+r.margin,py=r.py+r.margin,
@@ -142,12 +139,12 @@ local function createtooltip(r)
 			if (self._mouseoverself) then
 				self.caption = self.caption..r.tooltip.background
 			else
-				self.caption = self.caption..(getEditedCurrentTooltip() or sGetCurrentTooltip())
+				self.caption = self.caption..(getEditedCurrentTooltip() or sGetCurrentTooltip()) 
 			end
 		end
 	}
 	
-	local background = {"rectangle",
+	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.sx,sy=r.sy,
 		color=r.cbackground,
