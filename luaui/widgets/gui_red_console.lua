@@ -50,6 +50,7 @@ local Config = {
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 7,
+		maxlinesScrollmode = 13,
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
@@ -626,23 +627,28 @@ local function updateconsole(g,cfg)
 	local skipagecheck = g.vars._skipagecheck
 	local usecounters = g.vars._usecounters
 	
+	local maxlines = cfg.maxlines
+	
 	local historyoffset = 0
 	if (g.vars.browsinghistory) then
 		if (g.vars.historyoffset == nil) then
 			g.vars.historyoffset = 0
 		end
 		historyoffset = g.vars.historyoffset
+		maxlines = cfg.maxlinesScrollmode
 	end
 	
 	if (usecounters == nil) then
 		usecounters = cfg.filterduplicates
 	end
 
-	local maxlines = cfg.maxlines
 	
 	local counters = {}
 	for i=1,maxlines do
 		counters[i] = 1
+		if g.counters[i] == nil then
+			g.counters[i] = {}
+		end
 		g.counters[i].active = false
 		g.counters[i].caption = ""
 	end
