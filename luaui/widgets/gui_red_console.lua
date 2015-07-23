@@ -49,12 +49,12 @@ local Config = {
 		fontsize = 11.33,
 		
 		minlines = 1, --minimal number of lines to display
-		maxlines = 7,
-		maxlinesScrollmode = 11,
+		maxlines = 6,
+		maxlinesScrollmode = 10,
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
-		margin = 7, --distance from background border
+		margin = 6, --distance from background border
 		
 		fadetime = 0.25, --fade effect time, in seconds
 		fadedistance = 100, --distance from cursor at which console shows up when empty
