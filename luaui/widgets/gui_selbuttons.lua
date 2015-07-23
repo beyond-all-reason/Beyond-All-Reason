@@ -15,50 +15,39 @@ function widget:GetInfo()
   return {
     name      = "SelectionButtons",
     desc      = "Buttons for the current selection (incomplete)",
-    author    = "trepan",
-    date      = "Jan 8, 2007",
+    author    = "trepan, Floris",
+    date      = "28 may 2015",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = false  --  loaded by default?
   }
 end
 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 -- Automatically generated local definitions
 
-local GL_DEPTH_BUFFER_BIT      = GL.DEPTH_BUFFER_BIT
-local GL_FILL                  = GL.FILL
-local GL_FRONT_AND_BACK        = GL.FRONT_AND_BACK
-local GL_LINE                  = GL.LINE
-local GL_LINE_LOOP             = GL.LINE_LOOP
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA             = GL.SRC_ALPHA
-local glBeginEnd               = gl.BeginEnd
 local glBlending               = gl.Blending
+local glBeginEnd               = gl.BeginEnd
 local glClear                  = gl.Clear
 local glColor                  = gl.Color
-local glDepthMask              = gl.DepthMask
-local glDepthTest              = gl.DepthTest
-local glLighting               = gl.Lighting
-local glLineWidth              = gl.LineWidth
-local glMaterial               = gl.Material
-local glPolygonMode            = gl.PolygonMode
-local glPolygonOffset          = gl.PolygonOffset
 local glPopMatrix              = gl.PopMatrix
 local glPushMatrix             = gl.PushMatrix
 local glRect                   = gl.Rect
 local glRotate                 = gl.Rotate
 local glScale                  = gl.Scale
-local glScissor                = gl.Scissor
 local glTexRect                = gl.TexRect
+local glGetTextWidth           = gl.GetTextWidth
+local glGetTextHeight          = gl.GetTextHeight
 local glText                   = gl.Text
 local glTexture                = gl.Texture
 local glTranslate              = gl.Translate
 local glUnitDef                = gl.UnitDef
-local glUnitShape              = gl.UnitShape
 local glVertex                 = gl.Vertex
 local spGetModKeyState         = Spring.GetModKeyState
 local spGetMouseState          = Spring.GetMouseState
@@ -67,33 +56,25 @@ local spGetSelectedUnits       = Spring.GetSelectedUnits
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetTeamUnitsSorted     = Spring.GetTeamUnitsSorted
-local spGetUnitDefDimensions   = Spring.GetUnitDefDimensions
 local spSelectUnitArray        = Spring.SelectUnitArray
 local spSelectUnitMap          = Spring.SelectUnitMap
 local spSendCommands           = Spring.SendCommands
+local spIsGUIHidden            = Spring.IsGUIHidden
 
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
 include("colors.h.lua")
 
-local vsx, vsy = widgetHandler:GetViewSizes()
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
-end
-
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
---
---  Selection Icons (rough around the edges)
---
 
-local picList
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
-local useModels = false
+local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
+
+local backgroundColor = {0,0,0,0.18}
+local highlightColor = {1, 0.7, 0.2, 0.35}
+local hoverColor = { 1, 1, 1, 0.22 }
 
 local unitTypes = 0
 local countsTable = {}
@@ -101,33 +82,87 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 
-local iconSizeX = math.floor(useModels and 80 or 64)
-local iconSizeY = math.floor(iconSizeX * 0.75)
-local fontSize = iconSizeY * 0.25
+local iconSizeX = 68
+local iconSizeY = math.floor(iconSizeX * 0.94)
 
+local usedIconSizeX = iconSizeX
+local usedIconSizeY = iconSizeY
 local rectMinX = 0
 local rectMaxX = 0
 local rectMinY = 0
 local rectMaxY = 0
 
 
+local enabled = true
+local backgroundDimentions = {}
+local iconMargin = usedIconSizeX / 15		-- changed in ViewResize anyway
+local fontSize = iconSizeY * 0.33		-- changed in ViewResize anyway
+local picList
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-function widget:DrawScreen()
+
+local function updateGuishader()
+	if (WG['guishader_api'] ~= nil) then
+		if not enabled then
+			WG['guishader_api'].RemoveRect('selectionbuttons')
+		else
+			if backgroundDimentions[1] ~= nil then
+				WG['guishader_api'].InsertRect(
+					backgroundDimentions[1],
+					backgroundDimentions[2],
+					backgroundDimentions[3],
+					backgroundDimentions[4],
+					'selectionbuttons'
+				)
+			end
+		end
+	end
+end
+
+local vsx, vsy = widgetHandler:GetViewSizes()
+function widget:ViewResize(viewSizeX, viewSizeY)
+  vsx = viewSizeX
+  vsy = viewSizeY
+  
+  usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
+  usedIconSizeY = math.floor(usedIconSizeX * 0.89)
+  fontSize = usedIconSizeY * 0.33
+  iconMargin = usedIconSizeX / 15
+  
   if picList then
-    gl.CallList(picList)
-    -- draw the highlights
-    local x,y,lb,mb,rb = spGetMouseState()
-    local mouseIcon = MouseOverIcon(x, y)
-    if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
-      if (lb or mb or rb) then
-        DrawIconQuad(mouseIcon, { 1, 0, 0, 0.333 })  --  red highlight
-      else
-        DrawIconQuad(mouseIcon, { 0, 0, 1, 0.333 })  --  blue highlight
-      end
-    end
-  end    
+    gl.DeleteList(picList)
+	picList = gl.CreateList(DrawPicList)
+  end
+end
+
+function widget:DrawScreen()
+	enabled = false
+	if (not spIsGUIHidden()) then
+	  if picList then
+		  local unitCounts = spGetSelectedUnitsCounts()
+		  local icon = -1
+		  for udid,count in pairs(unitCounts) do
+			icon = icon + 1
+		  end
+		  if icon > 0 then
+			enabled = true
+			gl.CallList(picList)
+			-- draw the highlights
+			local x,y,lb,mb,rb = spGetMouseState()
+			local mouseIcon = MouseOverIcon(x, y)
+			if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
+			  if (lb or mb or rb) then
+				DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
+			  else
+				DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
+			  end
+		  end
+		end
+	  end    
+	end
+	updateGuishader()
 end
 
 function widget:CommandsChanged()
@@ -141,6 +176,14 @@ function widget:Initialize()
   picList = gl.CreateList(DrawPicList) 
 end
 
+function widget:Shutdown()
+  if picList then
+    gl.DeleteList(picList)
+  end
+  enabled = false
+  updateGuishader()
+end
+
 function DrawPicList()
   unitCounts = spGetSelectedUnitsCounts()
   unitTypes = unitCounts.n;
@@ -151,117 +194,51 @@ function DrawPicList()
     return
   end
   
-  SetupDimensions(unitTypes)
-
-  -- unit model rendering uses the depth-buffer
-  glClear(GL_DEPTH_BUFFER_BIT)
-
-  -- draw the buildpics
-  unitCounts.n = nil  
-  local icon = 0
-  for udid,count in pairs(unitCounts) do
-    if (useModels) then
-      DrawUnitDefModel(udid, icon, count)
-    else
-      DrawUnitDefTexture(udid, icon, count)
-    end
-    icon = icon + 1
-  end
-end
-
-
-function SetupDimensions(count)
   local xmid = vsx * 0.5
-  local width = math.floor(iconSizeX * count)
+  local width = math.floor(usedIconSizeX * unitTypes)
   rectMinX = math.floor(xmid - (0.5 * width))
   rectMaxX = math.floor(xmid + (0.5 * width))
-  rectMinY = math.floor(0)
-  rectMaxY = math.floor(rectMinY + iconSizeY)
-end
-
-
-function CenterUnitDef(unitDefID)
-  local ud = UnitDefs[unitDefID] 
-  if (not ud) then
-    return
-  end
-  if (not ud.dimensions) then
-    ud.dimensions = spGetUnitDefDimensions(unitDefID)
-  end
-  if (not ud.dimensions) then
-    return
-  end
+  rectMinY = 0
+  rectMaxY = math.floor(rectMinY + usedIconSizeY)
+  
+  -- draw background bar
+  if backgroundColor[4] > 0 then
+    local icon = -1
+    for udid,count in pairs(unitCounts) do
+      icon = icon + 1
+    end
+    local xmin = math.floor(rectMinX)
+    local xmax = math.floor(rectMinX + (usedIconSizeX * icon))
+    if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
     
-  local d = ud.dimensions
-  local xSize = (d.maxx - d.minx)
-  local ySize = (d.maxy - d.miny)
-  local zSize = (d.maxz - d.minz)
-
-  local hSize -- maximum horizontal dimension
-  if (xSize > zSize) then hSize = xSize else hSize = zSize end
-
-  -- aspect ratios
-  local mAspect = hSize / ySize
-  local vAspect = iconSizeX / iconSizeY
-
-  -- scale the unit to the box (maxspect)
-  local scale
-  if (mAspect > vAspect) then
-    scale = (iconSizeX / hSize)
-  else
-    scale = (iconSizeY / ySize)
+    local ymin = rectMinY
+    local ymax = rectMaxY
+    local xmid = (xmin + xmax) * 0.5
+    local ymid = (ymin + ymax) * 0.5
+    
+    backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin+iconMargin-1}
+    gl.Color(backgroundColor)
+    RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
   end
-  scale = scale * 0.8
-  glScale(scale, scale, scale)
-
-  -- translate to the unit's midpoint
-  local xMid = 0.5 * (d.maxx + d.minx)
-  local yMid = 0.5 * (d.maxy + d.miny)
-  local zMid = 0.5 * (d.maxz + d.minz)
-  glTranslate(-xMid, -yMid, -zMid)
-end
-
-
-local function SetupModelDrawing()
-  glDepthTest(true) 
-  glDepthMask(true)
-  glLighting(true)
-  glBlending(false)
-  glMaterial({
-    ambient  = { 0.2, 0.2, 0.2, 1.0 },
-    diffuse  = { 1.0, 1.0, 1.0, 1.0 },
-    emission = { 0.0, 0.0, 0.0, 1.0 },
-    specular = { 0.2, 0.2, 0.2, 1.0 },
-    shininess = 16.0
-  })
-end
-
-
-local function RevertModelDrawing()
-  glBlending(true)
-  glLighting(false)
-  glDepthMask(false)
-  glDepthTest(false)
-end
-
-
-local function SetupBackgroundColor(ud)
-  local alpha = 0.95
-  if (ud.canFly) then
-    glColor(0.5, 0.5, 0.0, alpha)
-  elseif (ud.floatOnWater) then
-    glColor(0.0, 0.0, 0.5, alpha)
-  elseif (ud.isBuilder) then
-    glColor(0.0, 0.5, 0.0, alpha)
-  else
-    glColor(.5, .5, .5, alpha)
+  
+  
+  -- draw the buildpics
+  unitCounts.n = nil 
+  local row = 0 
+  local icon = 0
+  for udid,count in pairs(unitCounts) do
+    if icon % iconsPerRow == 0 then 
+		row = row + 1
+	end
+    DrawUnitDefTexture(udid, icon, count, row)
+	icon = icon + 1
   end
 end
 
 
-function DrawUnitDefModel(unitDefID, iconPos, count)
-  local xmin = math.floor(rectMinX + (iconSizeX * iconPos))
-  local xmax = xmin + iconSizeX
+function DrawUnitDefTexture(unitDefID, iconPos, count, row)
+  local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos))
+  local xmax = xmin + usedIconSizeX
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
   
   local ymin = rectMinY
@@ -271,104 +248,55 @@ function DrawUnitDefModel(unitDefID, iconPos, count)
 
   local ud = UnitDefs[unitDefID] 
 
-  -- draw background quad
---  glColor(0.3, 0.3, 0.3, 1.0)
---  glTexture('#'..unitDefID)
-  glTexture(false)
-  SetupBackgroundColor(ud)
-  glRect(xmin + 1, ymin + 1, xmax, ymax)
-
-
-  -- draw the 3D unit
-	SetupModelDrawing()
-
-  glPushMatrix()
-  glScissor(xmin, ymin, xmax - xmin, ymax - ymin)
-  glTranslate(xmid, ymid, 0)
-  glRotate(15.0, 1, 0, 0)
-  local timer = 1.5 * widgetHandler:GetHourTimer()
-  glRotate(math.cos(0.5 * math.pi * timer) * 60.0, 0, 1, 0)
-
-  CenterUnitDef(unitDefID)
-  
-  local scribe = false
-  if (scribe) then
-    glLighting(false)
-    glColor(0,0,0,1)
-  end
-
-  glUnitShape(unitDefID, spGetMyTeamID())
-
-  if (scribe) then
---    glLineWidth(0.1)
-    glLighting(false)
-    glDepthMask(false)
-    glColor(1,1,1,1)
-    glPolygonOffset(-4, -4)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    glUnitDef(unitDefID, spGetMyTeamID())
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    glPolygonOffset(false)
---    glLineWidth(1.0)
-  end
-
-  glScissor(false)
-  glPopMatrix()
-
-	RevertModelDrawing()
-
-  -- draw the count text
-  glText(count, (xmin + xmax) * 0.5, ymax + 2, fontSize, "oc")
-
-  -- draw the border  (note the half pixel shift for drawing lines)
-  glColor(1, 1, 1)
-  glBeginEnd(GL_LINE_LOOP, function()
-    glVertex(xmin + 0.5, ymin + 0.5)
-    glVertex(xmax + 0.5, ymin + 0.5)
-    glVertex(xmax + 0.5, ymax + 0.5)
-    glVertex(xmin + 0.5, ymax + 0.5)
-  end)
-end
-
-
-function DrawUnitDefTexture(unitDefID, iconPos, count)
-  local xmin = math.floor(rectMinX + (iconSizeX * iconPos))
-  local xmax = xmin + iconSizeX
-  if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
-  
-  local ymin = rectMinY
-  local ymax = rectMaxY
-  local xmid = (xmin + xmax) * 0.5
-  local ymid = (ymin + ymax) * 0.5
-
-  local ud = UnitDefs[unitDefID] 
-
-  glColor(1, 1, 1)
+  glColor(1, 1, 1, 1)
   glTexture('#' .. unitDefID)
-  glTexRect(xmin, ymin, xmax, ymax)
+  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax))
   glTexture(false)
 
   -- draw the count text
-  glText(count, (xmin + xmax) * 0.5, ymax + 2, fontSize, "oc")
-
-  -- draw the border  (note the half pixel shift for drawing lines)
-  glBeginEnd(GL_LINE_LOOP, function()
-    glVertex(xmin + 0.5, ymin + 0.5)
-    glVertex(xmax + 0.5, ymin + 0.5)
-    glVertex(xmax + 0.5, ymax + 0.5)
-    glVertex(xmin + 0.5, ymax + 0.5)
-  end)
+  local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
+  glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16) , fontSize, "or")
 end
 
+
+function RectRound(px,py,sx,sy,cs)
+	
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	glRect(px+cs, py, sx-cs, sy)
+	glRect(sx-cs, py+cs, sx, sy-cs)
+	glRect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	glTexture(false)
+end
 
 function DrawIconQuad(iconPos, color)
-  local xmin = rectMinX + (iconSizeX * iconPos)
-  local xmax = xmin + iconSizeX
+  local xmin = rectMinX + (usedIconSizeX * iconPos)
+  local xmax = xmin + usedIconSizeX
   local ymin = rectMinY
   local ymax = rectMaxY
-  glColor(color)
+  
+  gl.Texture(highlightImg)
+  gl.Color(color)
+  glTexRect(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin+iconMargin)
+  gl.Texture(false)
+  
+  RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin+iconMargin, (xmax-xmin)/15)
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  glRect(xmin, ymin, xmax, ymax)
+  gl.Color(color[1],color[2],color[3],color[4]/2)
+  RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin+iconMargin, (xmax-xmin)/15)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
@@ -381,7 +309,6 @@ function widget:MousePress(x, y, button)
   activePress = (mouseIcon >= 0)
   return activePress
 end
-
 
 -------------------------------------------------------------------------------
 
@@ -486,7 +413,7 @@ function MouseOverIcon(x, y)
   if (y < rectMinY)   then return -1 end
   if (y > rectMaxY)   then return -1 end
 
-  local icon = math.floor((x - rectMinX) / iconSizeX)
+  local icon = math.floor((x - rectMinX) / usedIconSizeX)
   -- clamp the icon range
   if (icon < 0) then
     icon = 0
