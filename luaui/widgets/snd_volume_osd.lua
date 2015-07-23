@@ -33,21 +33,22 @@ local minuskey2								= KEYSYMS.KP_MINUS
 local volume
 local TextDraw            		 			= fontHandler.Draw
 local vsx,vsy                    			= gl.GetViewSizes()
-local widgetPosX 							= vsx/3
-local widgetPosY 							= vsy/6
+local widgetPosX 							= vsx/2.5
+local widgetPosY 							= vsy/7.5
 local pressedToMove		 					= false
 local dt									= -1
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 --------------------------------------------------------------------------------
 -- SETTINGS, configurable
 --------------------------------------------------------------------------------
 local TEST_SOUND 							= LUAUI_DIRNAME .. 'sounds/volume_osd/pop.wav'
 local font         							= "luaui/fonts/freesansbold_14"
-local step 									= 2 -- how many steps to change sound volume on one key press
+local step 									= 4 -- how many steps to change sound volume on one key press
 local dtime									= 3 --How long time the volume display is drawn, in seconds
 local ftime 								= 2.5 --How long time before the volume display starts fading, in seconds
-local widgetWidth							= vsx/2.5 -- in pixels (changed from 400)
-local widgetHeight							= vsy/25.6 -- in pixels (changed from 40)
-local rectangles 							= 50 -- number of boxes in volume bar
+local widgetWidth							= vsx/4.5 -- in pixels (changed from 400)
+local widgetHeight							= vsy/27 -- in pixels (changed from 40)
+local rectangles 							= 25 -- number of boxes in volume bar
 local boxspacing 							= 2 -- space between boxes
 local red									= 0.1 -- volume bar colour, 0 to 1.
 local green									= 0.7 -- volume bar colour, 0 to 1.
@@ -84,123 +85,76 @@ function widget:KeyPress(key, mods, isRepeat)
 	return false
 end
 
-function widget:DrawScreen()
-		local y1 = widgetPosY 
-		local y2 = widgetPosY + widgetHeight
-		local x1 = widgetPosX
-		local x2 = widgetPosX + widgetWidth
-		local ostime = os.clock()
-		local t = ostime - dt
-		local boxwidth = widgetWidth/rectangles
-		
-		fontHandler.UseFont(font)
-		
-		if t < dtime and dt >= 0 then --dtime = 3
-			local alpha
-			if t < ftime then --ftime = 2
-				alpha = 1
-			else
-				alpha = 3*(dtime-t)/dtime
-			end
-			gl.Color(0,0,0,0.1*alpha)                              -- draws background rectangle
-			gl.Rect(x1,y1,x2-1,y2)
-			gl.Color(0.5,1,0.5,alpha)
-			TextDraw("Volume: ".. volume .. "%",x1+5,y2+5)
-			gl.Color(0.3,0.3,0.3,0.6*alpha)                              -- draws empty rectangles
-			
-			for i = 1,rectangles do
-				local u1 = x1+(i-1)*boxwidth
-				local u2= u1+boxwidth-boxspacing
-				gl.Rect(u1,y1,u2,y2)
-			end
-			
-			local vol2 = math.floor(volume/(100/rectangles))
-			gl.Color(0,0.8,0,alpha)                              -- draws filled rectangles
-			for i = 1,vol2 do
-				local u1 = x1+(i-1)*boxwidth
-				local u2= u1+boxwidth-boxspacing
-				gl.Color(red,green,blue,alpha)                              
-				gl.Rect(u1+1,y1+1,u1+2,y2-1)
-				gl.Color(red*1.2,green*1.2,blue*1.2,alpha)                              
-				gl.Rect(u1+2,y1+1,u2-1,y2-1)
-			end
-		end
-	end
+function RectRound(px,py,sx,sy,cs)
+	
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
+	
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	gl.Texture(false)
+end
 
-function widget:TweakDrawScreen()
+function widget:DrawScreen()
 	local y1 = widgetPosY 
 	local y2 = widgetPosY + widgetHeight
 	local x1 = widgetPosX
 	local x2 = widgetPosX + widgetWidth
+	local ostime = os.clock()
+	local t = ostime - dt
+	local boxwidth = widgetWidth/rectangles
+	
 	fontHandler.UseFont(font)
-	gl.Color(0,0,0.5,1)
-	gl.Rect(x1-1,y1-1,x1,y2+1)
-	gl.Rect(x2-1,y1-1,x2,y2+1)
-	gl.Rect(x1-1,y1-1,x2,y1)
-	gl.Rect(x1-1,y2,x2,y2+1)
-	gl.Color(0.5,1,0.5,1)
-	TextDraw("Volume: ".. volume .. "%",x1+5,y2+5)
-	gl.Color(0,0,0,0.2)                              -- draws empty rectangles
-	for i = 1,40 do
-		local u1 = x1+(i-1)*10
-		local u2= u1+8
-		gl.Rect(u1,y1,u2,y2)
-	end
 	
-	local vol2 = math.floor(volume/2.5)
-	gl.Color(0,0.8,0,1)                              -- draws filled rectangles
-	for i = 1,vol2 do
-		local u1 = x1+(i-1)*10
-		local u2= u1+8
-		gl.Rect(u1+1,y1+1,u2-1,y2-1)
-	end	
-end
-
-	-----------------
-	-- AID --
-	-----------------
-
-function widget:TweakMouseMove(x,y,dx,dy,button)
-		if pressedToMove then
-		if moveStartX == nil then                                                      -- move widget on y axis
-			moveStartX = x - widgetPosX
+	if t < dtime and dt >= 0 then --dtime = 3
+		local alpha
+		if t < ftime then --ftime = 2
+			alpha = 1
+		else
+			alpha = 3*(dtime-t)/dtime
 		end
-		if moveStartY == nil then                                                      -- move widget on y axis
-			moveStartY = y - widgetPosY
+		
+		gl.Color(0,0.15,0,0.15*alpha)                              -- draws empty rectangles
+		for i = 1,rectangles do
+			local u1 = x1+(i-1)*boxwidth
+			local u2= u1+boxwidth-boxspacing
+			--gl.Rect(u1,y1,u2,y2)
+			RectRound(u1,y1,u2,y2,(u2-u1)/2.5)
 		end
-		widgetPosX = widgetPosX + dx
-		widgetPosY = widgetPosY + dy
-
-		if widgetPosY <= 0 then
-			widgetPosY = 0
+		local vol2 = math.floor(volume/(100/rectangles))
+		gl.Color(0,0.85,0,alpha)                              -- draws filled rectangles
+		local spacer2 = boxwidth / 6.5
+		local spacer3 = boxwidth / 6
+		gl.Color(0.2,1,0.2,alpha*0.75)   
+		for i = 1,vol2 do
+			local u1 = x1+(i-1)*boxwidth
+			local u2= u1+boxwidth-boxspacing            
+			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/2.5)
 		end
-		if widgetPosY + widgetHeight >= vsy then
-			widgetPosY = vsy - widgetHeight
-		end
-		if widgetPosX < 5 then
-			widgetPosX = 5
-		end
-		if widgetPosX + widgetWidth + 5 > vsx then
-			widgetPosX = vsx - widgetWidth - 5
+		local vol3 = math.floor((100-volume)/(100/rectangles))
+		gl.Color(0,1,0,alpha*0.06)                              -- draws filled rectangles
+		for u = 1,vol3 do
+			i = vol2 + u
+			local u1 = x1+(i-1)*boxwidth
+			local u2= u1+boxwidth-boxspacing
+			RectRound(u1+spacer3,y1+spacer3,u2-spacer3,y2-spacer3,((u2-spacer3)-(u1+spacer3))/2.5)
 		end
 	end
-	
 end
 
-function widget:TweakMousePress(x, y, button)
-	if button == 1 then
-		if IsOnButton(x,y,widgetPosX,widgetPosY,widgetPosX+widgetWidth,widgetPosY+widgetHeight) then
-			pressedToMove = true
-			return true
-		end
-	else
-		return false
-	end
-end
-
-function widget:TweakMouseRelease(x,y,button)
-	pressedToMove = false                                             
-end
 
 function IsOnButton(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	if BLcornerX == nil then return false end
@@ -209,21 +163,16 @@ function IsOnButton(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX
 						  and y >= BLcornerY
 						  and y <= TRcornerY
-
 end
 
-	-----------------
-	-- SAVE/LOAD --
-	-----------------
 
-function widget:GetConfigData(data)      -- save
-	return {
-		widgetPosX         = widgetPosX,
-		widgetPosY         = widgetPosY,
-	}
-end
-
-function widget:SetConfigData(data)      -- load
-	widgetPosX         	= data.widgetPosX or widgetPosX
-	widgetPosY         	= data.widgetPosY or widgetPosY
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx = viewSizeX
+	vsy = viewSizeY
+	
+	widgetWidth		= vsx/4.5 -- in pixels (changed from 400)
+	widgetHeight	= vsy/27 -- in pixels (changed from 40)
+	
+	widgetPosX 							= vsx/2.5
+	widgetPosY 							= vsy/7.5
 end
