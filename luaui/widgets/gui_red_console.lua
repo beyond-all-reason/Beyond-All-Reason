@@ -50,7 +50,7 @@ local Config = {
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 7,
-		maxlinesScrollmode = 13,
+		maxlinesScrollmode = 12,
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
