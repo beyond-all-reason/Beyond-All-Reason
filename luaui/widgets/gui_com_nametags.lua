@@ -16,7 +16,7 @@ end
 
 local useThickLeterring		= true
 local heightOffset			= 50
-local fontSize				= 18		-- not real fontsize, it will be scaled
+local fontSize				= 15		-- not real fontsize, it will be scaled
 local scaleFontAmount		= 115
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
