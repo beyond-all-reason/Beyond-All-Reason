@@ -52,7 +52,7 @@ local teamPic				= imageDirectory.."team.png"
 local teamHighlightPic		= imageDirectory.."highlight.png"
 local barBg					= imageDirectory.."barbg.png"
 local bar					= imageDirectory.."bar.png"
-local bgcorner				= imageDirectory.."bgcorner.png"
+local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local bgcornerSize			= 8
 
 local displayList

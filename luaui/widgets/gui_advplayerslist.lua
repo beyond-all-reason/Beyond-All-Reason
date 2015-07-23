@@ -95,7 +95,7 @@ local imageDirectory  = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/"
 
 local flagsDirectory  = imageDirectory.."flags/"
 
-local bgcorner        = imageDirectory.."bgcorner.png"
+local bgcorner        = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local currentPic      = imageDirectory.."indicator.dds"
 local unitsPic        = imageDirectory.."units.dds"
@@ -1735,35 +1735,37 @@ end
 
 
 function DrawSmallName(name, team, posY, dark, playerID, alpha)
-	if originalColourNames[playerID] then
-		name = originalColourNames[playerID] .. name
-	end
-	local textindent = 4
-	local explayerindent = -3
-	if m_indent.active or m_rank.active or m_side.active or m_ID.active then
-		textindent = 0
-	end
-	local nameColourR,nameColourG,nameColourB,nameColourA = 1,1,1,1
-	
-	if playerSpecs[playerID] ~= nil then 
-		nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
-		if (nameColourR + nameColourG*1.35 + nameColourB*0.5) < 0.75 then
-			gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+	if team ~= nil then
+		if originalColourNames[playerID] then
+			name = originalColourNames[playerID] .. name
+		end
+		local textindent = 4
+		local explayerindent = -3
+		if m_indent.active or m_rank.active or m_side.active or m_ID.active then
+			textindent = 0
+		end
+		local nameColourR,nameColourG,nameColourB,nameColourA = 1,1,1,1
+		
+		if playerSpecs[playerID] ~= nil then 
+			nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
+			if (nameColourR + nameColourG*1.35 + nameColourB*0.5) < 0.75 then
+				gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+			else
+				gl_Color(0,0,0,0.3)
+				gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+				gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+				gl_Color(nameColourR,nameColourG,nameColourB,0.78)
+				gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+			end
 		else
 			gl_Color(0,0,0,0.3)
-			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
-			gl_Color(nameColourR,nameColourG,nameColourB,0.78)
-			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+			gl_Text(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
+			gl_Text(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
+			gl_Color(1,1,1,alpha)
+			gl_Text(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
 		end
-	else
-		gl_Color(0,0,0,0.3)
-		gl_Text(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-		gl_Text(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-		gl_Color(1,1,1,alpha)
-		gl_Text(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+		gl_Color(1,1,1)
 	end
-	gl_Color(1,1,1)
 end
 
 function DrawID(playerID, posY, dark)

@@ -7,7 +7,7 @@ return {
     date      = "22 february 2015",
     license   = "GNU GPL, v2 or later",
     layer     = -10000,
-    enabled   = true
+    enabled   = false
 }
 end
 
