@@ -47,6 +47,19 @@ local drawGroundQuads = true
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local useThickLeterring		= true
+local heightOffset			= 50
+local fontSize				= 18
+local fontShadow			= true		-- only shows if font has a white outline
+local shadowOpacity			= 0.35
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 10, 10)
+local shadowFont = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 38, 1.6)
+
+local comnameList = {}
+local drawShadow = fontShadow
+local usedFontSize = fontSize
+
+
 local gl = gl  --  use a local copy for faster access
 
 local msx = Game.mapSizeX
@@ -64,6 +77,41 @@ local startTimer = Spring.GetTimer()
 
 local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
 local texScale = 512
+
+
+local GetUnitTeam        		= Spring.GetUnitTeam
+local GetTeamInfo        		= Spring.GetTeamInfo
+local GetPlayerInfo      		= Spring.GetPlayerInfo
+local GetPlayerList    		    = Spring.GetPlayerList
+local GetTeamColor       		= Spring.GetTeamColor
+local GetVisibleUnits    		= Spring.GetVisibleUnits
+local GetUnitDefID       		= Spring.GetUnitDefID
+local GetAllUnits        		= Spring.GetAllUnits
+local IsUnitInView	 	 		= Spring.IsUnitInView
+local GetCameraPosition  		= Spring.GetCameraPosition
+local GetUnitPosition    		= Spring.GetUnitPosition
+local GetFPS					= Spring.GetFPS
+
+local glPushMatrix      		= gl.PushMatrix
+local glPopMatrix       		= gl.PopMatrix
+local glDepthTest        		= gl.DepthTest
+local glAlphaTest        		= gl.AlphaTest
+local glColor            		= gl.Color
+local glText             		= gl.Text
+local glTranslate        		= gl.Translate
+local glBillboard        		= gl.Billboard
+local glDrawFuncAtUnit   		= gl.DrawFuncAtUnit
+local glDrawListAtUnit   		= gl.DrawListAtUnit
+local GL_GREATER     	 		= GL.GREATER
+local GL_SRC_ALPHA				= GL.SRC_ALPHA	
+local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
+local glBlending          		= gl.Blending
+local glScale          			= gl.Scale
+
+local glCreateList				= gl.CreateList
+local glBeginEnd				= gl.BeginEnd
+local glDeleteList				= gl.DeleteList
+local glCallList				= gl.CallList
 
 --------------------------------------------------------------------------------
 
@@ -110,6 +158,51 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+
+local function createComnameList(x, y, name, teamID, color)
+	comnameList[teamID] = {}
+	comnameList[teamID]['x'] = math.floor(x)
+	comnameList[teamID]['y'] = math.floor(y)
+	comnameList[teamID]['list'] = gl.CreateList( function()
+		local outlineColor = {0,0,0,1}
+		if (color[1] + color[2]*1.35 + color[3]*0.5) < 0.8 then
+			outlineColor = {1,1,1,1}
+		end
+		if useThickLeterring then
+			if outlineColor[1] == 1 and fontShadow then
+			  glTranslate(0, -(usedFontSize/44), 0)
+			  shadowFont:Begin()
+			  shadowFont:SetTextColor({0,0,0,shadowOpacity})
+			  shadowFont:SetOutlineColor({0,0,0,shadowOpacity})
+			  shadowFont:Print(name, x, y, usedFontSize, "con")
+			  shadowFont:End()
+			  glTranslate(0, (usedFontSize/44), 0)
+			end
+			font:SetTextColor(outlineColor)
+			font:SetOutlineColor(outlineColor)
+			
+			font:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+			font:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+		end
+		font:Begin()
+		font:SetTextColor(color)
+		font:SetOutlineColor(outlineColor)
+		font:Print(name, x, y, usedFontSize, "con")
+		font:End()
+	end)
+end
+
+local function DrawName(x, y, name, teamID, color)
+	-- not optimal, everytime you move camera the x and y are different so it has to recreate the drawlist
+	if comnameList[teamID] == nil or comnameList[teamID]['x'] ~= math.floor(x) or comnameList[teamID]['y'] ~= math.floor(y) then		-- using floor because the x and y values had a a tiny change each frame
+		if comnameList[teamID] ~= nil then
+			gl.DeleteList(comnameList[teamID]['list'])
+		end
+		createComnameList(x, y, name, teamID, color)
+	end
+	glCallList(comnameList[teamID]['list'])
+end
 
 function widget:Initialize()
   -- only show at the beginning
@@ -164,7 +257,7 @@ function widget:Initialize()
               gl.StencilMask(stencilBit1);
               gl.StencilFunc(GL.ALWAYS, 0, stencilBit1);
             end
-            DrawMyBox(xn,minY,zn, xp,maxY,zp)
+            DrawMyBox(xn-1,minY,zn-1, xp+1,maxY,zp+1)
 
           end
         end
@@ -180,15 +273,15 @@ function widget:Initialize()
           if (xn and ((xn ~= 0) or (zn ~= 0) or (xp ~= msx) or (zp ~= msz))) then
 
             if (at == Spring.GetMyAllyTeamID()) then
-              gl.Color( 0, 1, 0, 0.3 )  --  green
+              gl.Color( 0, 1, 0, 0.25 )  --  green
               gl.StencilMask(stencilBit2);
               gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit2);
             else
-              gl.Color( 1, 0, 0, 0.3 )  --  red
+              gl.Color( 1, 0, 0, 0.25 )  --  red
               gl.StencilMask(stencilBit1);
               gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit1);
             end
-            DrawMyBox(xn,minY,zn, xp,maxY,zp)
+            DrawMyBox(xn-1,minY,zn-1, xp+1,maxY,zp+1)
 
           end
         end
@@ -198,14 +291,24 @@ function widget:Initialize()
 end
 
 
+
 function widget:Shutdown()
   gl.DeleteList(xformList)
   gl.DeleteList(coneList)
   gl.DeleteList(startboxDListStencil)
   gl.DeleteList(startboxDListColor)
+  removeTeamLists()
 end
 
 
+function removeTeamLists()
+  for _, teamID in ipairs(Spring.GetTeamList()) do
+    if comnameList[teamID] ~= nil then
+      gl.DeleteList(comnameList[teamID]['list'])
+      comnameList[teamID] = nil
+    end
+  end
+end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -314,7 +417,7 @@ function widget:DrawWorld()
       end
     end
   end
-
+  
   gl.Fog(true)
 end
 
@@ -324,7 +427,6 @@ end
 function widget:DrawScreenEffects()
   -- show the names over the team start positions
   gl.Fog(false)
-  gl.BeginText()
   for _, teamID in ipairs(Spring.GetTeamList()) do
     local _,leader = Spring.GetTeamInfo(teamID)
     local name,_,spec = Spring.GetPlayerInfo(leader)
@@ -335,12 +437,13 @@ function widget:DrawScreenEffects()
       if (x ~= nil and x > 0 and z > 0 and y > -500) then
         local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
         if (sz < 1) then
-          gl.Text(colorStr .. name, sx, sy, 18, 'cs')
+          
+			DrawName(sx, sy, name, teamID, GetTeamColor(teamID))
+	
         end
       end
     end
   end
-  gl.EndText()
   gl.Fog(true)
 end
 
@@ -418,6 +521,11 @@ function widget:DrawInMiniMap(sx, sz)
   gl.PopMatrix()
 end
 
+
+function widget:ViewResize(vsx, vsy)
+  removeTeamLists()
+  usedFontSize = fontSize/1.44 + (fontSize * ((vsx*vsy / 10000000)))
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
