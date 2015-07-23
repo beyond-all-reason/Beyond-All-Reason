@@ -11,12 +11,12 @@
 function widget:GetInfo()
   return {
     name      = "Ally Resource Bars",
-    desc      = "Shows your allies resources and allows quick resource transfer (v1.5)",
-    author    = "TheFatController",
-    date      = "Feb 7, 2010",
+    desc      = "Shows your allies resources and allows quick resource transfer",
+    author    = "Floris (org by: TheFatController)",
+    date      = "25 april 2015",
     license   = "MIT/x11",
     layer     = -9, 
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -24,6 +24,7 @@ end
 --------------------------------------------------------------------------------
 
 local TOOL_TIPS = true
+local showSelf	= true
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -41,28 +42,48 @@ local GetMyAllyTeamID = Spring.GetMyAllyTeamID
 local mathMin = math.min
 local gl, GL = gl, GL
 local sF = string.format
+local GetPlayerInfo = Spring.GetPlayerInfo
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local imageDirectory		= ":n:"..LUAUI_DIRNAME.."Images/allyres/"
+local teamPic				= imageDirectory.."team.png"
+local teamHighlightPic		= imageDirectory.."highlight.png"
+local barBg					= imageDirectory.."barbg.png"
+local bar					= imageDirectory.."bar.png"
+local bgcorner				= imageDirectory.."bgcorner.png"
+local bgcornerSize			= 8
 
 local displayList
 local staticList
-local viewSizeX, viewSizeY = 0,0
-local BAR_HEIGHT       = 6
+local vsx, vsy = 0,0
+local xPercentage      = 85
+local yPercentage      = 85
+local sizeMultiplier   = 1
+
+
+-- nevermind these vars now, they are defined in widget:ViewResize
+local BAR_HEIGHT       = 4
 local BAR_SPACER       = 3
-local BAR_WIDTH        = 120
-local BAR_GAP          = 7
+local BAR_WIDTH        = 64
+local BAR_GAP          = 12
+local BAR_MARGIN       = 4
 local TOTAL_BAR_HEIGHT = (BAR_SPACER + BAR_HEIGHT + BAR_HEIGHT)
-local TOP_HEIGHT       = (BAR_GAP + BAR_GAP)
-local BAR_OFFSET       = (TOP_HEIGHT + BAR_SPACER)
+local TOP_HEIGHT       = (BAR_GAP)
+local BAR_OFFSET       = (TOP_HEIGHT + BAR_SPACER + BAR_GAP)
 local START_HEIGHT     = (TOTAL_BAR_HEIGHT + BAR_GAP + TOP_HEIGHT)
 local FULL_BAR         = (BAR_WIDTH + BAR_GAP + BAR_GAP + BAR_SPACER)
 local w                = (BAR_WIDTH + BAR_OFFSET + BAR_GAP)
 local h                = START_HEIGHT
+
+
+local selfXoffset = -3
 local x1,y1
 local mx, my
 local sentSomething = false
 local enabled       = false
+local doUpdate      = false
 local transferring  = false
 local transferTeam
 local transferType
@@ -101,17 +122,34 @@ local function getTeamNames()
   return teamNames
 end
 
+local function updateGuishader()
+  if (WG['guishader_api'] ~= nil) then
+	if not enabled then
+		WG['guishader_api'].RemoveRect('allyres')
+	else
+		WG['guishader_api'].InsertRect(
+			x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75),
+			y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75),
+			x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75)),
+			y1+(h-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75)),
+			'allyres'
+		)
+	end
+  end
+end
+
 function widget:Initialize()
-  viewSizeX, viewSizeY = gl.GetViewSizes()
+  vsx, vsy = gl.GetViewSizes()
   if not posLoaded then
-    x1 = (viewSizeX - w)
-    y1 = (viewSizeY * 0.65)
+    percentage2Coords()
   end
   myID = GetMyTeamID()
 end
 
 function widget:Shutdown()
   gl.DeleteList(displayList)
+  enabled = false
+  updateGuishader()
 end
 
 local function setUpTeam()
@@ -123,59 +161,100 @@ local function setUpTeam()
   mx, my = 0,0
   local teamCount = 0
   for _,teamID in ipairs(getTeams) do
-    if teamID ~= myID then
+    if teamID ~= myID or showSelf then
       local eCur = GetTeamResources(teamID, "energy")
       if eCur and (not deadTeams[teamID]) then
-        teamList[teamID] = true
-        teamCount = (teamCount + 1)
+        teamCount = teamCount + 1
+        teamList[teamCount] = teamID
       end
     end
   end
-  for teamID in pairs(teamList) do
+  for key,teamID in ipairs(teamList) do
     local r,g,b = Spring.GetTeamColor(teamID)
     teamColors[teamID] = {r=r,g=g,b=b}
   end
-  if (teamCount > 0) then
+  if (teamCount > 1 and showSelf) or (showSelf == false and teamCount > 0) then
     enabled = true
-    return true
   else
     enabled = false
-    return false
   end
+  return enabled
+end
+
+function RectRound(px,py,sx,sy,cs)
+	
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
+	
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	gl.Texture(false)
 end
 
 local function updateStatics()
   if (staticList) then gl.DeleteList(staticList) end
   staticList = gl.CreateList( function()
 	gl.PushMatrix()
-    gl.Color(0.0, 0.0, 0.0, 0.5)
-    gl.Rect(x1, y1, x1+w,y1+h)
-    gl.Color(0.0, 0.0, 0.0, 1)
-    gl.Shape(GL.LINE_LOOP, {
-      { v = { x1 + 0.5, y1 + 0.5 }, t = { 0, 1 } },
-      { v = { x1+w + 0.5, y1 + 0.5 }, t = { 1, 1 } },
-      { v = { x1+w + 0.5, y1+h + 0.5 }, t = { 1, 0 } },
-      { v = { x1 + 0.5, y1+h + 0.5 }, t = { 0, 0 } },
-    })
+    gl.Color(0.0, 0.0, 0.0, 0.6)
+    
+    RectRound(x1-(BAR_MARGIN/1.75), y1-BAR_MARGIN, x1+w+(BAR_MARGIN/1.75), y1+h+BAR_MARGIN, bgcornerSize)
+    
     local height = h - TOP_HEIGHT
     local teamNames = getTeamNames()
     teamIcons = {}
-    for teamID in pairs(teamList) do
-      if (teamID ~= myID) then
-        gl.Color(teamColors[teamID].r,teamColors[teamID].g,teamColors[teamID].b,1)
-        gl.Rect(x1+BAR_GAP,y1+height,x1+TOP_HEIGHT,y1+height-TOTAL_BAR_HEIGHT)
-        teamIcons[teamID] = 
-        {
-         name = teamNames[teamID] or "No Player",
-         iy1 = y1+height,
-         iy2 = y1+height-TOTAL_BAR_HEIGHT,
-        }
-        height = (height - TOTAL_BAR_HEIGHT - BAR_GAP)
-      end
-    end
+	for key,teamID in ipairs(teamList) do
+	  if (teamID ~= myID or showSelf) then
+		local _,active = GetPlayerInfo(teamID) 
+		local xOffset = 0
+		local opacityMultiplier = 1
+		if showSelf then
+			if (teamID == myID ) then 
+				xOffset = xOffset + selfXoffset
+			else
+				xOffset = xOffset - selfXoffset
+			end
+		end
+		local extraSize = 0
+		if not active and gameFrame > 0 then
+			extraSize = -3
+		end
+		gl.Color(teamColors[teamID].r,teamColors[teamID].g,teamColors[teamID].b,1*opacityMultiplier)
+		gl.Texture(teamPic)
+		gl.TexRect(x1+BAR_GAP+xOffset-extraSize, y1+height+extraSize, x1+TOP_HEIGHT+BAR_GAP+xOffset+extraSize, y1+height-TOTAL_BAR_HEIGHT-extraSize)
+		gl.Texture(false)
+		gl.Color(1,1,1,0.4*opacityMultiplier)
+		gl.Texture(teamHighlightPic)
+		gl.TexRect(x1+BAR_GAP+xOffset-extraSize, y1+height+extraSize, x1+TOP_HEIGHT+BAR_GAP+xOffset+extraSize, y1+height-TOTAL_BAR_HEIGHT-extraSize)
+		gl.Texture(false)
+		
+		
+		teamIcons[teamID] = 
+		{
+		 name = teamNames[teamID] or "No Player",
+		 iy1 = y1+height+(BAR_GAP/2),
+		 iy2 = y1+height-(BAR_GAP/2)-TOTAL_BAR_HEIGHT,
+		}
+		height = (height - TOTAL_BAR_HEIGHT - BAR_GAP)
+	  end
+	end
     gl.PopMatrix()
   end)
+  updateGuishader()
 end
+
 
 local function updateBars()
   if (myID ~= GetMyTeamID()) then
@@ -187,13 +266,23 @@ local function updateBars()
   end
   local eCur, eMax, mCur, mMax
   local height = h - TOP_HEIGHT
-  for teamID in pairs(teamList) do
-    if (teamID ~= myID) then
+  for key,teamID in ipairs(teamList) do
+    if (teamID ~= myID or showSelf) then
       eCur, eMax = GetTeamResources(teamID, "energy")
       mCur, mMax = GetTeamResources(teamID, "metal")
       eCur = eCur + (sendEnergy[teamID] or 0)
       mCur = mCur + (sendMetal[teamID] or 0)
+      
+		
       local xoffset = (x1+BAR_OFFSET)
+	  local opacityMultiplier = 1
+      if showSelf then
+		if (teamID == myID ) then 
+			xoffset = xoffset + selfXoffset
+		else
+			xoffset = xoffset - selfXoffset
+		end
+	  end
       teamRes[teamID] = 
       {
         ex1  = xoffset,       
@@ -205,7 +294,8 @@ local function updateBars()
         my1  = y1+height-BAR_HEIGHT-BAR_SPACER,
         mx2  = xoffset+BAR_WIDTH,
         mx2b = xoffset+(BAR_WIDTH * (mCur / mMax)),
-        my2  = y1+height-TOTAL_BAR_HEIGHT,     
+        my2  = y1+height-TOTAL_BAR_HEIGHT,
+        om   = opacityMultiplier,
       }
       if (teamID == transferTeam) then
         if (transferType == "energy") then
@@ -220,10 +310,10 @@ local function updateBars()
   if (height ~= 0) then
     h = (h - height)
     if prevHeight then
-      y1 = y1 - (h-prevHeight)
+      --y1 = y1 - (h-prevHeight)
       prevHeight = nil
     else
-      y1 = (y1 + height)
+      --y1 = (y1 + height)
     end
     updateStatics()
   end
@@ -232,21 +322,33 @@ local function updateBars()
 	gl.PushMatrix()
     for _,d in pairs(teamRes) do
       if d.eRec then
-        gl.Color(0.8, 0, 0, 0.8)
+        gl.Color(0.8, 0, 0, 0.8*d.om)
       else
-        gl.Color(0.8, 0.8, 0, 0.3)
+        gl.Color(0.8, 0.8, 0, 0.13*d.om)
       end
-      gl.Rect(d.ex1,d.ey1,d.ex2,d.ey2)
-      gl.Color(1, 1, 0, 1)
-      gl.Rect(d.ex1,d.ey1,d.ex2b,d.ey2) 
+		--gl.Rect(d.ex1,d.ey1,d.ex2,d.ey2)
+		gl.Texture(barBg)
+		gl.TexRect(d.ex1,d.ey1,d.ex2,d.ey2)
+		gl.Texture(false)
+        gl.Color(1, 1, 0, 1*d.om)
+      --gl.Rect(d.ex1,d.ey1,d.ex2b,d.ey2) 
+		gl.Texture(bar)
+		gl.TexRect(d.ex1,d.ey1,d.ex2b,d.ey2)
+		gl.Texture(false)
       if d.mRec then
-        gl.Color(0.8, 0, 0, 0.8)
+        gl.Color(0.8, 0, 0, 0.8*d.om)
       else
-        gl.Color(0.8, 0.8, 0.8, 0.3)
+        gl.Color(0.8, 0.8, 0.8, 0.13*d.om)
       end
-      gl.Rect(d.mx1,d.my1,d.mx2,d.my2)
-      gl.Color(1, 1, 1, 1)
-      gl.Rect(d.mx1,d.my1,d.mx2b,d.my2)
+      --gl.Rect(d.mx1,d.my1,d.mx2,d.my2)
+		gl.Texture(barBg)
+		gl.TexRect(d.mx1,d.my1,d.mx2,d.my2)
+		gl.Texture(false)
+      gl.Color(1, 1, 1, 1*d.om)
+      --gl.Rect(d.mx1,d.my1,d.mx2b,d.my2)
+		gl.Texture(bar)
+		gl.TexRect(d.mx1,d.my1,d.mx2b,d.my2)
+		gl.Texture(false)
     end
     gl.PopMatrix()
   end)
@@ -309,7 +411,8 @@ function widget:GameFrame(n)
 end
 
 function widget:Update()
-  if (gameFrame ~= lastFrame) then
+	
+  if (gameFrame ~= lastFrame or doUpdate) then
     if enabled then
 	  lastFrame = gameFrame
 	  updateBars()
@@ -328,7 +431,7 @@ function widget:Update()
 	    trnsEnergy = {}
 	    trnsMetal = {}
 	    sentEnergy = 0
-	    sentMetal = 0 
+	    sentMetal = 0
 	    sentSomething = false
 	  end
 	  if TOOL_TIPS then
@@ -336,27 +439,28 @@ function widget:Update()
 	    if (mx ~= x) or (my ~= y) or transferring or ((gameFrame % 15) == 0) then
 		  mx = x
 		  my = y
-		  if (x > x1 + BAR_GAP) and (y > y1 + BAR_GAP) and (x < (x1 + FULL_BAR)) and (y < (y1 + h - TOP_HEIGHT)) then
+		  if (x > x1 + BAR_GAP) and (y > y1 + (BAR_GAP/2)) and (x < (x1 + FULL_BAR)) and (y < (y1 + h - TOP_HEIGHT) + (BAR_GAP/2)) then
 		    for teamID,defs in pairs(teamIcons) do
 			  if (y < defs.iy1) and (y >= defs.iy2) then
 			    local _, _, _, eInc, _, _, _, eRec = GetTeamResources(teamID, "energy")
-			    local _, _, _, mInc, _, _, _, mRec = GetTeamResources(teamID, "metal")   
+			    local _, _, _, mInc, _, _, _, mRec = GetTeamResources(teamID, "metal")
 			    eRec = eRec + (trnsEnergy[teamID] or 0)
 			    mRec = mRec + (trnsMetal[teamID] or 0)      
 			    labelText[1] = 
 			    {
 				  label=defs.name,
-				  x=x1-BAR_SPACER,
+				  x=x1-BAR_GAP-BAR_MARGIN,
 				  y=defs.iy1-BAR_SPACER,
-				  size=TOTAL_BAR_HEIGHT,
+				  size=TOTAL_BAR_HEIGHT*1.55,
 				  config="orn",
 			    }
 			    labelText[2] = 
 			    {
-				  label="(E: +"..sF("%.1f",eInc+eRec) ..", M: +"..sF("%.2f",mInc+mRec)..")", 
-				  x=x1-BAR_SPACER, 
-				  y=defs.iy1-BAR_SPACER-TOTAL_BAR_HEIGHT, 
-				  size=TOTAL_BAR_HEIGHT/1.25, 
+				  --label="e  "..sF("%.1f",eInc+eRec) .."\nm  "..sF("%.2f",mInc+mRec).."",
+				  label="M in:  "..math.floor(sF("%.2f",mInc+mRec)).."\nE  in:  "..math.floor(sF("%.1f",eInc+eRec)),
+				  x=x1-BAR_GAP-BAR_MARGIN, 
+				  y=defs.iy1-BAR_SPACER-(TOTAL_BAR_HEIGHT*1.5),
+				  size=TOTAL_BAR_HEIGHT*1.4, 
 				  config="orn",
 			    }
 			    return
@@ -372,16 +476,18 @@ function widget:Update()
 	  updateBars()
     end
   end
+  doUpdate = false
 end
 
 function widget:GameStart()
   enabled = true
   setUpTeam()
   updateStatics()
-end 
+end
 
 function widget:DrawScreen()
   if enabled and (not IsGUIHidden()) then
+	
       gl.CallList(staticList)
       gl.CallList(displayList)
       if (labelText[1]) then
@@ -390,9 +496,11 @@ function widget:DrawScreen()
         gl.Text(labelText[1].label,labelText[1].x,labelText[1].y,labelText[1].size,labelText[1].config)
         gl.Color(0.8, 0.8, 0.8, 0.8)
         gl.Text(labelText[2].label,labelText[2].x,labelText[2].y,labelText[2].size,labelText[2].config)
-        
         gl.PopMatrix()
       end
+      
+  else
+	updateGuishader()
   end
 end
 
@@ -401,10 +509,13 @@ function widget:MouseMove(x, y, dx, dy, button)
     if moving then
       x1 = x1 + dx
       y1 = y1 + dy
-      if (x1 < 0) then x1 = 0 elseif ((x1+w) > viewSizeX) then x1 = (viewSizeX-w) end
-      if (y1 < 0) then y1 = 0 elseif ((y1+h) > viewSizeY) then y1 = (viewSizeY-h) end
+      
+      coords2Percentage()
+	  
+	  updateGuishader()
       updateBars()
       updateStatics()
+      
     elseif transferring then
       transferTeam = nil
       if (x > (x1+BAR_OFFSET)) and (x < (x1+BAR_OFFSET+BAR_WIDTH)) then
@@ -429,8 +540,16 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MousePress(x, y, button)
-  if (enabled) and ((x > x1) and (y > y1) and (x < (x1 + w)) and (y < (y1 + h))) then
-    if (button == 2) or (y > (y1 + h - TOP_HEIGHT)) then
+
+  if Spring.IsGUIHidden() then return end
+  
+  if (enabled) 
+	  and (x > x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75))
+	  and (y > y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75)) 
+	  and (x < x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 
+	  and (y < y1+(h-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 
+  then
+    if button == 2 then
       capture = true
       moving  = true
       return capture
@@ -465,22 +584,85 @@ function widget:MouseRelease(x, y, button)
   return capture
 end
 
-function widget:ViewResize(vsx, vsy)
-  viewSizeX, viewSizeY = vsx, vsy
-  if (x1 < 0) then x1 = 0 elseif ((x1+w) > viewSizeX) then x1 = (viewSizeX-w) end
-  if (y1 < 0) then y1 = 0 elseif ((y1+h) > viewSizeY) then y1 = (viewSizeY-h) end
+function percentage2Coords()
+    x1 = (vsx * xPercentage) / 100
+    y1 = (vsy * yPercentage) / 100
+    correctPosition()
+end 
+
+function coords2Percentage()
+	xPercentage = (((x1 - vsx) / vsx) * 100) + 100
+	yPercentage = (((y1 - vsy) / vsy) * 100) + 100
+	correctPosition()
+end
+
+function correctPosition()
+	if (x1 < 0) then x1 = 0 elseif ((x1+w) > vsx) then x1 = (vsx-w) end
+	if (y1 < 0) then y1 = 0 elseif ((y1+h) > vsy) then y1 = (vsy-h) end
+	xPercentage = (((x1 - vsx) / vsx) * 100) + 100
+	yPercentage = (((y1 - vsy) / vsy) * 100) + 100
+end
+
+
+function widget:IsAbove(mx, my)
+	local xPos = x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75)
+	local yPos = y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75)
+	local x2Pos = x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))
+	local y2Pos = y1+(h-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))
+	return mx > xPos and my > yPos and mx < x2Pos and my < y2Pos
+end
+
+function widget:GetTooltip(mx, my)
+	if widget:IsAbove(mx,my) then
+		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
+			"The current selected player is extruded to the left. (YOU)")
+	end
+end
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+  vsx, vsy = viewSizeX, viewSizeY
+  
+  sizeMultiplier   = 2.5 + (vsx*vsy / 2000000)
+  
+  selfXoffset	   = -math.floor(sizeMultiplier)
+  
+  BAR_HEIGHT       = math.floor(1*sizeMultiplier)
+  BAR_SPACER       = math.floor(0.8*sizeMultiplier)
+  BAR_WIDTH        = math.floor(15*sizeMultiplier)
+  BAR_GAP          = math.floor(2.66*sizeMultiplier)
+  BAR_MARGIN       = math.floor(1*sizeMultiplier)
+  bgcornerSize     = math.floor(2*sizeMultiplier)
+  
+  TOTAL_BAR_HEIGHT = (BAR_SPACER + BAR_HEIGHT + BAR_HEIGHT)
+  TOP_HEIGHT       = (BAR_GAP)
+  BAR_OFFSET       = (TOP_HEIGHT + BAR_SPACER + BAR_GAP)
+  START_HEIGHT     = (TOTAL_BAR_HEIGHT + BAR_GAP + TOP_HEIGHT)
+  FULL_BAR         = (BAR_WIDTH + BAR_GAP + BAR_GAP + BAR_SPACER)
+  w                = (BAR_WIDTH + BAR_OFFSET + BAR_GAP)
+  h                = START_HEIGHT
+  
+  updateBars()  -- to calculate height
+  
+  percentage2Coords()
+  
+  doUpdate = true
+  
+  setUpTeam()
   updateBars()
   updateStatics()
+  updateGuishader()
 end
 
 function widget:GetConfigData() --save config
-  return {x1=x1, y1=y1, h=h}
+  return {xPercentage=xPercentage, yPercentage=yPercentage, h=h}
 end
 
 function widget:SetConfigData(data) --load config
-  if (data.x1) and (data.y1) and (data.h) then
-    x1 = data.x1
-    y1 = data.y1
+  if (data.xPercentage) and (data.yPercentage) and (data.h) then
+    xPercentage = data.xPercentage
+    yPercentage = data.yPercentage
+    vsx, vsy = gl.GetViewSizes()
+    percentage2Coords()
     prevHeight = data.h
     posLoaded = true
   end
