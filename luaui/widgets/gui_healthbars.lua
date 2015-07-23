@@ -25,15 +25,15 @@ end
 
 local barHeightOffset           = 34		 -- set value that healthbars for units that can unfold and become larger than its unitdef.height are still visible
 
-local barHeight                 = 2.4
-local barWidth                  = 12         --// (barWidth)x2 total width!!!
-local barAlpha                  = 0.85
+local barHeight                 = 2.55
+local barWidth                  = 13         --// (barWidth)x2 total width!!!
+local barAlpha                  = 0.86
 local barOutlineAlpha           = 0.8
 local barInnerAlpha             = 0.5
 local barValueAlpha             = 0.9	      -- alpha of the colored part
 
-local featureBarHeight          = 1.6
-local featureBarWidth           = 7.5
+local featureBarHeight          = 1.65
+local featureBarWidth           = 8
 local featureBarAlpha           = 0.6
 
 local drawBarTitles             = true          -- (I disabled the healthbar text, cause that one doesnt need an explanation)
@@ -55,13 +55,13 @@ local featureReclaimVisibility  = true      -- draw feature bars for reclaimed f
 
 local addGlow                   = false      -- adds a small subtle glow around the value of a bar	(has issues with overlapping bars)
 local glowSize					= outlineSize*6
-local glowAlpha					= 0.15
+local glowAlpha					= 0.14
 
-local minPercentageDistance     = 120000     -- always show health percentage text below this distance
-local infoDistance              = 800000
-local maxFeatureInfoDistance    = 300000    --max squared distance at which text it drawn for features 
-local maxFeatureDistance        = 550000    --max squared distance at which any info is drawn for features 
-local maxUnitDistance           = 11000000  --max squared distance at which any info is drawn for units  MUST BE LARGER THAN FOR FEATURES!
+local minPercentageDistance     = 130000     -- always show health percentage text below this distance
+local infoDistance              = 900000
+local maxFeatureInfoDistance    = 330000    --max squared distance at which text it drawn for features 
+local maxFeatureDistance        = 570000    --max squared distance at which any info is drawn for features 
+local maxUnitDistance           = 12000000  --max squared distance at which any info is drawn for units  MUST BE LARGER THAN FOR FEATURES!
 
 local minReloadTime             = 4 --// in seconds
 
