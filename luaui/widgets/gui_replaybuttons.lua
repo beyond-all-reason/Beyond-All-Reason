@@ -1,7 +1,8 @@
+--http://springrts.com/phpbb/viewtopic.php?f=23&t=30560
 function widget:GetInfo()
 	return {
-		name = "Replay Speed Buttons",
-		desc = "Add buttons to change replay speed",
+		name = "replay buttons",
+		desc = "click buttons to change replay speed",
 		author = "knorke",
 		version = "1",
 		date = "June 2013",
@@ -11,38 +12,60 @@ function widget:GetInfo()
 	}
 end
 
+local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+
 local speedbuttons={} --the 1x 2x 3x etc buttons
 local buttons={}	--other buttons (atm only pause/play)
 local wantedSpeed = nil
-local speeds = {0.5, 1, 2, 3, 4, 5,10,20}
+local speeds = {0.5, 1, 2, 3, 4, 5, 10, 20}
 wPos = {x=0.00, y=0.15}
 local isPaused = false
 local isActive = true --is the widget shown and reacts to clicks?
 
-function widget:Initialize()
+function widget:Initialize()	
 	if (not Spring.IsReplay()) then
+		Spring.Echo ("replaycontrol: Not a replay, removing myself.")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
 	
-
 	local dy = 0
-	local h = 0.04	
+	local h = 0.033
 	for i = 1, #speeds do	
 		dy=dy+h
-		add_button (speedbuttons, wPos.x, wPos.y+dy, 0.05, 0.04, " " .. speeds[i].."x", speeds[i], speedButtonColor (i))
+		add_button (speedbuttons, wPos.x, wPos.y+dy, 0.037, 0.033, "  " .. speeds[i].."x", speeds[i], speedButtonColor (i))
 	end
-	speedbuttons[2].color = {1,0,0,1}
+	speedbuttons[2].color = {0.75,0,0,0.66}
 	dy=dy+h
-	add_button (buttons, wPos.x, wPos.y, 0.05, 0.04, "skip","playpauseskip", {0.5,0.5,1,0.4})	
+	local text = "  skip"
+	if Spring.GetGameFrame() > 0 then
+		text = "  ||"
+	end
+	add_button (buttons, wPos.x, wPos.y, 0.037, 0.033, text,"playpauseskip", {0,0,0,0.6})	
 	
 end
 
+function widget:Shutdown()	
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('replaybuttons')
+	end
+end
+
 function speedButtonColor (i)
-	return{0,0+i/10,1,0.4}
+	return{0,0,0,0.6}
 end
 
 function widget:DrawScreen()
+	if (WG['guishader_api'] ~= nil) then
+		if isActive then
+			local h = 0.033
+			local dy = (#speeds +1) * h
+			WG['guishader_api'].InsertRect(sX(wPos.x), sY(wPos.y), sX(wPos.x+0.037), sY(wPos.y+dy), 'replaybuttons')
+		else
+			WG['guishader_api'].RemoveRect('replaybuttons')
+		end
+	end
+	
 	if not isActive then return end
 	draw_buttons(speedbuttons)
 	draw_buttons(buttons)
@@ -56,7 +79,7 @@ function widget:MousePress(x,y,button)
 		for i = 1, #speeds do --reset all buttons colors
 			speedbuttons[i].color = speedButtonColor (i)
 		end
-		speedbuttons[i].color = {1,0,0,1}
+		speedbuttons[i].color = {0.75,0,0,0.66}
 	end
 	
 	local cb,i = clicked_button (buttons)	
@@ -68,7 +91,7 @@ function widget:MousePress(x,y,button)
 				isPaused = false
 			else 
 				Spring.SendCommands ("pause 1")
-				buttons[i].text = " >>"
+				buttons[i].text = "  >>"
 				isPaused = true
 			end
 		else
@@ -86,7 +109,7 @@ function setReplaySpeed (speed, i)
 		Spring.SendCommands ("setminspeed " ..0.1)
 	else	--slowdown
 		wantedSpeed = speed
-	end	
+	end
 end
 
 
@@ -135,7 +158,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 ----zeichen funktionen---------
 function uiRect (x,y,x2,y2)
-	gl.Rect (sX(x), sY(y), sX(x2), sY(y2))
+	RectRound(sX(x), sY(y), sX(x2), sY(y2), 6)
+	--gl.Rect (sX(x), sY(y), sX(x2), sY(y2))
 end
 
 function uiText (text, x,y,s,options)
@@ -201,18 +225,45 @@ function addmessage (msgbox, text, bgcolor)
 end
 -------message boxxy end------
 ------BUTTONS------
+
+function RectRound(px,py,sx,sy,cs)
+
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
+	
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	gl.Texture(false)
+end
+
 function draw_buttons (b)
 	local mousex, mousey = Spring.GetMouseState()
 	for i = 1, #b, 1 do	
-		if (b[i].color) then gl.Color (unpack(b[i].color)) else gl.Color (1 ,0,0,1) end
+		if (b[i].color) then gl.Color (unpack(b[i].color)) else gl.Color (1 ,0,0,0.66) end
 		if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-			gl.Color (1,1,0.5,0.8)
+			gl.Color (0.4,0.4,0.4,0.6)
 		end
-		if (b[i].name == selected_missionid) then gl.Color (0,1,1,0.9) end --highlight selected mission, bit unnice this way w/e
+		if (b[i].name == selected_missionid) then gl.Color (0,1,1,0.66) end --highlight selected mission, bit unnice this way w/e
+		
 		uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
-		uiText (b[i].text, b[i].x, b[i].y+b[i].h/2,  0.02, 'vo')
+		uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
 	end
 end
+
+
 
 function add_button (buttonlist, x,y, w, h, text, name, color)
 	local new_button = {}
@@ -242,6 +293,9 @@ function clicked_button (b)
 	local mousey=uiY(my)
 	for i = 1, #b, 1 do	
 		if (click == true and point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  mousex, mousey)) then return b[i].name, i end
+		--if (mouse_was_down == false and click == true and point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  mousex, mousey)) then mouse_was_down = true end
 		end
+	--keyboard:
+	--if (enter_was_down and active_button > 0 and active_button < #buttons+1) then enter_was_down = false return b[active_button].name, active_button end
 	return "NOBUTTONCLICKED"
 end
