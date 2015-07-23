@@ -15,7 +15,7 @@
 function widget:GetInfo()
 	return {
 		name      = "SmartSelect",
-		desc      = "Selects units as you drag over them and provides selection modifier hotkeys",
+		desc      = "Selects units as you drag over them. (modifier keys: SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)",
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
