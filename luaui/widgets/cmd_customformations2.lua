@@ -27,6 +27,8 @@ end
 -- 23/03/13 -- Attack order y-coord placement remade by Bluestone for spring 94+ 
 
 
+local dotImage			= LUAUI_DIRNAME.."Images/formationDot.dds"
+
 --------------------------------------------------------------------------------
 -- User Configurable Constants
 --------------------------------------------------------------------------------
@@ -707,40 +709,33 @@ local function tVertsMinimap(verts)
 	end
 end
 
-local function DrawFilledCircle(pos, size, cornerCount)
-	glPushMatrix()
-	glTranslate(pos[1], pos[2], pos[3])
-	glBeginEnd(GL.TRIANGLE_FAN, function()
-		glVertex(0,0,0)
-		for t = 0, pi2, pi2 / cornerCount do
-			glVertex(sin(t) * size, 0, cos(t) * size)
-		end
-	end)
-	glPopMatrix()
+local function DrawGroundquad(x,y,z,size)
+	gl.TexCoord(0,0)
+	gl.Vertex(x-size,y,z-size)
+	gl.TexCoord(0,1)
+	gl.Vertex(x-size,y,z+size)
+	gl.TexCoord(1,1)
+	gl.Vertex(x+size,y,z+size)
+	gl.TexCoord(1,0)
+	gl.Vertex(x+size,y,z-size)
 end
 
 local function DrawFilledCircleOutFading(pos, size, cornerCount)
-	glPushMatrix()
-	glTranslate(pos[1], pos[2], pos[3])
-	glBeginEnd(GL.TRIANGLE_FAN, function()
-		SetColor(usingCmd, 1)
-		glVertex(0,0,0)
-		SetColor(usingCmd, 0)
-		for t = 0, pi2, pi2 / cornerCount do
-			glVertex(sin(t) * size, 0, cos(t) * size)
-		end
-	end)
-	glPopMatrix()
+	SetColor(usingCmd, 1)
+	gl.Texture(dotImage)
+	gl.BeginEnd(GL.QUADS,DrawGroundquad, pos[1], pos[2], pos[3], size)
+	gl.Texture(false)
 end
+
 
 local function DrawFormationDots(vertFunction, zoomY, unitCount)
 	local currentLength = 0
 	local lengthPerUnit = lineLength / (unitCount-1)
 	local lengthUnitNext = lengthPerUnit
-	local dotSize = sqrt(zoomY*0.1)
+	local dotSize = sqrt(zoomY*0.24)
 	if (#fNodes > 1) and (unitCount > 1) then
 		SetColor(usingCmd, 0.6)
-		DrawFilledCircleOutFading(fNodes[1], dotSize, 8)
+		DrawFilledCircleOutFading(fNodes[1], dotSize)
 		if (#fNodes > 2) then
 			for i=1, #fNodes-1 do
 				local x = fNodes[i][1]
@@ -756,13 +751,13 @@ local function DrawFormationDots(vertFunction, zoomY, unitCount)
 						{fNodes[i][1] + ((fNodes[i+1][1] - fNodes[i][1]) * factor),
 						fNodes[i][2] + ((fNodes[i+1][2] - fNodes[i][2]) * factor),
 						fNodes[i][3] + ((fNodes[i+1][3] - fNodes[i][3]) * factor)}
-					DrawFilledCircleOutFading(factorPos, dotSize, 8)
+					DrawFilledCircleOutFading(factorPos, dotSize)
 					lengthUnitNext = lengthUnitNext + lengthPerUnit
 				end
 				currentLength = currentLength + length
 			end
 		end
-		DrawFilledCircleOutFading(fNodes[#fNodes], dotSize, 8)
+		DrawFilledCircleOutFading(fNodes[#fNodes], dotSize)
 	end
 end
 
