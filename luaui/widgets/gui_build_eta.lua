@@ -33,7 +33,8 @@ local Spring = Spring
 local table  = table
 
 local etaTable = {}
-
+local etaMaxDist= 500000 -- max dist at which to draw ETA
+---------------------------
 
 --------------------------------------------------------------------------------
 
@@ -81,14 +82,7 @@ end
 
 --------------------------------------------------------------------------------
 
-local SpGetGameSeconds = Spring.GetGameSeconds
-local SpIsUnitInView = Spring.IsUnitInView
-local SpValidUnitID = Spring.ValidUnitID
-local SpGetCameraPosition = Spring.GetCameraPosition
-local SpGetSmoothMeshHeight = Spring.GetSmoothMeshHeight
-local SpIsGUIHidden = Spring.IsGUIHidden
-
-local lastGameUpdate = -1
+local lastGameUpdate = Spring.GetGameSeconds()
 
 function widget:Update(dt)
 
@@ -98,7 +92,7 @@ function widget:Update(dt)
   end
 
   local gs = Spring.GetGameSeconds()
-  if (gs - lastGameUpdate < 0.1) then
+  if (gs == lastGameUpdate) then
     return
   end
   lastGameUpdate = gs
@@ -205,31 +199,30 @@ local function DrawEtaText(timeLeft,yoffset)
   gl.Billboard()
   gl.Translate(0, 5 ,0)
   --fontHandler.DrawCentered(etaStr)
-  gl.Text(etaStr, 0, 0, 8, "c")
+  gl.Text(etaStr, 0, 0, 4.5, "c")
 end
 
-local maxUnitDistance = 9000000 --max squared distance at which any info is drawn for units (matches unit_healthbars)
-
 function widget:DrawWorld()
-  -- do the same check as healthbars; don't draw if too far zoomed out
-  cx, cy, cz = SpGetCameraPosition()
-  local smoothheight = SpGetSmoothMeshHeight(cx,cz) --clamps x and z
-  if ((cy-smoothheight)^2 >= maxUnitDistance) or SpIsGUIHidden() then 
-	return
-  end
+	if Spring.IsGUIHidden() == false then 
+	  gl.DepthTest(true)
 
-  gl.DepthTest(true)
+	  gl.Color(1, 1, 1,0.1)
+	  --fontHandler.UseDefaultFont()
+	  local cx, cy, cz = Spring.GetCameraPosition()
+	  for unitID, bi in pairs(etaTable) do
+		local ux,uy,uz = Spring.GetUnitViewPosition(unitID)
+		if ux~=nil then
+			local dx, dy, dz = ux-cx, uy-cy, uz-cz
+			local dist = dx*dx + dy*dy + dz*dz
+			if dist < etaMaxDist then 
+				gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft,bi.yoffset)
+			end
+		end
+	  end
 
-  gl.Color(1, 1, 1)
-  --fontHandler.UseDefaultFont()
-
-  for unitID, bi in pairs(etaTable) do
-	if SpIsUnitInView(unitID) then
-	  gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft,bi.yoffset)
+	  gl.Color(1, 1, 1,1)
+	  gl.DepthTest(false)
 	end
-  end
-
-  gl.DepthTest(false)
 end
   
 
