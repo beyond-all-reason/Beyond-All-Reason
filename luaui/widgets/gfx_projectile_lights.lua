@@ -13,6 +13,8 @@ function widget:GetInfo()
   }
 end
 
+local opacityMultiplier = 0.14
+
 local spGetUnitViewPosition 	= Spring.GetUnitViewPosition
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetGroundHeight			= Spring.GetGroundHeight
@@ -237,7 +239,7 @@ function widget:DrawWorldPreUnit()
 				local factor = max(0.01, (100.0+height-y)*0.01) --factor=1 at when almost touching ground, factor=0 when above 100 height)
 				if (factor >0.01) then 
 					local n=noise[floor(x+z+pID)%10+1]
-					glColor(lightparams[1],lightparams[2],lightparams[3],lightparams[4]*factor*factor*n) -- attentuation is x^2
+					glColor(lightparams[1],lightparams[2],lightparams[3],(lightparams[4]*factor*factor*n)*opacityMultiplier) -- attentuation is x^2
 					factor = 32*(1.1-max(factor/(n*0.5+0.5),0.3)) -- clamp the size
 					glPushMatrix()
 					glTranslate(x, height+5, z)  -- push in y dir by height (to push it on the ground!), +5 to keep it above surface
