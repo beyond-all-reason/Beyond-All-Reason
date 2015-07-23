@@ -73,7 +73,7 @@ include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing ro
 
 -- ffaStartPoints is "global"
 local useFFAStartPoints = false
-if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
+if (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1 then
     useFFAStartPoints = true
 end
 
@@ -437,7 +437,7 @@ else
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
-local ffaMode = (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1
+local ffaMode = (tonumber(Spring.GetModOptions().mo_noowner) or 0) == 1
 local isReplay = Spring.IsReplay()
 
 local readied = false --make sure we return true,true for newbies at least once
