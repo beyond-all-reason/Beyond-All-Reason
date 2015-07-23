@@ -46,11 +46,11 @@ local Config = {
 		px = 375,py = 34, --default start position
 		sx = 516, --background size
 		
-		fontsize = 11.5,
+		fontsize = 11.33,
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 7,
-		maxlinesScrollmode = 12,
+		maxlinesScrollmode = 11,
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
