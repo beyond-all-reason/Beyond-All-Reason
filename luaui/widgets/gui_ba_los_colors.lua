@@ -59,6 +59,16 @@ function setLosWithoutRadars()
     Spring.SendCommands('bind ; loswithradars')
 end
 
+function widget:PlayerChanged(playerID)
+    local playerID = Spring.GetMyPlayerID()
+    local _, _, spec, _, _, _, _, _ = Spring.GetPlayerInfo(playerID)
+
+    if spec then
+        setLosWithoutRadars()
+    end
+    return true
+end
+
 function widget:ShutDown()
     Spring.SendCommands('unbindkeyset ;')
 end
