@@ -14,6 +14,15 @@ end
 --  Declarations
 ---------------------------------------------------------------------------------------------------
 
+
+local customScale			= 1
+local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgmargin				= 0.08
+local customPanelWidth 		= 35
+local customPanelHeight 	= 35
+local xRelPos, yRelPos		= 0.81, 0.963
+
+
 local flashIcon				= true
 local markers				= false
 
@@ -38,18 +47,17 @@ local glCreateList			= gl.CreateList
 local glCallList			= gl.CallList
 local glDeleteList			= gl.DeleteList
 
-local textSize				= 12
-local xPos, yPos            = 0.80, 0.85
-local xRelPos, yRelPos		= 0.80, 0.85
 local vsx, vsy				= gl.GetViewSizes()
+local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
+local widgetScale			= customScale
+local panelWidth 			= customPanelWidth
+local panelHeight 			= customPanelHeight
 local check1x, check1y		= 6, 28
 local check2x, check2y		= 6, 6
 local allyComs				= 0
 local enemyComs				= 0 -- if we are counting ourselves because we are a spec
 local enemyComCount			= 0 -- if we are receiving a count from the gadget part (needs modoption on)
 local prevEnemyComCount		= 0
-local panelWidth 			= 47
-local panelHeight 			= 50
 local amISpec				= Spring.GetSpectatingState()
 local myTeamID 				= spGetMyTeamID()
 local myAllyTeamID			= Spring.GetMyAllyTeamID()
@@ -212,12 +220,34 @@ end
 --  GUI
 ---------------------------------------------------------------------------------------------------
 
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	glRect(px+cs, py, sx-cs, sy)
+	glRect(sx-cs, py+cs, sx, sy-cs)
+	glRect(px+cs, py+cs, px, sy-cs)
+	
+	if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(px, py+cs, px+cs, py)		-- top left
+	
+	if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
+	glTexture(false)
+end
+
 function widget:DrawScreen()
 	if widgetHandler:InTweakMode() then
 		return
 	end
 	if not inProgress then
-        return
+    --    return
     end
 	
 	local flickerState = allyComs == 1 and flashIcon and flicker()
@@ -228,12 +258,18 @@ function widget:DrawScreen()
 		glDeleteList(displayList)
 		-- regenerate the display list
 		displayList = glCreateList( function()
+			local margin = (panelWidth*bgmargin)*widgetScale
+			glColor(0, 0, 0, 0.6)
+			RectRound(xPos-margin, yPos-margin, xPos+panelWidth+margin, yPos+panelHeight+margin, 8)
+			
 			glTranslate(xPos, yPos, 0)
 			--background
-			glColor(0, 0, 0, 0.5)
-			glRect(0, 0, panelWidth, panelHeight)
+			--glColor(0, 0, 0, 0.5)
+			--glRect(0, 0, panelWidth, panelHeight)
+			
+			
 			if (WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].InsertRect(xPos,yPos,xPos+panelWidth,yPos+panelHeight,'comcounter')
+				WG['guishader_api'].InsertRect(xPos-margin,yPos-margin,xPos+margin+panelWidth,yPos+margin+panelHeight,'comcounter')
 			end
 
 			--com pic
@@ -245,25 +281,27 @@ function widget:DrawScreen()
 			if VFSFileExists('LuaUI/Images/comIcon.png') then
 				glTexture('LuaUI/Images/comIcon.png')
 			end
-			glTexRect(panelWidth/2-34/2, 5, panelWidth/2+34/2, 5+40)
+			--glTexRect(panelWidth/2-34/2, 5, panelWidth/2+34/2, 5+40)
+			glTexRect(panelWidth/8, panelHeight/8, (panelWidth/8)*7, (panelHeight/8)*7)
 			glTexture(false)
-			--ally coms
-			if allyComs >0 then
-				glColor(0,1,0,1)	
-				local text = tostring(allyComs)
-				local width = glGetTextWidth(text)*22
-				glText(text, panelWidth/2 - width/2 + 1, 20, 22)
-			end
-			--enemy coms
-			glColor(1,0,0,1)
-			if amISpec then
-				text = tostring(enemyComs)
-				width = glGetTextWidth(text)*14
-				glText(text, panelWidth - width - 3, 3, 14)
-			elseif receiveCount then
-				text = tostring(enemyComCount)
-				width = glGetTextWidth(text)*14
-				glText(text, panelWidth - width - 3, 3, 14)			
+			if inProgress then
+				--ally coms
+				if allyComs >0 then	
+					local text = tostring(allyComs)
+					local width = glGetTextWidth(text)*(panelWidth/2.2)
+					glText('\255\001\255\001'..text, panelWidth/2 - width/2 + 1, (panelHeight/2)-(panelWidth/8), panelWidth/2.2, 'o')
+				end
+				--enemy coms
+				glColor(1,0,0,1)
+				if amISpec then
+					text = tostring(enemyComs)
+					width = glGetTextWidth(text)*(panelWidth/3.5)
+					glText(text, panelWidth - width - (panelWidth/12), (panelHeight/12), panelWidth/3.5)
+				elseif receiveCount then
+					text = tostring(enemyComCount)
+					width = glGetTextWidth(text)*(panelWidth/3.5)
+					glText(text, panelWidth - width - (panelWidth/12), (panelHeight/12), panelWidth/3.5)			
+				end
 			end
 		end)
 		flickerLastState = flickerState
@@ -311,16 +349,31 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MousePress(mx, my, button)
-	if not widget:IsAbove(mx,my) then
-		return false
-	end
 	
 	local frame = Spring.GetGameFrame()
-	if markers and frame > lastMarkerFrame + 2.5*30 then --prevent marker spam
-		lastMarkerFrame = frame
-		MarkComs()
+	if widget:IsAbove(mx,my) then
+		if button == 1 and markers and frame > lastMarkerFrame + 2.5*30 then --prevent marker spam
+			lastMarkerFrame = frame
+			MarkComs()
+		end
+		
+		if button == 2 then
+			return true
+		else 
+			return false
+		end
 	end
-	return true
+end
+
+function widget:MouseMove(mx, my, dx, dy)
+    if xPos + dx >= 0 and xPos + panelWidth + dx <= vsx then 
+		xRelPos = xRelPos + dx/vsx
+	end
+    if yPos + dy >= 0 and yPos + panelHeight + dy <= vsy then 
+		yRelPos = yRelPos + dy/vsy
+	end
+	xPos, yPos = xRelPos * vsx,yRelPos * vsy
+	countChanged = true
 end
 
 function MarkComs()
@@ -349,17 +402,33 @@ function widget:TweakMousePress(mx, my)
 	end
 end
 
+
 function widget:TweakMouseMove(mx, my, dx, dy)
-	xRelPos = xRelPos + dx/vsx
-	yRelPos = yRelPos + dy/vsy
+    if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then 
+		xRelPos = xRelPos + dx/vsx
+	end
+    if yPos + dy >= -1 and yPos + panelHeight + dy - 1<= vsy then 
+		yRelPos = yRelPos + dy/vsy
+	end
 	xPos, yPos = xRelPos * vsx,yRelPos * vsy
 	countChanged = true
+end
+
+function widget:GetTooltip(mx, my)
+	if widget:IsAbove(mx,my) then
+		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the this display.\n\n"..
+			"Small number in bottom right is enemy commander count.")
+	end
 end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	xPos, yPos = xRelPos * vsx,yRelPos * vsy
 	countChanged = true
+	
+	widgetScale = (0.60 + (vsx*vsy / 5000000)) * customScale
+	panelWidth 	= customPanelWidth * widgetScale
+	panelHeight	= customPanelHeight * widgetScale
 end
 
 function widget:GetConfigData()
