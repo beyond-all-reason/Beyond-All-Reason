@@ -11,6 +11,7 @@ function gadget:GetInfo()
 end
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
+local vsx,vsy = Spring.GetViewGeometry()
 
 if (gadgetHandler:IsSyncedCode()) then 
 
@@ -353,7 +354,7 @@ local myPlayerID = Spring.GetMyPlayerID()
 function gadget:Initialize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)	
-		
+	
 	--for testing
 	--FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, 1,1,1,24378,1324,132,100) 
 	--SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, 1,1,1,24378,1324,132,200) 
@@ -387,7 +388,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						cowAward)
 
 	--fix geometry
-	local vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = Spring.GetViewGeometry()
     cx = vsx/2 
     cy = vsy/2 
 	bx = cx - w/2
