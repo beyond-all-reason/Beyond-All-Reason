@@ -622,14 +622,14 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx, vsy = viewSizeX, viewSizeY
   
-  sizeMultiplier   = 2.5 + (vsx*vsy / 2000000)
+  sizeMultiplier   = 2.65 + (vsx*vsy / 2000000)
   
   selfXoffset	   = -math.floor(sizeMultiplier)
   
   BAR_HEIGHT       = math.floor(1*sizeMultiplier)
-  BAR_SPACER       = math.floor(0.8*sizeMultiplier)
+  BAR_SPACER       = math.floor(1*sizeMultiplier)
   BAR_WIDTH        = math.floor(15*sizeMultiplier)
-  BAR_GAP          = math.floor(2.66*sizeMultiplier)
+  BAR_GAP          = math.floor(3*sizeMultiplier)
   BAR_MARGIN       = math.floor(1*sizeMultiplier)
   bgcornerSize     = math.floor(2*sizeMultiplier)
   
