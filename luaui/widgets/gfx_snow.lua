@@ -30,13 +30,13 @@ local particleScaleMultiplier	= 1
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
-local snowTexFolder = ":n:"..LUAUI_DIRNAME.."images/snow/"
+local snowTexFolder = LUAUI_DIRNAME.."Images/snow/"
 
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains'}
 
 local snowMaps = {}
 
--- disable for maps that have a keyword but are now snowmaps
+-- disable for maps that have a keyword but are not snowmaps
 snowMaps['sacrifice_v1'] = false
 
 -- disable for maps already containing a snow widget
@@ -150,7 +150,9 @@ local GL_POINTS = GL.POINTS
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
 local windDirX, _, windDirZ, _ = spGetWind()
+local startOsClock = os.clock()
 
 
 function widget:Shutdown()
@@ -299,7 +301,7 @@ function getWindSpeed()
 end
 
 function widget:Initialize()
-	
+	startOsClock = os.clock()
 	-- check for keywords
 	local keywordFound = false
 	for _,keyword in pairs(snowKeywords) do
@@ -368,43 +370,45 @@ function widget:GameFrame(gameFrame)
 	end
 end
 
-
 function widget:DrawWorld()
-	if enabled == false then return end
-	if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
-		glUseShader(shader)	
-		camX,camY,camZ = Spring.GetCameraPosition()
-		diffTime = Spring.DiffTimers(Spring.GetTimer(), startTimer)
-		
-		glUniform(shaderTimeLoc,diffTime * 1)
-		glUniform(shaderCamPosLoc, camX, camY, camZ)
-		
-		glDepthTest(true)
-		glBlending(GL.SRC_ALPHA, GL.ONE)
-		
-		gl.PointSprite(true, true)
-		gl.PointSize(10.0)
-		gl.PointParameter(0, 0, 0.001, 0, 1e9, 1)
-		
-		local osClock = os.clock()
-		local timePassed = osClock - prevOsClock
-		prevOsClock = osClock
-		
-		offsetX = offsetX + ((windDirX * windMultiplier) * timePassed)
-		offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
-		
-		for particleType, pt in pairs(particleTypes) do
-			glTexture(snowTexFolder..pt.texture)
-			glUniform(shaderScaleLoc, pt.scale*particleScale)
-			glUniform(shaderSpeedLoc, pt.gravity, offsetX, offsetZ)
-			glCallList(particleLists[particleType][particleStep])
+	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
+		if enabled == false then return end
+		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
+			glUseShader(shader)	
+			camX,camY,camZ = Spring.GetCameraPosition()
+			diffTime = Spring.DiffTimers(Spring.GetTimer(), startTimer)
+			
+			glUniform(shaderTimeLoc,diffTime * 1)
+			glUniform(shaderCamPosLoc, camX, camY, camZ)
+			
+			glDepthTest(true)
+			glBlending(GL.SRC_ALPHA, GL.ONE)
+			
+			gl.PointSprite(true, true)
+			gl.PointSize(10.0)
+			gl.PointParameter(0, 0, 0.001, 0, 1e9, 1)
+			
+			local osClock = os.clock()
+			local timePassed = osClock - prevOsClock
+			prevOsClock = osClock
+			
+			offsetX = offsetX + ((windDirX * windMultiplier) * timePassed)
+			offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
+			
+			for particleType, pt in pairs(particleTypes) do
+				glTexture(snowTexFolder..pt.texture)
+				glUniform(shaderScaleLoc, pt.scale*particleScale)
+				glUniform(shaderSpeedLoc, pt.gravity, offsetX, offsetZ)
+				glCallList(particleLists[particleType][particleStep])
+				glTexture(false)
+			end
+			
+			gl.PointParameter(1, 0, 0, 0, 1e9, 1)
+			gl.PointSize(1.0)
+			gl.PointSprite(false, false)
+			glResetState()
+			glUseShader(0)
 		end
-		glTexture(false)
-		gl.PointParameter(1, 0, 0, 0, 1e9, 1)
-		gl.PointSize(1.0)
-		gl.PointSprite(false, false)
-		glResetState()
-		glUseShader(0)
 	end
 end
 
