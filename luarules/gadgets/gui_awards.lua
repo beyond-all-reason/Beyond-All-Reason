@@ -11,7 +11,6 @@ function gadget:GetInfo()
 end
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
-local vsx,vsy = Spring.GetViewGeometry()
 
 if (gadgetHandler:IsSyncedCode()) then 
 
@@ -431,16 +430,14 @@ function RectRound(px,py,sx,sy,c,cs,vsx,vsy)
 	glRect(sx-cs, py+cs, sx, sy-cs)
 	glRect(px+cs, py+cs, px, sy-cs)
 	
-	if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+	glTexture(bgcorner)
+	
 	glTexRect(px, py+cs, px+cs, py)		-- top left
 	
-	if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
 	glTexRect(sx, py+cs, sx-cs, py)		-- top right
 	
-	if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
 	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
 	
-	if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
 	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
 	
 	glTexture(false)
@@ -454,12 +451,10 @@ function CreateBackground()
 	if (WG ~= nil and WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),'awards')
 	end
-	
-	local vsx,vsy = Spring.GetViewGeometry()
 		
 	Background = glCreateList(function()
 		
-		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0.15,0.75},12,vsx,vsy)
+		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0.15,0.75},12)
 		
 		
 		--[[ draws background rectangle
