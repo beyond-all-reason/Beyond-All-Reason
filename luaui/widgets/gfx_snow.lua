@@ -30,7 +30,7 @@ local particleScaleMultiplier	= 1
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
-local snowTexFolder = LUAUI_DIRNAME..'/Images/snow/'
+local snowTexFolder = ":n:"..LUAUI_DIRNAME.."images/snow/"
 
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains'}
 
@@ -399,7 +399,7 @@ function widget:DrawWorld()
 			glUniform(shaderSpeedLoc, pt.gravity, offsetX, offsetZ)
 			glCallList(particleLists[particleType][particleStep])
 		end
-		
+		glTexture(false)
 		gl.PointParameter(1, 0, 0, 0, 1e9, 1)
 		gl.PointSize(1.0)
 		gl.PointSprite(false, false)
