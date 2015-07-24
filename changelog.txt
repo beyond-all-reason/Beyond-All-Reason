@@ -1,3 +1,60 @@
+8.18 -> 9.00
+24/07/2015
+
+Configurable widgets
+- Healthbars now have a border around them. (toggle style with /healthbars_style) Bars for wrecks are smaller, decolored and only show when zoomed a bit more.
+- Ally-cursors now show playernames next to them. (toggle with /allycursorplayername and /allycursorspecname)
+- Added snow widget. Addes snow to maps using a snowy name. (toggles with /snow, and remembers setting per map)
+- Added Smart Select widget. (default off) Selects units as you drag over them. (modifier keys: SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)
+- LOS colors greyscaled + use ';'  key to toggle between los / los+radar
+
+Others
+- Rezzed units will get a small halo above them.
+- Enemyspotter looks better and has increased performance.
+- Commands FX, lines are now textures with V shaped arrows + glow at endpoint diminishes over time.
+- Added Shadow quality manager: sets shadow quality max at start and lowers this when average fps gets lower and lower. (this widget wont enable shadows)
+- BuildETA is slightly smaller.
+- Units with self-d command show wit ha skull icon and countdown time.
+- Units that were given to you will show a 'new' icon. Icon fades out gradually, unless they are out of sight, then the fadeout process starts over.
+- Smooth camera widget is slightly faster in moving camera.
+- Projectile lights are less bright now.
+- Customformations got a more glowy endpoint texture
+- Added highlight selected unit shader widget. Uses health colors. (default not enabled, wont render highlight for cloacked units)
+- Added Xray shader widget. A modest version, shows more instense when zoomed out. (its based on ZK version, but I improved performance quitte significantly)
+- Added anti ranges widget. Fades when zoomed in. Purple: anti being build. Red: building complete, 0 in stock. Orange: 1 in stock. Yellow: more than 2 in stock.
+- Commander name tags: different name style. when zoomout stays large.
+- Map Startbox: fixed jagged edges + Commander name tags styled names.
+- Added mapmarks widget: draws growing circle at newly placed mapmarks. Erasing also shows a little ground-glow feedback.
+
+GUI
+- Rounded borders for all backgrounds.
+- Uniticons were streched out a lot everywhere, now reduced that to nearly squared.
+- All uniticons are re-processed with a small bevel and rounded corners.
+- Added GUI shader: blurs background of various GUI elements. (disable widget to remove the blur, change its style with /guishader)
+- Red UI completely restyled.
+- Red UI build/order menu: only shows paginator when it is required, uses space to draw extra row of icons.
+- Red UI fix: not able to move elements. in f5 (hidden gui mode)
+- Red UI Energy/metal resource bars got a gradient applied. Also did this for order-menu toggle button 'leds'.
+- Selected units bar restyled.
+- Volume OSD has half as much bars and is restyled a bit.
+- Added wind strength display. Shows average windspeed in bottom right.
+- Comcounter: small style adjustment.
+- Replaybuttons: restyled
+- Added catchup (reconnect) status bar.
+- Simplified energy conversion slider. Made slider draggable over the whole display.
+- Console displays recent messages a lot longer (30sec). Console shows 6 lines but when pressed ctrl it will show 10.
+- Ally resource bars got restyled. Also uses same player-order as the advplayerlist. Auto-scales with resolution.
+- Advanced playerlist restyled. Doubleclick for camera tracking. Country flags! See if spectators using camera or move mouse. Improved res-slider bar responsiveness. Click to hide spectators Scale buttons + auto-scales with resolution.
+- Added mapinfo at bottom left of the map, displaying mapname, author and description
+- Initial queue: same style as new RedUI buildorder menu.
+- Restyle keybind info display. The button will slide to the leftside at gamestart.
+- Buildbar restyled.
+
+Removed:
+- Open Hosts widget
+- Lockcamera UI
+
+
 8.17 -> 8.18
 16/07/2015
 
