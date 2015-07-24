@@ -10,7 +10,6 @@ function gadget:GetInfo()
   }
 end
 
-local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 
 if (gadgetHandler:IsSyncedCode()) then 
 
@@ -419,7 +418,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 end
 
 
-function RectRound(px,py,sx,sy,c,cs,vsx,vsy)
+function RectRound(px,py,sx,sy,c,cs)
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
 	else
@@ -430,7 +429,7 @@ function RectRound(px,py,sx,sy,c,cs,vsx,vsy)
 	glRect(sx-cs, py+cs, sx, sy-cs)
 	glRect(px+cs, py+cs, px, sy-cs)
 	
-	glTexture(bgcorner)
+	glTexture(":n:LuaRules/Images/bgcorner.png")
 	
 	glTexRect(px, py+cs, px+cs, py)		-- top left
 	
@@ -451,25 +450,11 @@ function CreateBackground()
 	if (WG ~= nil and WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),'awards')
 	end
-		
+	
 	Background = glCreateList(function()
 		
-		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0.15,0.75},12)
+		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0,0.75},12)
 		
-		
-		--[[ draws background rectangle
-		glColor(0,0,0.15,0.75)                              
-		glRect(bx, by, bx + w, by + h)	
-
-		-- draws black border
-		glBeginEnd(GL_LINE_LOOP, function()
-		glColor(0,0,0,1)
-		glVertex(bx, by)
-		glVertex(bx, by+h)
-		glVertex(bx+w, by+h)
-		glVertex(bx+w, by)
-		end)
-		]]--
 		glColor(1,1,1,1)
 		glTexture(':l:LuaRules/Images/awards.png')
 		glTexRect(bx + w/2 - 220, by + h - 75, bx + w/2 + 120, by + h - 5)
@@ -612,7 +597,7 @@ function gadget:MousePress(x,y,button)
 		end
 		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
-			if (WG['guishader_api'] ~= nil) then
+			if (WG ~= nil and WG['guishader_api'] ~= nil) then
 				WG['guishader_api'].RemoveRect('awards')
 			end
 			drawAwards = false
@@ -661,7 +646,7 @@ end
 
 function gadget:ShutDown()
 	Spring.SendCommands('endgraph 1')
-	if (WG['guishader_api'] ~= nil) then
+	if (WG ~= nil and WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('awards')
 	end
 end
