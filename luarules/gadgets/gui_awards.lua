@@ -427,6 +427,16 @@ function RectRound(px,py,sx,sy,c,cs)
 		glColor(1,1,1,1)
 	end
 	
+	local vsx,vsy = Spring.GetViewGeometry()
+	
+	Spring.Echo(px)
+	Spring.Echo(py)
+	Spring.Echo(sx)
+	Spring.Echo(sy)
+	Spring.Echo(cs)
+	Spring.Echo(vsx)
+	Spring.Echo(vsy)
+	
 	glRect(px+cs, py, sx-cs, sy)
 	glRect(sx-cs, py+cs, sx, sy-cs)
 	glRect(px+cs, py+cs, px, sy-cs)
