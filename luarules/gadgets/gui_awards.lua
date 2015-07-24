@@ -388,7 +388,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						cowAward)
 
 	--fix geometry
-	vsx,vsy = Spring.GetViewGeometry()
+	local vsx,vsy = Spring.GetViewGeometry()
     cx = vsx/2 
     cy = vsy/2 
 	bx = cx - w/2
@@ -420,14 +420,12 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 end
 
 
-function RectRound(px,py,sx,sy,c,cs)
+function RectRound(px,py,sx,sy,c,cs,vsx,vsy)
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
 	else
 		glColor(1,1,1,1)
 	end
-	
-	local vsx,vsy = Spring.GetViewGeometry()
 	
 	glRect(px+cs, py, sx-cs, sy)
 	glRect(sx-cs, py+cs, sx, sy-cs)
@@ -457,9 +455,11 @@ function CreateBackground()
 		WG['guishader_api'].InsertRect(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),'awards')
 	end
 	
+	local vsx,vsy = Spring.GetViewGeometry()
+		
 	Background = glCreateList(function()
 		
-		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0.15,0.75},12)
+		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0,0,0.15,0.75},12,vsx,vsy)
 		
 		
 		--[[ draws background rectangle
