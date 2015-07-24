@@ -450,7 +450,7 @@ function CreateBackground()
 		glDeleteList(Background)
 	end
 	
-	if (if WG ~= nil and WG['guishader_api'] ~= nil) then
+	if (WG ~= nil and WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),'awards')
 	end
 	
