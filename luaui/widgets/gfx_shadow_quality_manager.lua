@@ -7,7 +7,7 @@ return {
     date      = "22 february 2015",
     license   = "GNU GPL, v2 or later",
     layer     = -10000,
-    enabled   = false
+    enabled   = true
 }
 end
 
@@ -27,21 +27,34 @@ local fpsDifference			= 8			-- if fps differs X amount, then shadow quality will
 local spGetVisibleUnits		= Spring.GetVisibleUnits
 local spGetVisibleFeatures	= Spring.GetVisibleFeatures
 local spGetFPS				= Spring.GetFPS
+local spGetGameFrame		= Spring.GetGameFrame
 local averageFps			= spGetFPS()
 
 local previousQuality		= maxQuality
 local previousQualityFps	= 30
 
+local init = true
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:Initialize()
-	if Spring.GetGameFrame() == 0 then
-		Spring.SendCommands({"shadows 1 "..maxQuality})
+function widget:Update()
+	if sceduledShadowChange ~= nil then
+		Spring.SendCommands({"shadows 1 "..sceduledShadowChange})
+		sceduledShadowChange = nil
 	end
 end
 
-function widget:GameFrame(gameFrame)
+
+function widget:DrawWorldShadow()
+
+	local gameFrame = spGetGameFrame()
+	
+	if init then
+		init = false
+		sceduledShadowChange = maxQuality
+		--Spring.SendCommands({"shadows 1 "..maxQuality})
+	end
 	
 	if gameFrame%109==0 then 
 		local modelCount = #spGetVisibleUnits(-1,nil,false) + #spGetVisibleFeatures(-1,nil,false,false) -- expensive
@@ -61,18 +74,20 @@ function widget:GameFrame(gameFrame)
 			if previousQuality ~= quality then
 				previousQuality = quality
 				previousQualityFps = averageFps
-				if quality < minQuality and disableBelowMinimum then 
-					Spring.SendCommands({"shadows 0 4096"})		-- just setting a acceptable quality value for the heck of it
+				if quality < minQuality and disableBelowMinimum then
+					sceduledShadowChange = 4096
+					--Spring.SendCommands({"shadows 0 4096"})		-- just setting a acceptable quality value for the heck of it
 					--Spring.Echo("Shadow quality: off   avgfps: "..math.floor(averageFps))
 				else
-					Spring.SendCommands({"shadows 1 "..quality})
+					sceduledShadowChange = quality
+					--Spring.SendCommands({"shadows 1 "..quality})
 					--Spring.Echo("Shadow quality: "..quality.."   avgfps: "..math.floor(averageFps))
 				end
 			end
 		end
 	end
 end
-
+	
 -- preserve data in case of a /luaui reload
 function widget:GetConfigData(data)
     savedTable = {}
