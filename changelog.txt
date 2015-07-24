@@ -7,6 +7,8 @@ Configurable widgets
 - Added snow widget. Addes snow to maps using a snowy name. (toggles with /snow, and remembers setting per map)
 - Added Smart Select widget. (default off) Selects units as you drag over them. (modifier keys: SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)
 - LOS colors greyscaled + use ';'  key to toggle between los / los+radar
+- LOS view is enabled by default. If you dont like it - just disable widget
+"LOS View"(gfx_los_view.lua)
 
 Others
 - Rezzed units will get a small halo above them.
