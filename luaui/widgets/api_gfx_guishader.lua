@@ -490,7 +490,7 @@ function widget:DrawScreenEffectsBlur()
       DrawStencilTexture();
       updateStencilTexture = false;
     end
-
+	gl.Color(1,1,1,1)
     gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
     gl.Texture(screencopy)
     gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
@@ -522,6 +522,7 @@ function widget:DrawScreenEffectsNoise()
       updateStencilTexture = false;
     end
 
+	gl.Color(1,1,1,1)
     gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
     gl.Texture(screencopy)
     gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
