@@ -260,7 +260,7 @@ end
 local function DrawRect(rect, color)
   glColor(color)
   --glRect(rect[1],rect[2],rect[3],rect[4])
-  RectRound(rect[1],rect[4],rect[3],rect[2],(rect[3]-rect[1])/8)
+  RectRound(rect[1],rect[4],rect[3],rect[2],(rect[3]-rect[1])/9)
   glColor(1,1,1,1)
 end
 

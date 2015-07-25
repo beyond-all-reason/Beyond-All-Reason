@@ -49,7 +49,7 @@ include("colors.h.lua")
 local floor = math.floor
 
 
-local font = "LuaUI/Fonts/FreeSansBold_14"	-- was _30, but that font was missing
+local font = "LuaUI/Fonts/FreeSansBold_30"
 local fh = fontHandler.UseFont(font)
 
 local vsx, vsy = widgetHandler:GetViewSizes()

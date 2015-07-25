@@ -140,6 +140,10 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 		glColor(1,1,1,1)
 	end
 	
+	if cs == nil then
+		cs = 4
+	end
+	
 	if glone then
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 	end
