@@ -12,7 +12,7 @@
 function widget:GetInfo()
   return {
     name      = "GUI Shader",
-    desc      = "An interface for other widgets can use to apply shaders on their backgrounds.",
+    desc      = "Blurs the 3D-world under several other widgets UI elements.",
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
@@ -45,7 +45,7 @@ table.insert(OPTIONS, {
 	name				= "Blur",
 	blurIntensity		= 0.0006,
 })
-table.insert(OPTIONS, {
+--[[table.insert(OPTIONS, {
 	name				= "Glass 1",
 	blurIntensity		= 0,001,
 	useNoise			= true,
@@ -60,7 +60,7 @@ table.insert(OPTIONS, {
 	noiseIntensity		= 0.033,
 	noiseTexture		= "noise2.dds",
 	noiseMargin			= 10,
-})
+})]]--
 local currentOption = 1
 
 function table.shallow_copy(t)
