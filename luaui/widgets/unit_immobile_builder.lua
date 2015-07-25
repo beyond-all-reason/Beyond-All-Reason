@@ -25,16 +25,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local CMD_PASSIVE			= 34571
 local CMD_MOVE_STATE		= CMD.MOVE_STATE
-local CMD_REPEAT			= CMD.REPEAT
-local CMD_PATROL			= CMD.PATROL
 local CMD_FIGHT				= CMD.FIGHT
-local CMD_STOP				= CMD.STOP
-local spGetGameFrame		= Spring.GetGameFrame
 local spGetMyTeamID			= Spring.GetMyTeamID
 local spGetTeamUnits		= Spring.GetTeamUnits
-local spGetUnitCommands		= Spring.GetUnitCommands
 local spGetUnitDefID		= Spring.GetUnitDefID
 local spGetUnitPosition		= Spring.GetUnitPosition
 local spGiveOrderToUnit		= Spring.GiveOrderToUnit
@@ -99,7 +93,6 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if IsImmobileBuilder(UnitDefs[unitDefID]) then
-		spGiveOrderToUnit(unitID, CMD_PASSIVE, { 1 }, {})
 		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
 		SetupUnit(unitID)
 	end
