@@ -161,7 +161,9 @@ end
 
 function removeSnow()
 	removeParticleLists()
-	glDeleteShader(shader)
+	if shader ~= nil then
+		glDeleteShader(shader)
+	end
 end
 
 function removeParticleLists()
