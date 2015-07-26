@@ -98,8 +98,9 @@ local scalefaktor			= 2.9
 
 
 function CreateHighlightShader()
-	gl.DeleteShader(shader)
-	
+	if shader ~= nil then
+		gl.DeleteShader(shader)
+	end
 	shader = gl.CreateShader({
 
 	uniform = {
@@ -267,7 +268,9 @@ end
 
 function widget:Shutdown()
 	
-	gl.DeleteShader(shader)
+	if shader ~= nil then
+		gl.DeleteShader(shader)
+	end
 end
 
 
