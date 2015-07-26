@@ -16,7 +16,7 @@ end
 --------------------------------------------------------------------------------
 
 local maxQuality			= 8192
-local minQuality			= 2048		-- I dont think a value below 2048 looks acceptable enough...
+local minQuality			= 2048		-- I dont think a value below 2048 looks acceptable enough... wont free that much extra cpu power too
 local disableBelowMinimum	= false
 local skipGameframes		= 1611		-- dont check if quality change is needed for X gameframes
 local fpsDifference			= 8			-- if fps differs X amount, then shadow quality will be allowed to change. (we dont want frequent changes because these are causing extra cpu load, also spring spams an echo each time)
@@ -34,6 +34,7 @@ local previousQuality		= maxQuality
 local previousQualityFps	= 30
 
 local shadowsAtInit			= spHaveShadows()
+local turnedShadowsOff		= false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -41,6 +42,14 @@ local shadowsAtInit			= spHaveShadows()
 function widget:Initialize()
 	if spHaveShadows() and Spring.GetGameFrame() < 1 then
 		Spring.SendCommands({"shadows 1 "..maxQuality})
+	end
+end
+
+function widget:Shutdown()
+
+	-- enable shadows again when the widget has turned these off
+	if not spHaveShadows() and turnedShadowsOff then
+		Spring.SendCommands({"shadows 1 "..((maxQuality+minQuality)/2)})
 	end
 end
 
@@ -66,11 +75,10 @@ function widget:GameFrame(gameFrame)
 					previousQuality = quality
 					previousQualityFps = averageFps
 					if quality < minQuality and disableBelowMinimum then
-						sceduledShadowChange = 4096
+						turnedShadowsOff = true
 						Spring.SendCommands({"shadows 0"})
 						--Spring.Echo("Shadow quality: off   avgfps: "..math.floor(averageFps))
 					else
-						sceduledShadowChange = quality
 						Spring.SendCommands({"shadows 1 "..quality})
 						--Spring.Echo("Shadow quality: "..quality.."   avgfps: "..math.floor(averageFps))
 					end
