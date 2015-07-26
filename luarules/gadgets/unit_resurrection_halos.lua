@@ -62,6 +62,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	local spGetSelectedUnits		= Spring.GetSelectedUnits
 	local spGetUnitDefID			= Spring.GetUnitDefID
 	local spIsUnitInView 			= Spring.IsUnitInView
+	local spIsUnitVisible			= Spring.IsUnitVisible
 	local spGetCameraPosition 		= Spring.GetCameraPosition
 	local spGetUnitPosition			= Spring.GetUnitPosition
 	local spGetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
@@ -164,7 +165,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 			gl.Texture(haloImg)
 			for unitID, unit in pairs(haloUnits) do
 				
-				if spIsUnitInView(unitID) then
+				if spIsUnitInView(unitID) and spIsUnitVisible(unitID) then
 					local x,y,z = spGetUnitPosition(unitID)
 					local xDifference = camX - x
 					local yDifference = camY - y
