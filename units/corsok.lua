@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 4171,
 		builder = false,
 		buildtime = 63001,
-		buildpic = "corsok.dds",
+		buildpic = "CORSOK.DDS",
 		canattack = true,
 		canguard = true,
 		canhover = true,

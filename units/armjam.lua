@@ -5,7 +5,7 @@ return {
 		brakerate = 0.036,
 		buildcostenergy = 1729,
 		buildcostmetal = 103,
-		buildpic = "armjam.dds",
+		buildpic = "ARMJAM.DDS",
 		buildtime = 5933,
 		canattack = false,
 		canmove = true,
