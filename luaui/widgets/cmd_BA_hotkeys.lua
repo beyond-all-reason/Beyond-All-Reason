@@ -25,9 +25,6 @@ local unbinds={
 
     "bind , prevmenu",
     "bind . nextmenu",
-    
-    -- hotfixes for 98.0
-    "bind backspace	mousestate", --http://springrts.com/mantis/view.php?id=4578
 }
 
 -- table of stuff that we bind on load
