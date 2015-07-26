@@ -1417,13 +1417,13 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if mySpecStatus then
 		local alphaCursor = 1
 		if WG['allycursor_api'] ~= nil then
-			if allycursorTimes[playerID] ~= nil then
+			if allycursorTimes[playerID] ~= nil and type(broadcasters[playerID]) == "number" then
 				alphaCursor = (10 - math.floor(now-allycursorTimes[playerID])) / 7
 				if alphaCursor > 1 then alphaCursor = 1 end
 				if alphaCursor <= 0.5 then alphaCursor = 0.5 end
 			end
 		end
-		if WG['lockcamera_api'] ~= nil and broadcasters[playerID] ~= nil or WG['lockcamera_api'] == nil then
+		if WG['lockcamera_api'] ~= nil and broadcasters[playerID] ~= nil and type(broadcasters[playerID]) == "number" or WG['lockcamera_api'] == nil then
 			if WG['lockcamera_api'] ~= nil then
 				local alphaCam = (15 - math.floor(broadcasters[playerID])) / 10
 				if alphaCam > 1 then alphaCam = 1 end
@@ -1499,7 +1499,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		if specListShow == true and m_name.active == true then
 		
 			if WG['lockcamera_api'] ~= nil and playerSpecs[playerID] ~= nil and (lockedPlayerID ~= nil and lockedPlayerID ~= playerID or lockedPlayerID == nil) then 
-				if broadcasters[playerID] ~= nil then
+				if broadcasters[playerID] ~= nil and type(broadcasters[playerID]) == "number" then
 					DrawCamera(posY, false)
 				end
 			end
