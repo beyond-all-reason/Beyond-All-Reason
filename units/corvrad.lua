@@ -5,7 +5,7 @@ return {
 		brakerate = 0.036,
 		buildcostenergy = 1290,
 		buildcostmetal = 92,
-		buildpic = "corvrad.jpg",
+		buildpic = "corvrad.dds",
 		buildtime = 4223,
 		canattack = false,
 		canmove = true,

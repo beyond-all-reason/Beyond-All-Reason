@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 5787,
 		builder = false,
 		buildtime = 98500,
+		buildpic = "armlun.dds",
 		canattack = true,
 		canguard = true,
 		canhover = true,

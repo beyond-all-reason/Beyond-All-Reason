@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 72048,
 		buildcostmetal = 3917,
 		builder = 0,
-		buildpic = "armfgate.pcx",
+		buildpic = "armfgate.dds",
 		buildtime = 59060,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
 		collisionvolumeoffsets = "0 -30 0",
