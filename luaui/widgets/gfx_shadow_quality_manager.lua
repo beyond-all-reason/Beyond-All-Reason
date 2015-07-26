@@ -2,7 +2,7 @@
 function widget:GetInfo()
 return {
     name      = "Shadow Quality Manager",
-    desc      = "Adjusts shadow quality according to your average fps",
+    desc      = "Because quality shadows are CPU heavy, it will reduce quality when fps gets low.",
     author    = "Floris",
     date      = "22 february 2015",
     license   = "GNU GPL, v2 or later",
@@ -27,61 +27,53 @@ local fpsDifference			= 8			-- if fps differs X amount, then shadow quality will
 local spGetVisibleUnits		= Spring.GetVisibleUnits
 local spGetVisibleFeatures	= Spring.GetVisibleFeatures
 local spGetFPS				= Spring.GetFPS
-local spGetGameFrame		= Spring.GetGameFrame
+local spHaveShadows			= Spring.HaveShadows
 local averageFps			= spGetFPS()
 
 local previousQuality		= maxQuality
 local previousQualityFps	= 30
 
-local init = true
+local shadowsAtInit			= spHaveShadows()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:Update()
-	if sceduledShadowChange ~= nil then
-		Spring.SendCommands({"shadows 1 "..sceduledShadowChange})
-		sceduledShadowChange = nil
+function widget:Initialize()
+	if spHaveShadows() then
+		Spring.SendCommands({"shadows 1 "..maxQuality})
 	end
 end
 
-
-function widget:DrawWorldShadow()
-
-	local gameFrame = spGetGameFrame()
-	
-	if init then
-		init = false
-		sceduledShadowChange = maxQuality
-		--Spring.SendCommands({"shadows 1 "..maxQuality})
-	end
-	
-	if gameFrame%109==0 then 
-		local modelCount = #spGetVisibleUnits(-1,nil,false) + #spGetVisibleFeatures(-1,nil,false,false) -- expensive
-		averageFps = averageFps + (((spGetFPS()*(modelCount/50)) - averageFps*(modelCount/50)) / 70)
-	end
-	if gameFrame%skipGameframes==0 then 
-		quality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
+function widget:GameFrame(gameFrame)
+	if spHaveShadows() then
 		
-		if averageFps > previousQualityFps + fpsDifference  or  averageFps < previousQualityFps - fpsDifference then  -- weight fps values with more rendered models heavier
+		if gameFrame%109==0 then 
+			local modelCount = #spGetVisibleUnits(-1,nil,false) + #spGetVisibleFeatures(-1,nil,false,false) -- expensive
+			averageFps = averageFps + (((spGetFPS()*(modelCount/50)) - averageFps*(modelCount/50)) / 70)
+		end
+		if gameFrame%skipGameframes==0 then 
+			quality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
 			
-			if quality > maxQuality then 
-				quality = maxQuality 
-			end
-			if quality < minQuality then 
-				quality = minQuality-1
-			end
-			if previousQuality ~= quality then
-				previousQuality = quality
-				previousQualityFps = averageFps
-				if quality < minQuality and disableBelowMinimum then
-					sceduledShadowChange = 4096
-					--Spring.SendCommands({"shadows 0 4096"})		-- just setting a acceptable quality value for the heck of it
-					--Spring.Echo("Shadow quality: off   avgfps: "..math.floor(averageFps))
-				else
-					sceduledShadowChange = quality
-					--Spring.SendCommands({"shadows 1 "..quality})
-					--Spring.Echo("Shadow quality: "..quality.."   avgfps: "..math.floor(averageFps))
+			if averageFps > previousQualityFps + fpsDifference  or  averageFps < previousQualityFps - fpsDifference then  -- weight fps values with more rendered models heavier
+				
+				if quality > maxQuality then 
+					quality = maxQuality 
+				end
+				if quality < minQuality then 
+					quality = minQuality-1
+				end
+				if previousQuality ~= quality then
+					previousQuality = quality
+					previousQualityFps = averageFps
+					if quality < minQuality and disableBelowMinimum then
+						sceduledShadowChange = 4096
+						Spring.SendCommands({"shadows 0"})
+						--Spring.Echo("Shadow quality: off   avgfps: "..math.floor(averageFps))
+					else
+						sceduledShadowChange = quality
+						Spring.SendCommands({"shadows 1 "..quality})
+						--Spring.Echo("Shadow quality: "..quality.."   avgfps: "..math.floor(averageFps))
+					end
 				end
 			end
 		end
