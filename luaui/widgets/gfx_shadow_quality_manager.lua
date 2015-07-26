@@ -39,7 +39,7 @@ local shadowsAtInit			= spHaveShadows()
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if spHaveShadows() then
+	if spHaveShadows() and Spring.GetGameFrame() < 1 then
 		Spring.SendCommands({"shadows 1 "..maxQuality})
 	end
 end
