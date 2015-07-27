@@ -30,9 +30,9 @@ local maxCols = 5
 local fontSize = 17
 local margin = 6
 local backgroundColor = {0,0,0,0.6}
-local hoverColor = {1,1,1,0.33}
-local pushedColor = {1,0.1,0,0.44}
-local clickColor = {0.66,1,0,0.33}
+local hoverColor = {1,1,1,0.25}
+local pushedColor = {1,0.1,0,0.33}
+local clickColor = {0.66,1,0,0.25}
 --local pressColor = {1,0,0,0.44}
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local buttonhighlight = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
@@ -55,6 +55,11 @@ local whiteColor = '\255\255\255\255' -- White
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = 1	-- will adjust based on resolution
+
+local GL_ONE                   = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
+local GL_SRC_ALPHA             = GL.SRC_ALPHA
+local glBlending               = gl.Blending
 
 -- Building ids
 local ARMCOM = UnitDefNames["armcom"].id
@@ -508,7 +513,7 @@ function widget:GetConfigData()
 		savedTable.wl			= wl
 		savedTable.bgheight		= bgheight
 		savedTable.bgwidth		= bgwidth
-		savedTable.osclock		= os.clock()
+		savedTable.gameid		= Game.gameID
 		return savedTable
 	end
 end
@@ -533,7 +538,7 @@ function widget:SetConfigData(data)
 			wt = vsy
 		end
 	end
-	if Spring.GetGameSeconds() <= 0 and data.osclock and data.buildQueue and (data.osclock + 8) > os.clock() then		-- 8 sec graceperiod to complete a /luaui reload
+	if Spring.GetGameSeconds() <= 0 and data.buildQueue and data.gameId and data.gameId == Game.gameID then
 		buildQueue = data.buildQueue
 	end
 end
@@ -576,9 +581,17 @@ function widget:DrawScreen()
 			gl.Texture(buttonhighlight)
 			gl.Color(hoverColor)
 			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			gl.Color(hoverColor[1],hoverColor[2],hoverColor[3],hoverColor[4]/2)
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			if CurMouseState[3] then
 				gl.Color(clickColor)
 				gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+				gl.Color(clickColor[1],clickColor[2],clickColor[3],clickColor[4]/2)
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				lastClickedRow = row
 				lastClickedCol = col
 			end
@@ -591,6 +604,10 @@ function widget:DrawScreen()
 			gl.Texture(buttonpushed)
 			gl.Color(pushedColor)
 			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			gl.Color(pushedColor[1],pushedColor[2],pushedColor[3],pushedColor[4]/2)
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			gl.Texture(false)
 			gl.Translate(((iconWidth*widgetScale)*col), ((iconHeight*widgetScale)*row), 0)
 		end
