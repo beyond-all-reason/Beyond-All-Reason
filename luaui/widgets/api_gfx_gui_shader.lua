@@ -11,7 +11,7 @@
 
 function widget:GetInfo()
   return {
-    name      = "GUI Blur Shader",
+    name      = "GUI-Shader",
     desc      = "Blurs the 3D-world under several other widgets UI elements.",
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",

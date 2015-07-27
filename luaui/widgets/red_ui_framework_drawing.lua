@@ -11,7 +11,8 @@ function widget:GetInfo()
 	}
 end
 
--- will add guishader if border alpha is > 0
+
+local blurShaderStartColor = 0.31		-- will add guishader if border alpha >= ...
 
 local bgcornerSize = 8
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
@@ -110,7 +111,7 @@ local function Border(px,py,sx,sy,width,c)
 	glPopMatrix()
 	
 	-- add blur shader
-	if c and c[4] > 0 then
+	if c and c[4] >= blurShaderStartColor then
 		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
 	end
 end
@@ -148,7 +149,7 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 	end
 	-- add blur shader
-	if c and c[4] > 0 then
+	if c and c[4] >= blurShaderStartColor then
 		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
 	end
 	
