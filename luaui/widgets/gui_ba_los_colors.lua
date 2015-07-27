@@ -14,10 +14,11 @@ end
 -- project page: this widget is included in BA repo
 
 --Changelog
--- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
+-- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loscolors)
 
 local losWithRadarEnabled = false;
 local colorProfile = "greyscale" -- "colored"
+local specDetected = false
 
 local losColorsWithRadarsGray = {
     fog =    {0.10, 0.10, 0.10},
@@ -62,15 +63,10 @@ function withRadars()
     else
         updateLOS(losColorsWithRadarsColor)
     end
-
-    spSendCommands('unbindkeyset Any+;')
-    spSendCommands('bind Any+; loswithoutradars')
 end
 
 function withoutRadars()
     updateLOS(losColorsWithoutRadars)
-    spSendCommands('unbindkeyset Any+;')
-    spSendCommands('bind Any+; loswithradars')
 end
 
 function updateLOS(colors)
@@ -82,6 +78,7 @@ function widget:PlayerChanged(playerID)
     local _, _, spec, _, _, _, _, _ = Spring.GetPlayerInfo(playerID)
 
     if spec then
+        specDetected = true
         withoutRadars()
     end
     return true
@@ -109,11 +106,33 @@ function setLosWithoutColors()
     setLosWithRadars()
 end
 
+function toggleLOSRadars()
+    if specDetected and losWithRadarEnabled then
+        losWithRadarEnabled = false
+        specDetected = false
+    end
+
+    if losWithRadarEnabled then
+        setLosWithoutRadars()
+    else
+        setLosWithRadars()
+    end
+end
+
+function toggleLOSColors()
+    if colorProfile == "greyscale" then
+        setLosWithColors()
+    else
+        setLosWithoutColors()
+    end
+end
+
 function widget:SetConfigData(data)
-    widgetHandler:AddAction("loswithradars", setLosWithRadars)
-    widgetHandler:AddAction("loswithoutradars", setLosWithoutRadars)
-    widgetHandler:AddAction("loswithcolors", setLosWithColors)
-    widgetHandler:AddAction("loswithoutcolors", setLosWithoutColors)
+    widgetHandler:AddAction("losradars", toggleLOSRadars)
+    widgetHandler:AddAction("loscolors", toggleLOSColors)
+
+    spSendCommands('unbindkeyset Any+;')
+    spSendCommands('bind Any+; losradars')
 
     if data.losWithRadarEnabled ~= nil then
         losWithRadarEnabled = data.losWithRadarEnabled
