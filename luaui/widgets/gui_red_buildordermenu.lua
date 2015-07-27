@@ -530,7 +530,8 @@ end
 function widget:TextCommand(command)
 	if (string.find(command, "iconspace") == 1  and  string.len(command) == 9) then 
 		iconScaling = not iconScaling
-		AutoResizeObjects()
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
 		if iconScaling then
 			Spring.Echo("Build/order menu icon spacing:  enabled")
 		else
