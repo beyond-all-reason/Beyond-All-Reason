@@ -11,8 +11,45 @@ function widget:GetInfo()
 	}
 end
 
-
+local consoleBlur = false
 local blurShaderStartColor = 0.31		-- will add guishader if border alpha >= ...
+
+function widget:TextCommand(command)
+	if (string.find(command, "consoleblur") == 1  and  string.len(command) == 11) then 
+		if (WG['guishader_api'] ~= nil) then
+			consoleBlur = not consoleBlur
+			processConsoleBlur()
+			if consoleBlur then
+				Spring.Echo("Console blur: enabled")
+			else
+				Spring.Echo("Console blur: disabled")
+			end
+		else
+			Spring.Echo("Console blur: enable 'GUI-Shader' widget first!")
+		end
+	end
+end
+
+function processConsoleBlur()
+	if not consoleBlur then
+		blurShaderStartColor = 0.34		-- will add guishader if border alpha >= ...
+	else
+		blurShaderStartColor = 0
+	end
+end
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.consoleBlur = consoleBlur
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+    if data.consoleBlur ~= nil 	then
+		consoleBlur = data.consoleBlur 
+		processConsoleBlur()
+	end
+end
 
 local bgcornerSize = 8
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
