@@ -64,11 +64,11 @@ local sizeMultiplier   = 1
 
 
 -- nevermind these vars now, they are defined in widget:ViewResize
-local BAR_HEIGHT       = 4
-local BAR_SPACER       = 3
-local BAR_WIDTH        = 64
-local BAR_GAP          = 12
-local BAR_MARGIN       = 4
+local BAR_HEIGHT       = 4		-- dont edit
+local BAR_SPACER       = 3		-- dont edit
+local BAR_WIDTH        = 64		-- dont edit
+local BAR_GAP          = 12		-- dont edit
+local BAR_MARGIN       = 4		-- dont edit
 local TOTAL_BAR_HEIGHT = (BAR_SPACER + BAR_HEIGHT + BAR_HEIGHT)
 local TOP_HEIGHT       = (BAR_GAP)
 local BAR_OFFSET       = (TOP_HEIGHT + BAR_SPACER + BAR_GAP)
@@ -622,15 +622,15 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx, vsy = viewSizeX, viewSizeY
   
-  sizeMultiplier   = 2.65 + (vsx*vsy / 2000000)
+  sizeMultiplier   = 2.9 + (vsx*vsy / 2000000)
   
   selfXoffset	   = -math.floor(sizeMultiplier)
   
   BAR_HEIGHT       = math.floor(1*sizeMultiplier)
   BAR_SPACER       = math.floor(1*sizeMultiplier)
-  BAR_WIDTH        = math.floor(15*sizeMultiplier)
+  BAR_WIDTH        = math.floor(14*sizeMultiplier)
   BAR_GAP          = math.floor(3*sizeMultiplier)
-  BAR_MARGIN       = math.floor(1*sizeMultiplier)
+  BAR_MARGIN       = 0 --math.floor(1*sizeMultiplier)
   bgcornerSize     = math.floor(2*sizeMultiplier)
   
   TOTAL_BAR_HEIGHT = (BAR_SPACER + BAR_HEIGHT + BAR_HEIGHT)
