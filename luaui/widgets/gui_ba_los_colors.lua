@@ -32,7 +32,7 @@ local losColorsWithRadarsColor = {
     los =    {0.22, 0.14, 0.30},
     radar2 = {0.08, 0.16, 0.00},
     jam =    {0.20, 0.00, 0.00},
-    radar =  {0.00, 0.00, 0.00},
+    radar =  {0.08, 0.16, 0.00},
 }
 
 local losColorsWithoutRadars = {
