@@ -21,6 +21,8 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
+local iconScaling = true
+
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
@@ -184,7 +186,7 @@ local function CreateGrid(r)
 		roundedsize = math.floor(r.isy*r.roundedPercentage),
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
-		iconscale=r.iconscale,
+		iconscale=(iconScaling and r.iconscale or 1),
 		color={1,0,0,0.26},
 		border={0.8,0,0,0},
 		glone=0.12,
@@ -212,9 +214,9 @@ local function CreateGrid(r)
 	local icon = {"rectangle",
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
-		iconscale=r.iconscale,
-		iconhoverscale=r.iconhoverscale,
-		iconnormalscale=r.iconscale,
+		iconscale=(iconScaling and r.iconscale or 1),
+		iconhoverscale=(iconScaling and r.iconhoverscale or 1),
+		iconnormalscale=(iconScaling and r.iconscale or 1),
 		roundedsize = math.floor(r.isy*r.roundedPercentage),
 		color={0,0,0,0},
 		border={0,0,0,0},
@@ -226,8 +228,8 @@ local function CreateGrid(r)
 		
 		mouseheld={
 			{1,function(mx,my,self)
-				self.iconscale=self.iconhoverscale
-				heldhighlight.iconscale=self.iconhoverscale
+				self.iconscale=(iconScaling and self.iconhoverscale or 1)
+				heldhighlight.iconscale=(iconScaling and self.iconhoverscale or 1)
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
@@ -237,8 +239,8 @@ local function CreateGrid(r)
 			--[[mouserelease={
 			{1,function(mx,my,self)
 				if r.menuname == "buildmenu" then
-					self.iconscale=self.iconhoverscale
-					heldhighlight.iconscale=self.iconhoverscale
+					self.iconscale=(iconScaling and self.iconhoverscale or 1)
+					heldhighlight.iconscale=(iconScaling and self.iconhoverscale or 1)
 					heldhighlight.px = self.px
 					heldhighlight.py = self.py
 					heldhighlight.active = nil
@@ -247,8 +249,8 @@ local function CreateGrid(r)
 		},]]--
 		
 		mouseover=function(mx,my,self)
-			self.iconscale=self.iconhoverscale
-			mouseoverhighlight.iconscale=self.iconhoverscale
+			self.iconscale=(iconScaling and self.iconhoverscale or 1)
+			mouseoverhighlight.iconscale=(iconScaling and self.iconhoverscale or 1)
 			mouseoverhighlight.px = self.px
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
@@ -266,8 +268,8 @@ local function CreateGrid(r)
 		
 		onupdate=function(self)
 			local _,_,_,curcmdname = sGetActiveCommand()
-			self.iconscale=self.iconnormalscale
-			selecthighlight.iconscale = self.iconhoverscale
+			self.iconscale= (iconScaling and self.iconnormalscale or 1)
+			selecthighlight.iconscale = (iconScaling and self.iconhoverscale or 1)
 			if (curcmdname ~= nil) then
 				if (self.cmdname == curcmdname) then
 					selecthighlight.px = self.px
@@ -524,6 +526,19 @@ local function UpdateGrid(g,cmds,ordertype)
 	end
 end
 
+
+function widget:TextCommand(command)
+	if (string.find(command, "iconspace") == 1  and  string.len(command) == 9) then 
+		iconScaling = not iconScaling
+		AutoResizeObjects()
+		if consoleBlur then
+			Spring.Echo("Build/order menu icon spacing:  enabled")
+		else
+			Spring.Echo("Build/order menu icon spacing:  disabled")
+		end
+	end
+end
+
 function widget:Initialize()
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
@@ -562,7 +577,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config}
+		return {Config=Config, iconScaling=iconScaling}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -571,6 +586,9 @@ function widget:SetConfigData(data) --load config
 		Config.buildmenu.py = data.Config.buildmenu.py
 		Config.ordermenu.px = data.Config.ordermenu.px
 		Config.ordermenu.py = data.Config.ordermenu.py
+		if (data.iconScaling ~= nil) then
+			iconScaling = data.iconScaling
+		end
 	end
 end
 

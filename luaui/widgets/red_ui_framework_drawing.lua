@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local consoleBlur = false
-local blurShaderStartColor = 0.31		-- will add guishader if border alpha >= ...
+local blurShaderStartColor = 0.31		-- will add guishader if alpha >= ...
 
 function widget:TextCommand(command)
 	if (string.find(command, "consoleblur") == 1  and  string.len(command) == 11) then 
@@ -20,9 +20,9 @@ function widget:TextCommand(command)
 			consoleBlur = not consoleBlur
 			processConsoleBlur()
 			if consoleBlur then
-				Spring.Echo("Console blur: enabled")
+				Spring.Echo("Console blur:  enabled")
 			else
-				Spring.Echo("Console blur: disabled")
+				Spring.Echo("Console blur:  disabled")
 			end
 		else
 			Spring.Echo("Console blur: enable 'GUI-Shader' widget first!")
@@ -32,7 +32,7 @@ end
 
 function processConsoleBlur()
 	if not consoleBlur then
-		blurShaderStartColor = 0.34		-- will add guishader if border alpha >= ...
+		blurShaderStartColor = 0.34		-- will add guishader if alpha >= ...
 	else
 		blurShaderStartColor = 0
 	end
@@ -171,6 +171,11 @@ end
 
 local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 
+	-- add the missing border size (cause normal border will not be used when this function gets called)
+	px = px - 1
+	py = py - 1
+	sx = sx + 2
+	sy = sy + 2
 	
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
@@ -208,6 +213,86 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 	sx = px+sx
 	sy = py+sy
 	
+		glRect(px+cs, py, sx-cs, sy)
+		glRect(sx-cs, py+cs, sx, sy-cs)
+		glRect(px+cs, py+cs, px, sy-cs)
+		
+		if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+		glTexRect(px, py+cs, px+cs, py)		-- top left
+		
+		if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+		glTexRect(sx, py+cs, sx-cs, py)		-- top right
+		
+		if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
+		glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
+		
+		if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
+		glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+		
+		glTexture(false)
+		
+	if glone then
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+end
+local function RectRound22(px,py,sx,sy,c,cs,scale,glone)
+
+	if (c) then
+		glColor(c[1],c[2],c[3],c[4])
+	else
+		glColor(1,1,1,1)
+	end
+	
+	if cs == nil then
+		cs = 4
+	end
+	
+	if glone then
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+	end
+	-- add blur shader
+	if c and c[4] >= blurShaderStartColor then
+		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
+	end
+	
+	--[[px = math.floor(px)
+	py = math.floor(py)
+	sx = math.ceil(px+sx)
+	sy = math.ceil(p+sy)
+	]]--
+	
+	if scale ~= nil and scale ~= 1 then
+		px = px + ((sx * (1-scale))/2)
+		py = py + ((sy * (1-scale))/2)
+		sx = sx * scale
+		sy = sy * scale
+	end
+	
+	px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	sx = px+sx
+	sy = py+sy
+	
+	glBeginEnd(GL.QUADS, DrawGroundquad,px,py,sx,sy,cs)
+		
+	if glone then
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+end
+
+local function DrawGroundquad(x,y,z,size)
+	gl.TexCoord(0,0)
+	gl.Vertex(x-size,y,z-size)
+	gl.TexCoord(0,1)
+	gl.Vertex(x-size,y,z+size)
+	gl.TexCoord(1,1)
+	gl.Vertex(x+size,y,z+size)
+	gl.TexCoord(1,0)
+	gl.Vertex(x+size,y,z-size)
+end
+
+local function DrawRectRound(px,py,sx,sy,cs)
+	
 	glRect(px+cs, py, sx-cs, sy)
 	glRect(sx-cs, py+cs, sx, sy-cs)
 	glRect(px+cs, py+cs, px, sy-cs)
@@ -225,10 +310,6 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
 	
 	glTexture(false)
-	
-	if glone then
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
 end
 
 local function TexRect(px,py,sx,sy,texture,c,scale)
