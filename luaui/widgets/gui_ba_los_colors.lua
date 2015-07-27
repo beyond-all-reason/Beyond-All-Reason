@@ -14,7 +14,7 @@ end
 -- project page: this widget is included in BA repo
 
 --Changelog
--- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loscolors)
+-- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
 local losWithRadarEnabled = false;
 local colorProfile = "greyscale" -- "colored"
@@ -128,8 +128,8 @@ function toggleLOSColors()
 end
 
 function widget:SetConfigData(data)
-    widgetHandler:AddAction("losradars", toggleLOSRadars)
-    widgetHandler:AddAction("loscolors", toggleLOSColors)
+    widgetHandler:AddAction("losradar", toggleLOSRadars)
+    widgetHandler:AddAction("loscolor", toggleLOSColors)
 
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; losradars')
