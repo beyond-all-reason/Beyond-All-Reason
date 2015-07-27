@@ -14,11 +14,20 @@ end
 -- project page: this widget is included in BA repo
 
 --Changelog
--- v2 Changed colors + remember ; mode + fix keybindings for non english layouts
+-- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
 local losWithRadarEnabled = false;
+local colorProfile = "greyscale" -- "colored"
 
-local losColorsWithRadars = {
+local losColorsWithRadarsGray = {
+    fog =    {0.10, 0.10, 0.10},
+    los =    {0.30, 0.30, 0.30},
+    radar =  {0.17, 0.17, 0.17},
+    jam =    {0.12, 0.00, 0.00},
+    radar2 = {0.17, 0.17, 0.17},
+}
+
+local losColorsWithRadarsColor = {
     fog =    {0.15, 0.15, 0.15},
     los =    {0.22, 0.14, 0.30},
     radar2 = {0.08, 0.16, 0.00},
@@ -39,18 +48,33 @@ local spSetLosViewColors = Spring.SetLosViewColors
 
 function setLosWithRadars()
     losWithRadarEnabled = true
-    spSetLosViewColors(losColorsWithRadars.fog, losColorsWithRadars.los, losColorsWithRadars.radar,
-        losColorsWithRadars.jam, losColorsWithRadars.radar2)
-    spSendCommands('unbindkeyset Any+;')
-    spSendCommands('bind Any+; loswithoutradars')
+    withRadars()
 end
 
 function setLosWithoutRadars()
     losWithRadarEnabled = false
-    spSetLosViewColors(losColorsWithoutRadars.fog, losColorsWithoutRadars.los, losColorsWithoutRadars.radar,
-        losColorsWithoutRadars.jam, losColorsWithoutRadars.radar2)
+    withoutRadars()
+end
+
+function withRadars()
+    if colorProfile == "greyscale" then
+        updateLOS(losColorsWithRadarsGray)
+    else
+        updateLOS(losColorsWithRadarsColor)
+    end
+
+    spSendCommands('unbindkeyset Any+;')
+    spSendCommands('bind Any+; loswithoutradars')
+end
+
+function withoutRadars()
+    updateLOS(losColorsWithoutRadars)
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; loswithradars')
+end
+
+function updateLOS(colors)
+    spSetLosViewColors(colors.fog, colors.los, colors.radar, colors.jam, colors.radar2)
 end
 
 function widget:PlayerChanged(playerID)
@@ -58,10 +82,7 @@ function widget:PlayerChanged(playerID)
     local _, _, spec, _, _, _, _, _ = Spring.GetPlayerInfo(playerID)
 
     if spec then
-        spSetLosViewColors(losColorsWithoutRadars.fog, losColorsWithoutRadars.los, losColorsWithoutRadars.radar,
-            losColorsWithoutRadars.jam, losColorsWithoutRadars.radar2)
-        spSendCommands('unbindkeyset Any+;')
-        spSendCommands('bind Any+; loswithradars')
+        withoutRadars()
     end
     return true
 end
@@ -72,17 +93,38 @@ end
 
 
 function widget:GetConfigData()
-    return { losWithRadarEnabled = losWithRadarEnabled }
+    return {
+        losWithRadarEnabled = losWithRadarEnabled,
+        colorProfile = colorProfile
+    }
+end
+
+function setLosWithColors()
+    colorProfile = "colored"
+    setLosWithRadars()
+end
+
+function setLosWithoutColors()
+    colorProfile = "greyscale"
+    setLosWithRadars()
 end
 
 function widget:SetConfigData(data)
     widgetHandler:AddAction("loswithradars", setLosWithRadars)
     widgetHandler:AddAction("loswithoutradars", setLosWithoutRadars)
+    widgetHandler:AddAction("loswithcolors", setLosWithColors)
+    widgetHandler:AddAction("loswithoutcolors", setLosWithoutColors)
 
     if data.losWithRadarEnabled ~= nil then
         losWithRadarEnabled = data.losWithRadarEnabled
     else
         losWithRadarEnabled = false
+    end
+
+    if data.colorProfile ~= nil then
+        colorProfile = data.colorProfile
+    else
+        colorProfile = "greyscale"
     end
 
     if losWithRadarEnabled == true then
