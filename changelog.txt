@@ -3,6 +3,7 @@
 
 - fixed upsidedown hovertank unitpic + a few unprocessed unitpics
 - "BA LOS colors" widget: remembers ; mode + fix keybinding for non english layouts + Add color presets + simplified LOS commands to /losradar and /loscolor
+- Remove "active/passive" commands handling from immobile builder widget (it was moved to "passive builders" widget
 - Add "passive builders" widget. All cons and labs are on passive by default except commanders and commando
 - GUIshader: fixed visual bugginess
 - RedUI console: removed blur, toggle it back with: /consoleblur
