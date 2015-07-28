@@ -20,10 +20,10 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 local Config = {
 	metal = {
 		px = 370,py = 0, --default start position
-		sx = 260,sy = 28, --background size
+		sx = 260,sy = 29, --background size
 		
 		barsy = 4, --width of the actual bar
-		fontsize = 10,
+		fontsize = 11,
 		
 		margin = 5, --distance from background border
 		
@@ -55,10 +55,10 @@ local Config = {
 	
 	energy = {
 		px = 636,py = 0,
-		sx = 260,sy = 28, --background size
+		sx = 260,sy = 29, --background size
 		
 		barsy = 4, --width of the actual bar
-		fontsize = 10,
+		fontsize = 11,
 		
 		margin = 5,
 		
