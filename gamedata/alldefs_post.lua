@@ -8,15 +8,15 @@
 -- That means, ALL UNIT AND WEAPON DEF POST PROCESSING IS DONE HERE
 
 -- What happens:
--- unitdefs_post.lua does nothing
+-- unitdefs_post.lua calls the _Post functions for unitDefs and any weaponDefs that are contained in the unitdef files
+-- unitdefs_post.lua writes the corresponding unitDefs to customparams (if wanted)
 -- weapondefs_post.lua fetches any weapondefs from the unitdefs, 
--- weapondefs_post.lua calls the _Post functions below at the appropriate points 
--- weapondefs_post.lua saves defs into customparams for baking, if wanted
+-- weapondefs_post.lua fetches the standlaone weapondefs, calls the _post functions for them, writes them to customparams (if wanted)
 -- strictly speaking, alldefs.lua is a misnomer since this file does not handle armordefs, featuredefs or movedefs
 
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
 -- The widget to do so can be found in 'etc/Lua/bake unitdefs_post'
-SaveDefsToCustomParams = false
+SaveDefsToCustomParams = true
 
 
 -------------------------

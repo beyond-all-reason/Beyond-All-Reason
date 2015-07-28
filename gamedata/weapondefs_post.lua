@@ -80,12 +80,11 @@ end
 --------------------------------------------------------------------------------
 
 -- see alldefs.lua for documentation
-
 -- load the games _Post functions for defs, and find out if saving to custom params is wanted
 VFS.Include("gamedata/alldefs_post.lua")
-
 -- load functionality for saving to custom params
 VFS.Include("gamedata/post_save_to_customparams.lua")
+
 
 -- handle standalone weapondefs
 for name,wd in pairs(WeaponDefs) do
@@ -95,23 +94,9 @@ for name,wd in pairs(WeaponDefs) do
         SaveDefToCustomParams("WeaponDefs", name, wd)    
     end
 end
-
--- handle unitdefs and the weapons they contain
-local UnitDefs = DEFS.unitDefs
-for name,ud in pairs(UnitDefs) do
-  UnitDef_Post(name,wd)
-  if ud.weapondefs then
-	for wname,wd in pairs(ud.weapondefs) do
-	  WeaponDef_Post(wname,wd)
-	end
-  end 
-  
-  if SaveDefsToCustomParams then
-      SaveDefToCustomParams("UnitDefs", name, ud)    
-  end
-end
   
 -- extract weapondefs from the unitdefs
+local UnitDefs = DEFS.unitDefs
 for udName,ud in pairs(UnitDefs) do
   if (isstring(udName) and istable(ud)) then
     ExtractWeaponDefs(udName, ud)
