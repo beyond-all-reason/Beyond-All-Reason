@@ -109,8 +109,8 @@ end
 function toggleLOSRadars()
     if specDetected and losWithRadarEnabled then
         losWithRadarEnabled = false
-        specDetected = false
     end
+    specDetected = false
 
     if losWithRadarEnabled then
         setLosWithoutRadars()
