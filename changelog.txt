@@ -1,3 +1,21 @@
+9.00 -> 9.01
+28/07/2015
+
+- fixed upsidedown hovertank unitpic + a few unprocessed unitpics
+- "BA LOS colors" widget: remembers ; mode + fix keybinding for non english layouts + Add color presets + simplified LOS commands to /losradar and /loscolor
+- Add "passive builders" widget. All cons and labs are on passive by default except commanders and commando
+- GUIshader: fixed visual bugginess
+- RedUI console: removed blur, toggle it back with: /consoleblur
+- RedUI build/order menu: toggle iconspacing with /iconspace
+- RedUI resourcebars decimal values are stripped
+- RedUI removed 1px space gap at screen edges
+- Initial Queue: bugfix: will not remember queues between different games
+- Resurrection halos is now a widget (no more halos for enemy units)
+- Enemyspotter: changed default: renderAllTeamsAsSpec to false, + use: /enemyspotter_highlight for a highlight
+- Ally resourcebars became a tiny bit larger again
+- Highlight selected units, cleaner highlight effect
+
+
 8.18 -> 9.00
 24/07/2015
 
