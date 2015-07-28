@@ -319,7 +319,7 @@ local function updatebar(b,res)
 	
 	if (r[3]~=r[5]) then
 		b.expense.active = nil --activate
-		b.expense.caption = "-"..short(r[5],1)
+		b.expense.caption = "-"..short(r[5])
 	else
 		b.expense.active = false
 	end
