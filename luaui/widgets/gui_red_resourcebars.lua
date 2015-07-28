@@ -23,7 +23,7 @@ local Config = {
 		sx = 260,sy = 29, --background size
 		
 		barsy = 4, --width of the actual bar
-		fontsize = 10.75,
+		fontsize = 11,
 		
 		margin = 5, --distance from background border
 		
@@ -58,7 +58,7 @@ local Config = {
 		sx = 260,sy = 29, --background size
 		
 		barsy = 4, --width of the actual bar
-		fontsize = 10.75,
+		fontsize = 11,
 		
 		margin = 5,
 		
@@ -205,8 +205,8 @@ local function createbar(r)
 	income.color = r.cincome
 	
 	local barbackground = {"rectangle",
-		px=background.px+income.getwidth()+r.margin,py=income.py,
-		sx=background.sx-income.getwidth()-r.margin*2,sy=r.barsy,
+		px=background.px+income.getwidth()-r.margin,py=income.py,
+		sx=background.sx-income.getwidth(),sy=r.barsy,
 		color=r.cbarbackground,
 		texture = barTexture,
 		texturecolor = {0.15,0.15,0.15,1},
@@ -267,6 +267,11 @@ local function createbar(r)
 		income,pull,expense,current,storage,
 	}
 	
+	-- smaller fontsize for fontsize of income and pull
+	income.fontsize = r.fontsize*0.94
+	pull.fontsize = r.fontsize*0.94
+	storage.fontsize = r.fontsize*0.94
+	
 	--tooltip
 	background.mouseover = function(mx,my,self) SetTooltip(r.tooltip.background) end
 	income.mouseover = function(mx,my,self) SetTooltip(r.tooltip.income) end
@@ -301,14 +306,14 @@ local function updatebar(b,res)
 		b.bar.sx = barbacksx
 	end
 	
-	b.income.caption = "+"..short(r[4],1)
-	b.pull.caption = "-"..short(r[3],1)
+	b.income.caption = "+"..short(r[4])
+	b.pull.caption = "-"..short(r[3])
 	b.current.caption = short(r[1])
 	b.storage.caption = short(r[2])
 	
 	--align numbers
-	b.income.px = barbackpx - b.income.getwidth() -b.margin
-	b.pull.px = barbackpx - b.pull.getwidth() -b.margin
+	b.income.px = barbackpx - b.income.getwidth() -b.margin*1.4
+	b.pull.px = barbackpx - b.pull.getwidth() -b.margin*1.4
 	b.current.px = barbackpx + barbacksx/2 - b.current.getwidth()/2
 	b.storage.px = barbackpx + barbacksx - b.storage.getwidth()
 	
