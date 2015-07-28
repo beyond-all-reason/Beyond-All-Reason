@@ -132,7 +132,7 @@ function widget:SetConfigData(data)
     widgetHandler:AddAction("loscolor", toggleLOSColors)
 
     spSendCommands('unbindkeyset Any+;')
-    spSendCommands('bind Any+; losradars')
+    spSendCommands('bind Any+; losradar')
 
     if data.losWithRadarEnabled ~= nil then
         losWithRadarEnabled = data.losWithRadarEnabled
