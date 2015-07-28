@@ -16,7 +16,7 @@
 
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
 -- The widget to do so can be found in 'etc/Lua/bake unitdefs_post'
-SaveDefsToCustomParams = true
+SaveDefsToCustomParams = false
 
 
 -------------------------
