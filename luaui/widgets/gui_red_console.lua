@@ -43,7 +43,7 @@ local spPlaySoundFile = Spring.PlaySoundFile
 
 local Config = {
 	console = {
-		px = 375,py = 34, --default start position
+		px = 375,py = 35, --default start position
 		sx = 516, --background size
 		
 		fontsize = 11.33,

@@ -23,7 +23,7 @@ local Config = {
 		sx = 260,sy = 29, --background size
 		
 		barsy = 4, --width of the actual bar
-		fontsize = 11,
+		fontsize = 10.75,
 		
 		margin = 5, --distance from background border
 		
@@ -58,7 +58,7 @@ local Config = {
 		sx = 260,sy = 29, --background size
 		
 		barsy = 4, --width of the actual bar
-		fontsize = 11,
+		fontsize = 10.75,
 		
 		margin = 5,
 		
