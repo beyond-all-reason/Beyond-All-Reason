@@ -453,7 +453,7 @@ function CreateBackground()
 	
 	Background = glCreateList(function()
 		
-		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0.15,0.15,0.15,0.75},12)
+		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0.06,0.06,0.06,0.8},10)
 		
 		glColor(1,1,1,1)
 		glTexture(':l:LuaRules/Images/awards.png')
