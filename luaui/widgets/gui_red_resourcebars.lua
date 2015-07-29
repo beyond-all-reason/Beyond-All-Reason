@@ -268,9 +268,9 @@ local function createbar(r)
 	}
 	
 	-- smaller fontsize for fontsize of income and pull
-	income.fontsize = r.fontsize*0.94
-	pull.fontsize = r.fontsize*0.94
-	storage.fontsize = r.fontsize*0.94
+	income.fontsize = r.fontsize*0.93
+	pull.fontsize = r.fontsize*0.93
+	storage.fontsize = r.fontsize*0.88
 	
 	--tooltip
 	background.mouseover = function(mx,my,self) SetTooltip(r.tooltip.background) end
@@ -306,14 +306,14 @@ local function updatebar(b,res)
 		b.bar.sx = barbacksx
 	end
 	
-	b.income.caption = "+"..short(r[4])
-	b.pull.caption = "-"..short(r[3])
+	b.income.caption = "+ "..short(r[4])
+	b.pull.caption = "- "..short(r[3])
 	b.current.caption = short(r[1])
 	b.storage.caption = short(r[2])
 	
 	--align numbers
-	b.income.px = barbackpx - b.income.getwidth() -b.margin*1.4
-	b.pull.px = barbackpx - b.pull.getwidth() -b.margin*1.4
+	b.income.px = barbackpx - b.income.getwidth() -b.margin*2.2
+	b.pull.px = barbackpx - b.pull.getwidth() -b.margin*2.2
 	b.current.px = barbackpx + barbacksx/2 - b.current.getwidth()/2
 	b.storage.px = barbackpx + barbacksx - b.storage.getwidth()
 	
