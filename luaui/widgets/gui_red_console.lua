@@ -371,10 +371,8 @@ end
 
 local function clipHistory(g,oneline)
 	local history = g.vars.consolehistory
-	--local maxsize = g.background.sx - (g.lines.px-g.background.px)
+	local maxsize = g.background.sx - (g.lines.px-g.background.px)
 	
-	local scale = Screen.vsx/LastAutoResizeX
-	local maxsize = g.background.sx - ((Config.console.margin * 4) * scale)
 	local fontsize = g.lines.fontsize
 	
 	if (oneline) then
