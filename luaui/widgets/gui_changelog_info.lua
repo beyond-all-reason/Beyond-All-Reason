@@ -1,16 +1,17 @@
 
 function widget:GetInfo()
 return {
-	name    = "Keybind/Mouse Info",
-	desc    = "Provides information on the controls",
-	author  = "Bluestone",
-	date    = "April 2015",
-	license = "Mouthwash",
+	name    = "Changelog Info",
+	desc    = "Shows the changelog",
+	author  = "Floris (original: keybind info by Bluestone)",
+	date    = "August 2015",
+	license = "Dental flush",
 	layer   = 0,
 	enabled = true,
 }
 end
 
+local startLine = 1
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
@@ -50,14 +51,21 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
+local endPosX = 0.07
 local vsx, vsy = Spring.GetViewGeometry()
+
+local versions = {}
+local changelogFile = io.open(LUAUI_DIRNAME.."changelog.txt", "r")
+local changelogFileLines = {}
+
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (screenWidth/2)
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-  if keybinds then gl.DeleteList(keybinds) end
-  keybinds = gl.CreateList(KeyBindScreen)
+  if changelogList then gl.DeleteList(changelogList) end
+  changelogList = gl.CreateList(ChangelogScreen)
+  --endPosX = 0.07
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -72,7 +80,7 @@ local textSize = 0.75
 local textMargin = 0.25
 local lineWidth = 0.0625
 
-local posX = 0.3
+local posX = 0.37
 local posY = 0
 local showOnceMore = false
 local buttonGL
@@ -113,49 +121,17 @@ end
 
 function DrawButton()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	RectRound(0,0,4,1,0.25)
+	RectRound(0,0,4.5,1,0.25)
     DrawL()
-    glText("Keybinds", textMargin, textMargin, textSize, "no")
+    glText("Changelog", textMargin, textMargin, textSize, "no")
 end
 
--- keybind info
 
-include("configs/BA_HotkeyInfo.lua")
-local bindColor			= "\255\255\210\070"
+local versionColor		= "\255\255\210\070"
 local titleColor		= "\255\254\254\254"
 local descriptionColor	= "\255\192\190\180"
 
-function DrawTextTable(t,x,y)
-    local j = 0
-    local height = 0
-    local width = 0
-    for _,t in pairs(t) do
-      if t.blankLine then
-        -- nothing here
-      elseif t.title then
-        -- title line
-        local title = t[1] or ""
-        local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
-        gl.Text(line, x-16, y-((13)*j)+5, 14)
-		screenWidth = math.max(glGetTextWidth(line)*13,screenWidth)
-      else
-        -- keybind line
-        local bind = string.upper(t[1]) or ""
-        local effect = t[2] or ""
-        local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
-        gl.Text(line, x-7, y-(13)*j, 11)
-		width = math.max(glGetTextWidth(line)*11,width)
-      end
-      height = height + 13
-      
-	  j = j + 1
-    end
-    --screenHeight = math.max(screenHeight, height)
-    --screenWidth = screenWidth + width
-    return x,j
-end
-
-function KeyBindScreen()
+function ChangelogScreen()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
@@ -169,19 +145,73 @@ function KeyBindScreen()
 	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
 	gl.Texture(false)
 	
-    DrawTextTable(General,x,y)
-    x = x + 350
-    DrawTextTable(Units_I_II,x,y)
-    x = x + 350
-    DrawTextTable(Units_III,x,y)
+	local xOffset = 0
+	local yOffset = 20
+	local fontSize = 15
+	if changelogFile then
+		local lineKey = startLine
+		local j = 0
+		local height = 0
+		local width = 0
+		while j < 25 do	
+			if (fontSize+yOffset)*j > (screenHeight-16) then
+				break;
+			end
+			if versions[lineKey] == nil then
+				break;
+			end
+			
+			-- version title
+			local line = " " .. versionColor .. versions[lineKey]['line'] -- in changelogList info: a WTF whitespace is needed here, the colour doesn't show without it...
+			gl.Text(line, x-16+xOffset, y-((fontSize+yOffset)*j)+5, fontSize)
+			
+
+			j = j + 1
+			lineKey = lineKey + 1
+		end
+	end
 	
-    gl.Color(1,1,1,1)
-    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX-8, y-43*11, 12.5)
+	local xOffset = 75
+	if changelogFile then
+		local lineKey = startLine
+		local j = 0
+		local height = 0
+		local width = 0
+		while j < 40 do	
+			if (13)*j > (screenHeight-16) then
+				break;
+			end
+			if changelogFileLines[lineKey] == nil then
+				break;
+			end
+			
+			local line = changelogFileLines[lineKey]
+			
+			if string.find(line, '^([0-9][.][0-9][0-9])') then
+				-- version title
+				local line = " " .. titleColor .. line -- in changelogList info: a WTF whitespace is needed here, the colour doesn't show without it...
+				gl.Text(line, x-16+xOffset, y-((13)*j)+5, 14)
+				
+			else
+				-- line
+				local line = "  " .. descriptionColor .. line
+				gl.Text(line, x-7+xOffset, y-(13)*j, 11)
+				width = math.max(glGetTextWidth(line)*11,width)
+				height = height + 13
+			end
+
+			j = j + 1
+			lineKey = lineKey + 1
+		end
+	end
+    --gl.Color(1,1,1,1)
+    --gl.Text("Scroll down to see more...", screenX-8, y-43*11, 12.5)
 end
 
 
 function widget:GameFrame(n)
-	if n>0 and posX > 0 then
+	
+	if n>endPosX and posX > endPosX then
 		posX = posX - 0.005
 		if posX < 0 then posX = 0 end
 		
@@ -211,27 +241,27 @@ function widget:DrawScreen()
     glLineWidth(1)
     
     -- draw the help
-    if not keybinds then
-        keybinds = gl.CreateList(KeyBindScreen)
+    if not changelogList then
+        changelogList = gl.CreateList(ChangelogScreen)
     end
     
     if show or showOnceMore then
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 			glScale(widgetScale, widgetScale, 1)
-			glCallList(keybinds)
+			glCallList(changelogList)
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
 			local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'keybindinfo')
+			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
 		end
 		showOnceMore = false
     else
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('keybindinfo')
+			WG['guishader_api'].RemoveRect('changelog')
 		end
 	end
 end
@@ -263,6 +293,42 @@ function widget:MousePress(x, y, button)
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
 			end
+			
+			--[[ on version number
+			rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			
+			local xOffset = 0
+			local yOffset = 20
+			local fontSize = 15
+			local lineKey = startLine
+			local j = 0
+			local height = 0
+			local width = 0
+			while j < 25 do	
+				if (fontSize+yOffset)*j > (screenHeight-16) then
+					break;
+				end
+				if versions[lineKey] == nil then
+					break;
+				end
+				
+				--gl.Text(line, screenX-16+xOffset, screenY-((fontSize+yOffset)*j)+5, fontSize)
+				rectY1 = ..
+				rectY2 = rectY1 + height
+				if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+					Spring.Echo('clicked: '..versions[lineKey]['line'])
+					startLine = versions[lineKey]['changelogLine']
+					if changelogList then
+						glDeleteList(changelogList)
+					end
+					changelogList = gl.CreateList(ChangelogScreen)
+				end
+
+				j = j + 1
+				lineKey = lineKey + 1
+			end
+			]]--
 		else
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
@@ -277,13 +343,36 @@ function widget:MousePress(x, y, button)
     show = not show
 end
 
+
+function widget:Initialize()
+	
+	if changelogFile then
+		-- store changelog into array
+		changelogFileLines = {}
+		for line in changelogFile:lines() do
+			table.insert (changelogFileLines, line);
+		end
+		
+		local versionKey = 0
+		for i, line in ipairs(changelogFileLines) do
+		
+			if string.find(line, '^([0-9][.][0-9][0-9])') then
+				versionKey = versionKey + 1
+				versions[versionKey] = {}
+				versions[versionKey]['line'] = string.match(line, '( [0-9][.][0-9][0-9])')  -- strip the first version number, which is the old version
+				versions[versionKey]['changelogLine'] = i
+			end
+		end
+	end
+end
+
 function widget:Shutdown()
     if buttonGL then
         glDeleteList(buttonGL)
         buttonGL = nil
     end
-    if keybinds then
-        glDeleteList(keybinds)
-        keybinds = nil
+    if changelogList then
+        glDeleteList(changelogList)
+        changelogList = nil
     end
 end
