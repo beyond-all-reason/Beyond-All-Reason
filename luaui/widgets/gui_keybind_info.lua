@@ -267,14 +267,15 @@ function widget:MousePress(x, y, button)
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
 		end
+    else
+		
+		tx = (x - posX*vsx)/(17*widgetScale)
+		ty = (y - posY*vsy)/(17*widgetScale)
+		if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
+		
+		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
+		show = not show
     end
-    
-	tx = (x - posX*vsx)/(17*widgetScale)
-    ty = (y - posY*vsy)/(17*widgetScale)
-    if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
-	
-    showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
-    show = not show
 end
 
 function widget:Shutdown()

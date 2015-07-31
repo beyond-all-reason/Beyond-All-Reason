@@ -16,6 +16,8 @@ local startLine = 1
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
+local changelogFile = io.open("changelog.txt", "r")
+
 local bgMargin = 10
 local closeButtonSize = 30
 local screenHeight = 486
@@ -23,6 +25,10 @@ local screenWidth = (350*3)-8
 
 local customScale = 1
 
+local vsx,vsy = Spring.GetViewGeometry()
+local screenX = (vsx*0.5) - (screenWidth/2)
+local screenY = (vsy*0.5) + (screenHeight/2)
+  
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
 
@@ -55,7 +61,6 @@ local endPosX = 0.07
 local vsx, vsy = Spring.GetViewGeometry()
 
 local versions = {}
-local changelogFile = io.open(LUAUI_DIRNAME.."changelog.txt", "r")
 local changelogFileLines = {}
 
 function widget:ViewResize()
@@ -333,14 +338,14 @@ function widget:MousePress(x, y, button)
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
 		end
+    else
+		tx = (x - posX*vsx)/(17*widgetScale)
+		ty = (y - posY*vsy)/(17*widgetScale)
+		if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
+		
+		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
+		show = not show
     end
-    
-	tx = (x - posX*vsx)/(17*widgetScale)
-    ty = (y - posY*vsy)/(17*widgetScale)
-    if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
-	
-    showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
-    show = not show
 end
 
 
@@ -363,6 +368,10 @@ function widget:Initialize()
 				versions[versionKey]['changelogLine'] = i
 			end
 		end
+		io.close(changelogFile)
+	else
+		Spring.Echo("Changelog: couldn't load the changelog file")
+		widgetHandler:RemoveWidget()
 	end
 end
 
