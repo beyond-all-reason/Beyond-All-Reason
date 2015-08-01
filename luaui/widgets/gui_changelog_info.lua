@@ -2,7 +2,7 @@
 function widget:GetInfo()
 return {
 	name    = "Changelog Info",
-	desc    = "Shows the changelog",
+	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
 	author  = "Floris (original: keybind info by Bluestone)",
 	date    = "August 2015",
 	license = "Dental flush",
@@ -63,6 +63,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local versions = {}
 local changelogFileLines = {}
+local totalChangelogLines = 0
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
@@ -194,7 +195,12 @@ function ChangelogScreen()
 			
 			if string.find(line, '^([0-9][.][0-9][0-9])') then
 				-- version title
-				local line = " " .. titleColor .. string.match(line, '( [0-9][.][0-9][0-9])')
+				local versionStrip = string.match(line, '( [0-9][.][0-9][0-9])')
+				if versionStrip ~= nil then
+					line = " " .. titleColor .. versionStrip
+ 				else
+					line = " " .. titleColor .. line
+				end
 				gl.Text(line, x-16+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle)
 				
 			else
@@ -332,7 +338,36 @@ function widget:MousePress(x, y, button)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-			
+		
+			-- scroll text with mouse 2
+			if button == 1 or button == 3 then
+				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
+					local alt, ctrl, meta, shift = Spring.GetModKeyState()
+					local addLines = 4
+					
+					if ctrl or shift then 
+						addLines = 8
+					end
+					if ctrl and shift then 
+						addLines = 25
+					end
+					if ctrl and shift and alt then 
+						addLines = 50
+					end
+					if button == 3 then 
+						addLines = -addLines
+					end
+					startLine = startLine + addLines
+					if startLine < 1 then startLine = 1 end
+					if startLine > totalChangelogLines - 11 then startLine = totalChangelogLines - 11 end
+					
+					if changelogList then
+						glDeleteList(changelogList)
+					end
+					changelogList = gl.CreateList(ChangelogScreen)
+					return true
+				end
+			end
 			-- on close button
 			rectX1 = rectX2 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
 			rectY2 = rectY1 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
@@ -342,42 +377,44 @@ function widget:MousePress(x, y, button)
 			end
 				
 				
-			-- verion buttons
-			local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-			local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+			-- version buttons
+			if button == 1 then
+				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
+				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+					
+				local xOffset = 0
+				local yOffset = 20
+				local fontSize = 15
 				
-			local xOffset = 0
-			local yOffset = 20
-			local fontSize = 15
-			
-			local x,y = Spring.GetMouseState()
-			if changelogFile then
-				local lineKey = 1
-				local j = 0
-				while j < 25 do	
-					if (fontSize+yOffset)*j > (screenHeight) then
-						break;
-					end
-					if versions[lineKey] == nil then
-						break;
-					end
-					
-					-- version title
-					local textX = usedScreenX-((10+xOffset)*widgetScale)
-					local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
-					--gl.Text(" " .. versionColor .. versions[lineKey]['line'], textX, textY, (fontSize*widgetScale))
-					
-					if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
-						startLine = versions[lineKey]['changelogLine']
-						if changelogList then
-							glDeleteList(changelogList)
+				local x,y = Spring.GetMouseState()
+				if changelogFile then
+					local lineKey = 1
+					local j = 0
+					while j < 25 do	
+						if (fontSize+yOffset)*j > (screenHeight) then
+							break;
 						end
-						changelogList = gl.CreateList(ChangelogScreen)
-						break;
+						if versions[lineKey] == nil then
+							break;
+						end
+						
+						-- version title
+						local textX = usedScreenX-((10+xOffset)*widgetScale)
+						local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
+						--gl.Text(" " .. versionColor .. versions[lineKey]['line'], textX, textY, (fontSize*widgetScale))
+						
+						if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
+							startLine = versions[lineKey]['changelogLine']
+							if changelogList then
+								glDeleteList(changelogList)
+							end
+							changelogList = gl.CreateList(ChangelogScreen)
+							break;
+						end
+						
+						j = j + 1
+						lineKey = lineKey + 1
 					end
-					
-					j = j + 1
-					lineKey = lineKey + 1
 				end
 			end
 			
@@ -391,7 +428,7 @@ function widget:MousePress(x, y, button)
     else
 		tx = (x - posX*vsx)/(17*widgetScale)
 		ty = (y - posY*vsy)/(17*widgetScale)
-		if tx < 0 or tx > 8 or ty < 0 or ty > 1 then return false end
+		if tx < 0 or tx > 4.5 or ty < 0 or ty > 1 then return false end
 		
 		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
 		show = not show
@@ -417,6 +454,7 @@ function widget:Initialize()
 				versions[versionKey]['line'] = string.match(line, '( [0-9][.][0-9][0-9])')  -- strip the first version number, which is the old version
 				versions[versionKey]['changelogLine'] = i
 			end
+			totalChangelogLines = i
 		end
 		io.close(changelogFile)
 	else
