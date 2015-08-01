@@ -69,9 +69,8 @@ local useBlurShader   = false   -- it has a fallback, if the gfx don't support g
 local blured          = false
 local blurFullscreen  = function() return end
 
-
 local bgcorner		= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
-local repeatPic		= ':n:LuaUI/Images/repeat.png'
+local repeatPic		= ":n:"..LUAUI_DIRNAME.."Images/repeat.png"
 
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
@@ -83,7 +82,7 @@ local glBlending               = gl.Blending
 -------------------------------------------------------------------------------
 
 local sound_waypoint  = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
-local sound_click     = LUAUI_DIRNAME .. 'Sounds/buildbar_click.WAV'
+local sound_click     = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
 local sound_hover     = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
 local sound_queue_add = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
 local sound_queue_rem = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
@@ -190,6 +189,9 @@ function widget:Initialize()
 
   local viewSizeX, viewSizeY = widgetHandler:GetViewSizes()
   self:ViewResize(viewSizeX, viewSizeY)
+  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	widgetHandler:RemoveWidget()
+  end
 end
 
 function widget:GetConfigData()
@@ -420,6 +422,7 @@ end
 -------------------------------------------------------------------------------
 
 function widget:DrawScreen()
+  
   SetupDimensions(#facs)
   SetupSubDimensions()
 
@@ -541,6 +544,7 @@ end
 
 
 function widget:DrawWorld()
+  
   -- Draw factories command lines
   if waypointMode>1 or openedMenu>=0 then
     local fac
@@ -557,6 +561,7 @@ end
 
 
 function widget:DrawInMiniMap(sx,sy)
+  
    if (openedMenu>-1) then
      gl.PushMatrix()
        local pt = math.min(sx,sy)
@@ -753,6 +758,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widget:Update()
+  
   if myTeamID~=Spring.GetMyTeamID() then
     myTeamID = Spring.GetMyTeamID()
     UpdateFactoryList()
@@ -760,6 +766,11 @@ function widget:Update()
   inTweak = widgetHandler:InTweakMode()
 end
 
+function widget:PlayerChanged()
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
 
 
 -------------------------------------------------------------------------------
