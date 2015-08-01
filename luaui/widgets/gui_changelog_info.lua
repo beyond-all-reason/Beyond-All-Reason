@@ -135,7 +135,8 @@ end
 
 local versionColor		= "\255\255\210\070"
 local titleColor		= "\255\254\254\254"
-local descriptionColor	= "\255\192\190\180"
+local dateColor			= "\255\155\220\155"
+local lineColor			= "\255\192\190\180"
 
 function ChangelogScreen()
     local vsx,vsy = Spring.GetViewGeometry()
@@ -192,8 +193,8 @@ function ChangelogScreen()
 			
 			local line = changelogFileLines[lineKey]
 			
-			if string.find(line, '^([0-9][.][0-9][0-9])') then
-				-- version title
+			if string.find(line, '^([0-9][.][0-9])') then
+				-- version line
 				local versionStrip = string.match(line, '( [0-9][.][0-9][0-9])')
 				if versionStrip ~= nil then
 					line = " " .. titleColor .. versionStrip
@@ -202,9 +203,15 @@ function ChangelogScreen()
 				end
 				gl.Text(line, x-16+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle)
 				
+			elseif string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
+				-- date line
+				local line = "  " .. dateColor .. line
+				gl.Text(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine)
+				width = math.max(glGetTextWidth(line)*fontSizeLine,width)
+				height = height + fontSizeTitle
 			else
 				-- line
-				local line = "  " .. descriptionColor .. line
+				local line = "  " .. lineColor .. line
 				gl.Text(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine)
 				width = math.max(glGetTextWidth(line)*fontSizeLine,width)
 				height = height + fontSizeTitle
@@ -255,7 +262,6 @@ function widget:DrawScreen()
     
     if show or showOnceMore then
     
-		
 		-- draw the changelog panel
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)

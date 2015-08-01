@@ -557,6 +557,7 @@ Removed:
 - Require players to use a few resources before getting the efficiency award
 - Fixed some other rare lua errors
 
+
 7.78 -> 7.79
 18/08/2013
 
@@ -582,8 +583,10 @@ Removed:
 - Increased T1 Ship Cons builtime and reduced manouevability
 - Increased T1 Torpedo Launcher buildtime
 
+
 7.76 -> 7.78
 27/06/2013
+
 - Dots in Customformations are of consistent size depending on zoom and terrain height 
 - Fixed crash in Customformations when both mouse buttons were pressed at once
 - Set Target can now be used with Customformations
@@ -604,7 +607,10 @@ Removed:
 - Made Specific Unit Reclaimer work with all types of constructor
 
 
--- 02/06/2013 - T1 Ships Revamp (7.76->7.77) --
+7.76 -> 7.77
+02/06/2013
+
+T1 Ships Revamp
 
 - Commanders now have an underwater weapon, a short range laser which fires when they are not building/repairing (dps similar to the existing red laser)
 - Commanders can now build Floating Radar Towers
@@ -685,11 +691,9 @@ Removed:
 - Core Advanced Shipyard health increased (4416->5300), energymake added (+25)
 
 
-
-
-
 7.75 -> 7.76
 19/05/2013
+
 -Try to intelligently choose startpos for players/AIs who didn't place themselves
 -Nicer visuals for CustomFormations2 (thanks PixelOfDeath!)
 -Added "Set Target" command: 'Sets a top priority attack target, to be used if within range (not removed by move commands)' with keybind to y, cancel target bind to j
@@ -707,11 +711,10 @@ Removed:
 -Transport helper ai won't try to transport scouts
 
 
-
 7.74->7.75
 26/03/2013
--New version to overcome a conflict between rapid and Springfiles versions
 
+-New version to overcome a conflict between rapid and Springfiles versions
 
 
 7.73-7.74
@@ -728,9 +731,9 @@ Removed:
 -Removed dynamic_blob_shadows widget 
 
 
-
 7.72 -> 7.73
 23/03/2013
+
 -New loadscreens 
 -Added cmd_keep_target widget 
 -Added lock_camera widget 
@@ -2354,6 +2357,7 @@ Fixed MexupgradeGadget
 
 
 6.31 -> 6.4
+
 Renamed end game modes so its more clear what mode does what
 Kill all enemy Commanders is now default end-game option
 Added a widget to show which mode is used at the start of a game
@@ -2387,6 +2391,7 @@ Down graded LUPS to the 6.21 version, to fix the desyncs
 
 
 6.21 -> 6.3
+
 Flagships have the same movement as other ships now
 Core nanoturrets can no longer be build in the water
 GIMP torpedo reloadtime increased
@@ -2420,12 +2425,14 @@ Added a set of new game-ends rules, in mod options, made by KDR_11k:
 
 
 6.2 -> 6.21
+
 Fixed Error messages from the luashockwave gadget?
 Fixed Amphid Speeds
 Fixed Anti-nuke type
 Reduced Seaplane-fighters LoS
 
 6.1 -> 6.2
+
 Fixed directcontrol gadget.
 Fixed Layout gadget to not crash on /luaui reload, thanks eriatarka
 Reduced Los of fighters to their weapon range, did not do sea planes yet
@@ -2462,6 +2469,7 @@ Added a Layout for the Gui , a widget by lurker, many thanks!
 
 
 5.91 -> 6.0
+
 Updated defenserange widget by verybadsoldier
 Updated LUPS
 Updated HP-bars widget by jK
@@ -2710,6 +2718,7 @@ panthers a bit faster
 
 
 4.61 -> 4.7
+
 Fixed Vamp Cruisealt
 Intruder can no longer load enemy units (Thanks Rattle)
 Implented Argh's Arm DT (someone should make us some for Core too. and maybe the floating DT's fortwalls as well)
@@ -2738,6 +2747,7 @@ Skeeter/Searcger HP nerfed
 
 
 4.5 -> 4.6
+
 Core radar has LOS again
 Stumpy speed reduced (its slower then a gator now, but still faster then a raider)
 Gave Corvette's Lazors, Lowered DPS a bit because it will always hit now.
@@ -2760,6 +2770,7 @@ Removed the AoE of depthchargelauncher's weapon, it shouldn't be OP anymore on T
 
 
 4.41 -> 4.5
+
 Fixed the metalammount of the Targeting facility's corpses and heaps
 Gave Janus its "arc" Weapon as in AA
 Decreased Doomsday Costs by 30% (also adjusted corpses)
@@ -2790,11 +2801,13 @@ Included a somewhat GUI, you have to enable LuaUI in settings.exe (gui.lua was m
 
 
 4.4 -> 4.41
+
 Fixed Geo's
 Minelayers will no longer follow enenmy units
 
 
 4.33 -> 4.4
+
 Advanced Anti Air Kbots and AA hovers no longer follow ground units
 Gave detpcharge some tracking again
 Fixed the extraction rates of mexxes/twilights/exploiters, somehow they were mixed up
@@ -2807,6 +2820,7 @@ Gave the Minelayer some AoE weapon, you still have to manual "attack" the enemy 
 
 
 4.2 -> 4.33
+
 Arm Fusions really makes 1000 E now
 Core Fusions really makes 1100 E now
 Adv Fusions really make 3000 E now
