@@ -104,6 +104,7 @@ Removed:
 
 8.15 -> 8.16
 26/04/2015
+
 - Added widget for changing game speed in replays
 - Added widget to display blast radius when placing buildings (press meta/space)
 - Added widget to swap Y and Z for AZERTY keyboards
