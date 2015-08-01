@@ -340,9 +340,9 @@ function widget:MousePress(x, y, button)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 		
 			-- on close button
-			rectX1 = rectX2 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
-			rectY2 = rectY1 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			local brectX1 = rectX2 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
+			local brectY2 = rectY1 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
+			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
 			end
