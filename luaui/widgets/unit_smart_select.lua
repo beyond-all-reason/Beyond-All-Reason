@@ -15,12 +15,12 @@
 function widget:GetInfo()
 	return {
 		name      = "SmartSelect",
-		desc      = "Selects units as you drag over them. (modifier keys: SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)",
+		desc      = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)",
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
 		layer     = 0,
-		enabled   = false
+		enabled   = true
 	}
 end
 
@@ -191,6 +191,28 @@ function widget:MousePress(x, y, button)
 		end
 	end
 end
+
+function widget:TextCommand(command)
+    if (string.find(command, "selection_mode") == 1  and  string.len(command) == 14) then 
+		selectBuildingsWithMobile = not selectBuildingsWithMobile
+		if selectBuildingsWithMobile then
+			Spring.Echo("SmartSelect: Selects whatever comes under selection rectangle.")
+		else
+			Spring.Echo("SmartSelect: Ignores buildings if it can select mobile units.")
+		end
+	end
+end
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.selectBuildingsWithMobile = selectBuildingsWithMobile
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+    if data.selectBuildingsWithMobile ~= nil 	then  selectBuildingsWithMobile	= data.selectBuildingsWithMobile end
+end
+
 
 function widget:Update()
 	--[[
