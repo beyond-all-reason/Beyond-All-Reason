@@ -160,7 +160,7 @@ function KeyBindScreen()
     local x = screenX --rightwards
     local y = screenY --upwards
     
-    gl.Color(0,0,0,0.75)
+    gl.Color(0,0,0,0.8)
 	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
 	--glRect(x-20-bgMargin,y+24+bgMargin,x+screenWidth+bgMargin,y-screenHeight-bgMargin)
 	
