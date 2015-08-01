@@ -11,9 +11,7 @@ return {
 }
 end
 
-local startLine = 1
-
-local hoverColor = {1,1,1,0.2}
+local hoverColor = {1,1,1,0.18}
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
@@ -25,6 +23,8 @@ local screenHeight = 486
 local screenWidth = (350*3)-8
 
 local customScale = 1
+
+local startLine = 1
 
 local vsx,vsy = Spring.GetViewGeometry()
 local screenX = (vsx*0.5) - (screenWidth/2)
@@ -72,7 +72,6 @@ function widget:ViewResize()
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
   if changelogList then gl.DeleteList(changelogList) end
   changelogList = gl.CreateList(ChangelogScreen)
-  --endPosX = 0.07
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -255,22 +254,8 @@ function widget:DrawScreen()
     end
     
     if show or showOnceMore then
-		glPushMatrix()
-			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
-			glScale(widgetScale, widgetScale, 1)
-			glCallList(changelogList)
-		glPopMatrix()
-		if (WG['guishader_api'] ~= nil) then
-			local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
-		end
-		showOnceMore = false
-	
-		
-		-- verion button hover	
+    
+		-- draw button hover
 		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
 			
@@ -310,6 +295,21 @@ function widget:DrawScreen()
 				lineKey = lineKey + 1
 			end
 		end
+		
+		-- draw the changelog panel
+		glPushMatrix()
+			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+			glScale(widgetScale, widgetScale, 1)
+			glCallList(changelogList)
+		glPopMatrix()
+		if (WG['guishader_api'] ~= nil) then
+			local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
+		end
+		showOnceMore = false
 		
     else
 		if (WG['guishader_api'] ~= nil) then
