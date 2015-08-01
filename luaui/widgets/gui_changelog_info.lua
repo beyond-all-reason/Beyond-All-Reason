@@ -13,10 +13,11 @@ end
 
 local startLine = 1
 
+local hoverColor = {1,1,1,0.2}
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
-local changelogFile = io.open("changelog.txt", "r")
+local changelogFile = io.open(LUAUI_DIRNAME.."changelog.txt", "r")
 
 local bgMargin = 10
 local closeButtonSize = 30
@@ -57,7 +58,7 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local endPosX = 0.07
+local endPosX = 0.05
 local vsx, vsy = Spring.GetViewGeometry()
 
 local versions = {}
@@ -85,7 +86,7 @@ local textSize = 0.75
 local textMargin = 0.25
 local lineWidth = 0.0625
 
-local posX = 0.37
+local posX = 0.35
 local posY = 0
 local showOnceMore = false
 local buttonGL
@@ -141,7 +142,7 @@ function ChangelogScreen()
     local x = screenX --rightwards
     local y = screenY --upwards
     
-    gl.Color(0,0,0,0.75)
+    gl.Color(0,0,0,0.8)
 	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
 	--glRect(x-20-bgMargin,y+24+bgMargin,x+screenWidth+bgMargin,y-screenHeight-bgMargin)
 	
@@ -154,36 +155,35 @@ function ChangelogScreen()
 	local yOffset = 20
 	local fontSize = 15
 	if changelogFile then
-		local lineKey = startLine
+		local lineKey = 1
 		local j = 0
-		local height = 0
-		local width = 0
 		while j < 25 do	
-			if (fontSize+yOffset)*j > (screenHeight-16) then
+			if (fontSize+yOffset)*j > (screenHeight) then
 				break;
 			end
 			if versions[lineKey] == nil then
 				break;
 			end
 			
-			-- version title
-			local line = " " .. versionColor .. versions[lineKey]['line'] -- in changelogList info: a WTF whitespace is needed here, the colour doesn't show without it...
-			gl.Text(line, x-16+xOffset, y-((fontSize+yOffset)*j)+5, fontSize)
+			-- version button title
+			local line = " " .. versionColor .. versions[lineKey]['line']
+			gl.Text(line, x-10+xOffset, y-((fontSize+yOffset)*j)+5, fontSize)
 			
-
 			j = j + 1
 			lineKey = lineKey + 1
 		end
 	end
 	
 	local xOffset = 75
+	local fontSizeLine = 13
+	local fontSizeTitle = 15
 	if changelogFile then
 		local lineKey = startLine
 		local j = 0
 		local height = 0
 		local width = 0
 		while j < 40 do	
-			if (13)*j > (screenHeight-16) then
+			if (fontSizeTitle)*j > (screenHeight-16) then
 				break;
 			end
 			if changelogFileLines[lineKey] == nil then
@@ -194,23 +194,21 @@ function ChangelogScreen()
 			
 			if string.find(line, '^([0-9][.][0-9][0-9])') then
 				-- version title
-				local line = " " .. titleColor .. line -- in changelogList info: a WTF whitespace is needed here, the colour doesn't show without it...
-				gl.Text(line, x-16+xOffset, y-((13)*j)+5, 14)
+				local line = " " .. titleColor .. string.match(line, '( [0-9][.][0-9][0-9])')
+				gl.Text(line, x-16+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle)
 				
 			else
 				-- line
 				local line = "  " .. descriptionColor .. line
-				gl.Text(line, x-7+xOffset, y-(13)*j, 11)
-				width = math.max(glGetTextWidth(line)*11,width)
-				height = height + 13
+				gl.Text(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine)
+				width = math.max(glGetTextWidth(line)*fontSizeLine,width)
+				height = height + fontSizeTitle
 			end
 
 			j = j + 1
 			lineKey = lineKey + 1
 		end
 	end
-    --gl.Color(1,1,1,1)
-    --gl.Text("Scroll down to see more...", screenX-8, y-43*11, 12.5)
 end
 
 
@@ -264,6 +262,49 @@ function widget:DrawScreen()
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
 		end
 		showOnceMore = false
+	
+		
+		-- verion button hover	
+		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
+		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+			
+		local xOffset = 0
+		local yOffset = 20
+		local fontSize = 15
+		
+		local x,y = Spring.GetMouseState()
+		if changelogFile then
+			local lineKey = 1
+			local j = 0
+			while j < 25 do	
+				if (fontSize+yOffset)*j > (screenHeight) then
+					break;
+				end
+				if versions[lineKey] == nil then
+					break;
+				end
+				
+				-- version title
+				local textX = usedScreenX-((10+xOffset)*widgetScale)
+				local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
+				--gl.Text(" " .. versionColor .. versions[lineKey]['line'], textX, textY, (fontSize*widgetScale))
+				
+				if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
+					gl.Color(hoverColor)
+					RectRound(
+						textX-fontSize,
+						textY-fontSize,
+						textX+(fontSize*4.7),
+						textY+(fontSize*1.8), 
+						5*widgetScale
+					)
+					break;
+				end
+				j = j + 1
+				lineKey = lineKey + 1
+			end
+		end
+		
     else
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].RemoveRect('changelog')
@@ -278,6 +319,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	                      and y >= BLcornerY
 	                      and y <= TRcornerY
 end
+
 
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
@@ -298,42 +340,50 @@ function widget:MousePress(x, y, button)
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
 			end
-			
-			--[[ on version number
-			rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			
+				
+				
+			-- verion buttons
+			local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
+			local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+				
 			local xOffset = 0
 			local yOffset = 20
 			local fontSize = 15
-			local lineKey = startLine
-			local j = 0
-			local height = 0
-			local width = 0
-			while j < 25 do	
-				if (fontSize+yOffset)*j > (screenHeight-16) then
-					break;
-				end
-				if versions[lineKey] == nil then
-					break;
-				end
-				
-				--gl.Text(line, screenX-16+xOffset, screenY-((fontSize+yOffset)*j)+5, fontSize)
-				rectY1 = ..
-				rectY2 = rectY1 + height
-				if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-					Spring.Echo('clicked: '..versions[lineKey]['line'])
-					startLine = versions[lineKey]['changelogLine']
-					if changelogList then
-						glDeleteList(changelogList)
+			
+			local x,y = Spring.GetMouseState()
+			if changelogFile then
+				local lineKey = 1
+				local j = 0
+				while j < 25 do	
+					if (fontSize+yOffset)*j > (screenHeight) then
+						break;
 					end
-					changelogList = gl.CreateList(ChangelogScreen)
+					if versions[lineKey] == nil then
+						break;
+					end
+					
+					-- version title
+					local textX = usedScreenX-((10+xOffset)*widgetScale)
+					local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
+					--gl.Text(" " .. versionColor .. versions[lineKey]['line'], textX, textY, (fontSize*widgetScale))
+					
+					if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
+						startLine = versions[lineKey]['changelogLine']
+						if changelogList then
+							glDeleteList(changelogList)
+						end
+						changelogList = gl.CreateList(ChangelogScreen)
+						break;
+					end
+					
+					j = j + 1
+					lineKey = lineKey + 1
 				end
-
-				j = j + 1
-				lineKey = lineKey + 1
 			end
-			]]--
+			
+			if button == 1 then
+				return true
+			end
 		else
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
@@ -350,7 +400,7 @@ end
 
 
 function widget:Initialize()
-	
+  
 	if changelogFile then
 		-- store changelog into array
 		changelogFileLines = {}
