@@ -339,6 +339,14 @@ function widget:MousePress(x, y, button)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 		
+			-- on close button
+			rectX1 = rectX2 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
+			rectY2 = rectY1 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
+			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
+				show = not show
+			end
+			
 			-- scroll text with mouse 2
 			if button == 1 or button == 3 then
 				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
@@ -368,14 +376,6 @@ function widget:MousePress(x, y, button)
 					return true
 				end
 			end
-			-- on close button
-			rectX1 = rectX2 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
-			rectY2 = rectY1 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-				show = not show
-			end
-				
 				
 			-- version buttons
 			if button == 1 then
@@ -418,7 +418,7 @@ function widget:MousePress(x, y, button)
 				end
 			end
 			
-			if button == 1 then
+			if button == 1 or button == 3 then
 				return true
 			end
 		else
