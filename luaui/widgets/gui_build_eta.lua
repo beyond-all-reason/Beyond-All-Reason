@@ -195,7 +195,7 @@ local function DrawEtaText(timeLeft,yoffset)
     end
   end
 
-  gl.Translate(0, yoffset,0)
+  gl.Translate(0, yoffset,10)
   gl.Billboard()
   gl.Translate(0, 5 ,0)
   --fontHandler.DrawCentered(etaStr)
