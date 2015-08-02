@@ -3,10 +3,10 @@ function widget:GetInfo()
 return {
 	name    = "Changelog Info",
 	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
-	author  = "Floris (original: keybind info by Bluestone)",
+	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
-	layer   = 0,
+	layer   = -1,
 	enabled = true,
 }
 end
@@ -140,6 +140,10 @@ local titleColor		= "\255\254\254\254"
 local dateColor			= "\255\155\220\155"
 local lineColor			= "\255\192\190\180"
 
+local versionOffsetX = 0
+local versionOffsetY = 15
+local versionFontSize = 15
+	
 function ChangelogScreen()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
@@ -147,21 +151,20 @@ function ChangelogScreen()
     
     gl.Color(0,0,0,0.8)
 	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
-	--glRect(x-20-bgMargin,y+24+bgMargin,x+screenWidth+bgMargin,y-screenHeight-bgMargin)
+	
+    gl.Color(1,1,1,0.11)
+	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+56,y+24+bgMargin,8)
 	
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
 	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
 	gl.Texture(false)
 	
-	local xOffset = 0
-	local yOffset = 20
-	local fontSize = 15
 	if changelogFile then
 		local lineKey = 1
 		local j = 0
 		while j < 25 do	
-			if (fontSize+yOffset)*j > (screenHeight) then
+			if (versionFontSize+versionOffsetY)*j > (screenHeight) then
 				break;
 			end
 			if versions[lineKey] == nil then
@@ -171,14 +174,14 @@ function ChangelogScreen()
 			
 			-- version button title
 			line = " " .. versionColor .. string.match(line, '( %d*%d.?%d+)')
-			font:Print(line, x-10+xOffset, y-((fontSize+yOffset)*j)+5, fontSize, "n")
+			font:Print(line, x-10+versionOffsetX, y-((versionFontSize+versionOffsetY)*j)+5, versionFontSize, "n")
 			
 			j = j + 1
 			lineKey = lineKey + 1
 		end
 	end
 	
-	local xOffset = 75
+	local xOffset = 80
 	local fontSizeLine = 15
 	local fontSizeTitle = 17
 	if changelogFile then
@@ -282,17 +285,13 @@ function widget:DrawScreen()
 		-- draw button hover
 		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-			
-		local xOffset = 0
-		local yOffset = 20
-		local fontSize = 15
-		
+
 		local x,y = Spring.GetMouseState()
 		if changelogFile then
 			local lineKey = 1
 			local j = 0
 			while j < 25 do	
-				if (fontSize+yOffset)*j > (screenHeight) then
+				if (versionFontSize+versionOffsetY)*j > (screenHeight) then
 					break;
 				end
 				if versions[lineKey] == nil then
@@ -300,17 +299,16 @@ function widget:DrawScreen()
 				end
 				
 				-- version title
-				local textX = usedScreenX-((10+xOffset)*widgetScale)
-				local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
-				--gl.Text(" " .. versionColor .. string.match(line, '( %d*%d.?%d+)'), textX, textY, (fontSize*widgetScale))
+				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
+				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
 				
-				if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
+				if IsOnRect(x, y, textX-versionFontSize, textY-versionFontSize, textX+(versionFontSize*4.7), textY+(versionFontSize*1.8)) then
 					gl.Color(hoverColor)
 					RectRound(
-						textX-fontSize,
-						textY-fontSize,
-						textX+(fontSize*4.7),
-						textY+(fontSize*1.8), 
+						textX-versionFontSize,
+						textY-versionFontSize,
+						textX+(versionFontSize*4.7),
+						textY+(versionFontSize*1.8), 
 						5*widgetScale
 					)
 					break;
@@ -389,17 +387,13 @@ function widget:MousePress(x, y, button)
 			if button == 1 then
 				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-					
-				local xOffset = 0
-				local yOffset = 20
-				local fontSize = 15
 				
 				local x,y = Spring.GetMouseState()
 				if changelogFile then
 					local lineKey = 1
 					local j = 0
 					while j < 25 do	
-						if (fontSize+yOffset)*j > (screenHeight) then
+						if (versionFontSize+versionOffsetY)*j > (screenHeight) then
 							break;
 						end
 						if versions[lineKey] == nil then
@@ -407,11 +401,10 @@ function widget:MousePress(x, y, button)
 						end
 						
 						-- version title
-						local textX = usedScreenX-((10+xOffset)*widgetScale)
-						local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
-						--gl.Text(" " .. versionColor .. string.match(line, '( %d*%d.?%d+)'), textX, textY, (fontSize*widgetScale))
+						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
+						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
 						
-						if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
+						if IsOnRect(x, y, textX-versionFontSize, textY-versionFontSize, textX+(versionFontSize*4.7), textY+(versionFontSize*1.8)) then
 							startLine = versions[lineKey]
 							if changelogList then
 								glDeleteList(changelogList)
