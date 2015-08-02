@@ -10,6 +10,8 @@ return {
 	enabled = true,
 }
 end
+local loadedFontSize = 30
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 0, 0)
 
 local hoverColor = {1,1,1,0.18}
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
@@ -168,8 +170,8 @@ function ChangelogScreen()
 			local line = changelogFileLines[versions[lineKey]]
 			
 			-- version button title
-			local line = " " .. versionColor .. string.match(line, '( %d*%d.?%d+)')
-			gl.Text(line, x-10+xOffset, y-((fontSize+yOffset)*j)+5, fontSize)
+			line = " " .. versionColor .. string.match(line, '( %d*%d.?%d+)')
+			font:Print(line, x-10+xOffset, y-((fontSize+yOffset)*j)+5, fontSize, "n")
 			
 			j = j + 1
 			lineKey = lineKey + 1
@@ -177,14 +179,14 @@ function ChangelogScreen()
 	end
 	
 	local xOffset = 75
-	local fontSizeLine = 14
+	local fontSizeLine = 15
 	local fontSizeTitle = 17
 	if changelogFile then
 		local lineKey = startLine
 		local j = 0
-		local height = 0
 		local width = 0
-		while j < 40 do	
+		font:Begin()
+		while j < 50 do	
 			if (fontSizeTitle)*j > (screenHeight-16) then
 				break;
 			end
@@ -202,25 +204,24 @@ function ChangelogScreen()
  				else
 					line = " " .. titleColor .. line
 				end
-				gl.Text(line, x-16+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle)
+				font:Print(line, x-16+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle, "n")
 				
 			elseif string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
 				-- date line
-				local line = "  " .. dateColor .. line
-				gl.Text(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine)
-				width = math.max(glGetTextWidth(line)*fontSizeLine,width)
-				height = height + fontSizeTitle
+				line = "  " .. dateColor .. line
+				font:Print(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
 			else
 				-- line
-				local line = "  " .. lineColor .. line
-				gl.Text(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine)
-				width = math.max(glGetTextWidth(line)*fontSizeLine,width)
-				height = height + fontSizeTitle
+				line = "  " .. lineColor .. line
+				line, numLines = font:WrapText(line, (screenWidth - 92)*(loadedFontSize/fontSizeLine))
+				font:Print(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				j = j + (numLines - 1)
 			end
 
 			j = j + 1
 			lineKey = lineKey + 1
 		end
+		font:End()
 	end
 end
 
