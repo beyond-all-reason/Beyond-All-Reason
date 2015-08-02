@@ -380,7 +380,7 @@ function widget:MousePress(x, y, button)
 					local addLines = 3
 					
 					if ctrl or shift then 
-						addLines = 3
+						addLines = 8
 					end
 					if ctrl and shift then 
 						addLines = 22
