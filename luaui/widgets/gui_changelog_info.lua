@@ -141,8 +141,8 @@ local dateColor			= "\255\155\220\155"
 local lineColor			= "\255\192\190\180"
 
 local versionOffsetX = 0
-local versionOffsetY = 15
-local versionFontSize = 15
+local versionOffsetY = 14
+local versionFontSize = 16
 	
 function ChangelogScreen()
     local vsx,vsy = Spring.GetViewGeometry()
@@ -181,7 +181,7 @@ function ChangelogScreen()
 		end
 	end
 	
-	local xOffset = 80
+	local xOffset = 82
 	local fontSizeLine = 15
 	local fontSizeTitle = 17
 	if changelogFile then
@@ -216,7 +216,7 @@ function ChangelogScreen()
 			else
 				-- line
 				line = "  " .. lineColor .. line
-				line, numLines = font:WrapText(line, (screenWidth - 92)*(loadedFontSize/fontSizeLine))
+				line, numLines = font:WrapText(line, (screenWidth - 88)*(loadedFontSize/fontSizeLine))
 				font:Print(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
@@ -301,14 +301,17 @@ function widget:DrawScreen()
 				-- version title
 				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-				
-				if IsOnRect(x, y, textX-versionFontSize, textY-versionFontSize, textX+(versionFontSize*4.7), textY+(versionFontSize*1.8)) then
+				local x1 = textX-(15*widgetScale)
+				local y1 = textY-((versionFontSize*0.66)*widgetScale)
+				local x2 = textX+((15*4.1)*widgetScale)
+				local y2 = textY+((versionFontSize*1.33)*widgetScale)
+				if IsOnRect(x, y, x1, y1, x2, y2) then
 					gl.Color(hoverColor)
 					RectRound(
-						textX-versionFontSize,
-						textY-versionFontSize,
-						textX+(versionFontSize*4.7),
-						textY+(versionFontSize*1.8), 
+						x1,
+						y1,
+						x2,
+						y2,
 						5*widgetScale
 					)
 					break;
@@ -404,7 +407,11 @@ function widget:MousePress(x, y, button)
 						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
 						
-						if IsOnRect(x, y, textX-versionFontSize, textY-versionFontSize, textX+(versionFontSize*4.7), textY+(versionFontSize*1.8)) then
+						local x1 = textX-(versionFontSize*widgetScale)
+						local y1 = textY-((versionFontSize*0.66)*widgetScale)
+						local x2 = textX+((versionFontSize*4.1)*widgetScale)
+						local y2 = textY+((versionFontSize*1.33)*widgetScale)
+						if IsOnRect(x, y, x1, y1, x2, y2) then
 							startLine = versions[lineKey]
 							if changelogList then
 								glDeleteList(changelogList)
