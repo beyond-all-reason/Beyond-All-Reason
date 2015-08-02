@@ -335,6 +335,23 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	                      and y <= TRcornerY
 end
 
+function widget:IsAbove(x, y)
+	-- on window
+	local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+	local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+	local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+	local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+	return IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1)
+end
+
+function widget:GetTooltip(mx, my)
+	if widget:IsAbove(mx,my) then
+		return string.format(
+			"Click \255\255\255\1left mouse\255\255\255\255 scroll down.\n"..
+			"Click \255\255\255\1right mouse\255\255\255\255 scroll up.\n\n"..
+			"Add CTRL or SHIFT to scroll faster, or combine CTRL+SHIFT (+ALT).")
+	end
+end
 
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
@@ -360,13 +377,13 @@ function widget:MousePress(x, y, button)
 			if button == 1 or button == 3 then
 				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
 					local alt, ctrl, meta, shift = Spring.GetModKeyState()
-					local addLines = 4
+					local addLines = 3
 					
 					if ctrl or shift then 
-						addLines = 8
+						addLines = 3
 					end
 					if ctrl and shift then 
-						addLines = 25
+						addLines = 22
 					end
 					if ctrl and shift and alt then 
 						addLines = 50
@@ -385,7 +402,7 @@ function widget:MousePress(x, y, button)
 					return true
 				end
 			end
-				
+			
 			-- version buttons
 			if button == 1 then
 				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
