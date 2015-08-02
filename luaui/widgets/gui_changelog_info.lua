@@ -165,9 +165,10 @@ function ChangelogScreen()
 			if versions[lineKey] == nil then
 				break;
 			end
+			local line = changelogFileLines[versions[lineKey]]
 			
 			-- version button title
-			local line = " " .. versionColor .. versions[lineKey]['line']
+			local line = " " .. versionColor .. string.match(line, '( %d*%d.?%d+)')
 			gl.Text(line, x-10+xOffset, y-((fontSize+yOffset)*j)+5, fontSize)
 			
 			j = j + 1
@@ -193,9 +194,9 @@ function ChangelogScreen()
 			
 			local line = changelogFileLines[lineKey]
 			
-			if string.find(line, '^([0-9][.][0-9])') then
+			if string.find(line, '^(%d*%d.?%d+ /-)') then
 				-- version line
-				local versionStrip = string.match(line, '( [0-9][.][0-9][0-9])')
+				local versionStrip = string.match(line, '( %d*%d.?%d+)')
 				if versionStrip ~= nil then
 					line = " " .. titleColor .. versionStrip
  				else
@@ -300,7 +301,7 @@ function widget:DrawScreen()
 				-- version title
 				local textX = usedScreenX-((10+xOffset)*widgetScale)
 				local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
-				--gl.Text(" " .. versionColor .. versions[lineKey]['line'], textX, textY, (fontSize*widgetScale))
+				--gl.Text(" " .. versionColor .. string.match(line, '( %d*%d.?%d+)'), textX, textY, (fontSize*widgetScale))
 				
 				if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
 					gl.Color(hoverColor)
@@ -407,10 +408,10 @@ function widget:MousePress(x, y, button)
 						-- version title
 						local textX = usedScreenX-((10+xOffset)*widgetScale)
 						local textY = usedScreenY-((((fontSize+yOffset)*j)-5)*widgetScale)
-						--gl.Text(" " .. versionColor .. versions[lineKey]['line'], textX, textY, (fontSize*widgetScale))
+						--gl.Text(" " .. versionColor .. string.match(line, '( %d*%d.?%d+)'), textX, textY, (fontSize*widgetScale))
 						
 						if IsOnRect(x, y, textX-fontSize, textY-fontSize, textX+(fontSize*4.7), textY+(fontSize*1.8)) then
-							startLine = versions[lineKey]['changelogLine']
+							startLine = versions[lineKey]
 							if changelogList then
 								glDeleteList(changelogList)
 							end
@@ -454,11 +455,9 @@ function widget:Initialize()
 		local versionKey = 0
 		for i, line in ipairs(changelogFileLines) do
 		
-			if string.find(line, '^([0-9][.][0-9][0-9])') then
+			if string.find(line, '^(%d*%d.?%d+ /-)') then
 				versionKey = versionKey + 1
-				versions[versionKey] = {}
-				versions[versionKey]['line'] = string.match(line, '( [0-9][.][0-9][0-9])')  -- strip the first version number, which is the old version
-				versions[versionKey]['changelogLine'] = i
+				versions[versionKey] = i
 			end
 			totalChangelogLines = i
 		end

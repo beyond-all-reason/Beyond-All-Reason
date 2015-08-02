@@ -2646,7 +2646,7 @@ Banisher range increased
 Advanced solar (core&arm) E costs reduced (not 0)
 
 
-AA2.23 -> 3.00
+2.23 -> 3.00
 
 Flash/Instigator health reduced
 Stumpie/Raider costs reduced acceleration increased projectile speed increased
@@ -2680,7 +2680,7 @@ Banshee damage increased (20%) E costs reduced
 
 
 
-AA2.23
+2.22 -> 2.23
 20/10/2006
 
 Absolute Annihilation, the game BA was based on.
