@@ -177,8 +177,8 @@ function ChangelogScreen()
 	end
 	
 	local xOffset = 75
-	local fontSizeLine = 13
-	local fontSizeTitle = 15
+	local fontSizeLine = 14
+	local fontSizeTitle = 17
 	if changelogFile then
 		local lineKey = startLine
 		local j = 0
