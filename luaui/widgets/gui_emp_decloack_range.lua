@@ -1,12 +1,12 @@
 function widget:GetInfo()
     return {
-        name      = "Spy emp and decloack range v4",
-        desc      = "Cloacks spy by default and draws a circle that displays spy(and gremlin) decloack range (orange) and spy emp range (blue)",
+        name      = "EMP + decloack range",
+        desc      = "When spy or gremlin is selected, it displays its decloack range (orange) and emp range (blue)",
         author    = "[teh]decay aka [teh]undertaker",
         date      = "14 feb 2015",
         license   = "The BSD License",
         layer     = 0,
-        version   = 4,
+        version   = 5,
         enabled   = true  -- loaded by default
     }
 end
@@ -17,6 +17,7 @@ end
 -- v2 [teh]decay Don't draw circles when GUI is hidden
 -- v3 [teh]decay Added gremlin decloack range + set them on hold fire and hold pos
 -- v4 Floris Added fade on camera distance changed to thicker and more transparant line style + options + onlyDrawRangeWhenSelected
+-- v5 Floris: Renamed to EMP + decloack range and disabled autocloack
 
 
 --------------------------------------------------------------------------------
@@ -26,9 +27,10 @@ end
 local onlyDrawRangeWhenSelected	= true
 local fadeOnCameraDistance		= true
 local showLineGlow 				= true		-- a ticker but faint 2nd line will be drawn underneath	
-local opacityMultiplier			= 1.25
-local fadeMultiplier			= 0.9		-- lower value: fades out sooner
+local opacityMultiplier			= 1.3
+local fadeMultiplier			= 1.2		-- lower value: fades out sooner
 local circleDivs				= 64		-- detail of range circle
+local autoCloackSpy				= false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -103,7 +105,9 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if isSpy(unitDefID) then
 		addSpy(unitID, unitDefID)
-        cloackSpy(unitID)
+		if autoCloackSpy then
+			cloackSpy(unitID)
+		end
     end
 
     if isGremlin(unitDefID) then
@@ -223,7 +227,7 @@ function widget:DrawWorldPreUnit()
 			if lineWidthMinus > 2 then
 				lineWidthMinus = 2
 			end
-			local lineOpacityMultiplier = 0.85
+			local lineOpacityMultiplier = 0.9
 			if fadeOnCameraDistance then
 				lineOpacityMultiplier = (1100/camDistance)*fadeMultiplier
 				if lineOpacityMultiplier > 1 then
