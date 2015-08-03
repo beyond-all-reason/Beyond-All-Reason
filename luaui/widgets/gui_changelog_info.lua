@@ -390,7 +390,6 @@ function widget:DrawScreen()
 					break;
 				end
 				
-				
 				-- version title
 				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
@@ -424,11 +423,15 @@ end
 
 function widget:IsAbove(x, y)
 	-- on window
-	local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-	local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-	local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-	local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-	return IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1)
+	if show then
+		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		return IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1)
+	else
+		return false
+	end
 end
 
 function widget:GetTooltip(mx, my)

@@ -54,6 +54,11 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
 local vsx, vsy = Spring.GetViewGeometry()
+
+local vsx,vsy = Spring.GetViewGeometry()
+local screenX = (vsx*0.5) - (screenWidth/2)
+local screenY = (vsy*0.5) + (screenHeight/2)
+  
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (screenWidth/2)
