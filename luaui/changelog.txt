@@ -10,7 +10,7 @@ Balance changes:
 
 Others:
 - Added "Changelog" widget: you can now browse the changelog.txt ingame!
-- Added "Spy emp and decloak range" widget: shows spy EMP and decloack range, when selected.
+- Added "EMP + decloack range" widget: displays spy and gremlin EMP and decloack range (when selected).
 - Build ETA: a bit offsetted to the bottom, so its better readable when in overhead camera.
 - Buildbar: disables when becomming spectator.
 - Smart Select: now enabled by default.
