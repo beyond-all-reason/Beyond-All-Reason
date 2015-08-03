@@ -19,7 +19,7 @@ local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
-local changelogFile = io.open(LUAUI_DIRNAME.."changelog.txt", "r")
+local changelogFile = VFS.LoadFile("changelog.txt")
 
 local bgMargin = 6
 
@@ -69,7 +69,7 @@ local endPosX = 0.05
 local vsx, vsy = Spring.GetViewGeometry()
 
 local versions = {}
-local changelogFileLines = {}
+local changelogLines = {}
 local totalChangelogLines = 0
 
 function widget:ViewResize()
@@ -211,7 +211,7 @@ function DrawWindow()
 			if versions[lineKey] == nil then
 				break;
 			end
-			local line = changelogFileLines[versions[lineKey]]
+			local line = changelogLines[versions[lineKey]]
 			
 			-- version button title
 			line = " " .. string.match(line, '( %d*%d.?%d+)')
@@ -238,11 +238,11 @@ function DrawWindow()
 			if (fontSizeTitle)*j > textareaHeight then
 				break;
 			end
-			if changelogFileLines[lineKey] == nil then
+			if changelogLines[lineKey] == nil then
 				break;
 			end
 			
-			local line = changelogFileLines[lineKey]
+			local line = changelogLines[lineKey]
 			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
 				-- date line
 				line = "  " .. line
@@ -320,7 +320,7 @@ end
 
 
 function widget:GameFrame(n)
-	
+
 	if n>endPosX and posX > endPosX then
 		posX = posX - 0.005
 		if posX < 0 then posX = 0 end
@@ -551,18 +551,20 @@ function widget:MousePress(x, y, button)
     end
 end
 
+function lines(str)
+  local t = {}
+  local function helper(line) table.insert(t, line) return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
 
 function widget:Initialize()
-  
 	if changelogFile then
 		-- store changelog into array
-		changelogFileLines = {}
-		for line in changelogFile:lines() do
-			table.insert (changelogFileLines, line);
-		end
+		changelogLines = lines(changelogFile)
 		
 		local versionKey = 0
-		for i, line in ipairs(changelogFileLines) do
+		for i, line in ipairs(changelogLines) do
 		
 			if string.find(line, '^(%d*%d.?%d+ /-)') then
 				versionKey = versionKey + 1
@@ -570,7 +572,6 @@ function widget:Initialize()
 			end
 			totalChangelogLines = i
 		end
-		io.close(changelogFile)
 	else
 		Spring.Echo("Changelog: couldn't load the changelog file")
 		widgetHandler:RemoveWidget()
