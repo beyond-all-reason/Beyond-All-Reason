@@ -5,7 +5,7 @@ Balance changes:
 - Arm Atomic Bomber now kills commander (without EXP) with 1 missle.
 - Reduced areaofeffect for Bertha and Intimidator to make them less OP vs units.
 - Increased commander sonar distance to match sightdistance.
-- Decreased max speed of Valkyrie and Atlas (t1 air transport)
+- Decreased max speed of Valkyrie and Atlas (t1 air transports)
 - Enabled 'collide' unit property for: Aircons + Krow, Brawler, Rapier, Valkyrie and Atlas.
 - Update game energy conversion gadget (when metalmakers are EMP'd they wont produce metal) 
 
