@@ -622,7 +622,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx, vsy = viewSizeX, viewSizeY
   
-  sizeMultiplier   = 2.9 + (vsx*vsy / 2000000)
+  sizeMultiplier   = 2.65 + (vsx*vsy / 2000000)
   
   selfXoffset	   = -math.floor(sizeMultiplier)
   
