@@ -10,7 +10,7 @@ return {
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
-		collide = false,
+		collide = true,
 		cruisealt = 80,
 		description = "Flying Fortress",
 		explodeas = "SMALL_BUILDING",
