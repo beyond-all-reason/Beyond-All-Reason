@@ -52,7 +52,7 @@ return {
 		selfdestructcountdown = 5,
 		showplayername = true,
 		sightdistance = 450,
-		sonardistance = 300,
+		sonardistance = 450,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,
