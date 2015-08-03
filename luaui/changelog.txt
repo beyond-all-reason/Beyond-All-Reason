@@ -1,24 +1,45 @@
+9.01 -> 9.02
+03/08/2015
+
+Balance changes:
+- Arm Atomic Bomber now kills commander (without EXP) with 1 missle.
+- Reduced areaofeffect for Bertha and Intimidator to make them less OP vs units.
+- Increased commander sonar distance to match sightdistance.
+- Decreased max speed of Valkyrie and Atlas (t1 air transport)
+- Enabled 'collide' unit property for: Aircons + Krow, Brawler, Rapier, Valkyrie and Atlas.
+
+Others:
+- Added "Changelog" widget: you can now browse the changelog.txt ingame!
+- Added "Spy emp and decloak range" widget: shows spy EMP and decloack range, when selected.
+- Build ETA: a bit offsetted to the bottom, so its better readable when in overhead camera.
+- Buildbar: disables when becomming spectator.
+- Smart Select: now enabled by default.
+- Various minor style tweaks.
+
+
 9.00 -> 9.01
 28/07/2015
 
-- fixed upsidedown hovertank unitpic + a few unprocessed unitpics
+- Fixed upsidedown hovertank unitpic + a few unprocessed unitpics.
 - BA LOS colors widget: remembers ; mode + fix for non english layouts + color presets + changed LOS commands to /losradar and /loscolor
-- Remove "active/passive" commands handling from immobile builder widget (it was moved to "passive builders" widget
-- Added "passive builders" widget. All cons and labs are on passive by default except commanders and commando
-- GUIshader: fixed the occasional visual bugginess
+- Remove "active/passive" commands handling from immobile builder widget (it was moved to "passive builders" widget.
+- Added "passive builders" widget. All cons and labs are on passive by default except commanders and commando.
+- GUIshader: fixed the occasional visual bugginess.
 - RedUI console: removed GUIshader blur, toggle it back with: /consoleblur
 - RedUI build/order menu: toggle iconspacing with /iconspace
-- RedUI resourcebars decimal values are stripped
-- RedUI removed 1px space gap at screen edges
-- Initial Queue: bugfix: will not remember queues between different games
+- RedUI resourcebars decimal values are stripped.
+- RedUI removed 1px space gap at screen edges.
+- Initial Queue: bugfix: will not remember queues between different games.
 - Resurrection halos is now a widget (no more halos for enemy units)
-- Enemyspotter: changed default: renderAllTeamsAsSpec to false, + use: /enemyspotter_highlight for a highlight
-- Ally resourcebars became a tiny bit larger again
-- Highlight selected units, cleaner highlight effect
+- Enemyspotter: changed default: renderAllTeamsAsSpec to false, + use: /enemyspotter_highlight for a highlight.
+- Ally resourcebars became a tiny bit larger again.
+- Highlight selected units, cleaner highlight effect.
 
 
 8.18 -> 9.00
 24/07/2015
+
+NEW devs/maintainers:  Decay (balance/mechanics)  +  Floris (graphics/UI)
 
 Configurable widgets
 - Healthbars got a border around them. (toggle itwith /healthbars_style) wrecks got smaller decolored bar, only shows zoomed in more.
@@ -26,8 +47,7 @@ Configurable widgets
 - Added snow widget. Addes snow to maps using a snowy name. (toggles with /snow, and remembers setting per map)
 - Added Smart Select widget. Selects units as you drag over them. (keys: SHIFT: all, CTRL: invert, Z: same type, SPACE: new idle units)
 - LOS colors greyscaled + use ';'  key to toggle between los / los+radar
-- LOS view is enabled by default. If you dont like it - just disable widget
-"LOS View"(gfx_los_view.lua)
+- LOS view is enabled by default. If you dont like it - just disable widget "LOS View"(gfx_los_view.lua)
 
 Others
 - Rezzed units will get a small halo above them.
@@ -712,13 +732,13 @@ T1 Ships Revamp
 -Transport helper ai won't try to transport scouts
 
 
-7.74->7.75
+7.74 -> 7.75
 26/03/2013
 
 -New version to overcome a conflict between rapid and Springfiles versions
 
 
-7.73-7.74
+7.73 -> 7.74
 26/03/2013
 -Fixed lua errors and odd behaviour caused by change to UnitPreDamaged arguments (fixes combomb, commando and other gadgetry)
 -Fixed comgate
@@ -838,7 +858,7 @@ T1 Ships Revamp
 - Plenty of widget and gadget fixes, optimizations for MT.
 
 
-7.66->7.67
+7.66 -> 7.67
 24/03/2012
 
 - Removed hacky 87 gadgets

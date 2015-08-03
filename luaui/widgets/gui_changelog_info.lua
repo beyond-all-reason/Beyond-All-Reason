@@ -10,8 +10,11 @@ return {
 	enabled = true,
 }
 end
+
+local show = true
+
 local loadedFontSize = 32
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 18,2)
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
@@ -19,9 +22,12 @@ local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 local changelogFile = io.open(LUAUI_DIRNAME.."changelog.txt", "r")
 
 local bgMargin = 6
+
 local closeButtonSize = 30
-local screenHeight = 486
-local screenWidth = (350*3)-8+20
+local screenHeight = 500-bgMargin-bgMargin
+local screenWidth = 1050-bgMargin-bgMargin
+
+local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
 local customScale = 1
 
@@ -72,7 +78,7 @@ function widget:ViewResize()
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
   if changelogList then gl.DeleteList(changelogList) end
-  changelogList = gl.CreateList(ChangelogScreen)
+  changelogList = gl.CreateList(DrawWindow)
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -93,7 +99,7 @@ local showOnceMore = false		-- used because of GUI shader delay
 local buttonGL
 local startPosX = posX
 
-function RectRound(px,py,sx,sy,cs)
+function RectRound(px,py,sx,sy,cs, ctl,ctr,cbr,cbl)
 	
 	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
 	
@@ -102,17 +108,42 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Rect(px+cs, py+cs, px, sy-cs)
 	
 	gl.Texture(bgcorner)
+	
 	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	if cbr == nil or cbr == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	else
+		gl.Texture(false)
+		gl.Rect(px, py+cs, px+cs, py)		-- top left
+	end
 	
 	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	if cbl == nil or cbl == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	else
+		gl.Texture(false)
+		gl.Rect(sx, py+cs, sx-cs, py)		-- top right
+	end
 	
 	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	if ctl == nil or ctl == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	else
+		gl.Texture(false)
+		gl.Rect(px, sy-cs, px+cs, sy)		-- bottom left
+	end
 	
 	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	if ctr == nil or ctr == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	else
+		gl.Texture(false)
+		gl.Rect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	end
 	
 	gl.Texture(false)
 end
@@ -133,59 +164,31 @@ end
 local versionOffsetX = 0
 local versionOffsetY = 14
 local versionFontSize = 16
-	
-function ChangelogScreen()
+
+function DrawWindow()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
 	
-	
 	-- background
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y+24,6)
 	
+	-- title background
+    local title = "Changelog"
+	local titleFontSize = 18
+    gl.Color(0,0,0,0.8)
+	RectRound(x-bgMargin, y+24+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+61, 8, 1,1,0,0)
+	
 	-- title
 	font:Begin()
-	--font:SetTextColor(1,1,1,1)
-	--font:SetOutlineColor(0,0,0,0.5)
-	--font:Print("CHANGELOG", x, y+bgMargin+29, 18, "on")
+	font:SetTextColor(1,1,1,1)
+	font:SetOutlineColor(0,0,0,0.4)
+	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
 	
-	-- scrollbar
-	local scrollbarMargin = 10
-	local scrollbarWidth = 8
-	local scrollbarOffsetY = 12
-	local scrollbarPos = (y-scrollbarMargin-scrollbarOffsetY) - (screenHeight *  ((startLine-1) / totalChangelogLines))
-	
-	if (totalChangelogLines > 23 or startLine > 1) then	-- only show scroll above X lines
-		
-		local scrollbarPosWidth = 4
-		local scrollbarPosHeight = math.max(((screenHeight-scrollbarMargin-scrollbarMargin) / totalChangelogLines) * ((screenHeight-scrollbarMargin-scrollbarMargin) / 25), 15
-		)
-		if scrollbarPos - scrollbarPosHeight < y-screenHeight+scrollbarMargin then 
-			scrollbarPosHeight = scrollbarPosHeight - ((y-screenHeight+scrollbarMargin)-(scrollbarPos - scrollbarPosHeight))
-		end
-		-- background
-		gl.Color(0,0,0,0.22)
-		RectRound(
-			x+screenWidth-scrollbarMargin-scrollbarWidth,
-			y-screenHeight+scrollbarMargin,
-			x+screenWidth-scrollbarMargin,
-			y-scrollbarOffsetY-scrollbarMargin,
-			scrollbarWidth/2
-		)
-		-- bar
-		gl.Color(1,1,1,0.08)
-		RectRound(
-			x+screenWidth-scrollbarMargin-scrollbarWidth + (scrollbarWidth - scrollbarPosWidth),
-			scrollbarPos,
-			x+screenWidth-scrollbarMargin-(scrollbarWidth - scrollbarPosWidth),
-			scrollbarPos - (scrollbarPosHeight),
-			scrollbarPosWidth/2
-		)
-	end
 	
 	-- version links
 	gl.Color(0.72,0.5,0.12,0.3)
@@ -201,8 +204,8 @@ function ChangelogScreen()
 		local j = 0
 		font:SetOutlineColor(0.25,0.2,0,0.3)
 		font:SetTextColor(1,0.8,0.1,1)
-		while j < 25 do	
-			if (versionFontSize+versionOffsetY)*j > (screenHeight) then
+		while j < 22 do	
+			if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight) then
 				break;
 			end
 			if versions[lineKey] == nil then
@@ -218,18 +221,21 @@ function ChangelogScreen()
 			lineKey = lineKey + 1
 		end
 	end
-
-	local xOffset = 90
-	local yOffset = 7
+	
+	-- draw textarea
+	local textareaOffsetX = 90
+	local textareaOffsetY = 0
+	local textareaHeight = (screenHeight-10-textareaOffsetY)
 	local fontSizeLine = 15
 	local fontSizeTitle = 17
-	y = y - yOffset
+	local maxLines = math.floor(textareaHeight-5/fontSizeLine)
+	local textareaY = y - textareaOffsetY
 	if changelogFile then
 		local lineKey = startLine
 		local j = 0
 		local width = 0
-		while j < 50 do	
-			if (fontSizeTitle)*j > (screenHeight-16) then
+		while j < maxLines do	
+			if (fontSizeTitle)*j > textareaHeight then
 				break;
 			end
 			if changelogFileLines[lineKey] == nil then
@@ -241,7 +247,7 @@ function ChangelogScreen()
 				-- date line
 				line = "  " .. line
 				font:SetTextColor(0.66,0.9,0.66,1)
-				font:Print(line, x+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				font:Print(line, x+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
 			elseif string.find(line, '^(%d*%d.?%d+)') then
 				-- version line
 				local versionStrip = string.match(line, '( %d*%d.?%d+)')
@@ -251,7 +257,7 @@ function ChangelogScreen()
 					line = " " .. line
 				end
 				font:SetTextColor(1,1,1,1)
-				font:Print(line, x-9+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle, "n")
+				font:Print(line, x-9+textareaOffsetX, textareaY-((fontSizeTitle)*j)+5, fontSizeTitle, "n")
 				
 			else
 				font:SetTextColor(0.8,0.77,0.74,1)
@@ -262,14 +268,14 @@ function ChangelogScreen()
 						firstLetterPos = 3
 					end
 					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
-					line, numLines = font:WrapText(line, (screenWidth - xOffset - 65)*(loadedFontSize/fontSizeLine))
-					font:Print("   - ", x+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
-					font:Print(line, x+25+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+					line, numLines = font:WrapText(line, (screenWidth - textareaOffsetX - 65)*(loadedFontSize/fontSizeLine))
+					font:Print("   - ", x+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
+					font:Print(line, x+26+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
 				else
 					-- line
 					line = "  " .. line
-					line, numLines = font:WrapText(line, (screenWidth - xOffset - 25)*(loadedFontSize/fontSizeLine))
-					font:Print(line, x+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+					line, numLines = font:WrapText(line, (screenWidth - textareaOffsetX - 25)*(loadedFontSize/fontSizeLine))
+					font:Print(line, x+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
 				end
 				j = j + (numLines - 1)
 			end
@@ -278,6 +284,37 @@ function ChangelogScreen()
 			lineKey = lineKey + 1
 		end
 		font:End()
+	end
+	-- textarea scrollbar
+	if (totalChangelogLines > maxLines or startLine > 1) then	-- only show scroll above X lines
+		local scrollbarMargin    = 10
+		local scrollbarWidth     = 8
+		local scrollbarPosWidth  = 4
+		local scrollbarOffsetY   = 0	-- note: wont add the offset to the bottom, only to top
+		local scrollbarTop       = textareaY-scrollbarOffsetY-scrollbarMargin
+		local scrollbarBottom    = textareaY-screenHeight+textareaOffsetY+scrollbarMargin
+		local scrollbarPosHeight = math.max(((screenHeight+textareaOffsetY-scrollbarMargin-scrollbarMargin) / totalChangelogLines) * ((screenHeight+textareaOffsetY-scrollbarMargin-scrollbarMargin) / 25), 15)
+		local scrollbarPos       = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine-1) / totalChangelogLines)
+		scrollbarPos             = scrollbarPos + ((startLine-1) / totalChangelogLines) * scrollbarPosHeight	-- correct position taking position bar height into account
+
+		-- background
+		gl.Color(0,0,0,0.24)
+		RectRound(
+			x+screenWidth-scrollbarMargin-scrollbarWidth,
+			scrollbarBottom,
+			x+screenWidth-scrollbarMargin,
+			scrollbarTop,
+			scrollbarWidth/2
+		)
+		-- bar
+		gl.Color(1,1,1,0.08)
+		RectRound(
+			x+screenWidth-scrollbarMargin-scrollbarWidth + (scrollbarWidth - scrollbarPosWidth),
+			scrollbarPos,
+			x+screenWidth-scrollbarMargin-(scrollbarWidth - scrollbarPosWidth),
+			scrollbarPos - (scrollbarPosHeight),
+			scrollbarPosWidth/2
+		)
 	end
 end
 
@@ -315,7 +352,7 @@ function widget:DrawScreen()
     
     -- draw the help
     if not changelogList then
-        changelogList = gl.CreateList(ChangelogScreen)
+        changelogList = gl.CreateList(DrawWindow)
     end
     
     if show or showOnceMore then
@@ -343,8 +380,10 @@ function widget:DrawScreen()
 		if changelogFile then
 			local lineKey = 1
 			local j = 0
-			while j < 25 do	
-				if (versionFontSize+versionOffsetY)*j > (screenHeight) then
+			local yOffsetUp = ((versionFontSize*0.66)*widgetScale)
+			local yOffsetDown = ((versionFontSize*1.2)*widgetScale)
+			while j < 22 do	
+				if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight) then
 					break;
 				end
 				if versions[lineKey] == nil then
@@ -356,9 +395,9 @@ function widget:DrawScreen()
 				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
 				local x1 = usedScreenX
-				local y1 = textY-((versionFontSize*0.66)*widgetScale)
+				local y1 = textY-yOffsetUp
 				local x2 = usedScreenX+(70*widgetScale)
-				local y2 = textY+((versionFontSize*1.2)*widgetScale)
+				local y2 = textY+yOffsetDown
 				if IsOnRect(x, y, x1, y1, x2, y2) then
 					gl.Color(1,0.93,0.75,0.22)
 					RectRound(x1, y1, x2, y2, 5*widgetScale)
@@ -442,12 +481,12 @@ function widget:MousePress(x, y, button)
 					end
 					startLine = startLine + addLines
 					if startLine < 1 then startLine = 1 end
-					if startLine > totalChangelogLines - 11 then startLine = totalChangelogLines - 11 end
+					if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
 					
 					if changelogList then
 						glDeleteList(changelogList)
 					end
-					changelogList = gl.CreateList(ChangelogScreen)
+					changelogList = gl.CreateList(DrawWindow)
 					return true
 				end
 			end
@@ -482,7 +521,7 @@ function widget:MousePress(x, y, button)
 							if changelogList then
 								glDeleteList(changelogList)
 							end
-							changelogList = gl.CreateList(ChangelogScreen)
+							changelogList = gl.CreateList(DrawWindow)
 							break;
 						end
 						

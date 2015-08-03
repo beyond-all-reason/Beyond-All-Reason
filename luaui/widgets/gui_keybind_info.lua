@@ -11,14 +11,17 @@ return {
 }
 end
 
+local loadedFontSize = 32
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
 local bgMargin = 6
+
 local closeButtonSize = 30
-local screenHeight = 486
-local screenWidth = (350*3)-8+20
+local screenHeight = 500-bgMargin-bgMargin
+local screenWidth = 1050-bgMargin-bgMargin
 
 local customScale = 1
 
@@ -57,7 +60,7 @@ function widget:ViewResize()
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
   if keybinds then gl.DeleteList(keybinds) end
-  keybinds = gl.CreateList(KeyBindScreen)
+  keybinds = gl.CreateList(DrawWindow)
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -78,16 +81,8 @@ local showOnceMore = false
 local buttonGL
 local startPosX = posX
 
-local function DrawL()
-	local vertices = {
-		{v = {0, 1, 0}},
-		{v = {0, 0, 0}},
-		{v = {1, 0, 0}},
-	}
-	glShape(GL_LINE_STRIP, vertices)
-end
 
-function RectRound(px,py,sx,sy,cs)
+function RectRound(px,py,sx,sy,cs, ctl,ctr,cbr,cbl)
 	
 	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
 	
@@ -96,17 +91,42 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Rect(px+cs, py+cs, px, sy-cs)
 	
 	gl.Texture(bgcorner)
+	
 	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	if cbr == nil or cbr == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	else
+		gl.Texture(false)
+		gl.Rect(px, py+cs, px+cs, py)		-- top left
+	end
 	
 	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	if cbl == nil or cbl == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	else
+		gl.Texture(false)
+		gl.Rect(sx, py+cs, sx-cs, py)		-- top right
+	end
 	
 	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	if ctl == nil or ctl == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	else
+		gl.Texture(false)
+		gl.Rect(px, sy-cs, px+cs, sy)		-- bottom left
+	end
 	
 	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	if ctr == nil or ctr == 1 then
+		gl.Texture(bgcorner)
+		gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	else
+		gl.Texture(false)
+		gl.Rect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	end
 	
 	gl.Texture(false)
 end
@@ -114,7 +134,12 @@ end
 function DrawButton()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 	RectRound(0,0,4,1,0.25)
-    DrawL()
+	local vertices = {
+		{v = {0, 1, 0}},
+		{v = {0, 0, 0}},
+		{v = {1, 0, 0}},
+	}
+	glShape(GL_LINE_STRIP, vertices)
     glText("Keybinds", textMargin, textMargin, textSize, "no")
 end
 
@@ -155,14 +180,14 @@ function DrawTextTable(t,x,y)
     return x,j
 end
 
-function KeyBindScreen()
+function DrawWindow()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
     
 	-- background
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y+24,8)
@@ -171,6 +196,20 @@ function KeyBindScreen()
 	gl.Texture(closeButtonTex)
 	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
 	gl.Texture(false)
+	
+	
+	-- title background
+    local title = "Keybinds"
+    local titleFontSize = 18
+    gl.Color(0,0,0,0.8)
+	RectRound(x-bgMargin, y+24+bgMargin, x-bgMargin+(glGetTextWidth(title)*titleFontSize)+27, y+61, 8, 1,1,0,0)
+	
+	-- title
+	font:Begin()
+	font:SetTextColor(1,1,1,1)
+	font:SetOutlineColor(0,0,0,0.4)
+	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
+	font:End()
 	
     DrawTextTable(General,x,y)
     x = x + 350
@@ -215,7 +254,7 @@ function widget:DrawScreen()
     
     -- draw the help
     if not keybinds then
-        keybinds = gl.CreateList(KeyBindScreen)
+        keybinds = gl.CreateList(DrawWindow)
     end
     
     if show or showOnceMore then
