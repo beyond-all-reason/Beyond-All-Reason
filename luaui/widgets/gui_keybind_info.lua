@@ -6,7 +6,7 @@ return {
 	author  = "Bluestone",
 	date    = "April 2015",
 	license = "Mouthwash",
-	layer   = 0,
+	layer   = -1,
 	enabled = true,
 }
 end
@@ -15,10 +15,10 @@ end
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
-local bgMargin = 10
+local bgMargin = 6
 local closeButtonSize = 30
 local screenHeight = 486
-local screenWidth = (350*3)-8
+local screenWidth = (350*3)-8+20
 
 local customScale = 1
 
@@ -136,14 +136,14 @@ function DrawTextTable(t,x,y)
         -- title line
         local title = t[1] or ""
         local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
-        gl.Text(line, x-16, y-((13)*j)+5, 14)
+        gl.Text(line, x+4, y-((13)*j)+5, 14)
 		screenWidth = math.max(glGetTextWidth(line)*13,screenWidth)
       else
         -- keybind line
         local bind = string.upper(t[1]) or ""
         local effect = t[2] or ""
         local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
-        gl.Text(line, x-7, y-(13)*j, 11)
+        gl.Text(line, x+14, y-(13)*j, 11)
 		width = math.max(glGetTextWidth(line)*11,width)
       end
       height = height + 13
@@ -160,9 +160,12 @@ function KeyBindScreen()
     local x = screenX --rightwards
     local y = screenY --upwards
     
+	-- background
     gl.Color(0,0,0,0.8)
-	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
-	--glRect(x-20-bgMargin,y+24+bgMargin,x+screenWidth+bgMargin,y-screenHeight-bgMargin)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
+	-- content area
+	gl.Color(0.33,0.33,0.33,0.15)
+	RectRound(x,y-screenHeight,x+screenWidth,y+24,8)
 	
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
@@ -176,7 +179,7 @@ function KeyBindScreen()
     DrawTextTable(Units_III,x,y)
 	
     gl.Color(1,1,1,1)
-    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX-8, y-43*11, 12.5)
+    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-43*11, 12.5)
 end
 
 
@@ -222,7 +225,7 @@ function widget:DrawScreen()
 			glCallList(keybinds)
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
-			local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -250,7 +253,7 @@ function widget:MousePress(x, y, button)
     
     if show then 
 		-- on window
-		local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -263,6 +266,7 @@ function widget:MousePress(x, y, button)
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
 			end
+			return true
 		else
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show

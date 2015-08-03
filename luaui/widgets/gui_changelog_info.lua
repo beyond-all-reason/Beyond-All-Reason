@@ -10,19 +10,18 @@ return {
 	enabled = true,
 }
 end
-local loadedFontSize = 30
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 0, 0)
+local loadedFontSize = 32
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 18,2)
 
-local hoverColor = {1,1,1,0.18}
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
 local changelogFile = io.open(LUAUI_DIRNAME.."changelog.txt", "r")
 
-local bgMargin = 10
+local bgMargin = 6
 local closeButtonSize = 30
 local screenHeight = 486
-local screenWidth = (350*3)-8
+local screenWidth = (350*3)-8+20
 
 local customScale = 1
 
@@ -90,18 +89,9 @@ local lineWidth = 0.0625
 
 local posX = 0.35
 local posY = 0
-local showOnceMore = false
+local showOnceMore = false		-- used because of GUI shader delay
 local buttonGL
 local startPosX = posX
-
-local function DrawL()
-	local vertices = {
-		{v = {0, 1, 0}},
-		{v = {0, 0, 0}},
-		{v = {1, 0, 0}},
-	}
-	glShape(GL_LINE_STRIP, vertices)
-end
 
 function RectRound(px,py,sx,sy,cs)
 	
@@ -130,15 +120,15 @@ end
 function DrawButton()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 	RectRound(0,0,4.5,1,0.25)
-    DrawL()
+	local vertices = {
+		{v = {0, 1, 0}},
+		{v = {0, 0, 0}},
+		{v = {1, 0, 0}},
+	}
+	glShape(GL_LINE_STRIP, vertices)
     glText("Changelog", textMargin, textMargin, textSize, "no")
 end
 
-
-local versionColor		= "\255\255\210\070"
-local titleColor		= "\255\254\254\254"
-local dateColor			= "\255\155\220\155"
-local lineColor			= "\255\192\190\180"
 
 local versionOffsetX = 0
 local versionOffsetY = 14
@@ -148,12 +138,58 @@ function ChangelogScreen()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
     local y = screenY --upwards
-    
-    gl.Color(0,0,0,0.8)
-	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
 	
-    gl.Color(1,1,1,0.11)
-	RectRound(x-20-bgMargin,y-screenHeight-bgMargin,x+56,y+24+bgMargin,8)
+	
+	-- background
+    gl.Color(0,0,0,0.8)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8)
+	-- content area
+	gl.Color(0.33,0.33,0.33,0.15)
+	RectRound(x,y-screenHeight,x+screenWidth,y+24,6)
+	
+	-- title
+	font:Begin()
+	--font:SetTextColor(1,1,1,1)
+	--font:SetOutlineColor(0,0,0,0.5)
+	--font:Print("CHANGELOG", x, y+bgMargin+29, 18, "on")
+	
+	-- scrollbar
+	local scrollbarMargin = 10
+	local scrollbarWidth = 8
+	local scrollbarOffsetY = 12
+	local scrollbarPos = (y-scrollbarMargin-scrollbarOffsetY) - (screenHeight *  ((startLine-1) / totalChangelogLines))
+	
+	if (totalChangelogLines > 23 or startLine > 1) then	-- only show scroll above X lines
+		
+		local scrollbarPosWidth = 4
+		local scrollbarPosHeight = math.max(((screenHeight-scrollbarMargin-scrollbarMargin) / totalChangelogLines) * ((screenHeight-scrollbarMargin-scrollbarMargin) / 25), 15
+		)
+		if scrollbarPos - scrollbarPosHeight < y-screenHeight+scrollbarMargin then 
+			scrollbarPosHeight = scrollbarPosHeight - ((y-screenHeight+scrollbarMargin)-(scrollbarPos - scrollbarPosHeight))
+		end
+		-- background
+		gl.Color(0,0,0,0.22)
+		RectRound(
+			x+screenWidth-scrollbarMargin-scrollbarWidth,
+			y-screenHeight+scrollbarMargin,
+			x+screenWidth-scrollbarMargin,
+			y-scrollbarOffsetY-scrollbarMargin,
+			scrollbarWidth/2
+		)
+		-- bar
+		gl.Color(1,1,1,0.08)
+		RectRound(
+			x+screenWidth-scrollbarMargin-scrollbarWidth + (scrollbarWidth - scrollbarPosWidth),
+			scrollbarPos,
+			x+screenWidth-scrollbarMargin-(scrollbarWidth - scrollbarPosWidth),
+			scrollbarPos - (scrollbarPosHeight),
+			scrollbarPosWidth/2
+		)
+	end
+	
+	-- version links
+	gl.Color(0.72,0.5,0.12,0.3)
+	RectRound(x,y-screenHeight,x+70,y+24,6)
 	
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
@@ -163,6 +199,8 @@ function ChangelogScreen()
 	if changelogFile then
 		local lineKey = 1
 		local j = 0
+		font:SetOutlineColor(0.25,0.2,0,0.3)
+		font:SetTextColor(1,0.8,0.1,1)
 		while j < 25 do	
 			if (versionFontSize+versionOffsetY)*j > (screenHeight) then
 				break;
@@ -173,22 +211,23 @@ function ChangelogScreen()
 			local line = changelogFileLines[versions[lineKey]]
 			
 			-- version button title
-			line = " " .. versionColor .. string.match(line, '( %d*%d.?%d+)')
-			font:Print(line, x-10+versionOffsetX, y-((versionFontSize+versionOffsetY)*j)+5, versionFontSize, "n")
+			line = " " .. string.match(line, '( %d*%d.?%d+)')
+			font:Print(line, x+9+versionOffsetX, y-((versionFontSize+versionOffsetY)*j)+4, versionFontSize, "on")
 			
 			j = j + 1
 			lineKey = lineKey + 1
 		end
 	end
-	
-	local xOffset = 82
+
+	local xOffset = 90
+	local yOffset = 7
 	local fontSizeLine = 15
 	local fontSizeTitle = 17
+	y = y - yOffset
 	if changelogFile then
 		local lineKey = startLine
 		local j = 0
 		local width = 0
-		font:Begin()
 		while j < 50 do	
 			if (fontSizeTitle)*j > (screenHeight-16) then
 				break;
@@ -198,26 +237,40 @@ function ChangelogScreen()
 			end
 			
 			local line = changelogFileLines[lineKey]
-			
-			if string.find(line, '^(%d*%d.?%d+ /-)') then
+			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
+				-- date line
+				line = "  " .. line
+				font:SetTextColor(0.66,0.9,0.66,1)
+				font:Print(line, x+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+			elseif string.find(line, '^(%d*%d.?%d+)') then
 				-- version line
 				local versionStrip = string.match(line, '( %d*%d.?%d+)')
 				if versionStrip ~= nil then
-					line = " " .. titleColor .. versionStrip
+					line = " " .. versionStrip
  				else
-					line = " " .. titleColor .. line
+					line = " " .. line
 				end
-				font:Print(line, x-16+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle, "n")
+				font:SetTextColor(1,1,1,1)
+				font:Print(line, x-9+xOffset, y-((fontSizeTitle)*j)+5, fontSizeTitle, "n")
 				
-			elseif string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
-				-- date line
-				line = "  " .. dateColor .. line
-				font:Print(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
 			else
-				-- line
-				line = "  " .. lineColor .. line
-				line, numLines = font:WrapText(line, (screenWidth - 88)*(loadedFontSize/fontSizeLine))
-				font:Print(line, x-7+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				font:SetTextColor(0.8,0.77,0.74,1)
+				if string.find(line, '^(-)') then
+					-- bulletpointed line
+					local firstLetterPos = 2
+					if string.find(line, '^(- )') then
+						firstLetterPos = 3
+					end
+					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
+					line, numLines = font:WrapText(line, (screenWidth - xOffset - 65)*(loadedFontSize/fontSizeLine))
+					font:Print("   - ", x+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+					font:Print(line, x+25+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				else
+					-- line
+					line = "  " .. line
+					line, numLines = font:WrapText(line, (screenWidth - xOffset - 25)*(loadedFontSize/fontSizeLine))
+					font:Print(line, x+xOffset, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				end
 				j = j + (numLines - 1)
 			end
 
@@ -274,7 +327,7 @@ function widget:DrawScreen()
 			glCallList(changelogList)
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
-			local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -298,22 +351,17 @@ function widget:DrawScreen()
 					break;
 				end
 				
+				
 				-- version title
 				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-				local x1 = textX-(15*widgetScale)
+				local x1 = usedScreenX
 				local y1 = textY-((versionFontSize*0.66)*widgetScale)
-				local x2 = textX+((15*4.1)*widgetScale)
-				local y2 = textY+((versionFontSize*1.33)*widgetScale)
+				local x2 = usedScreenX+(70*widgetScale)
+				local y2 = textY+((versionFontSize*1.2)*widgetScale)
 				if IsOnRect(x, y, x1, y1, x2, y2) then
-					gl.Color(hoverColor)
-					RectRound(
-						x1,
-						y1,
-						x2,
-						y2,
-						5*widgetScale
-					)
+					gl.Color(1,0.93,0.75,0.22)
+					RectRound(x1, y1, x2, y2, 5*widgetScale)
 					break;
 				end
 				j = j + 1
@@ -337,7 +385,7 @@ end
 
 function widget:IsAbove(x, y)
 	-- on window
-	local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+	local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 	local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 	local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 	local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -345,10 +393,10 @@ function widget:IsAbove(x, y)
 end
 
 function widget:GetTooltip(mx, my)
-	if widget:IsAbove(mx,my) then
+	if show and widget:IsAbove(mx,my) then
 		return string.format(
-			"Click \255\255\255\1left mouse\255\255\255\255 scroll down.\n"..
-			"Click \255\255\255\1right mouse\255\255\255\255 scroll up.\n\n"..
+			"\255\255\255\1Left mouse\255\255\255\255 on textarea to scroll down.\n"..
+			"\255\255\255\1Right mouse\255\255\255\255 on textarea  to scroll up.\n\n"..
 			"Add CTRL or SHIFT to scroll faster, or combine CTRL+SHIFT (+ALT).")
 	end
 end
@@ -359,7 +407,7 @@ function widget:MousePress(x, y, button)
     
     if show then 
 		-- on window
-		local rectX1 = ((screenX-20-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -371,6 +419,7 @@ function widget:MousePress(x, y, button)
 			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
+				return true
 			end
 			
 			-- scroll text with mouse 2
@@ -386,7 +435,7 @@ function widget:MousePress(x, y, button)
 						addLines = 22
 					end
 					if ctrl and shift and alt then 
-						addLines = 50
+						addLines = 66
 					end
 					if button == 3 then 
 						addLines = -addLines
@@ -424,10 +473,10 @@ function widget:MousePress(x, y, button)
 						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
 						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
 						
-						local x1 = textX-(versionFontSize*widgetScale)
+						local x1 = usedScreenX
 						local y1 = textY-((versionFontSize*0.66)*widgetScale)
-						local x2 = textX+((versionFontSize*4.1)*widgetScale)
-						local y2 = textY+((versionFontSize*1.33)*widgetScale)
+						local x2 = usedScreenX+(70*widgetScale)
+						local y2 = textY+((versionFontSize*1.2)*widgetScale)
 						if IsOnRect(x, y, x1, y1, x2, y2) then
 							startLine = versions[lineKey]
 							if changelogList then
