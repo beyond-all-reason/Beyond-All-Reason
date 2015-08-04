@@ -207,7 +207,7 @@ local function createconsole(r)
 		movable=r.dragbutton,
 		
 		obeyscreenedge = true,
-		overrideclick = {2},
+		--overrideclick = {2},
 		
 		movableslaves={lines,activationarea},
 		

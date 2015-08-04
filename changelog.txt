@@ -7,7 +7,7 @@ Bugfixes:
 - Bugfix: Buildbar now remembers its icon-size. (press F11, hover over it + scroll to change iconsize)
 
 Other:
-- All UI elements only movable with when in TweakUI mode (CTRL+F11)
+- All UI elements are now only movable when in TweakUI mode. (CTRL+F11)
 - Allyresbars: use /allyresbars_sizeup and /allyresbars_sizeup to scale. (uses pixel position rounding, height changes can jumpy up/down suddenly)
 
 

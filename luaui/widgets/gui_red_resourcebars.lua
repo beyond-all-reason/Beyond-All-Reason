@@ -191,7 +191,7 @@ local function createbar(r)
 		movable=r.dragbutton,
 		obeyscreenedge = true,
 		--overridecursor = true,
-		overrideclick = {1,2},
+		overrideclick = {1},
 	}
 	New(background)
 	

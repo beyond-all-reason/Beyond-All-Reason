@@ -155,7 +155,7 @@ local function createtooltip(r)
 		
 		obeyscreenedge = true,
 		--overridecursor = true,
-		overrideclick = {2},
+		--overrideclick = {2},
 		
 		onupdate=function(self)
 			if (self.px < (Screen.vsx/2)) then --left side of screen

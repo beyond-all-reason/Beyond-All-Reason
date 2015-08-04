@@ -174,7 +174,7 @@ local function CreateGrid(r)
 		movable=r.dragbutton,
 		movableslaves={},
 		obeyscreenedge = true,
-		overrideclick = {1,2},
+		overrideclick = {1},
 		
 		effects = {
 			fadein_at_activation = r.fadetime,
