@@ -249,8 +249,10 @@ function widget:DrawWorldPreUnit()
 						gl.Scale(1/iconSize,1,1/iconSize)
 					end
 					
+					gl.PushMatrix()
 					gl.Billboard()
 					gl.Text(cmdValue.nickname, 0, -28, 20, "cn")
+					gl.PopMatrix()
 				end
 			end
 			
