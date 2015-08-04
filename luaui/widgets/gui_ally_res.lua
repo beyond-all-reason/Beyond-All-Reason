@@ -62,6 +62,7 @@ local xPercentage      = 85
 local yPercentage      = 85
 local sizeMultiplier   = 1
 
+local customScale = 1
 
 -- nevermind these vars now, they are defined in widget:ViewResize
 local BAR_HEIGHT       = 4		-- dont edit
@@ -619,10 +620,10 @@ function widget:GetTooltip(mx, my)
 	end
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx, vsy = viewSizeX, viewSizeY
-  
-  sizeMultiplier   = 2.65 + (vsx*vsy / 2000000)
+
+function processScaling()
+  vsx,vsy = Spring.GetViewGeometry()
+  sizeMultiplier   = 2.65 + (vsx*vsy / 2000000) * customScale
   
   selfXoffset	   = -math.floor(sizeMultiplier)
   
@@ -653,14 +654,35 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   updateGuishader()
 end
 
+function widget:ViewResize(viewSizeX, viewSizeY)
+  vsx, vsy = viewSizeX, viewSizeY
+  processScaling()
+end
+
+
+function widget:TextCommand(command)
+    if (string.find(command, "allyresbars_sizeup") == 1  and  string.len(command) == 18) then 
+		customScale = customScale + 0.08
+		processScaling()
+	end
+    if (string.find(command, "allyresbars_sizedown") == 1  and  string.len(command) == 20) then 
+		customScale = customScale - 0.08
+		if customScale < 0.5 then 
+			customScale = 0.5
+		end
+		processScaling()
+	end
+end
+
 function widget:GetConfigData() --save config
-  return {xPercentage=xPercentage, yPercentage=yPercentage, h=h}
+  return {xPercentage=xPercentage, yPercentage=yPercentage, h=h, customScale=customScale}
 end
 
 function widget:SetConfigData(data) --load config
   if (data.xPercentage) and (data.yPercentage) and (data.h) then
     xPercentage = data.xPercentage
     yPercentage = data.yPercentage
+    customScale = data.customScale  
     vsx, vsy = gl.GetViewSizes()
     percentage2Coords()
     prevHeight = data.h
