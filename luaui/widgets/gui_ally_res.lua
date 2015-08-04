@@ -488,8 +488,7 @@ end
 
 
 function widget:DrawScreen()
-  --if enabled and (not IsGUIHidden()) then
-	if true then
+  if enabled and (not IsGUIHidden()) then
       gl.CallList(staticList)
       gl.CallList(displayList)
       if (labelText[1]) then
