@@ -242,10 +242,8 @@ function RectRound(px,py,sx,sy,cs)
 	glTexture(false)
 end
 
+
 function widget:DrawScreen()
-	if widgetHandler:InTweakMode() then
-		return
-	end
 	if not inProgress then
     --    return
     end
@@ -320,8 +318,6 @@ end
 function widget:TweakDrawScreen()
 	glPushMatrix()
 		glTranslate(xPos, yPos, 0)
-		glColor(0, 0, 0, 0.5)
-		glRect(0, 0, 100, panelHeight)
 		drawCheckbox(check1x, check1y, markers, "Place Markers") 
 		drawCheckbox(check2x, check2y, flashIcon, "Flashing Icon")
 	glPopMatrix()
@@ -356,24 +352,7 @@ function widget:MousePress(mx, my, button)
 			lastMarkerFrame = frame
 			MarkComs()
 		end
-		
-		if button == 2 then
-			return true
-		else 
-			return false
-		end
 	end
-end
-
-function widget:MouseMove(mx, my, dx, dy)
-    if xPos + dx >= 0 and xPos + panelWidth + dx <= vsx then 
-		xRelPos = xRelPos + dx/vsx
-	end
-    if yPos + dy >= 0 and yPos + panelHeight + dy <= vsy then 
-		yRelPos = yRelPos + dy/vsy
-	end
-	xPos, yPos = xRelPos * vsx,yRelPos * vsy
-	countChanged = true
 end
 
 function MarkComs()
@@ -391,14 +370,17 @@ function MarkComs()
 	end
 end
 
-function widget:TweakMousePress(mx, my)
-	if widget:IsAbove(mx,my) then
-		if mx > xPos+check1x and my > yPos+check1y and mx < (xPos+check1x+16) and my < (yPos+check1y+16) then
-			markers = not markers
-		elseif mx > xPos+check2x and my > yPos+check2y and mx < (xPos+check2x+16) and my < (yPos+check2y+16) then
-			flashIcon = not flashIcon
+function widget:TweakMousePress(mx, my, mb)
+    if widgetHandler:InTweakMode() and widget:IsAbove(mx,my) then
+		if mb == 1 then 
+			if mx > xPos+check1x and my > yPos+check1y and mx < (xPos+check1x+16) and my < (yPos+check1y+16) then
+				markers = not markers
+			elseif mx > xPos+check2x and my > yPos+check2y and mx < (xPos+check2x+16) and my < (yPos+check2y+16) then
+				flashIcon = not flashIcon
+			end
+		elseif mb == 2 then
+			return true
 		end
-		return true
 	end
 end
 
@@ -416,7 +398,7 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the this display.\n\n"..
+		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the this display.\n\n"..
 			"Small number in bottom right is enemy commander count.")
 	end
 end

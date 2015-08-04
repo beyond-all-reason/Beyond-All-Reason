@@ -158,21 +158,19 @@ function createBackgroundList2()
 end
 
 function widget:DrawScreen()
-	if not widgetHandler:InTweakMode() then
-			glCallList(backgroundList)
-                if rotationOn then -- Rotation
-					glTranslate(oorx*widgetScale, oory*widgetScale, 0)
-                    glRotate(count, 0, 0, 1)
-                    glTranslate(-oorx*widgetScale, -oory*widgetScale, 0)
-                end
-			glCallList(backgroundList2)
-			if spGetGameFrame() > 1 then
-				glText(printWind, -(12*widgetScale)+(panelWidth*0.5), (panelHeight/2)-((textSize*widgetScale)/2), textSize*widgetScale, 'oc') -- Wind speed text
-			end
-			glColor(1,1,1,0.25)
-			glText(avgWind, -(15*widgetScale)+panelWidth, ((textSize*0.75*widgetScale)/8), textSize*0.75*widgetScale, 'r') -- Wind speed text
-        glPopMatrix()
-    end
+	glCallList(backgroundList)
+		if rotationOn then -- Rotation
+			glTranslate(oorx*widgetScale, oory*widgetScale, 0)
+			glRotate(count, 0, 0, 1)
+			glTranslate(-oorx*widgetScale, -oory*widgetScale, 0)
+		end
+	glCallList(backgroundList2)
+	if spGetGameFrame() > 1 then
+		glText(printWind, -(12*widgetScale)+(panelWidth*0.5), (panelHeight/2)-((textSize*widgetScale)/2), textSize*widgetScale, 'oc') -- Wind speed text
+	end
+	glColor(1,1,1,0.25)
+	glText(avgWind, -(15*widgetScale)+panelWidth, ((textSize*0.75*widgetScale)/8), textSize*0.75*widgetScale, 'r') -- Wind speed text
+	glPopMatrix()
 end
 
 function widget:TweakDrawScreen()
@@ -187,32 +185,6 @@ end
 
 function widget:IsAbove(mx, my)
 	return mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
-end
-
-function widget:MousePress(mx, my, button)
-	if widget:IsAbove(mx,my) then
-		if button == 2 then
-			return true
-		else 
-			return false
-		end
-	end
-end
-function widget:MouseMove(mx, my, dx, dy)
-	local change = false
-    if xPos + dx >= 0 and xPos + panelWidth + dx <= vsx then 
-		xRelPos = xRelPos + dx/vsx
-		change = true
-	end
-    if yPos + dy >= 0 and yPos + panelHeight + dy <= vsy then 
-		yRelPos = yRelPos + dy/vsy
-		change = true
-	end
-	if change then
-		xPos, yPos = xRelPos * vsx,yRelPos * vsy
-		createBackgroundList()
-		processGuishader()
-	end
 end
 
 function drawCheckbox(x, y, state, text)
@@ -230,14 +202,17 @@ function drawCheckbox(x, y, state, text)
     glPopMatrix()
 end
 
-function widget:TweakMousePress(mx, my)
-    if mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight then
-        if mx > xPos+check1x and my > yPos+check1y and mx < (xPos+check1x+16) and my < (yPos+check1y+16) then
-            rotationOn = toggle(rotationOn)
-        elseif mx > xPos+check2x and my > yPos+check2y and mx < (xPos+check2x+16) and my < (yPos+check2y+16) then
-            vsSolarOn = toggle(vsSolarOn)
-        end
-        return true
+function widget:TweakMousePress(mx, my, mb)
+    if widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight then
+		if mb == 1 then 
+			if mx > xPos+check1x and my > yPos+check1y and mx < (xPos+check1x+16) and my < (yPos+check1y+16) then
+				rotationOn = toggle(rotationOn)
+			elseif mx > xPos+check2x and my > yPos+check2y and mx < (xPos+check2x+16) and my < (yPos+check2y+16) then
+				vsSolarOn = toggle(vsSolarOn)
+			end
+		elseif mb == 2 then
+			return true
+		end
     end
 end
 
@@ -278,7 +253,7 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the this display.\n\n"..
+		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the this display.\n\n"..
 			"Small number in bottom right is the average map wind.")
 	end
 end

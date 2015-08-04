@@ -486,9 +486,10 @@ function widget:GameStart()
   updateStatics()
 end
 
+
 function widget:DrawScreen()
-  if enabled and (not IsGUIHidden()) then
-	
+  --if enabled and (not IsGUIHidden()) then
+	if true then
       gl.CallList(staticList)
       gl.CallList(displayList)
       if (labelText[1]) then
@@ -505,19 +506,21 @@ function widget:DrawScreen()
   end
 end
 
+function widget:TweakMouseMove(x, y, dx, dy, button)
+	if (enabled) then
+		x1 = x1 + dx
+		y1 = y1 + dy
+
+		coords2Percentage()
+		updateGuishader()
+		updateBars()
+		updateStatics()
+	end
+end
+
 function widget:MouseMove(x, y, dx, dy, button)
-  if (enabled) then
-    if moving then
-      x1 = x1 + dx
-      y1 = y1 + dy
-      
-      coords2Percentage()
-	  
-	  updateGuishader()
-      updateBars()
-      updateStatics()
-      
-    elseif transferring then
+  if (enabled and button == 1) then
+    if transferring then
       transferTeam = nil
       if (x > (x1+BAR_OFFSET)) and (x < (x1+BAR_OFFSET+BAR_WIDTH)) then
         if (transferType == "energy") then
@@ -540,21 +543,30 @@ function widget:MouseMove(x, y, dx, dy, button)
   end
 end
 
-function widget:MousePress(x, y, button)
+function widget:TweakMousePress(x, y, button)
 
   if Spring.IsGUIHidden() then return end
   
-  if (enabled) 
+  if (enabled and button == 2) 
 	  and (x > x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75))
 	  and (y > y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75)) 
 	  and (x < x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 
 	  and (y < y1+(h-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 
   then
-    if button == 2 then
-      capture = true
-      moving  = true
-      return capture
-    end
+      return true
+  end
+end
+
+function widget:MousePress(x, y, button)
+
+  if Spring.IsGUIHidden() then return end
+  
+  if (enabled and button == 1) 
+	  and (x > x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75))
+	  and (y > y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75)) 
+	  and (x < x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 
+	  and (y < y1+(h-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 
+  then
     if GetSpectatingState() or IsReplay() then
       return false
     end
@@ -578,11 +590,8 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-  capture = nil
-  moving  = nil
   transferring = false
   transferTeam = nil
-  return capture
 end
 
 function percentage2Coords()
@@ -615,7 +624,7 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
+		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
 			"The current selected player is extruded to the left. (YOU)")
 	end
 end
@@ -623,6 +632,9 @@ end
 
 function processScaling()
   vsx,vsy = Spring.GetViewGeometry()
+  if customScale == nil then
+	customScale = 1
+  end
   sizeMultiplier   = 2.65 + (vsx*vsy / 2000000) * customScale
   
   selfXoffset	   = -math.floor(sizeMultiplier)

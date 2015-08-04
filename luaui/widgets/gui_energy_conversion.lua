@@ -122,8 +122,8 @@ function RectRound(xPos,yPos,sx,sy,cs)
 	glTexture(false)
 end
 
+
 function widget:DrawScreen()
-    
     -- Var
     local myTeamID = spGetMyTeamID()
     local curLevel = spGetTeamRulesParam(myTeamID, 'mmLevel')
@@ -170,13 +170,16 @@ function widget:DrawScreen()
     glPopMatrix()
 end
 
-local draggingSlider = false
-function widget:MousePress(mx, my, mButton)
-    if mButton == 2 or mButton == 3 then
+function widget:TweakMousePress(mx, my, mButton)
+    if mButton == 2 then
         if mx >= xPos and my >= yPos and mx < xPos + panelWidth and my < yPos + panelHeight then
             return true
         end
-    elseif mButton == 1 and not spGetSpectatingState() then
+    end
+end
+local draggingSlider = false
+function widget:MousePress(mx, my, mButton)
+	if mButton == 1 and not spGetSpectatingState() then
         local dx, dy = mx - xPos, my - yPos
         
         local hoverRight	= panelWidth-(panelPadding*2)
@@ -198,7 +201,7 @@ function widget:MousePress(mx, my, mButton)
     end
 end
 
-function widget:MouseMove(mx, my, dx, dy, mButton)
+function widget:TweakMouseMove(mx, my, dx, dy, mButton)
     -- Dragging widget position
     if mButton == 2 then
 		if xPos + dx >= panelPadding and xPos + panelWidth + dx + panelPadding<= vsx then 
@@ -208,7 +211,13 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 			yRelPos = yRelPos + dy/vsy
 		end
 		xPos, yPos = xRelPos * vsx,yRelPos * vsy
-    elseif mButton == 1 and draggingSlider then
+		
+		processGuishader()
+    end
+end
+
+function widget:MouseMove(mx, my, dx, dy, mButton)
+	if mButton == 1 and draggingSlider then
         local dx, dy = mx - xPos, my - yPos
         local hoverRight	= panelWidth-(panelPadding*2)
         local hoverLeft		= panelPadding*2
@@ -222,7 +231,6 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if newShare > 100 then newShare = 100 end
 		spSendLuaRulesMsg(format(alterLevelFormat, newShare))
 	end
-	processGuishader()
 end
 
 function widget:MouseRelease(mx, my, dx, dy, mButton)
@@ -241,7 +249,7 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
+		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
 			"This controls when your metalmakers convert energy into metal.\n\nClick on it or drag to set a new value.")
 	end
 end

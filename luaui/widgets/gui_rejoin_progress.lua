@@ -215,8 +215,9 @@ function widget:GameFrame(n)
 	functionContainer_G(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
+
 function widget:DrawScreen()
-	 if ui_active_G and myGameFrame_G ~= nil and myGameFrame_G > 1 and serverFrameNum1_G ~= nil then
+	if ui_active_G and myGameFrame_G ~= nil and myGameFrame_G > 1 and serverFrameNum1_G ~= nil then
 		glPushMatrix()
 			glColor(0,0,0,0.6)
 			glCallList(backgroundList)
@@ -418,7 +419,7 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
+		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
 			"Displays where in the game you are.\n\n"..
 			"Only shows for games that are still being played.")
 	end
@@ -457,23 +458,19 @@ function widget:IsAbove(mx, my)
 	return mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
 end
 
-function widget:MousePress(mx, my, button)
+function widget:TweakMousePress(mx, my, button)
 	if ui_active_G then
-		if widget:IsAbove(mx,my) then
-			if button == 2 then
-				return true
-			else 
-				return false
-			end
+		if widget:IsAbove(mx,my) and button == 2 then
+			return true
 		end
 	end
 end
 
-function widget:MouseMove(mx, my, dx, dy)
-    if xPos + dx >= 0 and xPos + panelWidth + dx <= vsx then 
+function widget:TweakMouseMove(mx, my, dx, dy)
+	if xPos + dx >= 0 and xPos + panelWidth + dx <= vsx then 
 		xRelPos = xRelPos + dx/vsx
 	end
-    if yPos + dy >= 0 and yPos + panelHeight + dy <= vsy then 
+	if yPos + dy >= 0 and yPos + panelHeight + dy <= vsy then 
 		yRelPos = yRelPos + dy/vsy
 	end
 	xPos, yPos = xRelPos * vsx,yRelPos * vsy
