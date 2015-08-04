@@ -1,3 +1,15 @@
+9.02 -> 9.03
+04/08/2015
+
+Bugfixes:
+- Bugfix: Metalmakers work again.
+- Bugfix: Changelog widget.
+- Bugfix: Buildbar now remembers its icon-size. (press F11, hover over it + scroll to change iconsize)
+
+Other:
+- Allyresbars: use /allyresbars_sizeup and /allyresbars_sizeup to scale. (uses pixel position rounding, height changes can jumpy up/down suddenly)
+
+
 9.01 -> 9.02
 03/08/2015
 
