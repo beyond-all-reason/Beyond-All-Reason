@@ -34,7 +34,7 @@ local bar_side         = 1     --left:0,top:2,right:1,bottom:3
 local bar_horizontal   = false --(not saved) if sides==top v bottom -> horizontal:=true  else-> horizontal:=false
 local bar_offset       = 0     --relative offset side middle (i.e., bar_pos := vsx*0.5+bar_offset)
 local bar_align        = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/bottom=-1
-local bar_iconSizeBase = 55    --iconSize o_O
+local bar_iconSizeBase = 28    --iconSize o_O
 local bar_openByClick  = false --needs a click to open the buildmenu or is a hover enough?
 local bar_autoclose    = true  --autoclose buildmenu on mouseleave?
 
@@ -186,9 +186,10 @@ function widget:Initialize()
   myTeamID = Spring.GetMyTeamID()
 
   UpdateFactoryList()
-
+  
   local viewSizeX, viewSizeY = widgetHandler:GetViewSizes()
   self:ViewResize(viewSizeX, viewSizeY)
+
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 	widgetHandler:RemoveWidget()
   end
@@ -212,7 +213,7 @@ function widget:SetConfigData(data)
   bar_side         = data.side         or 2
   bar_offset       = data.offset       or 0
   bar_align        = data.align        or 0
-  bar_iconSizeBase = data.bar_iconSizeBase or 28
+  bar_iconSizeBase = data.iconSizeBase or 28
   bar_openByClick  = data.openByClick  or false
   bar_autoclose    = data.autoclose    or (not bar_openByClick)
 
