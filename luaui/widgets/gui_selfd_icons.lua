@@ -60,10 +60,10 @@ end
 function AddSelfDUnit(unitID)
 	local ud = UnitDefs[spGetUnitDefID(unitID)]
 	
-	givenUnits[unitID] = {}
-	givenUnits[unitID].osClock			= os.clock()
-	givenUnits[unitID].lastInViewClock	= os.clock()
-	givenUnits[unitID].unitHeight		= ud.height
+	selfdUnits[unitID] = {}
+	selfdUnits[unitID].osClock			= os.clock()
+	selfdUnits[unitID].lastInViewClock	= os.clock()
+	selfdUnits[unitID].unitHeight		= ud.height
 end
 
 function SetUnitConf()
