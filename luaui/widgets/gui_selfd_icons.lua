@@ -35,6 +35,7 @@ local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
 local spGetUnitCommands			= Spring.GetUnitCommands
+local spIsUnitAllied			= Spring.IsUnitAllied
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -55,16 +56,6 @@ function DrawIcon(posY, posX, iconSize, text)
 	end
 end
 
-
--- add unit-icon to unit
-function AddSelfDUnit(unitID)
-	local ud = UnitDefs[spGetUnitDefID(unitID)]
-	
-	selfdUnits[unitID] = {}
-	selfdUnits[unitID].osClock			= os.clock()
-	selfdUnits[unitID].lastInViewClock	= os.clock()
-	selfdUnits[unitID].unitHeight		= ud.height
-end
 
 function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
@@ -125,11 +116,15 @@ function widget:DrawWorld()
 	
 	local unitDefs, unitScale, countdown
 	for unitID, unitEndSecs in pairs(selfdUnits) do
-		if spIsUnitInView(unitID) then
-			unitDefs = unitConf[spGetUnitDefID(unitID)]
-			unitScale = unitDefs.xscale*1.22 - (unitDefs.xscale/6.6)
-			countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
-			glDrawFuncAtUnit(unitID, false, DrawIcon, 10.1, unitScale, 22, countdown)
+		if spIsUnitAllied(unitID) then
+			if spIsUnitInView(unitID) then
+				unitDefs = unitConf[spGetUnitDefID(unitID)]
+				unitScale = unitDefs.xscale*1.22 - (unitDefs.xscale/6.6)
+				countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
+				glDrawFuncAtUnit(unitID, false, DrawIcon, 10.1, unitScale, 22, countdown)
+			end
+		else
+			selfdUnits[unitID] = nil
 		end
 	end
 	
