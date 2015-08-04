@@ -32,6 +32,7 @@ local Main = {} --boss table with a manabar
 local WidgetList = {} --list of widgets using the framework
 
 local LastProcessedWidget = "" --for debugging
+local inTweak = false
 
 local vsx,vsy = widgetHandler:GetViewSizes()
 if (vsx == 1) then --hax for windowed mode
@@ -437,7 +438,7 @@ local function processMouseEvents(o)
 		o.sy = o.getheight()
 	end
 	
-	if (o.movable) then
+	if (o.movable) and inTweak then
 		for i=1,#o.movable do
 			if (not o.wasclicked) then
 				if (Mouse[o.movable[i]][2]) then
@@ -663,12 +664,19 @@ function widget:Shutdown()
 	end
 end
 
+function widget:TweakDrawScreen()
+	inTweak = true
+end
+function widget:DrawScreen()
+	inTweak = false
+end
+
 local hookedtodrawing = false
 local fc = 0 --framecount
 function widget:Update()
+	
 	Main.tooltip = nil
 	handleMouse()
-	
 	--flush deactivated widgets
 	fc=fc+1
 	if (fc > 200) then

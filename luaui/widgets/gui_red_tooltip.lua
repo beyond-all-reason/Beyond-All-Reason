@@ -30,7 +30,7 @@ local Config = {
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this element.",
+			background = "In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this element.",
 		},
 	},
 }

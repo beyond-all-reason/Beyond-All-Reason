@@ -43,7 +43,7 @@ local Config = {
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
+			background ="In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
 			"\255\255\255\1Leftclick\255\255\255\255 on the bar to set team share.",
 			income = "Your metal income.",
 			pull = "Your metal pull.",
@@ -78,7 +78,7 @@ local Config = {
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background ="Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
+			background ="In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
 			"\255\255\255\1Leftclick\255\255\255\255 on the bar to set team share.",
 			income = "Your energy income.",
 			pull = "Your energy pull.",

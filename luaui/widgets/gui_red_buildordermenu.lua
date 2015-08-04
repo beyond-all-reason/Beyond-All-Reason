@@ -48,7 +48,7 @@ local Config = {
 		cbuttonbackground = {0.1,0.1,0.1,1},
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the buildmenu.",
+			background = "In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the buildmenu.",
 		},
 	},
 	
@@ -77,7 +77,7 @@ local Config = {
 		
 		dragbutton = {2}, --middle mouse button
 		tooltip = {
-			background = "Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the ordermenu.",
+			background = "In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the ordermenu.",
 		},
 	},
 }
