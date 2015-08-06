@@ -327,6 +327,7 @@ local glText = gl.Text
 local drawAwards = false 
 local cx,cy --coords for center of screen
 local bx,by --coords for top left hand corner of box
+local bgMargin = 6
 local w = 800 
 local h = 500
 
@@ -418,29 +419,72 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 end
 
 
-function RectRound(px,py,sx,sy,c,cs)
-	if (c) then
-		glColor(c[1],c[2],c[3],c[4])
-	else
-		glColor(1,1,1,1)
-	end
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
 	
-	glRect(px+cs, py, sx-cs, sy)
-	glRect(sx-cs, py+cs, sx, sy-cs)
-	glRect(px+cs, py+cs, px, sy-cs)
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
 	
-	glTexture(":n:LuaRules/Images/bgcorner.png")
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
 	
-	glTexRect(px, py+cs, px+cs, py)		-- top left
+	local offset = 0.07		-- texture offset, because else gaps could show
 	
-	glTexRect(sx, py+cs, sx-cs, py)		-- top right
-	
-	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	
-	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	
-	glTexture(false)
+	-- bottom left
+	if py <= 0 or px <= 0 or (bl ~= nil and bl == 0) then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if py <= 0 or sx >= vsx or (br ~= nil and br == 0) then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- top left
+	if sy >= vsy or px <= 0 or (tl ~= nil and tl == 0)  then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- top right
+	if sy >= vsy or sx >= vsx or (tr ~= nil and tr == 0)  then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
 end
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
+	gl.Texture(":n:LuaRules/Images/bgcorner.png")
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
+	gl.Texture(false)
+end
+
 
 function CreateBackground()	
 	if Background then
@@ -452,8 +496,12 @@ function CreateBackground()
 	end
 	
 	Background = glCreateList(function()
-		
-		RectRound(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),{0.06,0.06,0.06,0.8},10)
+		-- background
+		gl.Color(0,0,0,0.8)
+		RectRound(bx-bgMargin, by-bgMargin, bx + w+bgMargin, by + h+bgMargin, 8)
+		-- content area
+		gl.Color(0.33,0.33,0.33,0.15)
+		RectRound(bx, by, bx + w, by + h, 6)
 		
 		glColor(1,1,1,1)
 		glTexture(':l:LuaRules/Images/awards.png')

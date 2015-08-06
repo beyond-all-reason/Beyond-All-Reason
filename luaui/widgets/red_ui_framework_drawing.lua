@@ -169,14 +169,69 @@ local function Rect(px,py,sx,sy,c,scale)
 	glRect(px,py,px+sx,py+sy)
 end
 
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.07		-- texture offset, because else gaps could show
+	
+	-- top left
+	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
 local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 
-	-- add the missing border size (cause normal border will not be used when this function gets called)
-	px = px - 1
-	py = py - 1
-	sx = sx + 2
-	sy = sy + 2
-	
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
 	else
@@ -208,108 +263,16 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 		sy = sy * scale
 	end
 	
-	px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
 	sx = px+sx
 	sy = py+sy
 	
-		glRect(px+cs, py, sx-cs, sy)
-		glRect(sx-cs, py+cs, sx, sy-cs)
-		glRect(px+cs, py+cs, px, sy-cs)
-		
-		if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
-		glTexRect(px, py+cs, px+cs, py)		-- top left
-		
-		if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
-		glTexRect(sx, py+cs, sx-cs, py)		-- top right
-		
-		if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
-		glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
-		
-		if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
-		glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-		
-		glTexture(false)
-		
+	gl.Texture(bgcorner)
+	glBeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
+	
 	if glone then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
-end
-local function RectRound22(px,py,sx,sy,c,cs,scale,glone)
-
-	if (c) then
-		glColor(c[1],c[2],c[3],c[4])
-	else
-		glColor(1,1,1,1)
-	end
-	
-	if cs == nil then
-		cs = 4
-	end
-	
-	if glone then
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-	end
-	-- add blur shader
-	if c and c[4] >= blurShaderStartColor then
-		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
-	end
-	
-	--[[px = math.floor(px)
-	py = math.floor(py)
-	sx = math.ceil(px+sx)
-	sy = math.ceil(p+sy)
-	]]--
-	
-	if scale ~= nil and scale ~= 1 then
-		px = px + ((sx * (1-scale))/2)
-		py = py + ((sy * (1-scale))/2)
-		sx = sx * scale
-		sy = sy * scale
-	end
-	
-	px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
-	sx = px+sx
-	sy = py+sy
-	
-	glBeginEnd(GL.QUADS, DrawGroundquad,px,py,sx,sy,cs)
-		
-	if glone then
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-end
-
-local function DrawGroundquad(x,y,z,size)
-	gl.TexCoord(0,0)
-	gl.Vertex(x-size,y,z-size)
-	gl.TexCoord(0,1)
-	gl.Vertex(x-size,y,z+size)
-	gl.TexCoord(1,1)
-	gl.Vertex(x+size,y,z+size)
-	gl.TexCoord(1,0)
-	gl.Vertex(x+size,y,z-size)
-end
-
-local function DrawRectRound(px,py,sx,sy,cs)
-	
-	glRect(px+cs, py, sx-cs, sy)
-	glRect(sx-cs, py+cs, sx, sy-cs)
-	glRect(px+cs, py+cs, px, sy-cs)
-	
-	if py <= 0 or px <= 0 then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(px, py+cs, px+cs, py)		-- top left
-	
-	if py <= 0 or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(sx, py+cs, sx-cs, py)		-- top right
-	
-	if sy >= vsy or px <= 0 then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	
-	if sy >= vsy or sx >= vsx then glTexture(false) else glTexture(bgcorner) end
-	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	
-	glTexture(false)
 end
 
 local function TexRect(px,py,sx,sy,texture,c,scale)

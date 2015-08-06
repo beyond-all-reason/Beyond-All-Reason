@@ -6,6 +6,7 @@
 - Allyresbars: use /allyresbars_sizeup and /allyresbars_sizeup to scale. (uses pixel position rounding, size changes can jump up/down suddenly)
 
 Bugfixes:
+- rounded corners: fixed small gaps
 - Metalmakers work again.
 - Changelog widget able to load changelog.txt.
 - Buildbar now remembers its icon-size. (press F11, hover over it + scroll to change iconsize)
@@ -29,7 +30,7 @@ Others:
 - Added "EMP + decloack range" widget: displays spy and gremlin EMP and decloack range (when selected).
 - Build ETA: a bit offsetted to the bottom, so its better readable when in overhead camera.
 - Buildbar: disables when becomming spectator.
-- Smart Select: now enabled by default.
+- Smart Select: now enabled by default.  (to not ignore buildings use: /selection_mode)
 - Various minor style tweaks.
 
 

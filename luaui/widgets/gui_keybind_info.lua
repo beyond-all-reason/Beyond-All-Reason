@@ -87,54 +87,72 @@ local buttonGL
 local startPosX = posX
 
 
-function RectRound(px,py,sx,sy,cs, ctl,ctr,cbr,cbl)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
 	
-	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
 	
-	gl.Rect(px+cs, py, sx-cs, sy)
-	gl.Rect(sx-cs, py+cs, sx, sy-cs)
-	gl.Rect(px+cs, py+cs, px, sy-cs)
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
 	
+	local offset = 0.07		-- texture offset, because else gaps could show
+	
+	-- bottom left
+	if py <= 0 or px <= 0 or (bl ~= nil and bl == 0) then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if py <= 0 or sx >= vsx or (br ~= nil and br == 0) then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- top left
+	if sy >= vsy or px <= 0 or (tl ~= nil and tl == 0)  then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- top right
+	if sy >= vsy or sx >= vsx or (tr ~= nil and tr == 0)  then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	
-	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	if cbr == nil or cbr == 1 then
-		gl.Texture(bgcorner)
-		gl.TexRect(px, py+cs, px+cs, py)		-- top left
-	else
-		gl.Texture(false)
-		gl.Rect(px, py+cs, px+cs, py)		-- top left
-	end
-	
-	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	if cbl == nil or cbl == 1 then
-		gl.Texture(bgcorner)
-		gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
-	else
-		gl.Texture(false)
-		gl.Rect(sx, py+cs, sx-cs, py)		-- top right
-	end
-	
-	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	if ctl == nil or ctl == 1 then
-		gl.Texture(bgcorner)
-		gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	else
-		gl.Texture(false)
-		gl.Rect(px, sy-cs, px+cs, sy)		-- bottom left
-	end
-	
-	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	if ctr == nil or ctr == 1 then
-		gl.Texture(bgcorner)
-		gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	else
-		gl.Texture(false)
-		gl.Rect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	end
-	
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
+
 
 function DrawButton()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
