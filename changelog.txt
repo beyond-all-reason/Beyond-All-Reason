@@ -1,14 +1,16 @@
 9.02 -> 9.03
-04/08/2015
+07/08/2015
+
+- Features outside LOS won't show (except for Gaia ones)
+- UI elements are now only movable when in TweakUI mode. (CTRL+F11)
+- Allyresbars: use /allyresbars_sizeup and /allyresbars_sizeup to scale. (uses pixel position rounding, size changes can jump up/down suddenly)
 
 Bugfixes:
-- Bugfix: Metalmakers work again.
-- Bugfix: Changelog widget.
-- Bugfix: Buildbar now remembers its icon-size. (press F11, hover over it + scroll to change iconsize)
-
-Other:
-- All UI elements are now only movable when in TweakUI mode. (CTRL+F11)
-- Allyresbars: use /allyresbars_sizeup and /allyresbars_sizeup to scale. (uses pixel position rounding, height changes can jumpy up/down suddenly)
+- Metalmakers work again.
+- Changelog widget able to load changelog.txt.
+- Buildbar now remembers its icon-size. (press F11, hover over it + scroll to change iconsize)
+- mapmarks-fx flicking issue
+- attack AOE: Dgun path display is corrected with an offset
 
 
 9.01 -> 9.02
