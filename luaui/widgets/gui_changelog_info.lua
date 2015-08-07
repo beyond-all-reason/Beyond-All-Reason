@@ -375,7 +375,7 @@ end
 
 function widget:GameFrame(n)
 
-	if false and n>endPosX and posX > endPosX then
+	if n>endPosX and posX > endPosX then
 		posX = posX - 0.005
 		if posX < 0 then posX = 0 end
 		
