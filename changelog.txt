@@ -1,4 +1,4 @@
-9.03 -> 9.04
+﻿9.03 -> 9.04
 07/08/2015
 
 Balance changes:
@@ -10,6 +10,7 @@ Balance changes:
 Others:
 - Awards: fixed background
 - Wrecks are visible out of LOS again
+
 
 9.02 -> 9.03
 07/08/2015
