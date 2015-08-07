@@ -380,7 +380,7 @@ function gadget:Initialize()
 end
 
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX,viewSizeY
 	if drawAwards then
 		
