@@ -23,7 +23,7 @@ end
 -- Var
 ----------------------------------------------------------------
 
-local maxTime = 15 -- in seconds
+local maxTime = 20 -- in seconds
 
 local excluded = {
     -- mobile units that are excluded from the maxTime limit
