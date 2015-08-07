@@ -99,12 +99,12 @@ return {
 		},
 		weapondefs = {
 			corhrk_rocket = {
-				areaofeffect = 60,
+				areaofeffect = 70,
 				avoidfeature = false,
-				craterareaofeffect = 0,
+				craterareaofeffect = 70,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.5,
+				edgeeffectiveness = 0.46,
 				explosiongenerator = "custom:STARFIRE",
 				firestarter = 100,
 				flighttime = 6.6,
