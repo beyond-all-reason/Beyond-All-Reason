@@ -379,7 +379,7 @@ function widget:GameFrame(n)
 		posX = posX - 0.005
 		if posX < 0 then posX = 0 end
 		
-		bgColorMultiplier = posX / startPosX
+		bgColorMultiplier = (posX-endPosX) / startPosX
 	end
 end
 
