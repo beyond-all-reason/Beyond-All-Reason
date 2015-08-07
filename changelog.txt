@@ -1,3 +1,16 @@
+9.03 -> 9.04
+07/08/2015
+
+Balance changes:
+- Area-of-effect for "Dominator - Heavy Rocket Kbot" increased, but edge-effectiveness was decreased a little
+- Max paralysis time of mobile units was increased to 20 seconds
+- HP was increased for "Spider - All-Terrain EMP Spider"
+- Increased metal cost of t1 air scouts
+
+Others:
+- Awards: fixed background
+- Wrecks are visible out of LOS again
+
 9.02 -> 9.03
 07/08/2015
 
