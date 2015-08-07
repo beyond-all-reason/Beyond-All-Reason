@@ -27,7 +27,7 @@ local modrules  = {
   },
   
   featureLOS = { 
-    featureVisibility = 1; -- Can be 0 - no default LOS for features, 1 - Gaia features always visible, 2 - allyteam & Gaia features always visible, or 3 - all features always visible.
+    featureVisibility = 2; -- Can be 0 - no default LOS for features, 1 - Gaia features always visible, 2 - allyteam & Gaia features always visible, or 3 - all features always visible.
   },
 
   system = {
