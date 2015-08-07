@@ -7,7 +7,7 @@
 
 Bugfixes:
 - rounded corners: fixed small gaps
-- Metalmakers work again.
+- Metalmakers work again (reverted EMP 'fix').
 - Changelog widget able to load changelog.txt.
 - Buildbar now remembers its icon-size. (press F11, hover over it + scroll to change iconsize)
 - mapmarks-fx flicking issue
@@ -833,7 +833,7 @@ T1 Ships Revamp
 - Give corsktl a larger hitsphere so unit self explodes correctly 
 - Add modified xta Splashgadget with custom cegs 
 - Add fixed weaponDefs_post.lua and water hit splash sounds 
-- Armsniper weapontype changed to Rifle. Should fix snipers shooting … 
+- Armsniper weapontype changed to Rifle. Should fix snipers shooting ï¿½ 
 - Torps no longer fire at Pelicans 
 - Juno now kills jeffy, flea and weasel. Juno metalpershot cost added, 250M per shot
 - Add Kloots dynamic lighting gadget and custom config (more bling) 
@@ -854,7 +854,7 @@ T1 Ships Revamp
 - Xray widgets removed 
 - Guardian and punisher 15% less metal costs 
 - Arm cloakable fus cloak cost reduced to 100 (from 200) auto cloaks when built
-- Added mute support to red console Syntax: /mute <PlayerName?> /unmute … 
+- Added mute support to red console Syntax: /mute <PlayerName?> /unmute ï¿½ 
 - Merl AOE increased (100->150) Diplomat AOE increased (90->150)
 - From BrainDamage: take command for idle players 
 - Added 'Prevent Excessive Share' gadget, fixes lost resources on take bug
@@ -933,13 +933,13 @@ T1 Ships Revamp
 29/11/2011
 
 -Better handling for most units with turninplace
--Fix t1 destroyer bad handling (by reverting to old behaivour, a combo of …
+-Fix t1 destroyer bad handling (by reverting to old behaivour, a combo of ï¿½
 -Torpedoes no longer hit hovers
 -Fix the Dominator hack
 -Added ability for maps to override engine start positions. Thanks zwzsg
--Add Updated air release gadget and new airlab fix gadget , and cmd_lstpos …
+-Add Updated air release gadget and new airlab fix gadget , and cmd_lstpos ï¿½
 -Fix problem with armbrtha hitsphere
--Updated Dynamic Collision Volume gadget to support dynamic per piece …
+-Updated Dynamic Collision Volume gadget to support dynamic per piece ï¿½
 -Update mex snap Widget
 -Viper and Pitbull script fix (thanks KingRaptor and Juzza)
 
@@ -1100,10 +1100,10 @@ T1 Ships Revamp
 No real changelog present, but instead: the changes in repository listed below.
 
     Readded commando after change 144.
-    Intimidator and Big Bertha gains more range from heights: …
+    Intimidator and Big Bertha gains more range from heights: ï¿½
     Improved Krogoth heatray effect / sound.
-    Fixed gadgets which were removed in commit 65 - Torpedo bombers can no …
-    Replaced take reminder widget with a far more efficient version. Probably …
+    Fixed gadgets which were removed in commit 65 - Torpedo bombers can no ï¿½
+    Replaced take reminder widget with a far more efficient version. Probably ï¿½
     Reimplemented coop mode. Probably works.
     Removed wobble from weapons that shouldn't have it
     Made Catapult spread more even and circular
@@ -1111,8 +1111,8 @@ No real changelog present, but instead: the changes in repository listed below.
     Berthas eject shell casing
     Increased size of brawler LUPS effect to make them noticable
     Add lups effect for armbrawl and corape and experimental effect for bladew
-    Removed damage entries against removed armor classes Renamed some armor …
-    Removed antibomber armorclass, boosted HP on Eradicator/Chainsaw to …
+    Removed damage entries against removed armor classes Renamed some armor ï¿½
+    Removed antibomber armorclass, boosted HP on Eradicator/Chainsaw to ï¿½
     Moved juno damage handling to a gadget (and removed the radar armorclass)
     Armordef fixes/ship class merge
     Add floating t2 flak's and adv torp launcher's to defensive range widget
@@ -1120,7 +1120,7 @@ No real changelog present, but instead: the changes in repository listed below.
     Add custom collision volumes for ajuno and cjuno
     Reverted [86], stumpy and raider turret turn rate reverted to 90.
     Karganeth model optimized, weaponvelocity reduced by 50%
-    Add extra files i missed on chnage [113] Beautified cafus model and …
+    Add extra files i missed on chnage [113] Beautified cafus model and ï¿½
     Beautified cafus model and removed unused piece 5 > 4
     Removed Commando pending a scripting fix
     Update lups_shockwaves.lua to reflect changes to weapondefname changes
@@ -1129,12 +1129,12 @@ No real changelog present, but instead: the changes in repository listed below.
     Heavy optimization of t1 scout planes and t1 and t2 fighters
     Updated metalspot finder
     Reduced EMP launcher range to that of berthas (6000->4000)
-    Precision bombers now quickly drop 5 bombs (to fix targeting of moving …
+    Precision bombers now quickly drop 5 bombs (to fix targeting of moving ï¿½
     Krogoth can kick small units only in sync with leg movement
     Antinukes no longer stockpile
     Reduced bertha/intimidator range 6200,6600 -> 4000
     Made antinuke energycost/buildtime ratios closer to normal T2 ratios
-    Hurricane + Phoenix -> Precision bombers (Same single-target damage, …
+    Hurricane + Phoenix -> Precision bombers (Same single-target damage, ï¿½
     Lowered plane cruise altitudes
     Fixed napalm effects
     Fixed preventdraw gadget
@@ -1144,8 +1144,8 @@ No real changelog present, but instead: the changes in repository listed below.
     Faction change UI now middle-mouse draggable
     Fixed division by zero errors in 2 COBs, my fault
     Added helpful widgets to mod
-    Implemented widget blacklisting for likely metal maker widgets (Regex: …
-    Customized collision volumes Dragon Teeth and common large wrecks …
+    Implemented widget blacklisting for likely metal maker widgets (Regex: ï¿½
+    Customized collision volumes Dragon Teeth and common large wrecks ï¿½
     Updated various widgets
     Removed energy drain from underwater T1 mexes
     Increased turret turn speed for Stumpys and Raiders 90->145 deg/s
@@ -1157,49 +1157,49 @@ No real changelog present, but instead: the changes in repository listed below.
     Removed storage from commanders, added base storage for teams.
     Added ingame faction change. Coop mode removed (potentially temporarily)
     Beautified and/or optimized several Kbot animations.
-    Better on/off animation for ARM M Makers (even though it's not used …
-    Custom collision volumes for LRPCs, T3 Labs, Moho Geos, ARM Fusion and …
+    Better on/off animation for ARM M Makers (even though it's not used ï¿½
+    Custom collision volumes for LRPCs, T3 Labs, Moho Geos, ARM Fusion and ï¿½
     Integrates chili also added some other essential widgets
     Removed energy drain from T1 mexes.
-    Rewrote passive builders, more efficient, more accurate. Also applies to …
+    Rewrote passive builders, more efficient, more accurate. Also applies to ï¿½
     Added mass limits to T1 transports to make fatboy/sumo untransportable
     Fixed out-of-map destoy gadget
     DGun now able to target units (Doesn't aim ahead)
-    Normalized idle autoheal. 1%/second after 30 seconds. Moved terraform from …
+    Normalized idle autoheal. 1%/second after 30 seconds. Moved terraform from ï¿½
     Some minor cleanup for a few wrecks
     Sumos can be napped when moving
-    Cleaned up lots of models using 3DO Builder's "Clean up model" …
-    Moved gunships to vtol armorclass, increased gunship HP +25% to counteract …
-    Added 3 second flight times for guided anti-air missiles (higher than the …
+    Cleaned up lots of models using 3DO Builder's "Clean up model" ï¿½
+    Moved gunships to vtol armorclass, increased gunship HP +25% to counteract ï¿½
+    Added 3 second flight times for guided anti-air missiles (higher than the ï¿½
     Changed vulcan script so that it will constantly spin when firing
     Increased all unit terraform speed 5x
-    Better collision volumes for LLTs, HLTs, Missile Towers, Shields, HLLT, …
+    Better collision volumes for LLTs, HLTs, Missile Towers, Shields, HLLT, ï¿½
     Custom collision volumes for T3 units (except Bantha)
     Better collision volumes for Toaster, Shiva and Sub Pens
-    Beautified animation for CORE T1 & T2 ships. Customized collision volumes …
+    Beautified animation for CORE T1 & T2 ships. Customized collision volumes ï¿½
     Made the flamethrower sound a bit more ear friendly
     Made ocean look bluer
     Made commanders untransportable by enemy
-    Beautified animation for ARM T2 ships. Customized collision volumes as …
+    Beautified animation for ARM T2 ships. Customized collision volumes as ï¿½
     Fixed starting resources always being 1000 regardless of setting.
-    Set smoothanim = false for all non-Kbots, negligible performance …
+    Set smoothanim = false for all non-Kbots, negligible performance ï¿½
     Metal Makers replaced by gadget-controlled Energy Converters.
     Some hax for a better dynamic collision volume for Pit Bull and Viper
     Missed the core Commander script, last commit had core A.K. instead.
     Optimized and improved animation of Commanders.
-    Optimized PeeWee? 19 -> 15 pieces, improved animation (sync with unit …
+    Optimized PeeWee? 19 -> 15 pieces, improved animation (sync with unit ï¿½
     bladewing optimization, 5->2 pieces
     Updated Custom Formations 2 to v3.3 (From v3.2)
-    Some more optimizations, improved walking animation, now in sync with …
+    Some more optimizations, improved walking animation, now in sync with ï¿½
     small speedup for unitMarker widget
-    Fixed some targeting bugs and added new dynamic collision volumes to some …
+    Fixed some targeting bugs and added new dynamic collision volumes to some ï¿½
     Make targeting of units behind wrecks and DTs better.
     Part of waterline fix.
     Custom collision volumes for all factories.
-    Fixed waterline tag for all ships, subs and some floating …
+    Fixed waterline tag for all ships, subs and some floating ï¿½
     Updated LUPS with GFX card detection for NVidia Quadro series.
     Replaced wake particles with nicer ones from CA/ZK
-    Optimized all PNG images with OptiPNG for smaller file size, no quality …
+    Optimized all PNG images with OptiPNG for smaller file size, no quality ï¿½
     Core vamp optimized 9->4 pieces
     Core AK optimized, 27->12 pieces
 
