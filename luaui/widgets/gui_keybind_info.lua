@@ -107,7 +107,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	local offset = 0.07		-- texture offset, because else gaps could show
 	
 	-- bottom left
-	if py <= 0 or px <= 0 or (bl ~= nil and bl == 0) then o = 0.5 else o = offset end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-o)
@@ -117,7 +117,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom right
-	if py <= 0 or sx >= vsx or (br ~= nil and br == 0) then o = 0.5 else o = offset end
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-o)
@@ -127,7 +127,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
-	if sy >= vsy or px <= 0 or (tl ~= nil and tl == 0)  then o = 0.5 else o = offset end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-o)
@@ -137,7 +137,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
-	if sy >= vsy or sx >= vsx or (tr ~= nil and tr == 0)  then o = 0.5 else o = offset end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-o)
@@ -156,7 +156,7 @@ end
 
 function DrawButton()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	RectRound(0,0,4,1,0.25)
+	RectRound(0,0,4,1.05,0.25, 2,2,0,0)
 	local vertices = {
 		{v = {0, 1, 0}},
 		{v = {0, 0, 0}},
@@ -337,7 +337,7 @@ function widget:MousePress(x, y, button)
 		
 		tx = (x - posX*vsx)/(17*widgetScale)
 		ty = (y - posY*vsy)/(17*widgetScale)
-		if tx < 0 or tx > 4 or ty < 0 or ty > 1 then return false end
+		if tx < 0 or tx > 4 or ty < 0 or ty > 1.05 then return false end
 		
 		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
 		show = not show

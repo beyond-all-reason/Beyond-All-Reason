@@ -89,9 +89,9 @@ function widget:GameStart()
 end
 
 -- button
-local textSize = 0.75
-local textMargin = 0.25
-local lineWidth = 0.0625
+local textSize		= 0.75
+local textMargin	= 0.25
+local lineWidth		= 0.0625
 
 local posX = 0.35
 local posY = 0
@@ -119,7 +119,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	local offset = 0.07		-- texture offset, because else gaps could show
 	
 	-- bottom left
-	if py <= 0 or px <= 0 or (bl ~= nil and bl == 0) then o = 0.5 else o = offset end
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-o)
@@ -129,7 +129,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom right
-	if py <= 0 or sx >= vsx or (br ~= nil and br == 0) then o = 0.5 else o = offset end
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-o)
@@ -139,7 +139,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
-	if sy >= vsy or px <= 0 or (tl ~= nil and tl == 0)  then o = 0.5 else o = offset end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-o)
@@ -149,7 +149,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
-	if sy >= vsy or sx >= vsx or (tr ~= nil and tr == 0)  then o = 0.5 else o = offset end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-o)
@@ -167,7 +167,7 @@ end
 
 function DrawButton()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	RectRound(0,0,4.5,1,0.25)
+	RectRound(0,0,4.5,1.05,0.25, 2,2,0,0)
 	local vertices = {
 		{v = {0, 1, 0}},
 		{v = {0, 0, 0}},
@@ -182,6 +182,160 @@ local versionOffsetX = 0
 local versionOffsetY = 14
 local versionFontSize = 16
 
+function DrawSidebar(x,y,width,height)
+	local fontSize		= versionFontSize
+	local fontOffsetY	= versionOffsetY
+	local fontOffsetX	= versionOffsetX
+	
+	-- background
+	gl.Color(0.72,0.5,0.12,0.3)
+	RectRound(x,y-height,x+width,y,6)
+	
+	-- version links
+	if changelogFile then
+		font:Begin()
+		font:SetOutlineColor(0.25,0.2,0,0.3)
+		font:SetTextColor(1,0.8,0.1,1)
+		local lineKey = 1
+		local j = 0
+		while j < 22 do	
+			if ((fontSize+fontOffsetY)*j)+4 > height then
+				break;
+			end
+			if versions[lineKey] == nil then
+				break;
+			end
+			local line = changelogLines[versions[lineKey]]
+			
+			-- version button title
+			line = " " .. string.match(line, '( %d*%d.?%d+)')
+			font:Print(line, x+9+fontOffsetX, y-((fontSize+fontOffsetY)*j)-20, fontSize, "on")
+			
+			j = j + 1
+			lineKey = lineKey + 1
+		end
+		font:End()
+	end
+end
+
+
+function DrawTextarea(x,y,width,height,scrollbar)
+	local scrollbarOffsetTop 		= 18	-- note: wont add the offset to the bottom, only to top
+	local scrollbarOffsetBottom 	= 12	-- note: wont add the offset to the top, only to bottom
+	local scrollbarMargin    		= 10
+	local scrollbarWidth     		= 8
+	local scrollbarPosWidth  		= 4
+	local scrollbarPosMinHeight 	= 8
+	local scrollbarBackgroundColor	= {0,0,0,0.24	}
+	local scrollbarBarColor			= {1,1,1,0.08}
+	
+	local fontSizeTitle				= 17		-- is version number
+	local fontSizeDate				= 13
+	local fontSizeLine				= 15
+	
+	local fontColorTitle			= {1,1,1,1}
+	local fontColorDate				= {0.66,0.88,0.66,1}
+	local fontColorLine				= {0.8,0.77,0.74,1}
+	local fontColorLineBullet		= {0.9,0.6,0.2,1}
+	
+	local textRightOffset = scrollbar and scrollbarMargin+scrollbarWidth+scrollbarWidth or 0
+	local maxLines = math.floor(height-5/fontSizeLine)
+	
+	-- textarea scrollbar
+	if scrollbar then
+		if (totalChangelogLines > maxLines or startLine > 1) then	-- only show scroll above X lines
+			local scrollbarTop       = y-scrollbarOffsetTop-scrollbarMargin-(scrollbarWidth-scrollbarPosWidth)
+			local scrollbarBottom    = y-scrollbarOffsetBottom-height+scrollbarMargin+(scrollbarWidth-scrollbarPosWidth)
+			local scrollbarPosHeight = math.max(((height-scrollbarMargin-scrollbarMargin) / totalChangelogLines) * ((height-scrollbarMargin-scrollbarMargin) / 25), scrollbarPosMinHeight)
+			local scrollbarPos       = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine-1) / totalChangelogLines)
+			scrollbarPos             = scrollbarPos + ((startLine-1) / totalChangelogLines) * scrollbarPosHeight	-- correct position taking position bar height into account
+
+			-- background
+			gl.Color(scrollbarBackgroundColor)
+			RectRound(
+				x+width-scrollbarMargin-scrollbarWidth,
+				scrollbarBottom-(scrollbarWidth-scrollbarPosWidth),
+				x+width-scrollbarMargin,
+				scrollbarTop+(scrollbarWidth-scrollbarPosWidth),
+				scrollbarWidth/2
+			)
+			-- bar
+			gl.Color(scrollbarBarColor)
+			RectRound(
+				x+width-scrollbarMargin-scrollbarWidth + (scrollbarWidth - scrollbarPosWidth),
+				scrollbarPos,
+				x+width-scrollbarMargin-(scrollbarWidth - scrollbarPosWidth),
+				scrollbarPos - (scrollbarPosHeight),
+				scrollbarPosWidth/2
+			)
+		end
+	end
+	
+	-- draw textarea
+	if changelogFile then
+		font:Begin()
+		local lineKey = startLine
+		local j = 1
+		while j < maxLines do	-- maxlines is not exact, just a failsafe
+			if (fontSizeTitle)*j > height then
+				break;
+			end
+			if changelogLines[lineKey] == nil then
+				break;
+			end
+			
+			local line = changelogLines[lineKey]
+			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
+				-- date line
+				line = "  " .. line
+				font:SetTextColor(fontColorDate)
+				font:Print(line, x, y-fontSizeTitle*j, fontSizeDate, "n")
+			elseif string.find(line, '^(%d*%d.?%d+)') then
+				-- version line
+				local versionStrip = string.match(line, '( %d*%d.?%d+)')
+				if versionStrip ~= nil then
+					line = " " .. versionStrip
+ 				else
+					line = " " .. line
+				end
+				font:SetTextColor(fontColorTitle)
+				font:Print(line, x-9, y-fontSizeTitle*j, fontSizeTitle, "n")
+				
+			else
+				font:SetTextColor(fontColorLine)
+				if string.find(line, '^(-)') then
+					-- bulletpointed line
+					local firstLetterPos = 2
+					if string.find(line, '^(- )') then
+						firstLetterPos = 3
+					end
+					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
+					line, numLines = font:WrapText(line, (width - 40 - textRightOffset)*(loadedFontSize/fontSizeLine))
+					if (fontSizeTitle)*(j+numLines-1) > height then 
+						break;
+					end
+					font:Print("   - ", x, y-fontSizeTitle*j, fontSizeLine, "n")
+					font:Print(line, x+26, y-fontSizeTitle*j, fontSizeLine, "n")
+				else
+					-- line
+					line = "  " .. line
+					line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
+					if (fontSizeTitle)*(j+numLines-1) > height then 
+						break;
+					end
+					font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				end
+				j = j + (numLines - 1)
+			end
+
+			j = j + 1
+			lineKey = lineKey + 1
+		end
+		font:End()
+	end
+end
+
+
 function DrawWindow()
     local vsx,vsy = Spring.GetViewGeometry()
     local x = screenX --rightwards
@@ -194,157 +348,34 @@ function DrawWindow()
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y+24,6)
 	
-	-- title background
-    local title = "Changelog"
-	local titleFontSize = 18
-    gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin, y+24+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+61, 8, 1,1,0,0)
-	
-	-- title
-	font:Begin()
-	font:SetTextColor(1,1,1,1)
-	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
-	
-	
-	-- version links
-	gl.Color(0.72,0.5,0.12,0.3)
-	RectRound(x,y-screenHeight,x+70,y+24,6)
-	
+	-- close button
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
 	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
 	gl.Texture(false)
 	
-	if changelogFile then
-		local lineKey = 1
-		local j = 0
-		font:SetOutlineColor(0.25,0.2,0,0.3)
-		font:SetTextColor(1,0.8,0.1,1)
-		while j < 22 do	
-			if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight) then
-				break;
-			end
-			if versions[lineKey] == nil then
-				break;
-			end
-			local line = changelogLines[versions[lineKey]]
-			
-			-- version button title
-			line = " " .. string.match(line, '( %d*%d.?%d+)')
-			font:Print(line, x+9+versionOffsetX, y-((versionFontSize+versionOffsetY)*j)+4, versionFontSize, "on")
-			
-			j = j + 1
-			lineKey = lineKey + 1
-		end
-	end
+	-- title
+    local title = "Changelog"
+	local titleFontSize = 18
+    gl.Color(0,0,0,0.8)
+	RectRound(x-bgMargin, y+24+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+61, 8, 1,1,0,0)
+	font:Begin()
+	font:SetTextColor(1,1,1,1)
+	font:SetOutlineColor(0,0,0,0.4)
+	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
+	font:End()
 	
-	-- draw textarea
-	local textareaOffsetX = 90
-	local textareaOffsetY = 0
-	local textareaHeight = (screenHeight-10-textareaOffsetY)
-	local fontSizeLine = 15
-	local fontSizeTitle = 17
-	local maxLines = math.floor(textareaHeight-5/fontSizeLine)
-	local textareaY = y - textareaOffsetY
-	if changelogFile then
-		local lineKey = startLine
-		local j = 0
-		local width = 0
-		while j < maxLines do	-- maxlines is not exact, just a failsafe
-			if (fontSizeTitle)*j > textareaHeight then
-				break;
-			end
-			if changelogLines[lineKey] == nil then
-				break;
-			end
-			
-			local line = changelogLines[lineKey]
-			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
-				-- date line
-				line = "  " .. line
-				font:SetTextColor(0.66,0.9,0.66,1)
-				font:Print(line, x+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
-			elseif string.find(line, '^(%d*%d.?%d+)') then
-				-- version line
-				local versionStrip = string.match(line, '( %d*%d.?%d+)')
-				if versionStrip ~= nil then
-					line = " " .. versionStrip
- 				else
-					line = " " .. line
-				end
-				font:SetTextColor(1,1,1,1)
-				font:Print(line, x-9+textareaOffsetX, textareaY-((fontSizeTitle)*j)+5, fontSizeTitle, "n")
-				
-			else
-				font:SetTextColor(0.8,0.77,0.74,1)
-				if string.find(line, '^(-)') then
-					-- bulletpointed line
-					local firstLetterPos = 2
-					if string.find(line, '^(- )') then
-						firstLetterPos = 3
-					end
-					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
-					line, numLines = font:WrapText(line, (screenWidth - textareaOffsetX - 65)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > textareaHeight then 
-						break;
-					end
-					font:Print("   - ", x+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
-					font:Print(line, x+26+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
-				else
-					-- line
-					line = "  " .. line
-					line, numLines = font:WrapText(line, (screenWidth - textareaOffsetX - 25)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > textareaHeight then 
-						break;
-					end
-					font:Print(line, x+textareaOffsetX, textareaY-(fontSizeTitle)*j, fontSizeLine, "n")
-				end
-				j = j + (numLines - 1)
-			end
-
-			j = j + 1
-			lineKey = lineKey + 1
-		end
-		font:End()
-	end
-	-- textarea scrollbar
-	if (totalChangelogLines > maxLines or startLine > 1) then	-- only show scroll above X lines
-		local scrollbarMargin    = 10
-		local scrollbarWidth     = 8
-		local scrollbarPosWidth  = 4
-		local scrollbarOffsetY   = 0	-- note: wont add the offset to the bottom, only to top
-		local scrollbarTop       = textareaY-scrollbarOffsetY-scrollbarMargin
-		local scrollbarBottom    = textareaY-screenHeight+textareaOffsetY+scrollbarMargin
-		local scrollbarPosHeight = math.max(((screenHeight+textareaOffsetY-scrollbarMargin-scrollbarMargin) / totalChangelogLines) * ((screenHeight+textareaOffsetY-scrollbarMargin-scrollbarMargin) / 25), 15)
-		local scrollbarPos       = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine-1) / totalChangelogLines)
-		scrollbarPos             = scrollbarPos + ((startLine-1) / totalChangelogLines) * scrollbarPosHeight	-- correct position taking position bar height into account
-
-		-- background
-		gl.Color(0,0,0,0.24)
-		RectRound(
-			x+screenWidth-scrollbarMargin-scrollbarWidth,
-			scrollbarBottom,
-			x+screenWidth-scrollbarMargin,
-			scrollbarTop,
-			scrollbarWidth/2
-		)
-		-- bar
-		gl.Color(1,1,1,0.08)
-		RectRound(
-			x+screenWidth-scrollbarMargin-scrollbarWidth + (scrollbarWidth - scrollbarPosWidth),
-			scrollbarPos,
-			x+screenWidth-scrollbarMargin-(scrollbarWidth - scrollbarPosWidth),
-			scrollbarPos - (scrollbarPosHeight),
-			scrollbarPosWidth/2
-		)
-	end
+	-- version links
+	DrawSidebar(x, y+24, 70, screenHeight+24)
+	
+	-- textarea
+	DrawTextarea(x+90, y+13, screenWidth-90, screenHeight, 1)
 end
 
 
 function widget:GameFrame(n)
 
-	if n>endPosX and posX > endPosX then
+	if false and n>endPosX and posX > endPosX then
 		posX = posX - 0.005
 		if posX < 0 then posX = 0 end
 		
@@ -567,7 +598,7 @@ function widget:MousePress(x, y, button)
     else
 		tx = (x - posX*vsx)/(17*widgetScale)
 		ty = (y - posY*vsy)/(17*widgetScale)
-		if tx < 0 or tx > 4.5 or ty < 0 or ty > 1 then return false end
+		if tx < 0 or tx > 4.5 or ty < 0 or ty > 1.05 then return false end
 		
 		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
 		show = not show
