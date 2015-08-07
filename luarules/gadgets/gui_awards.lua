@@ -323,6 +323,7 @@ local glTexRect = gl.TexRect
 local GL_LINE_LOOP = GL.LINE_LOOP
 local glText = gl.Text
 
+local vsx,vsy = Spring.GetViewGeometry()
 
 local drawAwards = false 
 local cx,cy --coords for center of screen
@@ -378,6 +379,14 @@ function gadget:Initialize()
 	
 end
 
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx,vsy = viewSizeX,viewSizeY
+	if drawAwards then
+		
+	end
+end
+
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
 						fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 
 						effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 
@@ -387,7 +396,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						cowAward)
 
 	--fix geometry
-	local vsx,vsy = Spring.GetViewGeometry()
+	vsx,vsy = Spring.GetViewGeometry()
     cx = vsx/2 
     cy = vsy/2 
 	bx = cx - w/2
@@ -403,7 +412,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	Spring.SendLuaRulesMsg(awardsMsg)
     
 	--create awards
-	CreateBackground()				
+	CreateBackground()
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Efficient use of units',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
@@ -420,6 +429,7 @@ end
 
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
+	
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
