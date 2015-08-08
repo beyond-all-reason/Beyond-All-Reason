@@ -51,6 +51,7 @@ Others:
 9.00 -> 9.01
 28/07/2015
 
+- Added "show orders" widget: SHIFT+SPACE: shows all active orders on the map
 - Fixed upsidedown hovertank unitpic + a few unprocessed unitpics.
 - BA LOS colors widget: remembers ; mode + fix for non english layouts + color presets + changed LOS commands to /losradar and /loscolor
 - Remove "active/passive" commands handling from immobile builder widget (it was moved to "passive builders" widget.
