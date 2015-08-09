@@ -226,15 +226,14 @@ end
 
 function widget:TweakMouseMove(mx, my, dx, dy)
     if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then 
-		xPos = xPos + dx 
-		processGuishader()
-		createBackgroundList()
+		xRelPos = xRelPos + dx/vsx
 	end
     if yPos + dy >= -1 and yPos + panelHeight + dy - 1<= vsy then 
-		yPos = yPos + dy
-		processGuishader()
-		createBackgroundList()
+		yRelPos = yRelPos + dy/vsy
 	end
+	xPos, yPos = xRelPos * vsx,yRelPos * vsy
+	processGuishader()
+	createBackgroundList()
 end
 
 function widget:GetConfigData()
