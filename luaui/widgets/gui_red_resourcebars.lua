@@ -306,8 +306,8 @@ local function updatebar(b,res)
 		b.bar.sx = barbacksx
 	end
 	
-	b.income.caption = "+ "..short(r[4])
-	b.pull.caption = "- "..short(r[3])
+	b.income.caption = "+ "..short(r[4],(r[4] < 10 and 1 or 0))
+	b.pull.caption = "- "..short(r[3],(r[3] < 10 and 1 or 0))
 	b.current.caption = short(r[1])
 	b.storage.caption = short(r[2])
 	
@@ -319,7 +319,7 @@ local function updatebar(b,res)
 	
 	if (r[3]~=r[5]) then
 		b.expense.active = nil --activate
-		b.expense.caption = "  - "..short(r[5])
+		b.expense.caption = "  - "..short(r[5],(r[5] < 10 and 1 or 0))
 	else
 		b.expense.active = false
 	end
