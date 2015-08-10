@@ -8,7 +8,7 @@ function widget:GetInfo()
     date      = "29 December 2008",
     license   = "GNU LGPL, v2.1 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
@@ -110,7 +110,7 @@ function widget:DrawScreen()
 			glColor(curr[1][1], curr[1][2], curr[1][3], alpha)
 			if (sx >= 0 and sy >= 0
 					and sx <= vsx and sy <= vsy) then
-				--in screen
+				--[[in screen
 				local vertices = {
 					{v = {sx, sy - highlightLineMin, 0}},
 					{v = {sx, sy - highlightLineMax, 0}},
@@ -123,7 +123,7 @@ function widget:DrawScreen()
 				}
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 				glRect(sx - highlightSize, sy - highlightSize, sx + highlightSize, sy + highlightSize)
-				glShape(GL_LINES, vertices)
+				glShape(GL_LINES, vertices)]]--
 			else
 				--out of screen
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
