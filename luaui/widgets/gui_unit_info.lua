@@ -2,7 +2,7 @@
 function widget:GetInfo()
 return {
 	name    = "Unit Info",
-	desc    = "Select a single unit and press K. Or use a command: /unitinfo armcom.",
+	desc    = "Select a single unit and press U. Or use a command: /unitinfo armcom.",
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
@@ -10,7 +10,7 @@ return {
 	enabled = true,
 }
 end
-local triggerKey = 107	-- 107 = K
+local triggerKey = 117	-- 117 = U
 
 local show = false
 
@@ -63,6 +63,7 @@ local glScale = gl.Scale
 local GL_FILL = GL.FILL
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
+local sformat = string.format
 
 local widgetScale = 1
 local endPosX = 0.1
@@ -92,16 +93,7 @@ function widget:GameStart()
     gameStarted = true
 end
 
--- button
-local textSize		= 0.75
-local textMargin	= 0.25
-local lineWidth		= 0.0625
-
-local posX = 0.4
-local posY = 0
 local showOnceMore = false		-- used because of GUI shader delay
-local buttonGL
-local startPosX = posX
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
@@ -174,6 +166,19 @@ local versionOffsetX = 0
 local versionOffsetY = 14
 local versionFontSize = 16
 local rot = 0
+
+local function short(n,f)
+	if (f == nil) then
+		f = 0
+	end
+	if (n > 9999999) then
+		return sformat("%."..f.."fm",n/1000000)
+	elseif (n > 9999) then
+		return sformat("%."..f.."fk",n/1000)
+	else
+		return sformat("%."..f.."f",n)
+	end
+end
 
 
 local function SetupModelDrawing()
@@ -265,6 +270,104 @@ function DrawUnit(x,y,width,height)
 	end
 end
 
+function DrawUnitInfo(x,y,width)
+	
+	if currentUnitDefID then
+		-- info
+		local uDef = UnitDefs[currentUnitDefID]
+		x = x + 10
+		x2 = x + width - 20
+		y = y + 10
+		local fontSize = 14
+		local yOffset = 0
+		font:Begin()
+		font:SetTextColor(0.8,0.77,0.74,1)
+		font:Print("Metal\nEnergy\n\nHealth", x, y-yOffset, fontSize, "n")
+		font:Print(uDef.metalCost, x2, y-yOffset, fontSize, "rn")
+		yOffset = yOffset + fontSize
+		font:Print(uDef.energyCost, x2, y-yOffset, fontSize, "rn")
+		yOffset = yOffset + fontSize + fontSize
+		font:Print(uDef.health, x2, y-yOffset, fontSize, "rn")
+		yOffset = yOffset + fontSize + fontSize
+		
+		local value = 0
+		if uDef.energyUpkeep < 0 then
+			value = (0-uDef.energyUpkeep < 1 and short(0-uDef.energyUpkeep,1) or 0-uDef.energyUpkeep)
+			font:Print("Energy +", x, y-yOffset, fontSize, "n")
+			font:Print(value, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		elseif uDef.energyMake > 0 then
+			value = (uDef.energyMake < 1 and short(uDef.energyMake,1) or uDef.energyMake)
+			font:Print("Energy +", x, y-yOffset, fontSize, "n")
+			font:Print(value, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		end
+		if uDef.metalUpkeep < 0 then
+			value = (0-uDef.metalUpkeep < 1 and short(0-uDef.metalUpkeep,1) or 0-uDef.metalUpkeep)
+			font:Print("Metal +", x, y-yOffset, fontSize, "n")
+			font:Print(value, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		elseif uDef.metalMake > 0 then
+			value = (uDef.metalMake < 1 and short(uDef.metalMake,1) or uDef.metalMake)
+			font:Print("Metal +", x, y-yOffset, fontSize, "n")
+			font:Print(value, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		end
+		if uDef.buildSpeed > 0 then
+			font:Print("BuildSpeed", x, y-yOffset, fontSize, "n")
+			font:Print(uDef.buildSpeed, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		end
+		if uDef.energyStorage > 0 or uDef.metalStorage > 0 then
+			if uDef.energyStorage > 0 then
+				font:Print("Energy store", x, y-yOffset, fontSize, "n")
+				font:Print(uDef.energyStorage, x2, y-yOffset, fontSize, "rn")
+				yOffset = yOffset + fontSize
+			end
+			if uDef.metalStorage > 0 then
+				font:Print("Metal store", x, y-yOffset, fontSize, "n")
+				font:Print(uDef.metalStorage, x2, y-yOffset, fontSize, "rn")
+				yOffset = yOffset + fontSize
+			end
+			yOffset = yOffset + fontSize
+		end
+		if uDef.autoHeal > 0 then
+			font:Print("AutoHeal", x, y-yOffset, fontSize, "n")
+			font:Print(uDef.autoHeal, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		end
+		if uDef.cloakCost > 0 then
+			font:Print("Cloak cost", x, y-yOffset, fontSize, "n")
+			font:Print(uDef.cloakCost, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize
+			if uDef.cloakCostMoving ~= uDef.cloakCost then
+				font:Print("Cloak moving", x, y-yOffset, fontSize, "n")
+				font:Print(uDef.cloakCostMoving, x2, y-yOffset, fontSize, "rn")
+				yOffset = yOffset + fontSize
+			end
+			yOffset = yOffset + fontSize
+		end
+		if table.getn(uDef.buildOptions) > 0 then
+			font:Print("Build options", x, y-yOffset, fontSize, "n")
+			font:Print(table.getn(uDef.buildOptions), x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + fontSize
+		end
+		if table.getn(uDef.weapons) > 0 then
+			local uWeps = uDef.weapons
+			font:Print((#uWeps > 1 and "Weapons:" or "Weapon:"), x, y-yOffset, fontSize, "n")
+			yOffset = yOffset + fontSize
+			
+			for i = 1, #uWeps do
+				local wDefID = uWeps[i].weaponDef
+				font:Print("  "..WeaponDefs[wDefID].type, x, y-yOffset, fontSize, "n")
+				yOffset = yOffset + fontSize
+			end
+		end
+		
+		font:End()
+	end
+end
+
 
 function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarOffsetTop 		= 18	-- note: wont add the offset to the bottom, only to top
@@ -321,6 +424,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	-- draw textarea
 	if fileContent then
 		font:Begin()
+		font:SetTextColor(fontColorLine)
 		local lineKey = startLine
 		local j = 1
 		while j < maxLines do	-- maxlines is not exact, just a failsafe
@@ -332,48 +436,15 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			end
 			
 			local line = fileContentLines[lineKey]
-			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
-				-- date line
-				line = "  " .. line
-				font:SetTextColor(fontColorDate)
-				font:Print(line, x, y-fontSizeTitle*j, fontSizeDate, "n")
-			elseif string.find(line, '^(%d*%d.?%d+)') then
-				-- version line
-				local versionStrip = string.match(line, '( %d*%d.?%d+)')
-				if versionStrip ~= nil then
-					line = " " .. versionStrip
- 				else
-					line = " " .. line
-				end
-				font:SetTextColor(fontColorTitle)
-				font:Print(line, x-9, y-fontSizeTitle*j, fontSizeTitle, "n")
-				
-			else
-				font:SetTextColor(fontColorLine)
-				if string.find(line, '^(-)') then
-					-- bulletpointed line
-					local firstLetterPos = 2
-					if string.find(line, '^(- )') then
-						firstLetterPos = 3
-					end
-					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
-					line, numLines = font:WrapText(line, (width - 40 - textRightOffset)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > height then 
-						break;
-					end
-					font:Print("   - ", x, y-fontSizeTitle*j, fontSizeLine, "n")
-					font:Print(line, x+26, y-fontSizeTitle*j, fontSizeLine, "n")
-				else
-					-- line
-					line = "  " .. line
-					line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > height then 
-						break;
-					end
-					font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
-				end
-				j = j + (numLines - 1)
+			
+			-- line
+			line = "" .. line
+			line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
+			if (fontSizeTitle)*(j+numLines-1) > height then 
+				break;
 			end
+			font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
+			j = j + (numLines - 1)
 
 			j = j + 1
 			lineKey = lineKey + 1
@@ -421,7 +492,10 @@ function DrawWindow()
 	font:End()
 	
 	-- textarea
-	DrawTextarea(x+160, y-10, screenWidth-160, screenHeight-22, 1)
+	DrawTextarea(x+170, y-10, screenWidth-170, screenHeight-22, 1)
+	
+	-- unit info
+	DrawUnitInfo(x, y-183, 150)
 end
 
 local sec = 0
@@ -495,8 +569,9 @@ function widget:GetTooltip(mx, my)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
+	--Spring.Echo(key)
 	if key == triggerKey then
-		if spGetSelectedUnitsCount() == 1 then
+		if spGetSelectedUnitsCount() >= 1 then
 			local udefID = spGetUnitDefID(spGetSelectedUnits()[1])
 			if currentUnitDefID == udefID then 
 				show = not show 
@@ -594,13 +669,6 @@ function widget:MousePress(x, y, button)
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
 		end
-    else
-		tx = (x - posX*vsx)/(17*widgetScale)
-		ty = (y - posY*vsy)/(17*widgetScale)
-		if tx < 0 or tx > 4.5 or ty < 0 or ty > 1.05 then return false end
-		
-		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
-		show = not show
     end
 end
 
