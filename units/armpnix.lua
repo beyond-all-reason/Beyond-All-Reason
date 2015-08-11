@@ -2,7 +2,7 @@ return {
 	armpnix = {
 		acceleration = 0.0023,
 		brakerate = 0.035,
-		buildcostenergy = 18799,
+		buildcostenergy = 16929,
 		buildcostmetal = 244,
 		buildpic = "ARMPNIX.DDS",
 		buildtime = 22064,
@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1020,
 		maxslope = 10,
-		maxvelocity = 9.37,
+		maxvelocity = 8.6,
 		maxwaterdepth = 0,
 		name = "Phoenix",
 		noautofire = true,

@@ -2,7 +2,7 @@ return {
 	corhurc = {
 		acceleration = 0.02,
 		brakerate = 0.035,
-		buildcostenergy = 31323,
+		buildcostenergy = 28193,
 		buildcostmetal = 334,
 		buildpic = "CORHURC.DDS",
 		buildtime = 36461,
@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1371,
 		maxslope = 10,
-		maxvelocity = 9,
+		maxvelocity = 8.28,
 		maxwaterdepth = 0,
 		name = "Hurricane",
 		noautofire = true,
