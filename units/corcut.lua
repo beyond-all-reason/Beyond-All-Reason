@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		cansubmerge = true,
 		category = "ALL MOBILE WEAPON VTOL ANTIFLAME ANTIEMG ANTILASER NOTLAND NOTSUB NOTSHIP NOTHOVER",
-		collide = false,
+		collide = true,
 		cruisealt = 100,
 		description = "Seaplane Gunship",
 		energymake = 0.6,
