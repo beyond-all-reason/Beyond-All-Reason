@@ -9,7 +9,7 @@ return {
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
-		collide = false,
+		collide = true,
 		cruisealt = 60,
 		description = "Light Gunship",
 		energyuse = 0.8,
