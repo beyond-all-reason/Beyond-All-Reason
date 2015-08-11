@@ -1,4 +1,15 @@
-﻿9.03 -> 9.04
+﻿9.04 -> 9.05
+11/08/2015
+
+- metalmakers: generate around 16.5% less metal
+- added widget: "unit info" -> select unit and press U, or use /unitinfo armcom
+
+- wind display remembers position again
+- resource bars show decimals again for a in/out value lower than 10
+- point tracker: disabled by default, and removed in screen drawing
+
+
+9.03 -> 9.04
 07/08/2015
 
 Balance changes:
