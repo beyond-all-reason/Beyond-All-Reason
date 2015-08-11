@@ -84,6 +84,9 @@ function widget:ViewResize()
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
   if windowDlist then gl.DeleteList(windowDlist) end
+  if show then
+	windowDlist = gl.CreateList(DrawWindow)
+  end
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -472,6 +475,9 @@ function DrawWindow()
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
+	-- side area
+	gl.Color(0.33,0.33,0.33,0.2)
+	RectRound(x,y-screenHeight,x+150,y,6)
 	
 	-- close button
     gl.Color(1,1,1,1)
