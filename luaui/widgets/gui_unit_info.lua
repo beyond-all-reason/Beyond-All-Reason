@@ -410,7 +410,7 @@ function DrawWindow()
 	
 	-- title
 	local unitUd = UnitDefs[currentUnitDefID]
-    local title = (unitUd['name'] or "").."      "..(unitUd['tooltip'] or "")
+    local title = (unitUd['name'] or "").."      "..(unitUd['humanName'] or "").."      "..(unitUd['tooltip'] or "")
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
 	RectRound(x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37, 8, 1,1,0,0)
@@ -495,12 +495,16 @@ function widget:GetTooltip(mx, my)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	if key == triggerKey and spGetSelectedUnitsCount() == 1 then
-		local udefID = spGetUnitDefID(spGetSelectedUnits()[1])
-		if currentUnitDefID == udefID then 
-			show = not show 
+	if key == triggerKey then
+		if spGetSelectedUnitsCount() == 1 then
+			local udefID = spGetUnitDefID(spGetSelectedUnits()[1])
+			if currentUnitDefID == udefID then 
+				show = not show 
+			else
+				loadUnit(udefID)
+			end
 		else
-			loadUnit(udefID)
+			show = false
 		end
 	end
 end
