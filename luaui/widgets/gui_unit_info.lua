@@ -410,7 +410,7 @@ function DrawWindow()
 	
 	-- title
 	local unitUd = UnitDefs[currentUnitDefID]
-    local title = (unitUd['name'] or "").."      "..(unitUd['humanName'] or "").."      "..(unitUd['tooltip'] or "")
+    local title = (unitUd['name'] or "")..(unitUd['humanName'] and "      "..unitUd['humanName'] or "")..(unitUd['humanName'] ~= unitUd['tooltip'] and "      "..unitUd['tooltip'] or "")
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
 	RectRound(x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37, 8, 1,1,0,0)
