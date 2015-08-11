@@ -1,8 +1,8 @@
 
 function widget:GetInfo()
 return {
-	name    = "Changelog Info",
-	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
+	name    = "Unit Info",
+	desc    = "Select a single unit and press K. Or use a command: /unitinfo armcom.",
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
@@ -10,16 +10,15 @@ return {
 	enabled = true,
 }
 end
+local triggerKey = 107	-- 107 = K
 
---local show = true
+local show = false
 
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
-
-local changelogFile = VFS.LoadFile("changelog.txt")
 
 local bgMargin = 6
 
@@ -33,6 +32,7 @@ local customScale = 1
 
 local startLine = 1
 
+local rot = 0
 local vsx,vsy = Spring.GetViewGeometry()
 local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
@@ -65,20 +65,24 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local endPosX = 0.05
+local endPosX = 0.1
 local vsx, vsy = Spring.GetViewGeometry()
 
-local versions = {}
-local changelogLines = {}
-local totalChangelogLines = 0
+local unitNames = {}
+local fileContentLines = {}
+local totalfileContentLines = 0
+
+local spGetSelectedUnits		= Spring.GetSelectedUnits
+local spGetSelectedUnitsCount	= Spring.GetSelectedUnitsCount
+local spGetUnitDefID			= Spring.GetUnitDefID
+
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (screenWidth/2)
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-  if changelogList then gl.DeleteList(changelogList) end
-  changelogList = gl.CreateList(DrawWindow)
+  if windowDlist then gl.DeleteList(windowDlist) end
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -93,7 +97,7 @@ local textSize		= 0.75
 local textMargin	= 0.25
 local lineWidth		= 0.0625
 
-local posX = 0.35
+local posX = 0.4
 local posY = 0
 local showOnceMore = false		-- used because of GUI shader delay
 local buttonGL
@@ -165,66 +169,99 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.Texture(false)
 end
 
-function DrawButton()
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	RectRound(0,0,4.5,1.05,0.25, 2,2,0,0)
-	local vertices = {
-		{v = {0, 1, 0}},
-		{v = {0, 0, 0}},
-		{v = {1, 0, 0}},
-	}
-	glShape(GL_LINE_STRIP, vertices)
-    glText("Changelog", textMargin, textMargin, textSize, "no")
-end
-
 
 local versionOffsetX = 0
 local versionOffsetY = 14
 local versionFontSize = 16
+local rot = 0
 
-local versionQuickLinks = {}
-function DrawSidebar(x,y,width,height)
-	local fontSize		= versionFontSize
-	local fontOffsetY	= versionOffsetY
-	local fontOffsetX	= versionOffsetX
+
+local function SetupModelDrawing()
+  gl.DepthTest(true) 
+  gl.DepthMask(true)
+  gl.Culling(GL.FRONT)
+  gl.Lighting(true)
+  gl.Blending(false)
+  gl.Material({
+    ambient  = { 1.0, 1.0, 1.0, 1.0 },
+    diffuse  = { 1.0, 1.0, 1.0, 1.0 },
+    emission = { 0.0, 0.0, 0.0, 1.0 },
+    specular = { 0.15, 0.15, 0.15, 1.0 },
+    shininess = 8.0
+  })
+end
+local function RevertModelDrawing()
+  gl.Blending(true)
+  gl.Lighting(false)
+  gl.Culling(false)
+  gl.DepthMask(false)
+  gl.DepthTest(false)
+end
+
+local function CenterUnitDef(unitDefID, width, height)
+  local ud = UnitDefs[unitDefID] 
+  if (not ud) then
+    return
+  end
+  if (not ud.dimensions) then
+    ud.dimensions = Spring.GetUnitDefDimensions(unitDefID)
+  end
+  if (not ud.dimensions) then
+    return
+  end
+
+  local d = ud.dimensions
+  local xSize = (d.maxx - d.minx)
+  local ySize = (d.maxy - d.miny)
+  local zSize = (d.maxz - d.minz)
+
+  local hSize -- maximum horizontal dimension
+  if (xSize > zSize) then hSize = xSize else hSize = zSize end
+
+  -- aspect ratios
+  local mAspect = hSize / ySize
+  local vAspect = width / height
+
+  -- scale the unit to the box (maxspect)
+  local scale
+  if (mAspect > vAspect) then
+    scale = (width / hSize)
+  else
+    scale = (height / ySize)
+  end
+  scale = scale * 0.8
+  gl.Scale(scale, scale, scale)
+
+  -- translate to the unit's midpoint
+  local xMid = 0.5 * (d.maxx + d.minx)
+  local yMid = 0.5 * (d.maxy + d.miny)
+  local zMid = 0.5 * (d.maxz + d.minz)
+  gl.Translate(-xMid, -yMid, -zMid)
+end
+
+function DrawUnit(x,y,width,height)
 	
 	-- background
 	gl.Color(0.72,0.5,0.12,0.3)
+	gl.Color(0.66,0.66,0.66,0.22)
 	RectRound(x,y-height,x+width,y,6)
 	
-	-- version links
-	versionQuickLinks = {}
-	if changelogFile then
-		font:Begin()
-		font:SetOutlineColor(0.25,0.2,0,0.3)
-		font:SetTextColor(1,0.8,0.1,1)
-		local lineKey = 1
-		local j = 0
-		while j < 22 do	
-			if ((fontSize+fontOffsetY)*j)+4 > height then
-				break;
-			end
-			if versions[lineKey] == nil then
-				break;
-			end
-			local line = changelogLines[versions[lineKey]]
-			
-			-- version button title
-			line = " " .. string.match(line, '( %d*%d.?%d+)')
-			local textY = y-((fontSize+fontOffsetY)*j)-20
-			font:Print(line, x+9+fontOffsetX, textY, fontSize, "on")
-			
-			versionQuickLinks[j] = {
-				x,
-				textY-(versionFontSize*0.66),
-				x+70,
-				textY+(versionFontSize*1.21)
-			}
-			
-			j = j + 1
-			lineKey = lineKey + 1
-		end
-		font:End()
+	if currentUnitDefID then
+		-- unit
+		--gl.Clear(GL.DEPTH_BUFFER_BIT)
+		SetupModelDrawing()
+		gl.PushMatrix()
+		gl.Translate(x+(width/2), y-(height/2), 0)
+		gl.Rotate(26, 1, 0, 0)
+
+		gl.Rotate(rot, 0, 1, 0)
+		
+		CenterUnitDef(currentUnitDefID, width*0.8, height*0.8)
+		gl.UnitShape(currentUnitDefID, Spring.GetMyTeamID())
+		
+		gl.PopMatrix()
+		RevertModelDrawing()
+		--gl.Clear(GL.DEPTH_BUFFER_BIT)
 	end
 end
 
@@ -253,12 +290,12 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	
 	-- textarea scrollbar
 	if scrollbar then
-		if (totalChangelogLines > maxLines or startLine > 1) then	-- only show scroll above X lines
+		if (totalfileContentLines > maxLines or startLine > 1) then	-- only show scroll above X lines
 			local scrollbarTop       = y-scrollbarOffsetTop-scrollbarMargin-(scrollbarWidth-scrollbarPosWidth)
 			local scrollbarBottom    = y-scrollbarOffsetBottom-height+scrollbarMargin+(scrollbarWidth-scrollbarPosWidth)
-			local scrollbarPosHeight = math.max(((height-scrollbarMargin-scrollbarMargin) / totalChangelogLines) * ((height-scrollbarMargin-scrollbarMargin) / 25), scrollbarPosMinHeight)
-			local scrollbarPos       = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine-1) / totalChangelogLines)
-			scrollbarPos             = scrollbarPos + ((startLine-1) / totalChangelogLines) * scrollbarPosHeight	-- correct position taking position bar height into account
+			local scrollbarPosHeight = math.max(((height-scrollbarMargin-scrollbarMargin) / totalfileContentLines) * ((height-scrollbarMargin-scrollbarMargin) / 25), scrollbarPosMinHeight)
+			local scrollbarPos       = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine-1) / totalfileContentLines)
+			scrollbarPos             = scrollbarPos + ((startLine-1) / totalfileContentLines) * scrollbarPosHeight	-- correct position taking position bar height into account
 
 			-- background
 			gl.Color(scrollbarBackgroundColor)
@@ -282,19 +319,19 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	end
 	
 	-- draw textarea
-	if changelogFile then
+	if fileContent then
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
 		while j < maxLines do	-- maxlines is not exact, just a failsafe
-			if (fontSizeTitle)*j > height then
+			if (fontSizeTitle )*j > height then
 				break;
 			end
-			if changelogLines[lineKey] == nil then
+			if fileContentLines[lineKey] == nil then
 				break;
 			end
 			
-			local line = changelogLines[lineKey]
+			local line = fileContentLines[lineKey]
 			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
 				-- date line
 				line = "  " .. line
@@ -345,6 +382,13 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	end
 end
 
+function widget:TextCommand(cmd)
+
+	local unitname = cmd:match("^unitinfo (.+)$")
+	if unitname and unitNames[unitname] then
+		loadUnit(unitNames[unitname])
+	end
+end
 
 function DrawWindow()
     local vsx,vsy = Spring.GetViewGeometry()
@@ -353,132 +397,69 @@ function DrawWindow()
 	
 	-- background
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8, 0,1,1,1)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
-	RectRound(x,y-screenHeight,x+screenWidth,y+24,6)
+	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 	
 	-- close button
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
-	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
+	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY,screenX+screenWidth,screenY-closeButtonSize)
 	gl.Texture(false)
 	
 	-- title
-    local title = "Changelog"
+	local unitUd = UnitDefs[currentUnitDefID]
+    local title = (unitUd['name'] or "").."      "..(unitUd['tooltip'] or "")
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin, y+24+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+61, 8, 1,1,0,0)
+	RectRound(x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37, 8, 1,1,0,0)
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
+	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
 	
-	-- version links
-	DrawSidebar(x, y+24, 70, screenHeight+24)
-	
 	-- textarea
-	DrawTextarea(x+90, y+13, screenWidth-90, screenHeight, 1)
+	DrawTextarea(x+160, y-10, screenWidth-160, screenHeight-22, 1)
 end
 
+local sec = 0
+function widget:Update(dt)
 
-function widget:GameFrame(n)
-
-	if n>endPosX and posX > endPosX then
-		posX = posX - 0.005
-		if posX < 0 then posX = 0 end
-		
-		bgColorMultiplier = (posX-endPosX) / startPosX
-	end
+	if not show then return end
+	
+	sec = sec + dt
+	hoversize = math.sin(math.pi*(sec))
+	rot = 30* math.sin(math.pi*(sec/2.5))
 end
+
 
 function widget:DrawScreen()
     if spIsGUIHidden() then return end
     if amNewbie and not gameStarted then return end
     
-    -- draw the button
-    if not buttonGL then
-        buttonGL = gl.CreateList(DrawButton)
-    end
-    
-    glLineWidth(lineWidth)
-
-    glPushMatrix()
-        glTranslate(posX*vsx, posY*vsy, 0)
-        glScale(17*widgetScale, 17*widgetScale, 1)
-		glColor(0, 0, 0, (0.3*bgColorMultiplier))
-        glCallList(buttonGL)
-    glPopMatrix()
-
-    glColor(1, 1, 1, 1)
-    glLineWidth(1)
-    
-    -- draw the help
-    if not changelogList then
-        changelogList = gl.CreateList(DrawWindow)
-    end
-    
     if show or showOnceMore then
     
-		-- draw the changelog panel
+		-- draw the panel
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 			glScale(widgetScale, widgetScale, 1)
-			glCallList(changelogList)
+			glCallList(windowDlist)
+			DrawUnit(screenX, screenY, 150, 150)
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
+			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'unitinfo')
 		end
 		showOnceMore = false
 		
-		-- draw button hover
-		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-
-		local x,y = Spring.GetMouseState()
-		if changelogFile then
-			local lineKey = 1
-			local j = 0
-			local yOffsetUp = ((versionFontSize*0.66)*widgetScale)
-			local yOffsetDown = ((versionFontSize*1.2)*widgetScale)
-			while j < 22 do	
-				if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight) then
-					break;
-				end
-				if versions[lineKey] == nil then
-					break;
-				end
-				if versionQuickLinks[j] == nil then
-					break;
-				end
-				
-				--local cc = (versionQuickLinks[j][1]/vsx) * vsx/widgetScale
-				--Spring.Echo(usedScreenX..'  '..versionQuickLinks[j][1]..'  '..cc)
-				
-				-- version title
-				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
-				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-				local x1 = usedScreenX
-				local y1 = textY-yOffsetUp
-				local x2 = usedScreenX+(70*widgetScale)
-				local y2 = textY+yOffsetDown
-				if IsOnRect(x, y, x1, y1, x2, y2) then
-					gl.Color(1,0.93,0.75,0.22)
-					RectRound(x1, y1, x2, y2, 5*widgetScale)
-					break;
-				end
-				j = j + 1
-				lineKey = lineKey + 1
-			end
-		end
     else
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('changelog')
+			WG['guishader_api'].RemoveRect('unitinfo')
 		end
 	end
 end
@@ -495,7 +476,7 @@ function widget:IsAbove(x, y)
 	-- on window
 	if show then
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		return IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1)
@@ -513,6 +494,44 @@ function widget:GetTooltip(mx, my)
 	end
 end
 
+function widget:KeyPress(key, mods, isRepeat)
+	if key == triggerKey and spGetSelectedUnitsCount() == 1 then
+		local udefID = spGetUnitDefID(spGetSelectedUnits()[1])
+		if currentUnitDefID == udefID then 
+			show = not show 
+		else
+			loadUnit(udefID)
+		end
+	end
+end
+
+function loadUnit(unitDefID)
+	currentUnitDefID = unitDefID
+	
+	local unitUd = UnitDefs[unitDefID]
+		
+	fileContent = VFS.LoadFile("units/"..unitUd['name']..".lua")
+	if fileContent then
+		-- store file lines into array
+		fileContentLines = lines(fileContent)
+		
+		local versionKey = 0
+		for i, line in ipairs(fileContentLines) do
+			totalfileContentLines = i
+		end
+		show = true
+		if windowDlist then
+			gl.DeleteList(windowDlist)
+		end
+		startLine = 1
+		windowDlist = gl.CreateList(DrawWindow)
+	else
+		Spring.Echo("Unit info: couldn't load the unit file")
+		--widgetHandler:RemoveWidget()
+	end
+end
+
+
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
     if amNewbie and not gameStarted then return end
@@ -520,7 +539,7 @@ function widget:MousePress(x, y, button)
     if show then 
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
@@ -536,7 +555,7 @@ function widget:MousePress(x, y, button)
 			
 			-- scroll text with mouse 2
 			if button == 1 or button == 3 then
-				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
+				if IsOnRect(x, y, rectX1+(160*widgetScale), rectY2, rectX2, rectY1) then
 					local alt, ctrl, meta, shift = Spring.GetModKeyState()
 					local addLines = 3
 					
@@ -554,53 +573,13 @@ function widget:MousePress(x, y, button)
 					end
 					startLine = startLine + addLines
 					if startLine < 1 then startLine = 1 end
-					if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
+					if startLine > totalfileContentLines - textareaMinLines then startLine = totalfileContentLines - textareaMinLines end
 					
-					if changelogList then
-						glDeleteList(changelogList)
+					if windowDlist then
+						glDeleteList(windowDlist)
 					end
-					changelogList = gl.CreateList(DrawWindow)
+					windowDlist = gl.CreateList(DrawWindow)
 					return true
-				end
-			end
-			
-			-- version buttons
-			if button == 1 then
-				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-				
-				local x,y = Spring.GetMouseState()
-				if changelogFile then
-					local lineKey = 1
-					local j = 0
-					while j < 25 do	
-						if (versionFontSize+versionOffsetY)*j > (screenHeight) then
-							break;
-						end
-						if versions[lineKey] == nil then
-							break;
-						end
-						
-						-- version title
-						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
-						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-						
-						local x1 = usedScreenX
-						local y1 = textY-((versionFontSize*0.66)*widgetScale)
-						local x2 = usedScreenX+(70*widgetScale)
-						local y2 = textY+((versionFontSize*1.2)*widgetScale)
-						if IsOnRect(x, y, x1, y1, x2, y2) then
-							startLine = versions[lineKey]
-							if changelogList then
-								glDeleteList(changelogList)
-							end
-							changelogList = gl.CreateList(DrawWindow)
-							break;
-						end
-						
-						j = j + 1
-						lineKey = lineKey + 1
-					end
 				end
 			end
 			
@@ -629,22 +608,8 @@ function lines(str)
 end
 
 function widget:Initialize()
-	if changelogFile then
-		-- store changelog into array
-		changelogLines = lines(changelogFile)
-		
-		local versionKey = 0
-		for i, line in ipairs(changelogLines) do
-		
-			if string.find(line, '^(%d*%d.?%d+ /-)') then
-				versionKey = versionKey + 1
-				versions[versionKey] = i
-			end
-			totalChangelogLines = i
-		end
-	else
-		Spring.Echo("Changelog: couldn't load the changelog file")
-		widgetHandler:RemoveWidget()
+	for udid, unitDef in pairs(UnitDefs) do
+		unitNames[unitDef.name] = udid
 	end
 end
 
@@ -653,8 +618,8 @@ function widget:Shutdown()
         glDeleteList(buttonGL)
         buttonGL = nil
     end
-    if changelogList then
-        glDeleteList(changelogList)
-        changelogList = nil
+    if windowDlist then
+        glDeleteList(windowDlist)
+        windowDlist = nil
     end
 end
