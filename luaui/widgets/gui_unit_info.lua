@@ -6,7 +6,7 @@ return {
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
-	layer   = -1,
+	layer   = -2,
 	enabled = true,
 }
 end
@@ -187,21 +187,19 @@ end
 local function SetupModelDrawing()
   gl.DepthTest(true) 
   gl.DepthMask(true)
-  gl.Culling(GL.FRONT)
   gl.Lighting(true)
   gl.Blending(false)
   gl.Material({
     ambient  = { 1.0, 1.0, 1.0, 1.0 },
     diffuse  = { 1.0, 1.0, 1.0, 1.0 },
     emission = { 0.0, 0.0, 0.0, 1.0 },
-    specular = { 0.15, 0.15, 0.15, 1.0 },
-    shininess = 8.0
+    specular = { 0.2, 0.2, 0.2, 1.0 },
+    shininess = 1.0
   })
 end
 local function RevertModelDrawing()
   gl.Blending(true)
   gl.Lighting(false)
-  gl.Culling(false)
   gl.DepthMask(false)
   gl.DepthTest(false)
 end
@@ -295,23 +293,23 @@ function DrawUnitInfo(x,y,width)
 		
 		local value = 0
 		if uDef.energyUpkeep < 0 then
-			value = (0-uDef.energyUpkeep < 1 and short(0-uDef.energyUpkeep,1) or 0-uDef.energyUpkeep)
+			value = (0-uDef.energyUpkeep < 10 and short(0-uDef.energyUpkeep,1) or short(0-uDef.energyUpkeep,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + fontSize
 		elseif uDef.energyMake > 0 then
-			value = (uDef.energyMake < 1 and short(uDef.energyMake,1) or uDef.energyMake)
+			value = (uDef.energyMake < 10 and short(uDef.energyMake,1) or short(uDef.energyMake,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + fontSize
 		end
 		if uDef.metalUpkeep < 0 then
-			value = (0-uDef.metalUpkeep < 1 and short(0-uDef.metalUpkeep,1) or 0-uDef.metalUpkeep)
+			value = (0-uDef.metalUpkeep < 10 and short(0-uDef.metalUpkeep,1) or short(0-uDef.metalUpkeep,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + fontSize
 		elseif uDef.metalMake > 0 then
-			value = (uDef.metalMake < 1 and short(uDef.metalMake,1) or uDef.metalMake)
+			value = (uDef.metalMake < 10 and short(uDef.metalMake,1) or short(uDef.metalMake,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + fontSize
