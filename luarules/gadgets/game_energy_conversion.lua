@@ -27,14 +27,14 @@ local mmLevelParamName = 'mmLevel'
 local mmCapacityParamName = 'mmCapacity'
 local mmUseParamName = 'mmUse'
 local convertCapacities = {
-	[UnitDefNames.armmakr.id]  = { c = (60/30), e = (1/60) },
-	[UnitDefNames.cormakr.id]  = { c = (60/30), e = (1/60) },
-	[UnitDefNames.armfmkr.id]  = { c = (60/30), e = (1/55) },
-	[UnitDefNames.corfmkr.id]  = { c = (60/30), e = (1/55) },
-	[UnitDefNames.armmmkr.id]  = { c = (600/30), e = (1/50) },
-	[UnitDefNames.cormmkr.id]  = { c = (600/30), e = (1/50) },
-	[UnitDefNames.armuwmmm.id] = { c = (650/30), e = (1/50) },
-	[UnitDefNames.coruwmmm.id] = { c = (650/30), e = (1/50) }
+	[UnitDefNames.armmakr.id]  = { c = (70/30), e = (1/70) },
+	[UnitDefNames.cormakr.id]  = { c = (70/30), e = (1/70) },
+	[UnitDefNames.armfmkr.id]  = { c = (70/30), e = (1/64) },
+	[UnitDefNames.corfmkr.id]  = { c = (70/30), e = (1/64) },
+	[UnitDefNames.armmmkr.id]  = { c = (600/30), e = (1/58) },
+	[UnitDefNames.cormmkr.id]  = { c = (600/30), e = (1/58) },
+	[UnitDefNames.armuwmmm.id] = { c = (650/30), e = (1/58) },
+	[UnitDefNames.coruwmmm.id] = { c = (650/30), e = (1/58) }
 }
 local function SetMMRulesParams()
 	-- make convertCapacities accessible to all
