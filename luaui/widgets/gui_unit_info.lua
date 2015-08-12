@@ -23,7 +23,7 @@ local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 local bgMargin = 6
 
 local closeButtonSize = 30
-local screenHeight = 500-bgMargin-bgMargin
+local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
@@ -189,13 +189,20 @@ local function SetupModelDrawing()
   gl.DepthMask(true)
   gl.Lighting(true)
   gl.Blending(false)
-  gl.Material({
+  --[[gl.Material({
     ambient  = { 1.0, 1.0, 1.0, 1.0 },
     diffuse  = { 1.0, 1.0, 1.0, 1.0 },
     emission = { 0.0, 0.0, 0.0, 1.0 },
     specular = { 0.2, 0.2, 0.2, 1.0 },
     shininess = 1.0
-  })
+  })]]--
+  gl.Material({
+    ambient  = { 0.0, 0.0, 0.0, 1.0 },
+    diffuse  = { 0.0, 0.0, 0.0, 1.0 },
+    emission = { 0.25, 0.25, 0.25, 1.0 },
+    specular = { 0.05, 0.05, 0.05, 1.0 },
+    shininess = 2.0
+    })
 end
 local function RevertModelDrawing()
   gl.Blending(true)
@@ -275,12 +282,13 @@ function DrawUnitInfo(x,y,width)
 	
 	if currentUnitDefID then
 		-- info
-		local uDef = UnitDefs[currentUnitDefID]
-		x = x + 10
-		x2 = x + width - 20
-		y = y + 10
 		local fontSize = 14
-		local yOffset = 0
+		local uDef = UnitDefs[currentUnitDefID]
+		local margin = 13
+		x = x + margin
+		x2 = x + width - margin - margin
+		y = y - margin
+		local yOffset = fontSize
 		local yOffsetGap = 11
 		local value = 0
 		
@@ -296,29 +304,29 @@ function DrawUnitInfo(x,y,width)
 		font:Print(uDef.health, x2, y-yOffset, fontSize, "rn")
 		yOffset = yOffset + fontSize + yOffsetGap
 		if uDef.speed > 0 then
-			value = (uDef.speed < 100 and short(uDef.speed,1) or short(uDef.speed,0))
+			value = ((uDef.speed < 100 and math.floor(uDef.speed) ~= uDef.speed) and short(uDef.speed,1) or short(uDef.speed,0))
 			font:Print("Speed", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.energyUpkeep < 0 then
-			value = (0-uDef.energyUpkeep < 100 and short(0-uDef.energyUpkeep,1) or short(0-uDef.energyUpkeep,0))
+			value = ((0-uDef.energyUpkeep < 100 and math.floor(uDef.energyUpkeep) ~= uDef.energyUpkeep) and short(0-uDef.energyUpkeep,1) or short(0-uDef.energyUpkeep,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		elseif uDef.energyMake > 0 then
-			value = (uDef.energyMake < 100 and short(uDef.energyMake,1) or short(uDef.energyMake,0))
+			value = ((uDef.energyMake < 100 and math.floor(uDef.energyMake) ~= uDef.energyMake) and short(uDef.energyMake,1) or short(uDef.energyMake,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.metalUpkeep < 0 then
-			value = (0-uDef.metalUpkeep < 100 and short(0-uDef.metalUpkeep,1) or short(0-uDef.metalUpkeep,0))
+			value = ((0-uDef.metalUpkeep < 100 and math.floor(uDef.metalUpkeep) ~= uDef.metalUpkeep) and short(0-uDef.metalUpkeep,1) or short(0-uDef.metalUpkeep,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		elseif uDef.metalMake > 0 then
-			value = (uDef.metalMake < 100 and short(uDef.metalMake,1) or short(uDef.metalMake,0))
+			value = ((uDef.metalMake < 100 and math.floor(uDef.metalMake) ~= uDef.metalMake) and short(uDef.metalMake,1) or short(uDef.metalMake,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
@@ -342,17 +350,18 @@ function DrawUnitInfo(x,y,width)
 			yOffset = yOffset + yOffsetGap
 		end
 		if uDef.autoHeal > 0 then
+			value = ((uDef.autoHeal < 100 and math.floor(uDef.autoHeal) ~= uDef.autoHeal) and short(uDef.autoHeal,1) or short(uDef.autoHeal,0))
 			font:Print("AutoHeal", x, y-yOffset, fontSize, "n")
-			font:Print(uDef.autoHeal, x2, y-yOffset, fontSize, "rn")
+			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.cloakCost > 0 then
 			font:Print("Cloak cost", x, y-yOffset, fontSize, "n")
-			font:Print(uDef.cloakCost, x2, y-yOffset, fontSize, "rn")
+			font:Print(short(uDef.cloakCost,0), x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize
 			if uDef.cloakCostMoving ~= uDef.cloakCost then
-				font:Print("Cloak moving", x, y-yOffset, fontSize, "n")
-				font:Print(uDef.cloakCostMoving, x2, y-yOffset, fontSize, "rn")
+				font:Print("Cloak move", x, y-yOffset, fontSize, "n")
+				font:Print(short(uDef.cloakCostMoving,0), x2, y-yOffset, fontSize, "rn")
 				yOffset = yOffset + fontSize
 			end
 			yOffset = yOffset + yOffsetGap
@@ -498,7 +507,8 @@ function DrawWindow()
     local title = (unitUd['name'] or "")..(unitUd['humanName'] and "      "..unitUd['humanName'] or "")..(unitUd['humanName'] ~= unitUd['tooltip'] and "      "..unitUd['tooltip'] or "")
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37, 8, 1,1,0,0)
+    titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
@@ -509,7 +519,7 @@ function DrawWindow()
 	DrawTextarea(x+170, y-10, screenWidth-170, screenHeight-22, 1)
 	
 	-- unit info
-	DrawUnitInfo(x, y-183, 150)
+	DrawUnitInfo(x, y-150, 150)
 end
 
 local sec = 0
@@ -679,7 +689,7 @@ function widget:MousePress(x, y, button)
 			if button == 1 or button == 3 then
 				return true
 			end
-		else
+		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
 		end

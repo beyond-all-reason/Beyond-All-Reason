@@ -20,7 +20,7 @@ local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 local bgMargin = 6
 
 local closeButtonSize = 30
-local screenHeight = 500-bgMargin-bgMargin
+local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
 local customScale = 1
@@ -210,14 +210,14 @@ function DrawWindow()
     
 	-- background
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8, 0,1,1,1)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
-	RectRound(x,y-screenHeight,x+screenWidth,y+24,8)
+	RectRound(x,y-screenHeight,x+screenWidth,y,8)
 	
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
-	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
+	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY,screenX+screenWidth,screenY-closeButtonSize)
 	gl.Texture(false)
 	
 	
@@ -225,23 +225,23 @@ function DrawWindow()
     local title = "Keybinds"
     local titleFontSize = 18
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin, y+24+bgMargin, x-bgMargin+(glGetTextWidth(title)*titleFontSize)+27, y+61, 8, 1,1,0,0)
-	
+    titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(glGetTextWidth(title)*titleFontSize)+27, y+37}
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	-- title
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
+	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
 	
-    DrawTextTable(General,x,y)
+    DrawTextTable(General,x,y-24)
     x = x + 350
-    DrawTextTable(Units_I_II,x,y)
+    DrawTextTable(Units_I_II,x,y-24)
     x = x + 350
-    DrawTextTable(Units_III,x,y)
+    DrawTextTable(Units_III,x,y-24)
 	
     gl.Color(1,1,1,1)
-    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-43*11, 12.5)
+    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
 end
 
 
@@ -288,7 +288,7 @@ function widget:DrawScreen()
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'keybindinfo')
@@ -316,7 +316,7 @@ function widget:MousePress(x, y, button)
     if show then 
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
@@ -329,7 +329,7 @@ function widget:MousePress(x, y, button)
 				show = not show
 			end
 			return true
-		else
+		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
 		end

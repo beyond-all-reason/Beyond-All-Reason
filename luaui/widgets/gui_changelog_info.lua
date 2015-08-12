@@ -24,7 +24,7 @@ local changelogFile = VFS.LoadFile("changelog.txt")
 local bgMargin = 6
 
 local closeButtonSize = 30
-local screenHeight = 500-bgMargin-bgMargin
+local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
@@ -199,9 +199,10 @@ function DrawSidebar(x,y,width,height)
 		font:SetOutlineColor(0.25,0.2,0,0.3)
 		font:SetTextColor(1,0.8,0.1,1)
 		local lineKey = 1
+		local yOffset = 24
 		local j = 0
 		while j < 22 do	
-			if ((fontSize+fontOffsetY)*j)+4 > height then
+			if ((fontSize+fontOffsetY)*j)+4 > height-yOffset then
 				break;
 			end
 			if versions[lineKey] == nil then
@@ -353,33 +354,34 @@ function DrawWindow()
 	
 	-- background
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+24+bgMargin,8, 0,1,1,1)
+	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
-	RectRound(x,y-screenHeight,x+screenWidth,y+24,6)
+	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 	
 	-- close button
     gl.Color(1,1,1,1)
 	gl.Texture(closeButtonTex)
-	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY+24,screenX+screenWidth,screenY+24-closeButtonSize)
+	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY,screenX+screenWidth,screenY-closeButtonSize)
 	gl.Texture(false)
 	
 	-- title
     local title = "Changelog"
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
-	RectRound(x-bgMargin, y+24+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+61, 8, 1,1,0,0)
+    titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+32, titleFontSize, "on")
+	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
 	
 	-- version links
-	DrawSidebar(x, y+24, 70, screenHeight+24)
+	DrawSidebar(x, y, 70, screenHeight)
 	
 	-- textarea
-	DrawTextarea(x+90, y+13, screenWidth-90, screenHeight, 1)
+	DrawTextarea(x+90, y-10, screenWidth-90, screenHeight-24, 1)
 end
 
 
@@ -429,7 +431,7 @@ function widget:DrawScreen()
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
@@ -444,10 +446,11 @@ function widget:DrawScreen()
 		if changelogFile then
 			local lineKey = 1
 			local j = 0
-			local yOffsetUp = ((versionFontSize*0.66)*widgetScale)
-			local yOffsetDown = ((versionFontSize*1.2)*widgetScale)
+			local yOffset = 24
+			local yOffsetUp = (((versionFontSize*0.66)+yOffset)*widgetScale)
+			local yOffsetDown = (((versionFontSize*1.21)-yOffset)*widgetScale)
 			while j < 22 do	
-				if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight) then
+				if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight-yOffset) then
 					break;
 				end
 				if versions[lineKey] == nil then
@@ -495,7 +498,7 @@ function widget:IsAbove(x, y)
 	-- on window
 	if show then
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		return IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1)
@@ -520,7 +523,7 @@ function widget:MousePress(x, y, button)
     if show then 
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+24+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
@@ -566,6 +569,7 @@ function widget:MousePress(x, y, button)
 			
 			-- version buttons
 			if button == 1 then
+			local yOffset = 24
 				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
 				
@@ -574,7 +578,7 @@ function widget:MousePress(x, y, button)
 					local lineKey = 1
 					local j = 0
 					while j < 25 do	
-						if (versionFontSize+versionOffsetY)*j > (screenHeight) then
+						if (versionFontSize+versionOffsetY)*j > (screenHeight-yOffset) then
 							break;
 						end
 						if versions[lineKey] == nil then
@@ -586,9 +590,9 @@ function widget:MousePress(x, y, button)
 						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
 						
 						local x1 = usedScreenX
-						local y1 = textY-((versionFontSize*0.66)*widgetScale)
-						local x2 = usedScreenX+(70*widgetScale)
-						local y2 = textY+((versionFontSize*1.2)*widgetScale)
+						local y1 = textY-(((versionFontSize*0.66)+yOffset)*widgetScale)
+						local x2 = usedScreenX+((70*widgetScale))
+						local y2 = textY+(((versionFontSize*1.21)-yOffset)*widgetScale)
 						if IsOnRect(x, y, x1, y1, x2, y2) then
 							startLine = versions[lineKey]
 							if changelogList then
@@ -607,7 +611,7 @@ function widget:MousePress(x, y, button)
 			if button == 1 or button == 3 then
 				return true
 			end
-		else
+		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 			show = not show
 		end
