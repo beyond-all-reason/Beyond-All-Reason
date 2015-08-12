@@ -190,7 +190,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 12,
-				name = "DEEEEEEEEEEEEEWWWWWMMMM",
+				name = "DEEEEEEWWWMMM",
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 5,
