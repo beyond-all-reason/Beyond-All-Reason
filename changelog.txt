@@ -1,7 +1,14 @@
 ﻿9.04 -> 9.05
 11/08/2015
 
+Balance changes:
 - metalmakers: generate around 16.5% less metal
+- HP of t1 vechicles increased by 5% (except scout, cons, minelayer)
+- all air now collide (except scouts, sonars and fighters)
+- t1 bombers are 3% slower
+- t2 bombers are 8% slower but energy cost was decreased by 10%
+- t1 artillery now cost 10% less metal
+
 - added widget: "unit info" -> select unit and press U, or use /unitinfo armcom
 
 - wind display remembers position again
