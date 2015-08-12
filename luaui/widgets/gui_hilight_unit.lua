@@ -16,16 +16,18 @@ function widget:GetInfo()
   local yellow = "\255\255\255\128"
   return {
     name      = "HighlightUnit",
-    desc      = "Highlights the unit or feature under the cursor\n"..
-                grey.."Hold "..yellow.."META"..grey..
-                " to show the unit or feature name",
+    desc      = "Highlights the unit or feature under the cursor\n",
     author    = "trepan",
     date      = "Apr 16, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 5,
-    enabled   = false --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
+
+local drawFeatureHighlight	= false
+local unitAlpha				= 0.22
+local featureAlpha			= 0.15
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -101,24 +103,11 @@ local spTraceScreenRay          = Spring.TraceScreenRay
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-include("colors.h.lua")
-include("fonts.lua")
 
-local font = 'FreeMonoBold'
-local fontSize = 16
-local fontName = ':n:'..LUAUI_DIRNAME..'Fonts/'..font..'_'..fontSize
-
-
-local showName = (1 > 0)
-
-local customTex = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
 local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
---local texName = 'bitmaps/laserfalloff.tga'
 
 local cylDivs = 64
 local cylList = 0
-
-local outlineWidth = 3
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -139,7 +128,6 @@ end
 
 function widget:Shutdown()
   glDeleteList(cylList)
-  glDeleteTexture(customTex)
 end
 
 
@@ -178,7 +166,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function HilightModel(drawFunc, drawData, outline)
+local function HilightModel(drawFunc, drawData)
   glDepthTest(true)
   glPolygonOffset(-2, -2)
   glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -187,7 +175,7 @@ local function HilightModel(drawFunc, drawData, outline)
     glSmoothing(nil, nil, true)
   end
 
-  local scale = 20
+  local scale = 35
   local shift = (2 * widgetHandler:GetHourTimer()) % scale
   glTexCoord(0, 0)
   glTexGen(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR)
@@ -198,20 +186,6 @@ local function HilightModel(drawFunc, drawData, outline)
 
   glTexture(false)
   glTexGen(GL_T, false)
-
-  -- more edge highlighting
-  if (outline) then
-    glLineWidth(outlineWidth)
-    glPointSize(outlineWidth)
-    glPolygonOffset(10, 100)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_POINT)
-    drawFunc(drawData)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    drawFunc(drawData)
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-    glPointSize(1)
-    glLineWidth(1)
-  end
 
   if (smoothPolys) then
     glSmoothing(nil, nil, false)
@@ -265,14 +239,14 @@ end
 
 
 local function HilightUnit(unitID)
-  local outline = (spGetUnitIsCloaked(unitID) ~= true)
-  SetUnitColor(unitID, outline and 0.5 or 0.25)
-  HilightModel(UnitDrawFunc, unitID, outline)
+  --local outline = (spGetUnitIsCloaked(unitID) ~= true)
+  SetUnitColor(unitID, unitAlpha)
+  HilightModel(UnitDrawFunc, unitID)
 end
 
 
 local function HilightFeatureModel(featureID)
-  SetFeatureColor(featureID, 0.5)
+  SetFeatureColor(featureID, featureAlpha)
   HilightModel(FeatureDrawFunc, featureID, true)
 end
 
@@ -342,7 +316,7 @@ end
 
 
 function widget:DrawWorld()
-  if (type == 'feature') then
+  if drawFeatureHighlight and (type == 'feature') then
     HilightFeature(data)
   elseif (type == 'unit') then
     local unitID = GetPlayerControlledUnit(GetMyPlayerID())
@@ -360,169 +334,7 @@ end
 
 widget.DrawWorldReflection = widget.DrawWorld
 
-
 widget.DrawWorldRefraction = widget.DrawWorld
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local teamNames = {}
-
-
-local function GetTeamName(teamID)
-  local name = teamNames[teamID]
-  if (name) then
-    return name
-  end
-
-  local teamNum, teamLeader = spGetTeamInfo(teamID)
-  if (teamLeader == nil) then
-    return ''
-  end
-
-  name = spGetPlayerInfo(teamLeader)
-  teamNames[teamID] = name
-  return name
-end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local teamColorStrs = {}
-
-
-local function GetTeamColorStr(teamID)
-  local colorSet = teamColorStrs[teamID]
-  if (colorSet) then
-    return colorSet[1], colorSet[2]
-  end
-
-  local outlineChar = ''
-  local r,g,b = spGetTeamColor(teamID)
-  if (r and g and b) then
-    local function ColorChar(x)
-      local c = math.floor(x * 255)
-      c = ((c <= 1) and 1) or ((c >= 255) and 255) or c
-      return string.char(c)
-    end
-    local colorStr
-    colorStr = '\255'
-    colorStr = colorStr .. ColorChar(r)
-    colorStr = colorStr .. ColorChar(g)
-    colorStr = colorStr .. ColorChar(b)
-    local i = (r * 0.299) + (g * 0.587) + (b * 0.114)
-    outlineChar = ((i > 0.25) and 'o') or 'O'
-    teamColorStrs[teamID] = { colorStr, outlineChar }
-    return colorStr, outlineChar
-  end
-end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-function widget:DrawScreen()
-  local a,c,m,s = spGetModKeyState()
-  if (not m) then
-    return
-  end
-
-  local mx, my = GetMouseState()
-  local type, data = TraceScreenRay(mx, my)
-
-  local typeStr = ''
-  local teamID = nil
-
-  local cheat  = spIsCheatingEnabled()
-
-  if (type == 'unit') then
-    local udid = GetUnitDefID(data)
-    if (udid == nil) then return end
-    local ud = UnitDefs[udid]
-    if (ud == nil) then return end
-    typeStr = YellowStr .. ud.humanName -- .. ' ' .. CyanStr .. ud.tooltip
-    if (cheat) then
-      typeStr = typeStr
-                .. ' \255\255\128\255(' .. ud.name
-                .. ') \255\255\255\255#' .. data
-    end
-    teamID = spGetUnitTeam(data)
-  elseif (type == 'feature') then
-    local fdid = GetFeatureDefID(data)
-    if (fdid == nil) then return end
-    local fd = FeatureDefs[fdid]
-    if (fd == nil) then return end
-    typeStr = '\255\255\128\255' .. fd.tooltip
-    if (cheat) then
-      typeStr = typeStr
-                .. ' \255\255\255\1(' .. fd.name
-                .. ') \255\255\255\255#' .. data
-    end
-    teamID = spGetFeatureTeam(data)
-  end
-
-  local pName = nil
-  local colorStr, outlineChar = nil, nil
-  if (teamID) then
-    pName = GetTeamName(teamID)
-    if (pName) then
-      colorStr, outlineChar = GetTeamColorStr(teamID)
-      if ((colorStr == nil) or (outlineChar == nil)) then
-        pName = nil
-      end
-    end
-  end
-
-  local fh = fontHandler
-  if (fh.UseFont(fontName)) then
-
-    local f = fh.GetFontSize() * 0.5
-    local gx = 12 -- gap x
-    local gy = 8  -- gap y
-
-    local lt = fh.GetTextWidth(typeStr)
-    local lp = pName and fh.GetTextWidth(pName) or 0
-    local lm = (lt > lp) and lt or lp  --  max len
-
-    pName = pName and (colorStr .. pName)
-
-    if ((mx + lm + gx) < vsx) then
-      fh.Draw(typeStr, mx + gx, my + gy)
-      if (pName) then
-        fh.Draw(pName, mx + gx, my - gy - f)
-      end
-    else
-      fh.DrawRight(typeStr, mx - gx, my + gy)
-      if (pName) then
-        fh.DrawRight(pName, mx - gx, my - gy - f)
-      end
-    end
-  else
-    local f = 14
-    local gx = 16
-    local gy = 8
-
-    local lt = f * glGetTextWidth(typeStr)
-    local lp = pName and (f * glGetTextWidth(pName)) or 0
-    local lm = (lt > lp) and lt or lp  --  max len
-
-    pName = pName and (colorStr .. pName)
-
-    if ((mx + lm + gx) < vsx) then
-      glText(typeStr, mx + gx, my + gy, f, 'o')
-      if (pName) then
-        glText(pName, mx + gx, my - gy - f, f, outlineChar)
-      end
-    else
-      glText(typeStr, mx - gx, my + gy, f, 'or')
-      if (pName) then
-        glText(pName, mx - gx, my - gy - f, f, outlineChar .. 'r')
-      end
-    end
-  end
-end
 
 
 --------------------------------------------------------------------------------
