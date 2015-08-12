@@ -281,7 +281,8 @@ function DrawUnitInfo(x,y,width)
 		y = y + 10
 		local fontSize = 14
 		local yOffset = 0
-		local yOffsetGap = 12
+		local yOffsetGap = 11
+		local value = 0
 		
 		font:Begin()
 		font:SetTextColor(0.8,0.77,0.74,1)
@@ -294,26 +295,30 @@ function DrawUnitInfo(x,y,width)
 		font:Print("Health", x, y-yOffset, fontSize, "n")
 		font:Print(uDef.health, x2, y-yOffset, fontSize, "rn")
 		yOffset = yOffset + fontSize + yOffsetGap
-		
-		local value = 0
+		if uDef.speed > 0 then
+			value = (uDef.speed < 100 and short(uDef.speed,1) or short(uDef.speed,0))
+			font:Print("Speed", x, y-yOffset, fontSize, "n")
+			font:Print(value, x2, y-yOffset, fontSize, "rn")
+			yOffset = yOffset + fontSize + yOffsetGap
+		end
 		if uDef.energyUpkeep < 0 then
-			value = (0-uDef.energyUpkeep < 10 and short(0-uDef.energyUpkeep,1) or short(0-uDef.energyUpkeep,0))
+			value = (0-uDef.energyUpkeep < 100 and short(0-uDef.energyUpkeep,1) or short(0-uDef.energyUpkeep,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		elseif uDef.energyMake > 0 then
-			value = (uDef.energyMake < 10 and short(uDef.energyMake,1) or short(uDef.energyMake,0))
+			value = (uDef.energyMake < 100 and short(uDef.energyMake,1) or short(uDef.energyMake,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.metalUpkeep < 0 then
-			value = (0-uDef.metalUpkeep < 10 and short(0-uDef.metalUpkeep,1) or short(0-uDef.metalUpkeep,0))
+			value = (0-uDef.metalUpkeep < 100 and short(0-uDef.metalUpkeep,1) or short(0-uDef.metalUpkeep,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
 		elseif uDef.metalMake > 0 then
-			value = (uDef.metalMake < 10 and short(uDef.metalMake,1) or short(uDef.metalMake,0))
+			value = (uDef.metalMake < 100 and short(uDef.metalMake,1) or short(uDef.metalMake,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
 			yOffset = yOffset + fontSize + yOffsetGap
