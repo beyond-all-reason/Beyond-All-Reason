@@ -281,43 +281,47 @@ function DrawUnitInfo(x,y,width)
 		y = y + 10
 		local fontSize = 14
 		local yOffset = 0
+		local yOffsetGap = 12
+		
 		font:Begin()
 		font:SetTextColor(0.8,0.77,0.74,1)
-		font:Print("Metal\nEnergy\n\nHealth", x, y-yOffset, fontSize, "n")
+		font:Print("Metal", x, y-yOffset, fontSize, "n")
 		font:Print(uDef.metalCost, x2, y-yOffset, fontSize, "rn")
 		yOffset = yOffset + fontSize
+		font:Print("Energy", x, y-yOffset, fontSize, "n")
 		font:Print(uDef.energyCost, x2, y-yOffset, fontSize, "rn")
-		yOffset = yOffset + fontSize + fontSize
+		yOffset = yOffset + fontSize + yOffsetGap
+		font:Print("Health", x, y-yOffset, fontSize, "n")
 		font:Print(uDef.health, x2, y-yOffset, fontSize, "rn")
-		yOffset = yOffset + fontSize + fontSize
+		yOffset = yOffset + fontSize + yOffsetGap
 		
 		local value = 0
 		if uDef.energyUpkeep < 0 then
 			value = (0-uDef.energyUpkeep < 10 and short(0-uDef.energyUpkeep,1) or short(0-uDef.energyUpkeep,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		elseif uDef.energyMake > 0 then
 			value = (uDef.energyMake < 10 and short(uDef.energyMake,1) or short(uDef.energyMake,0))
 			font:Print("Energy +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.metalUpkeep < 0 then
 			value = (0-uDef.metalUpkeep < 10 and short(0-uDef.metalUpkeep,1) or short(0-uDef.metalUpkeep,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		elseif uDef.metalMake > 0 then
 			value = (uDef.metalMake < 10 and short(uDef.metalMake,1) or short(uDef.metalMake,0))
 			font:Print("Metal +", x, y-yOffset, fontSize, "n")
 			font:Print(value, x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.buildSpeed > 0 then
 			font:Print("BuildSpeed", x, y-yOffset, fontSize, "n")
 			font:Print(uDef.buildSpeed, x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.energyStorage > 0 or uDef.metalStorage > 0 then
 			if uDef.energyStorage > 0 then
@@ -330,12 +334,12 @@ function DrawUnitInfo(x,y,width)
 				font:Print(uDef.metalStorage, x2, y-yOffset, fontSize, "rn")
 				yOffset = yOffset + fontSize
 			end
-			yOffset = yOffset + fontSize
+			yOffset = yOffset + yOffsetGap
 		end
 		if uDef.autoHeal > 0 then
 			font:Print("AutoHeal", x, y-yOffset, fontSize, "n")
 			font:Print(uDef.autoHeal, x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if uDef.cloakCost > 0 then
 			font:Print("Cloak cost", x, y-yOffset, fontSize, "n")
@@ -346,21 +350,22 @@ function DrawUnitInfo(x,y,width)
 				font:Print(uDef.cloakCostMoving, x2, y-yOffset, fontSize, "rn")
 				yOffset = yOffset + fontSize
 			end
-			yOffset = yOffset + fontSize
+			yOffset = yOffset + yOffsetGap
 		end
 		if table.getn(uDef.buildOptions) > 0 then
 			font:Print("Build options", x, y-yOffset, fontSize, "n")
 			font:Print(table.getn(uDef.buildOptions), x2, y-yOffset, fontSize, "rn")
-			yOffset = yOffset + fontSize + fontSize
+			yOffset = yOffset + fontSize + yOffsetGap
 		end
 		if table.getn(uDef.weapons) > 0 then
 			local uWeps = uDef.weapons
 			font:Print((#uWeps > 1 and "Weapons:" or "Weapon:"), x, y-yOffset, fontSize, "n")
 			yOffset = yOffset + fontSize
 			
+			fontSize = 13
 			for i = 1, #uWeps do
 				local wDefID = uWeps[i].weaponDef
-				font:Print("  "..WeaponDefs[wDefID].type, x, y-yOffset, fontSize, "n")
+				font:Print("  "..WeaponDefs[wDefID].description, x, y-yOffset, fontSize, "n")
 				yOffset = yOffset + fontSize
 			end
 		end
