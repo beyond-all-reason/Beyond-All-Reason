@@ -15,7 +15,7 @@ function widget:GetInfo()
   local grey   = "\255\192\192\192"
   local yellow = "\255\255\255\128"
   return {
-    name      = "HighlightUnit",
+    name      = "Highlight Unit",
     desc      = "Highlights the unit or feature under the cursor\n",
     author    = "trepan",
     date      = "Apr 16, 2007",
