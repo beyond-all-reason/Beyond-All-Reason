@@ -13,7 +13,7 @@ Others:
 - Added widget: "unit info" -> select unit and press U, or use /unitinfo armcom
 - Highlight unit widget enabled by default + decreased intesity and disabled for features. (possible issues for some ATI users, plz report!)
 - Metal output for energy converters is showing in tooltips
-- EMP'd energy converters are not producing metal any longer.
+- EMP'd energy converters are not producing metal any longer
 - Wind display remembers position again
 - Resource bars show decimals again for a in/out value lower than 10
 - Point tracker: disabled by default, and removed in screen drawing.
