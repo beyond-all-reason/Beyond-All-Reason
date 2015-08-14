@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local consoleBlur = false
-local blurShaderStartColor = 0.31		-- will add guishader if alpha >= ...
+local blurShaderStartColor = 0.31		-- will apply guishader if alpha >= ...
 
 function widget:TextCommand(command)
 	if (string.find(command, "consoleblur") == 1  and  string.len(command) == 11) then 

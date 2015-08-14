@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 local rescalevalue = 1.3
-local buttonScale = 0.44
+local buttonScale = 0.5
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1272/rescalevalue,734/rescalevalue --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
@@ -142,6 +142,7 @@ local function createminimap(r)
 		overridecursor = true,
 		overrideclick = r.dragbutton,
 		roundedsize = math.floor(r.bsy*0.15),
+		onlyTweakUi = false,
 		
 		effects = {
 			fadein_at_activation = r.fadetime,
@@ -163,6 +164,7 @@ local function createminimap(r)
 		overridecursor = true,
 		overrideclick = r.dragbutton,
 		roundedsize = math.floor(r.bsy*0.15),
+		onlyTweakUi = false,
 		
 		effects = {
 			fadein_at_activation = r.fadetime,

@@ -1,5 +1,5 @@
 ﻿9.04 -> 9.05
-11/08/2015
+14/08/2015
 
 Balance changes:
 - Energy converters: generate around 16.5% less metal
@@ -9,13 +9,16 @@ Balance changes:
 - T2 bombers are 8% slower but energy cost was decreased by 10%
 - T1 artillery now cost 10% less metal
 
+Others:
 - Added widget: "unit info" -> select unit and press U, or use /unitinfo armcom
-
+- Highlight unit widget enabled by default + decreased intesity and disabled for features. (possible issues for some ATI users, plz report!)
 - Metal output for energy converters is showing in tooltips
-- EMPed energy converters are not producing metal anymore
+- EMP'd energy converters are not producing metal any longer.
 - Wind display remembers position again
 - Resource bars show decimals again for a in/out value lower than 10
-- Point tracker: disabled by default, and removed in screen drawing
+- Point tracker: disabled by default, and removed in screen drawing.
+- Changed pause screen style a bit, background now becomes fully transparant.
+- Resize minimap works again without being in ctrl+f11 mode.
 
 
 9.03 -> 9.04

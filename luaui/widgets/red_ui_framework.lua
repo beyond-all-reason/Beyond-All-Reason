@@ -438,80 +438,82 @@ local function processMouseEvents(o)
 		o.sy = o.getheight()
 	end
 	
-	if (o.movable) and inTweak then
+	if (o.movable) then
 		for i=1,#o.movable do
-			if (not o.wasclicked) then
-				if (Mouse[o.movable[i]][2]) then
-					if (isInRect(Mouse.x,Mouse.y,o)) then
-						o.checkedformouse = true
-						
-						o.wasclicked = {o.px - Mouse.x,o.py - Mouse.y}
-						Mouse[o.movable[i]][2] = nil --so only topmost area will get the event
-					end
-				end
-			else
-				local newpx = Mouse.x + o.wasclicked[1]
-				local newpy = Mouse.y + o.wasclicked[2]
-				
-				if (o.obeyscreenedge) then
-					if (newpx<0) then newpx = 0 end
-					if (newpy<0) then newpy = 0 end
-					if (newpx>(vsx-o.sx)) then newpx = vsx-o.sx end
-					if (newpy>(vsy-o.sy)) then newpy = vsy-o.sy end
-				elseif (o.movablearea) then
-					if (newpx<o.movablearea.px) then newpx = o.movablearea.px end
-					if (newpy<o.movablearea.py) then newpy = o.movablearea.py end
-					if (newpx>((o.movablearea.px+o.movablearea.sx)-o.sx)) then newpx = (o.movablearea.px+o.movablearea.sx)-o.sx end
-					if (newpy>((o.movablearea.py+o.movablearea.sy)-o.sy)) then newpy = (o.movablearea.py+o.movablearea.sy)-o.sy end
-				elseif (o.minpx) then
-					if (newpx<o.minpx) then newpx = o.minpx end
-					if (newpy<o.minpy) then newpy = o.minpy end
-					if (newpx>(o.maxpx-o.sx)) then newpx = o.maxpx-o.sx end
-					if (newpy>(o.maxpy-o.sy)) then newpy = o.maxpy-o.sy end
-				end
-				
-				local changex = newpx-o.px
-				local changey = newpy-o.py
-				if (o.movableslaves) then
-					for j=1,#o.movableslaves do
-						local s = o.movableslaves[j]
-						local snewpx = s.px - (o.px - newpx)
-						local snewpy = s.py - (o.py - newpy)
-						
-						if (s.obeyscreenedge) then
-							if (snewpx<0) then snewpx = 0 end
-							if (snewpy<0) then snewpy = 0 end
-							if (snewpx>(vsx-s.sx)) then snewpx = vsx-s.sx end
-							if (snewpy>(vsy-s.sy)) then snewpy = vsy-s.sy end
-						elseif (s.movablearea and (s.movablearea~=o)) then --disregard self to prevent a bug
-							if (snewpx<s.movablearea.px) then snewpx = s.movablearea.px end
-							if (snewpy<s.movablearea.py) then snewpy = s.movablearea.py end
-							if (snewpx>((s.movablearea.px+s.movablearea.sx)-s.sx)) then snewpx = (s.movablearea.px+s.movablearea.sx)-s.sx end
-							if (snewpy>((s.movablearea.py+s.movablearea.sy)-s.sy)) then snewpy = (s.movablearea.py+s.movablearea.sy)-s.sy end
-						elseif (s.minpx) then
-							if (snewpx<s.minpx) then snewpx = s.minpx end
-							if (snewpy<s.minpy) then snewpy = s.minpy end
-							if (snewpx>(s.maxpx-s.sx)) then snewpx = s.maxpx-s.sx end
-							if (snewpy>(s.maxpy-s.sy)) then snewpy = s.maxpy-s.sy end
+			if inTweak or (o.onlyTweakUi ~= nil and o.onlyTweakUi == false) then
+				if (not o.wasclicked) then
+					if (Mouse[o.movable[i]][2]) then
+						if (isInRect(Mouse.x,Mouse.y,o)) then
+							o.checkedformouse = true
+							
+							o.wasclicked = {o.px - Mouse.x,o.py - Mouse.y}
+							Mouse[o.movable[i]][2] = nil --so only topmost area will get the event
 						end
-						
-						local schangex = snewpx-s.px
-						local schangey = snewpy-s.py
-						
-						if (math.abs(changex)>math.abs(schangex)) then changex = schangex end
-						if (math.abs(changey)>math.abs(schangey)) then changey = schangey end
 					end
-					for j=1,#o.movableslaves do --move slaves
-						local s = o.movableslaves[j]
-						s.px = s.px+changex
-						s.py = s.py+changey
+				else
+					local newpx = Mouse.x + o.wasclicked[1]
+					local newpy = Mouse.y + o.wasclicked[2]
+					
+					if (o.obeyscreenedge) then
+						if (newpx<0) then newpx = 0 end
+						if (newpy<0) then newpy = 0 end
+						if (newpx>(vsx-o.sx)) then newpx = vsx-o.sx end
+						if (newpy>(vsy-o.sy)) then newpy = vsy-o.sy end
+					elseif (o.movablearea) then
+						if (newpx<o.movablearea.px) then newpx = o.movablearea.px end
+						if (newpy<o.movablearea.py) then newpy = o.movablearea.py end
+						if (newpx>((o.movablearea.px+o.movablearea.sx)-o.sx)) then newpx = (o.movablearea.px+o.movablearea.sx)-o.sx end
+						if (newpy>((o.movablearea.py+o.movablearea.sy)-o.sy)) then newpy = (o.movablearea.py+o.movablearea.sy)-o.sy end
+					elseif (o.minpx) then
+						if (newpx<o.minpx) then newpx = o.minpx end
+						if (newpy<o.minpy) then newpy = o.minpy end
+						if (newpx>(o.maxpx-o.sx)) then newpx = o.maxpx-o.sx end
+						if (newpy>(o.maxpy-o.sy)) then newpy = o.maxpy-o.sy end
 					end
-				end
-				o.px = o.px+changex --move self
-				o.py = o.py+changey
-				if (Mouse[o.movable[i]][3]) then
-					o.wasclicked = nil
-					Mouse[o.movable[i]][3] = nil --so only topmost area will get the event
+					
+					local changex = newpx-o.px
+					local changey = newpy-o.py
+					if (o.movableslaves) then
+						for j=1,#o.movableslaves do
+							local s = o.movableslaves[j]
+							local snewpx = s.px - (o.px - newpx)
+							local snewpy = s.py - (o.py - newpy)
+							
+							if (s.obeyscreenedge) then
+								if (snewpx<0) then snewpx = 0 end
+								if (snewpy<0) then snewpy = 0 end
+								if (snewpx>(vsx-s.sx)) then snewpx = vsx-s.sx end
+								if (snewpy>(vsy-s.sy)) then snewpy = vsy-s.sy end
+							elseif (s.movablearea and (s.movablearea~=o)) then --disregard self to prevent a bug
+								if (snewpx<s.movablearea.px) then snewpx = s.movablearea.px end
+								if (snewpy<s.movablearea.py) then snewpy = s.movablearea.py end
+								if (snewpx>((s.movablearea.px+s.movablearea.sx)-s.sx)) then snewpx = (s.movablearea.px+s.movablearea.sx)-s.sx end
+								if (snewpy>((s.movablearea.py+s.movablearea.sy)-s.sy)) then snewpy = (s.movablearea.py+s.movablearea.sy)-s.sy end
+							elseif (s.minpx) then
+								if (snewpx<s.minpx) then snewpx = s.minpx end
+								if (snewpy<s.minpy) then snewpy = s.minpy end
+								if (snewpx>(s.maxpx-s.sx)) then snewpx = s.maxpx-s.sx end
+								if (snewpy>(s.maxpy-s.sy)) then snewpy = s.maxpy-s.sy end
+							end
+							
+							local schangex = snewpx-s.px
+							local schangey = snewpy-s.py
+							
+							if (math.abs(changex)>math.abs(schangex)) then changex = schangex end
+							if (math.abs(changey)>math.abs(schangey)) then changey = schangey end
+						end
+						for j=1,#o.movableslaves do --move slaves
+							local s = o.movableslaves[j]
+							s.px = s.px+changex
+							s.py = s.py+changey
+						end
+					end
+					o.px = o.px+changex --move self
+					o.py = o.py+changey
+					if (Mouse[o.movable[i]][3]) then
+						o.wasclicked = nil
+						Mouse[o.movable[i]][3] = nil --so only topmost area will get the event
+					end
 				end
 			end
 		end
