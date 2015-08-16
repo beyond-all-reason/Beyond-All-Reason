@@ -360,7 +360,7 @@ end
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
     local cDefs = convertCapacities[uDefID]
     if cDefs then
-        if teamMMList[uTeam][cDefs.e][uID].built then
+        if teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built then
 			if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
 				teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
 			end
