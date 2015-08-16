@@ -74,8 +74,8 @@ function updateLOS(colors)
 end
 
 function widget:PlayerChanged(playerID)
-    local playerID = Spring.GetMyPlayerID()
-    local _, _, spec, _, _, _, _, _ = Spring.GetPlayerInfo(playerID)
+    local myPlayerId = Spring.GetMyPlayerID()
+    local _, _, spec, _, _, _, _, _ = Spring.GetPlayerInfo(myPlayerId)
 
     if spec then
         specDetected = true
