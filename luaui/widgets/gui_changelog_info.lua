@@ -11,7 +11,7 @@ return {
 }
 end
 
---local show = true
+local show = true
 
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
@@ -634,6 +634,9 @@ end
 
 function widget:Initialize()
 	if changelogFile then
+		-- somehow there are a few characters added at the start that we need to remove
+		changelogFile = string.sub(changelogFile, 4)
+		
 		-- store changelog into array
 		changelogLines = lines(changelogFile)
 		
@@ -646,6 +649,7 @@ function widget:Initialize()
 			end
 			totalChangelogLines = i
 		end
+		
 	else
 		Spring.Echo("Changelog: couldn't load the changelog file")
 		widgetHandler:RemoveWidget()
