@@ -37,12 +37,13 @@ function addon.DrawLoadScreen()
 	local yDiv = 0
 	local ratioComp = screenAspectRatio / aspectRatio
 
-	if (ratioComp > 1) then
-		xDiv = (1 - (1 / ratioComp)) * 0.5;
-	elseif (math.abs(ratioComp - 1) < 0) then
-	else
-		yDiv = (1 - ratioComp) * 0.5;
-	end
+    if math.abs(ratioComp-1)>0.15 then 
+        if (ratioComp > 1) then
+            xDiv = (1 - (1 / ratioComp)) * 0.5;
+        else
+            yDiv = (1 - ratioComp) * 0.5;
+        end
+    end
 
 	-- background
 	gl.Color(1,1,1,1)
