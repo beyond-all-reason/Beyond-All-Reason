@@ -120,10 +120,11 @@ function widget:DrawScreen()
     local _, _, isPaused = spGetGameSpeed()        -- note: when viewing a replay.. isPaused wont be set true if you pause
     local diffPauseTime = ( now - pauseTimestamp)
     
+	--[[
     if not paused and ((spGetGameSeconds() > 0 and previousGameframeClock <= (now-1.5)-(drawScreenDelay*2)) or isPaused) then
         paused = true
     end
-    
+    ]]--
     
     local diffPauseTime = ( now - pauseTimestamp)
     
@@ -194,6 +195,7 @@ function widget:IsAbove(x,y)
     return false
 end
 
+--[[
 function widget:GameFrame()
     local _, _, isPaused = spGetGameSpeed()
     if not isPaused then
@@ -201,6 +203,7 @@ function widget:GameFrame()
     end
     previousGameframeClock = osClock()
 end
+]]--
 
 function widget:Update()
     local x,y = spGetMouseState()
