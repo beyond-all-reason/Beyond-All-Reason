@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 180,
 		maxslope = 10,
-		maxvelocity = 8.4,
+		maxvelocity = 6.4,
 		maxwaterdepth = 0,
 		metalmake = 0.1,
 		metalstorage = 50,
@@ -39,7 +39,7 @@ return {
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 138,
-		workertime = 170,
+		workertime = 120,
 		buildoptions = {
 			[1] = "armfus",
 			[2] = "armckfus",

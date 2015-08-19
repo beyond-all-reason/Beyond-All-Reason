@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 185,
 		maxslope = 10,
-		maxvelocity = 8.05,
+		maxvelocity = 6.05,
 		maxwaterdepth = 0,
 		metalmake = 0.1,
 		metalstorage = 50,
@@ -39,7 +39,7 @@ return {
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 121,
-		workertime = 170,
+		workertime = 120,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "cmgeo",
