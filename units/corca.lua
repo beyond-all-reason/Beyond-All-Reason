@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 145,
 		maxslope = 10,
-		maxvelocity = 7.7,
+		maxvelocity = 6.7,
 		maxwaterdepth = 0,
 		metalmake = 0.05,
 		metalstorage = 25,
@@ -39,7 +39,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 94,
-		workertime = 45,
+		workertime = 55,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",

@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 140,
 		maxslope = 10,
-		maxvelocity = 7.94,
+		maxvelocity = 6.94,
 		maxwaterdepth = 0,
 		metalmake = 0.05,
 		metalstorage = 25,
@@ -38,7 +38,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 110,
-		workertime = 45,
+		workertime = 55,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armadvsol",
