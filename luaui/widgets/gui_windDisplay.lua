@@ -17,11 +17,8 @@ end
 -- Config
 local rotationOn            = true
 local vsSolarOn             = true -- If true, color is more of a guide of when winds are good to make
-local maxWindEnergy         = {["BA"] = 25, ["ZK"] = 25, ["XTA"] = 25}
-local solarEnergy           = {["BA"] = 20, ["ZK"] = 20, ["XTA"] = 20}
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
-local customScale = 0.95
 
 local customScale			= 1
 local customPanelWidth 		= 46
@@ -206,21 +203,13 @@ function widget:TweakMousePress(mx, my, mb)
     if widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight then
 		if mb == 1 then 
 			if mx > xPos+check1x and my > yPos+check1y and mx < (xPos+check1x+16) and my < (yPos+check1y+16) then
-				rotationOn = toggle(rotationOn)
+				rotationOn = not rotationOn
 			elseif mx > xPos+check2x and my > yPos+check2y and mx < (xPos+check2x+16) and my < (yPos+check2y+16) then
-				vsSolarOn = toggle(vsSolarOn)
+				vsSolarOn = not vsSolarOn
 			end
 		elseif mb == 2 then
 			return true
 		end
-    end
-end
-
-function toggle(state)
-    if state then
-        return false
-    else
-        return true
     end
 end
 
@@ -237,7 +226,6 @@ function widget:TweakMouseMove(mx, my, dx, dy)
 end
 
 function widget:GetConfigData()
-	local vsx, vsy = gl.GetViewSizes()
 	return {xRelPos = xRelPos, yRelPos = yRelPos, rotationOn = rotationOn, vsSolarOn = vsSolarOn}
 end
 
@@ -258,7 +246,6 @@ function widget:GetTooltip(mx, my)
 end
 
 function init()
-
 	vsx, vsy = gl.GetViewSizes()
 	xPos, yPos = xRelPos * vsx,yRelPos * vsy
 	widgetScale = (0.60 + (vsx*vsy / 5000000)) * customScale
