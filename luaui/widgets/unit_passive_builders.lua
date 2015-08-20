@@ -235,8 +235,6 @@ function refreshUints()
         return
     end
 
-    Spring.Echo("refreshUints", passiveLabs, passiveNanos, passiveCons)
-
     local myUnits = spGetTeamUnits(spGetMyTeamID())
     for _, unitID in ipairs(myUnits) do
         local unitDefID = spGetUnitDefID(unitID)
