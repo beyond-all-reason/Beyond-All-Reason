@@ -282,4 +282,9 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('winddisplay')
 	end
+	
+	if backgroundList ~= nil then
+		glDeleteList(backgroundList)
+		glDeleteList(backgroundList2)
+	end
 end

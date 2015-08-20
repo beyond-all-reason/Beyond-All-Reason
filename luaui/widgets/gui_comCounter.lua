@@ -127,6 +127,10 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('comcounter')
 	end
+	
+	if displayList ~= nil then
+		glDeleteList(displayList)
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
