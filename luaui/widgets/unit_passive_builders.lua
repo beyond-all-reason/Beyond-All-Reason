@@ -11,6 +11,8 @@ function widget:GetInfo()
     }
 end
 
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+
 -- project page on github: https://github.com/SpringWidgets/passive-builders
 
 -- Changelog:
@@ -43,11 +45,12 @@ local passiveLabs = false;
 local passiveNanos = true;
 local passiveCons = false;
 
-local xPos;
-local yPos;
+local xRelPos, yRelPos		= 0.7, 0.7	-- (only used here for now)
+local vsx, vsy				= gl.GetViewSizes()
+local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
-local width = 80;
-local heigth = 90;
+local panelWidth = 105;
+local panelHeight = 95;
 
 local function isBuilder(ud)
     if not passiveCons and not passiveLabs and not passiveNanos then
@@ -95,53 +98,129 @@ end
 
 function widget:DrawScreen()
     -- do not delete me or "widget:TweakDrawScreen()" will not be called
+    
+    if (WG['guishader_api'] ~= nil) then
+        WG['guishader_api'].RemoveRect('passivebuilders')
+    end
 end
 
+
 function widget:TweakDrawScreen()
-    glColor(0.1, 0.1, 0.1, 1)
-    glRect(xPos, yPos, xPos + width, yPos + heigth);
+    glColor(0, 0, 0, 0.6)
+    RectRound(xPos, yPos, xPos + panelWidth, yPos + panelHeight, 8)
     glColor(1, 1, 1, 1)
-    glText("Passive", xPos + 10, yPos + 70, 13, "n")
+    glText("Passive mode", xPos + 10, yPos + 76, 13, "n")
     glColor(1, 1, 1, 0.2)
-    drawCheckbox(xPos + 10, yPos + 10, passiveCons,  "cons")
-    drawCheckbox(xPos + 10, yPos + 30, passiveNanos, "nanos")
-    drawCheckbox(xPos + 10, yPos + 50, passiveLabs,  "labs")
+    drawCheckbox(xPos + 12, yPos + 10, passiveCons,  "cons")
+    drawCheckbox(xPos + 12, yPos + 30, passiveNanos, "nanos")
+    drawCheckbox(xPos + 12, yPos + 50, passiveLabs,  "labs")
+    processGuishader()
+end
+
+
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.07		-- texture offset, because else gaps could show
+	local o = offset
+	-- top left
+	--if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	--if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	--if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	--if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
+
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
 end
 
 function drawCheckbox(x, y, state, text)
     glPushMatrix()
     glTranslate(x, y, 0)
     glColor(1, 1, 1, 0.2)
-    glRect(0, 0, 16, 16)
+    RectRound(0, 0, 16, 16, 3)
     glColor(1, 1, 1, 1)
     if state then
         glTexture('LuaUI/Images/tick.png')
         glTexRect(0, 0, 16, 16)
         glTexture(false)
     end
-    glText(text, 20, 4, 11, "n")
+    glText(text, 23, 4, 12, "n")
     glPopMatrix()
 end
 
 function widget:IsAbove(mx, my)
-    return mx > xPos and my > yPos and mx < xPos + width and my < yPos + heigth
+    return mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
 end
 
 function widget:TweakMousePress(mx, my, mb)
-    if mb == 2 then
-        Spring.Echo("true", mx, my, mb)
+    if mb == 2 and widget:IsAbove(mx,my) then
         return true
     end
 
     if mb == 1 then
         if mb == 1 then
-            if mx > xPos + 10 and my > yPos + 10 and mx < (xPos + 10 + 16) and my < (yPos + 10 + 16) then
+            if mx > xPos + 12 and my > yPos + 10 and mx < (xPos + 12 + 16) and my < (yPos + 10 + 16) then
                 passiveCons = not passiveCons
                 refreshUints()
-            elseif mx > xPos + 10 and my > yPos + 30 and mx < (xPos + 10 + 16) and my < (yPos + 30 + 16) then
+            elseif mx > xPos + 12 and my > yPos + 30 and mx < (xPos + 12 + 16) and my < (yPos + 30 + 16) then
                 passiveNanos = not passiveNanos
                 refreshUints()
-            elseif mx > xPos + 10 and my > yPos + 50 and mx < (xPos + 10 + 16) and my < (yPos + 50 + 16) then
+            elseif mx > xPos + 12 and my > yPos + 50 and mx < (xPos + 12 + 16) and my < (yPos + 50 + 16) then
                 passiveLabs = not passiveLabs
                 refreshUints()
             end
@@ -149,19 +228,15 @@ function widget:TweakMousePress(mx, my, mb)
     end
 end
 
+
 function widget:TweakMouseMove(mx, my, dx, dy)
-    local vsx, vsy = gl.GetViewSizes()
-    if mx < 50 or mx > vsx - 50 then
-        return
-    end
-
-    if my < 50 or my > vsy - 50 then
-        return
-    end
-
-    xPos = mx - width/2;
-    yPos = my - heigth/2;
-    processGuishader()
+    if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then 
+		xRelPos = xRelPos + dx/vsx
+	end
+    if yPos + dy >= -1 and yPos + panelHeight + dy - 1<= vsy then 
+		yRelPos = yRelPos + dy/vsy
+	end
+	xPos, yPos = xRelPos * vsx,yRelPos * vsy
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -192,8 +267,7 @@ function widget:GetConfigData()
         passiveLabs = passiveLabs,
         passiveNanos = passiveNanos,
         passiveCons = passiveCons,
-        xPos = xPos,
-        yPos = yPos
+        xRelPos = xRelPos, yRelPos = yRelPos
     }
 end
 
@@ -216,17 +290,14 @@ function widget:SetConfigData(data)
         passiveCons = false
     end
 
-    if data.xPos ~= nil then
-        xPos = data.xPos
-        yPos = data.yPos
-    else
-        local vsx, vsy = gl.GetViewSizes()
-        xPos = vsx/2
-        yPos = vsy/2
+    if data.xRelPos ~= nil then
+		xRelPos = data.xRelPos or xRelPos
+		yRelPos = data.yRelPos or yRelPos
+		xPos = xRelPos * vsx
+		yPos = yRelPos * vsy
     end
 
     refreshUints()
-    processGuishader()
 end
 
 function refreshUints()
@@ -254,7 +325,7 @@ end
 
 function processGuishader()
     if (WG['guishader_api'] ~= nil) then
-        WG['guishader_api'].InsertRect(xPos, yPos, xPos + width, yPos + heigth, 'passivebuilders')
+        WG['guishader_api'].InsertRect(xPos, yPos, xPos + panelWidth, yPos + panelHeight, 'passivebuilders')
     end
 end
 
