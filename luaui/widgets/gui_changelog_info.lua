@@ -11,7 +11,7 @@ return {
 }
 end
 
-local show = true
+--local show = true
 
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
