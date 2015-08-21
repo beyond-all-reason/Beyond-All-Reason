@@ -2,7 +2,7 @@
 function widget:GetInfo()
 return {
 	name    = "Unit Info",
-	desc    = "Select a single unit and press U. Or use a command: /unitinfo armcom.",
+	desc    = "Select a single unit and press CTRL + U. Or use a command: /unitinfo armcom.",
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
@@ -10,7 +10,7 @@ return {
 	enabled = true,
 }
 end
-local triggerKey = 117	-- 117 = U
+local triggerKey = 117	-- 117 = U   (+ ctrl)
 
 local show = false
 
@@ -593,8 +593,7 @@ function widget:GetTooltip(mx, my)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
-	--Spring.Echo(key)
-	if key == triggerKey then
+	if key == triggerKey and mods["ctrl"] then
 		if spGetSelectedUnitsCount() >= 1 then
 			local udefID = spGetUnitDefID(spGetSelectedUnits()[1])
 			if currentUnitDefID == udefID then 
