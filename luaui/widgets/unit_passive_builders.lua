@@ -1,17 +1,15 @@
 function widget:GetInfo()
     return {
-        name      = "Passive builders v4",
+        name      = "Passive builders v5",
         desc      = "Allows to set builders (nanos, labs and cons) on passive mode",
         author    = "[teh]decay",
         date      = "20 aug 2015",
         license   = "GNU GPL, v2 or later",
         layer     = 0,
-        version   = 4,
+        version   = 5,
         enabled   = true  -- loaded by default
     }
 end
-
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 -- project page on github: https://github.com/SpringWidgets/passive-builders
 
@@ -19,8 +17,11 @@ local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 -- v2 [teh]decay Fixed bug with rezz bots and spys
 -- v3 [teh]decay exclude Commando from "passive" builders
 -- v4 [teh]decay add ability to select which builders to put on passive mode: nanos, cons, labs
+-- v5 [teh]Flow restyled + relative position + bugfix
 
 -- some code was used from "Wind Speed" widget. Thx to Jazcash and Floris!
+
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local CMD_PASSIVE       = 34571
 local spGetMyTeamID     = Spring.GetMyTeamID
@@ -30,7 +31,6 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetMyPlayerID	= Spring.GetMyPlayerID
 local spGetPlayerInfo	= Spring.GetPlayerInfo
 
-local glRect            = gl.Rect
 local glTexRect         = gl.TexRect
 local glText            = gl.Text
 local glTexture         = gl.Texture
@@ -97,7 +97,7 @@ local function activateBuilder(unitID)
 end
 
 function widget:DrawScreen()
-    -- do not delete me or "widget:TweakDrawScreen()" will not be called
+    -- do not delete this method or "widget:TweakDrawScreen()" will not be called
     
     if (WG['guishader_api'] ~= nil) then
         WG['guishader_api'].RemoveRect('passivebuilders')
