@@ -2,8 +2,8 @@
 21/08/2015
 
 Balance changes:
-- Reduced speed and increased build power of t1 air constructors
-- Reduced speed and reduced build power of t2 air constructors
+- Reduced speed (~12%) and increased build power (~22%) of t1 air constructors
+- Reduced speed (~20%) and reduced build power (~30%) of t2 air constructors
 
 Others:
 - Removed old loadscreens
