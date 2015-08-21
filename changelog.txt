@@ -1,4 +1,20 @@
-﻿9.04 -> 9.05
+﻿9.05 -> 9.06
+21/08/2015
+
+Balance changes:
+- Reduced speed and increased build power of t1 air constructors
+- Reduced speed and reduced build power of t2 air constructors
+
+Others:
+- Removed old loadscreens
+- Added new loadscreens
+- Fixed maverick unit script
+- Only nano towers are on passive by default. Press Ctrl+F11 to configure
+- Load screen auto fits window size
+- Fixed rare error in energy converters gadget
+- Fixed descriptions of energy converters
+
+9.04 -> 9.05
 14/08/2015
 
 Balance changes:
