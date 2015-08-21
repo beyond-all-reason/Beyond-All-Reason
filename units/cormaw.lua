@@ -12,7 +12,7 @@ return {
 		buildtime = 4419,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
-		damagemodifier = 0.15,
+		damagemodifier = 0.25,
 		description = "Pop-up Flamethrower Turret",
 		energystorage = 15,
 		explodeas = "MEDIUM_BUILDINGEX",
