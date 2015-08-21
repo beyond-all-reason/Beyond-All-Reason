@@ -2,17 +2,17 @@
 21/08/2015
 
 Balance changes:
-- Reduced speed (~12%) and increased build power (~22%) of t1 air constructors
-- Reduced speed (~20%) and reduced build power (~30%) of t2 air constructors
+- T1 air constructors: Reduced speed (~12%) and increased build power (~22%).
+- T2 air constructors: Reduced speed (~20%) and reduced build power (~30%).
 
 Others:
-- Removed old loadscreens
-- Added new loadscreens
-- Fixed maverick unit script
-- Only nano towers are on passive by default. Press Ctrl+F11 to configure
-- Load screen auto fits window size
-- Fixed rare error in energy converters gadget
-- Fixed descriptions of energy converters
+- Unit info screen now  toggles with CTRL + U (instead of just U)
+- Added new loadscreens and removed a some old ones.
+- Load screen auto fits window/screen size
+- Only nano towers are on passive by default. Press Ctrl+F11 to toggle for factories and cons.
+- Fixed rare error in energy converters gadget.
+- Corrected descriptions of energy converters.
+
 
 9.04 -> 9.05
 14/08/2015
