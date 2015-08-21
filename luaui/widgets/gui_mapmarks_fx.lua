@@ -53,7 +53,7 @@ local types = {
 		size			= 2.5,
 		endSize			= 1.75,
 		duration		= 12,
-		glowColor		= {1.00 ,1.00 ,1.00 ,0.40},
+		glowColor		= {1.00 ,1.00 ,1.00 ,0.20},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.75}
 	},
 	map_draw = {
