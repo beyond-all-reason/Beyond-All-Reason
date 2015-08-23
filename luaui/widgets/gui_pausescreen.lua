@@ -125,9 +125,7 @@ function widget:DrawScreen()
         paused = true
     end
     ]]--
-    if isPaused then
-        paused = true
-    end
+    paused = isPaused
     
     local diffPauseTime = ( now - pauseTimestamp)
     
