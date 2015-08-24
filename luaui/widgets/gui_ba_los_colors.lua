@@ -20,6 +20,8 @@ local losWithRadarEnabled = false;
 local colorProfile = "greyscale" -- "colored"
 local specDetected = false
 
+local always, LOS, radar, jam, radar2
+
 local losColorsWithRadarsGray = {
     fog =    {0.10, 0.10, 0.10},
     los =    {0.30, 0.30, 0.30},
@@ -84,8 +86,9 @@ function widget:PlayerChanged(playerID)
     return true
 end
 
-function widget:ShutDown()
+function widget:Shutdown()
     spSendCommands('unbindkeyset Any+;')
+    spSetLosViewColors(always, LOS, radar, jam, radar2)
 end
 
 
@@ -133,6 +136,8 @@ function widget:SetConfigData(data)
 
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; losradar')
+
+    always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
 
     if data.losWithRadarEnabled ~= nil then
         losWithRadarEnabled = data.losWithRadarEnabled
