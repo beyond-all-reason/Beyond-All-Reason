@@ -702,7 +702,7 @@ end
 
 
 
-function gadget:ShutDown()
+function gadget:Shutdown()
 	Spring.SendCommands('endgraph 1')
 	if (WG ~= nil and WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('awards')

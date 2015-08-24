@@ -152,7 +152,7 @@ function gadget:Initialize()
 	end)
 end
 
-function gadget:ShutDown()
+function gadget:Shutdown()
     if keyInfo then
         gl.DeleteList(keyInfo)
 	end

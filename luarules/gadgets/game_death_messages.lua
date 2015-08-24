@@ -131,7 +131,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterGlobal('AllyTeamDeathMessage', AllyTeamDeathMessage)
 end
 
-function gadget:ShutDown()
+function gadget:Shutdown()
 	gadgetHandler:DeregisterGlobal('TeamDeathMessage')
 	gadgetHandler:DeregisterGlobal('AllyTeamDeathMessage')
 end
