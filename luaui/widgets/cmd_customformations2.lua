@@ -90,7 +90,7 @@ function widget:Initialize()
 	end
 end
 
-function widget:ShutDown()
+function widget:Shutdown()
 	if not requiresAlt[CMD.ATTACK] then
 		Spring.SendCommands('unbind Alt+a areaattack')
 	end
