@@ -292,9 +292,26 @@ local function TexRect(px,py,sx,sy,texture,c,scale)
 	glTranslate(px,py+sy,0)
 	glScale(1,-1,1) --flip
 	glTexture(texture)
-	glTexRect(0,0,sx,sy)
+	DrawRect(0,0,sx,sy)
 	glTexture(false)
 	glPopMatrix()
+end
+
+local function RectQuad(px,py,sx,sy)
+	local o = 0.008		-- texture offset, because else grey line might show at the edges
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+end
+
+function DrawRect(px,py,sx,sy)
+	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
 end
 
 local function CreateStartList()
