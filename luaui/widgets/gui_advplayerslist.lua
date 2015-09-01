@@ -1259,7 +1259,7 @@ function CreateBackground()
 		gl_Color(0,0,0,0.6)
 		
 		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
-		--gl_TexRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
+		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
 		
 		-- draws highlight (top and left sides)
 		--gl_Color(0.44,0.44,0.44,0.38)	
@@ -1588,18 +1588,18 @@ function DrawTakeSignal(posY)
 		if right == true then
 			gl_Color(0.7,0.7,0.7)
 			gl_Texture(arrowPic)
-			gl_TexRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
+			DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
 			gl_Color(1,1,1)
 			gl_Texture(takePic)
-			gl_TexRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
+			DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
 		else
 			local leftPosX = widgetPosX + widgetWidth
 			gl_Color(0.7,0.7,0.7)
 			gl_Texture(arrowPic)
-			gl_TexRect(leftPosX + 14, posY, leftPosX, posY + 16)
+			DrawRect(leftPosX + 14, posY, leftPosX, posY + 16)
 			gl_Color(1,1,1)
 			gl_Texture(takePic)
-			gl_TexRect(leftPosX + 12, posY - 15, leftPosX + 57, posY + 32)
+			DrawRect(leftPosX + 12, posY - 15, leftPosX + 57, posY + 32)
 		end
 	end	
 end
@@ -1607,17 +1607,17 @@ end
 function DrawShareButtons(posY, needm, neede)
 	gl_Color(1,1,1,1)
 	gl_Texture(unitsPic)                       -- Share UNIT BUTTON
-	gl_TexRect(m_share.posX + widgetPosX  + 1, posY, m_share.posX + widgetPosX  + 17, posY + 16)
+	DrawRect(m_share.posX + widgetPosX  + 1, posY, m_share.posX + widgetPosX  + 17, posY + 16)
 	gl_Texture(energyPic)                      -- share ENERGY BUTTON
-	gl_TexRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)
+	DrawRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)
 	gl_Texture(metalPic)                       -- share METAL BUTTON
-	gl_TexRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
+	DrawRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
 	gl_Texture(lowPic)
 	if needm == true then
-		gl_TexRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
+		DrawRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
 	end
 	if neede == true then
-		gl_TexRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)	
+		DrawRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)	
 	end
 	gl_Texture(false)
 end
@@ -1625,7 +1625,7 @@ end
 
 function DrawChatButton(posY)
 	gl_Texture(chatPic)
-	gl_TexRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
+	DrawRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
 end
 
 function DrawSidePic(team, playerID, posY, leader, dark, ai)
@@ -1635,7 +1635,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 		else
 			gl_Texture(notFirstPic)                          -- sets image for not leader of team players
 		end
-		gl_TexRect(m_side.posX + widgetPosX  + 2, posY+1, m_side.posX + widgetPosX  + 16, posY + 15) -- draws side image
+		DrawRect(m_side.posX + widgetPosX  + 2, posY+1, m_side.posX + widgetPosX  + 16, posY + 15) -- draws side image
 		--[[if dark == true then	-- draws outline if player color is dark
 			gl_Color(1,1,1)
 			if leader == true then
@@ -1643,7 +1643,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 			else
 				gl_Texture(notFirstPicWO)
 			end
-			gl_TexRect(m_side.posX + widgetPosX + 2, posY+1,m_side.posX + widgetPosX + 16, posY + 15)
+			DrawRect(m_side.posX + widgetPosX + 2, posY+1,m_side.posX + widgetPosX + 16, posY + 15)
 			gl_Texture(false)
 		end
 		]]--
@@ -1679,21 +1679,38 @@ end
 function DrawRankImage(rankImage, posY)
 	gl_Color(1,1,1)
 	gl_Texture(rankImage)
-	gl_TexRect(m_rank.posX + widgetPosX + 3, posY+1, m_rank.posX + widgetPosX + 17, posY + 15)
+	DrawRect(m_rank.posX + widgetPosX + 3, posY+1, m_rank.posX + widgetPosX + 17, posY + 15)
+end
+
+
+local function RectQuad(px,py,sx,sy)
+	local o = 0.008		-- texture offset, because else grey line might show at the edges
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+end
+function DrawRect(px,py,sx,sy)
+	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
 end
 
 function DrawCountry(country, posY)
 	if country ~= nil then
 		gl_Texture(flagsDirectory..string.upper(country)..".dds")
 		gl_Color(1,1,1)
-		gl_TexRect(m_country.posX + widgetPosX + 3, posY+1, m_country.posX + widgetPosX + 17, posY + 15)
+		DrawRect(m_country.posX + widgetPosX + 3, posY+1, m_country.posX + widgetPosX + 17, posY + 15)
 	end
 end
 
 function DrawDot(posY)
 	gl_Color(1,1,1,0.70)
 	gl_Texture(currentPic)
-	gl_TexRect(m_indent.posX + widgetPosX-1 , posY+3, m_indent.posX + widgetPosX + 7, posY + 11)
+	DrawRect(m_indent.posX + widgetPosX-1 , posY+3, m_indent.posX + widgetPosX + 7, posY + 11)
 end
 
 function DrawCamera(posY,active)
@@ -1703,7 +1720,7 @@ function DrawCamera(posY,active)
 		gl_Color(1,1,1,0.13)
 	end
 	gl_Texture(cameraPic)
-	gl_TexRect(m_indent.posX + widgetPosX-1.5 , posY+2, m_indent.posX + widgetPosX + 9, posY + 12.4)
+	DrawRect(m_indent.posX + widgetPosX-1.5 , posY+2, m_indent.posX + widgetPosX + 9, posY + 12.4)
 end
 
 function colourNames(teamID)
@@ -1741,7 +1758,7 @@ function DrawState(playerID, posX, posY)
 		end
 	end
 	gl_Texture(readyTexture)
-	gl_TexRect(posX, posY - 1 , posX + 16, posY + 16)			
+	DrawRect(posX, posY - 1 , posX + 16, posY + 16)			
 	gl_Color(1,1,1,1)
 end
 
@@ -1835,20 +1852,20 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha)
 	if spec then
 		local grayvalue = 0.25 + ((5 - pingLvl) / 7)
 		gl_Color(grayvalue,grayvalue,grayvalue,0.75*alpha)
-		gl_TexRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 21, posY + 14)
+		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 21, posY + 14)
 	else
 		gl_Color(pingCpuColors[pingLvl].r,pingCpuColors[pingLvl].g,pingCpuColors[pingLvl].b)
-		gl_TexRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 24, posY + 15)
+		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 24, posY + 15)
 	end
 	
 	gl_Texture(cpuPic)
 	if spec then
 		grayvalue = 0.45 + ((5 - cpuLvl) / 9)
 		gl_Color(grayvalue,grayvalue,grayvalue,0.75*alpha)
-		gl_TexRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
+		DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
 	else
 		gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
-		gl_TexRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
+		DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
 	end
 end
 
@@ -1856,18 +1873,18 @@ function DrawPoint(posY,pointtime)
 	if right == true then
 		gl_Color(1,0,0,pointtime/pointDuration)
 		gl_Texture(arrowPic)
-		gl_TexRect(widgetPosX - 18, posY, widgetPosX - 2, posY+ 14)
+		DrawRect(widgetPosX - 18, posY, widgetPosX - 2, posY+ 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
 		gl_Texture(pointPic)
-		gl_TexRect(widgetPosX - 33, posY-1, widgetPosX - 17, posY + 15)
+		DrawRect(widgetPosX - 33, posY-1, widgetPosX - 17, posY + 15)
 	else
 		leftPosX = widgetPosX + widgetWidth
 		gl_Color(1,0,0,pointtime/pointDuration)
 		gl_Texture(arrowPic)
-		gl_TexRect(leftPosX + 158, posY, leftPosX + 2, posY + 14)
+		DrawRect(leftPosX + 158, posY, leftPosX + 2, posY + 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
 		gl_Texture(pointPic)
-		gl_TexRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)	
+		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)	
 	end
 	gl_Color(1,1,1,1)
 end
@@ -1981,32 +1998,32 @@ function CreateShareSlider()
 	if energyPlayer ~= nil then
 		posY = widgetPosY + widgetHeight - energyPlayer.posY
 		gl_Texture(barPic)
-		gl_TexRect(m_share.posX + widgetPosX  + 16,posY-3,m_share.posX + widgetPosX  + 34,posY+58)
+		DrawRect(m_share.posX + widgetPosX  + 16,posY-3,m_share.posX + widgetPosX  + 34,posY+58)
 		gl_Texture(energyPic)
-		gl_TexRect(m_share.posX + widgetPosX  + 17,posY+sliderPosition,m_share.posX + widgetPosX  + 33,posY+16+sliderPosition)
+		DrawRect(m_share.posX + widgetPosX  + 17,posY+sliderPosition,m_share.posX + widgetPosX  + 33,posY+16+sliderPosition)
 		gl_Texture(amountPic)
 		if right == true then
-			gl_TexRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
+			DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
 			gl_Texture(false)
 			gl_Text(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
 		else
-			gl_TexRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
+			DrawRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
 			gl_Texture(false)
 			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)				
 		end
 	elseif metalPlayer ~= nil then
 		posY = widgetPosY + widgetHeight - metalPlayer.posY
 		gl_Texture(barPic)
-		gl_TexRect(m_share.posX + widgetPosX  + 32,posY-3,m_share.posX + widgetPosX  + 50,posY+58)
+		DrawRect(m_share.posX + widgetPosX  + 32,posY-3,m_share.posX + widgetPosX  + 50,posY+58)
 		gl_Texture(metalPic)
-		gl_TexRect(m_share.posX + widgetPosX  + 33, posY+sliderPosition,m_share.posX + widgetPosX  + 49,posY+16+sliderPosition)
+		DrawRect(m_share.posX + widgetPosX  + 33, posY+sliderPosition,m_share.posX + widgetPosX  + 49,posY+16+sliderPosition)
 		gl_Texture(amountPic)
 		if right == true then
-			gl_TexRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
+			DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
 			gl_Texture(false)
 			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
 		else
-			gl_TexRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
+			DrawRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
 			gl_Texture(false)
 			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
 		end
@@ -2322,10 +2339,10 @@ end
 
 local function DrawTweakButton(module,  localLeft, localOffset, localBottom)
 	gl_Texture(module.pic)
-	gl_TexRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
+	DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	if module.active ~= true and module.alwaysActive == nil then
 		gl_Texture(crossPic)
-		gl_TexRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
+		DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	end
 end
 
@@ -2359,15 +2376,15 @@ local function DrawArrows()
 	gl_Color(1,1,1,0.4)
 	gl_Texture(arrowdPic)
 	if expandDown == true then
-		gl_TexRect(widgetPosX, widgetPosY - 15, widgetRight, widgetPosY - 1)
+		DrawRect(widgetPosX, widgetPosY - 15, widgetRight, widgetPosY - 1)
 	else
-		gl_TexRect(widgetPosX, widgetTop + 15, widgetRight, widgetTop + 1)
+		DrawRect(widgetPosX, widgetTop + 15, widgetRight, widgetTop + 1)
 	end
 		gl_Texture(arrowPic)
 	if expandLeft == true then
-		gl_TexRect(widgetPosX - 1, widgetPosY, widgetPosX - 15, widgetTop)
+		DrawRect(widgetPosX - 1, widgetPosY, widgetPosX - 15, widgetTop)
 	else
-		gl_TexRect(widgetRight + 1, widgetPosY, widgetRight + 15, widgetTop)
+		DrawRect(widgetRight + 1, widgetPosY, widgetRight + 15, widgetTop)
 	end
 	gl_Color(1,1,1,1)
 	gl_Texture(false)
