@@ -54,7 +54,6 @@ local max                   = math.max
 local min                   = math.min
 
 local textSize              = 13
-local windColor             = {0.5, 0.5, 0.5, 1}
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 local widgetScale			= customScale
@@ -71,6 +70,10 @@ local curModID              = upper(Game.modShortName or "")
 local check1x, check1y      = 6, 28 
 local check2x, check2y      = 6, 6
 local avgWind = math.floor((maxWind + minWind) / 2)
+local speedTextPosX			= 0
+local avgSpeedTextPosX		= 0
+local avgSpeedTextPosY		= 0
+
 
 --------------------------------------------------------------------------------
 
@@ -85,15 +88,13 @@ function GetWind()
     end
     printWind = format('%.1f', currentWind)
     if minWind == maxWind then
-        windColor = {0, 1, 0, 1} -- Green
         count = count + 1
     else
-        windColor = {1-windPercent, windPercent, 0, 1}
         count = count + windPercent*speedMultiplier
     end
 end
 
-function widget:GameFrame()
+function widget:GameFrame(frame)
 	GetWind()
 end
 
@@ -136,6 +137,8 @@ function createBackgroundList()
 			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6)
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (panelHeight-(36*widgetScale))/2, 0) -- Spacing of icon
+			glColor(1,1,1,0.25)
+			glText(avgWind, -(15*widgetScale)+panelWidth, ((textSize*0.75*widgetScale)/8), textSize*0.75*widgetScale, 'r') -- Wind speed text
 			glPushMatrix() -- Blades
 				glTranslate(0, 9*widgetScale, 0)
 	end)
@@ -156,17 +159,15 @@ end
 
 function widget:DrawScreen()
 	glCallList(backgroundList)
-		if rotationOn then -- Rotation
-			glTranslate(oorx*widgetScale, oory*widgetScale, 0)
-			glRotate(count, 0, 0, 1)
-			glTranslate(-oorx*widgetScale, -oory*widgetScale, 0)
-		end
+	if rotationOn then -- Rotation
+		glTranslate(oorx*widgetScale, oory*widgetScale, 0)
+		glRotate(count, 0, 0, 1)
+		glTranslate(-oorx*widgetScale, -oory*widgetScale, 0)
+	end
 	glCallList(backgroundList2)
 	if spGetGameFrame() > 1 then
-		glText(printWind, -(12*widgetScale)+(panelWidth*0.5), (panelHeight/2)-((textSize*widgetScale)/2), textSize*widgetScale, 'oc') -- Wind speed text
+		glText(printWind, windTextPosX, windTextPosY, textSize*widgetScale, 'oc') -- Wind speed text
 	end
-	glColor(1,1,1,0.25)
-	glText(avgWind, -(15*widgetScale)+panelWidth, ((textSize*0.75*widgetScale)/8), textSize*0.75*widgetScale, 'r') -- Wind speed text
 	glPopMatrix()
 end
 
@@ -251,6 +252,8 @@ function init()
 	widgetScale = (0.60 + (vsx*vsy / 5000000)) * customScale
 	panelWidth 	= customPanelWidth * widgetScale
 	panelHeight	= customPanelHeight * widgetScale
+	windTextPosX = -(12*widgetScale)+(panelWidth*0.5)
+	windTextPosY = (panelHeight/2)-((textSize*widgetScale)/2)
 	createBackgroundList()
 	createBackgroundList2()
 	processGuishader()
@@ -273,8 +276,6 @@ function widget:Initialize()
     --if maxWind > maxWindEnergy[curModID] then maxWind = maxWindEnergy[curModID] end
     if maxWind > 25 then maxWind = 25 end
     
-	createBackgroundList()
-	createBackgroundList2()
 	processGuishader()
 end
 
