@@ -1,4 +1,18 @@
-﻿9.05 -> 9.06
+﻿9.06 -> 9.07
+04/09/2015
+
+Balance changes:
+- Increased damage modifier for t1 popups: 0.15 -> 0.25
+- Decreased t2 air cons build power 120 -> 100
+
+Others:
+- Commanders are not rotating body when assisting lab
+- Added new loadscreens
+- Fixed pause screen
+- Restore engine default los colors when disabling ba_los_colors widget
+- Added ecostats widget
+
+9.05 -> 9.06
 21/08/2015
 
 Balance changes:
