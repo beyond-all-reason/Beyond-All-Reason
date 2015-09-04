@@ -2923,16 +2923,18 @@ function widget:MousePress(x, y, button)
 					elseif not ctrlDown then
 						local sx = teamData[teamID].startx
 						local sz = teamData[teamID].starty
-						local sy = Spring.GetGroundHeight(sx,sz)
-						local camState = Spring.GetCameraState()
-						if camState and sx and sz and sx > 0 and sz > 0 and Game.gameShortName ~= "EvoRTS" then
-							camState["px"] = sx
-							camState["py"] = sy
-							camState["pz"] = sz
-							camState["height"] = 5000
-							Spring.SetCameraState(camState,2)
-						elseif sx then
-							Spring.SetCameraTarget(sx,sy,sz,0.5)
+						if sx ~= nil and sz ~= nil then
+							local sy = Spring.GetGroundHeight(sx,sz)
+							local camState = Spring.GetCameraState()
+							if camState and sx and sz and sx > 0 and sz > 0 and Game.gameShortName ~= "EvoRTS" then
+								camState["px"] = sx
+								camState["py"] = sy
+								camState["pz"] = sz
+								camState["height"] = 5000
+								Spring.SetCameraState(camState,2)
+							elseif sx then
+								Spring.SetCameraTarget(sx,sy,sz,0.5)
+							end
 						end
 					end
 						return true
