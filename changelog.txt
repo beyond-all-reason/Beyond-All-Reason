@@ -2,7 +2,7 @@
 04/09/2015
 
 Balance changes:
-- Weakened T1 popups when closed. (Increased damage modifier: 0.15 -> 0.25)
+- Weakened T1 popups when closed (Increased damage modifier: 0.15 -> 0.25)
 - Decreased t2 air cons build power: 120 -> 100
 
 Others:
