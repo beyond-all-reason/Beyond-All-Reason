@@ -34,7 +34,7 @@ return {
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 400,
 		sonardistance = 300,
-		sonarstealth = true,
+		sonarstealth = false,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.221,
 		turnrate = 998,
