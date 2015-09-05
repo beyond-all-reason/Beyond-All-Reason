@@ -26,9 +26,9 @@ local iconScaling = true
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
-		px = 0,py = CanvasY - 411, --default start position
+		px = 0,py = CanvasY - 415, --default start position
 		
-		isx = 46,isy = 39.5, --icon size
+		isx = 45,isy = 40, --icon size
 		ix = 5,iy = 8, --icons x/y
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
@@ -54,9 +54,9 @@ local Config = {
 	
 	ordermenu = {
 		menuname = "ordermenu",
-		px = 0,py = CanvasY - 411 - 145,
+		px = 0,py = CanvasY - 415 - 145,
 		
-		isx = 46,isy = 33,
+		isx = 45,isy = 33,
 		ix = 5,iy = 4,
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize

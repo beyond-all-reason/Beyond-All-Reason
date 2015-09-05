@@ -83,7 +83,7 @@ local mouseIcon = -1
 local currentDef = nil
 
 local iconSizeX = 68
-local iconSizeY = math.floor(iconSizeX * 0.94)
+local iconSizeY = 66
 
 local usedIconSizeX = iconSizeX
 local usedIconSizeY = iconSizeY
@@ -96,7 +96,7 @@ local rectMaxY = 0
 local enabled = true
 local backgroundDimentions = {}
 local iconMargin = usedIconSizeX / 15		-- changed in ViewResize anyway
-local fontSize = iconSizeY * 0.33		-- changed in ViewResize anyway
+local fontSize = iconSizeY * 0.3		-- changed in ViewResize anyway
 local picList
 
 -------------------------------------------------------------------------------
@@ -127,8 +127,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   vsy = viewSizeY
   
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
-  usedIconSizeY = math.floor(usedIconSizeX * 0.89)
-  fontSize = usedIconSizeY * 0.33
+  usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
+  fontSize = usedIconSizeY * 0.31
   iconMargin = usedIconSizeX / 15
   
   if picList then
@@ -216,7 +216,7 @@ function DrawPicList()
     local xmid = (xmin + xmax) * 0.5
     local ymid = (ymin + ymax) * 0.5
     
-    backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin+iconMargin-1}
+    backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
     gl.Color(backgroundColor)
     RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
   end
@@ -250,7 +250,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   glColor(1, 1, 1, 1)
   glTexture('#' .. unitDefID)
-  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax))
+  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin))
   glTexture(false)
 
   -- draw the count text
@@ -290,13 +290,13 @@ function DrawIconQuad(iconPos, color)
   
   gl.Texture(highlightImg)
   gl.Color(color)
-  glTexRect(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin+iconMargin)
+  glTexRect(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin)
   gl.Texture(false)
   
-  RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin+iconMargin, (xmax-xmin)/15)
+  RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin, (xmax-xmin)/15)
   glBlending(GL_SRC_ALPHA, GL_ONE)
   gl.Color(color[1],color[2],color[3],color[4]/2)
-  RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin+iconMargin, (xmax-xmin)/15)
+  RectRound(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin, (xmax-xmin)/15)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
