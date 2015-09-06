@@ -7,7 +7,11 @@ local fileNames = {
     ["Dworld Acidic"]   = "Dworld",
 
     --Throne
-    ["Throne_v5"] = "Throne",
+    ["Throne v1"] = "Throne",
+    ["Throne v2"] = "Throne",
+    ["Throne v3"] = "Throne",
+    ["Throne v4"] = "Throne",
+    ["Throne v5"] = "Throne",
     
     --Blindside
     ["Blindside_v2"] = "Blindside",
