@@ -83,7 +83,6 @@ local loadSettings		= true
 --  Declarations
 ---------------------------------------------------------------------------------------------------
 
-local bestTeam, bestKills, worstLosses 
 local PmaxDmg						= 0
 local comTable 						= {}
 local comDefs						= {}
@@ -530,12 +529,16 @@ local function DrawEBar(tE,vOffset)-- where tE = team Energy = [0,1]
 	
 	local dx = 15
 	local dy = tH-36
+	local maxW = widgetWidth - 30
+	if Options["resText"]["On"] then
+		maxW = (widgetWidth/2) - 5
+	end
 	glColor(0.8, 0.8, 0, 0.13)
 	gl.Texture(images["barbg"])
 	glTexRect(
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
-		widgetPosX + dx-5 + widgetWidth/2,
+		widgetPosX + dx+maxW,
 		widgetPosY + widgetHeight -vOffset+dy-3
 	)
 	glColor(1,1,0,1)
@@ -543,7 +546,7 @@ local function DrawEBar(tE,vOffset)-- where tE = team Energy = [0,1]
 	glTexRect(
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
-		widgetPosX + dx + tE * (widgetWidth/2-5),
+		widgetPosX + dx + tE * maxW,
 		widgetPosY + widgetHeight -vOffset+dy-3
 	)
 	gl.Texture(false)
@@ -553,12 +556,16 @@ end
 local function DrawMBar(tM,vOffset) -- where tM = team Metal = [0,1]
 	local dx = 15
 	local dy = tH-26
+	local maxW = widgetWidth - 30
+	if Options["resText"]["On"] then
+		maxW = (widgetWidth/2)
+	end
 	glColor(0.8, 0.8, 0.8, 0.13)
 	gl.Texture(images["barbg"])
 	glTexRect(
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
-		widgetPosX + dx-5 + widgetWidth/2,
+		widgetPosX + dx+maxW,
 		widgetPosY + widgetHeight -vOffset+dy-3
 	)
 	glColor(1,1,1,1)
@@ -566,7 +573,7 @@ local function DrawMBar(tM,vOffset) -- where tM = team Metal = [0,1]
 	glTexRect(
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
-		widgetPosX + dx + tM * (widgetWidth/2-5),
+		widgetPosX + dx + tM * maxW,
 		widgetPosY + widgetHeight -vOffset+dy-3
 	)
 	gl.Texture(false)
@@ -578,7 +585,7 @@ local function DrawBackground(posY)
 	local y1 = widgetPosY - posY + widgetHeight
 	local y2 = widgetPosY - posY + tH + widgetHeight
 	glColor(0,0,0,0.6)
-	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 6)
+	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 7)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..posY)
 	end
