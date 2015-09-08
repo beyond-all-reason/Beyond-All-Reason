@@ -108,7 +108,7 @@ end
 -- SCREENSIZE FUNCTIONS
 -------------------------------------------------------------------------------
 local iconSizeX  = 65
-local iconSizeY  = math.floor(iconSizeX * 0.95)
+local iconSizeY  = math.floor(iconSizeX * 0.91)
 local repIcoSize = math.floor(iconSizeY*0.6)   --repeat iconsize
 local fontSize   = iconSizeY * 0.25
 local borderSize = 1.5
@@ -136,7 +136,7 @@ end
 
 local function UpdateIconSizes()
   iconSizeX = math.floor(bar_iconSizeBase+((vsx-800)/38))
-  iconSizeY = math.floor(iconSizeX * 0.95)
+  iconSizeY = math.floor(iconSizeX * 0.91)
   fontSize  = iconSizeY * 0.27
   repIcoSize = math.floor(iconSizeY*0.4)
 end
