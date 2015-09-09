@@ -273,11 +273,11 @@ function widget:Initialize()
           if (xn and ((xn ~= 0) or (zn ~= 0) or (xp ~= msx) or (zp ~= msz))) then
 
             if (at == Spring.GetMyAllyTeamID()) then
-              gl.Color( 0, 1, 0, 0.25 )  --  green
+              gl.Color( 0, 1, 0, 0.22 )  --  green
               gl.StencilMask(stencilBit2);
               gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit2);
             else
-              gl.Color( 1, 0, 0, 0.25 )  --  red
+              gl.Color( 1, 0, 0, 0.22 )  --  red
               gl.StencilMask(stencilBit1);
               gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit1);
             end
