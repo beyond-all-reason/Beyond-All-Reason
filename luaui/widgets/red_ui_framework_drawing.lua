@@ -132,7 +132,7 @@ local function Border(px,py,sx,sy,width,c)
 	elseif (width == 0) then
 		return
 	end
-	px,py,sx,sy = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy)
+	px,py,sx,sy = px,py,sx,sy
 	
 	glPushMatrix()
 	if (c) then
@@ -165,7 +165,7 @@ local function Rect(px,py,sx,sy,c,scale)
 		sx = sx * scale
 		sy = sy * scale
 	end
-	px,py,sx,sy = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy)
+	px,py,sx,sy = px,py,sx,sy
 	glRect(px,py,px+sx,py+sy)
 end
 
@@ -250,12 +250,6 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
 	end
 	
-	--[[px = math.floor(px)
-	py = math.floor(py)
-	sx = math.ceil(px+sx)
-	sy = math.ceil(p+sy)
-	]]--
-	
 	if scale ~= nil and scale ~= 1 then
 		px = px + ((sx * (1-scale))/2)
 		py = py + ((sy * (1-scale))/2)
@@ -288,7 +282,7 @@ local function TexRect(px,py,sx,sy,texture,c,scale)
 		sx = sx * scale
 		sy = sy * scale
 	end
-	px,py,sx,sy = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy)
+	px,py,sx,sy = px,py,sx,sy
 	glTranslate(px,py+sy,0)
 	glScale(1,-1,1) --flip
 	glTexture(texture)
@@ -310,7 +304,6 @@ local function RectQuad(px,py,sx,sy)
 end
 
 function DrawRect(px,py,sx,sy)
-	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
 end
 

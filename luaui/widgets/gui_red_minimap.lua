@@ -19,7 +19,7 @@ local CanvasX,CanvasY = 1272/rescalevalue,734/rescalevalue --resolution in which
 
 local Config = {
 	minimap = {
-		px = 0,py = 0, --default start position
+		px = -0.5,py = -0.5, --default start position
 		sx = math.min(135*Game.mapX/Game.mapY,270),sy = 135, --background size
 		
 		bsx = 15,bsy = 15, --button size
