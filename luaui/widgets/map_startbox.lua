@@ -244,7 +244,7 @@ function widget:Initialize()
   if (drawGroundQuads) then
     startboxDListStencil = gl.CreateList(function()
       local minY,maxY = Spring.GetGroundExtremes()
-      minY = minY - 200; maxY = maxY + 100;
+      minY = minY - 200; maxY = maxY + 500;
       for _,at in ipairs(Spring.GetAllyTeamList()) do
         if (true or at ~= gaiaAllyTeamID) then
           local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
@@ -266,7 +266,7 @@ function widget:Initialize()
 
     startboxDListColor = gl.CreateList(function()
       local minY,maxY = Spring.GetGroundExtremes()
-      minY = minY - 200; maxY = maxY + 100;
+      minY = minY - 200; maxY = maxY + 500;
       for _,at in ipairs(Spring.GetAllyTeamList()) do
         if (true or at ~= gaiaAllyTeamID) then
           local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
