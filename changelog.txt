@@ -1,4 +1,15 @@
-﻿9.06 -> 9.07
+﻿9.07 -> 9.08
+11/09/2015
+
+Balance changes:
+- Fixed Gimp (t2 amph kbot) sonar visibility
+
+Others:
+- ecostats widget: restyled, fixed errors
+- some fixes for start boxes, redui etc
+
+
+9.06 -> 9.07
 04/09/2015
 
 Balance changes:
