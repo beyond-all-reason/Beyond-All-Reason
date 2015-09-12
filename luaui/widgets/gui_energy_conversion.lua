@@ -126,10 +126,10 @@ function RectRound(xPos,yPos,sx,sy,cs)
 	glTexture(false)
 end
 
-function createList()
+function createList(force)
 
 	local newCurLevel = spGetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
-	if newCurLevel ~= curLevel then
+	if newCurLevel ~= curLevel or force then
 		curLevel = newCurLevel
 		
 		if dList ~= nil then
@@ -220,7 +220,7 @@ function widget:MousePress(mx, my, mButton)
 			end
             spSendLuaRulesMsg(format(alterLevelFormat, newShare))
             draggingSlider = true
-            createList()
+            createList(true)
             return true
         end
     end
@@ -238,7 +238,7 @@ function widget:TweakMouseMove(mx, my, dx, dy, mButton)
 		xPos, yPos = xRelPos * vsx,yRelPos * vsy
 		
 		processGuishader()
-		createList()
+		createList(true)
     end
 end
 
@@ -256,7 +256,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		end
 		if newShare > 100 then newShare = 100 end
 		spSendLuaRulesMsg(format(alterLevelFormat, newShare))
-		createList()
+		createList(true)
 	end
 end
 
@@ -296,7 +296,7 @@ function widget:ViewResize(newX,newY)
 	if dList ~= nil then
 		gl.DeleteList(dList)
 	end
-	createList()
+	createList(true)
 end
 
 function widget:GetConfigData()
