@@ -157,14 +157,15 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 		end
 		
 		glDepthTest(true)
+		--[[
 		if showLineGlow then
 			glLineWidth(10)
 			glColor(circleColor[1],circleColor[2],circleColor[3], .016*lineOpacityMultiplier)
-			glDrawGroundCircle(x, y, z, coverageRange, 256)
-		end
+			glDrawGroundCircle(x, y, z, coverageRange, 96)
+		end]]--
 		glColor(circleColor[1],circleColor[2],circleColor[3], .5*lineOpacityMultiplier)
 		glLineWidth(3-lineWidthMinus)
-		glDrawGroundCircle(x, y, z, coverageRange, 256)
+		glDrawGroundCircle(x, y, z, coverageRange, 96)
 	end
 end
 
