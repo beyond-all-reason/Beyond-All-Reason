@@ -29,7 +29,7 @@ local customPanelHeight 	= 37
 local customPanelPadding	= 4
 local customFontSize 		= 12
 
-local xRelPos, yRelPos		= 0.88, 0.963
+local xRelPos, yRelPos		= 0.88, 0.966
 local vsx, vsy				= gl.GetViewSizes()
 local widgetScale			= customScale
 local panelWidth 			= customPanelWidth
@@ -37,6 +37,7 @@ local panelHeight 			= customPanelHeight
 local panelPadding			= customPanelPadding
 local fontSize				= customFontSize
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
+local curLevel				= 0
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -76,6 +77,7 @@ function widget:PlayerChanged()
 	if spec and not enableAsSpec then
 		widgetHandler:RemoveWidget()
 	end
+	CreateList()
 end
 
 function widget:Initialize()
@@ -86,6 +88,8 @@ function widget:Initialize()
 	else
 		processGuishader()
 	end
+	
+	dList = gl.CreateList(function()end)
 end
 
 function processGuishader()
@@ -122,52 +126,72 @@ function RectRound(xPos,yPos,sx,sy,cs)
 	glTexture(false)
 end
 
+function createList()
+
+	local newCurLevel = spGetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
+	if newCurLevel ~= curLevel then
+		curLevel = newCurLevel
+		
+		if dList ~= nil then
+			gl.DeleteList(dList)
+		end
+		
+		local sliderX = (panelWidth-(panelPadding*4)) * curLevel
+		
+		dList = gl.CreateList(function()
+			gl.PushMatrix()
+				
+				-- Panel
+				glColor(0, 0, 0, 0.6)
+				--glRect(0, 0, panelWidth, panelHeight)
+				RectRound(xPos-panelPadding, yPos-panelPadding, xPos+panelWidth+panelPadding, yPos+panelHeight+panelPadding, 6*widgetScale)
+				
+				glTranslate(xPos, yPos, 0)
+				-- Text
+				glColor(1, 1, 1, 1)
+				glBeginText()
+					glText('Energy Conversion',panelPadding, panelHeight-panelPadding-fontSize, fontSize, 'od')
+				glEndText()
+				
+				-- Bar
+				glColor(0,0,0, 0.16)
+				glRect((panelWidth-(panelPadding*2))-1, panelPadding+(panelHeight/7.5)-1, (panelPadding*2)+1, panelPadding+(panelHeight/4.7)+1)
+				glColor(1,1,1,1)
+				glTexture(barbg)
+				glTexRect((panelWidth-(panelPadding*2)), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
+				
+				glColor(1, 1, 0, 0.77)
+				glTexture(barbg)
+				glTexRect(sliderX + (panelPadding*2), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
+				
+				-- Slider
+				glColor(0, 0, 0, 0.33)
+				glRect(sliderX + (panelPadding*2) + (panelWidth/50)+1, panelPadding-1, sliderX + (panelPadding*2) - (panelWidth/50)-1, panelPadding+(panelHeight/3.1)+1)
+				glColor(0.88, 0.88, 0.1, 1)
+				glTexRect(sliderX + (panelPadding*2)  + (panelWidth/50), panelPadding, sliderX + (panelPadding*2) - (panelWidth/50), panelPadding+(panelHeight/3.1))
+				glTexture(false)
+				
+			gl.PopMatrix()
+		end)
+	end
+end
 
 function widget:DrawScreen()
-    -- Var
-    local myTeamID = spGetMyTeamID()
-    local curLevel = spGetTeamRulesParam(myTeamID, 'mmLevel')
-    local curUsage = spGetTeamRulesParam(myTeamID, 'mmUse')
-    local curCapacity = spGetTeamRulesParam(myTeamID, 'mmCapacity')
-    
-    -- Positioning
-    glPushMatrix()
-        
-        -- Panel
-        glColor(0, 0, 0, 0.6)
-        --glRect(0, 0, panelWidth, panelHeight)
-        RectRound(xPos-panelPadding, yPos-panelPadding, xPos+panelWidth+panelPadding, yPos+panelHeight+panelPadding, 6*widgetScale)
-        
-        glTranslate(xPos, yPos, 0)
-        -- Text
-        glColor(1, 1, 1, 1)
-        glBeginText()
-            glText('Energy Conversion',panelPadding, panelHeight-panelPadding-fontSize, fontSize, 'od')
-            --glText('Hover:', panelPadding, (panelHeight/2.3)-fontSize, fontSize, 'd')
-            --glText('E usage:', panelPadding, panelPadding, fontSize, 'd')
-            --glText(format('%i / %i', curUsage, curCapacity), panelWidth-panelPadding, panelPadding, fontSize, 'dr')
-        glEndText()
-        
-        local sliderX = (panelWidth-(panelPadding*4)) * curLevel
-        -- Bar
-        glColor(0,0,0, 0.16)
-        glRect((panelWidth-(panelPadding*2))-1, panelPadding+(panelHeight/7.5)-1, (panelPadding*2)+1, panelPadding+(panelHeight/4.7)+1)
-        glColor(1,1,1,1)
-        glTexture(barbg)
-        glTexRect((panelWidth-(panelPadding*2)), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
-        
-        glColor(1, 1, 0, 0.77)
-        glTexture(barbg)
-        glTexRect(sliderX + (panelPadding*2), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
-        
-        -- Slider
-        glColor(0, 0, 0, 0.33)
-        glRect(sliderX + (panelPadding*2) + (panelWidth/50)+1, panelPadding-1, sliderX + (panelPadding*2) - (panelWidth/50)-1, panelPadding+(panelHeight/3.1)+1)
-        glColor(0.88, 0.88, 0.1, 1)
-        glTexRect(sliderX + (panelPadding*2)  + (panelWidth/50), panelPadding, sliderX + (panelPadding*2) - (panelWidth/50), panelPadding+(panelHeight/3.1))
-        glTexture(false)
-        
-    glPopMatrix()
+	gl.CallList(dList)
+end
+
+local sec = 0
+local updateTime = 1
+function widget:Update(dt)
+	sec=sec+dt
+	if (sec>1/updateTime) then
+		sec = 0
+		
+		local newCurLevel = spGetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
+		if newCurLevel ~= curLevel then
+			createList()
+		end
+	end
 end
 
 function widget:TweakMousePress(mx, my, mButton)
@@ -196,6 +220,7 @@ function widget:MousePress(mx, my, mButton)
 			end
             spSendLuaRulesMsg(format(alterLevelFormat, newShare))
             draggingSlider = true
+            createList()
             return true
         end
     end
@@ -213,6 +238,7 @@ function widget:TweakMouseMove(mx, my, dx, dy, mButton)
 		xPos, yPos = xRelPos * vsx,yRelPos * vsy
 		
 		processGuishader()
+		createList()
     end
 end
 
@@ -230,6 +256,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		end
 		if newShare > 100 then newShare = 100 end
 		spSendLuaRulesMsg(format(alterLevelFormat, newShare))
+		createList()
 	end
 end
 
@@ -265,6 +292,11 @@ function widget:ViewResize(newX,newY)
 	fontSize		= customFontSize * widgetScale
 	
 	processGuishader()
+	
+	if dList ~= nil then
+		gl.DeleteList(dList)
+	end
+	createList()
 end
 
 function widget:GetConfigData()
