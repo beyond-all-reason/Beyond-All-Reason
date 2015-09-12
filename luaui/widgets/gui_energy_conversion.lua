@@ -77,7 +77,7 @@ function widget:PlayerChanged()
 	if spec and not enableAsSpec then
 		widgetHandler:RemoveWidget()
 	end
-	CreateList()
+	createList()
 end
 
 function widget:Initialize()
