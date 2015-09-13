@@ -362,7 +362,7 @@ function widget:Initialize()
 	dList[6] = {}
 end
 
-
+local dlistCount = 0
 function widget:DrawScreen()
 	
 	newBlurRect = {}
@@ -418,6 +418,7 @@ function widget:DrawScreen()
 				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
 			end
 			if dList[t[1]][id] == nil then
+				dlistCount = dlistCount + 1
 				dList[t[1]][id] = glCreateList(function()
 					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9])
 				end)
@@ -429,6 +430,7 @@ function widget:DrawScreen()
 			
 		Todo[i] = nil
 	end
+	
 	
 	glResetState()
 	glResetMatrices()
@@ -468,22 +470,41 @@ function widget:DrawScreen()
 	end
 end
 
-function widget:Update()
+local sec = 0
+local flushDistsTime = 20
+function widget:Update(dt)
+		
 	if (sIsGUIHidden()) then
 		for i=1,#Todo do
 			Todo[i] = nil
 		end
 	end
+	
+	sec=sec+dt
+	if (sec>flushDistsTime) then
+		sec = 0
+		removeDLists()
+	end
+end
+
+function removeDLists()
+	for t, idlist in pairs(dList) do
+		for id in pairs(idlist) do
+			glDeleteList(dList[t][id])
+		end
+		dList[t] = {}
+	end
 end
 
 function widget:Shutdown()
 	glDeleteList(StartList)
+	removeDLists()
 	
 	if (WG['guishader_api'] ~= nil) then
 	
 		-- remove blur areas
 		for id, rect in pairs(blurRect) do
-			if newBlurRect[id] == nil and rect.id ~= nil then
+			if rect.id ~= nil then
 				WG['guishader_api'].RemoveRect('red_ui_'..rect.id)
 				blurRect[id] = nil
 			end
