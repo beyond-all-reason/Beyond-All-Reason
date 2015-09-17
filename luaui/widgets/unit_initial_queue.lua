@@ -212,6 +212,24 @@ local totalTime
 ------------------------------------------------------------
 -- Local functions
 ------------------------------------------------------------
+
+
+local function RectQuad(px,py,sx,sy)
+	local o = 0.008		-- texture offset, because else grey line might show at the edges
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+end
+
+function DrawRect(px,py,sx,sy)
+	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
+end
+
 local function TraceDefID(mx, my)
 	local overRow = cellRows[1 + math.floor((wt - my) / ((iconHeight + borderSize)*widgetScale))]
 	if not overRow then return nil end
@@ -389,16 +407,16 @@ function RectRound(px,py,sx,sy,cs)
 	
 	gl.Texture(bgcorner)
 	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, py+cs, px+cs, py)		-- top left
+	DrawRect(px, py+cs, px+cs, py)		-- top left
 	
 	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, py+cs, sx-cs, py)		-- top right
+	DrawRect(sx, py+cs, sx-cs, py)		-- top right
 	
 	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(px, sy-cs, px+cs, sy)		-- bottom left
+	DrawRect(px, sy-cs, px+cs, sy)		-- bottom left
 	
 	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	gl.TexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	DrawRect(sx, sy-cs, sx-cs, sy)		-- bottom right
 	
 	gl.Texture(false)
 end
@@ -448,7 +466,7 @@ function InitializeFaction(sDefID)
 
 						gl.Color(1, 1, 1, 1)
 						gl.Texture("#" .. cellRow[c])
-							gl.TexRect(iconPadding, iconPadding, (iconWidth-iconPadding), (iconHeight-iconPadding))
+							DrawRect(iconPadding, iconPadding, (iconWidth-iconPadding), (iconHeight-iconPadding))
 						gl.Texture(false)
 
 						gl.Translate((iconWidth + borderSize), 0, 0)
@@ -580,17 +598,17 @@ function widget:DrawScreen()
 			gl.Translate(-((iconWidth*widgetScale)*col), -((iconHeight*widgetScale)*row), 0)
 			gl.Texture(buttonhighlight)
 			gl.Color(hoverColor)
-			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			DrawRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
 			gl.Color(hoverColor[1],hoverColor[2],hoverColor[3],hoverColor[4]/1.5)
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			DrawRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			if CurMouseState[3] then
 				gl.Color(clickColor)
-				gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+				DrawRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
 				gl.Color(clickColor[1],clickColor[2],clickColor[3],clickColor[4]/1.5)
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+				DrawRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				lastClickedRow = row
 				lastClickedCol = col
@@ -603,10 +621,10 @@ function widget:DrawScreen()
 			gl.Translate(-((iconWidth*widgetScale)*col), -((iconHeight*widgetScale)*row), 0)
 			gl.Texture(buttonpushed)
 			gl.Color(pushedColor)
-			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			DrawRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
 			gl.Color(pushedColor[1],pushedColor[2],pushedColor[3],pushedColor[4]/1.5)
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			gl.TexRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
+			DrawRect((iconPadding*widgetScale), (iconPadding*widgetScale), ((iconWidth-iconPadding)*widgetScale), ((iconHeight-iconPadding)*widgetScale))
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			gl.Texture(false)
 			gl.Translate(((iconWidth*widgetScale)*col), ((iconHeight*widgetScale)*row), 0)
