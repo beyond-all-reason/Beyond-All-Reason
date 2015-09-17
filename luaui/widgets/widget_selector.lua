@@ -770,7 +770,7 @@ end
 
 
 function widget:Shutdown()
-  spSendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
+  Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
 end
 
 
