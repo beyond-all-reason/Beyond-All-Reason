@@ -1,4 +1,19 @@
-﻿9.07 -> 9.08
+﻿9.08 -> 9.09
+18/09/2015
+
+Balance changes:
+- Increased range of t2 emp spider (220 -> 280)
+- T2 spiders (Termite, Recluse, Spider) are more EMP resistant
+- Removed rockets wobbling for ARM "All-Terrain Rocket Spider"(Recluse) and added 1 more rocket (3 -> 4)
+
+Others:
+- Added new widget "vignette"
+- Increased performance of "anti ranges", "energy conversion" and "red ui drawing" widgets
+- Added widget "AdvPlayersList mascotte"
+- Restyled widget selector
+
+
+9.07 -> 9.08
 11/09/2015
 
 Balance changes:
