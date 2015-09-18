@@ -100,7 +100,7 @@ return {
 			adv_rocket = {
 				areaofeffect = 72,
 				avoidfeature = false,
-				burst = 3,
+				burst = 4,
 				burstrate = 0.3,
 				craterareaofeffect = 72,
 				craterboost = 0,
@@ -132,7 +132,7 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 395,
-				wobble = 5400,
+--				wobble = 5400,
 				damage = {
 					default = 120,
 					subs = 5,
