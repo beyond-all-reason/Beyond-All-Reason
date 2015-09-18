@@ -7,10 +7,10 @@ Balance changes:
 - Removed rockets wobbling for ARM "All-Terrain Rocket Spider"(Recluse) and added 1 more rocket (3 -> 4)
 
 Others:
-- Added new widget "vignette"
-- Increased performance of "anti ranges", "energy conversion" and "red ui drawing" widgets
+- Added new widget "vignette" (darker at screen edges)
 - Added widget "AdvPlayersList mascotte"
-- Restyled widget selector
+- Restyled "widget selector" (F11)
+- Increased performance for "anti ranges", "energy conversion" and "red ui drawing" widgets
 
 
 9.07 -> 9.08
