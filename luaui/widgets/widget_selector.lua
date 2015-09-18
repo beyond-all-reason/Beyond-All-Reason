@@ -53,15 +53,18 @@ local curMaxEntries = 25
 local startEntry = 1
 local pageStep  = math.floor(curMaxEntries / 2) - 1
 
-local fontSize = 11
-local fontSpace = 5
+local fontSize = 12
+local fontSpace = 7
 local yStep = fontSize + fontSpace
+
 
 local entryFont  = "LuaUI/Fonts/FreeMonoBold_12"
 local headerFont  = "LuaUI/Fonts/FreeMonoBold_12"
 entryFont  = ":n:" .. entryFont
 headerFont = ":n:" .. headerFont
 
+local bgPadding = 6
+local bgcorner	= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local maxWidth = 0.01
 local borderx = yStep * 0.75
@@ -96,9 +99,10 @@ local buttons = { --see MouseRelease for which functions are called by which but
     [4] = "Reset LuaUI",
     [5] = "Factory Reset LuaUI",
 }
+local titleFontSize = 16
 local buttonFontSize = 14
 local buttonHeight = 20
-local buttonTop = 3 -- offset between top of buttons and bottom of widget
+local buttonTop = 20 -- offset between top of buttons and bottom of widget
 
 -------------------------------------------------------------------------------
 
@@ -115,6 +119,77 @@ end
 
 
 -------------------------------------------------------------------------------
+
+
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.07		-- texture offset, because else gaps could show
+	local o = offset
+	-- top left
+	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
+end
+
 
 local function UpdateGeometry()
   midx  = vsx * 0.5
@@ -256,47 +331,42 @@ function widget:KeyPress(key, mods, isRepeat)
   return false
 end
 
-
+local scrollbarOffset = -15
 function widget:DrawScreen()
   if not show then return end
   UpdateList()
   gl.BeginText()
 
   -- draw the header
-  gl.Text("Widget Selector", midx, maxy + 7, buttonFontSize, "oc")
+  gl.Text("Widget Selector", midx, maxy + 8 + bgPadding, titleFontSize, "oc")
   
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   local tcol = WhiteStr
     
   -- draw the -/+ buttons
   if maxx-10 < mx and mx < maxx and maxy < my and my < maxy + buttonFontSize + 7 then
-    tcol = '\255\031\031\255'
+    tcol = '\255\031\031\031'
   end
-  gl.Text(tcol.."+", maxx, maxy + 7, buttonFontSize, "or")
+  gl.Text(tcol.."+", maxx, maxy + 7 + bgPadding, buttonFontSize, "or")
   tcol = WhiteStr
   if minx < mx and mx < minx+10 and maxy < my and my < maxy + buttonFontSize + 7 then
-    tcol = '\255\031\031\255'
+    tcol = '\255\031\031\031'
   end
-  gl.Text(tcol.."-", minx, maxy + 7, buttonFontSize, "ol")
+  gl.Text(tcol.."-", minx, maxy + 7 + bgPadding, buttonFontSize, "ol")
   tcol = WhiteStr
 
   -- draw the box
-  gl.Color(0.3, 0.3, 0.3, 1.0)
-  gl.Texture(":n:bitmaps/detailtex.bmp")
-  local ts = (2.0 / 512)  --  texture scale 
-  gl.Shape(GL.QUADS, {
-    { v = { minx, miny }, t = { minx * ts, miny * ts } },
-    { v = { maxx, miny }, t = { maxx * ts, miny * ts } },
-    { v = { maxx, maxy }, t = { maxx * ts, maxy * ts } },
-    { v = { minx, maxy }, t = { minx * ts, maxy * ts } } 
-  })
-  gl.Texture(false)
+  gl.Color(0,0,0,0.8)
+  RectRound(minx-bgPadding, miny-bgPadding, maxx+bgPadding, maxy+bgPadding, 8)
+  
+  gl.Color(0.33,0.33,0.33,0.2)
+  RectRound(minx, miny, maxx, maxy, 8)
   
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
     tcol = WhiteStr
     if minx < mx and mx < maxx and miny - buttonTop- i*buttonHeight < my and my < miny - buttonTop - (i-1)*buttonHeight then
-      tcol = '\255\031\031\255'
+      tcol = '\255\031\031\031'
     end
     gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - buttonTop - i*buttonHeight + 5, buttonFontSize, "oc")
   end
@@ -343,6 +413,26 @@ function widget:DrawScreen()
     posy = posy - yStep
   end
   
+
+  -- highlight label
+  if (pointedY) then
+	gl.Color(1.0, 1.0, 1.0, 0.09)
+    local xn = minx + 0.5
+    local xp = maxx - 0.5
+    local yn = pointedY - fontSpace * 0.5 - 1
+    local yp = pointedY + fontSize + fontSpace * 0.5 + 1
+    if scrollbarOffset < 0 then
+		xp = xp + scrollbarOffset
+		--xn = xn - scrollbarOffset
+	end
+    yn = yn + 0.5
+    yp = yp - 0.5
+    gl.Blending(GL.SRC_ALPHA, GL.ONE)
+    RectRound(xn, yn, xp, yp, 5)
+    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+  end
+  
+  -- scrollbar
   if #widgetsList < #fullWidgetsList then
     sby2 = posy + yStep - fontSpace * 0.5
     sbheight = sby1 - sby2
@@ -356,88 +446,43 @@ function widget:DrawScreen()
                          #fullWidgetsList - curMaxEntries)) + 1
     end
     local sizex = maxx - minx
-    sbposx = minx + sizex + 1.0
+    sbposx = minx + sizex + 1.0 + scrollbarOffset
     sbposy = sby1 - sbsize - sbheight * (startEntry - 1) / #fullWidgetsList
     sbsizex = yStep
     sbsizey = sbsize
     
-    gl.Color(0.0, 0.0, 0.0, 0.8)
-    gl.Shape(GL.QUADS, {
-      { v = { sbposx, miny } }, { v = { sbposx, maxy } },
-      { v = { sbposx + sbsizex, maxy } }, { v = { sbposx + sbsizex, miny } }
-    })    
-
-    gl.Color(1.0, 1.0, 1.0, 0.8)
+    local trianglePadding = 4
+    local scrollerPadding = 7
+    
+    -- background
+    --gl.Color(0.0, 0.0, 0.0, 0.2)
+	--RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6)
+    if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
+      gl.Color(1,1,1,0.04)
+	  RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6)
+    end
+    
+    gl.Color(1.0, 1.0, 1.0, 0.15)
     gl.Shape(GL.TRIANGLES, {
-      { v = { sbposx + sbsizex / 2, miny } }, { v = { sbposx, sby2 - 1 } },
-      { v = { sbposx + sbsizex, sby2 - 1 } }
-    })    
-
+      { v = { sbposx + sbsizex / 2, miny + trianglePadding } },
+      { v = { sbposx + trianglePadding, sby2 - 1 - trianglePadding} },
+      { v = { sbposx + sbsizex - trianglePadding, sby2 - 1 - trianglePadding} }
+    })
     gl.Shape(GL.TRIANGLES, {
-      { v = { sbposx + sbsizex / 2, maxy } }, { v = { sbposx + sbsizex, sby2 + sbheight + 1 } },
-      { v = { sbposx, sby2 + sbheight + 1 } }
+      { v = { sbposx + sbsizex / 2, maxy - trianglePadding } },
+      { v = { sbposx - trianglePadding + sbsizex, sby2 + sbheight + 1 + trianglePadding} },
+      { v = { sbposx + trianglePadding, sby2 + sbheight + 1 + trianglePadding} }
     })
     
-    if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
-      gl.Color(0.2, 0.2, 1.0, 0.6)
-      gl.Blending(false)
-      gl.Shape(GL.LINE_LOOP, {
-        { v = { sbposx, miny } }, { v = { sbposx, maxy } },
-        { v = { sbposx + sbsizex, maxy } }, { v = { sbposx + sbsizex, miny } }
-      })    
-      gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      gl.Shape(GL.QUADS, {
-        { v = { sbposx + 0.5, miny + 0.5 } }, { v = { sbposx + 0.5, maxy - 0.5 } },
-        { v = { sbposx + sbsizex - 0.5, maxy - 0.5 } }, { v = { sbposx + sbsizex - 0.5, miny + 0.5 } }
-      })
-      gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-    end      
-    
+    -- scroller
     if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
-      gl.Color(0.2, 0.2, 1.0, 0.2)
-      gl.Blending(false)
-      gl.Shape(GL.LINE_LOOP, {
-        { v = { sbposx, sbposy } }, { v = { sbposx, sbposy + sbsizey } },
-        { v = { sbposx + sbsizex, sbposy + sbsizey } }, { v = { sbposx + sbsizex, sbposy } }
-      })    
+      gl.Color(1.0, 1.0, 1.0, 0.4) 
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      gl.Shape(GL.QUADS, {
-        { v = { sbposx + 0.5, sbposy + 0.5 } }, { v = { sbposx + 0.5, sbposy + sbsizey - 0.5 } },
-        { v = { sbposx + sbsizex - 0.5, sbposy + sbsizey - 0.5 } }, { v = { sbposx + sbsizex - 0.5, sbposy + 0.5 } }
-      })
+	  RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 2)
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-    end    
-
-    gl.Color(0.25, 0.25, 0.25, 0.8)
-    gl.Shape(GL.QUADS, {
-      { v = { sbposx, sby2 } }, { v = { sbposx, sby2 + sbheight } },
-      { v = { sbposx + sbsizex, sby2 + sbheight } }, { v = { sbposx + sbsizex, sby2 } }
-    })    
-    gl.Color(1.0, 1.0, 1.0, 0.4)
-    gl.Shape(GL.LINE_LOOP, {
-      { v = { sbposx, sby2 } }, { v = { sbposx, sby2 + sbheight } },
-      { v = { sbposx + sbsizex, sby2 + sbheight } }, { v = { sbposx + sbsizex, sby2 } }
-    })    
-
-    gl.Color(0.8, 0.8, 0.8, 0.8)
-    gl.Shape(GL.QUADS, {
-      { v = { sbposx, sbposy } }, { v = { sbposx, sbposy + sbsizey } },
-      { v = { sbposx + sbsizex, sbposy + sbsizey } }, { v = { sbposx + sbsizex, sbposy } }
-    })    
-    if activescrollbar or (sbposx < mx and mx < sbposx + sbsizex and sbposy < my and my < sbposy + sbsizey) then
-      gl.Color(0.2, 0.2, 1.0, 0.2)
-      gl.Blending(false)
-      gl.Shape(GL.LINE_LOOP, {
-        { v = { sbposx, sbposy } }, { v = { sbposx, sbposy + sbsizey } },
-        { v = { sbposx + sbsizex, sbposy + sbsizey } }, { v = { sbposx + sbsizex, sbposy } }
-      })    
-      gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      gl.Shape(GL.QUADS, {
-        { v = { sbposx + 0.5, sbposy + 0.5 } }, { v = { sbposx + 0.5, sbposy + sbsizey - 0.5 } },
-        { v = { sbposx + sbsizex - 0.5, sbposy + sbsizey - 0.5 } }, { v = { sbposx + sbsizex - 0.5, sbposy + 0.5 } }
-      })
-      gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-    end  
+    end
+    gl.Color(0.33, 0.33, 0.33, 0.8)
+	RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 2)
   else
     sbposx = 0.0
     sbposy = 0.0
@@ -445,63 +490,11 @@ function widget:DrawScreen()
     sbsizey = 0.0
   end
 
-
-  -- outline the highlighted label
-  if (pointedY) then
-    if (lmb or mmb or rmb) then
-      if (pointedEnabled) then
-        gl.Color(1.0, 0.2, 0.2, 0.2)
-      else
-        gl.Color(0.2, 1.0, 1.0, 0.2)
-      end
-    else
-      gl.Color(0.2, 0.2, 1.0, 0.2)
-    end
-    local xn = minx + 0.5
-    local xp = maxx - 0.5
-    local yn = pointedY - fontSpace * 0.5
-    local yp = pointedY + fontSize + fontSpace * 0.5
-    gl.Blending(false)
-    gl.Shape(GL.LINE_LOOP, {
-      { v = { xn, yn } }, { v = { xp, yn } },
-      { v = { xp, yp } }, { v = { xn, yp } }
-    })
-    xn = minx
-    xp = maxx
-    yn = yn + 0.5
-    yp = yp - 0.5
-    gl.Blending(GL.SRC_ALPHA, GL.ONE)
-    gl.Shape(GL.QUADS, {
-      { v = { xn, yn } }, { v = { xp, yn } },
-      { v = { xp, yp } }, { v = { xn, yp } }
-    })
-    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-  end
-
-  -- outline the box
-  xn = minx - 0.5
-  yn = miny - 0.5
-  xp = maxx + 0.5
-  yp = maxy + 0.5
-  gl.Color(1, 1, 1)
-  gl.Shape(GL.LINE_LOOP, {
-    { v = { xn, yn } }, { v = { xp, yn } },
-    { v = { xp, yp } }, { v = { xn, yp } }
-  })
-  xn = xn - 1
-  yn = yn - 1
-  xp = xp + 1
-  yp = yp + 1
-  gl.Color(0, 0, 0)
-  gl.Shape(GL.LINE_LOOP, {
-    { v = { xn, yn } }, { v = { xp, yn } },
-    { v = { xp, yp } }, { v = { xn, yp } }
-  })
-
   gl.EndText()
 end
 
 
+local pagestepped = false
 function widget:MousePress(x, y, button)
   if (Spring.IsGUIHidden()) or not show then
     return false
@@ -516,12 +509,31 @@ function widget:MousePress(x, y, button)
     end
     
     -- above the -/+ 
-    if maxx-10 < x and x < maxx and maxy < y and y < maxy + buttonFontSize + 7 then
+    if maxx-10 < x and x < maxx and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
       return true
     end
-    if minx < x and x < minx+10 and maxy < y and y < maxy + buttonFontSize + 7 then
+    if minx < x and x < minx+10 and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
       return true
     end
+    
+  -- above the scrollbar
+  if ((x >= minx + scrollbarOffset) and (x <= maxx + scrollbarOffset + yStep)) then
+    if ((y >= (maxy - bordery)) and (y <= maxy)) then
+      if x > maxx+scrollbarOffset then
+        ScrollUp(1)
+      else
+        ScrollUp(pageStep)
+      end
+      return true
+    elseif ((y >= miny) and (y <= miny + bordery)) then
+      if x > maxx+scrollbarOffset then
+        ScrollDown(1)
+      else
+        ScrollDown(pageStep)
+      end
+      return true
+    end
+  end
     
     -- above the list    
     if sbposx < x and x < sbposx + sbsizex and sbposy < y and y < sbposy + sbsizey then
@@ -535,26 +547,8 @@ function widget:MousePress(x, y, button)
         startEntry = math.max(1, math.min(startEntry + curMaxEntries, #fullWidgetsList - curMaxEntries + 1))
       end
       UpdateListScroll()
+      pagestepped = true
       return true   
-    end
-  end
-
-  -- above the scrollbar
-  if ((x >= minx) and (x <= maxx + yStep)) then
-    if ((y >= (maxy - bordery)) and (y <= maxy)) then
-      if x > maxx then
-        ScrollUp(1)
-      else
-        ScrollUp(pageStep)
-      end
-      return true
-    elseif ((y >= miny) and (y <= miny + bordery)) then
-      if x > maxx then
-        ScrollDown(1)
-      else
-        ScrollDown(pageStep)
-      end
-      return true
     end
   end
   
@@ -585,6 +579,10 @@ function widget:MouseRelease(x, y, mb)
   end
 
   UpdateList()
+  if pagestepped then
+	  pagestepped = false
+	  return true
+  end
   
   if mb == 1 and activescrollbar then
     activescrollbar = false
@@ -593,7 +591,7 @@ function widget:MouseRelease(x, y, mb)
   end
   
   if mb == 1 then
-    if maxx-10 < x and x < maxx and maxy < y and y < maxy + buttonFontSize + 7 then
+    if maxx-10 < x and x < maxx and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
       -- + button
       curMaxEntries = curMaxEntries + 1
       UpdateListScroll()
@@ -601,7 +599,7 @@ function widget:MouseRelease(x, y, mb)
       Spring.WarpMouse(x, y+0.5*(fontSize+fontSpace))
       return -1
     end
-    if minx < x and x < minx+10 and maxy < y and y < maxy + buttonFontSize + 7 then
+    if minx < x and x < minx+10 and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
       -- - button
       if curMaxEntries > minMaxEntries then
         curMaxEntries = curMaxEntries - 1
@@ -699,7 +697,7 @@ function widget:IsAbove(x, y)
   if not show then return false end 
   UpdateList()
   if ((x < minx) or (x > maxx + yStep) or
-      (y < miny - #buttons*buttonHeight) or (y > maxy)) then
+      (y < miny - #buttons*buttonHeight) or (y > maxy+bgPadding)) then
     return false
   end
   return true
