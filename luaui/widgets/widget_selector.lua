@@ -23,7 +23,7 @@ function widget:GetInfo()
     author    = "trepan, jK, Bluestone",
     date      = "Jan 8, 2007",
     license   = "GNU GPL, v2 or later",
-    layer     = math.huge,
+    layer     = -math.huge,
     handler   = true, 
     enabled   = true  
   }
@@ -39,6 +39,8 @@ include("colors.h.lua")
 include("keysym.h.lua")
 include("fonts.lua")
 
+local cutomScale = 1
+local sizeMultiplier = 1
 
 local floor = math.floor
 
@@ -89,6 +91,7 @@ local activescrollbar = false
 local scrollbargrabpos = 0.0
 
 local show = false
+local pagestepped = false
 
 
 
@@ -193,15 +196,15 @@ end
 
 local function UpdateGeometry()
   midx  = vsx * 0.5
-  midy  = vsy * 0.45
+  midy  = vsy * 0.5
 
-  local halfWidth = maxWidth * fontSize * 0.5
-  minx = floor(midx - halfWidth - borderx)
-  maxx = floor(midx + halfWidth + borderx)
+  local halfWidth = ((maxWidth+2) * fontSize) * sizeMultiplier * 0.5
+  minx = floor(midx - halfWidth - (borderx*sizeMultiplier))
+  maxx = floor(midx + halfWidth + (borderx*sizeMultiplier))
 
-  local ySize = yStep * (#widgetsList)
-  miny = floor(midy - (0.5 * ySize) - bordery - fontSize * 0.5)
-  maxy = floor(midy + (0.5 * ySize) + bordery)
+  local ySize = (yStep * sizeMultiplier) * (#widgetsList)
+  miny = floor(midy - (0.5 * ySize)) - ((fontSize+bgPadding+bgPadding)*sizeMultiplier)
+  maxy = floor(midy + (0.5 * ySize))
 end
 
 
@@ -290,7 +293,7 @@ local function UpdateList()
     end
   end
   
-  maxWidth = maxWidth / fontSize
+  maxWidth = (maxWidth / fontSize)
 
   local myCount = #fullWidgetsList
   if (widgetHandler.knownCount ~= (myCount + 1)) then
@@ -307,6 +310,12 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
+
+  if customScale == nil then
+	customScale = 1
+  end
+  sizeMultiplier   = 0.6 + (vsx*vsy / 6000000) * customScale
+  
   UpdateGeometry()
 end
 
@@ -337,38 +346,41 @@ function widget:DrawScreen()
   UpdateList()
   gl.BeginText()
 
+  borderx = (yStep*sizeMultiplier) * 0.75
+  bordery = (yStep*sizeMultiplier) * 0.75
+
   -- draw the header
-  gl.Text("Widget Selector", midx, maxy + 8 + bgPadding, titleFontSize, "oc")
+  gl.Text("Widget Selector", midx, maxy + ((8 + bgPadding)*sizeMultiplier), titleFontSize*sizeMultiplier, "oc")
   
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   local tcol = WhiteStr
     
   -- draw the -/+ buttons
-  if maxx-10 < mx and mx < maxx and maxy < my and my < maxy + buttonFontSize + 7 then
+  if maxx-10 < mx and mx < maxx and maxy < my and my < maxy + ((buttonFontSize + 7)*sizeMultiplier) then
     tcol = '\255\031\031\031'
   end
-  gl.Text(tcol.."+", maxx, maxy + 7 + bgPadding, buttonFontSize, "or")
+  gl.Text(tcol.."+", maxx, maxy + ((7 + bgPadding)*sizeMultiplier), buttonFontSize*sizeMultiplier, "or")
   tcol = WhiteStr
-  if minx < mx and mx < minx+10 and maxy < my and my < maxy + buttonFontSize + 7 then
+  if minx < mx and mx < minx+10 and maxy < my and my < maxy + ((buttonFontSize + 7)*sizeMultiplier) then
     tcol = '\255\031\031\031'
   end
-  gl.Text(tcol.."-", minx, maxy + 7 + bgPadding, buttonFontSize, "ol")
+  gl.Text(tcol.."-", minx, maxy + ((7 + bgPadding)*sizeMultiplier), buttonFontSize*sizeMultiplier, "ol")
   tcol = WhiteStr
 
   -- draw the box
   gl.Color(0,0,0,0.8)
-  RectRound(minx-bgPadding, miny-bgPadding, maxx+bgPadding, maxy+bgPadding, 8)
+  RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
   
   gl.Color(0.33,0.33,0.33,0.2)
-  RectRound(minx, miny, maxx, maxy, 8)
+  RectRound(minx, miny, maxx, maxy, 8*sizeMultiplier)
   
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do
     tcol = WhiteStr
-    if minx < mx and mx < maxx and miny - buttonTop- i*buttonHeight < my and my < miny - buttonTop - (i-1)*buttonHeight then
+    if minx < mx and mx < maxx and miny - (buttonTop*sizeMultiplier) - i*(buttonHeight*sizeMultiplier) < my and my < miny - (buttonTop*sizeMultiplier) - (i-1)*(buttonHeight*sizeMultiplier) then
       tcol = '\255\031\031\031'
     end
-    gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - buttonTop - i*buttonHeight + 5, buttonFontSize, "oc")
+    gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - (buttonTop*sizeMultiplier) - (i*(buttonHeight*sizeMultiplier)), buttonFontSize*sizeMultiplier, "oc")
   end
   
   
@@ -377,8 +389,8 @@ function widget:DrawScreen()
   local pointedY = nil
   local pointedEnabled = false
   local pointedName = (nd and nd[1]) or nil
-  local posy = maxy - yStep - bordery
-  sby1 = posy + fontSize + fontSpace * 0.5
+  local posy = maxy - ((yStep+bgPadding)*sizeMultiplier)
+  sby1 = posy + ((fontSize + fontSpace)*sizeMultiplier) * 0.5
   for _,namedata in ipairs(widgetsList) do
     local name = namedata[1]
     local data = namedata[2]
@@ -390,7 +402,7 @@ function widget:DrawScreen()
     if (pointed and not activescrollbar) then
       pointedY = posy
       pointedEnabled = data.active
-      if (lmb or mmb or rmb) then
+      if not pagestepped and (lmb or mmb or rmb) then
         color = WhiteStr
       else
         color = (active  and '\255\128\255\128') or
@@ -409,32 +421,14 @@ function widget:DrawScreen()
       tmpName = color .. name
     end
 
-    gl.Text(color..tmpName, midx, posy + fontSize * 0.5, fontSize, "vc")
-    posy = posy - yStep
+    gl.Text(color..tmpName, midx, posy + (fontSize*sizeMultiplier) * 0.5, fontSize*sizeMultiplier, "vc")
+    posy = posy - (yStep*sizeMultiplier)
   end
   
-
-  -- highlight label
-  if (pointedY) then
-	gl.Color(1.0, 1.0, 1.0, 0.09)
-    local xn = minx + 0.5
-    local xp = maxx - 0.5
-    local yn = pointedY - fontSpace * 0.5 - 1
-    local yp = pointedY + fontSize + fontSpace * 0.5 + 1
-    if scrollbarOffset < 0 then
-		xp = xp + scrollbarOffset
-		--xn = xn - scrollbarOffset
-	end
-    yn = yn + 0.5
-    yp = yp - 0.5
-    gl.Blending(GL.SRC_ALPHA, GL.ONE)
-    RectRound(xn, yn, xp, yp, 5)
-    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-  end
   
   -- scrollbar
   if #widgetsList < #fullWidgetsList then
-    sby2 = posy + yStep - fontSpace * 0.5
+    sby2 = posy + (yStep * sizeMultiplier) - (fontSpace*sizeMultiplier) * 0.5
     sbheight = sby1 - sby2
     sbsize = sbheight * #widgetsList / #fullWidgetsList 
     if activescrollbar then
@@ -443,26 +437,26 @@ function widget:DrawScreen()
     	((sby1 - sbsize) - 
     	(my - math.min(scrollbargrabpos, sbsize)))
     	 / sbheight + 0.5), 
-                         #fullWidgetsList - curMaxEntries)) + 1
+        #fullWidgetsList - curMaxEntries)) + 1
     end
     local sizex = maxx - minx
     sbposx = minx + sizex + 1.0 + scrollbarOffset
     sbposy = sby1 - sbsize - sbheight * (startEntry - 1) / #fullWidgetsList
-    sbsizex = yStep
+    sbsizex = (yStep * sizeMultiplier)
     sbsizey = sbsize
     
-    local trianglePadding = 4
-    local scrollerPadding = 7
+    local trianglePadding = 4*sizeMultiplier
+    local scrollerPadding = 8*sizeMultiplier
     
     -- background
     --gl.Color(0.0, 0.0, 0.0, 0.2)
-	--RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6)
+	--RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6*sizeMultiplier)
     if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
       gl.Color(1,1,1,0.04)
-	  RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6)
+	  RectRound(sbposx, miny, sbposx + sbsizex, maxy, 6*sizeMultiplier)
     end
     
-    gl.Color(1.0, 1.0, 1.0, 0.15)
+    --[[gl.Color(1.0, 1.0, 1.0, 0.15)
     gl.Shape(GL.TRIANGLES, {
       { v = { sbposx + sbsizex / 2, miny + trianglePadding } },
       { v = { sbposx + trianglePadding, sby2 - 1 - trianglePadding} },
@@ -472,17 +466,17 @@ function widget:DrawScreen()
       { v = { sbposx + sbsizex / 2, maxy - trianglePadding } },
       { v = { sbposx - trianglePadding + sbsizex, sby2 + sbheight + 1 + trianglePadding} },
       { v = { sbposx + trianglePadding, sby2 + sbheight + 1 + trianglePadding} }
-    })
+    })]]--
     
     -- scroller
     if (sbposx < mx and mx < sbposx + sbsizex and sby2 < my and my < sby2 + sbheight) then
       gl.Color(1.0, 1.0, 1.0, 0.4) 
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	  RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 2)
+	  RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75*sizeMultiplier)
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
     end
     gl.Color(0.33, 0.33, 0.33, 0.8)
-	RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 2)
+	RectRound(sbposx+scrollerPadding, sbposy, sbposx + sbsizex - scrollerPadding, sbposy + sbsizey, 1.75*sizeMultiplier)
   else
     sbposx = 0.0
     sbposy = 0.0
@@ -490,11 +484,33 @@ function widget:DrawScreen()
     sbsizey = 0.0
   end
 
+
+  -- highlight label
+  if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
+  
+  else
+    if (pointedY) then
+    gl.Color(1.0, 1.0, 1.0, 0.09)
+    local xn = minx + 0.5
+    local xp = maxx - 0.5
+    local yn = pointedY - ((fontSpace * 0.5 + 1)*sizeMultiplier)
+    local yp = pointedY + ((fontSize + fontSpace * 0.5 + 1)*sizeMultiplier)
+    if scrollbarOffset < 0 then
+    	xp = xp + scrollbarOffset
+    	--xn = xn - scrollbarOffset
+    end
+    yn = yn + 0.5
+    yp = yp - 0.5
+    gl.Blending(GL.SRC_ALPHA, GL.ONE)
+    RectRound(xn, yn, xp, yp, 5*sizeMultiplier)
+    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+  end
+  
   gl.EndText()
 end
 
 
-local pagestepped = false
 function widget:MousePress(x, y, button)
   if (Spring.IsGUIHidden()) or not show then
     return false
@@ -504,20 +520,20 @@ function widget:MousePress(x, y, button)
 
   if button == 1 then
     -- above a button
-    if minx < x and x < maxx and miny - buttonTop - #buttons*buttonHeight < y and y < miny - buttonTop then
+    if minx < x and x < maxx and miny - (buttonTop*sizeMultiplier) - #buttons*(buttonHeight*sizeMultiplier) < y and y < miny - (buttonTop*sizeMultiplier) then
       return true
     end
     
     -- above the -/+ 
-    if maxx-10 < x and x < maxx and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
+    if maxx-10 < x and x < maxx and maxy + bgPadding < y and y < maxy + ((buttonFontSize + 7 + bgPadding)*sizeMultiplier) then
       return true
     end
-    if minx < x and x < minx+10 and maxy + bgPadding < y and y < maxy + buttonFontSize + 7 + bgPadding then
+    if minx < x and x < minx+10 and maxy + bgPadding < y and y < maxy + ((buttonFontSize + 7 + bgPadding)*sizeMultiplier) then
       return true
     end
     
   -- above the scrollbar
-  if ((x >= minx + scrollbarOffset) and (x <= maxx + scrollbarOffset + yStep)) then
+  if ((x >= minx + scrollbarOffset) and (x <= maxx + scrollbarOffset + (yStep * sizeMultiplier))) then
     if ((y >= (maxy - bordery)) and (y <= maxy)) then
       if x > maxx+scrollbarOffset then
         ScrollUp(1)
@@ -614,7 +630,7 @@ function widget:MouseRelease(x, y, mb)
   if mb == 1 then
     local buttonID = nil
     for i,_ in ipairs(buttons) do
-        if minx < x and x < maxx and miny - buttonTop - i*buttonHeight < y and y < miny - buttonTop - (i-1)*buttonHeight then
+        if minx < x and x < maxx and miny - (buttonTop*sizeMultiplier) - i*(buttonHeight*sizeMultiplier) < y and y < miny - (buttonTop*sizeMultiplier) - (i-1)*(buttonHeight*sizeMultiplier) then
             buttonID = i
             break
         end
@@ -685,7 +701,7 @@ function widget:AboveLabel(x, y)
   local count = #widgetsList
   if (count < 1) then return nil end
   
-  local i = floor(1 + ((maxy - bordery) - y) / yStep)
+  local i = floor(1 + ((maxy - bordery) - y) / (yStep * sizeMultiplier))
   if     (i < 1)     then i = 1
   elseif (i > count) then i = count end
   
@@ -696,7 +712,7 @@ end
 function widget:IsAbove(x, y)
   if not show then return false end 
   UpdateList()
-  if ((x < minx) or (x > maxx + yStep) or
+  if ((x < minx) or (x > maxx + (yStep * sizeMultiplier)) or
       (y < miny - #buttons*buttonHeight) or (y > maxy+bgPadding)) then
     return false
   end
