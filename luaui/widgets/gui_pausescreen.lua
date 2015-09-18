@@ -57,7 +57,7 @@ local boxHeight          = 35
 local slideTime          = 0.4
 local fadeTime           = 0.22
 local fadeToAlpha        = 0
-local fadeToTextAlpha    = 0.25
+local fadeToTextAlpha    = 0.4
 local wndBorderSize      = 4
 local imgWidth           = 92     --drawing size of the image (independent from the real image pixel size)
 local imgTexCoordX       = 0.625  --image texture coordinate X -- textures image's dimension is a power of 2 (i use 0.625 cause my image has a width of 256, but region to use is only 160 pixel -> 160 / 256 = 0.625 )
