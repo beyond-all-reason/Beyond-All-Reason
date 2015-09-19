@@ -23,7 +23,7 @@ end
 ------------------------------------------------------------
 -- Panel
 local iconWidth = 50
-local iconHeight = 44
+local iconHeight = 47
 local iconPadding = 2
 local borderSize = 0
 local maxCols = 5
