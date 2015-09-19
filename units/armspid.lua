@@ -1,6 +1,7 @@
 return {
 	armspid = {
 		acceleration = 0.18,
+		autoheal = 50,
 		brakerate = 0.564,
 		buildcostenergy = 3381,
 		buildcostmetal = 177,
@@ -18,7 +19,7 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
+		idleautoheal = 10,
 		idletime = 600,
 		maxdamage = 950,
 		maxvelocity = 2.65,
