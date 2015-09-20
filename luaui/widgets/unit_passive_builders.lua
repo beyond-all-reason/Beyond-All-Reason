@@ -204,7 +204,7 @@ function drawCheckbox(x, y, state, text)
 end
 
 function widget:IsAbove(mx, my)
-    return mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
+    return widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
 end
 
 function widget:TweakMousePress(mx, my, mb)
@@ -228,9 +228,8 @@ function widget:TweakMousePress(mx, my, mb)
     end
 end
 
-
 function widget:TweakMouseMove(mx, my, dx, dy)
-    if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then 
+    if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then
 		xRelPos = xRelPos + dx/vsx
 	end
     if yPos + dy >= -1 and yPos + panelHeight + dy - 1<= vsy then 
