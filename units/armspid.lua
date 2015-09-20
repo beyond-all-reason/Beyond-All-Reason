@@ -1,7 +1,7 @@
 return {
 	armspid = {
 		acceleration = 0.18,
-		autoheal = 50,
+		autoheal = 20,
 		brakerate = 0.564,
 		buildcostenergy = 3381,
 		buildcostmetal = 177,
@@ -105,6 +105,7 @@ return {
 			spider = {
 				areaofeffect = 8,
 				avoidfeature = false,
+				collidefriendly = false,
 				beamtime = 0.1,
 				corethickness = 0.2,
 				craterareaofeffect = 0,

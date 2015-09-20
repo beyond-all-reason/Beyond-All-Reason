@@ -103,6 +103,7 @@ return {
 			adv_rocket = {
 				areaofeffect = 72,
 				avoidfeature = false,
+				collidefriendly = false,
 				burst = 4,
 				burstrate = 0.3,
 				craterareaofeffect = 72,
