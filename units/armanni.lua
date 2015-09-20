@@ -104,6 +104,7 @@ return {
 			ata = {
 				areaofeffect = 16,
 				avoidfeature = false,
+				collideFriendly = false,
 				beamtime = 1.5,
 				corethickness = 0.2,
 				craterareaofeffect = 0,
