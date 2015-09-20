@@ -13,7 +13,7 @@ return {
 		cancapture = true,
 		canmanualfire = true,
 		canmove = true,
-		capturespeed = 900,
+		capturespeed = 1800,
 		category = "ALL WEAPON NOTSUB COMMANDER NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 100,
 		cloakcostmoving = 1000,
