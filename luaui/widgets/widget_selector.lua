@@ -339,13 +339,22 @@ function widget:KeyPress(key, mods, isRepeat)
   end
   return false
 end
-
+local activeGuishader = false
 local scrollbarOffset = -15
 function widget:DrawScreen()
-  if not show then return end
+  if not show then 
+    if activeGuishader and (WG['guishader_api'] ~= nil) then
+      activeGuishader = false
+      WG['guishader_api'].RemoveRect('widgetselector')
+    end
+    return
+  end
   UpdateList()
   gl.BeginText()
-
+  if (WG['guishader_api'] ~= nil) and not activeGuishader then
+    activeGuishader = true
+    WG['guishader_api'].InsertRect(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier),'widgetselector')
+  end
   borderx = (yStep*sizeMultiplier) * 0.75
   bordery = (yStep*sizeMultiplier) * 0.75
 
@@ -570,7 +579,7 @@ function widget:MousePress(x, y, button)
   
   local namedata = self:AboveLabel(x, y)
   if (not namedata) then
-  show = false
+    show = false
     return false
   end
   
@@ -787,6 +796,10 @@ end
 
 function widget:Shutdown()
   Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
+  
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('widgetselector')
+	end
 end
 
 
