@@ -570,8 +570,10 @@ function widget:MousePress(x, y, button)
   
   local namedata = self:AboveLabel(x, y)
   if (not namedata) then
+  show = false
     return false
   end
+  
   
   return true
   
