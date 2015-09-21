@@ -351,6 +351,9 @@ function widget:DrawScreen()
   end
   UpdateList()
   gl.BeginText()
+  if (WG['guishader_api'] == nil) then
+    activeGuishader = false 
+  end
   if (WG['guishader_api'] ~= nil) and not activeGuishader then
     activeGuishader = true
     WG['guishader_api'].InsertRect(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier),'widgetselector')
