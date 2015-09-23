@@ -377,7 +377,7 @@ end
 function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
     local cDefs = convertCapacities[uDefID]
     if cDefs then
-        if teamMMList[oldTeam][cDefs.e][uID].built then
+        if teamMMList[oldTeam][cDefs.e][uID] and teamMMList[oldTeam][cDefs.e][uID].built then
 			
 			if not teamMMList[oldTeam][cDefs.e][uID].emped then
 				AdjustTeamCapacity(oldTeam, -cDefs.c, cDefs.e)
