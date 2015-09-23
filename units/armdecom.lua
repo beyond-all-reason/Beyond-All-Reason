@@ -12,6 +12,8 @@ return {
 		buildtime = 24048,
 		candgun = true,
 		canmove = true,
+		cancapture = true,
+		capturespeed = 900,
 		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 30,
 		cloakcostmoving = 180,
