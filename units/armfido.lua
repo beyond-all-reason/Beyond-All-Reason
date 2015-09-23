@@ -29,6 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFIDO",
 		onoffable = true,
+		activateWhenBuilt = true,
 		seismicsignature = 0,
 		selfdestructas = "BIG_UNIT",
 		sightdistance = 400,
