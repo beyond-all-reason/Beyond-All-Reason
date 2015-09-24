@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date		= "23 may 2015",
 		license		= "GNU GPL, v2 or later",
 		layer		= -3,			-- set to -5 to draw mascotte on top of advplayerlist
-		enabled		= true
+		enabled		= false
 	}
 end
 ---------------------------------------------------------------------------------------------------
