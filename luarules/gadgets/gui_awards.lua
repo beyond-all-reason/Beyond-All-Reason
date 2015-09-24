@@ -141,6 +141,7 @@ function gadget:UnitTaken(unitID, unitDefID, teamID, newTeam)
 	if not newTeam then return end 
     if newTeam==gaiaTeamID then return end
 	if not present[newTeam] then return end
+    if not present[teamID] then return end
 	if not unitDefID then return end --should never happen
 
 	local ud = UnitDefs[unitDefID]
