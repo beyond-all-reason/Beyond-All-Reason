@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date		= "23 may 2015",
 		license		= "GNU GPL, v2 or later",
 		layer		= -3,			-- set to -5 to draw mascotte on top of advplayerlist
-		enabled		= false
+		enabled		= true
 	}
 end
 ---------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ local imageDirectory			= ":n:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
 local OPTIONS = {}
 OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values 
 	name				= "Defaults",
-	imageSize			= 58,
+	imageSize			= 55,
 	xOffset				= -1.6,
 	yOffset				= -58/5,
 	blinkDuration		= 0.12,
@@ -26,15 +26,36 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 }
 table.insert(OPTIONS, {
 	name				= "Floris Cat",
-	catbody				= imageDirectory.."floriscat_body.dds",
-	cathead				= imageDirectory.."floriscat_head.dds",
-	catheadblink		= imageDirectory.."floriscat_headblink.dds",
+	body				= imageDirectory.."floriscat_body.dds",
+	head				= imageDirectory.."floriscat_head.dds",
+	headblink			= imageDirectory.."floriscat_headblink.dds",
+	imageSize			= 53,
+	xOffset				= -1.6,
+	yOffset				= -58/5,
+	head_xOffset		= 0,
+	head_yOffset		= 0,
 })
 table.insert(OPTIONS, {
 	name				= "GrumpyCat",
-	catbody				= imageDirectory.."grumpycat_body.dds",
-	cathead				= imageDirectory.."grumpycat_head.dds",
-	catheadblink		= imageDirectory.."grumpycat_headblink.dds",
+	body				= imageDirectory.."grumpycat_body.dds",
+	head				= imageDirectory.."grumpycat_head.dds",
+	headblink			= imageDirectory.."grumpycat_headblink.dds",
+	imageSize			= 53,
+	xOffset				= -1.6,
+	yOffset				= -58/5,
+	head_xOffset		= 0,
+	head_yOffset		= 0,
+})
+table.insert(OPTIONS, {
+	name				= "Meowl",
+	body				= imageDirectory.."meowl_body.dds",
+	head				= imageDirectory.."meowl_head.dds",
+	headblink			= imageDirectory.."meowl_headblink.dds",
+	imageSize			= 58,
+	xOffset				= -1.6,
+	yOffset				= -10/5,
+	head_xOffset		= 0.01,
+	head_yOffset		= 0.06,
 })
 local currentOption = 1
 
@@ -113,7 +134,7 @@ local function createList(size)
 		glDeleteList(drawlist[1])
 	end
 	drawlist[1] = glCreateList( function()
-		gl.Texture(OPTIONS[currentOption]['catbody'])
+		gl.Texture(OPTIONS[currentOption]['body'])
 		gl.Color(1,1,1,1)
 		DrawRect(-(size/2), -(size/2), (size/2), (size/2))
 		gl.Texture(false)
@@ -124,7 +145,8 @@ local function createList(size)
 	end
 	drawlist[2] = glCreateList( function()
 		gl.Color(1,1,1,1)
-		gl.Texture(OPTIONS[currentOption]['cathead'])
+		gl.Texture(OPTIONS[currentOption]['head'])
+		glTranslate(OPTIONS[currentOption]['head_xOffset']*size, OPTIONS[currentOption]['head_yOffset']*size, 0)
 		DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
 		gl.Texture(false)
 	end)
@@ -133,7 +155,8 @@ local function createList(size)
 	end
 	drawlist[3] = glCreateList( function()
 		gl.Color(1,1,1,1)
-		gl.Texture(OPTIONS[currentOption]['catheadblink'])
+		gl.Texture(OPTIONS[currentOption]['headblink'])
+		glTranslate(OPTIONS[currentOption]['head_xOffset']*size, OPTIONS[currentOption]['head_yOffset']*size, 0)
 		DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
 		gl.Texture(false)
 	end)
