@@ -8,10 +8,10 @@ Balance changes:
 - Fidos are turned ON by default
 
 Others:
-- Pause screen is more visible
-- Widget selector: if clicked and not on widgetlist/links: hide selector
-- Advplayerlist mascotte, added another mascotte: Meowl
-- Bugfixes.
+- Pause screen text is more visible
+- Widget selector: when clicked outside widgetlist/links: hiding screen
+- Advplayerlist mascotte, added: Meowl
+- Bugfixes
 
 
 9.08 -> 9.09
