@@ -1,4 +1,20 @@
-﻿9.08 -> 9.09
+﻿9.09 -> 9.10
+25/09/2015
+
+Balance changes:
+- EMP spider regenerates HP
+- Commander's capture speed increased 2x (900 -> 1800)
+- Decoy commander can capture (900)
+- Fidos are turned ON by default
+
+Others:
+- Pause screen is more visible
+- Widget selector: if clicked and not on widgetlist/links: hide selector
+- Advplayerlist mascotte, added another mascotte: Meowl
+- Bugfixes.
+
+
+9.08 -> 9.09
 18/09/2015
 
 Balance changes:
