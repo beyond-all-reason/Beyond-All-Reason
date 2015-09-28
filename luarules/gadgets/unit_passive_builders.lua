@@ -250,14 +250,12 @@ function UpdatePassiveBuilders(teamID, interval)
     end
     
     --calculate how much expense passive cons will be allowed
-    teamStalling[teamID] = {}
-    local wouldStall = false
+    teamStalling[teamID] = {}    
     for _,resName in pairs(resTable) do
         local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
         stor = stor * share -- consider capacity only up to the share slider
         local reservedExpense = nonPassiveConsTotalExpense[resName] or 0 -- we don't want to touch this part of expense
         teamStalling[teamID][resName] = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
-        wouldStall = wouldStall or teamStalling[teamID][resName] <= 0
         --Spring.Echo(resName, cur, min(inc*stallMarginInc,stor*stallMarginSto)+1, (interval)*(inc+rec-sent-reservedExpense)/simSpeed, wouldStall)
     end
     
@@ -265,6 +263,7 @@ function UpdatePassiveBuilders(teamID, interval)
     for builderID in pairs(passiveCons[teamID] or {}) do
         -- find out if we have used up all the expense available to passive builders yet
         local newPulls = {}
+        local wouldStall = false
         if not wouldStall and passiveConsExpense[builderID] then
             for resName,allocatedExp in pairs(teamStalling[teamID]) do
                 newPulls[resName] = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
@@ -273,6 +272,8 @@ function UpdatePassiveBuilders(teamID, interval)
                 end
             end
         end
+        
+        -- record that use these resources
         if not wouldStall then
             teamStalling[teamID] = newPulls
         end
