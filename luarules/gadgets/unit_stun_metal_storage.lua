@@ -60,7 +60,7 @@ function gadget:GameFrame(n)
 	    local uDef = uDefs[uDefID]
 	    local storage = storageunits[unitID].storage
 	    local _,stunned = Spring.GetUnitIsStunned(unitID)
-	  
+
 	    if stunned and (storageunits[unitID].isEMPed == 0) then
 		    local currentLevel,totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID),"metal")
 		    local newstoragetotal = totalstorage - storage
@@ -123,7 +123,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
   if (storageDefs[unitDefID]) then
     local hp = Spring.GetUnitHealth(unitID)
-    if damage > hp then  --unit can have 0 health
+    if damage > hp and not paralyzer then  --unit can have 0 health
       if storageunits[unitID] and storageunits[unitID].isEMPed == 1 then
         local _,totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID),"metal")
         Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalstorage + storageunits[unitID].storage) --Add back before unit is destoryed
