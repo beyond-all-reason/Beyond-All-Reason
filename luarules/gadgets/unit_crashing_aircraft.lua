@@ -35,7 +35,7 @@ function gadget:Initialize()
 			crashable[UnitDef.id] = true
 		end
 	end
-
+	crashable[UnitDefNames['armcybr'].id] = false -- remove atomic bomber from crashables because it can shoot during ceashing
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
