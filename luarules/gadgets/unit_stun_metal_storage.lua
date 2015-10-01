@@ -71,7 +71,7 @@ function gadget:GameFrame(n)
 				    local height = storageunits[unitID].height * 0.70
 				    Spring.SpawnCEG("METAL_STORAGE_LEAK",x,y+height,z,0,0,0)
 		        end
-		        storageunits[unitID].isEMPed = 1
+		        storageunits[unitID].isEMPed = true
 		        stunnedstorage[unitID] = true 
 	        end
         end
@@ -119,7 +119,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 		local storage = storageunits[unitID].storage
 		local _,totalstorage = Spring.GetTeamResources(oldTeam,"metal")
 		Spring.SetTeamResource(oldTeam, "ms", totalstorage + storage)
-		totalstorage = Spring.GetTeamResources(newTeam,"metal")
+        _, totalstorage = Spring.GetTeamResources(newTeam,"metal")
 		local newstoragetotal = totalstorage - storage
   		Spring.SetTeamResource(newTeam, "ms", newstoragetotal)
 	end
