@@ -45,6 +45,22 @@ return {
     },
   },
   ["metal_storage_leak"] = {
+    Spawner = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 6,
+      ground             = true,
+      water              = true,
+      unit               = 0,
+      properties = {
+        delay              = [[0 i6]],
+        explosiongenerator = [[custom:metal_storage]],
+        pos                = [[-15 r30, 0, -15 r30]],
+
+      },
+    }, 
+  },
+    ["metal_storage"] = {
      smokecloud = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -54,7 +70,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.83,
-        colormap           = [[0.6 0.3 0 0.8	0.1 0.1 0.1 0.8	0.1 0.1 0.1 0.8 0 0 0 0.01]],
+        colormap           = [[0.6 0.3 0 0.8  0.1 0.1 0.1 0.8 0.1 0.1 0.1 0.8 0 0 0 0.01]],
         directional        = false,
         emitrot            = 0,
         emitrotspread      = [[0 r360 r-360]],
@@ -95,13 +111,13 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.92,
-        colormap           = [[1 0.5 0 .2    0.9 0.8 0.7 0.5	0.6 0.3 0 .1 	0 0 0 0.01]],
+        colormap           = [[1 0.5 0 .2    0.9 0.8 0.7 0.5  0.6 0.3 0 .1  0 0 0 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 360,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0, 0]],
-        numparticles       = 8,
+        numparticles       = 4,
         particlelife       = 22,
         particlelifespread = 4,
         particlesize       = 2,
@@ -132,7 +148,7 @@ return {
         emitrotspread      = [[0 r-360 r360]],
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -.25 r0.15 r-1, 0]],
-        numparticles       = 9,
+        numparticles       = 4,
         particlelife       = 11,
         particlelifespread = 30,
         particlesize       = 1,
