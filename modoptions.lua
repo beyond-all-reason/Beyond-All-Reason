@@ -100,7 +100,7 @@ local options={
         name   = "Enemy Com Counter",
         desc   = "Tells each team the total number of commanders alive in enemy teams",
         type   = "bool",
-        def    = false,
+        def    = true,
         section= "ba_others",
     },
     {
