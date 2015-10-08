@@ -1,7 +1,7 @@
 return {
 	armspid = {
 		acceleration = 0.18,
-		autoheal = 20,
+		autoheal = 30,
 		brakerate = 0.564,
 		buildcostenergy = 3381,
 		buildcostmetal = 177,
