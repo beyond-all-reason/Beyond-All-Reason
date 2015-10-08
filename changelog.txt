@@ -1,16 +1,16 @@
 ﻿9.10 -> 9.11
-01/10/2015
+09/10/2015
 
 Balance changes:
-- EMPed energy storage will not store + will drain some energy (t1 storege - 60E, t2 storage - 400E)
-- EMPed metal storage will not store + will waste stored metal if you had more then you can hold without emped storage
-- Improved "passive builders" gadget: passive builder will build solar when you have no energy (energy is not required to build solar)
-- Enemy units napping is enabled by default (you can disable in host settings)
+- EMP'd energy storage will not store + will drain some energy (t1 storege - 60E, t2 storage - 400E)
+- EMP'd metal storage will not store + will waste stored metal if you had more then you can hold without emped storage
+- Improved "passive builders" gadget: solars will be build even you have no energy
+- Enemy unit napping (exept commanders) is enabled by default (you can disable in host settings)
 - EMP spider regenerates faster (20->30)
 
 Others:
 - Atomic bombers are not crashing anymore to prevent shooting bug
-- Show(enable) enemy commanders counter by default
+- Show enemy commander counter by default
 
 
 9.09 -> 9.10
