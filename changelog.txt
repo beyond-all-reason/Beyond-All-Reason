@@ -1,5 +1,5 @@
 ﻿9.10 -> 9.11
-09/10/2015
+16/10/2015
 
 Balance changes:
 - EMP'd will drain some energy (t1 storege - 60E, t2 storage - 400E)
@@ -13,6 +13,7 @@ Others:
 - Atomic bombers are not crashing anymore to prevent shooting bug
 - Show enemy commander counter by default
 - New widgets: "External VR grid" and "Map Edge extension" (disabled by default)
+- New widget: "Team stats" button (disabled by default)
 
 
 9.09 -> 9.10
