@@ -2,15 +2,17 @@
 09/10/2015
 
 Balance changes:
-- EMP'd energy storage will not store + will drain some energy (t1 storege - 60E, t2 storage - 400E)
+- EMP'd will drain some energy (t1 storege - 60E, t2 storage - 400E)
 - EMP'd metal storage will not store + will waste stored metal if you had more then you can hold without emped storage
 - Improved "passive builders" gadget: solars will be build even you have no energy
 - Enemy unit napping (exept commanders) is enabled by default (you can disable in host settings)
-- EMP spider regenerates faster (20->30)
+- EMP spider regenerates faster (20 -> 30)
+- Return "old" weapons to T2 missile ships
 
 Others:
 - Atomic bombers are not crashing anymore to prevent shooting bug
 - Show enemy commander counter by default
+- New widgets: "External VR grid" and "Map Edge extension" (disabled by default)
 
 
 9.09 -> 9.10
