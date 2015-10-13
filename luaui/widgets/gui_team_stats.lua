@@ -2,10 +2,10 @@ function widget:GetInfo()
 	return {
 		name      = "Team stats",
 		desc      = "Shows game stats.",
-		author    = "BD",
-		version   = "-",
-		date      = "-",
-		license   = "WTFPL",
+		author    = "",
+		version   = "",
+		date      = "",
+		license   = "",
 		layer     = -10,
 		enabled   = false,
 	}
@@ -253,6 +253,7 @@ function widget:PlayerChanged()
 end
 
 function widget:GameFrame(n,forceupdate)
+	gameStarted = true
 	guiData.smallBox.visible = n ~= 0
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
@@ -465,9 +466,11 @@ function widget:DrawScreen()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('teamstats_window')
 	end
-	gl.CallList(buttonDrawList)
-	DrawBackground()
-	DrawAllStats()
+	if gameStarted ~= nil then
+		gl.CallList(buttonDrawList)
+		DrawBackground()
+		DrawAllStats()
+	end
 end
 
 local function DrawRectRound(px,py,sx,sy,cs)
