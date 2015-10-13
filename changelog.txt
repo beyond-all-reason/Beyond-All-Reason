@@ -8,6 +8,7 @@ Balance changes:
 - Enemy unit napping (exept commanders) is enabled by default (you can disable in host settings)
 - EMP spider regenerates faster (20 -> 30)
 - Return "old" weapons to T2 missile ships
+- T1 metal storage have 10% more HP
 
 Others:
 - Atomic bombers are not crashing anymore to prevent shooting bug
