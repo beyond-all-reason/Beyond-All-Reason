@@ -181,6 +181,7 @@ local numColums = #header +1
 
 function widget:SetConfigData(data)
 	guiData = data.guiData or guiData
+	forceWithinScreen()
 	sortVar = data.sortVar or sortVar
 	sortAscending = data.sortAscending or sortAscending
 	local vsx,vsy = widgetHandler:GetViewSizes()
@@ -195,7 +196,30 @@ function widget:GetConfigData(data)
 	}
 end
 
+
+function forceWithinScreen()
+	if guiData.smallBox.relSizes.x.min < 0 then
+		guiData.smallBox.relSizes.x.min = 0
+		guiData.smallBox.relSizes.x.max = guiData.smallBox.relSizes.x.length
+	end
+	if guiData.smallBox.relSizes.y.min < 0 then
+		guiData.smallBox.relSizes.y.min = 0
+		guiData.smallBox.relSizes.y.max = guiData.smallBox.relSizes.y.length
+	end
+	if guiData.smallBox.relSizes.x.max > 1 then
+		guiData.smallBox.relSizes.x.max = 1
+		guiData.smallBox.relSizes.x.min = 1 - guiData.smallBox.relSizes.x.length
+	end
+	if guiData.smallBox.relSizes.y.max > 1 then
+		guiData.smallBox.relSizes.y.max = 1
+		guiData.smallBox.relSizes.y.min = 1 - guiData.smallBox.relSizes.y.length
+	end
+end
+
+
 function calcAbsSizes()
+	--forceWithinScreen()
+	
 	guiData.smallBox.absSizes = {
 		x = {
 			min = (guiData.smallBox.relSizes.x.min * vsx),
@@ -466,6 +490,8 @@ end
 
 function widget:TweakMouseRelease(mx,my,button)
 	guiData = tweakMouseRelease(guiData)
+	forceWithinScreen()
+	calcAbsSizes()
 	createButtonList()
 end
 
