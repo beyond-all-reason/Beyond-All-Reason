@@ -198,7 +198,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
-	guiData = viewResize({x=viewSizeX,y=viewSizeY},guiData)
+	--guiData = viewResize({x=viewSizeX,y=viewSizeY},guiData)
 	updateFontSize()
 	createButtonList()
 end
@@ -373,6 +373,8 @@ function widget:IsAbove(x,y)
 end
 
 function widget:MousePress(mx,my,button)
+	if gameStarted == nil then return end
+	
 	local boxType = widget:IsAbove(mx,my)
 	if not boxType then
 		guiData.mainPanel.visible = false
@@ -409,13 +411,15 @@ end
 
 
 function widget:TweakMousePress(x, y, button)
-	if button ~= 2 then
-		return false
+	if gameStarted ~= nil then
+		if button ~= 2 then
+			return false
+		end
+		local ok
+		ok, guiData = tweakMousePress({x=x,y=y},guiData)
+		createButtonList()
+		return ok
 	end
-	local ok
-	ok, guiData = tweakMousePress({x=x,y=y},guiData)
-	createButtonList()
-	return ok
 end
 
 function updateFontSize()
@@ -568,7 +572,7 @@ function DrawButton()
 	local x1,y1,x2,y2 = percentage2Coords(guiData.smallBox)
 	
 	gl.Color(0,0,0,0.6)
-	RectRound(x1,y1,x2,y2,8)
+	RectRound(x1,y1,x2,y2,7)
 	
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(x1,y1,x2,y2,'teamstats_button')
