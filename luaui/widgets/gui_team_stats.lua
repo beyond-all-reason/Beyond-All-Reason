@@ -189,7 +189,8 @@ end
 
 function widget:GetConfigData(data)
 	return{
-		guiData = getConfigSaveRelSizes(guiData),
+		--guiData = getConfigSaveRelSizes(guiData),
+		guiData = guiData,
 		sortVar = sortVar,
 		sortAscending = sortAscending,
 	}
