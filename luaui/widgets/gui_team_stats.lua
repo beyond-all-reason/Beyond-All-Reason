@@ -189,16 +189,42 @@ end
 
 function widget:GetConfigData(data)
 	return{
-		--guiData = getConfigSaveRelSizes(guiData),
 		guiData = guiData,
 		sortVar = sortVar,
 		sortAscending = sortAscending,
 	}
 end
 
+function calcAbsSizes()
+	guiData.smallBox.absSizes = {
+		x = {
+			min = (guiData.smallBox.relSizes.x.min * vsx),
+			max = (guiData.smallBox.relSizes.x.max * vsx),
+			length = (guiData.smallBox.relSizes.x.length * vsx),
+		},
+		y = {
+			min = (guiData.smallBox.relSizes.y.min * vsy),
+			max = (guiData.smallBox.relSizes.y.max * vsy),
+			length = (guiData.smallBox.relSizes.y.length * vsy),
+		}
+	}
+	guiData.mainPanel.absSizes = {
+		x = {
+			min = (guiData.mainPanel.relSizes.x.min * vsx),
+			max = (guiData.mainPanel.relSizes.x.max * vsx),
+			length = (guiData.mainPanel.relSizes.x.length * vsx),
+		},
+		y = {
+			min = (guiData.mainPanel.relSizes.y.min * vsy),
+			max = (guiData.mainPanel.relSizes.y.max * vsy),
+			length = (guiData.mainPanel.relSizes.y.length * vsy),
+		}
+	}
+end
+
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
-	--guiData = viewResize({x=viewSizeX,y=viewSizeY},guiData)
+	calcAbsSizes()
 	updateFontSize()
 	createButtonList()
 end
@@ -411,15 +437,15 @@ end
 
 
 function widget:TweakMousePress(x, y, button)
-	if gameStarted ~= nil then
-		if button ~= 2 then
-			return false
-		end
-		local ok
-		ok, guiData = tweakMousePress({x=x,y=y},guiData)
-		createButtonList()
-		return ok
+	if gameStarted == nil then return end
+	
+	if button ~= 2 then
+		return false
 	end
+	local ok
+	ok, guiData = tweakMousePress({x=x,y=y},guiData)
+	createButtonList()
+	return ok
 end
 
 function updateFontSize()
