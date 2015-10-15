@@ -114,7 +114,7 @@ options = {
 	fogEffect = {
 		name = "Edge Fog Effect",
 		type = 'bool',
-		value = true,
+		value = false,
 		desc = 'Blurs the edges of the map slightly to distinguish it from the extension.',
 		OnChange = ResetWidget,
 	},
