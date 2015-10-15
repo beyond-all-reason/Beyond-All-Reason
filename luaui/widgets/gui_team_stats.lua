@@ -116,7 +116,7 @@ local guiData = {
 			x = {
 				min = 0.05,
 				max = 0.95,
-				length = 0.9,
+				length = 0.86,
 			},
 			y = {
 				min = 0.2,
@@ -220,6 +220,7 @@ end
 function calcAbsSizes()
 	--forceWithinScreen()
 	
+	local vsx,vsy = gl.GetViewSizes()
 	guiData.smallBox.absSizes = {
 		x = {
 			min = (guiData.smallBox.relSizes.x.min * vsx),
@@ -304,7 +305,9 @@ function widget:PlayerChanged()
 end
 
 function widget:GameFrame(n,forceupdate)
-	gameStarted = true
+	if n > 0 then 
+		gameStarted = true
+	end
 	guiData.smallBox.visible = n ~= 0
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
@@ -461,8 +464,6 @@ end
 
 
 function widget:TweakMousePress(x, y, button)
-	if gameStarted == nil then return end
-	
 	if button ~= 2 then
 		return false
 	end
@@ -523,11 +524,9 @@ function widget:DrawScreen()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('teamstats_window')
 	end
-	if gameStarted ~= nil then
-		gl.CallList(buttonDrawList)
-		DrawBackground()
-		DrawAllStats()
-	end
+	gl.CallList(buttonDrawList)
+	DrawBackground()
+	DrawAllStats()
 end
 
 local function DrawRectRound(px,py,sx,sy,cs)
@@ -599,15 +598,6 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
-function percentage2Coords(a)
-	local vsx,vsy = gl.GetViewSizes()
-    local x1 = (vsx * a.relSizes.x.min)
-    local y1 = (vsy * a.relSizes.y.min)
-    local x2 = (vsx * a.relSizes.x.max)
-    local y2 = (vsy * a.relSizes.y.max)
-	return x1,y1,x2,y2
-end 
-
 
 function DrawButton()
 	if not guiData.smallBox.visible then
@@ -620,8 +610,7 @@ function DrawButton()
 	else
 		rectBox(guiData.smallBox,{0,0,0,0.5})
 	end]]--
-	
-	local x1,y1,x2,y2 = percentage2Coords(guiData.smallBox)
+	local x1,y1,x2,y2 = guiData.smallBox.absSizes.x.min, guiData.smallBox.absSizes.y.min, guiData.smallBox.absSizes.x.max, guiData.smallBox.absSizes.y.max
 	
 	gl.Color(0,0,0,0.6)
 	RectRound(x1,y1,x2,y2,7)
@@ -645,7 +634,8 @@ function DrawBackground()
 		end
 	end
 	
-	local x1,y1,x2,y2 = percentage2Coords(guiData.mainPanel)
+	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
+	
 	gl.Color(0,0,0,0.7)
 	local padding = 5
 	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,7)
