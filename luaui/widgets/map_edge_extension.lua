@@ -3,7 +3,7 @@
 function widget:GetInfo()
   return {
     name      = "Map Edge Extension",
-    version   = "v0.5",
+    version   = "v0.5-BA", -- WARNING: This version was customized for BA
     desc      = "Draws a mirrored map next to the edges of the real map",
     author    = "Pako",
     date      = "2010.10.27 - 2011.10.29", --YYYY.MM.DD, created - updated
@@ -69,7 +69,7 @@ options = {
 			{name = 'Cutaway',  key = 'cutaway', desc = "Draw the edge of the map with a cutaway effect", hotkey=nil},
 			{name = 'Disable',  key = 'disable', desc = "Draw no edge extension",                         hotkey=nil},
 		},
-		value = 'grid',  --default at start of widget is to be disabled!
+		value = 'texture',  --default at start of widget is to be disabled!
 		OnChange = function(self)
 			Spring.SendCommands("mapborder " .. ((self.value == 'cutaway') and "1" or "0"))
 			drawingEnabled = (self.value == "texture") or (self.value == "grid") 
@@ -114,7 +114,7 @@ options = {
 	fogEffect = {
 		name = "Edge Fog Effect",
 		type = 'bool',
-		value = false,
+		value = true,
 		desc = 'Blurs the edges of the map slightly to distinguish it from the extension.',
 		OnChange = ResetWidget,
 	},
@@ -323,7 +323,7 @@ local function DrawOMap(useMirrorShader)
 	gl.DepthTest(GL.LEQUAL)
         if options.mapBorderStyle.value == "texture" then 
 			gl.Texture(realTex)
-		else 
+		else
 			gl.Texture(gridTex) 
 		end
 	gl.BeginEnd(GL.TRIANGLE_STRIP,DrawMapVertices, useMirrorShader)
@@ -470,17 +470,5 @@ end
 function widget:DrawWorldRefraction()
 	if drawingEnabled then
 		DrawWorldFunc()
-	end
-end
-
-function widget:MousePress(x, y, button)
-	local _, mpos = spTraceScreenRay(x, y, true) --//convert UI coordinate into ground coordinate.
-	if mpos==nil then --//activate epic menu if mouse position is outside the map
-		local _, _, meta, _ = Spring.GetModKeyState()
-		if meta then  --//show epicMenu when user also press the Spacebar
-			WG.crude.OpenPath(options_path) --click + space will shortcut to option-menu
-			WG.crude.ShowMenu() --make epic Chili menu appear.
-			return false
-		end
 	end
 end

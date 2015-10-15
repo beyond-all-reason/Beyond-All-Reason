@@ -1,7 +1,7 @@
 --related thread: http://springrts.com/phpbb/viewtopic.php?f=13&t=26732&start=22
 function widget:GetInfo()
   return {
-    name      = "External VR Grid",
+    name      = "Map External VR Grid", --WARNING: This version is customized for BA
     desc      = "VR grid around map",
     author    = "knorke, tweaked by KR",
     date      = "Sep 2011",
@@ -320,18 +320,6 @@ function widget:DrawWorldRefraction()
 		gl.CallList(DspLst)-- Or maybe you want to keep it cached but not draw it everytime.
 		-- Maybe you want Spring.SetDrawGround(false) somewhere
 	end	
-end
-
-function widget:MousePress(x, y, button)
-	local _, mpos = spTraceScreenRay(x, y, true) --//convert UI coordinate into ground coordinate.
-	if mpos==nil then --//activate epic menu if mouse position is outside the map
-		local _, _, meta, _ = Spring.GetModKeyState()
-		if meta then  --//show epicMenu when user also press the Spacebar
-			WG.crude.OpenPath(options_path) --click + space will shortcut to option-menu
-			WG.crude.ShowMenu() --make epic Chili menu appear.
-			return false
-		end
-	end
 end
 
 function widget:Initialize()
