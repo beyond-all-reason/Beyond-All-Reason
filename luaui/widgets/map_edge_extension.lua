@@ -386,6 +386,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	Spring.SendCommands("mapborder " .. "1")
+
 	--Spring.SetDrawGround(true)
 	gl.DeleteList(dList)
 	if mirrorShader then
