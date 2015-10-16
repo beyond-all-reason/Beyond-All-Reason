@@ -902,3 +902,9 @@ function ReGenerateTextDisplayList()
 end
 
 
+
+function widget:GetTooltip(mx, my)
+	if widget:IsAbove(mx,my) then
+		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n")
+	end
+end
