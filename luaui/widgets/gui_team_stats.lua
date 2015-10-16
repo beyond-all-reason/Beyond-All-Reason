@@ -88,6 +88,8 @@ local log10					= math.log10
 local round					= math.round
 local char					= string.char
 local format				= string.format
+local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
+local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
 
 function roundNumber(num,useFirstDecimal)
