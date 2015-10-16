@@ -61,19 +61,6 @@ local glDeleteList = gl.DeleteList
 local glBeginText = gl.BeginText
 local glEndText = gl.EndText
 
-
-local getColourOutline = WG.getColourOutline
-local isAbove = WG.isAbove
-local tweakMouseMove = WG.tweakMouseMove
-local tweakMousePress = WG.tweakMousePress
-local tweakMouseRelease = WG.tweakMouseRelease
-local colorToChar = WG.colorToChar
-local getConfigSaveRelSizes = WG.getConfigSaveRelSizes
-local viewResize = WG.viewResize
-local getColourOutline = WG.getColourOutline
-local rectBox = WG.rectBox
-local rectBoxWithBorder = WG.rectBoxWithBorder
-local convertSIPrefix = WG.convertSIPrefix
 local GetGaiaTeamID			= Spring.GetGaiaTeamID
 local GetAllyTeamList		= Spring.GetAllyTeamList
 local GetTeamList			= Spring.GetTeamList
@@ -93,6 +80,187 @@ local sort					= table.sort
 local log10					= math.log10
 local round					= math.round
 
+
+function roundNumber(num,useFirstDecimal)
+	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
+end
+
+function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
+	if value == 0 or not value then
+		return value
+	end
+	local halfScale = ceil(#SIsuffixes/2)
+	if useFirstDecimal then
+		useFirstDecimal = useFirstDecimal + halfScale
+	end
+	useFirstDecimal = useFirstDecimal or #SIsuffixes+1
+	local sign = value > 0
+	value = abs(value)
+	thresholdmodifier = thresholdmodifier or 1
+	local startIndex = 1
+	if noSmallValues then
+		startIndex = halfScale
+	end
+	local baseVal = 10^(-12)
+	local retVal = ""
+	for i=startIndex, #SIsuffixes do
+		local tenPower = baseVal*10^(3*(i-1))
+		local compareVal = baseVal*10^(3*i) * thresholdmodifier
+		if value < compareVal then
+			retVal = WG.roundNumber(value/tenPower,i>=useFirstDecimal) .. SIsuffixes[i]
+			break
+		end
+	end
+	if not sign then
+		retVal = "-" .. retVal
+	end
+	return retVal
+end
+
+function rectBoxWithBorder(boxData,fillColor,edgeColor)
+	if fillColor then
+		glColor(fillColor)
+	end
+	WG.rectBox(boxData)
+	if edgeColor then
+		glColor(edgeColor)
+	end
+	local borderSize = boxData.draggingBorderSize
+	boxData = boxData.absSizes
+	glRect(boxData.x.min, boxData.y.max, boxData.x.max, boxData.y.max - borderSize ) -- top
+	glRect(boxData.x.min, boxData.y.max, boxData.x.min + borderSize , boxData.y.min) -- left
+	glRect(boxData.x.min, boxData.y.min + borderSize, boxData.x.max, boxData.y.min) -- bottom
+	glRect(boxData.x.max - borderSize, boxData.y.max, boxData.x.max, boxData.y.min) -- right
+end
+
+function rectBox(boxData,fillColor)
+	boxData = boxData.absSizes
+	if fillColor then
+		glColor(fillColor)
+	end
+	glRect(boxData.x.min,boxData.y.max,boxData.x.max,boxData.y.min)
+end
+
+function aboveRectangle(mousePos,boxData)
+	local included = true
+	for coordName, coordData in pairs(boxData.absSizes) do
+		included = included and mousePos[coordName] >= coordData.min and mousePos[coordName] <= coordData.max
+	end
+	return included
+end
+
+function isAbove(mousePos,guiData)
+	for boxType, boxData in pairs(guiData) do
+		if boxData.visible then
+			local mask = {}
+			local border = false
+			if WG.aboveRectangle(mousePos,boxData) then
+				local draggingBorderSize = boxData.draggingBorderSize
+				for borderName, borderData in pairs(borderRemap) do
+					local coordName = borderRemap[borderName][1]
+					local coordDir = borderRemap[borderName][2]
+					local dir = borderRemap[borderName][3]
+					if coordDir == "min" then
+						mask[borderName] = mousePos[coordName] < (boxData.absSizes[coordName][coordDir]+ draggingBorderSize*-1*dir)
+					else
+						mask[borderName] = mousePos[coordName] > (boxData.absSizes[coordName][coordDir]+ draggingBorderSize*-1*dir)
+					end
+					border = border or mask[borderName]
+				end
+				return boxType, border, mask
+			end
+		end
+	end
+end
+
+function colorToChar(colorarray)
+	return char(255,min(max(floor(colorarray[1]*255),1),255),min(max(floor(colorarray[2]*255),1),255),min(max(floor(colorarray[3]*255),1),255))
+end
+
+function getColourOutline(colour)
+	local luminance  = colour[1] * 0.299 + colour[2] * 0.587 + colour[3] * 0.114
+	return luminance > 0.25 and "o" or "O"
+end
+
+function viewResize(scalingVec,guiData)
+	for boxType, boxData in pairs(guiData) do
+		guiData[boxType].absSizes = WG.convertCoords(boxData.relSizes,scalingVec)
+	end
+	return guiData
+end
+
+function tweakMousePress(mouseCoords,guiData)
+	local boxType, border, masks = WG.isAbove(mouseCoords,guiData)
+	if not boxType then
+		return false, guiData
+	end
+	for boxName in pairs(guiData) do
+		guiData[boxName].changing = {}
+	end
+	if border then
+		guiData[boxType].changing.resizing = masks
+	else
+		guiData[boxType].changing.dragging = true
+	end
+	return boxType, guiData
+end
+
+function convertCoords(sourceCoords,scalingVec)
+	local newCoords = {}
+	for coordName, coordData in pairs(sourceCoords) do
+		newCoords[coordName] = {}
+		for minmax, value in pairs(coordData) do
+			newCoords[coordName][minmax] = value*scalingVec[coordName]
+		end
+	end
+	return newCoords
+end
+
+function tweakMouseRelease(guiData)
+	local vsx,vsy = widgetHandler:GetViewSizes()
+	local scalingVec = {x=1/vsx,y=1/vsy}
+	for boxType, boxData in pairs(guiData) do
+		guiData[boxType].relSizes = WG.convertCoords(boxData.absSizes,scalingVec)
+		guiData[boxType].changing = {}
+	end
+	return guiData
+end
+
+function tweakMouseMove(mouseDelta, guiData)
+	local changed
+	for boxType, boxData in pairs(guiData) do
+		for changeType,changeVal in pairs(boxData.changing) do
+			if changeType == "dragging" then
+				changed = boxType
+				for coordName,coordData in pairs(boxData.absSizes) do
+					for absname,minMax in pairs(coordData) do
+						if absname ~= "length" then
+							guiData[boxType].absSizes[coordName][absname] = minMax + mouseDelta[coordName]
+						end
+					end
+				end
+			elseif changeType == "resizing" then
+				changed = boxType
+				local borderMasks = changeVal
+				local boxSizes = boxData.absSizes
+				local minSize = boxData.draggingBorderSize*3
+				for borderName, borderVal in pairs(borderMasks) do
+					if borderVal then
+						local coordName = borderRemap[borderName][1]
+						local coordDir = borderRemap[borderName][2]
+						local dir = borderRemap[borderName][3]
+						if boxSizes[coordName].length + mouseDelta[coordName]*dir > minSize then
+							boxSizes[coordName][coordDir] = boxSizes[coordName][coordDir] + mouseDelta[coordName]
+							boxSizes[coordName].length = boxSizes[coordName].max - boxSizes[coordName].min
+						end
+					end
+				end
+				guiData[boxType].absSizes = boxSizes
+			end
+		end
+	end
+	return changed,guiData
+end
 
 local guiData = {
 	smallBox = {
