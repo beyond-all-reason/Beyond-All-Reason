@@ -74,6 +74,7 @@ local IsGUIHidden			= Spring.IsGUIHidden
 local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
 local floor					= math.floor
+local min					= math.min
 local max					= math.max
 local huge					= math.huge
 local sort					= table.sort
