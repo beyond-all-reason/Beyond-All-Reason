@@ -76,10 +76,18 @@ local GetGameFrame			= Spring.GetGameFrame
 local floor					= math.floor
 local min					= math.min
 local max					= math.max
+local pi					= math.pi
+local sin					= math.sin
+local cos					= math.cos
+local ceil					= math.ceil
+local floor					= math.floor
+local abs					= math.abs
 local huge					= math.huge
 local sort					= table.sort
 local log10					= math.log10
 local round					= math.round
+local char					= string.char
+local format				= string.format
 
 
 function roundNumber(num,useFirstDecimal)
@@ -108,7 +116,7 @@ function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
 		local tenPower = baseVal*10^(3*(i-1))
 		local compareVal = baseVal*10^(3*i) * thresholdmodifier
 		if value < compareVal then
-			retVal = WG.roundNumber(value/tenPower,i>=useFirstDecimal) .. SIsuffixes[i]
+			retVal = roundNumber(value/tenPower,i>=useFirstDecimal) .. SIsuffixes[i]
 			break
 		end
 	end
@@ -122,7 +130,7 @@ function rectBoxWithBorder(boxData,fillColor,edgeColor)
 	if fillColor then
 		glColor(fillColor)
 	end
-	WG.rectBox(boxData)
+	rectBox(boxData)
 	if edgeColor then
 		glColor(edgeColor)
 	end
@@ -155,7 +163,7 @@ function isAbove(mousePos,guiData)
 		if boxData.visible then
 			local mask = {}
 			local border = false
-			if WG.aboveRectangle(mousePos,boxData) then
+			if aboveRectangle(mousePos,boxData) then
 				local draggingBorderSize = boxData.draggingBorderSize
 				for borderName, borderData in pairs(borderRemap) do
 					local coordName = borderRemap[borderName][1]
@@ -185,13 +193,13 @@ end
 
 function viewResize(scalingVec,guiData)
 	for boxType, boxData in pairs(guiData) do
-		guiData[boxType].absSizes = WG.convertCoords(boxData.relSizes,scalingVec)
+		guiData[boxType].absSizes = convertCoords(boxData.relSizes,scalingVec)
 	end
 	return guiData
 end
 
 function tweakMousePress(mouseCoords,guiData)
-	local boxType, border, masks = WG.isAbove(mouseCoords,guiData)
+	local boxType, border, masks = isAbove(mouseCoords,guiData)
 	if not boxType then
 		return false, guiData
 	end
@@ -221,7 +229,7 @@ function tweakMouseRelease(guiData)
 	local vsx,vsy = widgetHandler:GetViewSizes()
 	local scalingVec = {x=1/vsx,y=1/vsy}
 	for boxType, boxData in pairs(guiData) do
-		guiData[boxType].relSizes = WG.convertCoords(boxData.absSizes,scalingVec)
+		guiData[boxType].relSizes = convertCoords(boxData.absSizes,scalingVec)
 		guiData[boxType].changing = {}
 	end
 	return guiData
