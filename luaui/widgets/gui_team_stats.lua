@@ -862,7 +862,7 @@ function ReGenerateTextDisplayList()
 	local lineCount = 1
 	local boxSizes = guiData.mainPanel.absSizes
 	local baseXSize = boxSizes.x.min + columnSize
-	local baseYSize = boxSizes.y.max
+	local baseYSize = boxSizes.y.max - (0.002*vsy) -- small align adjustment so text is in the middle of a row
 
 	glBeginText()
 		--print the header
@@ -905,11 +905,11 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		if gameStarted ~= nil then
-			return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n")
-		else
-			return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
-				"..will be clickable after game start.")
+		local text =  string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n")
+		if gameStarted == nil then
+			text = string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
+				"...will be clickable after game start.")
 		end
+		return text
 	end
 end
