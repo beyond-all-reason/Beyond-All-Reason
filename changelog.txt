@@ -1,4 +1,15 @@
-﻿9.10 -> 9.11
+﻿9.11 -> 9.12
+XX/10/2015
+
+Balance changes:
+- Increase cost of Annihilator by 10%
+- Increase cost of Doomsday Machine by 15%
+
+Others:
+- Added "No Tactical Pause" gadget - prevents sending orders when game is paused
+
+
+9.10 -> 9.11
 16/10/2015
 
 Balance changes:
