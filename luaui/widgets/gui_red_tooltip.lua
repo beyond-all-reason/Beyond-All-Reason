@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 	name      = "Red Tooltip",
-	desc      = "Requires Red UI Framework",
+	desc      = "Toggle unitcounter with /unitcounter   (Requires Red UI Framework)",
 	author    = "Regret",
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
@@ -13,6 +13,7 @@ end
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
+
 
 --todo: sy adjustment
 
@@ -32,9 +33,13 @@ local Config = {
 		tooltip = {
 			background = "In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this element.",
 		},
+		unitCounterEnabled = false,
 	},
 }
 
+local totalUnits = 0
+
+local spGetTeamUnitCount = Spring.GetTeamUnitCount
 local sGetCurrentTooltip = Spring.GetCurrentTooltip
 local sGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
@@ -125,6 +130,7 @@ local function createtooltip(r)
 	local text = {"text",
 		px=r.px+r.margin,py=r.py+r.margin,
 		fontsize=r.fontsize,
+		color={1,1,1,0.3},
 		caption="",
 		options="o",
 		
@@ -140,6 +146,38 @@ local function createtooltip(r)
 				self.caption = self.caption..r.tooltip.background
 			else
 				self.caption = self.caption..(getEditedCurrentTooltip() or sGetCurrentTooltip()) 
+			end
+		end
+	}
+	
+	local unitcounter = {"text",
+		px=r.sx,py=r.py+(r.margin/2),
+		fontsize=r.fontsize/1.33,
+		color={1,1,1,0.15},
+		caption="",
+		options="r",
+		bgrx=r.sx,
+		margin=r.margin,
+		onupdate=function(self)
+			if Config.tooltip.unitCounterEnabled then
+				-- get total unit count
+				if Spring.GetGameFrame() % 60 == 0 then
+					totalUnits = 0
+					local allyTeamList = Spring.GetAllyTeamList()
+					local numberOfAllyTeams = #allyTeamList
+					for allyTeamListIndex = 1, numberOfAllyTeams do
+						local allyID = allyTeamList[allyTeamListIndex]
+						local teamList = Spring.GetTeamList(allyID)
+						for _,teamID in pairs(teamList) do
+							totalUnits = totalUnits + spGetTeamUnitCount(teamID)
+						end
+					end
+				end
+				self.caption = totalUnits
+				vsx,vsy = gl.GetViewSizes()
+				self.px = math.max(text.getwidth()+((self.margin/2.2)*(vsx/CanvasX)), (self.bgrx-self.margin)*(vsx/CanvasX))
+			else
+				self.caption = ""
 			end
 		end
 	}
@@ -187,10 +225,12 @@ local function createtooltip(r)
 	
 	New(background)
 	New(text)
+	New(unitcounter)
 	
 	return {
 		["background"] = background,
 		["text"] = text,
+		["unitcounter"] = unitcounter,
 		
 		margin = r.margin,
 	}
@@ -215,6 +255,23 @@ function widget:Update()
 	AutoResizeObjects()
 end
 
+function widget:GameFrame(n)
+
+	-- get total unit count
+	if n % 120 == 0 then
+		totalUnits = 0
+		local allyTeamList = Spring.GetAllyTeamList()
+		local numberOfAllyTeams = #allyTeamList
+		for allyTeamListIndex = 1, numberOfAllyTeams do
+			local allyID = allyTeamList[allyTeamListIndex]
+			local teamList = Spring.GetTeamList(allyID)
+			for _,teamID in pairs(teamList) do
+				totalUnits = totalUnits + spGetTeamUnitCount(teamID)
+			end
+		end
+	end
+end
+
 --save/load stuff
 --currently only position
 function widget:GetConfigData() --save config
@@ -223,6 +280,7 @@ function widget:GetConfigData() --save config
 		local unscale = CanvasY/vsy --needed due to autoresize, stores unresized variables
 		Config.tooltip.px = tooltip.background.px * unscale
 		Config.tooltip.py = tooltip.background.py * unscale
+		Config.tooltip.unitCounterEnabled = Config.tooltip.unitCounterEnabled
 		return {Config=Config}
 	end
 end
@@ -230,5 +288,17 @@ function widget:SetConfigData(data) --load config
 	if (data.Config ~= nil) then
 		Config.tooltip.px = data.Config.tooltip.px
 		Config.tooltip.py = data.Config.tooltip.py
+		Config.tooltip.unitCounterEnabled = data.Config.tooltip.unitCounterEnabled
+	end
+end
+
+function widget:TextCommand(command)
+	if (string.find(command, "unitcount") == 1  and  string.len(command) == 11) then 
+		Config.tooltip.unitCounterEnabled = not Config.tooltip.unitCounterEnabled
+		if Config.tooltip.unitCounterEnabled then
+			Spring.Echo("Total units counter:  enabled")
+		else
+			Spring.Echo("Total units counter:  disabled")
+		end
 	end
 end
