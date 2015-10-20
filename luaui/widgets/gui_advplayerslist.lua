@@ -12,7 +12,7 @@
 function widget:GetInfo()
 	return {
 		name      = "AdvPlayersList",
-		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize.",
+		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize. '/cputext' displays cpu %",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
 		version   = "14.0",
@@ -45,6 +45,7 @@ local customScale			= 1
 local customScaleStep		= 0.025
 local pointDuration    		= 40
 local showTeamsizeVersus	= true		-- not implemented yet
+local cpuText				= false
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -320,6 +321,18 @@ m_country = {
 }
 position = position + 1
 
+m_skill = {
+	name	  = "skill",
+	spec      = true,
+	play      = true,
+	active    = true,
+	width     = 16,
+	position  = position,
+	posX      = 0,
+	pic       = tsPic,		
+}
+position = position + 1
+
 m_side = {
 	name	  = "side",
 	spec      = true,
@@ -356,18 +369,6 @@ m_name = {
 	pic       = namePic,
 	noPic     = true,
 	picGap    = 7,
-}
-position = position + 1
-
-m_skill = {
-	name	  = "skill",
-	spec      = true,
-	play      = true,
-	active    = true,
-	width     = 29,
-	position  = position,
-	posX      = 0,
-	pic       = tsPic,		
 }
 position = position + 1
 
@@ -1552,7 +1553,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
-			DrawPingCpu(pingLvl,cpuLvl,posY,spec,alpha)
+			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu)
 			if tipY == true then PingCpuTip(mouseX, ping, cpu, spec) end
 		end
 	end
@@ -1847,7 +1848,7 @@ function DrawSkill(skill, posY, dark)
 	gl_Color(1,1,1)
 end
 
-function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha)
+function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 	gl_Texture(pingPic)
 	if spec then
 		local grayvalue = 0.25 + ((5 - pingLvl) / 7)
@@ -1858,14 +1859,29 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha)
 		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 24, posY + 15)
 	end
 	
-	gl_Texture(cpuPic)
-	if spec then
-		grayvalue = 0.45 + ((5 - cpuLvl) / 9)
-		gl_Color(grayvalue,grayvalue,grayvalue,0.75*alpha)
-		DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
+	grayvalue = 0.3 + (cpu/150)
+	if cpuText ~= nil and cpuText then
+		if type(cpu) == "number" then
+			if cpu > 99 then
+				cpu = 99
+			end
+			if spec then
+				gl_Color(grayvalue,grayvalue,grayvalue,0.6*alpha)
+			else
+				gl_Color(grayvalue,grayvalue,grayvalue,0.8*alpha)
+			end
+			gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+			gl_Color(1,1,1)
+		end
 	else
-		gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
-		DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
+		gl_Texture(cpuPic)
+		if spec then
+			gl_Color(grayvalue,grayvalue,grayvalue,0.75*alpha)
+			DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
+		else
+			gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
+			DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
+		end
 	end
 end
 
@@ -2541,7 +2557,8 @@ function widget:GetConfigData(data)      -- save
 			m_takeActive       = m_take.active,
 			m_seespecActive    = m_seespec.active,
 			--modules
-			m_active_Table	   = m_active_Table
+			m_active_Table	   = m_active_Table,
+			cpuText            = cpuText
 		}
 		
 		return settings
@@ -2585,6 +2602,11 @@ function widget:SetConfigData(data)      -- load
 			widgetPosX  = data.widgetPosX --align left of widget to left of screen
 		end
 	end
+	
+	if data.cpuText ~= nil then
+		cpuText = data.cpuText
+	end
+	
 	--not technically modules
 	m_point.active         = SetDefault(data.m_pointActive, m_point.default)
 	m_take.active          = SetDefault(data.m_takeActive, m_take.default)
@@ -2602,6 +2624,12 @@ function widget:SetConfigData(data)      -- load
 	end
 		
 	SetModulesPositionX()
+end
+
+function widget:TextCommand(command)
+	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then 
+		cpuText = not cpuText
+	end
 end
 
 function SetDefault(value, default)

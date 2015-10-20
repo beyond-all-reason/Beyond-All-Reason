@@ -7,6 +7,8 @@ Balance changes:
 
 Others:
 - Added "No Tactical Pause" gadget - prevents sending orders when game is paused
+- RED tooltip: do "/unitcounter" to enable total units on map (as player its just total units of the team)
+- Advplayerlist: added /cputext command, shows cpu usage in %
 
 
 9.10 -> 9.11
