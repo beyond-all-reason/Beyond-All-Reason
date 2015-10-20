@@ -1859,16 +1859,18 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 24, posY + 15)
 	end
 	
-	grayvalue = 0.3 + (cpu/150)
+	grayvalue = 0.6 + (cpu/250)
 	if cpuText ~= nil and cpuText then
 		if type(cpu) == "number" then
 			if cpu > 99 then
 				cpu = 99
 			end
+			gl_Color(0,0,0,0.4*alpha*grayvalue)
+			gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 			if spec then
-				gl_Color(grayvalue,grayvalue,grayvalue,0.6*alpha)
+				gl_Color(grayvalue,grayvalue,grayvalue,0.6*alpha*grayvalue)
 			else
-				gl_Color(grayvalue,grayvalue,grayvalue,0.8*alpha)
+				gl_Color(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
 			end
 			gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
 			gl_Color(1,1,1)
