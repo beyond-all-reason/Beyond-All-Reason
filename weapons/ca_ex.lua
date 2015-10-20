@@ -1,6 +1,6 @@
 return {
 	ca_ex = {
-		areaofeffect = 128,
+		areaofeffect = 160,
 		craterboost = 0,
 		cratermult = 0,
 		explosiongenerator = "custom:FLASH2",

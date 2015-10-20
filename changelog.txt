@@ -4,6 +4,7 @@ XX/10/2015
 Balance changes:
 - Increase cost of Annihilator by 10%
 - Increase cost of Doomsday Machine by 15%
+- Bigger blow radius for air cons (128 -> 160)
 
 Others:
 - Added "No Tactical Pause" gadget - prevents sending orders when game is paused
