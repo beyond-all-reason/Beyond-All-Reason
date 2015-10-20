@@ -36,6 +36,9 @@ return {
 		transportsize = 3,
 		turninplaceanglelimit = 360,
 		turnrate = 550,
+		customparams = {
+			paralyzemultiplier = 0.025,
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

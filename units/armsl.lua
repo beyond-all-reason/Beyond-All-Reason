@@ -38,6 +38,9 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 380,
 		upright = true,
+		customparams = {
+			paralyzemultiplier = 0.025,
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
