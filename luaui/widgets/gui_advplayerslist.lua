@@ -1865,14 +1865,15 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 			if cpu > 99 then
 				cpu = 99
 			end
-			gl_Color(0,0,0,0.2+(grayvalue*0.5))
+			gl_Color(0,0,0,0.12+(grayvalue*0.44))
 			gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 			if spec then
-				gl_Color(grayvalue,grayvalue,grayvalue,0.6*alpha*grayvalue)
+				gl_Color(grayvalue,grayvalue,grayvalue,0.55*alpha*grayvalue)
+				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
 			else
 				gl_Color(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
+				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
 			end
-			gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
 			gl_Color(1,1,1)
 		end
 	else
