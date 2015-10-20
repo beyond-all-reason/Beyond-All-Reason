@@ -15,6 +15,7 @@ Others:
 - Advplayerlist: added /cputext command, shows cpu usage in %  +  relocated TS value
 - Added new widget "gui_transport_weight_limit" - Hilight's with unit transport can lift
 
+
 9.10 -> 9.11
 16/10/2015
 
