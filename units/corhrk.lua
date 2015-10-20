@@ -115,7 +115,7 @@ return {
 				name = "HeavyRockets",
 				noselfdamage = true,
 				range = 1210,
-				reloadtime = 7,
+				reloadtime = 8,
 				smoketrail = true,
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
@@ -127,7 +127,7 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
 				damage = {
-					default = 750,
+					default = 800,
 					subs = 5,
 				},
 			},
