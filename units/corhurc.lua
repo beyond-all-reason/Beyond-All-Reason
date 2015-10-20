@@ -2,8 +2,8 @@ return {
 	corhurc = {
 		acceleration = 0.02,
 		brakerate = 0.035,
-		buildcostenergy = 28193,
-		buildcostmetal = 334,
+		buildcostenergy = 26783,
+		buildcostmetal = 317,
 		buildpic = "CORHURC.DDS",
 		buildtime = 36461,
 		canfly = true,
