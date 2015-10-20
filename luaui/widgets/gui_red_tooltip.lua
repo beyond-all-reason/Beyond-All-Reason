@@ -172,6 +172,10 @@ local function createtooltip(r)
 							totalUnits = totalUnits + spGetTeamUnitCount(teamID)
 						end
 					end
+					local alpha = (totalUnits/7500)
+					if alpha > 0.66 then alpha = 0.66 end
+					if alpha < 0.1 then alpha = 0.1 end
+					self.color={1,1,1,alpha}
 				end
 				self.caption = totalUnits
 				vsx,vsy = gl.GetViewSizes()
