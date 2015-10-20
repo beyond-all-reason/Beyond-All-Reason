@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		loadingradius = 110,
 		mass = 200000000,
-		maxdamage = 12500,
+		maxdamage = 20000,
 		maxvelocity = 1.892,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
