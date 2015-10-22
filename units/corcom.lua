@@ -175,6 +175,11 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				--waterbounce = true, -- weapon will stick to the surface
+				groundbounce = true,
+				bounceRebound = 0, --stick the explosion to ground with 0 vertical component
+				waterweapon = true, --dgun can pass trough water
+				firesubmersed = false, -- but not _fire_ underwater
 				energypershot = 500,
 				explosiongenerator = "custom:DGUNTRACE",
 				firestarter = 100,
