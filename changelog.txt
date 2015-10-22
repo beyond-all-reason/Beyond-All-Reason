@@ -9,9 +9,9 @@ Balance changes:
 - Air transports are harder to EMP
 - Cost of T1 and T2 land bombers decreased by 5%
 - Dominator's reload time increased (7 -> 8) and damage increased (750 -> 800)
+- Partially restore old dgun behaviour, now dgun will stick to ground and follow the profile closely upon impact
 
 Others:
-- Added "No Tactical Pause" gadget - prevents sending orders when game is paused
 - RED tooltip: do "/unitcounter" to enable total units on map (as player its just total units of the team)
 - Advplayerlist: added /cputext command, shows cpu usage in %  +  relocated TS value
 - Added new widget "gui_transport_weight_limit" - Hilight's with unit transport can lift
