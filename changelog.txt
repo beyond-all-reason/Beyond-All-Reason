@@ -5,7 +5,7 @@ Balance changes:
 - Increase cost of Annihilator by 10%
 - Increase cost of Doomsday Machine by 15%
 - Bigger blow radius for air cons (128 -> 160)
-- Intruder (core t2 vech transport) HP increased 12500 -> 20 000
+- Intruder (core t2 vech transport) HP increased (12 500 -> 20 000)
 - Air transports are harder to EMP
 - Cost of T1 and T2 land bombers decreased by 5%
 - Dominator's reload time increased (7 -> 8) and damage (750 -> 800)

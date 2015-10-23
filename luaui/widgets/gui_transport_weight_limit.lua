@@ -1,7 +1,7 @@
 function widget:GetInfo()
   return {
     name      = "gui_transport_weight_limit",
-    desc      = "Hilight's with unit transport can lift",
+    desc      = "When pressing Load command, it highlights units the transport can lift",
     author    = "nixtux ( + made fancy by Floris)",
     date      = "Apr 24, 2015",
     license   = "GNU GPL, v2 or later",
