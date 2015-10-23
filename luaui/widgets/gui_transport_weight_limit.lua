@@ -2,11 +2,11 @@ function widget:GetInfo()
   return {
     name      = "gui_transport_weight_limit",
     desc      = "Hilight's with unit transport can lift",
-    author    = "nixtux",
+    author    = "nixtux ( + made fancy by Floris)",
     date      = "Apr 24, 2015",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -17,14 +17,67 @@ local unitstodraw = {}
 local transID = nil
 
 local validTrans = {}
+	
+local currentOption					= 1
+	
+local OPTIONS = {}
+table.insert(OPTIONS, {
+	rotationSpeed					= 0,
+	
+	circlePieces					= 3,
+	circlePieceDetail				= 14,
+	circleSpaceUsage				= 0.8,
+	circleInnerOffset				= 0,
+	rotationSpeed					= 8,
+	
+	-- size
+	innersize						= 1.8,
+	outersize						= 1.93,
+	
+	alphaFalloffdistance			= 750,
+	maxAlpha						= 0.6,
+})
+
+
+local function DrawCircleLine(innersize, outersize)
+	gl.BeginEnd(GL.QUADS, function()
+		local detailPartWidth, a1,a2,a3,a4
+		local width = OPTIONS[currentOption].circleSpaceUsage
+		local detail = OPTIONS[currentOption].circlePieceDetail
+
+		local radstep = (2.0 * math.pi) / OPTIONS[currentOption].circlePieces
+		for i = 1, OPTIONS[currentOption].circlePieces do
+			for d = 1, detail do
+				
+				detailPartWidth = ((width / detail) * d)
+				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
+				a2 = ((i+detailPartWidth) * radstep)
+				a3 = ((i+OPTIONS[currentOption].circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
+				a4 = ((i+OPTIONS[currentOption].circleInnerOffset+detailPartWidth) * radstep)
+				
+				--outer (fadein)
+				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
+				gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
+				--outer (fadeout)
+				gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
+				gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+			end
+		end
+	end)
+end
+
 
 function widget:Initialize()
-        for i=1,#UnitDefs do
-                local unitDefID = UnitDefs[i]
-                if unitDefID.transportSize and unitDefID.transportSize > 0 then
-                    validTrans[i] = true
-                end
-        end
+
+	circleList = gl.CreateList(DrawCircleLine, OPTIONS[currentOption].innersize, OPTIONS[currentOption].outersize)
+	currentClock = os.clock()
+	
+	for i=1,#UnitDefs do
+			local unitDefID = UnitDefs[i]
+			if unitDefID.transportSize and unitDefID.transportSize > 0 then
+				validTrans[i] = true
+			end
+	end
 end
 
 function widget:GameFrame(n)
@@ -55,48 +108,90 @@ function widget:GameFrame(n)
 	end
 
         
-        if transID then
-        local TransDefID = Spring.GetUnitDefID(transID)
-        local udTrans = UnitDefs[TransDefID]
-	local transMassLimit = udTrans.transportMass
+	if transID then
+		local TransDefID = Spring.GetUnitDefID(transID)
+		local udTrans = UnitDefs[TransDefID]
+		local transMassLimit = udTrans.transportMass
         local transCapacity = udTrans.transportCapacity
         local transportSize = udTrans.transportSize
-	if cmdID == CMD_LOAD_UNITS then
-		local visibleUnits = Spring.GetVisibleUnits()
-		if #visibleUnits then
-                        for i=1, #visibleUnits do
-                        local unitID = visibleUnits[i]
-                        local visableID = Spring.GetUnitDefID(unitID)
-			local isinTrans = Spring.GetUnitIsTransporting(transID)
-                        if #isinTrans >= transCapacity then
-                            return
-                        end
-			if transID and transID ~= visableID then
-				local ud = UnitDefs[visableID]
-				local passengerMass = ud.mass
-                                local passengerX = ud.xsize/2
-                                if (passengerMass <= transMassLimit) and (passengerX <= transportSize) and not ud.cantBeTransported and not Spring.IsUnitIcon(unitID) then 
-                                    local x, y, z = Spring.GetUnitBasePosition(unitID)
-                                    if (x) then
-                                         unitstodraw[unitID] = {pos = {x,y,z},size = (passengerX*24)}
-                                    end
-                                end
-                               end
-                            end
+		if cmdID == CMD_LOAD_UNITS then
+			local visibleUnits = Spring.GetVisibleUnits()
+			if #visibleUnits then
+				for i=1, #visibleUnits do
+				local unitID = visibleUnits[i]
+				local visableID = Spring.GetUnitDefID(unitID)
+					local isinTrans = Spring.GetUnitIsTransporting(transID)
+					if #isinTrans >= transCapacity then
+						return
+					end
+					if transID and transID ~= visableID then
+						local ud = UnitDefs[visableID]
+						local passengerMass = ud.mass
+							local passengerX = ud.xsize/2
+							if (passengerMass <= transMassLimit) and (passengerX <= transportSize) and not ud.cantBeTransported and not Spring.IsUnitIcon(unitID) then 
+								local x, y, z = Spring.GetUnitBasePosition(unitID)
+								if (x) then
+									 unitstodraw[unitID] = {pos = {x,y,z},size = (passengerX*6)}
+								end
+							end
+						end
+					end
+				end
 			end
 		end
-	end
     end
 end
 
+
+local cursorGround = {0,0,0}
+function widget:Update()
+	local mx, my = Spring.GetMouseState()
+	local  _, coords = Spring.TraceScreenRay(mx, my, true)
+
+	if type(coords) == "table" then
+		cursorGround = coords
+	end
+end
+
+local previousOsClock = os.clock()
+local currentRotationAngle = 0
+local currentRotationAngleOpposite = 0
 function widget:DrawWorldPreUnit()
-    gl.LineWidth(6)
-    gl.Color(0, 0.8, 0, 0.37)
+	
+	local clockDifference = (os.clock() - previousOsClock)
+	previousOsClock = os.clock()
+	
+	-- animate rotation
+	if OPTIONS[currentOption].rotationSpeed > 0 then
+		local angleDifference = (OPTIONS[currentOption].rotationSpeed) * (clockDifference * 5)
+		currentRotationAngle = currentRotationAngle + (angleDifference*0.66)
+		if currentRotationAngle > 360 then
+		   currentRotationAngle = currentRotationAngle - 360
+		end
+	
+		currentRotationAngleOpposite = currentRotationAngleOpposite - angleDifference
+		if currentRotationAngleOpposite < -360 then
+		   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
+		end
+	end
+	
+	
+	local alpha = 1
     for unitID,_ in pairs(unitstodraw) do
         local pos = unitstodraw[unitID].pos
-        local size = unitstodraw[unitID].size
-        gl.DrawGroundCircle(pos[1], pos[2], pos[3], size, 3)
+        local xDiff = cursorGround[1] - pos[1]
+        local zDiff = cursorGround[3] - pos[3]
+        alpha = 1 - math.sqrt(xDiff*xDiff + zDiff*zDiff) / OPTIONS[currentOption].alphaFalloffdistance
+        if alpha > OPTIONS[currentOption].maxAlpha then alpha = OPTIONS[currentOption].maxAlpha end
+        if alpha > 0.04 then
+			local size = unitstodraw[unitID].size
+			gl.Color(0, 0.8, 0, alpha*0.55)
+			gl.DrawListAtUnit(unitID, circleList, false, size, 1.0, size, currentRotationAngle, 0, 1, 0)
+			gl.Color(0, 0.8, 0, alpha)
+			gl.DrawListAtUnit(unitID, circleList, false, size*1.17, 1.0, size*1.17, -currentRotationAngle, 0, 1, 0)
+		end
     end
+    
     gl.Color(1,1,1,1)
     gl.LineWidth(1)
 end
