@@ -1,5 +1,5 @@
 ﻿9.11 -> 9.12
-XX/10/2015
+23/10/2015
 
 Balance changes:
 - Increase cost of Annihilator by 10%
@@ -8,13 +8,14 @@ Balance changes:
 - Intruder (core t2 vech transport) HP increased 12500 -> 20 000
 - Air transports are harder to EMP
 - Cost of T1 and T2 land bombers decreased by 5%
-- Dominator's reload time increased (7 -> 8) and damage increased (750 -> 800)
-- Partially restore old dgun behaviour, now dgun will stick to ground and follow the profile closely upon impact
+- Dominator's reload time increased (7 -> 8) and damage (750 -> 800)
+- Partially restore old dgun behaviour, now dgun will stick to ground (not water)
 
 Others:
-- RED tooltip: do "/unitcounter" to enable total units on map (as player its just total units of the team)
-- Advplayerlist: added /cputext command, shows cpu usage in %  +  relocated TS value
-- Added new widget "gui_transport_weight_limit" - Hilight's with unit transport can lift
+- redUI tooltip: added "/unitcounter". See total units on map (note: as player its just your teams total units)
+- Advplayerlist: added "/cputext". Shows cpu usage in % instead of the icon
+- Added new widget "gui_transport_weight_limit" - when pressing Load command, it highlights units the transport can lift
+- Map Edge Extension widget enabled by default
 
 
 9.10 -> 9.11
