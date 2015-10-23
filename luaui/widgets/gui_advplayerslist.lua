@@ -321,18 +321,6 @@ m_country = {
 }
 position = position + 1
 
-m_skill = {
-	name	  = "skill",
-	spec      = true,
-	play      = true,
-	active    = true,
-	width     = 16,
-	position  = position,
-	posX      = 0,
-	pic       = tsPic,		
-}
-position = position + 1
-
 m_side = {
 	name	  = "side",
 	spec      = true,
@@ -369,6 +357,18 @@ m_name = {
 	pic       = namePic,
 	noPic     = true,
 	picGap    = 7,
+}
+position = position + 1
+
+m_skill = {
+	name	  = "skill",
+	spec      = true,
+	play      = true,
+	active    = true,
+	width     = 20,
+	position  = position,
+	posX      = 0,
+	pic       = tsPic,		
 }
 position = position + 1
 
@@ -1865,12 +1865,14 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 			if cpu > 99 then
 				cpu = 99
 			end
-			gl_Color(0,0,0,0.12+(grayvalue*0.44))
-			gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 			if spec then
+				gl_Color(0,0,0,0.1+(grayvalue*0.4))
+				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
 				gl_Color(grayvalue,grayvalue,grayvalue,0.55*alpha*grayvalue)
 				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
 			else
+				gl_Color(0,0,0,0.12+(grayvalue*0.44))
+				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 				gl_Color(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
 				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
 			end
