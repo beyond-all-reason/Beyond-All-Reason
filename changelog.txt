@@ -9,7 +9,7 @@ Balance changes:
 - Air transports are harder to EMP
 - Cost of T1 and T2 land bombers decreased by 5%
 - Dominator's reload time increased (7 -> 8) and damage (750 -> 800)
-- Partially restore old dgun behaviour, now dgun will stick to ground (not water)
+- Partially restore old dgun behaviour, now dgun will stick to ground (not water surface)
 
 Others:
 - redUI tooltip: added "/unitcounter". See total units on map (note: as player its just your teams total units)
