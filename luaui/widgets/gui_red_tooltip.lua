@@ -151,13 +151,12 @@ local function createtooltip(r)
 	}
 	
 	local unitcounter = {"text",
-		px=r.sx,py=r.py+(r.margin/2),
-		fontsize=r.fontsize/1.33,
-		color={1,1,1,0.15},
+		px=r.sx-(r.margin/2),py=r.py+(r.margin/2),
+		fontsize=r.fontsize/1.3,
+		color={1,1,1,0.2},
 		caption="",
 		options="r",
-		bgrx=r.sx,
-		margin=r.margin,
+		
 		onupdate=function(self)
 			if Config.tooltip.unitCounterEnabled then
 				-- get total unit count
@@ -172,14 +171,14 @@ local function createtooltip(r)
 							totalUnits = totalUnits + spGetTeamUnitCount(teamID)
 						end
 					end
-					local alpha = (totalUnits/7500)
+					local alpha = (totalUnits/6600)
 					if alpha > 0.66 then alpha = 0.66 end
-					if alpha < 0.1 then alpha = 0.1 end
+					if alpha < 0.2 then alpha = 0.2 end
 					self.color={1,1,1,alpha}
 				end
 				self.caption = totalUnits
 				vsx,vsy = gl.GetViewSizes()
-				self.px = math.max(text.getwidth()+((self.margin/2.2)*(vsx/CanvasX)), (self.bgrx-self.margin)*(vsx/CanvasX))
+				
 			else
 				self.caption = ""
 			end
