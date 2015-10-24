@@ -192,7 +192,7 @@ local function createtooltip(r)
 		border=r.cborder,
 		
 		movable=r.dragbutton,
-		movableslaves={text},
+		movableslaves={text,unitcounter},
 		
 		obeyscreenedge = true,
 		--overridecursor = true,
@@ -216,6 +216,7 @@ local function createtooltip(r)
 				end
 				text.px = self.px + r.margin
 			end
+			unitcounter.px = self.sx - ((r.margin/2)* Screen.vsy/CanvasY)
 		end,
 		
 		mouseover=function(mx,my,self)
