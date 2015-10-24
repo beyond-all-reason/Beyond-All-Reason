@@ -24,6 +24,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 30000,
+		fireState = 0,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		name = "Buzzsaw",

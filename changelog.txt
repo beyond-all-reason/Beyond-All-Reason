@@ -1,4 +1,13 @@
-﻿9.11 -> 9.12
+﻿9.12 -> 9.13
+X/10/2015
+
+Balance changes:
+- Buzzsaw and Vulcan - on "hold fire" by default
+
+Others:
+
+
+9.11 -> 9.12
 23/10/2015
 
 Balance changes:
