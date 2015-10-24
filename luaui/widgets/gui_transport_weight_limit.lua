@@ -12,18 +12,9 @@ end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-local CMD_LOAD_UNITS = CMD.LOAD_UNITS
-local unitstodraw = {}
-local transID = nil
 
-local validTrans = {}
-	
-local currentOption					= 1
-	
 local OPTIONS = {}
 table.insert(OPTIONS, {
-	rotationSpeed					= 0,
-	
 	circlePieces					= 3,
 	circlePieceDetail				= 14,
 	circleSpaceUsage				= 0.8,
@@ -31,12 +22,19 @@ table.insert(OPTIONS, {
 	rotationSpeed					= 8,
 	
 	-- size
-	innersize						= 1.8,
-	outersize						= 1.93,
+	innersize						= 1.85,		-- outersize-innersize = circle width
+	outersize						= 2.02,		-- outersize-innersize = circle width
 	
 	alphaFalloffdistance			= 750,
-	maxAlpha						= 0.6,
+	maxAlpha						= 0.55,
 })
+local currentOption					= 1		-- just a remnant of other widget i used for the gfx type options
+
+local CMD_LOAD_UNITS = CMD.LOAD_UNITS
+local unitstodraw = {}
+local transID = nil
+
+local validTrans = {}
 
 
 local function DrawCircleLine(innersize, outersize)
@@ -68,15 +66,15 @@ end
 
 
 function widget:Initialize()
-
+	
 	circleList = gl.CreateList(DrawCircleLine, OPTIONS[currentOption].innersize, OPTIONS[currentOption].outersize)
 	currentClock = os.clock()
 	
 	for i=1,#UnitDefs do
-			local unitDefID = UnitDefs[i]
-			if unitDefID.transportSize and unitDefID.transportSize > 0 then
-				validTrans[i] = true
-			end
+		local unitDefID = UnitDefs[i]
+		if unitDefID.transportSize and unitDefID.transportSize > 0 then
+			validTrans[i] = true
+		end
 	end
 end
 
@@ -88,50 +86,52 @@ function widget:GameFrame(n)
 	local selectedUnits = Spring.GetSelectedUnits()
 	if #selectedUnits == 1 then
 		if validTrans[Spring.GetUnitDefID(selectedUnits[1])] then
-        		transID = selectedUnits[1]
+        	transID = selectedUnits[1]
 		end
         elseif #selectedUnits > 1 then
-                for _,unitID in pairs(selectedUnits) do
-                    
-                    local unitdefID = Spring.GetUnitDefID(unitID)
-                    if validTrans[unitdefID] then
-                       transID = unitID
-                       unitcount = unitcount + 1
-                       if unitcount > 1 then 
-                           transID = nil
-                           return end
-                    end
-                end
+			for _,unitID in pairs(selectedUnits) do
+				
+				local unitdefID = Spring.GetUnitDefID(unitID)
+				if validTrans[unitdefID] then
+				   transID = unitID
+				   unitcount = unitcount + 1
+				   if unitcount > 1 then 
+					   transID = nil
+					   return end
+				end
+			end
         else
 		transID = nil
 		return
 	end
-
-        
+	
+	
 	if transID then
 		local TransDefID = Spring.GetUnitDefID(transID)
 		local udTrans = UnitDefs[TransDefID]
-		local transMassLimit = udTrans.transportMass
-        local transCapacity = udTrans.transportCapacity
-        local transportSize = udTrans.transportSize
-		if cmdID == CMD_LOAD_UNITS then
-			local visibleUnits = Spring.GetVisibleUnits()
-			if #visibleUnits then
-				for i=1, #visibleUnits do
-				local unitID = visibleUnits[i]
-				local visableID = Spring.GetUnitDefID(unitID)
-					local isinTrans = Spring.GetUnitIsTransporting(transID)
-					if #isinTrans >= transCapacity then
-						return
-					end
-					if transID and transID ~= visableID then
-						local ud = UnitDefs[visableID]
-						local passengerMass = ud.mass
-							local passengerX = ud.xsize/2
-							if (passengerMass <= transMassLimit) and (passengerX <= transportSize) and not ud.cantBeTransported and not Spring.IsUnitIcon(unitID) then 
-								local x, y, z = Spring.GetUnitBasePosition(unitID)
-								if (x) then
-									 unitstodraw[unitID] = {pos = {x,y,z},size = (passengerX*6)}
+		if udTrans ~= nil then
+			local transMassLimit = udTrans.transportMass
+			local transCapacity = udTrans.transportCapacity
+			local transportSize = udTrans.transportSize
+			if cmdID == CMD_LOAD_UNITS then
+				local visibleUnits = Spring.GetVisibleUnits()
+				if #visibleUnits then
+					for i=1, #visibleUnits do
+					local unitID = visibleUnits[i]
+					local visableID = Spring.GetUnitDefID(unitID)
+						local isinTrans = Spring.GetUnitIsTransporting(transID)
+						if #isinTrans >= transCapacity then
+							return
+						end
+						if transID and transID ~= visableID then
+							local ud = UnitDefs[visableID]
+							local passengerMass = ud.mass
+								local passengerX = ud.xsize/2
+								if (passengerMass <= transMassLimit) and (passengerX <= transportSize) and not ud.cantBeTransported and not Spring.IsUnitIcon(unitID) then 
+									local x, y, z = Spring.GetUnitBasePosition(unitID)
+									if (x) then
+										 unitstodraw[unitID] = {pos = {x,y,z},size = (passengerX*6)}
+									end
 								end
 							end
 						end
@@ -175,7 +175,6 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 	
-	
 	local alpha = 1
     for unitID,_ in pairs(unitstodraw) do
         local pos = unitstodraw[unitID].pos
@@ -188,7 +187,7 @@ function widget:DrawWorldPreUnit()
 			gl.Color(0, 0.8, 0, alpha*0.55)
 			gl.DrawListAtUnit(unitID, circleList, false, size, 1.0, size, currentRotationAngle, 0, 1, 0)
 			gl.Color(0, 0.8, 0, alpha)
-			gl.DrawListAtUnit(unitID, circleList, false, size*1.17, 1.0, size*1.17, -currentRotationAngle, 0, 1, 0)
+			gl.DrawListAtUnit(unitID, circleList, false, size*1.18, 1.0, size*1.18, -currentRotationAngle, 0, 1, 0)
 		end
     end
     
