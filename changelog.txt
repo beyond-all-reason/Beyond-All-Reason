@@ -6,6 +6,7 @@ Balance changes:
 - Buildtime increased by 15% for advanced fusions
 - T2 Missile ships accelerating a little bit faster
 - Adv crawling bomb is moving faster (1.75 -> 2.8)
+- Pyro have 5% less HP
 
 Others:
 
