@@ -33,7 +33,7 @@ local Config = {
 		cmovebackground = {0,1,0,0.5},
 		cmovecolor = {0.9,0.9,0.9,0.8},
 		
-		cborder = {0,0,0,1},
+		cborder = {0,0,0,0},
 		
 		dragbutton = {1}, --left mouse button
 		tooltip = {
