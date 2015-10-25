@@ -45,21 +45,20 @@ local drawBuildQueue			= true
 local drawLineTexture			= true
 local drawUnitHighlight 		= true
 local drawUnitHighlightSkipFPS	= 5		-- (0 to disable) skip drawing when framerate gets below this value
-local drawSkipFps				= 0		-- (0 to disable) skip drawing when framerate gets below this value
 
-local opacity      				= 1
-local duration     				= 2.25
+local opacity      				= 0.95
+local duration     				= 2.2
 
-local lineWidth	   				= 8
+local lineWidth	   				= 7.6
 local lineOpacity				= 1
 local lineDuration 				= 1		-- set a value <= 1
 local lineWidthEnd				= 0.5		-- multiplier (this wont affect textured lines)
-local lineTextureLength 		= 4
+local lineTextureLength 		= 3.5
 local lineTextureSpeed  		= 3
 
-local glowRadius    			= 35
+local glowRadius    			= 26
 local glowDuration  			= 0.5
-local glowOpacity   			= 0.12
+local glowOpacity   			= 0.11
 
 local glowImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/glow.dds"
 local lineImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/line.dds"
@@ -425,7 +424,7 @@ end
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
     -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
     if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
-        local el = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=spGetUnitDefID(unitID)} -- command queue is not updated until next gameframe
+	    local el = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=spGetUnitDefID(unitID)} -- command queue is not updated until next gameframe
         maxCommand = maxCommand + 1
         --Spring.Echo("Adding " .. maxCommand)
         commands[maxCommand] = el
@@ -456,7 +455,6 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
 end
 
 function widget:GameFrame(gameFrame)
-    if spGetFPS() < drawSkipFps then return end
     
     --Spring.Echo("GameFrame: minCommand " .. minCommand .. " minQueueCommand " .. minQueueCommand .. " maxCommand " .. maxCommand)
     local i = minQueueCommand
@@ -494,7 +492,7 @@ function widget:GameFrame(gameFrame)
         -- get location of final command
         local lastCmd = our_q[#our_q]
         if lastCmd and lastCmd.params then
-            local x,y,z = ExtractTargetLocation(lastCmd.params[1],lastCmd.params[2],lastCmd.params[3],lastCmd.params[4],lastCmd.id) 
+            local x,y,z = ExtractTargetLocation(lastCmd.params[1],lastCmd.params[2],lastCmd.params[3],lastCmd.params[4],lastCmd.id)
             if x then
                 commands[i].x = x
                 commands[i].y = y
@@ -523,8 +521,6 @@ local prevOsClock = os.clock()
 function widget:DrawWorldPreUnit()
     --Spring.Echo(maxCommand-minCommand) --EXPENSIVE! often handling hundreds of command queues at once 
     --if spIsGUIHidden() then return end
-    
-    if drawSkipFps > 0 and spGetFPS() < drawSkipFps then return false end
 		
     osClock = os.clock()
     gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -560,7 +556,7 @@ function widget:DrawWorldPreUnit()
                 else
                     local x,y,z = Spring.GetUnitPosition(commands[i].set_target.params[1])    
                     if x then
-                        gl.BeginEnd(GL.QUADS, DrawLine, prevX,prevY,prevZ, x,y,z, lineWidth)                     
+                        gl.BeginEnd(GL.QUADS, DrawLine, prevX,prevY,prevZ, x,y,z, lineWidth)
                     end
                 end                  
             end
@@ -570,7 +566,7 @@ function widget:DrawWorldPreUnit()
 				local lineAlphaMultiplier  = 1 - (progress / lineDuration)
                 for j=1,commands[i].queueSize do
                     --Spring.Echo(CMD[commands[i].queue[j].id]) --debug
-                    local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)                                
+                    local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
                     local validCoord = X and Z and X>=0 and X<=mapX and Z>=0 and Z<=mapZ
                     -- draw
                     if X and validCoord then
