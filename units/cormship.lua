@@ -1,8 +1,8 @@
 return {
 	cormship = {
-		acceleration = 0.012,
+		acceleration = 0.022,
 		activatewhenbuilt = true,
-		brakerate = 0.066,
+		brakerate = 0.086,
 		buildcostenergy = 16915,
 		buildcostmetal = 3083,
 		buildpic = "CORMSHIP.DDS",

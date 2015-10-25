@@ -1,8 +1,8 @@
 return {
 	armmship = {
-		acceleration = 0.01,
+		acceleration = 0.02,
 		activatewhenbuilt = true,
-		brakerate = 0.084,
+		brakerate = 0.094,
 		buildcostenergy = 18060,
 		buildcostmetal = 2825,
 		buildpic = "ARMMSHIP.DDS",

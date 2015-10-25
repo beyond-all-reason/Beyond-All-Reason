@@ -4,6 +4,8 @@ X/10/2015
 Balance changes:
 - Buzzsaw and Vulcan - on "hold fire" by default
 - Buildtime increased by 15% for advanced fusions
+- T2 Missile ships accelerating a little bit faster
+
 
 Others:
 
