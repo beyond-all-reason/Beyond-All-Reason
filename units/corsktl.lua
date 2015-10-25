@@ -26,7 +26,7 @@ return {
 		mass = 300000000,
 		maxdamage = 320,
 		maxslope = 255,
-		maxvelocity = 1.75,
+		maxvelocity = 2.8,
 		maxwaterdepth = 30,
 		mincloakdistance = 60,
 		movementclass = "AKBOTBOMB2",
