@@ -19,7 +19,6 @@ function widget:GetInfo()
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
-		handler   = true,
 	}
 end
 
@@ -36,6 +35,7 @@ end
 -- v12   (Floris): Restyled looks + added imageDirectory var + HD-ified rank and some other icons
 -- v13   (Floris): Added scale buttons. Added grey cpu/ping icons for spectators. Resized elements. Textured bg. Spec label click to unfold/fold. Added guishader. Lockcamera on doubleclick. Ping in ms/sec/min. Shows dot icon in front of tracked player. HD-ified lots of other icons. Speccing/dead player keep their color. Improved e/m share gui responsiveness. + removed the m_spec option
 -- v14   (Floris): Added country flags + Added camera icons for locked camera + specs show bright when they are broadcasting new lockcamera positions + bugfixed lockcamera for specs. Added small gaps between in tweakui icons. Auto scales with resolution changes.
+-- v15   (Floris): Integrated LockCamers widget code
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -76,6 +76,10 @@ local Spring_GetDrawFrame		 = Spring.GetDrawFrame
 local Spring_GetGameFrame		 = Spring.GetGameFrame
 local Spring_GetTeamColor		 = Spring.GetTeamColor
 local Spring_GetMyTeamID		 = Spring.GetMyTeamID
+
+local GetCameraState = Spring.GetCameraState
+local SetCameraState = Spring.SetCameraState
+local GetCameraNames = Spring.GetCameraNames
 
 local gl_Texture          = gl.Texture
 local gl_Rect             = gl.Rect
@@ -172,6 +176,22 @@ local lastTime        = 0
 local blinkTime       = 0
 local now             = 0
 
+--------------------------------------------------------------------------------
+-- LockCamera variables
+--------------------------------------------------------------------------------
+
+local transitionTime	= 2 --how long it takes the camera to move
+local listTime			= 15 --how long back to look for recent broadcasters
+
+local myPlayerID = Spring.GetMyPlayerID()
+local lockPlayerID
+
+local lastBroadcasts = {}
+local recentBroadcasters = {}
+local newBroadcaster = false
+local totalTime = 0
+
+local myLastCameraState
 
 --------------------------------------------------------------------------------
 -- Tooltip
@@ -251,7 +271,6 @@ local specOffset 	 	= 12
 local drawList       	= {}
 local teamN	
 local prevClickTime  	= os.clock()
-local broadcasters   	= {}
 local allycursorTimes	= {}
 specListShow = true
 
@@ -560,10 +579,75 @@ function GeometryChange()
 end
 
 ---------------------------------------------------------------------------------------------------
+--  LockCamera stuff
+---------------------------------------------------------------------------------------------------
+
+local function UpdateRecentBroadcasters()
+	recentBroadcasters = {}
+	local i = 1
+	for playerID, info in pairs(lastBroadcasts) do
+		lastTime = info[1]
+		if (totalTime - lastTime <= listTime or playerID == lockPlayerID) then
+			if (totalTime - lastTime <= listTime) then
+				recentBroadcasters[playerID] = totalTime - lastTime
+			end
+			i = i + 1
+		end
+	end
+end
+
+local function LockCamera(playerID)
+	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
+		lockPlayerID = playerID
+		myLastCameraState = myLastCameraState or GetCameraState()
+		local info = lastBroadcasts[lockPlayerID]
+		if info then
+			SetCameraState(info[2], transitionTime)
+		end
+	else
+		if myLastCameraState then
+			SetCameraState(myLastCameraState, transitionTime)
+			myLastCameraState = nil
+		end
+		lockPlayerID = nil
+	end
+	UpdateRecentBroadcasters()
+end
+
+
+function CameraBroadcastEvent(playerID,cameraState)
+
+	--if cameraState is empty then transmission has stopped
+	if not cameraState then
+		if lastBroadcasts[playerID] then
+			lastBroadcasts[playerID] = nil
+			newBroadcaster = true
+		end
+		if lockPlayerID == playerID then
+			LockCamera()
+		end
+		return
+	end
+	
+	if not lastBroadcasts[playerID] and not newBroadcaster then
+		newBroadcaster = true
+	end
+	
+	lastBroadcasts[playerID] = {totalTime, cameraState}
+	
+	if playerID == lockPlayerID then
+		SetCameraState(cameraState, transitionTime)
+	end
+end
+
+---------------------------------------------------------------------------------------------------
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
+	UpdateRecentBroadcasters()
+	
 	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
 		Spring.SendCommands("info 0")
 	end
@@ -610,6 +694,7 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('advplayerlist')
 	end
+	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 end
 
 
@@ -1143,21 +1228,16 @@ function widget:DrawScreen()
 end
 
 function CreateLists()
-	
-	broadcasters = {}
-	lockedPlayerID = nil
-	
+
 	CheckTime() --this also calls CheckPlayers
 	
-	if WG['lockcamera_api'] ~= nil then
-		lockedPlayerID = WG['lockcamera_api'].GetLockedPlayer()
-		broadcasters = WG['lockcamera_api'].GetBroadcasters()
-	end
+	UpdateRecentBroadcasters()
+	
 	if WG['allycursor_api'] ~= nil then
 		allycursorTimes = WG['allycursor_api'].GetCursorTimes()
 	end
 	
-	UpdateRessources()
+	UpdateResources()
 	
 	--Create lists
 	CreateBackground()
@@ -1276,7 +1356,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 
-function UpdateRessources()
+function UpdateResources()
 	if energyPlayer ~= nil then
 		if energyPlayer.team == myTeamID then
 			local current,storage = Spring_GetTeamResources(myTeamID,"energy")
@@ -1366,7 +1446,7 @@ function CreateMainList(tip)
 			DrawLabel(" Enemies", drawListOffset[i], true)
 		elseif drawObject == -2 then
 			DrawLabel(" Allies", drawListOffset[i], true)
-			if WG['lockcamera_api'] ~= nil and Spring.GetGameFrame() <= 0 then
+			if Spring.GetGameFrame() <= 0 then
 				DrawLabelTip("(dbl-click playername to track)", drawListOffset[i], 46)
 			end
 			if showTeamsizeVersus then
@@ -1461,21 +1541,17 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if mySpecStatus then
 		local alphaCursor = 1
 		if WG['allycursor_api'] ~= nil then
-			if allycursorTimes[playerID] ~= nil and type(broadcasters[playerID]) == "number" then
+			if allycursorTimes[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
 				alphaCursor = (10 - math.floor(now-allycursorTimes[playerID])) / 7
 				if alphaCursor > 1 then alphaCursor = 1 end
 				if alphaCursor <= 0.5 then alphaCursor = 0.5 end
 			end
 		end
-		if WG['lockcamera_api'] ~= nil and broadcasters[playerID] ~= nil and type(broadcasters[playerID]) == "number" or WG['lockcamera_api'] == nil then
-			if WG['lockcamera_api'] ~= nil then
-				local alphaCam = (15 - math.floor(broadcasters[playerID])) / 10
-				if alphaCam > 1 then alphaCam = 1 end
-				alpha = 0.7 * alphaCam
-				if alpha < 0.5 then alpha = 0.5 end
-			else
-				alpha = 0.5*alphaCursor
-			end
+		if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
+			local alphaCam = (15 - math.floor(recentBroadcasters[playerID])) / 10
+			if alphaCam > 1 then alphaCam = 1 end
+			alpha = 0.7 * alphaCam
+			if alpha < 0.5 then alpha = 0.5 end
 		else
 			alpha = 0.5*alphaCursor
 		end
@@ -1487,11 +1563,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if mouseY >= tipPosY and mouseY <= tipPosY + (16*widgetScale) then tipY = true end
 	
 	
-	if WG['lockcamera_api'] ~= nil then
-	
-		if (lockedPlayerID ~= nil and lockedPlayerID == playerID) then -- active
-			DrawCamera(posY, true)
-		end
+	if (lockPlayerID ~= nil and lockPlayerID == playerID) then -- active
+		DrawCamera(posY, true)
 	end
 
 	if spec == false then --player
@@ -1542,8 +1615,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		gl_Color(1,1,1,1)
 		if specListShow == true and m_name.active == true then
 		
-			if WG['lockcamera_api'] ~= nil and playerSpecs[playerID] ~= nil and (lockedPlayerID ~= nil and lockedPlayerID ~= playerID or lockedPlayerID == nil) then 
-				if broadcasters[playerID] ~= nil and type(broadcasters[playerID]) == "number" then
+			if playerSpecs[playerID] ~= nil and (lockPlayerID ~= nil and lockPlayerID ~= playerID or lockPlayerID == nil) then 
+				if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
 					DrawCamera(posY, false)
 				end
 			end
@@ -2144,9 +2217,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 							return true 
 						end
 						if clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
-							if WG['lockcamera_api'] ~= nil then
-								WG['lockcamera_api'].LockCamera(i)
-							end
+							LockCamera(i)
 							prevClickedName = ''
 							if not clickedPlayer.spec then 
 								Spring_SendCommands{"specteam "..i}
@@ -2245,9 +2316,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 								return true 
 							end
 							if clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
-								if WG['lockcamera_api'] ~= nil then
-									WG['lockcamera_api'].LockCamera(clickedPlayer.team)
-								end
+								LockCamera(clickedPlayer.team)
 								prevClickedName = ''
 								if not clickedPlayer.spec then
 									Spring_SendCommands{"specteam "..clickedPlayer.team}
@@ -2276,7 +2345,7 @@ function widget:MouseMove(x,y,dx,dy,button)
 		if sliderPosition < 0 then sliderPosition = 0 end
 		if sliderPosition > 39 then sliderPosition = 39 end
 		
-		UpdateRessources()
+		UpdateResources()
 	end
 end
 
@@ -2790,14 +2859,17 @@ function IsTakeable(teamID)
 		return false					
 	end
 end
-		
+
+
+
 --timers
 local timeCounter = 0
 local updateRate = 0.75
 local updateRatePreStart = 0.25
 local lastTakeMsg = -120
 
-function widget:Update(delta) --handles takes & related messages 
+function widget:Update(delta) --handles takes & related messages
+	totalTime = totalTime + delta 
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
 	
