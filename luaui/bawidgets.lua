@@ -106,6 +106,7 @@ local flexCallIns = {
   'GameFrame',
   'GameProgress',
   'GameSetup',
+  'GamePaused',
   'TeamDied',
   'TeamChanged',
   'PlayerChanged',
@@ -1564,6 +1565,12 @@ function widgetHandler:GameOver()
   return
 end
 
+function widgetHandler:GamePaused(playerID, paused)
+  for _,w in ipairs(self.GamePausedList) do
+    w:GamePaused(playerID, paused)
+  end
+  return
+end
 
 function widgetHandler:TeamDied(teamID)
   for _,w in ipairs(self.TeamDiedList) do
