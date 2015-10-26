@@ -1,0 +1,201 @@
+Widget dependent:
+
+/iconspace                       "Red build/Order menu"   Add/remove spacing between build/order icons.
+/selection_mode                  "SmartSelect"   Filter buildings when 1 or more mobile units is under selection
+/cputext                         "AdvPlayerList"   Uses exact number instead of a the colored icon.
+/unitcounter                     "Red Tooltip"   Shows total units on map as spec, as player only for your team.
+/comranges_nearbyenemy           "Comblast & Dgun Range"   Always draw ranges or only when an enemy is near.
+/losradar                        "BA LOS colors"    Increases contrast to show radar view better.
+/loscolor                        "BA LOS colors"   Use colors to for line-of-sight and radar view.
+/allyresbars_sizeup              "Ally Resource Bars"   (widget auto-scales according to resolution aswell)
+/allyresbars_sizedown            "Ally Resource Bars"   
+/snow                            "Snow"   Turns snow off for current map only. (and remembers it)
+/unitinfo                        "Unit Info"   usage: /unitinfo armcom
+/enemyspotter_self               "Enemyspotter"   Draw spotters for your own team aswell.
+/enemyspotter_highlight          "Enemyspotter"   Toggle highlight shader
+/+enemyspotter_highlight         "Enemyspotter"   Adjust highlight intensity also:  /-enemyspotter_highlight
+/enemyspotter_platter            "Enemyspotter"   Toggle platter (turn off only if you use /enemyspotter_highlight)
+/+enemyspotter_platter           "Enemyspotter"   Adjust spotter opacity.   also:  /-enemyspotter_platter
+/defrange                        "Defense Range"  usage: /defrange enemy/air/+    (use combinations)
+
+Spring Engine (v99):
+
+/Atm                             (synced)    Gives 1000 metal and 1000 energy to the issuing players team
+/Cheat                           (synced)    Enables/Disables cheating, which is required for a lot of other commands to be usable
+/Destroy                         (synced)    Destroys one or multiple units by unit-ID, instantly
+/DevLua                          (synced)    Enables/Disables Lua dev-mode (can cause desyncs if enabled)
+/EditDefs                        (synced)    Allows/Disallows editing of unit-, feature- and weapon-defs through Lua
+/Give                            (synced)    Places one or multiple units of a single or multiple types on the map, instantly; by default to your own team
+/GlobalLOS                       (synced)    Enables/Disables global line-of-sight, which makes the whole map permanently visible to everyone or to a specific allyteam
+/GodMode                         (synced)    Enables/Disables god-mode, which allows all players (even spectators) to control all units (even during replays, which will DESYNC them)
+/LuaGaia                         (synced)    Allows one to reload or disable Lua-Gaia, or alternatively to send a chat message to Lua-Gaia
+/LuaRules                        (synced)    Allows one to reload or disable Lua-rules, or alternatively to send a chat message to Lua-rules
+/NoCost                          (synced)    Enables/Disables everything-for-free, which allows everyone to build everything for zero resource costs
+/NoHelp                          (synced)    Enables/Disables widgets (LuaUI control)
+/NoSpecDraw                      (synced)    Allows/Disallows spectators to draw on the map
+/NoSpectatorChat                 (synced)    Enables/Disables spectators to use the chat
+/ReloadCEGs                      (synced)    Reloads CEG scripts
+/ReloadCOB                       (synced)    Reloads COB scripts
+/Skip                            (synced)    Fast-forwards to a given frame, or stops fast-forwarding
+/Take                            (synced)    Transfers all units of allied teams without any active players to the team of the issuing player
+
+/AdvMapShading                   (unsynced)  Set or toggle advanced map shading mode
+/AdvModelShading                 (unsynced)  Set or toggle advanced model shading mode
+/AIControl                       (unsynced)  Creates a new instance of a Skirmish AI, to let it controll a specific team
+/AIKill                          (unsynced)  Kills the Skirmish AI controlling a specified team
+/AIList                          (unsynced)  Prints a list of all currently active Skirmish AIs
+/AIReload                        (unsynced)  Reloads the Skirmish AI controlling a specified team
+/AirMesh                         (unsynced)  Show/Hide the smooth air-mesh map overlay
+/AllMapMarks                     (unsynced)  Show/Hide all map marks drawn so far
+/Ally                            (unsynced)  Starts/Ends alliance of the local players ally-team with another ally-team
+/ATM                             (unsynced)  Redirects command /ATM to its synced processor
+/BufferText                      (unsynced)  Write the argument string(s) directly to the console history, but not anywhere else. This is useful for fast manual issuing of the command, later on
+/Chat                            (unsynced)  Starts waiting for intput to be sent to 
+/ChatAll                         (unsynced)  Starts waiting for intput to be sent to All
+/ChatAlly                        (unsynced)  Starts waiting for intput to be sent to Ally
+/ChatSpec                        (unsynced)  Starts waiting for intput to be sent to Spec
+/ClearMapMarks                   (unsynced)  Remove all map marks drawn so far
+/Clock                           (unsynced)  Shows a small digital clock indicating the local time
+/CmdColors                       (unsynced)  Reloads cmdcolors.txt
+/CommandHelp                     (unsynced)  Prints info about a specific chat command (so far only synced/unsynced and the description)
+/CommandList                     (unsynced)  Prints all the available chat commands with description (if available) to the console
+/Console                         (unsynced)  Enables/Disables the in-game console
+/ControlUnit                     (unsynced)  Start to first-person-control a unit
+/Crash                           (unsynced)  Invoke an artificial crash through a NULL-pointer dereference (SIGSEGV)
+/CreateVideo                     (unsynced)  Start/Stop capturing a video of the game in progress
+/Cross                           (unsynced)  Allows one to exchange and modify the appearance of the cross/mouse-pointer in first-person-control view
+/CtrlPanel                       (unsynced)  Reloads ctrlpanel.txt
+/Debug                           (unsynced)  Enable/Disable debug info rendering mode
+/DebugColVol                     (unsynced)  Enable/Disable drawing of collision volumes
+/DebugDrawAI                     (unsynced)  Enables/Disables debug drawing for AIs
+/DebugInfo                       (unsynced)  Print debug info to the chat/log-file about either: sound, profiling
+/DebugPath                       (unsynced)  Enable/Disable drawing of pathfinder debug-data
+/DebugTraceRay                   (unsynced)  Enable/Disable drawing of traceray debug-data
+/DecGUIOpacity                   (unsynced)  Decreases the the opacity(see-through-ness) of GUI elements
+/DecreaseViewRadius              (unsynced)  Decrease the view radius (higher performance, uglier view)
+/Deselect                        (unsynced)  Deselects all currently selected units
+/Destroy                         (unsynced)  Destroys one or multiple units by unit-ID, instantly
+/DistDraw                        (unsynced)  Set the distance between units and camera, at which they turn into far-textures (flat/texture-only representation) (Graphic setting)
+/DistIcon                        (unsynced)  Set the distance between units and camera, at which they turn into icons (Graphic setting)
+/DivByZero                       (unsynced)  Invoke an artificial crash by performing a division-by-Zero
+/DrawInMap                       (unsynced)  Enables drawing on the map
+/DrawLabel                       (unsynced)  Draws a label on the map at the current mouse-pointer position
+/DrawTrees                       (unsynced)  Enable/Disable rendering of engine trees
+/DumpState                       (unsynced)  dump game-state to file
+/DynamicSky                      (unsynced)  Enable/Disable dynamic-sky rendering
+/DynamicSun                      (unsynced)  Enable/Disable dynamic-sun rendering
+/Echo                            (unsynced)  Write a string to the log file
+/EndGraph                        (unsynced)  Enables/Disables the statistics graphs shown at the end of the game
+/Exception                       (unsynced)  Invoke an artificial crash by throwing an std::runtime_error
+/Font                            (unsynced)  Reloads the fonts
+/FPS                             (unsynced)  Shows/Hides the frames-per-second indicator
+/FPSHud                          (unsynced)  Enables/Disables HUD (GUI interface) shown in first-person-control mode
+/Fullscreen                      (unsynced)  Switches fullscreen mode
+/GameInfo                        (unsynced)  Enables/Disables game-info panel rendering
+/GatherMode                      (unsynced)  Enter/Leave gather-wait command mode
+/Give                            (unsynced)  Places one or multiple units of a single or multiple types on the map, instantly; by default to your own team
+/GrabInput                       (unsynced)  Prevents/Enables the mouse from leaving the game window (windowed mode only)
+/GroundDecals                    (unsynced)  Disable/Enable ground-decals rendering. Ground-decals are things like scars appearing on the map after an explosion.
+/Group                           (unsynced)  Allows modifying the members of a group
+/Group0                          (unsynced)  Allows modifying the members of group 0
+/Group1                          (unsynced)  Allows modifying the members of group 1
+/Group2                          (unsynced)  Allows modifying the members of group 2
+/Group3                          (unsynced)  Allows modifying the members of group 3
+/Group4                          (unsynced)  Allows modifying the members of group 4
+/Group5                          (unsynced)  Allows modifying the members of group 5
+/Group6                          (unsynced)  Allows modifying the members of group 6
+/Group7                          (unsynced)  Allows modifying the members of group 7
+/Group8                          (unsynced)  Allows modifying the members of group 8
+/Group9                          (unsynced)  Allows modifying the members of group 9
+/HardwareCursor                  (unsynced)  Enables/Disables hardware mouse-cursor support
+/HideInterface                   (unsynced)  Hide/Show the GUI controlls
+/IncGUIOpacity                   (unsynced)  Increases the the opacity(see-through-ness) of GUI elements
+/IncreaseViewRadius              (unsynced)  Increase the view radius (lower performance, nicer view)
+/Info                            (unsynced)  Shows/Hides the player roster
+/InputTextGeo                    (unsynced)  Move and/or resize the input-text field (the "Say: " thing)
+/LastMsgPos                      (unsynced)  Moves the camera to show the position of the last message
+/LessClouds                      (unsynced)  Decreases the density of clouds (higher performance)
+/LessTrees                       (unsynced)  Decreases the distance to the camera, in which trees are still shown (higher performance)
+/LODScale                        (unsynced)  Set the scale for either of: LOD (level-of-detail), shadow-LOD, reflection-LOD, refraction-LOD
+/LuaGaia                         (unsynced)  Redirects command /LuaGaia to its synced processor
+/LuaModUICtrl                    (unsynced)  Allow/Disallow Lua to receive UI control events, like mouse-, keyboard- and joystick-events
+/LuaRules                        (unsynced)  Redirects command /LuaRules to its synced processor
+/LuaUI                           (unsynced)  Allows one to reload or disable LuaUI, or alternatively to send a chat message to LuaUI
+/MapBorder                       (unsynced)  Set or toggle map border rendering
+/MapMarks                        (unsynced)  Enables/Disables map marks rendering
+/MaxNanoParticles                (unsynced)  Set the maximum number of nano-particles (Graphic setting)
+/MaxParticles                    (unsynced)  Set the maximum number of particles (Graphics setting)
+/MiniMap                         (unsynced)  FIXME document subcommands
+/MoreClouds                      (unsynced)  Increases the density of clouds (lower performance)
+/MoreTrees                       (unsynced)  Increases the distance to the camera, in which trees are still shown (lower performance)
+/Mouse1                          (unsynced)  Simulates a mouse button press of button 1
+/Mouse2                          (unsynced)  Simulates a mouse button press of button 2
+/Mouse3                          (unsynced)  Simulates a mouse button press of button 3
+/Mouse4                          (unsynced)  Simulates a mouse button press of button 4
+/Mouse5                          (unsynced)  Simulates a mouse button press of button 5
+/MoveBack                        (unsynced)  Moves the camera Back a bit
+/MoveDown                        (unsynced)  Moves the camera Down a bit
+/MoveFast                        (unsynced)  Moves the camera Fast a bit
+/MoveForward                     (unsynced)  Moves the camera Forward a bit
+/MoveLeft                        (unsynced)  Moves the camera Left a bit
+/MoveRight                       (unsynced)  Moves the camera Right a bit
+/MoveSlow                        (unsynced)  Moves the camera Slow a bit
+/MoveUp                          (unsynced)  Moves the camera Up a bit
+/MuteSound                       (unsynced)  Mute/Unmute the current sound system
+/NoLuaDraw                       (unsynced)  Allow/Disallow Lua to draw on the map
+/PasteText                       (unsynced)  Paste either the argument string(s) or if none given, the content of the clip-board to chat input
+/Pause                           (unsynced)  Pause/Unpause the game
+/QuitForce                       (unsynced)  Exits game to system
+/QuitMenu                        (unsynced)  Opens the quit-menu, if it is not already open
+/QuitMessage                     (unsynced)  Deprecated, see /Quit instead (was used to quite the game immediately)
+/ReloadForce                     (unsynced)  Exits game to menu
+/ReloadGame                      (unsynced)  Restarts the game with the initially provided start-script
+/ReloadShaders                   (unsynced)  Reloads all engine shaders
+/ResBar                          (unsynced)  Shows/Hides team resource storage indicator bar
+/Resync                          (unsynced)  Redirects command /Resync to its synced processor
+/roam                            (unsynced)  Disables/Enables ROAM mesh rendering: 0=off, 1=on
+/SafeGL                          (unsynced)  Enables/Disables OpenGL safe-mode
+/Save                            (unsynced)  Save the game state to a specific file (BROKEN)
+/SaveGame                        (unsynced)  Save the game state to QuickSave.ssf (BROKEN)
+/Say                             (unsynced)  Say something in (public) chat
+/ScreenShot                      (unsynced)  Take a screen-shot of the current view
+/Select                          (unsynced)  <chat command description: Select>
+/SelectCycle                     (unsynced)  <chat command description: SelectUnits>
+/SelectUnits                     (unsynced)  <chat command description: SelectUnits>
+/Send                            (unsynced)  Send a string as raw network message to the game host (for debugging only)
+/Set                             (unsynced)  Set a config key=value pair
+/Shadows                         (unsynced)  Disables/Enables shadows rendering: -1=disabled, 0=off, 1=full shadows, 2=skip terrain shadows
+/ShareDialog                     (unsynced)  Opens the share dialog, which allows you to send units and resources to other players
+/ShowElevation                   (unsynced)  Enable rendering of the auxiliary height-map overlay
+/ShowMetalMap                    (unsynced)  Enable rendering of the auxiliary metal-map overlay
+/ShowPathCost                    (unsynced)  Enable rendering of the path cost-map overlay
+/ShowPathFlow                    (unsynced)  Enable/Disable rendering of the path flow-map overlay
+/ShowPathHeat                    (unsynced)  Enable/Disable rendering of the path heat-map overlay
+/ShowPathTraversability          (unsynced)  Enable rendering of the path traversability-map overlay
+/ShowPathType                    (unsynced)  Shows path traversability for a given MoveDefName, MoveDefID or UnitDefName
+/ShowStandard                    (unsynced)  Disable rendering of all auxiliary map overlays
+/SlowDown                        (unsynced)  Decreases the simulation speed. The engine will try to simulate less frames per second
+/SoundChannelEnable              (unsynced)  Enable/Disable specific sound channels: UnitReply, General, Battle, UserInterface, Music
+/SoundDevice                     (unsynced)  Switch the sound output system (currently only OpenAL / NullAudio)
+/SpecFullView                    (unsynced)  Sets or toggles between full LOS or ally-team LOS, if the local user is a spectator
+/Spectator                       (unsynced)  Lets the local user give up controll over a team, and start spectating
+/SpecTeam                        (unsynced)  Lets the local user specify the team to follow, if he is a spectator
+/Speed                           (unsynced)  Shows/Hides the simulation speed indicator
+/SpeedControl                    (unsynced)  Sets how server adjusts speed according to player's load (CPU), 1: use average, 2: use highest,
+/SpeedUp                         (unsynced)  Increases the simulation speed. The engine will try to simulate more frames per second
+/Take                            (unsynced)  Redirects command /Take to its synced processor
+/Team                            (unsynced)  Lets the local user change to another team
+/TeamHighlight                   (unsynced)  Enables/Disables uncontrolled team blinking
+/ToggleInfo                      (unsynced)  Toggles current info texture view
+/ToggleLOS                       (unsynced)  Enable rendering of the auxiliary LOS-map overlay
+/ToolTip                         (unsynced)  Enables/Disables the general tool-tips, displayed when hovering over units. features or the map
+/Track                           (unsynced)  Start following the selected unit(s) with the camera
+/TrackMode                       (unsynced)  Shift through different ways of following selected unit(s)
+/TrackOff                        (unsynced)  Stop following the selected unit(s) with the camera
+/TSet                            (unsynced)  Set a config key=value pair in the overlay, meaning it will not be persisted for future games
+/ViewSelection                   (unsynced)  Moves the camera to the center of the currently selected units
+/VSync                           (unsynced)  Enables/Disables vertical-sync (Graphics setting)
+/W                               (unsynced)  Say something in private to a specific player, by player-name
+/Water                           (unsynced)  Set water rendering mode: 0=basic, 1=reflective, 2=dynamic, 3=reflective&refractive?, 4=bump-mapped
+/WByNum                          (unsynced)  Say something in private to a specific player, by player-ID
+/WireMap                         (unsynced)  Enable/Disable drawing of the map as wire-frame (no textures) (Graphic setting)
