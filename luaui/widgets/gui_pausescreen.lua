@@ -112,21 +112,17 @@ function widget:Shutdown()
     glDeleteFont( myFont )
 end
 
+function widget:GamePaused(playerID, isGamePaused)
+    paused = isGamePaused
+end
+
 function widget:DrawScreen()
     local now = osClock()
     local drawScreenDelay = now - previousDrawScreenClock
     previousDrawScreenClock = now
     
-    local _, _, isPaused = spGetGameSpeed()        -- note: when viewing a replay.. isPaused wont be set true if you pause
     local diffPauseTime = ( now - pauseTimestamp)
-    
-	--[[
-    if not paused and ((spGetGameSeconds() > 0 and previousGameframeClock <= (now-1.5)-(drawScreenDelay*2)) or isPaused) then
-        paused = true
-    end
-    ]]--
-    paused = isPaused
-    
+
     local diffPauseTime = ( now - pauseTimestamp)
     
     if ( ( not paused and lastPause ) or ( paused and not lastPause ) ) then
