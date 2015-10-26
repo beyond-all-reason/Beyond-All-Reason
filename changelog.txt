@@ -2,7 +2,7 @@
 X/10/2015
 
 Balance changes:
-- Buzzsaw and Vulcan - on "hold fire" by default
+- Buzzsaw and Vulcan are having "hold fire" by default
 - Buildtime increased by 15% for advanced fusions
 - T2 Missile ships accelerating a little bit faster
 - Adv crawling bomb is moving faster (1.75 -> 2.8)
@@ -11,6 +11,9 @@ Balance changes:
 
 Others:
 - Added "Pause/Unpause sounds" widget (disabled by default)
+- Added "Commands info" widget
+- Resurrection halos for enemy units too
+
 
 9.11 -> 9.12
 23/10/2015

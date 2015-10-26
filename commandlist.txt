@@ -9,7 +9,7 @@ Widget dependent:
 /loscolor                        "BA LOS colors"   Use colors to for line-of-sight and radar view.
 /allyresbars_sizeup              "Ally Resource Bars"   (widget auto-scales according to resolution aswell)
 /allyresbars_sizedown            "Ally Resource Bars"   
-/snow                            "Snow"   Turns snow off for current map only. (and remembers it)
+/snow                            "Snow"   Turns snow on/off for current map. (and remembers it)
 /unitinfo                        "Unit Info"   usage: /unitinfo armcom
 /enemyspotter_self               "Enemyspotter"   Draw spotters for your own team aswell.
 /enemyspotter_highlight          "Enemyspotter"   Toggle highlight shader
