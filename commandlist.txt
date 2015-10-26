@@ -1,22 +1,23 @@
 Widget dependent:
 
-/iconspace                       "Red build/Order menu"   Add/remove spacing between build/order icons.
 /selection_mode                  "SmartSelect"   Filter buildings when 1 or more mobile units is under selection
+/iconspace                       "Red build/Order menu"   Add/remove spacing between build/order icons.
 /cputext                         "AdvPlayerList"   Uses exact number instead of a the colored icon.
 /unitcounter                     "Red Tooltip"   Shows total units on map as spec, as player only for your team.
-/comranges_nearbyenemy           "Comblast & Dgun Range"   Always draw ranges or only when an enemy is near.
-/losradar                        "BA LOS colors"    Increases contrast to show radar view better.
-/loscolor                        "BA LOS colors"   Use colors to for line-of-sight and radar view.
-/allyresbars_sizeup              "Ally Resource Bars"   (widget auto-scales according to resolution aswell)
-/allyresbars_sizedown            "Ally Resource Bars"   
-/snow                            "Snow"   Turns snow on/off for current map. (and remembers it)
 /unitinfo                        "Unit Info"   usage: /unitinfo armcom
+/losradar                        "BA LOS colors"   Increases contrast to show radar view better.
+/loscolor                        "BA LOS colors"   Use colors for line-of-sight and radar view.
+/snow                            "Snow"   Turns snow on/off for current map. (and remembers it)
+/comranges_nearbyenemy           "Comblast & Dgun Range"   Always draw ranges or only when an enemy is near.
+/defrange                        "Defense Range"  usage: /defrange enemy/air/+    (use combinations)
+/stockpilecount                  "Stockpiler (dynamic)"   usage: /stockpilecount 10   sets default stockpile amount
+/allyresbars_sizeup              "Ally Resource Bars"   (widget auto-scales according to resolution aswell)
+/allyresbars_sizedown            "Ally Resource Bars"
 /enemyspotter_self               "Enemyspotter"   Draw spotters for your own team aswell.
 /enemyspotter_highlight          "Enemyspotter"   Toggle highlight shader
 /+enemyspotter_highlight         "Enemyspotter"   Adjust highlight intensity also:  /-enemyspotter_highlight
 /enemyspotter_platter            "Enemyspotter"   Toggle platter (turn off only if you use /enemyspotter_highlight)
 /+enemyspotter_platter           "Enemyspotter"   Adjust spotter opacity.   also:  /-enemyspotter_platter
-/defrange                        "Defense Range"  usage: /defrange enemy/air/+    (use combinations)
 
 Spring Engine (v99):
 
