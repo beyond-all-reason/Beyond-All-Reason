@@ -1,7 +1,7 @@
 
 function widget:GetInfo()
 return {
-	name    = "Changelog Info",
+	name    = "Commands info",
 	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
 	author  = "Floris",
 	date    = "August 2015",
@@ -19,7 +19,7 @@ local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
-local changelogFile = VFS.LoadFile("changelog.txt")
+local changelogFile = VFS.LoadFile("commandlist.txt")
 
 local bgMargin = 6
 
@@ -65,10 +65,9 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local endPosX = 0.1
+local endPosX = 0.05
 local vsx, vsy = Spring.GetViewGeometry()
 
-local versions = {}
 local changelogLines = {}
 local totalChangelogLines = 0
 
@@ -93,7 +92,7 @@ local textSize		= 0.75
 local textMargin	= 0.25
 local lineWidth		= 0.0625
 
-local posX = 0.4
+local posX = 0.35
 local posY = 0
 local showOnceMore = false		-- used because of GUI shader delay
 local buttonGL
@@ -174,7 +173,7 @@ function DrawButton()
 		{v = {1, 0, 0}},
 	}
 	glShape(GL_LINE_STRIP, vertices)
-    glText("Changelog", textMargin, textMargin, textSize, "no")
+    glText("Commands", textMargin, textMargin, textSize, "no")
 end
 
 
@@ -183,51 +182,6 @@ local versionOffsetY = 14
 local versionFontSize = 16
 
 local versionQuickLinks = {}
-function DrawSidebar(x,y,width,height)
-	local fontSize		= versionFontSize
-	local fontOffsetY	= versionOffsetY
-	local fontOffsetX	= versionOffsetX
-	
-	-- background
-	gl.Color(0.72,0.5,0.12,0.3)
-	RectRound(x,y-height,x+width,y,6)
-	
-	-- version links
-	versionQuickLinks = {}
-	if changelogFile then
-		font:Begin()
-		font:SetOutlineColor(0.25,0.2,0,0.3)
-		font:SetTextColor(1,0.8,0.1,1)
-		local lineKey = 1
-		local yOffset = 24
-		local j = 0
-		while j < 22 do	
-			if ((fontSize+fontOffsetY)*j)+4 > height-yOffset then
-				break;
-			end
-			if versions[lineKey] == nil then
-				break;
-			end
-			local line = changelogLines[versions[lineKey]]
-			
-			-- version button title
-			line = " " .. string.match(line, '( %d*%d.?%d+)')
-			local textY = y-((fontSize+fontOffsetY)*j)-20
-			font:Print(line, x+9+fontOffsetX, textY, fontSize, "on")
-			
-			versionQuickLinks[j] = {
-				x,
-				textY-(versionFontSize*0.66),
-				x+70,
-				textY+(versionFontSize*1.21)
-			}
-			
-			j = j + 1
-			lineKey = lineKey + 1
-		end
-		font:End()
-	end
-end
 
 
 function DrawTextarea(x,y,width,height,scrollbar)
@@ -247,7 +201,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorDate				= {0.66,0.88,0.66,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
-	local fontColorLineBullet		= {0.9,0.6,0.2,1}
+	local fontColorCommand			= {0.9,0.6,0.2,1}
 	
 	local textRightOffset = scrollbar and scrollbarMargin+scrollbarWidth+scrollbarWidth or 0
 	local maxLines = math.floor((height-5)/fontSizeLine)
@@ -296,46 +250,29 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			end
 			
 			local line = changelogLines[lineKey]
-			if string.find(line, '^([0-9][0-9][/][0-9][0-9][/][0-9][0-9])') or string.find(line, '^([0-9][/][0-9][0-9][/][0-9][0-9])') then
-				-- date line
-				line = "  " .. line
-				font:SetTextColor(fontColorDate)
-				font:Print(line, x, y-fontSizeTitle*j, fontSizeDate, "n")
-			elseif string.find(line, '^(%d*%d.?%d+)') then
-				-- version line
-				local versionStrip = string.match(line, '( %d*%d.?%d+)')
-				if versionStrip ~= nil then
-					line = " " .. versionStrip
- 				else
-					line = " " .. line
+			if string.find(line, '^/([a-zA-Z0-9]*)') then
+				local cmd = string.match(line, '^/([\+a-zA-Z0-9_-]*)')
+				local descr = string.sub(line, string.len(string.match(line, '^/[a-zA-Z0-9_-]*[ \t]*')))
+				descr, numLines = font:WrapText(descr, (width - 250 - textRightOffset)*(loadedFontSize/fontSizeLine))
+				if (fontSizeTitle)*(j+numLines-1) > height then 
+					break;
 				end
-				font:SetTextColor(fontColorTitle)
-				font:Print(line, x-9, y-fontSizeTitle*j, fontSizeTitle, "n")
 				
-			else
+				font:SetTextColor(fontColorCommand)
+				font:Print(cmd, x+20, y-fontSizeTitle*j, fontSizeLine, "n")
+				
 				font:SetTextColor(fontColorLine)
-				if string.find(line, '^(-)') then
-					-- bulletpointed line
-					local firstLetterPos = 2
-					if string.find(line, '^(- )') then
-						firstLetterPos = 3
-					end
-					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
-					line, numLines = font:WrapText(line, (width - 40 - textRightOffset)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > height then 
-						break;
-					end
-					font:Print("   - ", x, y-fontSizeTitle*j, fontSizeLine, "n")
-					font:Print(line, x+26, y-fontSizeTitle*j, fontSizeLine, "n")
-				else
-					-- line
-					line = "  " .. line
-					line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > height then 
-						break;
-					end
-					font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				font:Print(descr, x+230, y-fontSizeTitle*j, fontSizeLine, "n")
+				j = j + (numLines - 1)
+			else
+				-- line
+				font:SetTextColor(fontColorLine)
+				line = "  " .. line
+				line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
+				if (fontSizeTitle)*(j+numLines-1) > height then 
+					break;
 				end
+				font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
 
@@ -366,7 +303,7 @@ function DrawWindow()
 	gl.Texture(false)
 	
 	-- title
-    local title = "Changelog"
+    local title = "Commmands"
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
     titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
@@ -377,11 +314,8 @@ function DrawWindow()
 	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
 	
-	-- version links
-	DrawSidebar(x, y, 70, screenHeight)
-	
 	-- textarea
-	DrawTextarea(x+90, y-10, screenWidth-90, screenHeight-24, 1)
+	DrawTextarea(x, y-10, screenWidth, screenHeight-24, 1)
 end
 
 
@@ -405,7 +339,7 @@ function widget:DrawScreen()
     end
     
     glLineWidth(lineWidth)
-
+	
     glPushMatrix()
         glTranslate(posX*vsx, posY*vsy, 0)
         glScale(17*widgetScale, 17*widgetScale, 1)
@@ -434,54 +368,13 @@ function widget:DrawScreen()
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
+			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'commandslist')
 		end
 		showOnceMore = false
 		
-		-- draw button hover
-		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-
-		local x,y = Spring.GetMouseState()
-		if changelogFile then
-			local lineKey = 1
-			local j = 0
-			local yOffset = 24
-			local yOffsetUp = (((versionFontSize*0.66)+yOffset)*widgetScale)
-			local yOffsetDown = (((versionFontSize*1.21)-yOffset)*widgetScale)
-			while j < 22 do	
-				if ((versionFontSize+versionOffsetY)*j)+4 > (screenHeight-yOffset) then
-					break;
-				end
-				if versions[lineKey] == nil then
-					break;
-				end
-				if versionQuickLinks[j] == nil then
-					break;
-				end
-				
-				--local cc = (versionQuickLinks[j][1]/vsx) * vsx/widgetScale
-				--Spring.Echo(usedScreenX..'  '..versionQuickLinks[j][1]..'  '..cc)
-				
-				-- version title
-				local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
-				local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-				local x1 = usedScreenX
-				local y1 = textY-yOffsetUp
-				local x2 = usedScreenX+(70*widgetScale)
-				local y2 = textY+yOffsetDown
-				if IsOnRect(x, y, x1, y1, x2, y2) then
-					gl.Color(1,0.93,0.75,0.22)
-					RectRound(x1, y1, x2, y2, 5*widgetScale)
-					break;
-				end
-				j = j + 1
-				lineKey = lineKey + 1
-			end
-		end
     else
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('changelog')
+			WG['guishader_api'].RemoveRect('commandslist')
 		end
 	end
 end
@@ -567,47 +460,6 @@ function widget:MousePress(x, y, button)
 				end
 			end
 			
-			-- version buttons
-			if button == 1 then
-			local yOffset = 24
-				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-				
-				local x,y = Spring.GetMouseState()
-				if changelogFile then
-					local lineKey = 1
-					local j = 0
-					while j < 25 do	
-						if (versionFontSize+versionOffsetY)*j > (screenHeight-yOffset) then
-							break;
-						end
-						if versions[lineKey] == nil then
-							break;
-						end
-						
-						-- version title
-						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
-						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-						
-						local x1 = usedScreenX
-						local y1 = textY-(((versionFontSize*0.66)+yOffset)*widgetScale)
-						local x2 = usedScreenX+((70*widgetScale))
-						local y2 = textY+(((versionFontSize*1.21)-yOffset)*widgetScale)
-						if IsOnRect(x, y, x1, y1, x2, y2) then
-							startLine = versions[lineKey]
-							if changelogList then
-								glDeleteList(changelogList)
-							end
-							changelogList = gl.CreateList(DrawWindow)
-							break;
-						end
-						
-						j = j + 1
-						lineKey = lineKey + 1
-					end
-				end
-			end
-			
 			if button == 1 or button == 3 then
 				return true
 			end
@@ -635,23 +487,18 @@ end
 function widget:Initialize()
 	if changelogFile then
 		-- somehow there are a few characters added at the start that we need to remove
-		changelogFile = string.sub(changelogFile, 4)
+		--changelogFile = string.sub(changelogFile, 4)
 		
 		-- store changelog into array
 		changelogLines = lines(changelogFile)
 		
 		local versionKey = 0
 		for i, line in ipairs(changelogLines) do
-		
-			if string.find(line, '^(%d*%d.?%d+ /-)') then
-				versionKey = versionKey + 1
-				versions[versionKey] = i
-			end
 			totalChangelogLines = i
 		end
 		
 	else
-		Spring.Echo("Changelog: couldn't load the changelog file")
+		Spring.Echo("Commands info: couldn't load the commandslist file")
 		widgetHandler:RemoveWidget()
 	end
 end
