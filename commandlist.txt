@@ -3,6 +3,7 @@ Widget dependent:
 /selection_mode                  "SmartSelect"   Filter buildings when 1 or more mobile units is under selection
 /iconspace                       "Red build/Order menu"   Add/remove spacing between build/order icons.
 /cputext                         "AdvPlayerList"   Uses exact number instead of a the colored icon.
+/mascotte                        "AdvPlayerList mascotte"   Switch to different mascotte.
 /unitcounter                     "Red Tooltip"   Shows total units on map as spec, as player only for your team.
 /unitinfo                        "Unit Info"   usage: /unitinfo armcom
 /losradar                        "BA LOS colors"   Increases contrast to show radar view better.
