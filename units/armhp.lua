@@ -7,7 +7,7 @@ return {
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
-		buildinggrounddecalsizey = 8,
+		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "armhp_aoplane.dds",
 		buildpic = "ARMHP.DDS",
 		buildtime = 13890,
