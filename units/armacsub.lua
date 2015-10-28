@@ -56,7 +56,7 @@ return {
 			[11] = "asubpen",
 			[12] = "armason",
 			[13] = "armfflak",
-			[14] = "armatl",
+--			[14] = "armatl",
 		},
 		featuredefs = {
 			dead = {

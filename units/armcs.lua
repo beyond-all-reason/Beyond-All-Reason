@@ -61,10 +61,10 @@ return {
 			[15] = "armfrad",
 			[16] = "armfdrag",
 			[17] = "armtl",
-			[18] = "armatl",
-			[19] = "armfrt",
-			[20] = "armfhlt",
-			[21] = "armplat",
+--			[18] = "armatl",
+			[18] = "armfrt",
+			[19] = "armfhlt",
+			[20] = "armplat",
 		},
 		featuredefs = {
 			dead = {

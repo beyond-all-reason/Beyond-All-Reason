@@ -61,10 +61,10 @@ return {
 			[15] = "corfrad",
 			[16] = "corfdrag",
 			[17] = "cortl",
-			[18] = "coratl",
-			[19] = "corfrt",
-			[20] = "corfhlt",
-			[21] = "corplat",
+--			[18] = "coratl",
+			[18] = "corfrt",
+			[19] = "corfhlt",
+			[20] = "corplat",
 		},
 		featuredefs = {
 			dead = {

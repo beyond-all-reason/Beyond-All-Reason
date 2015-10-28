@@ -8,6 +8,7 @@ Balance changes:
 - Adv crawling bomb is moving faster (1.75 -> 2.8)
 - Pyro have 5% less HP
 - Termite metal cost decreased by 10%
+- Sea to air torpedo launchers are removed
 
 Others:
 - Added "Pause/Unpause sounds" widget (disabled by default)
