@@ -6,6 +6,10 @@ return {
 		buildcostmetal = 210,
 		builddistance = 400,
 		builder = true,
+		buildingGroundDecalDecaySpeed=30,
+		buildingGroundDecalSizeX=5,
+		buildingGroundDecalSizeY=5,
+		buildingGroundDecalType="armnanotc_aoplane.dds",
 		buildpic = "ARMNANOTC.DDS",
 		buildtime = 5312,
 		cantbetransported = false,
@@ -34,6 +38,7 @@ return {
 		terraformspeed = 1000,
 		turnrate = 1,
 		upright = true,
+		useBuildingGroundDecal = true,
 		workertime = 200,
 		sounds = {
 			build = "nanlath1",
