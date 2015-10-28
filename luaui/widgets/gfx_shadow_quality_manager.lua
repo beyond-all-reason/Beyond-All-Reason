@@ -15,8 +15,8 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local maxQuality			= 8192
-local minQuality			= 2048		-- I dont think a value below 2048 looks acceptable enough... wont free that much extra cpu power too
+local maxQuality			= 6144
+local minQuality			= 3072		-- I dont think a value below 2048 looks acceptable enough... wont free that much extra cpu power too
 local disableBelowMinimum	= false
 local skipGameframes		= 1611		-- dont check if quality change is needed for X gameframes
 local fpsDifference			= 8			-- if fps differs X amount, then shadow quality will be allowed to change. (we dont want frequent changes because these are causing extra cpu load, also spring spams an echo each time)
