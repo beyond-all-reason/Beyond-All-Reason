@@ -1,5 +1,5 @@
 ﻿9.12 -> 9.13
-X/10/2015
+30/10/2015
 
 Balance changes:
 - Buzzsaw and Vulcan are having "hold fire" by default
@@ -11,9 +11,13 @@ Balance changes:
 - Sea to air torpedo launchers are removed
 
 Others:
-- Added "Pause/Unpause sounds" widget (disabled by default)
 - Added "Commands info" widget
 - Resurrection halos for enemy units too
+- Removed groundplate from the factorries decals + nanos have a decal again.
+- Added "Pause/Unpause sounds" widget (disabled by default)
+- "Shadow Quality Manager" widget has new max quality: 6k (was 8k) and low: 3k (was 2k)
+- "LockCamera widget" removed (became obsolete, advplayerlist has it already)
+- "commands FX" adjusted appearance slightly (more subtle)
 
 
 9.11 -> 9.12
