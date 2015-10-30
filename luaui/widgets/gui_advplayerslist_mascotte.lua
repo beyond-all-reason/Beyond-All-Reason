@@ -46,17 +46,6 @@ table.insert(OPTIONS, {
 	head_xOffset		= 0,
 	head_yOffset		= 0,
 })
-table.insert(OPTIONS, {
-	name				= "Meowl",
-	body				= imageDirectory.."meowl_body.dds",
-	head				= imageDirectory.."meowl_head.dds",
-	headblink			= imageDirectory.."meowl_headblink.dds",
-	imageSize			= 58,
-	xOffset				= -1.6,
-	yOffset				= -10/5,
-	head_xOffset		= 0.01,
-	head_yOffset		= 0.06,
-})
 local currentOption = 1
 
 

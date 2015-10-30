@@ -18,7 +18,7 @@ Others:
 - "Shadow Quality Manager" widget has new max quality: 6k (was 8k) and low: 3k (was 2k)
 - "LockCamera widget" removed (became obsolete, advplayerlist has it already)
 - "commands FX" adjusted appearance slightly (more subtle)
-
+- Removed "Meowl" mascotte
 
 9.11 -> 9.12
 23/10/2015
