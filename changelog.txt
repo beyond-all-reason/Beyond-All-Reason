@@ -19,6 +19,8 @@ Others:
 - "LockCamera widget" removed (became obsolete, advplayerlist has it already)
 - "commands FX" adjusted appearance slightly (more subtle)
 - Removed "Meowl" mascotte
+- Removed redUI minimap border
+
 
 9.11 -> 9.12
 23/10/2015
