@@ -72,7 +72,7 @@ local function createMapinfoList(opacityMultiplier)
 		local textOffsetX = 11
 		local textOffsetY = 16
 		local usedTextOffsetY = textOffsetY + (offset/2)
-		local length = math.max(mapInfoWidth, (glGetTextWidth(mapInfo.mapDescription)*textSize) + 45)
+		local length = math.max(mapInfoWidth, (glGetTextWidth(Game.mapDescription)*textSize) + 45)
 		
 		glDepthTest(true)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -89,7 +89,7 @@ local function createMapinfoList(opacityMultiplier)
 		glRotate(90,0,-1,0)
 		glRotate(180,1,0,0)
 	
-		--Spring.Echo(glGetTextWidth(mapInfo.mapDescription))
+		--Spring.Echo(glGetTextWidth(Game.mapDescription))
 		
 		local height = 90
 		local thickness = -(thickness*scale)
@@ -137,7 +137,7 @@ local function createMapinfoList(opacityMultiplier)
 		glRotate(180,1,0,0)
 		
 		-- map name
-		local text = mapInfo.mapName
+		local text = Game.mapName
 		glColor(1,1,1,(textOpacity*1.12)*opacityMultiplier)
 		glText(text, textOffsetX,-usedTextOffsetY,14,"n")
 		glColor(0,0,0,textOpacity*0.12*opacityMultiplier)
@@ -145,20 +145,27 @@ local function createMapinfoList(opacityMultiplier)
 		
 		--map description
 		usedTextOffsetY = usedTextOffsetY+textOffsetY
-		text = mapInfo.mapDescription
+		text = Game.mapDescription
 		glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
 		glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 		
-		if 1 == 2 then
+		--map size
+		usedTextOffsetY = usedTextOffsetY+textOffsetY
+		text = Game.mapDescription
+		glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
+		glText("Size: "..Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
+		
+		
+		--[[
 			usedTextOffsetY = usedTextOffsetY+textOffsetY
-			text = "Waterdamage: "..math.floor(mapInfo.waterDamage)
+			text = "Waterdamage: "..math.floor(Game.waterDamage)
 			glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
 			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 			glColor(0,0,0,textOpacity*0.6*0.17*opacityMultiplier)
 			glText(text, textOffsetX,-usedTextOffsetY-1,textSize,"n")
 				
 			textOffsetX = textOffsetX + 120
-			text = "Gravity: "..math.floor(mapInfo.gravity)
+			text = "Gravity: "..math.floor(Game.gravity)
 			glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
 			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 			glColor(0,0,0,textOpacity*0.6*0.17*opacityMultiplier)
@@ -166,7 +173,7 @@ local function createMapinfoList(opacityMultiplier)
 			textOffsetX = textOffsetX - 120
 			
 			textOffsetX = textOffsetX + 210
-			text = "Tidal: "..math.floor(mapInfo.tidal)
+			text = "Tidal: "..math.floor(Game.tidal)
 			glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
 			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 			glColor(0,0,0,textOpacity*0.6*0.17*opacityMultiplier)
@@ -175,12 +182,12 @@ local function createMapinfoList(opacityMultiplier)
 			
 			-- game name
 			usedTextOffsetY = usedTextOffsetY+textOffsetY+textOffsetY+textOffsetY
-			text = mapInfo.gameName.."   "..mapInfo.gameVersion
+			text = Game.gameName.."   "..Game.gameVersion
 			glColor(1,1,1,textOpacity*opacityMultiplier)
 			glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 			glColor(0,0,0,textOpacity*0.17*opacityMultiplier)
 			glText(text, textOffsetX,-usedTextOffsetY-1,textSize,"n")
-		end
+		]]--
 		
 		glPopMatrix()
 		
@@ -197,17 +204,9 @@ end
 
 
 function Init()
-	mapInfo.mapName				= Game.mapName
-	mapInfo.mapDescription		= Game.mapDescription
-	mapInfo.waterDamage			= Game.waterDamage
-	mapInfo.gravity				= Game.gravity
-	mapInfo.tidal				= Game.tidal
-	mapInfo.gameName			= Game.gameName
-	mapInfo.gameVersion			= Game.gameVersion
-	mapInfo.gameMutator			= Game.gameMutator
 	
-	if (glGetTextWidth(mapInfo.mapDescription) * 12) > mapInfoWidth then
-		--mapInfoWidth = (glGetTextWidth(mapInfo.mapDescription) * 12) + 33
+	if (glGetTextWidth(Game.mapDescription) * 12) > mapInfoWidth then
+		--mapInfoWidth = (glGetTextWidth(Game.mapDescription) * 12) + 33
 	end
 	if stickToFloor then
 		mapInfoBoxHeight = 0
