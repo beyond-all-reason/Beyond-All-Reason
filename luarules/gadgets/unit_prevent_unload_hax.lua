@@ -44,27 +44,26 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
         local px,py,pz = Spring.GetUnitPosition(unitID)
         local dx,dy,dz = Spring.GetUnitDirection(unitID)
         local frame = SpGetGameFrame() + frameMargin
-        unloadedUnits[frame] = unloadedUnits[frame] or {}
-        unloadedUnits[frame][unitID] = {["px"]=px,["py"]=py,["pz"]=pz,["dx"]=dx,["dy"]=dy,["dz"]=dz}
+        unloadedUnits[unitID] = {["px"]=px,["py"]=py,["pz"]=pz,["dx"]=dx,["dy"]=dy,["dz"]=dz,["frame"]=frame}
 
 		SpSetUnitVelocity(unitID, 0,0,0)	
 	end
 end
 
--- every frame, adjust speed of air transports according to transported mass, if any
+function gadget:UnitDestroyed(unitID)
+    unloadedUnits[unitID] = nil
+end
+
 function gadget:GameFrame(frame)
     -- prevent unloaded units from sliding across the map
-    if not unloadedUnits[frame] then
-        return
-    end
-    for unitID,data in pairs(unloadedUnits[frame]) do
-        -- reset position
-        if SpGetUnitIsDead(unitID) == false then --false and nil have different meanings here!
+    for unitID,data in pairs(unloadedUnits) do
+        if data.frame == frame then
+            -- reset position
             SpSetUnitPhysics(unitID,data.px,data.py,data.pz,0,0,0,0,0,0,0,0,0)
             SpSetUnitDirection(unitID,data.dx,data.dy,data.dz)
             --Spring.GiveOrderToUnit(unitID,CMD.MOVE,{data.px+10*data.dx,data.py,data.pz+10*data.dz},CMD.OPT_SHIFT)
+            data = nil
         end
     end
-    unloadedUnits[frame] = nil
 end
 	
