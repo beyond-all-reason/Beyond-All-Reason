@@ -7,7 +7,7 @@ Balance changes:
 Others:
 - Fixed halos for enemy units
 - Fixed unloaded units sliding bug
-- Fixed units failing to unload and fixed unload trough cliffs
+- Fixed units failing to unload + fixed unload through cliffs
 - Added "Bloom Shader" widget (default off)
 - Map-info widget displays map size aswell
 - Renamed "HighlightSelectedUnits widget: added spaces (widget will be enabled again if you had it disabled)
