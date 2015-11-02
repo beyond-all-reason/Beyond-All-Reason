@@ -98,7 +98,6 @@ function widget:Initialize()
 end
 
 function updateUnitlist()
-
 	local units = Spring.GetAllUnits()
 	local unitCount = #units
 	for i=1, unitCount do
@@ -112,11 +111,18 @@ function updateUnitlist()
 end
 
 
-function widget:GameFrame(n)
-	if (n % 130 == 1) then
-		updateUnitlist()
+function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
+	if Spring.GetUnitRulesParam(unitID, "resurrected") ~= nil then
+		AddHaloUnit(unitID)
 	end
 end
+
+function widget:UnitEnteredLos(unitID)
+	if Spring.GetUnitRulesParam(unitID, "resurrected") ~= nil then
+		AddHaloUnit(unitID)
+	end
+end
+
 
 
 function widget:DrawWorld()
@@ -143,7 +149,7 @@ function widget:DrawWorld()
 				
 				local opacityMultiplier = 1
 				if OPTIONS.fadeOnCameraDistance then
-					opacityMultiplier = 2.2 - (camDistance/1700)
+					opacityMultiplier = 2.2 - (camDistance/2000)
 					if opacityMultiplier > 1 then
 						opacityMultiplier = 1
 					end
