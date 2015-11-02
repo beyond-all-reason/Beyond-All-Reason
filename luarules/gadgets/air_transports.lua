@@ -1,7 +1,7 @@
 function gadget:GetInfo()
    return {
       name = "Air Transports Handler",
-      desc = "Slows down transport depending on loaded mass (up to 50%) and fixes unloaded units sliding bug",
+      desc = "Slows down transport depending on loaded mass (up to 50%)",
       author = "raaar",
       date = "2015",
       license = "PD",
@@ -15,7 +15,6 @@ local FRAMES_PER_SECOND = Game.gameSpeed
 
 local airTransports = {}
 local airTransportMaxSpeeds = {}
-local unloadedUnits = {}
 	
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -72,20 +71,6 @@ end
 -- every frame, adjust speed of air transports according to transported mass, if any
 function gadget:GameFrame(n)
     
-	-- prevent unloaded units from sliding across the map
-	-- TODO remove when fixed in the engine
-	for unitId,data in pairs(unloadedUnits) do
-    	if (n > data.frame + 10 ) then
-			-- reset position
-			Spring.SetUnitPhysics(unitId,data.px,data.py,data.pz,0,0,0,0,0,0,0,0,0)
-			Spring.SetUnitDirection(unitId,data.dx,data.dy,data.dz)
-			Spring.GiveOrderToUnit(unitId,CMD.MOVE,{data.px+10*data.dx,data.py,data.pz+10*data.dz},CMD.OPT_SHIFT)
-
-			-- remove from table
-			unloadedUnits[unitId] = nil
-		end
-	end
-    
 	-- for each air transport with units loaded, reduce speed if currently greater than allowed
 	local factor = 1
 	local vx,vy,vz,vw = 0
@@ -102,15 +87,6 @@ end
 
 
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
-
-	-- prevent unloaded units from sliding across the map
-	-- TODO remove when fixed in the engine
-	if not unloadedUnits[unitId] then
-		local px,py,pz = Spring.GetUnitPosition(unitId,false,false)
-		local dx,dy,dz = Spring.GetUnitDirection(unitId)
-		local frame = Spring.GetGameFrame()
-		unloadedUnits[unitId] = {["px"]=px,["py"]=py,["pz"]=pz,["dx"]=dx,["dy"]=dy,["dz"]=dz,["frame"]=frame}
-	end
 
 	if airTransports[transportId] and not Spring.GetUnitIsTransporting(transportId)[1] then
 		-- transport is empty, cleanup tables
