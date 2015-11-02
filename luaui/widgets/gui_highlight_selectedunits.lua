@@ -15,7 +15,7 @@ local FadeToGrey = false -- Set to true to automatically turn your unit to grey 
 
 function widget:GetInfo()
   return {
-    name      = "HighlightSelectedUnits",
+    name      = "Highlight Selected Units",
     desc      = "Highlights the selelected units",
     author    = "zwzsg, from trepan HighlightUnit",
     date      = "Apr 24, 2009",
