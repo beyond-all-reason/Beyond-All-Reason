@@ -1352,6 +1352,15 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 
+
+function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdOpts, cmdParams, cmdTag)
+  for _,g in ipairs(self.UnitCommandList) do
+    g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdOpts, cmdParams, cmdTag)
+  end
+  return
+end
+
+
 function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
   for _,g in ipairs(self.UnitEnteredRadarList) do
     g:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
