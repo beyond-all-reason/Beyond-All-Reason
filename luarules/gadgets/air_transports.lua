@@ -10,8 +10,8 @@ function gadget:GetInfo()
    }
 end
 
-local TRANSPORTED_MASS_SPEED_PENALTY = 1 -- higher makes unit slower
-local FRAMES_PER_SECOND = 30
+local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
+local FRAMES_PER_SECOND = Game.gameSpeed
 
 local airTransports = {}
 local airTransportMaxSpeeds = {}
@@ -126,20 +126,6 @@ end
 --------------------------------------------------------------------------------
 else
 
-	-- add a move cmd in front each air-trans load/unload cmd, because else the trans wont respect map mash at cliffs
-	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams)
-		if not Spring.GetSpectatingState() and teamID == Spring.GetLocalTeamID() and unitID and cmdID and (cmdID==CMD.UNLOAD_UNIT or cmdID==CMD.UNLOAD_UNITS or cmdID==CMD.LOAD_UNIT or cmdID==CMD.LOAD_UNITS) and  UnitDefs[unitDefID].canFly then
-			if	((cmdID==CMD.UNLOAD_UNIT or cmdID==CMD.UNLOAD_UNITS) and #Spring.GetUnitIsTransporting(unitID) > 0) or 
-				cmdID==CMD.LOAD_UNIT or (cmdID==CMD.LOAD_UNITS) then 	-- todo: should check if area-target has units to load!
-				
-				local queuePos = 0
-				if cmdOpts == CMD.OPT_SHIFT then
-					queuePos = #Spring.GetUnitCommands(unitID,_,true)
-				end
-				Spring.GiveOrderToUnit(unitID, CMD.INSERT, {queueuPos, CMD.MOVE, (CMD.OPT_SHIFT + CMD.OPT_INTERNAL), cmdParams[1], cmdParams[2], cmdParams[3]}, {"alt"})
-			end
-		end
-	end
 	
 -- END SYNCED
 -- BEGIN UNSYNCED
