@@ -16,7 +16,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		if builderID  and  UnitDefs[Spring.GetUnitDefID(builderID)].canResurrect then
 			
-			Spring.SetUnitRulesParam(unitID, "resurrected", 1)
+			Spring.SetUnitRulesParam(unitID, "resurrected", 1, {inlos=true})
 			
 		end
 	end
