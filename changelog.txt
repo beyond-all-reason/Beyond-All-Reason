@@ -1,14 +1,16 @@
 ﻿9.13 -> 9.14
-XX/11/2015
+06/11/2015
 
 Balance changes:
 - Air Transport speed will be slowed down when lifting heavy loads.
 
 Others:
+- Fixed halos for enemy units
 - Fixed unloaded units sliding bug
 - Fixed units failing to unload and fixed unload trough cliffs
 - Added "Bloom Shader" widget (default off)
 - Map-info widget displays map size aswell
+- Renamed "HighlightSelectedUnits widget: added spaces (widget will be enabled again if you had it disabled)
 
 
 9.12 -> 9.13
