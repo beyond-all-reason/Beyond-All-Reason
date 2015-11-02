@@ -133,12 +133,10 @@ else
 				cmdID==CMD.LOAD_UNIT or (cmdID==CMD.LOAD_UNITS) then 	-- todo: should check if area-target has units to load!
 				
 				local queuePos = 0
-				if cmdOpts == 32 then	-- shift
-					queuePos = #Spring.GetUnitCommands(unitID)
+				if cmdOpts == CMD.OPT_SHIFT then
+					queuePos = #Spring.GetUnitCommands(unitID,_,true)
 				end
-				local cmdFlags = cmdOpts
-				--Spring.Echo(queuePos)
-				--Spring.GiveOrderToUnit(unitID, CMD.INSERT, {queueuPos, CMD.MOVE, cmdFlags, cmdParams[1], cmdParams[2], cmdParams[3]}, {"alt"})
+				Spring.GiveOrderToUnit(unitID, CMD.INSERT, {queueuPos, CMD.MOVE, (CMD.OPT_SHIFT + CMD.OPT_INTERNAL), cmdParams[1], cmdParams[2], cmdParams[3]}, {"alt"})
 			end
 		end
 	end
