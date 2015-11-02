@@ -125,6 +125,25 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 else
+
+	-- adds move cmd in front of load/unload cmd, because else trans wont respect map cliffs
+	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams)
+		-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
+		if not Spring.GetSpectatingState() and teamID == Spring.GetLocalTeamID() and unitID and cmdID and (cmdID==CMD.UNLOAD_UNIT or cmdID==CMD.UNLOAD_UNITS or cmdID==CMD.LOAD_UNIT or cmdID==CMD.LOAD_UNITS) and  UnitDefs[unitDefID].canFly then
+			if	((cmdID==CMD.UNLOAD_UNIT or cmdID==CMD.UNLOAD_UNITS) and #Spring.GetUnitIsTransporting(unitID) > 0) or 
+				cmdID==CMD.LOAD_UNIT or (cmdID==CMD.LOAD_UNITS) then 	-- todo: should check if area-target has units to load!
+				
+				local queuePos = 0
+				if cmdOpts == 32 then	-- shift
+					queuePos = #Spring.GetUnitCommands(unitID)
+				end
+				local cmdFlags = cmdOpts
+				--Spring.Echo(queuePos)
+				--Spring.GiveOrderToUnit(unitID, CMD.INSERT, {queueuPos, CMD.MOVE, cmdFlags, cmdParams[1], cmdParams[2], cmdParams[3]}, {"alt"})
+			end
+		end
+	end
+	
 -- END SYNCED
 -- BEGIN UNSYNCED
 --------------------------------------------------------------------------------
