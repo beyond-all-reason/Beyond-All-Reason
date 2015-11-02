@@ -57,15 +57,8 @@ end
 
 -- cleanup transports and unloaded unit tables when destroyed
 function gadget:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
-	if airTransports[unitId] then
-		airTransports[unitId] = nil
-	end
-	if unloadedUnits[unitId] then
-		unloadedUnits[unitId] = nil
-	end
-	if airTransportMaxSpeeds[unitId] then
-		airTransportMaxSpeeds[unitId] = nil
-	end
+	airTransports[unitId] = nil
+	airTransportMaxSpeeds[unitId] = nil
 end
 
 -- every frame, adjust speed of air transports according to transported mass, if any
