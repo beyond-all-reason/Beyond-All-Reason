@@ -3,6 +3,7 @@
 
 Balance changes:
 - Air Transport speed will be slowed down when lifting heavy loads.
+- Disabled "dgun charge" because "transporting commander" bugs were fixed
 
 Others:
 - Fixed halos for enemy units

@@ -6,7 +6,7 @@ function gadget:GetInfo()
     date      = "Sept 2014",
     license   = "GNU GPL, v3 or later",
     layer     = 0, 
-    enabled   = true  
+    enabled   = false -- 2 nov 2015: disabled because "com in trans" is not so op anymore (see air_transports_fix.lua)
   }
 end
 
