@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Bluestone, Floris",
     date      = "20 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -10,
+    layer     = -7,
     enabled   = true,  --  loaded by default?
   }
 end
@@ -14,10 +14,11 @@ end
 -- config
 --------------------------------------------------------------------------------
 
+local nameScaling			= true
 local useThickLeterring		= true
 local heightOffset			= 50
 local fontSize				= 15		-- not real fontsize, it will be scaled
-local scaleFontAmount		= 115
+local scaleFontAmount		= 120
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
@@ -131,9 +132,14 @@ local function DrawName(unitID, attributes, shadow)
 	end
 	glTranslate(0, attributes[3], 0)
 	glBillboard()
-	glScale(usedFontSize/fontSize,usedFontSize/fontSize,usedFontSize/fontSize)
+	if nameScaling then
+		glScale(usedFontSize/fontSize,usedFontSize/fontSize,usedFontSize/fontSize)
+	end
 	glCallList(comnameList[attributes[1]])
-	glScale(1,1,1)
+	
+	if nameScaling then
+		glScale(1,1,1)
+	end
 end
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -225,4 +231,22 @@ end
 
 function widget:UnitEnteredLos(unitID, unitDefID, unitTeam)
   CheckCom(unitID, unitDefID, unitTeam)
+end
+
+
+function toggleNameScaling()
+	nameScaling = not nameScaling
+end
+
+function widget:GetConfigData()
+    return {
+        nameScaling = nameScaling
+    }
+end
+
+function widget:SetConfigData(data) --load config
+	widgetHandler:AddAction("comnamescale", toggleNameScaling)
+	if data.nameScaling ~= nil then
+		nameScaling = data.nameScaling
+	end
 end
