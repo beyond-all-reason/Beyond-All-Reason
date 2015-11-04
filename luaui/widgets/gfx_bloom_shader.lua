@@ -22,7 +22,7 @@ options = {
 	},
 	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false,		},
 	
-	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.06,		min=0.005, 	max=3,	step=0.006, 	},
+	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.08,		min=0.01, 	max=0.6,	step=0.01, 	},
 	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.18, 	min=0, 		max=1,	step=0.01, 	},
 	blurPasses 		= { type='number', 		name='Blur Passes', 					value=1, 		min=0, 		max=10,	step=1,  		},
 }
@@ -222,7 +222,6 @@ widget:ViewResize(widgetHandler:GetViewSizes())
 
 
 
-
 function widget:Initialize()
 	if (glCreateShader == nil) then
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
@@ -230,8 +229,6 @@ function widget:Initialize()
 	end
   
 	SetIllumThreshold()
-
-
 
 	combineShader = glCreateShader({
 		fragment = [[
@@ -260,7 +257,6 @@ function widget:Initialize()
 	if (combineShader == nil) then
 		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); print(glGetShaderLog()); return
 	end
-
 
 
 	blurShaderH71 = glCreateShader({
