@@ -109,7 +109,13 @@ local glTexRect						= gl.TexRect
 local glRect						= gl.Rect
 local GetGameSpeed					= Spring.GetGameSpeed
 local GetTeamUnitCount				= Spring.GetTeamUnitCount
+local GetMyAllyTeamID				= Spring.GetMyAllyTeamID
+local GetTeamList					= Spring.GetTeamList
+local GetTeamInfo					= Spring.GetTeamInfo
 
+local GetPlayerInfo					= Spring.GetPlayerInfo
+local GetTeamColor					= Spring.GetTeamColor
+local GetTeamResources				= Spring.GetTeamResources
 
 local Button 						= {}
 Button["player"] 					= {}
@@ -137,10 +143,12 @@ local ctrlDown 						= false
 local textsize						= 11
 local textlarge						= 18
 local gaiaID						= Spring.GetGaiaTeamID()
-local gaiaAllyID					= select(6,Spring.GetTeamInfo(gaiaID))
+local gaiaAllyID					= select(6,GetTeamInfo(gaiaID))
 local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic graphics
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
+
+local avgFrames 					= 15
 
 ---------------------------------------------------------------------------------------------------
 
@@ -194,7 +202,7 @@ function removeGuiShaderRects()
 			local aID = data.aID
 			local drawpos = data.drawpos
 			
-			if isTeamReal(aID) and (aID == Spring.GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
+			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				
 				local posy = tH*(drawpos)
 				WG['guishader_api'].RemoveRect('ecostats_'..posy)
@@ -248,7 +256,7 @@ function Init()
 	for _, allyID in ipairs (Spring.GetAllyTeamList() ) do		
 		if allyID ~= gaiaAllyID or haveZombies then
 		
-			local teamList = Spring.GetTeamList(allyID)
+			local teamList = GetTeamList(allyID)
 			
 			local allyDataIndex = allyID +1
 			allyData[allyDataIndex]						= {}
@@ -256,7 +264,7 @@ function Init()
 			allyData[allyDataIndex].exists				= #teamList > 0
 				
 			for _,teamID in pairs(teamList) do
-				local myAllyID = select(6,Spring.GetTeamInfo(teamID))
+				local myAllyID = select(6,GetTeamInfo(teamID))
 				
 				setTeamTable(teamID)
 				Button["player"][teamID] = {}
@@ -311,7 +319,7 @@ function Reinit()
 	
 	for _, allyID in ipairs (Spring.GetAllyTeamList() ) do		
 		if allyID ~= gaiaAllyID or haveZombies then
-			local teamList = Spring.GetTeamList(allyID)
+			local teamList = GetTeamList(allyID)
 	
 			if not allyData[allyID+1] then 
 				allyData[allyID+1]		= {} 
@@ -779,7 +787,7 @@ function DrawSideImages()
 	end
 end
 
-
+local avgData = {}
 local function drawListStandard()
 	
 	local maxMetal 					= 0
@@ -792,8 +800,17 @@ local function drawListStandard()
 		local aID = data.aID
 		
 		if data.exists and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
-			maxMetal 	= (data["tM"] and data["tM"] > maxMetal and data["tM"]) or maxMetal
-			maxEnergy 	= (data["tE"] and data["tE"] > maxEnergy and data["tE"]) or maxEnergy
+		
+			if avgData[aID] == nil then
+				avgData[aID] = {}
+				avgData[aID]["tE"] = data["tE"]
+				avgData[aID]["tM"] = data["tM"]
+			else
+				avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"])/avgFrames)
+				avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"])/avgFrames)
+			end
+			maxMetal 	= (avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal and avgData[aID]["tM"]) or maxMetal
+			maxEnergy 	= (avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy and avgData[aID]["tE"]) or maxEnergy
 		end
 	end
 	
@@ -803,7 +820,7 @@ local function drawListStandard()
 		if aID ~= nil then
 			local drawpos = data.drawpos
 			
-			if data.exists and drawpos and #(data.teams) > 0 and (aID == Spring.GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
+			if data.exists and drawpos and #(data.teams) > 0 and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				
 				if not data["isAlive"] then
 					data["isAlive"] = isTeamAlive(aID)
@@ -815,12 +832,12 @@ local function drawListStandard()
 				
 				local t = GetGameSeconds()
 				if data["isAlive"] and t > 0 and gamestarted and not gameover then
-					DrawEBar(data["tE"]/maxEnergy,posy-1)
-					DrawEText(data["tE"],posy-1)
+					DrawEBar(avgData[aID]["tE"]/maxEnergy,posy-1)
+					DrawEText(avgData[aID]["tE"],posy-1)
 				end
 				if data["isAlive"] and t > 5 and not gameover then
-					DrawMBar(data["tM"]/maxMetal,posy+2)
-					DrawMText(data["tM"],posy+2)
+					DrawMBar(avgData[aID]["tM"]/maxMetal,posy+2)
+					DrawMText(avgData[aID]["tM"],posy+2)
 				end
 			end
 		end
@@ -870,8 +887,8 @@ function setTeamTable(teamID)
 	
 	local side, aID, isDead, commanderAlive, minc, einc, x, y, leaderName, leaderID, active, spectator
 	
-	_,leaderID,isDead,isAI,side,aID,_,_ 		= Spring.GetTeamInfo(teamID)
-	leaderName,active,spectator,_,_,_,_,_,_		= Spring.GetPlayerInfo(leaderID)
+	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID)
+	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID)
 		
 	if teamID == gaiaID then
 		if haveZombies then 
@@ -881,7 +898,7 @@ function setTeamTable(teamID)
 		end
 	end
 	
-	local tred, tgreen, tblue = Spring.GetTeamColor(teamID)
+	local tred, tgreen, tblue = GetTeamColor(teamID)
 	local luminance  = (tred * 0.299) + (tgreen * 0.587) + (tblue * 0.114)
 	if (luminance < 0.2) then
 		tred = tred + 0.25
@@ -889,8 +906,8 @@ function setTeamTable(teamID)
 		tblue = tblue + 0.25
 	end
 	
-	_,_,_,minc 					= Spring.GetTeamResources(teamID,"metal")
-	_,_,_,einc 					= Spring.GetTeamResources(teamID,"energy")
+	_,_,_,minc 					= GetTeamResources(teamID,"metal")
+	_,_,_,einc 					= GetTeamResources(teamID,"energy")
 	x,_,y 						= Spring.GetTeamStartPosition(teamID)
 	commanderAlive 				= checkCommander(teamID)
 	if Game.gameShortName == "EvoRTS" then side = "outer_colonies" end
@@ -927,7 +944,7 @@ function setAllyData(allyID)
 	
 	if not allyData[index] then
 		allyData[index] = {}
-		local teamList = Spring.GetTeamList(allyID)
+		local teamList = GetTeamList(allyID)
 		allyData[index]["teams"] = teamList
 		
 	end
@@ -976,10 +993,10 @@ function isTeamReal(allyID)
 	if allyID == nil then return false end
 	local leaderID, spectator, isDead, unitCount
 
-	for _,tID in ipairs (Spring.GetTeamList(allyID)) do
-		_,leaderID,isDead			= Spring.GetTeamInfo(tID)
+	for _,tID in ipairs (GetTeamList(allyID)) do
+		_,leaderID,isDead			= GetTeamInfo(tID)
 		unitCount					= GetTeamUnitCount(tID)
-		leaderName,active,spectator	= Spring.GetPlayerInfo(leaderID)
+		leaderName,active,spectator	= GetPlayerInfo(leaderID)
 		if leaderName ~= nil or isDead or unitCount > 0 then return true end
 	end
 	return false
@@ -1018,7 +1035,7 @@ function getNbActivePlayers(teamID)
 	local nbPlayers = 0
 	local leaderID,active,spectator,isDead, leaderName
 
-	for _,pID in ipairs (Spring.GetTeamList(teamID)) do
+	for _,pID in ipairs (GetTeamList(teamID)) do
 		leaderID = teamData[pID].leaderID
 		leaderName = teamData[pID].leaderName
 		active = teamData[pID].active
@@ -1035,7 +1052,7 @@ function getNbPlacedPositions(teamID)
 	local nbPlayers = 0
 	local startx, starty, active, leaderID, leaderName, isDead
 	
-	for _,pID in ipairs (Spring.GetTeamList(teamID)) do
+	for _,pID in ipairs (GetTeamList(teamID)) do
 		if teamData[pID] == nil then
 			Echo("getNbPlacedPositions returned nil:",teamID)
 			return nil
@@ -1048,7 +1065,7 @@ function getNbPlacedPositions(teamID)
 		startx = teamData[pID].startx or -1
 		starty = teamData[pID].starty or -1
 		active = teamData[pID].active
-		leaderName,active,spectator	= Spring.GetPlayerInfo(leaderID)				
+		leaderName,active,spectator	= GetPlayerInfo(leaderID)				
 		
 		isDead = teamData[pID].isDead
 		if (active and startx >= 0 and starty >= 0 and leaderName ~= nil)  or isDead then
@@ -1075,24 +1092,24 @@ end
 
 function checkDeadTeams()
 	for teamID in pairs(teamData) do
-		isDead = select(3,Spring.GetTeamInfo(teamID))
+		isDead = select(3,GetTeamInfo(teamID))
 		teamData[teamID]["isDead"] = isDead
 	end
 end
 
 function setPlayerResources()
 	for teamID,data in pairs(teamData) do
-		data.minc = select(4,Spring.GetTeamResources(teamID,"metal")) or 0
-		data.einc = select(4,Spring.GetTeamResources(teamID,"energy")) or 0
+		data.minc = select(4,GetTeamResources(teamID,"metal")) or 0
+		data.einc = select(4,GetTeamResources(teamID,"energy")) or 0
 	end
 end
-
+	
 function setPlayerActivestate()
 	local active
 	local leaderID
 	for tID,data in pairs(teamData) do
-		_,leaderID 	= Spring.GetTeamInfo(tID)
-		_,active	= Spring.GetPlayerInfo(leaderID)
+		_,leaderID 	= GetTeamInfo(tID)
+		_,active	= GetPlayerInfo(leaderID)
 		data["active"] 			= active
 	end
 end
@@ -1179,7 +1196,7 @@ function updateButtons()
 			end
 		end
 		
-		if isTeamReal(allyID) and (allyID == Spring.GetMyAllyTeamID() or inSpecMode) then
+		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) then
 			drawpos = drawpos + 1
 		end
 		data["drawpos"] = drawpos
@@ -1419,17 +1436,17 @@ function widget:GameFrame(frameNum)
 		UpdateAllTeams()
 	end
 	
-	if frameNum%30 == 2 then 
+	if frameNum%7 == 1 then 
 		updateButtons()
 		setPlayerResources()
 		UpdateAllies() 
 		makeStandardList()
 	end
-	if frameNum%60 == 5 then 
+	if frameNum%80 == 5 then 
 		makeSideImageList()
 	end
 	
-	if frameNum - lastPlayerChange == 30  then
+	if frameNum - lastPlayerChange == 40  then
 		checkDeadTeams()
 		UpdateAllies() 
 		updateButtons()
