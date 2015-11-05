@@ -55,7 +55,7 @@ local bar					= imageDirectory.."bar.png"
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local bgcornerSize			= 8
 
-local bordercolor = {1,1,1,0.035}
+local bordercolor = {1,1,1,0.025}
 local displayList
 local staticList
 local vsx, vsy = 0,0

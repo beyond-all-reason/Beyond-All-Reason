@@ -1341,7 +1341,7 @@ function CreateBackground()
 		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
 		
 		local padding = 2.5
-		gl_Color(1,1,1,0.035)
+		gl_Color(1,1,1,0.025)
 		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding)
 		
 		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
@@ -1497,9 +1497,9 @@ end
 
 function DrawSeparator(vOffset)
 	vOffset = vOffset - 2
-	gl_Color(0.55,0.55,0.55,0.5)
+	gl_Color(0.55,0.55,0.55,0.45)
 	gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset+(1/widgetScale), widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset)
-	gl_Color(0,0,0,0.24)
+	gl_Color(0,0,0,0.3)
 	gl_Rect(widgetPosX+2, widgetPosY + widgetHeight -vOffset, widgetPosX + widgetWidth-2, widgetPosY + widgetHeight -vOffset-(1/widgetScale))
 	gl_Color(1,1,1)
 end

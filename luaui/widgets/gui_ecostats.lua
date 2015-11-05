@@ -1,4 +1,4 @@
-local versionNumber = "1.81"
+local versionNumber = "1.82"
 
 do
 ---------------------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
-local avgFrames 					= 15
+local avgFrames 					= 18
 
 ---------------------------------------------------------------------------------------------------
 
@@ -595,7 +595,7 @@ local function DrawBackground(posY)
 	glColor(0,0,0,0.6)
 	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 7)
 	local borderPadding = 4
-	glColor(1,1,1,0.035)
+	glColor(1,1,1,0.025)
 	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, 6)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..posY)
@@ -1439,7 +1439,7 @@ function widget:GameFrame(frameNum)
 		UpdateAllTeams()
 	end
 	
-	if frameNum%7 == 1 then 
+	if frameNum%10 == 1 then 
 		updateButtons()
 		setPlayerResources()
 		UpdateAllies() 
