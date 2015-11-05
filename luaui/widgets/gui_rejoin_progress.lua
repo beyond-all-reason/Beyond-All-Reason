@@ -263,7 +263,7 @@ function createBackgroundList()
 	backgroundList = glCreateList( function()
 		RectRound(xPos,yPos,xPos+panelWidth,yPos+panelHeight,6)
 		local borderPadding = 3.5
-		glColor(1,1,1,0.035)
+		glColor(1,1,1,0.022)
 		RectRound(xPos+borderPadding,yPos+borderPadding,xPos+panelWidth-borderPadding,yPos+panelHeight-borderPadding,5)
 		local text = 'Catching up...'
 		local width = glGetTextWidth(text)*(panelHeight/3)

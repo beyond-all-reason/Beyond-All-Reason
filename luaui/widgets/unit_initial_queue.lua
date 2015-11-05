@@ -29,6 +29,10 @@ local borderSize = 0
 local maxCols = 5
 local fontSize = 17
 local margin = 6
+
+local borderPadding = 2.5
+local borderColor = {1,1,1,0.022}
+
 local backgroundColor = {0,0,0,0.6}
 local hoverColor = {1,1,1,0.25}
 local pushedColor = {1,0.1,0,0.33}
@@ -452,6 +456,8 @@ function InitializeFaction(sDefID)
 			local bgwidth = ((maxCols*iconWidth)+margin)
 			gl.Color(backgroundColor)
 			RectRound(-(margin), -bgheight, bgwidth, margin, ((iconWidth+iconPadding+iconPadding)/7))
+			gl.Color(borderColor)
+			RectRound(-(margin)+borderPadding, -bgheight+borderPadding, bgwidth-borderPadding, margin-borderPadding, ((iconWidth+iconPadding+iconPadding)/9))
 
 			for r = 1, #cellRows do
 				local cellRow = cellRows[r]
