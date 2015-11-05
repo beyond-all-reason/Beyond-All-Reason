@@ -55,6 +55,7 @@ local bar					= imageDirectory.."bar.png"
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local bgcornerSize			= 8
 
+local bordercolor = {1,1,1,0.04}
 local displayList
 local staticList
 local vsx, vsy = 0,0
@@ -210,8 +211,11 @@ local function updateStatics()
   staticList = gl.CreateList( function()
 	gl.PushMatrix()
     gl.Color(0.0, 0.0, 0.0, 0.6)
-    
     RectRound(x1-(BAR_MARGIN/1.75), y1-BAR_MARGIN, x1+w+(BAR_MARGIN/1.75), y1+h+BAR_MARGIN, bgcornerSize)
+    
+    local padding = bgcornerSize*0.8
+    gl.Color(bordercolor)
+    RectRound(x1-(BAR_MARGIN/1.75)+padding, y1-BAR_MARGIN+padding, x1+w+(BAR_MARGIN/1.75)-padding, y1+h+BAR_MARGIN-padding, padding)
     
     local height = h - TOP_HEIGHT
     local teamNames = getTeamNames()

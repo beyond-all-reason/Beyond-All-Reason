@@ -1338,10 +1338,13 @@ function CreateBackground()
 	
 	Background = gl_CreateList(function()
 		gl_Color(0,0,0,0.6)
-		
 		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
-		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
 		
+		local padding = 4
+		gl_Color(1,1,1,0.04)
+		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding)
+		
+		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
 		-- draws highlight (top and left sides)
 		--gl_Color(0.44,0.44,0.44,0.38)	
 		--gl_Rect(widgetPosX-margin-1,					widgetPosY + widgetHeight +margin, 	widgetPosX + widgetWidth+margin, 			widgetPosY + widgetHeight-1+margin)

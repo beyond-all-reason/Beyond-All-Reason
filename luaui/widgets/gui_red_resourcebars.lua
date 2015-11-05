@@ -27,6 +27,9 @@ local Config = {
 		
 		margin = 5, --distance from background border
 		
+		padding = 4, -- for border effect
+		color2 = {1,1,1,0.04}, -- for border effect
+		
 		expensefadetime = 0.25, --fade effect time, in seconds
 		
 		cbackground = {0,0,0,0.6}, --color {r,g,b,alpha}
@@ -61,6 +64,9 @@ local Config = {
 		fontsize = 11,
 		
 		margin = 5,
+		
+		padding = 4, -- for border effect
+		color2 = {1,1,1,0.04}, -- for border effect
 		
 		expensefadetime = 0.25,
 		
@@ -183,6 +189,11 @@ local function short(n,f)
 end
 
 local function createbar(r)
+	local background2 = {"rectanglerounded",
+		px=r.px+r.padding,py=r.py+r.padding,
+		sx=r.sx-r.padding-r.padding,sy=r.sy-r.padding-r.padding,
+		color=r.color2,
+	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.sx,sy=r.sy,
@@ -190,10 +201,20 @@ local function createbar(r)
 		border=r.cborder,
 		movable=r.dragbutton,
 		obeyscreenedge = true,
+		
+		padding=r.padding,
+		
 		--overridecursor = true,
 		overrideclick = {1},
+		onupdate=function(self)
+			background2.px = self.px + self.padding
+			background2.py = self.py + self.padding
+			background2.sx = self.sx - self.padding - self.padding
+			background2.sy = self.sy - self.padding - self.padding
+		end,
 	}
 	New(background)
+	New(background2)
 	
 	local number = {"text",
 		px=0,py=background.py+r.margin,fontsize=r.fontsize,
@@ -282,6 +303,7 @@ local function createbar(r)
 	
 	return {
 		["background"] = background,
+		["background2"] = background2,
 		["barbackground"] = barbackground,
 		["bar"] = bar,
 		["barborder"] = barborder,

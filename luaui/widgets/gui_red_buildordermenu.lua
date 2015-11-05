@@ -39,6 +39,9 @@ local Config = {
 		
 		margin = 5, --distance from background border
 		
+		padding = 6, -- for border effect
+		color2 = {1,1,1,0.04}, -- for border effect
+		
 		fadetime = 0.14, --fade effect time, in seconds
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
@@ -66,6 +69,9 @@ local Config = {
 		ispreadx=0,ispready=0,
 		
 		margin = 5,
+		
+		padding = 6, -- for border effect
+		color2 = {1,1,1,0.04}, -- for border effect
 		
 		fadetime = 0.14,
 		fadetimeOut = 0.022, --fade effect time, in seconds
@@ -165,6 +171,13 @@ local function AutoResizeObjects() --autoresize v2
 end
 
 local function CreateGrid(r)
+
+	local background2 = {"rectanglerounded",
+		px=r.px+r.padding,py=r.py+r.padding,
+		sx=(r.isx*r.ix+r.ispreadx*(r.ix-1) +r.margin*2) -r.padding -r.padding,
+		sy=(r.isy*(r.iy)+r.ispready*(r.iy) +r.margin*2) -r.padding -r.padding,
+		color=r.color2,
+	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.isx*r.ix+r.ispreadx*(r.ix-1) +r.margin*2,
@@ -172,14 +185,21 @@ local function CreateGrid(r)
 		color=r.cbackground,
 		border=r.cborder,
 		movable=r.dragbutton,
-		movableslaves={},
 		obeyscreenedge = true,
 		overrideclick = {1},
+		
+		padding=r.padding,
 		
 		effects = {
 			fadein_at_activation = r.fadetime,
 			fadeout_at_deactivation = r.fadetimeOut,
 		},
+		onupdate=function(self)
+			background2.px = self.px + self.padding
+			background2.py = self.py + self.padding
+			background2.sx = self.sx - self.padding - self.padding
+			background2.sy = self.sy - self.padding - self.padding
+		end,
 	}
 	
 	local selecthighlight = {"rectanglerounded",
@@ -285,6 +305,7 @@ local function CreateGrid(r)
 	}
 	
 	New(background)
+	New(background2)
 	
 	local backward = New(Copy(icon,true))
 	backward.texture = LUAUI_DIRNAME.."Images/backward.dds"
@@ -340,6 +361,7 @@ local function CreateGrid(r)
 	return {
 		["menuname"] = r.menuname,
 		["background"] = background,
+		["background2"] = background2,
 		["icons"] = icons,
 		["backward"] = backward,
 		["forward"] = forward,
@@ -353,8 +375,10 @@ end
 local function UpdateGrid(g,cmds,ordertype)
 	if (#cmds==0) then
 		g.background.active = false
+		g.background2.active = false
 	else
 		g.background.active = nil
+		g.background2.active = nil
 	end
 
 	local curpage = g.page

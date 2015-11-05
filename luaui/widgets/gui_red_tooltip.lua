@@ -24,6 +24,9 @@ local Config = {
 		
 		fontsize = 11,
 		
+		padding = 6,
+		color2 = {1,1,1,0.04},
+		
 		margin = 11, --distance from background border
 		
 		cbackground = {0,0,0,0.6}, --color {r,g,b,alpha}
@@ -125,7 +128,7 @@ local function getEditedCurrentTooltip()
 	--replace with limexp: exp/(1+exp) since all spring exp effects are linear in limexp, multiply by 10 because people like big numbers instead of [0,1] 
 	return currentExp and text:gsub(expPattern,string.format("Experience %.2f", 10*currentExp/(1+currentExp)) ) or text 
 end 
- 	
+
 local function createtooltip(r)
 	local text = {"text",
 		px=r.px+r.margin,py=r.py+r.margin,
@@ -184,15 +187,21 @@ local function createtooltip(r)
 			end
 		end
 	}
-	
+	local background2 = {"rectanglerounded",
+		px=r.px+r.padding,py=r.py+r.padding,
+		sx=r.sx-r.padding-r.padding,sy=r.sy-r.padding-r.padding,
+		color=r.color2,
+	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.sx,sy=r.sy,
 		color=r.cbackground,
 		border=r.cborder,
 		
+		padding=r.padding,
+		
 		movable=r.dragbutton,
-		movableslaves={text,unitcounter},
+		movableslaves={text,unitcounter,background2},
 		
 		obeyscreenedge = true,
 		--overridecursor = true,
@@ -217,6 +226,10 @@ local function createtooltip(r)
 				text.px = self.px + r.margin
 			end
 			unitcounter.px = self.sx - ((r.margin/2)* Screen.vsy/CanvasY)
+			background2.px = self.px + self.padding
+			background2.py = self.py + self.padding
+			background2.sx = self.sx - self.padding - self.padding
+			background2.sy = self.sy - self.padding - self.padding
 		end,
 		
 		mouseover=function(mx,my,self)
@@ -226,13 +239,16 @@ local function createtooltip(r)
 			text._mouseoverself = nil
 		end,
 	}
+
 	
 	New(background)
+	New(background2)
 	New(text)
 	New(unitcounter)
 	
 	return {
 		["background"] = background,
+		["background2"] = background2,
 		["text"] = text,
 		["unitcounter"] = unitcounter,
 		
