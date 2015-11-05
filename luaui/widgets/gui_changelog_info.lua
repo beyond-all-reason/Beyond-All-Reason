@@ -65,7 +65,6 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local endPosX = 0.1
 local vsx, vsy = Spring.GetViewGeometry()
 
 local versions = {}
@@ -93,7 +92,7 @@ local textSize		= 0.75
 local textMargin	= 0.25
 local lineWidth		= 0.0625
 
-local posX = 0.4
+local posX = 0.1
 local posY = 0
 local showOnceMore = false		-- used because of GUI shader delay
 local buttonGL
@@ -385,16 +384,6 @@ function DrawWindow()
 end
 
 
-function widget:GameFrame(n)
-
-	if n>endPosX and posX > endPosX then
-		posX = posX - 0.005
-		if posX < 0 then posX = 0 end
-		
-		bgColorMultiplier = (posX-endPosX) / startPosX
-	end
-end
-
 function widget:DrawScreen()
     if spIsGUIHidden() then return end
     if amNewbie and not gameStarted then return end
@@ -406,12 +395,12 @@ function widget:DrawScreen()
     
     glLineWidth(lineWidth)
 
-    glPushMatrix()
+   --[[ glPushMatrix()
         glTranslate(posX*vsx, posY*vsy, 0)
         glScale(17*widgetScale, 17*widgetScale, 1)
 		glColor(0, 0, 0, (0.3*bgColorMultiplier))
         glCallList(buttonGL)
-    glPopMatrix()
+    glPopMatrix()]]--
 
     glColor(1, 1, 1, 1)
     glLineWidth(1)

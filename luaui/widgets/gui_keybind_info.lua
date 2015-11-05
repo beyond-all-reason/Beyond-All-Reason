@@ -80,12 +80,11 @@ local textSize = 0.75
 local textMargin = 0.25
 local lineWidth = 0.0625
 
-local posX = 0.3
+local posX = 0
 local posY = 0
 local showOnceMore = false
 local buttonGL
 local startPosX = posX
-
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
@@ -245,15 +244,6 @@ function DrawWindow()
 end
 
 
-function widget:GameFrame(n)
-	if n>0 and posX > 0 then
-		posX = posX - 0.005
-		if posX < 0 then posX = 0 end
-		
-		bgColorMultiplier = posX / startPosX
-	end
-end
-
 function widget:DrawScreen()
     if spIsGUIHidden() then return end
     if amNewbie and not gameStarted then return end
@@ -265,12 +255,12 @@ function widget:DrawScreen()
     
     glLineWidth(lineWidth)
 
-    glPushMatrix()
+    --[[glPushMatrix()
         glTranslate(posX*vsx, posY*vsy, 0)
         glScale(17*widgetScale, 17*widgetScale, 1)
 		glColor(0, 0, 0, (0.3*bgColorMultiplier))
         glCallList(buttonGL)
-    glPopMatrix()
+    glPopMatrix()]]--
 
     glColor(1, 1, 1, 1)
     glLineWidth(1)
