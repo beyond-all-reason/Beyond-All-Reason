@@ -146,6 +146,10 @@ function createList(force)
 				--glRect(0, 0, panelWidth, panelHeight)
 				RectRound(xPos-panelPadding, yPos-panelPadding, xPos+panelWidth+panelPadding, yPos+panelHeight+panelPadding, 6*widgetScale)
 				
+				local borderPadding = 4
+				glColor(1,1,1,0.035)
+				RectRound(xPos-panelPadding+borderPadding, yPos-panelPadding+borderPadding, xPos+panelWidth+panelPadding-borderPadding, yPos+panelHeight+panelPadding-borderPadding, 5*widgetScale)
+				
 				glTranslate(xPos, yPos, 0)
 				-- Text
 				glColor(1, 1, 1, 1)

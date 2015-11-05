@@ -594,6 +594,9 @@ local function DrawBackground(posY)
 	local y2 = widgetPosY - posY + tH + widgetHeight
 	glColor(0,0,0,0.6)
 	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 7)
+	local borderPadding = 4
+	glColor(1,1,1,0.035)
+	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, 6)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..posY)
 	end

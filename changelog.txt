@@ -12,6 +12,7 @@ Others:
 - Added "Bloom Shader" widget (default off)
 - Map-info widget displays map size aswell
 - Renamed "HighlightSelectedUnits widget: added spaces (widget will be enabled again if you had it disabled)
+- Most GUI elements have been given a faint border
 
 
 9.12 -> 9.13

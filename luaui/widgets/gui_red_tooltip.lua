@@ -24,8 +24,8 @@ local Config = {
 		
 		fontsize = 11,
 		
-		padding = 6,
-		color2 = {1,1,1,0.04},
+		padding = 4,
+		color2 = {1,1,1,0.035},
 		
 		margin = 11, --distance from background border
 		

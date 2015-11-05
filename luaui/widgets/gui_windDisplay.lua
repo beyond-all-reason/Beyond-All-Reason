@@ -135,6 +135,10 @@ function createBackgroundList()
         glPushMatrix()
 			glColor(panelColor)
 			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6)
+			local borderPadding = 3.5
+			glColor(1,1,1,0.035)
+			RectRound(xPos+borderPadding, yPos+borderPadding, xPos+panelWidth-borderPadding, yPos+panelHeight-borderPadding, 6)
+			
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (panelHeight-(36*widgetScale))/2, 0) -- Spacing of icon
 			glColor(1,1,1,0.25)

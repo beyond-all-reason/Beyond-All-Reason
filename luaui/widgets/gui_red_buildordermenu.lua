@@ -39,8 +39,8 @@ local Config = {
 		
 		margin = 5, --distance from background border
 		
-		padding = 6, -- for border effect
-		color2 = {1,1,1,0.04}, -- for border effect
+		padding = 4, -- for border effect
+		color2 = {1,1,1,0.035}, -- for border effect
 		
 		fadetime = 0.14, --fade effect time, in seconds
 		fadetimeOut = 0.022, --fade effect time, in seconds
@@ -70,8 +70,8 @@ local Config = {
 		
 		margin = 5,
 		
-		padding = 6, -- for border effect
-		color2 = {1,1,1,0.04}, -- for border effect
+		padding = 4, -- for border effect
+		color2 = {1,1,1,0.035}, -- for border effect
 		
 		fadetime = 0.14,
 		fadetimeOut = 0.022, --fade effect time, in seconds

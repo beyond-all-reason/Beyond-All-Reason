@@ -264,6 +264,10 @@ function widget:DrawScreen()
 			glColor(0, 0, 0, 0.6)
 			RectRound(xPos-margin, yPos-margin, xPos+panelWidth+margin, yPos+panelHeight+margin, 8)
 			
+			local borderPadding = 3.5
+			glColor(1,1,1,0.035)
+			RectRound(xPos-margin+borderPadding, yPos-margin+borderPadding, xPos+panelWidth+margin-borderPadding, yPos+panelHeight+margin-borderPadding, 7)
+			
 			glTranslate(xPos, yPos, 0)
 			--background
 			--glColor(0, 0, 0, 0.5)

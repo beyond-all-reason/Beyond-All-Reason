@@ -794,6 +794,10 @@ function DrawButton()
 	gl.Color(0,0,0,0.6)
 	RectRound(x1,y1,x2,y2,7)
 	
+	local borderPadding = 3.5
+	gl.Color(1,1,1,0.035)
+	RectRound(x1+borderPadding,y1+borderPadding,x2-borderPadding,y2-borderPadding,6)
+	
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(x1,y1,x2,y2,'teamstats_button')
 	end
