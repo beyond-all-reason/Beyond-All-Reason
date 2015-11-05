@@ -82,6 +82,7 @@ local glScale = gl.Scale
 local glVertex = gl.Vertex
 local glTexRect = gl.TexRect
 local glTexture = gl.Texture
+local glTexCoord = gl.TexCoord
 local glRect = gl.Rect
 local glGetTextWidth = gl.GetTextWidth
 
@@ -594,16 +595,66 @@ function drawCylinder(radius, halfLength)
 end
 
 
-function RectRound(px,py,sx,sy,cs)
-	glRect(px+cs, py, sx-cs, sy)
-	glRect(sx-cs, py+cs, sx, sy-cs)
-	glRect(px+cs, py+cs, px, sy-cs)
+local function DrawRectRound(px,py,sx,sy,cs)
+	glTexCoord(0.8,0.8)
+	glVertex(px+cs, py, 0)
+	glVertex(sx-cs, py, 0)
+	glVertex(sx-cs, sy, 0)
+	glVertex(px+cs, sy, 0)
 	
+	glVertex(px, py+cs, 0)
+	glVertex(px+cs, py+cs, 0)
+	glVertex(px+cs, sy-cs, 0)
+	glVertex(px, sy-cs, 0)
+	
+	glVertex(sx, py+cs, 0)
+	glVertex(sx-cs, py+cs, 0)
+	glVertex(sx-cs, sy-cs, 0)
+	glVertex(sx, sy-cs, 0)
+	
+	local o = 0.07		-- texture offset, because else gaps could show
+	
+	-- top left
+	glTexCoord(o,o)
+	glVertex(px, py, 0)
+	glTexCoord(o,1-o)
+	glVertex(px+cs, py, 0)
+	glTexCoord(1-o,1-o)
+	glVertex(px+cs, py+cs, 0)
+	glTexCoord(1-o,o)
+	glVertex(px, py+cs, 0)
+	-- top right
+	glTexCoord(o,o)
+	glVertex(sx, py, 0)
+	glTexCoord(o,1-o)
+	glVertex(sx-cs, py, 0)
+	glTexCoord(1-o,1-o)
+	glVertex(sx-cs, py+cs, 0)
+	glTexCoord(1-o,o)
+	glVertex(sx, py+cs, 0)
+	-- bottom left
+	glTexCoord(o,o)
+	glVertex(px, sy, 0)
+	glTexCoord(o,1-o)
+	glVertex(px+cs, sy, 0)
+	glTexCoord(1-o,1-o)
+	glVertex(px+cs, sy-cs, 0)
+	glTexCoord(1-o,o)
+	glVertex(px, sy-cs, 0)
+	-- bottom right
+	glTexCoord(o,o)
+	glVertex(sx, sy, 0)
+	glTexCoord(o,1-o)
+	glVertex(sx-cs, sy, 0)
+	glTexCoord(1-o,1-o)
+	glVertex(sx-cs, sy-cs, 0)
+	glTexCoord(1-o,o)
+	glVertex(sx, sy-cs, 0)
+end
+
+local function RectRound(px,py,sx,sy,cs)
 	glTexture(bgcorner)
-	glTexRect(px, py+cs, px+cs, py)		-- top left
-	glTexRect(sx, py+cs, sx-cs, py)		-- top right
-	glTexRect(px, sy-cs, px+cs, sy)		-- bottom left
-	glTexRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	glBeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
 	glTexture(false)
 end
 
