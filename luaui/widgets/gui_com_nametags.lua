@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Bluestone, Floris",
     date      = "20 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -7,
+    layer     = 2,
     enabled   = true,  --  loaded by default?
   }
 end
