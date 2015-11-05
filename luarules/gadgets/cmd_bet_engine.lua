@@ -35,10 +35,6 @@ function gadget:GetInfo()
 	}
 end
 
-
-if gadgetHandler:IsSyncedCode() then
-
-
 local simSpeed = Game.gameSpeed
 local MIN_BET_TIME = 5*60*simSpeed -- frames
 local MIN_BET_TIME_SCALE = 10*60*simSpeed --frames, the time of bet will be slowly increased from 0 to MIN_BET_TIME during this period
@@ -54,7 +50,7 @@ local playerScores = {} -- indexed by playerID: {points,currentlyRunning,won,los
 local timeBets = {} -- indexed by betType: {[betID]={[betSlot]={playerID,timestamp,betTime,betCost,betType,validFrom}, [betTime2]=..}
 local betStats = {} -- indexed by betType: {[betID]={numBets,totalSpent,prizePoints}
 local deadTeams = {} -- indexed by TeamID: {[teamID] = true}
-local betValid = {} -- indexed by frame: {1={betType,betID,timeSlot,scoreIncrease,playerID},2=...}
+local betValid = {} -- indexed by frame: {1={betType,betID,timeSlot,playerID},2=...}
 
 local GetTeamUnitCount = Spring.GetTeamUnitCount
 local GaiaTeam = Spring.GetGaiaTeamID()
@@ -68,69 +64,9 @@ local abs = math.abs
 local min = math.min
 local max = math.max
 local floor = math.floor
-local append = table.append
+local insert = table.insert
 
-local function getMinBetTimeDelta()
-	--the min time of bet will be slowly increased from 0 to MIN_BET_TIME in the period from game start to MIN_BET_TIME_SCALE
-	return floor(min(1,GetGameFrame()/MIN_BET_TIME_SCALE)*max(MIN_BET_TIME,0))
-end
-
-local function getMinBetTime()
-	return GetGameFrame() + getMinBetTimeDelta(), getMinBetTimeDelta()
-end
-
-local function getBetTimeSlot(betTime)
-	return floor(betTime/BET_GRANULARITY+0.5)*BET_GRANULARITY
-end
-
-local function getCreatePlayerScores(playerID)
-	if not playerScores[playerID] then
-		playerScores[playerID] = {score=STARTING_SCORE,currentlyRunning=0,won=0,lost=0,totalPlaced=0}
-	end
-	return playerScores[playerID]
-end
-
-local function getCreateTimeBets(betType,betID)
-	if not timeBets[betType] then
-		timeBets[betType] = {}
-	end
-	if not timeBets[betType][betID] then
-		timeBets[betType][betID] = {}
-	end
-	return timeBets[betType][betID]
-end
-
-local function getCreatePlayerBets(playerID,betType,betID)
-	if not playerBets[playerID] then
-		playerBets[playerID] = {}
-	end
-	if not playerBets[playerID][betType] then
-		playerBets[playerID][betType] = {}
-	end
-	if not playerBets[playerID][betType][betID] then
-		playerBets[playerID][betType][betID] = {}
-	end
-	return playerBets[playerID][betType][betID]
-end
-
-local function getCreateBetStats(betType,betID)
-	if not betStats[betType] then
-		betStats[betType] = {}
-	end
-	if not betStats[betType][betID] then
-		betStats[betType][betID] = {numBets = 0, totalScore = 0, prizePoints = 0}
-	end
-	return betStats[betType][betID]
-end
-
-local function getCreateValidFrom(frame)
-	if not validFrom[frame] then
-		validFrom[frame] = {}
-	end
-	return validFrom[frame]
-end
-
-local function getBetCost(playerID,betType,betID)
+function getBetCost(playerID,betType,betID)
 	if not playerID or not betType or not betID then
 		return
 	end
@@ -145,7 +81,7 @@ local function getBetCost(playerID,betType,betID)
 	return BET_COST[betType] >= 0 and BET_COST[betType] or (betCount+1)*abs(BET_COST[betType])
 end
 
-local function isValidBet(playerID, betType, betID, betTime)
+function isValidBet(playerID, betType, betID, betTime)
 	if not playerID then
 		return false, "playerID is nil"
 	end
@@ -212,6 +148,71 @@ local function isValidBet(playerID, betType, betID, betTime)
 	return true, ""
 end
 
+function getMinBetTimeDelta()
+	--the min time of bet will be slowly increased from 0 to MIN_BET_TIME in the period from game start to MIN_BET_TIME_SCALE
+	return floor(min(1,GetGameFrame()/MIN_BET_TIME_SCALE)*max(MIN_BET_TIME,0))
+end
+
+function getMinBetTime()
+	return GetGameFrame() + getMinBetTimeDelta(), getMinBetTimeDelta()
+end
+
+function getBetTimeSlot(betTime)
+	return floor(betTime/BET_GRANULARITY+0.5)*BET_GRANULARITY
+end
+
+function getCreatePlayerScores(playerID)
+	if not playerScores[playerID] then
+		playerScores[playerID] = {score=STARTING_SCORE,currentlyRunning=0,won=0,lost=0,totalPlaced=0}
+	end
+	return playerScores[playerID]
+end
+
+if gadgetHandler:IsSyncedCode() then
+
+
+
+
+local function getCreateTimeBets(betType,betID)
+	if not timeBets[betType] then
+		timeBets[betType] = {}
+	end
+	if not timeBets[betType][betID] then
+		timeBets[betType][betID] = {}
+	end
+	return timeBets[betType][betID]
+end
+
+local function getCreatePlayerBets(playerID,betType,betID)
+	if not playerBets[playerID] then
+		playerBets[playerID] = {}
+	end
+	if not playerBets[playerID][betType] then
+		playerBets[playerID][betType] = {}
+	end
+	if not playerBets[playerID][betType][betID] then
+		playerBets[playerID][betType][betID] = {}
+	end
+	return playerBets[playerID][betType][betID]
+end
+
+local function getCreateBetStats(betType,betID)
+	if not betStats[betType] then
+		betStats[betType] = {}
+	end
+	if not betStats[betType][betID] then
+		betStats[betType][betID] = {numBets = 0, totalSpent = 0, prizePoints = 0}
+	end
+	return betStats[betType][betID]
+end
+
+local function getCreateBetValid(frame)
+	if not betValid[frame] then
+		betValid[frame] = {}
+	end
+	return betValid[frame]
+end
+
 
 local function placedBet(playerID, betType, betID, betTime)
 	if not isValidBet(playerID, betType, betID, betTime) then
@@ -223,7 +224,7 @@ local function placedBet(playerID, betType, betID, betTime)
 	local betCost = getBetCost(playerID,betType,betID)
 	local bet = getCreateTimeBets(betType,betID) -- only needed to create the table entry
 	local betStat = getCreateBetStats(betType,betID)
-	getCreateValidFrom(validFrom)
+	getCreateBetValid(validFrom)
 	-- in this case the cost has same value of the next element
 	playerpersonalbets[betCost] = betTime
 	playerBets[playerID][betType][betID] = playerpersonalbets
@@ -233,11 +234,10 @@ local function placedBet(playerID, betType, betID, betTime)
 	playerScores[playerID].currentlyRunning = playerScores[playerID].currentlyRunning + 1
 	local timeSlot = getBetTimeSlot(betTime)
 	timeBets[betType][betID][timeSlot] = {player=playerID, betTime = betTime, timestamp=GetGameFrame(), betCost=betCost, betType = betType, validFrom = validFrom}
-	local scoreIncrease = (POINTS_PRIZE_PER_BET[betType] < 0 and abs(POINTS_PRIZE_PER_BET[betType])*betCost or POINTS_PRIZE_PER_BET[betType])
 	betStats[betType][betID].numBets = betStat.numBets + 1
 	betStats[betType][betID].totalSpent = betStat.totalSpent + betCost
-	betStats[betType][betID].prizePoints = betStat.prizePoints + (getMinBetTimeDelta() == 0 and scoreIncrease or 0)
-	append(betValid[validFrom],{betType = betType, betID = betID, timeSlot = timeSlot, scoreIncrease = scoreIncrease, playerID = playerID})
+	betStats[betType][betID].prizePoints = betStat.prizePoints + (POINTS_PRIZE_PER_BET[betType] < 0 and abs(POINTS_PRIZE_PER_BET[betType])*betCost or POINTS_PRIZE_PER_BET[betType])
+	insert(betValid[validFrom],{betType = betType, betID = betID, timeSlot = timeSlot, playerID = playerID})
 	-- updated exported tables
 	local exporttable = _G[_G_INDEX]
 	exporttable.playerScores = playerScores
@@ -334,9 +334,7 @@ function gadget:GameFrame(n)
 	if betValid[n] then
 		for _,betData in pairs(betValid[n]) do
 			if betStats[betData.betType] and betStats[betData.betType][betData.betID] then
-				betStats[betData.betType][betData.betID].prizePoints = betStats[betData.betType][betData.betID].prizePoints + betData.scoreIncrease
-				_G[_G_INDEX].betStats = betStats
-				SendToUnsynced("betValidCallback",betData.playerID, betData.betType, betData.betID, betData.timeSlot,betData.scoreIncrease)
+				SendToUnsynced("betValidCallback",betData.playerID, betData.betType, betData.betID, betData.timeSlot)
 			end
 		end
 		betValid[n] = nil
@@ -398,11 +396,6 @@ function gadget:Initialize()
 
 	-- publish all available API functions and tables in the gadget shared table
 	local exporttable = {}
-	-- API functions
-	exporttable.isValidBet = isValidBet
-	exporttable.getMinBetTime = getMinBetTime
-	exporttable.placeMyBet = placeMyBet
-	exporttable.getBetCost = getBetCost
 	-- dynamic data tables
 	exporttable.playerScores = playerScores
 	exporttable.timeBets = timeBets
@@ -420,8 +413,16 @@ else
 --- BEGIN UNSYNCED CODE
 	
 local GetSpectatingState = Spring.GetSpectatingState
+local SendLuaRulesMsg = Spring.SendLuaRulesMsg
+local myPlayerID = Spring.GetMyPlayerID()
 
 function gadget:Initialize()
+
+	playerScores = SYNCED[_G_INDEX].playerScores
+	betStats = SYNCED[_G_INDEX].betStats
+	timeBets = SYNCED[_G_INDEX].timeBets
+	playerBets = SYNCED[_G_INDEX].playerBets
+
 	gadgetHandler:AddSyncAction("betOverCallback", handleBetOverCallback)
 	gadgetHandler:AddSyncAction("receivedBetCallback", handleReceivedBetCallback)
 	gadgetHandler:AddSyncAction("betValidCallback", handleBetValidCallback)
@@ -455,7 +456,7 @@ end
 
 function PushGetMinBetTime()
 	if Script.LuaUI("getMinBetTime") then
-		Script.LuaUI.getMinBetTime(SYNCED.getMinBetTime())
+		Script.LuaUI.getMinBetTime(getMinBetTime())
 	end
 end
 
@@ -464,7 +465,7 @@ function PushIsValidBet(_,_,params)
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.isValidBet()
 		else
-			Script.LuaUI.isValidBet(SYNCED.isValidBet(unpack(params)))
+			Script.LuaUI.isValidBet(isValidBet(tonumber(params[1]),params[2],tonumber(params[3]),tonumber(params[4])))
 		end
 	end
 end
@@ -474,10 +475,10 @@ function PushPlaceBet(_,_,params)
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.placeBet()
 		else
-			local ok, result = SYNCED.isValidBet(unpack(params))
+			local ok, result = isValidBet(myPlayerID,params[1],tonumber(params[2]),tonumber(params[3]))
 			if ok then
 				SendLuaRulesMsg("bet " .. params[1] .. " " .. params[2] .. " " .. params[3])
-				result = "Bet" .. betType .. "sent on " .. betID .. "at time " .. time
+				result = "Bet" .. params[1] .. "sent on " .. params[2] .. "at time " .. params[3]
 			end
 			Script.LuaUI.placeBet(ok,result)
 		end
@@ -489,7 +490,7 @@ function PushGetBetCost(_,_,params)
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.getBetCost()
 		else
-			Script.LuaUI.getBetCost(SYNCED.getBetCost(unpack(params)))
+			Script.LuaUI.getBetCost(getBetCost(unpack(params)))
 		end
 	end
 end
@@ -499,7 +500,7 @@ function PushGetBetsStats(_,_,params)
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.getBetsStats()
 		else
-			Script.LuaUI.getBetsStats(SYNCED.betStats)
+			Script.LuaUI.getBetsStats(betStats)
 		end
 	end
 end
@@ -510,33 +511,39 @@ function PushGetPlayerScores()
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.getPlayerScores()
 		else
-			Script.LuaUI.getPlayerScores(SYNCED.playerScores)
+			Script.LuaUI.getPlayerScores(playerScores)
 		end
 	end
 end
 
 function PushGetBetList()
+	timeBets = SYNCED[_G_INDEX].timeBets
 	if Script.LuaUI("getBetList") then
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.getBetList()
 		else
-			Script.LuaUI.getBetList(SYNCED.timeBets)
+			Script.LuaUI.getBetList(timeBets)
 		end
 	end
 end
 
 function PushGetPlayerBetList()
+	playerBets = SYNCED[_G_INDEX].playerBets
 	if Script.LuaUI("getPlayerBetList") then
 		if not select(2,GetSpectatingState()) then
 			Script.LuaUI.getPlayerBetList()
 		else
-			Script.LuaUI.getPlayerBetList(SYNCED.playerBets)
+			Script.LuaUI.getPlayerBetList(playerBets)
 		end
 	end
 end
 
 
 function handleBetOverCallback(_,betType, betID, winnerID, prizePoints)
+	playerScores = SYNCED[_G_INDEX].playerScores
+	betStats = SYNCED[_G_INDEX].betStats
+	timeBets = SYNCED[_G_INDEX].timeBets
+	playerBets = SYNCED[_G_INDEX].playerBets
 	if not select(2,GetSpectatingState()) then
 		return
 	end
@@ -545,21 +552,25 @@ function handleBetOverCallback(_,betType, betID, winnerID, prizePoints)
 	end
 end
 
-function handleReceivedBetCallback(_,playerID, betType, betID, betTime, betCost, validFrom)
+function handleReceivedBetCallback(_,playerID, betType, betID, betAtTime, betCost, validFrom)
+	playerScores = SYNCED[_G_INDEX].playerScores
+	betStats = SYNCED[_G_INDEX].betStats
+	timeBets = SYNCED[_G_INDEX].timeBets
+	playerBets = SYNCED[_G_INDEX].playerBets
 	if not select(2,GetSpectatingState()) then
 		return
 	end
 	if Script.LuaUI("receivedBetCallback") then
-		Script.LuaUI.receivedBetCallback(playerID, betType, betID, betTime, betCost, validFrom)
+		Script.LuaUI.receivedBetCallback(playerID, betType, betID, betAtTime, betCost, validFrom)
 	end
 end
 
-function handleBetValidCallback(_,playerID, betType, betID, timeSlot, scoreIncrease)
+function handleBetValidCallback(_,playerID, betType, betID, timeSlot)
 	if not select(2,GetSpectatingState()) then
 		return
 	end
 	if Script.LuaUI("betValidCallback") then
-		Script.LuaUI.betValidCallback(playerID, betType, betID, timeSlot, scoreIncrease)
+		Script.LuaUI.betValidCallback(playerID, betType, betID, timeSlot)
 	end
 end
 

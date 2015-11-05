@@ -37,6 +37,7 @@ local Echo = Spring.Echo
 local min = math.min
 local cos = math.cos
 local sin = math.sin
+local abs = math.abs
 local pi = math.pi
 local floor = math.floor
 local ceil = math.ceil
@@ -349,10 +350,7 @@ function placeBet(_,_,params)
 		end
 		time = time*BET_GRANULARITY
 	end
-	local ok,text = placeMyBet(betType, betID,time)
-	if not ok then
-		Echo(text)
-	end
+	SendCommands("luarules placebet " .. betType .. " " .. betID .. " " .. time)
 end
 
 function printbets(_,_,params)
@@ -474,7 +472,7 @@ function receivedBetCallback(playerID, betType, betID, betTime, betCost)
 end
 
 function betValidCallback()
-	SendCommands({"luarules getbetsstats", "luarules getbetlist"})
+	SendCommands({"luarules getbetlist"})
 end
 
 function widget:SetConfigData(data)
@@ -593,7 +591,10 @@ end
 function updateDisplayList(unitID,betInfo)
 	local stepSize = 15
 	local cubeShift = 25
-	local numBets, totalScore, totalWin = getBetWinScore("unit",unitID)
+	if not betStats.unit or not betStats.unit[unitID] then
+		return
+	end
+	local numBets, totalScore, totalWin = betStats.unit[unitID].numBets, betStats.unit[unitID].totalSpent, betStats.unit[unitID].prizePoints
 	local cubeScaleFactor = (totalWin)^0.5 --while it should be cube root to make the volume linear with the total win, i prefer square, or it grows too little 
 	local cubeFactor = 5*cubeScaleFactor
 	if unitDisplayList[unitID] then
@@ -609,7 +610,7 @@ function updateDisplayList(unitID,betInfo)
 					glTranslate(0,stepSize,0)
 					local playerName = PlayerIDtoName(betEntry.player)
 					local validBet = GetGameFrame() >= betEntry.validFrom
-					glText((validBet and "-" or "x") .. " time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. " by: " .. playerName .. (validBet and "" or (" valid from: " .. floor(betEntry.minBetTime/BET_GRANULARITY+0.5)) ) .. " cost: " .. betEntry.betCost, 0, 0,stepSize, "co")
+					glText((validBet and "-" or "x") .. " time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. " by: " .. playerName .. (validBet and "" or (" valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ) .. " cost: " .. betEntry.betCost, 0, 0,stepSize, "co")
 				end
 				glTranslate(0,stepSize,0)
 				local betCost = getBetCost(myPlayerID,"unit",unitID)
