@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author		= "BrainDamage",
 		date		= "Jan,2013",
 		license		= "WTFPL",
-		layer		= -8,
+		layer		= 1,
 		enabled		= false,
 	}
 end
