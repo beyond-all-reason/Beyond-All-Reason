@@ -453,6 +453,10 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction("getplayerbetlist")
 end
 
+local function FullView()
+	return select(2,GetSpectatingState())
+end
+
 
 function PushGetMinBetTime()
 	if Script.LuaUI("getMinBetTime") then
@@ -462,7 +466,7 @@ end
 
 function PushIsValidBet(_,_,params)
 	if Script.LuaUI("isValidBet") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.isValidBet()
 		else
 			Script.LuaUI.isValidBet(isValidBet(tonumber(params[1]),params[2],tonumber(params[3]),tonumber(params[4])))
@@ -472,7 +476,7 @@ end
 
 function PushPlaceBet(_,_,params)
 	if Script.LuaUI("placeBet") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.placeBet()
 		else
 			local ok, result = isValidBet(myPlayerID,params[1],tonumber(params[2]),tonumber(params[3]))
@@ -487,7 +491,7 @@ end
 
 function PushGetBetCost(_,_,params)
 	if Script.LuaUI("getBetCost") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.getBetCost()
 		else
 			Script.LuaUI.getBetCost(getBetCost(unpack(params)))
@@ -497,7 +501,7 @@ end
 
 function PushGetBetsStats(_,_,params)
 	if Script.LuaUI("getBetsStats") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.getBetsStats()
 		else
 			Script.LuaUI.getBetsStats(betStats)
@@ -508,7 +512,7 @@ end
 
 function PushGetPlayerScores()
 	if Script.LuaUI("getPlayerScores") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.getPlayerScores()
 		else
 			Script.LuaUI.getPlayerScores(playerScores)
@@ -519,7 +523,7 @@ end
 function PushGetBetList()
 	timeBets = SYNCED[_G_INDEX].timeBets
 	if Script.LuaUI("getBetList") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.getBetList()
 		else
 			Script.LuaUI.getBetList(timeBets)
@@ -530,7 +534,7 @@ end
 function PushGetPlayerBetList()
 	playerBets = SYNCED[_G_INDEX].playerBets
 	if Script.LuaUI("getPlayerBetList") then
-		if not select(2,GetSpectatingState()) then
+		if not FullView() then
 			Script.LuaUI.getPlayerBetList()
 		else
 			Script.LuaUI.getPlayerBetList(playerBets)
@@ -544,7 +548,7 @@ function handleBetOverCallback(_,betType, betID, winnerID, prizePoints)
 	betStats = SYNCED[_G_INDEX].betStats
 	timeBets = SYNCED[_G_INDEX].timeBets
 	playerBets = SYNCED[_G_INDEX].playerBets
-	if not select(2,GetSpectatingState()) then
+	if not FullView() then
 		return
 	end
 	if Script.LuaUI("betOverCallback") then
@@ -557,7 +561,7 @@ function handleReceivedBetCallback(_,playerID, betType, betID, betAtTime, betCos
 	betStats = SYNCED[_G_INDEX].betStats
 	timeBets = SYNCED[_G_INDEX].timeBets
 	playerBets = SYNCED[_G_INDEX].playerBets
-	if not select(2,GetSpectatingState()) then
+	if not FullView() then
 		return
 	end
 	if Script.LuaUI("receivedBetCallback") then
@@ -566,7 +570,7 @@ function handleReceivedBetCallback(_,playerID, betType, betID, betAtTime, betCos
 end
 
 function handleBetValidCallback(_,playerID, betType, betID, timeSlot)
-	if not select(2,GetSpectatingState()) then
+	if not FullView() then
 		return
 	end
 	if Script.LuaUI("betValidCallback") then
