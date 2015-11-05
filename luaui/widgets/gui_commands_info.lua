@@ -49,7 +49,7 @@ local glShape = gl.Shape
 local glGetTextWidth = gl.GetTextWidth
 local glGetTextHeight = gl.GetTextHeight
 
-local bgColorMultiplier = 1
+local bgColorMultiplier = 0
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -329,12 +329,12 @@ function widget:DrawScreen()
     
     glLineWidth(lineWidth)
 	
-    --[[glPushMatrix()
+    glPushMatrix()
         glTranslate(posX*vsx, posY*vsy, 0)
         glScale(17*widgetScale, 17*widgetScale, 1)
 		glColor(0, 0, 0, (0.3*bgColorMultiplier))
         glCallList(buttonGL)
-    glPopMatrix()]]--
+    glPopMatrix()
 
     glColor(1, 1, 1, 1)
     glLineWidth(1)
