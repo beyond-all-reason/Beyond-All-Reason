@@ -309,7 +309,7 @@ function DrawSpotter(iconSize)
 	gl.TexRect(-iconSize, iconSize, iconSize, -iconSize)
 end
 
-
+--[[
 local sec = 0
 local sceduledCheck = false
 local updateTime = 1
@@ -330,6 +330,26 @@ function widget:Update(dt)
 		end
 	end
 	prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
+end
+]]--
+
+function widget:UnitCreated(unitID)
+	checkUnit(unitID)
+end
+function widget:UnitEnteredLos(unitID)
+	checkUnit(unitID)
+end
+function widget:UnitDestroyed(unitID)
+	local allyID = spGetUnitAllyTeam(unitID)
+	if drawUnits[allyID] ~= nil then
+		drawUnits[allyID][unitID] = nil
+	end
+end
+function widget:UnitLeftLos(unitID)
+	local allyID = spGetUnitAllyTeam(unitID)
+	if drawUnits[allyID] ~= nil then
+		drawUnits[allyID][unitID] = nil
+	end
 end
 
 
