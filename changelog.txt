@@ -3,16 +3,17 @@
 
 Balance changes:
 - Air Transport speed will be slowed down when lifting heavy loads.
+- Fixed unloaded units sliding bug
+- Fixed units failing to unload + fixed unload through cliffs
 - Disabled "dgun charge" because "transporting commander" bugs were fixed
 
 Others:
-- Fixed halos for enemy units
-- Fixed unloaded units sliding bug
-- Fixed units failing to unload + fixed unload through cliffs
+- Added beta version of "Bet Frontend" (default off) see commands widget for all its commands
 - Added "Bloom Shader" widget (default off)
-- Map-info widget displays map size aswell
+- GUI elements have been given a faint border
+- Map-info widget notes map size aswell
+- Fixed halos for enemy units
 - Renamed "HighlightSelectedUnits widget: added spaces (widget will be enabled again if you had it disabled)
-- Most GUI elements have been given a faint border
 
 
 9.12 -> 9.13
