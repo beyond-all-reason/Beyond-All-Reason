@@ -21,6 +21,8 @@ Widget dependent:
 /+enemyspotter_platter           "Enemyspotter"   Adjust spotter opacity.   also:  /-enemyspotter_platter
 /comnamescale                    "Commander Name Tags"   names stay big when viewing from large distance
 
+/placebet                        "Bet Frontend"   [CTRL+ALT+B]   /printbets   /printscores   /viewbets   /bettime   /bet
+
 Spring Engine (v99):
 
 /Atm                             (synced)    Gives 1000 metal and 1000 energy to the issuing players team
