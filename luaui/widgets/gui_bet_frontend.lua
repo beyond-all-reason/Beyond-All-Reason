@@ -35,6 +35,7 @@ local IsUnitSelected = Spring.IsUnitSelected
 local GetUnitDirection = Spring.GetUnitDirection
 local GetGameRulesParam = Spring.GetGameRulesParam
 local GetSpectatingState = Spring.GetSpectatingState
+local GetUnitIsDead = Spring.GetUnitIsDead
 local Echo = Spring.Echo
 local min = math.min
 local cos = math.cos
@@ -671,58 +672,61 @@ function updateDisplayList(unitID,betInfo)
 	if unitDisplayList[unitID] then
 		glDeleteList(unitDisplayList[unitID])
 	end
-	unitDisplayList[unitID] = glCreateList( function()
-		glPushMatrix()
-			local unitPos = {GetUnitPosition(unitID,true,true)}
-			glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
-			if IsUnitSelected(unitID) then
-				glTranslate(25,25,25)
-				glBillboard()
-				local betCost = getBetCost(myPlayerID,"unit",unitID)
-				local titleText = "\255\255\55\1Bets: " .. numBets .. "   \255\255\180\1Total points bet: " .. totalScore .. "   \255\255\255\1Prize: " .. totalWin .. "   \255\55\255\1Betting cost: " .. betCost
-				local textWidth = glGetTextWidth(titleText)*stepSize
-				local totalBgHeight = (numBets*stepSize)+stepSize
-				local padding = 8
-				glColor(0,0,0,0.5)
-				RectRound(-padding, -padding+stepSize, textWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
-				for timeSlot,betEntry in pairs(betInfo) do
-					glTranslate(0,stepSize,0)
-					local playerName = PlayerIDtoName(betEntry.player)
-					local validBet = GetGameFrame() >= betEntry.validFrom
-					glText(" \255\225\225\225"..(validBet and "-" or "x") .. "  time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. "   \255\255\255\255" .. playerName .. "\255\225\225\225".. (validBet and "" or ("   valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ) .. "  cost: " .. betEntry.betCost, 0, 0,stepSize, "o")
-				end
-				glTranslate(0,stepSize+1,0)
-				local betCost = getBetCost(myPlayerID,"unit",unitID)
-				glText(titleText, 0, 0,stepSize, "o")
-			else
-				
-				--glColor({1,1,0,0.4})
-				--glTranslate(0,cubeShift+cubeFactor,0)
-				--drawCylinder(3*cubeFactor, cubeFactor)
-				
-				local iconSize = 32
-				local chipHeight = 8
-				glTranslate(0,50,0)
-				glColor({1,1,1,1})
-				glTexture(chipTexture)
-				for i = 1, totalWin do
-					if chipStackOffset[i] == nil then
-						chipStackOffset[i] = {x=math.random(),z=math.random(),r=math.random()}
+	local isDead = GetUnitIsDead(unitID)
+	if isDead == false then
+		unitDisplayList[unitID] = glCreateList( function()
+			glPushMatrix()
+				local unitPos = {GetUnitPosition(unitID,true,true)}
+				glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
+				if IsUnitSelected(unitID) then
+					glTranslate(25,25,25)
+					glBillboard()
+					local betCost = getBetCost(myPlayerID,"unit",unitID)
+					local titleText = "\255\255\55\1Bets: " .. numBets .. "   \255\255\180\1Total points bet: " .. totalScore .. "   \255\255\255\1Prize: " .. totalWin .. "   \255\55\255\1Betting cost: " .. betCost
+					local textWidth = glGetTextWidth(titleText)*stepSize
+					local totalBgHeight = (numBets*stepSize)+stepSize
+					local padding = 8
+					glColor(0,0,0,0.5)
+					RectRound(-padding, -padding+stepSize, textWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
+					for timeSlot,betEntry in pairs(betInfo) do
+						glTranslate(0,stepSize,0)
+						local playerName = PlayerIDtoName(betEntry.player)
+						local validBet = GetGameFrame() >= betEntry.validFrom
+						glText(" \255\225\225\225"..(validBet and "-" or "x") .. "  time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. "   \255\255\255\255" .. playerName .. "\255\225\225\225".. (validBet and "" or ("   valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ) .. "  cost: " .. betEntry.betCost, 0, 0,stepSize, "o")
 					end
-					local offsetX = chipStackOffset[i].x*1.5
-					local offsetZ = chipStackOffset[i].z*1.5
-					glTranslate(offsetX,0,offsetZ)
-					glRotate(90,1,0,0)
-					glPushMatrix()
-						glRotate(chipStackOffset[i].r*360,0,0,1)
-						glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
-					glPopMatrix()
-					glRotate(90,-1,0,0)
-					glTranslate(-offsetX,chipHeight,-offsetZ)
+					glTranslate(0,stepSize+1,0)
+					local betCost = getBetCost(myPlayerID,"unit",unitID)
+					glText(titleText, 0, 0,stepSize, "o")
+				else
+					
+					--glColor({1,1,0,0.4})
+					--glTranslate(0,cubeShift+cubeFactor,0)
+					--drawCylinder(3*cubeFactor, cubeFactor)
+					
+					local iconSize = 32
+					local chipHeight = 8
+					glTranslate(0,50,0)
+					glColor({1,1,1,1})
+					glTexture(chipTexture)
+					for i = 1, totalWin do
+						if chipStackOffset[i] == nil then
+							chipStackOffset[i] = {x=math.random(),z=math.random(),r=math.random()}
+						end
+						local offsetX = chipStackOffset[i].x*1.5
+						local offsetZ = chipStackOffset[i].z*1.5
+						glTranslate(offsetX,0,offsetZ)
+						glRotate(90,1,0,0)
+						glPushMatrix()
+							glRotate(chipStackOffset[i].r*360,0,0,1)
+							glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
+						glPopMatrix()
+						glRotate(90,-1,0,0)
+						glTranslate(-offsetX,chipHeight,-offsetZ)
+					end
 				end
-			end
-		glPopMatrix()
-	end)
+			glPopMatrix()
+		end)
+	end
 end
 
 function widget:GameFrame(n)
