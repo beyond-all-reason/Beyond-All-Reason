@@ -415,7 +415,7 @@ else
 local GetSpectatingState = Spring.GetSpectatingState
 local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 local myPlayerID = Spring.GetMyPlayerID()
-local oldspectatingstate = GetSpectatingState()
+local oldspectatingstate = false
 
 function gadget:Initialize()
 
@@ -437,6 +437,7 @@ function gadget:Initialize()
 	gadgetHandler:AddChatAction("getbetlist", PushGetBetList, nil, "t")
 	gadgetHandler:AddChatAction("getplayerbetlist", PushGetPlayerBetList, nil, "t")
 
+	gadget:PlayerChanged()
 end
 
 function gadget:Shutdown()
