@@ -80,14 +80,16 @@ end
 
 
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
-
-	if airTransports[transportId] and not Spring.GetUnitIsTransporting(transportId)[1] then
-		-- transport is empty, cleanup tables
-		airTransports[transportId] = nil
-		airTransportMaxSpeeds[transportId] = nil
-	else
-		-- update allowed speed
-		updateAllowedSpeed(transportId, airTransports[transportId])
+	local ud = UnitDefs[Spring.GetUnitDefID(transportId)]
+	if ud.canFly then
+		if airTransports[transportId] and not Spring.GetUnitIsTransporting(transportId)[1] then
+			-- transport is empty, cleanup tables
+			airTransports[transportId] = nil
+			airTransportMaxSpeeds[transportId] = nil
+		else
+			-- update allowed speed
+			updateAllowedSpeed(transportId, airTransports[transportId])
+		end
 	end
 end
 
