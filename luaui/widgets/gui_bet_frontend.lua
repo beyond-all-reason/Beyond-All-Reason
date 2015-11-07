@@ -38,9 +38,11 @@ local GetSpectatingState = Spring.GetSpectatingState
 local GetUnitIsDead = Spring.GetUnitIsDead
 local Echo = Spring.Echo
 local min = math.min
+local max = math.max
 local cos = math.cos
 local sin = math.sin
 local abs = math.abs 
+local random = math.random
 local pi = math.pi
 local floor = math.floor
 local random = math.random
@@ -427,12 +429,11 @@ function printbets(_,_,params)
 				Echo("bets for " .. humanName )
 			end
 			for timeSlot,betEntry in pairs(betsinfo) do
-				local playerID = PlayerIDtoName(betEntry.player)
-				local validBet = GetGameFrame() >= betEntry.validFrom
-				Echo((validBet and "-" or "x") .. " time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. " by: " .. playerID .. " cost: " .. betEntry.betCost .. (validBet and "" or (" valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ))
+				Echo(getBetLineText(betEntry))
 			end
-			local numBets, totalScore, totalWin = getBetWinScore(betType,betID)
-			Echo("total bets: " .. numBets .. " total points bet: " .. totalScore .. " prize: " .. totalWin )
+			local numBets, totalScore, totalWin = betStats[betType][betID].numBets, betStats[betType][betID].totalSpent, betStats[betType][betID].prizePoints 
+			local betCost = getBetCost(myPlayerID,betType,betID)
+			Echo(getTotalText(numBets,totalScore,totalWin,betCost))
 		end
 	end
 end
@@ -452,7 +453,6 @@ function widget:GameOver()
 end
 
 function betOverCallback(betType, betID, winnerID, prizePoints)
-	SendCommands({"luarules getbetsstats","luarules getplayerscores", "luarules getbetlist", "luarules getplayerbetlist"})
 	winnerID = PlayerIDtoName(winnerID)
 	local textstring = ""
 	if betType == "team" then
@@ -463,10 +463,12 @@ function betOverCallback(betType, betID, winnerID, prizePoints)
 		unitHumanNames[betID] = nil
 	end
 	Echo( textstring .. " has died! " .. winnerID .. " has won " .. prizePoints .. " points.")
+	if betType == "unit" then
+		updateDisplayList(betID,betList[betType][betID])
+	end
 end
 
 function receivedBetCallback(playerID, betType, betID, betTime, betCost)
-	SendCommands({"luarules getbetsstats","luarules getplayerscores", "luarules getbetlist", "luarules getplayerbetlist"})
 	playerID = PlayerIDtoName(playerID)
 	local textstring = ""
 	if betType == "team" then
@@ -478,10 +480,15 @@ function receivedBetCallback(playerID, betType, betID, betTime, betCost)
 		unitHumanNames[betID] = textstring
 	end
 	Echo( playerID .. " has bet " .. betCost .. " points on " .. textstring .. " to die at " .. betTime/(BET_GRANULARITY) .. " minutes")
+	if betType == "unit" then
+		updateDisplayList(betID,betList[betType][betID])
+	end
 end
 
-function betValidCallback()
-	SendCommands({"luarules getbetlist"}) 
+function betValidCallback(playerID, betType, betID, timeSlot)
+	if betType == "unit" then
+		updateDisplayList(betID,betList[betType][betID])
+	end
 end
 
 function widget:SetConfigData(data)
@@ -511,16 +518,6 @@ end
 
 function RecvPlayerBetList(newPlayerBetList)
 	playerBetList = newPlayerBetList or {}
-end
-
-function widget:PlayerChanged()
-	local newstate = GetSpectatingState()
-	if newstate and oldspectatingstate ~= newstate then
-		-- we just become spectators, we can be a player now!
-		--refresh information
-		SendCommands({"luarules getbetsstats","luarules getplayerscores", "luarules getbetlist", "luarules getplayerbetlist"})
-	end
-	oldspectatingstate = newstate
 end
 
 function widget:Initialize()
@@ -660,6 +657,17 @@ local function RectRound(px,py,sx,sy,cs)
 end
 
 
+function getBetLineText(betEntry)
+	local playerName = PlayerIDtoName(betEntry.player)
+	local validBet = GetGameFrame() >= betEntry.validFrom
+	return " \255\225\225\225"..(validBet and "-" or "x") .. "  time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. "   \255\255\255\255" .. playerName .. "\255\225\225\225".. (validBet and "" or ("   valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ) .. "  cost: " .. betEntry.betCost
+end
+
+function getTotalText(numBets,totalScore,totalWin,betValue)
+	return "\255\255\55\1Bets: " .. numBets .. "   \255\255\180\1Total points bet: " .. totalScore .. "   \255\255\255\1Prize: " .. totalWin .. "   \255\55\255\1Betting cost: " .. betValue
+end
+
+
 function updateDisplayList(unitID,betInfo)
 	local stepSize = 15
 	--local cubeShift = 25
@@ -672,8 +680,7 @@ function updateDisplayList(unitID,betInfo)
 	if unitDisplayList[unitID] then
 		glDeleteList(unitDisplayList[unitID])
 	end
-	local isDead = GetUnitIsDead(unitID)
-	if isDead == false then
+	if GetUnitIsDead(unitID) == false then
 		unitDisplayList[unitID] = glCreateList( function()
 			glPushMatrix()
 				local unitPos = {GetUnitPosition(unitID,true,true)}
@@ -682,7 +689,7 @@ function updateDisplayList(unitID,betInfo)
 					glTranslate(25,25,25)
 					glBillboard()
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
-					local titleText = "\255\255\55\1Bets: " .. numBets .. "   \255\255\180\1Total points bet: " .. totalScore .. "   \255\255\255\1Prize: " .. totalWin .. "   \255\55\255\1Betting cost: " .. betCost
+					local titleText = getTotalText(numBets,totalScore,totalWin,betCost)
 					local textWidth = glGetTextWidth(titleText)*stepSize
 					local totalBgHeight = (numBets*stepSize)+stepSize
 					local padding = 8
@@ -690,9 +697,7 @@ function updateDisplayList(unitID,betInfo)
 					RectRound(-padding, -padding+stepSize, textWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
 					for timeSlot,betEntry in pairs(betInfo) do
 						glTranslate(0,stepSize,0)
-						local playerName = PlayerIDtoName(betEntry.player)
-						local validBet = GetGameFrame() >= betEntry.validFrom
-						glText(" \255\225\225\225"..(validBet and "-" or "x") .. "  time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. "   \255\255\255\255" .. playerName .. "\255\225\225\225".. (validBet and "" or ("   valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ) .. "  cost: " .. betEntry.betCost, 0, 0,stepSize, "o")
+						glText(getBetLineText(betEntry), 0, 0,stepSize, "o")
 					end
 					glTranslate(0,stepSize+1,0)
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
@@ -710,7 +715,7 @@ function updateDisplayList(unitID,betInfo)
 					glTexture(chipTexture)
 					for i = 1, totalWin do
 						if chipStackOffset[i] == nil then
-							chipStackOffset[i] = {x=math.random(),z=math.random(),r=math.random()}
+							chipStackOffset[i] = {x=random(),z=random(),r=random()}
 						end
 						local offsetX = chipStackOffset[i].x*1.5
 						local offsetZ = chipStackOffset[i].z*1.5
@@ -726,14 +731,12 @@ function updateDisplayList(unitID,betInfo)
 				end
 			glPopMatrix()
 		end)
+	else
+		unitDisplayList[unitID] = nil
 	end
 end
 
 function widget:GameFrame(n)
-	--FIXME: why is the engine retarded and blocks commands to luarules before frame2???
-	if n == 2 then
-		SendCommands({"luarules getbetsstats","luarules getplayerscores", "luarules getbetlist", "luarules getplayerbetlist"})
-	end
 	if not viewBets or not betList.unit then
 		return
 	end

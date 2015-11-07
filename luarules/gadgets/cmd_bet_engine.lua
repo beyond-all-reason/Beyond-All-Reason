@@ -415,6 +415,7 @@ else
 local GetSpectatingState = Spring.GetSpectatingState
 local SendLuaRulesMsg = Spring.SendLuaRulesMsg
 local myPlayerID = Spring.GetMyPlayerID()
+local oldspectatingstate = GetSpectatingState()
 
 function gadget:Initialize()
 
@@ -457,14 +458,33 @@ local function FullView()
 	return select(2,GetSpectatingState())
 end
 
+function gadget:PlayerChanged()
+	local newstate = GetSpectatingState()
+	if newstate and oldspectatingstate ~= newstate then
+		-- we just become spectators, we can be a player now!
+		--refresh information
+		PushGetBetsStats(_,_,_,myPlayerID)
+		PushGetPlayerScores(_,_,_,myPlayerID)
+		PushGetPlayerBetList(_,_,_,myPlayerID)
+		PushGetBetList(_,_,_,myPlayerID)
+	end
+	oldspectatingstate = newstate
+end
 
-function PushGetMinBetTime()
+
+function PushGetMinBetTime(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	if Script.LuaUI("getMinBetTime") then
 		Script.LuaUI.getMinBetTime(getMinBetTime())
 	end
 end
 
-function PushIsValidBet(_,_,params)
+function PushIsValidBet(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	if Script.LuaUI("isValidBet") then
 		if not FullView() then
 			Script.LuaUI.isValidBet()
@@ -474,7 +494,10 @@ function PushIsValidBet(_,_,params)
 	end
 end
 
-function PushPlaceBet(_,_,params)
+function PushPlaceBet(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	if Script.LuaUI("placeBet") then
 		if not FullView() then
 			Script.LuaUI.placeBet()
@@ -489,7 +512,10 @@ function PushPlaceBet(_,_,params)
 	end
 end
 
-function PushGetBetCost(_,_,params)
+function PushGetBetCost(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	if Script.LuaUI("getBetCost") then
 		if not FullView() then
 			Script.LuaUI.getBetCost()
@@ -499,7 +525,10 @@ function PushGetBetCost(_,_,params)
 	end
 end
 
-function PushGetBetsStats(_,_,params)
+function PushGetBetsStats(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	if Script.LuaUI("getBetsStats") then
 		if not FullView() then
 			Script.LuaUI.getBetsStats()
@@ -510,7 +539,10 @@ function PushGetBetsStats(_,_,params)
 end
 
 
-function PushGetPlayerScores()
+function PushGetPlayerScores(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	if Script.LuaUI("getPlayerScores") then
 		if not FullView() then
 			Script.LuaUI.getPlayerScores()
@@ -520,7 +552,10 @@ function PushGetPlayerScores()
 	end
 end
 
-function PushGetBetList()
+function PushGetBetList(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	timeBets = SYNCED[_G_INDEX].timeBets
 	if Script.LuaUI("getBetList") then
 		if not FullView() then
@@ -531,7 +566,10 @@ function PushGetBetList()
 	end
 end
 
-function PushGetPlayerBetList()
+function PushGetPlayerBetList(cmd,line,params,playerID)
+	if playerID ~= myPlayerID then
+		return
+	end
 	playerBets = SYNCED[_G_INDEX].playerBets
 	if Script.LuaUI("getPlayerBetList") then
 		if not FullView() then
@@ -551,6 +589,10 @@ function handleBetOverCallback(_,betType, betID, winnerID, prizePoints)
 	if not FullView() then
 		return
 	end
+	PushGetBetsStats(_,_,_,myPlayerID)
+	PushGetPlayerScores(_,_,_,myPlayerID)
+	PushGetPlayerBetList(_,_,_,myPlayerID)
+	PushGetBetList(_,_,_,myPlayerID)
 	if Script.LuaUI("betOverCallback") then
 		Script.LuaUI.betOverCallback(betType, betID, winnerID, prizePoints)
 	end
@@ -564,6 +606,10 @@ function handleReceivedBetCallback(_,playerID, betType, betID, betAtTime, betCos
 	if not FullView() then
 		return
 	end
+	PushGetBetsStats(_,_,_,myPlayerID)
+	PushGetPlayerScores(_,_,_,myPlayerID)
+	PushGetPlayerBetList(_,_,_,myPlayerID)
+	PushGetBetList(_,_,_,myPlayerID)
 	if Script.LuaUI("receivedBetCallback") then
 		Script.LuaUI.receivedBetCallback(playerID, betType, betID, betAtTime, betCost, validFrom)
 	end
@@ -576,6 +622,13 @@ function handleBetValidCallback(_,playerID, betType, betID, timeSlot)
 	if Script.LuaUI("betValidCallback") then
 		Script.LuaUI.betValidCallback(playerID, betType, betID, timeSlot)
 	end
+end
+
+function gadget:GameStart()
+	PushGetBetsStats(_,_,_,myPlayerID)
+	PushGetPlayerScores(_,_,_,myPlayerID)
+	PushGetPlayerBetList(_,_,_,myPlayerID)
+	PushGetBetList(_,_,_,myPlayerID)
 end
 
 function gadget:GameOver()
