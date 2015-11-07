@@ -708,7 +708,7 @@ function updateDisplayList(unitID,betInfo)
 					--glTranslate(0,cubeShift+cubeFactor,0)
 					--drawCylinder(3*cubeFactor, cubeFactor)
 					
-					local iconSize = 32
+					local iconSize = 26
 					local chipHeight = 8
 					glTranslate(0,50,0)
 					glColor({1,1,1,1})
