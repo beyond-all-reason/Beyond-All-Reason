@@ -765,7 +765,7 @@ function DrawSideImages()
 					data["isAlive"] = not tData.isDead
 					hasCom = tData.hasCom
 									
-					if GetGameSeconds() > 0 and data["isAlive"] then
+					if GetGameSeconds() > 0 then
 						if not tData.isDead then
 							alpha = tData.active and 1 or 0.3
 							DrawSideImage(sideImg,posx,posy, r, g, b,alpha,not hasCom,Button["player"][tID]["mouse"],t, false,isZombie)
