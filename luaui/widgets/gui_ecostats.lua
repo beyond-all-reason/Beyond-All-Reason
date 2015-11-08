@@ -107,6 +107,7 @@ local glTexture						= gl.Texture
 local glColor						= gl.Color
 local glTexRect						= gl.TexRect
 local glRect						= gl.Rect
+local glText            			 = gl.Text
 local GetGameSpeed					= Spring.GetGameSpeed
 local GetTeamUnitCount				= Spring.GetTeamUnitCount
 local GetMyAllyTeamID				= Spring.GetMyAllyTeamID
@@ -116,6 +117,7 @@ local GetTeamInfo					= Spring.GetTeamInfo
 local GetPlayerInfo					= Spring.GetPlayerInfo
 local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
+local Echo							= Spring.Echo
 
 local Button 						= {}
 Button["player"] 					= {}
@@ -124,13 +126,14 @@ Button["team"] 						= {}
 local Options						= {}
 
 local lastPlayerChange				= 0
+local aliveAllyTeams				= 0
 local lastDrawUpdate				
 local drawList
 
 local vsx,vsy                    	= gl.GetViewSizes()
 local right							= true
 local widgetHeight					
-local widgetWidth                	= 100
+local widgetWidth                	= 130
 local widgetPosX                 	= vsx-widgetWidth
 local widgetPosY                 	= 600
 local widgetRight			 	    = widgetPosX + widgetWidth
@@ -171,13 +174,6 @@ local images			= {
 						["barbg"]     			= "LuaUI/Images/ecostats/barbg.png",
 						["outer_colonies"]		= LUAUI_DIRNAME .. "Images/ecostats/ecommander.png", -- commander in evorts
 						}
-			
----------------------------------------------------------------------------------------------------
---  Speed ups
----------------------------------------------------------------------------------------------------
-
-local Echo 						 = Spring.Echo
-local glText            		 = gl.Text
 
 ---------------------------------------------------------------------------------------------------
 --  Start
@@ -262,7 +258,7 @@ function Init()
 			allyData[allyDataIndex]						= {}
 			allyData[allyDataIndex]["teams"]			= teamList
 			allyData[allyDataIndex].exists				= #teamList > 0
-				
+			
 			for _,teamID in pairs(teamList) do
 				local myAllyID = select(6,GetTeamInfo(teamID))
 				
@@ -348,7 +344,7 @@ function setDefaults()
 	Options["removeDead"] = {}
 	Options["removeDead"]["On"] = false
 	vsx,vsy 			= gl.GetViewSizes()
-	widgetWidth 		= 100
+	widgetWidth 		= 130
 	widgetPosX         	= vsx-widgetWidth
 	widgetPosY         	= vsy
 	right 				= true
@@ -360,7 +356,7 @@ function widget:GetConfigData(data)      -- save
 	return {
 		widgetPosX         = widgetPosX,
 		widgetPosY         = widgetPosY,
-		widgetWidth		   = widgetWidth,
+		--widgetWidth		   = widgetWidth,
 		removeDeadOn 	   = Options.removeDead.On,
 		resTextOn 	   	   = Options.resText.On,
 		disableOn		   = Options.disable.On,
@@ -384,7 +380,7 @@ function widget:SetConfigData(data)      -- load
 	Options["removeDead"]["On"] = false
 	widgetPosX         	= data.widgetPosX or widgetPosX
 	widgetPosY         	= data.widgetPosY or widgetPosY
-	widgetWidth 		= data.widgetWidth or widgetWidth
+	--widgetWidth 		= data.widgetWidth or widgetWidth
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -616,26 +612,27 @@ local function DrawOptionRibbon()
 		x0 = widgetPosX
 		x1 = x0 + dx + widgetWidth
 	end
-	Options["disable"]["x1"] = x0 + 190
-	Options["disable"]["x2"] = x0 + 190 + t
-	Options["disable"]["y2"] = widgetPosY - 10
-	Options["disable"]["y1"] = widgetPosY - 10 - t
+	local yPos = widgetPosY + widgetHeight - tH*(aliveAllyTeams)
+	Options["disable"]["x1"] = x1 - 20
+	Options["disable"]["x2"] = x1 - 20 + t
+	Options["disable"]["y2"] = yPos - 10
+	Options["disable"]["y1"] = yPos - 10 - t
 	
-	Options["resText"]["x1"] = x0 + 190
-	Options["resText"]["x2"] = x0 + 190 + t
-	Options["resText"]["y2"] = widgetPosY - 30
-	Options["resText"]["y1"] = widgetPosY - 30 - t
+	Options["resText"]["x1"] = x1 - 20
+	Options["resText"]["x2"] = x1 - 20 + t
+	Options["resText"]["y2"] = yPos - 30
+	Options["resText"]["y1"] = yPos - 30 - t
 	
 	Options["removeDead"]["x1"] = x0 + 190
 	Options["removeDead"]["x2"] = x0 + 190 + t
-	Options["removeDead"]["y2"] = widgetPosY - 50
-	Options["removeDead"]["y1"] = widgetPosY - 50 - t
+	Options["removeDead"]["y2"] = yPos - 50
+	Options["removeDead"]["y1"] = yPos - 50 - t
 	
 	
 	glColor(0,0,0,0.4)                              -- draws background rectangle
 	--glRect(x0,widgetPosY, x1, widgetPosY -h)
 	local padding = 2
-	RectRound(x0-padding, widgetPosY -h-padding, x1+padding, widgetPosY+padding, 6)
+	RectRound(x0-padding, yPos -h-padding, x1+padding, yPos+padding, 6)
 	glColor(0.8,0.8,1,0.8)
 	glText("Disable when playing:", x0+10, Options["disable"]["y1"]+(textsize/2),textsize)
 	glText("Show resource text:", x0+10, Options["resText"]["y1"]+(textsize/2),textsize)
@@ -745,12 +742,10 @@ function DrawSideImages()
 		local aID = data.aID
 		local drawpos = data.drawpos
 		
-		if data.exists and drawpos and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies)then
+		if data.exists and drawpos and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) and data["isAlive"] then
 			
 			local posy = tH*(drawpos) + 4
 			local label, isAlive, hasCom
-			
-			
 			-- Player faction images
 			for i, tID  in pairs (data.teams) do
 				if tID ~= gaiaID or haveZombies then
@@ -770,7 +765,7 @@ function DrawSideImages()
 					data["isAlive"] = not tData.isDead
 					hasCom = tData.hasCom
 									
-					if GetGameSeconds() > 0 then
+					if GetGameSeconds() > 0 and data["isAlive"] then
 						if not tData.isDead then
 							alpha = tData.active and 1 or 0.3
 							DrawSideImage(sideImg,posx,posy, r, g, b,alpha,not hasCom,Button["player"][tID]["mouse"],t, false,isZombie)
@@ -785,7 +780,6 @@ function DrawSideImages()
 					end
 				end
 			end
-			
 		end
 	end
 end
@@ -1161,7 +1155,7 @@ function updateButtons()
 	end
 		
 	local drawpos = 0
-	
+	aliveAllyTeams = 0
 	for _, data in ipairs(allyData) do
 		local allyID = data.aID
 		
@@ -1194,12 +1188,13 @@ function updateButtons()
 			Button["player"][tID]["pID"] = tID
 			
 			if not inSpecMode then 
-				Button["player"][tID]["x1"] = widgetPosX + WBadge*(i-2) + 25 + (WBadge-14)*4  - 10
+				Buttonc[tID]["x1"] = widgetPosX + WBadge*(i-2) + 25 + (WBadge-14)*4  - 10
 				Button["player"][tID]["x2"] = widgetPosX + WBadge*(i-2) + 25 + (WBadge-14)*4 + WBadge - 10
 			end
 		end
 		
-		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) then
+		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data["isAlive"] then
+			aliveAllyTeams = aliveAllyTeams + 1
 			drawpos = drawpos + 1
 		end
 		data["drawpos"] = drawpos
