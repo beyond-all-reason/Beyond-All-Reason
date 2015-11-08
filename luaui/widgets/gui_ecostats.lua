@@ -1158,6 +1158,7 @@ function updateButtons()
 	aliveAllyTeams = 0
 	for _, data in ipairs(allyData) do
 		local allyID = data.aID
+		local allyAlive = data["isAlive"]
 		
 		if allyID and (allyID ~= gaiaAllyID or haveZombies) then 
 			
@@ -1193,7 +1194,7 @@ function updateButtons()
 			end
 		end
 		
-		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data["isAlive"] then
+		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and allyAlive then
 			aliveAllyTeams = aliveAllyTeams + 1
 			drawpos = drawpos + 1
 		end
