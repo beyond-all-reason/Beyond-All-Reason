@@ -762,7 +762,6 @@ function DrawSideImages()
 					sideImg = images[side] or images["default"]
 					if isZombie then sideImg = images["zombie"] end
 					
-					data["isAlive"] = not tData.isDead
 					hasCom = tData.hasCom
 									
 					if GetGameSeconds() > 0 then
@@ -1158,7 +1157,6 @@ function updateButtons()
 	aliveAllyTeams = 0
 	for _, data in ipairs(allyData) do
 		local allyID = data.aID
-		local allyAlive = data["isAlive"]
 		
 		if allyID and (allyID ~= gaiaAllyID or haveZombies) then 
 			
@@ -1194,7 +1192,7 @@ function updateButtons()
 			end
 		end
 		
-		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and allyAlive then
+		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data["isAlive"] then
 			aliveAllyTeams = aliveAllyTeams + 1
 			drawpos = drawpos + 1
 		end
