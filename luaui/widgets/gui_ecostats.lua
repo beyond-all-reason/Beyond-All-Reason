@@ -134,9 +134,6 @@ local vsx,vsy                    	= gl.GetViewSizes()
 local right							= true
 local widgetHeight					
 local widgetWidth                	= 130
-local widgetPosX                 	= vsx-widgetWidth
-local widgetPosY                 	= 600
-local widgetRight			 	    = widgetPosX + widgetWidth
 local tH						 	= 50 -- team row height
 local WBadge					 	= 14 -- width of player badge (side icon)
 local iPosX, iPosY
@@ -152,6 +149,10 @@ local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0)
 local maxPlayers					= 0
 
 local avgFrames 					= 18
+
+local xRelPos, yRelPos				= 1, 1
+local widgetPosX, widgetPosY        = xRelPos*vsx, yRelPos*vsy
+local widgetRight			 	    = widgetPosX + widgetWidth
 
 ---------------------------------------------------------------------------------------------------
 
@@ -196,11 +197,9 @@ function removeGuiShaderRects()
 	if (WG['guishader_api'] ~= nil) then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
-			local drawpos = data.drawpos
 			
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				
-				local posy = tH*(drawpos)
 				WG['guishader_api'].RemoveRect('ecostats_'..posy)
 			end
 		end
@@ -343,20 +342,20 @@ function setDefaults()
 	Options["resText"]["On"] = false
 	Options["removeDead"] = {}
 	Options["removeDead"]["On"] = false
-	vsx,vsy 			= gl.GetViewSizes()
-	widgetWidth 		= 130
-	widgetPosX         	= vsx-widgetWidth
-	widgetPosY         	= vsy
-	right 				= true
-	tH					= 50
+	widgetWidth 			= 130
+	right 					= true
+	tH						= 50
+	vsx,vsy 				= gl.GetViewSizes()
+	xRelPos, yRelPos		= 1, 1
+	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
 end
 
 function widget:GetConfigData(data)      -- save
 	--Echo("Saving config data")
 	return {
-		widgetPosX         = widgetPosX,
-		widgetPosY         = widgetPosY,
 		--widgetWidth		   = widgetWidth,
+		xRelPos            = xRelPos,
+		yRelPos            = yRelPos,
 		removeDeadOn 	   = Options.removeDead.On,
 		resTextOn 	   	   = Options.resText.On,
 		disableOn		   = Options.disable.On,
@@ -378,9 +377,12 @@ function widget:SetConfigData(data)      -- load
 	Options["removeDead"] = {}
 	--Options["removeDead"]["On"] = data.removeDeadOn or false
 	Options["removeDead"]["On"] = false
-	widgetPosX         	= data.widgetPosX or widgetPosX
-	widgetPosY         	= data.widgetPosY or widgetPosY
 	--widgetWidth 		= data.widgetWidth or widgetWidth
+	xRelPos				= data.xRelPos or xRelPos
+	yRelPos				= data.yRelPos or yRelPos
+	
+	vsx,vsy 			= gl.GetViewSizes()
+	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -585,7 +587,7 @@ local function DrawMBar(tM,vOffset) -- where tM = team Metal = [0,1]
 end
 
 
-local function DrawBackground(posY)
+local function DrawBackground(posY, allyID)
 	local y1 = widgetPosY - posY + widgetHeight
 	local y2 = widgetPosY - posY + tH + widgetHeight
 	glColor(0,0,0,0.6)
@@ -594,7 +596,7 @@ local function DrawBackground(posY)
 	glColor(1,1,1,0.022)
 	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, 6)
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..posY)
+		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
 	end
 	glColor(1,1,1,1)
 end
@@ -824,7 +826,7 @@ local function drawListStandard()
 				
 				local posy = tH*(drawpos)
 				
-				if data["isAlive"] then DrawBackground(posy) end
+				if data["isAlive"] then DrawBackground(posy, aID) end
 				
 				local t = GetGameSeconds()
 				if data["isAlive"] and t > 0 and gamestarted and not gameover then
@@ -1268,9 +1270,11 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 		if moveStartY == nil then                                                      -- move widget on y axis
 			moveStartY = y - widgetPosY
 		end
-		widgetPosX = widgetPosX + dx
-		widgetPosY = widgetPosY + dy
+		xRelPos = xRelPos + (dx/vsx)
+		yRelPos = yRelPos + (dy/vsy)
 		
+		widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
+	
 		updateButtons()
 		makeStandardList()
 		makeSideImageList()
@@ -1424,6 +1428,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
+	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	Reinit()
 end
 
