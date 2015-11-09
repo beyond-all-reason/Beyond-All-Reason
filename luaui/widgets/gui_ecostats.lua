@@ -371,12 +371,11 @@ function setDefaults()
 	tH						= 50
 	vsx,vsy 				= gl.GetViewSizes()
 	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
-	borderPadding			= 4
+	borderPadding			= 4.5
 	WBadge					= 14
 	cW						= 100
 	textsize				= 11
 	textlarge				= 18
-	borderPadding			= 4
 end
 
 function widget:GetConfigData(data)      -- save
@@ -620,7 +619,7 @@ local function DrawBackground(posY, allyID)
 	glColor(0,0,0,0.6)
 	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 7)
 	glColor(1,1,1,0.022)
-	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*4)
+	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
 	end
