@@ -200,7 +200,7 @@ function removeGuiShaderRects()
 			
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				
-				WG['guishader_api'].RemoveRect('ecostats_'..posy)
+				WG['guishader_api'].RemoveRect('ecostats_'..aID)
 			end
 		end
 		WG['guishader_api'].RemoveRect('ecostats_expandtable')
