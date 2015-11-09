@@ -350,7 +350,7 @@ end
 function processScaling()
 	setDefaults()
 	
-	sizeMultiplier   = 0.5 + (vsx*vsy / 7000000)
+	sizeMultiplier   = 0.45 + (vsx*vsy / 7000000)
 	
 	tH				= math.floor(tH * sizeMultiplier)
 	widgetWidth		= math.floor(widgetWidth * sizeMultiplier)
