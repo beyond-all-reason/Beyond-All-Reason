@@ -301,6 +301,8 @@ function widget:DrawWorldPreUnit()
 			end
 		end
 		gl.Texture(false)
+		gl.Color(1,1,1,1)
+		gl.PolygonOffset(false)
 	end
 end
 
