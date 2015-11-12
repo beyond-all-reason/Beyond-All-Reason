@@ -131,7 +131,7 @@ end
 
 local function createtooltip(r)
 	local text = {"text",
-		px=r.px+r.margin,py=r.py+r.margin,
+		px=r.px+r.margin,py=r.py+(r.margin/1.5),
 		fontsize=r.fontsize,
 		color={1,1,1,0.3},
 		caption="",
