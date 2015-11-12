@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize. '/cputext' displays cpu %",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "14.0",
+		version   = "16.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -36,6 +36,7 @@ end
 -- v13   (Floris): Added scale buttons. Added grey cpu/ping icons for spectators. Resized elements. Textured bg. Spec label click to unfold/fold. Added guishader. Lockcamera on doubleclick. Ping in ms/sec/min. Shows dot icon in front of tracked player. HD-ified lots of other icons. Speccing/dead player keep their color. Improved e/m share gui responsiveness. + removed the m_spec option
 -- v14   (Floris): Added country flags + Added camera icons for locked camera + specs show bright when they are broadcasting new lockcamera positions + bugfixed lockcamera for specs. Added small gaps between in tweakui icons. Auto scales with resolution changes.
 -- v15   (Floris): Integrated LockCamers widget code
+-- v16	 (Floris): Added chips next to gambling-spectators for betting system
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -100,8 +101,9 @@ local imageDirectory  = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/"
 
 local flagsDirectory  = imageDirectory.."flags/"
 
-local bgcorner        = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner        = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"\
 
+local chipPic	      = imageDirectory.."chip.dds"
 local currentPic      = imageDirectory.."indicator.dds"
 local unitsPic        = imageDirectory.."units.dds"
 local energyPic       = imageDirectory.."energy.dds"
@@ -190,6 +192,7 @@ local lastBroadcasts = {}
 local recentBroadcasters = {}
 local newBroadcaster = false
 local totalTime = 0
+local playerScores = {}
 
 local myLastCameraState
 
@@ -644,7 +647,12 @@ end
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
 
+function RecvPlayerScores(newPlayerScores)
+	playerScores = newPlayerScores or {}
+end
+
 function widget:Initialize()
+	widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	UpdateRecentBroadcasters()
 	
@@ -1623,8 +1631,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 					DrawCamera(posY, false)
 				end
 			end
+			if playerScores[playerID] ~= nil then
+				DrawChips(playerID, posY)
+			end
 			DrawSmallName(name, team, posY, false, playerID, alpha)
 		end		
+		
 	end
 	
 	if m_cpuping.active == true then
@@ -1703,6 +1715,15 @@ end
 function DrawChatButton(posY)
 	gl_Texture(chatPic)
 	DrawRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
+end
+
+function DrawChips(playerID, posY)
+	local xPos = m_name.posX + widgetPosX - 6
+	gl_Color(0.75,0.75,0.75,0.8)
+	gl_Text(playerScores[playerID].score, xPos-5, posY+4, 9.5, "r")
+	gl_Color(1,1,1,1)
+	gl_Texture(chipPic)
+	DrawRect(xPos+4, posY+3.5, xPos-2.5, posY + 10)
 end
 
 function DrawSidePic(team, playerID, posY, leader, dark, ai)
