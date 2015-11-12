@@ -101,7 +101,7 @@ local imageDirectory  = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/"
 
 local flagsDirectory  = imageDirectory.."flags/"
 
-local bgcorner        = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"\
+local bgcorner        = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local chipPic	      = imageDirectory.."chip.dds"
 local currentPic      = imageDirectory.."indicator.dds"
