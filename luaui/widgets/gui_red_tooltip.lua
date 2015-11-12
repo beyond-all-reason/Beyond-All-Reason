@@ -22,7 +22,7 @@ local Config = {
 		px = -0.5,py = CanvasY-82, --default start position
 		sx = 270,sy = 82, --background size
 		
-		fontsize = 11,
+		fontsize = 10.5,
 		
 		padding = 4,
 		color2 = {1,1,1,0.022},
