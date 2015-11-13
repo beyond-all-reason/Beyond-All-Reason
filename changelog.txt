@@ -9,7 +9,7 @@ Others:
 - betting frontend enabled by default
 - bugfix glitchy water for "map edge extension" widget
 - redui tooltip: text moved a bit higher to make room for keybind/commands/changelog buttons
-
+- redui minimap: added a border around it
 
 9.14 -> 9.15
 07/11/2015
