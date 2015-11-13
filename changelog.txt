@@ -1,4 +1,17 @@
-﻿9.14 -> 9.15
+﻿9.15 -> 9.16
+xx/11/2015
+
+Balance changes:
+
+Others:
+- ecostats: dead teams no longer show + has a fixed relative position (prevents it from moving down a bit after an ffa)
+- advplayerlist shows who is has betted and what score they have
+- betting frontend enabled by default
+- bugfix glitchy water for "map edge extension" widget
+- redui tooltip: text moved a bit higher to make room for keybind/commands/changelog buttons
+
+
+9.14 -> 9.15
 07/11/2015
 
 Balance changes:
