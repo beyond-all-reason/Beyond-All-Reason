@@ -730,6 +730,7 @@ function updateDisplayList(unitID,betInfo)
 						glRotate(90,-1,0,0)
 						glTranslate(-offsetX,chipHeight,-offsetZ)
 					end
+					glTexture(false)
 				end
 			glPopMatrix()
 		end)
