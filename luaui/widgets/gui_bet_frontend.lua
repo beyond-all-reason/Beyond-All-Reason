@@ -1,13 +1,13 @@
 
 function widget:GetInfo()
 	return {
-		name		= "Bet Frontend",
+		name		= "Bet-Frontend",
 		desc		= "Use player console and markers to place bets",
 		author		= "BrainDamage",
 		date		= "Jan,2013",
 		license		= "WTFPL",
 		layer		= 1,
-		enabled		= false,
+		enabled		= true,
 	}
 end
 
@@ -441,7 +441,7 @@ end
 function printscores()
 	for playerID, score in pairs(playerScores) do
 		playerID = PlayerIDtoName(playerID)
-		Echo(playerID .. ": score: " .. score.score .. " currently running bets: " .. score.currentlyRunning .." won: " .. score.won .. " lost: " .. score.lost .. " total bets placed: " .. score.totalPlaced)
+		Echo("\255\200\255\200"..playerID .. "\255\200\200\200: score: \255\255\235\200" .. score.score .. " \255\200\200\200currently running bets: \255\255\235\200" .. score.currentlyRunning .." \255\200\200\200won: \255\255\235\200" .. score.won .. " \255\200\200\200lost: \255\255\235\200" .. score.lost .. " \255\200\200\200total bets placed: \255\255\235\200" .. score.totalPlaced)
 	end
 end
 
@@ -449,7 +449,9 @@ function widget:GameOver()
 	if next(playerScores) ~= nil then
 		Echo("Betting game over! Scores are:")
 	end
-	printscores()
+	if #playerScores > 0 then
+		printscores()
+	end
 end
 
 function betOverCallback(betType, betID, winnerID, prizePoints)
