@@ -6,12 +6,12 @@ function widget:GetInfo()
 	author    = "Regret",
 	date      = "December 7, 2009", --last change December 11,2009
 	license   = "GNU GPL, v2 or later",
-	layer     = 1,
+	layer     = -11,
 	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
-local rescalevalue = 1.27
+local rescalevalue = 1.25
 local buttonScale = 0.5
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1272/rescalevalue,734/rescalevalue --resolution in which the widget was made (for 1:1 size)
@@ -34,6 +34,8 @@ local Config = {
 		cmovecolor = {0.9,0.9,0.9,0.8},
 		
 		cborder = {0,0,0,0},
+		cbackground = {0,0,0,0.5},
+		cbordersize = 3,
 		
 		dragbutton = {1}, --left mouse button
 		tooltip = {
@@ -129,6 +131,13 @@ local function createminimap(r)
 		border=r.cborder,
 		obeyscreenedge = true,
 	}
+	local minimapbg = {"rectanglerounded",
+		px=r.px-r.cbordersize,py=r.py,
+		sx=r.sx,sy=r.sy,
+		color=r.cbackground,
+		obeyscreenedge = true,
+		bordersize=r.cbordersize
+	}
 	
 	local resizebutton = {"rectangle",
 		px=r.px+r.sx-r.bsx,py=r.py+r.sy-1,
@@ -175,6 +184,7 @@ local function createminimap(r)
 	New(movebutton)
 	New(resizebutton)
 	New(minimap)
+	New(minimapbg)
 	
 	resizebutton.mouseover = function(mx,my,self)
 		self.active = nil
@@ -225,6 +235,10 @@ local function createminimap(r)
 	minimap.onupdate=function(self)
 		self.sx = resizebutton.px-self.px+resizebutton.sx
 		self.sy = resizebutton.py-self.py+1
+		minimapbg.px = self.px - minimapbg.bordersize
+		minimapbg.py = self.py - minimapbg.bordersize
+		minimapbg.sx = self.sx + minimapbg.bordersize + minimapbg.bordersize
+		minimapbg.sy = self.sy + minimapbg.bordersize + minimapbg.bordersize
 	end
 	resizebutton.onupdate=function(self)
 		if (self._mouseover) then
