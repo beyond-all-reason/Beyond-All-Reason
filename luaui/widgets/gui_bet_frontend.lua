@@ -36,6 +36,7 @@ local GetUnitDirection = Spring.GetUnitDirection
 local GetGameRulesParam = Spring.GetGameRulesParam
 local GetSpectatingState = Spring.GetSpectatingState
 local GetUnitIsDead = Spring.GetUnitIsDead
+local GetCameraPosition = Spring.GetCameraPosition
 local Echo = Spring.Echo
 local min = math.min
 local max = math.max
@@ -686,7 +687,7 @@ function updateDisplayList(unitID,betInfo)
 		unitDisplayList[unitID] = glCreateList( function()
 			glPushMatrix()
 				local unitPos = {GetUnitPosition(unitID,true,true)}
-				glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
+				--glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
 				if IsUnitSelected(unitID) then
 					glTranslate(25,25,25)
 					glBillboard()
@@ -705,12 +706,7 @@ function updateDisplayList(unitID,betInfo)
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
 					glText(titleText, 0, 0,stepSize, "o")
 				else
-					
-					--glColor({1,1,0,0.4})
-					--glTranslate(0,cubeShift+cubeFactor,0)
-					--drawCylinder(3*cubeFactor, cubeFactor)
-					
-					local iconSize = 26
+					local iconSize = 20
 					local chipHeight = 8
 					glTranslate(0,50,0)
 					glColor({1,1,1,1})
@@ -750,9 +746,20 @@ end
 
 
 function widget:DrawWorld()
+	local camX, camY, camZ = GetCameraPosition()
 	glPushMatrix()
-		for _,displayList in pairs(unitDisplayList) do
+		for unitID,displayList in pairs(unitDisplayList) do
+			local x,y,z = GetUnitPosition(unitID,true,true)
+			local xDifference = camX - x
+			local yDifference = camY - y
+			local zDifference = camZ - z
+			local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference) 
+			local usedScale = 0.55 + (camDistance/4500)
+			glPushMatrix()
+			glTranslate(x,y+GetUnitRadius(unitID),z)
+			glScale(usedScale,usedScale,usedScale)
 			glCallList(displayList)
+			glPopMatrix()
 		end
 	glPopMatrix()
 end
