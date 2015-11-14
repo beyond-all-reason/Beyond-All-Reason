@@ -36,6 +36,12 @@ local CMD_UNLOAD_UNIT = CMD.UNLOAD_UNIT -- icon map
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS -- icon  unit or area
 local BUILD = -1
 
+local diag = math.diag
+local pi = math.pi
+local sin = math.sin
+local cos = math.cos
+local atan = math.atan 
+local random = math.random
 
 --------------------------------------------------------------------------------
 -- Config
@@ -265,20 +271,12 @@ function widget:Shutdown()
 end
 
 
-local pi = math.pi
-local sin = math.sin
-local cos = math.cos
-local atan = math.atan 
-local random = math.random
 
 
 local function DrawLineEnd(x1,y1,z1, x2,y2,z2, width)
 	y1 = y2
 	
-	local xDifference		= x2 - x1
-	local yDifference		= y2 - y1
-	local zDifference		= z2 - z1
-	local distance			= math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+	local distance			= diag(x2-x1, y2-y1, z2-z1) 
 	
 	-- for 2nd rounding
 	local distanceDivider = distance / (width/2.25)
@@ -319,10 +317,7 @@ end
 local function DrawLineEndTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset)
 	y1 = y2
 	
-	local xDifference		= x2 - x1
-	local yDifference		= y2 - y1
-	local zDifference		= z2 - z1
-	local distance			= math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+	local distance			= diag(x2-x1, y2-y1, z2-z1)
 	
 	-- for 2nd rounding
 	local distanceDivider = distance / (width/2.25)
@@ -382,10 +377,7 @@ end
 
 local function DrawLineTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset) -- long thin rectangle
 
-	local xDifference		= x2 - x1
-	local yDifference		= y2 - y1
-	local zDifference		= z2 - z1
-	local distance			= math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+	local distance			= diag(x2-x1, y2-y1, z2-z1)
 	
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2

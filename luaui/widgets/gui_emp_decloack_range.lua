@@ -57,6 +57,7 @@ local CMD_MOVE_STATE		= CMD.MOVE_STATE
 local cmdCloack				= CMD.CLOAK
 local cmdFireState			= CMD.FIRE_STATE
 
+local diag					= math.diag
 
 local weapNamTab			= WeaponDefNames
 local weapTab				= WeaponDefs
@@ -218,10 +219,7 @@ function widget:DrawWorldPreUnit()
     for unitID, property in pairs(units) do
         local x,y,z = spGetUnitPosition(unitID)
 		if ((onlyDrawRangeWhenSelected and spIsUnitSelected(unitID)) or onlyDrawRangeWhenSelected == false) and spIsSphereInView(x,y,z,math.max(property[1],property[2])) then
-			local xDifference = camX - x
-			local yDifference = camY - y
-			local zDifference = camZ - z
-			local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+			local camDistance = diag(camX-x, camY-y, camZ-z) 
 			
 			local lineWidthMinus = (camDistance/2000)
 			if lineWidthMinus > 2 then

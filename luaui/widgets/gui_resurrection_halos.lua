@@ -49,7 +49,9 @@ local spGetCameraPosition 		= Spring.GetCameraPosition
 local spGetUnitPosition			= Spring.GetUnitPosition
 
 local prevOsClock				= os.clock();
-	
+
+local diag						= math.diag
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -142,10 +144,7 @@ function widget:DrawWorld()
 			
 			if spIsUnitInView(unitID) then
 				local x,y,z = spGetUnitPosition(unitID)
-				local xDifference = camX - x
-				local yDifference = camY - y
-				local zDifference = camZ - z
-				local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+				local camDistance = diag(camX-x, camY-y, camZ-z) 
 				
 				local opacityMultiplier = 1
 				if OPTIONS.fadeOnCameraDistance then

@@ -241,10 +241,7 @@ function widget:DrawWorld()
     if Spring.IsGUIHidden() then return end
 	if spIsAABBInView(offset, mapInfoBoxHeight, Game.mapSizeZ,   mapInfoWidth*scale, mapInfoBoxHeight+(thickness*scale), Game.mapSizeZ) then
 		local camX, camY, camZ = spGetCameraPosition()
-		local xDifference = camX - (mapInfoWidth/2)*scale
-		local yDifference = camY - mapInfoBoxHeight
-		local zDifference = camZ - Game.mapSizeZ
-		local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+		local camDistance = math.diag(camX - (mapInfoWidth/2)*scale, camY - mapInfoBoxHeight, camZ - Game.mapSizeZ)
 		local opacityMultiplier = (1 - (camDistance-fadeStartHeight) / (fadeEndHeight-fadeStartHeight))
 		if opacityMultiplier > 1 then
 			opacityMultiplier = 1

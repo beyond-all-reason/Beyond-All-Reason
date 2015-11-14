@@ -43,6 +43,7 @@ local max = math.max
 local cos = math.cos
 local sin = math.sin
 local abs = math.abs 
+local diag = math.diag
 local random = math.random
 local pi = math.pi
 local floor = math.floor
@@ -760,10 +761,7 @@ function widget:DrawWorld()
 	glPushMatrix()
 		for unitID,displayList in pairs(unitDisplayList) do
 			local x,y,z = GetUnitPosition(unitID,true,true)
-			local xDifference = camX - x
-			local yDifference = camY - y
-			local zDifference = camZ - z
-			local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference) 
+			local camDistance = diag(camX-x, camY-y, camZ-z) 
 			local usedScale = 0.55 + (camDistance/4500)
 			glPushMatrix()
 			glTranslate(x,y+GetUnitRadius(unitID),z)

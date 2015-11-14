@@ -78,6 +78,8 @@ local coverageRangeCore			= WeaponDefs[UnitDefNames.cormabm.weapons[1].weaponDef
 local coverageRangeArmWater		= WeaponDefs[UnitDefNames.armcarry.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreWater	= WeaponDefs[UnitDefNames.corcarry.weapons[1].weaponDef].coverageRange
 
+local diag = math.diag
+
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
@@ -121,10 +123,7 @@ end
 
 
 function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
-	local xDifference = camX - x
-	local yDifference = camY - y
-	local zDifference = camZ - z
-	local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+	local camDistance = diag(camX-x, camY-y, camZ-z) 
 	
 	local lineWidthMinus = (camDistance/fadeStartDistance)
 	if lineWidthMinus > 2 then

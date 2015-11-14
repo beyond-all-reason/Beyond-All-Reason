@@ -33,6 +33,8 @@ local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
+local diag						= math.diag
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -197,10 +199,7 @@ function widget:DrawWorldPreUnit()
 			
 			gl.Translate(cmdValue.x, cmdValue.y, cmdValue.z)
 			
-			local xDifference = camX - cmdValue.x
-			local yDifference = camY - cmdValue.y
-			local zDifference = camZ - cmdValue.z
-			local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+			local camDistance = diag(camX-cmdValue.x, camY-cmdValue.y, camZ-cmdValue.z) 
 			
 			-- set scale   (based on camera distance)
 			local scale = 1

@@ -130,6 +130,7 @@ local glCallList			= gl.CallList
 
 local floor					= math.floor
 local min					= math.min
+local diag					= math.diag
 local GL_QUADS				= GL.QUADS
 local clock					= os.clock
 local Button				= {}
@@ -343,10 +344,7 @@ local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
     end
         
     --calc scale
-    xDifference = camX - wx
-    yDifference = camY - gy
-    zDifference = camZ - wz
-    camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+    camDistance = diag(camX-wx, camY-gy, camZ-wz) 
     glScale = 0.83 + camDistance / 5000
                     
     -- calc opacity

@@ -62,6 +62,8 @@ local glBeginEnd				= gl.BeginEnd
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
+local diag						= math.diag
+
 --------------------------------------------------------------------------------
 
 local comms = {}
@@ -168,10 +170,7 @@ function widget:DrawWorld()
     -- calc opacity
 	if IsUnitInView(unitID) then
 		local x,y,z = GetUnitPosition(unitID)
-		local xDifference = camX - x
-		local yDifference = camY - y
-		local zDifference = camZ - z
-		camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference) 
+		camDistance = diag(camX-x, camY-y, camZ-z) 
 		
 	    usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
 	    

@@ -44,6 +44,8 @@ local glRotate				= gl.Rotate
 local glText				= gl.Text
 local glBlending			= gl.Blending
 
+local diag					= math.diag
+
 local GL_ALWAYS					= GL.ALWAYS
 local GL_SRC_ALPHA				= GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
@@ -210,10 +212,7 @@ function widget:GameFrame(n)
 				local nearestEnemyUnitID = spGetUnitNearestEnemy(unitID,showOnEnemyDistance+fadeInDistance)
 				if nearestEnemyUnitID then
 					local ex,ey,ez = spGetUnitPosition(nearestEnemyUnitID)
-					local xDifference = x - ex
-					local yDifference = y - ey
-					local zDifference = z - ez
-					local distance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+					local distance = diag(x-ex, y-ey, z-ez) 
 					if distance < blastRadius + showOnEnemyDistance then
 						draw = true
 						opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
@@ -267,10 +266,7 @@ function widget:DrawWorldPreUnit()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	for _,center in pairs(comCenters) do
 		if center[4] then
-			local xDifference = camX - center[1]
-			local yDifference = camY - center[2]
-			local zDifference = camZ - center[3]
-			local camDistance = math.sqrt(xDifference*xDifference + yDifference*yDifference + zDifference*zDifference)
+			local camDistance = diag(camX-center[1], camY-center[2], camZ-center[3]) 
 			
 			local lineWidthMinus = (camDistance/2000)
 			if lineWidthMinus > 2 then
