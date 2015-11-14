@@ -841,6 +841,13 @@ function gadgetHandler:GameFrame(frameNum)
 end
 
 
+function gadgetHandler:GamePaused(playerID,paused)
+  for _,g in ipairs(self.GamePausedList) do
+    g:GamePaused(playerID,paused)
+  end
+  return
+end
+
 function gadgetHandler:RecvFromSynced(...)
   if (actionHandler.RecvFromSynced(...)) then
     return
@@ -1587,9 +1594,9 @@ end
 --  Draw call-ins
 --
 
-function gadgetHandler:Update()
+function gadgetHandler:Update(deltaTime)
   for _,g in ipairs(self.UpdateList) do
-    g:Update()
+    g:Update(deltaTime)
   end
   return
 end
