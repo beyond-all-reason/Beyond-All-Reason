@@ -11,7 +11,7 @@ function widget:GetInfo()
 	handler   = true, --can use widgetHandler:x()
 	}
 end
-local rescalevalue = 1.25
+local rescalevalue = 1.26
 local buttonScale = 0.5
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1272/rescalevalue,734/rescalevalue --resolution in which the widget was made (for 1:1 size)
