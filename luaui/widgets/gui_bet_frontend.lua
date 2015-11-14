@@ -439,6 +439,15 @@ function printbets(_,_,params)
 	end
 end
 
+function selectBetUnits()
+	local units = {}
+	for unitID,displayList in pairs(unitDisplayList) do
+		table.insert(units, unitID)
+	end
+	Spring.SelectUnitArray(units)
+	Echo("Units with bets on them: "..#units)
+end
+
 function printscores()
 	for playerID, score in pairs(playerScores) do
 		playerID = PlayerIDtoName(playerID)
@@ -540,6 +549,7 @@ function widget:Initialize()
 	widgetHandler:AddAction("viewbets", toggleViewBets, nil, "t")
 	widgetHandler:AddAction("bettime", getBetTime, nil, "t")
 	widgetHandler:AddAction("bet", betKey, nil, "t")
+	widgetHandler:AddAction("selectbets", selectBetUnits, nil, "t")
 
 	SendCommands({"bind ctrl+alt+b bet unit","bind ctrl+shift+alt+b bet team"})
 

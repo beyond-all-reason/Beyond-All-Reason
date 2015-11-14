@@ -20,7 +20,7 @@ Widget dependent:
 /enemyspotter_platter            "Enemyspotter"   Toggle platter (turn off only if you use /enemyspotter_highlight)
 /+enemyspotter_platter           "Enemyspotter"   Adjust spotter opacity.   also:  /-enemyspotter_platter
 /comnamescale                    "Commander Name Tags"   names stay big when viewing from large distance
-/placebet                        "Bet Frontend"   [CTRL+ALT+B]   /printbets   /printscores   /viewbets   /bettime   /bet
+/placebet                        "Bet Frontend"   [CTRL+ALT+B]   /selectbets   /printbets   /printscores   /viewbets   /bettime   /bet
 
 Spring Engine (v99):
 
