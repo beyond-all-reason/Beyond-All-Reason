@@ -83,6 +83,9 @@ else
 
 --------------------------------------------------------------------------------
 
+local myPlayerID = GetMyPlayerID()
+
+
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
 end
@@ -93,10 +96,6 @@ end
 
 function handleMousePosEvent(_,playerID,x,z,click)
 	--here we receive mouse pos from other players and dispatch to luaui
-	local myPlayerID = GetMyPlayerID()
-	if myPlayerID == playerID then
-		return
-	end
 	local spec, fullView = GetSpectatingState()
 	if not spec or not fullView then
 		local _,_,_,_,myAllyTeamID = GetPlayerInfo(myPlayerID)

@@ -141,6 +141,8 @@ local alliedCursorsTime		= {}		-- for API purpose
 local usedCursorSize		= cursorSize
 local prevMouseX,prevMouseY = 0
 local allycursorDrawList	= {}
+local myPlayerID            = Spring.GetMyPlayerID()
+
 
 function widget:Initialize()
     widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
@@ -181,6 +183,9 @@ end
 
 local playerPos = {}
 function MouseCursorEvent(playerID,x,z,click)
+    if myPlayerID == playerID then
+        return true
+    end
     local playerPosList = playerPos[playerID] or {}
     playerPosList[#playerPosList+1] = {x=x,z=z,click=click}
     playerPos[playerID] = playerPosList
