@@ -207,6 +207,9 @@ end
 
 
 function selectedUnitsClear(playerID)
+	if not playerSelectedUnits[ playerID ] then
+		widget:PlayerAdded(playerID)
+	end
 	--make all hot
 	for unitId, defRadius in pairs(playerSelectedUnits[ playerID ]["units"]) do
 		newHotUnit( unitId, playerSelectedUnits[ playerID ]["coop"], playerID )
@@ -216,6 +219,9 @@ function selectedUnitsClear(playerID)
 end
 
 function selectedUnitsAdd(playerID,unitID)
+	if not playerSelectedUnits[ playerID ] then
+		widget:PlayerAdded(playerID)
+	end
 	--add unit
 	local realDefRadius = GetUnitDefRealRadius( spGetUnitDefID( unitID ) )
 	if realDefRadius then
@@ -226,6 +232,9 @@ function selectedUnitsAdd(playerID,unitID)
 end
 
 function selectedUnitsRemove(playerID,unitID)
+	if not playerSelectedUnits[ playerID ] then
+		widget:PlayerAdded(playerID)
+	end
 	--remove unit
 	playerSelectedUnits[ playerID ]["units"][unitID] = nil
 	--make it hot
