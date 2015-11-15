@@ -1,4 +1,10 @@
-﻿9.15 -> 9.16
+﻿9.16 -> 9.17
+15/11/2015
+
+- fixed "Ally selected units" error spam
+
+
+9.15 -> 9.16
 15/11/2015
 
 Others:
