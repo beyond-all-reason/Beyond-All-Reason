@@ -121,11 +121,11 @@ function isValidBet(playerID, betType, betID, betTime)
 	elseif betType == "unit" then
 		local validUnit = ValidUnitID(betID)
 		if not validUnit then
-			return false, "betted unitID (" .. unitID .. ") does not exist"
+			return false, "betted unitID (" .. betID .. ") does not exist"
 		end
 		local isDead = GetUnitIsDead(betID)
 		if isDead then
-			return false, "cannot bet on dead units (" .. unitID ..  ")"
+			return false, "cannot bet on dead units (" .. betID ..  ")"
 		end
 	else
 		return false, "invalid betType (" .. betType .. ")"
