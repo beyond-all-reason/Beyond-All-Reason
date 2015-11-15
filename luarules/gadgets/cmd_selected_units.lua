@@ -73,21 +73,21 @@ else
 		local counts = UnpackU16( msg, 1, 2 )
 		if counts[1] == counts[2] and counts[1] == 0xffff then
 			--clear all
-			if Script.LuaUI.selectedUnitsClear then
+			if Script.LuaUI("selectedUnitsClear") then
 				Script.LuaUI.selectedUnitsClear(playerID)
 			end
 		else
 			local addCount = counts[1]
 			local removeCount = counts[2]
 
-			if removeCount > 0 and Script.LuaUI.selectedUnitsRemove then
+			if removeCount > 0 and Script.LuaUI("selectedUnitsRemove") then
 				local remUnits = UnpackU16( msg, 5 + addCount * 2, removeCount )
 				for i=1,removeCount do
 					Script.LuaUI.selectedUnitsRemove(playerID,remUnits[i])
 				end
 			end
 
-			if addCount > 0 and Script.LuaUI.selectedUnitsAdd then
+			if addCount > 0 and Script.LuaUI("selectedUnitsAdd") then
 				local addUnits = UnpackU16( msg, 5, addCount )
 				for i=1,addCount do
 					Script.LuaUI.selectedUnitsAdd(playerID,addUnits[i])
