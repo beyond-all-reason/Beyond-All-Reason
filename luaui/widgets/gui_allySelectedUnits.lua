@@ -9,7 +9,7 @@ function widget:GetInfo()
 		author    = "very_bad_soldier",
 		date      = "August 1, 2008",
 		license   = "GNU GPL v2",
-		layer     = 0,
+		layer     = -10,
 		enabled   = false
 	}
 end
@@ -53,17 +53,20 @@ local glCallList   			= gl.CallList
 
 local GL_LINE_LOOP			= GL.LINE_LOOP
 
+local spec = false
+
 ----------------------------------------------------------------
 
 
-
-local hotFadeTime = 10.0
-local lockTeamUnits = false --disallow selection of units selected by teammates
-local showAlly = true 		--also show allies (besides coop)
-local useHotColor = false --use RED for all hot units, if false use playerColor starting with transparency
-local circleDivsCoop = 32  --nice circle
-local circleDivsAlly = 5  --aka pentagon
-local selectionDrawScaleFactor = 1.1
+local scaleMultiplier			= 1
+local maxAlpha					= 0.5
+local hotFadeTime				= 0.3
+local lockTeamUnits				= false --disallow selection of units selected by teammates
+local showAlly					= true 		--also show allies (besides coop)
+local useHotColor				= false --use RED for all hot units, if false use playerColor starting with transparency
+local showAsSpectator			= true 
+local circleDivsCoop			= 32  --nice circle
+local circleDivsAlly			= 5  --aka pentagon
 
 local hotColor = { 1.0, 0.0, 0.0, 1.0 }
 
@@ -86,20 +89,49 @@ local playerSelectedUnits = {}
 local hotUnits = {}
 local circleLinesCoop
 local circleLinesAlly
+local lockPlayerID
+
+-- preferred to keep these values the same as other widgets
+local rectangleFactor		= 3.3
+local scalefaktor			= 2.9
+local unitConf ={}
 ------------------------------------------------------------------
+
+
+
+function SetUnitConf()
+	for udid, unitDef in pairs(UnitDefs) do
+		local xsize, zsize = unitDef.xsize, unitDef.zsize
+		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
+		local shape, xscale, zscale
+		
+		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
+			shape = 'square'
+			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
+		elseif (unitDef.isAirUnit) then
+			shape = 'triangle'
+			xscale, zscale = scale, scale
+		else
+			shape = 'circle'
+			xscale, zscale = scale, scale
+		end
+		unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
+	end
+end
+
 function widget:Initialize()
+	SetUnitConf()
 	circleLinesCoop = calcCircleLines(circleDivsCoop)
 	circleLinesAlly = calcCircleLines(circleDivsAlly) 
 
-	for _, playerID in pairs(Spring.GetPlayerList()) do
-		widget:PlayerAdded(playerID)
-	end
+	setPlayerColours()
 
 	widget:PlayerChanged(myPlayerID)
 
 	widgetHandler:RegisterGlobal('selectedUnitsRemove', selectedUnitsRemove)
 	widgetHandler:RegisterGlobal('selectedUnitsClear', selectedUnitsClear)
 	widgetHandler:RegisterGlobal('selectedUnitsAdd', selectedUnitsAdd)
+	spec = spGetSpectatingState()
 end
 
 function widget:Shutdown()
@@ -124,7 +156,7 @@ function widget:PlayerAdded(playerID)
 end
 
 function getPlayerColour(playerID,teamID)
-	if playerSelectedUnits[ playerID ]["coop"] then 
+	if playerSelectedUnits[ playerID ]["coop"] and not spec then 
 		if not playerColorPool[ nextPlayerPoolId ] then
 			playerColors[ playerID ] = playerColorPool[ 1 ]  --we have only 8 colors, take color 1 as default
 		else
@@ -136,10 +168,21 @@ function getPlayerColour(playerID,teamID)
 	end
 end
 
+function setPlayerColours()
+	playerColors = {}
+	for _, playerID in pairs(Spring.GetPlayerList()) do
+		widget:PlayerAdded(playerID)
+	end
+end
+
 function widget:PlayerChanged(playerID)
-	if spGetSpectatingState() then
-		widgetHandler:RemoveWidget()
-		return
+	if not spec and spGetSpectatingState() then
+		spec = true
+		setPlayerColours()
+		if not showAsSpectator then
+			widgetHandler:RemoveWidget()
+			return
+		end
 	end
 	myTeamID = spGetLocalTeamID()
 	local playerTeam = select(4,spGetPlayerInfo(playerID))
@@ -194,51 +237,71 @@ function newHotUnit( unitId, coop, playerID )
 	if not playerSelectedUnits[playerID]["todraw"] then
 		return
 	end
-	local timestamp = spGetGameSeconds()
 	local udef = spGetUnitDefID( unitId )
 	if ( udef ~= nil ) then
-		local realDefRadius = GetUnitDefRealRadius( udef )
+		local realDefRadius = unitConf[udef].xscale*1.5
 		if ( realDefRadius ~= nil ) then
-			local defRadius = selectionDrawScaleFactor * realDefRadius
-			hotUnits[ unitId ] = { ts = timestamp, coop = coop, defRadius = defRadius, playerID = playerID }
+			local defRadius = realDefRadius * scaleMultiplier
+			hotUnits[ unitId ] = { ts = os.clock(), coop = coop, defRadius = defRadius, playerID = playerID }
 		end
 	end
 end 
 
 
 function selectedUnitsClear(playerID)
-	if not playerSelectedUnits[ playerID ] then
-		widget:PlayerAdded(playerID)
+	isSpec = select(3,spGetPlayerInfo(playerID))
+	if not isSpec then
+		if not playerSelectedUnits[ playerID ] then
+			widget:PlayerAdded(playerID)
+		end
+		--make all hot
+		for unitId, defRadius in pairs(playerSelectedUnits[ playerID ]["units"]) do
+			newHotUnit( unitId, playerSelectedUnits[ playerID ]["coop"], playerID )
+		end
+		--clear all
+		playerSelectedUnits[ playerID ]["units"] = {}
 	end
-	--make all hot
-	for unitId, defRadius in pairs(playerSelectedUnits[ playerID ]["units"]) do
-		newHotUnit( unitId, playerSelectedUnits[ playerID ]["coop"], playerID )
+	if lockPlayerID ~= nil and playerID == lockPlayerID then
+		selectPlayerSelectedUnits(lockPlayerID)
 	end
-	--clear all
-	playerSelectedUnits[ playerID ]["units"] = {}
 end
 
 function selectedUnitsAdd(playerID,unitID)
-	if not playerSelectedUnits[ playerID ] then
-		widget:PlayerAdded(playerID)
+	isSpec = select(3,spGetPlayerInfo(playerID))
+	if not isSpec then
+		if not playerSelectedUnits[ playerID ] then
+			widget:PlayerAdded(playerID)
+		end
+		--add unit
+		local udefID = spGetUnitDefID(unitID)
+		if spGetUnitDefID(unitID) ~= nil then
+			local realDefRadius = unitConf[udefID].xscale*1.5
+			if realDefRadius then
+				playerSelectedUnits[ playerID ]["units"][ unitID] = realDefRadius * scaleMultiplier
+				--un-hot it
+				hotUnits[  unitID ] = nil
+			end
+		end
 	end
-	--add unit
-	local realDefRadius = GetUnitDefRealRadius( spGetUnitDefID( unitID ) )
-	if realDefRadius then
-		playerSelectedUnits[ playerID ]["units"][ unitID] = realDefRadius * selectionDrawScaleFactor
-		--un-hot it
-		hotUnits[  unitID ] = nil
+	if lockPlayerID ~= nil and playerID == lockPlayerID then
+		selectPlayerSelectedUnits(lockPlayerID)
 	end
 end
 
 function selectedUnitsRemove(playerID,unitID)
-	if not playerSelectedUnits[ playerID ] then
-		widget:PlayerAdded(playerID)
+	isSpec = select(3,spGetPlayerInfo(playerID))
+	if not isSpec then
+		if not playerSelectedUnits[ playerID ] then
+			widget:PlayerAdded(playerID)
+		end
+		--remove unit
+		playerSelectedUnits[ playerID ]["units"][unitID] = nil
+		--make it hot
+		newHotUnit( unitID, playerSelectedUnits[ playerID ]["coop"], playerID )
 	end
-	--remove unit
-	playerSelectedUnits[ playerID ]["units"][unitID] = nil
-	--make it hot
-	newHotUnit( unitID, playerSelectedUnits[ playerID ]["coop"], playerID )
+	if lockPlayerID ~= nil and playerID == lockPlayerID then
+		selectPlayerSelectedUnits(lockPlayerID)
+	end
 end
 
 function DoDrawPlayer(playerID,teamID)	
@@ -270,59 +333,68 @@ function array2Table( arr )
 	return tab
 end
 
+local updateTime = 0
+local checkLockPlayerInterval = 1
+function widget:Update(dt)
+	if (WG['advplayerlist_api'] ~= nil) then
+		updateTime = updateTime + dt
+		if updateTime > checkLockPlayerInterval then
+			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+			if lockPlayerID ~= nil then
+				selectPlayerSelectedUnits(lockPlayerID)
+			end
+			updateTime = 0
+		end
+	end
+end
+
+function selectPlayerSelectedUnits(playerID)
+	local units = {}
+	for pID, selUnits in pairs( playerSelectedUnits ) do
+		if pID == playerID then
+			for unitId, _ in pairs( selUnits["units"] ) do
+				table.insert(units, unitId)
+			end
+		end
+	end
+	Spring.SelectUnitArray(units)
+end
+
 function widget:DrawWorldPreUnit()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 	DrawSelectedUnits()
 	DrawHotUnits()
 end
 
---stolen from team_platter - thanks trepan ;)
-local realRadii = {}
-function GetUnitDefRealRadius(udid)
-  local radius = realRadii[udid]
-  if (radius) then
-    return radius
-  end
-
-  local ud = udefTab[udid]
-  if (ud == nil) then return nil end
-  
-  local dims = spGetUnitDefDimensions(udid)
-  if (dims == nil) then return nil end
-
-  local scale = ud.hitSphereScale -- missing in 0.76b1+
-  scale = ((scale == nil) or (scale == 0.0)) and 1.0 or scale
-  radius = dims.radius / scale
-  realRadii[udid] = radius
-    
-  return radius
-end
-
 function DrawSelectedUnits()
 	glDepthTest(false)
-	glColor(0.0, 1.0, 0.0, 1.0 )
+	glColor(0.0, 1.0, 0.0, 1.0)
 	glLineWidth( 2 )
 	
 	local now = spGetGameSeconds()
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
-		if selUnits["todraw"] then
-			glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3] )  
-			for unitId, defRadius in pairs( selUnits["units"] ) do
-				local x, y, z = spGetUnitBasePosition(unitId)
-				local inView = false
-				if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
-					inView = spIsSphereInView( x, y, z, defRadius )
-				end
-				if ( inView ) then
-					local lines = circleLinesAlly
-					if ( selUnits["coop"] == true ) then
-						lines = circleLinesCoop
+	
+		if lockPlayerID == nil or playerID ~= lockPlayerID then
+			if selUnits["todraw"] then
+				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)  
+				for unitId, defRadius in pairs( selUnits["units"] ) do
+					local x, y, z = spGetUnitBasePosition(unitId)
+					local inView = false
+					if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
+						inView = spIsSphereInView( x, y, z, defRadius )
 					end
+					if ( inView ) then
+						local lines = circleLinesAlly
+						if ( selUnits["coop"] == true and not spec) then
+							lines = circleLinesCoop
+						end
 
-					glPushMatrix()
-					glTranslate( x, y, z)
-					glScale( defRadius, 1, defRadius)
-					glCallList(lines)
-					glPopMatrix()
+						glPushMatrix()
+						glTranslate( x, y, z)
+						glScale( defRadius, 1, defRadius)
+						glCallList(lines)
+						glPopMatrix()
+					end
 				end
 			end
 		end
@@ -333,47 +405,49 @@ function DrawSelectedUnits()
 	glLineWidth( 1 )
 end
 
+
 function DrawHotUnits()
 	glDepthTest(false)
 	glLineWidth( 2 )
 
 	local toDelete = {}
-	
-	local now = spGetGameSeconds()
+	 
 	for unitID, val in pairs( hotUnits ) do
-		local x, y, z = spGetUnitBasePosition(unitID)
-		local defRadius = val["defRadius"]
-		local inView = false
-		if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
-			inView = spIsSphereInView( x, y, z, defRadius )
-		end
-		if ( inView ) then
-			local timeDiff = (now - val["ts"])
-			
-			if ( timeDiff <= hotFadeTime ) then
-				if ( useHotColor ) then
-					hotColor[4] = 1.0 - ( timeDiff / hotFadeTime )
-					glColor( hotColor )
-				else
-					local cl = playerColors[ val["playerID"] ]
-					cl[4] = 0.5 - 0.5 * ( timeDiff / hotFadeTime )
-					glColor( cl )  
-				end
-			else
-				toDelete[unitID] = true
+		if lockPlayerID == nil or val.playerID ~= lockPlayerID then
+			local x, y, z = spGetUnitBasePosition(unitID)
+			local defRadius = val["defRadius"]
+			local inView = false
+			if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
+				inView = spIsSphereInView( x, y, z, defRadius )
 			end
-			
-			if ( toDelete[unitID] == nil ) then
-				local lines = circleLinesAlly
-				if ( val["coop"] == true ) then
-					lines = circleLinesCoop
+			if ( inView ) then
+				local timeDiff = (os.clock() - val["ts"])
+				
+				if ( timeDiff <= hotFadeTime ) then
+					if ( useHotColor ) then
+						hotColor[4] = 1.0 - ( timeDiff / hotFadeTime )
+						glColor( hotColor )
+					else
+						local cl = playerColors[ val["playerID"] ]
+						cl[4] = maxAlpha - maxAlpha * ( timeDiff / hotFadeTime )
+						glColor( cl )  
+					end
+				else
+					toDelete[unitID] = true
 				end
+				
+				if ( toDelete[unitID] == nil ) then
+					local lines = circleLinesAlly
+					if ( val["coop"] == true and not spec) then
+						lines = circleLinesCoop
+					end
 
-				glPushMatrix()
-				glTranslate(x,y,z)
-				glScale( defRadius, 1, defRadius)
-				glCallList(lines)
-				glPopMatrix()
+					glPushMatrix()
+					glTranslate(x,y,z)
+					glScale( defRadius, 1, defRadius)
+					glCallList(lines)
+					glPopMatrix()
+				end
 			end
 		end
 	end
