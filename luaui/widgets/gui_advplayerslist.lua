@@ -687,6 +687,9 @@ function widget:Initialize()
 		
 		return {top,left,bottom,right,widgetScale}
 	end
+	WG['advplayerlist_api'].GetLockPlayerID = function()
+		return lockPlayerID
+	end
 end
 
 function widget:GameStart()
@@ -2656,7 +2659,8 @@ function widget:GetConfigData(data)      -- save
 			m_seespecActive    = m_seespec.active,
 			--modules
 			m_active_Table	   = m_active_Table,
-			cpuText            = cpuText
+			cpuText            = cpuText,
+			lockPlayerID       = lockPlayerID
 		}
 		
 		return settings
@@ -2700,7 +2704,9 @@ function widget:SetConfigData(data)      -- load
 			widgetPosX  = data.widgetPosX --align left of widget to left of screen
 		end
 	end
-	
+	if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
+		lockPlayerID = data.lockPlayerID
+	end
 	if data.cpuText ~= nil then
 		cpuText = data.cpuText
 	end
