@@ -42,10 +42,14 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	noiseMargin			= 0,
 }
 table.insert(OPTIONS, {
-	name				= "Blur",
-	blurIntensity		= 0.0006,
+	name				= "Blur default",
+	blurIntensity		= 0.0009,
 })
---[[table.insert(OPTIONS, {
+table.insert(OPTIONS, {
+	name				= "Blur minimal",
+	blurIntensity		= 0.0006,
+})--[[
+table.insert(OPTIONS, {
 	name				= "Glass 1",
 	blurIntensity		= 0,001,
 	useNoise			= true,
@@ -57,7 +61,7 @@ table.insert(OPTIONS, {
 	name				= "Glass 2",
 	blurIntensity		= 0,001,
 	useNoise			= true,
-	noiseIntensity		= 0.033,
+	noiseIntensity		= 0.066,
 	noiseTexture		= "noise2.dds",
 	noiseMargin			= 10,
 })]]--
