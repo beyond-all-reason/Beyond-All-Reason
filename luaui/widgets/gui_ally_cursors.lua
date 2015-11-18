@@ -9,7 +9,7 @@
 
 function widget:GetInfo()
     return {
-        name	= "AllyCursors2",
+        name	= "AllyCursors",
         desc	= "Shows the mouse pos of allied players",
         author	= "Floris,jK,TheFatController",
         date	= "31 may 2015",
@@ -374,7 +374,8 @@ local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
             allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
         end
         
-        local rotValue = (camRotX) * 360
+        --local rotValue = -(camRotX) * 360
+		local rotValue = 0
         gl.PushMatrix()
 			gl.Translate(wx, gy, wz)
 			gl.Rotate(rotValue,0,1,0)
