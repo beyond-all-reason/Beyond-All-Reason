@@ -43,7 +43,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 }
 table.insert(OPTIONS, {
 	name				= "Blur default",
-	blurIntensity		= 0.0009,
+	blurIntensity		= 0.0008,
 })
 table.insert(OPTIONS, {
 	name				= "Blur minimal",

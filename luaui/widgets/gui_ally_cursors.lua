@@ -9,7 +9,7 @@
 
 function widget:GetInfo()
     return {
-        name	= "AllyCursors",
+        name	= "AllyCursors2",
         desc	= "Shows the mouse pos of allied players",
         author	= "Floris,jK,TheFatController",
         date	= "31 may 2015",
@@ -122,6 +122,7 @@ local spGetPlayerInfo		= Spring.GetPlayerInfo
 local spGetTeamColor		= Spring.GetTeamColor
 local spIsSphereInView		= Spring.IsSphereInView
 local spGetCameraPosition	= Spring.GetCameraPosition
+local spGetCameraDirection	= Spring.GetCameraDirection
 local spIsGUIHidden         = Spring.IsGUIHidden
 
 local glCreateList			= gl.CreateList
@@ -142,6 +143,7 @@ local usedCursorSize		= cursorSize
 local prevMouseX,prevMouseY = 0
 local allycursorDrawList	= {}
 local myPlayerID            = Spring.GetMyPlayerID()
+local camRotX, camRotY, camRotZ = spGetCameraDirection()
 
 
 function widget:Initialize()
@@ -290,7 +292,7 @@ function widget:PlayerChanged(playerID)
     teamColors[playerID] = color
 end
 
-    
+
 function createCursorDrawList(playerID, opacityMultiplier)
     local name,_,spec,teamID = spGetPlayerInfo(playerID)
     local r, g, b = spGetTeamColor(teamID)
@@ -318,7 +320,8 @@ function createCursorDrawList(playerID, opacityMultiplier)
         --draw the nickname
         gl.PushMatrix()
         gl.Translate(wx, gy, wz)
-        gl.Billboard()
+        --gl.Billboard()
+        gl.Rotate(-90,1,0,0)
         
         if spec then
             gl.Color(1,1,1,fontOpacitySpec*opacityMultiplier)
@@ -335,12 +338,12 @@ function createCursorDrawList(playerID, opacityMultiplier)
             gl.Text(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
         end
         gl.PopMatrix()
-    end
-                
+    end   
 end
+
     
 
-local xDifference, yDifference, zDifference, camDistance, glScale
+local camDistance, glScale
 
 local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
     local gy = spGetGroundHeight(wx,wz)
@@ -351,7 +354,7 @@ local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
     --calc scale
     camDistance = diag(camX-wx, camY-gy, camZ-wz) 
     glScale = 0.83 + camDistance / 5000
-                    
+    
     -- calc opacity
     local opacityMultiplier = 1
     if drawNamesFade and camDistance > NameFadeStartDistance then 
@@ -370,16 +373,19 @@ local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
         if allycursorDrawList[playerID][opacityMultiplier] == nil then
             allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
         end
-                    
-        gl.Translate(wx, gy, wz)
-        if drawNamesScaling then
-            --gl.Scale(glScale,0,glScale)
-        end
-        glCallList(allycursorDrawList[playerID][opacityMultiplier])
-        if drawNamesScaling then
-            --gl.Scale(-glScale,0,-glScale)
-        end
-        gl.Translate(-wx, -gy, -wz)
+        
+        local rotValue = (camRotX) * 360
+        gl.PushMatrix()
+			gl.Translate(wx, gy, wz)
+			gl.Rotate(rotValue,0,1,0)
+			if drawNamesScaling then
+				gl.Scale(glScale,0,glScale)
+			end
+			glCallList(allycursorDrawList[playerID][opacityMultiplier])
+			if drawNamesScaling then
+				gl.Scale(-glScale,0,-glScale)
+			end
+        gl.PopMatrix()
     end
 end
 
@@ -391,7 +397,8 @@ function widget:DrawWorldPreUnit()
     time = clock()
     
     local camX,camY,camZ = spGetCameraPosition()
-    
+    camRotX, camRotY, camRotZ = spGetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
+    --Spring.Echo(camRotX.."   "..camRotY.."   "..camRotZ)
     for playerID,data in pairs(alliedCursorsPos) do 
         name,_,spec,teamID = spGetPlayerInfo(playerID)
         

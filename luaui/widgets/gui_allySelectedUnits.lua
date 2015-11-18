@@ -10,7 +10,7 @@ function widget:GetInfo()
 		date      = "August 1, 2008",
 		license   = "GNU GPL v2",
 		layer     = -10,
-		enabled   = false
+		enabled   = true
 	}
 end
 
@@ -35,7 +35,7 @@ local spGetGroundHeight 	= Spring.GetGroundHeight
 local spIsSphereInView  	= Spring.IsSphereInView
 local spGetSpectatingState	= Spring.GetSpectatingState
 local spGetGameSeconds		= Spring.GetGameSeconds
-
+local spIsGUIHidden			= Spring.IsGUIHidden
 local glDrawGroundCircle 	= gl.DrawGroundCircle
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
@@ -58,7 +58,7 @@ local spec = false
 ----------------------------------------------------------------
 
 
-local scaleMultiplier			= 1
+local scaleMultiplier			= 1.04
 local maxAlpha					= 0.5
 local hotFadeTime				= 0.3
 local lockTeamUnits				= false --disallow selection of units selected by teammates
@@ -250,7 +250,7 @@ end
 
 function selectedUnitsClear(playerID)
 	isSpec = select(3,spGetPlayerInfo(playerID))
-	if not isSpec then
+	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
 		end
@@ -268,7 +268,7 @@ end
 
 function selectedUnitsAdd(playerID,unitID)
 	isSpec = select(3,spGetPlayerInfo(playerID))
-	if not isSpec then
+	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
 		end
@@ -290,7 +290,7 @@ end
 
 function selectedUnitsRemove(playerID,unitID)
 	isSpec = select(3,spGetPlayerInfo(playerID))
-	if not isSpec then
+	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
 		end
@@ -361,6 +361,7 @@ function selectPlayerSelectedUnits(playerID)
 end
 
 function widget:DrawWorldPreUnit()
+	if spIsGUIHidden() then return end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 	DrawSelectedUnits()
 	DrawHotUnits()

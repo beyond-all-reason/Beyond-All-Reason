@@ -34,7 +34,7 @@ local Config = {
 		cmovecolor = {0.9,0.9,0.9,0.8},
 		
 		cborder = {0,0,0,0},
-		cbackground = {0,0,0,0.5},
+		cbackground = {0,0,0,0.55},
 		cbordersize = 3,
 		
 		dragbutton = {1}, --left mouse button
@@ -48,6 +48,7 @@ local sformat = string.format
 local sSendCommands = Spring.SendCommands
 local sGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local sGetCameraState = Spring.GetCameraState
+local sceduleMinimapGeometry = false
 
 local function IncludeRedUIFrameworkFunctions()
 	New = WG.Red.New(widget)
@@ -292,6 +293,12 @@ end
 
 local lastPos = {}
 
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+	sceduleMinimapGeometry = true
+end
+
+
 function widget:Update()
 	local _,_,_,_,minimized,maximized = sGetMiniMapGeometry()
 	if (maximized) then
@@ -319,12 +326,13 @@ function widget:Update()
 	end
 
 	AutoResizeObjects()
-	if ((lastPos.px ~= rMinimap.px) or (lastPos.py ~= rMinimap.py) or (lastPos.sx ~= rMinimap.sx) or (lastPos.sy ~= rMinimap.sy)) then
+	if ((lastPos.px ~= rMinimap.px) or (lastPos.py ~= rMinimap.py) or (lastPos.sx ~= rMinimap.sx) or (lastPos.sy ~= rMinimap.sy) or sceduleMinimapGeometry) then
 		sSendCommands(sformat("minimap geometry %i %i %i %i",
-		rMinimap.px+0.5,
-		rMinimap.py+0.5,
-		rMinimap.sx+0.5,
-		rMinimap.sy+0.5))
+		rMinimap.px,
+		rMinimap.py,
+		rMinimap.sx,
+		rMinimap.sy))
+		sceduleMinimapGeometry = false
 	end
 	lastPos.px = rMinimap.px
 	lastPos.py = rMinimap.py
