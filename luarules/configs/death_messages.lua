@@ -752,6 +752,7 @@ teamDeathMessages = {
     "XX was eloquently, lovingly and pugnaciously drunk",
     "XX was one of the reasons the Chinese never invented custard",
     "XX used to be Snow White",
+    "XX built units instead of afus",
 }
 
 
