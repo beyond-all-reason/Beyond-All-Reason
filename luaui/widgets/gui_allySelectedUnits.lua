@@ -4,7 +4,7 @@ local versionNumber = "2.03"
 
 function widget:GetInfo()
 	return {
-		name      = "Ally Selected Units",
+		name      = "Ally Selected Units ",
 		desc      = "Shows units selected by teammates [v" .. string.format("%s", versionNumber ) .. "]",
 		author    = "very_bad_soldier",
 		date      = "August 1, 2008",
@@ -58,9 +58,9 @@ local spec = false
 ----------------------------------------------------------------
 
 
-local scaleMultiplier			= 1.04
-local maxAlpha					= 0.5
-local hotFadeTime				= 0.3
+local scaleMultiplier			= 1.05
+local maxAlpha					= 0.4
+local hotFadeTime				= 0.25
 local lockTeamUnits				= false --disallow selection of units selected by teammates
 local showAlly					= true 		--also show allies (besides coop)
 local useHotColor				= false --use RED for all hot units, if false use playerColor starting with transparency
