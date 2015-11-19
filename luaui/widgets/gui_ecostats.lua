@@ -704,8 +704,8 @@ end
 local function DrawBox(hOffset, vOffset,r,g,b)
 	local dx = 20*sizeMultiplier
 	local dy = 40*sizeMultiplier
-	glColor(r,g,b,0.5)
-	RectRound(widgetPosX+hOffset+dx+(8*sizeMultiplier), widgetPosY + widgetHeight -vOffset+dy+(4*sizeMultiplier), widgetPosX + hOffset + dx + (20*sizeMultiplier), widgetPosY + widgetHeight -vOffset+dy+(16*sizeMultiplier), 3*sizeMultiplier)
+	glColor(r,g,b,0.4)
+	RectRound(widgetPosX+hOffset+dx+(8*sizeMultiplier), widgetPosY + widgetHeight -vOffset+dy+(4*sizeMultiplier), widgetPosX + hOffset + dx + (18.5*sizeMultiplier), widgetPosY + widgetHeight -vOffset+dy+(14.5 *sizeMultiplier), 3*sizeMultiplier)
 	glColor(1,1,1,1)
 end
 
