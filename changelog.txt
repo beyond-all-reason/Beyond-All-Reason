@@ -1,4 +1,17 @@
-﻿9.16 -> 9.18
+﻿9.18 -> 9.19
+xx/11/2015
+
+Balance changes:
+- 
+
+Others:
+- Advplayerlist: doubleclick playername: will mirror the player's selection too!
+- Ally selected units: shows for spectators too.
+- GUIshader: slightly intenser blur
+- redUI Minimap fix: fixes engine minimap being larger than redUI-minimap background/buttons container
+
+
+9.16 -> 9.18
 15/11/2015
 
 - fixed "Ally selected units" error spam
