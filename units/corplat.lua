@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 18486,
-		buildcostmetal = 2039,
+		buildcostmetal = 1631,
 		builder = true,
 		buildpic = "CORPLAT.DDS",
 		buildtime = 17102,
