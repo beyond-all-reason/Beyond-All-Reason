@@ -2,7 +2,8 @@
 xx/11/2015
 
 Balance changes:
-- 
+- Core Underwater Moho Mine cost 10% less metal
+- "Advanced Construction Sub" cost reduced by 20%
 
 Others:
 - Advplayerlist: doubleclick playername: will mirror the player's selection too!

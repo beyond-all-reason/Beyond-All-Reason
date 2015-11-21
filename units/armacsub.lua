@@ -3,7 +3,7 @@ return {
 		acceleration = 0.038,
 		brakerate = 0.75,
 		buildcostenergy = 11486,
-		buildcostmetal = 1061,
+		buildcostmetal = 848,
 		builddistance = 160,
 		builder = true,
 		buildpic = "ARMACSUB.DDS",

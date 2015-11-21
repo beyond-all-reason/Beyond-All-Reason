@@ -3,7 +3,7 @@ return {
 		acceleration = 0.035,
 		brakerate = 0.636,
 		buildcostenergy = 11638,
-		buildcostmetal = 1056,
+		buildcostmetal = 844,
 		builddistance = 160,
 		builder = true,
 		buildpic = "CORACSUB.DDS",
