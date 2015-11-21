@@ -5,6 +5,8 @@ Balance changes:
 - Core Underwater Moho Mine cost 10% less metal
 - "Advanced Construction Sub" metal cost reduced by 20%
 - "Seaplane Platform" metal cost reduced by 20%
+- Pincer (Light Amphibious Tank) - harder to EMP + moves faster
+
 
 Others:
 - Advplayerlist: doubleclick playername: will mirror the player's selection too!

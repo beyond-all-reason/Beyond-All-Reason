@@ -1,7 +1,7 @@
 return {
 	armpincer = {
-		acceleration = 0.011,
-		brakerate = 0.033,
+		acceleration = 0.031,
+		brakerate = 0.063,
 		buildcostenergy = 2049,
 		buildcostmetal = 199,
 		buildpic = "ARMPINCER.DDS",
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.485,
 		turnrate = 398,
+		customparams = {
+			paralyzemultiplier = 0.125,
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
