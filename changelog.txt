@@ -7,6 +7,7 @@ Balance changes:
 - "Seaplane Platform" metal cost reduced by 20%
 - Pincer (ARM Light Amphibious Tank) - harder to EMP + moves faster
 - Garpike (CORE Light Amphibious Tank) - harder to EMP + moves faster
+- Cloakable Fusion Reactor produces 50 more energy
 
 Others:
 - Advplayerlist: doubleclick playername: will mirror the player's selection too!
