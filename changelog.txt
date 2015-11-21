@@ -1,5 +1,5 @@
 ﻿9.18 -> 9.19
-xx/11/2015
+21/11/2015
 
 Balance changes:
 - Core Underwater Moho Mine cost 10% less metal
