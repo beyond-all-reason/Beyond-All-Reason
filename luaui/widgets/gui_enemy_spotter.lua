@@ -262,7 +262,9 @@ function widget:Initialize()
 	SetUnitConf()
 	setColors()
 	checkAllUnits()
-	CreateHighlightShader()
+	if gl.CreateShader ~= nil then
+		CreateHighlightShader()
+	end
 end
 
 
