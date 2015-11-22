@@ -638,7 +638,7 @@ function processScaling()
   if customScale == nil then
 	customScale = 1
   end
-  sizeMultiplier   = 2.65 + (vsx*vsy / 2000000) * customScale
+  sizeMultiplier   = 1.8 + (vsx*vsy / 1500000) * customScale
   
   selfXoffset	   = -math.floor(sizeMultiplier)
   
