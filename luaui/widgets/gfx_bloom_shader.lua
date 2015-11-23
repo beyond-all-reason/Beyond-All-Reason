@@ -22,9 +22,9 @@ options = {
 	},
 	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false,		},
 	
-	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.08,		min=0.01, 	max=0.6,	step=0.01, 	},
-	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.18, 	min=0, 		max=1,	step=0.01, 	},
-	blurPasses 		= { type='number', 		name='Blur Passes', 					value=1, 		min=0, 		max=10,	step=1,  		},
+	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.30,		min=0.1, 	max=1,		step=0.01, 	},
+	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.33, 	min=0, 		max=1,		step=0.01, 	},
+	blurPasses 		= { type='number', 		name='Blur Passes', 					value=2, 		min=0, 		max=10,		step=1,  	},
 }
 
 
@@ -222,12 +222,58 @@ widget:ViewResize(widgetHandler:GetViewSizes())
 
 
 
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
+local mapMargin = 20000
+local darkenMapOpacity = 0.75
+local darkenWorldOpacity = 0.13
+
+local msx = Game.mapSizeX
+local msz = Game.mapSizeZ
+
+local glCreateList	= gl.CreateList
+local glDeleteList	= gl.DeleteList
+local glCallList	= gl.CallList
+
+
+function widget:DrawWorldPreUnit()
+	if darken ~= nil then
+		gl.Color(0,0,0,darkenMapOpacity*(options.maxBrightness.value-(options.maxBrightness.value*0.75)))
+		glCallList(darken)
+		gl.Color(1,1,1,1)
+	end
+end
+
+function widget:DrawWorld()
+	if darken ~= nil then
+		gl.Color(0,0,0,darkenWorldOpacity*options.maxBrightness.value)
+		glCallList(darken)
+		gl.Color(1,1,1,1)
+	end
+end
+
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
 function widget:Initialize()
 	if (glCreateShader == nil) then
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
   
+    darken = glCreateList(function()
+		gl.PushMatrix()
+		gl.Translate(0,0,0)
+		gl.Rotate(90,1,0,0)
+		gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
+		gl.PopMatrix()
+    end)
+    
 	SetIllumThreshold()
 
 	combineShader = glCreateShader({
@@ -393,6 +439,7 @@ function widget:Shutdown()
 		glDeleteShader(blurShaderH71 or 0)
 		glDeleteShader(blurShaderV71 or 0)
 		glDeleteShader(combineShader or 0)
+		glDeleteList(darken)
 	end
 end
 
