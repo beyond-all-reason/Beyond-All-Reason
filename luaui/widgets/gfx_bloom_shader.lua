@@ -14,7 +14,7 @@ end
 
 -- CarRepairer: v0.31 has configurable settings in the menu.
 
-options_path = 'Settings/Graphics/Effects/Bloom'
+--options_path = 'Settings/Graphics/Effects/Bloom'
 options = {
 	shortcuts = {
 		brightnessIncrease = 'Ctrl+Shift+]',
@@ -22,7 +22,7 @@ options = {
 	},
 	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false,		},
 	
-	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.30,		min=0.1, 	max=1,		step=0.01, 	},
+	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.22,		min=0.1, 	max=0.6,	step=0.03, 	},
 	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.33, 	min=0, 		max=1,		step=0.01, 	},
 	blurPasses 		= { type='number', 		name='Blur Passes', 					value=2, 		min=0, 		max=10,		step=1,  	},
 }
@@ -228,8 +228,8 @@ widget:ViewResize(widgetHandler:GetViewSizes())
 
 
 local mapMargin = 20000
-local darkenMapOpacity = 0.75
-local darkenWorldOpacity = 0.13
+local darkenMapOpacity = 0.8
+local darkenWorldOpacity = 0.1
 
 local msx = Game.mapSizeX
 local msz = Game.mapSizeZ
@@ -241,7 +241,7 @@ local glCallList	= gl.CallList
 
 function widget:DrawWorldPreUnit()
 	if darken ~= nil then
-		gl.Color(0,0,0,darkenMapOpacity*(options.maxBrightness.value-(options.maxBrightness.value*0.75)))
+		gl.Color(0,0,0,darkenMapOpacity*(options.maxBrightness.value-(options.maxBrightness.value*0.7)))
 		glCallList(darken)
 		gl.Color(1,1,1,1)
 	end
@@ -310,7 +310,7 @@ function widget:Initialize()
 			uniform sampler2D texture0;
 			uniform float inverseRX;
 			uniform float fragKernelRadius;
-			float bloomSigma = fragKernelRadius / 2.0;
+			float bloomSigma = fragKernelRadius / 2.5;
 
 			void main(void) {
 				vec2 C0 = vec2(gl_TexCoord[0]);
@@ -319,7 +319,7 @@ function widget:Initialize()
 				float weight = 1.0 / (2.50663 * bloomSigma);
 				float total_weight = weight;
 				S *= weight;
-				for (float r = 1.5; r < fragKernelRadius; r += 2.0)
+				for (float r = 1.5; r < fragKernelRadius; r += 2)
 				{
 					weight = exp(-((r*r)/(2.0 * bloomSigma * bloomSigma)))/(2.50663 * bloomSigma);
 					S += texture2D(texture0, C0 - vec2(r * inverseRX, 0.0)) * weight;
@@ -345,7 +345,7 @@ function widget:Initialize()
 			uniform sampler2D texture0;
 			uniform float inverseRY;
 			uniform float fragKernelRadius;
-			float bloomSigma = fragKernelRadius / 2.0;
+			float bloomSigma = fragKernelRadius / 2.5;
 
 			void main(void) {
 				vec2 C0 = vec2(gl_TexCoord[0]);
@@ -354,7 +354,7 @@ function widget:Initialize()
 				float weight = 1.0 / (2.50663 * bloomSigma);
 				float total_weight = weight;
 				S *= weight;
-				for (float r = 1.5; r < fragKernelRadius; r += 2.0)
+				for (float r = 1.5; r < fragKernelRadius; r += 2)
 				{
 					weight = exp(-((r*r)/(2.0 * bloomSigma * bloomSigma)))/(2.50663 * bloomSigma);
 					S += texture2D(texture0, C0 - vec2(0.0, r * inverseRY)) * weight;
