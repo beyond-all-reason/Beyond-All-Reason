@@ -275,7 +275,7 @@ function selectedUnitsClear(playerID)
 		--clear all
 		playerSelectedUnits[ playerID ]["units"] = {}
 	end
-	if lockPlayerID ~= nil and playerID == lockPlayerID then
+	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
 	end
 end
@@ -297,7 +297,7 @@ function selectedUnitsAdd(playerID,unitID)
 			end
 		end
 	end
-	if lockPlayerID ~= nil and playerID == lockPlayerID then
+	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
 	end
 end
@@ -313,7 +313,7 @@ function selectedUnitsRemove(playerID,unitID)
 		--make it hot
 		newHotUnit( unitID, playerSelectedUnits[ playerID ]["coop"], playerID )
 	end
-	if lockPlayerID ~= nil and playerID == lockPlayerID then
+	if lockPlayerID ~= nil and playerID == lockPlayerID and selectPlayerUnits then
 		selectPlayerSelectedUnits(lockPlayerID)
 	end
 end
@@ -354,10 +354,8 @@ function widget:Update(dt)
 		updateTime = updateTime + dt
 		if updateTime > checkLockPlayerInterval then
 			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
-			if lockPlayerID ~= nil then
-				if selectPlayerUnits then
-					selectPlayerSelectedUnits(lockPlayerID)
-				end
+			if lockPlayerID ~= nil and selectPlayerUnits then
+				selectPlayerSelectedUnits(lockPlayerID)
 			end
 			updateTime = 0
 		end
@@ -494,7 +492,7 @@ function DrawSelectedUnits()
 	local now = spGetGameSeconds()
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
 	
-		if lockPlayerID == nil or playerID ~= lockPlayerID then
+		if lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits) then
 			if selUnits["todraw"] then
 				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)  
 				for unitId, defRadius in pairs( selUnits["units"] ) do
@@ -533,7 +531,7 @@ function DrawHotUnits()
 	local toDelete = {}
 	 
 	for unitID, val in pairs( hotUnits ) do
-		if lockPlayerID == nil or val.playerID ~= lockPlayerID then
+		if lockPlayerID == nil or val.playerID ~= lockPlayerID or (val.playerID == lockPlayerID and not selectPlayerUnits) then
 			local x, y, z = spGetUnitBasePosition(unitID)
 			local defRadius = val["defRadius"]
 			local inView = false
