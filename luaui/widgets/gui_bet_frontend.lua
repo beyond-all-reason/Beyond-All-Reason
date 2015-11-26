@@ -105,7 +105,7 @@ local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
 local showSelectBets = true
 local panelDelay = 0.3
-local panelWidth = 200;
+local panelWidth = 215;
 local panelHeight = 50;
 local borderPadding = 4
 local contentMargin = 4
@@ -916,19 +916,25 @@ function widget:DrawScreen()
 				lastSelectedUnit = -1
 				lastBetTime = -1
 				if showSelectBets and numBetUnits > 0 then
+					showingPanel = true
 					if mouseoverSelectBetsBox then
-						glColor(0.6, 0.3, 0, 0.5)
+						--glColor(0.64, 0.33, 0, 0.55)
+						glColor(0, 0, 0, 0.55)
 					else
-						glColor(0.5, 0.25, 0, 0.44)
+						--glColor(0.6, 0.29, 0, 0.5)
+						glColor(0, 0, 0, 0.5)
 					end
 					RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
 					
-					local textcolor = "\255\255\240\240"
+					--local textcolor = "\255\255\240\240"
+					local textcolor = "\255\233\233\233"
 					if mouseoverSelectBetsBox then
-						glColor(1,0.66,0.3,0.3)
+						--glColor(1,0.66,0.3,0.26)
+						glColor(1,1,1,0.15)
 						textcolor = "\255\255\255\255"
 					else
-						glColor(1,0.8,0.4,0.15)
+						--glColor(1,0.8,0.4,0.15)
+						glColor(1,1,1,0.05)
 					end
 					RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
 					local text = "Select unit with bet"
@@ -996,6 +1002,12 @@ function widget:IsAbove(mx, my)
 				mouseoverBackwardBox = true
 			else
 				mouseoverBackwardBox = false
+			end
+		else
+			if isInBox(mx, my, panelBox) and showSelectBets and numBetUnits > 0 then
+				mouseoverSelectBetsBox = true
+			else
+				mouseoverSelectBetsBox = false
 			end
 		end
 	end
