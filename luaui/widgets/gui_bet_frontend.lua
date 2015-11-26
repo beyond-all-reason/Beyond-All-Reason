@@ -12,6 +12,9 @@ function widget:GetInfo()
 end
 
 local chipTexture = ':n:'..LUAUI_DIRNAME..'Images/chip.dds'
+local backwardTexture = ':n:'..LUAUI_DIRNAME..'Images/backward.dds'
+local forwardTexture = ':n:'..LUAUI_DIRNAME..'Images/forward.dds'
+local buttonHighlightTexture = ':n:'..LUAUI_DIRNAME..'Images/button-highlight.dds'
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local betString = {"fail at ", "fails at ", "dead at ", "dies at ", "dead by ", "die at ", "death at"}
 local playerString = {"player","pro","pr0","noob","newbie","idiot","n00b","tard", "autist","retard"}
@@ -37,6 +40,7 @@ local GetGameRulesParam = Spring.GetGameRulesParam
 local GetSpectatingState = Spring.GetSpectatingState
 local GetUnitIsDead = Spring.GetUnitIsDead
 local GetCameraPosition = Spring.GetCameraPosition
+local GetMouseState = Spring.GetMouseState
 local Echo = Spring.Echo
 local min = math.min
 local max = math.max
@@ -56,6 +60,7 @@ local unitDisplayList = {}
 local chipStackOffset = {}
 local viewBets = true
 local simSpeed = Game.gameSpeed
+local IsReplay = Spring.IsReplay()
 
 
 local _G_INDEX = "betengine"
@@ -70,6 +75,8 @@ local betStats = {}
 local playerScores = {}
 local betList = {}
 local playerBetList = {}
+
+local numBetUnits = 0
 
 local glDepthTest = gl.DepthTest
 local glCreateList = gl.CreateList
@@ -90,6 +97,22 @@ local glTexture = gl.Texture
 local glTexCoord = gl.TexCoord
 local glRect = gl.Rect
 local glGetTextWidth = gl.GetTextWidth
+local IsGameOver = false
+
+local xRelPos, yRelPos		= 0.5, 0.16
+local vsx, vsy				= gl.GetViewSizes()
+local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
+
+local showSelectBets = true
+local panelDelay = 0.3
+local panelWidth = 200;
+local panelHeight = 50;
+local borderPadding = 4
+local contentMargin = 4
+local customScale = 1
+local sizeMultiplier = 1
+
+local square = panelHeight-borderPadding-borderPadding-contentMargin-contentMargin
 
 local function sqDist(x1,x2,y1,y2,z1,z2)
 	return (x1-x2)^2+(y1-y2)^2+(z1-z2)^2
@@ -463,6 +486,7 @@ function widget:GameOver()
 	if #playerScores > 0 then
 		printscores()
 	end
+	IsGameOver = true
 end
 
 function betOverCallback(betType, betID, winnerID, prizePoints)
@@ -506,15 +530,47 @@ end
 
 function widget:SetConfigData(data)
 	viewBets = data.viewBets
+	if data.xRelPos ~= nil then
+		xRelPos = data.xRelPos or xRelPos
+		yRelPos = data.yRelPos or yRelPos
+		xPos = xRelPos * vsx
+		yPos = yRelPos * vsy
+	end
 end
 
 function widget:GetConfigData()
 	return
 	{
-		viewBets = viewBets
+		viewBets = viewBets,
+		xRelPos = xRelPos,
+		yRelPos = yRelPos
 	}
 end
 
+function processScaling()
+  vsx,vsy = Spring.GetViewGeometry()
+  if customScale == nil then
+	customScale = 1
+  end
+  sizeMultiplier   = 0.37 + (vsx*vsy / 7500000) * customScale
+end
+
+function processBoxes()
+	panelBox = {xPos-((panelWidth/2)*sizeMultiplier), yPos-((panelHeight/2)*sizeMultiplier), xPos+((panelWidth/2)*sizeMultiplier), yPos+((panelHeight/2)*sizeMultiplier)}
+	panelBoxContent = {panelBox[1]+((borderPadding+contentMargin)*sizeMultiplier), panelBox[2]+((borderPadding+contentMargin)*sizeMultiplier), panelBox[3]-((borderPadding+contentMargin)*sizeMultiplier), panelBox[4]-((borderPadding+contentMargin)*sizeMultiplier)}
+	panelBoxForward = {panelBoxContent[3]-(square*sizeMultiplier), panelBoxContent[2], panelBoxContent[3], panelBoxContent[4]}
+	panelBoxBackward = {panelBoxContent[3]-((square+square+contentMargin)*sizeMultiplier), panelBoxContent[2], panelBoxContent[3]-((square+contentMargin)*sizeMultiplier), panelBoxContent[4]}
+	placebetBox = {panelBox[3], panelBox[2], panelBox[3]+(120*sizeMultiplier), panelBox[4]}
+end
+processBoxes()
+
+function widget:ViewResize(vsx, vsx)
+	vsx,vsy = gl.GetViewSizes()
+	xPos = xRelPos * vsx
+	yPos = yRelPos * vsy
+	processScaling()
+	processBoxes()
+end
 function RecvBetStats(newBetStats)
 	betStats = newBetStats or {}
 	widget:GameFrame(GetGameFrame())
@@ -750,11 +806,272 @@ function widget:GameFrame(n)
 	if not viewBets or not betList.unit then
 		return
 	end
+	numBetUnits = 0
 	for unitID, betInfo in pairs(betList.unit) do
 		updateDisplayList(unitID,betInfo)
+		numBetUnits = numBetUnits + 1
 	end
 end
 
+local lastSelectedUnit = -1
+local lastSelectedUnitTime = -1
+local lastBetTime = -1
+local showingPanel = false
+local mouseoverPlacebetBox = false
+function widget:DrawScreen()
+	if not IsReplay and not IsGameOver then
+		if GetSpectatingState() then
+			local selUnits = GetSelectedUnits()
+			if #selUnits == 1 then
+				local unitID = selUnits[1]
+				local now = os.clock()
+				local absTime, relTime = getMinBetTime()
+				if lastSelectedUnit ~= unitID then
+					lastSelectedUnitTime = os.clock()
+					lastBetTime = getValidBetTime((ceil(absTime/BET_GRANULARITY)-1), 1)
+				end
+				lastSelectedUnit = unitID
+				showingPanel = false
+				if now-lastSelectedUnitTime > panelDelay then
+					lastSelectedUnit = selUnits[1]
+					showingPanel = true
+					
+					if lastBetTime < ceil(absTime/BET_GRANULARITY) then
+						lastBetTime = getValidBetTime((ceil(absTime/BET_GRANULARITY)-1), 1)
+					end
+					
+					-- background
+					glColor(0, 0, 0, 0.6)
+					RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+					glColor(1,1,1,0.022)
+					RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					glColor(1, 1, 1, 1)
+					
+					-- place bet
+					if mouseoverPlacebetBox then
+						glColor(0.6, 0, 0, 0.7)
+					else
+						glColor(0.5, 0, 0, 0.66)
+					end
+					RectRound(placebetBox[1], placebetBox[2], placebetBox[3], placebetBox[4], 8*sizeMultiplier)
+					
+					local textcolor = "\255\255\240\240"
+					if mouseoverPlacebetBox then
+						glColor(1,0.3,0.3,0.4)
+						textcolor = "\255\255\255\255"
+					else
+						glColor(1,0.4,0.4,0.2)
+					end
+					RectRound(placebetBox[1]+(borderPadding*sizeMultiplier), placebetBox[2]+(borderPadding*sizeMultiplier), placebetBox[3]-(borderPadding*sizeMultiplier), placebetBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					glText(textcolor.."Place bet", placebetBox[1]+((borderPadding+14)*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nlo")
+					
+					-- chip cost
+					glTexture(chipTexture)
+					local addsize = 18
+					glColor(0,0,0,0.2)
+					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					addsize = 17
+					glColor(0,0,0,0.4)
+					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					addsize = 15
+					glColor(0.85, 0.85, 0.85, 1)
+					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					local betCost = getBetCost(myPlayerID,"unit",unitID)
+					glText(betCost, panelBox[1]+((borderPadding+(panelHeight/2.66)+(contentMargin/2.66))*sizeMultiplier), yPos-(6*sizeMultiplier), (19+(addsize/6))*sizeMultiplier, "nco")
+					
+					-- back/forward buttons
+					if mouseoverForwardBox then
+						glColor(1, 1, 1, 1)
+					else
+						glColor(1, 1, 1, 0.6)
+					end
+					glTexture(forwardTexture)
+					glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
+					--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
+					
+					if absTime/BET_GRANULARITY < lastBetTime-1 then
+						if mouseoverBackwardBox then
+							glColor(1, 1, 1, 1)
+						else
+							glColor(1, 1, 1, 0.6)
+						end
+						glTexture(backwardTexture)
+						glTexRect(panelBoxBackward[1],panelBoxBackward[2],panelBoxBackward[3],panelBoxBackward[4])
+						--timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+					end
+					glTexture(false)
+					
+					-- bet time
+					local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+					glColor(1, 1, 1, 1)
+					glText(lastBetTime, timePosX, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
+					
+					if (WG['guishader_api'] ~= nil) then
+						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], placebetBox[3], panelBox[4], 'betfrontend')
+					end
+					glColor(1, 1, 1, 1)
+				end
+			else
+				showingPanel = false
+				lastSelectedUnit = -1
+				lastBetTime = -1
+				if showSelectBets and numBetUnits > 0 then
+					if mouseoverSelectBetsBox then
+						glColor(0.6, 0.3, 0, 0.5)
+					else
+						glColor(0.5, 0.25, 0, 0.44)
+					end
+					RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+					
+					local textcolor = "\255\255\240\240"
+					if mouseoverSelectBetsBox then
+						glColor(1,0.66,0.3,0.3)
+						textcolor = "\255\255\255\255"
+					else
+						glColor(1,0.8,0.4,0.15)
+					end
+					RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					local text = "Select unit with bet"
+					if numBetUnits > 1 then
+						text = ""..numBetUnits.." units with a bet"
+					end
+					glText(textcolor..text, xPos, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					
+					if (WG['guishader_api'] ~= nil) then
+						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 'betfrontend')
+					end
+				end
+			end
+			if not showingPanel then 
+				if (WG['guishader_api'] ~= nil) then
+					WG['guishader_api'].RemoveRect('betfrontend')
+				end
+			end
+		end
+	end
+end
+
+function getValidBetTime(value, addition)
+	if betList.unit ~= nil and betList.unit[lastSelectedUnit] ~= nil then
+		local duplicate = false
+		while true do
+			value = value + addition
+			for timeSlot,_ in pairs(betList.unit[lastSelectedUnit]) do
+				if timeSlot/1800 == value then
+					duplicate = true
+					break
+				end
+			end
+			if not duplicate then
+				break
+			else
+				duplicate = false
+			end
+		end
+		return value
+	else
+		return value+addition
+	end
+end
+
+
+function isInBox(mx, my, box)
+    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
+
+function widget:IsAbove(mx, my)
+	if not IsReplay then
+		if lastSelectedUnit > 0 then
+			if isInBox(mx, my, placebetBox) then
+				mouseoverPlacebetBox = true
+			else
+				mouseoverPlacebetBox = false
+			end
+			if isInBox(mx, my, panelBoxForward) then
+				mouseoverForwardBox = true
+			else
+				mouseoverForwardBox = false
+			end
+			if isInBox(mx, my, panelBoxBackward) then
+				mouseoverBackwardBox = true
+			else
+				mouseoverBackwardBox = false
+			end
+		end
+	end
+    return (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox))
+end
+
+
+function widget:MousePress(mx, my, mb)
+	if not IsReplay then
+		if lastSelectedUnit > 0 then
+			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
+				if isInBox(mx, my, panelBoxForward) then
+					panelBoxForwardPressed = true
+				end
+				if isInBox(mx, my, panelBoxBackward) then
+					panelBoxBackwardPressed = true
+				end
+				if isInBox(mx, my, placebetBox) then
+					placebetBoxPressed = true
+				end
+				return true
+			end
+		else
+			if isInBox(mx, my, panelBox) and showSelectBets and numBetUnits > 0 then
+				selectbetsBoxPressed = true
+				return true
+			end
+		end
+	end
+end
+
+function widget:MouseRelease(mx, my, mb)
+	if not IsReplay then
+		if lastSelectedUnit > 0 then
+			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
+				if isInBox(mx, my, panelBoxForward) and panelBoxForwardPressed ~= nil then
+					panelBoxForwardPressed = nil
+					lastBetTime = getValidBetTime(lastBetTime, 1)
+				end
+				if isInBox(mx, my, panelBoxBackward) and panelBoxBackwardPressed ~= nil then
+					panelBoxBackwardPressed = nil
+					local newBetTime = getValidBetTime(lastBetTime, -1)
+					lastBetTime = newBetTime
+				end
+				if isInBox(mx, my, placebetBox) and placebetBoxPressed ~= nil then
+					placebetBoxPressed = nil
+					placeBet(_,_,{"unit",lastSelectedUnit,tostring(lastBetTime)})
+				end
+				return true
+			end
+		else
+			if isInBox(mx, my, panelBox) and selectbetsBoxPressed ~= nil and numBetUnits > 0 then
+				selectbetsBoxPressed = nil
+				SendCommands({"selectbets"})
+				return true
+			end
+		end
+	end
+end
+
+function widget:TweakMousePress(mx, my, mb)
+    if mb == 2 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
+        return true
+    end
+end
+
+function widget:TweakMouseMove(mx, my, dx, dy)
+    if panelBox[1] + dx >= 0 and placebetBox[3] + dx <= vsx then
+		xRelPos = xRelPos + dx/vsx
+	end
+    if panelBox[2] + dy >= 0 and panelBox[4] + dy  <= vsy then 
+		yRelPos = yRelPos + dy/vsy
+	end
+	xPos, yPos = xRelPos * vsx,yRelPos * vsy
+	processBoxes()
+end
 
 function widget:DrawWorld()
 	local camX, camY, camZ = GetCameraPosition()
