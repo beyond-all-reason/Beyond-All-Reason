@@ -162,6 +162,7 @@ end
 local callInLists = {
   'GamePreload',
   'GameStart',
+  'GameProgress',
   'Shutdown',
   'Update',
   'TextCommand',
