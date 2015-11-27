@@ -118,7 +118,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			return
 		end
 		for _,order in ipairs(orderQueue[n]) do
-			GiveOrderToUnit(order.unitID, CMD.INSERT, {order.insertPos, CMD.MOVE, (CMD.OPT_SHIFT), order.dest[1], order.dest[2], order.dest[3]}, {"alt"})
+			GiveOrderToUnit(order.unitID, CMD.INSERT, {order.insertPos, CMD.MOVE, (CMD.OPT_SHIFT+CMD.OPT_INTERNAL), order.dest[1], order.dest[2], order.dest[3]}, {"alt"})
 		end
 		orderQueue[n] = nil
 	end
