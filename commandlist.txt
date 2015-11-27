@@ -14,7 +14,8 @@ Widget dependent:
 /stockpilecount                  "Stockpiler (dynamic)"   usage: /stockpilecount 10   sets default stockpile amount
 /allyresbars_sizeup              "Ally Resource Bars"   (widget auto-scales according to resolution aswell)
 /allyresbars_sizedown            "Ally Resource Bars"
-/enemyspotter_self               "Enemyspotter"   Draw spotters for your own team aswell.
+/enemyspotter_all                "Enemyspotter"   BEING SPEC Draw spotters for all teams.
+/enemyspotter_self               "Enemyspotter"   BEING PLAYER Draw spotters for your own team aswell.
 /enemyspotter_highlight          "Enemyspotter"   Toggle highlight shader
 /+enemyspotter_highlight         "Enemyspotter"   Adjust highlight intensity also:  /-enemyspotter_highlight
 /enemyspotter_platter            "Enemyspotter"   Toggle platter (turn off only if you use /enemyspotter_highlight)
