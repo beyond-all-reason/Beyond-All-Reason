@@ -60,6 +60,8 @@ local unitDisplayList = {}
 local chipStackOffset = {}
 local viewBets = true
 local simSpeed = Game.gameSpeed
+local serverGameFrame = 0
+local AllowBets = true
 
 local IsReplay = Spring.IsReplay()
 local IsSpec = GetSpectatingState()
@@ -112,8 +114,18 @@ local borderPadding = 4
 local contentMargin = 4
 local customScale = 1
 local sizeMultiplier = 1
+local maxBetPing = 3000
+local graceGameframes = 90
 
 local square = panelHeight-borderPadding-borderPadding-contentMargin-contentMargin
+
+
+local lastSelectedUnit = -1
+local lastSelectedUnitTime = -1
+local lastBetTime = -1
+local showingPanel = false
+local mouseoverPlacebetBox = false
+
 
 local function sqDist(x1,x2,y1,y2,z1,z2)
 	return (x1-x2)^2+(y1-y2)^2+(z1-z2)^2
@@ -814,7 +826,16 @@ function updateDisplayList(unitID,betInfo)
 	end
 end
 
+function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
+	serverGameFrame = serverFrameNum
+end
+
 function widget:GameFrame(n)
+	--[[if serverGameFrame - n < graceGameframes then
+		AllowBets = true
+	else
+		AllowBets = false
+	end]]--
 	if not viewBets or not betList.unit then
 		return
 	end
@@ -823,17 +844,16 @@ function widget:GameFrame(n)
 		updateDisplayList(unitID,betInfo)
 		numBetUnits = numBetUnits + 1
 	end
+	if n % 15 == 1 and lastSelectedUnit > 0 and lastBetTime > 0 then
+		lastBetTime = getValidBetTime(lastSelectedUnit, (lastBetTime-1), 1)
+	end
 end
 
-local lastSelectedUnit = -1
-local lastSelectedUnitTime = -1
-local lastBetTime = -1
-local showingPanel = false
-local mouseoverPlacebetBox = false
+
 function widget:DrawScreen()
 	if not IsReplay and not IsGameOver and IsSpec then
 		local selUnits = GetSelectedUnits()
-		if #selUnits == 1 then
+		if #selUnits == 1 and AllowBets then
 			local unitID = selUnits[1]
 			local now = os.clock()
 			local absTime, relTime = getMinBetTime()
@@ -996,8 +1016,8 @@ function isInBox(mx, my, box)
 end
 
 function widget:IsAbove(mx, my)
-	if not IsReplay and not IsGameOver then
-		if lastSelectedUnit > 0 then
+	if not IsReplay and not IsGameOver and showingPanel then
+		if lastSelectedUnit > 0 and AllowBets then
 			if isInBox(mx, my, placebetBox) then
 				mouseoverPlacebetBox = true
 			else
@@ -1026,8 +1046,8 @@ end
 
 
 function widget:MousePress(mx, my, mb)
-	if not IsReplay and not IsGameOver and IsSpecthen
-		if lastSelectedUnit > 0 then
+	if not IsReplay and not IsGameOver and IsSpec and showingPanel then
+		if lastSelectedUnit > 0 and AllowBets then
 			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
 				if isInBox(mx, my, panelBoxForward) then
 					panelBoxForwardPressed = true
@@ -1050,8 +1070,8 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:MouseRelease(mx, my, mb)
-	if not IsReplay and not IsGameOver and IsSpec then
-		if lastSelectedUnit > 0 then
+	if not IsReplay and not IsGameOver and IsSpec and showingPanel then
+		if lastSelectedUnit > 0 and AllowBets then
 			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
 				if isInBox(mx, my, panelBoxForward) and panelBoxForwardPressed ~= nil then
 					panelBoxForwardPressed = nil
