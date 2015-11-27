@@ -866,7 +866,9 @@ function widget:DrawScreen()
 			if now-lastSelectedUnitTime > panelDelay then
 				lastSelectedUnit = unitID
 				showingPanel = true
-				
+				local betCost = getBetCost(myPlayerID,"unit",unitID)
+				local canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID].score >= betCost)
+
 				if lastBetTime < ceil(absTime/BET_GRANULARITY) then
 					lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
 				end
@@ -879,22 +881,24 @@ function widget:DrawScreen()
 				glColor(1, 1, 1, 1)
 				
 				-- place bet
-				if mouseoverPlacebetBox then
-					glColor(0.6, 0, 0, 0.7)
-				else
-					glColor(0.5, 0, 0, 0.66)
+				if canAfford then
+					if mouseoverPlacebetBox then
+						glColor(0.6, 0, 0, 0.7)
+					else
+						glColor(0.5, 0, 0, 0.66)
+					end
+					RectRound(placebetBox[1], placebetBox[2], placebetBox[3], placebetBox[4], 8*sizeMultiplier)
+					
+					local textcolor = "\255\255\240\240"
+					if mouseoverPlacebetBox then
+						glColor(1,0.3,0.3,0.4)
+						textcolor = "\255\255\255\255"
+					else
+						glColor(1,0.4,0.4,0.2)
+					end
+					RectRound(placebetBox[1]+(borderPadding*sizeMultiplier), placebetBox[2]+(borderPadding*sizeMultiplier), placebetBox[3]-(borderPadding*sizeMultiplier), placebetBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					glText(textcolor.."Place bet", placebetBox[1]+((borderPadding+14)*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nlo")
 				end
-				RectRound(placebetBox[1], placebetBox[2], placebetBox[3], placebetBox[4], 8*sizeMultiplier)
-				
-				local textcolor = "\255\255\240\240"
-				if mouseoverPlacebetBox then
-					glColor(1,0.3,0.3,0.4)
-					textcolor = "\255\255\255\255"
-				else
-					glColor(1,0.4,0.4,0.2)
-				end
-				RectRound(placebetBox[1]+(borderPadding*sizeMultiplier), placebetBox[2]+(borderPadding*sizeMultiplier), placebetBox[3]-(borderPadding*sizeMultiplier), placebetBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
-				glText(textcolor.."Place bet", placebetBox[1]+((borderPadding+14)*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nlo")
 				
 				-- chip cost
 				glTexture(chipTexture)
@@ -907,39 +911,42 @@ function widget:DrawScreen()
 				addsize = 15
 				glColor(0.85, 0.85, 0.85, 1)
 				glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
-				local betCost = getBetCost(myPlayerID,"unit",unitID)
 				glText(betCost, panelBox[1]+((borderPadding+(panelHeight/2.66)+(contentMargin/2.66))*sizeMultiplier), yPos-(6*sizeMultiplier), (19+(addsize/6))*sizeMultiplier, "nco")
 				
 				-- back/forward buttons
-				if mouseoverForwardBox then
-					glColor(1, 1, 1, 1)
-				else
-					glColor(1, 1, 1, 0.6)
-				end
-				glTexture(forwardTexture)
-				glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
-				--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
-				
-				if absTime/BET_GRANULARITY < lastBetTime-1 then
-					if mouseoverBackwardBox then
+				if canAfford then
+					if mouseoverForwardBox then
 						glColor(1, 1, 1, 1)
 					else
 						glColor(1, 1, 1, 0.6)
 					end
-					glTexture(backwardTexture)
-					glTexRect(panelBoxBackward[1],panelBoxBackward[2],panelBoxBackward[3],panelBoxBackward[4])
-					--timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+					glTexture(forwardTexture)
+					glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
+					--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
+					
+					if absTime/BET_GRANULARITY < lastBetTime-1 then
+						if mouseoverBackwardBox then
+							glColor(1, 1, 1, 1)
+						else
+							glColor(1, 1, 1, 0.6)
+						end
+						glTexture(backwardTexture)
+						glTexRect(panelBoxBackward[1],panelBoxBackward[2],panelBoxBackward[3],panelBoxBackward[4])
+						--timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+					end
+					
+					-- bet time
+					local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+					glColor(1, 1, 1, 1)
+					glText(lastBetTime, timePosX, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
+					
+					if (WG['guishader_api'] ~= nil) then
+						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], placebetBox[3], panelBox[4], 'betfrontend')
+					end
+				else
+					glText('cant afford bet', panelBoxForward[3]-(6*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
 				end
 				glTexture(false)
-				
-				-- bet time
-				local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
-				glColor(1, 1, 1, 1)
-				glText(lastBetTime, timePosX, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
-				
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], placebetBox[3], panelBox[4], 'betfrontend')
-				end
 				glColor(1, 1, 1, 1)
 			end
 		else
@@ -1085,6 +1092,7 @@ function widget:MouseRelease(mx, my, mb)
 				if isInBox(mx, my, placebetBox) and placebetBoxPressed ~= nil then
 					placebetBoxPressed = nil
 					placeBet(_,_,{"unit",lastSelectedUnit,tostring(lastBetTime)})
+					lastBetTime = getValidBetTime(lastSelectedUnit, (lastBetTime), 1)
 				end
 				return true
 			end
