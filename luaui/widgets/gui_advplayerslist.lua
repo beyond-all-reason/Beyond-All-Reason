@@ -1951,8 +1951,8 @@ end
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 	gl_Texture(pingPic)
 	if spec then
-		local grayvalue = 0.25 + ((5 - pingLvl) / 7)
-		gl_Color(grayvalue,grayvalue,grayvalue,0.75*alpha)
+		local grayvalue = 0.3 + (pingLvl / 15)
+		gl_Color(grayvalue,grayvalue,grayvalue,(0.2*pingLvl))
 		DrawRect(m_cpuping.posX + widgetPosX  + 12, posY+1, m_cpuping.posX + widgetPosX  + 21, posY + 14)
 	else
 		gl_Color(pingCpuColors[pingLvl].r,pingCpuColors[pingLvl].g,pingCpuColors[pingLvl].b)
@@ -1981,7 +1981,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 	else
 		gl_Texture(cpuPic)
 		if spec then
-			gl_Color(grayvalue,grayvalue,grayvalue,0.75*alpha)
+			gl_Color(grayvalue,grayvalue,grayvalue,(0.14*cpuLvl))
 			DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
 		else
 			gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
