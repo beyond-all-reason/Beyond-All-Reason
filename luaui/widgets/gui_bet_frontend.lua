@@ -630,6 +630,13 @@ function widget:Initialize()
 	if GetGameFrame() > 2 then
 		SendCommands({"luarules getbetsstats","luarules getplayerscores", "luarules getbetlist", "luarules getplayerbetlist"})
 	end
+	
+	
+	
+	WG['betfrontend'] = {}
+	WG['betfrontend'].GetPlayerScores = function()
+		return playerScores
+	end
 end
 
 function widget:Shutdown()
@@ -826,8 +833,9 @@ function updateDisplayList(unitID,betInfo)
 	end
 end
 
-function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
+function widget:GameProgress(serverFrameNum)
 	serverGameFrame = serverFrameNum
+	--Spring.Echo(serverGameFrame)
 end
 
 function widget:GameFrame(n)

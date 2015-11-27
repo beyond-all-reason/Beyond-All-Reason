@@ -647,12 +647,12 @@ end
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
 
-function RecvPlayerScores(newPlayerScores)
+--[[function RecvPlayerScores(newPlayerScores)
 	playerScores = newPlayerScores or {}
-end
+end]]--
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
+	--widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	UpdateRecentBroadcasters()
 	
@@ -1551,6 +1551,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	
 	
 	local alpha = 1		-- alpha used to show inactivity for specs
+	
+	if WG['betfrontend'] ~= nil then
+		playerScores = WG['betfrontend'].GetPlayerScores()
+	end
 	
 	if mySpecStatus then
 		local alphaCursor = 1
