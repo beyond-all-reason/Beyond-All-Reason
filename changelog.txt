@@ -9,6 +9,8 @@ Others:
 - Bloom Shader: intenser + darkens map a bit
 - Bet Frontend: added GUI to do a bet + 'select bet units' button
 - Ally Selected Units: when tracking player: displays checkbox to opt out following their selection
+- Ally Resources: got smaller for lower resolution screens
+- EnemySpotter: bugfix for when shaders were disabled
 
 
 9.18 -> 9.19
