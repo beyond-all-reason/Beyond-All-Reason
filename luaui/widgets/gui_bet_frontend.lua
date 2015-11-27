@@ -62,7 +62,7 @@ local viewBets = true
 local simSpeed = Game.gameSpeed
 local serverGameFrame = 0
 local AllowBets = true
-
+local canAfford = true
 local IsReplay = Spring.IsReplay()
 local IsSpec = GetSpectatingState()
 
@@ -867,7 +867,7 @@ function widget:DrawScreen()
 				lastSelectedUnit = unitID
 				showingPanel = true
 				local betCost = getBetCost(myPlayerID,"unit",unitID)
-				local canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID].score >= betCost)
+				canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID].score >= betCost)
 
 				if lastBetTime < ceil(absTime/BET_GRANULARITY) then
 					lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
@@ -939,12 +939,15 @@ function widget:DrawScreen()
 					local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
 					glColor(1, 1, 1, 1)
 					glText(lastBetTime, timePosX, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
-					
-					if (WG['guishader_api'] ~= nil) then
-						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], placebetBox[3], panelBox[4], 'betfrontend')
-					end
 				else
 					glText('cant afford bet', panelBoxForward[3]-(6*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
+				end
+				if (WG['guishader_api'] ~= nil) then
+					local x2 = placebetBox[3]
+					if not canAfford then
+						x2 = panelBox[3]
+					end
+					WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], x2, panelBox[4], 'betfrontend')
 				end
 				glTexture(false)
 				glColor(1, 1, 1, 1)
@@ -1055,7 +1058,7 @@ end
 function widget:MousePress(mx, my, mb)
 	if not IsReplay and not IsGameOver and IsSpec and showingPanel then
 		if lastSelectedUnit > 0 and AllowBets then
-			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
+			if mb == 1 and (isInBox(mx, my, panelBox) or (isInBox(mx, my, placebetBox) and canAfford)) then
 				if isInBox(mx, my, panelBoxForward) then
 					panelBoxForwardPressed = true
 				end
@@ -1078,7 +1081,7 @@ end
 
 function widget:MouseRelease(mx, my, mb)
 	if not IsReplay and not IsGameOver and IsSpec and showingPanel then
-		if lastSelectedUnit > 0 and AllowBets then
+		if lastSelectedUnit > 0 and AllowBets and canAfford then
 			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
 				if isInBox(mx, my, panelBoxForward) and panelBoxForwardPressed ~= nil then
 					panelBoxForwardPressed = nil
