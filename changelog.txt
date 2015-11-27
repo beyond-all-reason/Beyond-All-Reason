@@ -1,4 +1,4 @@
-﻿9.19 -> 9.20
+﻿9.19 -> 9.21
 27/11/2015
 
 - Added widget: "Darken Map": default enabled, ctrl+alt+[ or ], remembers per map, reset with /resetmapdarkness
