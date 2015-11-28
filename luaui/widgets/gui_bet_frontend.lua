@@ -102,7 +102,7 @@ local glRect = gl.Rect
 local glGetTextWidth = gl.GetTextWidth
 local IsGameOver = false
 
-local xRelPos, yRelPos		= 0.5, 0.14
+local xRelPos, yRelPos		= 0.5, 0.16
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
@@ -1027,6 +1027,35 @@ end
 
 function isInBox(mx, my, box)
     return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
+
+function widget:IsAbove(mx, my)
+	if not IsReplay and not IsGameOver and showingPanel and IsSpec then
+		if lastSelectedUnit > 0 and AllowBets then
+			if isInBox(mx, my, placebetBox) then
+				mouseoverPlacebetBox = true
+			else
+				mouseoverPlacebetBox = false
+			end
+			if isInBox(mx, my, panelBoxForward) then
+				mouseoverForwardBox = true
+			else
+				mouseoverForwardBox = false
+			end
+			if isInBox(mx, my, panelBoxBackward) then
+				mouseoverBackwardBox = true
+			else
+				mouseoverBackwardBox = false
+			end
+		else
+			if isInBox(mx, my, panelBox) and showSelectBets and numBetUnits > 0 then
+				mouseoverSelectBetsBox = true
+			else
+				mouseoverSelectBetsBox = false
+			end
+		end
+	end
+    return (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox))
 end
 
 
