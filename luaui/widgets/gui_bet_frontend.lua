@@ -596,8 +596,37 @@ function RecvPlayerScores(newPlayerScores)
 	playerScores = newPlayerScores or {}
 end
 
+function spairs(t, order)	-- http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
+end
+
 function RecvBetList(newBetList)
 	betList = newBetList or {}
+	--[[for unitID, betInfo in pairs(newBetList.unit) do
+		betList.unit[unitID] = {}
+		for timeSlot,bets in spairs(betInfo) do
+			betList.unit[unitID][timeSlot] = bets
+		end
+	end]]--
 	widget:GameFrame(GetGameFrame())
 end
 
@@ -764,7 +793,6 @@ function getTotalText(numBets,totalScore,totalWin,betValue)
 	return "\255\255\55\1Bets: " .. numBets .. "   \255\255\180\1Total points bet: " .. totalScore .. "   \255\255\255\1Prize: " .. totalWin .. "   \255\55\255\1Betting cost: " .. betValue
 end
 
-
 function updateDisplayList(unitID,betInfo)
 	local stepSize = 15
 	--local cubeShift = 25
@@ -792,7 +820,8 @@ function updateDisplayList(unitID,betInfo)
 					local padding = 8
 					glColor(0,0,0,0.5)
 					RectRound(-padding, -padding+stepSize, textWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
-					for timeSlot,betEntry in pairs(betInfo) do
+					
+					for timeSlot,betEntry in spairs(betInfo) do
 						glTranslate(0,stepSize,0)
 						glText(getBetLineText(betEntry), 0, 0,stepSize, "o")
 					end
@@ -855,9 +884,9 @@ end
 
 
 function widget:DrawScreen()
-	if not IsReplay and not IsGameOver and IsSpec then
+	if not IsGameOver and IsSpec then
 		local selUnits = GetSelectedUnits()
-		if #selUnits == 1 and AllowBets then
+		if #selUnits == 1 and AllowBets and not IsReplay then
 			local unitID = selUnits[1]
 			local now = os.clock()
 			local absTime, relTime = getMinBetTime()
@@ -887,7 +916,7 @@ function widget:DrawScreen()
 				-- place bet
 				if canAfford then
 					if mouseoverPlacebetBox then
-						glColor(0.6, 0, 0, 0.7)
+						glColor(0.6, 0, 0, 0.75)
 					else
 						glColor(0.5, 0, 0, 0.66)
 					end
@@ -927,8 +956,8 @@ function widget:DrawScreen()
 					glTexture(forwardTexture)
 					glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
 					--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
-					
-					if absTime/BET_GRANULARITY < lastBetTime-1 then
+					local prevAvalibleTime = getValidBetTime(lastSelectedUnit, (lastBetTime), -1)
+					if absTime/BET_GRANULARITY < lastBetTime-1 and prevAvalibleTime < lastBetTime and prevAvalibleTime >= (ceil(absTime/BET_GRANULARITY)) then
 						if mouseoverBackwardBox then
 							glColor(1, 1, 1, 1)
 						else
@@ -1030,7 +1059,7 @@ function isInBox(mx, my, box)
 end
 
 function widget:IsAbove(mx, my)
-	if not IsReplay and not IsGameOver and showingPanel and IsSpec then
+	if not IsGameOver and showingPanel and IsSpec then
 		if lastSelectedUnit > 0 and AllowBets then
 			if isInBox(mx, my, placebetBox) then
 				mouseoverPlacebetBox = true
@@ -1060,7 +1089,7 @@ end
 
 
 function widget:MousePress(mx, my, mb)
-	if not IsReplay and not IsGameOver and IsSpec and showingPanel then
+	if not IsGameOver and IsSpec and showingPanel then
 		if lastSelectedUnit > 0 and AllowBets then
 			if mb == 1 and (isInBox(mx, my, panelBox) or (isInBox(mx, my, placebetBox) and canAfford)) then
 				if isInBox(mx, my, panelBoxForward) then
@@ -1084,7 +1113,7 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:MouseRelease(mx, my, mb)
-	if not IsReplay and not IsGameOver and IsSpec and showingPanel then
+	if not IsGameOver and IsSpec and showingPanel then
 		if lastSelectedUnit > 0 and AllowBets and canAfford then
 			if mb == 1 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
 				if isInBox(mx, my, panelBoxForward) and panelBoxForwardPressed ~= nil then
