@@ -26,7 +26,7 @@ function widget:GetInfo()
 end
 
 
-highlightAlpha = 0.27
+highlightAlpha = 0.24
 
 
 --------------------------------------------------------------------------------
