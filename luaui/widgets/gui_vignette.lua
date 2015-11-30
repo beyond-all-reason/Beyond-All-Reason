@@ -6,7 +6,7 @@ function widget:GetInfo()
         date      = "12 Sept 2015",
         license   = "GNU GPL, v2 or whatever",
         layer     = 111,
-        enabled   = true
+        enabled   = false
     }
 end
 
@@ -15,7 +15,7 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local vignetteTexture	= ":n:"..LUAUI_DIRNAME.."Images/vignette.dds"
-local vignetteColor		= {0,0,0,0.15}
+local vignetteColor		= {0,0,0,0.17}
 
 --------------------------------------------------------------------------------
 
@@ -25,7 +25,7 @@ function createList()
         gl.PushMatrix()
 			gl.Color(vignetteColor)
 			gl.Texture(vignetteTexture)
-			gl.TexRect(0, 0, vsx, vsy)
+			gl.TexRect(-(vsx/25), -(vsy/25), vsx+(vsx/25), vsy+(vsy/25))
 			gl.Texture(false)
 		gl.PopMatrix()
 	end)
