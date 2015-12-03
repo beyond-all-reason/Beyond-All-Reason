@@ -220,13 +220,13 @@ function calcCircleLines(divs)
 				gl.Vertex(math.sin(a), circleOffset, math.cos(a))
 			end
 		end)
-		gl.BeginEnd(GL.POINTS, function()
+		--[[gl.BeginEnd(GL.POINTS, function()
 			local radstep = (2.0 * math.pi) / divs
 			for i = 1, divs do
 				local a = (i * radstep)
 				gl.Vertex(math.sin(a), circleOffset, math.cos(a))
 			end
-		end)
+		end)]]--
 	end)
   
 	return lines
@@ -485,10 +485,8 @@ function widget:DrawWorldPreUnit()
 end
 
 function DrawSelectedUnits()
-	glDepthTest(false)
 	glColor(0.0, 1.0, 0.0, 1.0)
-	glLineWidth( 2 )
-	
+	glLineWidth(2)
 	local now = spGetGameSeconds()
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
 	
@@ -518,9 +516,8 @@ function DrawSelectedUnits()
 		end
 	end
 	
-	glDepthTest(false)
  	glColor(1, 1, 1, 1)
-	glLineWidth( 1 )
+	glLineWidth(1)
 end
 
 
