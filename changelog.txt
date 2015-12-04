@@ -1,4 +1,13 @@
-﻿9.19 -> 9.21
+﻿9.21 -> 9.22
+xx/11/2015
+
+- Ally selected units: disco/large dots bugfix + movable options GUI + auto-scale GUI according to resolution
+- Bet Frontend: removed dead mouseclick area when being player + unit bet list sorted by time
+- Ally resourcebars: slightly larger again on small resolutions
+- Added widget: "Bloom shader highlight"
+
+
+9.19 -> 9.21
 27/11/2015
 
 - Added widget: "Darken Map": default enabled, ctrl+alt+[ or ], remembers per map, reset with /resetmapdarkness
