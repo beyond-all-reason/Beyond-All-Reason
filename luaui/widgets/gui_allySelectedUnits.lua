@@ -90,6 +90,7 @@ local panelWidth = 200;
 local panelHeight = 55;
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local sizeMultiplier = 1
 
 --Internals------------------------------------------------------
 local playerColors = {}
@@ -220,13 +221,6 @@ function calcCircleLines(divs)
 				gl.Vertex(math.sin(a), circleOffset, math.cos(a))
 			end
 		end)
-		--[[gl.BeginEnd(GL.POINTS, function()
-			local radstep = (2.0 * math.pi) / divs
-			for i = 1, divs do
-				local a = (i * radstep)
-				gl.Vertex(math.sin(a), circleOffset, math.cos(a))
-			end
-		end)]]--
 	end)
   
 	return lines
@@ -361,6 +355,12 @@ function widget:Update(dt)
 		end
 	end
 end
+  
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx, vsy = viewSizeX, viewSizeY
+	xPos, yPos            = xRelPos*vsx, yRelPos*vsy
+	sizeMultiplier = 0.55 + (vsx*vsy / 8000000)
+end
 
 function selectPlayerSelectedUnits(playerID)
 	local units = {}
@@ -377,13 +377,13 @@ end
 function widget:DrawScreen()
 	if lockPlayerID ~= nil then
 		glColor(0, 0, 0, 0.6)
-		RectRound(xPos, yPos, xPos + panelWidth, yPos + panelHeight, 8)
+		RectRound(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 8*sizeMultiplier)
 		glColor(1, 1, 1, 1)
-		glText("Ally Selected Units", xPos + 10, yPos + panelHeight - 19, 13, "n")
+		glText("Ally Selected Units", xPos + (10*sizeMultiplier), yPos + ((panelHeight - 19)*sizeMultiplier), 13*sizeMultiplier, "n")
 		glColor(1, 1, 1, 0.2)
-		drawCheckbox(xPos + 12, yPos + 10, selectPlayerUnits,  "Select tracked player units")
+		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (10*sizeMultiplier), selectPlayerUnits,  "Select tracked player units")
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(xPos, yPos, xPos + panelWidth, yPos + panelHeight, 'allyselectedunits')
+			WG['guishader_api'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'allyselectedunits')
 		end
 	else
 		if (WG['guishader_api'] ~= nil) then
@@ -466,14 +466,14 @@ function drawCheckbox(x, y, state, text)
     glPushMatrix()
     glTranslate(x, y, 0)
     glColor(1, 1, 1, 0.2)
-    RectRound(0, 0, 16, 16, 3)
+    RectRound(0, 0, 16*sizeMultiplier, 16*sizeMultiplier, 3*sizeMultiplier)
     glColor(1, 1, 1, 1)
     if state then
         glTexture('LuaUI/Images/tick.png')
-        glTexRect(0, 0, 16, 16)
+        glTexRect(0, 0, 16*sizeMultiplier, 16*sizeMultiplier)
         glTexture(false)
     end
-    glText(text, 23, 4, 12, "n")
+    glText(text, 23*sizeMultiplier, 4*sizeMultiplier, 12*sizeMultiplier, "n")
     glPopMatrix()
 end
 
@@ -487,6 +487,7 @@ end
 function DrawSelectedUnits()
 	glColor(0.0, 1.0, 0.0, 1.0)
 	glLineWidth(2)
+	gl.PointSize(1)
 	local now = spGetGameSeconds()
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
 	
@@ -578,28 +579,31 @@ end
 
 
 function widget:IsAbove(mx, my)
-    return widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
+	return mx > xPos and my > yPos and mx < xPos + (panelWidth*sizeMultiplier) and my < yPos + (panelHeight*sizeMultiplier)
 end
 
 function widget:MousePress(mx, my, mb)
-    if mb == 2 and widget:IsAbove(mx,my) then
-        return true
-    end
-
-    if mb == 1 then
-        if mb == 1 then
-            if mx > xPos + 12 and my > yPos + 10 and mx < (xPos + 12 + 16) and my < (yPos + 10 + 16) then
-                selectPlayerUnits = not selectPlayerUnits
-            end
-        end
-    end
+	if mb == 1 then
+		if mx > xPos + (12*sizeMultiplier) and my > yPos + (10*sizeMultiplier) and mx < (xPos + ((panelWidth - 12)*sizeMultiplier)) and my < (yPos + ((10 + 16)*sizeMultiplier)) then
+			selectPlayerUnits = not selectPlayerUnits
+		end
+		if lockPlayerID ~= nil and widget:IsAbove(mx,my) then
+			return false
+		end
+	end
 end
 
+function widget:TweakMousePress(mx, my, mb)
+    if lockPlayerID ~= nil and  mb == 2 and widget:IsAbove(mx,my) then
+        return true
+    end
+end 
+
 function widget:TweakMouseMove(mx, my, dx, dy)
-    if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then
+    if xPos + dx >= -1 and xPos + (panelWidth*sizeMultiplier) + dx - 1 <= vsx then
 		xRelPos = xRelPos + dx/vsx
 	end
-    if yPos + dy >= -1 and yPos + panelHeight + dy - 1<= vsy then 
+    if yPos + dy >= -1 and yPos + (panelHeight*sizeMultiplier) + dy - 1<= vsy then 
 		yRelPos = yRelPos + dy/vsy
 	end
 	xPos, yPos = xRelPos * vsx,yRelPos * vsy
