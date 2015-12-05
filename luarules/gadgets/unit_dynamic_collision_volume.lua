@@ -242,7 +242,12 @@ if (gadgetHandler:IsSyncedCode()) then
 					end
 					if t.offsets then
 						p = t.offsets
-						spSetUnitMidAndAimPos(unitID, 0, spGetUnitHeight(unitID)/2, 0, p[1], p[2], p[3],true)
+						local unitHeight = spGetUnitHeight(unitID)
+						if unitHeight == nil then  -- had error once, hope this nil check helps
+							popupUnits[unitID] = nil
+						else
+							spSetUnitMidAndAimPos(unitID, 0, unitHeight/2, 0, p[1], p[2], p[3],true)
+						end
 					end
 				else
 					local unitHeight = spGetUnitHeight(unitID)
