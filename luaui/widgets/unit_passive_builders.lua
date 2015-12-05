@@ -23,21 +23,22 @@ end
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
-local CMD_PASSIVE       = 34571
-local spGetMyTeamID     = Spring.GetMyTeamID
-local spGetTeamUnits    = Spring.GetTeamUnits
-local spGetUnitDefID    = Spring.GetUnitDefID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
-local spGetMyPlayerID	= Spring.GetMyPlayerID
-local spGetPlayerInfo	= Spring.GetPlayerInfo
+local CMD_PASSIVE       	= 34571
+local spGetMyTeamID     	= Spring.GetMyTeamID
+local spGetTeamUnits    	= Spring.GetTeamUnits
+local spGetUnitDefID    	= Spring.GetUnitDefID
+local spGiveOrderToUnit 	= Spring.GiveOrderToUnit
+local spGetMyPlayerID		= Spring.GetMyPlayerID
+local spGetPlayerInfo		= Spring.GetPlayerInfo
+local spGetSpectatingState	= Spring.GetSpectatingState
 
-local glTexRect         = gl.TexRect
-local glText            = gl.Text
-local glTexture         = gl.Texture
-local glColor           = gl.Color
-local glPushMatrix      = gl.PushMatrix
-local glPopMatrix       = gl.PopMatrix
-local glTranslate       = gl.Translate
+local glTexRect				= gl.TexRect
+local glText				= gl.Text
+local glTexture				= gl.Texture
+local glColor				= gl.Color
+local glPushMatrix			= gl.PushMatrix
+local glPopMatrix			= gl.PopMatrix
+local glTranslate			= gl.Translate
 
 local coreCommando = UnitDefNames["commando"]
 
@@ -51,6 +52,9 @@ local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
 local panelWidth = 105;
 local panelHeight = 95;
+
+local sizeMultiplier = 1
+local IsSpec = spGetSpectatingState()
 
 local function isBuilder(ud)
     if not passiveCons and not passiveLabs and not passiveNanos then
@@ -106,15 +110,17 @@ end
 
 
 function widget:TweakDrawScreen()
-    glColor(0, 0, 0, 0.6)
-    RectRound(xPos, yPos, xPos + panelWidth, yPos + panelHeight, 8)
-    glColor(1, 1, 1, 1)
-    glText("Passive mode", xPos + 10, yPos + 76, 13, "n")
-    glColor(1, 1, 1, 0.2)
-    drawCheckbox(xPos + 12, yPos + 10, passiveCons,  "cons")
-    drawCheckbox(xPos + 12, yPos + 30, passiveNanos, "nanos")
-    drawCheckbox(xPos + 12, yPos + 50, passiveLabs,  "labs")
-    processGuishader()
+	if not IsSpec then
+		glColor(0, 0, 0, 0.6)
+		RectRound(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 8*sizeMultiplier)
+		glColor(1, 1, 1, 1)
+		glText("Passive mode", xPos + (10*sizeMultiplier), yPos + (76*sizeMultiplier), 13*sizeMultiplier, "n")
+		glColor(1, 1, 1, 0.2)
+		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (10*sizeMultiplier), passiveCons,  "cons")
+		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (30*sizeMultiplier), passiveNanos, "nanos")
+		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (50*sizeMultiplier), passiveLabs,  "labs")
+		processGuishader()
+	end
 end
 
 
@@ -192,50 +198,54 @@ function drawCheckbox(x, y, state, text)
     glPushMatrix()
     glTranslate(x, y, 0)
     glColor(1, 1, 1, 0.2)
-    RectRound(0, 0, 16, 16, 3)
+    RectRound(0, 0, 16*sizeMultiplier, 16*sizeMultiplier, 3*sizeMultiplier)
     glColor(1, 1, 1, 1)
     if state then
         glTexture('LuaUI/Images/tick.png')
-        glTexRect(0, 0, 16, 16)
+        glTexRect(0, 0, 16*sizeMultiplier, 16*sizeMultiplier)
         glTexture(false)
     end
-    glText(text, 23, 4, 12, "n")
+    glText(text, 23*sizeMultiplier, 4*sizeMultiplier, 12*sizeMultiplier, "n")
     glPopMatrix()
 end
 
 function widget:IsAbove(mx, my)
-    return widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + panelWidth and my < yPos + panelHeight
+    return widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + (panelWidth*sizeMultiplier) and my < yPos + (panelHeight*sizeMultiplier)
 end
 
 function widget:TweakMousePress(mx, my, mb)
-    if mb == 2 and widget:IsAbove(mx,my) then
-        return true
-    end
+	if not IsSpec then
+		if mb == 2 and widget:IsAbove(mx,my) then
+			return true
+		end
 
-    if mb == 1 then
-        if mb == 1 then
-            if mx > xPos + 12 and my > yPos + 10 and mx < (xPos + 12 + 16) and my < (yPos + 10 + 16) then
-                passiveCons = not passiveCons
-                refreshUints()
-            elseif mx > xPos + 12 and my > yPos + 30 and mx < (xPos + 12 + 16) and my < (yPos + 30 + 16) then
-                passiveNanos = not passiveNanos
-                refreshUints()
-            elseif mx > xPos + 12 and my > yPos + 50 and mx < (xPos + 12 + 16) and my < (yPos + 50 + 16) then
-                passiveLabs = not passiveLabs
-                refreshUints()
-            end
-        end
-    end
+		if mb == 1 then
+			if mb == 1 then
+				if mx > xPos + (12*sizeMultiplier) and my > yPos + (10*sizeMultiplier) and mx < (xPos + ((panelWidth-12)*sizeMultiplier)) and my < (yPos + ((10 + 16)*sizeMultiplier)) then
+					passiveCons = not passiveCons
+					refreshUints()
+				elseif mx > xPos + (12*sizeMultiplier) and my > yPos + (30*sizeMultiplier) and mx < (xPos + ((panelWidth-12)*sizeMultiplier)) and my < (yPos + ((30 + 16)*sizeMultiplier)) then
+					passiveNanos = not passiveNanos
+					refreshUints()
+				elseif mx > xPos + (12*sizeMultiplier) and my > yPos + (50*sizeMultiplier) and mx < (xPos + ((panelWidth-12)*sizeMultiplier)) and my < (yPos + ((50 + 16)*sizeMultiplier)) then
+					passiveLabs = not passiveLabs
+					refreshUints()
+				end
+			end
+		end
+	end
 end
 
 function widget:TweakMouseMove(mx, my, dx, dy)
-    if xPos + dx >= -1 and xPos + panelWidth + dx - 1 <= vsx then
-		xRelPos = xRelPos + dx/vsx
+	if not IsSpec then
+		if xPos + dx >= -1 and xPos + (panelWidth*sizeMultiplier) + dx - 1 <= vsx then
+			xRelPos = xRelPos + dx/vsx
+		end
+		if yPos + dy >= -1 and yPos + (panelHeight*sizeMultiplier) + dy - 1<= vsy then 
+			yRelPos = yRelPos + dy/vsy
+		end
+		xPos, yPos = xRelPos * vsx,yRelPos * vsy
 	end
-    if yPos + dy >= -1 and yPos + panelHeight + dy - 1<= vsy then 
-		yRelPos = yRelPos + dy/vsy
-	end
-	xPos, yPos = xRelPos * vsx,yRelPos * vsy
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -322,9 +332,20 @@ function refreshUints()
     end
 end
 
+  
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx, vsy = viewSizeX, viewSizeY
+	xPos, yPos = xRelPos*vsx, yRelPos*vsy
+	sizeMultiplier = 0.55 + (vsx*vsy / 8000000)
+end
+
+function widget:PlayerChanged(playerID)
+	IsSpec = GetSpectatingState()
+end
+
 function processGuishader()
     if (WG['guishader_api'] ~= nil) then
-        WG['guishader_api'].InsertRect(xPos, yPos, xPos + panelWidth, yPos + panelHeight, 'passivebuilders')
+        WG['guishader_api'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'passivebuilders')
     end
 end
 
