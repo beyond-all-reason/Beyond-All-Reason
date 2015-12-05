@@ -1,4 +1,4 @@
-﻿9.21 -> 9.22
+﻿9.21 -> 9.23
 05/12/2015
 
 - Ally selected units: disco/large dots bugfix + movable options GUI + auto-scale GUI according to resolution
