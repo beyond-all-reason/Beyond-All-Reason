@@ -65,6 +65,7 @@ local AllowBets = true
 local canAfford = true
 local IsReplay = Spring.IsReplay()
 local IsSpec = GetSpectatingState()
+local IsPaused = false
 
 local _G_INDEX = "betengine"
 local MIN_BET_TIME = GetGameRulesParam(_G_INDEX.."MIN_BET_TIME")
@@ -869,162 +870,177 @@ function widget:GameFrame(n)
 	else
 		AllowBets = false
 	end]]--
+end
+
+local sec = 0
+function widget:Update(dt)
 	if not viewBets or not betList.unit then
 		return
 	end
-	numBetUnits = 0
-	for unitID, betInfo in pairs(betList.unit) do
-		updateDisplayList(unitID,betInfo)
-		numBetUnits = numBetUnits + 1
-	end
-	if n % 15 == 1 and lastSelectedUnit > 0 and lastBetTime > 0 then
-		lastBetTime = getValidBetTime(lastSelectedUnit, (lastBetTime-1), 1)
+	sec=sec+dt
+	if sec > 0.2 then
+		numBetUnits = 0
+		for unitID, betInfo in pairs(betList.unit) do
+			updateDisplayList(unitID,betInfo)
+			numBetUnits = numBetUnits + 1
+		end
+		if lastSelectedUnit > 0 and lastBetTime > 0 then
+			lastBetTime = getValidBetTime(lastSelectedUnit, (lastBetTime-1), 1)
+		end
 	end
 end
 
+function widget:GamePaused(playerID, paused)
+	IsPaused = true
+end
 
 function widget:DrawScreen()
 	if not IsGameOver and IsSpec then
 		local selUnits = GetSelectedUnits()
-		if #selUnits == 1 and AllowBets and not IsReplay then
-			local unitID = selUnits[1]
-			local now = os.clock()
-			local absTime, relTime = getMinBetTime()
-			if lastSelectedUnit ~= unitID then
-				lastSelectedUnitTime = os.clock()
-				lastBetTime = getValidBetTime(unitID, (ceil(absTime/BET_GRANULARITY)-1), 1)
-			end
-			lastSelectedUnit = unitID
-			showingPanel = false
-			if now-lastSelectedUnitTime > panelDelay then
+		if AllowBets and not IsReplay then
+			if #selUnits == 1 then
+				local unitID = selUnits[1]
+				local now = os.clock()
+				local absTime, relTime = getMinBetTime()
+				if lastSelectedUnit ~= unitID then
+					lastSelectedUnitTime = os.clock()
+					lastBetTime = getValidBetTime(unitID, (ceil(absTime/BET_GRANULARITY)-1), 1)
+					if betList.unit ~= nil and betList.unit[unitID] ~= nil then
+						updateDisplayList(unitID,betList.unit[unitID])
+					end
+				end
 				lastSelectedUnit = unitID
-				showingPanel = true
-				local betCost = getBetCost(myPlayerID,"unit",unitID)
-				canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID].score >= betCost)
+				showingPanel = false
+				if now-lastSelectedUnitTime > panelDelay then
+					lastSelectedUnit = unitID
+					showingPanel = true
+					local betCost = getBetCost(myPlayerID,"unit",unitID)
+					canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID].score >= betCost)
 
-				if lastBetTime < ceil(absTime/BET_GRANULARITY) then
-					lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
-				end
-				
-				-- background
-				glColor(0, 0, 0, 0.6)
-				RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
-				glColor(1,1,1,0.022)
-				RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
-				glColor(1, 1, 1, 1)
-				
-				-- place bet
-				if canAfford then
-					if mouseoverPlacebetBox then
-						glColor(0.6, 0, 0, 0.75)
-					else
-						glColor(0.5, 0, 0, 0.66)
+					if lastBetTime < ceil(absTime/BET_GRANULARITY) then
+						lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
 					end
-					RectRound(placebetBox[1], placebetBox[2], placebetBox[3], placebetBox[4], 8*sizeMultiplier)
 					
-					local textcolor = "\255\255\240\240"
-					if mouseoverPlacebetBox then
-						glColor(1,0.3,0.3,0.4)
-						textcolor = "\255\255\255\255"
-					else
-						glColor(1,0.4,0.4,0.2)
+					-- background
+					glColor(0, 0, 0, 0.6)
+					RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+					glColor(1,1,1,0.022)
+					RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					glColor(1, 1, 1, 1)
+					
+					-- place bet
+					if canAfford then
+						if mouseoverPlacebetBox then
+							glColor(0.6, 0, 0, 0.75)
+						else
+							glColor(0.5, 0, 0, 0.66)
+						end
+						RectRound(placebetBox[1], placebetBox[2], placebetBox[3], placebetBox[4], 8*sizeMultiplier)
+						
+						local textcolor = "\255\255\240\240"
+						if mouseoverPlacebetBox then
+							glColor(1,0.3,0.3,0.4)
+							textcolor = "\255\255\255\255"
+						else
+							glColor(1,0.4,0.4,0.2)
+						end
+						RectRound(placebetBox[1]+(borderPadding*sizeMultiplier), placebetBox[2]+(borderPadding*sizeMultiplier), placebetBox[3]-(borderPadding*sizeMultiplier), placebetBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+						glText(textcolor.."Place bet", placebetBox[1]+((borderPadding+14)*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nlo")
 					end
-					RectRound(placebetBox[1]+(borderPadding*sizeMultiplier), placebetBox[2]+(borderPadding*sizeMultiplier), placebetBox[3]-(borderPadding*sizeMultiplier), placebetBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
-					glText(textcolor.."Place bet", placebetBox[1]+((borderPadding+14)*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nlo")
-				end
-				
-				-- chip cost
-				glTexture(chipTexture)
-				local addsize = 18
-				glColor(0,0,0,0.2)
-				glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
-				addsize = 17
-				glColor(0,0,0,0.4)
-				glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
-				addsize = 15
-				glColor(0.85, 0.85, 0.85, 1)
-				glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
-				glText(betCost, panelBox[1]+((borderPadding+(panelHeight/2.66)+(contentMargin/2.66))*sizeMultiplier), yPos-(6*sizeMultiplier), (19+(addsize/6))*sizeMultiplier, "nco")
-				
-				-- back/forward buttons
-				if canAfford then
-					if mouseoverForwardBox then
-						glColor(1, 1, 1, 1)
-					else
-						glColor(1, 1, 1, 0.6)
-					end
-					glTexture(forwardTexture)
-					glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
-					--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
-					local prevAvalibleTime = getValidBetTime(lastSelectedUnit, (lastBetTime), -1)
-					if absTime/BET_GRANULARITY < lastBetTime-1 and prevAvalibleTime < lastBetTime and prevAvalibleTime >= (ceil(absTime/BET_GRANULARITY)) then
-						if mouseoverBackwardBox then
+					
+					-- chip cost
+					glTexture(chipTexture)
+					local addsize = 18
+					glColor(0,0,0,0.2)
+					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					addsize = 17
+					glColor(0,0,0,0.4)
+					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					addsize = 15
+					glColor(0.85, 0.85, 0.85, 1)
+					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					glText(betCost, panelBox[1]+((borderPadding+(panelHeight/2.66)+(contentMargin/2.66))*sizeMultiplier), yPos-(6*sizeMultiplier), (19+(addsize/6))*sizeMultiplier, "nco")
+					
+					-- back/forward buttons
+					if canAfford then
+						if mouseoverForwardBox then
 							glColor(1, 1, 1, 1)
 						else
 							glColor(1, 1, 1, 0.6)
 						end
-						glTexture(backwardTexture)
-						glTexRect(panelBoxBackward[1],panelBoxBackward[2],panelBoxBackward[3],panelBoxBackward[4])
-						--timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+						glTexture(forwardTexture)
+						glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
+						--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
+						local prevAvalibleTime = getValidBetTime(lastSelectedUnit, (lastBetTime), -1)
+						if absTime/BET_GRANULARITY < lastBetTime-1 and prevAvalibleTime < lastBetTime and prevAvalibleTime >= (ceil(absTime/BET_GRANULARITY)) then
+							if mouseoverBackwardBox then
+								glColor(1, 1, 1, 1)
+							else
+								glColor(1, 1, 1, 0.6)
+							end
+							glTexture(backwardTexture)
+							glTexRect(panelBoxBackward[1],panelBoxBackward[2],panelBoxBackward[3],panelBoxBackward[4])
+							--timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+						end
+						
+						-- bet time
+						local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+						glColor(1, 1, 1, 1)
+						glText(lastBetTime, timePosX, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
+					else
+						glText('cant afford bet', panelBoxForward[3]-(6*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
 					end
-					
-					-- bet time
-					local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
+					if (WG['guishader_api'] ~= nil) then
+						local x2 = placebetBox[3]
+						if not canAfford then
+							x2 = panelBox[3]
+						end
+						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], x2, panelBox[4], 'betfrontend')
+					end
+					glTexture(false)
 					glColor(1, 1, 1, 1)
-					glText(lastBetTime, timePosX, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
-				else
-					glText('cant afford bet', panelBoxForward[3]-(6*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
 				end
-				if (WG['guishader_api'] ~= nil) then
-					local x2 = placebetBox[3]
-					if not canAfford then
-						x2 = panelBox[3]
+			else
+				showingPanel = false
+				lastSelectedUnit = -1
+				lastBetTime = -1
+				if showSelectBets and numBetUnits > 0 then
+					showingPanel = true
+					if mouseoverSelectBetsBox then
+						--glColor(0.64, 0.33, 0, 0.55)
+						glColor(0, 0, 0, 0.55)
+					else
+						--glColor(0.6, 0.29, 0, 0.5)
+						glColor(0, 0, 0, 0.5)
 					end
-					WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], x2, panelBox[4], 'betfrontend')
+					RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+					
+					--local textcolor = "\255\255\240\240"
+					local textcolor = "\255\233\233\233"
+					if mouseoverSelectBetsBox then
+						--glColor(1,0.66,0.3,0.26)
+						glColor(1,1,1,0.15)
+						textcolor = "\255\255\255\255"
+					else
+						--glColor(1,0.8,0.4,0.15)
+						glColor(1,1,1,0.05)
+					end
+					RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					local text = "Select unit with bet"
+					if numBetUnits > 1 then
+						text = ""..numBetUnits.." units with a bet"
+					end
+					glText(textcolor..text, xPos, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					
+					if (WG['guishader_api'] ~= nil) then
+						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 'betfrontend')
+					end
 				end
-				glTexture(false)
-				glColor(1, 1, 1, 1)
 			end
-		else
-			showingPanel = false
-			lastSelectedUnit = -1
-			lastBetTime = -1
-			if showSelectBets and numBetUnits > 0 then
-				showingPanel = true
-				if mouseoverSelectBetsBox then
-					--glColor(0.64, 0.33, 0, 0.55)
-					glColor(0, 0, 0, 0.55)
-				else
-					--glColor(0.6, 0.29, 0, 0.5)
-					glColor(0, 0, 0, 0.5)
-				end
-				RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
-				
-				--local textcolor = "\255\255\240\240"
-				local textcolor = "\255\233\233\233"
-				if mouseoverSelectBetsBox then
-					--glColor(1,0.66,0.3,0.26)
-					glColor(1,1,1,0.15)
-					textcolor = "\255\255\255\255"
-				else
-					--glColor(1,0.8,0.4,0.15)
-					glColor(1,1,1,0.05)
-				end
-				RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
-				local text = "Select unit with bet"
-				if numBetUnits > 1 then
-					text = ""..numBetUnits.." units with a bet"
-				end
-				glText(textcolor..text, xPos, yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
-				
+			if not showingPanel then
 				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 'betfrontend')
+					WG['guishader_api'].RemoveRect('betfrontend')
 				end
-			end
-		end
-		if not showingPanel then
-			if (WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].RemoveRect('betfrontend')
 			end
 		end
 	end
