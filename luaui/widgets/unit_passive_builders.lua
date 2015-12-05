@@ -340,7 +340,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:PlayerChanged(playerID)
-	IsSpec = GetSpectatingState()
+	IsSpec = spGetSpectatingState()
 end
 
 function processGuishader()

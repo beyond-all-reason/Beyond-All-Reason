@@ -216,6 +216,8 @@ function CreateShaders()
   local str_blurShader_part2
   if blurIntensity < useSimplifiedShaderBelow then 	-- a tad cheaper, but will show with higher blur value
 	  str_blurShader_part2 = [[
+			gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+			
 			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2(-intensity, -intensity)).rgb;
 			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2(-intensity,  0.0)).rgb;
 			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2(-intensity,  intensity)).rgb;
@@ -227,6 +229,8 @@ function CreateShaders()
 	  ]]
   else
 	  str_blurShader_part2 = [[
+			gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+        
 			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity, -intensity)).rgb;
 			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity,  0.0)).rgb;
 			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity,  intensity)).rgb;
