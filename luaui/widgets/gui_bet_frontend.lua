@@ -568,7 +568,7 @@ function processScaling()
   if customScale == nil then
 	customScale = 1
   end
-  sizeMultiplier   = 0.37 + (vsx*vsy / 7500000) * customScale
+  sizeMultiplier   = 0.4 + (vsx*vsy / 7500000) * customScale
 end
 
 function processBoxes()
@@ -786,11 +786,11 @@ end
 function getBetLineText(betEntry)
 	local playerName = PlayerIDtoName(betEntry.player)
 	local validBet = GetGameFrame() >= betEntry.validFrom
-	return " \255\225\225\225"..(validBet and "-" or "x") .. "  time: " .. (betEntry.betTime/(BET_GRANULARITY)) .. "   \255\255\255\255" .. playerName .. "\255\225\225\225".. (validBet and "" or ("   valid from: " .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) ) .. "  cost: " .. betEntry.betCost
+	return " \255\200\200\200"..(validBet and "  " or "x") .. "  \255\155\155\155time: \255\200\200\200" .. (betEntry.betTime/(BET_GRANULARITY)) .. "    \255\255\255\255" .. playerName .. "    \255\155\155\155cost: \255\200\200\200" .. betEntry.betCost .. (validBet and "" or ("    \255\155\155\155valid from: \255\200\200\200" .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) )
 end
 
 function getTotalText(numBets,totalScore,totalWin,betValue)
-	return "\255\255\55\1Bets: " .. numBets .. "   \255\255\180\1Total points bet: " .. totalScore .. "   \255\255\255\1Prize: " .. totalWin .. "   \255\55\255\1Betting cost: " .. betValue
+	return "\255\255\55\1Bets: " .. numBets .. "    \255\255\180\1Total points bet: " .. totalScore .. "    \255\255\255\1Prize: " .. totalWin .. "    \255\55\255\1Betting cost: " .. betValue
 end
 
 function updateDisplayList(unitID,betInfo)
@@ -829,8 +829,8 @@ function updateDisplayList(unitID,betInfo)
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
 					glText(titleText, 0, 0,stepSize, "o")
 				else
-					local iconSize = 20
-					local chipHeight = 8
+					local iconSize = 18
+					local chipHeight = 5.5
 					glTranslate(0,50,0)
 					glColor({1,1,1,1})
 					glTexture(chipTexture)
