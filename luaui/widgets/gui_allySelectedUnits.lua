@@ -583,12 +583,14 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:MousePress(mx, my, mb)
-	if mb == 1 then
-		if mx > xPos + (12*sizeMultiplier) and my > yPos + (10*sizeMultiplier) and mx < (xPos + ((panelWidth - 12)*sizeMultiplier)) and my < (yPos + ((10 + 16)*sizeMultiplier)) then
-			selectPlayerUnits = not selectPlayerUnits
-		end
-		if lockPlayerID ~= nil and widget:IsAbove(mx,my) then
-			return false
+	if lockPlayerID ~= nil then
+		if mb == 1 then
+			if mx > xPos + (12*sizeMultiplier) and my > yPos + (10*sizeMultiplier) and mx < (xPos + ((panelWidth - 12)*sizeMultiplier)) and my < (yPos + ((10 + 16)*sizeMultiplier)) then
+				selectPlayerUnits = not selectPlayerUnits
+			end
+			if lockPlayerID ~= nil and widget:IsAbove(mx,my) then
+				return false
+			end
 		end
 	end
 end
