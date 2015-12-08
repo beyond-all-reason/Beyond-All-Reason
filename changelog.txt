@@ -1,4 +1,11 @@
-﻿9.21 -> 9.23
+﻿9.23 -> 9.24
+08/12/2015
+
+- Decoy coms dont have real dgun weapon damage anylonger.
+- Ally selected units: fixed dead mouseclick area
+
+
+9.21 -> 9.23
 05/12/2015
 
 - Ally selected units: disco/large dots bugfix + movable options GUI + auto-scale GUI according to resolution
