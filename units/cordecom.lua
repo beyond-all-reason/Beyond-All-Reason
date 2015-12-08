@@ -168,7 +168,7 @@ return {
 				weapontype = "DGun",
 				weaponvelocity = 300,
 				damage = {
-					default = 150,
+					default = 7,
 				},
 			},
 		},
