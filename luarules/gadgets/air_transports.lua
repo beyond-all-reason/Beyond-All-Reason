@@ -71,7 +71,7 @@ function gadget:GameFrame(n)
 	for unitId,ud in pairs(airTransports) do
 		vx,vy,vz,vw = Spring.GetUnitVelocity(unitId)
 		alSpeed = airTransportMaxSpeeds[unitId]
-		if (alSpeed and vw > alSpeed) then
+		if (alSpeed and vw and vw > alSpeed) then
 			factor = alSpeed / vw
 			Spring.SetUnitVelocity(unitId,vx * factor,vy * factor,vz * factor)
 		end
