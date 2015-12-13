@@ -1,4 +1,11 @@
-﻿9.23 -> 9.24
+﻿9.24 -> 9.25
+13/12/2015
+
+- Bugfixes
+- Pathfinder improvement (optional, for testing)
+
+
+9.23 -> 9.24
 08/12/2015
 
 - Decoy coms dont have real dgun weapon damage anylonger.
