@@ -120,6 +120,14 @@ local options={
 		section= "ba_options",
     },
     {
+        key    = "mo_heatmap",
+        name   = "HeatMap",
+        desc   = "Attemps to prevents unit paths to cross",
+        type   = "bool",
+        def    = false,
+        section= "ba_options",
+    },
+    {
 		key    = "mo_newbie_placer",
 		name   = "Newbie Placer",
 		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",

@@ -297,7 +297,7 @@ local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
 	
-	moveData.heatmapping = false
+	moveData.heatmapping = (Spring.GetModOptions() and tonumber(Spring.GetModOptions().mo_heatmap) and (tonumber(Spring.GetModOptions().mo_heatmap) ~= 0))
 	moveData.name = moveName
 	
 	defs[#defs + 1] = moveData
