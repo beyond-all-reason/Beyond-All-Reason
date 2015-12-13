@@ -1214,7 +1214,7 @@ function updateButtons()
 			Button["player"][tID]["pID"] = tID
 			
 			if not inSpecMode then 
-				Buttonc[tID]["x1"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier)  - (10*sizeMultiplier)
+				Button["player"][tID]["x1"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier)  - (10*sizeMultiplier)
 				Button["player"][tID]["x2"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier) + WBadge - (10*sizeMultiplier)
 			end
 		end
