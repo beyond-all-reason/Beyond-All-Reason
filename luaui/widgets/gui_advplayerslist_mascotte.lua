@@ -29,6 +29,7 @@ table.insert(OPTIONS, {
 	body				= imageDirectory.."floriscat_body.dds",
 	head				= imageDirectory.."floriscat_head.dds",
 	headblink			= imageDirectory.."floriscat_headblink.dds",
+	santahat			= imageDirectory.."santahat.dds",
 	imageSize			= 53,
 	xOffset				= -1.6,
 	yOffset				= -58/5,
@@ -40,6 +41,7 @@ table.insert(OPTIONS, {
 	body				= imageDirectory.."grumpycat_body.dds",
 	head				= imageDirectory.."grumpycat_head.dds",
 	headblink			= imageDirectory.."grumpycat_headblink.dds",
+	santahat			= imageDirectory.."santahat.dds",
 	imageSize			= 53,
 	xOffset				= -1.6,
 	yOffset				= -58/5,
@@ -99,6 +101,10 @@ local drawlist = {}
 local xPos = 0
 local yPos = 0
 
+local drawSantahat = false
+if os.date("%m") == "12"  and  os.date("%d") >= "24"  and  os.date("%d") <= "31" then
+	drawSantahat = true
+end
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -137,6 +143,10 @@ local function createList(size)
 		gl.Texture(OPTIONS[currentOption]['head'])
 		glTranslate(OPTIONS[currentOption]['head_xOffset']*size, OPTIONS[currentOption]['head_yOffset']*size, 0)
 		DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
+		if drawSantahat then
+			gl.Texture(OPTIONS[currentOption]['santahat'])
+			DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
+		end
 		gl.Texture(false)
 	end)
 	if drawlist[3] ~= nil then
@@ -147,6 +157,10 @@ local function createList(size)
 		gl.Texture(OPTIONS[currentOption]['headblink'])
 		glTranslate(OPTIONS[currentOption]['head_xOffset']*size, OPTIONS[currentOption]['head_yOffset']*size, 0)
 		DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
+		if drawSantahat then
+			gl.Texture(OPTIONS[currentOption]['santahat'])
+			DrawRect(-(size/2), -(size/2)+(size/14), (size/2), (size/2)+(size/14))
+		end
 		gl.Texture(false)
 	end)
 end
