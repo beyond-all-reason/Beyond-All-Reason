@@ -28,6 +28,12 @@ local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
 local particleScaleMultiplier	= 1
 
+-- pregame info message
+local fadetime = 12
+local fadetimeThreshold = 24
+local textStartOpacity = 0.55
+
+
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
 local snowTexFolder = LUAUI_DIRNAME.."Images/snow/"
@@ -101,6 +107,7 @@ local thirdPos = 0
 local camX,camY,camZ
 local vsx, vsy					= gl.GetViewSizes()
 local particleScale	= 1
+local startTime = os.clock()
 
 local offsetX = 0
 local offsetZ = 0
@@ -120,6 +127,7 @@ local previousParticleAmount = particleDensity
 --------------------------------------------------------------------------------
 
 local spGetWind            = Spring.GetWind
+local spGetGameFrame       = Spring.GetGameFrame
 
 local glBeginEnd           = gl.BeginEnd
 local glVertex             = gl.Vertex
@@ -303,6 +311,18 @@ function getWindSpeed()
 end
 
 function widget:Initialize()
+	
+	drawinfolist = gl.CreateList( function()
+		local text = "Snowing less when FPS gets lower \n"
+		local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
+		local fontSize = 30
+		--local textWidth = gl.GetTextWidth(text)*fontSize
+		local textHeight = gl.GetTextHeight(text)*fontSize
+		--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
+		gl.Text(text, 0, textHeight/2, fontSize, "c")
+		gl.Text(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
+	end)
+	
 	startOsClock = os.clock()
 	-- check for keywords
 	local keywordFound = false
@@ -372,6 +392,29 @@ function widget:GameFrame(gameFrame)
 	end
 end
 
+local gameStarted = false
+function widget:GameStart()
+	gameStarted = true
+end
+
+function widget:DrawScreen()
+
+	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] and spGetGameFrame() <= 0 then
+		local now = os.clock()
+		local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
+		if opacityMultiplier > 1 then opacityMultiplier = 1 end
+		
+		if opacityMultiplier > 0 then
+			gl.PushMatrix()
+			gl.Translate(vsx/2, vsy/1.5, 0)
+			gl.Scale(widgetScale,widgetScale,0)
+			gl.Color(1,1,1,textStartOpacity*opacityMultiplier)
+			gl.CallList(drawinfolist)
+			gl.PopMatrix()
+		end
+	end
+end
+
 function widget:DrawWorld()
 	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
 		if enabled == false then return end
@@ -416,6 +459,7 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
+	widgetScale = (0.55 + (vsx*vsy / 10000000))
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80

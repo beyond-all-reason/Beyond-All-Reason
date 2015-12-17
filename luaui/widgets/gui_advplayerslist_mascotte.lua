@@ -102,7 +102,7 @@ local xPos = 0
 local yPos = 0
 
 local drawSantahat = false
-if os.date("%m") == "12"  and  os.date("%d") >= "17"  and  os.date("%d") <= "31" then
+if os.date("%m") == "12"  and  os.date("%d") >= "17" then
 	drawSantahat = true
 end
 ---------------------------------------------------------------------------------------------------
@@ -225,7 +225,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreen()
-	if spGetGameFrame() == 0 then return end
+	--if spGetGameFrame() == 0 then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
