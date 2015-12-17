@@ -316,7 +316,7 @@ function widget:DrawWorldPreUnit()
 			end
 			local lineOpacityMultiplier = 0.85
 			if fadeOnCameraDistance then
-				lineOpacityMultiplier = (1100/camDistance)*fadeMultiplier
+				lineOpacityMultiplier = (1150/camDistance)*fadeMultiplier
 				if lineOpacityMultiplier > 1 then
 					lineOpacityMultiplier = 1
 				end
@@ -332,11 +332,11 @@ function widget:DrawWorldPreUnit()
 				end
 				
 				glLineWidth(2.5-lineWidthMinus)
-				glColor(1, 0.8, 0, .22*lineOpacityMultiplier*opacityMultiplier)
+				glColor(1, 0.8, 0, .24*lineOpacityMultiplier*opacityMultiplier)
 				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange )
 				
 				glLineWidth(2.7-lineWidthMinus)
-				glColor(1, 0, 0, .38*lineOpacityMultiplier*opacityMultiplier)
+				glColor(1, 0, 0, .41*lineOpacityMultiplier*opacityMultiplier)
 				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius )
 			end
 		end
