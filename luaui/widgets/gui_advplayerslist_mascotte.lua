@@ -170,7 +170,7 @@ function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		local usedImgSize = OPTIONS[currentOption]['imageSize'] * advplayerlistPos[5]
+		usedImgSize = OPTIONS[currentOption]['imageSize'] * advplayerlistPos[5]
 		xPos = advplayerlistPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * advplayerlistPos[5])
 		yPos = advplayerlistPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * advplayerlistPos[5])
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
@@ -240,6 +240,15 @@ function widget:DrawScreen()
 	end
 end
 
+function isInBox(mx, my, box)
+    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
+
+function widget:MousePress(mx, my, mb)
+	if mb == 1 and isInBox(mx, my, {xPos-(usedImgSize/2), yPos-(usedImgSize/2), xPos+(usedImgSize/2), yPos+(usedImgSize/2)}) then
+		toggleOptions()
+	end
+end
 
 function widget:TextCommand(command)
     if (string.find(command, "mascotte") == 1  and  string.len(command) == 8) then 
