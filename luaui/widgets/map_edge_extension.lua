@@ -9,7 +9,7 @@ function widget:GetInfo()
     date      = "2010.10.27 - 2011.10.29", --YYYY.MM.DD, created - updated
     license   = "GPL",
     layer     = 0,
-    enabled   = true,
+    enabled   = false,
     --detailsDefault = 3
   }
 end
