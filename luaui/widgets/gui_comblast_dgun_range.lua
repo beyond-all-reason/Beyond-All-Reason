@@ -14,10 +14,8 @@ end
 -- Console commands
 --------------------------------------------------------------------------------
 
---/comranges_glow				-- toggles a faint glow on the line
 --/comranges_nearbyenemy		-- toggles hiding of ranges when enemy is nearby
 
---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local pairs					= pairs
@@ -43,15 +41,25 @@ local glTranslate			= gl.Translate
 local glRotate				= gl.Rotate
 local glText				= gl.Text
 local glBlending			= gl.Blending
+local glBeginEnd			= gl.BeginEnd
+local glVertex				= gl.Vertex
 
 local diag					= math.diag
+local PI					= math.pi
+
+local floor = math.floor
+local min = math.min
+local huge = math.huge
+local abs = math.abs
+local cos = math.cos
+local sin = math.sin
+local atan2 = math.atan2
 
 local GL_ALWAYS					= GL.ALWAYS
 local GL_SRC_ALPHA				= GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
 
 local comCenters = {}
-local drawList
 local amSpec = false
 local inSpecFullView = false
 local dgunRange	= WeaponDefNames["armcom_arm_disintegrator"].range + 2*WeaponDefNames["armcom_arm_disintegrator"].damageAreaOfEffect
@@ -66,13 +74,12 @@ local opacityMultiplier		= 1
 local fadeMultiplier		= 1.5		-- lower value: fades out sooner
 local circleDivs			= 64		-- circle detail, when fading out it will lower this aswell (minimum always will be 40 anyway)
 local blastRadius			= 360		-- com explosion
-local showLineGlow 			= true		-- a ticker but faint 2nd line will be drawn underneath	
 local showOnEnemyDistance	= 660
 local fadeInDistance		= 360
 local smoothoutTime			= 2			-- time to smoothout sudden changes (value = time between max and zero opacity)
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+
 
 
 
@@ -247,6 +254,7 @@ function widget:GameFrame(n)
 					osClock = comCenters[unitID][6]					-- keep old
 				end
 			end
+			
 			comCenters[unitID] = {x,y,z,draw,opacityMultiplier,osClock,oldOpacityMultiplier}
 		else
 			--couldn't get position, check if its still a unit 
@@ -254,8 +262,42 @@ function widget:GameFrame(n)
 				removeCom(unitID)
 			end
 		end
-	end	
+	end
 end
+
+
+
+function drawBlast(x,y,z,range)
+	local numDivs = circleDivs
+	local maxErr = 5
+	local maxCount = 10
+	for i = 1, numDivs do
+		local radians = 2.0 * PI * i / numDivs
+								
+		local sinR = sin( radians )
+		local cosR = cos( radians )
+
+		local posx
+		local posy
+		local posz
+
+		local radius = range
+		local err = huge
+		local count = 0
+		--tiny shitty newton algo to find the correct radius on a 3d dist
+		while (err > maxErr) and (count < maxCount) do
+			count = count + 1
+			posx = x + sinR * radius
+			posz = z + cosR * radius
+			posy = spGetGroundHeight( posx, posz )
+			err = diag(posx-x,posy-y,posz-z)-range
+			radius = radius - err
+		end
+
+		glVertex(posx,posy+5,posz)
+	end
+end
+
 
 -- draw circles
 function widget:DrawWorldPreUnit()
@@ -264,7 +306,7 @@ function widget:DrawWorldPreUnit()
 	local camX, camY, camZ = spGetCameraPosition()
 	glDepthTest(true)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	for _,center in pairs(comCenters) do
+	for unitID,center in pairs(comCenters) do
 		if center[4] then
 			local camDistance = diag(camX-center[1], camY-center[2], camZ-center[3]) 
 			
@@ -289,22 +331,13 @@ function widget:DrawWorldPreUnit()
 					usedCircleDivs = 48
 				end
 				
-				-- draw lines
-				if showLineGlow then
-					glLineWidth(10)
-					glColor(1, 0.8, 0, .02*lineOpacityMultiplier*opacityMultiplier)
-					glDrawGroundCircle(center[1], center[2], center[3], dgunRange, usedCircleDivs)
-					
-					glColor(1, 0, 0, .033*lineOpacityMultiplier*opacityMultiplier)
-					glDrawGroundCircle(center[1], center[2], center[3], blastRadius, math.floor(usedCircleDivs*1.2))
-				end
 				glLineWidth(2.5-lineWidthMinus)
 				glColor(1, 0.8, 0, .22*lineOpacityMultiplier*opacityMultiplier)
-				glDrawGroundCircle(center[1], center[2], center[3], dgunRange, usedCircleDivs)
+				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange )
 				
 				glLineWidth(2.7-lineWidthMinus)
 				glColor(1, 0, 0, .38*lineOpacityMultiplier*opacityMultiplier)
-				glDrawGroundCircle(center[1], center[2], center[3], blastRadius, math.floor(usedCircleDivs*1.2))
+				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius )
 			end
 		end
 	end
@@ -314,31 +347,21 @@ end
 
 function widget:GetConfigData(data)
     savedTable = {}
-    savedTable.showLineGlow			= showLineGlow
     savedTable.hideOnDistantEnemy	= hideOnDistantEnemy
     return savedTable
 end
 
 function widget:SetConfigData(data)
-    if data.showLineGlow ~= nil 		then  showLineGlow			= data.showLineGlow end
     if data.hideOnDistantEnemy ~= nil 	then  hideOnDistantEnemy	= data.hideOnDistantEnemy end
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "comranges_glow") == 1  and  string.len(command) == 14) then 
-		showLineGlow = not showLineGlow
-		if showLineGlow then
-			Spring.Echo("Comblast & Dgun Range:  Glow enabled")
-		else
-			Spring.Echo("Comblast & Dgun Range:  Glow disabled")
-		end
-	end
     if (string.find(command, "comranges_nearbyenemy") == 1  and  string.len(command) == 21) then 
 		hideOnDistantEnemy = not hideOnDistantEnemy
 		if hideOnDistantEnemy then
-			Spring.Echo("Comblast & Dgun Range:  Hides ranges when enemy is nearby")
+			Spring.Echo("Comblast & Dgun Range:  Hides ranges when enemy isnt near")
 		else
-			Spring.Echo("Comblast & Dgun Range:  Shows ranges regardless of enemy distance ")
+			Spring.Echo("Comblast & Dgun Range:  Shows ranges regardless of enemy distance")
 		end
 	end
 end
