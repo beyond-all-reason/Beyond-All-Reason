@@ -275,7 +275,7 @@ local drawList       	= {}
 local teamN	
 local prevClickTime  	= os.clock()
 local allycursorTimes	= {}
-specListShow = true
+local specListShow = true
 
 --------------------------------------------------
 -- Modules
@@ -656,6 +656,14 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
 	UpdateRecentBroadcasters()
 	
+	mySpecStatus,_,_ = Spring.GetSpectatingState()
+	if Spring.GetGameFrame() <= 0 then
+		if mySpecStatus then 
+			specListShow = true
+		else
+			specListShow = false
+		end
+	end
 	if (Spring.GetConfigInt("ShowPlayerInfo")==1) then
 		Spring.SendCommands("info 0")
 	end
@@ -693,6 +701,14 @@ function widget:Initialize()
 end
 
 function widget:GameStart()
+	
+	mySpecStatus,_,_ = Spring.GetSpectatingState()
+	if mySpecStatus then 
+		specListShow = true
+	else
+		specListShow = false
+	end
+	
 	gameStarted = true
 	SetSidePics()
 	InitializePlayers()
@@ -2664,7 +2680,8 @@ function widget:GetConfigData(data)      -- save
 			--modules
 			m_active_Table	   = m_active_Table,
 			cpuText            = cpuText,
-			lockPlayerID       = lockPlayerID
+			lockPlayerID       = lockPlayerID,
+			specListShow       = specListShow
 		}
 		
 		return settings
@@ -2676,6 +2693,11 @@ function widget:SetConfigData(data)      -- load
 	if data.customScale ~= nil then
 		customScale = data.customScale
 	end
+	
+	if data.specListShow ~= nil then
+		specListShow = data.specListShow
+	end
+	
 	--view
 	if data.expandDown ~= nil and data.widgetRight ~= nil then
 		expandDown   = data.expandDown
@@ -2730,7 +2752,7 @@ function widget:SetConfigData(data)      -- load
 			end
 		end
 	end
-		
+	
 	SetModulesPositionX()
 end
 
