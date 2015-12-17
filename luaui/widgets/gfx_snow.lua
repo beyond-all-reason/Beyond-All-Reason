@@ -112,6 +112,7 @@ local startTime = os.clock()
 local offsetX = 0
 local offsetZ = 0
 local prevOsClock = os.clock()
+local gameStarted = false
 
 local enabled = false
 local previousFps				= (maxFps + minFps) / 1.75
@@ -219,7 +220,7 @@ end
 
 
 function init()
-
+	
 	-- abort if not enabled
 	if enabled == false then return end
 	
@@ -312,6 +313,10 @@ end
 
 function widget:Initialize()
 	
+	if spGetGameFrame() > 0 then
+		gameStarted = true
+	end
+	
 	drawinfolist = gl.CreateList( function()
 		local text = "Snowing less when FPS gets lower \n"
 		local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
@@ -392,14 +397,22 @@ function widget:GameFrame(gameFrame)
 	end
 end
 
-local gameStarted = false
 function widget:GameStart()
 	gameStarted = true
+	if drawinfolist ~= nil then
+		gl.DeleteList(drawinfolist)
+	end
+end
+
+function widget:Shutdown()
+	if drawinfolist ~= nil then
+		gl.DeleteList(drawinfolist)
+	end
 end
 
 function widget:DrawScreen()
 
-	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] and spGetGameFrame() <= 0 then
+	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
 		local now = os.clock()
 		local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
 		if opacityMultiplier > 1 then opacityMultiplier = 1 end
