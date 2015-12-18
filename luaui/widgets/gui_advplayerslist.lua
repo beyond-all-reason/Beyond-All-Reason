@@ -45,7 +45,6 @@ end
 local customScale			= 1
 local customScaleStep		= 0.025
 local pointDuration    		= 40
-local showTeamsizeVersus	= true		-- not implemented yet
 local cpuText				= false
 
 --------------------------------------------------------------------------------
@@ -251,7 +250,7 @@ local widgetRelRight		= 0
 -- GEOMETRY VARIABLES
 --------------------------------------------------------------------------------
 
-local vsx,vsy                                    = gl.GetViewSizes()
+local vsx,vsy  			= gl.GetViewSizes()
 
 local openClose     	= 0
 local widgetTop     	= 0
@@ -580,6 +579,27 @@ function GeometryChange()
 		right = false
 	end
 end
+
+
+local function UpdateAlliances()
+	local Spring_ArePlayersAllied = Spring.ArePlayersAllied
+	playerList = Spring_GetPlayerList()
+	teamList = Spring_GetTeamList()
+	for _,playerID in pairs (playerList) do
+		if not player[playerID].spec then
+			local alliances = {}
+			for _,player2ID in pairs (playerList) do
+				if not not player[playerID].spec and playerID ~= player2ID  and  player[playerID].team ~= player[player2ID].team  and  Spring_ArePlayersAllied(playerID, player2ID) then
+					table.insert(alliances, player2ID)
+					--Spring.Echo(player2ID)
+				end
+			end
+			player[playerID].alliances = alliances
+		end
+	end
+	--player[0].alliances = {2,1}
+end
+
 
 ---------------------------------------------------------------------------------------------------
 --  LockCamera stuff
@@ -1259,6 +1279,7 @@ function CreateLists()
 	CheckTime() --this also calls CheckPlayers
 	
 	UpdateRecentBroadcasters()
+	UpdateAlliances()
 	
 	if WG['allycursor_api'] ~= nil then
 		allycursorTimes = WG['allycursor_api'].GetCursorTimes()
@@ -1479,9 +1500,6 @@ function CreateMainList(tip)
 			if Spring.GetGameFrame() <= 0 then
 				DrawLabelTip("(dbl-click playername to track)", drawListOffset[i], 46)
 			end
-			if showTeamsizeVersus then
-				DrawLabelRightside(teamsizeVersusText, drawListOffset[i])
-			end
 		elseif drawObject == -1 then
 			leader = true
 		else
@@ -1540,30 +1558,31 @@ end
 
 
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
-	tipY           = nil
-	local rank     = player[playerID].rank
-	local skill	   = player[playerID].skill
-	local name     = player[playerID].name
-	local team     = player[playerID].team
-	local allyteam = player[playerID].allyteam
-	local side     = player[playerID].side
-	local red      = player[playerID].red
-	local green    = player[playerID].green
-	local blue     = player[playerID].blue
-	local dark     = player[playerID].dark
-	local pingLvl  = player[playerID].pingLvl
-	local cpuLvl   = player[playerID].cpuLvl
-	local ping     = player[playerID].ping
-	local cpu      = player[playerID].cpu    
-	local country  = player[playerID].country    
-	local spec     = player[playerID].spec
-	local totake   = player[playerID].totake
-	local needm    = player[playerID].needm
-	local neede    = player[playerID].neede
-	local dead     = player[playerID].dead
-	local ai	   = player[playerID].ai
-	local posY     = widgetPosY + widgetHeight - vOffset
-	local tipPosY  = widgetPosY + ((widgetHeight - vOffset)*widgetScale)
+	tipY             = nil
+	local rank       = player[playerID].rank
+	local skill	     = player[playerID].skill
+	local name       = player[playerID].name
+	local team       = player[playerID].team
+	local allyteam   = player[playerID].allyteam
+	local side       = player[playerID].side
+	local red        = player[playerID].red
+	local green      = player[playerID].green
+	local blue       = player[playerID].blue
+	local dark       = player[playerID].dark
+	local pingLvl    = player[playerID].pingLvl
+	local cpuLvl     = player[playerID].cpuLvl
+	local ping       = player[playerID].ping
+	local cpu        = player[playerID].cpu    
+	local country    = player[playerID].country    
+	local spec       = player[playerID].spec
+	local totake     = player[playerID].totake
+	local needm      = player[playerID].needm
+	local neede      = player[playerID].neede
+	local dead       = player[playerID].dead
+	local ai	     = player[playerID].ai
+	local alliances  = player[playerID].alliances
+	local posY       = widgetPosY + widgetHeight - vOffset
+	local tipPosY    = widgetPosY + ((widgetHeight - vOffset)*widgetScale)
 	
 	
 	local alpha = 1		-- alpha used to show inactivity for specs
@@ -1602,6 +1621,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	end
 
 	if spec == false then --player
+		if alliances ~= nil and #alliances > 0 then
+			DrawAlliances(alliances, posY)
+		end
 		if leader == true then                              -- take / share buttons
 			if mySpecStatus == false then
 				if allyteam == myAllyTeamID then
@@ -1879,7 +1901,22 @@ function DrawState(playerID, posX, posY)
 		end
 	end
 	gl_Texture(readyTexture)
-	DrawRect(posX, posY - 1 , posX + 16, posY + 16)			
+	DrawRect(posX, posY - 1 , posX + 16, posY + 16)
+	gl_Color(1,1,1,1)
+end
+
+function DrawAlliances(alliances, posY)
+	local posX = widgetPosX + m_name.posX
+	local width = m_name.width / #alliances
+	local padding = 2
+	for i,playerID in pairs(alliances) do
+		if player[playerID] ~= nil and player[playerID].red ~= nil then
+			gl_Color(0,0,0,0.25)
+			RectRound(posX+(width*(i-1)), posY - 3 , posX + (width*i), posY + 19, 2)
+			gl_Color(player[playerID].red, player[playerID].green, player[playerID].blue, 0.5)
+			RectRound(posX+(width*(i-1)) + padding, posY - 3 + padding , posX + (width*i)- padding, posY + 19 - padding, 2)
+		end
+	end
 	gl_Color(1,1,1,1)
 end
 
@@ -2545,7 +2582,6 @@ function widget:TweakDrawScreen()
 	gl.Translate(-scaleDiffX,-scaleDiffY,0)
 	gl.Scale(scaleReset,scaleReset,0)
 end
-
 
 function checkButton(module, x, y, localLeft, localOffset, localBottom)
 	if IsOnRect(x, y, localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27) then
