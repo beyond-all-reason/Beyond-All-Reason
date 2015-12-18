@@ -1,4 +1,13 @@
-﻿9.24 -> 9.25
+﻿9.25 -> 9.26
+xx/12/2015
+
+- Comblast & Dgun Range: more acurate range (takes groundheight in account)
+- Adv playerlist: hides spec list as player
+- Snow: shows onscreen message pregame (when its snowing)
+- GUI shader and map_edge_extension: disabled by default
+- Adv playerlist mascotte: click on it to change mascotte type
+
+
 13/12/2015
 
 - Bugfixes
