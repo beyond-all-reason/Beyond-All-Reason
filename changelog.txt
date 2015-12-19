@@ -8,6 +8,7 @@
 - Adv playerlist mascotte: click on it to change mascotte type
 
 
+9.24 -> 9.25
 13/12/2015
 
 - Bugfixes
