@@ -124,7 +124,7 @@ local options={
         name   = "HeatMap",
         desc   = "Attemps to prevents unit paths to cross",
         type   = "bool",
-        def    = false,
+        def    = true,
         section= "ba_options",
     },
     {
