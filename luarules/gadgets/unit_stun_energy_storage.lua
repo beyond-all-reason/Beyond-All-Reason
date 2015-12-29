@@ -57,12 +57,15 @@ function gadget:GameFrame(n)
     for unitID, _ in pairs(storageunits) do
  
 	   if Spring.GetUnitIsStunned(unitID) then
-	     local penality = storageunits[unitID].storagecap * 0.01 -- work's out 60e per second for t1 storage and 400e per second for t2 storage
 	     --Spring.Echo(unitID .. " is stunned  " ..storageunits[unitID].storagecap,penality,storageunits[unitID].height)
-	     local x,y,z = Spring.GetUnitPosition(unitID)
-	     local height = storageunits[unitID].height * 0.40
-	     Spring.SpawnCEG("ENERGY_STORAGE_LEAK",x,y+height,z,0,0,0)
-	     Spring.UseTeamResource(Spring.GetUnitTeam(unitID), "energy", penality)
+	     local team = Spring.GetUnitTeam(unitID)
+	     if team ~= nil then
+			local penality = storageunits[unitID].storagecap * 0.01 -- work's out 60e per second for t1 storage and 400e per second for t2 storage
+			 local x,y,z = Spring.GetUnitPosition(unitID)
+			 local height = storageunits[unitID].height * 0.40
+			 Spring.SpawnCEG("ENERGY_STORAGE_LEAK",x,y+height,z,0,0,0)
+			 Spring.UseTeamResource(team, "energy", penality)
+			end
 	   end
     end
   end

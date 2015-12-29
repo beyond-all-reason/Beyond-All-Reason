@@ -77,9 +77,10 @@ function gadget:GameFrame(n)
         end
         for unitID,_ in pairs(stunnedstorage) do
 	        local _,stunned = Spring.GetUnitIsStunned(unitID)
-	        local storage = storageunits[unitID].storage
-	        if not stunned then
-	            local _,totalstorage = Spring.GetTeamResources(Spring.GetUnitTeam(unitID),"metal")
+	        local team = Spring.GetUnitTeam(unitID)
+	        if not stunned and team ~= nil then
+				local storage = storageunits[unitID].storage
+	            local _,totalstorage = Spring.GetTeamResources(team,"metal")
 	            Spring.SetTeamResource(Spring.GetUnitTeam(unitID), "ms", totalstorage+storage)
 	            stunnedstorage[unitID] = nil
 	            storageunits[unitID].isEMPed = false
