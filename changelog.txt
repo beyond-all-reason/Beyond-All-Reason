@@ -1,4 +1,12 @@
-﻿9.25 -> 9.26
+﻿9.26 -> 9.27
+04/01/2016
+
+- Adv playerlist: shows ally an <3 button when alliances are allowed (see at FFA servers: 'Fixed Alliances: No')
+- Pathfinder improvement enabled by default (the one from v9.25)
+- Fixed occasional errorspam related to stunned metal/energy storages
+
+
+9.25 -> 9.26
 19/12/2015
 
 - Comblast & Dgun Range: more acurate range (takes groundheight in account)
