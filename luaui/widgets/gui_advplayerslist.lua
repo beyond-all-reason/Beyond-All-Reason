@@ -37,6 +37,7 @@ end
 -- v14   (Floris): Added country flags + Added camera icons for locked camera + specs show bright when they are broadcasting new lockcamera positions + bugfixed lockcamera for specs. Added small gaps between in tweakui icons. Auto scales with resolution changes.
 -- v15   (Floris): Integrated LockCamers widget code
 -- v16	 (Floris): Added chips next to gambling-spectators for betting system
+-- v17	 (Floris): Added alliances display and button
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -76,6 +77,7 @@ local Spring_GetDrawFrame		 = Spring.GetDrawFrame
 local Spring_GetGameFrame		 = Spring.GetGameFrame
 local Spring_GetTeamColor		 = Spring.GetTeamColor
 local Spring_GetMyTeamID		 = Spring.GetMyTeamID
+local Spring_AreTeamsAllied		 = Spring.AreTeamsAllied
 
 local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
@@ -102,55 +104,56 @@ local flagsDirectory  = imageDirectory.."flags/"
 
 local bgcorner        = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
-local chipPic	      = imageDirectory.."chip.dds"
-local currentPic      = imageDirectory.."indicator.dds"
-local unitsPic        = imageDirectory.."units.dds"
-local energyPic       = imageDirectory.."energy.dds"
-local metalPic        = imageDirectory.."metal.dds"
-local notFirstPic     = imageDirectory.."notfirst.dds"
-local notFirstPicWO   = imageDirectory.."notfirstwo.png"
-local pingPic         = imageDirectory.."ping.dds"
-local cpuPic          = imageDirectory.."cpu.dds"
-local selectPic       = imageDirectory.."select.png"
-local barPic          = imageDirectory.."bar.png"
-local amountPic       = imageDirectory.."amount.png"
-local pointPic        = imageDirectory.."point.dds"
-local lowPic          = imageDirectory.."low.dds"
-local arrowPic        = imageDirectory.."arrow.dds"
-local arrowdPic       = imageDirectory.."arrowd.png"
-local takePic         = imageDirectory.."take.dds"
-local crossPic        = imageDirectory.."cross.dds"
-local pointbPic       = imageDirectory.."pointb.png"
-local takebPic        = imageDirectory.."takeb.png"
-local seespecPic      = imageDirectory.."seespec.png"
-local indentPic	      = imageDirectory.."indent.png"
-local cameraPic	      = imageDirectory.."camera.dds"
-local countryPic      = imageDirectory.."country.dds"
-local readyTexture    = imageDirectory.."indicator.dds"
-local drawPic         = imageDirectory.."draw.dds"
+local pics = {
+	chipPic         = imageDirectory.."chip.dds",
+	currentPic      = imageDirectory.."indicator.dds",
+	unitsPic        = imageDirectory.."units.dds",
+	energyPic       = imageDirectory.."energy.dds",
+	metalPic        = imageDirectory.."metal.dds",
+	notFirstPic     = imageDirectory.."notfirst.dds",
+	notFirstPicWO   = imageDirectory.."notfirstwo.png",
+	pingPic         = imageDirectory.."ping.dds",
+	cpuPic          = imageDirectory.."cpu.dds",
+	selectPic       = imageDirectory.."select.png",
+	barPic          = imageDirectory.."bar.png",
+	amountPic       = imageDirectory.."amount.png",
+	pointPic        = imageDirectory.."point.dds",
+	lowPic          = imageDirectory.."low.dds",
+	arrowPic        = imageDirectory.."arrow.dds",
+	arrowdPic       = imageDirectory.."arrowd.png",
+	takePic         = imageDirectory.."take.dds",
+	crossPic        = imageDirectory.."cross.dds",
+	pointbPic       = imageDirectory.."pointb.png",
+	takebPic        = imageDirectory.."takeb.png",
+	seespecPic      = imageDirectory.."seespec.png",
+	indentPic       = imageDirectory.."indent.png",
+	cameraPic       = imageDirectory.."camera.dds",
+	countryPic      = imageDirectory.."country.dds",
+	readyTexture    = imageDirectory.."indicator.dds",
+	drawPic         = imageDirectory.."draw.dds",
+	allyPic         = imageDirectory.."ally.dds",
 
---module pics
-local specPic         = imageDirectory.."spec.png" 
-local chatPic         = imageDirectory.."chat.dds"
-local sidePic         = imageDirectory.."side.dds"
-local cpuPingPic      = imageDirectory.."cpuping.dds"
-local sharePic        = imageDirectory.."share.dds"
-local namePic         = imageDirectory.."name.dds"
-local idPic           = imageDirectory.."id.dds"
-local tsPic           = imageDirectory.."ts.dds"
-local sizednPic       = imageDirectory.."sizedn.dds"
-local sizeupPic       = imageDirectory.."sizeup.dds"
-
---rank pics
-local rank0      = imageDirectory.."ranks/rank0.dds"
-local rank1      = imageDirectory.."ranks/rank1.dds"
-local rank2      = imageDirectory.."ranks/rank2.dds"
-local rank3      = imageDirectory.."ranks/rank3.dds"
-local rank4      = imageDirectory.."ranks/rank4.dds"
-local rank5      = imageDirectory.."ranks/rank5.dds"
-local rank6      = imageDirectory.."ranks/rank6.dds"
-local rank7      = imageDirectory.."ranks/rank7.dds"
-local rank8      = imageDirectory.."ranks/rank_unknown.dds"
+	cpuPingPic      = imageDirectory.."cpuping.dds",
+	specPic         = imageDirectory.."spec.png",
+	chatPic         = imageDirectory.."chat.dds",
+	sidePic         = imageDirectory.."side.dds",
+	sharePic        = imageDirectory.."share.dds",
+	namePic         = imageDirectory.."name.dds",
+	idPic           = imageDirectory.."id.dds",
+	tsPic           = imageDirectory.."ts.dds",
+	sizednPic       = imageDirectory.."sizedn.dds",
+	sizeupPic       = imageDirectory.."sizeup.dds",
+	
+	rank0      = imageDirectory.."ranks/rank0.dds",
+	rank1      = imageDirectory.."ranks/rank1.dds",
+	rank2      = imageDirectory.."ranks/rank2.dds",
+	rank3      = imageDirectory.."ranks/rank3.dds",
+	rank4      = imageDirectory.."ranks/rank4.dds",
+	rank5      = imageDirectory.."ranks/rank5.dds",
+	rank6      = imageDirectory.."ranks/rank6.dds",
+	rank7      = imageDirectory.."ranks/rank7.dds",
+	rank8      = imageDirectory.."ranks/rank_unknown.dds",
+}
 
 local sidePics        = {}  -- loaded in SetSidePics function
 local sidePicsWO      = {}  -- loaded in SetSidePics function
@@ -244,7 +247,7 @@ local firstclick                   = 0		--
 
 local dblclickPeriod = 0.4
 local backgroundMargin = 7
-local widgetRelRight		= 0
+local widgetRelRight = 0
 
 --------------------------------------------------------------------------------
 -- GEOMETRY VARIABLES
@@ -311,7 +314,7 @@ m_indent = {
 	width     = 9,
 	position  = position,
 	posX      = 0,
-	pic       = indentPic,
+	pic       = pics["indentPic"],
 	noPic     = true,
 }
 position = position + 1
@@ -325,7 +328,7 @@ m_rank = {
 	width     = 18,
 	position  = position,
 	posX      = 0,
-	pic       = rank6,
+	pic       = pics["rank6"],
 }
 position = position + 1
 
@@ -338,7 +341,7 @@ m_country = {
 	width     = 20,
 	position  = position,
 	posX      = 0,
-	pic       = countryPic,
+	pic       = pics["countryPic"],
 }
 position = position + 1
 
@@ -350,7 +353,7 @@ m_side = {
 	width     = 18,
 	position  = position,
 	posX      = 0,
-	pic       = sidePic,
+	pic       = pics["sidePic"],
 }
 position = position + 1
 
@@ -362,7 +365,7 @@ m_ID = {
 	width     = 22,
 	position  = position,
 	posX      = 0,
-	pic       = idPic,
+	pic       = pics["idPic"],
 }
 position = position + 1
 
@@ -375,7 +378,7 @@ m_name = {
 	width     = 10,
 	position  = position,
 	posX      = 0,
-	pic       = namePic,
+	pic       = pics["namePic"],
 	noPic     = true,
 	picGap    = 7,
 }
@@ -389,7 +392,7 @@ m_skill = {
 	width     = 20,
 	position  = position,
 	posX      = 0,
-	pic       = tsPic,		
+	pic       = pics["tsPic"],		
 }
 position = position + 1
 
@@ -401,7 +404,7 @@ m_cpuping = {
 	width     = 24,
 	position  = position,
 	posX      = 0,
-	pic       = cpuPingPic,
+	pic       = pics["cpuPingPic"],
 	picGap    = 7,
 }
 position = position + 1
@@ -414,7 +417,7 @@ m_share = {
 	width     = 50,
 	position  = position,
 	posX      = 0,
-	pic       = sharePic,
+	pic       = pics["sharePic"],
 }
 position = position + 1
 
@@ -426,9 +429,39 @@ m_chat = {
 	width     = 18,
 	position  = position,
 	posX      = 0,
-	pic       = chatPic,
+	pic       = pics["chatPic"],
 }
 position = position + 1
+
+local fixedallies = tonumber(Spring.GetModOptions().fixedallies)
+local drawAllyButton = (not fixedallies or fixedallies == 0)
+if (not drawAllyButton or mySpecStatus) then
+	m_ally = {
+		name 	  = "ally",
+		spec      = false,
+		play      = false,
+		active    = false,
+		width     = 0,
+		position  = position,
+		posX      = 0,
+		pic       = pics["allyPic"],
+		noPic     = true,
+	}
+	position = position + 1
+else
+	m_ally = {
+		name 	  = "ally",
+		spec      = true,
+		play      = true,
+		active    = true,
+		width     = 16,
+		position  = position,
+		posX      = 0,
+		pic       = pics["allyPic"],
+		noPic     = false,
+	}
+	position = position + 1
+end
 
 m_sizedn = {
 	name	  = "sizedn", 
@@ -439,7 +472,7 @@ m_sizedn = {
 	width     = 0,
 	position  = position,
 	posX      = 0,
-	pic       = sizednPic,
+	pic       = pics["sizednPic"],
 }
 position = position + 1
 
@@ -452,7 +485,7 @@ m_sizeup = {
 	width     = 0,
 	position  = position,
 	posX      = 0,
-	pic       = sizeupPic,
+	pic       = pics["sizeupPic"],
 }
 position = position + 1
 
@@ -465,6 +498,7 @@ modules = {
 	m_name,
 	m_skill,
 	m_cpuping,
+	m_ally,
 	m_share,
 	m_chat,
 	m_sizedn,
@@ -474,19 +508,19 @@ modules = {
 m_point = {
 	active = true,
 	defaut = true,
-	pic = pointbPic,
+	pic = pics["pointbPic"],
 }
 
 m_take = {
 	active = true,
 	default = true,
-	pic = takePic,
+	pic = pics["takePic"],
 }
 
 m_seespec = {
 	active = true,
 	default = true,
-	pic = seespecPic,
+	pic = pics["seespecPic"],
 }
 
 
@@ -582,22 +616,19 @@ end
 
 
 local function UpdateAlliances()
-	local Spring_ArePlayersAllied = Spring.ArePlayersAllied
 	playerList = Spring_GetPlayerList()
 	teamList = Spring_GetTeamList()
 	for _,playerID in pairs (playerList) do
 		if not player[playerID].spec then
 			local alliances = {}
 			for _,player2ID in pairs (playerList) do
-				if not not player[playerID].spec and playerID ~= player2ID  and  player[playerID].team ~= player[player2ID].team  and  Spring_ArePlayersAllied(playerID, player2ID) then
+				if not player[playerID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[playerID].team, player[player2ID].team) then
 					table.insert(alliances, player2ID)
-					--Spring.Echo(player2ID)
 				end
 			end
 			player[playerID].alliances = alliances
 		end
 	end
-	--player[0].alliances = {2,1}
 end
 
 
@@ -1621,7 +1652,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	end
 
 	if spec == false then --player
-		if alliances ~= nil and #alliances > 0 then
+		if not dead and alliances ~= nil and #alliances > 0 then
 			DrawAlliances(alliances, posY)
 		end
 		if leader == true then                              -- take / share buttons
@@ -1638,6 +1669,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 						if tipY == true then ShareTip(mouseX, playerID) end
 					end
 				end
+				if m_ally.width > 0 and dead ~= true then 
+					if tipY == true then AllyTip(mouseX, playerID) end
+				end
 			else
 				if m_indent.active == true and Spring_GetMyTeamID() == team then
 					DrawDot(posY)
@@ -1653,7 +1687,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		gl_Color(red,green,blue,1)
 		if m_rank.active == true then
-			DrawRank(rank, posY, leader, dark)
+			DrawRank(rank, posY)
 		end
 		if m_country.active == true and country ~= "" then
 			DrawCountry(country, posY)
@@ -1663,9 +1697,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		if name ~= absentName and m_side.active == true then
 			DrawSidePic(team, playerID, posY, leader, dark, ai)
 		end
-		gl_Color(red,green,blue,1)	
+		gl_Color(red,green,blue,1)
 		if m_name.active == true then
 			DrawName(name, team, posY, dark, playerID)
+		end
+		if m_ally.active == true and m_ally.width > 0 and not dead and team ~= myTeamID then
+			DrawAlly(posY, player[playerID].allyteam)
 		end
 	else -- spectator
 		gl_Color(1,1,1,1)
@@ -1721,18 +1758,18 @@ function DrawTakeSignal(posY)
 	if blink == true then -- Draws a blinking rectangle if the player of the same team left (/take option)
 		if right == true then
 			gl_Color(0.7,0.7,0.7)
-			gl_Texture(arrowPic)
+			gl_Texture(pics["arrowPic"])
 			DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
 			gl_Color(1,1,1)
-			gl_Texture(takePic)
+			gl_Texture(pics["takePic"])
 			DrawRect(widgetPosX - 57, posY - 15, widgetPosX - 12, posY + 32)
 		else
 			local leftPosX = widgetPosX + widgetWidth
 			gl_Color(0.7,0.7,0.7)
-			gl_Texture(arrowPic)
+			gl_Texture(pics["arrowPic"])
 			DrawRect(leftPosX + 14, posY, leftPosX, posY + 16)
 			gl_Color(1,1,1)
-			gl_Texture(takePic)
+			gl_Texture(pics["takePic"])
 			DrawRect(leftPosX + 12, posY - 15, leftPosX + 57, posY + 32)
 		end
 	end	
@@ -1740,13 +1777,13 @@ end
 
 function DrawShareButtons(posY, needm, neede)
 	gl_Color(1,1,1,1)
-	gl_Texture(unitsPic)                       -- Share UNIT BUTTON
+	gl_Texture(pics["unitsPic"])                       -- Share UNIT BUTTON
 	DrawRect(m_share.posX + widgetPosX  + 1, posY, m_share.posX + widgetPosX  + 17, posY + 16)
-	gl_Texture(energyPic)                      -- share ENERGY BUTTON
+	gl_Texture(pics["energyPic"])                      -- share ENERGY BUTTON
 	DrawRect(m_share.posX + widgetPosX  + 17, posY, m_share.posX + widgetPosX  + 33, posY + 16)
-	gl_Texture(metalPic)                       -- share METAL BUTTON
+	gl_Texture(pics["metalPic"])                       -- share METAL BUTTON
 	DrawRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
-	gl_Texture(lowPic)
+	gl_Texture(pics["lowPic"])
 	if needm == true then
 		DrawRect(m_share.posX + widgetPosX  + 33, posY, m_share.posX + widgetPosX  + 49, posY + 16)
 	end
@@ -1758,7 +1795,7 @@ end
 
 
 function DrawChatButton(posY)
-	gl_Texture(chatPic)
+	gl_Texture(pics["chatPic"])
 	DrawRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
 end
 
@@ -1767,7 +1804,7 @@ function DrawChips(playerID, posY)
 	gl_Color(0.75,0.75,0.75,0.8)
 	gl_Text(playerScores[playerID].score, xPos-5, posY+4, 9.5, "r")
 	gl_Color(1,1,1,1)
-	gl_Texture(chipPic)
+	gl_Texture(pics["chipPic"])
 	DrawRect(xPos+4, posY+3.5, xPos-2.5, posY + 10)
 end
 
@@ -1776,7 +1813,7 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 		if leader == true then
 			gl_Texture(sidePics[team])                       -- sets side image (for leaders)
 		else
-			gl_Texture(notFirstPic)                          -- sets image for not leader of team players
+			gl_Texture(pics["notFirstPic"])                          -- sets image for not leader of team players
 		end
 		DrawRect(m_side.posX + widgetPosX  + 2, posY+1, m_side.posX + widgetPosX  + 16, posY + 15) -- draws side image
 		--[[if dark == true then	-- draws outline if player color is dark
@@ -1796,23 +1833,23 @@ function DrawSidePic(team, playerID, posY, leader, dark, ai)
 	end
 end
 
-function DrawRank(rank, posY, dark)
+function DrawRank(rank, posY)
 	if rank == 0 then
-		DrawRankImage(rank0, posY)
+		DrawRankImage(pics["rank0"], posY)
 	elseif rank == 1 then
-		DrawRankImage(rank1, posY)
+		DrawRankImage(pics["rank1"], posY)
 	elseif rank == 2 then
-		DrawRankImage(rank2, posY)
+		DrawRankImage(pics["rank2"], posY)
 	elseif rank == 3 then
-		DrawRankImage(rank3, posY)
+		DrawRankImage(pics["rank3"], posY)
 	elseif rank == 4 then
-		DrawRankImage(rank4, posY)
+		DrawRankImage(pics["rank4"], posY)
 	elseif rank == 5 then
-		DrawRankImage(rank5, posY)
+		DrawRankImage(pics["rank5"], posY)
 	elseif rank == 6 then
-		DrawRankImage(rank6, posY)
+		DrawRankImage(pics["rank6"], posY)
 	elseif rank == 7 then
-		DrawRankImage(rank7, posY)
+		DrawRankImage(pics["rank7"], posY)
 	else
 		--DrawRankImage(rank8, posY)
 	end
@@ -1842,6 +1879,16 @@ function DrawRect(px,py,sx,sy)
 	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
 end
 
+function DrawAlly(posY, allyteam)
+	if Spring.AreTeamsAllied(allyteam, myAllyTeamID) then
+		gl_Color(0,1,0, 0.44)
+	else
+		gl_Color(1,0,0, 0.44)
+	end
+	gl_Texture(pics["allyPic"])
+	DrawRect(m_ally.posX + widgetPosX + 3, posY+1, m_ally.posX + widgetPosX + 17, posY + 15)
+end
+
 function DrawCountry(country, posY)
 	if country ~= nil then
 		gl_Texture(flagsDirectory..string.upper(country)..".dds")
@@ -1852,7 +1899,7 @@ end
 
 function DrawDot(posY)
 	gl_Color(1,1,1,0.70)
-	gl_Texture(currentPic)
+	gl_Texture(pics["currentPic"])
 	DrawRect(m_indent.posX + widgetPosX-1 , posY+3, m_indent.posX + widgetPosX + 7, posY + 11)
 end
 
@@ -1862,7 +1909,7 @@ function DrawCamera(posY,active)
 	else
 		gl_Color(1,1,1,0.13)
 	end
-	gl_Texture(cameraPic)
+	gl_Texture(pics["cameraPic"])
 	DrawRect(m_indent.posX + widgetPosX-1.5 , posY+2, m_indent.posX + widgetPosX + 9, posY + 12.4)
 end
 
@@ -1900,12 +1947,12 @@ function DrawState(playerID, posX, posY)
 			end
 		end
 	end
-	gl_Texture(readyTexture)
+	gl_Texture(pics["readyTexture"])
 	DrawRect(posX, posY - 1 , posX + 16, posY + 16)
 	gl_Color(1,1,1,1)
 end
 
-function DrawAlliances(alliances, posY)
+function DrawAlliances(alliances, posY)		-- still a problem is that teams with the same/similar color can be misleading
 	local posX = widgetPosX + m_name.posX
 	local width = m_name.width / #alliances
 	local padding = 2
@@ -2006,7 +2053,7 @@ function DrawSkill(skill, posY, dark)
 end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
-	gl_Texture(pingPic)
+	gl_Texture(pics["pingPic"])
 	if spec then
 		local grayvalue = 0.3 + (pingLvl / 15)
 		gl_Color(grayvalue,grayvalue,grayvalue,(0.2*pingLvl))
@@ -2036,7 +2083,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 			gl_Color(1,1,1)
 		end
 	else
-		gl_Texture(cpuPic)
+		gl_Texture(pics["cpuPic"])
 		if spec then
 			gl_Color(grayvalue,grayvalue,grayvalue,0.1+(0.14*cpuLvl))
 			DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
@@ -2050,18 +2097,18 @@ end
 function DrawPoint(posY,pointtime)
 	if right == true then
 		gl_Color(1,0,0,pointtime/pointDuration)
-		gl_Texture(arrowPic)
+		gl_Texture(pics["arrowPic"])
 		DrawRect(widgetPosX - 18, posY, widgetPosX - 2, posY+ 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
-		gl_Texture(pointPic)
+		gl_Texture(pics["pointPic"])
 		DrawRect(widgetPosX - 33, posY-1, widgetPosX - 17, posY + 15)
 	else
 		leftPosX = widgetPosX + widgetWidth
 		gl_Color(1,0,0,pointtime/pointDuration)
-		gl_Texture(arrowPic)
+		gl_Texture(pics["arrowPic"])
 		DrawRect(leftPosX + 158, posY, leftPosX + 2, posY + 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
-		gl_Texture(pointPic)
+		gl_Texture(pics["pointPic"])
 		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)	
 	end
 	gl_Color(1,1,1,1)
@@ -2096,6 +2143,17 @@ function ShareTip(mouseX, playerID)
 			tipText = "Click and drag to share Energy"
 		elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale  and  mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
 			tipText = "Click and drag to share Metal"
+		end
+	end
+end
+
+
+function AllyTip(mouseX, playerID)
+	if mouseX >= widgetPosX + (m_ally.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_ally.posX + 11) * widgetScale then		
+		if Spring_AreTeamsAllied(player[playerID].allyteam, myAllyTeamID) then
+			tipText = "Click to become enemy"
+		else
+			tipText = "Click to become ally"
 		end
 	end
 end
@@ -2175,11 +2233,11 @@ function CreateShareSlider()
 	local posY
 	if energyPlayer ~= nil then
 		posY = widgetPosY + widgetHeight - energyPlayer.posY
-		gl_Texture(barPic)
+		gl_Texture(pics["barPic"])
 		DrawRect(m_share.posX + widgetPosX  + 16,posY-3,m_share.posX + widgetPosX  + 34,posY+58)
-		gl_Texture(energyPic)
+		gl_Texture(pics["energyPic"])
 		DrawRect(m_share.posX + widgetPosX  + 17,posY+sliderPosition,m_share.posX + widgetPosX  + 33,posY+16+sliderPosition)
-		gl_Texture(amountPic)
+		gl_Texture(pics["amountPic"])
 		if right == true then
 			DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
 			gl_Texture(false)
@@ -2191,11 +2249,11 @@ function CreateShareSlider()
 		end
 	elseif metalPlayer ~= nil then
 		posY = widgetPosY + widgetHeight - metalPlayer.posY
-		gl_Texture(barPic)
+		gl_Texture(pics["barPic"])
 		DrawRect(m_share.posX + widgetPosX  + 32,posY-3,m_share.posX + widgetPosX  + 50,posY+58)
-		gl_Texture(metalPic)
+		gl_Texture(pics["metalPic"])
 		DrawRect(m_share.posX + widgetPosX  + 33, posY+sliderPosition,m_share.posX + widgetPosX  + 49,posY+16+sliderPosition)
-		gl_Texture(amountPic)
+		gl_Texture(pics["amountPic"])
 		if right == true then
 			DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
 			gl_Texture(false)
@@ -2266,6 +2324,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 		for _,i in ipairs(drawList) do  -- i = object #
 			if i > -1 then
 				clickedPlayer = player[i]
+				clickedPlayer.id = i
 				clickedName = clickedPlayer.name
 				posY = widgetPosY + widgetHeight - clickedPlayer.posY
 			end
@@ -2371,12 +2430,25 @@ function widget:MousePress(x,y,button) --super ugly code here
 				else
 					t = false
 					if i > -1 and i < 64 then
+						--chat button
 						if m_chat.active == true then
-							if IsOnRect(x, y, m_chat.posX + widgetPosX +1, posY, m_chat.posX + widgetPosX +17,posY+16) then                            --chat button
+							if IsOnRect(x, y, m_chat.posX + widgetPosX +1, posY, m_chat.posX + widgetPosX +17,posY+16) then
 								Spring_SendCommands("chatall","pastetext /w "..clickedPlayer.name..' \1')
-								return true                                                                                                                --
+								return true 
+							end
+						end 
+						--ally button
+						if m_ally.active == true and m_ally.width > 0 and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then    
+							if IsOnRect(x, y, m_ally.posX + widgetPosX +1, posY, m_ally.posX + widgetPosX + m_ally.width,posY+16) then
+								if Spring_AreTeamsAllied(player[i].allyteam, myAllyTeamID) then
+									Spring_SendCommands("ally "..player[i].allyteam.." 0")
+								else
+									Spring_SendCommands("ally "..player[i].allyteam.." 1")
+								end
+								return true 
 							end
 						end
+						--point
 						if m_point.active == true then
 							if clickedPlayer.pointTime ~= nil then
 								if clickedPlayer.allyteam == myAllyTeamID then
@@ -2394,6 +2466,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 								end
 							end
 						end
+						--name
 						if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+12)  then
 							if ctrl then 
 								Spring_SendCommands{"toggleignore "..clickedPlayer.name} 
@@ -2419,7 +2492,9 @@ function widget:MousePress(x,y,button) --super ugly code here
 	prevClickTime = clickTime
 end
 
+local mouseX, mouseY = 0,0
 function widget:MouseMove(x,y,dx,dy,button)
+  mouseX, mouseY = x, y
   local moveStartX, moveStartY
 	if energyPlayer ~= nil or metalPlayer ~= nil then                            -- move energy/metal share slider
 		if sliderOrigin == nil then
@@ -2515,7 +2590,7 @@ local function DrawTweakButton(module,  localLeft, localOffset, localBottom)
 	gl_Texture(module.pic)
 	DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	if module.active ~= true and module.alwaysActive == nil then
-		gl_Texture(crossPic)
+		gl_Texture(pics["crossPic"])
 		DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
 	end
 end
@@ -2548,13 +2623,13 @@ end
 
 local function DrawArrows()
 	gl_Color(1,1,1,0.4)
-	gl_Texture(arrowdPic)
+	gl_Texture(pics["arrowdPic"])
 	if expandDown == true then
 		DrawRect(widgetPosX, widgetPosY - 15, widgetRight, widgetPosY - 1)
 	else
 		DrawRect(widgetPosX, widgetTop + 15, widgetRight, widgetTop + 1)
 	end
-		gl_Texture(arrowPic)
+		gl_Texture(pics["arrowPic"])
 	if expandLeft == true then
 		DrawRect(widgetPosX - 1, widgetPosY, widgetPosX - 15, widgetTop)
 	else
