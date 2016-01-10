@@ -3,6 +3,8 @@ XX/01/2016
 
 Balance changes:
 - Gremlin (Stealth Tank) - harder to EMP
+- Annihilator - damage reduced by 10%
+- Doomsday Machine - damage reduced by 10% (all weapons)
 
 Others:
 - Added workaround for bug with "camera scroll at the beginning of the game"

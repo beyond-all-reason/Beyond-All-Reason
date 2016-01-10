@@ -135,7 +135,7 @@ return {
 				weaponvelocity = 1500,
 				damage = {
 					commanders = 999,
-					default = 5000,
+					default = 4500,
 					subs = 5,
 				},
 			},
@@ -173,7 +173,7 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					bombers = 65,
-					default = 275,
+					default = 247,
 					fighters = 65,
 					subs = 5,
 					vtol = 65,
@@ -214,7 +214,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				damage = {
-					default = 45,
+					default = 40,
 					subs = 2,
 				},
 			},
