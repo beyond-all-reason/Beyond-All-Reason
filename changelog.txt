@@ -1,4 +1,13 @@
-﻿9.26 -> 9.27
+﻿9.27 -> 9.28
+XX/01/2016
+
+Balance changes:
+- Gremlin (Stealth Tank) - harder to EMP
+
+Others:
+- Added workaround for bug with "camera scroll at the beginning of the game"
+
+9.26 -> 9.27
 04/01/2016
 
 - Adv playerlist: shows ally an <3 button when alliances are allowed (see at FFA servers: 'Fixed Alliances: No')
