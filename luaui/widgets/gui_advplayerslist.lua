@@ -1890,7 +1890,7 @@ function DrawAlly(posY, allyteam)
 end
 
 function DrawCountry(country, posY)
-	if country ~= nil then
+	if country ~= nil and country ~= "??" then
 		gl_Texture(flagsDirectory..string.upper(country)..".dds")
 		gl_Color(1,1,1)
 		DrawRect(m_country.posX + widgetPosX + 3, posY+1, m_country.posX + widgetPosX + 17, posY + 15)
