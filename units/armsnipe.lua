@@ -127,7 +127,10 @@ return {
 				soundstartvolume = 4,
 				thickness = 0.5,
 				turret = true,
-				weapontype = "Rifle",
+                size = 0.1,
+                weapontype = "Cannon",
+                impactOnly = true,
+                interceptedByShieldType = 0,
 				weaponvelocity = 3000,
 				damage = {
 					commanders = 1025,
