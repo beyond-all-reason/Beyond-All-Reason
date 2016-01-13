@@ -854,11 +854,11 @@ local function drawListStandard()
 				if data["isAlive"] then DrawBackground(posy, aID) end
 				
 				local t = GetGameSeconds()
-				if data["isAlive"] and t > 0 and gamestarted and not gameover then
+				if data["isAlive"] and t > 0 and gamestarted and not gameover and avgData[aID]["tE"] ~= nil and type(avgData[aID]["tE"]) == "number" then
 					DrawEBar(avgData[aID]["tE"]/maxEnergy,posy-1)
 					DrawEText(avgData[aID]["tE"],posy-1)
 				end
-				if data["isAlive"] and t > 5 and not gameover then
+				if data["isAlive"] and t > 5 and not gameover and avgData[aID]["tM"] ~= nil and type(avgData[aID]["tM"]) == "number" then
 					DrawMBar(avgData[aID]["tM"]/maxMetal,posy+2)
 					DrawMText(avgData[aID]["tM"],posy+2)
 				end
