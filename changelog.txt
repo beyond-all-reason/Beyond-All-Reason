@@ -9,12 +9,13 @@ Balance changes:
 
 Others:
 - Added workaround for bug with "camera scroll at the beginning of the game"
+- Fixed display of advplayerlist ally button <3 for FFA's
 
 
 9.26 -> 9.27
 04/01/2016
 
-- Adv playerlist: shows ally an <3 button when alliances are allowed (see at FFA servers: 'Fixed Alliances: No')
+- Adv playerlist: shows an ally <3 button when alliances are allowed (when bset option: 'Fixed Alliances: No')
 - Pathfinder improvement enabled by default (the one from v9.25)
 - Fixed occasional errorspam related to stunned metal/energy storages
 
