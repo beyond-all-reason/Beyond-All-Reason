@@ -440,7 +440,7 @@ if (not drawAllyButton or mySpecStatus) then
 		name 	  = "ally",
 		spec      = false,
 		play      = false,
-		active    = false,
+		active    = true,
 		width     = 0,
 		position  = position,
 		posX      = 0,
@@ -2859,7 +2859,11 @@ function widget:SetConfigData(data)      -- load
 		--find module with matching name 
 		for _,module in pairs(modules) do
 			if module.name == name then
-				module.active = SetDefault(active, module.default)
+				if name == "ally" then	-- needs to be always active (some aready stored it as false before, this makes sure its corrected)
+					module.active = true
+				else
+					module.active = SetDefault(active, module.default)
+				end
 			end
 		end
 	end
