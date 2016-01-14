@@ -437,7 +437,7 @@ local fixedallies = tonumber(Spring.GetModOptions().fixedallies)
 local drawAllyButton = (not fixedallies or fixedallies == 0)
 m_alliance = {
 	name 	  = "ally",
-	spec      = true,
+	spec      = false,
 	play      = true,
 	active    = true,
 	width     = 16,
@@ -446,6 +446,10 @@ m_alliance = {
 	pic       = pics["allyPic"],
 	noPic     = false,
 }
+if not drawAllyButton then
+	m_alliance.width = 0
+end
+
 position = position + 1
 
 m_sizedn = {
@@ -1654,7 +1658,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 						if tipY == true then ShareTip(mouseX, playerID) end
 					end
 				end
-				if m_alliance.width > 0 and dead ~= true then 
+				if drawAllyButton and dead ~= true then 
 					if tipY == true then AllyTip(mouseX, playerID) end
 				end
 			else
@@ -1686,7 +1690,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		if m_name.active == true then
 			DrawName(name, team, posY, dark, playerID)
 		end
-		if m_alliance.active == true and drawAllyButton and not mySpecStatus and m_alliance.width > 0 and not dead and team ~= myTeamID then
+		if m_alliance.active == true and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
 			DrawAlly(posY, player[playerID].allyteam)
 		end
 	else -- spectator
@@ -2423,7 +2427,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 							end
 						end 
 						--ally button
-						if m_alliance.active == true and drawAllyButton and not mySpecStatus and m_alliance.width > 0 and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then    
+						if m_alliance.active == true and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then    
 							if IsOnRect(x, y, m_alliance.posX + widgetPosX +1, posY, m_alliance.posX + widgetPosX + m_alliance.width,posY+16) then
 								if Spring_AreTeamsAllied(player[i].allyteam, myAllyTeamID) then
 									Spring_SendCommands("ally "..player[i].allyteam.." 0")
