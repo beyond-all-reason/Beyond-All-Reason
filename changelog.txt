@@ -1,10 +1,8 @@
-﻿9.27 -> 9.28
-XX/01/2016
+﻿16/01/2016
 
 Balance changes:
 - Gremlin (Stealth Tank) - harder to EMP
-- Annihilator - damage reduced by 10%
-- Doomsday Machine - damage reduced by 10% (all weapons)
+- Annihilator, Doomsday Machine - damage reduced by 10% (all weapons)
 - Re-implement Sniper weapon using "cannon" (was "riffle"). Snipers will not kill each other anymore
 
 Others:
