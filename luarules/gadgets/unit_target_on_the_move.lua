@@ -271,7 +271,7 @@ local function addUnitTargets(unitID, unitDefID, targets, append)
 end
 
 local function removeUnit(unitID)
-	spSetUnitTarget(unitID)
+	spSetUnitTarget(unitID,nil)
 	spSetUnitRulesParam(unitID,"targetID",-1)
 	spSetUnitRulesParam(unitID,"targetCoordX",-1)
 	spSetUnitRulesParam(unitID,"targetCoordY",-1)
