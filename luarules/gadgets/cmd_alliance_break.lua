@@ -30,6 +30,8 @@ local GetTeamList = Spring.GetTeamList
 local GetUnitHealth = Spring.GetUnitHealth
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local SendMessageToTeam = Spring.SendMessageToTeam
+local GetTeamInfo = Spring.GetTeamInfo
+local GetPlayerInfo = Spring.GetPlayerInfo
 local SetAlly = Spring.SetAlly
 local min = math.min
 
@@ -37,6 +39,7 @@ local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
 local CMD_ATTACK = CMD.ATTACK
 local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
+local CMD_MANUALFIRE = CMD.MANUALFIRE
 
 local attackAOEs = {}
 local attackDamages = {}
@@ -51,18 +54,20 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+function checkAndBreakAlliance(attackerTeam,targetTeam,attackerAllyTeam,targetAllyTeam)
+	if AreTeamsAllied(attackerTeam,targetTeam) and targetAllyTeam ~= attackerAllyTeam then
+		SetAlly(attackerTeam,targetTeam,false)
+		SendMessageToTeam(targetTeam,"Team " .. attackerTeam .. " (" .. GetPlayerInfo(select(2,GetTeamInfo(attackerTeam))) ..  ") attempted to attack you, breaking dynamic alliance.")
+		return true
+	end
+end
 
-function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams,cmdTag)
-	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
-		local targetID = cmdParams[1]
-		local attackerAllyTeam = GetUnitAllyTeam(unitID)
-		local targetTeam = GetUnitTeam(targetID)
-		local targetAllyTeam = GetUnitAllyTeam(targetID)
-		if AreTeamsAllied(teamID,targetTeam) and targetAllyTeam ~= attackerAllyTeam then
-			SetAlly(teamID,targetTeam,false)
-			SendMessageToTeam(targetTeam,"Team " .. teamID .. " attempted to attack you, breaking dynamic alliance")
-		end
-	elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE ) then
+
+function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdOpts, cmdParams,cmdTag)
+	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
+		local targetID = cmdParams[1] 
+		checkAndBreakAlliance(attackerTeam,GetUnitTeam(targetID),GetUnitAllyTeam(unitID),GetUnitAllyTeam(targetID))
+	elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_MANUALFIRE ) then
 		local attackAOE = attackAOEs[unitDefID]
 		if not attackAOE then
 			return
@@ -85,10 +90,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams
 			damage = damage / totalDamageSum
 			if damage > 0.5 then
 				for _,targetTeam in pairs(GetTeamList(targetAllyTeam)) do
-					if AreTeamsAllied(teamID,targetTeam) and targetAllyTeam ~= attackerAllyTeam then
-						SendMessageToTeam(targetTeam,"Team " .. teamID .. " attempted to attack you, breaking dynamic alliance")
-						SetAlly(teamID,targetTeam,false)
-					end 
+					checkAndBreakAlliance(attackerTeam,targetTeam,attackerAllyTeam,targetAllyTeam)
 				end
 				break
 			end
@@ -96,12 +98,7 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams
 	elseif #cmdParams == 4 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
 		local attackerAllyTeam = GetUnitAllyTeam(unitID)
 		for _,targetID in pairs(GetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])) do
-			local targetTeam = GetUnitTeam(targetID)
-			local targetAllyTeam = GetUnitAllyTeam(targetID)
-			if AreTeamsAllied(teamID,targetTeam) and targetAllyTeam ~= attackerAllyTeam then
-				SendMessageToTeam(targetTeam,"Team " .. teamID .. " attempted to attack you, breaking dynamic alliance")
-				SetAlly(teamID,targetTeam,false)
-			end
+			checkAndBreakAlliance(attackerTeam,GetUnitTeam(targetID),attackerAllyTeam,GetUnitAllyTeam(targetID))
 		end
 	end
 end
