@@ -54,8 +54,9 @@ end
 
 function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams,cmdTag)
 	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
+		local targetID = cmdParams[1]
 		local attackerAllyTeam = GetUnitAllyTeam(unitID)
-		local targetTeam = GetUnitTeam(cmdParams[1])
+		local targetTeam = GetUnitTeam(targetID)
 		local targetAllyTeam = GetUnitAllyTeam(targetID)
 		if AreTeamsAllied(teamID,targetTeam) and targetAllyTeam ~= attackerAllyTeam then
 			SetAlly(teamID,targetTeam,false)
