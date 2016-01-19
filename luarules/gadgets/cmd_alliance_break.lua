@@ -60,6 +60,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+function getTeamLeaderName(teamID)
+	return GetPlayerInfo(select(2,GetTeamInfo(teamID)))
+end
+
 function gadget:GameFrame(n)
 	if n%UPDATE_FRAMES ~= 0 then
 		return
@@ -74,7 +78,11 @@ function gadget:GameFrame(n)
 						--if teamA is allied with teamB, and teamB's cached value is allied back with A, and new teamB's allied status is not allied, break alliance
 						if currentAlliedStatus and allianceStatus[teamBID][teamAID] and not AreTeamsAllied(teamAID,teamBID) then
 							SetAlly(teamBID,teamAID,false)
-							SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. GetPlayerInfo(select(2,GetTeamInfo(teamBID))) ..  ") broke his alliance with you, breaking dynamic alliance.")
+							SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) ..  ") broke his alliance with you, breaking dynamic alliance.")
+						end
+						--if teamB wasn't allied with teamA, and now it is, inform teamA about the change
+						if not allianceStatus[teamBID][teamAID] and AreTeamsAllied(teamBID,teamAID) then
+							SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) ..  ") has allied with you.")
 						end
 						allianceStatus[teamAID][teamBID] = currentAlliedStatus
 					end
@@ -87,7 +95,7 @@ end
 function checkAndBreakAlliance(attackerTeam,targetTeam,attackerAllyTeam,targetAllyTeam)
 	if AreTeamsAllied(attackerTeam,targetTeam) and targetAllyTeam ~= attackerAllyTeam then
 		SetAlly(attackerTeam,targetTeam,false)
-		SendMessageToTeam(targetTeam,"Team " .. attackerTeam .. " (" .. GetPlayerInfo(select(2,GetTeamInfo(attackerTeam))) ..  ") attempted to attack you, breaking dynamic alliance.")
+		SendMessageToTeam(targetTeam,"Team " .. attackerTeam .. " (" .. getTeamLeaderName(attackerTeam) ..  ") attempted to attack you, breaking dynamic alliance.")
 		return true
 	end
 end
