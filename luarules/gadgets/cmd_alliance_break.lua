@@ -27,6 +27,7 @@ local GetUnitsInSphere = Spring.GetUnitsInSphere
 local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local GetTeamList = Spring.GetTeamList
+local GetAllyTeamList = Spring.GetAllyTeamList
 local GetUnitHealth = Spring.GetUnitHealth
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local SendMessageToTeam = Spring.SendMessageToTeam
@@ -43,6 +44,8 @@ local CMD_MANUALFIRE = CMD.MANUALFIRE
 
 local attackAOEs = {}
 local attackDamages = {}
+local allianceStatus = {}
+
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	for weaponIndex, weaponProperties in pairs(unitDef.weapons) do
@@ -50,6 +53,27 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if weaponDef.damageAreaOfEffect > (attackAOEs[unitDefID] or 0) then
 			attackAOEs[unitDefID] = weaponDef.damageAreaOfEffect
 			attackDamages[unitDefID] = weaponDef.damages
+		end
+	end
+end
+
+function gadget:GameFrame(n)
+	for _,allyTeamAID in pairs(GetAllyTeamList()) do
+		for _,allyTeamBID in pairs(GetAllyTeamList()) do
+			if allyTeamAID ~= allyTeamBID then
+				for _,teamAID in pairs(GetTeamList(allyTeamAID)) do
+					for _,teamBID in pairs(GetTeamList(allyTeamBID)) do
+						allianceStatus[teamAID] = allianceStatus[teamAID] or {}
+						local currentAlliedStatus = AreTeamsAllied(teamBID,teamAID)
+						--if teamA is allied with teamB, and teamB's cached value is allied back with A, and new teamB's allied status is not allied, break alliance
+						if currentAlliedStatus and allianceStatus[teamBID][teamAID] and not AreTeamsAllied(teamAID,teamBID) then
+							SetAlly(teamBID,teamAID,false)
+							SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. GetPlayerInfo(select(2,GetTeamInfo(teamBID))) ..  ") broke his alliance with you, breaking dynamic alliance.")
+						end
+						allianceStatus[teamAID][teamBID] = currentAlliedStatus
+					end
+				end
+			end
 		end
 	end
 end
