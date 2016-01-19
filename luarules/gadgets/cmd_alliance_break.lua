@@ -42,6 +42,9 @@ local CMD_ATTACK = CMD.ATTACK
 local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
 local CMD_MANUALFIRE = CMD.MANUALFIRE
 
+local UPDATE_RATE = 3 --in times per second ( max one time per sim frame )
+local UPDATE_FRAMES = math.floor(Game.gameSpeed/UPDATE_RATE)
+
 local attackAOEs = {}
 local attackDamages = {}
 local allianceStatus = {}
@@ -58,6 +61,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:GameFrame(n)
+	if n%UPDATE_FRAMES ~= 0 then
+		return
+	end
 	for _,allyTeamAID in pairs(GetAllyTeamList()) do
 		for _,allyTeamBID in pairs(GetAllyTeamList()) do
 			if allyTeamAID ~= allyTeamBID then
