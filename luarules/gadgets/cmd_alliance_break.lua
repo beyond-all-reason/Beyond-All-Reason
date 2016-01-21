@@ -74,22 +74,24 @@ function gadget:GameFrame(n)
 				for _,teamAID in pairs(GetTeamList(allyTeamAID)) do
 					for _,teamBID in pairs(GetTeamList(allyTeamBID)) do
 						allianceStatus[teamAID] = allianceStatus[teamAID] or {}
-						local currentAlliedStatus = AreTeamsAllied(teamBID,teamAID)
+						allianceStatus[teamBID] = allianceStatus[teamBID] or {}
+						local AalliedToB = AreTeamsAllied(teamBID,teamAID)
+						local BalliedToA = AreTeamsAllied(teamAID,teamBID)
 						--if teamB's cached value is allied back with A, and new teamB's allied status is not allied, means the enemy broke alliance with us
-						if allianceStatus[teamBID][teamAID] and not AreTeamsAllied(teamAID,teamBID) then
-							if currentAlliedStatus then
+						if allianceStatus[teamBID][teamAID] and not BalliedToA then
+							if AalliedToB then
 								--if we're allied, break our alliance back
 								SetAlly(teamBID,teamAID,false)
-								SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) ..  ") broke his alliance with you, breaking dynamic alliance.")
+								SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) ..  ") has unallied with you, breaking dynamic alliance.")
 							else
 								SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) ..  ") broke his alliance with you.")
 							end
 						end
 						--if teamB wasn't allied with teamA, and now it is, inform teamA about the change
-						if not allianceStatus[teamBID][teamAID] and AreTeamsAllied(teamBID,teamAID) then
+						if  not allianceStatus[teamBID][teamAID] and BalliedToA then
 							SendMessageToTeam(teamAID,"Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) ..  ") has allied with you.")
 						end
-						allianceStatus[teamAID][teamBID] = currentAlliedStatus
+						allianceStatus[teamAID][teamBID] = AalliedToB
 					end
 				end
 			end
