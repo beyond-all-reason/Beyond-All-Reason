@@ -3,7 +3,7 @@
 
 FFA
 - Alliances break when one attacks an allied player (both ways)
-- Alliances break + antinuke will launch when ally fires a nuke that has your units withing its destination area-of-effect range
+- Alliances break when you target an ally within a weapon's area-of-effect
 
 
 9.27 -> 9.28
