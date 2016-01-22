@@ -1,4 +1,13 @@
-﻿16/01/2016
+﻿9.28 -> 9.29
+22/01/2016
+
+FFA
+- Alliances break when one attacks an allied player (both ways)
+- Alliances break + antinuke will launch when ally fires a nuke that has your units withing its destination area-of-effect range
+
+
+9.27 -> 9.28
+16/01/2016
 
 Balance changes:
 - Gremlin (Stealth Tank) - harder to EMP
