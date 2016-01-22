@@ -611,7 +611,7 @@ local function UpdateAlliances()
 		if not player[playerID].spec then
 			local alliances = {}
 			for _,player2ID in pairs (playerList) do
-				if not player[playerID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[playerID].team, player[player2ID].team) then
+				if not player[playerID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
 					table.insert(alliances, player2ID)
 				end
 			end
@@ -1869,7 +1869,7 @@ function DrawRect(px,py,sx,sy)
 end
 
 function DrawAlly(posY, allyteam)
-	if Spring.AreTeamsAllied(allyteam, myAllyTeamID) then
+	if Spring_AreTeamsAllied(myAllyTeamID, allyteam) then
 		gl_Color(0,1,0, 0.44)
 	else
 		gl_Color(1,0,0, 0.44)
@@ -2139,7 +2139,7 @@ end
 
 function AllyTip(mouseX, playerID)
 	if mouseX >= widgetPosX + (m_alliance.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_alliance.posX + 11) * widgetScale then		
-		if Spring_AreTeamsAllied(player[playerID].allyteam, myAllyTeamID) then
+		if Spring_AreTeamsAllied(myAllyTeamID, player[playerID].allyteam) then
 			tipText = "Click to become enemy"
 		else
 			tipText = "Click to become ally"
@@ -2429,7 +2429,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 						--ally button
 						if m_alliance.active == true and drawAllyButton and not mySpecStatus and player[i] ~= nil and player[i].dead ~= true and i ~= myPlayerID then    
 							if IsOnRect(x, y, m_alliance.posX + widgetPosX +1, posY, m_alliance.posX + widgetPosX + m_alliance.width,posY+16) then
-								if Spring_AreTeamsAllied(player[i].allyteam, myAllyTeamID) then
+								if Spring_AreTeamsAllied(myAllyTeamID, player[i].allyteam) then
 									Spring_SendCommands("ally "..player[i].allyteam.." 0")
 								else
 									Spring_SendCommands("ally "..player[i].allyteam.." 1")
