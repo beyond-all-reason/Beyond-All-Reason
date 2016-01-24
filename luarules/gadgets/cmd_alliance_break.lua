@@ -110,8 +110,10 @@ end
 
 function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdOpts, cmdParams,cmdTag)
 	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
-		local targetID = cmdParams[1] 
-		checkAndBreakAlliance(attackerTeam,GetUnitTeam(targetID),GetUnitAllyTeam(unitID),GetUnitAllyTeam(targetID))
+		local targetID = cmdParams[1]
+		if ValidUnitID(targetID) then
+			checkAndBreakAlliance(attackerTeam,GetUnitTeam(targetID),GetUnitAllyTeam(unitID),GetUnitAllyTeam(targetID))
+		end
 	elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_MANUALFIRE ) then
 		local attackAOE = attackAOEs[unitDefID]
 		if not attackAOE then
