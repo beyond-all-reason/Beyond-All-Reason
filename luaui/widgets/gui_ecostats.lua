@@ -171,7 +171,6 @@ local sizeMultiplier   = 1
 local fontPath  		= "LuaUI/Fonts/ebrima.ttf" 
 local font2Path  		= "LuaUI/Fonts/ebrima.ttf"
 local myFont	 		= gl.LoadFont("FreeSansBold.otf",textsize, 1.9, 40) --gl.LoadFont(fontPath,textsize,2,20)
-local myFontBig	 		= gl.LoadFont(font2Path,textlarge,5,40)
 
 local bgcorner	= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
@@ -185,7 +184,7 @@ local images			= {
 						["zombie"]     			= "LuaUI/Images/ecostats/cross_inv.png",
 						["bar"]     			= "LuaUI/Images/ecostats/bar.png",
 						["barbg"]     			= "LuaUI/Images/ecostats/barbg.png",
-						["outer_colonies"]		= LUAUI_DIRNAME .. "Images/ecostats/ecommander.png", -- commander in evorts
+						["outer_colonies"]		= "LuaUI/Images/ecostats/ecommander.png", -- commander in evorts
 						}
 
 ---------------------------------------------------------------------------------------------------
@@ -215,7 +214,6 @@ function removeGuiShaderRects()
 				WG['guishader_api'].RemoveRect('ecostats_'..aID)
 			end
 		end
-		WG['guishader_api'].RemoveRect('ecostats_expandtable')
 	end
 end
 
@@ -812,7 +810,6 @@ end
 
 local avgData = {}
 local function drawListStandard()
-	
 	local maxMetal 					= 0
 	local maxEnergy 				= 0
 	local splits
@@ -1441,9 +1438,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x,y,button)
-	if button == 1 then 
-		pressedExpandMove = false 
-	elseif button == 2 or button == 3 then
+	if button == 2 or button == 3 then
 		pressedToMove = nil                                              -- ends move action
 	end
 end
@@ -1467,6 +1462,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:GameFrame(frameNum)
+	
+	if not inSpecMode then return end
 	
 	if frameNum == 15 then
 		UpdateAllTeams()
@@ -1499,34 +1496,33 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function makeStandardList()
+	if not inSpecMode then return end
+	
 	if (drawList) then gl.DeleteList(drawList) end
 	drawList = gl.CreateList(drawListStandard)
 end
 function makeSideImageList()
+	if not inSpecMode then return end
+	
 	if (sideImageList) then gl.DeleteList(sideImageList) end
 	sideImageList = gl.CreateList(DrawSideImages)
 end
 
 function widget:TweakDrawScreen()
+	if not inSpecMode then return end
+	
 	DrawOptionRibbon()
 	updateButtons()
 	makeStandardList()
 end
 
 function widget:DrawScreen()
+	if not inSpecMode then return end
 	
 	if Spring.IsGUIHidden() or (not inSpecMode and Options["disable"]["On"]) then return end
 	
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('ecostats_expandtable')
-	end
-	
 	if not drawList then makeStandardList() end
 	if not sideImageList then makeSideImageList() end
-	
-	if pressedExpand and (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(expandTablePos[1],expandTablePos[2],expandTablePos[3],expandTablePos[4],'ecostats_expandtable')
-	end
 	
 	gl.PushMatrix()
 	gl.CallList(drawList)
