@@ -1,4 +1,14 @@
-﻿9.28 -> 9.29
+﻿9.29 -> 9.30
+30/01/2016
+
+- "AdvPlayersList": fixed allybutton, you can now unally again via the <3 button
+- "LOS view": LOS on when playing, off when becoming spectator (+remebers on luaui relaod)
+- "Ally Resource Bars": nwo also shows current m/e values when mouseover player
+- "Darken map": added '/mapdarkness #'  wherne # can be a value between 0 and 0.6
+- "Ecostats": fixed guishader still being active when playing + minor perf improvment
+
+
+9.28 -> 9.29
 22/01/2016
 
 FFA
