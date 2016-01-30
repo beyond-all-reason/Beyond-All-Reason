@@ -19,7 +19,8 @@ local mapMargin = 20000
 local darknessvalue = 0
 local darknessIncrease = 'Ctrl+Alt+]'
 local darknessDecrease = 'Ctrl+Alt+['
-local darknessStep = 0.01
+local darknessStep = 0.02
+local maxDarkness = 0.6
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -38,6 +39,8 @@ function widget:Initialize()
 		gl.PopMatrix()
     end)
     
+	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
+	
 	widgetHandler:AddAction("mapDarknessIncrease", mapDarknessIncrease, nil, "t")
 	Spring.SendCommands({"bind "..darknessIncrease.." mapDarknessIncrease"})
 
@@ -51,13 +54,26 @@ function widget:Shutdown()
 end
 
 
+function mapDarkness(_,_,params)
+	if #params == 1 then
+		if type(tonumber(params[1])) == "number" then
+			darknessvalue = tonumber(params[1])
+			if darknessvalue > maxDarkness then
+				darknessvalue = maxDarkness
+			end
+			maps[currentMapname] = darknessvalue
+		end
+	end
+end
+
 function mapDarknessIncrease()
 	darknessvalue = darknessvalue + darknessStep
-	if darknessvalue > 0.66 then
-		darknessvalue = 0.66
+	if darknessvalue > maxDarkness then
+		darknessvalue = maxDarkness
 	end
 	maps[currentMapname] = darknessvalue
 end
+
 function mapDarknessDecrease()
 	darknessvalue = darknessvalue - darknessStep
 	if darknessvalue < 0 then
