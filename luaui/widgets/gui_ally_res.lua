@@ -462,7 +462,7 @@ function widget:Update()
 			    labelText[2] = 
 			    {
 				  --label="e  "..sF("%.1f",eInc+eRec) .."\nm  "..sF("%.2f",mInc+mRec).."",
-				  label="\255\210\210\210M   "..math.floor(sF("%.2f",mCur)).."\n\255\255\255\000E   "..math.floor(sF("%.2f",eCur)).."\n\255\210\210\210M+  "..math.floor(sF("%.2f",mInc+mRec)).."\n\255\255\255\000E+  "..math.floor(sF("%.1f",eInc+eRec)),
+				  label="\255\210\210\210M   "..math.floor(sF("%.2f",mCur)).."\n\255\255\255\000E    "..math.floor(sF("%.2f",eCur)).."\n\255\210\210\210M+  "..math.floor(sF("%.2f",mInc+mRec)).."\n\255\255\255\000E+   "..math.floor(sF("%.1f",eInc+eRec)),
 				  x=x1-BAR_GAP-BAR_MARGIN, 
 				  y=defs.iy1-BAR_SPACER-(TOTAL_BAR_HEIGHT*1.5),
 				  size=TOTAL_BAR_HEIGHT*1.4, 
