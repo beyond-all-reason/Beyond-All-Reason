@@ -5,7 +5,7 @@
 function widget:GetInfo()
   return {
     name      = "Darken map",
-    desc      = "use: Ctrl+Alt+] or [   remembers per map   reset with /resetmapdarkness",
+    desc      = "use: Ctrl+Alt+] or [   or use /mapdarkness 0.3   remembers per map",
     author    = "Floris",
     date      = "2015",
     license   = "GNU GPL, v2 or later",
