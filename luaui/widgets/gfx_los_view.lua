@@ -48,10 +48,12 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() and playerID == myPlayerID then
-		TurnOffLOS()
-	else
-		TurnOnLOS()
+	if playerID == myPlayerID then
+		if Spring.GetSpectatingState() then
+			TurnOffLOS()
+		else
+			TurnOnLOS()
+		end
 	end
 end
 
