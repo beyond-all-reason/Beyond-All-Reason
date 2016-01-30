@@ -2,7 +2,7 @@
 function widget:GetInfo()
 	return {
 		name      = "LOS View",
-		desc      = "Turns LOS view on while the game is in progress",
+		desc      = "Turns LOS view on when playing and off when becomming spectator.",
 		author    = "Bluestone",
 		date      = "",
 		license   = "Round Objects",
@@ -25,14 +25,30 @@ end
 
 function widget:Initialize()
     if Spring.GetGameFrame()>0 then
-        TurnOnLOS()
+		if Spring.GetSpectatingState() then
+			TurnOffLOS()
+		else
+			TurnOnLOS()
+		end
     end
 end
 
 function widget:GameStart()
-    TurnOnLOS()
+	if Spring.GetSpectatingState() then
+		TurnOffLOS()
+	else
+		TurnOnLOS()
+	end
 end
 
 function widget:Shutdown()
     TurnOffLOS()
+end
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetSpectatingState() then
+		TurnOffLOS()
+	else
+		TurnOnLOS()
+	end
 end
