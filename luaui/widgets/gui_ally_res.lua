@@ -447,13 +447,13 @@ function widget:Update()
 		  if (x > x1 + BAR_GAP) and (y > y1 + (BAR_GAP/2)) and (x < (x1 + FULL_BAR)) and (y < (y1 + h - TOP_HEIGHT) + (BAR_GAP/2)) then
 		    for teamID,defs in pairs(teamIcons) do
 			  if (y < defs.iy1) and (y >= defs.iy2) then
-			    local _, _, _, eInc, _, _, _, eRec = GetTeamResources(teamID, "energy")
-			    local _, _, _, mInc, _, _, _, mRec = GetTeamResources(teamID, "metal")
+			    local eCur, _, _, eInc, _, _, _, eRec = GetTeamResources(teamID, "energy")
+			    local mCur, _, _, mInc, _, _, _, mRec = GetTeamResources(teamID, "metal")
 			    eRec = eRec + (trnsEnergy[teamID] or 0)
 			    mRec = mRec + (trnsMetal[teamID] or 0)      
 			    labelText[1] = 
 			    {
-				  label=defs.name,
+				  label="\255\255\255\255"..defs.name,
 				  x=x1-BAR_GAP-BAR_MARGIN,
 				  y=defs.iy1-BAR_SPACER,
 				  size=TOTAL_BAR_HEIGHT*1.55,
@@ -462,7 +462,7 @@ function widget:Update()
 			    labelText[2] = 
 			    {
 				  --label="e  "..sF("%.1f",eInc+eRec) .."\nm  "..sF("%.2f",mInc+mRec).."",
-				  label="M in:  "..math.floor(sF("%.2f",mInc+mRec)).."\nE  in:  "..math.floor(sF("%.1f",eInc+eRec)),
+				  label="\255\210\210\210M   "..math.floor(sF("%.2f",mCur)).."\n\255\255\255\000E   "..math.floor(sF("%.2f",eCur)).."\n\255\210\210\210M+  "..math.floor(sF("%.2f",mInc+mRec)).."\n\255\255\255\000E+  "..math.floor(sF("%.1f",eInc+eRec)),
 				  x=x1-BAR_GAP-BAR_MARGIN, 
 				  y=defs.iy1-BAR_SPACER-(TOTAL_BAR_HEIGHT*1.5),
 				  size=TOTAL_BAR_HEIGHT*1.4, 

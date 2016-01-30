@@ -35,7 +35,7 @@ local Config = {
 		
 		cborder = {0,0,0,0},
 		cbackground = {0,0,0,0.55},
-		cbordersize = 3,
+		cbordersize = 3.5,
 		
 		dragbutton = {1}, --left mouse button
 		tooltip = {
