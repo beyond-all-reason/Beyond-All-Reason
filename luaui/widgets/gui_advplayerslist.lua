@@ -211,7 +211,6 @@ local tipText
 -- local player info
 local myAllyTeamID
 local myTeamID
-local myPlayerID
 local mySpecStatus,_,_ = Spring.GetSpectatingState()
 
 --General players/spectator count and tables

@@ -11,6 +11,9 @@ function widget:GetInfo()
 	}
 end
 
+local myPlayerID = Spring.GetMyPlayerID()
+local lastMapDrawMode = Spring.GetMapDrawMode()
+
 function TurnOnLOS()
     if Spring.GetMapDrawMode()~="los" then
         Spring.SendCommands("togglelos")
@@ -24,16 +27,15 @@ function TurnOffLOS()
 end
 
 function widget:Initialize()
-    if Spring.GetGameFrame()>0 then
-		if Spring.GetSpectatingState() then
-			TurnOffLOS()
-		else
-			TurnOnLOS()
-		end
-    end
+	if (Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()) or (Spring.GetGameFrame() > 0 and lastMapDrawMode == "los") then
+		TurnOnLOS()
+	else
+		TurnOffLOS()
+	end
 end
 
 function widget:GameStart()
+	myPlayerID = Spring.GetMyPlayerID()
 	if Spring.GetSpectatingState() then
 		TurnOffLOS()
 	else
@@ -46,9 +48,20 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if Spring.GetSpectatingState() and playerID == myPlayerID then
 		TurnOffLOS()
 	else
 		TurnOnLOS()
 	end
 end
+
+function widget:GetConfigData() --save config
+	return {lastMapDrawMode=Spring.GetMapDrawMode()}
+end
+
+function widget:SetConfigData(data) --load config
+	if data.lastMapDrawMode then
+		lastMapDrawMode = data.lastMapDrawMode
+	end
+end
+
