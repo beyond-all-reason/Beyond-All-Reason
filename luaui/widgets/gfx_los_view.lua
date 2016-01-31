@@ -27,7 +27,8 @@ function TurnOffLOS()
 end
 
 function widget:Initialize()
-	if (Spring.GetGameFrame() == 0 and not Spring.GetSpectatingState()) or (Spring.GetGameFrame() > 0 and lastMapDrawMode == "los") then
+		TurnOffLOS()
+	if (Spring.GetGameFrame() > 0 and lastMapDrawMode == "los") then
 		TurnOnLOS()
 	else
 		TurnOffLOS()
