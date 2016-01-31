@@ -22,8 +22,8 @@ options = {
 	},
 	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false,		},
 	
-	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.22,		min=0.1, 	max=0.6,	step=0.03, 	},
-	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.33, 	min=0, 		max=1,		step=0.01, 	},
+	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.2,		min=0.1, 	max=0.6,	step=0.03, 	},
+	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.4, 		min=0, 		max=1,		step=0.01, 	},
 	blurPasses 		= { type='number', 		name='Blur Passes', 					value=2, 		min=0, 		max=10,		step=1,  	},
 }
 
