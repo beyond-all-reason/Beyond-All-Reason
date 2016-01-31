@@ -34,6 +34,7 @@ local SendMessageToTeam = Spring.SendMessageToTeam
 local GetTeamInfo = Spring.GetTeamInfo
 local GetPlayerInfo = Spring.GetPlayerInfo
 local SetAlly = Spring.SetAlly
+local ValidUnitID = Spring.ValidUnitID
 local min = math.min
 
 local CMD_UNIT_SET_TARGET = 34923
