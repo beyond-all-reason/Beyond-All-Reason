@@ -1,4 +1,11 @@
-﻿9.29 -> 9.30
+﻿9.30 -> 9.31
+01/02/2016
+
+- Bugfix FFA alliance error
+- "LOS view" pregame disabled again
+
+
+9.29 -> 9.30
 30/01/2016
 
 - "AdvPlayersList": fixed allybutton, you can now unally again via the <3 button
