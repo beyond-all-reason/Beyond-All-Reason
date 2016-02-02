@@ -610,7 +610,7 @@ local function UpdateAlliances()
 		if not player[playerID].spec then
 			local alliances = {}
 			for _,player2ID in pairs (playerList) do
-				if not player[playerID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
+				if not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
 					table.insert(alliances, player2ID)
 				end
 			end
