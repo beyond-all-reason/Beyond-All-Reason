@@ -960,15 +960,21 @@ function widget:DrawScreen()
 					
 					-- chip cost
 					glTexture(chipTexture)
+					local offsetAdd = -5
 					local addsize = 18
-					glColor(0,0,0,0.2)
-					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
-					addsize = 17
-					glColor(0,0,0,0.4)
-					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
-					addsize = 15
-					glColor(0.85, 0.85, 0.85, 1)
-					glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier), panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier), panelBoxContent[4]+(addsize*sizeMultiplier))
+					local offset = offsetAdd * betCost
+					for i=1, betCost do
+						offset = offset -offsetAdd
+						addsize = 18
+						glColor(0,0,0,0.2)
+						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
+						addsize = 17
+						glColor(0,0,0,0.4)
+						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
+						addsize = 15
+						glColor(0.85, 0.85, 0.85, 1)
+						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
+					end
 					glText(betCost, panelBox[1]+((borderPadding+(panelHeight/2.66)+(contentMargin/2.66))*sizeMultiplier), yPos-(6*sizeMultiplier), (19+(addsize/6))*sizeMultiplier, "nco")
 					
 					-- back/forward buttons
