@@ -787,11 +787,12 @@ end
 function getBetLineText(betEntry)
 	local playerName = PlayerIDtoName(betEntry.player)
 	local validBet = GetGameFrame() >= betEntry.validFrom
-	return " \255\200\200\200"..(validBet and "  " or "x") .. "  \255\155\155\155time: \255\200\200\200" .. (betEntry.betTime/(BET_GRANULARITY)) .. "    \255\255\255\255" .. playerName .. "    \255\155\155\155cost: \255\200\200\200" .. betEntry.betCost .. (validBet and "" or ("    \255\155\155\155valid from: \255\200\200\200" .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) )
+	return " \255\200\200\200"..(validBet and "  " or "x") .. "  \255\155\155\155time: \255\200\200\200" .. (betEntry.betTime/(BET_GRANULARITY)) .. "    \255\255\255\255" .. playerName .. (validBet and "" or ("    \255\155\155\155valid from: \255\200\200\200" .. floor(betEntry.validFrom/BET_GRANULARITY+0.5)) )
 end
 
 function getTotalText(numBets,totalScore,totalWin,betValue)
-	return "\255\255\55\1Bets: " .. numBets .. "    \255\255\180\1Total points bet: " .. totalScore .. "    \255\255\255\1Prize: " .. totalWin .. "    \255\55\255\1Betting cost: " .. betValue
+	--return "\255\255\55\1Bets: " .. numBets .. "    \255\255\180\1Total points bet: " .. totalScore .. "    \255\255\255\1Prize: " .. totalWin .. "    \255\55\255\1Betting cost: " .. betValue
+	return "\255\255\255\1Prize: " .. totalWin .. " chip" .. (totalWin > 1 and "s" or "")
 end
 
 function updateDisplayList(unitID,betInfo)
@@ -816,15 +817,24 @@ function updateDisplayList(unitID,betInfo)
 					glBillboard()
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
 					local titleText = getTotalText(numBets,totalScore,totalWin,betCost)
-					local textWidth = glGetTextWidth(titleText)*stepSize
 					local totalBgHeight = (numBets*stepSize)+stepSize
 					local padding = 8
+					
+					local maxWidth =0
+					local betLines = {}
+					for timeSlot,betEntry in spairs(betInfo) do
+						glTranslate(0,stepSize,0)
+						betLines[betEntry] = getBetLineText(betEntry)
+						maxWidth = math.max(maxWidth, gl.GetTextWidth(betLines[betEntry]))
+					end
+					maxWidth = maxWidth * stepSize
+					
 					glColor(0,0,0,0.5)
-					RectRound(-padding, -padding+stepSize, textWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
+					RectRound(-padding, -padding+stepSize, maxWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
 					
 					for timeSlot,betEntry in spairs(betInfo) do
 						glTranslate(0,stepSize,0)
-						glText(getBetLineText(betEntry), 0, 0,stepSize, "o")
+						glText(betLines[betEntry], 0, 0,stepSize, "o")
 					end
 					glTranslate(0,stepSize+1,0)
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
