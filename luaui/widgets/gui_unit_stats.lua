@@ -36,6 +36,8 @@ local yOffset = 10 + bgpadding
 
 local cX, cY, cYstart
 
+--local DAMAGE_PERIOD ,weaponInfo = VFS.Include('LuaRules/Configs/area_damage_defs.lua', nil, VFS.RAW_FIRST)
+local DAMAGE_PERIOD ,weaponInfo = 0 , {}
 
 local pplants = {
 	["aafus"] = true,
@@ -140,6 +142,8 @@ local spGetUnitExp = Spring.GetUnitExperience
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 
+local spGetUnitExperience = Spring.GetUnitExperience
+local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local tidalStrength = Game.tidal
 local windMin = Game.windMin
 local windMax = Game.windMax
@@ -151,7 +155,11 @@ local myTeamID = Spring.GetMyTeamID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spGetTooltip = Spring.GetCurrentTooltip
 
+local vsx, vsy = Spring.GetViewGeometry()
+
 local maxWidth = 0
+local textBuffer = {}
+local textBufferCount = 0
 
 ------------------------------------------------------------------------------------
 -- Functions
@@ -175,10 +183,18 @@ function RectRound(px,py,sx,sy,cs)
 end
 
 local function DrawText(t1, t2)
-	glText(t1, cX, cY, fontSize, "o")
-	glText(t2, cX + 100, cY, fontSize, "o")
+	textBufferCount = textBufferCount + 1
+	textBuffer[textBufferCount] = {t1,t2,cX,cY}
 	cY = cY - fontSize
-	maxWidth = max(maxWidth, (gl.GetTextWidth(t2)*fontSize)+100)
+	maxWidth = max(maxWidth, (gl.GetTextWidth(t1)*fontSize), (gl.GetTextWidth(t2)*fontSize)+100)
+end
+
+local function DrawTextBuffer()
+	local num = #textBuffer
+	for i=1, num do
+		glText(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
+		glText(textBuffer[i][2], textBuffer[i][3] + 100, textBuffer[i][4], fontSize, "o")
+	end
 end
 
 local function teamColorStr(teamID)
@@ -241,6 +257,10 @@ function widget:Shutdown()
 	RemoveGuishader()
 end
 
+function widget:ViewResize()
+  vsx,vsy = Spring.GetViewGeometry()
+end
+
 function widget:DrawScreen()
 	
 	local alt, ctrl, meta, shift = spGetModKeyState()
@@ -265,12 +285,14 @@ function widget:DrawScreen()
 	
 	local text = yellow .. uDef.humanName .. white .. "    " .. uDef.name .. "    (#" .. uID .. " , "..teamColorStr(uTeam) .. teamName(uTeam) .. white .. ")"
 	
-	glColor(0,0,0,0.3)
+	glColor(0,0,0,0.5)
 	RectRound(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding, cY+(fontSize/2)+bgpadding, bgcornerSize)
 	
 	glColor(1.0, 1.0, 1.0, 1.0)
 	glText(text, cX, cY, fontSize, "o")
 	cY = cY - 2 * fontSize
+	textBuffer = {}
+	textBufferCount = 0
 	
 	if(WG.energyConversion) then
 		local makerTemp = WG.energyConversion.convertCapacities[uDefID]
@@ -278,8 +300,8 @@ function widget:DrawScreen()
 		local avgCR = 0.015
 		if(makerTemp) then 
 			DrawText(orange .. "Metal maker properties", '')
-			DrawText("M-Capac.:", makerTemp.c)
-			DrawText("M-Effi.:", format('%.2f m / 1000 e', makerTemp.e * 1000))
+			DrawText("M-Capac.", makerTemp.c)
+			DrawText("M-Effi.", format('%.2f m / 1000 e', makerTemp.e * 1000))
 			cY = cY - fontSize
 		end
 
@@ -313,12 +335,12 @@ function widget:DrawScreen()
 				totalEOut = totalEOut + (((unitWindMin + unitWindMax) / 2 ) * mult)
 			end
 			
-			DrawText("Avg. E-Out.:", totalEOut)
-			DrawText("M-Cost.:", uDef.metalCost)
+			DrawText("Avg. E-Out.", totalEOut)
+			DrawText("M-Cost.", uDef.metalCost)
 			
-			DrawText("Avg-Effi.:", format('%.2f%% e / (m + e * avg. CR) ', totalEOut * 100 / (uDef.metalCost + uDef.energyCost * avgCR)))
+			DrawText("Avg-Effi.", format('%.2f%% e / (m + e * avg. CR) ', totalEOut * 100 / (uDef.metalCost + uDef.energyCost * avgCR)))
 			if(curAvgEffi>0) then
-				DrawText("Curr-Effi.:", format('%.2f%% e / (m + e * curr. CR) ', totalEOut * 100 / (uDef.metalCost + uDef.energyCost * curAvgEffi)))
+				DrawText("Curr-Effi.", format('%.2f%% e / (m + e * curr. CR) ', totalEOut * 100 / (uDef.metalCost + uDef.energyCost * curAvgEffi)))
 			end
 			cY = cY - fontSize
 		end
@@ -327,7 +349,7 @@ function widget:DrawScreen()
 			if ((uDef.extractsMetal and uDef.extractsMetal  > 0) or (uDef.metalMake and uDef.metalMake > 0) or (uDef.energyMake and uDef.energyMake>0) or (uDef.tidalGenerator and uDef.tidalGenerator > 0)  or (uDef.windGenerator and uDef.windGenerator > 0)) then
 			-- Powerplants 
 				--DrawText(metalColor .. "Total metal generation efficiency", '')
-				DrawText(metalColor .. "Estimated time of recovering 100% of cost:", '')
+				DrawText(metalColor .. "Estimated time of recovering 100% of cost", '')
 				
 				local totalMOut = uDef.metalMake or 0
 				local totalEOut = uDef.energyMake or 0
@@ -335,8 +357,8 @@ function widget:DrawScreen()
 				if (uDef.extractsMetal and uDef.extractsMetal  > 0) then
 					local metalExtractor = {inc = 0, out = 0, passed= false}
 					local tooltip = spGetTooltip()
-					string.gsub(tooltip, 'Metal: ....%d+%.%d', function(x) string.gsub(x, "%d+%.%d", function(y) metalExtractor.inc = tonumber(y); end) end)
-					string.gsub(tooltip, 'Energy: ....%d+%.%d+..../....-%d+%.%d+', function(x) string.gsub(x, "%d+%.%d", function(y) if (metalExtractor.passed) then metalExtractor.out = tonumber(y); else metalExtractor.passed = true end; end) end)
+					string.gsub(tooltip, 'Metal ....%d+%.%d', function(x) string.gsub(x, "%d+%.%d", function(y) metalExtractor.inc = tonumber(y); end) end)
+					string.gsub(tooltip, 'Energy ....%d+%.%d+..../....-%d+%.%d+', function(x) string.gsub(x, "%d+%.%d", function(y) if (metalExtractor.passed) then metalExtractor.out = tonumber(y); else metalExtractor.passed = true end; end) end)
 					
 					totalMOut = totalMOut + metalExtractor.inc
 					totalEOut = totalEOut -  metalExtractor.out
@@ -368,12 +390,12 @@ function widget:DrawScreen()
 					local avgSec = (uDef.metalCost + uDef.energyCost * avgCR)/(totalEOut * avgCR + totalMOut)
 					local currSec = (uDef.metalCost + uDef.energyCost * curAvgEffi)/(totalEOut * curAvgEffi + totalMOut)
 				
-					DrawText('Average: ', format('%i sec (%i min %i sec)', avgSec, avgSec/60, avgSec%60))
+					DrawText('Average ', format('%i sec (%i min %i sec)', avgSec, avgSec/60, avgSec%60))
 					if(curAvgEffi>0) then
-						DrawText('Current: ', format('%i sec (%i min %i sec)', currSec, currSec/60, currSec%60))
+						DrawText('Current ', format('%i sec (%i min %i sec)', currSec, currSec/60, currSec%60))
 					end
 				else
-					DrawText('Average: ', "Unknown")
+					DrawText('Average ', "Unknown")
 				end
 				cY = cY - fontSize
 			end
@@ -395,44 +417,62 @@ function widget:DrawScreen()
 		local mEta = (mRem - mCur) / (mInc + mRec)
 		local eEta = (eRem - eCur) / (eInc + eRec)
 		
-		DrawText("Prog:", format("%d%% / %d%%", 100 * buildProg, 100 * buildRem))
-		DrawText("M:", format("%d / %d (" .. yellow .. "%d" .. white .. ")", mTotal * buildProg, mTotal, mTotal * buildRem))
-		DrawText("E:", format("%d / %d (" .. yellow .. "%d" .. white .. ")", eTotal * buildProg, eTotal, eTotal * buildRem))
+		DrawText("Prog", format("%d%% / %d%%", 100 * buildProg, 100 * buildRem))
+		DrawText("Metal", format("%d / %d (" .. yellow .. "%d" .. white .. ")", mTotal * buildProg, mTotal, (mTotal * buildRem) + 1))
+		DrawText("Energy", format("%d / %d (" .. yellow .. "%d" .. white .. ")", eTotal * buildProg, eTotal, (eTotal * buildRem) + 1))
 		cY = cY - fontSize
 	end
 	
 	------------------------------------------------------------------------------------
 	-- Generic information, cost, move, class
 	------------------------------------------------------------------------------------
-	DrawText("Cost:", format(metalColor .. '%d' .. white .. ' / ' ..
+	DrawText("Cost", format(metalColor .. '%d' .. white .. ' / ' ..
 							energyColor .. '%d' .. white .. ' / ' ..
 							buildColor .. '%d', uDef.metalCost, uDef.energyCost, uDef.buildTime)
 			)
 		if not (uDef.isBuilding or uDef.isFactory) then
-		DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, 30 * uDef.turnRate * (180 / 32767)))
+		DrawText("Move", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, 30 * uDef.turnRate * (180 / 32767)))
 	end
 	
-	DrawText("Los:", format("%d", 32 * uDef.losRadius))
-	if uDef.radarRadius >= 64 then DrawText("Radar:", format(green .. "%d", uDef.radarRadius)) end
-	if uDef.sonarRadius >= 64 then DrawText("Sonar:", format(blue .. "%d", uDef.sonarRadius)) end
-	if uDef.jammerRadius >= 64 then DrawText("Jam:", format(orange .. "%d", uDef.jammerRadius)) end
-	if uDef.buildSpeed > 0 then DrawText("Build:", format(yellow .. "%d", uDef.buildSpeed)) end
-	if uDef.buildDistance > 0 then DrawText("B Dist:", format(yellow .. "%d", uDef.buildDistance)) end
-	if (uDef.repairSpeed > 0 and uDef.repairSpeed ~= uDef.buildSpeed) then DrawText("Repair:", format(yellow .. "%d", uDef.repairSpeed)) end
-	if (uDef.reclaimSpeed > 0 and uDef.reclaimSpeed ~= uDef.buildSpeed) then DrawText("Reclaim:", format(yellow .. "%d", uDef.reclaimSpeed)) end
-	if (uDef.resurrectSpeed > 0 and uDef.resurrectSpeed ~= uDef.buildSpeed) then DrawText("Resurrect:", format(yellow .. "%d", uDef.resurrectSpeed)) end
-	if (uDef.captureSpeed > 0 and uDef.captureSpeed ~= uDef.buildSpeed) then DrawText("Capture:", format(yellow .. "%d", uDef.captureSpeed)) end
-	if (uDef.terraformSpeed > 0 and uDef.terraformSpeed ~= uDef.buildSpeed) then DrawText("Capture:", format(yellow .. "%d", uDef.terraformSpeed)) end
-	if uDef.stealth then DrawText("Other:", "Stealthy") end
-	if uDef.mass > 0 then DrawText("Mass:", format(orange .. "%d", uDef.mass)) end
-	if uDef.isTransport and uDef.transportMass > 0 then DrawText("Transporter Max Mass:", format(orange .. "%d", uDef.transportMass)) end
+	DrawText("Class", Game.armorTypes[uDef.armorType or 0] or '???')
+	
+	local losRadius = spGetUnitSensorRadius(uID, 'los') or 0
+	local airLosRadius = spGetUnitSensorRadius(uID, 'airLos') or 0
+	local seismicRadius = spGetUnitSensorRadius(uID, 'seismic') or 0
 
 
+	DrawText('Los', losRadius .. (airLosRadius > losRadius and format(' (AirLos %d)', airLosRadius) or ''))
+	if uDef.radarRadius >= 64 then DrawText("Radar", format(green .. "%d", uDef.radarRadius)) end
+	if uDef.sonarRadius >= 64 then DrawText("Sonar", format(blue .. "%d", uDef.sonarRadius)) end
+	if uDef.jammerRadius >= 64 then DrawText("Jam", format(orange .. "%d", uDef.jammerRadius)) end
+	if seismicRadius > 0 then DrawText('Seis' , '\255\255\26\255' .. seismicRadius) end
+
+	if uDef.buildSpeed > 0 then DrawText("Build", format(yellow .. "%d", uDef.buildSpeed)) end
+	if uDef.buildDistance > 0 then DrawText("B Dist", format(yellow .. "%d", uDef.buildDistance)) end
+	if (uDef.repairSpeed > 0 and uDef.repairSpeed ~= uDef.buildSpeed) then DrawText("Repair", format(yellow .. "%d", uDef.repairSpeed)) end
+	if (uDef.reclaimSpeed > 0 and uDef.reclaimSpeed ~= uDef.buildSpeed) then DrawText("Reclaim", format(yellow .. "%d", uDef.reclaimSpeed)) end
+	if (uDef.resurrectSpeed > 0 and uDef.resurrectSpeed ~= uDef.buildSpeed) then DrawText("Resurrect", format(yellow .. "%d", uDef.resurrectSpeed)) end
+	if (uDef.captureSpeed > 0 and uDef.captureSpeed ~= uDef.buildSpeed) then DrawText("Capture", format(yellow .. "%d", uDef.captureSpeed)) end
+	if (uDef.terraformSpeed > 0 and uDef.terraformSpeed ~= uDef.buildSpeed) then DrawText("Capture", format(yellow .. "%d", uDef.terraformSpeed)) end
+	if uDef.stealth then DrawText("Other", "Stealthy") end
+	if uDef.mass > 0 then DrawText("Mass", format(orange .. "%d", uDef.mass)) end
+	if uDef.isTransport and uDef.transportMass > 0 then DrawText("Transporter Max Mass", format(orange .. "%d", uDef.transportMass)) end
+	
+	
 	cY = cY - fontSize
 	
-	local uWeps = uDef.weapons
 	
-	local wepCounts = {} -- wepCounts[wepDefID] = 1, 2, ...
+	------------------------------------------------------------------------------------
+	-- Weapons
+	------------------------------------------------------------------------------------
+	local uExp = spGetUnitExperience(uID)
+	if uExp and (uExp > 0.25) then
+		uExp = uExp / (1 + uExp)
+		DrawText("Exp", format("+%d%% damage, +%d%% firerate, +%d%% health", 100 * uExp, 100 / (1 - uExp * 0.4) - 100, 70 * uExp))
+		cY = cY - fontSize
+	end
+	
+	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
 	
 	local uWeps = uDef.weapons
@@ -452,7 +492,7 @@ function widget:DrawScreen()
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
 		
-		if uWep.range > 16 then
+		if uWep.range > 16 and not uWep.name:find("teleport",1,true) then
 			
 			local oDmg = uWep.damages[0]
 			local oBurst = uWep.salvoSize * uWep.projectiles
@@ -460,13 +500,18 @@ function widget:DrawScreen()
 			local wepCount = wepCounts[wDefId]
 			
 			if wepCount > 1 then
-				DrawText("Weap:", format(yellow .. "%dx" .. white .. " %s", wepCount, uWep.type))
+				DrawText("Weap", format(yellow .. "%dx" .. white .. " %s", wepCount, uWep.type))
 			else
-				DrawText("Weap:", uWep.type)
+				DrawText("Weap", uWep.type)
 			end
 			
-			DrawText("Info:", format("%d range, %d aoe, %d%% edge", uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness))
+			DrawText("Info", format("%d range, %d aoe, %d%% edge", uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness))
 			
+
+			if uWep.coverageRange and uWep.stockpile then
+			  	DrawText("Anti", format("%d Interceptor Range", uWep.coverageRange))
+			end
+
 			local dmgString
 			if oBurst > 1 then
 				dmgString = format(yellow .. "%d (x%d)" .. white .. " / " .. yellow .. "%.2f" .. white .. " = " .. yellow .. "%.2f", oDmg, oBurst, oRld, oBurst * oDmg / oRld)
@@ -478,7 +523,7 @@ function widget:DrawScreen()
 				dmgString = dmgString .. white .. " (Each)"
 			end
 			
-			DrawText("Dmg:", dmgString)
+			DrawText("Dmg", dmgString)
 			
 			if (uWep.metalCost > 0) or (uWep.energyCost > 0) then
 				
@@ -488,7 +533,7 @@ function widget:DrawScreen()
 				-- They drain (32/30) times more resources than they should (And the listed drain is real, having lower income than listed drain WILL stall you)
 				local drainAdjust = uWep.stockpile and 32/30 or 1
 				
-				DrawText('Cost:', format(metalColor .. '%d' .. white .. ', ' ..
+				DrawText('Cost', format(metalColor .. '%d' .. white .. ', ' ..
 										 energyColor .. '%d' .. white .. ' = ' ..
 										 metalColor .. '-%d' .. white .. ', ' ..
 										 energyColor .. '-%d' .. white .. ' per second',
@@ -500,11 +545,19 @@ function widget:DrawScreen()
 			
 			cY = cY - fontSize
 		end
+		if (weaponInfo[wDefId]) then
+			local radius = weaponInfo[wDefId].radius
+			local damage = weaponInfo[wDefId].damage
+			local duration = weaponInfo[wDefId].duration
+			DrawText("Area Dmg", format(white .. "%d aoe, %d max damage per second , %d seconds", radius, damage * 30 / DAMAGE_PERIOD, duration / 30 ))
+		end
 	end
 	
 	-- background
-	glColor(0,0,0,0.15)
+	glColor(0,0,0,0.33)
 	RectRound(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, bgcornerSize)
+	
+	DrawTextBuffer()
 	
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
