@@ -42,7 +42,7 @@ return {
 				collisionvolumeoffsets = "0.570877075195 -3.63811154541 -0.184501647949",
 				collisionvolumescales = "29.8971862793 8.38395690918 32.6823883057",
 				collisionvolumetype = "Box",
-				damage = 390,
+				damage = 490,
 				description = "Rocko Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -60,7 +60,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 195,
+				damage = 295,
 				description = "Rocko Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

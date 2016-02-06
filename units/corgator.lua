@@ -47,7 +47,7 @@ return {
 				collisionvolumeoffsets = "0.0 -0.0103445068359 -0.00248718261719",
 				collisionvolumescales = "21.4374389648 12.6050109863 32.0003356934",
 				collisionvolumetype = "Box",
-				damage = 450,
+				damage = 550,
 				description = "Instigator Wreckage",
 				energy = 0,
 				featuredead = "HEAP",

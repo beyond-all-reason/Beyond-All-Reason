@@ -47,7 +47,7 @@ return {
 				collisionvolumeoffsets = "0.0750198364258 0.20984 -0.70206451416",
 				collisionvolumescales = "20.3918304443 9.5 30.2260284424",
 				collisionvolumetype = "Box",
-				damage = 366,
+				damage = 396,
 				description = "Flash Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -65,7 +65,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 183,
+				damage = 193,
 				description = "Flash Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

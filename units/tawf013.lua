@@ -52,7 +52,7 @@ return {
 				collisionvolumeoffsets = "0.0 3.10058593911e-07 3.44650268555",
 				collisionvolumescales = "30.6000061035 17.1577606201 39.1929931641",
 				collisionvolumetype = "Box",
-				damage = 318,
+				damage = 418,
 				description = "Shellshocker Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -70,7 +70,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 159,
+				damage = 259,
 				description = "Shellshocker Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

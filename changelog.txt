@@ -1,8 +1,10 @@
 ﻿9.31 -> 9.32
 XX/02/2016
 
+Balance changes:
 - Ground "Anti-Nuke System" energy cost reduced by 10%
 - Arm & Core Advanced fusion buildtimes raised ~ 15%
+- Corpses of some t1 vehicle and kbots are harder to break
 
 
 9.30 -> 9.31

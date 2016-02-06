@@ -60,7 +60,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 201,
+				damage = 251,
 				description = "Storm Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

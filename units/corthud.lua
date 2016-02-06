@@ -49,7 +49,7 @@ return {
 				collisionvolumeoffsets = "-1.26663208008 -3.12783955078 2.54402923584",
 				collisionvolumescales = "27.809387207 16.8939208984 40.2852935791",
 				collisionvolumetype = "Box",
-				damage = 540,
+				damage = 640,
 				description = "Thud Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -67,7 +67,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 270,
+				damage = 370,
 				description = "Thud Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

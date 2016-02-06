@@ -66,7 +66,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 794,
+				damage = 394,
 				description = "Necro Heap",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

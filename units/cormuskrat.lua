@@ -96,7 +96,7 @@ return {
 				collisionvolumeoffsets = "-1.3500289917 4.80712890649e-06 3.49253082275",
 				collisionvolumescales = "25.27003479 12.0197296143 44.3021697998",
 				collisionvolumetype = "Box",
-				damage = 597,
+				damage = 697,
 				description = "Muskrat Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
