@@ -2,6 +2,7 @@
 XX/02/2016
 
 - Ground "Anti-Nuke System" energy cost reduced by 10%
+- Arm & Core Advanced fusion buildtimes raised ~ 15%
 
 
 9.30 -> 9.31

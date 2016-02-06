@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "cafus_aoplane.dds",
 		buildpic = "CAFUS.DDS",
-		buildtime = 260212,
+		buildtime = 329243,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "84 95 84",
