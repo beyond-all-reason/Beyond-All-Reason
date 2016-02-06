@@ -1,11 +1,16 @@
 ﻿9.31 -> 9.32
-XX/02/2016
+06/02/2016
 
 Balance changes:
 - Ground "Anti-Nuke System" energy cost reduced by 10%
 - Arm & Core Advanced fusion buildtimes raised ~ 15%
 - Corpses of some t1 vehicle and kbots are harder to break
 - T2 constructors (kbot, veh, air) cost increased by 20%
+
+Other:
+- Added widget "Unit Stats": hover over unit and hold spacebar
+- Bet frontend: Stripped some info from a unit bet list
+- Minor bugfixes
 
 
 9.30 -> 9.31
