@@ -5,6 +5,7 @@ Balance changes:
 - Ground "Anti-Nuke System" energy cost reduced by 10%
 - Arm & Core Advanced fusion buildtimes raised ~ 15%
 - Corpses of some t1 vehicle and kbots are harder to break
+- T2 constructors (kbot, veh, air) cost increased by 20%
 
 
 9.30 -> 9.31

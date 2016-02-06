@@ -2,8 +2,8 @@ return {
 	coraca = {
 		acceleration = 0.066,
 		brakerate = 0.4275,
-		buildcostenergy = 9412,
-		buildcostmetal = 246,
+		buildcostenergy = 11294,
+		buildcostmetal = 295,
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORACA.DDS",
