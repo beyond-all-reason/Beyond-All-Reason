@@ -26,13 +26,7 @@ end
 -- Globals
 ------------------------------------------------------------------------------------
 
-local bgcornerSize			= 8
-local bgpadding				= 15
-
-local fontSize = 18
-local xOffset = 50 + bgpadding
-local yOffset = 10 + bgpadding
-
+local customFontSize = 18
 
 local cX, cY, cYstart
 
@@ -248,6 +242,7 @@ function widget:Initialize()
 	if highlightWidget then
 		widgetHandler:RemoveWidgetCallIn("DrawScreen", highlightWidget)
 	end
+	init()
 end
 
 function widget:Shutdown()
@@ -258,8 +253,18 @@ function widget:Shutdown()
 	RemoveGuishader()
 end
 
-function widget:ViewResize()
-  vsx,vsy = Spring.GetViewGeometry()
+function init()
+	vsx, vsy = gl.GetViewSizes()
+	fontSize = customFontSize * (0.55 + (vsx*vsy / 8500000))
+	
+	bgcornerSize = fontSize*0.45
+	bgpadding = fontSize*0.9
+	xOffset = 50 + bgpadding
+	yOffset = 10 + bgpadding
+end
+
+function widget:ViewResize(x,y)
+	init()
 end
 
 function widget:DrawScreen()
