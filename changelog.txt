@@ -1,4 +1,10 @@
-﻿9.30 -> 9.31
+﻿9.31 -> 9.32
+XX/02/2016
+
+- Ground "Anti-Nuke System" energy cost reduced by 10%
+
+
+9.30 -> 9.31
 01/02/2016
 
 - Bugfix FFA alliance error
