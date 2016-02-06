@@ -186,14 +186,14 @@ local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
 	textBuffer[textBufferCount] = {t1,t2,cX,cY}
 	cY = cY - fontSize
-	maxWidth = max(maxWidth, (gl.GetTextWidth(t1)*fontSize), (gl.GetTextWidth(t2)*fontSize)+100)
+	maxWidth = max(maxWidth, (gl.GetTextWidth(t1)*fontSize), (gl.GetTextWidth(t2)*fontSize)+(fontSize*6.5))
 end
 
 local function DrawTextBuffer()
 	local num = #textBuffer
 	for i=1, num do
 		glText(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
-		glText(textBuffer[i][2], textBuffer[i][3] + 100, textBuffer[i][4], fontSize, "o")
+		glText(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
 	end
 end
 
@@ -234,7 +234,8 @@ end
 local guishaderEnabled = false	-- not a config var
 function RemoveGuishader()
 	if guishaderEnabled and WG['guishader_api'] ~= nil then
-		WG['guishader_api'].RemoveRect('unit_stats')
+		WG['guishader_api'].RemoveRect('unit_stats_title')
+		WG['guishader_api'].RemoveRect('unit_stats_data')
 		guishaderEnabled = false
 	end
 end
@@ -287,6 +288,11 @@ function widget:DrawScreen()
 	
 	glColor(0,0,0,0.5)
 	RectRound(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding, cY+(fontSize/2)+bgpadding, bgcornerSize)
+	
+	if (WG['guishader_api'] ~= nil) then
+		guishaderEnabled = true
+		WG['guishader_api'].InsertRect(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding, cY+(fontSize/2)+bgpadding, 'unit_stats_title')
+	end
 	
 	glColor(1.0, 1.0, 1.0, 1.0)
 	glText(text, cX, cY, fontSize, "o")
@@ -561,7 +567,7 @@ function widget:DrawScreen()
 	
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding, cYstart-bgpadding, cX+maxWidth+bgpadding, cY+bgpadding, 'unit_stats')
+		WG['guishader_api'].InsertRect(cX-bgpadding, cYstart-bgpadding, cX+maxWidth+bgpadding, cY+bgpadding, 'unit_stats_data')
 	end
 	glColor(1,1,1,1)
 end
