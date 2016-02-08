@@ -2569,7 +2569,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 end
 
 local function DrawGreyRect()
-	gl_Color(0.2,0.2,0.2,0.7)
+	gl_Color(0.2,0.2,0.2,0.25)
 	gl_Rect(widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight)
 	gl_Color(1,1,1,1)
 end
@@ -2634,9 +2634,9 @@ function widget:TweakDrawScreen()
 	gl.Scale(widgetScale,widgetScale,0)
 	gl.Translate(scaleDiffX,scaleDiffY,0)
 	
-	DrawGreyRect()
+	--DrawGreyRect()
 	DrawTweakButtons()
-	DrawArrows()
+	--DrawArrows()
 
 	CreateMainList()
 	CreateBackground()
@@ -2694,7 +2694,7 @@ function widget:TweakMousePress(x,y,button)
 				end
 			end
 		end
-
+	elseif button == 2 or button == 3 then
 		if IsOnRect(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
 			clickToMove = true
 			return true

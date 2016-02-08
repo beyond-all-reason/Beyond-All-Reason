@@ -463,7 +463,7 @@ end
 
 function widget:TweakMousePress(mx, my, button)
 	if ui_active_G then
-		if widget:IsAbove(mx,my) and button == 2 then
+		if widget:IsAbove(mx,my) and (button == 2 or button == 3) then
 			return true
 		end
 	end

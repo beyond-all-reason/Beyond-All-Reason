@@ -199,7 +199,7 @@ function widget:Update(dt)
 end
 
 function widget:TweakMousePress(mx, my, mButton)
-    if mButton == 2 then
+    if mButton == 2 or mButton == 3 then
         if mx >= xPos and my >= yPos and mx < xPos + panelWidth and my < yPos + panelHeight then
             return true
         end

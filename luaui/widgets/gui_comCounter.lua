@@ -386,7 +386,7 @@ function widget:TweakMousePress(mx, my, mb)
 			elseif mx > xPos+check2x and my > yPos+check2y and mx < (xPos+check2x+16) and my < (yPos+check2y+16) then
 				flashIcon = not flashIcon
 			end
-		elseif mb == 2 then
+		elseif mb == 2 or mb == 3 then
 			return true
 		end
 	end

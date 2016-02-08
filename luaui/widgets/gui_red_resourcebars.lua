@@ -44,7 +44,7 @@ local Config = {
 		ccurrent = {1,1,1,1},
 		cstorage = {1,1,1,1},
 		
-		dragbutton = {2}, --middle mouse button
+		dragbutton = {2,3}, --middle mouse button
 		tooltip = {
 			background ="In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
 			"\255\255\255\1Leftclick\255\255\255\255 on the bar to set team share.",
@@ -82,7 +82,7 @@ local Config = {
 		ccurrent = {1,1,1,1},
 		cstorage = {1,1,1,1},
 		
-		dragbutton = {2}, --middle mouse button
+		dragbutton = {2,3}, --middle mouse button
 		tooltip = {
 			background ="In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the resource bar.\n\n"..
 			"\255\255\255\1Leftclick\255\255\255\255 on the bar to set team share.",

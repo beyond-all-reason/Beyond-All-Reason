@@ -1,4 +1,4 @@
-local versionNumber = "1.82"
+local versionNumber = "1.83"
 
 do
 ---------------------------------------------------------------------------------------------------
@@ -1313,7 +1313,7 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 end
 
 function widget:TweakMousePress(x, y, button)
-	if button == 2 then
+	if button == 2 or button == 3 then
 		if IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
 			pressedToMove = true
 			return true

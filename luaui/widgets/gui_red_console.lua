@@ -73,7 +73,7 @@ local Config = {
 		cbackground = {0,0,0,0.19},
 		cborder = {0,0,0,0},
 		
-		dragbutton = {2}, --middle mouse button
+		dragbutton = {2,3}, --middle mouse button
 		tooltip = {
 			background ="In CTRL+F11 mode:  Hold \255\255\255\1middle mouse button\255\255\255\255 to drag the console.\n"..
 			"- Press \255\255\255\1CTRL\255\255\255\255 while mouse is above the \nconsole to activate chatlog viewing.\n"..

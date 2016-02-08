@@ -830,13 +830,13 @@ function widget:MousePress(mx, my, mButton)
 	local tracedDefID = TraceDefID(mx, my)
 	if tracedDefID then
 		if mButton == 1 then
-		if needBuildFacing then
-			SetBuildFacing()
-			needBuildFacing = false
-		end
+			if needBuildFacing then
+				SetBuildFacing()
+				needBuildFacing = false
+			end
 			SetSelDefID(tracedDefID)
 			return true
-		elseif mButton == 3 then
+		elseif mButton == 2 or mButton == 3 then
 			areDragging = true
 			return true
 		end

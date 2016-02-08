@@ -103,7 +103,7 @@ local glRect = gl.Rect
 local glGetTextWidth = gl.GetTextWidth
 local IsGameOver = false
 
-local xRelPos, yRelPos		= 0.5, 0.16
+local xRelPos, yRelPos		= 0.5, 0.12
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
@@ -549,7 +549,7 @@ function widget:SetConfigData(data)
 	viewBets = data.viewBets
 	if data.xRelPos ~= nil then
 		xRelPos = data.xRelPos or xRelPos
-		yRelPos = data.yRelPos or yRelPos
+		yRelPos1 = data.yRelPos or yRelPos
 		xPos = xRelPos * vsx
 		yPos = yRelPos * vsy
 	end
@@ -560,7 +560,7 @@ function widget:GetConfigData()
 	{
 		viewBets = viewBets,
 		xRelPos = xRelPos,
-		yRelPos = yRelPos
+		yRelPos = yRelPos1
 	}
 end
 
@@ -1175,7 +1175,7 @@ function widget:MouseRelease(mx, my, mb)
 end
 
 function widget:TweakMousePress(mx, my, mb)
-    if mb == 2 and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
+    if (mb == 2 or mb == 3) and (isInBox(mx, my, panelBox) or isInBox(mx, my, placebetBox)) then
         return true
     end
 end

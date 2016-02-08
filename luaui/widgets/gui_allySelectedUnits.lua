@@ -596,7 +596,7 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:TweakMousePress(mx, my, mb)
-    if lockPlayerID ~= nil and  mb == 2 and widget:IsAbove(mx,my) then
+    if lockPlayerID ~= nil and (mb == 2 or mb == 3) and widget:IsAbove(mx,my) then
         return true
     end
 end 

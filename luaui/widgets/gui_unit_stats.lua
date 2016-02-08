@@ -114,6 +114,7 @@ local buildColor = '\255\128\255\128' -- Light green
 
 local max = math.max
 local floor = math.floor
+local ceil = math.ceil
 local format = string.format
 local char = string.char
 
@@ -291,8 +292,12 @@ function widget:DrawScreen()
 	
 	local text = yellow .. uDef.humanName .. white .. "    " .. uDef.name .. "    (#" .. uID .. " , "..teamColorStr(uTeam) .. teamName(uTeam) .. white .. ")"
 	
-	glColor(0,0,0,0.5)
-	RectRound(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding, cY+(fontSize/2)+bgpadding, bgcornerSize)
+	local cornersize = 0
+	glColor(0,0,0,0.73)
+	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding-cornersize, cY+(fontSize/2)+bgpadding-cornersize, bgcornerSize)
+	cornersize = ceil(bgpadding*0.21)
+	glColor(1,1,1,0.025)
+	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding-cornersize, cY+(fontSize/2)+bgpadding-cornersize, bgcornerSize)
 	
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
@@ -565,14 +570,18 @@ function widget:DrawScreen()
 	end
 	
 	-- background
-	glColor(0,0,0,0.33)
-	RectRound(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, bgcornerSize)
+	glColor(0,0,0,0.57)
+	cornersize = 0
+	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+	cornersize = ceil(bgpadding*0.16)
+	glColor(1,1,1,0.017)
+	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 	
 	DrawTextBuffer()
 	
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding, cYstart-bgpadding, cX+maxWidth+bgpadding, cY+bgpadding, 'unit_stats_data')
+		WG['guishader_api'].InsertRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
 	end
 	glColor(1,1,1,1)
 end

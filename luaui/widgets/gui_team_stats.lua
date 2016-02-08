@@ -643,13 +643,14 @@ end
 
 
 function widget:TweakMousePress(x, y, button)
-	if button ~= 2 then
+	if button == 2  or button == 3 then
+		local ok
+		ok, guiData = tweakMousePress({x=x,y=y},guiData)
+		createButtonList()
+		return ok
+	else
 		return false
 	end
-	local ok
-	ok, guiData = tweakMousePress({x=x,y=y},guiData)
-	createButtonList()
-	return ok
 end
 
 function updateFontSize()

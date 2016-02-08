@@ -502,11 +502,11 @@ function widget:DrawScreen()
         gl.Text(labelText[2].label,labelText[2].x,labelText[2].y,labelText[2].size,labelText[2].config)
         gl.PopMatrix()
       end
-      
   else
 	updateGuishader()
   end
 end
+
 
 function widget:TweakMouseMove(x, y, dx, dy, button)
 	if (enabled) then
@@ -549,7 +549,7 @@ function widget:TweakMousePress(x, y, button)
 
   if Spring.IsGUIHidden() then return end
   
-  if (enabled and button == 2) 
+  if (enabled and (button == 2 or button == 3)) 
 	  and (x > x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75))
 	  and (y > y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75)) 
 	  and (x < x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75))) 

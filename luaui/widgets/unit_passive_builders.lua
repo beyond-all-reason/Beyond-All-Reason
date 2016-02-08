@@ -215,7 +215,7 @@ end
 
 function widget:TweakMousePress(mx, my, mb)
 	if not IsSpec then
-		if mb == 2 and widget:IsAbove(mx,my) then
+		if (mb == 2 or mb == 3) and widget:IsAbove(mx,my) then
 			return true
 		end
 
