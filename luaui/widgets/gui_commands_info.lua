@@ -398,6 +398,26 @@ function widget:GetTooltip(mx, my)
 	end
 end
 
+function widget:MouseWheel(up, value)
+	
+	if show then	
+		local addLines = value*-5 -- direction is retarded
+		
+		startLine = startLine + addLines
+		if startLine < 1 then startLine = 1 end
+		if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
+		
+		if changelogList then
+			glDeleteList(changelogList)
+		end
+		
+		changelogList = gl.CreateList(DrawWindow)
+		return true
+	else
+		return false
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
     if amNewbie and not gameStarted then return end
@@ -419,37 +439,10 @@ function widget:MousePress(x, y, button)
 				return true
 			end
 			
-			-- scroll text with mouse 2
 			if button == 1 or button == 3 then
-				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
-					local alt, ctrl, meta, shift = Spring.GetModKeyState()
-					local addLines = 3
-					
-					if ctrl or shift then 
-						addLines = 8
-					end
-					if ctrl and shift then 
-						addLines = 22
-					end
-					if ctrl and shift and alt then 
-						addLines = 66
-					end
-					if button == 3 then 
-						addLines = -addLines
-					end
-					startLine = startLine + addLines
-					if startLine < 1 then startLine = 1 end
-					if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-					
-					if changelogList then
-						glDeleteList(changelogList)
-					end
-					changelogList = gl.CreateList(DrawWindow)
-					return true
+				if button == 3 then
+					show = not show
 				end
-			end
-			
-			if button == 1 or button == 3 then
 				return true
 			end
 		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then

@@ -505,6 +505,26 @@ function widget:GetTooltip(mx, my)
 	end
 end
 
+function widget:MouseWheel(up, value)
+	
+	if show then	
+		local addLines = value*-5 -- direction is retarded
+		
+		startLine = startLine + addLines
+		if startLine < 1 then startLine = 1 end
+		if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
+		
+		if changelogList then
+			glDeleteList(changelogList)
+		end
+		
+		changelogList = gl.CreateList(DrawWindow)
+		return true
+	else
+		return false
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
     if amNewbie and not gameStarted then return end
@@ -526,7 +546,7 @@ function widget:MousePress(x, y, button)
 				return true
 			end
 			
-			-- scroll text with mouse 2
+			--[[ scroll text with mouse 2
 			if button == 1 or button == 3 then
 				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
 					local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -554,7 +574,7 @@ function widget:MousePress(x, y, button)
 					changelogList = gl.CreateList(DrawWindow)
 					return true
 				end
-			end
+			end]]--
 			
 			-- version buttons
 			if button == 1 then
