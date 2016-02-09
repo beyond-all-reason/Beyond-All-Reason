@@ -17,9 +17,8 @@ end
 
 local customScale			= 1
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
-local bgmargin				= 0.08
-local customPanelWidth 		= 35
-local customPanelHeight 	= 35
+local customPanelWidth 		= 46
+local customPanelHeight 	= 39
 local xRelPos, yRelPos		= 0.81, 0.963
 
 
@@ -260,13 +259,12 @@ function widget:DrawScreen()
 		glDeleteList(displayList)
 		-- regenerate the display list
 		displayList = glCreateList( function()
-			local margin = (panelWidth*bgmargin)*widgetScale
 			glColor(0, 0, 0, 0.6)
-			RectRound(xPos-margin, yPos-margin, xPos+panelWidth+margin, yPos+panelHeight+margin, 8)
+			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6*widgetScale)
 			
-			local borderPadding = 3.5
+			local borderPadding = 3.5*widgetScale
 			glColor(1,1,1,0.022)
-			RectRound(xPos-margin+borderPadding, yPos-margin+borderPadding, xPos+panelWidth+margin-borderPadding, yPos+panelHeight+margin-borderPadding, 7)
+			RectRound(xPos+borderPadding, yPos+borderPadding, xPos+panelWidth-borderPadding, yPos+panelHeight-borderPadding, 6*widgetScale)
 			
 			glTranslate(xPos, yPos, 0)
 			--background
@@ -275,7 +273,7 @@ function widget:DrawScreen()
 			
 			
 			if (WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].InsertRect(xPos-margin,yPos-margin,xPos+margin+panelWidth,yPos+margin+panelHeight,'comcounter')
+				WG['guishader_api'].InsertRect(xPos,yPos,xPos+panelWidth,yPos+panelHeight,'comcounter')
 			end
 
 			--com pic
@@ -287,26 +285,34 @@ function widget:DrawScreen()
 			if VFSFileExists('LuaUI/Images/comIcon.png') then
 				glTexture('LuaUI/Images/comIcon.png')
 			end
+			
+			local iconsize = math.min(panelWidth, panelHeight) * 0.7
 			--glTexRect(panelWidth/2-34/2, 5, panelWidth/2+34/2, 5+40)
-			glTexRect(panelWidth/8, panelHeight/8, (panelWidth/8)*7, (panelHeight/8)*7)
+			glTexRect((panelWidth/2)-(iconsize/2), (panelHeight/2)-(iconsize/2), (panelWidth/2)+(iconsize/2), (panelHeight/2)+(iconsize/2))
 			glTexture(false)
 			if inProgress then
 				--ally coms
+				local textsize = iconsize*0.75
 				if allyComs >0 then	
 					local text = tostring(allyComs)
-					local width = glGetTextWidth(text)*(panelWidth/2.2)
-					glText('\255\001\255\001'..text, panelWidth/2 - width/2 + 1, (panelHeight/2)-(panelWidth/8), panelWidth/2.2, 'o')
+					local width = glGetTextWidth(text)*textsize
+					glText('\255\001\255\001'..text, (panelWidth/2)-(width/2), (panelHeight/2)-(textsize/4), textsize, 'o')
 				end
 				--enemy coms
 				glColor(1,0,0,1)
+				textsize = iconsize/2
 				if amISpec then
 					text = tostring(enemyComs)
 					width = glGetTextWidth(text)*(panelWidth/3.5)
-					glText(text, panelWidth - width - (panelWidth/12), (panelHeight/12), panelWidth/3.5)
+					glText(text, panelWidth-width-(textsize/3), (textsize/3), textsize)	
 				elseif receiveCount then
 					text = tostring(enemyComCount)
 					width = glGetTextWidth(text)*(panelWidth/3.5)
-					glText(text, panelWidth - width - (panelWidth/12), (panelHeight/12), panelWidth/3.5)			
+					glText(text, panelWidth-width-(textsize/3), (textsize/3), textsize)	
+				else
+					text = 2
+					width = glGetTextWidth(text)*(panelWidth/3.5)
+					glText(text, panelWidth-width-(textsize/3), (textsize/3), textsize)			
 				end
 			end
 		end)

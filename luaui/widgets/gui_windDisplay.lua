@@ -53,7 +53,7 @@ local floor                 = math.floor
 local max                   = math.max
 local min                   = math.min
 
-local textSize              = 13
+local textSize              = 14
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 local widgetScale			= customScale
@@ -134,15 +134,16 @@ function createBackgroundList()
 	backgroundList = glCreateList(function()
         glPushMatrix()
 			glColor(panelColor)
-			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6)
-			local borderPadding = 3.5
+			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6*widgetScale)
+			
+			local borderPadding = 3.5*widgetScale
 			glColor(1,1,1,0.022)
-			RectRound(xPos+borderPadding, yPos+borderPadding, xPos+panelWidth-borderPadding, yPos+panelHeight-borderPadding, 6)
+			RectRound(xPos+borderPadding, yPos+borderPadding, xPos+panelWidth-borderPadding, yPos+panelHeight-borderPadding, 6*widgetScale)
 			
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (panelHeight-(36*widgetScale))/2, 0) -- Spacing of icon
 			glColor(1,1,1,0.25)
-			glText(avgWind, -(15*widgetScale)+panelWidth, ((textSize*0.75*widgetScale)/8), textSize*0.75*widgetScale, 'r') -- Wind speed text
+			glText(avgWind, -(14*widgetScale)+panelWidth, ((textSize*0.8*widgetScale)/7), textSize*0.8*widgetScale, 'r') -- Wind speed text
 			glPushMatrix() -- Blades
 				glTranslate(0, 9*widgetScale, 0)
 	end)
@@ -257,7 +258,7 @@ function init()
 	panelWidth 	= customPanelWidth * widgetScale
 	panelHeight	= customPanelHeight * widgetScale
 	windTextPosX = -(12*widgetScale)+(panelWidth*0.5)
-	windTextPosY = (panelHeight/2)-((textSize*widgetScale)/2)
+	windTextPosY = (panelHeight/1.73)-((textSize*widgetScale)/2)
 	createBackgroundList()
 	createBackgroundList2()
 	processGuishader()
