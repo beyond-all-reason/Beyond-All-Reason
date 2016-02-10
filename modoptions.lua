@@ -135,5 +135,13 @@ local options={
 		def    = false,
 		section= "ba_options",
     },
+	{
+		key    = "critters",
+		name   = 'Enable cute animals?',
+		desc   = "On some maps critters will they wiggle and wubble around\nkey: critters",
+		type   = "bool",
+		def    = true,
+		section= "ba_others",
+	},
 }
 return options

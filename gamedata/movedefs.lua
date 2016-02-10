@@ -138,6 +138,15 @@ local moveDatas = {
 		maxslope = 22,
 		maxwaterslope = 255,
 	},
+	HOVER9 = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 30,
+		footprintx = 1,
+		footprintz = 1,
+		maxslope = 60,
+		maxwaterslope = 255,
+	},
 	HTANK3 = {
 		crushstrength = 250,
 		footprintx = 3,
