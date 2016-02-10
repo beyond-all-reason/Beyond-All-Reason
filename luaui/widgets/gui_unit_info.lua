@@ -634,6 +634,25 @@ function loadUnit(unitDefID)
 end
 
 
+function widget:MouseWheel(up, value)
+	
+	if show then	
+		local addLines = value*-5 -- direction is retarded
+		
+		startLine = startLine + addLines
+		if startLine < 1 then startLine = 1 end
+		if startLine > totalfileContentLines - textareaMinLines then startLine = totalfileContentLines - textareaMinLines end
+		
+		if windowDlist then
+			glDeleteList(windowDlist)
+		end
+		windowDlist = gl.CreateList(DrawWindow)
+		return true
+	else
+		return false
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if spIsGUIHidden() then return false end
     if amNewbie and not gameStarted then return end
@@ -655,7 +674,7 @@ function widget:MousePress(x, y, button)
 				return true
 			end
 			
-			-- scroll text with mouse 2
+			--[[ scroll text with mouse 2
 			if button == 1 or button == 3 then
 				if IsOnRect(x, y, rectX1+(160*widgetScale), rectY2, rectX2, rectY1) then
 					local alt, ctrl, meta, shift = Spring.GetModKeyState()
@@ -683,7 +702,7 @@ function widget:MousePress(x, y, button)
 					windowDlist = gl.CreateList(DrawWindow)
 					return true
 				end
-			end
+			end]]--
 			
 			if button == 1 or button == 3 then
 				return true
