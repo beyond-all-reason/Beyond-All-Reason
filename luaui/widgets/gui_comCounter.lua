@@ -292,7 +292,7 @@ function widget:DrawScreen()
 			glTexture(false)
 			if inProgress then
 				--ally coms
-				local textsize = iconsize*0.75
+				local textsize = iconsize*0.65
 				if allyComs >0 then	
 					local text = tostring(allyComs)
 					local width = glGetTextWidth(text)*textsize
@@ -300,7 +300,7 @@ function widget:DrawScreen()
 				end
 				--enemy coms
 				glColor(1,0,0,1)
-				textsize = iconsize/2
+				textsize = textsize/1.35
 				if amISpec then
 					text = tostring(enemyComs)
 					width = glGetTextWidth(text)*(panelWidth/3.5)
