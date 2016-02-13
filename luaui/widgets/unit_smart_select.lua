@@ -15,7 +15,7 @@
 function widget:GetInfo()
 	return {
 		name      = "SmartSelect",
-		desc      = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection)",
+		desc      = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection) /selectionmode toggles filtering buildings in selection",
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
@@ -29,7 +29,7 @@ end
 -----------------------------------------------------------------
 
 -- whether to select buildings when mobile units are inside selection rectangle
-local selectBuildingsWithMobile = false
+local selectBuildingsWithMobile = true
 
 -- only select new units identical to those already selected
 local sameSelectKey = 'z'
@@ -193,7 +193,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "selection_mode") == 1  and  string.len(command) == 14) then 
+    if (string.find(command, "selectionmode") == 1  and  string.len(command) == 13) then 
 		selectBuildingsWithMobile = not selectBuildingsWithMobile
 		if selectBuildingsWithMobile then
 			Spring.Echo("SmartSelect: Selects whatever comes under selection rectangle.")
