@@ -1,4 +1,19 @@
-﻿9.31 -> 9.32
+﻿9.32 -> 9.33
+xx/02/2016
+
+Balance changes:
+- 
+
+Other:
+- All GUI elements can be dragged with rightmouse besides middlemouse (in CTRL+F11 mode)
+- Widgets: changelog / commands info / unit info:  scrollable with scrollwheel
+- Smart select: default (for new installations) disabled the building filter when mobile units under selection. (toggle with /selectionmode)
+- Unit stats: applied scaling according to resolution
+- Comcounter same size as wind info.
+- Added wildlife for a select few maps
+
+
+9.31 -> 9.32
 06/02/2016
 
 Balance changes:
