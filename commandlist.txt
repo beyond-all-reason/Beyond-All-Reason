@@ -1,6 +1,6 @@
 Widget dependent:
 
-/selection_mode                  "SmartSelect"   Filter buildings when 1 or more mobile units is under selection
+/selectionmode                   "SmartSelect"   Filter buildings when 1 or more mobile units is under selection
 /iconspace                       "Red build/Order menu"   Add/remove spacing between build/order icons.
 /cputext                         "AdvPlayerList"   Uses exact number instead of a the colored icon.
 /mascotte                        "AdvPlayerList mascotte"   Switch to different mascotte.
