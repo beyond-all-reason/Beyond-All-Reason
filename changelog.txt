@@ -1,5 +1,5 @@
 ﻿9.32 -> 9.33
-xx/02/2016
+14/02/2016
 
 Balance changes:
 - Corpses of some t2 veh and kbots are harder to break
@@ -9,7 +9,7 @@ Other:
 - Widgets: changelog / commands info / unit info:  scrollable with scrollwheel
 - Smart select: default (for new installations) disabled the building filter when mobile units under selection. (toggle with /selectionmode)
 - Unit stats: applied scaling according to resolution
-- Comcounter same size as wind info.
+- Comcounter same size as wind info
 - Added wildlife for a select few maps
 
 
