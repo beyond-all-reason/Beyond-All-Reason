@@ -21,6 +21,7 @@ local critterConfig = include("LuaRules/configs/gaia_critters_config.lua")
 local critterUnits = {}	--critter units that are currently alive
 
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetUnitPosition = Spring.GetUnitPosition
 local random = math.random
 local sin, cos = math.sin, math.cos
 local rad = math.rad
@@ -84,25 +85,40 @@ function gadget:GameStart()
 			end
 		elseif cC.spawnCircle then			
 			for unitName, unitAmount in pairs(cC.unitNames) do
-				local a = rad(random(0, 360))
-				local r = random(0, cC.spawnCircle.r)
-				local x = cC.spawnCircle.x + r*sin(a)
-				local z = cC.spawnCircle.z + r*cos(a)
-				unitID = Spring.CreateUnit(unitName, x, spGetGroundHeight(x, z), z, 0, GaiaTeamID)
-				if unitID then
-					randomPatrolInCircle(unitID, cC.spawnCircle)
-					makeUnitCritter(unitID)
-				else
-					Spring.Echo("Failed to create " .. unitName)
+				for i=1, unitAmount do
+					local unitID = nil
+					local a = rad(random(0, 360))
+					local r = random(0, cC.spawnCircle.r)
+					local x = cC.spawnCircle.x + r*sin(a)
+					local z = cC.spawnCircle.z + r*cos(a)
+					unitID = Spring.CreateUnit(unitName, x, spGetGroundHeight(x, z), z, 0, GaiaTeamID)
+					if unitID then
+						randomPatrolInCircle(unitID, cC.spawnCircle)
+						makeUnitCritter(unitID)
+					else
+						Spring.Echo("Failed to create " .. unitName)
+					end
 				end
 			end
 		end
 	end
 end
 
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
+		local x,y,z = spGetUnitPosition(unitID,true,true)
+		local circle = {x=x, z=z, r=300}
+		randomPatrolInCircle(unitID, circle)
+		if unitTeam == GaiaTeamID then
+			makeUnitCritter(unitID)
+		else
+			critterUnits[unitID] = true
+		end
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 
-	
 	if critterUnits[unitID] then critterUnits[unitID] = nil end
 end
 
