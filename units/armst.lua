@@ -53,7 +53,7 @@ return {
 				collisionvolumeoffsets = "-0.198936462402 -1.72446488037 0.38102722168",
 				collisionvolumescales = "28.9706878662 18.1388702393 29.5620422363",
 				collisionvolumetype = "Box",
-				damage = 570,
+				damage = 800,
 				description = "Gremlin Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -71,7 +71,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 285,
+				damage = 700,
 				description = "Gremlin Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

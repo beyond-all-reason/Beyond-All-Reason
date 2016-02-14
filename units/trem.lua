@@ -48,7 +48,7 @@ return {
 				collisionvolumeoffsets = "1.25984954834 -1.01012474365 0.475593566895",
 				collisionvolumescales = "55.5426483154 42.2261505127 61.5749359131",
 				collisionvolumetype = "Box",
-				damage = 1827,
+				damage = 2000,
 				description = "Tremor Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -66,7 +66,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 914,
+				damage = 1500,
 				description = "Tremor Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

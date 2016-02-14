@@ -77,7 +77,7 @@ return {
 				collisionvolumeoffsets = "5.1371307373 1.73223384521 4.24182891846",
 				collisionvolumescales = "31.1572570801 15.4860076904 32.9478607178",
 				collisionvolumetype = "Box",
-				damage = 585,
+				damage = 800,
 				description = "Consul Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -95,7 +95,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 293,
+				damage = 700,
 				description = "Consul Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

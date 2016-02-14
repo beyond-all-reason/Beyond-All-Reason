@@ -47,7 +47,7 @@ return {
 				collisionvolumeoffsets = "-0.186714172363 0.0605638549805 -0.322418212891",
 				collisionvolumescales = "50.9460906982 23.33152771 45.8317565918",
 				collisionvolumetype = "Box",
-				damage = 984,
+				damage = 2000,
 				description = "Triton Wreckage",
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -63,7 +63,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 984,
+				damage = 1500,
 				description = "Triton Heap",
 				energy = 0,
 				footprintx = 2,

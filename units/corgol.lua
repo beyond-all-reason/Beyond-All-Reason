@@ -49,7 +49,7 @@ return {
 				collisionvolumescales = "60 16 60",
 				collisionvolumetest = 1,
 				collisionvolumetype = "Box",
-				damage = 3900,
+				damage = 4500,
 				description = "Goliath Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -67,7 +67,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 1950,
+				damage = 3000,
 				description = "Goliath Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

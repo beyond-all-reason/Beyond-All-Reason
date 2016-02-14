@@ -49,7 +49,7 @@ return {
 				collisionvolumeoffsets = "0.597640991211 -2.38606030273 0.928077697754",
 				collisionvolumescales = "41.3831787109 15.9763793945 46.5609588623",
 				collisionvolumetype = "Box",
-				damage = 1350,
+				damage = 2000,
 				description = "Banisher Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -67,7 +67,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 675,
+				damage = 1500,
 				description = "Banisher Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

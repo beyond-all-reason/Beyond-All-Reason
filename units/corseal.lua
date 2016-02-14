@@ -47,7 +47,7 @@ return {
 				collisionvolumeoffsets = "-0.710494995117 -1.1132812503e-06 0.9375",
 				collisionvolumescales = "31.2236328125 16.1107177734 37.8449707031",
 				collisionvolumetype = "Box",
-				damage = 915,
+				damage = 2000,
 				description = "Croc Wreckage",
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -63,7 +63,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 915,
+				damage = 1500,
 				description = "Croc Heap",
 				energy = 0,
 				footprintx = 2,

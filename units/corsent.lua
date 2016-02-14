@@ -48,7 +48,7 @@ return {
 				collisionvolumeoffsets = "0.255523681641 -7.00683593813e-06 1.56640625",
 				collisionvolumescales = "32.4752197266 21.8393859863 34.3155517578",
 				collisionvolumetype = "Box",
-				damage = 1197,
+				damage = 2000,
 				description = "Copperhead Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -66,7 +66,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 599,
+				damage = 1500,
 				description = "Copperhead Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

@@ -47,7 +47,7 @@ return {
 				collisionvolumeoffsets = "4.526512146 -4.16978120361 3.13526153564",
 				collisionvolumescales = "36.4536895752 11.1021575928 54.8021697998",
 				collisionvolumetype = "Box",
-				damage = 3420,
+				damage = 4000,
 				description = "Poison Arrow Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -65,7 +65,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 1710,
+				damage = 3000,
 				description = "Poison Arrow Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

@@ -48,7 +48,7 @@ return {
 				collisionvolumeoffsets = "0.0 -4.79290762939 0.0494384765625",
 				collisionvolumescales = "24.0 13.9999847412 43.189666748",
 				collisionvolumetype = "Box",
-				damage = 1146,
+				damage = 1900,
 				description = "Phalanx Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -66,7 +66,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 573,
+				damage = 1500,
 				description = "Phalanx Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

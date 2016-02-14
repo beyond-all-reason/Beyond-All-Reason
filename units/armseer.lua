@@ -50,7 +50,7 @@ return {
 				collisionvolumeoffsets = "0.108489990234 1.49902343782e-06 -0.0",
 				collisionvolumescales = "24.7089538574 12.974822998 32.0",
 				collisionvolumetype = "Box",
-				damage = 528,
+				damage = 700,
 				description = "Seer Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -68,7 +68,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 264,
+				damage = 500,
 				description = "Seer Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

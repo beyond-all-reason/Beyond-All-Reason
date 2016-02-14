@@ -51,7 +51,7 @@ return {
 				collisionvolumeoffsets = "-1.99268341064 -6.74999977051 3.60781097412",
 				collisionvolumescales = "23.7459869385 3.61972045898 31.9999847412",
 				collisionvolumetype = "Box",
-				damage = 368,
+				damage = 400,
 				description = "Jammer Wreckage",
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",

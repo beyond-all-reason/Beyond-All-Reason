@@ -47,7 +47,7 @@ return {
 				collisionvolumeoffsets = "0.488914489746 -0.0356475219727 -0.0921630859375",
 				collisionvolumescales = "42.3086700439 54.9257049561 44.5536499023",
 				collisionvolumetype = "Box",
-				damage = 1800,
+				damage = 2000,
 				description = "Penetrator Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -65,7 +65,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 900,
+				damage = 1500,
 				description = "Penetrator Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
