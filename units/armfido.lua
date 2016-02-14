@@ -43,7 +43,7 @@ return {
 				collisionvolumeoffsets = "-2.33637237549 -5.01163688965 -4.31414794922",
 				collisionvolumescales = "32.719619751 19.6731262207 35.1108398438",
 				collisionvolumetype = "Box",
-				damage = 690,
+				damage = 1000,
 				description = "Fido Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -61,7 +61,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 345,
+				damage = 600,
 				description = "Fido Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

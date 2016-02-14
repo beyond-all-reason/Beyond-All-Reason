@@ -55,7 +55,7 @@ return {
 				collisionvolumeoffsets = "1.62395477295 -0.0601244018555 -0.106101989746",
 				collisionvolumescales = "35.1202545166 24.5693511963 34.7390899658",
 				collisionvolumetype = "Box",
-				damage = 204,
+				damage = 250,
 				description = "Parasite Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -72,7 +72,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 102,
+				damage = 150,
 				description = "Parasite Heap",
 				energy = 0,
 				footprintx = 2,

@@ -2,7 +2,7 @@
 xx/02/2016
 
 Balance changes:
-- 
+- Corpses of some t2 kbots are harder to break
 
 Other:
 - All GUI elements can be dragged with rightmouse besides middlemouse (in CTRL+F11 mode)

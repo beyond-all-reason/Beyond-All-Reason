@@ -40,7 +40,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 560,
+				damage = 650,
 				description = "Pyro Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

@@ -41,7 +41,7 @@ return {
 				collisionvolumeoffsets = "-2.49777984619 -2.74520318604 -3.11322021484",
 				collisionvolumescales = "50.1881866455 6.02409362793 37.503112793",
 				collisionvolumetype = "Box",
-				damage = 240,
+				damage = 500,
 				description = "Zipper Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -59,7 +59,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 120,
+				damage = 300,
 				description = "Zipper Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

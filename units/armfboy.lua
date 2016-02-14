@@ -43,7 +43,7 @@ return {
 				collisionvolumeoffsets = "1.35855102539 -5.79698309326 2.2872467041",
 				collisionvolumescales = "33.431427002 25.3690338135 53.5839233398",
 				collisionvolumetype = "Box",
-				damage = 4200,
+				damage = 5000,
 				description = "Fatboy Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -61,7 +61,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 2100,
+				damage = 3500,
 				description = "Fatboy Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

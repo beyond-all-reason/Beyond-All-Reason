@@ -44,7 +44,7 @@ return {
 				collisionvolumeoffsets = "-2.9700012207 0.0 2.42810058594",
 				collisionvolumescales = "23.0599975586 13.375 26.6004943848",
 				collisionvolumetype = "Box",
-				damage = 256,
+				damage = 280,
 				description = "Marky Wreckage",
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",

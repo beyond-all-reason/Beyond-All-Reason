@@ -43,7 +43,7 @@ return {
 				collisionvolumeoffsets = "-6.69805145264 -3.04614644287 13.0918655396",
 				collisionvolumescales = "50.6378936768 10.4806671143 38.4813079834",
 				collisionvolumetype = "Box",
-				damage = 696,
+				damage = 900,
 				description = "Maverick Heap",
 				featuredead = "heap",
 				featurereclamate = "smudge01",

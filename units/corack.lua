@@ -80,7 +80,7 @@ return {
 				collisionvolumeoffsets = "0.0 -1.11450195313e-05 -6.82949829102",
 				collisionvolumescales = "22.0 23.11277771 24.3265991211",
 				collisionvolumetype = "Box",
-				damage = 540,
+				damage = 800,
 				description = "Advanced Construction Kbot Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -98,7 +98,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 270,
+				damage = 600,
 				description = "Advanced Construction Kbot Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

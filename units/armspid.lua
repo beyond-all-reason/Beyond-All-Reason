@@ -46,7 +46,7 @@ return {
 				collisionvolumeoffsets = "0.0926513671875 -4.24316406278e-06 -0.909057617188",
 				collisionvolumescales = "31.362487793 12.4340515137 31.2150268555",
 				collisionvolumetype = "Box",
-				damage = 450,
+				damage = 600,
 				description = "Spider Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -64,7 +64,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 225,
+				damage = 400,
 				description = "Spider Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

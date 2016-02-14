@@ -73,7 +73,7 @@ return {
 				collisionvolumeoffsets = "2.70434570313 -0.526537158203 -1.280418396",
 				collisionvolumescales = "37.4086914063 20.6713256836 39.1832122803",
 				collisionvolumetype = "Box",
-				damage = 450,
+				damage = 600,
 				description = "Freaker Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -91,7 +91,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 225,
+				damage = 500,
 				description = "Freaker Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

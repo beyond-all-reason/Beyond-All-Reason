@@ -43,7 +43,7 @@ return {
 			corpse = {
 				blocking = true,
 				category = "corpses",
-				damage = 148,
+				damage = 300,
 				description = "Invader Wreckage",
 				featuredead = "HEAP",
 				footprintx = 1,
@@ -59,7 +59,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 148,
+				damage = 200,
 				description = "Invader Heap",
 				footprintx = 1,
 				footprintz = 1,

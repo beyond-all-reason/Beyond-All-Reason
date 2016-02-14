@@ -54,7 +54,7 @@ return {
 				collisionvolumeoffsets = "-0.497138977051 -0.20779847168 -1.07509613037",
 				collisionvolumescales = "31.7495880127 18.5738830566 32.936630249",
 				collisionvolumetype = "Box",
-				damage = 162,
+				damage = 250,
 				description = "Infiltrator Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -71,7 +71,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 81,
+				damage = 150,
 				description = "Infiltrator Heap",
 				energy = 0,
 				footprintx = 2,

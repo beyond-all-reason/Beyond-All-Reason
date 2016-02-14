@@ -42,7 +42,7 @@ return {
 				collisionvolumeoffsets = "0.220962524414 -3.57609763184 -0.162803649902",
 				collisionvolumescales = "39.2589111328 21.1636047363 24.3341522217",
 				collisionvolumetype = "Box",
-				damage = 2310,
+				damage = 3500,
 				description = "Can Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -60,7 +60,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 1155,
+				damage = 2500,
 				description = "Can Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

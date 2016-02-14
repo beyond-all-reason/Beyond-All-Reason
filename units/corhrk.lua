@@ -42,7 +42,7 @@ return {
 				collisionvolumeoffsets = "0.59033203125 -0.11500802002 -0.125",
 				collisionvolumescales = "31.73046875 27.05418396 31.9737854004",
 				collisionvolumetype = "Box",
-				damage = 330,
+				damage = 450,
 				description = "Dominator Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -60,7 +60,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 165,
+				damage = 350,
 				description = "Dominator Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

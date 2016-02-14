@@ -43,7 +43,7 @@ return {
 				collisionvolumeoffsets = "-1.16748809814 -0.254996625977 -1.62804412842",
 				collisionvolumescales = "31.8423614502 16.689666748 36.9563140869",
 				collisionvolumetype = "Box",
-				damage = 426,
+				damage = 800,
 				description = "Pelican Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -60,7 +60,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 213,
+				damage = 500,
 				description = "Pelican Heap",
 				energy = 0,
 				footprintx = 3,

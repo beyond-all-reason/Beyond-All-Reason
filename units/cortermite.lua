@@ -45,7 +45,7 @@ return {
 				collisionvolumeoffsets = "0.0 -1.81045331299 4.38243865967",
 				collisionvolumescales = "32.3684997559 15.844833374 33.5386505127",
 				collisionvolumetype = "Box",
-				damage = 1680,
+				damage = 2000,
 				description = "Termite Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -63,7 +63,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 840,
+				damage = 1500,
 				description = "Termite Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

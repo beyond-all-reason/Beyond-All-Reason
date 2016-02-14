@@ -44,7 +44,7 @@ return {
 				collisionvolumeoffsets = "-0.170890808105 0.277459492187 0.523490905762",
 				collisionvolumescales = "36.3329315186 19.9079589844 23.0387420654",
 				collisionvolumetype = "Box",
-				damage = 210,
+				damage = 300,
 				description = "Voyeur Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -62,7 +62,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 105,
+				damage = 250,
 				description = "Voyeur Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",

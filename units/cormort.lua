@@ -42,7 +42,7 @@ return {
 				collisionvolumeoffsets = "-2.46048736572 -3.00319400146 6.99045562744",
 				collisionvolumescales = "41.948348999 14.0481719971 51.4421844482",
 				collisionvolumetype = "Box",
-				damage = 510,
+				damage = 600,
 				description = "Morty Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -60,7 +60,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 255,
+				damage = 400,
 				description = "Morty Heap",
 				energy = 0,
 				footprintx = 2,

@@ -41,7 +41,7 @@ return {
 				collisionvolumeoffsets = "-4.33491516113 -5.09323153076 2.83627319336",
 				collisionvolumescales = "39.0425720215 11.3397369385 32.5729980469",
 				collisionvolumetype = "Box",
-				damage = 1110,
+				damage = 1300,
 				description = "Zeus Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
@@ -59,7 +59,7 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
-				damage = 555,
+				damage = 800,
 				description = "Zeus Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
