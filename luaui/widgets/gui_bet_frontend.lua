@@ -830,8 +830,9 @@ function updateDisplayList(unitID,betInfo)
 					maxWidth = maxWidth * stepSize
 					
 					glColor(0,0,0,0.5)
-					RectRound(-padding, -padding+stepSize, maxWidth+padding, totalBgHeight+padding+(stepSize*0.65)+1, padding*0.66)
+					RectRound(-padding, -padding+stepSize-totalBgHeight, maxWidth+padding, padding+(stepSize*0.65)+1, padding*0.66)
 					
+					glTranslate(0,-totalBgHeight,0)
 					for timeSlot,betEntry in spairs(betInfo) do
 						glTranslate(0,stepSize,0)
 						glText(betLines[betEntry], 0, 0,stepSize, "o")
