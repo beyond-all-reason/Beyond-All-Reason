@@ -3004,6 +3004,7 @@ Reduced E Costs of All T3 units by 40 %
 
 
 4.1 -> 4.2
+
 Fixed EMP bomber damage (it will only do stunning now)
 Punisher now has the correct icontype
 Mohometalmakers rebalanced

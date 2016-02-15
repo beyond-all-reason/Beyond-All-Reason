@@ -1,6 +1,6 @@
 unitDef = {
-  unitname            = [[critter_pinguin]],
-  name                = [[Pinguin]],
+  unitname            = [[critter_penguin]],
+  name                = [[Penguin]],
   iconType = "blank",
   description         = [[so cool!]],
   acceleration        = 0.15, 
@@ -38,7 +38,7 @@ unitDef = {
   moveState           = -1,
   noAutoFire          = false,
   noChaseCategory     = [[MOBILE STATIC]],
-  objectName          = [[critter_pinguin.s3o]], --
+  objectName          = [[critter_penguin.s3o]], --
   seismicSignature    = 4,
   --selfDestructAs      = [[MEDIUM_UNIT]],
   selfDestructCountdown = 1,
@@ -59,8 +59,8 @@ unitDef = {
   turninplace         = 1,
   turnRate            = 2000,
   workerTime          = 0,
-  script              = [[critter_pinguin.lua]], -- [[tpdude.lua]], 
+  script              = [[critter_penguin.lua]], -- [[tpdude.lua]], 
 
 }
 
-return lowerkeys({ critter_pinguin = unitDef })
+return lowerkeys({ critter_penguin = unitDef })
