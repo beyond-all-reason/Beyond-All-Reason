@@ -48,6 +48,7 @@ local function makeUnitCritter(unitID)
 	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
+	Spring.SetUnitNoMinimap(unitID, true)
 	critterUnits[unitID] = true
 end
 
