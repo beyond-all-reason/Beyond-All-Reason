@@ -15,6 +15,8 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
+local amountMultiplier = 1
+
 local GaiaTeamID  = Spring.GetGaiaTeamID()
 
 local critterConfig = include("LuaRules/configs/gaia_critters_config.lua")
@@ -28,7 +30,7 @@ local rad = math.rad
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 local function randomPatrolInBox(unitID, box)
-	for i=1,6 do
+	for i=1,5 do
 		local x = random(box.x1, box.x2)
 		local z = random(box.z1, box.z2)
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
@@ -38,7 +40,7 @@ local function randomPatrolInBox(unitID, box)
 end
 
 local function randomPatrolInCircle(unitID, circle)
-	for i=1,6 do
+	for i=1,5 do
 		local a = rad(random(0, 360))
 		local r = random(0, circle.r)
 		local x = circle.x + r*sin(a)
@@ -77,6 +79,11 @@ function getUnitDefIdbyName(unitName)
 	end
 end
 
+function round(num, idp)
+  local mult = 10^(idp or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 -- spawning critters in game start prevents them from being spawned every time you do /luarules reload
 function gadget:GameStart()
 	if critterConfig[Game.mapName] == nil then
@@ -89,7 +96,8 @@ function gadget:GameStart()
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
-				for i=1, unitAmount do
+				local amount = round(unitAmount * amountMultiplier)
+				for i=1, amount do
 					local unitID = nil
 					local x = random(cC.spawnBox.x1, cC.spawnBox.x2)
 					local z = random(cC.spawnBox.z1, cC.spawnBox.z2)
@@ -111,7 +119,8 @@ function gadget:GameStart()
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
-				for i=1, unitAmount do
+				local amount = round(unitAmount * amountMultiplier)
+				for i=1, amount do
 					local unitID = nil
 					local a = rad(random(0, 360))
 					local r = random(0, cC.spawnCircle.r)
