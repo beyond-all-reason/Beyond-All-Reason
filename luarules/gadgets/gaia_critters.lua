@@ -105,6 +105,14 @@ function gadget:GameStart()
 	end
 end
 
+function gadget:UnitIdle(unitID, unitDefID, unitTeam)
+	if critterUnits[unitID] ~= nil then
+		local x,y,z = spGetUnitPosition(unitID,true,true)
+		local circle = {x=x, z=z, r=200}
+		randomPatrolInCircle(unitID, circle)
+	end
+end
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
 		local x,y,z = spGetUnitPosition(unitID,true,true)
