@@ -145,7 +145,7 @@ local options={
     {
         key    = 'critters_multiplier',
         name   = 'How many cute amimals?)',
-        desc   = 'This multipleir will be applied on the amount of citters a map will have',
+        desc   = 'This multiplier will be applied on the amount of citters a map will have',
         type   = 'number',
         section= 'ba_others',
         def    = 1,
