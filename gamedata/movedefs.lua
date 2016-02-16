@@ -23,6 +23,13 @@ local moveDatas = {
 		},
 		
 	},
+	ANT = {
+		footprintX = 1,
+		footprintZ = 1,
+		maxWaterDepth = 2,
+		crushStrength = 0,
+		speedModClass = 1, -- 0 = tank, 1 = kbot, 2 = hover, 3 = ship 
+	},
 	ATANK3 = {
 		crushstrength = 30,
 		depthmod = 0,
@@ -52,6 +59,16 @@ local moveDatas = {
 		minwaterdepth = 15,
 	},
 	]]--
+	CRITTERH = {
+		crushstrength = 0,
+		footprintx = 1,
+		footprintz = 1,
+		maxslope = 50,
+		maxwaterslope = 255,
+		maxWaterDepth = 255,
+		minwaterdepth = 15,
+		speedModClass = 2, -- 0 = tank, 1 = kbot, 2 = hover, 3 = ship 
+	},
 	DBOAT6 = {
 		crushstrength = 252,
 		footprintx = 6,
@@ -136,15 +153,6 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 22,
-		maxwaterslope = 255,
-	},
-	HOVER9 = {
-		badslope = 22,
-		badwaterslope = 255,
-		crushstrength = 30,
-		footprintx = 1,
-		footprintz = 1,
-		maxslope = 60,
 		maxwaterslope = 255,
 	},
 	HTANK3 = {
