@@ -15,7 +15,9 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local amountMultiplier = 1
+local amountMultiplier = 1	-- will be set by mod option: critters_multiplier
+local minMulti = 0.26
+local maxMulti = 2
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
 
@@ -69,8 +71,13 @@ function gadget:Initialize()
 	Spring.Echo("gaia_critters.lua: gadget:Initialize() Game.mapName=" .. Game.mapName)
 	if not critterConfig[Game.mapName] then
 		Spring.Echo("no critter config for this map")
-		--gadgetHandler:RemoveGadget(self)
+		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
+	if mo.critters_multiplier ~= nil then
+		amountMultiplier = tonumber(mo.critters_multiplier)
+	end
+	if amountMultiplier < minMulti then amountMultiplier = minMulti end
+	if amountMultiplier > maxMulti then amountMultiplier = maxMulti end
 end
 
 function getUnitDefIdbyName(unitName)
