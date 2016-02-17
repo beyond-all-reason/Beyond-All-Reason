@@ -95,7 +95,7 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(circle.x, circle.z, circle.r, x, z) then
 			local y = spGetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
-				Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
+				Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})	-- this sometimes gives resursion errors, but am to lazy to spread spammign this command over multiple gameframes
 				ordersGiven = ordersGiven + 1
 			end
 		end

@@ -14,7 +14,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	return
 end
 
-local minEngineVersion = 99 -- major engine version as number
+local minEngineVersion = 101 -- major engine version as number
 local maxEngineVersion = 101 -- don't forget to update it!
 
 local red = "\255\255\1\1"
