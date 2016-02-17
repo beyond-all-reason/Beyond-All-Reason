@@ -16,7 +16,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 local amountMultiplier = 1	-- will be set by mod option: critters_multiplier
-local minMulti = 0.26
+local minMulti = 0.2
 local maxMulti = 2
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
@@ -103,7 +103,12 @@ function gadget:GameStart()
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
-				local amount = round(unitAmount * amountMultiplier)
+				
+				-- to make sure at least 1 critter is placed  (to prevent when the multiplier is small, that a small critter-amount always gets diminished to zero)
+				local amount = unitAmount * amountMultiplier
+				if amount > 0 and amount < 1 then amount = 1 end	
+				amount = round(amount)
+				
 				for i=1, amount do
 					local unitID = nil
 					local x = random(cC.spawnBox.x1, cC.spawnBox.x2)
@@ -126,7 +131,12 @@ function gadget:GameStart()
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end
-				local amount = round(unitAmount * amountMultiplier)
+				
+				-- to make sure at least 1 critter is placed  (to prevent when the multiplier is small, that a small critter-amount always gets diminished to zero)
+				local amount = unitAmount * amountMultiplier
+				if amount > 0 and amount < 1 then amount = 1 end	
+				amount = round(amount)
+				
 				for i=1, amount do
 					local unitID = nil
 					local a = rad(random(0, 360))

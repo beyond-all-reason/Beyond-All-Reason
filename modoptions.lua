@@ -149,9 +149,9 @@ local options={
         type   = 'number',
         section= 'ba_others',
         def    = 1,
-        min    = 0.25,
+        min    = 0.2,
         max    = 2,
-        step   = 0.25,
+        step   = 0.2,
     },
 }
 return options

@@ -2,8 +2,8 @@ local rnd = math.random
 local critterConfig = {
 
 ["BarracudaBay"] = {
-  { spawnCircle = {x=3050, z=3111, r=530}, unitNames = {["critter_gull"]=rnd(12,20)} },
-  { spawnCircle = {x=3050, z=3111, r=800}, unitNames = {["critter_gull"]=rnd(6,16)} },
+  { spawnCircle = {x=3050, z=3111, r=530}, unitNames = {["critter_gull"]=rnd(11,16)} },
+  { spawnCircle = {x=3050, z=3111, r=800}, unitNames = {["critter_gull"]=rnd(8,13)} },
   { spawnBox = {x1=2000, z1=400, x2=2500, z2=800}, unitNames = {["critter_duck"]=rnd(1,4)} },
   { spawnBox = {x1=5200, z1=4200, x2=5600, z2=4700}, unitNames = {["critter_duck"]=rnd(1,3)} },
   { spawnCircle = {x=3222, z=5700, r=200}, unitNames = {["critter_duck"]=rnd(1,3)} },
