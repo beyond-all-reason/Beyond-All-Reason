@@ -601,7 +601,7 @@ function widget:MouseRelease(mx, my, mButton)
 				-- Give order (i.e. pass the command to the engine to use as normal)
 				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
 			elseif usingCmd == CMD_MOVE then 
-				GiveNotifyingOrder(usingCmd, fNodes[1], cmdOpts)			
+				GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)			
 			else
 				-- Deselect command, select default command instead
 				spSetActiveCommand(0)
