@@ -24,7 +24,7 @@ local interceptors = {}
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
 	local ud = UnitDefs[Spring.GetUnitDefID(interceptorUnitID)]
-	local wd = WeaponDefs[ud.weapons[interceptorWeaponID + 1].weaponDef]
+	local wd = WeaponDefs[ud.weapons[interceptorWeaponID].weaponDef]
 	local ox, _, oz = Spring.GetUnitPosition(interceptorUnitID)
 
     --Spring.GetProjectileTarget( number projectileID ) -> nil | [number targetTypeInt, number targetID | table targetPos = {x, y, z}]
