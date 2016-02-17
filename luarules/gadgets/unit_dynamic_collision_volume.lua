@@ -15,7 +15,6 @@ local popupUnits = {}		--list of pop-up style units
 local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
 
 -- Localization and speedups
-local spGetPieceCollisionData = Spring.GetUnitPieceCollisionVolumeData
 local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
 local spGetPieceList = Spring.GetUnitPieceList
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -30,13 +29,9 @@ local spSetFeatureCollisionData = Spring.SetFeatureCollisionVolumeData
 local spSetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
 local spGetFeatureRadius = Spring.GetFeatureRadius
 local spGetFeatureHeight = Spring.GetFeatureHeight
-local spGetUnitHealth = Spring.GetUnitHealth
-local spValidUnitID = Spring.ValidUnitID
-local spGetGameFrame = Spring.GetGameFrame
 
 local spArmor = Spring.GetUnitArmored
-local spActive = Spring.GetUnitIsActive
-local pairs = pairs	
+local pairs = pairs
 
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -49,7 +44,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		if VFS.FileExists(mapConfig) then
 			local mapFeatures = VFS.Include(mapConfig)
 			for _, featID in pairs(Spring.GetAllFeatures()) do
-				local featureModel = FeatureDefs[Spring.GetFeatureDefID(featID)].modelname:lower()
+				local featureModel = FeatureDefs[Spring.GetFeatureDefID(featID)].model.path:lower()
 				if featureModel:len() > 4 then
 					local featureModelTrim = featureModel:sub(1,-5) -- featureModel:match("/.*%."):sub(2,-2)
 					if mapFeatures[featureModelTrim] then
@@ -67,7 +62,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		else
 			for _, featID in pairs(Spring.GetAllFeatures()) do
-				local featureModel = FeatureDefs[Spring.GetFeatureDefID(featID)].modelname:lower()
+				local featureModel = FeatureDefs[Spring.GetFeatureDefID(featID)].model.path:lower()
 				if featureModel:find(".3do") then
 					local rs, hs
 					if (spGetFeatureRadius(featID)>47) then
@@ -168,7 +163,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
-		local featureModel = FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower()
+		local featureModel = FeatureDefs[Spring.GetFeatureDefID(featureID)].model.path:lower()
 		if featureModel:find(".3do") then
 			local rs, hs
 			if (spGetFeatureRadius(featureID)>47) then
