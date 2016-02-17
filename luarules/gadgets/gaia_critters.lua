@@ -2,9 +2,9 @@ function gadget:GetInfo()
   return {
     name      = "gaia critter units",
     desc      = "units spawn and wander around the map",
-    author    = "knorke",
-    date      = "2013",
-    license   = "horse",
+    author    = "Floris (original: knorke, 2013)",
+    date      = "2016",
+    license   = "penguin",
     layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
     enabled   = true,
 	}
@@ -31,25 +31,75 @@ local sin, cos = math.sin, math.cos
 local rad = math.rad
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
-local function randomPatrolInBox(unitID, box)
-	for i=1,5 do
-		local x = random(box.x1, box.x2)
-		local z = random(box.z1, box.z2)
-		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
-			Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, spGetGroundHeight(x, z), z}, {"shift"})
+local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
+	local ux,uy,uz = spGetUnitPosition(unitID,true,true)
+	local waterRadius = 1000		-- max distance a submarine unit will travel
+	local orders = 5
+	local attempts = orders
+	if minWaterDepth ~= nil then
+		attempts = 150
+	end
+	local ordersGiven = 0
+	
+	local x,z
+	for i=1,attempts do
+		if minWaterDepth == nil then
+			x = random(box.x1, box.x2)
+			z = random(box.z1, box.z2)
+		else
+			local x1 = ux - waterRadius
+			if x1 < box.x1 then x1 = box.x1 end
+			local x2 = ux + waterRadius
+			if x2 > box.x2 then x2 = box.x2 end
+			local z1 = uz - waterRadius
+			if z1 < box.z1 then z1 = box.z1 end
+			local z2 = uz + waterRadius
+			if z2 > box.z2 then z2 = box.z2 end
+			x = random(x1, x2)
+			z = random(z1, z2)
 		end
+		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
+			local y = spGetGroundHeight(x, z)
+			if minWaterDepth == nil or y < minWaterDepth then
+				Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
+				ordersGiven = ordersGiven + 1
+			end
+		end
+		if ordersGiven == orders then break end
 	end
 end
 
-local function randomPatrolInCircle(unitID, circle)
-	for i=1,5 do
-		local a = rad(random(0, 360))
-		local r = random(0, circle.r)
-		local x = circle.x + r*sin(a)
-		local z = circle.z + r*cos(a)
-		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
-			Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, spGetGroundHeight(x, z), z}, {"shift"})
+local function in_circle(center_x, center_y, radius, x, y)
+	local square_dist = ((center_x - x) * (center_x - x)) + ((center_y - y) * (center_y - y))
+	return square_dist <= radius * radius
+end
+
+local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
+	local orders = 5
+	local waterRadius = 1000		-- max distance a submarine unit will travel
+	local attempts = orders
+	if minWaterDepth ~= nil then
+		attempts = 150
+	end
+	local ordersGiven = 0
+	local ux, uz, ur = circle.x, circle.z, circle.r
+	for i=1,attempts do
+		if minWaterDepth ~= nil and waterRadius <= circle.r then
+			ux,uy,uz = spGetUnitPosition(unitID,true,true)
+			ur = waterRadius
 		end
+		local a = rad(random(0, 360))
+		local r = random(0, ur)
+		local x = ux + r*sin(a)
+		local z = uz + r*cos(a)
+		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(circle.x, circle.z, circle.r, x, z) then
+			local y = spGetGroundHeight(x, z)
+			if minWaterDepth == nil or y < minWaterDepth then
+				Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
+				ordersGiven = ordersGiven + 1
+			end
+		end
+		if ordersGiven == orders then break end
 	end
 end
 
@@ -115,9 +165,13 @@ function gadget:GameStart()
 					local z = random(cC.spawnBox.z1, cC.spawnBox.z2)
 					local y = spGetGroundHeight(x, z)
 					if not waterunit or cC.nowatercheck ~= nil or y < minWaterDepth then
+						local supplyMinWaterDepth = nil
+						if waterunit and not cC.nowatercheck then
+							supplyMinWaterDepth = minWaterDepth
+						end
 						unitID = Spring.CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
-							randomPatrolInBox(unitID, cC.spawnBox)
+							randomPatrolInBox(unitID, cC.spawnBox, supplyMinWaterDepth)
 							makeUnitCritter(unitID)
 						else
 							Spring.Echo("Failed to create " .. unitName)
@@ -145,9 +199,13 @@ function gadget:GameStart()
 					local z = cC.spawnCircle.z + r*cos(a)
 					local y = spGetGroundHeight(x, z)
 					if not waterunit or cC.nowatercheck ~= nil or y < minWaterDepth then
+						local supplyMinWaterDepth = nil
+						if waterunit and not cC.nowatercheck then
+							supplyMinWaterDepth = minWaterDepth
+						end
 						unitID = Spring.CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
-							randomPatrolInCircle(unitID, cC.spawnCircle)
+							randomPatrolInCircle(unitID, cC.spawnCircle, supplyMinWaterDepth)
 							makeUnitCritter(unitID)
 						else
 							Spring.Echo("Failed to create " .. unitName)
