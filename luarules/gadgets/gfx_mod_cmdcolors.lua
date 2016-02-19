@@ -1,7 +1,7 @@
 function gadget:GetInfo()
   return {
     name      = "load mod cmdcolors",
-    desc      = "loads cmdcolors.txt that is located in the main mod folder",
+    desc      = "loads cmdcolors_mod.txt located in game/mod root folder",
     author    = "Floris",
     date      = "2016",
     license   = "duck",
