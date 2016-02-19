@@ -60,9 +60,6 @@ local glPushMatrix = gl.PushMatrix
 local glTranslate = gl.Translate
 local glScale = gl.Scale
 
-local GL_FILL = GL.FILL
-local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
-local GL_LINE_STRIP = GL.LINE_STRIP
 local sformat = string.format
 
 local widgetScale = 1
@@ -183,34 +180,6 @@ local function short(n,f)
 	end
 end
 
-
-local function SetupModelDrawing()
-  gl.DepthTest(true) 
-  gl.DepthMask(true)
-  gl.Lighting(true)
-  gl.Blending(false)
-  --[[gl.Material({
-    ambient  = { 1.0, 1.0, 1.0, 1.0 },
-    diffuse  = { 1.0, 1.0, 1.0, 1.0 },
-    emission = { 0.0, 0.0, 0.0, 1.0 },
-    specular = { 0.2, 0.2, 0.2, 1.0 },
-    shininess = 1.0
-  })]]--
-  gl.Material({
-    ambient  = { 0.0, 0.0, 0.0, 1.0 },
-    diffuse  = { 0.0, 0.0, 0.0, 1.0 },
-    emission = { 0.25, 0.25, 0.25, 1.0 },
-    specular = { 0.05, 0.05, 0.05, 1.0 },
-    shininess = 2.0
-    })
-end
-local function RevertModelDrawing()
-  gl.Blending(true)
-  gl.Lighting(false)
-  gl.DepthMask(false)
-  gl.DepthTest(false)
-end
-
 local function CenterUnitDef(unitDefID, width, height)
   local ud = UnitDefs[unitDefID] 
   if (not ud) then
@@ -260,21 +229,15 @@ function DrawUnit(x,y,width,height)
 	RectRound(x,y-height,x+width,y,6)
 	
 	if currentUnitDefID then
-		-- unit
-		--gl.Clear(GL.DEPTH_BUFFER_BIT)
-		SetupModelDrawing()
 		gl.PushMatrix()
 		gl.Translate(x+(width/2), y-(height/2), 0)
 		gl.Rotate(26, 1, 0, 0)
-
 		gl.Rotate(rot, 0, 1, 0)
-		
 		CenterUnitDef(currentUnitDefID, width*0.8, height*0.8)
-		gl.UnitShape(currentUnitDefID, Spring.GetMyTeamID())
+		
+		gl.UnitShape(currentUnitDefID, Spring.GetMyTeamID(), false, true ,true)
 		
 		gl.PopMatrix()
-		RevertModelDrawing()
-		--gl.Clear(GL.DEPTH_BUFFER_BIT)
 	end
 end
 
