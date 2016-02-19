@@ -96,7 +96,7 @@ function DrawGhostSites()
 			glPushMatrix()
             glTranslate( x, y, z)
             glRotate(ghost.angle,0,y,0)			
-            glUnitShape(ghost.uDID, ghost.teamID)			      
+            glUnitShape(ghost.uDID, ghost.teamID, true, false, false)
 			glPopMatrix()
 		end
 	end
