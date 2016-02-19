@@ -15,9 +15,22 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local amountMultiplier = 1	-- will be set by mod option: critters_multiplier
+
+local removeCritters		= true		-- gradually remove critters when unitcont gets higher
+local addCrittersAgain		= true		-- re-add the removed critters again
+
+local minTotalUnits			= 400		-- start removing critters at this total unit count
+local maxTotalunits			= 1800		-- fully removed critters at this total unit count
+local minimumCritters		= 0.15		-- dont remove further than (0.1 == 10%) of critters
+local minCritters			= 40		-- dont remove below this amount
+local critterDiffChange		= 8			-- dont add/remove less than x critters
+
+
+
+local amountMultiplier = 1		-- will be set by mod option: critters_multiplier
 local minMulti = 0.2
 local maxMulti = 2
+
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
 
@@ -30,6 +43,9 @@ local random = math.random
 local sin, cos = math.sin, math.cos
 local rad = math.rad
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+
+local totalCritters = 0
+local aliveCritters = 0
 
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local ux,uy,uz = spGetUnitPosition(unitID,true,true)
@@ -103,12 +119,18 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 	end
 end
 
-local function makeUnitCritter(unitID)
+local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoMinimap(unitID, true)
-	critterUnits[unitID] = true
+end
+
+local function makeUnitCritter(unitID)
+	setGaiaUnitSpecifics(unitID)
+	critterUnits[unitID] = {alive=true}
+	totalCritters = totalCritters + 1
+	aliveCritters = aliveCritters + 1
 end
 
 function gadget:Initialize()
@@ -135,6 +157,98 @@ function getUnitDefIdbyName(unitName)
 		if unitDef.name == unitName then return udid end
 	end
 end
+
+-- excluding gaia units
+local function getTotalUnits()
+	local totalUnits = 0
+	local allyTeamList = Spring.GetAllyTeamList()
+	local numberOfAllyTeams = #allyTeamList
+	for allyTeamListIndex = 1, numberOfAllyTeams do
+		local allyID = allyTeamList[allyTeamListIndex]
+		local teamList = Spring.GetTeamList(allyID)
+		for _,teamID in pairs(teamList) do
+			if teamID ~= GaiaTeamID then
+				totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
+			end
+		end
+	end
+	return totalUnits
+end
+
+local function adjustCritters(newAliveCritters)
+
+	if newAliveCritters == aliveCritters then return end
+	
+	local critterDifference = newAliveCritters - aliveCritters 
+	if critterDifference == 0 then return end
+	local add = false
+	if critterDifference > 0 then 
+		add = true 
+		if addCrittersAgain == false then return end
+	end
+	
+	local removeKeys = {}
+	for unitID, critter in pairs(critterUnits) do
+		if add and not critter.alive  or  not add and critter.alive then
+			if add then 
+				table.insert(removeKeys, unitID)
+				local newUnitID = Spring.CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
+				setGaiaUnitSpecifics(newUnitID)
+				critterDifference = critterDifference - 1
+				--Spring.Echo("added: "..critter.unitName.."  x:"..critter.x.."  z:"..critter.z)
+			else
+				local x,y,z = spGetUnitPosition(unitID,true,true)
+				aliveCritters = aliveCritters - 1
+				critterDifference = critterDifference + 1
+				critterUnits[unitID].alive = false
+				critterUnits[unitID].x = x
+				critterUnits[unitID].y = y
+				critterUnits[unitID].z = z
+				Spring.DestroyUnit(unitID, false, true)	-- reclaimed
+				--Spring.Echo("removed: "..critter.unitName.."  x:"..x.."  z:"..z)
+				if aliveCritters <= minCritters then break end
+			end
+			if critterDifference > -1 and critterDifference < 1  then break end
+		end
+	end
+	if add then
+		for i, unitID in ipairs(removeKeys) do
+			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated 
+		end
+		--if totalCritters > 800 then		-- occasional cleanup (leaving this in will make ´critterDifference´ useless)
+			newCritterUnits = {}
+			for unitID, critter in pairs(critterUnits) do
+				if critter ~= nil then
+					newCritterUnits[unitID] = critter
+				end
+			end
+			critterUnits = newCritterUnits
+		--end
+	end
+end
+
+-- increase/decrease critters according to unitcount
+function gadget:GameFrame(gameFrame)
+	if removeCritters == false then return end
+	
+	if gameFrame%200==0 then 
+		local totalUnits = getTotalUnits()
+		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
+		if multiplier < 0 then multiplier = 0 end
+		multiplier = multiplier + minimumCritters
+		if multiplier > 1 then multiplier = 1 end
+		local newAliveCritters = math.ceil(totalCritters * multiplier)
+		
+		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters)
+		local critterDifference = newAliveCritters - aliveCritters 
+		if critterDifference > 0 or (critterDifference < 0 and aliveCritters > minCritters)  then
+			if math.abs(critterDifference) >= critterDiffChange or (critterDifference < 0 and aliveCritters+critterDifference <= minCritters) then
+				adjustCritters(newAliveCritters)
+			end
+		end
+	end
+end
+
 
 function round(num, idp)
   local mult = 10^(idp or 0)
@@ -173,6 +287,7 @@ function gadget:GameStart()
 						if unitID then
 							randomPatrolInBox(unitID, cC.spawnBox, supplyMinWaterDepth)
 							makeUnitCritter(unitID)
+							critterUnits[unitID].unitName = unitName
 						else
 							Spring.Echo("Failed to create " .. unitName)
 						end
@@ -207,6 +322,7 @@ function gadget:GameStart()
 						if unitID then
 							randomPatrolInCircle(unitID, cC.spawnCircle, supplyMinWaterDepth)
 							makeUnitCritter(unitID)
+							critterUnits[unitID].unitName = unitName
 						else
 							Spring.Echo("Failed to create " .. unitName)
 						end
@@ -240,15 +356,18 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		randomPatrolInCircle(unitID, circle)
 		if unitTeam == GaiaTeamID then
 			makeUnitCritter(unitID)
-		else
-			critterUnits[unitID] = true
+			critterUnits[unitID].unitName = UnitDefs[unitDefID].name
+			critterUnits[unitID].alive = true
 		end
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 
-	if critterUnits[unitID] then critterUnits[unitID] = nil end
+	if critterUnits[unitID] ~= nil and attackerID ~= nil then 
+		critterUnits[unitID] = nil
+		totalCritters = totalCritters - 1
+	end
 end
 
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30109
@@ -257,7 +376,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	if cmdID and cmdID == CMD.ATTACK then 		
 		if cmdParams and #cmdParams == 1 then			
 			--Spring.Echo ("target is unit" .. cmdParams[1] .. " #cmdParams=" .. #cmdParams)
-			if critterUnits[cmdParams[1]] then 
+			if critterUnits[cmdParams[1]] ~= nil then 
 			--	Spring.Echo ("target is a critter and ignored!") 
 				return false 
 			end
