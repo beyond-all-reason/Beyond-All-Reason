@@ -41,10 +41,14 @@ local Config = {
 }
 
 local totalUnits = 0
+local totalGaiaUnits = 0
 
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 local sGetCurrentTooltip = Spring.GetCurrentTooltip
 local sGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
+local GaiaTeamID  = Spring.GetGaiaTeamID()
+
 
 local function IncludeRedUIFrameworkFunctions()
 	New = WG.Red.New(widget)
@@ -165,6 +169,7 @@ local function createtooltip(r)
 				-- get total unit count
 				if Spring.GetGameFrame() % 60 == 0 then
 					totalUnits = 0
+					totalGaiaUnits = 0
 					local allyTeamList = Spring.GetAllyTeamList()
 					local numberOfAllyTeams = #allyTeamList
 					for allyTeamListIndex = 1, numberOfAllyTeams do
@@ -172,6 +177,9 @@ local function createtooltip(r)
 						local teamList = Spring.GetTeamList(allyID)
 						for _,teamID in pairs(teamList) do
 							totalUnits = totalUnits + spGetTeamUnitCount(teamID)
+							if teamID == GaiaTeamID then
+								totalGaiaUnits = totalGaiaUnits + spGetTeamUnitCount(teamID)
+							end
 						end
 					end
 					local alpha = (totalUnits/6600)
@@ -179,7 +187,7 @@ local function createtooltip(r)
 					if alpha < 0.2 then alpha = 0.2 end
 					self.color={1,1,1,alpha}
 				end
-				self.caption = totalUnits
+				self.caption = totalUnits.."\n"..totalGaiaUnits
 				vsx,vsy = gl.GetViewSizes()
 				
 			else
@@ -287,6 +295,9 @@ function widget:GameFrame(n)
 			local teamList = Spring.GetTeamList(allyID)
 			for _,teamID in pairs(teamList) do
 				totalUnits = totalUnits + spGetTeamUnitCount(teamID)
+				if teamID == GaiaTeamID then
+					totalGaiaUnits = totalGaiaUnits + 1
+				end
 			end
 		end
 	end

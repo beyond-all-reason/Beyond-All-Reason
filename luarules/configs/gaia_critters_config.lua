@@ -284,7 +284,12 @@ l},
   { spawnCircle = {x=3200, z=4300, r=200}, unitNames = {["critter_duck"]=rnd(0,2)} },
   { spawnCircle = {x=3200, z=4300, r=200}, unitNames = {["critter_duck"]=rnd(0,2)} },
   { spawnCircle = {x=2333, z=2777, r=150}, unitNames = {["critter_duck"]=rnd(0,2)} },
+  { spawnCircle = {x=3733, z=64330, r=170}, unitNames = {["critter_duck"]=rnd(0,2)} },
+  { spawnCircle = {x=3877, z=12122, r=150}, unitNames = {["critter_duck"]=rnd(0,2)} },
+  { spawnCircle = {x=6940, z=5633, r=150}, unitNames = {["critter_duck"]=rnd(1,2)} },
+  { spawnCircle = {x=4800, z=14000, r=250}, unitNames = {["critter_duck"]=rnd(1,2)} },
   { spawnCircle = {x=4222, z=700, r=200}, unitNames = {["critter_duck"]=rnd(0,2)} },
+  { spawnCircle = {x=2650, z=6888, r=140}, unitNames = {["critter_duck"]=rnd(0,2)} },
 },
 
 ["Mescaline_V2"] = {

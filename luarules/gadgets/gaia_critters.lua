@@ -10,6 +10,9 @@ function gadget:GetInfo()
 	}
 end
 
+-- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
+
+
 -- synced only
 if (not gadgetHandler:IsSyncedCode()) then
 	return false
@@ -19,10 +22,10 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 400		-- start removing critters at this total unit count
-local maxTotalunits			= 1800		-- fully removed critters at this total unit count
+local minTotalUnits			= 400		-- starting removing critters at this total unit count
+local maxTotalunits			= 1700		-- finished removing critters at this total unit count
 local minimumCritters		= 0.15		-- dont remove further than (0.1 == 10%) of critters
-local minCritters			= 40		-- dont remove below this amount
+local minCritters			= 35		-- dont remove below this amount
 local critterDiffChange		= 8			-- dont add/remove less than x critters
 
 
@@ -232,7 +235,7 @@ function gadget:GameFrame(gameFrame)
 	if removeCritters == false then return end
 	
 	if gameFrame%200==0 then 
-		local totalUnits = getTotalUnits()
+		local totalUnits = getTotalUnits() -- is without critters
 		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
 		if multiplier < 0 then multiplier = 0 end
 		multiplier = multiplier + minimumCritters
@@ -334,7 +337,7 @@ function gadget:GameStart()
 end
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	if critterUnits[unitID] ~= nil then
+	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
 		local x,y,z = spGetUnitPosition(unitID,true,true)
 		local radius = 220
 		if UnitDefs[unitDefID].name == "critter_gull" then
@@ -357,7 +360,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitTeam == GaiaTeamID then
 			makeUnitCritter(unitID)
 			critterUnits[unitID].unitName = UnitDefs[unitDefID].name
-			critterUnits[unitID].alive = true
 		end
 	end
 end
