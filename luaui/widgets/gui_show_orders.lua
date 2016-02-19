@@ -25,6 +25,7 @@ local fontSize = 16
 -- Globals
 -----------------------------------------------------
 local isFactory = {}
+local GaiaTeamID  = Spring.GetGaiaTeamID() 		-- set to -1 to include Gaia units
 
 -----------------------------------------------------
 -- Speedup
@@ -80,7 +81,9 @@ function widget:DrawWorld()
 	
 	local alliedTeams = GetAlliedTeams()
 	for t = 1, #alliedTeams do
-		spDrawUnitCommands(spGetTeamUnits(alliedTeams[t]))
+		if alliedTeams[t] ~= GaiaTeamID then
+			spDrawUnitCommands(spGetTeamUnits(alliedTeams[t]))
+		end
 	end
 end
 
@@ -92,84 +95,86 @@ function widget:DrawScreen()
 	local alliedTeams = GetAlliedTeams()
 	for t = 1, #alliedTeams do
 		
-		local teamUnits = spGetTeamUnits(alliedTeams[t])
-		for u = 1, #teamUnits do
-			
-			local uID = teamUnits[u]
-			local uDefID = spGetUnitDefID(uID)
-			
-			if uDefID and isFactory[uDefID] then
+		if alliedTeams[t] ~= GaiaTeamID then
+			local teamUnits = spGetTeamUnits(alliedTeams[t])
+			for u = 1, #teamUnits do
 				
-				local ux, uy, uz = spGetUnitPosition(uID)
-				local sx, sy = spWorldToScreenCoords(ux, uy, uz)
-				local _, _, _, _, buildProg = spGetUnitHealth(uID)
-				local uCmds = spGetFactoryCommands(uID)
-				local uStates = spGetUnitStates(uID)
+				local uID = teamUnits[u]
+				local uDefID = spGetUnitDefID(uID)
 				
-				local cells = {}
-				
-				if (buildProg < 1.0) then
-					cells[1] = { texture = "#" .. uDefID, text = floor(buildProg * 100) .. "%" }
-				else
-					if (#uCmds == 0) then
-						cells[1] = { texture = "#" .. uDefID, text = "IDLE" }
-					end
-				end
-				
-				if (#uCmds > 0) then
+				if uDefID and isFactory[uDefID] then
 					
-					local uCount = 0
-					local prevID = -1000
+					local ux, uy, uz = spGetUnitPosition(uID)
+					local sx, sy = spWorldToScreenCoords(ux, uy, uz)
+					local _, _, _, _, buildProg = spGetUnitHealth(uID)
+					local uCmds = spGetFactoryCommands(uID)
+					local uStates = spGetUnitStates(uID)
 					
-					for c = 1, #uCmds do
-						
-						local cDefID = -uCmds[c].id
-						
-						if (cDefID == prevID) then
-							uCount = uCount + 1
-						else
-							if (prevID > 0) then
-								cells[#cells + 1] = { texture = "#" .. prevID, text = (uCount ~= 0) and uCount + 1 }
-							end
-							uCount = 0
+					local cells = {}
+					
+					if (buildProg < 1.0) then
+						cells[1] = { texture = "#" .. uDefID, text = floor(buildProg * 100) .. "%" }
+					else
+						if (#uCmds == 0) then
+							cells[1] = { texture = "#" .. uDefID, text = "IDLE" }
 						end
-						
-						prevID = cDefID
 					end
 					
-					if (prevID > 0) then
-						cells[#cells + 1] = { texture = "#" .. prevID, text = (uCount ~= 0) and uCount + 1 }
-					end
-				end
-				
-				for r = 0, maxRows - 1 do
-					for c = 1, maxColumns do
+					if (#uCmds > 0) then
 						
-						local cell = cells[maxColumns * r + c]
-						if not cell then break end
+						local uCount = 0
+						local prevID = -1000
 						
-						local cx = sx + (c - 1) * (iconSize + borderWidth)
-						local cy = sy - r * (iconSize + borderWidth)
-						
-						if (uStates and uStates["repeat"]) then
-							glColor(0.0, 0.0, 0.5, 1.0)
-						else
-							glColor(0.0, 0.0, 0.0, 1.0)
-						end
-						glRect(cx, cy, cx + iconSize + 2 * borderWidth, cy - iconSize - 2 * borderWidth)
-						
-						glColor(1.0, 1.0, 1.0, 1.0)
-						glTexture(cell.texture)
-						glTexRect(cx + borderWidth, cy - iconSize - borderWidth, cx + iconSize + borderWidth, cy - borderWidth)
-						glTexture(false)
-						
-						if (cell.text) then
+						for c = 1, #uCmds do
 							
-							glText(cell.text, cx + borderWidth + 2, cy - iconSize, fontSize, 'ob')
+							local cDefID = -uCmds[c].id
+							
+							if (cDefID == prevID) then
+								uCount = uCount + 1
+							else
+								if (prevID > 0) then
+									cells[#cells + 1] = { texture = "#" .. prevID, text = (uCount ~= 0) and uCount + 1 }
+								end
+								uCount = 0
+							end
+							
+							prevID = cDefID
 						end
-					end -- columns
-				end -- rows
-			end -- isFactory
-		end -- teamUnits
+						
+						if (prevID > 0) then
+							cells[#cells + 1] = { texture = "#" .. prevID, text = (uCount ~= 0) and uCount + 1 }
+						end
+					end
+					
+					for r = 0, maxRows - 1 do
+						for c = 1, maxColumns do
+							
+							local cell = cells[maxColumns * r + c]
+							if not cell then break end
+							
+							local cx = sx + (c - 1) * (iconSize + borderWidth)
+							local cy = sy - r * (iconSize + borderWidth)
+							
+							if (uStates and uStates["repeat"]) then
+								glColor(0.0, 0.0, 0.5, 1.0)
+							else
+								glColor(0.0, 0.0, 0.0, 1.0)
+							end
+							glRect(cx, cy, cx + iconSize + 2 * borderWidth, cy - iconSize - 2 * borderWidth)
+							
+							glColor(1.0, 1.0, 1.0, 1.0)
+							glTexture(cell.texture)
+							glTexRect(cx + borderWidth, cy - iconSize - borderWidth, cx + iconSize + borderWidth, cy - borderWidth)
+							glTexture(false)
+							
+							if (cell.text) then
+								
+								glText(cell.text, cx + borderWidth + 2, cy - iconSize, fontSize, 'ob')
+							end
+						end -- columns
+					end -- rows
+				end -- isFactory
+			end -- teamUnits
+		end
 	end -- alliedTeams
 end -- DrawScreen
