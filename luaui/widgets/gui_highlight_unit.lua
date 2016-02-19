@@ -93,7 +93,6 @@ local spGetPlayerInfo           = Spring.GetPlayerInfo
 local spGetTeamColor            = Spring.GetTeamColor
 local spGetTeamInfo             = Spring.GetTeamInfo
 local spGetUnitAllyTeam         = Spring.GetUnitAllyTeam
-local spGetUnitDefID            = Spring.GetUnitDefID
 local spGetUnitIsCloaked        = Spring.GetUnitIsCloaked
 local spGetUnitTeam             = Spring.GetUnitTeam
 local spIsCheatingEnabled       = Spring.IsCheatingEnabled
@@ -295,23 +294,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local GetPlayerControlledUnit = spGetPlayerControlledUnit
-local GetMyPlayerID           = spGetMyPlayerID
-local TraceScreenRay          = spTraceScreenRay
-local GetMouseState           = spGetMouseState
-local GetUnitDefID            = spGetUnitDefID
-local GetFeatureDefID         = spGetFeatureDefID
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local type, data  --  for the TraceScreenRay() call
 
 
 function widget:Update()
-  local mx, my = GetMouseState()
-  type, data = TraceScreenRay(mx, my)
+  local mx, my = spGetMouseState()
+  type, data = spTraceScreenRay(mx, my)
 end
 
 
@@ -319,7 +307,7 @@ function widget:DrawWorld()
   if drawFeatureHighlight and (type == 'feature') then
     HilightFeature(data)
   elseif (type == 'unit') then
-    local unitID = GetPlayerControlledUnit(GetMyPlayerID())
+    local unitID = spGetPlayerControlledUnit(spGetMyPlayerID())
     if (data ~= unitID) then
       HilightUnit(data)
       -- also draw the unit's command queue
