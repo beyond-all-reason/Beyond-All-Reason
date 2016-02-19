@@ -367,8 +367,6 @@ lineConfig["circleDivs"] = 40.0
 --------------------------------------------------------------------------------
 local GL_LINE_LOOP          = GL.LINE_LOOP
 local glTexEnv				= gl.TexEnv
-local glUnitShape			= gl.UnitShape
-local glFeatureShape		= gl.FeatureShape
 local glBeginEnd            = gl.BeginEnd
 local glBillboard           = gl.Billboard
 local glColor               = gl.Color
