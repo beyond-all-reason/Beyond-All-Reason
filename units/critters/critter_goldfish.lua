@@ -15,7 +15,6 @@ unitDef = {
   canMove                = true,
   canPatrol              = true,
   canstop                = true,
-  stealth 				 = true,
   category               = [[NOWEAPON MOBILE NOTLAND NOTAIR NOTSEA SUB]],
   explodeAs              = [[SMALL_UNITEX]],
   footprintX             = 1,
@@ -34,18 +33,17 @@ unitDef = {
   noChaseCategory        = [[MOBILE STATIC]],
   objectName             = [[critter_goldfish.s3o]],
   script                 = [[critter_goldfish.lua]],
-  seismicSignature       = 4,  
   side                   = [[CORE]],
-  sightDistance          = 64,
+  sightDistance          = 0,
+  seismicSignature       = 0,
   sonarDistance          = 550,
-  stealth 			  	 = true,
-  sonarStealth		  	 = true,
   turninplace            = 0,
   turnRate               = 3000,
   upright                = true,
   waterline              = 20,
   workerTime             = 0,
-
+  stealth 			     = true,
+  sonarStealth		     = true,
 }
 
 return lowerkeys({ critter_goldfish = unitDef })

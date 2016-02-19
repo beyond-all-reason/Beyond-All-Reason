@@ -16,11 +16,15 @@ local critterConfig = {
   { spawnBox = {x1=150, z1=150, x2=6000, z2=6000}, unitNames = {["critter_gull"]=rnd(8,20)} },
 },
 
+["Calamity_V1"] = {
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(175,275)} },
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(25,45)} },
+},
+
 ["Centre-command"] = {
   { spawnCircle = {x=1550, z=3000, r=500}, unitNames = {["critter_gull"]=rnd(1,3)} },
   { spawnCircle = {x=1550, z=3000, r=1450}, unitNames = {["critter_gull"]=rnd(1,3)} },
 },
-
 
 ["CenterrockV12"] = {
   { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(220,440)} },
@@ -281,7 +285,6 @@ l},
   { spawnCircle = {x=9900, z=6000, r=800}, unitNames = {["critter_gull"]=rnd(1,2)} },
   { spawnCircle = {x=4700, z=8600, r=200}, unitNames = {["critter_duck"]=rnd(0,3)} },
   { spawnCircle = {x=7333, z=7111, r=160}, unitNames = {["critter_duck"]=rnd(0,2)} },
-  { spawnCircle = {x=3200, z=4300, r=200}, unitNames = {["critter_duck"]=rnd(0,2)} },
   { spawnCircle = {x=3200, z=4300, r=200}, unitNames = {["critter_duck"]=rnd(0,2)} },
   { spawnCircle = {x=2333, z=2777, r=150}, unitNames = {["critter_duck"]=rnd(0,2)} },
   { spawnCircle = {x=3733, z=64330, r=170}, unitNames = {["critter_duck"]=rnd(0,2)} },

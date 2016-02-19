@@ -19,8 +19,6 @@ unitDef = {
   category            = [[MOBILE NOWEAPON NOTAIR NOTSUB]],
 --  corpse              = [[DEAD]],
   reclaimable         = true,
-  stealth 			  = true,
-  sonarStealth		  = true,
 	----------	
   defaultmissiontype  = [[Standby]],
   --explodeAs           = [[MEDIUM_UNIT]],
@@ -39,14 +37,14 @@ unitDef = {
   noAutoFire          = false,
   noChaseCategory     = [[MOBILE STATIC]],
   objectName          = [[critter_penguin.s3o]], --
-  seismicSignature    = 4,
   --selfDestructAs      = [[MEDIUM_UNIT]],
   selfDestructCountdown = 0,
   upright=false,
   floater = true,
   waterline = 6,
   side                = [[GAYS]],
-  sightDistance       = 350,--250
+  sightDistance       = 0,--250
+  seismicSignature    = 0,
   smoothAnim          = true,
   steeringmode        = [[1]],
   TEDClass            = [[TANK]],
@@ -60,7 +58,8 @@ unitDef = {
   turnRate            = 2000,
   workerTime          = 0,
   script              = [[critter_penguin.lua]], -- [[tpdude.lua]], 
-
+  stealth 			  = true,
+  sonarStealth		  = true,
 }
 
 return lowerkeys({ critter_penguin = unitDef })
