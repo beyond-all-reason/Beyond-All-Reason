@@ -232,7 +232,7 @@ end
 
 function widget:TweakMouseMove(mx, my, dx, dy, mButton)
     -- Dragging widget position
-    if mButton == 2 then
+    if mButton == 2 or mButton == 3 then
 		if xPos + dx >= panelPadding and xPos + panelWidth + dx + panelPadding<= vsx then 
 			xRelPos = xRelPos + dx/vsx
 		end
