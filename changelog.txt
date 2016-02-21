@@ -1,4 +1,19 @@
-﻿9.32 -> 9.33
+﻿9.33 -> 9.34
+xx/02/2016
+
+Balance changes:
+- 
+
+Other:
+- new widget: "BA cmdcolors", disable to load engine defaults
+- Unit Stats: based on recent version
+- A lot more widlife on a lot more maps
+- Widlife diminishes when total unitcount gets higher
+- Bet frontend: unit betlist offset fix
+- Various changes to make it Spring Engine v101 compatible
+
+
+9.32 -> 9.33
 14/02/2016
 
 Balance changes:
