@@ -282,7 +282,7 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 	gl.PushMatrix()
 		gl.Translate(bx, by, bz)
 		gl.Rotate(90 * facing, 0, 1, 0)
-		gl.UnitShape(bDefID, Spring.GetMyTeamID())
+		gl.UnitShape(bDefID, Spring.GetMyTeamID(), false, true, false)
 	gl.PopMatrix()
 
 	gl.Lighting(false)
@@ -298,7 +298,7 @@ local function DrawUnitDef(uDefID, uTeam, ux, uy, uz)
 
 	gl.PushMatrix()
 		gl.Translate(ux, uy, uz)
-		gl.UnitShape(uDefID, uTeam)
+		gl.UnitShape(uDefID, uTeam, false, true, false)
 	gl.PopMatrix()
 
 	gl.Lighting(false)
