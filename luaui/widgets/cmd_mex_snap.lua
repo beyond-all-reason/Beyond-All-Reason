@@ -136,7 +136,7 @@ function widget:DrawWorld()
 	gl.PushMatrix()
 		gl.Translate(bestPos[1], bestPos[2], bestPos[3])
 		gl.Rotate(90 * bface, 0, 1, 0)
-		gl.UnitShape(-cmdID, Spring.GetMyTeamID())
+		gl.UnitShape(-cmdID, Spring.GetMyTeamID(), false, true, false)
 	gl.PopMatrix()
 	
 	gl.DepthTest(false)
