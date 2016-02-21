@@ -1,7 +1,7 @@
 function widget:GetInfo()
   return {
     name      = "BA cmdcolors",
-    desc      = "loads cmdcolors.txt from BA (loads at start, disable to have engine default for next launch)",
+    desc      = "Sets custom BA cmdcolors, disable to load engine defaults again",
     author    = "Floris",
     date      = "2016",
     license   = "parrot",
