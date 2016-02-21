@@ -53,7 +53,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
     if featureDefs then
       if (featureDefs == -1) then
         local defs = FeatureDefs[featureDefID]
-        featureList[featureDefID] = {minX = (defs.minx * 0.6), maxX = (defs.maxx * 0.6), minZ = (defs.minz * 0.6), maxZ = (defs.maxz * 0.6), y = (defs.maxy * 0.5)}
+        featureList[featureDefID] = {minX = (defs.model.minx * 0.6), maxX = (defs.model.maxx * 0.6), minZ = (defs.model.minz * 0.6), maxZ = (defs.model.maxz * 0.6), y = (defs.model.maxy * 0.5)}
         featureDefs = featureList[featureDefID]
       end
       local x,y,z = GetFeaturePosition(featureID)
