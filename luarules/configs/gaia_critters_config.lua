@@ -74,6 +74,11 @@ l},
   { spawnCircle = {x=8888, z=1700, r=900}, unitNames = {["critter_gull"]=rnd(0,3)} },
 l},
 
+
+["DesertSiege_v2b"] = {
+  { spawnBox = {x1=50, z1=50, x2=10200, z2=6100}, unitNames = {["critter_ant"]=rnd(6,10)} },
+},
+
 ["DesertTriad"] = {
   { spawnBox = {x1=1800, z1=3400, x2=3900, z2=3900}, unitNames = {["critter_gull"]=1} },
   { spawnBox = {x1=1800, z1=20, x2=3900, z2=120}, unitNames = {["critter_gull"]=1} },

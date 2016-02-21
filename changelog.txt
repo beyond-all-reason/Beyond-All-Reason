@@ -1,10 +1,6 @@
 ﻿9.33 -> 9.34
-xx/02/2016
+21/02/201
 
-Balance changes:
-- 
-
-Other:
 - new widget: "BA cmdcolors", disable to load engine defaults
 - Unit Stats: based on recent version
 - A lot more widlife on a lot more maps
