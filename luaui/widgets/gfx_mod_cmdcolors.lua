@@ -15,5 +15,11 @@ function widget:Initialize()
 	if file then
 		Spring.LoadCmdColorsConfig(file)
 	end
-	widgetHandler:RemoveWidget()
+end
+
+function widget:Shutdown()
+	local file = VFS.LoadFile("cmdcolors.txt")
+	if file then
+		Spring.LoadCmdColorsConfig(file)
+	end
 end
