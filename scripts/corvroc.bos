@@ -1,0 +1,212 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, dummy, cradle, arm1, arm2;
+
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn cradle to x-axis <0.00000> now;
+		turn cradle to x-axis <-90.00000> speed <45.39560>;
+		sleep 1983;
+	}
+	sleep 18;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn cradle to x-axis <-90.00000> now;
+		turn cradle to x-axis <0.00000> speed <45.09890>;
+		sleep 1996;
+	}
+	sleep 8;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Go()
+{
+	show dummy;
+	call-script activatescr();
+	gun_1 = dummy;
+	return (0);
+}
+
+Stop()
+{
+	gun_1 = base;
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	dont-shade dummy;
+	dont-cache dummy;
+	gun_1 = base;
+	restore_delay = 3000;
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	hide dummy;
+	gun_1 = base;
+	start-script RequestState(1);
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = dummy;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode arm1 type BITMAPONLY | BITMAP1;
+		explode arm2 type BITMAPONLY | BITMAP2;
+		explode base type BITMAPONLY | BITMAP3;
+		explode cradle type BITMAPONLY | BITMAP4;
+		explode dummy type BITMAPONLY | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode arm1 type FALL | BITMAP1;
+		explode arm2 type FALL | BITMAP2;
+		explode base type BITMAPONLY | BITMAP3;
+		explode cradle type BITMAPONLY | BITMAP4;
+		explode dummy type SHATTER | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode base type BITMAPONLY | BITMAP3;
+		explode cradle type BITMAPONLY | BITMAP4;
+		explode dummy type SHATTER | BITMAP5;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode base type BITMAPONLY | BITMAP3;
+	explode cradle type BITMAPONLY | BITMAP4;
+	explode dummy type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	return (corpsetype);
+}

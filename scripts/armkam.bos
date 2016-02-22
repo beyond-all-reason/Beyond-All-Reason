@@ -123,4 +123,5 @@ Killed(severity, corpsetype)
 	explode carlingue type 3;
 	explode rwing type 30;
 	explode lwing type 30;
+	return corpsetype;
 }

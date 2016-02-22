@@ -1,0 +1,91 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  flare1, flare2, base, wake;
+
+static-var  gun_1;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+Create()
+{
+	gun_1 = flare1;
+	return (0);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		emit-sfx 256 | 3 from wake;
+		sleep 250;
+	}
+	return (0);
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	return (0);
+}
+
+FirePrimary()
+{
+	gun_1 = !gun_1;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = gun_1;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode wake type BITMAPONLY | BITMAP4;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode wake type BITMAPONLY | BITMAP4;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode wake type BITMAPONLY | BITMAP4;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode flare1 type BITMAPONLY | BITMAP2;
+	explode flare2 type BITMAPONLY | BITMAP3;
+	explode wake type BITMAPONLY | BITMAP4;
+	return (corpsetype);
+}

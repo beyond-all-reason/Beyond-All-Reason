@@ -1,0 +1,490 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  beam1, beam2, pad, base, layer3a, layer3b, layer3c, layer2a,
+       layer2b, layer2c, layer1a, layer1b, layer1c, gun2, gun1, arm1,
+       arm2;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn layer3a to y-axis <0.000000> now;
+		turn layer3a to y-axis <-89.016484> speed <240.000000>;
+		turn layer3b to y-axis <0.000000> now;
+		turn layer3b to y-axis <-89.016484> speed <241.000000>;
+		turn layer3c to y-axis <0.000000> now;
+		turn layer3c to y-axis <-89.016484> speed <241.000000>;
+		sleep 372;
+	}
+	if( TRUE )
+	{
+		turn layer2a to y-axis <90.016484> speed <228.000000>;
+		turn layer2b to y-axis <90.016484> speed <228.000000>;
+		turn layer2c to y-axis <90.016484> speed <228.000000>;
+		sleep 395;
+	}
+	if( TRUE )
+	{
+		turn layer1a to y-axis <-89.016484> speed <228.000000>;
+		turn layer1b to y-axis <-89.016484> speed <228.000000>;
+		turn layer1c to y-axis <-89.016484> speed <228.000000>;
+		sleep 394;
+	}
+	if( TRUE )
+	{
+		turn layer1a to y-axis <-179.038462> speed <221.000000>;
+		turn layer1b to y-axis <-179.038462> speed <220.000000>;
+		turn layer1c to y-axis <-179.038462> speed <221.000000>;
+		sleep 406;
+	}
+	if( TRUE )
+	{
+		move layer1b to x-axis [28.500000] speed [67.500000];
+		move layer2b to x-axis [28.625000] speed [67.500000];
+		move layer3b to x-axis [28.750000] speed [67.500000];
+		sleep 421;
+	}
+	if( TRUE )
+	{
+		move layer1a to z-axis [13.375000] speed [40.000000];
+		move layer1c to z-axis [-13.724976] speed [42.500000];
+		move layer2a to z-axis [13.375000] speed [40.000000];
+		move layer2c to z-axis [-13.750000] speed [42.500000];
+		move layer3a to z-axis [13.250000] speed [40.000000];
+		move layer3c to z-axis [-13.875000] speed [42.500000];
+		move pad to x-axis [-5.724976] speed [17.500000];
+		sleep 323;
+	}
+	if( TRUE )
+	{
+		move gun2 to z-axis [-1.849976] speed [2.500000];
+		move gun1 to z-axis [-2.125000] speed [2.500000];
+		turn arm1 to y-axis <-90.016484> speed <187.000000>;
+		turn arm2 to y-axis <88.016484> speed <184.000000>;
+		turn gun2 to z-axis <-11.000000> speed <22.000000>;
+		turn gun2 to y-axis <66.005495> speed <138.000000>;
+		turn gun2 to x-axis <-2.000000> speed <4.000000>;
+		turn gun1 to z-axis <10.000000> speed <20.000000>;
+		turn gun1 to y-axis <-66.005495> speed <138.000000>;
+		turn gun1 to x-axis <-2.000000> speed <4.000000>;
+		sleep 483;
+	}
+	sleep 21;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move layer1a to z-axis [13.375000] now;
+		move layer1b to x-axis [28.500000] now;
+		move layer1c to z-axis [-13.724976] now;
+		move layer2a to z-axis [13.375000] now;
+		move layer2b to x-axis [28.625000] now;
+		move layer2c to z-axis [-13.750000] now;
+		move layer3a to z-axis [13.250000] now;
+		move layer3b to x-axis [28.750000] now;
+		move layer3c to z-axis [-13.875000] now;
+		move pad to x-axis [-5.724976] now;
+		move gun2 to z-axis [-1.849976] now;
+		move gun2 to z-axis [0.000000] speed [2.500000];
+		move gun1 to z-axis [-2.125000] now;
+		move gun1 to z-axis [0.000000] speed [5.000000];
+		turn layer1a to y-axis <-179.802198> now;
+		turn layer1b to y-axis <-179.335165> now;
+		turn layer1c to y-axis <-179.802198> now;
+		turn layer2a to y-axis <90.357143> now;
+		turn layer2b to y-axis <90.357143> now;
+		turn layer2c to y-axis <90.357143> now;
+		turn layer3a to y-axis <-89.434066> now;
+		turn layer3b to y-axis <-89.901099> now;
+		turn layer3c to y-axis <-89.901099> now;
+		turn arm1 to y-axis <-90.357143> now;
+		turn arm1 to y-axis <0.000000> speed <216.000000>;
+		turn arm2 to y-axis <88.978022> now;
+		turn arm2 to y-axis <0.000000> speed <213.000000>;
+		turn gun2 to z-axis <-11.000000> now;
+		turn gun2 to z-axis <0.000000> speed <26.000000>;
+		turn gun2 to y-axis <66.956044> now;
+		turn gun2 to y-axis <0.000000> speed <160.000000>;
+		turn gun2 to x-axis <-2.280220> now;
+		turn gun2 to x-axis <0.000000> speed <5.000000>;
+		turn gun1 to z-axis <10.082418> now;
+		turn gun1 to z-axis <0.000000> speed <24.000000>;
+		turn gun1 to y-axis <-66.956044> now;
+		turn gun1 to y-axis <0.000000> speed <160.000000>;
+		turn gun1 to x-axis <-2.280220> now;
+		turn gun1 to x-axis <0.000000> speed <5.000000>;
+		sleep 417;
+	}
+	if( TRUE )
+	{
+		move layer1a to z-axis [0.000000] speed [40.000000];
+		move layer1c to z-axis [0.000000] speed [42.500000];
+		move layer2a to z-axis [0.000000] speed [40.000000];
+		move layer2c to z-axis [0.000000] speed [42.500000];
+		move layer3a to z-axis [0.000000] speed [40.000000];
+		move layer3c to z-axis [0.000000] speed [42.500000];
+		move pad to x-axis [0.000000] speed [17.500000];
+		sleep 321;
+	}
+	if( TRUE )
+	{
+		move layer1b to x-axis [0.000000] speed [67.500000];
+		move layer2b to x-axis [0.000000] speed [67.500000];
+		move layer3b to x-axis [0.000000] speed [67.500000];
+		sleep 416;
+	}
+	if( TRUE )
+	{
+		turn layer1a to y-axis <-89.016484> speed <216.000000>;
+		turn layer1b to y-axis <-89.016484> speed <215.000000>;
+		turn layer1c to y-axis <-89.016484> speed <216.000000>;
+		sleep 415;
+	}
+	if( TRUE )
+	{
+		turn layer1a to y-axis <0.000000> speed <222.000000>;
+		turn layer1b to y-axis <0.000000> speed <222.000000>;
+		turn layer1c to y-axis <0.000000> speed <222.000000>;
+		sleep 404;
+	}
+	if( TRUE )
+	{
+		turn layer2a to y-axis <0.000000> speed <212.000000>;
+		turn layer2b to y-axis <0.000000> speed <212.000000>;
+		turn layer2c to y-axis <0.000000> speed <212.000000>;
+		sleep 426;
+	}
+	if( TRUE )
+	{
+		turn layer3a to y-axis <0.000000> speed <225.000000>;
+		turn layer3b to y-axis <0.000000> speed <226.000000>;
+		turn layer3c to y-axis <0.000000> speed <226.000000>;
+		sleep 397;
+	}
+	sleep 12;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+Go()
+{
+	dont-cache arm1;
+	dont-cache arm2;
+	dont-cache gun1;
+	dont-cache gun2;
+	dont-cache layer1a;
+	dont-cache layer1b;
+	dont-cache layer1c;
+	dont-cache layer2a;
+	dont-cache layer2b;
+	dont-cache layer2c;
+	dont-cache layer3a;
+	dont-cache layer3b;
+	dont-cache layer3c;
+	dont-cache pad;
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	cache arm1;
+	cache arm2;
+	cache gun1;
+	cache gun2;
+	cache layer1a;
+	cache layer1b;
+	cache layer1c;
+	cache layer2a;
+	cache layer2b;
+	cache layer2c;
+	cache layer3a;
+	cache layer3b;
+	cache layer3c;
+	cache pad;
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	dont-shade arm1;
+	dont-shade arm2;
+	dont-shade pad;
+	dont-shade gun1;
+	dont-shade gun2;
+	dont-shade layer1a;
+	dont-shade layer1b;
+	dont-shade layer1c;
+	dont-shade layer2a;
+	dont-shade layer2b;
+	dont-shade layer2c;
+	dont-shade layer3a;
+	dont-shade layer3b;
+	dont-shade layer3c;
+	dont-shade pad;
+	unitviewer = FALSE;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script SmokeUnit();
+	turn pad to y-axis <90.000000> speed <1000.000000>;
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( Static_Var_1 == 0 )
+	{
+		piecenum = beam1;
+		Static_Var_1 = 1;
+		return (0);
+	}
+	if( Static_Var_1 == 1 )
+	{
+		piecenum = beam2;
+		Static_Var_1 = 0;
+	}
+	return (0);
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+	return (0);
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+StartBuilding()
+{
+	spin pad around y-axis speed <0.000000>;
+	return (0);
+}
+
+StopBuilding()
+{
+	stop-spin pad around y-axis;
+	return (0);
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode arm1 type BITMAPONLY | BITMAP1;
+		explode arm2 type BITMAPONLY | BITMAP2;
+		explode base type BITMAPONLY | BITMAP3;
+		explode beam1 type BITMAPONLY | BITMAP4;
+		explode beam2 type BITMAPONLY | BITMAP5;
+		explode gun1 type BITMAPONLY | BITMAP1;
+		explode gun2 type BITMAPONLY | BITMAP2;
+		explode layer1a type BITMAPONLY | BITMAP3;
+		explode layer1b type BITMAPONLY | BITMAP4;
+		explode layer1c type BITMAPONLY | BITMAP5;
+		explode layer2a type BITMAPONLY | BITMAP1;
+		explode layer2b type BITMAPONLY | BITMAP2;
+		explode layer2c type BITMAPONLY | BITMAP3;
+		explode layer3a type BITMAPONLY | BITMAP4;
+		explode layer3b type BITMAPONLY | BITMAP5;
+		explode layer3c type BITMAPONLY | BITMAP1;
+		explode pad type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode arm1 type FALL | BITMAP1;
+		explode arm2 type FALL | BITMAP2;
+		explode base type BITMAPONLY | BITMAP3;
+		explode beam1 type FALL | BITMAP4;
+		explode beam2 type FALL | BITMAP5;
+		explode gun1 type FALL | BITMAP1;
+		explode gun2 type FALL | BITMAP2;
+		explode layer1a type BITMAPONLY | BITMAP3;
+		explode layer1b type BITMAPONLY | BITMAP4;
+		explode layer1c type BITMAPONLY | BITMAP5;
+		explode layer2a type BITMAPONLY | BITMAP1;
+		explode layer2b type BITMAPONLY | BITMAP2;
+		explode layer2c type SHATTER | BITMAP3;
+		explode layer3a type FALL | BITMAP4;
+		explode layer3b type FALL | BITMAP5;
+		explode layer3c type FALL | BITMAP1;
+		explode pad type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode base type BITMAPONLY | BITMAP3;
+		explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode layer1a type BITMAPONLY | BITMAP3;
+		explode layer1b type BITMAPONLY | BITMAP4;
+		explode layer1c type BITMAPONLY | BITMAP5;
+		explode layer2a type BITMAPONLY | BITMAP1;
+		explode layer2b type BITMAPONLY | BITMAP2;
+		explode layer2c type SHATTER | BITMAP3;
+		explode layer3a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode layer3b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode layer3c type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode pad type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode base type BITMAPONLY | BITMAP3;
+	explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode layer1a type BITMAPONLY | BITMAP3;
+	explode layer1b type BITMAPONLY | BITMAP4;
+	explode layer1c type BITMAPONLY | BITMAP5;
+	explode layer2a type BITMAPONLY | BITMAP1;
+	explode layer2b type BITMAPONLY | BITMAP2;
+	explode layer2c type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode layer3a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode layer3b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode layer3c type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode pad type BITMAPONLY | BITMAP2;
+	return (corpsetype);
+}

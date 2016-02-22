@@ -1,0 +1,347 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, missile, doora1, doora2, collar, doorb5, doorb6, doorb2,
+       doorb4, doorb1, doorb3, lnchpad, fp;
+
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move doora1 to x-axis [0.00000] now;
+		move doora1 to x-axis [20.00000] speed [17.50000];
+		move doora2 to x-axis [0.00000] now;
+		move doora2 to x-axis [-20.00000] speed [17.50000];
+		move collar to y-axis [0.00000] now;
+		move doorb5 to y-axis [0.00000] now;
+		move doorb6 to y-axis [0.00000] now;
+		move missile to x-axis [-0.25000] now;
+		move missile to y-axis [0.00000] now;
+		move missile to z-axis [0.25000] now;
+		sleep 941;
+	}
+	if( TRUE )
+	{
+		move collar to y-axis [16.25000] speed [25.00000];
+		sleep 802;
+	}
+	if( TRUE )
+	{
+		turn doorb5 to z-axis <89.39011> speed <150.50000>;
+		turn doorb6 to z-axis <-90.00000> speed <151.50000>;
+		turn doorb2 to x-axis <-181.39011> speed <305.39011>;
+		turn doorb4 to x-axis <180.59341> speed <304.09341>;
+		turn doorb1 to x-axis <-181.00000> speed <304.69231>;
+		turn doorb3 to x-axis <179.89011> speed <302.79121>;
+		sleep 594;
+	}
+	if( TRUE )
+	{
+		move lnchpad to z-axis [-2.00000] now;
+		move lnchpad to y-axis [68.00000] speed [45.50000];
+		sleep 1591;
+	}
+	sleep 28;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move doora1 to x-axis [20.00000] now;
+		move doora2 to x-axis [-20.00000] now;
+		move collar to y-axis [16.25000] now;
+		move lnchpad to y-axis [68.00000] now;
+		move lnchpad to y-axis [0.00000] speed [41.00000];
+		move missile to x-axis [-0.25000] now;
+		move missile to y-axis [0.00000] now;
+		move missile to z-axis [0.25000] now;
+		turn doorb5 to z-axis <90.01648> now;
+		turn doorb6 to z-axis <-90.01648> now;
+		turn doorb2 to x-axis <-180.03846> now;
+		turn doorb4 to x-axis <180.03846> now;
+		turn doorb1 to x-axis <-180.03846> now;
+		turn doorb3 to x-axis <180.03846> now;
+		sleep 1746;
+	}
+	if( TRUE )
+	{
+		turn doorb5 to z-axis <0.00000> speed <190.59341>;
+		turn doorb6 to z-axis <0.00000> speed <191.89011>;
+		turn doorb2 to x-axis <0.00000> speed <386.69231>;
+		turn doorb4 to x-axis <0.00000> speed <385.09341>;
+		turn doorb1 to x-axis <0.00000> speed <385.89011>;
+		turn doorb3 to x-axis <0.00000> speed <383.50000>;
+		sleep 469;
+	}
+	if( TRUE )
+	{
+		move collar to y-axis [0.00000] speed [16.00000];
+		sleep 836;
+	}
+	if( TRUE )
+	{
+		move doora1 to x-axis [0.00000] speed [19.50000];
+		move doora2 to x-axis [0.00000] speed [19.50000];
+		sleep 576;
+	}
+	sleep 10000;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Go()
+{
+	show missile;
+	call-script activatescr();
+	gun_1 = missile;
+	return (0);
+}
+
+Stop()
+{
+	gun_1 = base;
+	sleep 4000;
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	call-script InitState();
+	gun_1 = base;
+	dont-shade collar;
+	dont-shade doora1;
+	dont-shade doora2;
+	dont-shade doorb1;
+	dont-shade doorb2;
+	dont-shade doorb3;
+	dont-shade doorb4;
+	dont-shade doorb5;
+	dont-shade doorb6;
+	dont-shade lnchpad;
+	dont-shade missile;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+	return (0);
+}
+
+Activate()
+{
+	dont-cache collar;
+	dont-cache doora1;
+	dont-cache doora2;
+	dont-cache doorb1;
+	dont-cache doorb2;
+	dont-cache doorb3;
+	dont-cache doorb4;
+	dont-cache doorb5;
+	dont-cache doorb6;
+	dont-cache lnchpad;
+	dont-cache missile;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	cache collar;
+	cache doora1;
+	cache doora2;
+	cache doorb1;
+	cache doorb2;
+	cache doorb3;
+	cache doorb4;
+	cache doorb5;
+	cache doorb6;
+	cache lnchpad;
+	cache missile;
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	hide missile;
+	gun_1 = base;
+	start-script RequestState(1);
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = fp;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode collar type BITMAPONLY | BITMAP2;
+		explode doora1 type BITMAPONLY | BITMAP3;
+		explode doora2 type BITMAPONLY | BITMAP4;
+		explode doorb1 type BITMAPONLY | BITMAP5;
+		explode doorb2 type BITMAPONLY | BITMAP1;
+		explode doorb3 type BITMAPONLY | BITMAP2;
+		explode doorb4 type BITMAPONLY | BITMAP3;
+		explode doorb5 type BITMAPONLY | BITMAP4;
+		explode doorb6 type BITMAPONLY | BITMAP5;
+		explode lnchpad type BITMAPONLY | BITMAP1;
+		explode missile type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode collar type SHATTER | BITMAP2;
+		explode doora1 type FALL | BITMAP3;
+		explode doora2 type FALL | BITMAP4;
+		explode doorb1 type FALL | BITMAP5;
+		explode doorb2 type FALL | BITMAP1;
+		explode doorb3 type FALL | BITMAP2;
+		explode doorb4 type FALL | BITMAP3;
+		explode doorb5 type FALL | BITMAP4;
+		explode doorb6 type FALL | BITMAP5;
+		explode lnchpad type BITMAPONLY | BITMAP1;
+		explode missile type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode collar type SHATTER | BITMAP2;
+		explode doora1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode doora2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode doorb1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode doorb2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode doorb3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode doorb4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode doorb5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode doorb6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode lnchpad type BITMAPONLY | BITMAP1;
+		explode missile type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode collar type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode doora1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode doora2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode doorb1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode doorb2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode doorb3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode doorb4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode doorb5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode doorb6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode lnchpad type BITMAPONLY | BITMAP1;
+	explode missile type BITMAPONLY | BITMAP2;
+	return (corpsetype);
+}

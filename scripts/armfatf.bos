@@ -1,0 +1,229 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, floater1, floater2, floater3, floater4, arml, lightl, armt,
+       lightt, armr, lightr, armb, lightb, dome, centerlight;
+
+static-var  statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	turn armr to z-axis <0.00000> now;
+	turn arml to z-axis <0.00000> now;
+	turn armt to x-axis <0.00000> now;
+	turn armb to x-axis <0.00000> now;
+	move armr to x-axis [0.00000] now;
+	move arml to x-axis [0.00000] now;
+	move armt to z-axis [0.00000] now;
+	move armb to z-axis [0.00000] now;
+	turn armr to z-axis <-90.02198> speed <55.00000>;
+	turn arml to z-axis <90.02198> speed <55.00000>;
+	turn armt to x-axis <90.02198> speed <55.00000>;
+	turn armb to x-axis <-90.02198> speed <55.00000>;
+	move armr to x-axis [-25.00000] speed [15.00000];
+	move arml to x-axis [25.00000] speed [15.00000];
+	move armt to z-axis [-25.00000] speed [15.00000];
+	move armb to z-axis [25.00000] speed [15.00000];
+	wait-for-turn armr around z-axis;
+	wait-for-turn arml around z-axis;
+	wait-for-turn armt around x-axis;
+	wait-for-turn armb around x-axis;
+	move lightr to x-axis [-7.50000] speed [2.50000];
+	move lightl to x-axis [7.50000] speed [2.50000];
+	move lightt to z-axis [-7.50000] speed [2.50000];
+	move lightb to z-axis [7.50000] speed [2.50000];
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	move lightr to x-axis [0.00000] speed [2.50000];
+	move lightl to x-axis [0.00000] speed [2.50000];
+	move lightt to z-axis [0.00000] speed [2.50000];
+	move lightb to z-axis [0.00000] speed [2.50000];
+	wait-for-move lightr along x-axis;
+	wait-for-move lightl along x-axis;
+	wait-for-move lightt along z-axis;
+	wait-for-move lightb along z-axis;
+	turn armr to z-axis <0.00000> speed <55.00000>;
+	turn arml to z-axis <0.00000> speed <55.00000>;
+	turn armt to x-axis <0.00000> speed <55.00000>;
+	turn armb to x-axis <0.00000> speed <55.00000>;
+	move armr to x-axis [0.00000] speed [15.00000];
+	move arml to x-axis [0.00000] speed [15.00000];
+	move armt to z-axis [0.00000] speed [15.00000];
+	move armb to z-axis [0.00000] speed [15.00000];
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP5;
+		explode floater1 type BITMAPONLY | BITMAP2;
+		explode floater2 type BITMAPONLY | BITMAP3;
+		explode floater3 type BITMAPONLY | BITMAP4;
+		explode floater4 type BITMAPONLY | BITMAP5;
+		explode centerlight type BITMAPONLY | BITMAP2;
+		explode dome type BITMAPONLY | BITMAP2;
+		explode lightl type BITMAPONLY | BITMAP3;
+		explode lightr type BITMAPONLY | BITMAP4;
+		explode lightt type BITMAPONLY | BITMAP5;
+		explode lightb type BITMAPONLY | BITMAP1;
+		explode arml type BITMAPONLY | BITMAP2;
+		explode armr type BITMAPONLY | BITMAP3;
+		explode armt type BITMAPONLY | BITMAP4;
+		explode armb type BITMAPONLY | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP5;
+		explode floater1 type FALL | BITMAP2;
+		explode floater2 type FALL | BITMAP3;
+		explode floater3 type FALL | BITMAP4;
+		explode floater4 type FALL | BITMAP5;
+		explode centerlight type FALL | BITMAP2;
+		explode dome type FALL | BITMAP2;
+		explode lightl type FALL | BITMAP3;
+		explode lightr type FALL | BITMAP4;
+		explode lightt type FALL | BITMAP5;
+		explode lightb type FALL | BITMAP1;
+		explode arml type SHATTER | BITMAP2;
+		explode armr type BITMAPONLY | BITMAP3;
+		explode armt type BITMAPONLY | BITMAP4;
+		explode armb type BITMAPONLY | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP5;
+		explode floater1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode floater2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode floater3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode floater4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode dome type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode lightl type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode lightr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode lightt type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode lightb type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode arml type SHATTER | BITMAP2;
+		explode armr type BITMAPONLY | BITMAP3;
+		explode armt type BITMAPONLY | BITMAP4;
+		explode armb type BITMAPONLY | BITMAP5;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP5;
+	explode floater1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode floater2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode floater3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode floater4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode dome type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode lightl type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode lightr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode lightt type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode lightb type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode arml type SHATTER | BITMAP2;
+	explode armr type BITMAPONLY | BITMAP3;
+	explode armt type BITMAPONLY | BITMAP4;
+	explode armb type BITMAPONLY | BITMAP5;
+	return (corpsetype);
+}

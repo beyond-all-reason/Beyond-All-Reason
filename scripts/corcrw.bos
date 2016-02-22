@@ -173,7 +173,7 @@ Killed(severity, corpsetype)
 		explode Turret3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
 		explode bladestop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
 		explode bladesbottom type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
@@ -191,4 +191,5 @@ Killed(severity, corpsetype)
 	explode Turret3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
 	explode bladestop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
 	explode bladesbottom type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
+	return corpsetype;
 }

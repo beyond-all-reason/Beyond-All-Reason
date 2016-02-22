@@ -1,0 +1,133 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad1, pad2, pad3, pad4, land1, land2, land3,
+       land4, tower, post, gun1, gun2, gun3, gun4, nano;
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from tower;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+Create()
+{
+	start-script SmokeUnit();
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = tower;
+	return (0);
+}
+
+QueryLandingPad(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
+{
+	Func_Var_1 = 5;
+	Func_Var_2 = 6;
+	Func_Var_3 = 7;
+	Func_Var_4 = 8;
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = nano;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode tower type BITMAPONLY | BITMAP3;
+		explode post type SHATTER | BITMAP5;
+		explode gun1 type BITMAPONLY | BITMAP4;
+		explode gun2 type BITMAPONLY | BITMAP3;
+		explode gun3 type BITMAPONLY | BITMAP4;
+		explode gun4 type BITMAPONLY | BITMAP3;
+		explode pad1 type BITMAPONLY | BITMAP4;
+		explode pad2 type BITMAPONLY | BITMAP3;
+		explode pad3 type BITMAPONLY | BITMAP4;
+		explode pad4 type BITMAPONLY | BITMAP3;
+		explode nano type BITMAPONLY | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode tower type BITMAPONLY | BITMAP3;
+		explode post type SHATTER | BITMAP5;
+		explode gun1 type FALL | BITMAP5;
+		explode gun2 type FALL | BITMAP4;
+		explode gun3 type FALL | BITMAP3;
+		explode gun4 type FALL | BITMAP4;
+		explode pad1 type BITMAPONLY | BITMAP3;
+		explode pad2 type BITMAPONLY | BITMAP4;
+		explode pad3 type BITMAPONLY | BITMAP3;
+		explode pad4 type BITMAPONLY | BITMAP4;
+		explode nano type FALL | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode tower type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+		explode tower type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode pad1 type BITMAPONLY | BITMAP4;
+		explode pad2 type BITMAPONLY | BITMAP4;
+		explode pad3 type BITMAPONLY | BITMAP4;
+		explode pad4 type BITMAPONLY | BITMAP4;
+		explode nano type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode gun3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode gun4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode tower type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	explode tower type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode pad1 type BITMAPONLY | BITMAP4;
+	explode pad2 type BITMAPONLY | BITMAP4;
+	explode pad3 type BITMAPONLY | BITMAP4;
+	explode pad4 type BITMAPONLY | BITMAP4;
+	explode nano type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode gun3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode gun4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	return (corpsetype);
+}

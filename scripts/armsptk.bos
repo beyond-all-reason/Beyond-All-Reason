@@ -240,7 +240,7 @@ Killed(severity, corpsetype)
 		explode leg6 type BITMAPONLY | BITMAP1;
 		explode turret type BITMAPONLY | BITMAP2;
 		explode box type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -254,7 +254,7 @@ Killed(severity, corpsetype)
 		explode leg6 type FALL | BITMAP1;
 		explode turret type SHATTER | BITMAP2;
 		explode box type SHATTER | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -268,7 +268,7 @@ Killed(severity, corpsetype)
 		explode leg6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode turret type SHATTER | BITMAP2;
 		explode box type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP3;
@@ -280,4 +280,5 @@ Killed(severity, corpsetype)
 	explode leg6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 	explode box type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	return corpsetype;
 }

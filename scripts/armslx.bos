@@ -1,0 +1,266 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, link, arm_lf, arm_lr, arm_rf, arm_rr, r_front, r_rear,
+       armsl, nose, tail, r_pylon;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+
+pickupscr()
+{
+	if( TRUE )
+	{
+		move arm_lf to x-axis [0.00000] speed [12.50000];
+		move arm_lr to x-axis [0.00000] speed [12.50000];
+		move arm_rf to x-axis [0.00000] speed [12.50000];
+		move arm_rr to x-axis [0.00000] speed [12.50000];
+		wait-for-move arm_rr along x-axis;
+		turn arm_lf to z-axis <-20.00000> speed <20.00000>;
+		turn arm_lr to z-axis <-20.00000> speed <20.00000>;
+		turn arm_rf to z-axis <20.00000> speed <20.00000>;
+		turn arm_rr to z-axis <20.00000> speed <20.00000>;
+		sleep 1326;
+	}
+	sleep 11;
+	return (0);
+}
+
+dropoffscr()
+{
+	if( TRUE )
+	{
+		turn arm_lf to z-axis <20.00000> speed <20.00000>;
+		turn arm_lr to z-axis <20.00000> speed <20.00000>;
+		turn arm_rf to z-axis <-20.00000> speed <20.00000>;
+		turn arm_rr to z-axis <-20.00000> speed <20.00000>;
+		wait-for-turn arm_rr around z-axis;
+		move arm_lf to x-axis [-12.50000] speed [12.50000];
+		move arm_lr to x-axis [-12.50000] speed [12.50000];
+		move arm_rf to x-axis [12.50000] speed [12.50000];
+		move arm_rr to x-axis [12.50000] speed [12.50000];
+		sleep 1325;
+	}
+	sleep 15;
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.00000>;
+	turn base to x-axis anglex speed <105.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.00000> speed <30.00000>;
+	turn base to x-axis <0.00000> speed <30.00000>;
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script pickupscr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script dropoffscr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Create()
+{
+	unitviewer = FALSE;
+	Static_Var_1 = 0;
+	move arm_lf to x-axis [-12.50000] now;
+	move arm_lr to x-axis [-12.50000] now;
+	move arm_rf to x-axis [12.50000] now;
+	move arm_rr to x-axis [12.50000] now;
+	turn arm_lf to z-axis <20.00000> now;
+	turn arm_lr to z-axis <20.00000> now;
+	turn arm_rf to z-axis <-20.00000> now;
+	turn arm_rr to z-axis <-20.00000> now;
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+QueryTransport(Func_Var_1, Func_Var_2)
+{
+	Func_Var_1 = 1;
+	return (0);
+}
+
+BeginTransport(Func_Var_1)
+{
+	move link to y-axis [0.00000] - Func_Var_1 now;
+	start-script RequestState(0);
+	return (0);
+}
+
+EndTransport()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+Activate()
+{
+	if( unitviewer )
+	{
+		start-script RequestState(0);
+	}
+	return (0);
+}
+
+Deactivate()
+{
+	if( unitviewer )
+	{
+		start-script RequestState(1);
+	}
+	return (0);
+}
+
+StartMoving()
+{
+	spin r_front around y-axis speed <600.06044> accelerate <8.00000>;
+	spin r_rear around y-axis speed <600.06044> accelerate <8.00000>;
+	return (0);
+}
+
+StopMoving()
+{
+	spin r_front around y-axis speed <0.00000> accelerate <-2.50000>;
+	spin r_rear around y-axis speed <0.00000> accelerate <-2.50000>;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP4;
+		explode armsl type BITMAPONLY | BITMAP5;
+		explode nose type BITMAPONLY | BITMAP1;
+		explode tail type BITMAPONLY | BITMAP2;
+		explode arm_lf type BITMAPONLY | BITMAP3;
+		explode arm_lr type BITMAPONLY | BITMAP4;
+		explode arm_rf type BITMAPONLY | BITMAP5;
+		explode arm_rr type BITMAPONLY | BITMAP1;
+		explode r_front type BITMAPONLY | BITMAP2;
+		explode r_rear type BITMAPONLY | BITMAP3;
+		explode r_pylon type BITMAPONLY | BITMAP4;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP4;
+		explode armsl type FALL | BITMAP5;
+		explode nose type FALL | BITMAP1;
+		explode tail type FALL | EXPLODE_ON_HIT | BITMAP2;
+		explode arm_lf type SHATTER | BITMAP3;
+		explode arm_lr type FALL | BITMAP4;
+		explode arm_rf type FALL | SMOKE | BITMAP5;
+		explode arm_rr type FALL | FIRE | BITMAP1;
+		explode r_front type FALL | BITMAP2;
+		explode r_rear type FALL | BITMAP3;
+		explode r_pylon type SHATTER | BITMAP4;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP4;
+		explode armsl type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode nose type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode tail type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode arm_lf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode arm_lr type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode arm_rf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode arm_rr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode r_front type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode r_rear type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode r_pylon type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP4;
+	explode armsl type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode nose type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode tail type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode arm_lf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode arm_lr type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode arm_rf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode arm_rr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode r_front type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode r_rear type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode r_pylon type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	return (corpsetype);
+}

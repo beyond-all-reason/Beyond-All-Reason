@@ -1,0 +1,253 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, body, pad, nano1, nano2, nano3, nano4, rotater;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	move body to y-axis [-11.25000] speed [2.50000];
+	return (0);
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	move body to y-axis [0.00000] speed [2.50000];
+	return (0);
+}
+
+activatescr()
+{
+	if( TRUE )
+	{
+		spin rotater around y-axis speed <200.00000>;
+		sleep 1820;
+	}
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		sleep 1820;
+	}
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Go()
+{
+	call-script activatescr();
+	call-script OpenYard();
+	sleep 100;
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	dont-cache pad;
+	Static_Var_1 = 0;
+	unitviewer = FALSE;
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( Static_Var_1 == 0 )
+	{
+		piecenum = nano1;
+	}
+	if( Static_Var_1 == 1 )
+	{
+		piecenum = nano2;
+	}
+	if( Static_Var_1 == 2 )
+	{
+		piecenum = nano3;
+	}
+	if( Static_Var_1 == 3 )
+	{
+		piecenum = nano4;
+	}
+	++Static_Var_1;
+	if( Static_Var_1 == 4 )
+	{
+		Static_Var_1 = 0;
+	}
+	return (0);
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+	return (0);
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( unitviewer == 1 )
+	{
+		sleep 909997;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+StartBuilding()
+{
+	sleep 1820;
+	return (0);
+}
+
+StopBuilding()
+{
+	sleep 1820;
+	return (0);
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode body type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode body type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode body type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode body type BITMAPONLY | BITMAP2;
+	return (corpsetype);
+}

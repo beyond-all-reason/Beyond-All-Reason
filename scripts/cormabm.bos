@@ -1,0 +1,313 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, anti, LFwheel, RFwheel, Guard1, Guard3, LRwheel, RRwheel,
+       Guard2, Guard4, box;
+
+static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+imobile()
+{
+	stop-spin LFwheel around x-axis;
+	stop-spin RFwheel around x-axis;
+	stop-spin LRwheel around x-axis;
+	stop-spin RRwheel around x-axis;
+	if( TRUE )
+	{
+		move LFwheel to x-axis [0.00000] now;
+		move LFwheel to x-axis [5.00000] speed [17.50000];
+		move RFwheel to x-axis [0.00000] now;
+		move RFwheel to x-axis [-5.00000] speed [17.50000];
+		sleep 256;
+	}
+	if( TRUE )
+	{
+		move Guard1 to x-axis [-7.62500] speed [27.50000];
+		move Guard3 to x-axis [7.62500] speed [27.50000];
+		move LRwheel to x-axis [5.00000] speed [17.50000];
+		move RRwheel to x-axis [-4.97499] speed [17.50000];
+		sleep 266;
+	}
+	if( TRUE )
+	{
+		move Guard1 to y-axis [-8.37500] speed [30.00000];
+		move Guard2 to x-axis [-7.62500] speed [27.50000];
+		move Guard3 to y-axis [-8.34999] speed [30.00000];
+		move Guard4 to x-axis [7.62500] speed [27.50000];
+		sleep 265;
+	}
+	if( TRUE )
+	{
+		move Guard2 to y-axis [-8.37500] speed [30.00000];
+		move Guard4 to y-axis [-8.37500] speed [30.00000];
+		sleep 266;
+	}
+	sleep 7;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+mobile()
+{
+	if( TRUE )
+	{
+		move Guard1 to x-axis [-7.62500] now;
+		move Guard1 to y-axis [-8.37500] now;
+		move Guard2 to x-axis [-7.62500] now;
+		move Guard2 to y-axis [-8.37500] now;
+		move Guard2 to y-axis [0.00000] speed [30.00000];
+		move Guard3 to x-axis [7.62500] now;
+		move Guard3 to y-axis [-8.34999] now;
+		move Guard4 to x-axis [7.62500] now;
+		move Guard4 to y-axis [-8.37500] now;
+		move Guard4 to y-axis [0.00000] speed [30.00000];
+		move LFwheel to x-axis [5.00000] now;
+		move LRwheel to x-axis [5.00000] now;
+		move RFwheel to x-axis [-5.00000] now;
+		move RRwheel to x-axis [-4.97499] now;
+		sleep 260;
+	}
+	if( TRUE )
+	{
+		move Guard1 to y-axis [0.00000] speed [30.00000];
+		move Guard2 to x-axis [0.00000] speed [27.50000];
+		move Guard3 to y-axis [0.00000] speed [30.00000];
+		move Guard4 to x-axis [0.00000] speed [27.50000];
+		sleep 265;
+	}
+	if( TRUE )
+	{
+		move Guard1 to x-axis [0.00000] speed [27.50000];
+		move Guard3 to x-axis [0.00000] speed [27.50000];
+		move LRwheel to x-axis [0.00000] speed [17.50000];
+		move RRwheel to x-axis [0.00000] speed [17.50000];
+		sleep 265;
+	}
+	if( TRUE )
+	{
+		move LFwheel to x-axis [0.00000] speed [17.50000];
+		move RFwheel to x-axis [0.00000] speed [17.50000];
+		sleep 267;
+	}
+	spin LFwheel around x-axis speed <150.03297>;
+	spin RFwheel around x-axis speed <150.03297>;
+	spin LRwheel around x-axis speed <150.03297>;
+	spin RRwheel around x-axis speed <150.03297>;
+	sleep 8;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.00000>;
+	turn base to x-axis anglex speed <105.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.00000> speed <30.00000>;
+	turn base to x-axis <0.00000> speed <30.00000>;
+	return (0);
+}
+
+Go()
+{
+	call-script mobile();
+	Static_Var_1 = 1;
+	return (0);
+}
+
+Stop()
+{
+	Static_Var_1 = 0;
+	call-script imobile();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	Static_Var_2 = 10000;
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+StartMoving()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+StopMoving()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep Static_Var_2;
+	set-signal-mask 0;
+	turn box to x-axis <0.00000> speed <100.00000>;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn box to x-axis <-90.02198> speed <400.00000>;
+	wait-for-turn box around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	sleep 100;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = anti;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode box type BITMAPONLY | BITMAP2;
+		explode anti type BITMAPONLY | BITMAP3;
+		explode Guard1 type BITMAPONLY | BITMAP4;
+		explode Guard2 type BITMAPONLY | BITMAP5;
+		explode Guard3 type BITMAPONLY | BITMAP1;
+		explode Guard4 type BITMAPONLY | BITMAP2;
+		explode LFwheel type BITMAPONLY | BITMAP3;
+		explode RFwheel type BITMAPONLY | BITMAP4;
+		explode LRwheel type BITMAPONLY | BITMAP1;
+		explode RRwheel type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode box type SHATTER | BITMAP2;
+		explode anti type FALL | BITMAP3;
+		explode Guard1 type FALL | BITMAP4;
+		explode Guard2 type FALL | BITMAP5;
+		explode Guard3 type FALL | BITMAP1;
+		explode Guard4 type FALL | BITMAP2;
+		explode LFwheel type FALL | BITMAP3;
+		explode RFwheel type FALL | BITMAP4;
+		explode LRwheel type FALL | BITMAP1;
+		explode RRwheel type FALL | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode box type SHATTER | BITMAP2;
+		explode anti type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode Guard1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode Guard2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode Guard3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode Guard4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode LFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode RFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode LRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode RRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode box type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode anti type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode Guard1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode Guard2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode Guard3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode Guard4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode LFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode RFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode LRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode RRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	return (corpsetype);
+}

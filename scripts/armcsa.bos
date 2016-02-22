@@ -1,0 +1,226 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, LWing, RWing, wake1, wake2, cab, nanopoint;
+
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move LWing to x-axis [0.00000] now;
+		move LWing to x-axis [-12.00000] speed [12.04819];
+		move RWing to x-axis [0.00000] now;
+		move RWing to x-axis [11.99998] speed [12.04819];
+		sleep 996;
+	}
+	sleep 6;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move LWing to x-axis [-12.00000] now;
+		move LWing to x-axis [0.00000] speed [14.58080];
+		move RWing to x-axis [11.99998] now;
+		move RWing to x-axis [0.00000] speed [14.58080];
+		sleep 823;
+	}
+	sleep 7;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		if( Static_Var_1 == 3 )
+		{
+			emit-sfx 256 | 3 from base;
+			emit-sfx 256 | 3 from LWing;
+			emit-sfx 256 | 3 from RWing;
+			emit-sfx 256 | 3 from wake1;
+			emit-sfx 256 | 3 from wake2;
+			emit-sfx 256 | 3 from cab;
+		}
+		sleep 150;
+	}
+	return (0);
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	return (0);
+}
+
+StartBuilding()
+{
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+StopBuilding()
+{
+	set INBUILDSTANCE to 0;
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode LWing type BITMAPONLY | BITMAP2;
+		explode RWing type BITMAPONLY | BITMAP3;
+		explode cab type BITMAPONLY | BITMAP4;
+		explode nanopoint type BITMAPONLY | BITMAP5;
+		explode wake1 type BITMAPONLY | BITMAP1;
+		explode wake2 type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode LWing type BITMAPONLY | BITMAP2;
+		explode RWing type BITMAPONLY | BITMAP3;
+		explode cab type SHATTER | BITMAP4;
+		explode nanopoint type FALL | BITMAP5;
+		explode wake1 type FALL | BITMAP1;
+		explode wake2 type FALL | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode LWing type BITMAPONLY | BITMAP2;
+		explode RWing type BITMAPONLY | BITMAP3;
+		explode cab type SHATTER | BITMAP4;
+		explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode LWing type BITMAPONLY | BITMAP2;
+	explode RWing type BITMAPONLY | BITMAP3;
+	explode cab type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
+	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	return (corpsetype);
+}
+
+setSFXoccupy(state)
+{
+	Static_Var_1 = state;
+	return (0);
+}

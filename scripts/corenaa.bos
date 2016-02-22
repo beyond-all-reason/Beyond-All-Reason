@@ -1,0 +1,327 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  flare1, turret, flare2, guns, base, sleeve;
+
+static-var  restore_delay, gun_1;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <15.00000>;
+	turn base to z-axis anglez speed <15.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to x-axis <0.00000> - anglex speed <12.00000>;
+	turn base to z-axis <0.00000> - anglez speed <12.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to x-axis anglex / <0.00549> speed <9.00000>;
+	turn base to z-axis anglez / <0.00549> speed <9.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to x-axis <0.00000> speed <3.00000>;
+	turn base to z-axis <0.00000> speed <3.00000>;
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.02198>;
+	turn base to x-axis anglex speed <105.02198>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.00000> speed <30.00549>;
+	turn base to x-axis <0.00000> speed <30.00549>;
+	return (0);
+}
+
+Create()
+{
+	hide flare1;
+	hide flare2;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+	gun_1 = flare1;
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn turret to y-axis <0.00000> speed <600.14286>;
+	turn guns to x-axis <0.00000> speed <550.13187>;
+	return (1);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <670.15934>;
+	turn guns to x-axis <0.00000> - pitch speed <670.15934>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn guns around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		move guns to z-axis [-10.00000] now;
+		show flare1;
+		sleep 150;
+		hide flare1;
+		move guns to z-axis [0.00000] speed [37.50000];
+	}
+	if( gun_1 == 1 )
+	{
+		move guns to z-axis [-10.00000] now;
+		show flare2;
+		sleep 150;
+		hide flare2;
+		move guns to z-axis [0.00000] speed [37.50000];
+	}
+	sleep 50;
+	++gun_1;
+	if( gun_1 == 1 )
+	{
+		gun_1 = flare1;
+	}
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare1;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = turret;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	hide flare1;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode guns type BITMAPONLY | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode flare1 type BITMAPONLY | BITMAP3;
+		explode turret type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode guns type FALL | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode flare1 type FALL | BITMAP3;
+		explode turret type SHATTER | BITMAP5;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode guns type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode turret type SHATTER | BITMAP5;
+		return (0);
+	}
+	corpsetype = 3;
+	explode guns type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode base type BITMAPONLY | BITMAP2;
+	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	return (0);
+	var Func_Var_3, Func_Var_4, Func_Var_5;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		severity = get HEALTH;
+		if( severity < 66 )
+		{
+			Func_Var_3 = 256 | 2;
+			if( Rand( 1, 66 ) < severity )
+			{
+				Func_Var_3 = 256 | 1;
+			}
+			emit-sfx Func_Var_3 from base;
+		}
+		corpsetype = severity * 50;
+		if( corpsetype < 200 )
+		{
+			corpsetype = 200;
+		}
+		sleep corpsetype;
+	}
+	return (0);
+	var Func_Var_6, Func_Var_7;
+	turn base to x-axis severity speed <15.00000>;
+	turn base to z-axis corpsetype speed <15.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to x-axis <0.00000> - severity speed <12.00000>;
+	turn base to z-axis <0.00000> - corpsetype speed <12.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to x-axis severity / <0.00549> speed <9.00000>;
+	turn base to z-axis corpsetype / <0.00549> speed <9.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to x-axis <0.00000> speed <3.00000>;
+	turn base to z-axis <0.00000> speed <3.00000>;
+	return (0);
+	var Func_Var_8, Func_Var_9;
+	turn base to z-axis corpsetype speed <105.02198>;
+	turn base to x-axis severity speed <105.02198>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.00000> speed <30.00549>;
+	turn base to x-axis <0.00000> speed <30.00549>;
+	return (0);
+	hide flare1;
+	hide flare2;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+	gun_1 = flare1;
+	return (0);
+	var Func_Var_10;
+	restore_delay = severity * 2;
+	return (0);
+	sleep restore_delay;
+	turn turret to y-axis <0.00000> speed <600.14286>;
+	turn guns to x-axis <0.00000> speed <550.13187>;
+	return (1);
+	var Func_Var_11, Func_Var_12;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis severity speed <670.15934>;
+	turn guns to x-axis <0.00000> - corpsetype speed <670.15934>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn guns around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+	if( gun_1 == 0 )
+	{
+		move guns to z-axis [-10.00000] now;
+		show flare1;
+		sleep 150;
+		hide flare1;
+		move guns to z-axis [0.00000] speed [37.50000];
+	}
+	if( gun_1 == 1 )
+	{
+		move guns to z-axis [-10.00000] now;
+		show flare2;
+		sleep 150;
+		hide flare2;
+		move guns to z-axis [0.00000] speed [37.50000];
+	}
+	sleep 50;
+	++gun_1;
+	if( gun_1 == 1 )
+	{
+		gun_1 = flare1;
+	}
+	return (0);
+	var Func_Var_13;
+	severity = 1;
+	return (0);
+	var Func_Var_14;
+	severity = 0;
+	return (0);
+	var Func_Var_15;
+	severity = 1;
+	return (0);
+	var Func_Var_16, Func_Var_17;
+	hide flare1;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode guns type BITMAPONLY | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode flare1 type BITMAPONLY | BITMAP3;
+		explode turret type BITMAPONLY | BITMAP5;
+		return (0);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode guns type FALL | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode flare1 type FALL | BITMAP3;
+		explode turret type SHATTER | BITMAP5;
+		return (0);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode guns type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode turret type SHATTER | BITMAP5;
+		return (0);
+	}
+	corpsetype = 3;
+	explode guns type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	explode base type BITMAPONLY | BITMAP2;
+	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	return (0);
+}

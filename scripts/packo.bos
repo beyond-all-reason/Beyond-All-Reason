@@ -221,7 +221,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode door3 type BITMAPONLY | BITMAP5;
 		explode door4 type BITMAPONLY | BITMAP5;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -233,7 +233,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode door3 type BITMAPONLY | BITMAP5;
 		explode door4 type BITMAPONLY | BITMAP5;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -252,7 +252,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP2;
 		explode door3 type BITMAPONLY | BITMAP2;
 		explode door4 type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 4;
 	explode base type BITMAPONLY | BITMAP1;
@@ -262,4 +262,5 @@ Killed(severity, corpsetype)
 	explode door2 type BITMAPONLY | BITMAP3;
 	explode door3 type BITMAPONLY | BITMAP3;
 	explode door4 type BITMAPONLY | BITMAP3;
+	return (corpsetype);
 }

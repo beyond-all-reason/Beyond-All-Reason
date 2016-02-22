@@ -1,0 +1,286 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, emit, vents, fliptop, riser;
+
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move vents to y-axis [0.00000] now;
+		move vents to y-axis [4.00000] speed [9.17430];
+		sleep 436;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [11.25000] speed [16.51480];
+		turn fliptop to z-axis <41.21978> speed <93.89560>;
+		sleep 439;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [11.00000] speed [0.56946];
+		move riser to y-axis [8.00000] speed [18.22327];
+		turn fliptop to z-axis <72.01648> speed <70.14835>;
+		sleep 439;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [11.74998] speed [1.70840];
+		move riser to y-axis [18.75000] speed [24.48744];
+		turn fliptop to z-axis <160.14286> speed <200.74176>;
+		sleep 439;
+	}
+	if( TRUE )
+	{
+		move riser to y-axis [31.50000] speed [29.10957];
+		sleep 438;
+	}
+	if( TRUE )
+	{
+		move riser to y-axis [35.87498] speed [9.96581];
+		sleep 439;
+	}
+	sleep 43;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move vents to y-axis [10.12498] now;
+		move vents to y-axis [12.49998] speed [4.30254];
+		move riser to y-axis [35.87498] now;
+		move riser to y-axis [31.50000] speed [7.92570];
+		turn fliptop to z-axis <160.14286> now;
+		sleep 552;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [8.99998] speed [6.32912];
+		move riser to y-axis [18.75000] speed [23.05605];
+		sleep 553;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [5.62500] speed [6.10306];
+		move riser to y-axis [8.00000] speed [19.43939];
+		turn fliptop to z-axis <72.01648> speed <159.35714>;
+		sleep 553;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [3.37500] speed [4.03224];
+		move riser to y-axis [0.00000] speed [14.33694];
+		turn fliptop to z-axis <41.21978> speed <55.18681>;
+		sleep 558;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [0.62500] speed [4.95494];
+		turn fliptop to z-axis <0.00000> speed <74.26923>;
+		sleep 555;
+	}
+	if( TRUE )
+	{
+		move vents to y-axis [0.00000] speed [1.12410];
+		sleep 556;
+	}
+	sleep 38;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Go()
+{
+	call-script activatescr();
+	gun_1 = emit;
+	return (0);
+}
+
+Stop()
+{
+	gun_1 = base;
+	sleep 4000;
+	call-script deactivatescr();
+	show riser;
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	gun_1 = base;
+	dont-shade base;
+	dont-shade riser;
+	dont-shade fliptop;
+	dont-shade vents;
+	dont-cache fliptop;
+	dont-cache riser;
+	dont-cache vents;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+	call-script InitState();
+	return (0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	hide riser;
+	gun_1 = base;
+	start-script RequestState(1);
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = emit;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode fliptop type FALL | BITMAP2;
+		explode vents type BITMAPONLY | BITMAP3;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode fliptop type FALL | BITMAP2;
+		explode vents type SHATTER | BITMAP3;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode fliptop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		explode vents type SHATTER | BITMAP3;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode fliptop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	explode vents type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	return (corpsetype);
+}

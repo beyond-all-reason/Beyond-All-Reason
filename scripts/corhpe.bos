@@ -1,0 +1,350 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, beam1, beam2, door1, door2, platform1, platform2,
+       nano2, nano1;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn door1 to x-axis <0.00000> now;
+		turn door1 to x-axis <90.01648> speed <225.00000>;
+		turn door2 to x-axis <0.00000> now;
+		turn door2 to x-axis <-90.01648> speed <225.00000>;
+		sleep 400;
+	}
+	if( TRUE )
+	{
+		move door1 to y-axis [-11.25000] speed [27.50000];
+		move door2 to y-axis [-11.25000] speed [27.50000];
+		sleep 400;
+	}
+	if( TRUE )
+	{
+		move platform1 to y-axis [18.75000] speed [45.00000];
+		move platform2 to y-axis [18.72498] speed [45.00000];
+		sleep 400;
+	}
+	if( TRUE )
+	{
+		turn nano2 to y-axis <-90.01648> speed <225.00000>;
+		turn nano1 to y-axis <-90.01648> speed <225.00000>;
+		sleep 400;
+	}
+	sleep 20;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move platform1 to y-axis [18.75000] now;
+		move platform2 to y-axis [18.72498] now;
+		move door1 to y-axis [-11.25000] now;
+		move door2 to y-axis [-11.25000] now;
+		turn door1 to x-axis <90.01648> now;
+		turn door2 to x-axis <-90.01648> now;
+		turn nano2 to y-axis <-90.01648> now;
+		turn nano2 to y-axis <0.00000> speed <225.00000>;
+		turn nano1 to y-axis <-90.01648> now;
+		turn nano1 to y-axis <0.00000> speed <225.00000>;
+		sleep 400;
+	}
+	if( TRUE )
+	{
+		move platform1 to y-axis [0.00000] speed [45.00000];
+		move platform2 to y-axis [0.00000] speed [45.00000];
+		sleep 400;
+	}
+	if( TRUE )
+	{
+		move door1 to y-axis [0.00000] speed [27.50000];
+		move door2 to y-axis [0.00000] speed [27.50000];
+		sleep 400;
+	}
+	if( TRUE )
+	{
+		turn door1 to x-axis <0.00000> speed <225.00000>;
+		turn door2 to x-axis <0.00000> speed <225.00000>;
+		sleep 400;
+	}
+	sleep 20;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+Go()
+{
+	dont-cache beam1;
+	dont-cache beam2;
+	dont-cache door1;
+	dont-cache door2;
+	dont-cache platform1;
+	dont-cache platform2;
+	dont-cache nano1;
+	dont-cache nano2;
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	cache beam1;
+	cache beam2;
+	cache door1;
+	cache door2;
+	cache platform1;
+	cache platform2;
+	cache nano1;
+	cache nano2;
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	dont-shade beam1;
+	dont-shade beam2;
+	dont-shade door1;
+	dont-shade door2;
+	dont-shade platform1;
+	dont-shade platform2;
+	dont-shade nano1;
+	dont-shade nano2;
+	dont-shade pad;
+	dont-cache pad;
+	unitviewer = FALSE;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script SmokeUnit();
+	turn pad to y-axis <90.00000> speed <1000.00000>;
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( Static_Var_1 == 0 )
+	{
+		piecenum = beam1;
+		Static_Var_1 = 1;
+		return (0);
+	}
+	if( Static_Var_1 == 1 )
+	{
+		piecenum = beam2;
+		Static_Var_1 = 0;
+	}
+	return (0);
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+	return (0);
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+StartBuilding()
+{
+	spin pad around y-axis speed <0.00000>;
+	return (0);
+}
+
+StopBuilding()
+{
+	stop-spin pad around y-axis;
+	return (0);
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam1 type BITMAPONLY | BITMAP2;
+		explode beam2 type BITMAPONLY | BITMAP3;
+		explode door1 type BITMAPONLY | BITMAP4;
+		explode door2 type BITMAPONLY | BITMAP5;
+		explode pad type BITMAPONLY | BITMAP1;
+		explode nano1 type BITMAPONLY | BITMAP2;
+		explode nano2 type BITMAPONLY | BITMAP3;
+		explode platform1 type BITMAPONLY | BITMAP4;
+		explode platform2 type BITMAPONLY | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam1 type FALL | BITMAP2;
+		explode beam2 type FALL | BITMAP3;
+		explode door1 type FALL | BITMAP4;
+		explode door2 type FALL | BITMAP5;
+		explode pad type BITMAPONLY | BITMAP1;
+		explode nano1 type FALL | BITMAP2;
+		explode nano2 type FALL | BITMAP3;
+		explode platform1 type FALL | BITMAP4;
+		explode platform2 type SHATTER | BITMAP5;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode beam1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode beam2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode door1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode door2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+		explode pad type BITMAPONLY | BITMAP1;
+		explode nano1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode nano2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode platform1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode platform2 type SHATTER | BITMAP5;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode beam1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode beam2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode door1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode door2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
+	explode pad type BITMAPONLY | BITMAP1;
+	explode nano1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode nano2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode platform1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode platform2 type SHATTER | EXPLODE_ON_HIT | BITMAP5;
+	return (corpsetype);
+}

@@ -1647,7 +1647,7 @@ Killed(severity, corpsetype)
 			explode rleg type FALL | BITMAP5;
 			explode rmispoint type FALL | BITMAP1;
 			explode rupleg type FALL | BITMAP2;
-			return (0);
+			return (corpsetype);
 		}
 		corpsetype = 3;
 		explode body type BITMAPONLY | BITMAP1;
@@ -1663,7 +1663,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode rupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( Static_Var_7 == 2 )
 	{
@@ -1683,7 +1683,7 @@ Killed(severity, corpsetype)
 			explode rleg type FALL | BITMAP5;
 			explode rmispoint type FALL | BITMAP1;
 			explode rupleg type FALL | BITMAP2;
-			return (0);
+			return (corpsetype);
 		}
 		corpsetype = 3;
 		explode body type BITMAPONLY | BITMAP1;
@@ -1699,7 +1699,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode rupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 25 )
 	{
@@ -1717,7 +1717,7 @@ Killed(severity, corpsetype)
 		explode rleg type BITMAPONLY | BITMAP5;
 		explode rmispoint type BITMAPONLY | BITMAP1;
 		explode rupleg type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -1735,7 +1735,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | BITMAP5;
 		explode rmispoint type FALL | BITMAP1;
 		explode rupleg type FALL | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -1753,7 +1753,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode rupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode body type BITMAPONLY | BITMAP1;
@@ -1769,5 +1769,5 @@ Killed(severity, corpsetype)
 	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 	explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode rupleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	return (0);
+	return (corpsetype);
 }

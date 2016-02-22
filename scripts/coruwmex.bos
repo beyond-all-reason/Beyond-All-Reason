@@ -106,23 +106,24 @@ Killed(severity, corpsetype)
 		corpsetype = 1;
 		explode drive type BITMAPONLY | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode drive type SHATTER | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode drive type SHATTER | EXPLODE_ON_HIT | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode drive type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	return corpsetype;
 }

@@ -1,0 +1,343 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, launch, Door1, Door2, Frame1, Frame2, Frame3, Frame4,
+       Cover2, Cover1, dummy;
+
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move Door1 to x-axis [0.00000] now;
+		move Door1 to x-axis [7.25000] speed [7.01839];
+		move Door2 to x-axis [0.00000] now;
+		move Door2 to x-axis [-7.25000] speed [7.01839];
+		sleep 1033;
+	}
+	if( TRUE )
+	{
+		move Frame1 to x-axis [3.50000] speed [3.37837];
+		move Frame2 to x-axis [3.50000] speed [3.37837];
+		move Frame3 to x-axis [-3.50000] speed [3.37837];
+		move Frame4 to x-axis [-3.50000] speed [3.37837];
+		sleep 1036;
+	}
+	if( TRUE )
+	{
+		move Frame1 to x-axis [11.25000] speed [7.49516];
+		move Frame2 to x-axis [11.25000] speed [7.49516];
+		move Frame3 to x-axis [-11.25000] speed [7.49516];
+		move Frame4 to x-axis [-11.25000] speed [7.49515];
+		move Cover2 to x-axis [-3.75000] speed [3.62668];
+		move Cover1 to x-axis [3.75000] speed [3.62668];
+		turn Cover2 to z-axis <-75.25275> speed <72.77473>;
+		turn Cover1 to z-axis <75.25275> speed <72.77473>;
+		sleep 1034;
+	}
+	if( TRUE )
+	{
+		move Frame1 to x-axis [14.50000] speed [3.13707];
+		move Frame2 to x-axis [14.50000] speed [3.13705];
+		move Frame3 to x-axis [-14.50000] speed [3.13705];
+		move Frame4 to x-axis [-14.50000] speed [3.13705];
+		move Cover2 to x-axis [-7.50000] speed [3.61969];
+		move Cover1 to x-axis [7.50000] speed [3.61969];
+		turn Cover2 to z-axis <-90.02198> speed <14.25275>;
+		turn Cover1 to z-axis <90.02198> speed <14.25275>;
+		sleep 1036;
+	}
+	sleep 22;
+	return (0);
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move Door1 to x-axis [7.25000] now;
+		move Door2 to x-axis [-7.25000] now;
+		move Frame1 to x-axis [14.50000] now;
+		move Frame1 to x-axis [11.25000] speed [5.35420];
+		move Frame2 to x-axis [14.50000] now;
+		move Frame2 to x-axis [11.25000] speed [5.35420];
+		move Frame3 to x-axis [-14.50000] now;
+		move Frame3 to x-axis [-11.25000] speed [5.35419];
+		move Frame4 to x-axis [-14.50000] now;
+		move Frame4 to x-axis [-11.25000] speed [5.35420];
+		move Cover2 to x-axis [-7.50000] now;
+		move Cover2 to x-axis [-3.75000] speed [6.17792];
+		move Cover1 to x-axis [7.50000] now;
+		move Cover1 to x-axis [3.75000] speed [6.17792];
+		turn Cover2 to z-axis <-90.02198> now;
+		turn Cover2 to z-axis <-75.25275> speed <24.32967>;
+		turn Cover1 to z-axis <90.02198> now;
+		turn Cover1 to z-axis <75.25275> speed <24.32967>;
+		sleep 607;
+	}
+	if( TRUE )
+	{
+		move Frame1 to x-axis [3.50000] speed [12.62215];
+		move Frame2 to x-axis [3.50000] speed [12.62215];
+		move Frame3 to x-axis [-3.50000] speed [12.62215];
+		move Frame4 to x-axis [-3.50000] speed [12.62215];
+		move Cover2 to x-axis [0.00000] speed [6.10748];
+		move Cover1 to x-axis [0.00000] speed [6.10748];
+		turn Cover2 to z-axis <0.00000> speed <122.56044>;
+		turn Cover1 to z-axis <0.00000> speed <122.56044>;
+		sleep 614;
+	}
+	if( TRUE )
+	{
+		move Frame1 to x-axis [0.00000] speed [5.73770];
+		move Frame2 to x-axis [0.00000] speed [5.73770];
+		move Frame3 to x-axis [0.00000] speed [5.73770];
+		move Frame4 to x-axis [0.00000] speed [5.73770];
+		sleep 610;
+	}
+	if( TRUE )
+	{
+		move Door1 to x-axis [0.00000] speed [11.84639];
+		move Door2 to x-axis [0.00000] speed [11.84639];
+		sleep 612;
+	}
+	sleep 17;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Go()
+{
+	call-script activatescr();
+	gun_1 = launch;
+	return (0);
+}
+
+Stop()
+{
+	gun_1 = base;
+	sleep 4000;
+	call-script deactivatescr();
+	show dummy;
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	gun_1 = base;
+	dont-shade base;
+	dont-shade Door1;
+	dont-shade Door2;
+	dont-shade dummy;
+	dont-shade Frame1;
+	dont-shade Frame2;
+	dont-shade Frame3;
+	dont-shade Frame4;
+	dont-shade Cover1;
+	dont-shade Cover2;
+	dont-cache Door1;
+	dont-cache Door2;
+	dont-cache dummy;
+	dont-cache Frame1;
+	dont-cache Frame2;
+	dont-cache Frame3;
+	dont-cache Frame4;
+	dont-cache Cover1;
+	dont-cache Cover2;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+	call-script InitState();
+	return (0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	hide dummy;
+	gun_1 = base;
+	start-script RequestState(1);
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = launch;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode Door1 type BITMAPONLY | BITMAP2;
+		explode Door2 type BITMAPONLY | BITMAP3;
+		explode dummy type BITMAPONLY | BITMAP4;
+		explode Frame1 type BITMAPONLY | BITMAP5;
+		explode Frame2 type BITMAPONLY | BITMAP1;
+		explode Frame3 type BITMAPONLY | BITMAP2;
+		explode Frame4 type BITMAPONLY | BITMAP3;
+		explode Cover1 type BITMAPONLY | BITMAP4;
+		explode Cover2 type BITMAPONLY | BITMAP5;
+		explode launch type BITMAPONLY | BITMAP1;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode Door1 type BITMAPONLY | BITMAP2;
+		explode Door2 type BITMAPONLY | BITMAP3;
+		explode dummy type BITMAPONLY | BITMAP4;
+		explode Frame1 type BITMAPONLY | BITMAP5;
+		explode Frame2 type BITMAPONLY | BITMAP1;
+		explode Frame3 type BITMAPONLY | BITMAP2;
+		explode Frame4 type SHATTER | BITMAP3;
+		explode Cover1 type FALL | BITMAP4;
+		explode Cover2 type FALL | BITMAP5;
+		explode launch type FALL | BITMAP1;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode Door1 type BITMAPONLY | BITMAP2;
+		explode Door2 type BITMAPONLY | BITMAP3;
+		explode dummy type BITMAPONLY | BITMAP4;
+		explode Frame1 type BITMAPONLY | BITMAP5;
+		explode Frame2 type BITMAPONLY | BITMAP1;
+		explode Frame3 type BITMAPONLY | BITMAP2;
+		explode Frame4 type SHATTER | BITMAP3;
+		explode Cover1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode Cover2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+		explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode Door1 type BITMAPONLY | BITMAP2;
+	explode Door2 type BITMAPONLY | BITMAP3;
+	explode dummy type BITMAPONLY | BITMAP4;
+	explode Frame1 type BITMAPONLY | BITMAP5;
+	explode Frame2 type BITMAPONLY | BITMAP1;
+	explode Frame3 type BITMAPONLY | BITMAP2;
+	explode Frame4 type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+	explode Cover1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode Cover2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
+	explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+	return (corpsetype);
+}

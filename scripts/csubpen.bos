@@ -1,0 +1,234 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, piling1, gun1, nano1, piling2, gun2, nano2, slip,
+       explode1, explode2, explode3, explode4, explode5, explode6;
+
+static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+{
+	turn gun2 to x-axis <20.00000> speed <10.00000>;
+	turn gun1 to x-axis <20.00000> speed <10.00000>;
+	turn piling1 to y-axis <90.02198> speed <90.00000>;
+	turn piling2 to y-axis <-90.02198> speed <90.00000>;
+	wait-for-turn piling1 around y-axis;
+	wait-for-turn piling2 around y-axis;
+	sleep 500;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	turn piling1 to y-axis <90.02198> now;
+	turn piling1 to y-axis <0.00000> speed <90.00000>;
+	turn piling2 to y-axis <-90.02198> now;
+	turn piling2 to y-axis <0.00000> speed <90.00000>;
+	turn gun2 to x-axis <20.00000> now;
+	turn gun1 to x-axis <20.00000> now;
+	turn gun2 to x-axis <0.00000> speed <10.00000>;
+	turn gun1 to x-axis <0.00000> speed <10.00000>;
+	sleep 500;
+	return (0);
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+Go()
+{
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	spray = base;
+	unitviewer = FALSE;
+	call-script InitState();
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( spray == 0 )
+	{
+		piecenum = nano1;
+	}
+	if( spray != 0 )
+	{
+		piecenum = nano2;
+	}
+	spray = !spray;
+	return (0);
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+	return (0);
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = slip;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = piling1;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode nano1 type BITMAPONLY | BITMAP2;
+		explode nano2 type BITMAPONLY | BITMAP3;
+		explode explode1 type BITMAPONLY | BITMAP2;
+		explode explode2 type BITMAPONLY | BITMAP3;
+		explode explode3 type BITMAPONLY | BITMAP2;
+		explode explode4 type BITMAPONLY | BITMAP3;
+		explode explode5 type BITMAPONLY | BITMAP2;
+		explode explode6 type BITMAPONLY | BITMAP3;
+		explode gun1 type BITMAPONLY | BITMAP4;
+		explode gun2 type BITMAPONLY | BITMAP5;
+		explode piling1 type BITMAPONLY | BITMAP1;
+		explode piling2 type BITMAPONLY | BITMAP2;
+		explode slip type BITMAPONLY | BITMAP3;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode nano1 type BITMAPONLY | BITMAP2;
+		explode nano2 type BITMAPONLY | BITMAP3;
+		explode explode1 type BITMAPONLY | BITMAP2;
+		explode explode2 type BITMAPONLY | BITMAP3;
+		explode explode3 type BITMAPONLY | BITMAP2;
+		explode explode4 type BITMAPONLY | BITMAP3;
+		explode explode5 type BITMAPONLY | BITMAP2;
+		explode explode6 type BITMAPONLY | BITMAP3;
+		explode gun1 type BITMAPONLY | BITMAP4;
+		explode gun2 type BITMAPONLY | BITMAP5;
+		explode piling1 type BITMAPONLY | BITMAP1;
+		explode piling2 type BITMAPONLY | BITMAP2;
+		explode slip type BITMAPONLY | BITMAP3;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode nano1 type BITMAPONLY | BITMAP2;
+	explode nano2 type BITMAPONLY | BITMAP3;
+	explode explode1 type BITMAPONLY | BITMAP2;
+	explode explode2 type BITMAPONLY | BITMAP3;
+	explode explode3 type BITMAPONLY | BITMAP2;
+	explode explode4 type BITMAPONLY | BITMAP3;
+	explode explode5 type BITMAPONLY | BITMAP2;
+	explode explode6 type BITMAPONLY | BITMAP3;
+	explode gun1 type BITMAPONLY | BITMAP4;
+	explode gun2 type BITMAPONLY | BITMAP5;
+	explode piling1 type BITMAPONLY | BITMAP1;
+	explode piling2 type BITMAPONLY | BITMAP2;
+	explode slip type BITMAPONLY | BITMAP3;
+	return (corpsetype);
+}

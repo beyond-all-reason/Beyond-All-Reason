@@ -1268,20 +1268,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1;
 		explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP4;
+	return corpsetype;
 }

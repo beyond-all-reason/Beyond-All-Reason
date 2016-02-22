@@ -1,0 +1,578 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, post1, post2, beam1, beam2, beam3, beam4, blink1,
+       blink2;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
+            Static_Var_6, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
+
+
+Go()
+{
+	call-script CloseYard();
+	call-script activatescr();
+	set ACTIVATION to 100;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+Stop()
+{
+	set ACTIVATION to 0;
+	call-script OpenYard();
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	var Func_Var_4;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			Func_Var_4 = Rand( 1, 2 );
+			if( Func_Var_4 == 1 )
+			{
+				emit-sfx smoketype from blink1;
+			}
+			if( Func_Var_4 == 2 )
+			{
+				emit-sfx smoketype from blink2;
+			}
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	Static_Var_2 = 0;
+	Static_Var_3 = 0;
+	Static_Var_4 = 0;
+	Static_Var_5 = 1;
+	Static_Var_6 = 1;
+	Static_Var_7 = 1;
+	Static_Var_8 = 1;
+	hide beam1;
+	hide beam2;
+	hide beam3;
+	hide beam4;
+	cache blink1;
+	cache blink2;
+	cache post1;
+	cache post2;
+	dont-cache beam1;
+	dont-cache beam2;
+	dont-cache beam3;
+	dont-cache beam4;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script SmokeUnit();
+	start-script ShowDamage();
+	set ARMORED to 1;
+	return (0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+activatescr()
+{
+	dont-cache blink1;
+	dont-cache blink2;
+	sleep 500;
+	if( Static_Var_5 == 1 )
+	{
+		show beam1;
+	}
+	sleep 250;
+	hide beam1;
+	if( Static_Var_6 == 1 )
+	{
+		show beam2;
+	}
+	sleep 250;
+	hide beam2;
+	if( Static_Var_7 == 1 )
+	{
+		show beam3;
+	}
+	sleep 250;
+	hide beam3;
+	if( Static_Var_8 == 1 )
+	{
+		show beam4;
+	}
+	sleep 250;
+	hide beam4;
+	sleep 500;
+	if( Static_Var_5 == 1 )
+	{
+		show beam1;
+	}
+	if( Static_Var_6 == 1 )
+	{
+		show beam2;
+	}
+	if( Static_Var_7 == 1 )
+	{
+		show beam3;
+	}
+	if( Static_Var_8 == 1 )
+	{
+		show beam4;
+	}
+	start-script Flicker();
+	return (0);
+}
+
+deactivatescr()
+{
+	sleep 500;
+	hide beam4;
+	sleep 250;
+	hide beam3;
+	sleep 250;
+	hide beam2;
+	sleep 250;
+	hide beam1;
+	sleep 500;
+	if( Static_Var_5 == 1 )
+	{
+		show beam1;
+	}
+	if( Static_Var_6 == 1 )
+	{
+		show beam2;
+	}
+	if( Static_Var_7 == 1 )
+	{
+		show beam3;
+	}
+	if( Static_Var_8 == 1 )
+	{
+		show beam4;
+	}
+	sleep 100;
+	hide beam1;
+	hide beam2;
+	hide beam3;
+	hide beam4;
+	cache blink1;
+	cache blink2;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+ShowDamage(Func_Var_1, Func_Var_2)
+{
+	while( TRUE )
+	{
+		sleep 250;
+		Func_Var_1 = get HEALTH;
+		Func_Var_2 = Rand( 1, 4 );
+		if( Func_Var_1 <= 75 )
+		{
+			if( Static_Var_1 == 0 )
+			{
+				Static_Var_1 = 1;
+				Static_Var_2 = Func_Var_2;
+				if( Func_Var_2 == 1 )
+				{
+					Static_Var_5 = 0;
+					hide beam1;
+				}
+				if( Func_Var_2 == 2 )
+				{
+					Static_Var_6 = 0;
+					hide beam2;
+				}
+				if( Func_Var_2 == 3 )
+				{
+					Static_Var_7 = 0;
+					hide beam3;
+				}
+				if( Func_Var_2 == 4 )
+				{
+					Static_Var_8 = 0;
+					hide beam4;
+				}
+			}
+		}
+		if( Func_Var_1 <= 50 )
+		{
+			if( Static_Var_1 == 1 )
+			{
+				Static_Var_1 = 2;
+				Static_Var_3 = Func_Var_2;
+				if( Func_Var_2 == 1 )
+				{
+					Static_Var_5 = 0;
+					hide beam1;
+				}
+				if( Func_Var_2 == 2 )
+				{
+					Static_Var_6 = 0;
+					hide beam2;
+				}
+				if( Func_Var_2 == 3 )
+				{
+					Static_Var_7 = 0;
+					hide beam3;
+				}
+				if( Func_Var_2 == 4 )
+				{
+					Static_Var_8 = 0;
+					hide beam4;
+				}
+			}
+		}
+		if( Func_Var_1 <= 25 )
+		{
+			if( Static_Var_1 == 2 )
+			{
+				Static_Var_1 = 3;
+				Static_Var_4 = Func_Var_2;
+				if( Func_Var_2 == 1 )
+				{
+					Static_Var_5 = 0;
+					hide beam1;
+				}
+				if( Func_Var_2 == 2 )
+				{
+					Static_Var_6 = 0;
+					hide beam2;
+				}
+				if( Func_Var_2 == 3 )
+				{
+					Static_Var_7 = 0;
+					hide beam3;
+				}
+				if( Func_Var_2 == 4 )
+				{
+					Static_Var_8 = 0;
+					hide beam4;
+				}
+			}
+		}
+		if( Func_Var_1 >= 27 )
+		{
+			if( Static_Var_1 == 3 )
+			{
+				if( Static_Var_4 == 1 )
+				{
+					Static_Var_5 = 1;
+					if( get ACTIVATION )
+					{
+						show beam1;
+					}
+				}
+				if( Static_Var_4 == 2 )
+				{
+					Static_Var_6 = 1;
+					if( get ACTIVATION )
+					{
+						show beam2;
+					}
+				}
+				if( Static_Var_4 == 3 )
+				{
+					Static_Var_7 = 1;
+					if( get ACTIVATION )
+					{
+						show beam3;
+					}
+				}
+				if( Static_Var_4 == 4 )
+				{
+					Static_Var_8 = 1;
+					if( get ACTIVATION )
+					{
+						show beam4;
+					}
+				}
+				Static_Var_1 = 2;
+				Static_Var_4 = 0;
+			}
+		}
+		if( Func_Var_1 >= 52 )
+		{
+			if( Static_Var_1 == 2 )
+			{
+				if( Static_Var_3 == 1 )
+				{
+					Static_Var_5 = 1;
+					if( get ACTIVATION )
+					{
+						show beam1;
+					}
+				}
+				if( Static_Var_3 == 2 )
+				{
+					Static_Var_6 = 1;
+					if( get ACTIVATION )
+					{
+						show beam2;
+					}
+				}
+				if( Static_Var_3 == 3 )
+				{
+					Static_Var_7 = 1;
+					if( get ACTIVATION )
+					{
+						show beam3;
+					}
+				}
+				if( Static_Var_3 == 4 )
+				{
+					Static_Var_8 = 1;
+					if( get ACTIVATION )
+					{
+						show beam4;
+					}
+				}
+				Static_Var_1 = 1;
+				Static_Var_3 = 0;
+			}
+		}
+		if( Func_Var_1 >= 77 )
+		{
+			if( Static_Var_1 == 1 )
+			{
+				if( Static_Var_2 == 1 )
+				{
+					Static_Var_5 = 1;
+					if( get ACTIVATION )
+					{
+						show beam1;
+					}
+				}
+				if( Static_Var_2 == 2 )
+				{
+					Static_Var_6 = 1;
+					if( get ACTIVATION )
+					{
+						show beam2;
+					}
+				}
+				if( Static_Var_2 == 3 )
+				{
+					Static_Var_7 = 1;
+					if( get ACTIVATION )
+					{
+						show beam3;
+					}
+				}
+				if( Static_Var_2 == 4 )
+				{
+					Static_Var_8 = 1;
+					if( get ACTIVATION )
+					{
+						show beam4;
+					}
+				}
+				Static_Var_1 = 0;
+				Static_Var_2 = 0;
+			}
+		}
+	}
+	return (0);
+}
+
+Flicker(Func_Var_1, Func_Var_2)
+{
+	while( TRUE )
+	{
+		sleep 500;
+		if( get ACTIVATION )
+		{
+			if( !get YARD_OPEN )
+			{
+				Func_Var_1 = Rand( 1, 5 );
+				Func_Var_2 = Rand( 1, 4 );
+				if( Func_Var_1 == 1 )
+				{
+					if( Func_Var_2 == 1 )
+					{
+						if( Static_Var_5 == 1 )
+						{
+							hide beam1;
+							sleep 100;
+							show beam1;
+						}
+					}
+					if( Func_Var_2 == 2 )
+					{
+						if( Static_Var_6 == 1 )
+						{
+							hide beam2;
+							sleep 100;
+							show beam2;
+						}
+					}
+					if( Func_Var_2 == 3 )
+					{
+						if( Static_Var_7 == 1 )
+						{
+							hide beam3;
+							sleep 100;
+							show beam3;
+						}
+					}
+					if( Func_Var_2 == 4 )
+					{
+						if( Static_Var_8 == 1 )
+						{
+							hide beam4;
+							sleep 100;
+							show beam4;
+						}
+					}
+				}
+			}
+		}
+	}
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	hide blink1;
+	hide blink2;
+	hide beam1;
+	hide beam2;
+	hide beam3;
+	hide beam4;
+	corpsetype = 1;
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode post1 type BITMAPONLY | BITMAP1;
+		explode post2 type BITMAPONLY | BITMAP1;
+		explode blink1 type BITMAPONLY | BITMAP3;
+		explode blink2 type BITMAPONLY | BITMAP4;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode post1 type BITMAPONLY | BITMAP1;
+		explode post2 type BITMAPONLY | BITMAP1;
+		explode blink1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode blink2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode post1 type BITMAPONLY | BITMAP1;
+		explode post2 type BITMAPONLY | BITMAP1;
+		explode blink1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode blink2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode post1 type BITMAPONLY | BITMAP1;
+	explode post2 type BITMAPONLY | BITMAP1;
+	explode blink1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode blink2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	return (corpsetype);
+}

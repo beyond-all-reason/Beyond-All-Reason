@@ -1,0 +1,182 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, treads, arms, weight, sleeve, sk_barrel, barrel, end,
+       emit, flare, turret;
+
+static-var  restore_delay;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.00000>;
+	turn base to x-axis anglex speed <105.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.00000> speed <30.00000>;
+	turn base to x-axis <0.00000> speed <30.00000>;
+	return (0);
+}
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.00000>;
+	turn base to z-axis anglez speed <50.00000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.00000> speed <20.00000>;
+	turn base to x-axis <0.00000> speed <20.00000>;
+	return (0);
+}
+
+Create()
+{
+	hide flare;
+	dont-cache flare;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn turret to y-axis <0.00000> speed <70.00000>;
+	turn sleeve to y-axis <0.00000> speed <70.00000>;
+	turn sleeve to x-axis <0.00000> speed <60.00000>;
+	wait-for-turn arms around y-axis;
+	wait-for-turn sleeve around y-axis;
+	wait-for-turn sleeve around x-axis;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <110.00000>;
+	turn sleeve to x-axis <0.00000> - pitch speed <90.00000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	show flare;
+	move barrel to z-axis [-10.00000] speed [1250.00000];
+	move sk_barrel to z-axis [-7.50000] speed [500.00000];
+	turn arms to y-axis <-50.01099> speed <500.00000>;
+	turn sleeve to y-axis <50.01099> speed <500.00000>;
+	sleep 100;
+	hide flare;
+	move barrel to z-axis [0.00000] speed [5.00000];
+	move sk_barrel to z-axis [0.00000] speed [7.50000];
+	turn arms to y-axis <0.00000> speed <23.00000>;
+	turn sleeve to y-axis <0.00000> speed <23.00000>;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = emit;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = arms;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP2;
+		explode treads type BITMAPONLY | BITMAP3;
+		explode arms type BITMAPONLY | BITMAP3;
+		explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+		explode sk_barrel type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+		explode barrel type BITMAPONLY | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP2;
+		explode treads type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+		explode arms type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode sleeve type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode sk_barrel type SHATTER | EXPLODE_ON_HIT | BITMAP3;
+		explode barrel type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP2;
+		explode treads type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode sleeve type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode sk_barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP2;
+	explode treads type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode sleeve type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode sk_barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	return (corpsetype);
+}

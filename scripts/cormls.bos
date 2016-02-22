@@ -223,7 +223,7 @@ Killed(severity, corpsetype)
 		explode Boom type BITMAPONLY | BITMAP1;
 		explode Neck type BITMAPONLY | BITMAP1;
 		explode NanoGun type BITMAPONLY | BITMAP1;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -235,7 +235,7 @@ Killed(severity, corpsetype)
 		explode Boom type BITMAPONLY | BITMAP1;
 		explode Neck type BITMAPONLY | BITMAP1;
 		explode NanoGun type BITMAPONLY | BITMAP1;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -247,7 +247,7 @@ Killed(severity, corpsetype)
 		explode Boom type SHATTER | BITMAP4;
 		explode Neck type SHATTER | BITMAP4;
 		explode NanoGun type SHATTER | BITMAP4;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode Base type SHATTER | BITMAP4;
@@ -257,4 +257,5 @@ Killed(severity, corpsetype)
 	explode Boom type SHATTER | BITMAP4;
 	explode Neck type SHATTER | BITMAP4;
 	explode NanoGun type SHATTER | BITMAP4;
+	return corpsetype;
 }

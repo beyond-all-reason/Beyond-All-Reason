@@ -1,0 +1,240 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  emitter1, emitter2, base, wake1, wake2, wing1, wing2;
+
+static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn wing1 to z-axis <0.00000> now;
+		turn wing1 to z-axis <-112.02198> speed <219.00000>;
+		turn wing2 to z-axis <0.00000> now;
+		turn wing2 to z-axis <112.02198> speed <219.00000>;
+		sleep 513;
+	}
+	sleep 518;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn wing1 to z-axis <-112.52747> now;
+		turn wing1 to z-axis <0.00000> speed <218.00000>;
+		turn wing2 to z-axis <112.52747> now;
+		turn wing2 to z-axis <0.00000> speed <218.00000>;
+		sleep 514;
+	}
+	sleep 518;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+MoveRate2()
+{
+	if( Rand( 1, 10 ) == 1 )
+	{
+		if( !Static_Var_1 )
+		{
+			Static_Var_1 = 1;
+			turn base to z-axis <-120.02747> speed <120.00000>;
+			wait-for-turn base around z-axis;
+			turn base to z-axis <120.02747> speed <180.00000>;
+			wait-for-turn base around z-axis;
+			turn base to z-axis <0.00000> speed <120.00000>;
+			Static_Var_1 = 0;
+		}
+	}
+	return (0);
+}
+
+Create()
+{
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		if( Static_Var_2 == 3 )
+		{
+			emit-sfx 259 from wake1;
+			emit-sfx 259 from wake2;
+			emit-sfx 259 from emitter1;
+			emit-sfx 259 from emitter2;
+			emit-sfx 259 from wing1;
+			emit-sfx 259 from wing2;
+			emit-sfx 259 from base;
+		}
+		sleep 150;
+	}
+	return (0);
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = emitter1;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = emitter2;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type BITMAPONLY | BITMAP1;
+		explode emitter1 type BITMAPONLY | BITMAP3;
+		explode emitter2 type BITMAPONLY | BITMAP4;
+		explode wing1 type BITMAPONLY | BITMAP5;
+		explode wing2 type BITMAPONLY | BITMAP1;
+		explode wake1 type BITMAPONLY | BITMAP2;
+		explode wake2 type BITMAPONLY | BITMAP3;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type BITMAPONLY | BITMAP1;
+		explode emitter1 type FALL | BITMAP3;
+		explode emitter2 type FALL | BITMAP4;
+		explode wing1 type BITMAPONLY | BITMAP5;
+		explode wing2 type BITMAPONLY | BITMAP1;
+		explode wake1 type FALL | BITMAP2;
+		explode wake2 type FALL | BITMAP3;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type BITMAPONLY | BITMAP1;
+		explode emitter1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		explode emitter2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+		explode wing1 type BITMAPONLY | BITMAP5;
+		explode wing2 type BITMAPONLY | BITMAP1;
+		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type BITMAPONLY | BITMAP1;
+	explode emitter1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	explode emitter2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
+	explode wing1 type BITMAPONLY | BITMAP5;
+	explode wing2 type BITMAPONLY | BITMAP1;
+	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
+	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
+	return (corpsetype);
+}
+
+setSFXoccupy(state)
+{
+	Static_Var_2 = state;
+	return (0);
+}
