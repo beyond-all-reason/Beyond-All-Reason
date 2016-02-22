@@ -100,12 +100,12 @@ if (gadgetHandler:IsSyncedCode()) then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if (pieceCollisionVolume[UnitDefs[unitDefID].name]) then
 			local t = pieceCollisionVolume[UnitDefs[unitDefID].name]
-			for pieceIndex=1, #spGetPieceList(unitID) do
+			for pieceIndex=0, #spGetPieceList(unitID)-1 do
 				local p = t[tostring(pieceIndex)]
 				if p then
-					spSetPieceCollisionData(unitID, pieceIndex, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
+					spSetPieceCollisionData(unitID, pieceIndex + 1, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
 				else
-					spSetPieceCollisionData(unitID, pieceIndex, false, 1, 1, 1, 0, 0, 0, 1, 1)
+					spSetPieceCollisionData(unitID, pieceIndex + 1, false, 1, 1, 1, 0, 0, 0, 1, 1)
 				end
 				if t.offsets then
 					p = t.offsets
@@ -114,12 +114,12 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		elseif dynamicPieceCollisionVolume[UnitDefs[unitDefID].name] then
 			local t = dynamicPieceCollisionVolume[UnitDefs[unitDefID].name].on
-			for pieceIndex=1, #spGetPieceList(unitID) do
+			for pieceIndex=0, #spGetPieceList(unitID)-1 do
 				local p = t[tostring(pieceIndex)]
 				if p then
-					spSetPieceCollisionData(unitID, pieceIndex, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
+					spSetPieceCollisionData(unitID, pieceIndex + 1, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
 				else
-					spSetPieceCollisionData(unitID, pieceIndex, false, 1, 1, 1, 0, 0, 0, 1, 1)
+					spSetPieceCollisionData(unitID, pieceIndex + 1, false, 1, 1, 1, 0, 0, 0, 1, 1)
 				end
 			end
 		elseif UnitDefs[unitDefID].model.type=="3do" then
@@ -187,7 +187,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		if unitCollisionVolume[un] then
 			popupUnits[unitID]={name=un, state=-1, perPiece=false}
 		elseif dynamicPieceCollisionVolume[un] then
-			popupUnits[unitID]={name=un, state=-1, perPiece=true, numPieces = #spGetPieceList(unitID)}
+			popupUnits[unitID]={name=un, state=-1, perPiece=true, numPieces = #spGetPieceList(unitID)-1}
 		end
 	end
 
@@ -218,12 +218,12 @@ if (gadgetHandler:IsSyncedCode()) then
 			if defs.state ~= stateInt then
 				if defs.perPiece then
 					t = dynamicPieceCollisionVolume[defs.name][stateString]
-					for pieceIndex=1, defs.numPieces do
+					for pieceIndex=0, defs.numPieces do
 						p = t[tostring(pieceIndex)]
 						if p then
-							spSetPieceCollisionData(unitID, pieceIndex, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
+							spSetPieceCollisionData(unitID, pieceIndex + 1, true, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8])
 						else
-							spSetPieceCollisionData(unitID, pieceIndex, false, 1, 1, 1, 0, 0, 0, 1, 1)
+							spSetPieceCollisionData(unitID, pieceIndex + 1, false, 1, 1, 1, 0, 0, 0, 1, 1)
 						end
 					end
 					if t.offsets then
