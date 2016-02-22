@@ -232,6 +232,7 @@ end
 ----------------------------------------------------------------
 
 function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+    Spring.Echo("ReadyState:", readyState)
     -- readyState:
 	-- 0: player did not place startpoint, is unready 
     -- 1: game starting, player is ready
@@ -521,10 +522,13 @@ function gadget:GameSetup(state,ready,playerStates)
 		if pStates[playerID] ~= readyState then
             if Script.LuaUI("PlayerReadyStateChanged") then
                 if readyState == "ready" then
+                    Spring.Echo("ready");
                     Script.LuaUI.PlayerReadyStateChanged(playerID, 1)
                 elseif readyState == "missing" then
+                    Spring.Echo("missing");
                     Script.LuaUI.PlayerReadyStateChanged(playerID, 3)
                 else
+                    Spring.Echo("unready");
                     Script.LuaUI.PlayerReadyStateChanged(playerID, 0) --unready
                 end
             end
