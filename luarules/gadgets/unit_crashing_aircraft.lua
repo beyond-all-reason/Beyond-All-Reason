@@ -15,11 +15,9 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 local random			= math.random 
-local abs				= math.abs
-local GetUnitHealth 	= Spring.GetUnitHealth 
+local GetUnitHealth 	= Spring.GetUnitHealth
 local SetUnitCOBValue 	= Spring.SetUnitCOBValue
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
-local SetUnitCosts		= Spring.SetUnitCosts
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 
 local COB_CRASHING = COB.CRASHING
@@ -44,16 +42,21 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0,0
 	end 
 
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.5 and weaponDefID ~= COM_BLAST then 
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.5 and weaponDefID ~= COM_BLAST then
+
 		-- make it crash
 		crashing[unitID] = true
 		SetUnitCOBValue(unitID, COB_CRASHING, 1)
-		SetUnitNoSelect(unitID,true) 
-	
-		-- remove sensors
-		SetUnitSensorRadius(unitID, "los", 0)
-		SetUnitSensorRadius(unitID, "radar", 0)
-		SetUnitSensorRadius(unitID, "sonar", 0)
+		SetUnitNoSelect(unitID,true)
+
+        -- remove sensors
+        SetUnitSensorRadius(unitID, "los", 0)
+        SetUnitSensorRadius(unitID, "airLos", 0)
+        SetUnitSensorRadius(unitID, "radar", 0)
+        SetUnitSensorRadius(unitID, "sonar", 0)
+--        SetUnitSensorRadius(unitID, "seismic", 0)
+--        SetUnitSensorRadius(unitID, "radarJammer", 0)
+--        SetUnitSensorRadius(unitID, "sonarJammer", 0)
 	end
 	return damage,1
 end
