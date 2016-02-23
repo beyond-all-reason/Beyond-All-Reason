@@ -59,6 +59,7 @@ local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitsInRectangle = Spring.GetUnitsInRectangle
 local SelectUnitArray = Spring.SelectUnitArray
 local GetActiveCommand = Spring.GetActiveCommand
+local GetUnitTeam = Spring.GetUnitTeam
 
 local GetGroundHeight = Spring.GetGroundHeight
 local GetMiniMapGeometry = Spring.GetMiniMapGeometry
@@ -79,6 +80,9 @@ local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glBeginEnd = gl.BeginEnd
 local GL_LINE_STRIP = GL.LINE_STRIP
+
+local GaiaTeamID  = Spring.GetGaiaTeamID()
+
 -----------------------------------------------------------------
 -- end function locals ------------------------------------------
 -----------------------------------------------------------------
@@ -278,6 +282,16 @@ function widget:Update()
 			if (#mouseSelection > 0) then
 				filtered = true
 			end
+			
+			-- filter gaia units
+			local filteredselection = {}
+			for i=1, #mouseSelection do
+				if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID then
+					table.insert(filteredselection, mouseSelection[i])
+				end
+			end
+			mouseSelection = filteredselection
+			filteredselection = nil
 			
 			local newSelection = {}
 			local uid, udid, udef, tmp
