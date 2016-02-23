@@ -44,6 +44,39 @@ local function SetupCommandColors(state)
   os.remove('cmdcolors.tmp')
 end
 
+
+local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
+local function HilightModel(unitID)
+  gl.DepthTest(true)
+  gl.PolygonOffset(-2, -2)
+  gl.Blending(GL.SRC_ALPHA, GL.ONE)
+
+  if (smoothPolys) then
+    gl.Smoothing(nil, nil, true)
+  end
+
+  local scale = 35
+  local shift = (2 * widgetHandler:GetHourTimer()) % scale
+  gl.TexCoord(0, 0)
+  gl.TexGen(GL.T, GL.TEXTURE_GEN_MODE, GL.EYE_LINEAR)
+  gl.TexGen(GL.T, GL.EYE_PLANE, 0, (1 / scale), 0, shift)
+  gl.Texture(texName)
+
+  gl.Unit(unitID, true)
+
+  gl.Texture(false)
+  gl.TexGen(GL.T, false)
+
+  if (smoothPolys) then
+    gl.Smoothing(nil, nil, false)
+  end
+
+  gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+  gl.PolygonOffset(false)
+  gl.DepthTest(false)
+end
+
+
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
@@ -72,6 +105,7 @@ function widget:DrawWorld()
 		0, -- blue
 		highlightAlpha) -- alpha
 		gl.Unit(unitID, true)
+		--HilightModel(unitID)
 	end
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -80,9 +114,9 @@ function widget:DrawWorld()
 end
 
 
---widget.DrawWorldReflection = widget.DrawWorld
+widget.DrawWorldReflection = widget.DrawWorld
 
---widget.DrawWorldRefraction = widget.DrawWorld
+widget.DrawWorldRefraction = widget.DrawWorld
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
