@@ -39,6 +39,7 @@ local GaiaTeamID  = Spring.GetGaiaTeamID()
 
 local critterConfig = include("LuaRules/configs/gaia_critters_config.lua")
 local critterUnits = {}	--critter units that are currently alive
+local sceduledOrders = {}
 
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -80,7 +81,12 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
 			local y = spGetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
-				Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
+				if sceduledOrders[unitID] == nil then
+					sceduledOrders[unitID] = {}
+				end
+				processOrders = true
+				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers={"shift"}})
+				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
 				ordersGiven = ordersGiven + 1
 			end
 		end
@@ -91,6 +97,28 @@ end
 local function in_circle(center_x, center_y, radius, x, y)
 	local square_dist = ((center_x - x) * (center_x - x)) + ((center_y - y) * (center_y - y))
 	return square_dist <= radius * radius
+end
+
+local processOrders = true
+
+-- doing multiple orders per unit gives errors, so doing 1 per gameframe is best
+local function processSceduledOrders()
+	
+	processOrders = false
+	local orders = 0
+	for unitID, UnitOrders in pairs(sceduledOrders) do
+		orders = 0
+		for oid, order in pairs(UnitOrders) do
+			Spring.GiveOrderToUnit(unitID, order.type, order.location, order.modifiers)
+			sceduledOrders[unitID][oid] = nil
+			orders = orders + 1
+			processOrders = true
+			break
+		end
+		if orders == 0 then 
+			sceduledOrders[unitID] = nil
+		end
+	end
 end
 
 local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
@@ -114,7 +142,12 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(circle.x, circle.z, circle.r, x, z) then
 			local y = spGetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
-				Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})	-- this sometimes gives resursion errors, but am to lazy to spread spammign this command over multiple gameframes
+				if sceduledOrders[unitID] == nil then
+					sceduledOrders[unitID] = {}
+				end
+				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers={"shift"}})
+				processOrders = true
+				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})	-- this sometimes gives resursion errors, but am to lazy to spread spammign this command over multiple gameframes
 				ordersGiven = ordersGiven + 1
 			end
 		end
@@ -233,6 +266,10 @@ end
 -- increase/decrease critters according to unitcount
 function gadget:GameFrame(gameFrame)
 	if removeCritters == false then return end
+	
+	if processOrders then
+		processSceduledOrders()
+	end
 	
 	if gameFrame%200==0 then 
 		local totalUnits = getTotalUnits() -- is without critters
