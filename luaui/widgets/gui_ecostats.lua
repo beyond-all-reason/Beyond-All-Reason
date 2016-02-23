@@ -723,7 +723,7 @@ local function drawListStandard()
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		
-		if data.exists and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
+		if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 		
 			if avgData[aID] == nil then
 				avgData[aID] = {}
@@ -733,8 +733,12 @@ local function drawListStandard()
 				avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"])/avgFrames)
 				avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"])/avgFrames)
 			end
-			maxMetal 	= (avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal and avgData[aID]["tM"]) or maxMetal
-			maxEnergy 	= (avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy and avgData[aID]["tE"]) or maxEnergy
+			if avgData[aID]["tM"] and avgData[aID]["tM"] > maxMetal then
+				maxMetal = avgData[aID]["tM"]
+			end
+			if avgData[aID]["tE"] and avgData[aID]["tE"] > maxEnergy then
+				maxEnergy = avgData[aID]["tE"]
+			end
 		end
 	end
 	
@@ -743,7 +747,7 @@ local function drawListStandard()
 		if aID ~= nil then
 			local drawpos = data.drawpos
 			
-			if data.exists and drawpos and #(data.teams) > 0 and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
+			if data.exists and type(data["tE"]) == "number" and drawpos and #(data.teams) > 0 and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				
 				if not data["isAlive"] then
 					data["isAlive"] = isTeamAlive(aID)
@@ -754,11 +758,11 @@ local function drawListStandard()
 				if data["isAlive"] then DrawBackground(posy, aID) end
 				
 				local t = GetGameSeconds()
-				if data["isAlive"] and t > 0 and gamestarted and not gameover and avgData[aID]["tE"] ~= nil and type(avgData[aID]["tE"]) == "number" then
+				if data["isAlive"] and t > 0 and gamestarted and not gameover then
 					DrawEBar(avgData[aID]["tE"]/maxEnergy,posy-1)
 					DrawEText(avgData[aID]["tE"],posy-1)
 				end
-				if data["isAlive"] and t > 5 and not gameover and avgData[aID]["tM"] ~= nil and type(avgData[aID]["tM"]) == "number" then
+				if data["isAlive"] and t > 5 and not gameover then
 					DrawMBar(avgData[aID]["tM"]/maxMetal,posy+2)
 					DrawMText(avgData[aID]["tM"],posy+2)
 				end
