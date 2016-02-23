@@ -1,69 +1,3 @@
-local versionNumber = "1.83"
-
-do
----------------------------------------------------------------------------------------------------
-
-----------------------------------------------------------------------------------------------------------------------------
--- Changelog
--- Version 1.72
--- Put drawfunction in global scope
--- Small bugfix with amount of players bug
-
-------------------------
--- Version 1.7
-------------------------
--- * Rewritten for better performance, for some reason display lists make performance worse.
---   Now about half the performance cost compared to before and even less if gamespeed > 1.
--- * Add Guardians of Kadesh faction images
-
-------------------------
--- Version 1.61
-------------------------
--- * Add TLL images also for XTA
-
-------------------------
--- Version 1.6
-------------------------
--- * Remove announcing of kills: most games have this already built in
--- * Remove sounds
--- * Some bugfixes and compatibility for EvoRTS
--- * Bug fixes and performance improvements
--- * Added TS values and better handling of screen position
--- * Improved player list management and handling of dead players
--- * Fixed bug where team bars disappear even if team is alive
--- * Added icon for tech annihilation TTL faction
--- * Added support for zombie mode (tested with XTA to detect mod option)
-
-------------------------
--- Version 1.5
-------------------------
--- * Rewritten code to increase performance, fps cost down by 50% in normal usage scenario.
--- * Now uses drawlists and gl.loadFont
-
-------------------------
--- Version 1.41
-------------------------
--- * Bug fixes and performance improvements
-
-------------------------
--- Version 1.4
-------------------------
--- * Performance improvements
--- * Font improvements
--- * Display extended info by pressing on i-button instead of overcomplicated arrows
--- * Drag widget with right button; drag infopanel with left button and close with right (yes i know, maybe counter-intuitive)
--- * Fixed opengl bugs
-
-------------------------
--- version 1.32
-------------------------
--- * Compatible with spring 95.0
--- * fixed bug with incorrect expand button location
--- * fixed spam errors bc of old tags
-------------------------
-
-end
-
 function widget:GetInfo()
 	return {
 		name = "Ecostats",
@@ -107,7 +41,7 @@ local glTexture						= gl.Texture
 local glColor						= gl.Color
 local glTexRect						= gl.TexRect
 local glRect						= gl.Rect
-local glText            			 = gl.Text
+local glText						= gl.Text
 local GetGameSpeed					= Spring.GetGameSpeed
 local GetTeamUnitCount				= Spring.GetTeamUnitCount
 local GetMyAllyTeamID				= Spring.GetMyAllyTeamID
@@ -413,17 +347,6 @@ end
 --  Local
 ---------------------------------------------------------------------------------------------------
 
-local function digitsep(amount)
-  local formatted = amount
-  while true do
-    formatted, k = strgsub(formatted, "^(-?%d+)(%d%d%d)", '%1 %2')
-    if (k==0) then
-      break
-    end
-  end
-  return formatted
-end
-
 local function round(num, idp)
   local mult = 10^(idp or 0)
   return floor(num * mult + 0.5) / mult
@@ -444,24 +367,6 @@ local function formatRes(number)
 	return tostring(label)
 end
 
-local function formatRes1000(number)
-	local label
-	if number == nil then
-		Echo(GetGameFrame(),": formatRes1000 returned nil")
-		
-		return nil
-	end
-	if number > 10000 then
-		label = digitsep(round(number))
-	elseif number > 1000 then
-		label = digitsep(round(number))
-	elseif number > 10 then
-		label = strsub(round(number,0),1,3+strfind(round(number,0),"."))
-	else
-		label = strsub(round(number,1),1,2+strfind(round(number,1),"."))
-	end
-	return label
-end
 
 -- Draw
 
@@ -810,9 +715,8 @@ end
 
 local avgData = {}
 local function drawListStandard()
-	local maxMetal 					= 0
-	local maxEnergy 				= 0
-	local splits
+	local maxMetal = 0
+	local maxEnergy = 0
 	
 	if not gamestarted then updateButtons() end
 	
@@ -834,7 +738,6 @@ local function drawListStandard()
 		end
 	end
 	
-	splits = floor(0.001*maxMetal/widgetWidth)
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
@@ -1051,23 +954,6 @@ function getMaxPlayers()
 	return maxPlayers
 end
 
-function getNbActivePlayers(teamID)
-	local nbPlayers = 0
-	local leaderID,active,spectator,isDead, leaderName
-
-	for _,pID in ipairs (GetTeamList(teamID)) do
-		leaderID = teamData[pID].leaderID
-		leaderName = teamData[pID].leaderName
-		active = teamData[pID].active
-		spectator = teamData[pID].spectator
-		isDead = teamData[pID].isDead
-		if not (spectator or isDead or leaderID == -1) and active then
-			nbPlayers = nbPlayers +1
-		end
-	end
-	return nbPlayers
-end
-
 function getNbPlacedPositions(teamID)
 	local nbPlayers = 0
 	local startx, starty, active, leaderID, leaderName, isDead
@@ -1123,25 +1009,7 @@ function setPlayerResources()
 		data.einc = select(4,GetTeamResources(teamID,"energy")) or 0
 	end
 end
-	
-function setPlayerActivestate()
-	local active
-	local leaderID
-	for tID,data in pairs(teamData) do
-		_,leaderID 	= GetTeamInfo(tID)
-		_,active	= GetPlayerInfo(leaderID)
-		data["active"] 			= active
-	end
-end
 
-function isUnitComplete(UnitID)
-	local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(UnitID)
-	if buildProgress and buildProgress>=1 then
-		return true
-	else
-		return false
-	end
-end
 ---------------------------------------------------------------------------------------------------
 --  User interface
 ---------------------------------------------------------------------------------------------------
@@ -1371,10 +1239,6 @@ end
 
 
 function widget:MousePress(x, y, button)
-	----------------
-	-- LEFT BUTTON
-	----------------
-		
 	if button == 1 then	
 		
 		for name, buttonType in pairs(Button) do
