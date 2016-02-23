@@ -103,7 +103,7 @@ local glRect = gl.Rect
 local glGetTextWidth = gl.GetTextWidth
 local IsGameOver = false
 
-local xRelPos, yRelPos		= 0.5, 0.12
+local xRelPos, yRelPos		= 0.5, 0.1
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
@@ -549,7 +549,7 @@ function widget:SetConfigData(data)
 	viewBets = data.viewBets
 	if data.xRelPos ~= nil then
 		xRelPos = data.xRelPos or xRelPos
-		yRelPos1 = data.yRelPos or yRelPos
+		yRelPos2 = data.yRelPos or yRelPos
 		xPos = xRelPos * vsx
 		yPos = yRelPos * vsy
 	end
@@ -560,7 +560,7 @@ function widget:GetConfigData()
 	{
 		viewBets = viewBets,
 		xRelPos = xRelPos,
-		yRelPos = yRelPos1
+		yRelPos = yRelPos2
 	}
 end
 
