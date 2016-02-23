@@ -29,7 +29,8 @@ end
 -----------------------------------------------------------------
 
 -- whether to select buildings when mobile units are inside selection rectangle
-local selectBuildingsWithMobile = true
+local selectBuildingsWithMobile = false
+local includeNanosAsMobile = true
 
 -- only select new units identical to those already selected
 local sameSelectKey = 'z'
@@ -201,16 +202,27 @@ function widget:TextCommand(command)
 			Spring.Echo("SmartSelect: Ignores buildings if it can select mobile units.")
 		end
 	end
+    if (string.find(command, "selectionnanos") == 1  and  string.len(command) == 14) then 
+		includeNanosAsMobile = not includeNanosAsMobile
+		init()
+		if includeNanosAsMobile then
+			Spring.Echo("SmartSelect: Treats nanos like mobile units and wont exclude them")
+		else
+			Spring.Echo("SmartSelect: Stops treating nanos as if they are mobile units")
+		end
+	end
 end
 
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.selectBuildingsWithMobile = selectBuildingsWithMobile
+    savedTable.includeNanosAsMobile = includeNanosAsMobile
     return savedTable
 end
 
 function widget:SetConfigData(data)
     if data.selectBuildingsWithMobile ~= nil 	then  selectBuildingsWithMobile	= data.selectBuildingsWithMobile end
+    if data.includeNanosAsMobile ~= nil 	then  includeNanosAsMobile	= data.includeNanosAsMobile end
 end
 
 
@@ -399,7 +411,7 @@ function widget:Update()
 	end
 end
 
-function widget:Initialize()
+function init()
 	myPlayerID = GetMyPlayerID()
 	combatFilter = {}
 	builderFilter = {}
@@ -407,19 +419,22 @@ function widget:Initialize()
 	mobileFilter = {}
 
 	for udid, udef in pairs(UnitDefs) do
-		local mobile = (udef.canMove and udef.speed > 0.000001)
+		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc"))
 		local builder = (udef.canReclaim and udef.reclaimSpeed > 0) or
 						--(udef.builder and udef.buildSpeed > 0) or					-- udef.builder = deprecated it seems
 						(udef.canResurrect and udef.resurrectSpeed > 0) or
 						(udef.canRepair and udef.repairSpeed > 0)
 		local building = (mobile == false)
 		local combat = (builder == false) and (mobile == true) and (#udef.weapons > 0)
-
+		
 		combatFilter[udid] = combat
 		builderFilter[udid] = builder
 		buildingFilter[udid] = building
 		mobileFilter[udid] = mobile
 	end
+end
+function widget:Initialize()
+	init()
 end
 
 local function DrawRectangle(r)
