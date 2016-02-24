@@ -137,6 +137,6 @@ end
 
 function widget:SetConfigData(data)
 	if data.shown ~= nil then
-		--shown = true
+		shown = true
 	end
 end
