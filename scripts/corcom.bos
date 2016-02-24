@@ -661,3 +661,9 @@ StopBuilding()
 	if (building) return;
 	call-script RestorePosition();
 }
+
+Killed( severity, corpsetype )
+{
+	corpsetype = 1;
+	return(corpsetype);
+}
