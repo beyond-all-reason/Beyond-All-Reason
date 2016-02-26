@@ -159,7 +159,7 @@ Killed(severity, corpsetype)
 		explode fork type SHATTER | BITMAP2;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -168,7 +168,7 @@ Killed(severity, corpsetype)
 		explode fork type SHATTER | BITMAP2;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -177,12 +177,11 @@ Killed(severity, corpsetype)
 		explode fork type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
 	explode fork type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	return corpsetype;
 }

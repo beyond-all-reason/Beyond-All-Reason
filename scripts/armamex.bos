@@ -159,7 +159,7 @@ Killed(severity, corpsetype)
 		explode panel3 type SHATTER | EXPLODE_ON_HIT | BITMAP3;
 		explode panel4 type SHATTER | EXPLODE_ON_HIT | BITMAP3;
 		explode base type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -170,17 +170,16 @@ Killed(severity, corpsetype)
 		explode panel3 type SHATTER | FIRE | EXPLODE_ON_HIT | BITMAP3;
 		explode panel2 type SHATTER | FIRE | EXPLODE_ON_HIT | BITMAP3;
 		explode base type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1;
 		explode base type SHATTER | SMOKE | FIRE | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	return corpsetype;
 }

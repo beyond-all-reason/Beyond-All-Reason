@@ -346,7 +346,7 @@ Killed(severity, corpsetype)
 		explode nanopieces type BITMAPONLY | BITMAP1;
 		explode nano1 type BITMAPONLY | BITMAP1;
 		explode nano2 type BITMAPONLY | BITMAP1;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -380,7 +380,7 @@ Killed(severity, corpsetype)
 		explode nanopieces type SHATTER | BITMAP4;
 		explode nano1 type SHATTER | BITMAP4;
 		explode nano2 type SHATTER | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -414,7 +414,7 @@ Killed(severity, corpsetype)
 		explode nanopieces type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode nano1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		explode nano2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
@@ -446,5 +446,4 @@ Killed(severity, corpsetype)
 	explode nanopieces type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode nano1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode nano2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	return corpsetype;
 }

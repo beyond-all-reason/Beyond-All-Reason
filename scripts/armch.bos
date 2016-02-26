@@ -220,7 +220,7 @@ Killed(severity, corpsetype)
 			explode door2 type BITMAPONLY | BITMAP5;
 			explode nanogun type SHATTER | BITMAP1;
 			explode plate type BITMAPONLY | BITMAP2;
-			return (corpsetype);
+			return (0);
 		}
 		corpsetype = 3;
 		explode post type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
@@ -230,7 +230,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode nanogun type SHATTER | BITMAP1;
 		explode plate type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( Static_Var_1 == 2 )
 	{
@@ -244,7 +244,7 @@ Killed(severity, corpsetype)
 			explode door2 type BITMAPONLY | BITMAP5;
 			explode nanogun type SHATTER | BITMAP1;
 			explode plate type BITMAPONLY | BITMAP2;
-			return (corpsetype);
+			return (0);
 		}
 		corpsetype = 3;
 		explode post type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
@@ -254,7 +254,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode nanogun type SHATTER | BITMAP1;
 		explode plate type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 25 )
 	{
@@ -266,7 +266,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode nanogun type BITMAPONLY | BITMAP1;
 		explode plate type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -278,7 +278,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode nanogun type SHATTER | BITMAP1;
 		explode plate type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -290,7 +290,7 @@ Killed(severity, corpsetype)
 		explode door2 type BITMAPONLY | BITMAP5;
 		explode nanogun type SHATTER | BITMAP1;
 		explode plate type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode post type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
@@ -300,5 +300,4 @@ Killed(severity, corpsetype)
 	explode door2 type BITMAPONLY | BITMAP5;
 	explode nanogun type SHATTER | EXPLODE_ON_HIT | BITMAP1;
 	explode plate type BITMAPONLY | BITMAP2;
-	return corpsetype;
 }

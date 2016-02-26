@@ -630,7 +630,7 @@ Killed(severity, corpsetype)
 		explode lathe2 type BITMAPONLY | BITMAP2;
 		explode lathe3 type BITMAPONLY | BITMAP3;
 		explode lathe4 type BITMAPONLY | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -664,7 +664,7 @@ Killed(severity, corpsetype)
 		explode lathe2 type FALL | BITMAP2;
 		explode lathe3 type FALL | BITMAP3;
 		explode lathe4 type FALL | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -698,7 +698,7 @@ Killed(severity, corpsetype)
 		explode lathe2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 		explode lathe3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
 		explode lathe4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode arm1a type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
@@ -730,5 +730,4 @@ Killed(severity, corpsetype)
 	explode lathe2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 	explode lathe3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
 	explode lathe4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	return corpsetype;
 }

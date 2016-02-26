@@ -65,7 +65,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP1;
 		explode Lwing type BITMAPONLY | BITMAP5;
 		explode Rwing type BITMAPONLY | BITMAP1;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -73,7 +73,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP1;
 		explode Lwing type SHATTER | BITMAP5;
 		explode Rwing type SHATTER | BITMAP1;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -81,11 +81,10 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP1;
 		explode Lwing type SHATTER | BITMAP5;
 		explode Rwing type SHATTER | BITMAP1;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
 	explode Lwing type SHATTER | EXPLODE_ON_HIT | BITMAP5;
 	explode Rwing type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-	return corpsetype;
 }

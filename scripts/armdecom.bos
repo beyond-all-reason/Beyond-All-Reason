@@ -26,7 +26,7 @@ Killed(severity, corpsetype)
 	explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	explode biggun type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 	explode biggun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	return (corpsetype);
+	return (0);
 }
 
 static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, justfired,

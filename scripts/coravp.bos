@@ -321,7 +321,7 @@ Killed(severity, corpsetype)
 		explode wing1 type BITMAPONLY | BITMAP5;
 		explode wing2 type BITMAPONLY | BITMAP1;
 		explode wing3 type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -338,7 +338,7 @@ Killed(severity, corpsetype)
 		explode wing1 type BITMAPONLY | BITMAP5;
 		explode wing2 type BITMAPONLY | BITMAP1;
 		explode wing3 type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -355,7 +355,7 @@ Killed(severity, corpsetype)
 		explode wing1 type BITMAPONLY | BITMAP5;
 		explode wing2 type BITMAPONLY | BITMAP1;
 		explode wing3 type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
@@ -370,5 +370,4 @@ Killed(severity, corpsetype)
 	explode wing1 type BITMAPONLY | BITMAP5;
 	explode wing2 type BITMAPONLY | BITMAP1;
 	explode wing3 type BITMAPONLY | BITMAP2;
-	return corpsetype;
 }

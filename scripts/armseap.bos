@@ -168,12 +168,6 @@ SweetSpot(piecenum)
 	piecenum = base;
 }
 
-
-setSFXoccupy(state)
-{
-	Static_Var_2 = state;
-}
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
@@ -187,7 +181,7 @@ Killed(severity, corpsetype)
 		explode rwing type BITMAPONLY | BITMAP1;
 		explode wake1 type BITMAPONLY | BITMAP2;
 		explode wake2 type BITMAPONLY | BITMAP3;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -200,7 +194,7 @@ Killed(severity, corpsetype)
 		explode rwing type BITMAPONLY | BITMAP1;
 		explode wake1 type FALL | BITMAP2;
 		explode wake2 type FALL | BITMAP3;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -213,7 +207,7 @@ Killed(severity, corpsetype)
 		explode rwing type BITMAPONLY | BITMAP1;
 		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
@@ -224,6 +218,9 @@ Killed(severity, corpsetype)
 	explode rwing type BITMAPONLY | BITMAP1;
 	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	return corpsetype;
 }
 
+setSFXoccupy(state)
+{
+	Static_Var_2 = state;
+}

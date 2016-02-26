@@ -141,7 +141,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1;
 		explode arms type BITMAPONLY | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -151,7 +151,7 @@ Killed(severity, corpsetype)
 		explode hand2 type SHATTER | BITMAP1;
 		explode hand3 type SHATTER | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -161,10 +161,9 @@ Killed(severity, corpsetype)
 		explode hand2 type FALL | BITMAP1;
 		explode hand3 type SHATTER | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1;
 	explode base type BITMAPONLY | BITMAP2;
-	return corpsetype;
 }

@@ -513,5 +513,4 @@ Killed(severity, corpsetype)
 	explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 	explode ruparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
 	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-	return corpsetype;
 }

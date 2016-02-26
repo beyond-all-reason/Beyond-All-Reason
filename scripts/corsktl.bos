@@ -106,7 +106,6 @@ Killed(severity, corpsetype)
 	explode Right_Front_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP5;
 	explode Tail type FALL | EXPLODE_ON_HIT | BITMAP2;
 	explode Hump type FALL | EXPLODE_ON_HIT | BITMAP2;
-	return (corpsetype);
 }
 
 Go()

@@ -781,5 +781,4 @@ Killed(severity, corpsetype)
 	explode shield3 type BITMAPONLY | BITMAP2;
 	explode shield4 type BITMAPONLY | BITMAP3;
 	explode torso type BITMAPONLY | BITMAP4;
-	return corpsetype;
 }

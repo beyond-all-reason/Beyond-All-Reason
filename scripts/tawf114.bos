@@ -152,7 +152,7 @@ Killed(severity, corpsetype)
 		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT;
 		explode missile1 type SHATTER | BITMAP4;
 		explode missile2 type SHATTER | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -162,7 +162,7 @@ Killed(severity, corpsetype)
 		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT;
 		explode missile1 type SHATTER | BITMAP4;
 		explode missile2 type SHATTER | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -172,7 +172,7 @@ Killed(severity, corpsetype)
 		explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP4;
 		explode missile1 type SHATTER | BITMAP4;
 		explode missile2 type SHATTER | BITMAP4;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
@@ -180,5 +180,4 @@ Killed(severity, corpsetype)
 	explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP4;
 	explode missile1 type SHATTER | BITMAP4;
 	explode missile2 type SHATTER | BITMAP4;
-	return corpsetype;
 }

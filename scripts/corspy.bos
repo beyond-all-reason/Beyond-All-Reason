@@ -632,7 +632,7 @@ Killed(severity, corpsetype)
 			explode rleg type FALL | BITMAP5;
 			explode rtoes type BITMAPONLY | BITMAP4;
 			explode rheel type BITMAPONLY | BITMAP5;
-			return (corpsetype);
+			return (0);
 		}
 		corpsetype = 3;
 		explode head type SHATTER | BITMAP1;
@@ -646,7 +646,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
 		explode rtoes type BITMAPONLY | BITMAP4;
 		explode rheel type BITMAPONLY | BITMAP5;
-		return (corpsetype);
+		return (0);
 	}
 	if( Static_Var_2 == 2 )
 	{
@@ -664,7 +664,7 @@ Killed(severity, corpsetype)
 			explode rleg type FALL | BITMAP5;
 			explode rtoes type BITMAPONLY | BITMAP4;
 			explode rheel type BITMAPONLY | BITMAP5;
-			return (corpsetype);
+			return (0);
 		}
 		corpsetype = 3;
 		explode head type SHATTER | BITMAP1;
@@ -678,7 +678,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
 		explode rtoes type BITMAPONLY | BITMAP4;
 		explode rheel type BITMAPONLY | BITMAP5;
-		return (corpsetype);
+		return (0);
 	}
 	if( Static_Var_2 == 3 )
 	{
@@ -696,7 +696,7 @@ Killed(severity, corpsetype)
 			explode rleg type FALL | BITMAP5;
 			explode rtoes type BITMAPONLY | BITMAP4;
 			explode rheel type BITMAPONLY | BITMAP5;
-			return (corpsetype);
+			return (0);
 		}
 		corpsetype = 3;
 		explode head type SHATTER | BITMAP1;
@@ -710,7 +710,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
 		explode rtoes type BITMAPONLY | BITMAP4;
 		explode rheel type BITMAPONLY | BITMAP5;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 25 )
 	{
@@ -726,7 +726,7 @@ Killed(severity, corpsetype)
 		explode rleg type BITMAPONLY | BITMAP5;
 		explode rtoes type BITMAPONLY | BITMAP4;
 		explode rheel type BITMAPONLY | BITMAP5;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -742,7 +742,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | BITMAP5;
 		explode rtoes type BITMAPONLY | BITMAP4;
 		explode rheel type BITMAPONLY | BITMAP5;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -758,7 +758,7 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
 		explode rtoes type BITMAPONLY | BITMAP4;
 		explode rheel type BITMAPONLY | BITMAP5;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode head type SHATTER | EXPLODE_ON_HIT | BITMAP1;
@@ -772,5 +772,4 @@ Killed(severity, corpsetype)
 	explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
 	explode rtoes type BITMAPONLY | BITMAP4;
 	explode rheel type BITMAPONLY | BITMAP5;
-	return corpsetype;
 }

@@ -108,24 +108,23 @@ Killed(severity, corpsetype)
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
 		explode wheel type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
 		explode wheel type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
 		explode wheel type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
 	explode wheel type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	return corpsetype;
 }
