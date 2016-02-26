@@ -95,7 +95,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	-- add a move cmd in front each air-trans load/unload cmd, because else the trans wont respect smoothmesh
-	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdOpts, cmdParams,cmdTag)
+	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts,cmdTag)
 		if not UnitDefs[unitDefID].canFly then
 			return
 		end
