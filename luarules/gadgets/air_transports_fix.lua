@@ -21,7 +21,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	local orderQueue = {}
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, synced)
-		if not UnitDefs[unitDefID].canFly then
+		if not UnitDefs[unitDefID].canFly or not UnitDefs[unitDefID].transportSize then
 			return true
 		end
 		if cmdID == CMD.INSERT then
@@ -96,7 +96,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 	-- add a move cmd in front each air-trans load/unload cmd, because else the trans wont respect smoothmesh
 	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts,cmdTag)
-		if not UnitDefs[unitDefID].canFly then
+		if not UnitDefs[unitDefID].canFly and not UnitDefs[unitDefID].transportSize then
 			return
 		end
 		if (cmdID==CMD.UNLOAD_UNIT or cmdID==CMD.UNLOAD_UNITS) then
