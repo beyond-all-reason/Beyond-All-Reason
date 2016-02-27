@@ -209,11 +209,13 @@ Killed(severity, corpsetype)
 		{
 			Static_Var_7 = 0;
 			corpsetype = 1;
-		}
+	return corpsetype;
+}
 		if( Static_Var_7 )
 		{
 			corpsetype = 2;
-		}
+	return corpsetype;
+}
 		explode arms type BITMAPONLY | BITMAP1;
 		explode base type BITMAPONLY | BITMAP2;
 		explode emit1 type BITMAPONLY | BITMAP2;
@@ -222,7 +224,7 @@ Killed(severity, corpsetype)
 		explode launcher type BITMAPONLY | BITMAP5;
 		explode pole type BITMAPONLY | BITMAP1;
 		explode turret type BITMAPONLY | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -235,7 +237,7 @@ Killed(severity, corpsetype)
 		explode launcher type BITMAPONLY | BITMAP5;
 		explode pole type FALL | BITMAP1;
 		explode turret type FALL | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -248,7 +250,7 @@ Killed(severity, corpsetype)
 		explode launcher type BITMAPONLY | BITMAP5;
 		explode pole type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		return (0);
+		return (corpsetype);
 	}
 	corpsetype = 4;
 	explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1;
@@ -259,4 +261,5 @@ Killed(severity, corpsetype)
 	explode launcher type BITMAPONLY | BITMAP5;
 	explode pole type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
+	return corpsetype;
 }

@@ -3,10 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base;
+piece  base, fork, turret;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
+static-var  Static_Var_1;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -35,56 +34,50 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep sleeptime;
 	}
 	return (0);
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
-	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
 Create()
 {
-	call-script InitState();
+	dont-cache fork;
+	dont-shade fork;
 	start-script SmokeUnit();
+	Static_Var_1 = 0;
 	return (0);
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	if( Static_Var_1 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	spin fork around z-axis speed <100.02198>;
 	return (0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	spin fork around z-axis speed <0.00000>;
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	if( get ACTIVATION )
+	{
+		Static_Var_1 = 1;
+	}
+	if( Static_Var_1 )
+	{
+		signal 2;
+		set-signal-mask 2;
+		set ACTIVATION to 0;
+		sleep 8000;
+		Static_Var_1 = 0;
+		set ACTIVATION to 100;
+	}
 	return (0);
 }
 
@@ -100,21 +93,29 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
+		explode fork type BITMAPONLY | BITMAP2;
+		explode turret type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
+		explode fork type BITMAPONLY | BITMAP2;
+		explode turret type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
+		explode fork type SHATTER | BITMAP2;
+		explode turret type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
+	explode fork type SHATTER | EXPLODE_ON_HIT | BITMAP2;
+	explode turret type BITMAPONLY | BITMAP3;
 	return (corpsetype);
 }
