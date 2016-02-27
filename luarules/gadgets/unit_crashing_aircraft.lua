@@ -29,7 +29,7 @@ local crashing = {}
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true then
+		if UnitDef.canFly == true and not UnitDef.transportSize then
 			crashable[UnitDef.id] = true
 		end
 	end
