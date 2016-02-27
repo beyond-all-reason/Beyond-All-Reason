@@ -105,7 +105,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				cmdParams =  GetUnitPosition(unitID)
 			end
 			local insertPos = 0
-			if math.bit_and(cmdOpts,CMD.OPT_SHIFT) ~= 0 then
+			if cmdOpts.shift then
 				insertPos = GetUnitCommands(unitID,0)-1
 			end
 			orderQueue[GetGameFrame() + 1] = orderQueue[GetGameFrame() + 1] or {}
