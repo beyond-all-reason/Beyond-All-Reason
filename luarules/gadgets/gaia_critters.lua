@@ -22,10 +22,10 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 400		-- starting removing critters at this total unit count
-local maxTotalunits			= 1700		-- finished removing critters at this total unit count
+local minTotalUnits			= 450		-- starting removing critters at this total unit count
+local maxTotalunits			= 1650		-- finished removing critters at this total unit count
 local minimumCritters		= 0.15		-- dont remove further than (0.1 == 10%) of critters
-local minCritters			= 35		-- dont remove below this amount
+local minCritters			= 30		-- dont remove below this amount
 local critterDiffChange		= 8			-- dont add/remove less than x critters
 
 
@@ -54,7 +54,7 @@ local aliveCritters = 0
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local ux,uy,uz = spGetUnitPosition(unitID,true,true)
 	local waterRadius = 1000		-- max distance a submarine unit will travel
-	local orders = 5
+	local orders = 6
 	local attempts = orders
 	if minWaterDepth ~= nil then
 		attempts = 150
@@ -122,7 +122,7 @@ local function processSceduledOrders()
 end
 
 local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
-	local orders = 5
+	local orders = 6
 	local waterRadius = 1000		-- max distance a submarine unit will travel
 	local attempts = orders
 	if minWaterDepth ~= nil then
@@ -374,7 +374,7 @@ function gadget:GameStart()
 end
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
+	if sceduledOrders[unitID] == nil and Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
 		local x,y,z = spGetUnitPosition(unitID,true,true)
 		local radius = 220
 		if UnitDefs[unitDefID].name == "critter_gull" then
