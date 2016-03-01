@@ -37,6 +37,22 @@ local origIsPosInLos          = Spring.IsPosInLos
 local origIsPosInRadar        = Spring.IsPosInRadar
 local origIsPosInAirLos       = Spring.IsPosInAirLos
 
+--
+--local function traceback ()
+--    local level = 1
+--    while true do
+--        local info = debug.getinfo(level, "Sl")
+--        if not info then break end
+--        if info.what == "C" then   -- is a C function?
+--        Spring.Echo(level, "C function")
+--        else   -- a Lua function
+--        Spring.Echo(string.format("[%s]:%d",
+--            info.short_src, info.currentline))
+--        end
+--        level = level + 1
+--    end
+--end
+
 local function CreateUnitWrapper(origFunc)
     return function(unitID,allyTeam,raw)
         if ((allyTeam or 0) < 0) then
@@ -46,7 +62,10 @@ local function CreateUnitWrapper(origFunc)
                 return { los = true, radar = true, typed = true }
             end
         end
-        return origFunc(unitID,nil,raw)
+--        Spring.Echo("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+--        local info = debug.getinfo(origFunc)
+--        Spring.Echo(info.name);
+        return origFunc(unitID, allyTeam, raw)
     end
 end
 local function CreatePosWrapper(origFunc)
