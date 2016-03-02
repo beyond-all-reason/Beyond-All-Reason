@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad2, dish, wake1, wake2, silo, collar,
-       wedge, anti, ground, land1, land2;
+piece  base, land1, land2, dish, wake1, wake2, silo, collar,
+       wedge, anti, ground;
 
 static-var  Static_Var_1, Static_Var_2;
 
@@ -30,7 +30,7 @@ RockOnWaves(Func_Var_1, Func_Var_2, Func_Var_3)
 		while( get ABS(Func_Var_2) < 202 )
 		{
 			Func_Var_3 = 227 - get ABS(Func_Var_2);
-			turn ground to x-axis Func_Var_2 speed Func_Var_3 * <0.010989>;
+			turn ground to x-axis Func_Var_2 speed Func_Var_3 * <0.005495>;
 			wait-for-turn ground around x-axis;
 			Func_Var_2 = Func_Var_2 + Func_Var_1;
 		}
@@ -88,10 +88,10 @@ waveSplash()
 	while( TRUE )
 	{
 		turn base to x-axis <-1.000000> speed <1.000000>;
-		move base to y-axis [0.229999] speed [0.169995];
+		move base to y-axis [0.229999] speed [0.169989];
 		wait-for-turn base around x-axis;
 		turn base to x-axis <0.000000> speed <1.000000>;
-		move base to y-axis [0.000000] speed [0.169995];
+		move base to y-axis [0.000000] speed [0.169989];
 		wait-for-turn base around x-axis;
 	}
 }
@@ -106,7 +106,7 @@ StartMoving()
 	{
 		emit-sfx 2 from wake1;
 		emit-sfx 2 from wake2;
-		Func_Var_1 = get CURRENT_SPEED * 100 / get MAX_SPEED;
+		Func_Var_1 = (get CURRENT_SPEED) * 100 / (get MAX_SPEED);
 		if( Func_Var_1 < 50 )
 		{
 			Func_Var_1 = 50;
@@ -119,7 +119,7 @@ StopMoving()
 {
 	signal SIG_MOVE;
 	turn base to x-axis <0.000000> speed <1.000000>;
-	move base to y-axis [0.000000] speed [0.169995];
+	move base to y-axis [0.000000] speed [0.169989];
 }
 
 SweetSpot(piecenum)
@@ -166,8 +166,8 @@ Killed(severity, corpsetype)
 		corpsetype = 1;
 		explode base type BITMAPONLY | BITMAP1;
 		explode dish type BITMAPONLY | BITMAP2;
-		explode pad1 type BITMAPONLY | BITMAP3;
-		explode pad2 type BITMAPONLY | BITMAP4;
+		explode land1 type BITMAPONLY | BITMAP3;
+		explode land2 type BITMAPONLY | BITMAP4;
 		explode wake1 type BITMAPONLY | BITMAP5;
 		explode wake2 type BITMAPONLY | BITMAP1;
 		explode silo type BITMAPONLY | BITMAP3;
@@ -180,8 +180,8 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		explode base type BITMAPONLY | BITMAP1;
 		explode dish type SHATTER | BITMAP2;
-		explode pad1 type FALL | BITMAP3;
-		explode pad2 type FALL | BITMAP4;
+		explode land1 type FALL | BITMAP3;
+		explode land2 type FALL | BITMAP4;
 		explode wake1 type FALL | BITMAP5;
 		explode wake2 type FALL | BITMAP1;
 		explode silo type SHATTER | BITMAP3;
@@ -194,8 +194,8 @@ Killed(severity, corpsetype)
 		corpsetype = 3;
 		explode base type BITMAPONLY | BITMAP1;
 		explode dish type SHATTER | BITMAP2;
-		explode pad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode pad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+		explode land1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+		explode land2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode silo type SHATTER | BITMAP2;
@@ -206,12 +206,12 @@ Killed(severity, corpsetype)
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
 	explode dish type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode pad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode pad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
+	explode land1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
+	explode land2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode silo type SHATTER | BITMAP2;
 	explode collar type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 	explode wedge type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	return corpsetype;
+	return (corpsetype);
 }
