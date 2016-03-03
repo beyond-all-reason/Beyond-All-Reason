@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 75,
 		maxslope = 10,
-		maxvelocity = 10.35,
+		maxvelocity = 9.35,
 		maxwaterdepth = 0,
 		name = "Bladewing",
 		nochasecategory = "COMMANDERS VTOL",
