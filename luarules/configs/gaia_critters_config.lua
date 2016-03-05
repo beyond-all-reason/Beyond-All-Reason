@@ -220,6 +220,10 @@ l},
   { spawnCircle = {x=360, z=1800, r=250}, unitNames = {["critter_penguin"]=rnd(4,10)} },
 },
 
+["Hotlips_Redux_V2"] = {
+  { spawnBox = {x1=50, z1=50, x2=11200, z2=9150}, unitNames = {["critter_ant"]=rnd(35,50)} },
+},
+
 ["Iceland_v1"] = {
   { spawnBox = {x1=750, z1=750, x2=7450, z2=7450}, unitNames = {["critter_penguin"]=rnd(30,45)} },
   { spawnBox = {x1=2900, z1=7100, x2=4100, z2=7900}, unitNames = {["critter_penguin"]=rnd(6,9)} },
