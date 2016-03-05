@@ -1,16 +1,16 @@
 ﻿9.33 -> 9.35
-XX/02/2016
+05/03/2016
 
 Balance changes:
 - Bladewings are ~10% slower
 
 Other:
 - new widget: "BA cmdcolors", disable to load engine defaults
-- Unit Stats: based on recent version
-- A lot more widlife on a lot more maps
+- Unit Stats: based on recent version (more precise)
+- A lot more widlife at a lot more maps
 - Widlife diminishes when total unitcount gets higher
 - Bet frontend: unit betlist offset fix
-- Various changes to make it Spring Engine v101 compatible
+- Various changes to make it Spring v101 compatible
 
 
 9.32 -> 9.33
