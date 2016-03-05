@@ -84,6 +84,12 @@ l},
   { spawnBox = {x1=1800, z1=20, x2=3900, z2=120}, unitNames = {["critter_gull"]=1} },
 },
 
+["Downs_of_Destruction_Fix"] = {
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(70,120)} },
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_gull"]=rnd(10,16)} },
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_duck"]=rnd(4,6)} },
+},
+
 ["Dust_Bowl_v1"] = {
   { spawnBox = {x1=50, z1=50, x2=12200, z2=8150}, unitNames = {["critter_ant"]=rnd(22,33)} },
   { spawnCircle = {x=6150, z=4760, r=350}, unitNames = {["critter_ant"]=rnd(16,22)} },

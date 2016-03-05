@@ -80,6 +80,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("triangle-down.user", "LuaUI/Icons/triangle-down.png")
   Spring.AddUnitIcon("triangle-up.user", "LuaUI/Icons/triangle-up.png")
   Spring.AddUnitIcon("x.user", "LuaUI/Icons/x.png")
+  Spring.AddUnitIcon("blank.user", "LuaUI/Icons/blank.png")
    
   -- Setup the unitdef icons
   for udid,ud in pairs(UnitDefs) do
@@ -88,6 +89,8 @@ function gadget:Initialize()
       
       if (ud.name=="roost") or (ud.name=="meteor") then
         Spring.SetUnitDefIcon(udid, "star.user")
+      elseif string.sub(ud.name, 0, 7) == "critter" then
+        Spring.SetUnitDefIcon(udid, "blank.user")
       elseif (ud.name=="armwin") or (ud.name=="corwin") then
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.name=="armfig") or (ud.name=="corveng") or (ud.name=="armhawk") or (ud.name=="corvamp") then

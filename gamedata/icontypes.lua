@@ -12,6 +12,11 @@ local icontypes = {
     radiusadjust=1,
   },
   
+  blank = {
+    bitmap="icons/blank.tga",
+    size=1,
+  },
+  
   armcommander = {
     bitmap="icons/armcom.tga",
     size=2,
