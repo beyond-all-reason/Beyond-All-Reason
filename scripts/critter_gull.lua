@@ -31,7 +31,7 @@ function flapWings()
 			WaitForTurn (wingr,z_axis)
 		end		
 		Sleep (math.random (500,2000))
-		if  GetGameFrame () -lastSound > soundPause then
+		--[[if  GetGameFrame () -lastSound > soundPause then
 			local x,y,z = GetUnitPosition(unitID)
 			local vx,vy,vz = GetUnitVelocity(unitID)
 			local snd
@@ -43,8 +43,8 @@ function flapWings()
 			else
 				snd =  'sounds/critters/seacry3.wav'
 			end
-			PlaySoundFile(snd,volume,x,y,z,vx,vy,vz,'battle')
+			--PlaySoundFile(snd,volume,x,y,z,vx,vy,vz,'battle')
 			lastSound = GetGameFrame ()
-		end
+		end]]--
 	end
 end

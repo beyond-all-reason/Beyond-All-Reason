@@ -72,13 +72,13 @@ function script.setSFXoccupy (curTerrainType)
 		StartThread (jump)
 		Turn (body, x_axis, 0, tspeed*2)
 		--bodyWiggleAxis = z_axis
-	end	
+	end	--[[
 	if  GetGameFrame () -lastSound > soundPause then
 		local x,y,z = GetUnitPosition(unitID)
 		local snd = 'sounds/critters/penbray2.wav'
 		PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 		lastSound = GetGameFrame ()
-	end
+	end]]--
 	--Spring.Echo (curTerrainType)
 end
 
@@ -91,7 +91,7 @@ function jump()
 	WaitForMove (body,y_axis)
 	Move (body, y_axis, 0,40)
 	lastJump = Spring.GetGameFrame ()
-	PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
+	--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end
 
 function script.QueryWeapon1() return body end
@@ -115,5 +115,5 @@ function script.Killed(recentDamage, maxHealth)
 	else
 		snd = 'sounds/critters/pensquawk3.wav'
 	end
-	PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
+	--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end

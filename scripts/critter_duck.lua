@@ -52,7 +52,7 @@ function script.StartMoving()
 		else
 			snd = 'sounds/critters/duckcall3.wav'
 		end
-		PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
+		--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 		lastSound = GetGameFrame ()
 	end
 	StartThread(walk)
@@ -73,7 +73,7 @@ end
 function script.Shot1()
 	
 end
-
+--[[
 function script.Killed(recentDamage, maxHealth)
 	local snd
 	local rnd = math.random (0,100)
@@ -86,5 +86,5 @@ function script.Killed(recentDamage, maxHealth)
 	end
 	PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end
-
+]]--
 
