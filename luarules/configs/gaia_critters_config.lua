@@ -55,8 +55,8 @@ local critterConfig = {
   { spawnCircle = {x=7200, z=3800, r=3000}, unitNames = {["critter_penguin"]=rnd(2,5)} },
   { spawnCircle = {x=10600, z=3800, r=3000}, unitNames = {["critter_penguin"]=rnd(2,5)} },
   { spawnCircle = {x=13300, z=3800, r=3000}, unitNames = {["critter_penguin"]=rnd(2,5)} },
-  { spawnBox = {x1=1800, z1=650, x2=14700, z2=7400}, unitNames = {["critter_penguin"]=rnd(0,80)} },
-  { spawnBox = {x1=50, z1=50, x2=16300, z2=8150}, unitNames = {["critter_goldfish"]=rnd(66,170)} },
+  { spawnBox = {x1=1800, z1=650, x2=14700, z2=7400}, unitNames = {["critter_penguin"]=rnd(10,20)} },
+  { spawnBox = {x1=50, z1=50, x2=16300, z2=8150}, unitNames = {["critter_goldfish"]=rnd(75,150)} },
 l},
  
 ["Barbary Coves v2"] = {
@@ -200,11 +200,11 @@ l},
 },
 
 ["FrozenFortress_v2"] = {
-  { spawnCircle = {x=450, z=1200, r=290}, unitNames = {["critter_penguin"]=rnd(0,3)} },
-  { spawnCircle = {x=6600, z=1100, r=160}, unitNames = {["critter_penguin"]=rnd(0,3)} },
-  { spawnCircle = {x=9950, z=5850, r=190}, unitNames = {["critter_penguin"]=rnd(0,3)} },
-  { spawnBox = {x1=50, z1=50, x2=10100, z2=8150}, unitNames = {["critter_penguin"]=rnd(2,44)} },
-  { spawnBox = {x1=50, z1=50, x2=10100, z2=8150}, unitNames = {["critter_goldfish"]=rnd(100,200)} },
+  { spawnCircle = {x=450, z=1200, r=290}, unitNames = {["critter_penguin"]=rnd(1,2)} },
+  { spawnCircle = {x=6600, z=1100, r=160}, unitNames = {["critter_penguin"]=rnd(1,2)} },
+  { spawnCircle = {x=9950, z=5850, r=190}, unitNames = {["critter_penguin"]=rnd(1,2)} },
+  { spawnBox = {x1=50, z1=50, x2=10100, z2=8150}, unitNames = {["critter_penguin"]=rnd(12,20)} },
+  { spawnBox = {x1=50, z1=50, x2=10100, z2=8150}, unitNames = {["critter_goldfish"]=rnd(100,150)} },
 },
 
 ["FolsomDamDeluxeV4"] = {
@@ -225,7 +225,7 @@ l},
 },
 
 ["Iceland_v1"] = {
-  { spawnBox = {x1=750, z1=750, x2=7450, z2=7450}, unitNames = {["critter_penguin"]=rnd(30,45)} },
+  { spawnBox = {x1=750, z1=750, x2=7450, z2=7450}, unitNames = {["critter_penguin"]=rnd(30,40)} },
   { spawnBox = {x1=2900, z1=7100, x2=4100, z2=7900}, unitNames = {["critter_penguin"]=rnd(6,9)} },
   { spawnBox = {x1=4200, z1=250, x2=5200, z2=777}, unitNames = {["critter_penguin"]=rnd(4,6)} },
   { spawnCircle = {x=4550, z=3600, r=290}, unitNames = {["critter_penguin"]=rnd(5,8)} },
@@ -251,7 +251,7 @@ l},
 },
 
 ["IcySea-v2"] = {
-  { spawnBox = {x1=50, z1=50, x2=10200, z2=10200}, unitNames = {["critter_penguin"]=rnd(55,80)} },
+  { spawnBox = {x1=50, z1=50, x2=10200, z2=10200}, unitNames = {["critter_penguin"]=rnd(20,40)} },
   { spawnBox = {x1=50, z1=50, x2=10200, z2=10200}, unitNames = {["critter_goldfish"]=rnd(200,350)} },
 },
 
@@ -264,7 +264,7 @@ l},
 
 
 ["Lost_v2"] = {
-  { spawnBox = {x1=50, z1=50, x2=10200, z2=8150}, unitNames = {["critter_ant"]=rnd(6,35)} },
+  { spawnBox = {x1=50, z1=50, x2=10200, z2=8150}, unitNames = {["critter_ant"]=rnd(6,22)} },
 },
 
 ["IslandParadiseV2"] = {
@@ -274,21 +274,21 @@ l},
 },
 
 ["Nuclear_Winter_v1"] = {
-  { spawnBox = {x1=50, z1=50, x2=10100, z2=6100}, unitNames = {["critter_penguin"]=rnd(5,20)} },
+  { spawnBox = {x1=50, z1=50, x2=10100, z2=6100}, unitNames = {["critter_penguin"]=rnd(8,12)} },
 },
 
 ["Melt_V2"] = {
-  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_penguin"]=rnd(7,26)} },
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_penguin"]=rnd(8,14)} },
 },
 
 
 ["Malibu Beach v1"] = {
-  { spawnBox = {x1=50, z1=50, x2=10200, z2=5100}, unitNames = {["critter_goldfish"]=rnd(25,55)} },
+  { spawnBox = {x1=50, z1=50, x2=10200, z2=5100}, unitNames = {["critter_goldfish"]=rnd(30,50)} },
 },
 
 ["Mearth_v4"] = {
-  { spawnBox = {x1=6000, z1=300, x2=10200, z2=2000}, unitNames = {["critter_penguin"]=rnd(4,8)} },
-  { spawnBox = {x1=8400, z1=2000, x2=10200, z2=4200}, unitNames = {["critter_penguin"]=rnd(4,8)} },
+  { spawnBox = {x1=6000, z1=300, x2=10200, z2=2000}, unitNames = {["critter_penguin"]=rnd(3,6)} },
+  { spawnBox = {x1=8400, z1=2000, x2=10200, z2=4200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
   { spawnBox = {x1=50, z1=50, x2=10200, z2=15300}, unitNames = {["critter_goldfish"]=rnd(220,380)} },
   { spawnBox = {x1=50, z1=50, x2=6700, z2=15300}, unitNames = {["critter_gull"]=rnd(15,25)} },
   { spawnBox = {x1=6700, z1=4400, x2=10200, z2=9400}, unitNames = {["critter_gull"]=rnd(2,5)} },
@@ -326,16 +326,16 @@ l},
 },
 
 ["neurope_a7"] = {
-  { spawnBox = {x1=14400, z1=20, x2=16200, z2=1250}, unitNames = {["critter_penguin"]=rnd(5,12)} },
-  { spawnCircle = {x=3950, z=580, r=600},  unitNames = {["critter_penguin"]=rnd(6,20)} },
+  { spawnBox = {x1=14400, z1=20, x2=16200, z2=1250}, unitNames = {["critter_penguin"]=rnd(5,10)} },
+  { spawnCircle = {x=3950, z=580, r=600},  unitNames = {["critter_penguin"]=rnd(6,14)} },
   { spawnCircle = {x=3950, z=580, r=850}, unitNames = {["critter_gull"]=rnd(0,2)} },
   { spawnCircle = {x=1000, z=650, r=400}, unitNames = {["critter_penguin"]=rnd(0,4)} },
   { spawnCircle = {x=1350, z=2850, r=1500}, unitNames = {["critter_gull"]=rnd(0,3)} },
   { spawnCircle = {x=11650, z=1100, r=500}, unitNames = {["critter_penguin"]=rnd(0,3)} },
   { spawnBox = {x1=7400, z1=500, x2=9150, z2=1200}, unitNames = {["critter_penguin"]=rnd(0,4)} },
   { spawnBox = {x1=6150, z1=700, x2=8480, z2=1111}, unitNames = {["critter_penguin"]=rnd(0,4)} },
-  { spawnBox = {x1=50, z1=50, x2=16200, z2=8150}, unitNames = {["critter_goldfish"]=rnd(100,250)} },
-  { spawnBox = {x1=100, z1=100, x2=16200, z2=8150}, unitNames = {["critter_gull"]=rnd(15,50)} },
+  { spawnBox = {x1=50, z1=50, x2=16200, z2=8150}, unitNames = {["critter_goldfish"]=rnd(100,200)} },
+  { spawnBox = {x1=100, z1=100, x2=16200, z2=8150}, unitNames = {["critter_gull"]=rnd(22,45)} },
 },
 
 ["Parched_mesa-v04"] = {
@@ -355,9 +355,9 @@ l},
   { spawnCircle = {x=5200, z=3000, r=2500}, unitNames = {["critter_gull"]=rnd(5,8)} },
   { spawnCircle = {x=7350, z=8250, r=2000}, unitNames = {["critter_gull"]=rnd(5,8)} },
   { spawnCircle = {x=8500, z=3650, r=1550}, unitNames = {["critter_gull"]=rnd(2,4)} },
-  { spawnCircle = {x=11000, z=1600, r=2300}, unitNames = {["critter_penguin"]=rnd(10,15)} },
-  { spawnCircle = {x=11500, z=3650, r=1500}, unitNames = {["critter_penguin"]=rnd(8,12)} },
-  { spawnCircle = {x=6550, z=100, r=1600}, unitNames = {["critter_penguin"]=rnd(8,12)} },
+  { spawnCircle = {x=11000, z=1600, r=2300}, unitNames = {["critter_penguin"]=rnd(8,12)} },
+  { spawnCircle = {x=11500, z=3650, r=1500}, unitNames = {["critter_penguin"]=rnd(6,10)} },
+  { spawnCircle = {x=6550, z=100, r=1600}, unitNames = {["critter_penguin"]=rnd(6,10)} },
   { spawnCircle = {x=5080, z=200, r=850}, unitNames = {["critter_penguin"]=rnd(2,4)} },
   { spawnCircle = {x=12222, z=500, r=1100}, unitNames = {["critter_penguin"]=rnd(2,4)} },
   { spawnCircle = {x=7800, z=1400, r=200}, unitNames = {["critter_penguin"]=rnd(1,2)} },
@@ -477,28 +477,28 @@ l},
 
 ["TheColdPlace"] = {
   { spawnBox = {x1=2700, z1=1800, x2=4500, z2=3200}, unitNames = {["critter_goldfish"]=rnd(6,12)} },
-  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,12)} },
+  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,10)} },
 },
 
 ["The Cold Place Remake"] = {
   { spawnBox = {x1=2700, z1=1800, x2=4500, z2=3200}, unitNames = {["critter_goldfish"]=rnd(6,12)} },
-  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,12)} },
-  { spawnCircle = {x=1500, z=2300, r=200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
-  { spawnCircle = {x=5400, z=2000, r=200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
+  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,10)} },
+  { spawnCircle = {x=1500, z=2300, r=200}, unitNames = {["critter_penguin"]=rnd(3,5)} },
+  { spawnCircle = {x=5400, z=2000, r=200}, unitNames = {["critter_penguin"]=rnd(3,5)} },
 },
 
 ["The Cold Place Remake V2"] = {
   { spawnBox = {x1=2700, z1=1800, x2=4500, z2=3200}, unitNames = {["critter_goldfish"]=rnd(6,12)} },
-  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,12)} },
-  { spawnCircle = {x=1500, z=2300, r=200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
-  { spawnCircle = {x=5400, z=2000, r=200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
+  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,10)} },
+  { spawnCircle = {x=1500, z=2300, r=200}, unitNames = {["critter_penguin"]=rnd(3,5)} },
+  { spawnCircle = {x=5400, z=2000, r=200}, unitNames = {["critter_penguin"]=rnd(3,5)} },
 },
 
 ["The Cold Place Remake V3c"] = {
   { spawnBox = {x1=2700, z1=1800, x2=4500, z2=3200}, unitNames = {["critter_goldfish"]=rnd(6,12)} },
-  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,12)} },
-  { spawnCircle = {x=1500, z=2300, r=200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
-  { spawnCircle = {x=5400, z=2000, r=200}, unitNames = {["critter_penguin"]=rnd(3,6)} },
+  { spawnBox = {x1=1500, z1=3700, x2=5400, z2=4000}, unitNames = {["critter_penguin"]=rnd(6,10)} },
+  { spawnCircle = {x=1500, z=2300, r=200}, unitNames = {["critter_penguin"]=rnd(3,5)} },
+  { spawnCircle = {x=5400, z=2000, r=200}, unitNames = {["critter_penguin"]=rnd(3,5)} },
 },
 
 ["Titan-v2"] = {
@@ -547,7 +547,7 @@ l},
 
 ["World_FFA"] = {
   { spawnCircle = {x=7474, z=4343, r=210}, unitNames = {["critter_penguin"]=rnd(3,6)} },
-  { spawnBox = {x1=1200, z1=13500, x2=16000, z2=16300}, unitNames = {["critter_penguin"]=rnd(33,66)} },
+  { spawnBox = {x1=1200, z1=13500, x2=16000, z2=16300}, unitNames = {["critter_penguin"]=rnd(30,40)} },
   { spawnBox = {x1=10400, z1=9085, x2=10550, z2=9500}, unitNames = {["critter_penguin"]=2} },
   { spawnBox = {x1=50, z1=50, x2=16300, z2=16300}, unitNames = {["critter_goldfish"]=rnd(190,380)} },
 },

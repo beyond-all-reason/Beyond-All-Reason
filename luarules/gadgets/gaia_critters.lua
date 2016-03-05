@@ -25,7 +25,7 @@ local addCrittersAgain		= true		-- re-add the removed critters again
 local minTotalUnits			= 450		-- starting removing critters at this total unit count
 local maxTotalunits			= 1650		-- finished removing critters at this total unit count
 local minimumCritters		= 0.15		-- dont remove further than (0.1 == 10%) of critters
-local minCritters			= 30		-- dont remove below this amount
+local minCritters			= 20		-- dont remove below this amount
 local critterDiffChange		= 8			-- dont add/remove less than x critters
 
 
