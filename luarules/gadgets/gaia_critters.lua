@@ -108,15 +108,19 @@ local function processSceduledOrders()
 	local orders = 0
 	for unitID, UnitOrders in pairs(sceduledOrders) do
 		orders = 0
-		for oid, order in pairs(UnitOrders) do
-			Spring.GiveOrderToUnit(unitID, order.type, order.location, order.modifiers)
-			sceduledOrders[unitID][oid] = nil
-			orders = orders + 1
-			processOrders = true
-			break
-		end
-		if orders == 0 then 
+		if Spring.GetUnitIsDead(unitID) then 
 			sceduledOrders[unitID] = nil
+		else
+			for oid, order in pairs(UnitOrders) do
+				Spring.GiveOrderToUnit(unitID, order.type, order.location, order.modifiers)
+				sceduledOrders[unitID][oid] = nil
+				orders = orders + 1
+				processOrders = true
+				break
+			end
+			if orders == 0 then 
+				sceduledOrders[unitID] = nil
+			end
 		end
 	end
 end
