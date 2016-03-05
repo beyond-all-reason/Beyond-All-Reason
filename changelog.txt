@@ -10,7 +10,7 @@ Other:
 - A lot more widlife at a lot more maps
 - Widlife diminishes when total unitcount gets higher
 - Bet frontend: unit betlist offset fix
-- Various changes to make it Spring v101 compatible
+- Various changes to make it Spring v101 compatible 
 
 
 9.32 -> 9.33
