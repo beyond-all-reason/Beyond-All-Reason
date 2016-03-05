@@ -132,13 +132,13 @@ end
 function widget:GetConfigData()
 	if Game.version == '101' then
 		savedTable = {}
-		savedTable.shown = true
+		savedTable.shown2 = true
 		return savedTable
 	end
 end
 
 function widget:SetConfigData(data)
-	if data.shown ~= nil then
+	if data.shown2 ~= nil then
 		shown = true
 	end
 end
