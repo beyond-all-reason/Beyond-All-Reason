@@ -26,7 +26,6 @@ unitDef = {
   maxVelocity            = 0.6,
   minCloakDistance       = 75,
   minWaterDepth          = 15, -- not used, minWaterDepth in movedef used instead (36)
-  modelCenterOffset      = [[0 0 -4]],
   movementClass          = [[UBOAT3]],
   selfDestructCountdown = 0,
   noAutoFire             = false,

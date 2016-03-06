@@ -9,7 +9,6 @@ return {
 		buildpic = "CORSOK.DDS",
 		canattack = true,
 		canguard = true,
-		canhover = true,
 		canmove = true,
 		canpatrol = true,
 		canstop = 1,

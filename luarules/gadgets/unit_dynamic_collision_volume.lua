@@ -53,7 +53,7 @@ if (gadgetHandler:IsSyncedCode()) then
 						spSetFeatureRadiusAndHeight(featID, math.min(p[1], p[3])/2, p[2])
 					elseif featureModel:find(".s3o") then
 						local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
-						Spring.Echo(featureModel, xs, ys, zs, xo, yo, zo, vtype, htype, axis)
+						--Spring.Echo(featureModel, xs, ys, zs, xo, yo, zo, vtype, htype, axis)
 						if (vtype>=3 and xs==ys and ys==zs) then
                             spSetFeatureCollisionData(featID, xs, ys*0.75, zs,  xo, yo-ys*0.09, zo,  1, htype, 1)
 						end
