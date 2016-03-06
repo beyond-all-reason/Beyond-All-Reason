@@ -926,7 +926,7 @@ function widget:DrawScreen()
 					lastSelectedUnit = unitID
 					showingPanel = true
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
-					canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID].score >= betCost)
+					canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID] ~= nil and playerScores[myPlayerID].score >= betCost)
 
 					if lastBetTime < ceil(absTime/BET_GRANULARITY) then
 						lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
