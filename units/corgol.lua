@@ -47,7 +47,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "60 16 60",
-				collisionvolumetest = 1,
 				collisionvolumetype = "Box",
 				damage = 4500,
 				description = "Goliath Wreckage",

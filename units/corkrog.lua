@@ -48,7 +48,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 -11 0",
 				collisionvolumescales = "96 88 134",
-				collisionvolumetest = 1,
 				collisionvolumetype = "box",
 				damage = 57600,
 				description = "Krogoth Wreckage",

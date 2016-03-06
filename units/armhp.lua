@@ -52,7 +52,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "116 20 104",
-				collisionvolumetest = 1,
 				collisionvolumetype = "Box",
 				damage = 1803,
 				description = "Hovercraft Platform Wreckage",

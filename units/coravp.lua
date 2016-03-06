@@ -62,7 +62,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 -6 0",
 				collisionvolumescales = "124 30 104",
-				collisionvolumetest = 1,
 				collisionvolumetype = "Box",
 				damage = 2777,
 				description = "Advanced Vehicle Plant Wreckage",

@@ -43,7 +43,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 -3 -1",
 				collisionvolumescales = "49 7 49",
-				collisionvolumetest = 1,
 				collisionvolumetype = "CylY",
 				damage = 612,
 				description = "Advanced Solar Collector Wreckage",

@@ -55,7 +55,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 -9 -2",
 				collisionvolumescales = "180 60 176",
-				collisionvolumetest = 1,
 				collisionvolumetype = "Box",
 				damage = 2707,
 				description = "Advanced Shipyard Wreckage",

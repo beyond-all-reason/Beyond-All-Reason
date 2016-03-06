@@ -52,7 +52,6 @@ return {
 				category = "corpses",
 				collisionvolumeoffsets = "0 -14 0",
 				collisionvolumescales = "125 57 145",
-				collisionvolumetest = 1,
 				collisionvolumetype = "Ell",
 				damage = 8640,
 				description = "Experimental Gantry Wreckage",
