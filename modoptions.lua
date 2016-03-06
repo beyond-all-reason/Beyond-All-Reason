@@ -74,14 +74,6 @@ local options={
 		def    = false,
 		section= "ba_modes",
     },
-	{
-		key    = "mo_comgate",
-		name   = "Commander Gate Effect",
-		desc   = "Commanders warp in at gamestart with a shiny teleport effect",
-		type   = "bool",
-		def    = false,
-		section= "ba_others",
-    },
     {
 		key="mo_transportenemy",
 		name="Enemy Transporting",
