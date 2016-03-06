@@ -74,7 +74,7 @@ local iPosX, iPosY
 local InfotablePosX, InfotablePosY	-- Expand bar bottom left coordinates
 local cW 							= 100 -- column width
 local ctrlDown 						= false
-local textsize						= 11
+local textsize						= 14
 local textlarge						= 18
 local gaiaID						= Spring.GetGaiaTeamID()
 local gaiaAllyID					= select(6,GetTeamInfo(gaiaID))
@@ -289,7 +289,6 @@ function processScaling()
 	WBadge			= math.floor(WBadge * sizeMultiplier)
 	cW				= math.floor(cW * sizeMultiplier)
 	textsize		= math.floor(textsize * sizeMultiplier)
-	textlarge		= math.floor(textlarge * sizeMultiplier)
 	borderPadding	= math.floor(borderPadding * sizeMultiplier)
 end
 
@@ -306,8 +305,7 @@ function setDefaults()
 	borderPadding			= 4.5
 	WBadge					= 14
 	cW						= 100
-	textsize				= 11
-	textlarge				= 18
+	textsize				= 14
 end
 
 function widget:GetConfigData(data)      -- save
@@ -445,7 +443,7 @@ local function DrawEText(numberE, vOffset)
 		local label = tconcat({"",formatRes(numberE)})
 		myFont:Begin()
 		myFont:SetTextColor({1, 1, 0, 1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(42*sizeMultiplier),textsize,'rs')
+		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(45*sizeMultiplier),textsize,'rs')
 		myFont:End()
 	end
 end
@@ -455,7 +453,7 @@ local function DrawMText(numberM, vOffset)
 		local label = tconcat({"",formatRes(numberM)})
 		myFont:Begin()
 		myFont:SetTextColor({0.8,0.8,0.8,1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(30*sizeMultiplier),textsize,'rs')
+		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(29*sizeMultiplier),textsize,'rs')
 		myFont:End()
 	end
 end
