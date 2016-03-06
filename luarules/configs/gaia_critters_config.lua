@@ -91,9 +91,9 @@ l},
 },
 
 ["Dust_Bowl_v1"] = {
-  { spawnBox = {x1=50, z1=50, x2=12200, z2=8150}, unitNames = {["critter_ant"]=rnd(22,33)} },
-  { spawnCircle = {x=6150, z=4760, r=350}, unitNames = {["critter_ant"]=rnd(16,22)} },
-  { spawnCircle = {x=6150, z=4760, r=1300}, unitNames = {["critter_ant"]=rnd(11,16)} },
+  { spawnBox = {x1=50, z1=50, x2=12200, z2=8150}, unitNames = {["critter_ant"]=rnd(12,16)} },
+  { spawnCircle = {x=6150, z=4760, r=350}, unitNames = {["critter_ant"]=rnd(10,14)} },
+  { spawnCircle = {x=6150, z=4760, r=1300}, unitNames = {["critter_ant"]=rnd(7,10)} },
 },
 
 ["Dworld_V1"] = {
@@ -221,7 +221,7 @@ l},
 },
 
 ["Hotlips_Redux_V2"] = {
-  { spawnBox = {x1=50, z1=50, x2=11200, z2=9150}, unitNames = {["critter_ant"]=rnd(35,50)} },
+  { spawnBox = {x1=50, z1=50, x2=11200, z2=9150}, unitNames = {["critter_ant"]=rnd(20,30)} },
 },
 
 ["Iceland_v1"] = {
@@ -256,15 +256,15 @@ l},
 },
 
 ["LLTAComplexV2"] = {
-  { spawnBox = {x1=4222, z1=30,   x2=5050, z2=1550}, unitNames = {["critter_ant"]=rnd(3,5)} },
-  { spawnBox = {x1=2500, z1=1550, x2=6666, z2=2050}, unitNames = {["critter_ant"]=rnd(4,6)} },
-  { spawnBox = {x1=1500, z1=2050, x2=7666, z2=3500}, unitNames = {["critter_ant"]=rnd(9,12)} },
-  { spawnBox = {x1=2666, z1=3500, x2=6560, z2=5100}, unitNames = {["critter_ant"]=rnd(6,9)} },
+  { spawnBox = {x1=4222, z1=30,   x2=5050, z2=1550}, unitNames = {["critter_ant"]=rnd(2,3)} },
+  { spawnBox = {x1=2500, z1=1550, x2=6666, z2=2050}, unitNames = {["critter_ant"]=rnd(3,4)} },
+  { spawnBox = {x1=1500, z1=2050, x2=7666, z2=3500}, unitNames = {["critter_ant"]=rnd(5,8)} },
+  { spawnBox = {x1=2666, z1=3500, x2=6560, z2=5100}, unitNames = {["critter_ant"]=rnd(3,5)} },
 },
 
 
 ["Lost_v2"] = {
-  { spawnBox = {x1=50, z1=50, x2=10200, z2=8150}, unitNames = {["critter_ant"]=rnd(6,22)} },
+  { spawnBox = {x1=50, z1=50, x2=10200, z2=8150}, unitNames = {["critter_ant"]=rnd(6,12)} },
 },
 
 ["IslandParadiseV2"] = {
@@ -294,7 +294,7 @@ l},
   { spawnBox = {x1=6700, z1=4400, x2=10200, z2=9400}, unitNames = {["critter_gull"]=rnd(2,5)} },
   { spawnBox = {x1=7980, z1=9980, x2=8490, z2=10220}, unitNames = {["critter_ant"]=rnd(-15,3)*5} },
   { spawnBox = {x1=7980, z1=9980, x2=8490, z2=10220}, unitNames = {["critter_ant"]=rnd(3,6)} },
-  { spawnCircle = {x=8700, z=11700, r=2000}, unitNames = {["critter_ant"]=rnd(5,14)} },
+  { spawnCircle = {x=8700, z=11700, r=2000}, unitNames = {["critter_ant"]=rnd(4,12)} },
   { spawnCircle = {x=300, z=8450, r=3900}, unitNames = {["critter_gull"]=rnd(2,5)} },
   { spawnCircle = {x=800, z=13700, r=3400}, unitNames = {["critter_gull"]=rnd(1,3)} },
   { spawnCircle = {x=9900, z=6000, r=800}, unitNames = {["critter_gull"]=rnd(1,2)} },
@@ -339,7 +339,7 @@ l},
 },
 
 ["Parched_mesa-v04"] = {
-  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_ant"]=rnd(12,20)} },
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_ant"]=rnd(7,14)} },
 },
 
 ["Pearl Springs v2"] = {
@@ -364,9 +364,9 @@ l},
   { spawnCircle = {x=9666, z=1444, r=1050}, unitNames = {["critter_penguin"]=rnd(2,4)} },
   { spawnCircle = {x=5333, z=8666, r=600}, unitNames = {["critter_duck"]=rnd(4,6)} },
   { spawnCircle = {x=6633, z=9595, r=450}, unitNames = {["critter_duck"]=rnd(2,3)} },
-  { spawnBox = {x1=9980, z1=8333, x2=12250, z2=9933}, unitNames = {["critter_ant"]=rnd(5,8)} },
-  { spawnBox = {x1=5666, z1=11666, x2=12250, z2=12250}, unitNames = {["critter_ant"]=rnd(8,14)} },
-  { spawnBox = {x1=1333, z1=10300, x2=5666, z2=12250}, unitNames = {["critter_ant"]=rnd(12,25)} },
+  { spawnBox = {x1=9980, z1=8333, x2=12250, z2=9933}, unitNames = {["critter_ant"]=rnd(4,6)} },
+  { spawnBox = {x1=5666, z1=11666, x2=12250, z2=12250}, unitNames = {["critter_ant"]=rnd(6,10)} },
+  { spawnBox = {x1=1333, z1=10300, x2=5666, z2=12250}, unitNames = {["critter_ant"]=rnd(10,16)} },
 },
 
 ["Sparewood-v01"] = {
@@ -502,7 +502,7 @@ l},
 },
 
 ["Titan-v2"] = {
-  { spawnBox = {x1=50, z1=50, x2=9200, z2=6100}, unitNames = {["critter_ant"]=18} },
+  { spawnBox = {x1=50, z1=50, x2=9200, z2=6100}, unitNames = {["critter_ant"]=rnd(7,14)} },
 },
 
 ["Tropical"] = {
@@ -535,7 +535,7 @@ l},
 
 ["Tumult"] = {
   { spawnBox = {x1=3450, z1=3490, x2=3660, z2=3720} , unitNames = {["critter_goldfish"]=rnd(5,12)} },
-  { spawnBox = {x1=50, z1=50, x2=7150, z2=7150}, unitNames = {["critter_ant"]=rnd(5,20)} },
+  { spawnBox = {x1=50, z1=50, x2=7150, z2=7150}, unitNames = {["critter_ant"]=rnd(5,10)} },
 },
 
 ["Vernal 3way 0.6.1"] = {
