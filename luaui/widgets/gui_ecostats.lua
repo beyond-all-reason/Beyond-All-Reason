@@ -443,7 +443,7 @@ local function DrawEText(numberE, vOffset)
 		local label = tconcat({"",formatRes(numberE)})
 		myFont:Begin()
 		myFont:SetTextColor({1, 1, 0, 1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(45*sizeMultiplier),textsize,'rs')
+		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(41*sizeMultiplier),textsize,'rs')
 		myFont:End()
 	end
 end
@@ -453,7 +453,7 @@ local function DrawMText(numberM, vOffset)
 		local label = tconcat({"",formatRes(numberM)})
 		myFont:Begin()
 		myFont:SetTextColor({0.8,0.8,0.8,1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(29*sizeMultiplier),textsize,'rs')
+		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(24*sizeMultiplier),textsize,'rs')
 		myFont:End()
 	end
 end
