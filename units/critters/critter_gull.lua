@@ -13,7 +13,7 @@ name                = "SeaGull",
   buildTime           = 10,
   ----cost
   buildCostEnergy     = 0,
-  buildCostMetal      = 1,
+  buildCostMetal      = 0,
   ----health
   maxDamage           = 10,
   idleAutoHeal        = 0,

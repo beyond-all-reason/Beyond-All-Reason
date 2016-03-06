@@ -193,6 +193,15 @@ l},
   { spawnBox = {x1=50, z1=50, x2=2000, z2=2000}, unitNames = {["critter_duck"]=rnd(-2,6)} },
 },
 
+["Emain Macha"] = {
+  { spawnCircle = {x=40, z=4700, r=800}, unitNames = {["critter_duck"]=rnd(1,2)} },
+  { spawnCircle = {x=40, z=4700, r=1100}, unitNames = {["critter_gull"]=rnd(2,3)} },
+  { spawnCircle = {x=40, z=4700, r=1100}, unitNames = {["critter_goldfish"]=rnd(6,10)} },
+  { spawnCircle = {x=8100, z=4700, r=700}, unitNames = {["critter_duck"]=rnd(1,2)} },
+  { spawnCircle = {x=8100, z=4700, r=1100}, unitNames = {["critter_gull"]=rnd(2,3)} },
+  { spawnCircle = {x=8100, z=4700, r=1100}, unitNames = {["critter_goldfish"]=rnd(6,10)} },
+},
+
 ["Epic-EE-CrossingGlade-v04"] = {
   { spawnCircle = {x=2000, z=2300, r=1000}, unitNames = {["critter_gull"]=rnd(1,3)} },
   { spawnCircle = {x=1750, z=2560, r=250}, unitNames = {["critter_duck"]=rnd(1,3)} },
