@@ -24,7 +24,7 @@ end
 --------------------------------------------------------------------------------
 
 function gadget:Initialize()
-	if (Spring.SetSunLighting ~= nil) and (gl.GetAtmosphere ~= nil) then
+	if (Spring.SetSunLighting ~= nil) and (gl.GetAtmosphere ~= nil) and (Spring.GetConfigInt('AdvMapShading', 1) == 1) then
 		local mapSpecR, mapSpecG, mapSpecB = gl.GetSun("specular")
 		if (math.abs(mapSpecR - 0.1) + math.abs(mapSpecG - 0.1) + math.abs(mapSpecB - 0.1)) < 0.0001 then --default groundSpecularColor is (0.1, 0.1, 0.1)
 			Spring.Echo("Map Sun Handler: Clearing groundSpecularColor via SetSunLighting because map does not change it from default.")
