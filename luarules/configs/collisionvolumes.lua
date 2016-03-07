@@ -213,7 +213,7 @@ local dynamicPieceCollisionVolume = {}	--dynamic per piece collision volume defi
 		},
 		off = {
 			["0"]={39,39,39,0,-2,0,0,1},
-			["offsets"]={0,10,0},
+			["offsets"]={0, 2, 0}, --["offsets"]={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
 		}
 	}
 
