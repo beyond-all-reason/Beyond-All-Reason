@@ -40,6 +40,10 @@ local function ExtractWeaponDefs(udName, ud)
     if (isstring(wdName) and istable(wd)) then
       local fullName = udName .. '_' .. wdName
       WeaponDefs[fullName] = wd
+        
+      if SaveDefsToCustomParams then
+        MarkDefOmittedInCustomParams("WeaponDefs", fullName, wd)
+      end
     end
   end
 

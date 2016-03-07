@@ -752,8 +752,43 @@ teamDeathMessages = {
     "XX was eloquently, lovingly and pugnaciously drunk",
     "XX was one of the reasons the Chinese never invented custard",
     "XX used to be Snow White",
-    "XX built units instead of afus",
+    "XX should have built more advanced fusion reactors",
+    "XX fell asleep in the bath",
+    "XX accidentally shot down a civilian airliner",
+    "XX ran itself over",
+    "XX got bottled",
+    "XX dug its own grave",
+    "XX can has pototoes for its obey",
+    "XX dribbled its way to oblivion",
+    "XX was the last Mohican",
+    "XX lived in the gaps between the stories",
+    "XX watches the slow dance of the infinite stars",
+    "XX wants to hear Toot Toot Tootsie",
+    "XX was Spartacus",
+    "Mrs Robinson you're trying to seduce XX, aren't you?",
+    "XX is not bad, just drawn that way",
+    "XX took to the skies",
+    "XX retired hurt",
+    "XX paid $1.35m for work carried out nine years ago under an oral contract, and was banned from all related activity for eight years",
+    "XX is the president of everybody",
+    "XX was a fixed function pipeline",
+    "XX has a ticket to the moon",
+    "XX slipped through the hourglass",
+    "XX violated Turkish airspace",
+    "XX was nine sheets to the wind",
+    "XX saw its last sunrise",
+    "XX got battered",
+    "XX stole Christmas",
+    "XX was just faking",
+    "XX really tied the room together",
+    "XX put Baby in a corner",
+    "XX "
+    
+    
 }
+    
+    
+    
 
 
 
