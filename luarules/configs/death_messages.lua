@@ -782,7 +782,6 @@ teamDeathMessages = {
     "XX was just faking",
     "XX really tied the room together",
     "XX put Baby in a corner",
-    "XX "
     
     
 }
