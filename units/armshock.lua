@@ -69,6 +69,8 @@ return {
 				hitdensity = 100,
 				metal = 811,
 				object = "4X4D",
+                collisionvolumescales = "85.0 14.0 6.0",
+                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
