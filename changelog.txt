@@ -2,13 +2,14 @@
 XX/03/2016
 
 Balance changes:
-- Most of the heaps are now lower -> bullets will not hit them
-- Fixed "closed viper hard to hit" bug
+- Heaps are harder to hit (lower hitbox)
+- Fixed "closed viper is hard to hit"
 - "Set target" fixes
 
 Other:
 - More death messages
-- Comgate effect was removed
+- Comgate effect reimplemented as optional widget
+- Less critters (wildlife) on land
 
 
 9.33 -> 9.35
