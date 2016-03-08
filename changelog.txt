@@ -1,4 +1,14 @@
-﻿9.33 -> 9.35
+﻿9.35 -> 9.36
+XX/03/2016
+
+Balance changes:
+- Most of the heaps are now lower -> bullets will not hit them
+- Fixed "closed viper hard to hit" bug
+
+Other:
+
+
+9.33 -> 9.35
 05/03/2016
 
 Balance changes:
