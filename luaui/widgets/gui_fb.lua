@@ -81,7 +81,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	if shown or  Game.version ~= '101' then
+	if shown or  Game.version ~= '102' then
 		widgetHandler:RemoveWidget(self)
 	end
 	updatePosition()
@@ -130,7 +130,7 @@ function widget:MousePress(mx, my, mb)
 end
 
 function widget:GetConfigData()
-	if Game.version == '101' then
+	if Game.version == '102' then
 		savedTable = {}
 		savedTable.shown2 = true
 		return savedTable
