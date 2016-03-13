@@ -211,7 +211,7 @@ Killed(severity, corpsetype)
 		explode lid3 type BITMAPONLY | BITMAP5;
 		explode lid4 type BITMAPONLY | BITMAP1;
 		explode mmakercore type BITMAPONLY | BITMAP2;
-		return (0);
+		return corpsetype;
 	}
 	if( severity <= 50 )
 	{
@@ -223,7 +223,7 @@ Killed(severity, corpsetype)
 		explode lid3 type FALL | BITMAP5;
 		explode lid4 type FALL | BITMAP1;
 		explode mmakercore type BITMAPONLY | BITMAP2;
-		return (0);
+		return corpsetype;
 	}
 	if( severity <= 99 )
 	{
@@ -235,7 +235,7 @@ Killed(severity, corpsetype)
 		explode lid3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode lid4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode mmakercore type BITMAPONLY | BITMAP2;
-		return (0);
+		return corpsetype;
 	}
 	corpsetype = 3;
 	explode base2 type BITMAPONLY | BITMAP1;
