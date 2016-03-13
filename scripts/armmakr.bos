@@ -5,7 +5,7 @@
 
 piece  base, sphere;
 
-#define WHAT_DO 1024
+static-var  mmState, Active;
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -34,7 +34,12 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-static-var  mmState;
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
+
 ImAMetalMaker()
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -44,7 +49,7 @@ ImAMetalMaker()
 	mmState = -1;
 	while( TRUE )
 	{
-		if ((get WHAT_DO) == 1)
+		if (Active == 1)
 		{
 			if (mmState != 1) {
 				move sphere to y-axis [1.600000] speed [1.600000];

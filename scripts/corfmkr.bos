@@ -6,7 +6,7 @@
 piece  base, float1, float2, float3, float4, float5, float6, door1,
        door2, door3, door4, glow;
        
-#define WHAT_DO 1024
+static-var Active, mmState;
 
 activatescr()
 {
@@ -123,7 +123,12 @@ Stop()
 	set ARMORED to 1;
 }
 
-static-var  mmState;
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
+
 ImAMetalMaker()
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -133,19 +138,18 @@ ImAMetalMaker()
 	mmState = -1;
 	while( TRUE )
 	{
-		if ((get WHAT_DO) == 1)
+		if( Active == 1 )
 		{
-			if (mmState != 1) {
+			if( mmState != 1 )
+			{
 				call-script Go();
 				mmState = 1;
 			}
 		}
-		else
+		else if( mmState != 0 )
 		{
-			if (mmState != 0) {
-				call-script Stop();
-				mmState = 0;
-			}
+			call-script Stop();
+			mmState = 0;
 		}
 		sleep 1000;
 	}
@@ -203,7 +207,7 @@ Killed(severity, corpsetype)
 		explode float5 type BITMAPONLY | BITMAP5;
 		explode float6 type BITMAPONLY | BITMAP1;
 		explode glow type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -220,7 +224,7 @@ Killed(severity, corpsetype)
 		explode float5 type FALL | BITMAP5;
 		explode float6 type FALL | BITMAP1;
 		explode glow type SHATTER | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -237,7 +241,7 @@ Killed(severity, corpsetype)
 		explode float5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode float6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode glow type SHATTER | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
@@ -252,5 +256,4 @@ Killed(severity, corpsetype)
 	explode float5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 	explode float6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode glow type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	return corpsetype;
 }

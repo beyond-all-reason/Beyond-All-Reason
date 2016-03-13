@@ -5,9 +5,7 @@
 
 piece  base2, lid2, lid3, mmakercore, lid1, lid4, glowingthing;
 
-static-var  Static_Var_1;
-
-#define WHAT_DO 1024
+static-var  Static_Var_1, Active;
 
 activatescr()
 {
@@ -125,6 +123,12 @@ Stop()
 	cache glowingthing;
 }
 
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
+
 static-var  mmState;
 ImAMetalMaker()
 {
@@ -134,8 +138,8 @@ ImAMetalMaker()
 	}
 	mmState = -1;
 	while( TRUE )
-	{
-		if ((get WHAT_DO) == 1)
+	{	
+		if (Active == 1)
 		{
 			if (mmState != 1) {
 				call-script Go();
@@ -207,7 +211,7 @@ Killed(severity, corpsetype)
 		explode lid3 type BITMAPONLY | BITMAP5;
 		explode lid4 type BITMAPONLY | BITMAP1;
 		explode mmakercore type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -219,7 +223,7 @@ Killed(severity, corpsetype)
 		explode lid3 type FALL | BITMAP5;
 		explode lid4 type FALL | BITMAP1;
 		explode mmakercore type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -231,7 +235,7 @@ Killed(severity, corpsetype)
 		explode lid3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode lid4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode mmakercore type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base2 type BITMAPONLY | BITMAP1;
@@ -241,5 +245,4 @@ Killed(severity, corpsetype)
 	explode lid3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 	explode lid4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode mmakercore type BITMAPONLY | BITMAP2;
-	return corpsetype;
 }

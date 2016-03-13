@@ -5,7 +5,8 @@
 
 piece  base, glow, plug;
 
-#define WHAT_DO 1024
+static-var  Static_Var_1, Active, mmState;
+
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -51,8 +52,12 @@ Stop()
 	cache glow;
 }
 
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
 
-static-var  mmState;
 ImAMetalMaker()
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -61,8 +66,8 @@ ImAMetalMaker()
 	}
 	mmState = -1;
 	while( TRUE )
-	{
-		if ((get WHAT_DO) == 1)
+	{	
+		if (Active == 1)
 		{
 			if (mmState != 1) {
 				call-script Go();
@@ -124,5 +129,5 @@ Killed(severity, corpsetype)
 	explode base type BITMAPONLY | BITMAP1;
 	explode glow type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 	explode plug type BITMAPONLY | BITMAP3;
-	return corpsetype;
+	return (corpsetype);
 }

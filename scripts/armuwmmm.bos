@@ -7,9 +7,7 @@ piece  ground, base, lid1, lid2, lid3, lid4, bubble1, bubble2,
        bubble3, bubble4, bubble5, housing, dome, building, pipe1, pipe2,
        pipe3, stack1, stack2, bubble6, bubble7;
 
-static-var  Static_Var_1;
-
-#define WHAT_DO 1024
+static-var  Static_Var_1, Active, mmState;
 
 activatescr()
 {
@@ -114,7 +112,12 @@ Stop()
 	cache lid4;
 }
 
-static-var  mmState;
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
+
 ImAMetalMaker()
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -124,19 +127,18 @@ ImAMetalMaker()
 	mmState = -1;
 	while( TRUE )
 	{
-		if ((get WHAT_DO) == 1)
+		if( Active == 1 )
 		{
-			if (mmState != 1) {
+			if( mmState != 1 )
+			{
 				call-script Go();
 				mmState = 1;
 			}
 		}
-		else
+		else if( mmState != 0 )
 		{
-			if (mmState != 0) {
-				call-script Stop();
-				mmState = 0;
-			}
+			call-script Stop();
+			mmState = 0;
 		}
 		sleep 1000;
 	}

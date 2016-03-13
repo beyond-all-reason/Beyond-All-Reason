@@ -5,9 +5,7 @@
 
 piece  base, flap2, flap3, flap4, flap1, topcap, glowingthing;
 
-static-var  Static_Var_1;
-
-#define WHAT_DO 1024
+static-var  Static_Var_1, Active, mmState;
 
 activatescr()
 {
@@ -169,7 +167,12 @@ Stop()
 	cache glowingthing;
 }
 
-static-var  mmState;
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
+
 ImAMetalMaker()
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -178,8 +181,8 @@ ImAMetalMaker()
 	}
 	mmState = -1;
 	while( TRUE )
-	{
-		if ((get WHAT_DO) == 1)
+	{	
+		if (Active == 1)
 		{
 			if (mmState != 1) {
 				call-script Go();
@@ -218,24 +221,6 @@ Create()
 	set ARMORED to 1;
 }
 
-
-HitByWeapon(Func_Var_1, Func_Var_2)
-{
-	if( get ACTIVATION )
-	{
-		Static_Var_1 = 1;
-	}
-	if( Static_Var_1 )
-	{
-		signal 2;
-		set-signal-mask 2;
-		set ACTIVATION to 0;
-		sleep 8000;
-		Static_Var_1 = 0;
-		set ACTIVATION to 100;
-	}
-}
-
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -253,7 +238,7 @@ Killed(severity, corpsetype)
 		explode flap3 type BITMAPONLY | BITMAP5;
 		explode flap4 type BITMAPONLY | BITMAP1;
 		explode topcap type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 50 )
 	{
@@ -265,7 +250,7 @@ Killed(severity, corpsetype)
 		explode flap3 type FALL | BITMAP5;
 		explode flap4 type FALL | BITMAP1;
 		explode topcap type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	if( severity <= 99 )
 	{
@@ -277,7 +262,7 @@ Killed(severity, corpsetype)
 		explode flap3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		explode flap4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		explode topcap type BITMAPONLY | BITMAP2;
-		return (corpsetype);
+		return (0);
 	}
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
@@ -287,5 +272,4 @@ Killed(severity, corpsetype)
 	explode flap3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 	explode flap4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	explode topcap type BITMAPONLY | BITMAP2;
-	return corpsetype;
 }

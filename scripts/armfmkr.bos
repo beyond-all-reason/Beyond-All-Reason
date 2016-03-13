@@ -5,14 +5,15 @@
 
 piece  base, dome;
 
-#define WHAT_DO 1024
+static-var  Static_Var_1, Active;
+
 
 activatescr()
 {
 	if( TRUE )
 	{
 		turn dome to x-axis <0.000000> now;
-		turn dome to x-axis <180.285714> speed <112.467033>;
+		turn dome to x-axis <180.280220> speed <112.467033>;
 		sleep 1603;
 	}
 	sleep 73;
@@ -22,7 +23,7 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		turn dome to x-axis <180.285714> now;
+		turn dome to x-axis <180.280220> now;
 		turn dome to x-axis <0.000000> speed <112.467033>;
 		sleep 1603;
 	}
@@ -68,6 +69,12 @@ Stop()
 	cache dome;
 }
 
+MMStatus(State)
+{
+	Active = State;
+	//get PRINT(Active);
+}
+
 static-var  mmState;
 ImAMetalMaker()
 {
@@ -77,8 +84,8 @@ ImAMetalMaker()
 	}
 	mmState = -1;
 	while( TRUE )
-	{
-		if ((get WHAT_DO) == 1)
+	{	
+		if (Active == 1)
 		{
 			if (mmState != 1) {
 				call-script Go();
@@ -103,7 +110,6 @@ Create()
 	start-script SmokeUnit();
 	start-script ImAMetalMaker();
 }
-
 
 SweetSpot(piecenum)
 {
@@ -136,5 +142,5 @@ Killed(severity, corpsetype)
 	corpsetype = 3;
 	explode base type BITMAPONLY | BITMAP1;
 	explode dome type BITMAPONLY | BITMAP2;
-	return corpsetype;
+	return (corpsetype);
 }
