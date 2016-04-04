@@ -124,7 +124,6 @@ Spring Engine (v99):
 /LessTrees                       (unsynced)  Decreases the distance to the camera, in which trees are still shown (higher performance)
 /LODScale                        (unsynced)  Set the scale for either of: LOD (level-of-detail), shadow-LOD, reflection-LOD, refraction-LOD
 /LuaGaia                         (unsynced)  Redirects command /LuaGaia to its synced processor
-/LuaModUICtrl                    (unsynced)  Allow/Disallow Lua to receive UI control events, like mouse-, keyboard- and joystick-events
 /LuaRules                        (unsynced)  Redirects command /LuaRules to its synced processor
 /LuaUI                           (unsynced)  Allows one to reload or disable LuaUI, or alternatively to send a chat message to LuaUI
 /MapBorder                       (unsynced)  Set or toggle map border rendering
