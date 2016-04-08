@@ -28,7 +28,7 @@ return {
 		maxdamage = 1800,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Energy Storage",
+		name = "Karate Energy Storage",
 		objectname = "CORESTOR",
 		seismicsignature = 0,
 		selfdestructas = "ESTOR_BUILDING",
