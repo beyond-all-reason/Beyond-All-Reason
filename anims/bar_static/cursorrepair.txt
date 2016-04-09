@@ -1,0 +1,2 @@
+hotspot topleft
+frame  cursorrepair_0.png  5

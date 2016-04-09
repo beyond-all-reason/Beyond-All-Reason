@@ -1,0 +1,2 @@
+hotspot topleft
+frame  cursorfight_0.png  5

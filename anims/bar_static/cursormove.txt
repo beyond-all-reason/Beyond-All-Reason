@@ -1,0 +1,2 @@
+hotspot topleft
+frame  cursormove_0.png  5
