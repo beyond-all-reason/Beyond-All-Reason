@@ -2,7 +2,7 @@
 function widget:GetInfo()
 	return {
 		name = "Cursors",
-		desc = "Set a different cursor type with /cursor" ,
+		desc = "Toggle a different cursor set with /cursor" ,
 		author = "Floris",
 		date = "",
 		license = "",
