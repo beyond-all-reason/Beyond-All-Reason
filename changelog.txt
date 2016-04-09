@@ -1,5 +1,5 @@
 ﻿9.35 -> 9.36
-XX/03/2016
+XX/04/2016
 
 Balance changes:
 - Heaps are harder to hit (lower hitbox)
@@ -7,6 +7,7 @@ Balance changes:
 - "Set target" fixes
 
 Other:
+- Added BAR's cursorset with /cursor
 - More death messages
 - Comgate effect reimplemented as optional widget
 - Less critters (wildlife) on land
