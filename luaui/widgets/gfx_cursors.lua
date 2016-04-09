@@ -16,9 +16,12 @@ local cursorSets = {'old', 'bar_animated', 'bar_static'}
 
 
 local Settings = {}
-Settings['cursorSet'] = 1
+Settings['cursorSet'] = 2
 
 function widget:Initialize()
+	if Settings['cursorSet'] >= #cursorSets then
+		cursorSets = #cursorSets
+	end
     SetCursor(cursorSets[Settings['cursorSet']])
 end
 
@@ -37,7 +40,7 @@ function SetCursor(cursorSet)
     }
     for i=1, #cursorNames do
         local topLeft = (cursorNames[i] == 'cursornormal')
-        if cursorSet == cursorSets[1] then 
+        if cursorSet == 'old' then 
             Spring.ReplaceMouseCursor(cursorNames[i], cursorNames[i], topLeft)
         else
             Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
