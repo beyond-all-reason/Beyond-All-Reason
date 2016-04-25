@@ -130,10 +130,10 @@ local function updateGuishader()
 		WG['guishader_api'].RemoveRect('allyres')
 	else
 		WG['guishader_api'].InsertRect(
-			x1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75),
-			y1+BAR_GAP-BAR_MARGIN-(bgcornerSize*0.75),
-			x1+(w-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75)),
-			y1+(h-BAR_GAP+BAR_MARGIN+(bgcornerSize*0.75)),
+			x1-(BAR_MARGIN/1.75)+(bgcornerSize*0.2),
+			y1-BAR_MARGIN+(bgcornerSize*0.2),
+			x1+w+(BAR_MARGIN/1.75)-(bgcornerSize*0.2),
+			y1+h+BAR_MARGIN-(bgcornerSize*0.2),
 			'allyres'
 		)
 	end
