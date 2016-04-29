@@ -44,6 +44,7 @@ local fontOpacitySpec       		= 0.40
 
 local NameFadeStartDistance			= 4800
 local NameFadeEndDistance			= 7200
+local idleCursorTime				= 20		-- fade time cursor (specs only)
 
 -- tweak ui
 local buttonsize					= 18
@@ -290,6 +291,7 @@ function widget:PlayerChanged(playerID)
         color = {r, g, b, 0.75}
     end
     teamColors[playerID] = color
+    allycursorDrawList[playerID] = nil
 end
 
 
@@ -345,7 +347,7 @@ end
 
 local camDistance, glScale
 
-local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
+local function DrawCursor(playerID,wx,wy,camX,camY,camZ,opacity)
     local gy = spGetGroundHeight(wx,wz)
     if not (spIsSphereInView(wx,gy,wz,usedCursorSize)) then
         return 
@@ -363,9 +365,10 @@ local function DrawCursor(playerID,wx,wy,camX,camY,camZ)
             opacityMultiplier = 1
         end
     end
-                
+    
     opacityMultiplier = math.floor(opacityMultiplier * dlistAmount)/dlistAmount
-            
+    opacityMultiplier = opacityMultiplier * opacity
+    
     if opacityMultiplier > 0.11 then
         if allycursorDrawList[playerID] == nil then 
             allycursorDrawList[playerID] = {}
@@ -414,8 +417,15 @@ function widget:DrawWorldPreUnit()
             wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
         end
         
-        if notIdle[playerID] then
-            DrawCursor(playerID,wx,wy,camX,camY,camZ)
+        if notIdle[playerID] and alliedCursorsTime[playerID] > (time-idleCursorTime) then
+			local opacity = 1
+			if spec then
+				opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
+				if opacity > 1 then opacity = 1 end
+			end
+			if opacity > 0.1 then
+				DrawCursor(playerID,wx,wy,camX,camY,camZ,opacity)
+			end
         else
             --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
             if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
