@@ -38,13 +38,13 @@ local drawNamesScaling				= true
 local drawNamesFade					= true
 
 local fontSizePlayer        		= 18
-local fontOpacityPlayer     		= 0.65
+local fontOpacityPlayer     		= 0.68
 local fontSizeSpec          		= 14
-local fontOpacitySpec       		= 0.40
+local fontOpacitySpec       		= 0.48
 
 local NameFadeStartDistance			= 4800
 local NameFadeEndDistance			= 7200
-local idleCursorTime				= 20		-- fade time cursor (specs only)
+local idleCursorTime				= 30		-- fade time cursor (specs only)
 
 -- tweak ui
 local buttonsize					= 18
@@ -67,23 +67,6 @@ function widget:TextCommand(command)
 
     if (string.find(command, "allycursorplayername") == 1  and  string.len(command) == 20) then showPlayerName = not showPlayerName end
 
-    if (string.find(command, "+allycursorspecfontsize") == 1) then fontSizeSpec = fontSizeSpec + 1.5 end
-    if (string.find(command, "-allycursorspecfontsize") == 1) then fontSizeSpec = fontSizeSpec - 1.5 end
-
-    if (string.find(command, "+allycursorspecfontopacity") == 1) then fontOpacitySpec = fontOpacitySpec + 0.05 end
-    if (string.find(command, "-allycursorspecfontopacity") == 1) then fontOpacitySpec = fontOpacitySpec - 0.05 end
-
-    if (string.find(command, "+allycursorplayerfontsize") == 1) then fontSizePlayer = fontSizePlayer + 1.5 end
-    if (string.find(command, "-allycursorplayerfontsize") == 1) then fontSizePlayer = fontSizePlayer - 1.5 end
-
-    if (string.find(command, "+allycursorplayerfontopacity") == 1) then fontOpacityPlayer = fontOpacityPlayer + 0.05 end
-    if (string.find(command, "-allycursorplayerfontopacity") == 1) then fontOpacityPlayer = fontOpacityPlayer - 0.05 end
-
-    if fontOpacitySpec > 1 then fontOpacitySpec = 1 end if fontOpacitySpec < 0.15 then fontOpacitySpec = 0.15 end
-    if fontOpacityPlayer > 1 then fontOpacityPlayer = 1 end if fontOpacityPlayer < 0.15 then fontOpacityPlayer = 0.15 end
-    if fontSizeSpec > 60 then fontSizeSpec = 60 end if fontSizeSpec < 10 then fontSizeSpec = 10 end
-    if fontSizePlayer > 60 then fontSizePlayer = 60 end if fontSizePlayer < 10 then fontSizePlayer = 10 end
-    
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
     end
@@ -93,22 +76,12 @@ function widget:GetConfigData(data)
     savedTable = {}
     savedTable.showSpectatorName  = showSpectatorName
     savedTable.showPlayerName     = showPlayerName
-    savedTable.useTeamColor       = useTeamColor
-    savedTable.fontSizePlayer     = fontSizePlayer
-    savedTable.fontOpacityPlayer  = fontOpacityPlayer
-    savedTable.fontSizeSpec       = fontSizeSpec
-    savedTable.fontOpacitySpec    = fontOpacitySpec
     return savedTable
 end
 
 function widget:SetConfigData(data)
     if data.showSpectatorName ~= nil   then  showSpectatorName   = data.showSpectatorName end
     if data.showPlayerName ~= nil      then  showPlayerName      = data.showPlayerName end
-    if data.useTeamColor ~= nil        then  useTeamColor        = data.useTeamColor end
-    fontSizePlayer        = data.fontSizePlayer     or fontSizePlayer
-    fontOpacityPlayer     = data.fontOpacityPlayer  or fontOpacityPlayer
-    fontSizeSpec          = data.fontSizeSpec       or fontSizeSpec
-    fontOpacitySpec       = data.fontOpacitySpec    or fontOpacitySpec
     
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
@@ -322,7 +295,6 @@ function createCursorDrawList(playerID, opacityMultiplier)
         --draw the nickname
         gl.PushMatrix()
         gl.Translate(wx, gy, wz)
-        --gl.Billboard()
         gl.Rotate(-90,1,0,0)
         
         if spec then
@@ -347,7 +319,7 @@ end
 
 local camDistance, glScale
 
-local function DrawCursor(playerID,wx,wy,camX,camY,camZ,opacity)
+local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
     local gy = spGetGroundHeight(wx,wz)
     if not (spIsSphereInView(wx,gy,wz,usedCursorSize)) then
         return 
@@ -377,7 +349,7 @@ local function DrawCursor(playerID,wx,wy,camX,camY,camZ,opacity)
             allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
         end
         
-        --local rotValue = -(camRotX) * 360
+		--local rotValue = (-camRotX * 180 / math.pi)
 		local rotValue = 0
         gl.PushMatrix()
 			gl.Translate(wx, gy, wz)
@@ -424,7 +396,7 @@ function widget:DrawWorldPreUnit()
 				if opacity > 1 then opacity = 1 end
 			end
 			if opacity > 0.1 then
-				DrawCursor(playerID,wx,wy,camX,camY,camZ,opacity)
+				DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
 			end
         else
             --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
