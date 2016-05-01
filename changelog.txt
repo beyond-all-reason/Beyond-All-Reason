@@ -8,7 +8,7 @@ Balance changes:
 
 Other:
 - Added BAR's cursorset, change to old one with /cursor
-- Anti Ranges: an emp'd anti will have a dark purple range ring
+- Anti Ranges: an emp'd anti range ring will be blinking
 - Ally cursors: idle spec cursors fade away ex-players (specs) no longer have colored cursor
 - More death messages
 - Comgate effect reimplemented as optional widget

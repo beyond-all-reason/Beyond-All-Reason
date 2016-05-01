@@ -36,7 +36,8 @@ local filledStockpileColor		= {1,0.75,0}
 local unknownStockpileColor		= {1,0.54,1}
 local emptyStockpileColor		= {1,0.33,0}
 local unfinishedStockpileColor	= {1,0,0.75}
-local empdStockpileColor		= {0.25,0,1}
+local empdStockpileColor		= {0.1,0,1}
+local empdStockpileColor2		= {0.7,0,1}
 local showLineGlow2				= false
 local fadeOnCloseup        		= true
 local fadeStartDistance			= 3300
@@ -145,7 +146,11 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 
 		local _,stunned,inbuild = GetUnitIsStunned(uID)
 		if stunned then 
-			circleColor = empdStockpileColor
+			if os.clock()%0.66 > 0.33 then
+				circleColor = empdStockpileColor
+			else
+				circleColor = empdStockpileColor2
+			end
 		elseif inbuild then 
 			circleColor = unfinishedStockpileColor
 		else
