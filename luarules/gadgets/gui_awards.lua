@@ -317,6 +317,7 @@ local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
 local glColor = gl.Color
+local glScale = gl.Scale
 local glVertex = gl.Vertex
 local glRect = gl.Rect
 local glTexture = gl.Texture
@@ -324,12 +325,14 @@ local glTexRect = gl.TexRect
 local GL_LINE_LOOP = GL.LINE_LOOP
 local glText = gl.Text
 
-local vsx,vsy = Spring.GetViewGeometry()
+
+local widgetScale = 1
+local vsx, vsy = Spring.GetViewGeometry()
+local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 
 local drawAwards = false 
 local cx,cy --coords for center of screen
 local bx,by --coords for top left hand corner of box
-local bgMargin = 6
 local w = 800 
 local h = 500
 
@@ -381,11 +384,18 @@ function gadget:Initialize()
 end
 
 
-function gadget:ViewResize(viewSizeX, viewSizeY)
+--[[function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX,viewSizeY
 	if drawAwards then
 		
 	end
+end
+]]--
+function gadget:ViewResize()
+  vsx,vsy = Spring.GetViewGeometry()
+  screenX = (vsx*0.5) - (screenWidth/2)
+  screenY = (vsy*0.5) + (screenHeight/2)
+  widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
 end
 
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
@@ -645,7 +655,7 @@ end
 
 
 
-		local quitX = 100
+local quitX = 100
 local graphsX = 250
 
 function gadget:MousePress(x,y,button)
@@ -665,40 +675,44 @@ function gadget:MousePress(x,y,button)
 end
 
 
-function DrawScreen()
+function gadget:DrawScreen()
 
 	if not drawAwards then return end
-	
-	if Background then
-		glCallList(Background)
-	end 
-	
-	if FirstAward and SecondAward and ThirdAward then
-		glCallList(FirstAward)
-		glCallList(SecondAward)
-		glCallList(ThirdAward)
-	end
-	
-	if CowAward then
-		glCallList(CowAward)
-	elseif OtherAwards then
-		glCallList(OtherAwards)
-	end
-	
-	--draw buttons, wastefully, but it doesn't matter now game is over
-	local x,y = Spring.GetMouseState()
-	if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
-		quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
-	else
-		quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
-	end
-	if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
-		graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
-	else
-		graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
-	end
-	glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
-	glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")	
+	glPushMatrix()
+		glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+		glScale(widgetScale, widgetScale, 1)
+		
+		if Background then
+			glCallList(Background)
+		end 
+		
+		if FirstAward and SecondAward and ThirdAward then
+			glCallList(FirstAward)
+			glCallList(SecondAward)
+			glCallList(ThirdAward)
+		end
+		
+		if CowAward then
+			glCallList(CowAward)
+		elseif OtherAwards then
+			glCallList(OtherAwards)
+		end
+		
+		--draw buttons, wastefully, but it doesn't matter now game is over
+		local x,y = Spring.GetMouseState()
+		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
+			quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
+		else
+			quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
+		end
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
+		else
+			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
+		end
+		glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
+		glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")	
+	glPopMatrix()
 end
 
 
