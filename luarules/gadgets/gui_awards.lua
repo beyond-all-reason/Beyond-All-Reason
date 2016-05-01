@@ -335,6 +335,7 @@ local cx,cy --coords for center of screen
 local bx,by --coords for top left hand corner of box
 local w = 800 
 local h = 500
+local bgMargin = 6
 
 local Background
 local FirstAward
