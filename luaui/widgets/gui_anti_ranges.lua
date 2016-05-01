@@ -36,7 +36,8 @@ local filledStockpileColor		= {1,0.75,0}
 local unknownStockpileColor		= {1,0.54,1}
 local emptyStockpileColor		= {1,0.33,0}
 local unfinishedStockpileColor	= {1,0,0.75}
-local showLineGlow				= true
+local empdStockpileColor		= {0.25,0,1}
+local showLineGlow2				= false
 local fadeOnCloseup        		= true
 local fadeStartDistance			= 3300
 
@@ -65,7 +66,7 @@ local spGetPositionLosState 	= Spring.GetPositionLosState
 local spGetCameraPosition		= Spring.GetCameraPosition
 local spGetUnitStockpile		= Spring.GetUnitStockpile
 local spGetAllUnits    			= Spring.GetAllUnits
-local GetUnitHealth				= Spring.GetUnitHealth
+local GetUnitIsStunned     		= Spring.GetUnitIsStunned
 
 local antiInLos					= {}
 local antiOutLos				= {}
@@ -142,8 +143,10 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 		local numStockpiled, numStockpileQued, stockpileBuild = spGetUnitStockpile(uID)
 		local circleColor = emptyStockpileColor
 
-		local _,_,_,_,build = GetUnitHealth(uID)
-		if build ~= nil and build < 1 then 
+		local _,stunned,inbuild = GetUnitIsStunned(uID)
+		if stunned then 
+			circleColor = empdStockpileColor
+		elseif inbuild then 
 			circleColor = unfinishedStockpileColor
 		else
 			if numStockpiled == nil then
@@ -157,7 +160,7 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 		
 		glDepthTest(true)
 		--[[
-		if showLineGlow then
+		if showLineGlow2 then
 			glLineWidth(10)
 			glColor(circleColor[1],circleColor[2],circleColor[3], .016*lineOpacityMultiplier)
 			glDrawGroundCircle(x, y, z, coverageRange, 128)
@@ -166,11 +169,6 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 		glLineWidth(3-lineWidthMinus)
 		glDrawGroundCircle(x, y, z, coverageRange, 128)
 	end
-end
-
-
-function widget:UnitEnteredLos(unitID)
-    processVisibleUnit(unitID)
 end
 
 function processVisibleUnit(unitID)
@@ -271,20 +269,20 @@ end
 
 function widget:GetConfigData(data)
     savedTable = {}
-    savedTable.showLineGlow			= showLineGlow
+    savedTable.showLineGlow2			= showLineGlow2
     savedTable.fadeOnCloseup		= fadeOnCloseup
     return savedTable
 end
 
 function widget:SetConfigData(data)
-    if data.showLineGlow ~= nil 		then  showLineGlow			= data.showLineGlow end
+    if data.showLineGlow2 ~= nil 		then  showLineGlow2			= data.showLineGlow2 end
     if data.fadeOnCloseup ~= nil 		then  fadeOnCloseup			= data.fadeOnCloseup end
 end
 
 function widget:TextCommand(command)
     if (string.find(command, "antiranges_glow") == 1  and  string.len(command) == 15) then 
-		showLineGlow = not showLineGlow
-		if showLineGlow then
+		showLineGlow2 = not showLineGlow2
+		if showLineGlow2 then
 			Spring.Echo("Anti Ranges:  Glow on")
 		else
 			Spring.Echo("Anti Ranges:  Glow off")
