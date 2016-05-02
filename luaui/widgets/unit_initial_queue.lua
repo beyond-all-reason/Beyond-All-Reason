@@ -401,27 +401,70 @@ function processGuishader()
 	end
 end
 
-function RectRound(px,py,sx,sy,cs)
+
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
 	
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
 	
-	gl.Rect(px+cs, py, sx-cs, sy)
-	gl.Rect(sx-cs, py+cs, sx, sy-cs)
-	gl.Rect(px+cs, py+cs, px, sy-cs)
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
 	
+	local offset = 0.03		-- texture offset, because else gaps could show
+	
+	-- top left
+	if py+((sy-py)*widgetScale) >= vsy-backgroundMargin or px <= backgroundMargin then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- top right
+	if py+((sy-py)*widgetScale) >= vsy-backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom left
+	if py <= backgroundMargin or px <= backgroundMargin then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom right
+	if py <= backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+function RectRound(px,py,sx,sy,cs)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	DrawRect(px, py+cs, px+cs, py)		-- top left
-	
-	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	DrawRect(sx, py+cs, sx-cs, py)		-- top right
-	
-	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
-	DrawRect(px, sy-cs, px+cs, sy)		-- bottom left
-	
-	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
-	DrawRect(sx, sy-cs, sx-cs, sy)		-- bottom right
-	
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
@@ -644,7 +687,7 @@ function widget:DrawWorld()
 
 	-- Set up gl
 	gl.LineWidth(1.49)
-
+	
 	-- We need data about currently selected building, for drawing clashes etc
 	local selBuildData
 	if selDefID then
@@ -703,12 +746,6 @@ function widget:DrawWorld()
 		queueLineVerts[#queueLineVerts + 1] = {v={buildData[2], buildData[3], buildData[4]}}
 	end
 
-	-- Draw queue lines
-	gl.Color(buildLinesColor)
-	gl.LineStipple("springdefault")
-		gl.Shape(GL.LINE_STRIP, queueLineVerts)
-	gl.LineStipple(false)
-
 	-- Draw selected building
 	if selBuildData then
 		if Spring.TestBuildOrder(selDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 then
@@ -718,15 +755,25 @@ function widget:DrawWorld()
 		end
 	end
 
+	-- Draw queue lines
+	gl.Color(buildLinesColor)
+	gl.LineStipple("springdefault")
+		gl.Shape(GL.LINE_STRIP, queueLineVerts)
+	gl.LineStipple(false)
+
 	-- Reset gl
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 	gl.LineWidth(1.0)
 end
 
+--widget.DrawWorldReflection = widget.DrawWorld 
+--widget.DrawWorldRefraction = widget.DrawWorld 
+
 ------------------------------------------------------------
 -- Game start
 ------------------------------------------------------------
 
+local comGate = tonumber(Spring.GetModOptions().mo_comgate) or 0 --if comgate is on, all orders are blocked before frame 105
 
 
 function widget:GameFrame(n)
@@ -761,26 +808,28 @@ function widget:GameFrame(n)
 	end
 	
 
-	local tasker
-	-- Search for our starting unit
-	local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
-	for u = 1, #units do
-		local uID = units[u]
-		if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
-			tasker = uID
-			if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
-				--we found our com even if cooping, assigning queue to this particular unit
-				break
+	if (comGate==0 or Spring.GetGameFrame() == 106) then --comGate takes up until frame 105
+		local tasker
+		-- Search for our starting unit
+		local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+		for u = 1, #units do
+			local uID = units[u]
+			if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
+				tasker = uID
+				if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
+					--we found our com even if cooping, assigning queue to this particular unit
+					break
+				end
 			end
 		end
-	end
-	if tasker then
-		--Spring.Echo("sending queue to unit")
-		for b = 1, #buildQueue do
-			local buildData = buildQueue[b]
-			Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+		if tasker then
+			--Spring.Echo("sending queue to unit")
+			for b = 1, #buildQueue do
+				local buildData = buildQueue[b]
+				Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+			end
+			widgetHandler:RemoveWidget(self)
 		end
-		widgetHandler:RemoveWidget(self)
 	end
 end
 
