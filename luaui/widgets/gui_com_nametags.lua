@@ -205,11 +205,10 @@ function widget:Initialize()
   CheckAllComs()
 end
 
--- doesnt get triggered anymore!?
 function widget:PlayerChanged(playerID)
-   if Spring.GetGameFrame()<30*5 then
-     CheckAllComs() -- handle substitutions, etc
-   end
+  local name,_ = GetPlayerInfo(playerID)
+  comnameList[name] = nil
+  CheckAllComs() -- handle substitutions, etc
 end
     
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
