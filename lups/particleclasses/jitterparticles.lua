@@ -227,9 +227,11 @@ function JitterParticles:Initialize()
 
          gl_FragColor = vec4(noiseVec,0.0,gl_FragCoord.z);
       }
-    ]],
-    uniform = {
+    ]],    
+    uniformInt = {
       noiseMap = 0,
+    },
+    uniform = {
       size  = 0,
       frame = 0,
       movCoeff = 0,
