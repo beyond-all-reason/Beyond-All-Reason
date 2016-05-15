@@ -229,7 +229,7 @@ function JitterParticles:Initialize()
       }
     ]],    
     uniformInt = {
-      noiseMap = 1,
+      noiseMap = 0,
     },
     uniform = {
       size  = 0,
