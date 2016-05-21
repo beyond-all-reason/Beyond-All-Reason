@@ -401,70 +401,27 @@ function processGuishader()
 	end
 end
 
-
-local function DrawRectRound(px,py,sx,sy,cs)
-	gl.TexCoord(0.8,0.8)
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
+function RectRound(px,py,sx,sy,cs)
 	
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 	
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Rect(px+cs, py, sx-cs, sy)
+	gl.Rect(sx-cs, py+cs, sx, sy-cs)
+	gl.Rect(px+cs, py+cs, px, sy-cs)
 	
-	local offset = 0.03		-- texture offset, because else gaps could show
-	
-	-- top left
-	if py+((sy-py)*widgetScale) >= vsy-backgroundMargin or px <= backgroundMargin then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if py+((sy-py)*widgetScale) >= vsy-backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom left
-	if py <= backgroundMargin or px <= backgroundMargin then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- bottom right
-	if py <= backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	--if py <= 0 or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	DrawRect(px, py+cs, px+cs, py)		-- top left
+	
+	--if py <= 0 or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	DrawRect(sx, py+cs, sx-cs, py)		-- top right
+	
+	--if sy >= vsy or px <= 0 then gl.Texture(false) else gl.Texture(bgcorner) end
+	DrawRect(px, sy-cs, px+cs, sy)		-- bottom left
+	
+	--if sy >= vsy or sx >= vsx then gl.Texture(false) else gl.Texture(bgcorner) end
+	DrawRect(sx, sy-cs, sx-cs, sy)		-- bottom right
+	
 	gl.Texture(false)
 end
 
@@ -687,7 +644,7 @@ function widget:DrawWorld()
 
 	-- Set up gl
 	gl.LineWidth(1.49)
-	
+
 	-- We need data about currently selected building, for drawing clashes etc
 	local selBuildData
 	if selDefID then
@@ -746,6 +703,12 @@ function widget:DrawWorld()
 		queueLineVerts[#queueLineVerts + 1] = {v={buildData[2], buildData[3], buildData[4]}}
 	end
 
+	-- Draw queue lines
+	gl.Color(buildLinesColor)
+	gl.LineStipple("springdefault")
+		gl.Shape(GL.LINE_STRIP, queueLineVerts)
+	gl.LineStipple(false)
+
 	-- Draw selected building
 	if selBuildData then
 		if Spring.TestBuildOrder(selDefID, selBuildData[2], selBuildData[3], selBuildData[4], selBuildData[5]) ~= 0 then
@@ -755,19 +718,10 @@ function widget:DrawWorld()
 		end
 	end
 
-	-- Draw queue lines
-	gl.Color(buildLinesColor)
-	gl.LineStipple("springdefault")
-		gl.Shape(GL.LINE_STRIP, queueLineVerts)
-	gl.LineStipple(false)
-
 	-- Reset gl
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 	gl.LineWidth(1.0)
 end
-
---widget.DrawWorldReflection = widget.DrawWorld 
---widget.DrawWorldRefraction = widget.DrawWorld 
 
 ------------------------------------------------------------
 -- Game start
