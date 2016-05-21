@@ -114,7 +114,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
 	
-	local offset = 0.03		-- texture offset, because else gaps could show
+	local offset = 0.05		-- texture offset, because else gaps could show
 	
 	-- bottom left
 	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
