@@ -337,6 +337,9 @@ local w = 800
 local h = 500
 local bgMargin = 6
 
+--h = 520-bgMargin-bgMargin
+--w = 1050-bgMargin-bgMargin
+
 local Background
 local FirstAward
 local SecondAward
@@ -354,6 +357,7 @@ local graphColour
 
 local playerListByTeam = {} --does not contain specs
 local myPlayerID = Spring.GetMyPlayerID()
+
 
 
 function gadget:Initialize()
@@ -392,10 +396,11 @@ end
 	end
 end
 ]]--
+
 function gadget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  screenX = (vsx*0.5) - (screenWidth/2)
-  screenY = (vsy*0.5) + (screenHeight/2)
+  screenX = (vsx*0.5) - (w/2)
+  screenY = (vsy*0.5) + (h/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
 end
 
