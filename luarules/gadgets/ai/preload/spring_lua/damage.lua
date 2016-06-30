@@ -1,1 +1,15 @@
-C:/Users/zoggop/Documents/My Games/Spring/games/ShardSpringLua.sdd/luarules/gadgets/ai/preload/spring_lua/damage.lua
+SpringDamage = class(function(a)
+   --
+end)
+
+
+function ShardSpringDamage:Init( damage, weaponDefId, paralyzer )
+	self.damage = damage
+	self.weaponDefId = weaponDefId
+	self.paralyzer = paralyzer
+	self.gameframe = Spring.GetGameFrame()
+end
+
+function ShardSpringDamage:Damage()
+	return self.damage
+end

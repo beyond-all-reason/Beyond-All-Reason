@@ -1,1 +1,13 @@
-C:/Users/zoggop/Documents/My Games/Spring/games/ShardSpringLua.sdd/luarules/gadgets/ai/attackers.lua
+
+Attackers!
+]]--
+
+attackerlist = {
+	"corak",
+	"armpw",
+	"corgator",
+	"corthud",
+	"corkrog",
+	"armham",
+	"corraid",
+}

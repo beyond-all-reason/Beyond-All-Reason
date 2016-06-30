@@ -1,1 +1,7 @@
-C:/Users/zoggop/Documents/My Games/Spring/games/ShardSpringLua.sdd/luarules/gadgets/ai/modules.lua
+_include( "spothandler" )
+shard_include( "controlpointhandler" )
+shard_include( "unithandler" )
+shard_include( "attackhandler" )
+shard_include( "sleep" )
+
+modules = { UnitHandler, AttackHandler, ControlPointHandler, MetalSpotHandler, Sleep }

@@ -1,1 +1,39 @@
-C:/Users/zoggop/Documents/My Games/Spring/games/ShardSpringLua.sdd/luarules/gadgets/ai/preload/aibase.lua
+ase = class(function(a)
+   --
+end)
+
+
+function AIBase:Init()
+end
+
+function AIBase:Update()
+end
+
+function AIBase:GameEnd()
+end
+
+function AIBase:GameMessage(text)
+end
+
+function AIBase:UnitCreated(engineunit)
+end
+
+function AIBase:UnitBuilt(engineunit)
+end
+
+function AIBase:UnitGiven(engineunit)
+	self:UnitCreated(engineunit)
+	self:UnitBuilt(engineunit)
+end
+
+
+function AIBase:UnitDead(engineunit)
+end
+
+function AIBase:UnitIdle(engineunit)
+end
+
+function AIBase:UnitDamaged(engineunit,enginedamage)
+end
+function AIBase:UnitMoveFailed(engineunit)
+end

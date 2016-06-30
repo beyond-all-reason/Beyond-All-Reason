@@ -1,1 +1,1 @@
-C:/Users/zoggop/Documents/My Games/Spring/games/ShardSpringLua.sdd/luarules/gadgets/ai/preload/spring_lua/boot.lua
+itial setup of things
