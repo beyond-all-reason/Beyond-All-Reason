@@ -1,13 +1,4 @@
- DebugEnabled = false
-
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("CountHandler: " .. inStr)
-	end
-end
-
-CountHandler = class(Module)
+Handler = class(Module)
 
 function CountHandler:Name()
 	return "CountHandler"
@@ -18,6 +9,8 @@ function CountHandler:internalName()
 end
 
 function CountHandler:Init()
+	self.DebugEnabled = false
+
 	self.ai.factories = 0
 	self.ai.maxFactoryLevel = 0
 	self.ai.factoriesAtLevel = {}
@@ -51,17 +44,33 @@ function CountHandler:InitializeNameCounts()
 end
 
 function CountHandler:UnitDamaged(unit, attacker,damage)
+	if unit:Team() ~= self.game:GetTeamID() then
+		self:EchoDebug("unit damaged", unit:Team(), unit:Name(), unit:ID())
+	end
 	local aname = "nil"
 	if attacker then 
 		if attacker:Team() ~= game:GetTeamID() then
-			EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
+			self:EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
 		end
 	end
 end
 
-function CountHandler:UnitDead(unit)
-	EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " dead")
-	if unit:Team() ~= game:GetTeamID() then
-		EchoDebug("enemy unit died")
-	end
-end
+-- uncomment below for unitmovefailed debugging info
+-- function CountHandler:UnitMoveFailed(unit)
+-- 	self:EchoDebug("unit move failed", unit:Team(), unit:Name(), unit:ID())
+-- 	unit:DrawHighlight({1,0,0}, "movefailed", 9)
+-- 	self.hasHighlight = self.hasHighlight or {}
+-- 	self.hasHighlight[unit:ID()] = 0
+-- end
+
+-- function CountHandler:Update()
+-- 	if not self.hasHighlight then return end
+-- 	for id, counter in pairs(self.hasHighlight) do
+-- 		counter = counter + 1
+-- 		if counter > 150 then
+-- 			local unit = self.game:GetUnitByID(id)
+-- 			unit:EraseHighlight({1,0,0}, "movefailed", 9)
+-- 			self.hasHighlight[id] = nil
+-- 		end
+-- 	end
+-- end

@@ -14,6 +14,11 @@ local fighter = {
 	corvamp = 1,
 }
 
+local commanderSide = {
+	armcom = "arm",
+	corcom = "core",
+}
+
 local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -45,7 +50,39 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	return weaponRange
 end
 
+local function GetBuiltBy()
+	local builtBy = {}
+	for unitDefID,unitDef in pairs(UnitDefs) do
+		if unitDef.buildOptions and #unitDef.buildOptions > 0 then
+			for i, buildDefID in pairs(unitDef.buildOptions) do
+				local buildDef = UnitDefs[buildDefID]
+				builtBy[buildDefID] = builtBy[buildDefID] or {}
+				table.insert(builtBy[buildDefID], unitDefID)
+			end
+		end
+	end
+	return builtBy
+end
+
+local function GetUnitSide(unitDefID, builtBy)
+	local defID = unitDefID
+	while builtBy[defID] and #builtBy[defID] > 0 do
+		-- Spring.Echo(UnitDefs[defID].name)
+		for i, parentDefID in pairs(builtBy[defID]) do
+			if UnitDefs[parentDefID].techLevel < UnitDefs[defID].techLevel then
+				defID = parentDefID
+			end
+			if commanderSide[UnitDefs[parentDefID].name] then
+				defID = parentDefID
+				break
+			end
+		end
+	end
+	return commanderSide[UnitDefs[defID].name]
+end
+
 local function GetUnitTable()
+	local builtBy = GetBuiltBy()
 	local unitTable = {}
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
@@ -119,9 +156,9 @@ local function GetUnitTable()
 			if unitDef["isBuilding"] then
 				utable.unitsCanBuild = {}
 				for i, oid in pairs (unitDef["buildOptions"]) do
-				local buildDef = UnitDefs[oid]
-				-- if is a factory insert all the units that can build
-				table.insert(utable.unitsCanBuild, buildDef["name"])
+					local buildDef = UnitDefs[oid]
+					-- if is a factory insert all the units that can build
+					table.insert(utable.unitsCanBuild, buildDef["name"])
 				end
 					
 			else
@@ -138,6 +175,8 @@ local function GetUnitTable()
 		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
 		utable.xsize = unitDef["xsize"]
 		utable.zsize = unitDef["zsize"]
+		utable.side = GetUnitSide(unitDefID, builtBy)
+		-- Spring.Echo(unitDef.name, utable.side)
 		utable.wreckName = unitDef["wreckName"]
 		wrecks[unitDef["wreckName"]] = unitDef["name"]
 		unitTable[unitDef.name] = utable

@@ -26,11 +26,9 @@ function PointCapturerBehaviour:Init()
 	self.minDist = math.ceil( self.maxDist / 3 )
 end
 
-function PointCapturerBehaviour:UnitIdle(unit)
+function PointCapturerBehaviour:OwnerIdle()
 	if not self.active then return end
-	if unit.engineID == self.unit.engineID then
-		self:GoForth()
-	end
+	self:GoForth()
 end
 
 function PointCapturerBehaviour:Update()

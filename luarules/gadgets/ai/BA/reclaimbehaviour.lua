@@ -34,21 +34,17 @@ function ReclaimBehaviour:Init()
 	self.id = self.unit:Internal():ID()
 end
 
-function ReclaimBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		EchoDebug("got new reclaimer")
-	end
+function ReclaimBehaviour:OwnerBuilt()
+	EchoDebug("got new reclaimer")
 end
 
-function ReclaimBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		-- notify the command that area is too hot
-		-- game:SendToConsole("reclaimer " .. self.name .. " died")
-		if self.target then
-			self.ai.targethandler:AddBadPosition(self.target, self.mtype)
-		end
-		self.ai.buildsitehandler:ClearMyPlans(self)
+function ReclaimBehaviour:OwnerDead()
+	-- notify the command that area is too hot
+	-- game:SendToConsole("reclaimer " .. self.name .. " died")
+	if self.target then
+		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
 	end
+	self.ai.buildsitehandler:ClearMyPlans(self)
 end
 
 function ReclaimBehaviour:Update()

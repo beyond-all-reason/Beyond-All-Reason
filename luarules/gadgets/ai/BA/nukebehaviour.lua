@@ -28,18 +28,8 @@ function NukeBehaviour:Init()
     self.finished = false
 end
 
-function NukeBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		self.finished = true
-	end
-end
-
-function NukeBehaviour:UnitCreated(unit)
-
-end
-
-function NukeBehaviour:UnitIdle(unit)
-
+function NukeBehaviour:OwnerBuilt()
+	self.finished = true
 end
 
 function NukeBehaviour:Update()
@@ -94,8 +84,4 @@ end
 
 function NukeBehaviour:Priority()
 	return 100
-end
-
-function NukeBehaviour:UnitDead(unit)
-
 end

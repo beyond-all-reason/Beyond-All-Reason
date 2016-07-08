@@ -31,28 +31,22 @@ function WardBehaviour:Init()
 	EchoDebug("WardBehaviour: added to unit "..self.name)
 end
 
-function WardBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		if self.mobile and not self.isScout then
-			self.ai.defendhandler:AddWard(self) -- just testing 
-		end
+function WardBehaviour:OwnerBuilt()
+	if self.mobile and not self.isScout then
+		self.ai.defendhandler:AddWard(self) -- just testing 
 	end
 end
 
-function WardBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		if self.mobile and not self.isScout then
-			self.ai.defendhandler:RemoveWard(self) -- just testing 
-		end
+function WardBehaviour:OwnerDead()
+	if self.mobile and not self.isScout then
+		self.ai.defendhandler:RemoveWard(self) -- just testing 
 	end
 end
 
-function WardBehaviour:UnitIdle(unit)
-	if unit.engineID == self.unit.engineID then
-		if self:IsActive() then
-			self.underFire = false
-			self.unit:ElectBehaviour()
-		end
+function WardBehaviour:OwnerIdle()
+	if self:IsActive() then
+		self.underFire = false
+		self.unit:ElectBehaviour()
 	end
 end
 
@@ -154,15 +148,13 @@ function WardBehaviour:Priority()
 	end
 end
 
-function WardBehaviour:UnitDamaged(unit,attacker,damage)
-	if unit:Internal():ID() == self.unit:Internal():ID() then
-		if not self.underFire then
-			if unit:Internal():GetHealth() < unit:Internal():GetMaxHealth() * 0.8 then
-				self.underFire = true
-				self.lastAttackedFrame = game:Frame()
-				if not self.mobile then self.ai.defendhandler:Danger(self) end
-				self.unit:ElectBehaviour()
-			end
+function WardBehaviour:OwnerDamaged(attacker,damage)
+	if not self.underFire then
+		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
+			self.underFire = true
+			self.lastAttackedFrame = game:Frame()
+			if not self.mobile then self.ai.defendhandler:Danger(self) end
+			self.unit:ElectBehaviour()
 		end
 	end
 end

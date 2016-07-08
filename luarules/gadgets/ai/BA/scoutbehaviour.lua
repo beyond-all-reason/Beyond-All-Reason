@@ -33,14 +33,6 @@ function ScoutBehaviour:Init()
 	self.lastUpdateFrame = game:Frame()
 end
 
-function ScoutBehaviour:UnitBuilt(unit)
-
-end
-
-function ScoutBehaviour:UnitIdle(unit)
-
-end
-
 function ScoutBehaviour:Priority()
 	return 50
 end
@@ -58,7 +50,6 @@ function ScoutBehaviour:Deactivate()
 	self.attacking = false
 	-- self.unit:Internal():EraseHighlight({0,0,1}, 'scout', 2)
 end
-
 
 function ScoutBehaviour:Update()
 	if self.active then

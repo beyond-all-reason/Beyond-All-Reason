@@ -7,9 +7,9 @@ local function EchoDebug(inStr)
 end
 
 --SOME FUNCTIONS ARE DUPLICATE HERE
-function Lvl3Merl(self)
+function Lvl3Merl(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "armraven"
 	else
 		unitName = DummyUnitName
@@ -17,9 +17,9 @@ function Lvl3Merl(self)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function Lvl3Arty(self)
+function Lvl3Arty(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "shiva"
 	else
 		unitName = "armshock"
@@ -27,9 +27,9 @@ function Lvl3Arty(self)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function lv3Amp(self)
+function lv3Amp(tskqbhvr)
 	local unitName=DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "shiva"
 	else
 		unitName = "marauder"
@@ -37,9 +37,9 @@ function lv3Amp(self)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function Lvl3Breakthrough(self)
+function Lvl3Breakthrough(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = BuildWithLimitedNumber("corkrog", 1)
 		if unitName == DummyUnitName then
 			unitName = BuildWithLimitedNumber("gorg", 2)
@@ -56,9 +56,9 @@ function Lvl3Breakthrough(self)
 	return BuildBreakthroughIfNeeded(unitName)
 end
 
-function lv3bigamp(self)
+function lv3bigamp(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = 'corkrog'
 	else
 		unitName = 'armbanth'
@@ -66,9 +66,9 @@ function lv3bigamp(self)
 	return unitName
 end
 
-function Lvl3Raider(self)
+function Lvl3Raider(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = DummyUnitName
 	else
 		unitName = "marauder"
@@ -77,9 +77,9 @@ function Lvl3Raider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl3Battle(self)
+function Lvl3Battle(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corkarg"
 	else
 		unitName = "armraz"
@@ -87,9 +87,9 @@ function Lvl3Battle(self)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lvl3Hov(self)
+function Lvl3Hov(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corsok"
 	else
 		unitName = "armlun"
@@ -97,9 +97,9 @@ function Lvl3Hov(self)
 	return BuildBattleIfNeeded(unitName)
 end
 	
-function Lv3VehAmp(self)
+function Lv3VehAmp(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		if ai.Metal.full < 0.5 then
 			unitName = "corseal"
 		else
@@ -112,9 +112,9 @@ function Lv3VehAmp(self)
 end
 	
 	
-function Lv3Special(self)
+function Lv3Special(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "gorg"
 	else
 		unitName = "armshock"

@@ -27,26 +27,6 @@ function MapHasWater()
 	return (ai.waterMap or ai.hasUWSpots) or false
 end
 
-function CheckMySide(self)
-	if self.unit ~= nil then
-		local tmpName = self.unit:Internal():Name()
-		if tmpName == "corcom" then
-			ai.mySide = CORESideName
-			return DummyUnitName
-		end
-		if tmpName == "armcom" then
-			ai.mySide = ARMSideName
-			return DummyUnitName
-		end
-		game:SendToConsole("Unexpected start unit: "..tmpName..", cannot determine it's race. Assuming CORE")
-		ai.mySide = CORESideName
-	else
-		game:SendToConsole("Unexpected start unit: nil, cannot determine it's race. Assuming CORE")
-		ai.mySide = CORESideName
-	end
-	return DummyUnitName
-end
-
 -- this is initialized in maphandler
 function MapHasUnderwaterMetal()
 	return ai.hasUWSpots or false
@@ -180,7 +160,7 @@ function BuildBattleIfNeeded(unitName)
 	local attackCounter = ai.attackhandler:GetCounter(mtype)
 	EchoDebug(mtype .. " " .. attackCounter .. " " .. maxAttackCounter)
 	if attackCounter == maxAttackCounter and ai.battleCount > minBattleCount then return DummyUnitName end
-	if mtype == "veh" and ai.mySide == CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
+	if mtype == "veh" and MyTB.side == CORESideName and (ai.factoriesAtLevel[1] == nil or ai.factoriesAtLevel[1] == {}) then
 		-- core only has a lvl1 vehicle raider, so this prevents getting stuck
 		return unitName
 	end
@@ -249,18 +229,9 @@ function BuildTorpedoBomberIfNeeded(unitName)
 	end
 end
 
-function CheckMySideIfNeeded()
-	if ai.mySide == nil then
-		EchoDebug("commander: checkmyside")
-		return CheckMySide
-	else
-		return DummyUnitName
-	end
-end
 
-
-function LandOrWater(self, landName, waterName)
-	local builder = self.unit:Internal()
+function LandOrWater(tskqbhvr, landName, waterName)
+	local builder = tskqbhvr.unit:Internal()
 	local bpos = builder:GetPosition()
 	local waterNet = ai.maphandler:MobilityNetworkSizeHere("shp", bpos)
 	if waterNet ~= nil then
@@ -271,17 +242,17 @@ function LandOrWater(self, landName, waterName)
 end
 
 
-local function ConsulAsFactory(self)
+local function ConsulAsFactory(tskqbhvr)
 	local unitName=DummyUnitName
 	local rnd= math.random(1,9)
-	if 	rnd==1 then unitName=ConVehicle(self) 
-	elseif 	rnd==2 then unitName=ConShip(self) 
-	elseif 	rnd==3 then unitName=Lvl1BotRaider(self) 
-	elseif 	rnd==4 then unitName=Lvl1AABot(self) 
-	elseif 	rnd==5 then unitName=Lvl2BotArty(self)
-	-- elseif 	rnd==6 then unitName=spiders(self)
-	elseif 	rnd==7 then unitName=Lvl2BotMedium(self)
-	elseif 	rnd==8 then unitName=Lvl1ShipDestroyerOnly(self)
+	if 	rnd==1 then unitName=ConVehicle(tskqbhvr) 
+	elseif 	rnd==2 then unitName=ConShip(tskqbhvr) 
+	elseif 	rnd==3 then unitName=Lvl1BotRaider(tskqbhvr) 
+	elseif 	rnd==4 then unitName=Lvl1AABot(tskqbhvr) 
+	elseif 	rnd==5 then unitName=Lvl2BotArty(tskqbhvr)
+	-- elseif 	rnd==6 then unitName=spiders(tskqbhvr)
+	elseif 	rnd==7 then unitName=Lvl2BotMedium(tskqbhvr)
+	elseif 	rnd==8 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
 	else unitName=DummyUnitName
 	end
 	if unitName==nil then unitName = DummyUnitName end
@@ -289,17 +260,17 @@ local function ConsulAsFactory(self)
 	return unitName
 end
 
-local function FreakerAsFactory(self)
+local function FreakerAsFactory(tskqbhvr)
 	local unitName=DummyUnitName
 	local rnd = math.random(1,9)
-	if 	rnd==1 then unitName=ConBot(self)
-	elseif 	rnd==2 then unitName=ConShip(self)
-	elseif 	rnd==3 then unitName=Lvl1BotRaider(self)
-	elseif 	rnd==4 then unitName=Lvl1AABot(self)
-	elseif 	rnd==5 then unitName=Lvl2BotRaider(self)
-	elseif 	rnd==6 then unitName=Lvl2AmphBot(self)
-	elseif 	rnd==7 then unitName=Lvl1ShipDestroyerOnly(self)
-	-- elseif 	rnd==8 then unitName=Decoy(self)
+	if 	rnd==1 then unitName=ConBot(tskqbhvr)
+	elseif 	rnd==2 then unitName=ConShip(tskqbhvr)
+	elseif 	rnd==3 then unitName=Lvl1BotRaider(tskqbhvr)
+	elseif 	rnd==4 then unitName=Lvl1AABot(tskqbhvr)
+	elseif 	rnd==5 then unitName=Lvl2BotRaider(tskqbhvr)
+	elseif 	rnd==6 then unitName=Lvl2AmphBot(tskqbhvr)
+	elseif 	rnd==7 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
+	-- elseif 	rnd==8 then unitName=Decoy(tskqbhvr)
 	else unitName = DummyUnitName
 	end
 	if unitName==nil then unitName = DummyUnitName end
@@ -307,16 +278,16 @@ local function FreakerAsFactory(self)
 	return unitName
 end
 
-function NavalEngineerAsFactory(self)
+function NavalEngineerAsFactory(tskqbhvr)
 	local unitName=DummyUnitName
 	local rnd= math.random(1,9)
 	EchoDebug(rnd)
-	if 	rnd==1 then unitName=ConShip(self)
-	elseif 	rnd==2 then unitName=ScoutShip(self)
-	elseif 	rnd==3 then unitName=Lvl1ShipDestroyerOnly(self)
-	elseif 	rnd==4 then unitName=Lvl1ShipRaider(self)
-	elseif 	rnd==5 then unitName=Lvl1ShipBattle(self)
-	elseif 	rnd==6 then unitName=Lvl2AmphBot(self)
+	if 	rnd==1 then unitName=ConShip(tskqbhvr)
+	elseif 	rnd==2 then unitName=ScoutShip(tskqbhvr)
+	elseif 	rnd==3 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
+	elseif 	rnd==4 then unitName=Lvl1ShipRaider(tskqbhvr)
+	elseif 	rnd==5 then unitName=Lvl1ShipBattle(tskqbhvr)
+	elseif 	rnd==6 then unitName=Lvl2AmphBot(tskqbhvr)
 	else 
 		unitName=DummyUnitName
 	end
@@ -324,20 +295,20 @@ function NavalEngineerAsFactory(self)
 	return unitName
 end
 
-function EngineerAsFactory(self)
+function EngineerAsFactory(tskqbhvr)
 	local unitName=DummyUnitName
 	if ai.Energy.full>0.3 and ai.Energy.full<0.7 and ai.Metal.full>0.3 and ai.Metal.full<0.7 then
-		if ai.mySide == CORESideName then
-			unitName=FreakerAsFactory(self)
+		if MyTB.side == CORESideName then
+			unitName=FreakerAsFactory(tskqbhvr)
 		else
-			unitName=ConsulAsFactory(self)
+			unitName=ConsulAsFactory(tskqbhvr)
 		end
 	end
 	return unitName
 end	
 
-local function CommanderEconomy(self)
-	local underwater = ai.maphandler:IsUnderWater(self.unit:Internal():GetPosition())
+local function CommanderEconomy(tskqbhvr)
+	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
 	if not underwater then 
 		unitName = Economy0()
@@ -349,13 +320,13 @@ local function CommanderEconomy(self)
 	
 end
 
-local function AmphibiousEconomy(self)
-	local underwater = ai.maphandler:IsUnderWater(self.unit:Internal():GetPosition())
+local function AmphibiousEconomy(tskqbhvr)
+	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
 	if here then 
-		unitName = Economy1(self)
+		unitName = Economy1(tskqbhvr)
 	else
-		unitName = EconomyUnderWater(self)
+		unitName = EconomyUnderWater(tskqbhvr)
 	end
 	return unitName
 	
@@ -364,7 +335,6 @@ end
 -- mobile construction units:
 
 local anyCommander = {
-	CheckMySideIfNeeded,
 	CommanderEconomy,
 	BuildAppropriateFactory,
 	BuildLLT,

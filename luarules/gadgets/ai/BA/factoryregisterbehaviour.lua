@@ -23,32 +23,26 @@ function FactoryRegisterBehaviour:Init()
     self.level = unitTable[self.name].techLevel
 end
 
-function FactoryRegisterBehaviour:UnitBuilt(unit)
+function FactoryRegisterBehaviour:OwnerBuilt()
 	-- don't add factories to factory location table until they're done
-	if unit.engineID == self.unit.engineID then
-		self.finished = true
-		self:Register()
-	end
+	self.finished = true
+	self:Register()
 end
 
-function FactoryRegisterBehaviour:UnitCreated(unit)
-	if unit.engineID == self.unit.engineID then
-		self.ai.factoryUnderConstruction = self.id
-		EchoDebug('starting building of ' ..self.name)
-	end
+function FactoryRegisterBehaviour:OwnerCreated()
+	self.ai.factoryUnderConstruction = self.id
+	EchoDebug('starting building of ' ..self.name)
 end
 
 function FactoryRegisterBehaviour:Priority()
 	return 0
 end
 
-function FactoryRegisterBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
-		-- game:SendToConsole("factory " .. self.name .. " died")
-		if self.finished then
-			self:Unregister()
-		end
+function FactoryRegisterBehaviour:OwnerDead()
+	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
+	-- game:SendToConsole("factory " .. self.name .. " died")
+	if self.finished then
+		self:Unregister()
 	end
 end
 

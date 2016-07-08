@@ -28,24 +28,16 @@ function BootBehaviour:Init()
 	self.unit:ElectBehaviour()
 end
 
-function BootBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		self.finished = true
-		if self.active then self.lastOrderFrame = game:Frame() end
-	end
+function BootBehaviour:OwnerBuilt()
+	self.finished = true
+	if self.active then self.lastOrderFrame = game:Frame() end
 end
 
-function BootBehaviour:UnitIdle(unit)
-
-end
-
-function BootBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		self.factory = nil
-		if self.repairedBy then self.repairedBy:ResurrectionComplete() end
-		self.ai.buildsitehandler:RemoveResurrectionRepairedBy(self.id)
-		self.repairedBy = nil
-	end
+function BootBehaviour:OwnerDead()
+	self.factory = nil
+	if self.repairedBy then self.repairedBy:ResurrectionComplete() end
+	self.ai.buildsitehandler:RemoveResurrectionRepairedBy(self.id)
+	self.repairedBy = nil
 end
 
 function BootBehaviour:Update()

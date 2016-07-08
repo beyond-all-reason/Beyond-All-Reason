@@ -9,7 +9,7 @@ end
 
 function ConShip()
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corcs"
 	else
 		unitName = "armcs"
@@ -18,9 +18,9 @@ function ConShip()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 2, ai.conUnitPerTypeLimit))
 end
 
-function RezSub1(self)
+function RezSub1(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "correcl"
 	else
 		unitName = "armrecl"
@@ -29,9 +29,9 @@ function RezSub1(self)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, ai.conUnitPerTypeLimit))
 end
 
-function Lvl1ShipRaider(self)
+function Lvl1ShipRaider(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corsub"
 	else
 		unitName = "armsub"
@@ -39,9 +39,9 @@ function Lvl1ShipRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl1ShipDestroyerOnly(self)
+function Lvl1ShipDestroyerOnly(tskqbhvr)
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corroy"
 	else
 		unitName = "armroy"
@@ -50,16 +50,16 @@ function Lvl1ShipDestroyerOnly(self)
 	return BuildWithLimitedNumber(unitName,mtypedLv * 0.7)
 end
 
-function Lvl1ShipBattle(self)
+function Lvl1ShipBattle(tskqbhvr)
 	local unitName = ""
 	if ai.Metal.full < 0.5 then
-		if ai.mySide == CORESideName then
+		if MyTB.side == CORESideName then
 			unitName = "coresupp"
 		else
 			unitName = "decade"
 		end
 	else
-		if ai.mySide == CORESideName then
+		if MyTB.side == CORESideName then
 			unitName = "corroy"
 		else
 			unitName = "armroy"
@@ -70,7 +70,7 @@ end
 
 function ScoutShip()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corpt"
 	else
 		unitName = "armpt"
@@ -86,7 +86,7 @@ end
 --LEVEL 2
 function ConAdvSub()
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "coracsub"
 	else
 		unitName = "armacsub"
@@ -97,7 +97,7 @@ end
 
 function Lvl2ShipAssist()
 	local unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "cormls"
 	else
 		unitName = "armmls"
@@ -106,9 +106,9 @@ function Lvl2ShipAssist()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, ai.conUnitPerTypeLimit))
 end
 
-function Lvl2ShipBreakthrough(self)
+function Lvl2ShipBreakthrough(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corbats"
 	else
 		unitName = "armbats"
@@ -116,9 +116,9 @@ function Lvl2ShipBreakthrough(self)
 	return BuildBreakthroughIfNeeded(unitName)
 end
 
-function Lvl2ShipMerl(self)
+function Lvl2ShipMerl(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "cormship"
 	else
 		unitName = "armmship"
@@ -128,7 +128,7 @@ end
 
 function MegaShip()
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corblackhy"
 	else
 		unitName = "aseadragon"
@@ -136,9 +136,9 @@ function MegaShip()
 	return BuildBreakthroughIfNeeded(BuildWithLimitedNumber(unitName, 1))
 end
 
-function Lvl2ShipRaider(self)
+function Lvl2ShipRaider(tskqbhvr)
 	local unitName = ""
-		if ai.mySide == CORESideName then
+		if MyTB.side == CORESideName then
 			unitName = "corshark"
 		else
 			unitName = "armsubk"
@@ -147,9 +147,9 @@ function Lvl2ShipRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl2SubWar(self)
+function Lvl2SubWar(tskqbhvr)
 	local unitName = DummyUnitName
-		if ai.mySide == CORESideName then
+		if MyTB.side == CORESideName then
 			unitName = "corssub"
 		else
 			unitName = "tawf009"
@@ -158,9 +158,9 @@ function Lvl2SubWar(self)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lvl2ShipBattle(self)
+function Lvl2ShipBattle(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corcrus"
 	else
 		unitName = "armcrus"
@@ -169,7 +169,7 @@ function Lvl2ShipBattle(self)
 end
 
 function Lvl2AAShip()
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		return BuildAAIfNeeded("corarch")
 	else
 		return BuildAAIfNeeded("armaas")

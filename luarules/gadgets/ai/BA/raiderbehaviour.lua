@@ -41,27 +41,23 @@ function RaiderBehaviour:Init()
 	end
 end
 
-function RaiderBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		-- game:SendToConsole("raider " .. self.name .. " died")
-		if self.target then
-			self.ai.targethandler:AddBadPosition(self.target, self.mtype)
-		end
-		self.ai.raidhandler:NeedLess(self.mtype)
-		self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
+function RaiderBehaviour:OwnerDead()
+	-- game:SendToConsole("raider " .. self.name .. " died")
+	if self.target then
+		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
 	end
+	self.ai.raidhandler:NeedLess(self.mtype)
+	self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
 end
 
-function RaiderBehaviour:UnitIdle(unit)
-	if unit.engineID == self.unit.engineID then
-		self.target = nil
-		self.evading = false
-		-- keep planes from landing (i'd rather set land state, but how?)
-		if self.mtype == "air" then
-			self.moveNextUpdate = RandomAway(unit:Internal():GetPosition(), 500)
-		end
-		self.unit:ElectBehaviour()
+function RaiderBehaviour:OwnerIdle()
+	self.target = nil
+	self.evading = false
+	-- keep planes from landing (i'd rather set land state, but how?)
+	if self.mtype == "air" then
+		self.moveNextUpdate = RandomAway(self.unit:Internal():GetPosition(), 500)
 	end
+	self.unit:ElectBehaviour()
 end
 
 function RaiderBehaviour:RaidCell(cell)

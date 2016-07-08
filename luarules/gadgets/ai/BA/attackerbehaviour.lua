@@ -38,24 +38,16 @@ function AttackerBehaviour:Init()
 	end
 end
 
-function AttackerBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		self.attacking = false
-		self.ai.attackhandler:AddRecruit(self)
-	end
+function AttackerBehaviour:OwnerBuilt()
+	self.attacking = false
+	self.ai.attackhandler:AddRecruit(self)
 end
 
-function AttackerBehaviour:UnitDamaged(unit,attacker,damage)
-	if unit.engineID == self.unit.engineID then
-		self.damaged = game:Frame()
-	end
+function AttackerBehaviour:OwnerDamaged(attacker,damage)
+	self.damaged = game:Frame()
 end
 
-function AttackerBehaviour:UnitDead(unit)
-	--
-end
-
-function AttackerBehaviour:OwnerDied()
+function AttackerBehaviour:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
@@ -64,10 +56,8 @@ function AttackerBehaviour:OwnerDied()
 	self.ai.attackhandler:RemoveMember(self)
 end
 
-function AttackerBehaviour:UnitIdle(unit)
-	if unit.engineID == self.unit.engineID then
-		self.idle = true
-	end
+function AttackerBehaviour:OwnerIdle()
+	self.idle = true
 end
 
 function AttackerBehaviour:Attack(pos, realClose)

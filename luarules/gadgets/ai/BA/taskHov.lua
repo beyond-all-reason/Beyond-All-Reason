@@ -7,7 +7,7 @@ local function EchoDebug(inStr)
 end
 
 function ConHover()
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corch"
 	else
 		unitName = "armch"
@@ -16,9 +16,9 @@ function ConHover()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
-function HoverMerl(self)
+function HoverMerl(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "cormh"
 	else
 		unitName = "armmh"
@@ -26,9 +26,9 @@ function HoverMerl(self)
 	return BuildSiegeIfNeeded(unitName)
 end
 
-function HoverRaider(self)
+function HoverRaider(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corsh"
 	else
 		unitName = "armsh"
@@ -36,9 +36,9 @@ function HoverRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function HoverBattle(self)
+function HoverBattle(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corsnap"
 	else
 		unitName = "armanac"
@@ -46,9 +46,9 @@ function HoverBattle(self)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function HoverBreakthrough(self)
+function HoverBreakthrough(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "nsaclash"
 	else
 		unitName = "armanac"
@@ -57,7 +57,7 @@ function HoverBreakthrough(self)
 end
 
 function AAHover()
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		return BuildAAIfNeeded("corah")
 	else
 		return BuildAAIfNeeded("armah")

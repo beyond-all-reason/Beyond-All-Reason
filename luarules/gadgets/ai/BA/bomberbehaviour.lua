@@ -17,31 +17,25 @@ function BomberBehaviour:Init()
 	end
 end
 
-function BomberBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		self.bombing = false
-		self.targetpos = nil
-		ai.bomberhandler:AddRecruit(self)
+function BomberBehaviour:OwnerBuilt()
+	self.bombing = false
+	self.targetpos = nil
+	ai.bomberhandler:AddRecruit(self)
+end
+
+function BomberBehaviour:OwnerDead()
+	-- game:SendToConsole("bomber " .. self.name .. " died")
+	ai.bomberhandler:RemoveRecruit(self)
+	ai.bomberhandler:NeedMore()
+	-- notify the command that area is too hot
+	if self.targetpos then
+		ai.targethandler:AddBadPosition(self.targetpos, self.mtype)
 	end
 end
 
-function BomberBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		-- game:SendToConsole("bomber " .. self.name .. " died")
-		ai.bomberhandler:RemoveRecruit(self)
-		ai.bomberhandler:NeedMore()
-		-- notify the command that area is too hot
-		if self.targetpos then
-			ai.targethandler:AddBadPosition(self.targetpos, self.mtype)
-		end
-	end
-end
-
-function BomberBehaviour:UnitIdle(unit)
-	if unit.engineID == self.unit.engineID then
-		self.bombing = false
-		self.targetpos = nil
-	end
+function BomberBehaviour:OwnerIdle()
+	self.bombing = false
+	self.targetpos = nil
 end
 
 function BomberBehaviour:BombPosition(position)

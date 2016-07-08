@@ -35,25 +35,6 @@ function AI:Init()
 	end
 end
 
-local function EnumerateTable(tbl, depth)
-	depth = depth or 0
-	if depth > 5 then
-		return 0
-	end
-	local count = 0
-	for k,v in pairs(tbl) do
-		if k ~= 'ai' and k ~= 'game' and k ~= 'map' then
-			if type(v) == 'table' then
-				-- game:SendToConsole(k, depth)
-				count = count + EnumerateTable(v, depth+1)
-			else
-				count = count + 1
-			end
-		end
-	end
-	return count
-end
-
 function AI:Update()
 	if self.gameend == true then
 		return
@@ -65,15 +46,6 @@ function AI:Update()
 			m:Update()
 		end
 	end
-	-- memoryFrameCounter = (memoryFrameCounter or 0) + 1
-	-- if memoryFrameCounter > 1800 then
-	-- 	memoryFrameCounter = 0
-	-- 	for i,m in ipairs(self.modules) do
-	-- 		if m:Name() ~= 'Sleep' then
-	-- 			game:SendToConsole(m:Name(), EnumerateTable(m))
-	-- 		end
-	-- 	end
-	-- end
 end
 
 function AI:GameMessage(text)
@@ -134,8 +106,7 @@ function AI:UnitIdle(engineunit)
 	if engineunit == nil then
 		self.game:SendToConsole("shard-warning: idle engineunit nil")
 		return
-	end
-	
+	end	
 	for i,m in ipairs(self.modules) do
 		m:UnitIdle(engineunit)
 	end

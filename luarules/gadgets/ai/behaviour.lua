@@ -15,13 +15,34 @@ end
 function Behaviour:UnitBuilt(unit)
 end
 
+function Behaviour:OwnerBuilt()
+end
+
 function Behaviour:UnitDead(unit)
+end
+
+function Behaviour:OwnerDead()
+	return
 end
 
 function Behaviour:UnitDamaged(unit,attacker,damage)
 end
 
+function Behaviour:OwnerDamaged(attacker,damage)
+end
+
 function Behaviour:UnitIdle(unit)
+end
+
+function Behaviour:OwnerIdle()
+end
+
+function Behaviour:UnitMoveFailed(unit)
+	self:UnitIdle(unit)
+end
+
+function Behaviour:OwnerMoveFailed()
+	self:OwnerIdle()
 end
 
 function Behaviour:SetUnit(unit)
@@ -56,16 +77,8 @@ function Behaviour:Passive()
 	return false
 end
 
-function Behaviour:UnitMoveFailed(unit)
-	self:UnitIdle(unit)
-end
-
-function Behaviour:OwnerDied()
-	return
-end
-
 function Behaviour:EchoDebug(...)
 	if self.DebugEnabled then
-		self.game:SendToConsole(self:Name(), self.unit:Internal():Name(), self.unit:Internal():ID(), ...)
+		self.game:SendToConsole(self.unit:Internal():Name(), self.unit:Internal():ID(), ...)
 	end
 end

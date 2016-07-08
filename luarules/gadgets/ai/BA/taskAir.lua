@@ -10,7 +10,7 @@ end
 
 function ConAir()
 	unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corca"
 	else
 		unitName = "armca"
@@ -19,9 +19,9 @@ function ConAir()
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
-function Lvl1AirRaider(self)
+function Lvl1AirRaider(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "bladew"
 	else
 		unitName = "armkam"
@@ -31,7 +31,7 @@ end
 
 function Lvl1Fighter()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corveng"
 	else
 		unitName = "armfig"
@@ -41,7 +41,7 @@ end
 
 function Lvl1Bomber()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corshad"
 	else
 		unitName = "armthund"
@@ -51,7 +51,7 @@ end
 
 function ScoutAir()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corfink"
 	else
 		unitName = "armpeep"
@@ -62,7 +62,7 @@ end
 --LEVEL 2
 function ConAdvAir()
 	unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "coraca"
 	else
 		unitName = "armaca"
@@ -73,7 +73,7 @@ end
 
 function Lvl2Fighter()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corvamp"
 	else
 		unitName = "armhawk"
@@ -81,9 +81,9 @@ function Lvl2Fighter()
 	return BuildAAIfNeeded(unitName)
 end
 
-function Lvl2AirRaider(self)
+function Lvl2AirRaider(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corape"
 	else
 		-- spedical case: arm has an ubergunship
@@ -99,7 +99,7 @@ end
 
 function Lvl2Bomber()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corhurc"
 	else
 		unitName = "armpnix"
@@ -110,7 +110,7 @@ end
 
 function Lvl2TorpedoBomber()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "cortitan"
 	else
 		unitName = "armlance"
@@ -119,7 +119,7 @@ function Lvl2TorpedoBomber()
 end
 
 function MegaAircraft()
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		return BuildBreakthroughIfNeeded("corcrw")
 	else
 		return BuildBreakthroughIfNeeded("armcybr")
@@ -129,7 +129,7 @@ end
 
 function ScoutAdvAir()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corawac"
 	else
 		unitName = "armawac"
@@ -140,7 +140,7 @@ end
 --SEAPLANE
 function ConSeaAir()
 	unitName = DummyUnitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corcsa"
 	else
 		unitName = "armcsa"
@@ -151,7 +151,7 @@ end
 
 function SeaBomber()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corsb"
 	else
 		unitName = "armsb"
@@ -161,7 +161,7 @@ end
 
 function SeaTorpedoBomber()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corseap"
 	else
 		unitName = "armseap"
@@ -171,7 +171,7 @@ end
 
 function SeaFighter()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corsfig"
 	else
 		unitName = "armsfig"
@@ -179,9 +179,9 @@ function SeaFighter()
 	return BuildAAIfNeeded(unitName)
 end
 
-function SeaAirRaider(self)
+function SeaAirRaider(tskqbhvr)
 	local unitName = ""
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corcut"
 	else
 		unitName = "armsaber"
@@ -191,7 +191,7 @@ end
 
 function ScoutSeaAir()
 	local unitName
-	if ai.mySide == CORESideName then
+	if MyTB.side == CORESideName then
 		unitName = "corhunt"
 	else
 		unitName = "armsehak"
@@ -205,7 +205,7 @@ function AirRepairPadIfNeeded()
 
 	-- only make air pads if the team has at least 1 air fac
 	if CountOwnUnits("corap") > 0 or CountOwnUnits("armap") > 0 or CountOwnUnits("coraap") > 0 or CountOwnUnits("armaap") > 0 then
-		if ai.mySide == CORESideName then
+		if MyTB.side == CORESideName then
 			tmpUnitName = "corasp"
 		else
 			tmpUnitName = "armasp"

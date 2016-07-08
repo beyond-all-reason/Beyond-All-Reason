@@ -44,10 +44,7 @@ function CleanerBehaviour:Update()
 	end
 end
 
-function CleanerBehaviour:UnitIdle(unit)
-	if unit.engineID ~= self.unit.engineID then
-		return
-	end
+function CleanerBehaviour:OwnerIdle()
 	-- self:EchoDebug("idle")
 	self.cleanThis = nil
 	self:Search()

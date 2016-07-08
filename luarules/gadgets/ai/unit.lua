@@ -33,51 +33,79 @@ function Unit:GameEnd()
 end
 
 function Unit:UnitCreated(unit)
+	if unit.engineID == self.engineID then
+		return
+	end
 	for k,v in pairs(self.behaviours) do
 		v:UnitCreated(unit)
 	end
 end
 
 function Unit:UnitBuilt(unit)
-	self:ElectBehaviour()
-	for k,v in pairs(self.behaviours) do
-		v:UnitBuilt(unit)
+	if unit.engineID == self.engineID then
+		self:ElectBehaviour()
+		for k,v in pairs(self.behaviours) do
+			v:OwnerBuilt()
+		end
+	else
+		for k,v in pairs(self.behaviours) do
+			v:UnitBuilt(unit)
+		end
 	end
 end
 
 function Unit:UnitDead(unit)
-	for k,v in pairs(self.behaviours) do
-		v:UnitDead(unit)
-	end
 	if unit.engineID == self.engineID then
 		if self.behaviours then
 			-- game:SendToConsole("unit died, removing behaviours", self.engineID, self:Internal():Name())
 			for k,v in pairs(self.behaviours) do
-				self.behaviours[k]:OwnerDied()
+				self.behaviours[k]:OwnerDead()
 				self.behaviours[k] = nil
 			end
 			self.behaviours = nil
 		end
 		self.engineUnit = nil
+	else
+		for k,v in pairs(self.behaviours) do
+			v:UnitDead(unit)
+		end
 	end
 end
 
 
 function Unit:UnitDamaged(unit,attacker,damage)
-	for k,v in pairs(self.behaviours) do
-		v:UnitDamaged(unit,attacker,damage)
+	if unit.engineID == self.engineID then
+		for k,v in pairs(self.behaviours) do
+			v:OwnerDamaged(attacker,damage)
+		end
+	else
+		for k,v in pairs(self.behaviours) do
+			v:UnitDamaged(unit,attacker,damage)
+		end
 	end
 end
 
 function Unit:UnitIdle(unit)
-	for k,v in pairs(self.behaviours) do
-		v:UnitIdle(unit)
+	if unit.engineID == self.engineID then
+		for k,v in pairs(self.behaviours) do
+			v:OwnerIdle()
+		end
+	else
+		for k,v in pairs(self.behaviours) do
+			v:UnitIdle(unit)
+		end
 	end
 end
 
 function Unit:UnitMoveFailed(unit)
-	for k,v in pairs(self.behaviours) do
-		v:UnitMoveFailed(unit)
+	if unit.engineID == self.engineID then
+		for k,v in pairs(self.behaviours) do
+			v:OwnerMoveFailed()
+		end
+	else
+		for k,v in pairs(self.behaviours) do
+			v:UnitMoveFailed(unit)
+		end
 	end
 end
 

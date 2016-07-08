@@ -58,7 +58,7 @@ function DefendBehaviour:Init()
 	EchoDebug("added to unit "..self.name)
 end
 
-function DefendBehaviour:OwnerDied()
+function DefendBehaviour:OwnerDead()
 	-- game:SendToConsole("defender " .. self.name .. " died")
 	if self.scramble then
 		self.ai.defendhandler:RemoveScramble(self)
@@ -70,10 +70,8 @@ function DefendBehaviour:OwnerDied()
 	end
 end
 
-function DefendBehaviour:UnitIdle(unit)
-	if unit:Internal():ID() == self.unit:Internal():ID() then
-		self.unit:ElectBehaviour()
-	end
+function DefendBehaviour:OwnerIdle()
+	self.unit:ElectBehaviour()
 end
 
 function DefendBehaviour:Update()

@@ -142,6 +142,7 @@ function TaskQueueBehaviour:Init()
 	local mtype, network = ai.maphandler:MobilityOfUnit(u)
 	self.mtype = mtype
 	self.name = u:Name()
+	self.side = unitTable[self.name].side
 	if commanderList[self.name] then self.isCommander = true end
 	self.id = u:ID()
 	EchoDebug(self.name .. " " .. self.id .. " initializing...")
@@ -188,48 +189,35 @@ function TaskQueueBehaviour:HasQueues()
 	return (taskqueues[self.name] ~= nil)
 end
 
-function TaskQueueBehaviour:UnitCreated(unit)
-	if unit.engineID == self.unit.engineID then
-
-	end
+function TaskQueueBehaviour:OwnerBuilt()
+	if self:IsActive() then self.progress = true end
 end
 
-function TaskQueueBehaviour:UnitBuilt(unit)
-	if self.unit == nil then return end
-	if unit.engineID == self.unit.engineID then
-		if self:IsActive() then self.progress = true end
-	end
-end
-
-function TaskQueueBehaviour:UnitIdle(unit)
+function TaskQueueBehaviour:OwnerIdle()
 	if not self:IsActive() then
 		return
 	end
 	if self.unit == nil then return end
-	if unit.engineID == self.unit.engineID then
-		self.progress = true
-		self.currentProject = nil
-		ai.buildsitehandler:ClearMyPlans(self)
-		self.unit:ElectBehaviour()
-	end
+	self.progress = true
+	self.currentProject = nil
+	ai.buildsitehandler:ClearMyPlans(self)
+	self.unit:ElectBehaviour()
 end
 
-function TaskQueueBehaviour:UnitMoveFailed(unit)
+function TaskQueueBehaviour:OwnerMoveFailed()
 	-- sometimes builders get stuck
-	self:UnitIdle(unit)
+	self:OwnerIdle()
 end
 
-function TaskQueueBehaviour:UnitDead(unit)
+function TaskQueueBehaviour:OwnerDead()
 	if self.unit ~= nil then
-		if unit.engineID == self.unit.engineID then
-			-- game:SendToConsole("taskqueue-er " .. self.name .. " died")
-			if self.outmodedFactory then ai.outmodedFactories = ai.outmodedFactories - 1 end
-			-- self.unit = nil
-			if self.target then ai.targethandler:AddBadPosition(self.target, self.mtype) end
-			ai.assisthandler:Release(nil, self.id, true)
-			ai.buildsitehandler:ClearMyPlans(self)
-			ai.buildsitehandler:ClearMyConstruction(self)
-		end
+		-- game:SendToConsole("taskqueue-er " .. self.name .. " died")
+		if self.outmodedFactory then ai.outmodedFactories = ai.outmodedFactories - 1 end
+		-- self.unit = nil
+		if self.target then ai.targethandler:AddBadPosition(self.target, self.mtype) end
+		ai.assisthandler:Release(nil, self.id, true)
+		ai.buildsitehandler:ClearMyPlans(self)
+		ai.buildsitehandler:ClearMyConstruction(self)
 	end
 end
 
@@ -702,6 +690,7 @@ function TaskQueueBehaviour:ProgressQueue()
 		local value = val
 
 		-- evaluate any functions here, they may return tables
+		MyTB = self
 		while type(value) == "function" do
 			value = value(self)
 		end

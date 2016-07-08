@@ -41,7 +41,7 @@ function BombardBehaviour:CeaseFire()
 	self.unit:Internal():Stop()
 end
 
-function BombardBehaviour:UnitIdle(unit)
+function BombardBehaviour:OwnerIdle()
 	if self.active then
 		self.idle = true
 	end

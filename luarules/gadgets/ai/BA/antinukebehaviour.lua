@@ -2,7 +2,6 @@ ukeBehaviour = class(Behaviour)
 
 local DebugEnabled = false
 
-
 local function EchoDebug(inStr)
 	if DebugEnabled then
 		game:SendToConsole("AntinukeBehaviour: " .. inStr)
@@ -16,18 +15,8 @@ function AntinukeBehaviour:Init()
     self.finished = false
 end
 
-function AntinukeBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		self.finished = true
-	end
-end
-
-function AntinukeBehaviour:UnitCreated(unit)
-
-end
-
-function AntinukeBehaviour:UnitIdle(unit)
-
+function AntinukeBehaviour:OwnerBuilt()
+	self.finished = true
 end
 
 function AntinukeBehaviour:Update()
@@ -54,8 +43,4 @@ end
 
 function AntinukeBehaviour:Priority()
 	return 100
-end
-
-function AntinukeBehaviour:UnitDead(unit)
-
 end

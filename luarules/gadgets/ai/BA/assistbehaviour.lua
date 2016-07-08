@@ -35,11 +35,9 @@ function AssistBehaviour:Init()
 	EchoDebug("added to unit "..uname)
 end
 
-function AssistBehaviour:UnitIdle(unit)
-	if unit.engineID == self.unit.engineID then
-		self.patroling = false
-		self.assisting = nil
-	end
+function AssistBehaviour:OwnerIdle()
+	self.patroling = false
+	self.assisting = nil
 end
 
 function AssistBehaviour:Update()
@@ -140,10 +138,8 @@ function AssistBehaviour:Priority()
 	end
 end
 
-function AssistBehaviour:UnitDead(unit)
-	if unit.engineID == self.unit.engineID then
-		ai.assisthandler:RemoveAssistant(self)
-	end
+function AssistBehaviour:OwnerDead()
+	ai.assisthandler:RemoveAssistant(self)
 end
 
 function AssistBehaviour:Assign(builderID)

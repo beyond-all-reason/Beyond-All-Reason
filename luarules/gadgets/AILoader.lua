@@ -41,6 +41,8 @@ api = shard_include("spring_lua/fakeapi")
 shard_include("ai")
 
 -- localization
+local mAbs = math.abs
+local tRemove = table.remove
 local spEcho = Spring.Echo
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamInfo = Spring.GetTeamInfo
@@ -50,6 +52,14 @@ local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitHealth = Spring.GetUnitHealth
+
+--SYNCED CODE
+if (gadgetHandler:IsSyncedCode()) then
+
+local activeCommands = {}
 
 local function prepareTheAI(thisAI)
 	if not thisAI.modules then thisAI:Init() end
@@ -58,8 +68,49 @@ local function prepareTheAI(thisAI)
 	map = thisAI.map
 end
 
---SYNCED CODE
-if (gadgetHandler:IsSyncedCode()) then
+local function AddActiveCommand(unitID, cmdID, cmdParams)
+	local frame = spGetGameFrame()
+	local x, y, z = spGetUnitPosition(unitID)
+	activeCommands[#activeCommands+1] = {
+		unitID = unitID,
+		cmdID = cmdID,
+		cmdParams = cmdParams,
+		frame = frame,
+		nextCheck = frame + 300,
+		lastX = x,
+		lastY = y,
+		lastZ = z,
+	}
+end
+
+local function RemoveActiveCommands(unitID, cmdID, cmdParams)
+	for i = #activeCommands, 1, -1 do
+		local ac = activeCommands[i]
+		if (not unitID or ac.unitID == unitID) and (not cmdID or ac.cmdID == cmdID) then
+			local match = true
+			if cmdParams then
+				if #cmdParams == 3 then
+					local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
+					local ax, ay, az = ac.cmdParams[1], ac.cmdParams[2], ac.cmdParams[3]
+					if not (x > ax - 16 and x < ax + 16 and z > az - 16 and z < az + 16) then
+						match = false
+					end
+				else
+					for ip = 1, #cmdParams do
+						if cmdParams[ip] ~= ac.cmdParams[ip] then
+							match = false
+							break
+						end
+					end
+				end
+			end
+			if match then
+				-- Spring.Echo("removed active command", UnitDefs[Spring.GetUnitDefID(ac.unitID)].name, ac.unitID, ac.cmdID, ac.cmdParams[1], ac.cmdParams[2], ac.cmdParams[3])
+				tRemove(activeCommands, i)
+			end
+		end
+	end
+end
 
 function gadget:Initialize()
 
@@ -108,13 +159,13 @@ function gadget:Initialize()
 	end
 
 	-- catch up to started game
-	local frame = Spring.GetGameFrame()
+	local frame = spGetGameFrame()
 	if frame > 0 then
 		self:GameStart()
 		-- catch up to current units
-		for _,uId in ipairs(spGetAllUnits()) do
-			self:UnitCreated(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
-			self:UnitFinished(uId, Spring.GetUnitDefID(uId), Spring.GetUnitTeam(uId))
+		for _,uID in ipairs(spGetAllUnits()) do
+			self:UnitCreated(uID, Spring.GetUnitDefID(uID), Spring.GetUnitTeam(uID))
+			self:UnitFinished(uID, Spring.GetUnitDefID(uID), Spring.GetUnitTeam(uID))
 		end
 	end
 end
@@ -131,7 +182,34 @@ function gadget:GameStart()
 end
 
 
-function gadget:GameFrame(n) 
+function gadget:GameFrame(n)
+	for i = #activeCommands, 1, -1 do
+		local ac = activeCommands[i]
+		if n == ac.nextCheck then
+			local x, y, z = spGetUnitPosition(ac.unitID)
+			if (ac.lastX == x and ac.lastZ == z) or (mAbs(x-ac.lastX) + mAbs(z-ac.lastZ) < 10) then
+				-- unit move failed
+				tRemove(activeCommands, i)
+				local unit = Shard:shardify_unit(ac.unitID)
+				if unit then
+					local unitTeam = spGetUnitTeam(ac.unitID)
+				    for _,thisAI in ipairs(AIs) do
+					    prepareTheAI(thisAI)
+				    	if unitTeam == thisAI.id then
+					    	thisAI:UnitMoveFailed(unit)
+					    elseif thisAI.alliedTeamIds[unitTeam] then
+					    	-- thisAI:AllyUnitMoveFailed()
+					    else
+					    	-- thisAI:EnemyUnitMoveFailed()
+					    end
+					end
+				end
+			else
+				ac.lastX, ac.lastY, ac.lastZ = x, y, z
+				ac.nextCheck = n + 300
+			end
+		end
+	end
 
 	-- for each AI...
     for _,thisAI in ipairs(AIs) do
@@ -142,15 +220,15 @@ function gadget:GameFrame(n)
         thisAI.alliedUnitIds = {}
         thisAI.enemyUnitIds = {}
 
-        for _,uId in ipairs(spGetAllUnits()) do
-        	if (spGetUnitTeam(uId) == thisAI.id) then
-        		thisAI.ownUnitIds[uId] = true
-        		thisAI.friendlyUnitIds[uId] = true
-        	elseif (thisAI.alliedTeamIds[spGetUnitTeam(uId)] or spGetUnitTeam(uId) == thisAI.id) then
-        		thisAI.alliedUnitIds[uId] = true
-        		thisAI.friendlyUnitIds[uId] = true
+        for _,uID in ipairs(spGetAllUnits()) do
+        	if (spGetUnitTeam(uID) == thisAI.id) then
+        		thisAI.ownUnitIds[uID] = true
+        		thisAI.friendlyUnitIds[uID] = true
+        	elseif (thisAI.alliedTeamIds[spGetUnitTeam(uID)] or spGetUnitTeam(uID) == thisAI.id) then
+        		thisAI.alliedUnitIds[uID] = true
+        		thisAI.friendlyUnitIds[uID] = true
         	else
-        		thisAI.enemyUnitIds[uId] = true
+        		thisAI.enemyUnitIds[uID] = true
         	end
         end 
 	
@@ -160,100 +238,148 @@ function gadget:GameFrame(n)
     end
 end
 
-
-function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if cmdID < 0 then
-		local bdef = UnitDefs[unitDefID]
-		local udef = UnitDefs[-cmdID]
-		-- Spring.Echo(bdef.name, unitID, "received command to build", udef.name)
-	end
-end
-
-function gadget:UnitCreated(unitId, unitDefId, teamId, builderId) 
-	local udef = UnitDefs[unitDefId]
-	-- Spring.Echo(udef.name, unitId, "created")
+function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
+	local x, y, z = spGetUnitPosition(unitID)
+	-- if builderID then
+	-- 	Spring.Echo("unit created by", UnitDefs[Spring.GetUnitDefID(builderID)].name, builderID, -unitDefID, x, y, z)
+	-- end
+	RemoveActiveCommands(builderID, -unitDefID, {x, y, z})
+	local udef = UnitDefs[unitDefID]
 	-- for each AI...
-	local unit = Shard:shardify_unit(unitId)
+	local unit = Shard:shardify_unit(unitID)
     for _,thisAI in ipairs(AIs) do
-    	if Spring.GetUnitTeam(unitId) == thisAI.id then
-	    	prepareTheAI(thisAI)
-	    	thisAI:UnitCreated(unit)
-	    end
-		-- thisAI:UnitCreated(unitId, unitDefId, teamId, builderId)
+    	prepareTheAI(thisAI)
+    	if teamID == thisAI.id then
+    		thisAI:UnitCreated(unit)
+    	elseif thisAI.alliedTeamIds[teamID] then
+    		-- thisAI:AllyUnitCreated(unit)
+    	else
+    		-- thisAI:EnemyUnitCreated(unit)
+    	end
 	end
 end
 
-function gadget:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId) 
+function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerId, attackerDefId, attackerTeamId) 
+	RemoveActiveCommands(unitID)
 	-- for each AI...
-	local unit = Shard:shardify_unit(unitId)
+	local unit = Shard:shardify_unit(unitID)
 	if unit then
 		for _,thisAI in ipairs(AIs) do
 			prepareTheAI(thisAI)
-			thisAI:UnitDead(unit)
-			-- thisAI:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
+			if teamID == thisAI.id then
+    			thisAI:UnitDead(unit)
+	    	elseif thisAI.alliedTeamIds[teamID] then
+	    		-- thisAI:AllyUnitDead(unit)
+	    	else
+	    		-- thisAI:EnemyUnitDead(unit)
+	    	end
 		end
 		Shard:unshardify_unit(self.engineUnit)
 	end
 end
 
 
-function gadget:UnitDamaged(unitId, unitDefId, unitTeamId, damage, paralyzer, weaponDefId, projectileId, attackerId, attackerDefId, attackerTeamId)
+function gadget:UnitDamaged(unitID, unitDefID, unitTeamId, damage, paralyzer, weaponDefId, projectileId, attackerId, attackerDefId, attackerTeamId)
 	-- for each AI...
-	local unit = Shard:shardify_unit(unitId)
+	local unit = Shard:shardify_unit(unitID)
 	if unit then
 		local attackerUnit = Shard:shardify_unit(attackerId)
 		local damageObj = Shard:shardify_damage(damage, weaponDefId, paralyzer)
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
-	    	thisAI:UnitDamaged(unit, attackerUnit, damageObj)
-			-- thisAI:UnitDamaged(unitId, unitDefId, unitTeamId, attackerId, attackerDefId, attackerTeamId)
+	    	if teamID == thisAI.id then
+	    		thisAI:UnitDamaged(unit, attackerUnit, damageObj)
+	    	elseif thisAI.alliedTeamIds[teamID] then
+	    		-- thisAI:AllyUnitDamaged(unit, attackerUnit, damageObj)
+	    	else
+	    		-- thisAI:EnemyUnitDamaged(unit, attackerUnit, damageObj)
+	    	end
 		end	
 	end
 end
 
-function gadget:UnitIdle(unitId, unitDefId, teamId) 
+function gadget:UnitIdle(unitID, unitDefID, teamID)
+	RemoveActiveCommands(unitID)
 	-- for each AI...
-	local unit = Shard:shardify_unit(unitId)
+	local unit = Shard:shardify_unit(unitID)
 	if unit then
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
-	    	thisAI:UnitIdle(unit)
-			-- thisAI:UnitIdle(unitId, unitDefId, teamId)
+	    	if teamID == thisAI.id then
+    			thisAI:UnitIdle(unit)
+	    	elseif thisAI.alliedTeamIds[teamID] then
+	    		-- thisAI:AllyUnitIdle(unit)
+	    	else
+	    		-- thisAI:EnemyUnitIdle(unit)
+	    	end
 		end
 	end
 end
 
+function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if #cmdParams == 3 and (cmdID < 0 or cmdID == CMD.MOVE) and not UnitDefs[unitDefID].isBuilding then
+		-- Spring.Echo("got position command", UnitDefs[unitDefID].name, unitID, cmdID, cmdParams[1], cmdParams[2], cmdParams[3])
+		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
+		if buildProgress == 1 then
+			RemoveActiveCommands(unitID)
+			AddActiveCommand(unitID, cmdID, cmdParams)
+		end
+	end
+end
 
-function gadget:UnitFinished(unitId, unitDefId, teamId) 
+function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	if #cmdParams == 3 and (cmdID < 0 or cmdID == CMD.MOVE) and not UnitDefs[unitDefID].isBuilding then
+		-- Spring.Echo("position command done", UnitDefs[unitDefID].name, unitID, cmdID, cmdParams[1], cmdParams[2], cmdParams[3])
+		RemoveActiveCommands(unitID, cmdID, cmdParams)
+	end
+end
+
+function gadget:UnitFinished(unitID, unitDefID, teamID) 
 	-- for each AI...
-	local unit = Shard:shardify_unit(unitId)
+	local unit = Shard:shardify_unit(unitID)
 	if unit then
 	    for _,thisAI in ipairs(AIs) do
-			-- thisAI:UnitFinished(unitId, unitDefId, teamId)
+			-- thisAI:UnitFinished(unitID, unitDefID, teamID)
 			prepareTheAI(thisAI)
-			thisAI:UnitBuilt(unit)
+			if teamID == thisAI.id then
+    			thisAI:UnitBuilt(unit)
+	    	elseif thisAI.alliedTeamIds[teamID] then
+	    		-- thisAI:AllyUnitBuilt(unit)
+	    	else
+	    		-- thisAI:EnemyUnitBuilt(unit)
+	    	end
 		end
 	end
 end
 
-function gadget:UnitTaken(unitId, unitDefId, teamId, newTeamId) 
-	local unit = Shard:shardify_unit(unitId)
+function gadget:UnitTaken(unitID, unitDefID, teamID, newTeamID) 
+	local unit = Shard:shardify_unit(unitID)
 	if unit then
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
-			-- thisAI:UnitTaken(unitId, unitDefId, teamId, newTeamId)
-			-- thisAI:UnitDead(unit)
+	    	if teamID == thisAI.id then
+    			thisAI:UnitDead(unit)
+	    	elseif thisAI.alliedTeamIds[teamID] then
+	    		-- thisAI:AllyUnitDead(unit)
+	    	else
+	    		-- thisAI:EnemyUnitDead(unit)
+	    	end
 		end
 	end
 end
 
-function gadget:UnitGiven(unitId, unitDefId, teamId, oldTeamId) 
-	local unit = Shard:shardify_unit(unitId)
+function gadget:UnitGiven(unitID, unitDefID, teamID, oldTeamId) 
+	local unit = Shard:shardify_unit(unitID)
 	if unit then
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
-			-- thisAI:UnitCreated(unitId, unitDefId, teamId, oldTeamId)
-			thisAI:UnitCreated(unit)
+	    	if teamID == thisAI.id then
+    			thisAI:UnitGiven(unit)
+	    	elseif thisAI.alliedTeamIds[teamID] then
+	    		-- thisAI:AllyUnitGiven(unit)
+	    	else
+	    		-- thisAI:EnemyUnitGiven(unit)
+	    	end
 		end
 	end
 end
