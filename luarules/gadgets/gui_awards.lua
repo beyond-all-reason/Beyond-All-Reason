@@ -401,7 +401,7 @@ function gadget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (w/2)
   screenY = (vsy*0.5) + (h/2)
-  widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+  widgetScale = (0.75 + (vsx*vsy / 7500000))
 end
 
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
