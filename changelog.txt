@@ -1,5 +1,5 @@
 ﻿9.35 -> 9.36
-XX/05/2016
+09/07/2016
 
 Balance changes:
 - Heaps are harder to hit (lower hitbox)
