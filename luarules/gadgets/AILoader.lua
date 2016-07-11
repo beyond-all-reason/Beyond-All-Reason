@@ -42,6 +42,7 @@ shard_include("ai")
 
 -- localization
 local mAbs = math.abs
+local mSqrt = math.sqrt
 local tRemove = table.remove
 local spEcho = Spring.Echo
 local spGetTeamList = Spring.GetTeamList
@@ -55,6 +56,8 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
 --SYNCED CODE
 if (gadgetHandler:IsSyncedCode()) then
@@ -76,7 +79,7 @@ local function AddActiveCommand(unitID, cmdID, cmdParams)
 		cmdID = cmdID,
 		cmdParams = cmdParams,
 		frame = frame,
-		nextCheck = frame + 300,
+		nextCheck = frame + 200,
 		lastX = x,
 		lastY = y,
 		lastZ = z,
@@ -186,28 +189,34 @@ function gadget:GameFrame(n)
 	for i = #activeCommands, 1, -1 do
 		local ac = activeCommands[i]
 		if n == ac.nextCheck then
-			local x, y, z = spGetUnitPosition(ac.unitID)
-			if x ~= nil then
-				if (ac.lastX == x and ac.lastZ == z) or (mAbs(x-ac.lastX) + mAbs(z-ac.lastZ) < 10) then
-					-- unit move failed
-					tRemove(activeCommands, i)
-					local unit = Shard:shardify_unit(ac.unitID)
-					if unit then
-						local unitTeam = spGetUnitTeam(ac.unitID)
-					    for _,thisAI in ipairs(AIs) do
-						    prepareTheAI(thisAI)
-					    	if unitTeam == thisAI.id then
-						    	thisAI:UnitMoveFailed(unit)
-						    elseif thisAI.alliedTeamIds[unitTeam] then
-						    	-- thisAI:AllyUnitMoveFailed()
-						    else
-						    	-- thisAI:EnemyUnitMoveFailed()
-						    end
+			if spGetUnitIsBuilding(ac.unitID) then
+				-- if a constructor is nano-ing something, the move hasn't failed
+				-- Spring.Echo("unit is building something", UnitDefs[spGetUnitDefID(ac.unitID)].name, ac.unitID)
+				tRemove(activeCommands, i)
+			else
+				local x, y, z = spGetUnitPosition(ac.unitID)
+				if x ~= nil then
+					if (ac.lastX == x and ac.lastZ == z) or (mAbs(x-ac.lastX) + mAbs(z-ac.lastZ) < 10) then
+						-- unit move failed
+						tRemove(activeCommands, i)
+						local unit = Shard:shardify_unit(ac.unitID)
+						if unit then
+							local unitTeam = spGetUnitTeam(ac.unitID)
+						    for _,thisAI in ipairs(AIs) do
+							    prepareTheAI(thisAI)
+						    	if unitTeam == thisAI.id then
+							    	thisAI:UnitMoveFailed(unit)
+							    elseif thisAI.alliedTeamIds[unitTeam] then
+							    	-- thisAI:AllyUnitMoveFailed()
+							    else
+							    	-- thisAI:EnemyUnitMoveFailed()
+							    end
+							end
 						end
+					else
+						ac.lastX, ac.lastY, ac.lastZ = x, y, z
+						ac.nextCheck = n + 200
 					end
-				else
-					ac.lastX, ac.lastY, ac.lastZ = x, y, z
-					ac.nextCheck = n + 300
 				end
 			end
 		end
@@ -319,18 +328,32 @@ function gadget:UnitIdle(unitID, unitDefID, teamID)
 end
 
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if #cmdParams == 3 and (cmdID < 0 or cmdID == CMD.MOVE) and not UnitDefs[unitDefID].isBuilding then
+	if not UnitDefs[unitDefID].isImmobile and (#cmdParams == 3 or #cmdParams == 4 or #cmdParams == 1) and (cmdID < 0 or cmdID == CMD.MOVE or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or cmdID == CMD.GUARD) then
 		-- Spring.Echo("got position command", UnitDefs[unitDefID].name, unitID, cmdID, cmdParams[1], cmdParams[2], cmdParams[3])
 		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
 		if buildProgress == 1 then
-			RemoveActiveCommands(unitID)
-			AddActiveCommand(unitID, cmdID, cmdParams)
+			local x, y, z
+			if #cmdParams == 1 then
+				x, y, z = spGetUnitPosition(cmdParams[1])
+			else
+				x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
+			end
+			local ux, uy, uz = spGetUnitPosition(unitID)
+			if x and ux then
+				local dx = x - ux
+				local dz = z - uz
+				local dist = mSqrt((ux*ux)+(uz*uz))
+				if dist > (UnitDefs[unitDefID].buildDistance or 0) + 10 + (cmdParams[4] or 0) then
+					RemoveActiveCommands(unitID)
+					AddActiveCommand(unitID, cmdID, cmdParams)
+				end
+			end
 		end
 	end
 end
 
 function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	if #cmdParams == 3 and (cmdID < 0 or cmdID == CMD.MOVE) and not UnitDefs[unitDefID].isBuilding then
+	if not UnitDefs[unitDefID].isImmobile and (#cmdParams == 3 or #cmdParams == 4 or #cmdParams == 1) and (cmdID < 0 or cmdID == CMD.MOVE or cmdID == CMD.RECLAIM or cmdID == CMD.REPAIR or cmdID == CMD.GUARD) then
 		-- Spring.Echo("position command done", UnitDefs[unitDefID].name, unitID, cmdID, cmdParams[1], cmdParams[2], cmdParams[3])
 		RemoveActiveCommands(unitID, cmdID, cmdParams)
 	end

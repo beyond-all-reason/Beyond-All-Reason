@@ -77,8 +77,12 @@ function Behaviour:Passive()
 	return false
 end
 
+function Behaviour:Name()
+	return 'Behaviour'
+end
+
 function Behaviour:EchoDebug(...)
 	if self.DebugEnabled then
-		self.game:SendToConsole(self.unit:Internal():Name(), self.unit:Internal():ID(), ...)
+		self.game:SendToConsole(self:Name(), self.unit:Internal():Name(), self.unit:Internal():ID(), ...)
 	end
 end
