@@ -520,11 +520,11 @@ function DefendHandler:FindFronts(troublingCells)
 				local nearestTurtle
 				for wi = #self.wards, 1, -1 do
 					local ward = self.wards[wi]
-					if not ward.behaviour or not ward.behaviour.unit or not ward.behaviour.unit:Internal() then
-						table.remove(self.wards, wi)
-					else
-						if ward.behaviour ~= nil then
-							local behaviour = ward.behaviour
+					if ward.behaviour ~= nil then
+						local behaviour = ward.behaviour
+						if not ward.behaviour.unit or not ward.behaviour.unit:Internal() then
+							table.remove(self.wards, wi)
+						else
 							if water == behaviour.water then
 								local dist = Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
 								if dist < nearestMobileDist then
@@ -533,17 +533,17 @@ function DefendHandler:FindFronts(troublingCells)
 								end
 							end
 							if ward.frontNumber[GAS] > 0 then self:SetDangerZone(ward, 0, number, GAS) end
-						elseif n == 1 and ward.turtle ~= nil then
-							local turtle = ward.turtle
-							turtle.threatForecastAngle = nil
-							turtle.front = nil
-							if water == turtle.water then
-								if turtle.priority > 1 then
-									local dist = Distance(turtle.position, cell.pos)
-									if dist < nearestTurtleDist then
-										nearestTurtleDist = dist
-										nearestTurtle = ward
-									end
+						end
+					elseif n == 1 and ward.turtle ~= nil then
+						local turtle = ward.turtle
+						turtle.threatForecastAngle = nil
+						turtle.front = nil
+						if water == turtle.water then
+							if turtle.priority > 1 then
+								local dist = Distance(turtle.position, cell.pos)
+								if dist < nearestTurtleDist then
+									nearestTurtleDist = dist
+									nearestTurtle = ward
 								end
 							end
 						end
