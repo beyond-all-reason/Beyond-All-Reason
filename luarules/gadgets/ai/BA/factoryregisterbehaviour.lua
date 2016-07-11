@@ -21,17 +21,15 @@ function FactoryRegisterBehaviour:Init()
 	}
 	self.sides = factoryExitSides[self.name]
     self.level = unitTable[self.name].techLevel
+
+    self.ai.factoryUnderConstruction = self.id
+	EchoDebug('starting building of ' ..self.name)
 end
 
 function FactoryRegisterBehaviour:OwnerBuilt()
 	-- don't add factories to factory location table until they're done
 	self.finished = true
 	self:Register()
-end
-
-function FactoryRegisterBehaviour:OwnerCreated()
-	self.ai.factoryUnderConstruction = self.id
-	EchoDebug('starting building of ' ..self.name)
 end
 
 function FactoryRegisterBehaviour:Priority()

@@ -37,8 +37,9 @@ end
 
 function CleanerBehaviour:Update()
 	self.frameCounter = self.frameCounter + 1
-	if (self.isStationary and self.frameCounter == 30) or (not self.isStationary and self.frameCounter == 90) then
+	if self.moveFailed or (self.isStationary and self.frameCounter == 90) or (not self.isStationary and self.frameCounter == 150) then
 		self.frameCounter = 0
+		self.moveFailed = false
 		self:Search()
 		self.unit:ElectBehaviour()
 	end
@@ -84,27 +85,29 @@ end
 
 function CleanerBehaviour:Search()
 	if self.cleanThis then return end
-	local cleanables = self.ai.cleanhandler:GetCleanables()
-	if cleanables and #cleanables > 0 then
-		local myPos = self.unit:Internal():GetPosition()
-		for i = #cleanables, 1, -1 do
-			local cleanable = cleanables[i]
-			local whoIsCleaning = self.ai.cleanhandler:IsBeingCleaned(cleanable)
-			if not self.ignore[cleanable:ID()] and (not whoIsCleaning or whoIsCleaning == self) then
-				local p = cleanable:GetPosition()
-				if p then
-					local dist = Distance(myPos, p)
-					if dist < self.cleaningRadius then
-						self:Clean(cleanable)
-						return
-					elseif self.isStationary then
-						self.ignore[cleanable:ID()] = true
-					end
-				else
-					self.ignore[cleanable:ID()] = nil
-					self.ai.cleanhandler:RemoveCleanable(cleanable:ID())
+	local cleanables = self.ai.cleanhandler:GetCleanables(self)
+	if not cleanables or #cleanables == 0 then return end
+	local myPos = self.unit:Internal():GetPosition()
+	for i = #cleanables, 1, -1 do
+		local cleanable = cleanables[i]
+		if not self.ignore[cleanable:ID()] then
+			local p = cleanable:GetPosition()
+			if p then
+				local dist = Distance(myPos, p)
+				if dist < self.cleaningRadius then
+					self:Clean(cleanable)
+					return
+				elseif self.isStationary then
+					self.ignore[cleanable:ID()] = true
 				end
+			else
+				self.ignore[cleanable:ID()] = nil
+				self.ai.cleanhandler:RemoveCleanable(cleanable)
 			end
 		end
 	end
+end
+
+function CleanerBehaviour:OwnerMoveFailed()
+	self.moveFailed = true
 end

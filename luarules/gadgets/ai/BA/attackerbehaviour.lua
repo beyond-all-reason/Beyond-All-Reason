@@ -28,7 +28,9 @@ function AttackerBehaviour:Init()
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = ut.xsize * ut.zsize * 16
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
-	self.awayDistance = self.range * 0.9
+	self.weaponDistance = self.range * 0.9
+	self.sightDistance = ut.losRadius * 0.9
+	self.sturdy = battleList[self.name] or breakthroughList[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
 	elseif ut.submergedRange > 0 then
@@ -94,7 +96,11 @@ function AttackerBehaviour:AwayFromTarget(pos, spread)
 	elseif angle < 0 then
 		angle = angle + twicePi
 	end
-	return RandomAway(pos, self.awayDistance, false, angle)
+	local awayDistance = math.min(self.sightDistance, self.weaponDistance)
+	if not self.sturdy or self.ai.loshandler:IsInLos(pos) then
+		awayDistance = self.weaponDistance
+	end
+	return RandomAway(pos, awayDistance, false, angle)
 end
 
 function AttackerBehaviour:Congregate(pos)

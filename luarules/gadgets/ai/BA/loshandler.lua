@@ -404,6 +404,22 @@ function LosHandler:FillCircle(cx, cz, radius, val, jam)
 	end
 end
 
+function LosHandler:IsInLos(pos)
+	return self:GroundLos(pos) == 2
+end
+
+function LosHandler:IsInRadar(pos)
+	return self:GroundLos(pos) == 1
+end
+
+function LosHandler:IsInSonar(pos)
+	return self:GroundLos(pos) == 3
+end
+
+function LosHandler:IsInAirLos(pos)
+	return self:GroundLos(pos) == 4
+end
+
 function LosHandler:GroundLos(upos)
 	if ShardSpringLua then
 		local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
