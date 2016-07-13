@@ -5,7 +5,13 @@ end
 
 BomberBehaviour = class(Behaviour)
 
+function BomberBehaviour:Name()
+	return "BomberBehaviour"
+end
+
 function BomberBehaviour:Init()
+	self.DebugEnabled = false
+
 	self.lastOrderFrame = game:Frame()
 	local mtype, network = ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
@@ -15,11 +21,14 @@ function BomberBehaviour:Init()
 	else
 		self.weapon = "bomb"
 	end
+	self.homepos = self.unit:Internal():GetPosition()
+	self:EchoDebug("init", self.weapon)
 end
 
 function BomberBehaviour:OwnerBuilt()
 	self.bombing = false
 	self.targetpos = nil
+	self:EchoDebug("built")
 	ai.bomberhandler:AddRecruit(self)
 end
 
@@ -34,11 +43,13 @@ function BomberBehaviour:OwnerDead()
 end
 
 function BomberBehaviour:OwnerIdle()
+	self:EchoDebug("idle")
 	self.bombing = false
 	self.targetpos = nil
 end
 
 function BomberBehaviour:BombPosition(position)
+	self:EchoDebug("bomb position")
 	local floats = api.vectorFloat()
 	-- populate with x, y, z of the position
 	floats:push_back(position.x)
@@ -48,7 +59,9 @@ function BomberBehaviour:BombPosition(position)
 end
 
 function BomberBehaviour:BombTarget(target)
+	self:EchoDebug("bomb target")
 	if not self.unit or not self.unit:Internal() then
+		self:EchoDebug("no unit or no engine unit")
 		return
 	end
 	if target ~= nil then
@@ -61,24 +74,23 @@ function BomberBehaviour:BombTarget(target)
 				self:BombPosition(pos)
 				self.targetpos = pos
 			end
-		else
-			self.unit:ElectBehaviour()
 		end
 	else
 		self.bombing = false
-		self.unit:ElectBehaviour()
 	end
+	self.unit:ElectBehaviour()
 end
 
 function BomberBehaviour:Priority()
-	if not self.bombing then
-		return 0
-	else
+	if self.bombing then
 		return 100
+	else
+		return 0
 	end
 end
 
 function BomberBehaviour:Activate()
+	self:EchoDebug("activate")
 	self.active = true
 	if self.target then
 		self.lastOrderFrame = game:Frame()
@@ -92,7 +104,9 @@ function BomberBehaviour:Activate()
 end
 
 function BomberBehaviour:Deactivate()
+	self:EchoDebug("deactivate")
 	self.active = false
+	self.unit:Internal():Move(RandomAway(self.homepos, math.random(100,300))) -- you're drunk go home
 end
 
 function BomberBehaviour:Update()
@@ -102,8 +116,9 @@ function BomberBehaviour:Update()
 		return
 	end
 	local tmpFrame = game:Frame()
-	if (self.lastOrderFrame or 0) + 900 < tmpFrame then
+	if (self.lastOrderFrame or 0) + 450 < tmpFrame then
 		ai.bomberhandler:AddRecruit(self)
 		self.targetpos = nil
+		self.bombing = false
 	end
 end

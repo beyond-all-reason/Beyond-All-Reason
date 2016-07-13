@@ -47,11 +47,17 @@ function Situation:Evaluate()
 		local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
 		local lotsOfMetal = self.ai.Metal.income > 25 or controlMetalSpots
 
+		self.ai.keepCommanderSafe = self.ai.totalEnemyThreat > 3000
+
 		self:EchoDebug(self.ai.totalEnemyThreat .. " " .. self.ai.totalEnemyImmobileThreat .. " " .. self.ai.totalEnemyMobileThreat)
 		-- build siege units if the enemy is turtling, if a lot of our attackers are getting destroyed, or if we control over 40% of the metal spots
 		self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= siegeAttackCounter or controlMetalSpots
-		self.ai.needAdvanced = (self.ai.Metal.income > 10 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or lotsOfMetal)
-		self.ai.needExperimental = false
+		local needAdvanced = (self.ai.Metal.income > 10 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or lotsOfMetal)
+		if needAdvanced ~= self.ai.needAdvanced then
+			self.ai.factorybuildershandler:UpdateFactories()
+		end
+		self.ai.needAdvanced = needAdvanced
+		local needExperimental
 		self.ai.needNukes = false
 		if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and needUpgrade and self.ai.enemyBasePosition then
 			if not self.ai.haveExpFactory then
@@ -61,7 +67,7 @@ function Situation:Evaluate()
 							local myNet = self.ai.maphandler:MobilityNetworkHere(mtype, factory.position)
 							local enemyNet = self.ai.maphandler:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
 							if myNet and enemyNet and myNet == enemyNet then
-								self.ai.needExperimental = true
+								needExperimental = true
 								break
 							end
 						end
@@ -70,6 +76,10 @@ function Situation:Evaluate()
 			end
 			self.ai.needNukes = true
 		end
+		if needExperimental ~= self.ai.needExperimental then
+			self.ai.factorybuildershandler:UpdateFactories()
+		end
+		self.ai.needExperimental = needExperimental
 		self:EchoDebug("need experimental? " .. tostring(self.ai.needExperimental) .. ", need nukes? " .. tostring(self.ai.needNukes) .. ", have advanced? " .. tostring(self.ai.haveAdvFactory) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have enemy base position? " .. tostring(self.ai.enemyBasePosition))
 		self:EchoDebug("metal income: " .. self.ai.Metal.income .. "  combat units: " .. self.ai.combatCount)
 		self:EchoDebug("have advanced? " .. tostring(self.ai.haveAdvFactory) .. " have experimental? " .. tostring(self.ai.haveExpFactory))

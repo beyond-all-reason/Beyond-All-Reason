@@ -270,11 +270,12 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerId, attackerDefId, attackerTeamId) 
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID, attackerID, attackerDefID, attackerTeamID) 
 	RemoveActiveCommands(unitID)
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitID)
 	if unit then
+		local teamID = unitTeamID
 		for _,thisAI in ipairs(AIs) do
 			prepareTheAI(thisAI)
 			if teamID == thisAI.id then
@@ -290,12 +291,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerId, attackerDef
 end
 
 
-function gadget:UnitDamaged(unitID, unitDefID, unitTeamId, damage, paralyzer, weaponDefId, projectileId, attackerId, attackerDefId, attackerTeamId)
+function gadget:UnitDamaged(unitID, unitDefID, unitTeamID, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeamID)
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitID)
 	if unit then
-		local attackerUnit = Shard:shardify_unit(attackerId)
-		local damageObj = Shard:shardify_damage(damage, weaponDefId, paralyzer)
+		local teamID = unitTeamID
+		local attackerUnit = Shard:shardify_unit(attackerID)
+		local damageObj = Shard:shardify_damage(damage, weaponDefID, paralyzer)
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
 	    	if teamID == thisAI.id then

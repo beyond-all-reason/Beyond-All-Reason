@@ -21,7 +21,7 @@ function WardBehaviour:Init()
 	self.mobile = not unitTable[self.name].isBuilding and not nanoTurretList[self.name] -- for some reason nano turrets are not buildings
 	self.isScout = scoutList[self.name]
 	if self.isCommander then
-		self.threshold = 0.25
+		self.threshold = 0.2
 	elseif self.isScout then
 		self.threshold = 1
 	elseif self.mobile then

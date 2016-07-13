@@ -30,6 +30,7 @@ function FactoryRegisterBehaviour:OwnerBuilt()
 	-- don't add factories to factory location table until they're done
 	self.finished = true
 	self:Register()
+	self.ai.factorybuildershandler:UpdateFactories()
 end
 
 function FactoryRegisterBehaviour:Priority()
@@ -41,6 +42,7 @@ function FactoryRegisterBehaviour:OwnerDead()
 	-- game:SendToConsole("factory " .. self.name .. " died")
 	if self.finished then
 		self:Unregister()
+		ai.factorybuildershandler:UpdateFactories()
 	end
 end
 

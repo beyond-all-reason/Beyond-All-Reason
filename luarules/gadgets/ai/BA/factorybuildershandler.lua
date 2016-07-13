@@ -10,13 +10,15 @@ function FactoryBuildersHandler:internalName()
 end 
 
 function FactoryBuildersHandler:Init()
-	self.lastCheckFrame = 0
 	self.DebugEnabled = false
+
+	self.lastCheckFrame = 0
 	self.factories = {}
 	self:EchoDebug('Initialize')
 end
 
 function FactoryBuildersHandler:UpdateFactories()
+	self:EchoDebug("update factories")
 	local factoriesPreCleaned = self:PrePositionFilter()
 	self:AvailableFactories(factoriesPreCleaned)
 end
