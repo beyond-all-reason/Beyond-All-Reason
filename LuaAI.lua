@@ -9,7 +9,7 @@
 
 return {
   {
-    name = 'ShardLua',
+    name = 'BABAR 1 for ShardSpringLua 1',
     desc = 'Shard by AF on Spring Lua with BA/BAR configuration',
   },
 }
