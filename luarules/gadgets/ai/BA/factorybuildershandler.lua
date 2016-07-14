@@ -1,4 +1,3 @@
-
 FactoryBuildersHandler = class(Module)
 
 function FactoryBuildersHandler:Name()
@@ -60,41 +59,27 @@ function FactoryBuildersHandler:PrePositionFilter()
 		local isAdvanced = advFactories[factoryName]
 		local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]
 		local mtype = factoryMobilities[factoryName][1]
-
-		if ai.needAdvanced and not ai.haveAdvFactory then
-			if not isAdvanced then
-				self:EchoDebug('not advanced when i need it')
-				buildMe = false 
-			end
+		if ai.needAdvanced and not ai.haveAdvFactory and not isAdvanced then
+			self:EchoDebug('not advanced when i need it')
+			buildMe = false 
 		end
-		if ai.needExperimental and not ai.haveExpFactory then
-			if not isExperimental then
-				self:EchoDebug('not Experimental when i need it')
-				buildMe = false 
-			end
+		if buildMe and ai.needExperimental and not ai.haveExpFactory and not isExperimental then
+			self:EchoDebug('not Experimental when i need it')
+			buildMe = false 
 		end
-		if not ai.needExperimental then
-			if expFactories[factoryName] then 
-				self:EchoDebug('Experimental when i dont need it')
-				buildMe = false 
-			end
+		if buildMe and (not ai.needExperimental or ai.haveExpFactory) and expFactories[factoryName] then
+			self:EchoDebug('Experimental when i dont need it')
+			buildMe = false 
 		end
-		if isExperimental and ai.Energy.income > 5000 and ai.Metal.income > 100 and ai.Metal.reserves > utn.metalCost / 2 and ai.factoryBuilded['air'][1] > 2 and ai.combatCount > 40 then
-			self:EchoDebug('i dont need it but economic situation permitted')
+		if buildMe and mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 and utn.needsWater then
+			self:EchoDebug('dont build seaplane if i have normal planes')
+			buildMe = false 
+		end
+		if not buildMe and mtype == 'air' and ai.haveAdvFactory and ai.factoryBuilded['air'][1] > 0 and ai.factoryBuilded['air'][1] < 3 and isAdvanced then
+			self:EchoDebug('force build t2 air if you have t1 air and a t2 of another type')
 			buildMe = true
 		end
-		if mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 then
-			if utn.needsWater then 
-				self:EchoDebug('dont build seaplane if i have normal planes')
-				buildMe = false 
-			end
-		elseif mtype ~= 'air' and ai.haveAdvFactory and 
-				ai.factoryBuilded['air'][1] > 0 and ai.factoryBuilded['air'][1] < 3 then
-			self:EchoDebug('force build t2 air if you have t1 air and a t2 of another type')
-			buildMe = false
-		end
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
-		
 	end
 	for i, v in pairs(factoriesPreCleaned) do
 		self:EchoDebug('rank ' .. i .. ' factoryPreCleaned '.. v)
@@ -215,7 +200,6 @@ end
 
 function FactoryBuildersHandler:GetBuilderFactory(builder)
 	local builderID = builder:ID()
-	local p = nil
 	local f = game:Frame()
 	if f - self.lastCheckFrame < 1000 then
 		return false
@@ -226,15 +210,13 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 	for rank, factoryName in pairs(ai.factoriesRanking ) do
 		if factories[factoryName] then
 			if factories[factoryName][builderID] then
-			self:EchoDebug(builder:Name())
-				--if raw[builderID] then
-					p = self:FactoryPosition(factoryName,builder)
-					if p then
-						if self.ai.factorybuildershandler:PostPositionalFilter(factoryName,p) then
-							return p, factoryName
-						end
+				self:EchoDebug(builder:Name())
+				local p = self:FactoryPosition(factoryName,builder)
+				if p then
+					if self.ai.factorybuildershandler:PostPositionalFilter(factoryName,p) then
+						return p, factoryName
 					end
-				--end
+				end
 			end
 		end
 	end
@@ -289,6 +271,9 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
 		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+	end
+	if p then
+		self:EchoDebug("position found for " .. factoryName)
 	end
 	return p
 end

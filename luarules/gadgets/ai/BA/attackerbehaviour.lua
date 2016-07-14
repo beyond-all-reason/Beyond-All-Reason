@@ -27,6 +27,7 @@ function AttackerBehaviour:Init()
 	self.level = ut.techLevel - 1
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = ut.xsize * ut.zsize * 16
+	self.congSize = self.size * 0.15 -- how much distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius * 0.9
@@ -62,7 +63,7 @@ function AttackerBehaviour:OwnerIdle()
 	self.idle = true
 end
 
-function AttackerBehaviour:Attack(pos, realClose)
+function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle)
 	if self.unit == nil then
 		-- wtf
 	elseif self.unit:Internal() == nil then
@@ -70,6 +71,8 @@ function AttackerBehaviour:Attack(pos, realClose)
 	else
 		if realClose then
 			self.target = self:AwayFromTarget(pos, halfPi)
+		elseif perpendicularAttackAngle and self.distFromMid then
+			self.target = RandomAway(pos, self.distFromMid, nil, perpendicularAttackAngle)
 		else
 			self.target = RandomAway(pos, 150)
 		end

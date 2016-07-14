@@ -46,6 +46,7 @@ function Situation:Evaluate()
 		local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
 		local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
 		local lotsOfMetal = self.ai.Metal.income > 25 or controlMetalSpots
+		local economyGreat = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
 
 		self.ai.keepCommanderSafe = self.ai.totalEnemyThreat > 3000
 
@@ -59,7 +60,7 @@ function Situation:Evaluate()
 		self.ai.needAdvanced = needAdvanced
 		local needExperimental
 		self.ai.needNukes = false
-		if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and needUpgrade and self.ai.enemyBasePosition then
+		if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and (needUpgrade or economyGreat) and self.ai.enemyBasePosition then
 			if not self.ai.haveExpFactory then
 				for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
 					for expFactName, _ in pairs(expFactories) do
