@@ -72,11 +72,11 @@ function UnitHandler:UnitDead(engineUnit)
 	self.reallyActuallyDead[engineUnit:ID()] = self.game:Frame()
 end
 
-function UnitHandler:UnitDamaged(engineUnit,attacker,damage)
+function UnitHandler:UnitDamaged(engineUnit,engineAttacker,damage)
 	local u = self:AIRepresentation(engineUnit)
-	local a -- = self:AIRepresentation(attacker)
+	-- local a = self:AIRepresentation(engineAttacker)
 	for k,v in pairs(self.myUnits) do
-		v:UnitDamaged(u,a,damage)
+		v:UnitDamaged(u,engineAttacker,damage)
 	end
 end
 

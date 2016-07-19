@@ -323,10 +323,10 @@ end
 local function AmphibiousEconomy(tskqbhvr)
 	local underwater = ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition())
 	local unitName = DummyUnitName
-	if here then 
-		unitName = Economy1(tskqbhvr)
-	else
+	if underwater then 
 		unitName = EconomyUnderWater(tskqbhvr)
+	else
+		unitName = Economy1(tskqbhvr)
 	end
 	return unitName
 	

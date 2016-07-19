@@ -63,14 +63,14 @@ function AttackerBehaviour:OwnerIdle()
 	self.idle = true
 end
 
-function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle)
+function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle, maxOutFromMid)
 	if self.unit == nil then
 		-- wtf
 	elseif self.unit:Internal() == nil then
 		-- wwttff
 	else
 		if realClose then
-			self.target = self:AwayFromTarget(pos, halfPi)
+			self.target = self:AwayFromTarget(pos, halfPi, maxOutFromMid)
 		elseif perpendicularAttackAngle and self.distFromMid then
 			self.target = RandomAway(pos, self.distFromMid, nil, perpendicularAttackAngle)
 		else
@@ -86,14 +86,21 @@ function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle)
 	end
 end
 
-function AttackerBehaviour:AwayFromTarget(pos, spread)
+function AttackerBehaviour:AwayFromTarget(pos, spread, maxOutFromMid)
 	local upos = self.unit:Internal():GetPosition()
 	local dx = upos.x - pos.x
 	local dz = upos.z - pos.z
 	local angle = atan2(-dz, dx)
 	if spread then
 		local halfSpread = spread / 2
-		angle = (angle - halfSpread) + (random() * spread) end
+		local myAngle
+		if self.outFromMid and maxOutFromMid then
+			myAngle = (self.outFromMid / maxOutFromMid) * halfSpread
+		else
+			myAngle = (random() * spread) - halfSpread
+		end
+		angle = angle + myAngle
+	end
 	if angle > twicePi then
 		angle = angle - twicePi
 	elseif angle < 0 then

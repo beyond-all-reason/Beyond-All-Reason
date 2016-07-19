@@ -568,37 +568,37 @@ Eco1={
 
 Eco2={
 	--metalli
-	armmoho=1,
-	cormoho=1,
-	cormexp=1,
+	armmoho=4,
+	cormoho=4,
+	cormexp=4,
 
-	coruwmme=1,
-	armuwmme=1,
+	coruwmme=0,
+	armuwmme=0,
 
 	--magazzini 
-	armuwadves=1,
-	armuwadvms=1,
+	armuwadves=3,
+	armuwadvms=3,
 
-	coruwadves=1,
-	coruwadvms=1,
+	coruwadves=3,
+	coruwadvms=3,
 
-	cmgeo = 1,
-	amgeo = 1,
-	corbhmth =1,
-	armgmm =1,
+	cmgeo = 4,
+	amgeo = 4,
+	corbhmth = 4,
+	armgmm = 4,
 
 	corfus = 1,
 	armfus = 1,
 	cafus = 1,
 	aafus = 1,
-	armuwfus = 1,
-	coruwfus = 1,
+	armuwfus = 0,
+	coruwfus = 0,
 
 	--convertitori
 	cormmkr=1,
 	armmmkr=1,
-	corfmmm=1,
-	armfmmm=1,
+	corfmmm=0,
+	armfmmm=0,
 }
 
 cleaners = {

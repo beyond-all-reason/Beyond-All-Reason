@@ -390,6 +390,9 @@ end
 local function MapSpotMobility(metals, geos)
 	local half = ai.mobilityGridSizeHalf
 	ai.networkSize = {}
+	ai.mobNetworkGeos = {}
+	ai.mobNetworkGeos['air'] = {}
+	ai.mobNetworkGeos['air'][1] = geos
 	ai.scoutSpots = {}
 	ai.scoutSpots["air"] = {}
 	ai.scoutSpots["air"][1] = {}
@@ -406,6 +409,7 @@ local function MapSpotMobility(metals, geos)
 		mobNetworks[mtype] = 0
 		ai.networkSize[mtype] = {}
 		ai.scoutSpots[mtype] = {}
+		ai.mobNetworkGeos[mtype] = {}
 	end
 	for metalOrGeo = 1, 2 do
 		local spots
@@ -451,8 +455,11 @@ local function MapSpotMobility(metals, geos)
 						elseif landOrWater == 2 and mtype ~= "veh" and mtype ~= "bot" then
 							table.insert(mobNetworkMetals[mtype][thisNetwork], spot)
 						end
+					else
+						ai.mobNetworkGeos[mtype][thisNetwork] = ai.mobNetworkGeos[mtype][thisNetwork] or {}
+						table.insert(ai.mobNetworkGeos[mtype][thisNetwork], spot)
 					end
-					if ai.scoutSpots[mtype][thisNetwork] == nil then ai.scoutSpots[mtype][thisNetwork] = {} end
+					ai.scoutSpots[mtype][thisNetwork] = ai.scoutSpots[mtype][thisNetwork] or {}
 					table.insert(ai.scoutSpots[mtype][thisNetwork], spot)
 				end
 			end
@@ -1262,6 +1269,21 @@ function MapHandler:MobilityNetworkSizeHere(mtype, position)
 		local network = ai.topology[mtype][x][z]
 		return ai.networkSize[mtype][network]
 	end
+end
+
+function MapHandler:AccessibleMetalSpotsHere(mtype, position)
+	local network = self:MobilityNetworkHere(mtype, position)
+	return self.ai.mobNetworkMetals[mtype][network] or {}
+end
+
+function MapHandler:AccessibleGeoSpotsHere(mtype, position)
+	local network = self:MobilityNetworkHere(mtype, position)
+	return self.ai.mobNetworkGeos[mtype][network] or {}
+end
+
+function MapHandler:AccessibleMetalGeoSpotsHere(mtype, position)
+	local network = self:MobilityNetworkHere(mtype, position)
+	return self.ai.scoutSpots[mtype][network] or {}
 end
 
 function MapHandler:IsUnderWater(position)

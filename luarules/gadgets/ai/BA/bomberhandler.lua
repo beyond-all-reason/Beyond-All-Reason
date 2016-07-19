@@ -52,13 +52,9 @@ function BomberHandler:DoTargetting()
 		if #recruits >= self.counter then
 			ai.couldBomb = ai.couldBomb + 1
 			-- find somewhere to attack
-			local bombTarget
 			EchoDebug("getting target for " .. weapon)
-			if weapon == "torpedo" then
-				bombTarget = ai.targethandler:GetBestBomberTarget(true)
-			else
-				bombTarget = ai.targethandler:GetBestBomberTarget()
-			end
+			local torpedo = weapon == 'torpedo'
+			local bombTarget = ai.targethandler:GetBestBomberTarget(torpedo)
 			if bombTarget ~= nil then
 				EchoDebug("got target for " .. weapon)
 				for i = 1, #recruits do

@@ -372,7 +372,7 @@ function BuildSiteHandler:UnitCreated(unit)
 				self.resurrectionRepair[unitID] = plan.behaviour
 			else
 				EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
-				if unitTable[unitName].isBuilding then
+				if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
 					self.ai.turtlehandler:PlanCreated(plan, unitID)
@@ -388,7 +388,7 @@ function BuildSiteHandler:UnitCreated(unit)
 			break
 		end
 	end
-	if not planned and unitTable[unitName].isBuilding then
+	if not planned and (unitTable[unitName].isBuilding or nanoTurretList[unitName]) then
 		-- for when we're restarting the AI, or other contingency
 		-- game:SendToConsole("unplanned building creation " .. unitName .. " " .. unitID .. " " .. position.x .. ", " .. position.z)
 		local rect = { position = position, unitName = unitName }
@@ -487,7 +487,7 @@ function BuildSiteHandler:NewPlan(unitName, position, behaviour, resurrect)
 	end
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
-	if not resurrect and unitTable[unitName].isBuilding then
+	if not resurrect and (unitTable[unitName].isBuilding or nanoTurretList[unitName]) then
 		self.ai.turtlehandler:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)
@@ -498,7 +498,7 @@ function BuildSiteHandler:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and unitTable[plan.unitName].isBuilding then
+			if not plan.resurrect and (unitTable[plan.unitName].isBuilding or nanoTurretList[unitName]) then
 				self.ai.turtlehandler:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)

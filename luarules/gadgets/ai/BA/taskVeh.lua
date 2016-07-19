@@ -35,7 +35,9 @@ end
 
 function ConVehicle()
 	local unitName = DummyUnitName
-	if ai.situation.needAmphibiousCons then
+	-- local amphRank = (((ai.mobCount['shp']) / ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
+	local amphRank = MyTB.amphRank or 0.5
+	if math.random() < amphRank then
 		unitName = ConVehicleAmphibious()
 	else
 		unitName = ConGroundVehicle()

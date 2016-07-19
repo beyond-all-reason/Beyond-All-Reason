@@ -29,12 +29,11 @@ function AttackHandler:Update()
 	if f % 150 == 0 then
 		self:DraftSquads()
 	end
-	if f % 60 == 0 then
-		self:DoMovement()
-	end
 	if f % 30 == 0 then
 		-- actually retargets each squad every 15 seconds
 		self:ReTarget()
+		-- actually does each squad movement every 5 seconds
+		self:DoMovement()
 	end
 end
 
@@ -56,7 +55,7 @@ function AttackHandler:DraftSquads()
 	end
 	for nothing, mtype in pairs(needtarget) do
 		-- prepare a squad
-		local squad = { members = {}, notarget = 0, congregating = false, mtype = mtype, lastReTarget = f }
+		local squad = { members = {}, notarget = 0, congregating = false, mtype = mtype, lastReTarget = f, lastMovementFrame = 0 }
 		local representative
 		self:EchoDebug(mtype, #self.recruits[mtype], "recruits")
 		for _, attkbehaviour in pairs(self.recruits[mtype]) do
@@ -145,156 +144,161 @@ function AttackHandler:DoMovement()
 	local f = game:Frame()
 	for is = #self.squads, 1, -1 do
 		local squad = self.squads[is]
-		-- get a representative and midpoint
-		local representative
-		local totalx = 0
-		local totalz = 0
-		local totalSize = 0
-		if squad.hasCongregated then
-			for iu = #squad.members, 1, -1 do
-				local member = squad.members[iu]
-				local unit
-				if member ~= nil then
-					if member.unit ~= nil then
-						unit = member.unit:Internal()
-					end
-				end
-				if unit ~= nil then
-					if representative == nil then representative = unit end
-					local tmpPos = unit:GetPosition()
-					totalx = totalx + tmpPos.x
-					totalz = totalz + tmpPos.z
-					totalSize = totalSize + member.size
-				else 
-					table.remove(squad.members, iu)
-				end
-			end
-		end
-
 		if #squad.members == 0 then
 			self.attackSent[squad.mtype] = 0
 			table.remove(self.squads, is)
-		else
-			-- determine distances from midpoint
-			local midPos
-			if squad.hasCongregated then
-				midPos = api.Position()
-				midPos.x = totalx / #squad.members
-	 			midPos.z = totalz / #squad.members
-				midPos.y = 0
-			else
-				local representativeBehaviour = squad.members[#squad.members]
-				representative = representativeBehaviour.unit:Internal()
-				midPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
+		elseif f > squad.lastMovementFrame + 150 then
+			self:DoSquadMovement(squad, is)
+			squad.lastMovementFrame = f
+		end
+	end
+end
+
+function AttackHandler:DoSquadMovement(squad)
+	-- get a representative and midpoint
+	local representative
+	local totalx = 0
+	local totalz = 0
+	local totalSize = 0
+	if squad.hasCongregated then
+		for iu = #squad.members, 1, -1 do
+			local member = squad.members[iu]
+			local unit
+			if member ~= nil then
+				if member.unit ~= nil then
+					unit = member.unit:Internal()
+				end
 			end
-			squad.attackAngle = AngleAtoB(midPos.x, midPos.z, squad.target.x, squad.target.z)
-			squad.perpendicularAttackAngle = AngleAdd(squad.attackAngle, halfPi)
-			local congDist = sqrt(pi * totalSize) * 2
-			local stragglers = 0
-			local damaged = 0
-			local idle = 0
-			local maxRange = 0
-			local outFromMid = 0
-			for iu = #squad.members, 1, -1 do
-				local member = squad.members[iu]
-				if member.damaged then damaged = damaged + 1 end
-				if member.idle then idle = idle + 1 end
-				if member.range > maxRange then maxRange = member.range end
-				local unit = member.unit:Internal()
-				if unit then
-					if not member.distFromMid or #squad.members ~= (squad.lastMemberCount or 0) then
-						local mult = 1
-						if iu % 2 == 0 then
-							mult = -1
-							outFromMid = outFromMid + member.congSize
-						end
-						member.distFromMid = outFromMid*mult
-					end
-					member.congPos = RandomAway(midPos, member.distFromMid, nil, squad.perpendicularAttackAngle)
-					local upos = unit:GetPosition()
-					local cdist = Distance(upos, member.congPos)
-					if cdist > congDist then
-						member.straggler = (member.straggler or 0) + 1
-						stragglers = stragglers + 1
-						if member.lastpos ~= nil and member.straggler > 1 then
-							local totalMovement = math.abs(upos.x - member.lastpos.x) + math.abs(upos.z - member.lastpos.z)
-							if totalMovement < 4 then
-								member.stuck = (member.stuck or 0) + 1
-								if member.stuck > 5 then
-									-- remove from squad if the unit is pathfinder-stuck
-									self:EchoDebug("leaving stuck behind")
-									self:AddRecruit(member)
-									table.remove(squad.members, iu)
-								end
-							else
-								member.stuck = 0
-							end
+			if unit ~= nil then
+				if representative == nil then representative = unit end
+				local tmpPos = unit:GetPosition()
+				totalx = totalx + tmpPos.x
+				totalz = totalz + tmpPos.z
+				totalSize = totalSize + member.size
+			else 
+				table.remove(squad.members, iu)
+			end
+		end
+	end
+	-- determine distances from midpoint
+	local midPos
+	if squad.hasCongregated then
+		midPos = api.Position()
+		midPos.x = totalx / #squad.members
+		midPos.z = totalz / #squad.members
+		midPos.y = 0
+	else
+		local representativeBehaviour = squad.members[#squad.members]
+		representative = representativeBehaviour.unit:Internal()
+		midPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
+	end
+	squad.attackAngle = AngleAtoB(midPos.x, midPos.z, squad.target.x, squad.target.z)
+	squad.perpendicularAttackAngle = AngleAdd(squad.attackAngle, halfPi)
+	local congDist = sqrt(pi * totalSize) * 2
+	local stragglers = 0
+	local damaged = 0
+	local idle = 0
+	local maxRange = 0
+	local outFromMid = 0
+	for iu = #squad.members, 1, -1 do
+		local member = squad.members[iu]
+		if member.damaged then damaged = damaged + 1 end
+		if member.idle then idle = idle + 1 end
+		if member.range > maxRange then maxRange = member.range end
+		local unit = member.unit:Internal()
+		if unit then
+			if not member.distFromMid or #squad.members ~= (squad.lastMemberCount or 0) then
+				local mult = 1
+				if iu % 2 == 0 then
+					mult = -1
+					outFromMid = outFromMid + member.congSize
+				end
+				member.distFromMid = outFromMid*mult
+			end
+			member.congPos = RandomAway(midPos, member.distFromMid, nil, squad.perpendicularAttackAngle)
+			local upos = unit:GetPosition()
+			local cdist = Distance(upos, member.congPos)
+			if cdist > congDist then
+				member.straggler = (member.straggler or 0) + 1
+				stragglers = stragglers + 1
+				if member.lastpos ~= nil and member.straggler > 1 then
+					local totalMovement = math.abs(upos.x - member.lastpos.x) + math.abs(upos.z - member.lastpos.z)
+					if totalMovement < 10 then
+						member.stuck = (member.stuck or 0) + 1
+						if member.stuck > 3 then
+							-- remove from squad if the unit is pathfinder-stuck
+							self:EchoDebug("leaving stuck behind")
+							self:AddRecruit(member)
+							table.remove(squad.members, iu)
 						end
 					else
 						member.stuck = 0
-						member.straggler = 0
 					end
-					if member.lastpos == nil then
-						member.lastpos = api.Position()
-						member.lastpos.y = 0
-					end
-					member.lastpos.x = upos.x
-					member.lastpos.z = upos.z
 				end
-			end
-			local congregate = false
-			self:EchoDebug("attack squad of " .. #squad.members .. " members, " .. stragglers .. " stragglers")
-			local tenth = math.ceil(#squad.members * 0.1)
-			local half = math.ceil(#squad.members * 0.5)
-			if stragglers >= tenth and damaged < tenth then -- don't congregate if we're being shot
-				congregate = true
-			end
-			local twiceMaxRange = maxRange * 2
-			local distToTarget = Distance(midPos, squad.target)
-			local reached = distToTarget < twiceMaxRange
-			if reached then
-				squad.reachedTarget = f
 			else
-				squad.reachedTarget = nil
+				member.stuck = 0
+				member.straggler = 0
 			end
-			squad.idle = idle > half
-			local realClose = false
-			if stragglers < half and squad.reachedTarget then
-				congregate = false
-				realClose = true
+			if member.lastpos == nil then
+				member.lastpos = api.Position()
+				member.lastpos.y = 0
 			end
-			if not realClose and damaged > tenth then
-				realClose = true
-			end
-			-- attack or congregate
-			if congregate then
-				if not squad.congregating then
-					-- congregate squad
-					squad.congregating = true
-					for iu, member in pairs(squad.members) do
-						local ordered = member:Congregate(member.congPos)
-						if not ordered and squad.congregating then squad.congregating = false end
-					end
-					squad.hasCongregated = true
-				end
-				squad.attacking = nil
-				squad.close = nil
-			else
-				if squad.attacking ~= squad.target or squad.close ~= realClose then
-					-- squad attacks if that wasn't the last order
-					if squad.target ~= nil then
-						for iu, member in pairs(squad.members) do
-							member:Attack(squad.target, realClose, squad.perpendicularAttackAngle)
-						end
-						squad.attacking = squad.target
-						squad.close = realClose
-					end
-				end
-				squad.congregating = false
-			end
-			squad.lastMemberCount = #squad.members
+			member.lastpos.x = upos.x
+			member.lastpos.z = upos.z
 		end
 	end
+	squad.maxOutFromMid = outFromMid
+	local congregate = false
+	self:EchoDebug("attack squad of " .. #squad.members .. " members, " .. stragglers .. " stragglers")
+	local tenth = math.ceil(#squad.members * 0.1)
+	local half = math.ceil(#squad.members * 0.5)
+	if stragglers >= tenth and damaged < tenth then -- don't congregate if we're being shot
+		congregate = true
+		squad.hasCongregated = true
+	end
+	local twiceMaxRange = maxRange * 2
+	local distToTarget = Distance(midPos, squad.target)
+	local reached = distToTarget < twiceMaxRange
+	if reached then
+		squad.reachedTarget = f
+	else
+		squad.reachedTarget = nil
+	end
+	squad.idle = idle > half
+	local realClose = false
+	if stragglers < half and squad.reachedTarget then
+		congregate = false
+		realClose = true
+	end
+	if not realClose and damaged > tenth then
+		realClose = true
+	end
+	-- attack or congregate
+	if congregate then
+		if not squad.congregating then
+			-- congregate squad
+			squad.congregating = true
+			for iu, member in pairs(squad.members) do
+				local ordered = member:Congregate(member.congPos)
+				if not ordered and squad.congregating then squad.congregating = false end
+			end
+		end
+		squad.attacking = nil
+		squad.close = nil
+	else
+		if squad.attacking ~= squad.target or squad.close ~= realClose then
+			-- squad attacks if that wasn't the last order
+			if squad.target ~= nil then
+				for iu, member in pairs(squad.members) do
+					member:Attack(squad.target, realClose, squad.perpendicularAttackAngle, squad.maxOutFromMid)
+				end
+				squad.attacking = squad.target
+				squad.close = realClose
+			end
+		end
+		squad.congregating = false
+	end
+	squad.lastMemberCount = #squad.members
 end
 
 function AttackHandler:IDsWeAreAttacking(unitIDs, mtype)

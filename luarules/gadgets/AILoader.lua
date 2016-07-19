@@ -297,7 +297,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeamID, damage, paralyzer, we
 	if unit then
 		local teamID = unitTeamID
 		local attackerUnit = Shard:shardify_unit(attackerID)
-		local damageObj = Shard:shardify_damage(damage, weaponDefID, paralyzer)
+		local damageObj = Shard:shardify_damage(damage, weaponDefID, paralyzer, projectileID, attackerUnit)
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
 	    	if teamID == thisAI.id then

@@ -38,6 +38,7 @@ function CountBehaviour:Init()
 	if reclaimerList[self.name] then self.isReclaimer = true end
 	if cleanable[self.name] then self.isCleanable = true end
 	if assistList[self.name] then self.isAssist = true end
+	if nanoTurretList[self.name] then self.isNano = true end
 	if self.ai.nameCount[self.name] == nil then
 		self.ai.nameCount[self.name] = 1
 	else
@@ -68,6 +69,7 @@ function CountBehaviour:OwnerBuilt()
 	if self.isAssist then self.ai.assistCount = self.ai.assistCount + 1 end
 	if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount + 1 end
 	if self.isCleanable then self.ai.cleanable[self.unit.engineID] = self.position end
+	if self.isNano then self.ai.nanoList[self.id] = self.position end
 	self.ai.lastNameFinished[self.name] = game:Frame()
 	EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 	self.finished = true
@@ -103,6 +105,7 @@ function CountBehaviour:OwnerDead()
 		if self.isAssist then self.ai.assistCount = self.ai.assistCount - 1 end
 		if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
 		if self.isCleanable then self.ai.cleanable[self.unit.engineID] = nil end
+		if self.isNano then self.ai.nanoList[self.id] = nil end
 		if self.mtypedLv then
 			self.ai.army = self.ai.army - 1
 			self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] - 1
