@@ -38,12 +38,12 @@ end
 
 if (gadgetHandler:IsSyncedCode()) then
 
-  local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+  [[local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
   function gadget:UnitDamaged(unitID,unitDefID,teamID)
     if (spGetUnitIsCloaked(unitID)) then
       SendToUnsynced("lups_unit_cloakeddamaged", unitID, unitDefID, teamID)
     end
-  end
+  end]]
 
   function gadget:UnitFinished(unitID,unitDefID)
     SendToUnsynced("lups_unit_created", unitID, unitDefID)
@@ -52,14 +52,14 @@ if (gadgetHandler:IsSyncedCode()) then
     SendToUnsynced("lups_unit_destroyed", unitID, unitDefID)
   end
 
-
+[[
   function gadget:UnitCloaked(unitID,unitDefID,teamID)
     SendToUnsynced("lups_unit_cloaked", unitID,unitDefID,teamID)
   end
   function gadget:UnitDecloaked(unitID,unitDefID,teamID)
     SendToUnsynced("lups_unit_decloaked", unitID,unitDefID,teamID)
-  end
-
+  end]]
+  
   function gadget:PlayerChanged(playerID)
     SendToUnsynced("lups_player_changed", playerID)
   end
@@ -130,7 +130,7 @@ end
 --
 --  «« cloaked unit handling »»
 --
-
+[[
 local CloakedHitEffect = { class='UnitJitter',options={ life=50, pos={0,0,0}, enemyHit=true, repeatEffect=false} }
 local CloakEffect      = {
   { class='UnitCloaker',options={ life=60 } },
@@ -211,7 +211,7 @@ local function UnitDecloaked(_,unitID,unitDefID,teamID)
 
   local LocalAllyTeamID
   local _, specFullView = Spring.GetSpectatingState()
-  if (specFullView) then
+  if(specFullView) then
     LocalAllyTeamID = allyTeamID
   else
     LocalAllyTeamID = Spring.GetLocalAllyTeamID()
@@ -238,7 +238,7 @@ local function UnitDecloaked(_,unitID,unitDefID,teamID)
       tinsert( particleIDs[unitID],Lups.AddParticles(fx.class,fx.options) )
     end
   end
-end
+end]]
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -276,7 +276,7 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
+[[
 local function PlayerChanged(_,playerID)
   if (playerID == Spring.GetMyPlayerID()) then
     --// this should reset the cloak fx when becoming a spec
@@ -284,7 +284,7 @@ local function PlayerChanged(_,playerID)
     gadgetHandler:UpdateCallIn("Update")
   end
 end
-
+]]
 local function ReinitializeUnitFX()
   --// clear old FXs
   for _,unitFxIDs in pairs(particleIDs) do
@@ -301,16 +301,15 @@ local function ReinitializeUnitFX()
     local unitDefID = Spring.GetUnitDefID(unitID)
     if (Spring.GetUnitRulesParam(unitID, "under_construction") ~= 1) then
 		UnitCreated(nil,unitID,unitDefID)
-		if (Spring.GetUnitIsCloaked(unitID)) then
-		  local teamID = Spring.GetUnitTeam(unitID)
-		  UnitCloaked(nil,unitID,unitDefID,teamID)
-		end
+		--if (Spring.GetUnitIsCloaked(unitID)) then
+		--  local teamID = Spring.GetUnitTeam(unitID)
+		--  UnitCloaked(nil,unitID,unitDefID,teamID)
+		--end
     end
   end
 
   gadgetHandler:RemoveCallIn("Update")
 end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -331,9 +330,9 @@ function gadget:Update()
   Lups  = GG['Lups']
 
   if (Lups) then
-    gadgetHandler:AddSyncAction("lups_unit_cloakeddamaged", UnitDamaged)
-    gadgetHandler:AddSyncAction("lups_unit_cloaked",        UnitCloaked)
-    gadgetHandler:AddSyncAction("lups_unit_decloaked",      UnitDecloaked)
+    --gadgetHandler:AddSyncAction("lups_unit_cloakeddamaged", UnitDamaged)
+    --gadgetHandler:AddSyncAction("lups_unit_cloaked",        UnitCloaked)
+    --gadgetHandler:AddSyncAction("lups_unit_decloaked",      UnitDecloaked)
     gadgetHandler:AddSyncAction("lups_unit_destroyed",      UnitDestroyed)
 
     gadgetHandler:AddSyncAction("lups_luaui",               LupsLuaUI)
@@ -357,9 +356,9 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-  gadgetHandler:RemoveSyncAction("lups_unit_cloakeddamaged")
-  gadgetHandler:RemoveSyncAction("lups_unit_cloaked")
-  gadgetHandler:RemoveSyncAction("lups_unit_decloaked")
+  --gadgetHandler:RemoveSyncAction("lups_unit_cloakeddamaged")
+  --gadgetHandler:RemoveSyncAction("lups_unit_cloaked")
+  --gadgetHandler:RemoveSyncAction("lups_unit_decloaked")
   gadgetHandler:RemoveSyncAction("lups_unit_destroyed")
 
   gadgetHandler:RemoveSyncAction("lups_luaui")
