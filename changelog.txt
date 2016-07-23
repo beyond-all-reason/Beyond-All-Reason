@@ -5,7 +5,11 @@ Balance changes:
 - EMP spider have no autoheal anymore and have less hp (950 -> 850) + speed was reduced by 10%
 
 Other:
-- fixed missing cloak.wav error spam
+- Fixed missing cloak.wav error spam
+- /cursor, now also lists availible cursorsets
+- Bet widget removed
+- Comgate widget removed
+- Vignette widget removed
 
 
 9.36 -> 9.37
