@@ -1,7 +1,7 @@
 return {
 	armspid = {
 		acceleration = 0.18,
-		autoheal = 30,
+		autoheal = 0,
 		brakerate = 0.564,
 		buildcostenergy = 3381,
 		buildcostmetal = 177,
@@ -19,10 +19,10 @@ return {
 		explodeas = "BIG_UNITEX",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 10,
+		idleautoheal = 5,
 		idletime = 600,
-		maxdamage = 950,
-		maxvelocity = 2.65,
+		maxdamage = 850,
+		maxvelocity = 2.385,
 		maxwaterdepth = 16,
 		movementclass = "TKBOT2",
 		mygravity = 10000,

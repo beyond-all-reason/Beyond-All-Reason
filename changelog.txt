@@ -1,4 +1,14 @@
-﻿9.36 -> 9.37
+﻿9.37 -> 9.38
+23/07/2016
+
+Balance changes:
+- EMP spider have no autoheal anymore and have less hp (950 -> 850) + speed was reduced by 10%
+
+Other:
+- fixed missing cloak.wav error spam
+
+
+9.36 -> 9.37
 21/07/2016
 
 - Bugfixes
