@@ -1,4 +1,14 @@
-﻿9.37 -> 9.38
+﻿9.38 -> 9.39
+XX/07/2016
+
+Balance changes:
+-
+
+Other:
+- Fixed critters related error spam
+
+
+9.37 -> 9.38
 23/07/2016
 
 Balance changes:
@@ -6,7 +16,7 @@ Balance changes:
 
 Other:
 - Fixed missing cloak.wav error spam
-- /cursor, now also lists availible cursorsets
+- /cursor, now also lists available cursorsets
 - Bet widget removed
 - Comgate widget removed
 - Vignette widget removed
