@@ -46,7 +46,20 @@ function SetCursor(cursorSet)
             Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
         end
     end
-    Spring.Echo('Loaded cursor set: '..cursorSet)
+    
+    local result = ''
+    local color = ''
+    local separator = ''
+    for i=1, #cursorSets do
+	    if cursorSets[i] == cursorSet then
+	    	color = '\255\255\255\255'
+	    else
+	    	color = '\255\200\200\200'
+	    end
+    	result = result..separator..'  '..color..cursorSets[i]..'  '
+    	separator = '|'
+    end
+    Spring.Echo('Loaded \255\255\255\255cursor\255\200\200\200:'..result)
 end
 
 
