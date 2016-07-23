@@ -231,11 +231,13 @@ local function adjustCritters(newAliveCritters)
 	for unitID, critter in pairs(critterUnits) do
 		if add and not critter.alive  or  not add and critter.alive then
 			if add then 
-				table.insert(removeKeys, unitID)
-				local newUnitID = Spring.CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
-				setGaiaUnitSpecifics(newUnitID)
-				critterDifference = critterDifference - 1
-				--Spring.Echo("added: "..critter.unitName.."  x:"..critter.x.."  z:"..critter.z)
+				if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
+					table.insert(removeKeys, unitID)
+					local newUnitID = Spring.CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
+					setGaiaUnitSpecifics(newUnitID)
+					critterDifference = critterDifference - 1
+					--Spring.Echo("added: "..critter.unitName.."  x:"..critter.x.."  z:"..critter.z)
+				end
 			else
 				local x,y,z = spGetUnitPosition(unitID,true,true)
 				aliveCritters = aliveCritters - 1
