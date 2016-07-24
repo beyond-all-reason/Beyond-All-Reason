@@ -782,7 +782,17 @@ teamDeathMessages = {
     "XX was just faking",
     "XX really tied the room together",
     "XX put Baby in a corner",
-    
+    "XX used Subionic's script",
+    "XX played it cool",
+    "XX never meant any of this",
+    "XX devaluated",
+    "XX made mistakes",
+    "XX looked the other way",
+    "XX doesn't agree with the balance",
+    "XX was fatefull",
+    "XX doesn't accept reality",
+    "XX doesn't accept virtual reality",
+    "XX storms out",
     
 }
     
