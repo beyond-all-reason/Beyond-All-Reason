@@ -6,6 +6,9 @@ Balance changes:
 
 Other:
 - Fixed critters related error spam
+- Decreased number of critter gulls
+- Added clearmapmarks button (attached to advplayerlist)
+- Added death messages
 
 
 9.37 -> 9.38

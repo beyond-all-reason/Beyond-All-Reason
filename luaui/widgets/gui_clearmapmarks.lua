@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local fbTexture = ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/eraser.dds"
+local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/eraser.dds"
 local iconSize = 12
 
 local spGetGameFrame			= Spring.GetGameFrame
@@ -33,7 +33,7 @@ local xPos = 0
 local yPos = 0
 
 local shown = false
-local clicked = false
+local mouseover = false
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -59,8 +59,7 @@ local function createList(size)
 		glDeleteList(drawlist[1])
 	end
 	drawlist[1] = glCreateList( function()
-		gl.Texture(fbTexture)
-		gl.Color(1,1,1,1)
+		gl.Texture(iconTexture)
 		DrawRect(-usedImgSize, 0, 0, usedImgSize)
 		gl.Texture(false)
 	end)
@@ -102,16 +101,14 @@ function widget:DrawScreen()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
-			glCallList(drawlist[1])
-			glPushMatrix()
-				--glTranslate(0, bob, 0)
-				--glRotate(rot, 0, 0, 1)
-				glCallList(drawlist[1])
-				if clicked then
-					glText('Just\nkidding', -2, 16, 12, 'or')
+				if mouseover then
+					gl.Color(1,1,1,1)
+				else
+					gl.Color(1,1,1,0.5)
 				end
-			glPopMatrix()
+			glCallList(drawlist[1])
 		glPopMatrix()
+		mouseover = false
 	end
 end
 
@@ -123,5 +120,18 @@ function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
+	end
+end
+
+function widget:IsAbove(mx, my)
+	if isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+		mouseover = true
+	end
+	return mouseover
+end
+
+function widget:GetTooltip(mx, my)
+	if widget:IsAbove(mx,my) then
+		return string.format("This buttons clears all mapmarks and drawings.")
 	end
 end
