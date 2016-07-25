@@ -44,7 +44,7 @@ function FactoryBuildersHandler:AvailableFactories(factoriesPreCleaned)
 	end
 	if self.DebugEnabled then
 		for i, v in pairs(self.factories) do
-			self:EchoDebug(i..' is buildable')
+			self:EchoDebug(i  ..' is available Factories' )
 		end
 	end
 end	
@@ -60,11 +60,11 @@ function FactoryBuildersHandler:PrePositionFilter()
 		local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]
 		local mtype = factoryMobilities[factoryName][1]
 		if ai.needAdvanced and not ai.haveAdvFactory and not isAdvanced then
-			self:EchoDebug('not advanced when i need it')
+			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false 
 		end
 		if buildMe and ai.needExperimental and not ai.haveExpFactory and not isExperimental then
-			self:EchoDebug('not Experimental when i need it')
+			self:EchoDebug(factoryName ..' not Experimental when i need it')
 			buildMe = false 
 		end
 		if buildMe and (not ai.needExperimental or ai.haveExpFactory) and expFactories[factoryName] then
@@ -72,13 +72,23 @@ function FactoryBuildersHandler:PrePositionFilter()
 			buildMe = false 
 		end
 		if buildMe and mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 and utn.needsWater then
-			self:EchoDebug('dont build seaplane if i have normal planes')
+			self:EchoDebug(factoryName .. ' dont build seaplane if i have normal planes')
 			buildMe = false 
 		end
 		if not buildMe and mtype == 'air' and ai.haveAdvFactory and ai.factoryBuilded['air'][1] > 0 and ai.factoryBuilded['air'][1] < 3 and isAdvanced then
-			self:EchoDebug('force build t2 air if you have t1 air and a t2 of another type')
+			self:EchoDebug(factoryName .. ' force build t2 air if you have t1 air and a t2 of another type')
 			buildMe = true
 		end
+		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not ai.haveAdvFactory then
+			for index, factory in pairs(self.ai.factoriesAtLevel[1]) do
+				if factoryMobilities[factory.unit:Internal():Name()][1] ~= 'air' then
+					self:EchoDebug(factoryName .. ' dont build t2 air if we have another t1 type and dont have adv')
+					buildMe = false
+					break
+				end
+			end
+		end
+				
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
 	end
 	for i, v in pairs(factoriesPreCleaned) do
@@ -105,7 +115,7 @@ function FactoryBuildersHandler:ConditionsToBuildFactories()
 			local uTn = unitTable[factoryName]
 			self:EchoDebug('measure conditions to build ' .. factoryName .. ' factory')
 			--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.army >= ai.factories * 20 then
-			if ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.army >= ai.factories ^ 2 * 10 then
+			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.army >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
 				self:EchoDebug(factoryName .. ' can be builded')
 				factories[factoryName] = self.factories[factoryName]
 			end
@@ -126,76 +136,6 @@ function FactoryBuildersHandler:ConditionsToBuildFactories()
 		self:EchoDebug('5')
 		return false
 	end
-	
--- 	local go = false
--- 	local factories = ai.factories ^ 2
--- 	if  ai.Metal.income < (factories * 10) + 3 and ai.Energy.income < (factories * 100) + 25  and ai.warriors < ai.factories * 20 then
--- 		go= false
--- 		self.gogogo = false 
--- 		return
--- 	else
--- 		go= true
--- 		self.gogogo = true
--- 		return
--- 	end
--- 	
--- 		
--- 	
--- 	if ai.factories == 0 then 
--- 		go = true 
--- 		self:EchoDebug('allow because no factory')
--- 		
--- 	end
--- 	self:EchoDebug('update')
--- 	self:EchoDebug(self.factoriesPreCleaned[1])
--- 	
--- 	local factoryName = self.factoriesPreCleaned[1]
--- 	local duplicate = ai.buildsitehandler:CheckForDuplicates(factoryName)
--- 	if duplicate then 
--- 		go = false
--- 		return
--- 	end
--- 	local utf = unitTable[factoryName]
--- 	self:EchoDebug('mtype planned factory ' .. factoryMobilities[factoryName][1])
--- 	local factoryM = unitTable[factoryName].metalCost
--- 	local factoryE = unitTable[factoryName].energyCost
--- 	self:EchoDebug('$Energy ' ..factoryM .. '$Metal '.. factoryE)
--- 	
--- 	
--- 	
--- 	
--- 	self:EchoDebug('realmetal ' .. ai.realMetal ..' realenergy '..ai.realEnergy)
--- 	self:EchoDebug('scaledmetal ' .. ai.scaledMetal ..' scaledenergy '..ai.scaledEnergy)
--- 	self:EchoDebug('metaltobuildit ' .. ai.scaledMetal/factoryM .. ' energytobuildit ' .. ai.scaledEnergy /factoryE)
--- 	self:EchoDebug('techlevel' .. utf.techLevel)
--- 	if utf.techLevel == 3 then
--- 		if ai.mtypeLvCount[factoryMobilities[factoryName][1].. tostring(utf.techLevel-1)] and ai.mtypeLvCount[factoryMobilities[factoryName][1].. tostring(utf.techLevel-1)] >20 then
--- 			go = true
--- 			self:EchoDebug('mtypedunits '..ai.mtypeLvCount[factoryMobilities[factoryName][1].. tostring(utf.techLevel-1)])
--- 		end
--- 		
--- 	end
--- 	if self.ai.mtypeLvCount['total'] and self.ai.mtypeLvCount['total'] > 50 and ai.scaledMetal/factoryM > 2 and ai.scaledEnergy /factoryE > 2 then
--- 		self:EchoDebug('factoryes total ' ..ai.factories / self.ai.mtypeLvCount['total'])
--- 		self:EchoDebug('total ' ..self.ai.mtypeLvCount['total'])
--- 		go = true
--- 	end
--- 	
--- 	
--- 	
--- 	
--- 	
--- 	self:EchoDebug(' ai.combatCount' ..ai.combatCount)
--- 	
--- 	self:EchoDebug()
--- 	self:EchoDebug()
--- 	self:EchoDebug()
--- 	self:EchoDebug()
--- 	self:EchoDebug()
-	--if go == true then self.gogogo = true end
-	
-	
-	
 end
 
 function FactoryBuildersHandler:GetBuilderFactory(builder)
@@ -228,6 +168,10 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local mtype = factoryMobilities[factoryName][1]
 	local builderPos = builder:GetPosition()
 	local p
+	if p == nil then
+		self:EchoDebug("looking next to last nano turrets for " .. factoryName)
+		p = ai.buildsitehandler:BuildNearNano(builder, utype)
+	end
 	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)
 		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)

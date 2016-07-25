@@ -1,5 +1,9 @@
 ehaviour = class(Behaviour)
 
+function NukeBehaviour:Name()
+	return "NukeBehaviour"
+end
+
 local DebugEnabled = false
 
 

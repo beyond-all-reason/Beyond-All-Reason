@@ -165,6 +165,7 @@ function gadget:Initialize()
 	local frame = spGetGameFrame()
 	if frame > 0 then
 		self:GameStart()
+		self:GameFrame(frame-1)
 		-- catch up to current units
 		for _,uID in ipairs(spGetAllUnits()) do
 			self:UnitCreated(uID, Spring.GetUnitDefID(uID), Spring.GetUnitTeam(uID))
@@ -505,6 +506,18 @@ local function sdDisplay(_, onOff)
 	end
 end
 
+local function sStartTimer(_, name)
+	if (Script.LuaUI('ShardStartTimer')) then
+		Script.LuaUI.ShardStartTimer(name)
+	end
+end
+
+local function sStopTimer(_, name)
+	if (Script.LuaUI('ShardStopTimer')) then
+		Script.LuaUI.ShardStopTimer(name)
+	end
+end
+
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
 	gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
@@ -518,6 +531,8 @@ function gadget:Initialize()
 	gadgetHandler:AddSyncAction('ShardDrawEraseUnit', sdEraseUnit)
 	gadgetHandler:AddSyncAction('ShardDrawClearShapes', sdClearShapes)
 	gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
+	gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
+	gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
 end
 
 end

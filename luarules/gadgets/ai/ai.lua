@@ -1,6 +1,8 @@
 class(AIBase)
 
 function AI:Init()
+	self.EnableDebugTimers = false
+
 	ai = self
 	self.api = shard_include("preload/api")
 	self.game = self.api.game
@@ -24,6 +26,9 @@ function AI:Init()
 	self.modules = {}
 	if next(modules) ~= nil then
 		for i,m in ipairs(modules) do
+			if self.EnableDebugTimers then
+				self:AddDebugTimers(m)
+			end
 			newmodule = m()
 			self.game:SendToConsole("adding "..newmodule:Name().." module")
 			local internalname = newmodule:internalName()
@@ -43,7 +48,9 @@ function AI:Update()
 		if m == nil then
 			self.game:SendToConsole("nil module!")
 		else
+			-- if self.EnableDebugTimers then self.game:StartTimer(m:Name() .. ":Update") end
 			m:Update()
+			-- if self.EnableDebugTimers then self.game:StopTimer(m:Name() .. ":Update") end
 		end
 	end
 end
@@ -149,4 +156,29 @@ function AI:AddModule( newmodule )
 	self[internalname] = newmodule
 	table.insert(self.modules,newmodule)
 	newmodule:Init()
+end
+
+function AI:AddDebugTimers(module, name)
+	local badKeys = {
+			is_a = true,
+			__index = true,
+			init = true,
+			internalName = true,
+			Name = true,
+	}
+	local moduleName = name or module:Name()
+	for k, v in pairs(module) do
+		if type(v) == 'function' and not badKeys[k] then
+			local passthroughStopTimer = function(...)
+				self.game:StopTimer(moduleName .. ":" .. k)
+				return ...
+			end
+			local newV = function(...)
+				self.game:StartTimer(moduleName .. ":" .. k)
+				return passthroughStopTimer(v(...))
+			end
+			module[k] = newV
+		end
+	end
+	return module
 end

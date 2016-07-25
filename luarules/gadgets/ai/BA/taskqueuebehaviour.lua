@@ -431,20 +431,25 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			utype = nil
 		end
 	elseif unitTable[value].isBuilding then
-		-- buildings in defended positions
-		local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
-		if turtlePosList then
-			if #turtlePosList ~= 0 then
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
+		if Eco2[value] == 1 then
+			p = ai.buildsitehandler:BuildNearNano(builder, utype)
+		end
+		if not p then
+			-- buildings in defended positions
+			local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
+			if turtlePosList then
+				if #turtlePosList ~= 0 then
+					for i, turtlePos in ipairs(turtlePosList) do
+						p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
+						if p ~= nil then break end
+					end
 				end
 			end
-		end
-		if p and Distance(p, builder:GetPosition()) > MaxBuildDist(value, self.speed) then
-			-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
-			-- this prevents cons from wasting time building very far away
-			p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
+			if p and Distance(p, builder:GetPosition()) > MaxBuildDist(value, self.speed) then
+				-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
+				-- this prevents cons from wasting time building very far away
+				p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
+			end
 		end
 	end
 	-- last ditch placement
@@ -645,7 +650,7 @@ function TaskQueueBehaviour:ProgressQueue()
 			if success then
 				EchoDebug(self.name .. " " .. self.id .. " successful build command for " .. utype:Name())
 				if self.isFactory then
-					if not self.outmodedTechLevel then
+					if not self.outmodedTechLevel and not self.ai.underReserves then
 						-- factories take up idle assistants
 						ai.assisthandler:TakeUpSlack(builder)
 					end
@@ -666,7 +671,7 @@ function TaskQueueBehaviour:ProgressQueue()
 				self.progress = true
 				self.failures = (self.failures or 0) + 1
 				local limit = 20
-				if self.queue then limit = #self.queue end
+				if self.queue then limit = #self.queue * 2 end
 				if self.failures > limit then
 					-- game:SendToConsole("taking a break after " .. limit .. " tries. " .. self.name .. " " .. self.id)
 					self.failOut = game:Frame()

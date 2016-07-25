@@ -706,14 +706,16 @@ function MapHandler:factoriesRating()
 	table.sort(sorting)
 	
 	local factoriesRanking = {}
+	local ranksByFactories = {}
 	for i,v in pairs(sorting) do
 		for ii = #rank[v], 1, -1 do
-			local vv = rank[v][ii]
-			table.insert(factoriesRanking,table.remove(rank[v],ii))
-			EchoDebug((i.. ' '..vv))
+			local factoryName = table.remove(rank[v],ii)
+			table.insert(factoriesRanking, factoryName)
+			ranksByFactories[factoryName] = #factoriesRanking
+			EchoDebug((i .. ' ' .. factoryName))
 		end
 	end
-	return factoriesRanking
+	return factoriesRanking, ranksByFactories
 end
 
 function MapHandler:Name()
@@ -782,6 +784,10 @@ function MapHandler:Init()
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
+
+	local mapSize = self.map:MapDimensions()
+	self.ai.elmoMapSizeX = mapSize.x * 8
+	self.ai.elmoMapSizeZ = mapSize.z * 8
 
 	-- factoryMobilities = self:GetFactoryMobilities()
 
@@ -958,7 +964,7 @@ function MapHandler:Init()
 
 	-- cleanup
 	mobMap = {}
-	ai.factoriesRanking = self:factoriesRating()
+	self.ai.factoriesRanking, self.ai.ranksByFactories = self:factoriesRating()
 
 	self:DebugDrawMobilities()
 end

@@ -10,7 +10,7 @@
 return {
   {
     name = 'ShardLua',
-    desc = 'BABAR version 3 -- ShardSpringLua version 2 -- Shard by AF -- https://github.com/Tarendai/Shard -- https://github.com/eronoobos/ShardSpringLua -- https://github.com/eronoobos/BABAR-The-Shardifant',
+    desc = 'BABAR version 4 -- ShardSpringLua version 3 -- Shard by AF -- https://github.com/Tarendai/Shard -- https://github.com/eronoobos/ShardSpringLua -- https://github.com/eronoobos/BABAR-The-Shardifant',
   },
 }
 

@@ -110,22 +110,6 @@
 
 	function game:GetResources() -- returns a table of Resource objects, takes the name of the resource
 		return { self:GetResource(1), self:GetResource(2) }
-
-		--[[local rcount = game_engine:GetResourceCount()
-		if(rcount > 0) then
-
-			local resources = {}
-
-			for i = 0,rcount do
-				local res = game:GetResource(i)
-				if res.name ~= "" then
-					resources[res.name] = res
-				end
-			end
-			return resources
-		else
-			return nil
-		end]]--
 	end
 
 	function game:UsesControlPoints()
@@ -144,6 +128,35 @@
 			return Script.LuaRules.NonCapturingUnits() or {}
 		end
 		return {}
+	end
+
+	function game:StartTimer(name)
+		SendToUnsynced('ShardStartTimer', name)
+	end
+
+	function game:StopTimer(name)
+		SendToUnsynced('ShardStopTimer', name)
+	end
+
+	function game:EnableDebugTimers()
+		local badKeys = {
+			is_a = true,
+			__index = true,
+			init = true,
+		}
+		local callins = {}
+		for k, v in pairs(AIBase) do
+			if not badKeys[k] then
+				callins[#callins+1] = k
+			end
+		end
+		for i, m in ipairs(self.ai.modules) do
+
+		end
+	end
+
+	function game:DisableDebugTimers()
+
 	end
 
 return game

@@ -18,6 +18,10 @@ end
 
 ScoutBehaviour = class(Behaviour)
 
+function ScoutBehaviour:Name()
+	return "ScoutBehaviour"
+end
+
 function ScoutBehaviour:Init()
 	self.evading = false
 	self.active = false

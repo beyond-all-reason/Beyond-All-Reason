@@ -22,7 +22,13 @@ function Unit:Update()
 		self.behaviours = {}
 	end
 	for k,v in pairs(self.behaviours) do
+		if ai.EnableDebugTimers then
+			game:StartTimer(v:Name() .. ":Update")
+		end
 		v:Update()
+		if ai.EnableDebugTimers then
+			game:StopTimer(v:Name() .. ":Update")
+		end
 	end
 end
 

@@ -9,6 +9,10 @@ end
 
 WardBehaviour = class(Behaviour)
 
+function WardBehaviour:Name()
+	return "WardBehaviour"
+end
+
 function WardBehaviour:Init()
 	self.minFleeDistance = 500
 	self.lastAttackedFrame = game:Frame()

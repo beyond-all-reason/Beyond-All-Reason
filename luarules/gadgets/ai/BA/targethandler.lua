@@ -8,19 +8,6 @@ local function EchoDebug(inStr)
 	end
 end
 
-local function PlotDebug(x, z, label)
-	if DebugDrawEnabled then
-		if label == nil then label= "nil" end
-		local pos = api.Position()
-		pos.x, pos.z = x, z
-		pos.y = 0
-		if ShardSpringLua then
-			pos.y = Spring.GetGroundHeight(x, z)
-		end
-		map:DrawPoint(pos, {1,1,1}, label, 8)
-	end
-end
-
 local function PlotSquareDebug(x, z, size, color, label, filled)
 	if DebugDrawEnabled then
 		x = math.ceil(x)
@@ -58,8 +45,9 @@ end
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 local threatTypes = { "ground", "air", "submerged" }
-local baseUnitThreat = 150
-local baseUnitRange = 250
+local baseUnitThreat = 0 -- 150
+local baseUnitRange = 0 -- 250
+local unseenMetalGeoValue = 50
 local baseBuildingValue = 150
 local bomberExplosionValue = 2000
 local vulnerableHealth = 200
@@ -420,8 +408,15 @@ function TargetHandler:UpdateEnemies()
 		local ghost = e.ghost
 		local name = e.unitName
 		local ut = unitTable[name]
-		-- only count those we know about and that aren't being built
-		if (los ~= 0 or ghost) and not e.beingBuilt then
+		if ghost and not ghost.position and not e.beingBuilt then
+			-- count ghosts with unknown positions as non-positioned threats
+			self:DangerCheck(name, e.unitID)
+			local threatLayers = UnitThreatRangeLayers(name)
+			for groundAirSubmerged, layer in pairs(threatLayers) do
+				self:CountEnemyThreat(e.unitID, name, layer.threat)
+			end
+		elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+			-- count those we know about and that aren't being built
 			local pos
 			if ghost then pos = ghost.position else pos = e.position end
 			local px, pz = GetCellPosition(pos)
@@ -516,6 +511,32 @@ function TargetHandler:UpdateEnemies()
 	end
 end
 
+function TargetHandler:UpdateMetalGeoSpots()
+	local spots = self.ai.scoutSpots.air[1]
+	local fromGAS = {"ground", "air", "submerged"}
+	local toGAS = {"ground", "submerged"}
+	for i = 1, #spots do
+		local spot = spots[i]
+		if not self.ai.loshandler:IsInLos(spot) then
+			local cell = self:GetOrCreateCellHere(spot)
+			-- cell.value = cell.value + unseenMetalGeoValue
+			local underwater = self.ai.maphandler:IsUnderWater(spot)
+			for i = 1, #fromGAS do
+				local fgas = fromGAS[i]
+				if not underwater or fgas ~= 'submerged' then
+					cell.values[fgas] = cell.values[fgas] or {}
+					for ii = 1, #toGAS do
+						local tgas = toGAS[ii]
+						if not underwater or tgas == 'submerged' then
+							cell.values[fgas][tgas] = (cell.values[fgas][tgas] or 0) + unseenMetalGeoValue
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 function TargetHandler:UpdateBadPositions()
 	local f = game:Frame()
 	for i = #self.badPositions, 1, -1 do
@@ -598,7 +619,8 @@ end
 
 function TargetHandler:UpdateDebug()
 	if DebugDrawEnabled then
-		map:EraseAll(8)
+		map:EraseRectangle(nil, nil, nil, nil, true, 8)
+		map:EraseRectangle(nil, nil, nil, nil, false, 8)
 		local maxThreat = 0
 		local maxValue = 0
 		for cx, czz in pairs(self.cells) do
@@ -712,6 +734,7 @@ function TargetHandler:UpdateMap()
 		self:UpdateDangers()
 		self:UpdateBadPositions()
 		self:UpdateWrecks()
+		-- self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
 		self.lastUpdateFrame = game:Frame()
@@ -763,7 +786,7 @@ function TargetHandler:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHandler:GetBestRaidCell(representative)
+function TargetHandler:GetBestRaidCell(representative, onlyHere)
 	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
@@ -781,6 +804,7 @@ function TargetHandler:GetBestRaidCell(representative)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best
 	local bestDist = 99999
+	local cells
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		-- cells with other raiders in or nearby are better places to go for raiders
@@ -800,6 +824,25 @@ function TargetHandler:GetBestRaidCell(representative)
 		end
 	end
 	return best
+end
+
+function TargetHandler:RaidableCell(representative, position)
+	position = position or representative:GetPosition()
+	local cell = self:GetCellHere(position)
+	if not cell or cell.value == 0 then return end
+	local value, threat, gas = CellValueThreat(rname, cell)
+	-- cells with other raiders in or nearby are better places to go for raiders
+	if cell.raiderHere then threat = threat - cell.raiderHere end
+	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+	local rname = representative:Name()
+	local maxThreat = baseUnitThreat
+	local rthreat, rrange = ThreatRange(rname)
+	EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+	if rthreat > maxThreat then maxThreat = rthreat end
+	-- EchoDebug(value .. " " .. threat)
+	if threat <= maxThreat then
+		return cell
+	end
 end
 
 function TargetHandler:GetBestAttackCell(representative)
@@ -1092,9 +1135,20 @@ end
 
 function TargetHandler:IsSafePosition(position, unit, threshold)
 	self:UpdateMap()
-	if unit == nil then game:SendToConsole("nil unit") end
-	local uname = unit:Name()
-	if uname == nil then game:SendToConsole("nil unit name") end
+	if unit == nil then
+		game:SendToConsole("nil unit given to IsSafePosition")
+		return
+	end
+	local uname
+	if type(unit) == 'string' then
+		uname = unit
+	else
+		uname = unit:Name()
+	end
+	if uname == nil then
+		game:SendToConsole("nil unit name give nto IsSafePosition")
+		return
+	end
 	local cell = self:GetCellHere(position)
 	if cell == nil then return 0, 0 end
 	local value, threat = CellValueThreat(uname, cell)

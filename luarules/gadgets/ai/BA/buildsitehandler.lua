@@ -198,7 +198,8 @@ function BuildSiteHandler:GetBuildSpacing(unitTypeToBuild)
 	return spacing
 end
 
-function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance)
+function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
+	maximumDistance = maximumDistance or 400
 	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
 	if attemptNumber == nil then EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
 	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
@@ -209,14 +210,14 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 			-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
 			return vpos
 		end
-		return self.map:FindClosestBuildSite(unitTypeToBuild, position, 400, minDistance, validFunction)
+		return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 	end
 	local tmpAttemptNumber = attemptNumber or 0
 	local pos = nil
 
 	if tmpAttemptNumber > 0 then
 		local searchAngle = (tmpAttemptNumber - 1) / 3 * math.pi
-		local searchRadius = 2 * buildDistance / 3
+		local searchRadius = maximumDistance or 2 * buildDistance / 3
 		local searchPos = api.Position()
 		searchPos.x = position.x + searchRadius * math.sin(searchAngle)
 		searchPos.z = position.z + searchRadius * math.cos(searchAngle)
@@ -244,11 +245,11 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 					minDistance = minDistance - 4
 				end
 			end
-			pos = self:ClosestBuildSpot(builder, position, unitTypeToBuild, minDistance, tmpAttemptNumber + 1, buildDistance)
+			pos = self:ClosestBuildSpot(builder, position, unitTypeToBuild, minDistance, tmpAttemptNumber + 1, buildDistance, maximumDistance)
 		else
 			-- check manually check in a spiral
 			EchoDebug("trying spiral check")
-			pos = self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, minDistance * 16)
+			pos = self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, maximumDistance or minDistance * 16)
 		end
 	else
 		EchoDebug(builder:Name() .. " building " .. unitTypeToBuild:Name() .. " build position found in " .. tmpAttemptNumber .. " attempts")
@@ -308,24 +309,25 @@ function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 	local minDist = maxDist
 	local maxLevel = self.ai.maxFactoryLevel
 	EchoDebug(maxLevel .. " max factory level")
-	local factoryPos = nil
+	local factorybhvr
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
 			if not self.ai.outmodedFactoryID[factory.id] then
 				local dist = Distance(builderPos, factory.position)
 				if dist < minDist then
 					minDist = dist
-					factoryPos = factory.position
+					factorybhvr = factory
 				end
 			end
 		end
 	end
-	if factoryPos then
+	if factorybhvr then
+		local factoryPos = factorybhvr.position
 		local newpos = api.Position()
 		newpos.x = factoryPos.x
 		newpos.z = factoryPos.z
 		newpos.y = factoryPos.y
-		return newpos
+		return newpos, factorybhvr.unit:Internal()
 	else
 		return
 	end
@@ -356,6 +358,36 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
 	self:PlotAllDebug()
+end
+
+function BuildSiteHandler:BuildNearNano(builder, utype)
+	EchoDebug("looking for spot near nano hotspots")
+	local nanoHots = self.ai.nanohandler:GetHotSpots()
+	if nanoHots then
+		EchoDebug("got " .. #nanoHots .. " nano hotspots")
+		local hotRadius = self.ai.nanohandler:HotBuildRadius()
+		for i = 1, #nanoHots do
+			local hotPos = nanoHots[i]
+			-- find somewhere within hotspot
+			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
+			if p then 
+				EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
+				return p
+			end
+		end
+	end
+	return self:BuildNearLastNano(builder, utype)
+end
+
+function BuildSiteHandler:BuildNearLastNano(builder, utype)
+	EchoDebug("looking for spot near last nano")
+	local p = nil
+	if self.ai.lastNanoBuild then
+		EchoDebug('found position near last nano')
+		-- find somewhere at most 400 away
+		p = self:ClosestBuildSpot(builder, self.ai.lastNanoBuild, utype, 30, nil, nil, 400)
+	end
+	return p
 end
 
 function BuildSiteHandler:UnitCreated(unit)

@@ -12,17 +12,15 @@ local CMD_PATROL = 15
 local CMD_MOVE_STATE = 50
 local MOVESTATE_ROAM = 2
 
-DefendBehaviour = class(Behaviour)
-
 -- not does it defend, but is it a dedicated defender
 function IsDefender(unit)
-	local un = unit:Internal():Name()
-	for i,name in ipairs(defenderList) do
-		if name == un then
-			return true
-		end
-	end
-	return false
+	return defenderList[unit:Internal():Name()] or false
+end
+
+DefendBehaviour = class(Behaviour)
+
+function DefendBehaviour:Name()
+	return "DefendBehaviour"
 end
 
 function DefendBehaviour:Init()

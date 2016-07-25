@@ -569,7 +569,7 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 	end
 end
 
-function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly)
+function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistance)
 	local modDist = modDistance
 	if unitName then modDist = modDist * Priority(unitName) end
 	if builder == nil then return end
@@ -588,7 +588,10 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly)
 				local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
 				EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
 				if mod ~= 0 then
-					local dist = Distance(position, turtle.position)
+					local dist = 0
+					if not ignoreDistance then
+						dist = Distance(position, turtle.position)
+					end
 					dist = dist - (mod * modDist)
 					EchoDebug("distance: " .. dist)
 					if oneOnly then

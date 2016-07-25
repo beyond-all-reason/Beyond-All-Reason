@@ -8,16 +8,14 @@ local function EchoDebug(inStr)
 end
 
 function IsAttacker(unit)
-	local uname = unit:Internal():Name()
-	for i,name in ipairs(attackerlist) do
-		if name == uname then
-			return true
-		end
-	end
-	return false
+	return attackerlist[unit:Internal():Name()] or false
 end
 
 AttackerBehaviour = class(Behaviour)
+
+function AttackerBehaviour:Name()
+	return "AttackerBehaviour"
+end
 
 function AttackerBehaviour:Init()
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())

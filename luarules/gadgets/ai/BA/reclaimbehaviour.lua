@@ -16,6 +16,10 @@ end
 
 ReclaimBehaviour = class(Behaviour)
 
+function ReclaimBehaviour:Name()
+	return "ReclaimBehaviour"
+end
+
 function ReclaimBehaviour:Init()
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype

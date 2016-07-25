@@ -217,13 +217,15 @@ function LosHandler:UpdateEnemies(enemyList)
 					end
 				end
 			end
-			if los == 1 then
+			if los == 1 and not known[id] and self.ai.knownEnemies[id] ~= 2 then
+				-- don't overwrite seen with radar-seen unless it was previously not known
 				self.ai.knownEnemies[id] = e
 				e.los = los
 				known[id] = los
 			end
 			if self.ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
 				if known[id] == 2 and self.ai.knownEnemies[id].los == 2 then
+					e.unit:EraseHighlight({1,0,0}, 'known', 3)
 					e.unit:DrawHighlight({1,0,0}, 'known', 3)
 					-- self.map:DrawUnit(id, {1,0,0}, 'known', 3)
 					-- PlotDebug(pos.x, pos.z, "known")
@@ -252,15 +254,28 @@ function LosHandler:UpdateEnemies(enemyList)
 				self.ai.attackhandler:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhandler:NeedLess() end
 			end
+			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 			self.ai.knownEnemies[id] = nil
 		elseif not known[id] then
-			if not e.ghost then
-				e.ghost = { frame = f, position = e.position }
-			else
-				-- expire ghost
-				if f > e.ghost.frame + 600 then
-					self.ai.knownEnemies[id] = nil
+			if e.ghost then
+				local gpos = e.ghost.position
+				if gpos then
+					if self:IsInLos(gpos) or self:IsInRadar(gpos) then
+						-- the ghost is not where it was last seen, but it's still somewhere
+						e.ghost.position = nil
+						if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
+					end
 				end
+				-- expire ghost
+				-- if f > e.ghost.frame + 600 then
+					-- self.ai.knownEnemies[id] = nil
+				-- end
+			else
+				if DebugDrawEnabled then
+					self.map:ErasePoint(nil, nil, id, 3)
+					self.map:DrawPoint(e.position, {0.5,0.5,0.5,1}, id, 3)
+				end
+				e.ghost = { frame = f, position = e.position }
 			end
 		else
 			if not unitTable[e.unitName].isBuilding then
@@ -275,6 +290,7 @@ function LosHandler:UpdateEnemies(enemyList)
 				end
 				if count then table.insert(blips, e) end
 			end
+			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 			e.ghost = nil
 		end
 	end
