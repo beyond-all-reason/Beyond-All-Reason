@@ -1,0 +1,24 @@
+hotspot topleft
+frame  anims/cursornormal_0.png  5
+frame  anims/cursornormal_1.png  0.05
+frame  anims/cursornormal_2.png  0.05
+frame  anims/cursornormal_3.png  0.05
+frame  anims/cursornormal_4.png  0.05
+frame  anims/cursornormal_5.png  0.05
+frame  anims/cursornormal_6.png  0.05
+frame  anims/cursornormal_7.png  0.05
+frame  anims/cursornormal_8.png  0.05
+frame  anims/cursornormal_9.png  0.05
+frame  anims/cursornormal_10.png  0.05
+frame  anims/cursornormal_11.png  0.05
+frame  anims/cursornormal_12.png  0.05
+frame  anims/cursornormal_13.png  0.05
+frame  anims/cursornormal_14.png  0.05
+frame  anims/cursornormal_15.png  0.05
+frame  anims/cursornormal_16.png  0.05
+frame  anims/cursornormal_17.png  0.05
+frame  anims/cursornormal_18.png  0.05
+frame  anims/cursornormal_19.png  0.05
+frame  anims/cursornormal_20.png  0.05
+frame  anims/cursornormal_21.png  0.05
+frame  anims/cursornormal_22.png  0.05

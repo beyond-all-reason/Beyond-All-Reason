@@ -1,0 +1,14 @@
+hotspot topleft
+frame  anims/cursorrevive_0.png  1
+frame  anims/cursorrevive_1.png  0.1
+frame  anims/cursorrevive_2.png  0.1
+frame  anims/cursorrevive_3.png  0.1
+frame  anims/cursorrevive_4.png  0.1
+frame  anims/cursorrevive_5.png  0.1
+frame  anims/cursorrevive_6.png  0.1
+frame  anims/cursorrevive_7.png  0.1
+frame  anims/cursorrevive_8.png  0.1
+frame  anims/cursorrevive_9.png  0.1
+frame  anims/cursorrevive_10.png  0.1
+frame  anims/cursorrevive_11.png  0.1
+frame  anims/cursorrevive_12.png  0.1

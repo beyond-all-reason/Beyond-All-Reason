@@ -12,17 +12,23 @@ function widget:GetInfo()
 end
 
 -- note: first entry should be icons inside base /anims folder
-local cursorSets = {'old', 'bar_animated', 'bar_static'}
-
+local cursorSets = {'old', 'old_150%', 'old_200%', 'bar', 'bar_150%', 'bar_200%'}
 
 local Settings = {}
-Settings['cursorSet'] = 2
+Settings['defaultCursorSet'] = 'bar'
+Settings['cursorSet'] = Settings['defaultCursorSet']
+
+function table_invert(t)
+   local s={}
+   for k,v in pairs(t) do
+     s[v]=k
+   end
+   return s
+end
+local cursorSetsInv = table_invert(cursorSets)
 
 function widget:Initialize()
-	if Settings['cursorSet'] >= #cursorSets then
-		cursorSets = #cursorSets
-	end
-    SetCursor(cursorSets[Settings['cursorSet']])
+    SetCursor(Settings['cursorSet'])
 end
 
 ----------------------------
@@ -59,7 +65,7 @@ function SetCursor(cursorSet)
     	result = result..separator..'  '..color..cursorSets[i]..'  '
     	separator = '|'
     end
-    Spring.Echo('Loaded \255\255\255\255cursor\255\200\200\200:'..result)
+    Spring.Echo('Loaded cursor:'..result)
 end
 
 
@@ -68,17 +74,24 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-    if (data and type(data) == 'table') then
+    if data and type(data) == 'table' then
+   			if 'number' == type(data['cursorSet']) then -- correct legacy settings
+   				data['cursorSet'] = 'bar'
+   				if data['cursorSet'] == 1 then data['cursorSet'] = 'old' end
+   			end
+				if not cursorSetsInv[data['cursorSet']] then
+					data['cursorSet'] = Settings['defaultCursorSet']
+				end
         Settings = data
     end
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "cursor") == 1  and  string.len(command) == 6) then 
-		Settings['cursorSet'] = Settings['cursorSet'] + 1
-		if not cursorSets[Settings['cursorSet']] then
-			Settings['cursorSet'] = 1
+    if (string.find(command, "cursor") == 1  and  string.len(command) == 6) then
+		Settings['cursorSet'] = cursorSets[cursorSetsInv[Settings['cursorSet']] + 1]
+		if not cursorSetsInv[Settings['cursorSet']] then
+			Settings['cursorSet'] = cursorSets[1]
 		end
-		SetCursor(cursorSets[Settings['cursorSet']])
+		SetCursor(Settings['cursorSet'])
 	end
 end
