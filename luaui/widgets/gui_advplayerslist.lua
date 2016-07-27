@@ -1613,31 +1613,32 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	local tipPosY    = widgetPosY + ((widgetHeight - vOffset)*widgetScale)
 	
 	
-	local alpha = 1		-- alpha used to show inactivity for specs
+	local alpha = 0.44-- alpha used to show inactivity for specs
 	
 	if WG['betfrontend'] ~= nil then
 		playerScores = WG['betfrontend'].GetPlayerScores()
 	end
 	
 	if mySpecStatus then
+		alpha = 0.33
 		local alphaActivity = 0
 		-- keyboard/mouse activity
 		if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
-				alphaActivity = (10 - math.floor(now-lastActivity[playerID])) / 7
+				alphaActivity = (8 - math.floor(now-lastActivity[playerID])) / 5.5
 				if alphaActivity > 1 then alphaActivity = 1 end
 				if alphaActivity <= 0 then alphaActivity = 0 end
-				alphaActivity = 0.4 + (alphaActivity*0.2)
+				alphaActivity = 0.33 + (alphaActivity*0.24)
 				alpha = alphaActivity
 		end
 		-- camera activity
 		if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-			local alphaCam = (15 - math.floor(recentBroadcasters[playerID])) / 10
+			local alphaCam = (12 - math.floor(recentBroadcasters[playerID])) / 8
 			if alphaCam > 1 then alphaCam = 1 end
-			alpha = 0.4 + (alphaCam*0.4)
+			alpha = 0.33 + (alphaCam*0.48)
 			if alpha < alphaActivity then alpha = alphaActivity end
 		end
 	else
-		alpha = 0.5
+		alpha = 0.44
 	end
 	
 	
