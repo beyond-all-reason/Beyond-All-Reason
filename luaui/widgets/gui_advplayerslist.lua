@@ -1626,14 +1626,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
 				alphaActivity = (8 - math.floor(now-lastActivity[playerID])) / 5.5
 				if alphaActivity > 1 then alphaActivity = 1 end
-				if alphaActivity <= 0 then alphaActivity = 0 end
+				if alphaActivity < 0 then alphaActivity = 0 end
 				alphaActivity = 0.33 + (alphaActivity*0.24)
 				alpha = alphaActivity
 		end
 		-- camera activity
 		if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-			local alphaCam = (12 - math.floor(recentBroadcasters[playerID])) / 8
+			local alphaCam = (13 - math.floor(recentBroadcasters[playerID])) / 8.5
 			if alphaCam > 1 then alphaCam = 1 end
+			if alphaCam < 0 then alphaCam = 0 end
 			alpha = 0.33 + (alphaCam*0.48)
 			if alpha < alphaActivity then alpha = alphaActivity end
 		end
