@@ -12,10 +12,10 @@
 function widget:GetInfo()
 	return {
 		name      = "AdvPlayersList",
-		desc      = "Players list with useful information / shortcuts. Use tweakmode (ctrl+F11) to customize. '/cputext' displays cpu %",
+		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize. '/cputext' displays cpu %",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "16.0",
+		version   = "18.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -37,7 +37,8 @@ end
 -- v14   (Floris): Added country flags + Added camera icons for locked camera + specs show bright when they are broadcasting new lockcamera positions + bugfixed lockcamera for specs. Added small gaps between in tweakui icons. Auto scales with resolution changes.
 -- v15   (Floris): Integrated LockCamers widget code
 -- v16	 (Floris): Added chips next to gambling-spectators for betting system
--- v17	 (Floris): Added alliances display and button
+-- v17	 (Floris): Added alliances display and button and /cputext option
+-- v18	 (Floris): replaced allycursor data with activity gadget data
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -198,6 +199,13 @@ local playerScores = {}
 
 local myLastCameraState
 
+
+--------------------------------------------------------------------------------
+-- 
+--------------------------------------------------------------------------------
+
+local lastActivity = {}
+
 --------------------------------------------------------------------------------
 -- Tooltip
 --------------------------------------------------------------------------------
@@ -275,7 +283,6 @@ local specOffset 	 	= 12
 local drawList       	= {}
 local teamN	
 local prevClickTime  	= os.clock()
-local allycursorTimes	= {}
 local specListShow = true
 
 --------------------------------------------------
@@ -657,6 +664,10 @@ local function LockCamera(playerID)
 end
 
 
+function ActivityEvent(playerID)
+  lastActivity[playerID] = os.clock()
+end
+
 function CameraBroadcastEvent(playerID,cameraState)
 
 	--if cameraState is empty then transmission has stopped
@@ -693,6 +704,7 @@ end]]--
 function widget:Initialize()
 	--widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
+  widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
 	UpdateRecentBroadcasters()
 	
 	mySpecStatus,_,_ = Spring.GetSpectatingState()
@@ -761,6 +773,7 @@ function widget:Shutdown()
 		WG['guishader_api'].RemoveRect('advplayerlist')
 	end
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
+	widgetHandler:DeregisterGlobal('ActivityEvent')
 end
 
 
@@ -1300,10 +1313,6 @@ function CreateLists()
 	UpdateRecentBroadcasters()
 	UpdateAlliances()
 	
-	if WG['allycursor_api'] ~= nil then
-		allycursorTimes = WG['allycursor_api'].GetCursorTimes()
-	end
-	
 	UpdateResources()
 	
 	--Create lists
@@ -1611,21 +1620,21 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	end
 	
 	if mySpecStatus then
-		local alphaCursor = 1
-		if WG['allycursor_api'] ~= nil then
-			if allycursorTimes[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
-				alphaCursor = (10 - math.floor(now-allycursorTimes[playerID])) / 7
-				if alphaCursor > 1 then alphaCursor = 1 end
-				if alphaCursor <= 0.5 then alphaCursor = 0.5 end
-			end
+		local alphaActivity = 0
+		-- keyboard/mouse activity
+		if lastActivity[playerID] ~= nil and type(lastActivity[playerID]) == "number" then
+				alphaActivity = (10 - math.floor(now-lastActivity[playerID])) / 7
+				if alphaActivity > 1 then alphaActivity = 1 end
+				if alphaActivity <= 0 then alphaActivity = 0 end
+				alphaActivity = 0.4 + (alphaActivity*0.2)
+				alpha = alphaActivity
 		end
+		-- camera activity
 		if recentBroadcasters[playerID] ~= nil and type(recentBroadcasters[playerID]) == "number" then
 			local alphaCam = (15 - math.floor(recentBroadcasters[playerID])) / 10
 			if alphaCam > 1 then alphaCam = 1 end
-			alpha = 0.7 * alphaCam
-			if alpha < 0.5 then alpha = 0.5 end
-		else
-			alpha = 0.5*alphaCursor
+			alpha = 0.4 + (alphaCam*0.4)
+			if alpha < alphaActivity then alpha = alphaActivity end
 		end
 	else
 		alpha = 0.5
