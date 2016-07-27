@@ -20,7 +20,38 @@ function DamageHandler:internalName()
 end
 
 function DamageHandler:Init()
-	self.lastHealth = {}
+	self.isDamaged = {}
+	self.lastDamageCheckFrame = 0
+end
+
+function DamageHandler:UnitDamaged(engineUnit, attacker, damage)
+	local teamID = engineUnit:Team()
+	if teamID ~= self.game:GetTeamID() and not self.ai.friendlyTeamID[teamID] then
+		return
+	end
+	local unitID = engineUnit:ID()
+	self.isDamaged[unitID] = engineUnit
+end
+
+function DamageHandler:Update()
+	local f = game:Frame()
+	if f > self.lastDamageCheckFrame + 90 then
+		for unitID, engineUnit in pairs(self.isDamaged) do
+			local health = engineUnit:GetHealth()
+			if not health or (health == engineUnit:GetMaxHealth()) then
+				self.isDamaged[unitID] = nil
+			end
+		end
+		self.lastDamageCheckFrame = f
+	end
+end
+
+function DamageHandler:UnitDead(engineUnit)
+	self.isDamaged[engineUnit:ID()] = nil
+end
+
+function DamageHandler:GetDamagedUnits()
+	return self.isDamaged
 end
 
 -- note: the attacker is always nil if it's on any team other than the AI's (not even allies register)
@@ -45,16 +76,14 @@ function DamageHandler:UnitDamaged(unit, attacker, damage)
 		self.lastHealth[unitID] = health
 	end
 end
-]]--
 
-function DamageHandler:UnitBuilt(unit)
-	local unitID = unit:ID()
-	self.lastHealth[unitID] = unit:GetHealth()
+function DamageHandler:UnitBuilt(engineUnit)
+	local unitID = engineUnit:ID()
+	self.lastHealth[unitID] = engineUnit:GetHealth()
 end
 
-function DamageHandler:UnitDead(unit)
-	local unitID = unit:ID()
+function DamageHandler:UnitDead(engineUnit)
+	local unitID = engineUnit:ID()
 	self.lastHealth[unitID] = nil
 end
-
--- DangerCheck(attackerName, attackerID)
+]]--

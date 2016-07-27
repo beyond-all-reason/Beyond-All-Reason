@@ -23,7 +23,7 @@ function CommanderBehaviour:Update()
 	if self.active and f >= self.nextFactoryCheck then
 		self:FindSafeHouse()
 	end
-	if f % 30 == 0 and not self.active and self.ai.situation.paranoidCommander then
+	if f % 30 == 0 and not self.active and self.ai.overviewhandler.paranoidCommander then
 		self:FindSafeHouse()
 		self.unit:ElectBehaviour()
 	end
@@ -59,7 +59,7 @@ function CommanderBehaviour:Deactivate()
 end
 
 function CommanderBehaviour:Priority()
-	if (self.lowHealth or self.ai.situation.paranoidCommander) and self.safeHouse then
+	if (self.lowHealth or self.ai.overviewhandler.paranoidCommander) and self.safeHouse then
 		return 200
 	else
 		return 0

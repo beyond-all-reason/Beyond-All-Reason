@@ -334,7 +334,7 @@ function LosHandler:UpdateWrecks()
 				local los = self:GroundLos(position)
 				local id = feature:ID()
 				local persist = false
-				local wreck = { los = los, featureName = featureName, position = position }
+				local wreck = { feature = feature, los = los, featureName = featureName, position = position}
 				if los == 0 or los == 1 then
 					-- don't remove from knownenemies if it was once seen
 					persist = true

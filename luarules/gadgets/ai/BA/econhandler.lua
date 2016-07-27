@@ -17,9 +17,11 @@ function EconHandler:internalName()
 	return "econhandler"
 end
 
+local framesPerAvg = 20
+local resourceNames = { "Energy", "Metal" }
+local resourceCount = #resourceNames
+
 function EconHandler:Init()
-	self.resourceNames = { "Energy", "Metal" }
-	self.lastFrame = -17 -- so that it updates immediately even on the first frame
 	self.hasData = false -- so that it gets data immediately
 	self.samples = {}
 	self.ai.Energy = {}
@@ -28,35 +30,36 @@ function EconHandler:Init()
 end
 
 function EconHandler:Update()
-	local f = game:Frame()
-	if f > self.lastFrame + 15 then
-		local sample = {}
-		-- because resource data is stored as userdata
-		for i, name in pairs(self.resourceNames) do
-			local udata = game:GetResourceByName(name)
-			sample[name] = { income = udata.income, usage = udata.usage, reserves = udata.reserves, capacity = udata.capacity }
-		end
-		table.insert(self.samples, sample)
-		if not self.hasData or #self.samples == 6 then self:Average() end
-		self.lastFrame = f
+	local sample = {}
+	-- because resource data is stored as userdata
+	for i = 1, resourceCount do
+		local name = resourceNames[i]
+		local udata = game:GetResourceByName(name)
+		sample[name] = { income = udata.income, usage = udata.usage, reserves = udata.reserves }
+		self.ai[name].capacity = udata.capacity -- capacity is not something that fluctuates wildly
 	end
+	self.samples[#self.samples+1] = sample
+	if not self.hasData or #self.samples == framesPerAvg then self:Average() end
 end
 
 function EconHandler:Average()
-	local reset = false
-	for i, sample in pairs(self.samples) do
+	local resources = {}
+	-- get sum of samples
+	local samples = self.samples
+	for i = 1, #samples do
+		local sample = samples[i]
 		for name, resource in pairs(sample) do
 			for property, value in pairs(resource) do
-				if not reset then self.ai[name][property] = 0 end
-				self.ai[name][property] = self.ai[name][property] + value
+				resources[name] = resources[name] or {}
+				resources[name][property] = (resources[name][property] or 0) + value
 			end
 		end
-		if not reset then reset = true end
 	end
+	-- get averages
 	local totalSamples = #self.samples
 	for name, resource in pairs(self.samples[1]) do
 		for property, value in pairs(resource) do
-			self.ai[name][property] = self.ai[name][property] / totalSamples
+			self.ai[name][property] = resources[name][property] / totalSamples
 		end
 		self.ai[name].extra = self.ai[name].income - self.ai[name].usage
 		if self.ai[name].capacity == 0 then
@@ -70,14 +73,14 @@ function EconHandler:Average()
 			self.ai[name].tics = self.ai[name].reserves / self.ai[name].income
 		end
 	end
-	if not self.hasData then self.hasData = true end
+	self.hasData = true
 	self.samples = {}
 	self:DebugAll()
 end
 
 function EconHandler:DebugAll()
 	if DebugEnabled then
-		for i, name in pairs(self.resourceNames) do
+		for i, name in pairs(resourceNames) do
 			local resource = self.ai[name]
 			for property, value in pairs(resource) do
 				EchoDebug(name .. "." .. property .. ": " .. value)

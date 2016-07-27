@@ -33,7 +33,7 @@ function MapHasUnderwaterMetal()
 end
 
 function IsSiegeEquipmentNeeded()
-	return ai.situation.needSiege
+	return ai.overviewhandler.needSiege
 end
 
 function IsAANeeded()
@@ -82,7 +82,7 @@ end
 function BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
 		if not unitTable[unitName].isBuilding then
-			return BuildWithLimitedNumber(unitName, ai.situation.AAUnitPerTypeLimit)
+			return BuildWithLimitedNumber(unitName, ai.overviewhandler.AAUnitPerTypeLimit)
 		else
 			return unitName
 		end
@@ -243,66 +243,58 @@ end
 
 
 local function ConsulAsFactory(tskqbhvr)
-	local unitName=DummyUnitName
-	local rnd= math.random(1,9)
-	if 	rnd==1 then unitName=ConVehicle(tskqbhvr) 
-	elseif 	rnd==2 then unitName=ConShip(tskqbhvr) 
-	elseif 	rnd==3 then unitName=Lvl1BotRaider(tskqbhvr) 
-	elseif 	rnd==4 then unitName=Lvl1AABot(tskqbhvr) 
-	elseif 	rnd==5 then unitName=Lvl2BotArty(tskqbhvr)
-	-- elseif 	rnd==6 then unitName=spiders(tskqbhvr)
-	elseif 	rnd==7 then unitName=Lvl2BotMedium(tskqbhvr)
-	elseif 	rnd==8 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
-	else unitName=DummyUnitName
+	local unitName = DummyUnitName
+	local rnd = math.random(1,8)
+	if 	rnd == 1 then unitName=ConVehicle(tskqbhvr) 
+	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr) 
+	elseif 	rnd == 3 then unitName=Lvl1BotRaider(tskqbhvr) 
+	elseif 	rnd == 4 then unitName=Lvl1AABot(tskqbhvr) 
+	elseif 	rnd == 5 then unitName=Lvl2BotArty(tskqbhvr)
+	elseif 	rnd == 6 then unitName=Lvl2BotAllTerrain(tskqbhvr)
+	elseif 	rnd == 7 then unitName=Lvl2BotMedium(tskqbhvr)
+	else unitName = Lvl1ShipDestroyerOnly(tskqbhvr)
 	end
-	if unitName==nil then unitName = DummyUnitName end
+	if unitName == nil then unitName = DummyUnitName end
 	EchoDebug('Consul as factory '..unitName)
 	return unitName
 end
 
 local function FreakerAsFactory(tskqbhvr)
-	local unitName=DummyUnitName
-	local rnd = math.random(1,9)
-	if 	rnd==1 then unitName=ConBot(tskqbhvr)
-	elseif 	rnd==2 then unitName=ConShip(tskqbhvr)
-	elseif 	rnd==3 then unitName=Lvl1BotRaider(tskqbhvr)
-	elseif 	rnd==4 then unitName=Lvl1AABot(tskqbhvr)
-	elseif 	rnd==5 then unitName=Lvl2BotRaider(tskqbhvr)
-	elseif 	rnd==6 then unitName=Lvl2AmphBot(tskqbhvr)
-	elseif 	rnd==7 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
-	-- elseif 	rnd==8 then unitName=Decoy(tskqbhvr)
-	else unitName = DummyUnitName
+	local unitName = DummyUnitName
+	local rnd = math.random(1,7)
+	if 	rnd == 1 then unitName=ConBot(tskqbhvr)
+	elseif 	rnd == 2 then unitName=ConShip(tskqbhvr)
+	elseif 	rnd == 3 then unitName=Lvl1BotRaider(tskqbhvr)
+	elseif 	rnd == 4 then unitName=Lvl1AABot(tskqbhvr)
+	elseif 	rnd == 5 then unitName=Lvl2BotRaider(tskqbhvr)
+	elseif 	rnd == 6 then unitName=Lvl2AmphBot(tskqbhvr)
+	else unitName = Lvl1ShipDestroyerOnly(tskqbhvr)
 	end
-	if unitName==nil then unitName = DummyUnitName end
+	if unitName == nil then unitName = DummyUnitName end
 	EchoDebug('Freaker as factory '..unitName)
 	return unitName
 end
 
 function NavalEngineerAsFactory(tskqbhvr)
-	local unitName=DummyUnitName
-	local rnd= math.random(1,9)
-	EchoDebug(rnd)
-	if 	rnd==1 then unitName=ConShip(tskqbhvr)
-	elseif 	rnd==2 then unitName=ScoutShip(tskqbhvr)
-	elseif 	rnd==3 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
-	elseif 	rnd==4 then unitName=Lvl1ShipRaider(tskqbhvr)
-	elseif 	rnd==5 then unitName=Lvl1ShipBattle(tskqbhvr)
-	elseif 	rnd==6 then unitName=Lvl2AmphBot(tskqbhvr)
-	else 
-		unitName=DummyUnitName
+	local unitName = DummyUnitName
+	local rnd= math.random(1,6)
+	if 	rnd == 1 then unitName=ConShip(tskqbhvr)
+	elseif 	rnd == 2 then unitName=ScoutShip(tskqbhvr)
+	elseif 	rnd == 3 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
+	elseif 	rnd == 4 then unitName=Lvl1ShipRaider(tskqbhvr)
+	elseif 	rnd == 5 then unitName=Lvl1ShipBattle(tskqbhvr)
+	else unitName=Lvl2AmphBot(tskqbhvr)
 	end
 	EchoDebug('Naval engineers as factory '..unitName)
 	return unitName
 end
 
 function EngineerAsFactory(tskqbhvr)
-	local unitName=DummyUnitName
-	if ai.Energy.full>0.3 and ai.Energy.full<0.7 and ai.Metal.full>0.3 and ai.Metal.full<0.7 then
-		if MyTB.side == CORESideName then
-			unitName=FreakerAsFactory(tskqbhvr)
-		else
-			unitName=ConsulAsFactory(tskqbhvr)
-		end
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = FreakerAsFactory(tskqbhvr)
+	else
+		unitName = ConsulAsFactory(tskqbhvr)
 	end
 	return unitName
 end	
@@ -335,8 +327,8 @@ end
 -- mobile construction units:
 
 local anyCommander = {
-	CommanderEconomy,
 	BuildAppropriateFactory,
+	CommanderEconomy,
 	BuildLLT,
 	BuildRadar,
 	BuildLightAA,
@@ -345,8 +337,8 @@ local anyCommander = {
 }
 
 local anyConUnit = {
-	Economy1,
 	BuildAppropriateFactory,
+	Economy1,
 	BuildLLT,
 	BuildSpecialLT,
 	BuildMediumAA,
@@ -359,6 +351,7 @@ local anyConUnit = {
 }
 
 local anyConAmphibious = {
+	BuildAppropriateFactory,
 	AmphibiousEconomy,
 	BuildGeo,
 	BuildSpecialLT,
@@ -377,12 +370,12 @@ local anyConAmphibious = {
 }
 
 local anyConShip = {
+	BuildAppropriateFactory,
 	EconomyUnderWater,
 	BuildFloatLightAA,
 	BuildSonar,
 	BuildLightTorpedo,
 	BuildFloatRadar,
-	BuildAppropriateFactory,
 	BuildFloatHLT,
 }
 
@@ -401,18 +394,18 @@ local anyAdvConUnit = {
 	BuildExtraHeavyAA,
 	BuildLvl2Jammer,
 	BuildMohoGeo,
-	-- DoSomethingAdvancedForTheEconomy,
 }
 
 local anyConSeaplane = {
+	BuildAppropriateFactory,
 	EconomySeaplane,
 	BuildFloatHeavyAA,
 	BuildAdvancedSonar,
 	BuildHeavyTorpedo,
-	BuildAppropriateFactory,
 }
 
 local anyAdvConSub = {
+	BuildAppropriateFactory,
 	AdvEconomyUnderWater,
 	BuildFloatHeavyAA,
 	BuildAdvancedSonar,
@@ -420,33 +413,24 @@ local anyAdvConSub = {
 }
 
 local anyNavalEngineer = {
+	BuildAppropriateFactory,
 	EconomyNavalEngineer,
 	BuildFloatHLT,
 	BuildFloatLightAA,
-	BuildAppropriateFactory,
-	Lvl1ShipBattle,
 	BuildFloatRadar,
 	BuildSonar,
-	Lvl1ShipRaider,
-	Conship,
-	ScoutShip,
 	BuildLightTorpedo,
 }
 
 local anyCombatEngineer = {
-	EconomyBattleEngineer,
 	BuildAppropriateFactory,
+	EconomyBattleEngineer,
 	BuildMediumAA,
 	BuildAdvancedRadar,
 	BuildLvl2Jammer,
 	BuildHeavyAA,
 	BuildSpecialLTOnly,
 	BuildLvl2Plasma,
-	ConCoreBotArmVehicle,
-	Lvl2BotCorRaiderArmArty,
-	Lvl1AABot,
-	ConShip,
-	Lvl1ShipDestroyerOnly,
 }
 
 

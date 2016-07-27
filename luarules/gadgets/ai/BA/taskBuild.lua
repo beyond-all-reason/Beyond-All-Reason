@@ -374,7 +374,7 @@ function BuildNuke()
 	else
 		unitName = "armsilo"
 	end
-	return BuildWithLimitedNumber(unitName, ai.situation.nukeLimit)
+	return BuildWithLimitedNumber(unitName, ai.overviewhandler.nukeLimit)
 end
 
 function BuildNukeIfNeeded()
@@ -390,7 +390,7 @@ function BuildTacticalNuke()
 	else
 		unitName = "armemp"
 	end
-	return BuildWithLimitedNumber(unitName, ai.situation.tacticalNukeLimit)
+	return BuildWithLimitedNumber(unitName, ai.overviewhandler.tacticalNukeLimit)
 end
 
 --PLASMA
@@ -422,7 +422,7 @@ function BuildHeavyPlasma()
 	else
 		unitName = "armbrtha"
 	end
-	return BuildWithLimitedNumber(unitName, ai.situation.heavyPlasmaLimit)
+	return BuildWithLimitedNumber(unitName, ai.overviewhandler.heavyPlasmaLimit)
 end
 
 function BuildLol()

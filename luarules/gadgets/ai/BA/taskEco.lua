@@ -441,9 +441,9 @@ end
 
 function EconomyBattleEngineer(tskqbhvr)
         local unitName=DummyUnitName
-	if ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100 then
+	if ai.realEnergy > 1.25 and ai.realMetal > 1.1 then
 		unitName= NanoTurret()
-	elseif ai.Energy.full < 0.1 and ai.Metal.full > 0.3 then
+	elseif ai.Energy.full < 0.1 and ai.Metal.full > 0.1 then
 		unitName = Solar()
 	elseif ai.Metal.full < 0.2 then 
 		unitName=BuildMex()
@@ -456,9 +456,9 @@ end
 
 function EconomyNavalEngineer(tskqbhvr)
         local unitName=DummyUnitName
-	if ai.Energy.full < 0.2 and ai.Metal.income > ai.Metal.usage and ai.Metal.full > 0.2 then
+	if ai.Energy.full < 0.2 and realMetal > 1 then
 		unitName = TidalIfTidal()
-	elseif ai.Metal.full < 0.2 and ai.Energy.income > ai.Metal.usage and ai.Energy.full > 0.2 then
+	elseif ai.Metal.full < 0.2 and ai.Energy.income > ai.Metal.usage then
 		unitName = BuildUWMex()
 	else
 		unitName = NavalEngineerAsFactory()
@@ -469,9 +469,9 @@ end
 
 function EconomyFark(tskqbhvr)
 	local unitName = DummyUnitName
-	if (ai.Energy.full < 0.5 or ai.Energy.income < ai.Energy.usage)   then
+	if (ai.Energy.full < 0.3 or ai.realEnergy < 1.1)   then
 		unitName = WindSolar()
-	elseif ai.Energy.full > 0.9 then
+	elseif ai.Energy.full > 0.9 and ai.Metal.capacity < 4000 then
 		unitName = buildEstore1()
 	else
 		unitName = BuildMex()

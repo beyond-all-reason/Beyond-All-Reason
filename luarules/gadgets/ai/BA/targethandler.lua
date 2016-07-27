@@ -45,16 +45,18 @@ end
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 local threatTypes = { "ground", "air", "submerged" }
+local threatTypesAsKeys = { ground = true, air = true, submerged = true }
 local baseUnitThreat = 0 -- 150
 local baseUnitRange = 0 -- 250
 local unseenMetalGeoValue = 50
 local baseBuildingValue = 150
 local bomberExplosionValue = 2000
-local vulnerableHealth = 200
+local vulnerableHealth = 400
 local wreckMult = 100
 local vulnerableReclaimDistMod = 100
 local badCellThreat = 300
 local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less distance matters
+local reclaimModMult = 0.25 -- how much does the cell's metal & energy modify the distance to the cell for reclaim cells
 
 local factoryValue = 1000
 local conValue = 300
@@ -86,7 +88,7 @@ local function NewCell(px, pz)
 	if ShardSpringLua then
 		position.y = Spring.GetGroundHeight(x, z)
 	end
-	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
+	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
 	return newcell
 end
 
@@ -120,8 +122,8 @@ local function CellValueThreat(unitName, cell)
 	if cell == nil then return 0, 0 end
 	local gas, weapons
 	if unitName == "ALL" then
-		gas = { ground = true, air = true, submerged = true }
-		weapons = { "ground", "air", "submerged" }
+		gas = threatTypesAsKeys
+		weapons = threatTypes
 		unitName = "nothing"
 	else
 		gas = WhatHurtsUnit(unitName, nil, cell.pos)
@@ -130,7 +132,9 @@ local function CellValueThreat(unitName, cell)
 	local threat = 0
 	local value = 0
 	local notThreat = 0
-	for GAS, yes in pairs(gas) do
+	for i = 1, #threatTypes do
+		local GAS = threatTypes[i]
+		local yes = gas[GAS]
 		if yes then
 			threat = threat + cell.threat[GAS]
 			for i, weaponGAS in pairs(weapons) do
@@ -144,7 +148,8 @@ local function CellValueThreat(unitName, cell)
 		threat = threat + cell.threat.ground * 0.1
 	end
 	if raiderDisarms[unitName] then
-		if notThreat == 0 then value = 0 end
+		value = notThreat
+		-- if notThreat == 0 then value = 0 end
 	end
 	return value, threat, gas
 end
@@ -565,11 +570,16 @@ function TargetHandler:UpdateWrecks()
 		if ftable ~= nil then
 			cell.metal = cell.metal + ftable.metal
 			cell.energy = cell.energy + ftable.energy
-			if ftable.unitName ~= nil then
-				local rut = unitTable[ftable.unitName]
-				if rut.isWeapon or rut.extractsMetal > 0 then
+			local unitName = ftable.unitName
+			if unitName ~= nil then
+				w.unitName = unitName
+				local rut = unitTable[unitName]
+				if not commanderList[unitName] and rut.speed > 0 and rut.metalCost < 2000 then
 					table.insert(cell.resurrectables, w)
 				end
+			end
+			if ftable.metal > 0 then
+				table.insert(cell.reclaimables, w)
 			end
 		else
 			for findString, metalValue in pairs(baseFeatureMetal) do
@@ -577,6 +587,9 @@ function TargetHandler:UpdateWrecks()
 					cell.metal = cell.metal + metalValue
 					break
 				end
+			end
+			if metalValue > 0 then
+				table.insert(cell.reclaimables, w)
 			end
 		end
 	end
@@ -745,6 +758,8 @@ function TargetHandler:UpdateMap()
 end
 
 local function CellVulnerable(cell, hurtByGAS, weaponsGAS)
+	hurtByGAS = hurtByGAS or threatTypesAsKeys
+	weaponsGAS = weaponsGAS or threatTypes
 	if cell == nil then return end
 	for GAS, yes in pairs(hurtByGAS) do
 		for i, wGAS in pairs(weaponsGAS) do
@@ -786,7 +801,7 @@ function TargetHandler:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHandler:GetBestRaidCell(representative, onlyHere)
+function TargetHandler:GetBestRaidCell(representative)
 	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
@@ -811,7 +826,6 @@ function TargetHandler:GetBestRaidCell(representative, onlyHere)
 		if cell.raiderHere then threat = threat - cell.raiderHere end
 		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
 		threat = threat - threatReduction
-		-- EchoDebug(value .. " " .. threat)
 		if value > 0 and threat <= maxThreat then
 			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
 				local mod = value - (threat * 3)
@@ -1022,6 +1036,7 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 	local rname = representative:Name()
 	local best
 	local bestDist = 99999
+	local bestVulnerable
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
@@ -1032,19 +1047,20 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 				else
 					mod = cell.metal
 				end
-				local vulnerable = CellVulnerable(cell, gas, UnitWeaponLayerList(rname))
+				local vulnerable = CellVulnerable(cell, gas, representative.canReclaimGAS)
 				if vulnerable then mod = mod + vulnerableReclaimDistMod end
 				if mod > 0 then
-					local dist = Distance(rpos, cell.pos) - mod
+					local dist = Distance(rpos, cell.pos) - (mod * reclaimModMult)
 					if dist < bestDist then
 						best = cell
 						bestDist = dist
+						bestVulnerable = vulnerable
 					end
 				end
 			end
 		end
 	end
-	return best
+	return best, bestVulnerable
 end
 
 function TargetHandler:WreckToResurrect(representative)

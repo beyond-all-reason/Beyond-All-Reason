@@ -19,7 +19,7 @@ shard_include "tacticalhandler"
 shard_include "damagehandler"
 shard_include "cleanhandler"
 shard_include "nanohandler"
-shard_include "situation"
+shard_include "overviewhandler"
 
 modules = {
 	Sleep,
@@ -41,6 +41,6 @@ modules = {
 	DefendHandler,
 	CleanHandler,
 	NanoHandler,
-	Situation,
+	OverviewHandler,
 	UnitHandler
 }

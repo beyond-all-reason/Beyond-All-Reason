@@ -8,6 +8,7 @@ function ShardSpringFeature:Init( id )
 	self.defID = Spring.GetFeatureDefID(id)
 	self.def = FeatureDefs[self.defID]
 	self.name = self.def.name
+	self.className = 'feature'
 end
 
 function ShardSpringFeature:ID()

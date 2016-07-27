@@ -39,6 +39,7 @@ end
 function TaskQueueBehaviour:CategoryEconFilter(value)
 	if value == nil then return DummyUnitName end
 	if value == DummyUnitName then return DummyUnitName end
+	local overview =self.ai.overviewhandler
 	EchoDebug(value .. " (before econ filter)")
 	-- EchoDebug("ai.Energy: " .. ai.Energy.reserves .. " " .. ai.Energy.capacity .. " " .. ai.Energy.income .. " " .. ai.Energy.usage)
 	-- EchoDebug("ai.Metal: " .. ai.Metal.reserves .. " " .. ai.Metal.capacity .. " " .. ai.Metal.income .. " " .. ai.Metal.usage)
@@ -48,7 +49,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if reclaimerList[value] then
 		-- dedicated reclaimer
 		EchoDebug(" dedicated reclaimer")
-		if self.ai.situation.metalAboveHalf or self.ai.situation.energyTooLow or self.ai.situation.farTooFewCombats then
+		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
 			value = DummyUnitName
 		end
 	elseif unitTable[value].isBuilding then
@@ -63,29 +64,29 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or self.ai.situation.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			elseif littlePlasmaList[value] then
 				-- plasma turrets need units to back them up
-				if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or self.ai.situation.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			else
-				if self.ai.situation.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or self.ai.situation.energyTooLow or ai.factories == 0 then
+				if overview.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or ai.factories == 0 then
 					value = DummyUnitName
 				end
 			end
 		elseif unitTable[value].radarRadius > 0 then
 			-- radar
 			EchoDebug("  radar")
-			if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
+			if overview.metalTooLow or overview.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
 			-- other building
 			EchoDebug("  other building")
-			if self.ai.situation.notEnoughCombats or self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
+			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
 				value = DummyUnitName
 			end
 		end
@@ -112,7 +113,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		else
 			-- other unit
 			EchoDebug("  other unit")
-			if self.ai.situation.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
+			if overview.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end
@@ -235,11 +236,18 @@ function TaskQueueBehaviour:GetHelp(value, position)
 	if value == DummyUnitName then return DummyUnitName end
 	EchoDebug(value .. " before getting help")
 	local builder = self.unit:Internal()
+	if assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
+		return value
+	end
 	if Eco1[value] then
+		if not ai.haveAdvFactory and ai.underReserves then
+			ai.assisthandler:TakeUpSlack(builder)
+		end
 		return value
 	end
 	if Eco2[value] then
 		local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
+		ai.assisthandler:TakeUpSlack(builder)
 		return value
 	end
 	
@@ -248,12 +256,14 @@ function TaskQueueBehaviour:GetHelp(value, position)
 			EchoDebug("can get help to build factory but don't need it")
 			ai.assisthandler:Summon(builder, position)
 			ai.assisthandler:Magnetize(builder, position)
+			ai.assisthandler:TakeUpSlack(builder)
 			return value
 		else
 			EchoDebug("help for factory that need help")
 			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
 			if hashelp then
 				ai.assisthandler:Magnetize(builder, position)
+				ai.assisthandler:TakeUpSlack(builder)
 				return value
 			end
 		end
@@ -261,11 +271,14 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		local number
 		if self.isFactory and not unitTable[value].needsWater then
 			-- factories have more nano output
-			number = math.floor((unitTable[value].metalCost + 1000) / 1500)
+			--number = math.floor((unitTable[value].metalCost + 1000) / 1500)
+			number = 0 -- dont ask for help, build nano instead
 		elseif self.isFactory and unitTable[value].needsWater then
-			number = math.floor((unitTable[value].metalCost + 1000) / 500)
+			--number = math.floor((unitTable[value].metalCost + 1000) / 500)
+			number = math.floor(unitTable[value].buildTime/5000) --try to use build time instead metal(more sense for me)
 		else
-			number = math.floor((unitTable[value].metalCost + 750) / 1000)
+			--number = math.floor((unitTable[value].metalCost + 750) / 1000)
+			number = math.floor(unitTable[value].buildTime/10000)
 		end
 		if number == 0 then return value end
 		local hashelp = ai.assisthandler:Summon(builder, position, number)
@@ -295,6 +308,15 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			end
 		else
 			utype = nil
+		end
+	elseif assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
+		p = ai.buildsitehandler:BuildNearNano(builder, utype)
+		if not p then
+			local builderPos = builder:GetPosition()
+			p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+		end
+		if not p then 
+			utype = nil 
 		end
 	elseif geothermalPlant[value] then
 		-- geothermal

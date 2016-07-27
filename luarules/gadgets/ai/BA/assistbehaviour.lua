@@ -56,14 +56,14 @@ function AssistBehaviour:Update()
 		if self.isCommander then
 			-- turn commander into build assister if you control more than half the mexes or if it's damaged
 			if self.ai.nonAssistant[self.id] then
-				if ( self.ai.situation.keepCommanderSafe or self.ai.situation.needSiege or unit:GetHealth() < unit:GetMaxHealth() * 0.9) and self.ai.factories ~= 0 and self.ai.conCount > 2 then
+				if ( self.ai.overviewhandler.keepCommanderSafe or self.ai.overviewhandler.needSiege or unit:GetHealth() < unit:GetMaxHealth() * 0.9) and self.ai.factories ~= 0 and self.ai.conCount > 2 then
 					EchoDebug("turn commander into assistant")
 					self.ai.nonAssistant[self.id] = nil
 					self.unit:ElectBehaviour()
 				end
 			else
 				-- switch commander back to building
-				if (not self.ai.situation.keepCommanderSafe and not self.ai.situation.needSiege and unit:GetHealth() >= unit:GetMaxHealth() * 0.9) or self.ai.factories == 0 or self.ai.conCount <= 2 then
+				if (not self.ai.overviewhandler.keepCommanderSafe and not self.ai.overviewhandler.needSiege and unit:GetHealth() >= unit:GetMaxHealth() * 0.9) or self.ai.factories == 0 or self.ai.conCount <= 2 then
 					EchoDebug("turn commander into builder")
 					self.ai.nonAssistant[self.id] = true
 					self.unit:ElectBehaviour()

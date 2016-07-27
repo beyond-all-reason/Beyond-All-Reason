@@ -54,7 +54,7 @@ end
 function Lvl1BotBattle(tskqbhvr)
 	local unitName = ""
 	local r = math.random()
-	local compare = ai.situation.plasmaRocketBotRatio or 1
+	local compare = ai.overviewhandler.plasmaRocketBotRatio or 1
 	if compare >= 1 or math.random() < compare then
 		if MyTB.side == CORESideName then
 			unitName = "corthud"

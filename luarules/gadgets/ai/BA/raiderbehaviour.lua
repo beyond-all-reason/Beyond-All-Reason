@@ -19,6 +19,7 @@ local IDLEMODE_FLY = 0
 function RaiderBehaviour:Init()
 	self.DebugEnabled = false
 
+	self:EchoDebug("init")
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
@@ -104,31 +105,14 @@ function RaiderBehaviour:Update()
 		elseif f > self.lastMovementFrame + 30 then
 			self.ai.targethandler:RaiderHere(self)
 			self.lastMovementFrame = f
-			-- attack nearby vulnerables immediately
-			local attackTarget
-			local unit = self.unit:Internal()
-			local position
-			if self.arrived then position = self.target end
-			local safeCell = self.ai.targethandler:RaidableCell(unit, position)
-			if safeCell then
-				local mobTargets = safeCell.targets[self.groundAirSubmerged]
-				if mobTargets then
-					for i = 1, #self.hurtsList do
-						local groundAirSubmerged = self.hurtsList[i]
-						attackTarget = mobTargets[groundAirSubmerged]
-						if attackTarget then break end
-					end
-				end
-				if not attackTarget then
-					attackTarget = self.ai.targethandler:NearbyVulnerable(unit)
-				end
-			end
-			if self.arrived and not attackTarget then
+			-- attack nearby targets immediately
+			local attackThisUnit = self:GetImmediateTargetUnit()
+			if self.arrived and not attackThisUnit then
 				self:GetTarget()
 			end
-			if attackTarget then
-				CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
+			if attackThisUnit then
 				self.offPath = true
+				CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
 			elseif self.offPath then
 				self.offPath = false
 				self:ResumeCourse()
@@ -145,6 +129,39 @@ function RaiderBehaviour:Update()
 			self:GetTarget()
 		elseif not self.path and self.pathTry then
 			self:FindPath()
+		end
+	end
+end
+
+function RaiderBehaviour:GetImmediateTargetUnit()
+	if self.arrived and self.unitTarget then
+		local utpos = self.unitTarget:GetPosition()
+		if utpos and utpos.x then
+			return self.unitTarget
+		end
+	end
+	local unit = self.unit:Internal()
+	local position
+	if self.arrived then position = self.target end
+	local safeCell = self.ai.targethandler:RaidableCell(unit, position)
+	if safeCell then
+		if self.disarmer then
+			if safeCell.disarmTarget then
+				return safeCell.disarmTarget.unit
+			end
+		end
+		local mobTargets = safeCell.targets[self.groundAirSubmerged]
+		if mobTargets then
+			for i = 1, #self.hurtsList do
+				local groundAirSubmerged = self.hurtsList[i]
+				if mobTargets[groundAirSubmerged] then
+					return mobTargets[groundAirSubmerged].unit
+				end
+			end
+		end
+		local vulnerable = self.ai.targethandler:NearbyVulnerable(unit)
+		if vulnerable then
+			return vulnerable.unit
 		end
 	end
 end
@@ -166,12 +183,14 @@ function RaiderBehaviour:RaidCell(cell)
 		self.target = cell.pos
 		self:BeginPath(self.target)
 		if self.mtype == "air" then
-			if self.disarmer then
-				self.unitTarget = cell.disarmTarget
-			else
-				self.unitTarget = cell.targets.air.ground
+			if self.disarmer and cell.disarmTarget then
+				self.unitTarget = cell.disarmTarget.unit
+			elseif cell.targets.air.ground then
+				self.unitTarget = cell.targets.air.ground.unit
 			end
-			self:EchoDebug("air raid target: " .. tostring(self.unitTarget.unitName))
+			if self.unitTarget then
+				self:EchoDebug("air raid target: " .. self.unitTarget:Name())
+			end
 		end
 		self.unit:ElectBehaviour()
 	end
@@ -351,8 +370,8 @@ function RaiderBehaviour:AttackTarget(distance)
 	distance = distance or self.nearAttackDistance
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
-		if utpos.x then
-			CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget.unitID})
+		if utpos and utpos.x then
+			CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
 			return
 		end
 	end
