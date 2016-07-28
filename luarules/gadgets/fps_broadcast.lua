@@ -1,8 +1,8 @@
 
 function gadget:GetInfo()
 	return {
-		name	= "Activity Broadcast",
-		desc	= "Checks if there is keyboard or mouse activity",
+		name	= "FPS Broadcast",
+		desc	= "Broadcasts FramesPerSecond",
 		author	= "Floris",
 		date	= "July,2016",
 		license	= "GNU GPL, v2 or later",
@@ -23,8 +23,8 @@ local sendPacketEvery	= 2
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="^" then
-			SendToUnsynced("activityBroadcast",playerID)
+		if msg:sub(1,1)=="@" then
+			SendToUnsynced("fpsBroadcast",playerID,msg:sub(2))
 			return true
 		end
 	end
@@ -34,47 +34,39 @@ else
 	-- unsynced
 	--------------------------------------------------------------------------------
 
-	local GetMouseState		= Spring.GetMouseState
 	local GetLastUpdateSeconds= Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg	= Spring.SendLuaRulesMsg
+	local SendLuaRulesMsg			= Spring.SendLuaRulesMsg
+	local GetFPS							= Spring.GetFPS
 	
-	local activity = false
-	local old_mx,old_my = 0,0
-	local updateTimer = 0
-
+	local updateTimer					= 0
+	local avgFps							= GetFPS()
+	local numframes						= 0
+	
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("activityBroadcast", handleActivityEvent)
+		gadgetHandler:AddSyncAction("fpsBroadcast", handleFpsEvent)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveSyncAction("activityBroadcast")
+		gadgetHandler:RemoveSyncAction("fpsBroadcast")
 	end
 
-	function handleActivityEvent(_,playerID)
-    if Script.LuaUI("ActivityEvent") then
-    	Script.LuaUI.ActivityEvent(playerID)
+	function handleFpsEvent(_,playerID,fps)
+    if Script.LuaUI("FpsEvent") then
+    	Script.LuaUI.FpsEvent(playerID,fps)
     end
 	end
 
 	function gadget:Update()
-		local mx,my = GetMouseState()
-		if mx ~= old_mx or my ~= old_my then
-			old_mx,old_my = mx,my
-			activity = true
-		end
-		
 		updateTimer = updateTimer + GetLastUpdateSeconds()
+		if numFrames == nil then numFrames = 0 end
+		numFrames = numFrames + 1
+		avgFps = ((avgFps*(numFrames-1))+GetFPS()) / numFrames
 		if updateTimer > sendPacketEvery then
-			if activity then
-				SendLuaRulesMsg("^")
-			end
-			activity = false
+			SendLuaRulesMsg("@"..math.floor(avgFps+0.5))
 			updateTimer = 0
+			avgFps = 0
+			numFrames = 0
 		end
-	end
-
-	function gadget:KeyPress(key, mods, isRepeat)
-		activity = true
 	end
 
 end
