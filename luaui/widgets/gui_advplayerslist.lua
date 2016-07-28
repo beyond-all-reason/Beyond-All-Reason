@@ -54,7 +54,7 @@ local cpuText				= false
 --------------------------------------------------------------------------------
 
 local Spring_GetGameSeconds      = Spring.GetGameSeconds
-local Spring_GetGameFrame		 = Spring.GetGameFrame
+local Spring_GetGameFrame	    	 = Spring.GetGameFrame
 local Spring_GetAllyTeamList     = Spring.GetAllyTeamList
 local Spring_GetTeamInfo         = Spring.GetTeamInfo
 local Spring_GetTeamList         = Spring.GetTeamList
@@ -75,7 +75,6 @@ local Spring_GetAIInfo           = Spring.GetAIInfo
 local Spring_GetTeamRulesParam   = Spring.GetTeamRulesParam
 local Spring_IsGUIHidden		 = Spring.IsGUIHidden
 local Spring_GetDrawFrame		 = Spring.GetDrawFrame
-local Spring_GetGameFrame		 = Spring.GetGameFrame
 local Spring_GetTeamColor		 = Spring.GetTeamColor
 local Spring_GetMyTeamID		 = Spring.GetMyTeamID
 local Spring_AreTeamsAllied		 = Spring.AreTeamsAllied
@@ -2845,7 +2844,9 @@ function widget:GetConfigData(data)      -- save
 			m_active_Table	   = m_active_Table,
 			cpuText            = cpuText,
 			lockPlayerID       = lockPlayerID,
-			specListShow       = specListShow
+			specListShow       = specListShow,
+			lastSystemData     = lastSystemData,
+			gameFrame          = Spring.GetGameFrame()
 		}
 		
 		return settings
@@ -2853,7 +2854,6 @@ function widget:GetConfigData(data)      -- save
 end
 
 function widget:SetConfigData(data)      -- load
-	
 	if data.customScale ~= nil then
 		customScale = data.customScale
 	end
@@ -2922,6 +2922,10 @@ function widget:SetConfigData(data)      -- load
 	end
 	
 	SetModulesPositionX()
+	
+	if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame()-300 then
+		lastSystemData = data.lastSystemData
+	end
 end
 
 function widget:TextCommand(command)
