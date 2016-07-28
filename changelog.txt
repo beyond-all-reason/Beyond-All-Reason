@@ -2,7 +2,7 @@
 XX/07/2016
 
 Balance changes:
-- 
+- Decrease LOS/radar accuracy to increase game performance
 
 Other:
 - Changed cursorsets: old, old_150%, old_200%, bar, bar_150%, bar_200%
