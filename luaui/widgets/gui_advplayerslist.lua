@@ -1633,7 +1633,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		playerScores = WG['betfrontend'].GetPlayerScores()
 	end
 	
-	if mySpecStatus then
+	--if mySpecStatus then
 		alpha = 0.33
 		local alphaActivity = 0
 		-- keyboard/mouse activity
@@ -1652,9 +1652,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			alpha = 0.33 + (alphaCam*0.48)
 			if alpha < alphaActivity then alpha = alphaActivity end
 		end
-	else
-		alpha = 0.44
-	end
+	--else
+	--	alpha = 0.44
+	--end
 	
 	
 	if mouseY >= tipPosY and mouseY <= tipPosY + (16*widgetScale) then tipY = true end
