@@ -1517,41 +1517,49 @@ function CreateMainList(tip)
 	end
 	
 	MainList = gl_CreateList(function()
-	
-	for i, drawObject in ipairs(drawList) do
-		if drawObject == -5 then
-			specsLabelOffset = drawListOffset[i]
-			local specAmount = numberOfSpecs
-			if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then 
-				specAmount = ""
-			end
-			DrawLabel(" Spectators  "..specAmount, drawListOffset[i], specListShow)
-			if Spring.GetGameFrame() <= 0 then
-				if specListShow then
-					DrawLabelTip("(click to hide specs)", drawListOffset[i], 95)
-				else
-					DrawLabelTip("(click to show specs)", drawListOffset[i], 95)
+		drawTipText = nil
+		for i, drawObject in ipairs(drawList) do
+			if drawObject == -5 then
+				specsLabelOffset = drawListOffset[i]
+				local specAmount = numberOfSpecs
+				if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then 
+					specAmount = ""
 				end
+				DrawLabel(" Spectators  "..specAmount, drawListOffset[i], specListShow)
+				if Spring.GetGameFrame() <= 0 then
+					if specListShow then
+						DrawLabelTip("(click to hide specs)", drawListOffset[i], 95)
+					else
+						DrawLabelTip("(click to show specs)", drawListOffset[i], 95)
+					end
+				end
+			elseif drawObject == -4 then
+				DrawSeparator(drawListOffset[i])
+			elseif drawObject == -3 then
+				DrawLabel(" Enemies", drawListOffset[i], true)
+			elseif drawObject == -2 then
+				DrawLabel(" Allies", drawListOffset[i], true)
+				if Spring.GetGameFrame() <= 0 then
+					DrawLabelTip("(dbl-click playername to track)", drawListOffset[i], 46)
+				end
+			elseif drawObject == -1 then
+				leader = true
+			else
+				DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY)
 			end
-		elseif drawObject == -4 then
-			DrawSeparator(drawListOffset[i])
-		elseif drawObject == -3 then
-			DrawLabel(" Enemies", drawListOffset[i], true)
-		elseif drawObject == -2 then
-			DrawLabel(" Allies", drawListOffset[i], true)
-			if Spring.GetGameFrame() <= 0 then
-				DrawLabelTip("(dbl-click playername to track)", drawListOffset[i], 46)
+			
+			-- draw player tooltip later so they will be on top of players drawn below
+			if tipText ~= nil then 
+				drawTipText = tipText
+				drawTipMouseX = mouseX
+				drawTipMouseY = mouseY
 			end
-		elseif drawObject == -1 then
-			leader = true
-		else
-			DrawPlayer(drawObject, leader, drawListOffset[i], mouseX, mouseY)
+			
 		end
-		
-		DrawTip(mouseX, mouseY)
-		
-	end
-	
+		if drawTipText ~= nil then 
+			tipText = drawTipText
+			DrawTip(drawTipMouseX, drawTipMouseY)
+		end
 	end)
 	
 end
@@ -2246,7 +2254,6 @@ function DrawTip(mouseX, mouseY)
 		
 		--Spring.Echo(lines)
 		if right ~= true then tw = -tw end
-		gl_Color(0.5,0.5,0.5,0.66)
 		local oldWidgetScale = widgetScale
 		widgetScale = 1
 
@@ -2254,7 +2261,13 @@ function DrawTip(mouseX, mouseY)
 		local ycorrection = 0
 		if bottomY < 0 then ycorrection = 8-bottomY end
 		
+		gl_Color(0.7,0.7,0.7,0.7)
 		RectRound(mouseX-tw,bottomY+ycorrection,mouseX,mouseY+(26*oldWidgetScale)+ycorrection,4.5*oldWidgetScale)
+		
+		local padding = 1.8*oldWidgetScale
+		gl_Color(0,0,0,0.22)
+		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+		
 		widgetScale = oldWidgetScale
 		--gl_Rect(mouseX-tw,mouseY,mouseX,mouseY+(30*widgetScale)) 
 		gl_Color(1,1,1,1)
