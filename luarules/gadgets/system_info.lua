@@ -79,6 +79,7 @@ else
 					if s_osVersion ~= nil and s_cpu == nil and s_cpuCoresPhysical == nil and (string.find(line:lower(), 'intel') or string.find(line:lower(), 'amd')) then
 						s_cpu = string.match(line, '^([\+a-zA-Z0-9 ()@._-]*)')
 						s_ram = string.match(line, '([0-9]*MB RAM)')
+						s_ram = string.gsub(s_ram, " RAM", "")
 					end
 					if s_osVersion == nil and cpu == nil and s_cpuCoresPhysical == nil and (string.find(line:lower(), 'microsoft') or string.find(line:lower(), 'linux') or string.find(line:lower(), 'unix')) then
 						s_osVersion = line
