@@ -116,6 +116,24 @@ else
 				end
 			end
 			
+			
+			if s_os ~= nil then 
+				if string.find(s_os, 'Windows') then
+					s_os = 'Windows'
+				end
+				if string.find(s_os, 'Linux') then
+					s_os = 'Linux'
+				end
+			end
+			if s_osVersion ~= nil then 
+				if string.find(s_osVersion, 'Windows') then
+					s_os = 'Windows'
+				end
+				if string.find(s_osVersion, 'Linux') then
+					s_os = 'Linux'
+				end
+			end
+			
 			local system = ''
 			if s_cpu ~= nil then system = system..'\nCPU:  '..s_cpu end
 			if s_cpuCoresPhysical ~= nil then system = system..'\nCPU cores:  '..s_cpuCoresPhysical..' / '..s_cpuCoresLogical end
@@ -124,7 +142,7 @@ else
 			if s_gpuVram ~= nil then system = system..'\nGPU VRAM:  '..s_gpuVram end
 			if s_resolution ~= nil then system = system..'\nResolution:  '..s_resolution end
 			if s_os ~= nil then system = system..'\nOS:  '..s_os end
-			if s_osVersion ~= nil then system = system..'\nOS version:  '..s_osVersion end
+			--if s_osVersion ~= nil then system = system..'\nOS version:  '..s_osVersion end
 			system = string.sub(system, 2)
 			
 			SendLuaRulesMsg("$y$"..system)
