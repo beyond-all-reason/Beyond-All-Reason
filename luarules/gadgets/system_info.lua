@@ -56,11 +56,19 @@ else
 			for i, line in ipairs(fileLines) do
 				if s_os ~= nil then
 				
+					if s_gpu ~= nil and string.find(line, ' video mode set to ') then
+						s_resolution = string.sub(line, 43)
+					end
 					if s_gpu ~= nil and string.find(line, '^Video RAM:') and not string.find(line, 'unknown') then
 						s_gpuVram = string.sub(line, 14)
+						s_gpuVram = string.gsub(s_gpuVram, "total ", "")
 					end
 					if s_gpu == nil and string.find(line, '^GL renderer:')  then
 						s_gpu = string.sub(line, 14)
+						s_gpu = string.gsub(s_gpu, "/PCIe", "")
+						s_gpu = string.gsub(s_gpu, "/SSE2", "")
+						s_gpu = string.gsub(s_gpu, "[(]R[)]", "")
+						s_gpu = string.gsub(s_gpu, " Series", "")
 					end
 					if s_gpu == nil and string.find(line, '^(Supported Video modes on Display )')  then
 						if s_displays == nil then 
@@ -78,6 +86,12 @@ else
 					end
 					if s_osVersion ~= nil and s_cpu == nil and s_cpuCoresPhysical == nil and (string.find(line:lower(), 'intel') or string.find(line:lower(), 'amd')) then
 						s_cpu = string.match(line, '^([\+a-zA-Z0-9 ()@._-]*)')
+						s_cpu = string.gsub(s_cpu, "[(]R[)]", "")
+						s_cpu = string.gsub(s_cpu, "[(]TM[)]", "")
+						s_cpu = string.gsub(s_cpu, "[(]tm[)]", "")
+						s_cpu = string.gsub(s_cpu, " Processor", "")
+						s_cpu = string.gsub(s_cpu, " Eight[-]Core", "")
+						s_cpu = string.gsub(s_cpu, " Quad[-]Core", "")
 						s_ram = string.match(line, '([0-9]*MB RAM)')
 						s_ram = string.gsub(s_ram, " RAM", "")
 					end
@@ -102,18 +116,16 @@ else
 				end
 			end
 			
-			if s_os == nil then s_os = '' end
-			if s_osVersion == nil then s_osVersion = '' end
-			if s_cpu == nil then s_cpu = '' end
-			if s_ram == nil then s_ram = '' end
-			if s_cpuCoresPhysical == nil then s_cpuCoresPhysical = '' end
-			if s_cpuCoresLogical == nil then s_cpuCoresLogical = '' end
-			if s_displays == nil then s_displays = '' end
-			if s_gpu == nil then s_gpu = '' end
-			if s_gpuVram == nil then s_gpuVram = '' end
-			if s_config == nil then s_config = '' end
-			
-			local system = 'CPU:  '..s_cpu..'\nCPU cores:  '..s_cpuCoresPhysical..' / '..s_cpuCoresLogical..'\nRAM:  '..s_ram..'\nGPU:  '..s_gpu..'\nGPU VRAM:  '..s_gpuVram..'\nDisplays:  '..s_displays..'\nOS:  '..s_os..'\nOS version:  '..s_osVersion
+			local system = ''
+			if s_cpu ~= nil then system = system..'\nCPU:  '..s_cpu end
+			if s_cpuCoresPhysical ~= nil then system = system..'\nCPU cores:  '..s_cpuCoresPhysical..' / '..s_cpuCoresLogical end
+			if s_ram ~= nil then system = system..'\nRAM:  '..s_ram end
+			if s_gpu ~= nil then system = system..'\nGPU:  '..s_gpu end
+			if s_gpuVram ~= nil then system = system..'\nGPU VRAM:  '..s_gpuVram end
+			if s_resolution ~= nil then system = system..'\nResolution:  '..s_resolution end
+			if s_os ~= nil then system = system..'\nOS:  '..s_os end
+			if s_osVersion ~= nil then system = system..'\nOS version:  '..s_osVersion end
+			system = string.sub(system, 2)
 			
 			SendLuaRulesMsg("$y$"..system)
 		end
