@@ -2099,10 +2099,10 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 	else
 	
 		if fps ~= nil then
-			grayvalue = 0.95 - (fps/175)
 			if fps > 99 then
 				fps = 99
 			end
+			grayvalue = 0.95 - (fps/195)
 			if spec then
 				gl_Color(0,0,0,0.1+(grayvalue*0.4))
 				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
