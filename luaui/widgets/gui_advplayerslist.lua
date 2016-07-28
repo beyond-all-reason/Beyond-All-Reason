@@ -38,7 +38,7 @@ end
 -- v15   (Floris): Integrated LockCamers widget code
 -- v16	 (Floris): Added chips next to gambling-spectators for betting system
 -- v17	 (Floris): Added alliances display and button and /cputext option
--- v18	 (Floris): replaced allycursor data with activity gadget data
+-- v18	 (Floris): replaced allycursor data with activity gadget data + added FPS counter (needs the FPS gadget)
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -94,6 +94,7 @@ local gl_DeleteList	      = gl.DeleteList
 local gl_CallList         = gl.CallList
 local gl_Text			  = gl.Text
 local gl_GetTextWidth	  = gl.GetTextWidth
+local gl_GetTextHeight  = gl.GetTextHeight
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -205,6 +206,7 @@ local myLastCameraState
 --------------------------------------------------------------------------------
 
 local lastActivity = {}
+local lastFpsData = {}
 
 --------------------------------------------------------------------------------
 -- Tooltip
@@ -664,6 +666,10 @@ local function LockCamera(playerID)
 end
 
 
+function FpsEvent(playerID, fps)
+  lastFpsData[playerID] = fps
+end
+
 function ActivityEvent(playerID)
   lastActivity[playerID] = os.clock()
 end
@@ -705,6 +711,7 @@ function widget:Initialize()
 	--widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
   widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
+  widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
 	UpdateRecentBroadcasters()
 	
 	mySpecStatus,_,_ = Spring.GetSpectatingState()
@@ -774,6 +781,7 @@ function widget:Shutdown()
 	end
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
+  widgetHandler:DeregisterGlobal('FpsEvent')
 end
 
 
@@ -1600,8 +1608,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	local pingLvl    = player[playerID].pingLvl
 	local cpuLvl     = player[playerID].cpuLvl
 	local ping       = player[playerID].ping
-	local cpu        = player[playerID].cpu    
-	local country    = player[playerID].country    
+	local cpu        = player[playerID].cpu
+	local country    = player[playerID].country
 	local spec       = player[playerID].spec
 	local totake     = player[playerID].totake
 	local needm      = player[playerID].needm
@@ -1722,8 +1730,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
-			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu)
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, spec) end
+			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], spec) end
 		end
 	end
 	
@@ -1975,7 +1983,7 @@ function DrawName(name, team, posY, dark, playerID)
             willSub = (Spring.GetGameRulesParam("Player" .. (playerID) .. "willSub")==1) and " (sub)" or "" 
         end
     end
-    local nameText = name .. willSub    
+    local nameText = name .. willSub  
     
     local nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
     local xPadding = 0
@@ -2051,7 +2059,7 @@ function DrawSkill(skill, posY, dark)
 	gl_Color(1,1,1)
 end
 
-function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
+function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 	gl_Texture(pics["pingPic"])
 	if spec then
 		local grayvalue = 0.3 + (pingLvl / 15)
@@ -2063,6 +2071,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 	end
 	
 	grayvalue = 0.7 + (cpu/135)
+	
 	if cpuText ~= nil and cpuText then
 		if type(cpu) == "number" then
 			if cpu > 99 then
@@ -2082,13 +2091,33 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu)
 			gl_Color(1,1,1)
 		end
 	else
-		gl_Texture(pics["cpuPic"])
-		if spec then
-			gl_Color(grayvalue,grayvalue,grayvalue,0.1+(0.14*cpuLvl))
-			DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
+	
+		if fps ~= nil then
+			grayvalue = 0.95 - (fps/175)
+			if fps > 99 then
+				fps = 99
+			end
+			if spec then
+				gl_Color(0,0,0,0.1+(grayvalue*0.4))
+				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				gl_Color(grayvalue,grayvalue,grayvalue,0.77*alpha*grayvalue)
+				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+			else
+				gl_Color(0,0,0,0.12+(grayvalue*0.44))
+				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				gl_Color(grayvalue,grayvalue,grayvalue,alpha*grayvalue)
+				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+			end
+			gl_Color(1,1,1)
 		else
-			gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
-			DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
+			gl_Texture(pics["cpuPic"])
+			if spec then
+				gl_Color(grayvalue,grayvalue,grayvalue,0.1+(0.14*cpuLvl))
+				DrawRect(m_cpuping.posX + widgetPosX + 2 , posY+1, m_cpuping.posX + widgetPosX  + 13, posY + 14)
+			else
+				gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
+				DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
+			end
 		end
 	end
 end
@@ -2158,7 +2187,7 @@ function AllyTip(mouseX, playerID)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2169,7 +2198,10 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl)
 		end
 		tipText = "Ping: "..pingLvl
 	elseif mouseX >= widgetPosX + (m_cpuping.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 11) * widgetScale then		
-		tipText = "Cpu Usage: "..cpuLvl.."%"
+		tipText = "Cpu: "..cpuLvl.."%"
+		if fps ~= nil then 
+			tipText = "FPS: "..fps.."    "..tipText
+		end
 	end
 end
 

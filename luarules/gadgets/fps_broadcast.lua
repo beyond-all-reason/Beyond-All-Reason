@@ -24,7 +24,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,1)=="@" then
-			SendToUnsynced("fpsBroadcast",playerID,msg:sub(2))
+			SendToUnsynced("fpsBroadcast",playerID,tonumber(msg:sub(2)))
 			return true
 		end
 	end
