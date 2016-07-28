@@ -6,8 +6,9 @@ Balance changes:
 
 Other:
 - Changed cursorsets: old, old_150%, old_200%, bar, bar_150%, bar_200%
-- Added clearmapmarks button (attached to advplayerlist)
+- Advplayerlist: fps counter instead of cpu usage
 - Advplayerlist: spectator activity alpha's (inactive: 0.4, mouse/keyboard: 0.6 and camera: 0.8)
+- Added clearmapmarks button (attached to advplayerlist)
 - Added death messages
 - Decreased number of critter gulls
 - Fixed critters related error spam
