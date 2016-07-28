@@ -38,7 +38,7 @@ end
 -- v15   (Floris): Integrated LockCamers widget code
 -- v16	 (Floris): Added chips next to gambling-spectators for betting system
 -- v17	 (Floris): Added alliances display and button and /cputext option
--- v18	 (Floris): replaced allycursor data with activity gadget data + added FPS counter (needs the FPS gadget)
+-- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -207,6 +207,7 @@ local myLastCameraState
 
 local lastActivity = {}
 local lastFpsData = {}
+local lastSystemData = {}
 
 --------------------------------------------------------------------------------
 -- Tooltip
@@ -670,6 +671,10 @@ function FpsEvent(playerID, fps)
   lastFpsData[playerID] = fps
 end
 
+function SystemEvent(playerID, system)
+  lastSystemData[playerID] = system
+end
+
 function ActivityEvent(playerID)
   lastActivity[playerID] = os.clock()
 end
@@ -712,6 +717,7 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
   widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
   widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+  widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
 	
 	mySpecStatus,_,_ = Spring.GetSpectatingState()
@@ -782,6 +788,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
   widgetHandler:DeregisterGlobal('FpsEvent')
+  widgetHandler:DeregisterGlobal('SystemEvent')
 end
 
 
@@ -1731,7 +1738,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], spec) end
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastSystemData[playerID], spec) end
 		end
 	end
 	
@@ -2187,7 +2194,7 @@ function AllyTip(mouseX, playerID)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2197,10 +2204,13 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps)
 			pingLvl = round(pingLvl/60000,0).." min"
 		end
 		tipText = "Ping: "..pingLvl
-	elseif mouseX >= widgetPosX + (m_cpuping.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 11) * widgetScale then		
+	elseif mouseX >= widgetPosX + (m_cpuping.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 11) * widgetScale then	
 		tipText = "Cpu: "..cpuLvl.."%"
 		if fps ~= nil then 
 			tipText = "FPS: "..fps.."    "..tipText
+		end
+		if system ~= nil then 
+			tipText = tipText.."\n"..system
 		end
 	end
 end
@@ -2218,6 +2228,8 @@ function PointTip(mouseX)
 	end
 end
 
+
+	
 function DrawTip(mouseX, mouseY)
 	
 	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
@@ -2229,18 +2241,28 @@ function DrawTip(mouseX, mouseY)
 	text = tipText --this is needed because we're inside a gllist
 	if text ~= nil then
 		local tw = (14*gl_GetTextWidth(text) + 16)*widgetScale
+		local _, lines = string.gsub(text, "\n", "")
+		lines = lines + 1
+		local th = (((14*widgetScale) * lines) + (13*widgetScale))
+		
+		--Spring.Echo(lines)
 		if right ~= true then tw = -tw end
 		gl_Color(0.5,0.5,0.5,0.66)
 		local oldWidgetScale = widgetScale
 		widgetScale = 1
-		RectRound(mouseX-tw,mouseY,mouseX,mouseY+(26*oldWidgetScale),4.5*oldWidgetScale)
+
+		local bottomY = mouseY-(th-(26*oldWidgetScale))
+		local ycorrection = 0
+		if bottomY < 0 then ycorrection = 8-bottomY end
+		
+		RectRound(mouseX-tw,bottomY+ycorrection,mouseX,mouseY+(26*oldWidgetScale)+ycorrection,4.5*oldWidgetScale)
 		widgetScale = oldWidgetScale
 		--gl_Rect(mouseX-tw,mouseY,mouseX,mouseY+(30*widgetScale)) 
 		gl_Color(1,1,1,1)
 		if right == true then
-			gl_Text(text,mouseX+(8*widgetScale)-tw,mouseY+(8*widgetScale), (14*widgetScale), "o")
+			gl_Text(text,mouseX+(8*widgetScale)-tw,mouseY+(8*widgetScale)+ycorrection, (14*widgetScale), "o")
 		else
-			gl_Text(text,mouseX+(8*widgetScale),mouseY+(8*widgetScale), (14*widgetScale), "o")
+			gl_Text(text,mouseX+(8*widgetScale),mouseY+(8*widgetScale)+ycorrection, (14*widgetScale), "o")
 		end
 	end
 	tipText = nil

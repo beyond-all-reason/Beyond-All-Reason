@@ -7,6 +7,7 @@ Balance changes:
 Other:
 - Changed cursorsets: old, old_150%, old_200%, bar, bar_150%, bar_200%
 - Advplayerlist: fps counter instead of cpu usage
+- Advplayerlist: FPS/cpu tooltip shows system info
 - Advplayerlist: spectator activity alpha's (inactive: 0.4, mouse/keyboard: 0.6 and camera: 0.8)
 - Added clearmapmarks button (attached to advplayerlist)
 - Added death messages
