@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 70066,
 		buildcostmetal = 3328,
 		buildpic = "ARMSHOCK.DDS",
-		buildtime = 101218,
+		buildtime = 91096,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -1 1",

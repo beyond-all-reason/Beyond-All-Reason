@@ -3,6 +3,8 @@ XX/07/2016
 
 Balance changes:
 - Decrease LOS/radar accuracy to increase game performance
+- Vanguard: Build time decreased by 10%
+- Tactical Nuke Launcher: metal cost increased from 804 to 1200
 
 Other:
 - Changed cursorsets: old, old_150%, old_200%, bar, bar_150%, bar_200%
