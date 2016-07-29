@@ -2,7 +2,7 @@
 function gadget:GetInfo()
 	return {
 		name	= "Activity Broadcast",
-		desc	= "Checks if there is keyboard or mouse activity",
+		desc	= "Checks if there is keyboard/mouse activity or camera changes",
 		author	= "Floris",
 		date	= "July,2016",
 		license	= "GNU GPL, v2 or later",
