@@ -34,28 +34,30 @@ else
 	-- unsynced
 	--------------------------------------------------------------------------------
 
-	local GetMouseState		= Spring.GetMouseState
-	local GetLastUpdateSeconds= Spring.GetLastUpdateSeconds
-	local SendLuaRulesMsg	= Spring.SendLuaRulesMsg
+	local GetMouseState					= Spring.GetMouseState
+	local GetLastUpdateSeconds	= Spring.GetLastUpdateSeconds
+	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
+	local GetCameraState				= Spring.GetCameraState
 	
-	local activity = false
-	local old_mx,old_my = 0,0
-	local updateTimer = 0
-
+	local activity							= false
+	local old_mx,old_my					= 0,0
+	local updateTimer						= 0
+	local prevCameraState				= GetCameraState()
+	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("activityBroadcast", handleActivityEvent)
 	end
-
+	
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("activityBroadcast")
 	end
-
+	
 	function handleActivityEvent(_,playerID)
     if Script.LuaUI("ActivityEvent") then
     	Script.LuaUI.ActivityEvent(playerID)
     end
 	end
-
+	
 	function gadget:Update()
 		local mx,my = GetMouseState()
 		if mx ~= old_mx or my ~= old_my then
@@ -65,6 +67,17 @@ else
 		
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 		if updateTimer > sendPacketEvery then
+			local cameraState = GetCameraState()
+			if not activity then 
+					for i,stateindex in ipairs(cameraState) do
+					if stateindex ~= prevCameraState[i] then
+						activity = true
+						break
+					end
+				end
+			end
+			prevCameraState = cameraState
+			
 			if activity then
 				SendLuaRulesMsg("^")
 			end
@@ -72,7 +85,7 @@ else
 			updateTimer = 0
 		end
 	end
-
+	
 	function gadget:KeyPress(key, mods, isRepeat)
 		activity = true
 	end
