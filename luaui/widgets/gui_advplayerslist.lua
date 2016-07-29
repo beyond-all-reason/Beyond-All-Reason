@@ -365,6 +365,18 @@ m_side = {
 }
 position = position + 1
 
+m_skill = {
+	name	  = "skill",
+	spec      = true,
+	play      = true,
+	active    = true,
+	width     = 18,
+	position  = position,
+	posX      = 0,
+	pic       = pics["tsPic"],		
+}
+position = position + 1
+
 m_ID = {
 	name	  = "id",
 	spec      = true,
@@ -389,18 +401,6 @@ m_name = {
 	pic       = pics["namePic"],
 	noPic     = true,
 	picGap    = 7,
-}
-position = position + 1
-
-m_skill = {
-	name	  = "skill",
-	spec      = true,
-	play      = true,
-	active    = true,
-	width     = 20,
-	position  = position,
-	posX      = 0,
-	pic       = pics["tsPic"],		
 }
 position = position + 1
 
