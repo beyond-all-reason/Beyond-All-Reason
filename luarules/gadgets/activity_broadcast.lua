@@ -59,14 +59,15 @@ else
 	end
 	
 	function gadget:Update()
-		local mx,my = GetMouseState()
-		if mx ~= old_mx or my ~= old_my then
-			old_mx,old_my = mx,my
-			activity = true
-		end
-		
 		updateTimer = updateTimer + GetLastUpdateSeconds()
 		if updateTimer > sendPacketEvery then
+			-- mouse
+			local mx,my = GetMouseState()
+			if mx ~= old_mx or my ~= old_my then
+				old_mx,old_my = mx,my
+				activity = true
+			end
+			-- camera
 			local cameraState = GetCameraState()
 			if not activity then 
 					for i,stateindex in pairs(cameraState) do
