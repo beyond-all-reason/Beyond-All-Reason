@@ -69,7 +69,7 @@ else
 		if updateTimer > sendPacketEvery then
 			local cameraState = GetCameraState()
 			if not activity then 
-					for i,stateindex in ipairs(cameraState) do
+					for i,stateindex in pairs(cameraState) do
 					if stateindex ~= prevCameraState[i] then
 						activity = true
 						break
