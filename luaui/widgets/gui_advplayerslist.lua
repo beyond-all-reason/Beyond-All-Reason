@@ -1649,7 +1649,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 				alphaActivity = (8 - math.floor(now-lastActivity[playerID])) / 5.5
 				if alphaActivity > 1 then alphaActivity = 1 end
 				if alphaActivity < 0 then alphaActivity = 0 end
-				alphaActivity = 0.33 + (alphaActivity*0.24)
+				alphaActivity = 0.33 + (alphaActivity*0.21)
 				alpha = alphaActivity
 		end
 		-- camera activity
@@ -1657,7 +1657,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			local alphaCam = (13 - math.floor(recentBroadcasters[playerID])) / 8.5
 			if alphaCam > 1 then alphaCam = 1 end
 			if alphaCam < 0 then alphaCam = 0 end
-			alpha = 0.33 + (alphaCam*0.48)
+			alpha = 0.33 + (alphaCam*0.42)
 			if alpha < alphaActivity then alpha = alphaActivity end
 		end
 	--else
@@ -2424,7 +2424,8 @@ function widget:MousePress(x,y,button) --super ugly code here
 							Spring_SendCommands{"toggleignore "..clickedPlayer.name} 
 							return true 
 						end
-						if clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
+
+						if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
 							LockCamera(i)
 							prevClickedName = ''
 							if not clickedPlayer.spec then 
@@ -2537,7 +2538,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 								Spring_SendCommands{"toggleignore "..clickedPlayer.name} 
 								return true 
 							end
-							if clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
+							if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
 								LockCamera(clickedPlayer.team)
 								prevClickedName = ''
 								if not clickedPlayer.spec then
