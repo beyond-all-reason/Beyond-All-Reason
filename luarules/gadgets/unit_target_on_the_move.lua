@@ -488,7 +488,7 @@ end
 -- Target update
 
 function gadget:GameFrame(n)
-	if n%SlowUpdate == SlowUpdate+0 then 
+	if n%SlowUpdate == SlowUpdate-1 then 
 		-- timing synced with slow update to reduce attack jittering
 		-- SlowUpdate+0 causes attack command to override target command
 
