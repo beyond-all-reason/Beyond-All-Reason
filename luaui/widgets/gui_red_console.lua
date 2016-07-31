@@ -497,7 +497,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
 	
 	-- filter Connection established
-	if sfind(line," Connection Established") then
+	if sfind(line," Connection established") then
 		name = lastConnectionAttempt
 	  ignoreThisMessage = true
 	end
