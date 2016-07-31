@@ -1,4 +1,14 @@
-﻿9.38 -> 9.39
+﻿9.39 -> 9.40
+XX/08/2016
+
+Balance changes:
+- Damage of t2 Mobile Artillery vehicles increased by 10%
+
+Other:
+-
+
+
+9.38 -> 9.39
 29/07/2016
 
 Balance changes:
