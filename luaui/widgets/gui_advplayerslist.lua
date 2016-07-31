@@ -1751,7 +1751,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastSystemData[playerID], spec) end
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastSystemData[playerID], name) end
 		end
 	end
 	
@@ -2207,7 +2207,7 @@ function AllyTip(mouseX, playerID)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2223,7 +2223,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system)
 			tipText = "FPS: "..fps.."    "..tipText
 		end
 		if system ~= nil then 
-			tipText = tipText.."\n"..system
+			tipText = "\255\000\000\000"..name.."\n\255\255\255\255"..tipText.."\n"..system
 		end
 	end
 end
