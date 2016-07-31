@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name      = "Adv. Unit Marker",
+		name      = "Unit Marker",
 		version   = "1.0",
 		desc      = "Marks spotted units of interest now with old-mark auto-remover",
 		author    = "LEDZ",
@@ -119,15 +119,6 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
   return name or "Gaia"
 end
 
-function widget:Update()
-		_, fullView, _ = spGetSpectatingState()
-	if fullView then
-		spec = true
-	else
-		spec = false
-	end
-end
-
 function widget:Initialize()
 
 	myColour = colourNames(Spring.GetMyTeamID())
@@ -195,8 +186,8 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 end
 	
 
-
-
-
-
-
+function widget:PlayerChanged(playerID)
+  if Spring.GetSpectatingState() then
+  	widgetHandler:RemoveWidget()
+  end
+end
