@@ -82,7 +82,7 @@ playerColorPool[6] = { 1.0, 0.0, 1.0 }
 playerColorPool[7] = { 1.0, 0.0, 0.0 }
 playerColorPool[8] = { 1.0, 0.0, 0.0 }
 
-local xRelPos, yRelPos		= 0.7, 0.6	-- (only used here for now)
+local xRelPos, yRelPos		= 0.8, 0.8	-- (only used here for now)
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
@@ -579,6 +579,7 @@ end
 
 
 function widget:IsAbove(mx, my)
+	if lockPlayerID == nil then return end
 	return mx > xPos and my > yPos and mx < xPos + (panelWidth*sizeMultiplier) and my < yPos + (panelHeight*sizeMultiplier)
 end
 
