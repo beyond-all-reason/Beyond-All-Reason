@@ -5,7 +5,12 @@ Balance changes:
 - Damage of t2 Mobile Artillery vehicles increased by 10%
 
 Other:
--
+- RedUI console: filtered spec desyncs for others + connection attempts
+- Changed cursorsets to: 'old', 'old_150', 'bar', 'bar_133'
+- Fixed dead/unresponsive screen area (caused by ally selected units GUI)
+- Renamed "Adv. Unit Marker" to "Unit Marker" and disables when becoming spec
+- Advplayerlist: shows playername above system info tooltip
+- Advplayerlist: moved truskill value next to country flag
 
 
 9.38 -> 9.39
