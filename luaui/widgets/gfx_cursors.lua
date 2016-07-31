@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 -- note: first entry should be icons inside base /anims folder
-local cursorSets = {'old', 'old_150', 'old_200', 'bar', 'bar_133'}
+local cursorSets = {'old', 'old_150', 'bar', 'bar_133'}
 
 local Settings = {}
 Settings['defaultCursorSet'] = 'bar'
