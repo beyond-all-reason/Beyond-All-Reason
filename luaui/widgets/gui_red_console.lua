@@ -17,7 +17,7 @@ local SoundIncomingChat  = 'sounds/beep4.wav'
 local SoundIncomingChatVolume = 1.0
 
 local gameOver = false
-
+local lastConnectionAttempt = ''
 --todo: dont cut words apart when clipping text 
 
 
@@ -39,7 +39,7 @@ local sGetTeamColor = Spring.GetTeamColor
 local sGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
-
+local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local Config = {
 	console = {
@@ -431,7 +431,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	
 	local names = {}
 	for i=1,#roster do
-		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3]}
+		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
 	end
 	
 	local name = ""
@@ -471,6 +471,37 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
 		ignoreThisMessage = true
 	end
+	
+	
+	-- filter Sync error when its a spectator
+	if sfind(line,"^Sync error for ") then
+		name = ssub(line,16,sfind(line," in frame ")-1)
+		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
+			ignoreThisMessage = true
+		end
+	end
+	
+	-- filter Sync error when its a spectator
+	if sfind(line,"^Error: %[DESYNC WARNING%] ") then
+		name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
+		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
+			ignoreThisMessage = true
+		end
+	end
+	
+	-- filter Connection attempts
+	if sfind(line,"^Connection attempt from ") then
+		name = ssub(line,25)
+		lastConnectionAttempt = name
+	  ignoreThisMessage = true
+	end
+	
+	-- filter Connection established
+	if sfind(line," Connection Established") then
+		name = lastConnectionAttempt
+	  ignoreThisMessage = true
+	end
+	
 	
 	if linetype==0 then
 		--filter out some engine messages; 
