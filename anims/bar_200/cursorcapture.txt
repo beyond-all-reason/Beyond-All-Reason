@@ -1,6 +1,0 @@
-hotspot center
-frame  anims/cursorcapture_0.png  0.1
-frame  anims/cursorcapture_1.png  0.1
-frame  anims/cursorcapture_2.png  0.1
-frame  anims/cursorcapture_1.png  0.1
-
