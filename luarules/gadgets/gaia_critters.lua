@@ -343,7 +343,7 @@ function gadget:GameFrame(gameFrame)
 			  
 				if name == "[teh]Lucy" or name == "FlowerPower" then
 					local critters = {}
-					for i=1, random(-3 3) do
+					for i=1, random(-3, 3) do
 						local critterID = CreateUnit("critter_penguin", x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
 					  Spring.SetUnitRulesParam(critterID, "unselectable", 1, {inlos=true})	-- we set this so commands_fx widget wont show orders when unit is captured
 						setGaiaUnitSpecifics(critterID)

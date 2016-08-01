@@ -62,13 +62,17 @@ else
 					if s_gpu ~= nil and string.find(line, '^Video RAM:') and not string.find(line, 'unknown') then
 						s_gpuVram = string.sub(line, 14)
 						s_gpuVram = string.gsub(s_gpuVram, "total ", "")
+						if string.find(s_gpuVram, ',') then
+							s_gpuVram = string.sub(s_gpuVram, 0, string.find(s_gpuVram, ',')-1)
+						end
 					end
 					if s_gpu == nil and string.find(line, '^GL renderer:')  then
 						s_gpu = string.sub(line, 14)
 						s_gpu = string.gsub(s_gpu, "/PCIe", "")
 						s_gpu = string.gsub(s_gpu, "/SSE2", "")
-						s_gpu = string.gsub(s_gpu, "[(]R[)]", "")
 						s_gpu = string.gsub(s_gpu, " Series", "")
+						s_gpu = string.gsub(s_gpu, "%((.*)%)", "")
+						s_gpu = string.gsub(s_gpu, "Gallium ([0-9].*) on ", "")
 					end
 					if s_gpu == nil and string.find(line, '^(Supported Video modes on Display )')  then
 						if s_displays == nil then 
@@ -86,12 +90,11 @@ else
 					end
 					if s_osVersion ~= nil and s_cpu == nil and s_cpuCoresPhysical == nil and (string.find(line:lower(), 'intel') or string.find(line:lower(), 'amd')) then
 						s_cpu = string.match(line, '^([\+a-zA-Z0-9 ()@._-]*)')
-						s_cpu = string.gsub(s_cpu, "[(]R[)]", "")
-						s_cpu = string.gsub(s_cpu, "[(]TM[)]", "")
-						s_cpu = string.gsub(s_cpu, "[(]tm[)]", "")
 						s_cpu = string.gsub(s_cpu, " Processor", "")
 						s_cpu = string.gsub(s_cpu, " Eight[-]Core", "")
+						s_cpu = string.gsub(s_cpu, " Six[-]Core", "")
 						s_cpu = string.gsub(s_cpu, " Quad[-]Core", "")
+						s_cpu = string.gsub(s_cpu, "%((.*)%)", "")
 						s_ram = string.match(line, '([0-9]*MB RAM)')
 						s_ram = string.gsub(s_ram, " RAM", "")
 					end
@@ -117,32 +120,27 @@ else
 			end
 			
 			
-			if s_os ~= nil then 
-				if string.find(s_os, 'Windows') then
+			if s_os ~= nil or s_osVersion ~= nil then 
+				local os = ''
+				if s_os ~= nil then os = s_os end
+				if s_osVersion ~= nil then os = os ..' '..s_osVersion end
+				if string.find(os, 'Windows') then
 					s_os = 'Windows'
 				end
-				if string.find(s_os, 'Linux') then
-					s_os = 'Linux'
-				end
-			end
-			if s_osVersion ~= nil then 
-				if string.find(s_osVersion, 'Windows') then
-					s_os = 'Windows'
-				end
-				if string.find(s_osVersion, 'Linux') then
+				if string.find(os, 'Linux') then
 					s_os = 'Linux'
 				end
 			end
 			
 			local system = ''
-			if s_cpu ~= nil then system = system..'\nCPU:  '..s_cpu end
+			if s_cpu ~= nil then system = system..'\nCPU:  '..string.gsub(s_cpu, "  ", " ") end
 			if s_cpuCoresPhysical ~= nil then system = system..'\nCPU cores:  '..s_cpuCoresPhysical..' / '..s_cpuCoresLogical end
-			if s_ram ~= nil then system = system..'\nRAM:  '..s_ram end
-			if s_gpu ~= nil then system = system..'\nGPU:  '..s_gpu end
-			if s_gpuVram ~= nil then system = system..'\nGPU VRAM:  '..s_gpuVram end
-			if s_resolution ~= nil then system = system..'\nResolution:  '..s_resolution end
+			if s_ram ~= nil then system = system..'\nRAM:  '..string.gsub(s_ram, "  ", " ") end
+			if s_gpu ~= nil then system = system..'\nGPU:  '..string.gsub(s_gpu, "  ", " ") end
+			if s_gpuVram ~= nil then system = system..'\nGPU VRAM:  '..string.gsub(s_gpuVram, "  ", " ") end
+			if s_resolution ~= nil then system = system..'\nResolution:  '..string.gsub(s_resolution, "  ", " ") end
 			if s_os ~= nil then system = system..'\nOS:  '..s_os end
-			--if s_osVersion ~= nil then system = system..'\nOS version:  '..s_osVersion end
+			
 			system = string.sub(system, 2)
 			
 			SendLuaRulesMsg("$y$"..system)
