@@ -3,6 +3,7 @@ XX/08/2016
 
 Balance changes:
 - Damage of t2 Mobile Artillery vehicles increased by 10%
+- Units can walk through landed air units
 
 Other:
 - RedUI console: filtered spec desyncs for others + connection attempts
@@ -11,6 +12,7 @@ Other:
 - Renamed "Adv. Unit Marker" to "Unit Marker" and disables when becoming spec
 - Advplayerlist: shows playername above system info tooltip
 - Advplayerlist: moved truskill value next to country flag
+- Critters no longer block units
 
 
 9.38 -> 9.39
