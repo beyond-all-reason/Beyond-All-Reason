@@ -40,6 +40,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 121,
 		workertime = 100,
+		blocking = false,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "cmgeo",

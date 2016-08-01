@@ -38,6 +38,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 380,
 		upright = true,
+		blocking = false,
 		customparams = {
 			paralyzemultiplier = 0.025,
 		},

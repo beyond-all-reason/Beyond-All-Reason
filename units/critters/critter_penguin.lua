@@ -57,6 +57,7 @@ unitDef = {
   turninplace         = 1,
   turnRate            = 2000,
   workerTime          = 0,
+	blocking						= false,
   script              = [[critter_penguin.lua]], -- [[tpdude.lua]], 
   stealth 			  = true,
   sonarStealth		  = true,

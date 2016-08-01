@@ -60,6 +60,7 @@ unitDef = {
   script              = [[critter_duck.lua]], -- [[tpdude.lua]], 
   stealth 			  = true,
   sonarStealth		  = true,
+	blocking						= false,
 }
 
 return lowerkeys({ critter_duck = unitDef })

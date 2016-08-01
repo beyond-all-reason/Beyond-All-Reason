@@ -40,6 +40,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 148,
 		workertime = 110,
+		blocking = false,
 		buildoptions = {
 			[1] = "armap",
 			[2] = "armaap",

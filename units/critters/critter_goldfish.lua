@@ -43,6 +43,7 @@ unitDef = {
   workerTime             = 0,
   stealth 			     = true,
   sonarStealth		     = true,
+	blocking						= false,
 }
 
 return lowerkeys({ critter_goldfish = unitDef })

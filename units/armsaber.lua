@@ -34,6 +34,7 @@ return {
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 931,
+		blocking = false,
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

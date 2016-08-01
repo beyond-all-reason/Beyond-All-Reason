@@ -40,6 +40,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 138,
 		workertime = 100,
+		blocking = false,
 		buildoptions = {
 			[1] = "armfus",
 			[2] = "armckfus",

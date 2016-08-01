@@ -39,20 +39,27 @@ local GaiaTeamID  = Spring.GetGaiaTeamID()
 
 local critterConfig = include("LuaRules/configs/gaia_critters_config.lua")
 local critterUnits = {}	--critter units that are currently alive
+local companionCritters = {}
 local sceduledOrders = {}
 
-local spGetGroundHeight = Spring.GetGroundHeight
-local spGetUnitPosition = Spring.GetUnitPosition
+local GetGroundHeight = Spring.GetGroundHeight
+local GetUnitPosition = Spring.GetUnitPosition
+local GetUnitDefID = Spring.GetUnitDefID
+local GiveOrderToUnit = Spring.GiveOrderToUnit
+local CreateUnit = Spring.CreateUnit
+local GetUnitTeam = Spring.GetUnitTeam
+local ValidUnitID = Spring.ValidUnitID
+
 local random = math.random
-local sin, cos = math.sin, math.cos
-local rad = math.rad
+local sin, cos, abs, rad = math.sin, math.cos, math.abs, math.rad
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 local totalCritters = 0
 local aliveCritters = 0
 
+
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
-	local ux,uy,uz = spGetUnitPosition(unitID,true,true)
+	local ux,uy,uz = GetUnitPosition(unitID,true,true)
 	local waterRadius = 1000		-- max distance a submarine unit will travel
 	local orders = 6
 	local attempts = orders
@@ -62,6 +69,7 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 	local ordersGiven = 0
 	
 	local x,z
+	local modifiers = {}
 	for i=1,attempts do
 		if minWaterDepth == nil then
 			x = random(box.x1, box.x2)
@@ -79,13 +87,14 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 			z = random(z1, z2)
 		end
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
-			local y = spGetGroundHeight(x, z)
+			local y = GetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
 				if sceduledOrders[unitID] == nil then
 					sceduledOrders[unitID] = {}
 				end
 				processOrders = true
-				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers={"shift"}})
+				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
+				modifiers = {"shift"}
 				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
 				ordersGiven = ordersGiven + 1
 			end
@@ -107,12 +116,12 @@ local function processSceduledOrders()
 	processOrders = false
 	local orders = 0
 	for unitID, UnitOrders in pairs(sceduledOrders) do
-		orders = 0
-		if Spring.GetUnitIsDead(unitID) then 
+		if not ValidUnitID(unitID) then
 			sceduledOrders[unitID] = nil
 		else
+			orders = 0
 			for oid, order in pairs(UnitOrders) do
-				Spring.GiveOrderToUnit(unitID, order.type, order.location, order.modifiers)
+				GiveOrderToUnit(unitID, order.type, order.location, order.modifiers)
 				sceduledOrders[unitID][oid] = nil
 				orders = orders + 1
 				processOrders = true
@@ -134,9 +143,10 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 	end
 	local ordersGiven = 0
 	local ux, uz, ur = circle.x, circle.z, circle.r
+	local modifiers = {}
 	for i=1,attempts do
 		if minWaterDepth ~= nil and waterRadius <= circle.r then
-			ux,uy,uz = spGetUnitPosition(unitID,true,true)
+			ux,uy,uz = GetUnitPosition(unitID,true,true)
 			ur = waterRadius
 		end
 		local a = rad(random(0, 360))
@@ -144,18 +154,18 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 		local x = ux + r*sin(a)
 		local z = uz + r*cos(a)
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ and in_circle(circle.x, circle.z, circle.r, x, z) then
-			local y = spGetGroundHeight(x, z)
+			local y = GetGroundHeight(x, z)
 			if minWaterDepth == nil or y < minWaterDepth then
 				if sceduledOrders[unitID] == nil then
 					sceduledOrders[unitID] = {}
 				end
-				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers={"shift"}})
+				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
+				modifiers = {"shift"}
 				processOrders = true
 				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})	-- this sometimes gives resursion errors, but am to lazy to spread spammign this command over multiple gameframes
 				ordersGiven = ordersGiven + 1
 			end
 		end
-		if ordersGiven == orders then break end
 	end
 end
 
@@ -191,6 +201,7 @@ function gadget:Initialize()
 	if amountMultiplier < minMulti then amountMultiplier = minMulti end
 	if amountMultiplier > maxMulti then amountMultiplier = maxMulti end
 end
+
 
 function getUnitDefIdbyName(unitName)
 	for udid, unitDef in pairs(UnitDefs) do
@@ -233,13 +244,13 @@ local function adjustCritters(newAliveCritters)
 			if add then 
 				if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
 					table.insert(removeKeys, unitID)
-					local newUnitID = Spring.CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
+					local newUnitID = CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
 					setGaiaUnitSpecifics(newUnitID)
 					critterDifference = critterDifference - 1
 					--Spring.Echo("added: "..critter.unitName.."  x:"..critter.x.."  z:"..critter.z)
 				end
 			else
-				local x,y,z = spGetUnitPosition(unitID,true,true)
+				local x,y,z = GetUnitPosition(unitID,true,true)
 				aliveCritters = aliveCritters - 1
 				critterDifference = critterDifference + 1
 				critterUnits[unitID].alive = false
@@ -288,11 +299,61 @@ function gadget:GameFrame(gameFrame)
 		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters)
 		local critterDifference = newAliveCritters - aliveCritters 
 		if critterDifference > 0 or (critterDifference < 0 and aliveCritters > minCritters)  then
-			if math.abs(critterDifference) >= critterDiffChange or (critterDifference < 0 and aliveCritters+critterDifference <= minCritters) then
+			if abs(critterDifference) >= critterDiffChange or (critterDifference < 0 and aliveCritters+critterDifference <= minCritters) then
 				adjustCritters(newAliveCritters)
 			end
 		end
 	end
+	
+	-- update companion critters
+	if gameFrame%30==0 then 
+ 		for unitID, critters in pairs(companionCritters) do
+ 			local x,y,z = GetUnitPosition(unitID)
+ 			local radius = 200
+ 			local circle = {x=x, z=z, r=radius}
+ 			if not ValidUnitID(unitID) then
+ 				companionCritters[unitID] = nil
+ 			else
+	 			for _, critterID in pairs(critters) do
+		 			if not ValidUnitID(critterID) then
+	 					companionCritters[unitID][critterID] = nil
+	 				else
+	 					local cx,cy,cz = GetUnitPosition(critterID)
+	 					if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
+		 					randomPatrolInCircle(critterID, circle, nil)
+			 			end
+		 			end
+	 			end
+	 		end
+ 		end
+	end
+
+	-- add companion critters
+	if gameFrame == 1 and spawned == nil then
+		spawned = true
+	  local allUnits = Spring.GetAllUnits()
+	  for _, unitID in pairs(allUnits) do
+	    local unitDefID = GetUnitDefID(unitID)
+	    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+	   		local x,y,z = GetUnitPosition(unitID)
+	      local team = GetUnitTeam(unitID)
+			  if team == nil then break end
+			  local players = Spring.GetPlayerList(team)
+			  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
+			  
+				if name == "[teh]Lucy" or name == "FlowerPower" then
+					local critters = {}
+					for i=1, random(-3 3) do
+						local critterID = CreateUnit("critter_penguin", x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
+					  Spring.SetUnitRulesParam(critterID, "unselectable", 1, {inlos=true})	-- we set this so commands_fx widget wont show orders when unit is captured
+						setGaiaUnitSpecifics(critterID)
+						table.insert(critters, critterID)
+					end
+					table.insert(companionCritters, unitID, critters)
+				end
+	    end
+	  end
+	 end
 end
 
 
@@ -303,6 +364,8 @@ end
 
 -- spawning critters in game start prevents them from being spawned every time you do /luarules reload
 function gadget:GameStart()
+	
+	-- add map critters
 	if critterConfig[Game.mapName] == nil then
 		return 
 	end 
@@ -323,13 +386,13 @@ function gadget:GameStart()
 					local unitID = nil
 					local x = random(cC.spawnBox.x1, cC.spawnBox.x2)
 					local z = random(cC.spawnBox.z1, cC.spawnBox.z2)
-					local y = spGetGroundHeight(x, z)
+					local y = GetGroundHeight(x, z)
 					if not waterunit or cC.nowatercheck ~= nil or y < minWaterDepth then
 						local supplyMinWaterDepth = nil
 						if waterunit and not cC.nowatercheck then
 							supplyMinWaterDepth = minWaterDepth
 						end
-						unitID = Spring.CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
+						unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
 							randomPatrolInBox(unitID, cC.spawnBox, supplyMinWaterDepth)
 							makeUnitCritter(unitID)
@@ -358,13 +421,13 @@ function gadget:GameStart()
 					local r = random(0, cC.spawnCircle.r)
 					local x = cC.spawnCircle.x + r*sin(a)
 					local z = cC.spawnCircle.z + r*cos(a)
-					local y = spGetGroundHeight(x, z)
+					local y = GetGroundHeight(x, z)
 					if not waterunit or cC.nowatercheck ~= nil or y < minWaterDepth then
 						local supplyMinWaterDepth = nil
 						if waterunit and not cC.nowatercheck then
 							supplyMinWaterDepth = minWaterDepth
 						end
-						unitID = Spring.CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
+						unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
 							randomPatrolInCircle(unitID, cC.spawnCircle, supplyMinWaterDepth)
 							makeUnitCritter(unitID)
@@ -381,7 +444,7 @@ end
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 	if sceduledOrders[unitID] == nil and Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
-		local x,y,z = spGetUnitPosition(unitID,true,true)
+		local x,y,z = GetUnitPosition(unitID,true,true)
 		local radius = 220
 		if UnitDefs[unitDefID].name == "critter_gull" then
 			radius = 750
@@ -393,7 +456,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
-		local x,y,z = spGetUnitPosition(unitID,true,true)
+		local x,y,z = GetUnitPosition(unitID,true,true)
 		local radius = 300
 		if UnitDefs[unitDefID].name == "critter_gull" then
 			radius = 1500

@@ -415,6 +415,7 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
     -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
+    if Spring.GetUnitRulesParam(unitID, "unselectable") ~= nil then return end
     if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
 	    local el = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=spGetUnitDefID(unitID)} -- command queue is not updated until next gameframe
         maxCommand = maxCommand + 1

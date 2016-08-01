@@ -33,6 +33,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 297,
 		upright = true,
+		blocking = false,
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

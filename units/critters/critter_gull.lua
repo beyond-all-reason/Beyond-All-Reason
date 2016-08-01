@@ -51,6 +51,7 @@ name                = "SeaGull",
   canstop             = [[1]],
   category            = [[VTOL]],
   mass                = 125,
+	blocking						= false,
 }
 
 return lowerkeys({ [unitName] = unitDef })

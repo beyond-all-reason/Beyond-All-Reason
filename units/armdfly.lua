@@ -40,6 +40,7 @@ return {
 		transportsize = 15,
 		turninplaceanglelimit = 360,
 		turnrate = 420,
+		blocking = false,
 		customparams = {
 			paralyzemultiplier = 0.025,
 		},

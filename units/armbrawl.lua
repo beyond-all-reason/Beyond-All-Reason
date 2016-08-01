@@ -33,6 +33,7 @@ return {
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
 		turnrate = 792,
+		blocking = false,
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

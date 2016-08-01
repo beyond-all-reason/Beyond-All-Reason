@@ -40,6 +40,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 132,
 		workertime = 110,
+		blocking = false,
 		buildoptions = {
 			[1] = "corap",
 			[2] = "coraap",

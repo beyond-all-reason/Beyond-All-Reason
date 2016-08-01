@@ -32,6 +32,7 @@ return {
 		selfdestructcountdown = 1,
 		sightdistance = 835,
 		turnrate = 770,
+		blocking = false,
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
