@@ -58,9 +58,10 @@ unitDef = {
   turnRate            = 2000,
   workerTime          = 0,
   script              = [[critter_ant.cob]], -- [[tpdude.lua]], 
-  stealth 			  = true,
-  sonarStealth		  = true,
+  stealth 			      = true,
+  sonarStealth		    = true,
 	blocking						= false,
+	capturable          = false,
 }
 
 return lowerkeys({ critter_ant = unitDef })

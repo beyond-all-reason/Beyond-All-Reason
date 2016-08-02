@@ -59,8 +59,9 @@ unitDef = {
   workerTime          = 0,
 	blocking						= false,
   script              = [[critter_penguin.lua]], -- [[tpdude.lua]], 
-  stealth 			  = true,
-  sonarStealth		  = true,
+  stealth 			      = true,
+  sonarStealth		    = true,
+	capturable          = false,
 }
 
 return lowerkeys({ critter_penguin = unitDef })

@@ -58,9 +58,10 @@ unitDef = {
   turnRate            = 500,
   workerTime          = 0,
   script              = [[critter_duck.lua]], -- [[tpdude.lua]], 
-  stealth 			  = true,
-  sonarStealth		  = true,
+  stealth 			      = true,
+  sonarStealth		    = true,
 	blocking						= false,
+	capturable          = false,
 }
 
 return lowerkeys({ critter_duck = unitDef })

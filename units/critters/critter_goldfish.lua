@@ -41,9 +41,10 @@ unitDef = {
   upright                = true,
   waterline              = 20,
   workerTime             = 0,
-  stealth 			     = true,
-  sonarStealth		     = true,
-	blocking						= false,
+  stealth 			         = true,
+  sonarStealth		       = true,
+	blocking						   = false,
+	capturable             = false,
 }
 
 return lowerkeys({ critter_goldfish = unitDef })
