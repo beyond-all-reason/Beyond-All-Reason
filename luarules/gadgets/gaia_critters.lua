@@ -22,13 +22,14 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 450		-- starting removing critters at this total unit count
-local maxTotalunits			= 1650		-- finished removing critters at this total unit count
-local minimumCritters		= 0.15		-- dont remove further than (0.1 == 10%) of critters
-local minCritters			= 20		-- dont remove below this amount
-local critterDiffChange		= 8			-- dont add/remove less than x critters
-
-
+local minTotalUnits			= 500					-- starting removing critters at this total unit count
+local maxTotalunits			= 1700				-- finished removing critters at this total unit count
+local minimumCritters		= 0.18				-- dont remove further than (0.1 == 10%) of critters
+local minCritters				= (Game.mapSizeX*Game.mapSizeZ)/3000000				-- dont remove below this amount
+local critterDiffChange	= 8						-- dont add/remove less than x critters
+local companionRadiusStart		= 140					-- if mapcritter is spawned this close it will be converted to companion critter
+local companionRadiusAfterStart = 13
+local companionPatrolRadius = 200
 
 local amountMultiplier = 1		-- will be set by mod option: critters_multiplier
 local minMulti = 0.2
@@ -41,6 +42,7 @@ local critterConfig = include("LuaRules/configs/gaia_critters_config.lua")
 local critterUnits = {}	--critter units that are currently alive
 local companionCritters = {}
 local sceduledOrders = {}
+local commanders = {}
 
 local GetGroundHeight = Spring.GetGroundHeight
 local GetUnitPosition = Spring.GetUnitPosition
@@ -56,7 +58,7 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 
 local totalCritters = 0
 local aliveCritters = 0
-
+local companionRadius = companionRadiusStart
 
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local ux,uy,uz = GetUnitPosition(unitID,true,true)
@@ -103,10 +105,12 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 	end
 end
 
+
 local function in_circle(center_x, center_y, radius, x, y)
 	local square_dist = ((center_x - x) * (center_x - x)) + ((center_y - y) * (center_y - y))
 	return square_dist <= radius * radius
 end
+
 
 local processOrders = true
 
@@ -133,6 +137,7 @@ local function processSceduledOrders()
 		end
 	end
 end
+
 
 local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
 	local orders = 6
@@ -169,6 +174,7 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 	end
 end
 
+
 local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
@@ -176,12 +182,14 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNoMinimap(unitID, true)
 end
 
+
 local function makeUnitCritter(unitID)
 	setGaiaUnitSpecifics(unitID)
 	critterUnits[unitID] = {alive=true}
 	totalCritters = totalCritters + 1
 	aliveCritters = aliveCritters + 1
 end
+
 
 function gadget:Initialize()
 	local mo = Spring.GetModOptions()
@@ -209,6 +217,7 @@ function getUnitDefIdbyName(unitName)
 	end
 end
 
+
 -- excluding gaia units
 local function getTotalUnits()
 	local totalUnits = 0
@@ -225,6 +234,7 @@ local function getTotalUnits()
 	end
 	return totalUnits
 end
+
 
 local function adjustCritters(newAliveCritters)
 
@@ -269,105 +279,86 @@ local function adjustCritters(newAliveCritters)
 			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated 
 		end
 		--if totalCritters > 800 then		-- occasional cleanup (leaving this in will make ´critterDifference´ useless)
-			newCritterUnits = {}
-			for unitID, critter in pairs(critterUnits) do
-				if critter ~= nil then
-					newCritterUnits[unitID] = critter
-				end
+		newCritterUnits = {}
+		for unitID, critter in pairs(critterUnits) do
+			if critter ~= nil then
+				newCritterUnits[unitID] = critter
 			end
-			critterUnits = newCritterUnits
+		end
+		critterUnits = newCritterUnits
 		--end
 	end
 end
 
--- increase/decrease critters according to unitcount
-function gadget:GameFrame(gameFrame)
-	if removeCritters == false then return end
-	
-	if processOrders then
-		processSceduledOrders()
+
+function getCommanders()
+	local comlist = {}
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in pairs(allUnits) do
+		local unitDefID = GetUnitDefID(unitID)
+		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+			local x,y,z = GetUnitPosition(unitID)
+			table.insert(comlist, unitID, {x,z})
+		end
 	end
-	
-	if gameFrame%200==0 then 
-		local totalUnits = getTotalUnits() -- is without critters
-		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
-		if multiplier < 0 then multiplier = 0 end
-		multiplier = multiplier + minimumCritters
-		if multiplier > 1 then multiplier = 1 end
-		local newAliveCritters = math.ceil(totalCritters * multiplier)
-		
-		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters)
-		local critterDifference = newAliveCritters - aliveCritters 
-		if critterDifference > 0 or (critterDifference < 0 and aliveCritters > minCritters)  then
-			if abs(critterDifference) >= critterDiffChange or (critterDifference < 0 and aliveCritters+critterDifference <= minCritters) then
-				adjustCritters(newAliveCritters)
+	return comlist
+end
+
+
+function nearUnits(x, z, radius, units)
+	for unitID, pos in pairs(units) do
+		if pos[1] ~= nil and pos[2] ~= nil then	-- had nil error once so yeah...
+			if abs(x-pos[1]) < radius and abs(z-pos[2]) < radius then
+				return unitID
 			end
 		end
 	end
-	
-	-- update companion critters
-	if gameFrame%30==0 then 
- 		for unitID, critters in pairs(companionCritters) do
- 			local x,y,z = GetUnitPosition(unitID)
- 			local radius = 200
- 			local circle = {x=x, z=z, r=radius}
- 			if not ValidUnitID(unitID) then
- 				companionCritters[unitID] = nil
- 			else
-	 			for _, critterID in pairs(critters) do
-		 			if not ValidUnitID(critterID) then
-	 					companionCritters[unitID][critterID] = nil
-	 				else
-	 					local cx,cy,cz = GetUnitPosition(critterID)
-	 					if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
-		 					randomPatrolInCircle(critterID, circle, nil)
-			 			end
-		 			end
-	 			end
-	 		end
- 		end
+	return false
+end
+
+
+function pairCompanionToUnit(companionID,unitID)
+	local companions = {}
+	if companionCritters[unitID] ~= nil then
+		companions = companionCritters[unitID]
 	end
-
-	-- add companion critters
-	if gameFrame == 1 and spawned == nil then
-		spawned = true
-	  local allUnits = Spring.GetAllUnits()
-	  for _, unitID in pairs(allUnits) do
-	    local unitDefID = GetUnitDefID(unitID)
-	    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
-	   		local x,y,z = GetUnitPosition(unitID)
-	      local team = GetUnitTeam(unitID)
-			  if team == nil then break end
-			  local players = Spring.GetPlayerList(team)
-			  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
-			  
-				if name == "[teh]Lucy" or name == "FlowerPower" then
-					local critters = {}
-					for i=1, random(-3, 3) do
-						local critterID = CreateUnit("critter_penguin", x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
-						setGaiaUnitSpecifics(critterID)
-						table.insert(critters, critterID)
-					end
-					table.insert(companionCritters, unitID, critters)
-				end
-	    end
-	  end
-	 end
+	table.insert(companions, companionID)
+	table.insert(companionCritters, unitID, companions)
+	if critterUnits[unitID] ~= nil then
+		critterUnits[unitID] = nil
+		totalCritters = totalCritters - 1
+	end
 end
 
 
-function round(num, idp)
-  local mult = 10^(idp or 0)
-  return math.floor(num * mult + 0.5) / mult
+function critterToCompanion(unitID)
+	local x,y,z = GetUnitPosition(unitID)
+	if x ~= nil and y ~= nil and z ~= nil then	-- had nil error once so yeah...
+		commanderID = nearUnits(x, z, companionRadius, commanders)
+		if commanderID ~= false then
+			pairCompanionToUnit(unitID,commanderID)
+		end
+	end
 end
 
--- spawning critters in game start prevents them from being spawned every time you do /luarules reload
-function gadget:GameStart()
-	
-	-- add map critters
+
+function convertMapCrittersToCompanion()
+	commanders = getCommanders()
+	for unitID, critter in pairs(critterUnits) do
+		if critter.alive then
+			critterToCompanion(unitID)
+		end
+	end
+end
+
+
+
+-- add map dependent critters
+function addMapCritters()
 	if critterConfig[Game.mapName] == nil then
 		return 
-	end 
+	end
+	
 	for key, cC in pairs(critterConfig[Game.mapName]) do
 		if cC.spawnBox then	
 			for unitName, unitAmount in pairs(cC.unitNames) do
@@ -439,10 +430,111 @@ function gadget:GameStart()
 			end
 		end
 	end
+	convertMapCrittersToCompanion()
+	companionRadius = companionRadiusAfterStart
 end
 
+
+-- add commander companion critters
+local companionPlayers = {"UnnamedPlayer", "[teh]Lucy", "[teh]Flow"}
+function addCompanionCritters()
+  local allUnits = Spring.GetAllUnits()
+  for _, unitID in pairs(allUnits) do
+    local unitDefID = GetUnitDefID(unitID)
+    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+   		local x,y,z = GetUnitPosition(unitID)
+      local team = GetUnitTeam(unitID)
+		  if team == nil then break end
+		  local players = Spring.GetPlayerList(team)
+		  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
+		  local found = false
+		  for _, cname in pairs(companionPlayers) do
+		  	if cname == name then found = true end
+		  end
+			if found then
+				local critters = {}
+				for i=1, random(3, 3) do
+					local critterID = CreateUnit("critter_penguin", x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
+					setGaiaUnitSpecifics(critterID)
+					table.insert(critters, critterID)
+				end
+				table.insert(companionCritters, unitID, critters)
+			end
+    end
+  end
+end
+
+
+-- increase/decrease critters according to unitcount
+function gadget:GameFrame(gameFrame)
+
+	if gameFrame == 1 and addedInitialCritters == nil then	-- using gameframe 1 cause at GameStart commanders arent spawn yet
+		addedInitialCritters = true
+		addMapCritters()
+		addCompanionCritters()
+	end
+	
+	-- update companion critters
+	if gameFrame%57==0 then 
+ 		for unitID, critters in pairs(companionCritters) do
+ 			local x,y,z = GetUnitPosition(unitID)
+ 			local radius = companionPatrolRadius
+ 			local circle = {x=x, z=z, r=radius}
+ 			if not ValidUnitID(unitID) then
+ 				companionCritters[unitID] = nil
+ 			else
+	 			for _, critterID in pairs(critters) do
+		 			if not ValidUnitID(critterID) then
+	 					companionCritters[unitID][critterID] = nil
+	 				else
+	 					local cx,cy,cz = GetUnitPosition(critterID)
+	 					if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
+		 					randomPatrolInCircle(critterID, circle, nil)
+			 			end
+		 			end
+	 			end
+	 		end
+ 		end
+ 		if companionRadius > 0 then
+ 			convertMapCrittersToCompanion()
+ 		end
+	end
+	
+ 		
+	if removeCritters == false then return end
+	
+	if processOrders then
+		processSceduledOrders()
+	end
+	
+	if gameFrame%202==0 then 
+		local totalUnits = getTotalUnits() -- is without critters
+		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
+		if multiplier < 0 then multiplier = 0 end
+		multiplier = multiplier + minimumCritters
+		if multiplier > 1 then multiplier = 1 end
+		local newAliveCritters = math.ceil(totalCritters * multiplier)
+		
+		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters)
+		local critterDifference = newAliveCritters - aliveCritters 
+		if critterDifference > 0 or (critterDifference < 0 and aliveCritters > minCritters)  then
+			if abs(critterDifference) >= critterDiffChange or (critterDifference < 0 and aliveCritters+critterDifference <= minCritters) then
+				adjustCritters(newAliveCritters)
+			end
+		end
+	end
+	
+end
+
+
+function round(num, idp)
+  local mult = 10^(idp or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
+
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	if sceduledOrders[unitID] == nil and Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
+	if sceduledOrders[unitID] == nil and Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then
 		local x,y,z = GetUnitPosition(unitID,true,true)
 		local radius = 220
 		if UnitDefs[unitDefID].name == "critter_gull" then
@@ -453,8 +545,23 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 	end
 end
 
+
+function getTeamCommanderUnitID(teamID)
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in pairs(allUnits) do
+		if GetUnitTeam(unitID) == teamID then
+			local unitDefID = GetUnitDefID(unitID)
+			if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+				return unitID
+			end
+		end
+	end
+	return false
+end
+
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 0, 7) == "critter" then
+	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then
 		local x,y,z = GetUnitPosition(unitID,true,true)
 		local radius = 300
 		if UnitDefs[unitDefID].name == "critter_gull" then
@@ -462,12 +569,33 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		end
 		local circle = {x=x, z=z, r=radius}
 		randomPatrolInCircle(unitID, circle)
+		
+		-- make it a companion if close to a commander
+		companionRadius = companionRadiusStart
 		if unitTeam == GaiaTeamID then
 			makeUnitCritter(unitID)
 			critterUnits[unitID].unitName = UnitDefs[unitDefID].name
+			commanders = getCommanders()
+			for _, comUnitID in pairs(commanders) do
+				--pairCompanionToUnit(unitID,comUnitID)
+				critterToCompanion(unitID)
+			end
+		else
+			local commanderID = getTeamCommanderUnitID(unitTeam)
+			if commanderID then 
+				local cx,cy,cz = GetUnitPosition(commanderID,true,true)
+				local comlist = {}
+				table.insert(comlist, commanderID, {cx,cz})
+				commanderID = nearUnits(x, z, companionRadius, comlist)
+				if commanderID ~= false then
+					pairCompanionToUnit(unitID,commanderID)
+				end
+			end
 		end
+		companionRadius = companionRadiusAfterStart
 	end
 end
+
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 
@@ -476,6 +604,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		totalCritters = totalCritters - 1
 	end
 end
+
 
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30109
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)	

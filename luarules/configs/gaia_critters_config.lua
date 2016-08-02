@@ -185,8 +185,9 @@ l},
 },
 
 ["duck"] = {
-  { spawnCircle = {x=800, z=700, r=200}, unitNames = {["critter_duck"]=rnd(1,3)} },
-  { spawnBox = {x1=50, z1=50, x2=2000, z2=2000}, unitNames = {["critter_duck"]=rnd(-2,6)} },
+  { spawnCircle = {x=800, z=700, r=200}, unitNames = {["critter_duck"]=rnd(2,5)} },
+  --{ spawnBox = {x1=50, z1=50, x2=2000, z2=2000}, unitNames = {["critter_duck"]=rnd(2,22} },
+  	{ spawnBox = {x1=5, z1=5, x2=2000, z2=2000}, unitNames = {["critter_duck"]=rnd(400,400)} },
 },
 ["duckfusionsfix"] = {
   { spawnCircle = {x=800, z=700, r=200}, unitNames = {["critter_duck"]=rnd(1,3)} },

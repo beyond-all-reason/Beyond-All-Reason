@@ -141,7 +141,8 @@ local barFeatureDList;
 --// speedup (there are a lot more localizations, but they are in limited scope cos we are running out of upvalues)
 local glColor         = gl.Color
 local glMyText        = gl.FogCoord
-local floor           = math.floor
+local floor     			= math.floor
+local sub 						= string.sub
 local GetUnitDefID    = Spring.GetUnitDefID
 local glDepthTest     = gl.DepthTest 
 
@@ -1058,10 +1059,10 @@ do
             infotext = hp100..'%'
           end
           if alwaysDrawBarPercentageForComs then
-			  local unitName = UnitDefs[GetUnitDefID(unitID)].name
-			  if (unitName == 'corcom'  or  unitName == 'armcom') then
-				infotext = hp100..'%'
-			  end
+				  	local unitName = UnitDefs[GetUnitDefID(unitID)].name
+					  if (unitName == 'corcom'  or  unitName == 'armcom') then
+							infotext = hp100..'%'
+					  end
           end
           AddBar("health",hp,nil,infotext or '',bfcolormap[hp100])
         end
@@ -1357,7 +1358,7 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
 	    unitDef   = UnitDefs[unitDefID or -1]
-        if (unitDef) then
+        if (unitDef) and sub(unitDef.name, 1, 7) ~= "critter" then
           DrawUnitInfos(unitID, unitDefID, unitDef)
         end
       end
