@@ -6,13 +6,15 @@ Balance changes:
 - Units can walk through landed air units
 
 Other:
-- RedUI console: filtered spec desyncs for others + connection attempts
+- Advplayerlist: added player resources
+- "Ally Resource Bars" deafault disabled and renamed to "Ally Resource Bars (old)"
 - Changed cursorsets to: 'old', 'old_150', 'bar', 'bar_133'
 - Fixed dead/unresponsive screen area (caused by ally selected units GUI)
+- RedUI console: filtered spec desyncs for others + connection attempts
 - Renamed "Adv. Unit Marker" to "Unit Marker" and disables when becoming spec
 - Advplayerlist: shows playername above system info tooltip
 - Advplayerlist: moved truskill value next to country flag
-- Critters no longer block units
+- Critters no longer block units + follow coms when in close proximity
 
 
 9.38 -> 9.39
