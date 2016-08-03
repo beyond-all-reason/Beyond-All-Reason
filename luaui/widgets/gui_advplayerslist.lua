@@ -1392,7 +1392,9 @@ function CreateLists()
 	UpdateRecentBroadcasters()
 	UpdateAlliances()
 	
-	UpdateResources()
+	if m_resources.active then
+		UpdateResources()
+	end
 	UpdatePlayerResources()
 	
 	--Create lists
@@ -1791,7 +1793,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			DrawAlly(posY, player[playerID].team)
 		end
 		
-		if m_resources.active == true and player[playerID].energy ~= nil then
+		if m_resources.active and player[playerID].energy ~= nil then
 				local e = player[playerID].energy
 				local es = player[playerID].energyStorage
 				local m = player[playerID].metal
