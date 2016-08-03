@@ -133,6 +133,9 @@ local pics = {
 	readyTexture    = imageDirectory.."indicator.dds",
 	drawPic         = imageDirectory.."draw.dds",
 	allyPic         = imageDirectory.."ally.dds",
+	resourcesPic    = imageDirectory.."res.png",
+	resbarPic       = imageDirectory.."resbar.png",
+	resbarBgPic     = imageDirectory.."resbarBg.png",
 
 	cpuPingPic      = imageDirectory.."cpuping.dds",
 	specPic         = imageDirectory.."spec.png",
@@ -327,6 +330,18 @@ m_indent = {
 }
 position = position + 1
 
+m_ID = {
+	name	  = "id",
+	spec      = true,
+	play      = true,
+	active    = false,
+	width     = 22,
+	position  = position,
+	posX      = 0,
+	pic       = pics["idPic"],
+}
+position = position + 1
+
 m_rank = {
 	name	  = "rank",
 	spec      = true, --display for specs?
@@ -377,18 +392,6 @@ m_skill = {
 }
 position = position + 1
 
-m_ID = {
-	name	  = "id",
-	spec      = true,
-	play      = true,
-	active    = false,
-	width     = 22,
-	position  = position,
-	posX      = 0,
-	pic       = pics["idPic"],
-}
-position = position + 1
-
 m_name = {
 	name      = "name",
 	spec      = true,
@@ -414,6 +417,18 @@ m_cpuping = {
 	posX      = 0,
 	pic       = pics["cpuPingPic"],
 	picGap    = 7,
+}
+position = position + 1
+
+m_resources = {
+	name 	    = "resources",
+	spec      = true,
+	play      = true,
+	active    = true,
+	width     = 28,
+	position  = position,
+	posX      = 0,
+	pic       = pics["resourcesPic"],
 }
 position = position + 1
 
@@ -494,6 +509,7 @@ modules = {
 	m_side,
 	m_name,
 	m_skill,
+	m_resources,
 	m_cpuping,
 	m_alliance,
 	m_share,
@@ -929,6 +945,14 @@ function CreatePlayer(playerID)
 	tping    = tping * 1000 - ((tping * 1000) % 1)
 	tcpu     = tcpu  * 100  - ((tcpu  *  100) % 1)
 	
+	-- resources
+	local energy, energyStorage = Spring_GetTeamResources(tteam, "energy")
+	local metal, metalStorage = Spring_GetTeamResources(tteam, "metal")
+	energy = math.floor(energy)
+	metal = math.floor(metal)
+	if energy < 0 then energy = 0 end
+	if metal < 0 then metal = 0 end
+	
 	return {
 		rank             = trank,
 		skill			 = tskill,
@@ -947,7 +971,11 @@ function CreatePlayer(playerID)
 		country          = tcountry,
 		tdead            = false,
 		spec             = tspec,
-		ai				 = false,
+		ai               = false,
+		energy           = energy,
+		energyStorage    = energyStorage,
+		metal            = metal,
+		metalStorage     = metalStorage,
 	}
 	
 end
@@ -994,10 +1022,17 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	end
 	
 	tskill = ""
+
+	local energy, energyStorage = Spring_GetTeamResources(teamID, "energy")
+	local metal, metalStorage = Spring_GetTeamResources(teamID, "metal")
+	energy = math.floor(energy)
+	metal = math.floor(metal)
+	if energy < 0 then energy = 0 end
+	if metal < 0 then metal = 0 end
 	
 	return{
 		rank             = 8, -- "don't know which" value
-		skill			 = tskill,
+		skill			       = tskill,
 		name             = tname,
 		team             = teamID,
 		allyteam         = tallyteam,
@@ -1009,11 +1044,34 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		totake           = ttotake,
 		dead             = tdead,
 		spec             = false,
-		ai 				 = tai,
+		ai 							 = tai,
+		energy           = energy,
+		energyStorage    = energyStorage,
+		metal            = metal,
+		metalStorage     = metalStorage,
 	}
 	
 end
 
+function UpdatePlayerResources()
+	local energy, energyStorage, metal, metalStorage = 0, 1, 0 ,1
+	for playerID,_ in pairs(player) do
+		if player[playerID].name and not player[playerID].spec and player[playerID].team then
+			if mySpecStatus or myAllyTeamID == player[playerID].allyteam then
+				energy, energyStorage = Spring_GetTeamResources(player[playerID].team, "energy")
+				metal, metalStorage = Spring_GetTeamResources(player[playerID].team, "metal")
+				energy = math.floor(energy)
+				metal = math.floor(metal)
+				if energy < 0 then energy = 0 end
+				if metal < 0 then metal = 0 end
+				player[playerID].energy = energy
+				player[playerID].energyStorage = energyStorage
+				player[playerID].metal = metal
+				player[playerID].metalStorage = metalStorage
+			end
+		end
+	end
+end
 
 function GetDark(red,green,blue)                  	
 	-- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
@@ -1281,6 +1339,7 @@ function widget:DrawScreen()
 	gl.Scale(widgetScale,widgetScale,0)
 	gl.Translate(scaleDiffX,scaleDiffY,0)
 	
+	
 	-- update lists frequently if there is mouse interaction
 	local NeedUpdate = false 
 	local mouseX,mouseY = Spring_GetMouseState()
@@ -1334,6 +1393,7 @@ function CreateLists()
 	UpdateAlliances()
 	
 	UpdateResources()
+	UpdatePlayerResources()
 	
 	--Create lists
 	CreateBackground()
@@ -1614,32 +1674,31 @@ end
 
 
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
-	tipY             = nil
-	local rank       = player[playerID].rank
-	local skill	     = player[playerID].skill
-	local name       = player[playerID].name
-	local team       = player[playerID].team
-	local allyteam   = player[playerID].allyteam
-	local side       = player[playerID].side
-	local red        = player[playerID].red
-	local green      = player[playerID].green
-	local blue       = player[playerID].blue
-	local dark       = player[playerID].dark
-	local pingLvl    = player[playerID].pingLvl
-	local cpuLvl     = player[playerID].cpuLvl
-	local ping       = player[playerID].ping
-	local cpu        = player[playerID].cpu
-	local country    = player[playerID].country
-	local spec       = player[playerID].spec
-	local totake     = player[playerID].totake
-	local needm      = player[playerID].needm
-	local neede      = player[playerID].neede
-	local dead       = player[playerID].dead
-	local ai	     = player[playerID].ai
-	local alliances  = player[playerID].alliances
-	local posY       = widgetPosY + widgetHeight - vOffset
-	local tipPosY    = widgetPosY + ((widgetHeight - vOffset)*widgetScale)
-	
+	tipY                 = nil
+	local rank           = player[playerID].rank
+	local skill	         = player[playerID].skill
+	local name           = player[playerID].name
+	local team           = player[playerID].team
+	local allyteam       = player[playerID].allyteam
+	local side           = player[playerID].side
+	local red            = player[playerID].red
+	local green          = player[playerID].green
+	local blue           = player[playerID].blue
+	local dark           = player[playerID].dark
+	local pingLvl        = player[playerID].pingLvl
+	local cpuLvl         = player[playerID].cpuLvl
+	local ping           = player[playerID].ping
+	local cpu            = player[playerID].cpu
+	local country        = player[playerID].country
+	local spec           = player[playerID].spec
+	local totake         = player[playerID].totake
+	local needm          = player[playerID].needm
+	local neede          = player[playerID].neede
+	local dead           = player[playerID].dead
+	local ai	           = player[playerID].ai
+	local alliances      = player[playerID].alliances
+	local posY           = widgetPosY + widgetHeight - vOffset
+	local tipPosY        = widgetPosY + ((widgetHeight - vOffset)*widgetScale)
 	
 	local alpha = 0.44-- alpha used to show inactivity for specs
 	
@@ -1730,6 +1789,15 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		if m_alliance.active == true and drawAllyButton and not mySpecStatus and not dead and team ~= myTeamID then
 			DrawAlly(posY, player[playerID].team)
+		end
+		
+		if m_resources.active == true and player[playerID].energy ~= nil then
+				local e = player[playerID].energy
+				local es = player[playerID].energyStorage
+				local m = player[playerID].metal
+				local ms = player[playerID].metalStorage
+				DrawResources(e, es, m, ms, posY)
+				if tipY == true then ResourcesTip(mouseX, e, es, m, ms) end
 		end
 	else -- spectator
 		gl_Color(1,1,1,1)
@@ -1823,7 +1891,25 @@ end
 
 function DrawChatButton(posY)
 	gl_Texture(pics["chatPic"])
-	DrawRect(m_chat.posX + widgetPosX  + 1, posY, m_chat.posX + widgetPosX  + 17, posY + 16)	
+	DrawRect(m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + 16)	
+end
+
+function DrawResources(energy, energyStorage, metal, metalStorage, posY)
+	local paddingLeft = 2
+	local paddingRight = 2
+	local barWidth = m_resources.width - paddingLeft - paddingRight
+	gl_Color(1,1,1,0.14)
+	gl_Texture(pics["resbarBgPic"])
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 7, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + 5)	
+	gl_Color(1,1,1,1)
+	gl_Texture(pics["resbarPic"])
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 7, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + 5)	
+	gl_Color(1,1,0,0.14)
+	gl_Texture(pics["resbarBgPic"])
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 11, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + 9)	
+	gl_Color(1,1,0,1)
+	gl_Texture(pics["resbarPic"])
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 11, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + 9)	
 end
 
 function DrawChips(playerID, posY)
@@ -2203,6 +2289,13 @@ function AllyTip(mouseX, playerID)
 		else
 			tipText = "Click to become ally"
 		end
+	end
+end
+
+
+function ResourcesTip(mouseX, e, es, m, ms)
+	if mouseX >= widgetPosX + (m_resources.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then		
+		tipText = "\255\255\255\000"..e.."\n\255\255\255\255"..m..""
 	end
 end
 

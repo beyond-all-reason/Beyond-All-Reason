@@ -10,13 +10,13 @@
 
 function widget:GetInfo()
   return {
-    name      = "Ally Resource Bars",
+    name      = "Ally Resource Bars (old)",
     desc      = "Shows your allies resources and allows quick resource transfer",
     author    = "Floris (org by: TheFatController)",
     date      = "25 april 2015",
     license   = "MIT/x11",
     layer     = -9, 
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
