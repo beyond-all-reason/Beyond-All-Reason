@@ -1289,23 +1289,24 @@ function SortSpecs(vOffset)
 	-- Adds specs to the draw list
 	local playersList = Spring_GetPlayerList(_,true)
 	local noSpec = true
-	if specListShow == true then
-		for _,playerID in ipairs(playersList) do
-			_,active,spec = Spring_GetPlayerInfo(playerID)
-			if spec and active then
-				if player[playerID].name ~= nil then
-					
-					-- add "Specs" label if first spec
-					if noSpec == true then
-						vOffset = vOffset + 13
-						vOffset = vOffset + labelOffset - 2
-						table.insert(drawListOffset, vOffset)
-						table.insert(drawList, -5)
-						noSpec = false
-						vOffset = vOffset + 4					
-					end
-					
-					-- add spectator
+	for _,playerID in ipairs(playersList) do
+		_,active,spec = Spring_GetPlayerInfo(playerID)
+		if spec and active then
+			if player[playerID].name ~= nil then
+				
+				-- add "Specs" label if first spec
+				if noSpec == true then
+					vOffset = vOffset + 13
+					vOffset = vOffset + labelOffset - 2
+					table.insert(drawListOffset, vOffset)
+					table.insert(drawList, -5)
+					noSpec = false
+					specJoinedOnce = true
+					vOffset = vOffset + 4					
+				end
+				
+				-- add spectator
+				if specListShow == true then
 					vOffset = vOffset + specOffset
 					table.insert(drawListOffset, vOffset)
 					table.insert(drawList, playerID)
@@ -1314,13 +1315,17 @@ function SortSpecs(vOffset)
 				end
 			end
 		end
-	else
-		vOffset = vOffset + 12
+	end
+	
+	-- add "Specs" label
+	if specJoinedOnce and noSpec then
+		vOffset = vOffset + 13
 		vOffset = vOffset + labelOffset - 2
 		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, -5)	
-		vOffset = vOffset + 2				
+		table.insert(drawList, -5)
+		vOffset = vOffset + 4
 	end
+	
 	return vOffset
 end
 
