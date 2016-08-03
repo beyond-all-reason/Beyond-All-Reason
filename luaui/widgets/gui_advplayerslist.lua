@@ -504,7 +504,7 @@ modules = {
 
 m_point = {
 	active = true,
-	defaut = true,
+	defaut = true,			-- defaults dont seem to be accesible on widget data load
 	pic = pics["pointbPic"],
 }
 
@@ -1764,7 +1764,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			end
 		end
 		
-		if m_point.active == true then
+		if m_point.active then
 			if player[playerID].pointTime ~= nil then
 				if player[playerID].allyteam == myAllyTeamID or mySpecStatus == true then
 					--if blink == true then
@@ -2406,7 +2406,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 					t = true
 				else
 					t = false
-					if m_point.active == true then
+					if m_point.active  then
 						if i > -1 and i < 64 then
 							if clickedPlayer.pointTime ~= nil then
 								if right == true then
@@ -2521,7 +2521,7 @@ function widget:MousePress(x,y,button) --super ugly code here
 							end
 						end
 						--point
-						if m_point.active == true then
+						if m_point.active then
 							if clickedPlayer.pointTime ~= nil then
 								if clickedPlayer.allyteam == myAllyTeamID then
 									if right == true then
@@ -2836,7 +2836,7 @@ end
 
 function widget:GetConfigData(data)      -- save
 	if m_side ~= nil then
-	
+		
 		--put module.active into a table
 		local m_active_Table = {}
 		for n,module in pairs(modules) do
@@ -2856,17 +2856,15 @@ function widget:GetConfigData(data)      -- save
 			expandDown         = expandDown,
 			expandLeft         = expandLeft,
 			specListShow       = specListShow,
-			--not technically modules
 			m_pointActive      = m_point.active,
 			m_takeActive       = m_take.active,
 			m_seespecActive    = m_seespec.active,
-			--modules
 			m_active_Table	   = m_active_Table,
 			cpuText            = cpuText,
 			lockPlayerID       = lockPlayerID,
 			specListShow       = specListShow,
-			lastSystemData     = lastSystemData,
-			gameFrame          = Spring.GetGameFrame()
+			gameFrame          = Spring.GetGameFrame(),
+			lastSystemData     = lastSystemData
 		}
 		
 		return settings
@@ -2922,10 +2920,18 @@ function widget:SetConfigData(data)      -- load
 	end
 	
 	--not technically modules
-	m_point.active         = SetDefault(data.m_pointActive, m_point.default)
-	m_take.active          = SetDefault(data.m_takeActive, m_take.default)
-	m_seespec.active       = SetDefault(data.m_pointActive, m_seespec.default)
-	
+	m_point.active = true -- m_point.default doesnt work
+	if data.m_pointActive ~= nil then
+		m_point.active = data.m_pointActive
+	end
+	m_take.active = true -- m_take.default doesnt work
+	if data.m_takeActive ~= nil then
+		m_take.active = data.m_takeActive
+	end
+	m_seespec.active = true -- m_seespec.default doesnt work
+	if data.m_seespecActive ~= nil then
+		m_seespec.active = data.m_seespecActive
+	end
 	--load module.active from table
 	local m_active_Table = data.m_active_Table or {}
 	for name,active in pairs(m_active_Table) do
@@ -2935,7 +2941,10 @@ function widget:SetConfigData(data)      -- load
 				if name == "ally" then	-- needs to be always active (some aready stored it as false before, this makes sure its corrected)
 					module.active = true
 				else
-					module.active = SetDefault(active, module.default)
+					module.active = module.default
+					if active ~= nil then
+						module.active = active
+					end
 				end
 			end
 		end
@@ -2951,14 +2960,6 @@ end
 function widget:TextCommand(command)
 	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then 
 		cpuText = not cpuText
-	end
-end
-
-function SetDefault(value, default)
-	if value == nil then
-		return default
-	else
-		return value
 	end
 end
 
@@ -3222,7 +3223,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)
-	if m_point.active == true then
+	if m_point.active then
 		if cmdType == "point" then
 			player[playerID].pointX = px
 			player[playerID].pointY = py
