@@ -417,7 +417,6 @@ m_cpuping = {
 	position  = position,
 	posX      = 0,
 	pic       = pics["cpuPingPic"],
-	picGap    = 7,
 }
 position = position + 1
 
@@ -430,6 +429,7 @@ m_resources = {
 	position  = position,
 	posX      = 0,
 	pic       = pics["resourcesPic"],
+	picGap    = 7,
 }
 position = position + 1
 
