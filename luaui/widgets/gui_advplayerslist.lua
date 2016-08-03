@@ -947,16 +947,19 @@ function CreatePlayer(playerID)
 	tcpu     = tcpu  * 100  - ((tcpu  *  100) % 1)
 	
 	-- resources
-	local energy, energyStorage = Spring_GetTeamResources(tteam, "energy")
-	local metal, metalStorage = Spring_GetTeamResources(tteam, "metal")
-	energy = math.floor(energy)
-	metal = math.floor(metal)
-	if energy < 0 then energy = 0 end
-	if metal < 0 then metal = 0 end
+	local energy, energyStorage, metal, metalStorage = 0,1,0,1
+	if mySpecStatus or myAllyTeamID == tallyteam then
+		energy, energyStorage = Spring_GetTeamResources(tteam, "energy")
+		metal, metalStorage = Spring_GetTeamResources(tteam, "metal")
+		energy = math.floor(energy)
+		metal = math.floor(metal)
+		if energy < 0 then energy = 0 end
+		if metal < 0 then metal = 0 end
+	end
 	
 	return {
 		rank             = trank,
-		skill			 = tskill,
+		skill			       = tskill,
 		name             = tname,
 		team             = tteam,
 		allyteam         = tallyteam,
@@ -1023,14 +1026,16 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	end
 	
 	tskill = ""
-
-	local energy, energyStorage = Spring_GetTeamResources(teamID, "energy")
-	local metal, metalStorage = Spring_GetTeamResources(teamID, "metal")
-	energy = math.floor(energy)
-	metal = math.floor(metal)
-	if energy < 0 then energy = 0 end
-	if metal < 0 then metal = 0 end
 	
+	local energy, energyStorage, metal, metalStorage = 0,1,0,1
+	if mySpecStatus or myAllyTeamID == tallyteam then
+		energy, energyStorage = Spring_GetTeamResources(teamID, "energy")
+		metal, metalStorage = Spring_GetTeamResources(teamID, "metal")
+		energy = math.floor(energy)
+		metal = math.floor(metal)
+		if energy < 0 then energy = 0 end
+		if metal < 0 then metal = 0 end
+	end
 	return{
 		rank             = 8, -- "don't know which" value
 		skill			       = tskill,
@@ -1795,12 +1800,14 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 		end
 		
 		if m_resources.active and player[playerID].energy ~= nil then
+			if mySpecStatus or myAllyTeamID == player[playerID].allyteam then
 				local e = player[playerID].energy
 				local es = player[playerID].energyStorage
 				local m = player[playerID].metal
 				local ms = player[playerID].metalStorage
 				DrawResources(e, es, m, ms, posY)
 				if tipY == true then ResourcesTip(mouseX, e, es, m, ms) end
+			end
 		end
 	else -- spectator
 		gl_Color(1,1,1,1)
@@ -2680,7 +2687,7 @@ function widget:MouseMove(x,y,dx,dy,button)
 		if sliderOrigin == nil then
 			sliderOrigin = y
 		end
-		sliderPosition = y-sliderOrigin
+		sliderPosition = (y-sliderOrigin) * (1/widgetScale)
 		if sliderPosition < 0 then sliderPosition = 0 end
 		if sliderPosition > 39 then sliderPosition = 39 end
 		
