@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize. '/cputext' displays cpu %",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "18.0",
+		version   = "19.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -39,6 +39,7 @@ end
 -- v16	 (Floris): Added chips next to gambling-spectators for betting system
 -- v17	 (Floris): Added alliances display and button and /cputext option
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
+-- v19   (Floris): added player resource bars
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -2296,7 +2297,19 @@ end
 
 
 function ResourcesTip(mouseX, e, es, m, ms)
-	if mouseX >= widgetPosX + (m_resources.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then		
+	if mouseX >= widgetPosX + (m_resources.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then	
+		if e > 1000 then
+			e = math.floor(e / 100) * 100
+		else
+			e = math.floor(e / 10) * 10
+		end
+		if m > 1000 then
+			m = math.floor(m / 100) * 100
+		else
+			m = math.floor(m / 10) * 10
+		end
+		if e > 10000 then e = math.floor(e/1000).."k" end
+		if m > 10000 then e = math.floor(m/1000).."k" end
 		tipText = "\255\255\255\000"..e.."\n\255\255\255\255"..m..""
 	end
 end
