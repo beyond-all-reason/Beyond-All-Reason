@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/eraser.dds"
-local iconSize = 13
+local iconSize = 14
 
 local spGetGameFrame			= Spring.GetGameFrame
 local myPlayerID				= Spring.GetMyPlayerID()
@@ -104,7 +104,7 @@ function widget:DrawScreen()
 				if mouseover then
 					gl.Color(1,1,1,1)
 				else
-					gl.Color(1,1,1,0.5)
+					gl.Color(1,1,1,0.55)
 				end
 			glCallList(drawlist[1])
 		glPopMatrix()

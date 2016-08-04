@@ -1,20 +1,18 @@
 ﻿9.39 -> 9.40
-XX/08/2016
+04/08/2016
 
 Balance changes:
 - Damage of t2 Mobile Artillery vehicles increased by 10%
 - Units can walk through landed air units
 
 Other:
-- Advplayerlist: added player resources
-- "Ally Resource Bars" deafault disabled and renamed to "Ally Resource Bars (old)"
+- Advplayerlist: added player resource bars + moved trueskill value
+- "Ally Resource Bars" disabled and renamed to "Ally Resource Bars (old)"
 - Changed cursorsets to: 'old', 'old_150', 'bar', 'bar_133'
 - Fixed dead/unresponsive screen area (caused by ally selected units GUI)
-- RedUI console: filtered spec desyncs for others + connection attempts
-- Renamed "Adv. Unit Marker" to "Unit Marker" and disables when becoming spec
-- Advplayerlist: shows playername above system info tooltip
-- Advplayerlist: moved truskill value next to country flag
-- Critters no longer block units + follow coms when in close proximity
+- RedUI console: filtered connection attempts and spec desyncs (when its not you)
+- "Adv. Unit Marker" renamed to "Unit Marker" and disables when becoming spectator
+- Critters no longer block units + will follow commanders when in close proximity
 
 
 9.38 -> 9.39
