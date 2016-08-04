@@ -947,10 +947,10 @@ function CreatePlayer(playerID)
 	tcpu     = tcpu  * 100  - ((tcpu  *  100) % 1)
 	
 	-- resources
-	local energy, energyStorage, metal, metalStorage = 0,1,0,1
+	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0,1,0,1,0,0
 	if mySpecStatus or myAllyTeamID == tallyteam then
-		energy, energyStorage = Spring_GetTeamResources(tteam, "energy")
-		metal, metalStorage = Spring_GetTeamResources(tteam, "metal")
+		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(tteam, "energy")
+		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(tteam, "metal")
 		energy = math.floor(energy)
 		metal = math.floor(metal)
 		if energy < 0 then energy = 0 end
@@ -1027,15 +1027,17 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	
 	tskill = ""
 	
-	local energy, energyStorage, metal, metalStorage = 0,1,0,1
+	-- resources
+	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0,1,0,1,0,0
 	if mySpecStatus or myAllyTeamID == tallyteam then
-		energy, energyStorage = Spring_GetTeamResources(teamID, "energy")
-		metal, metalStorage = Spring_GetTeamResources(teamID, "metal")
+		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(teamID, "energy")
+		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(teamID, "metal")
 		energy = math.floor(energy)
 		metal = math.floor(metal)
 		if energy < 0 then energy = 0 end
 		if metal < 0 then metal = 0 end
 	end
+	
 	return{
 		rank             = 8, -- "don't know which" value
 		skill			       = tskill,
@@ -1064,15 +1066,17 @@ function UpdatePlayerResources()
 	for playerID,_ in pairs(player) do
 		if player[playerID].name and not player[playerID].spec and player[playerID].team then
 			if mySpecStatus or myAllyTeamID == player[playerID].allyteam then
-				energy, energyStorage = Spring_GetTeamResources(player[playerID].team, "energy")
-				metal, metalStorage = Spring_GetTeamResources(player[playerID].team, "metal")
+				energy, energyStorage,_, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
+				metal, metalStorage,_, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
 				energy = math.floor(energy)
 				metal = math.floor(metal)
 				if energy < 0 then energy = 0 end
 				if metal < 0 then metal = 0 end
 				player[playerID].energy = energy
+				player[playerID].energyIncome = energyIncome
 				player[playerID].energyStorage = energyStorage
 				player[playerID].metal = metal
+				player[playerID].metalIncome = metalIncome
 				player[playerID].metalStorage = metalStorage
 			end
 		end
@@ -1808,10 +1812,12 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			if mySpecStatus or myAllyTeamID == player[playerID].allyteam then
 				local e = player[playerID].energy
 				local es = player[playerID].energyStorage
+				local ei = player[playerID].energyIncome
 				local m = player[playerID].metal
 				local ms = player[playerID].metalStorage
+				local mi = player[playerID].metalIncome
 				DrawResources(e, es, m, ms, posY)
-				if tipY == true then ResourcesTip(mouseX, e, es, m, ms) end
+				if tipY == true then ResourcesTip(mouseX, e, es, ei, m, ms, mi) end
 			end
 		end
 	else -- spectator
@@ -2308,7 +2314,7 @@ function AllyTip(mouseX, playerID)
 end
 
 
-function ResourcesTip(mouseX, e, es, m, ms)
+function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 	if mouseX >= widgetPosX + (m_resources.posX  + 1) * widgetScale and mouseX <=  widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then	
 		if e > 1000 then
 			e = math.floor(e / 100) * 100
@@ -2320,9 +2326,24 @@ function ResourcesTip(mouseX, e, es, m, ms)
 		else
 			m = math.floor(m / 10) * 10
 		end
+		if ei == nil then
+			ei = 0
+			mi = 0
+		end
+		ei = math.floor(ei)
+		mi = math.floor(mi)
+		if ei > 1000 then
+			ei = math.floor(ei / 100) * 100
+		elseif ei > 100 then
+			ei = math.floor(ei / 10) * 10
+		end
+		if mi > 200 then
+			mi = math.floor(mi / 10) * 10
+		end
 		if e > 10000 then e = math.floor(e/1000).."k" end
 		if m > 10000 then e = math.floor(m/1000).."k" end
-		tipText = "\255\255\255\000"..e.."\n\255\255\255\255"..m..""
+		tipText = "\255\255\255\000+"..ei.."\n"..e.."\n\255\255\255\255"..m.."\n+ "..mi
+		--tipText = "\255\255\255\000"..e.."\n\255\255\255\255"..m.."\n\255\255\255\000+"..ei.."\n\255\255\255\255+"..mi
 	end
 end
 
