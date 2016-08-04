@@ -4,6 +4,7 @@ XX/08/2016
 Balance changes:
 
 Other:
+- Fixed critters code
 
 
 9.39 -> 9.40
