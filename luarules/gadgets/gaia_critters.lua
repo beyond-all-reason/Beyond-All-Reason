@@ -439,6 +439,7 @@ end
 local companionPlayers = {"UnnamedPlayer", "[teh]Lucy", "[teh]Flow", "[teh]decay"}
 function addCompanionCritters()
   local allUnits = Spring.GetAllUnits()
+	local critterTypes = {"critter_penguin", "critter_penguin", "critter_duck"}
   for _, unitID in pairs(allUnits) do
     local unitDefID = GetUnitDefID(unitID)
     if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
@@ -448,7 +449,6 @@ function addCompanionCritters()
 		  local players = Spring.GetPlayerList(team)
 		  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
 		  local found = false
-		  local critterTypes = {"critter_penguin", "critter_penguin", "critter_duck"}
 		  for _, cname in pairs(companionPlayers) do
 		  	if cname == name then found = true end
 		  end
