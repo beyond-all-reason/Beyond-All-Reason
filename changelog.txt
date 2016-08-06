@@ -2,7 +2,7 @@
 06/08/2016
 
 - Added "Idle Builders" widget (disabled by default)
-- Fixed critters code (broke chicken defence on maps with critters)
+- Fixed critters code (it broke chicken defence not starting on maps with critters)
 
 
 9.39 -> 9.40
