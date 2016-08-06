@@ -22,7 +22,7 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 500					-- starting removing critters at this total unit count
+local minTotalUnits			= 700					-- starting removing critters at this total unit count
 local maxTotalunits			= 1700				-- finished removing critters at this total unit count
 local minimumCritters		= 0.18				-- dont remove further than (0.1 == 10%) of critters
 local minCritters				= (Game.mapSizeX*Game.mapSizeZ)/3000000				-- dont remove below this amount
