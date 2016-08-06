@@ -5,6 +5,7 @@ function CommanderBehaviour:Name()
 end
 
 local CMD_GUARD = 25
+local CMD_PATROL = 15
 
 function CommanderBehaviour:Init()
 	self.DebugEnabled = false
@@ -71,7 +72,19 @@ function CommanderBehaviour:MoveToSafety()
 end
 
 function CommanderBehaviour:HelpFactory()
-	CustomCommand(self.unit:Internal(), CMD_GUARD, {self.factoryToHelp:ID()})
+	local factPos = self.factoryToHelp:GetPosition()
+	local angle = math.random() * twicePi
+	self.unit:Internal():Move(RandomAway(factPos, 200, nil, angle))
+	for i = 1, 3 do
+		local a = AngleAdd(angle, halfPi*i)
+		local pos = RandomAway(factPos, 200, nil, a)
+		local floats = api.vectorFloat()
+		floats:push_back(pos.x)
+		floats:push_back(pos.y)
+		floats:push_back(pos.z)
+		self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
+	end
+	-- CustomCommand(self.unit:Internal(), CMD_GUARD, {self.factoryToHelp:ID()})
 end
 
 function CommanderBehaviour:FindSafeHouse()

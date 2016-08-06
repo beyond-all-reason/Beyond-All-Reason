@@ -201,7 +201,7 @@ function BuildWithLimitedNumber(tmpUnitName, minNumber)
 	end
 end
 
-function GroundDefenseIfNeeded(unitName, builder)
+function GroundDefenseIfNeeded(unitName)
 	if not ai.needGroundDefense then
 		return DummyUnitName
 	else
@@ -331,7 +331,7 @@ local anyCommander = {
 	CommanderEconomy,
 	BuildLLT,
 	BuildRadar,
-	BuildLightAA,
+	CommanderAA,
 	BuildPopTorpedo,
 	BuildSonar,
 }
@@ -490,8 +490,8 @@ local anyAmphibiousComplex = {
 }
 
 local anyLvl2VehPlant = {
-	Lvl2VehRaider,
 	ConAdvVehicle,
+	Lvl2VehRaider,
 	Lvl2VehBattle,
 	Lvl2VehBreakthrough,
 	Lvl2VehArty,
@@ -587,19 +587,6 @@ local anyOutmodedLvl2VehPlant = {
 	Lvl2VehAssist,
 	ConAdvVehicle,
 	Lvl2AAVeh,
-}
-
-local anyLvl1VehPlantForWater = {
-	ScoutVeh,
-	AmphibiousRaider,
-	ConVehicleAmphibious,
-	Lvl1AAVeh,
-}
-
--- use these if it's a watery map
-wateryTaskqueues = {
-	armvp = anyLvl1VehPlantForWater,
-	corvp = anyLvl1VehPlantForWater,
 }
 
 -- fall back to these when a level 2 factory exists

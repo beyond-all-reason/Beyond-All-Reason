@@ -1,18 +1,24 @@
- DebugEnabled = false
+tHandler = class(Module)
+
+function TargetHandler:Name()
+	return "TargetHandler"
+end
+
+function TargetHandler:internalName()
+	return "targethandler"
+end
+
 local DebugDrawEnabled = false
 
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("TargetHandler: " .. inStr)
-	end
-end
+local mSqrt = math.sqrt
+local mFloor = math.floor
+local mCeil = math.ceil
 
 local function PlotSquareDebug(x, z, size, color, label, filled)
 	if DebugDrawEnabled then
-		x = math.ceil(x)
-		z = math.ceil(z)
-		size = math.ceil(size)
+		x = mCeil(x)
+		z = mCeil(z)
+		size = mCeil(size)
 		local halfSize = size / 2
 		local pos1, pos2 = api.Position(), api.Position()
 		pos1.x, pos1.z = x - halfSize, z - halfSize
@@ -21,24 +27,10 @@ local function PlotSquareDebug(x, z, size, color, label, filled)
 	end
 end
 
-TargetHandler = class(Module)
-
-local sqrt = math.sqrt
-local floor = math.floor
-local ceil = math.ceil
-
-local function round(num) 
-	if num >= 0 then
-		return floor(num+.5) 
-	else
-		return ceil(num-.5)
-	end
-end
-
 local function dist2d(x1, z1, x2, z2)
 	local xd = x1 - x2
 	local yd = z1 - z2
-	local dist = sqrt(xd*xd + yd*yd)
+	local dist = mSqrt(xd*xd + yd*yd)
 	return dist
 end
 
@@ -56,7 +48,7 @@ local wreckMult = 100
 local vulnerableReclaimDistMod = 100
 local badCellThreat = 300
 local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less distance matters
-local reclaimModMult = 0.25 -- how much does the cell's metal & energy modify the distance to the cell for reclaim cells
+local reclaimModMult = 0.5 -- how much does the cell's metal & energy modify the distance to the cell for reclaim cells
 
 local factoryValue = 1000
 local conValue = 300
@@ -155,15 +147,42 @@ local function CellValueThreat(unitName, cell)
 end
 
 local function GetCellPosition(pos)
-	local px = ceil(pos.x / cellElmos)
-	local pz = ceil(pos.z / cellElmos)
+	local px = mCeil(pos.x / cellElmos)
+	local pz = mCeil(pos.z / cellElmos)
 	return px, pz
+end
+
+function TargetHandler:Init()
+	self.DebugEnabled = false
+
+	self.enemyAlreadyCounted = {}
+	self.currentEnemyThreatCount = 0
+	self.currentEnemyImmobileThreatCount = 0
+	self.currentEnemyMobileThreatCount = 0
+	self.cells = {}
+	self.cellList = {}
+	self.badPositions = {}
+	self.dangers = {}
+
+	self.ai.enemyMexSpots = {}
+	self.ai.totalEnemyThreat = 10000
+	self.ai.totalEnemyImmobileThreat = 5000
+	self.ai.totalEnemyMobileThreat = 5000
+	self.ai.needGroundDefense = true
+	self.ai.areLandTargets = true
+	self.ai.canNuke = true
+	self:InitializeDangers()
+	self.lastEnemyThreatUpdateFrame = 0
+	self.feints = {}
+	self.raiderCounted = {}
+	self.lastUpdateFrame = 0
+	self.pathModifierFuncs = {}
 end
 
 function TargetHandler:GetCellHere(pos)
 	local px, pz = GetCellPosition(pos)
 	if self.cells[px] then
-		return self.cells[px][pz]
+		return self.cells[px][pz], px, pz
 	end
 end
 
@@ -180,20 +199,12 @@ function TargetHandler:GetOrCreateCellHere(pos)
 	return self.cells[px][pz]
 end
 
-function TargetHandler:Name()
-	return "TargetHandler"
-end
-
-function TargetHandler:internalName()
-	return "targethandler"
-end
-
 function TargetHandler:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
-	-- EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
+	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
 	for ix = x, tx do
 		if self.cells[ix] == nil then self.cells[ix] = {} end
 		if self.cells[ix][z] == nil then
-			-- EchoDebug("new cell" .. ix .. "," .. z)
+			-- self:EchoDebug("new cell" .. ix .. "," .. z)
 			self.cells[ix][z] = NewCell(ix, z)
 		end
 		self.cells[ix][z][threatResponse][groundAirSubmerged] = self.cells[ix][z][threatResponse][groundAirSubmerged] + val
@@ -208,7 +219,7 @@ function TargetHandler:Plot4(cx, cz, x, z, threatResponse, groundAirSubmerged, v
 end 
 
 function TargetHandler:FillCircle(cx, cz, radius, threatResponse, groundAirSubmerged, val)
-	local radius = math.ceil(radius / cellElmos)
+	local radius = mCeil(radius / cellElmos)
 	if radius > 0 then
 		local err = -radius
 		local x = radius
@@ -230,7 +241,7 @@ function TargetHandler:FillCircle(cx, cz, radius, threatResponse, groundAirSubme
 end
 
 function TargetHandler:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmerged)
-	-- EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " in " .. groundAirSubmerged)
+	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " in " .. groundAirSubmerged)
 	local value = 0
 	local threat = 0
 	for ix = x, tx do
@@ -261,7 +272,7 @@ function TargetHandler:Check4(cx, cz, x, z, threatResponse, groundAirSubmerged)
 end 
 
 function TargetHandler:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmerged)
-	local radius = math.ceil(radius / cellElmos)
+	local radius = mCeil(radius / cellElmos)
 	local value = 0
 	local threat = 0
 	if radius > 0 then
@@ -307,7 +318,7 @@ function TargetHandler:CountDanger(layer, id)
 	local danger = self.dangers[layer]
 	if not danger.alreadyCounted[id] then
 		danger.count = danger.count + 1
-		EchoDebug("spotted " .. layer .. " threat")
+		self:EchoDebug("spotted " .. layer .. " threat")
 		danger.alreadyCounted[id] = true
 	end
 end
@@ -385,9 +396,9 @@ function TargetHandler:UpdateDangers()
 			danger.obsolesce = f + danger.duration
 			danger.count = 0
 			danger.alreadyCounted = {}
-			EchoDebug(layer .. " danger present")
+			self:EchoDebug(layer .. " danger present")
 		elseif danger.present and f >= danger.obsolesce then
-			EchoDebug(layer .. " obsolete")
+			self:EchoDebug(layer .. " obsolete")
 			danger.present = false
 		end
 	end
@@ -513,6 +524,14 @@ function TargetHandler:UpdateEnemies()
 	else
 		self.enemyBaseCell = nil
 		self.ai.enemyBasePosition = nil
+	end
+end
+
+function TargetHandler:UpdateDamagedUnits()
+	for unitID, engineUnit in pairs(self.ai.damagehandler:GetDamagedUnits()) do
+		local cell = self:GetOrCreateCellHere(engineUnit:GetPosition())
+		cell.damagedUnits = cell.damagedUnits or {}
+		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
 	end
 end
 
@@ -662,48 +681,34 @@ function TargetHandler:UpdateDebug()
 	end
 end
 
---[[
-function TargetHandler:UnitDamaged(unit, attacker,damage)
+function TargetHandler:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
-	-- but attacker is nil if it's an enemy unit, so this is useless
-	if attacker ~= nil then
-		local attackerName = attacker:Name()
-		local attackerID = attacker:ID()
-		self:DangerCheck(attackerName, attackerID)
+	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
+	if attacker ~= nil and self.ai.loshandler:IsKnownEnemy(attacker) ~= 2 then
+		self:DangerCheck(attacker:Name(), attacker:ID())
+		local mtype
+		local ut = unitTable[unit:Name()]
+		if ut then
+			local threat = damage
+			local aut = unitTable[attacker:Name()]
+			if aut then
+				if aut.isBuilding then
+					self.ai.loshandler:KnowEnemy(attacker)
+					return
+				end
+				threat = aut.metalCost
+			end
+			self:AddBadPosition(unit:GetPosition(), ut.mtype, threat, 900)
+		end
 	end
-end
-]]--
-
-function TargetHandler:Init()
-	self.enemyAlreadyCounted = {}
-	self.currentEnemyThreatCount = 0
-	self.currentEnemyImmobileThreatCount = 0
-	self.currentEnemyMobileThreatCount = 0
-	self.cells = {}
-	self.cellList = {}
-	self.badPositions = {}
-	self.dangers = {}
-
-	self.ai.enemyMexSpots = {}
-	self.ai.totalEnemyThreat = 10000
-	self.ai.totalEnemyImmobileThreat = 5000
-	self.ai.totalEnemyMobileThreat = 5000
-	self.ai.needGroundDefense = true
-	self.ai.areLandTargets = true
-	self.ai.canNuke = true
-	self:InitializeDangers()
-	self.lastEnemyThreatUpdateFrame = 0
-	self.feints = {}
-	self.raiderCounted = {}
-	self.lastUpdateFrame = 0
 end
 
 function TargetHandler:Update()
 	local f = game:Frame()
 	if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then
 		-- store and reset the threat count
-		-- EchoDebug(self.currentEnemyThreatCount .. " enemy threat last 2000 frames")
-		EchoDebug(self.currentEnemyThreatCount)
+		-- self:EchoDebug(self.currentEnemyThreatCount .. " enemy threat last 2000 frames")
+		self:EchoDebug(self.currentEnemyThreatCount)
 		self.ai.totalEnemyThreat = self.currentEnemyThreatCount
 		self.ai.totalEnemyImmobileThreat = self.currentEnemyImmobileThreatCount
 		self.ai.totalEnemyMobileThreat = self.currentEnemyMobileThreatCount
@@ -716,8 +721,8 @@ function TargetHandler:Update()
 end
 
 function TargetHandler:AddBadPosition(position, mtype, threat, duration)
-	if threat == nil then threat = badCellThreat end
-	if duration == nil then duration = 1800 end
+	threat = threat or badCellThreat
+	duration = duration or 1800
 	local px, pz = GetCellPosition(position)
 	local gas = WhatHurtsUnit(nil, mtype, position)
 	local f = game:Frame()
@@ -747,6 +752,7 @@ function TargetHandler:UpdateMap()
 		self:UpdateDangers()
 		self:UpdateBadPositions()
 		self:UpdateWrecks()
+		self:UpdateDamagedUnits()
 		-- self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
@@ -815,7 +821,7 @@ function TargetHandler:GetBestRaidCell(representative)
 	local rname = representative:Name()
 	local maxThreat = baseUnitThreat
 	local rthreat, rrange = ThreatRange(rname)
-	EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best
 	local bestDist = 99999
@@ -851,16 +857,17 @@ function TargetHandler:RaidableCell(representative, position)
 	local rname = representative:Name()
 	local maxThreat = baseUnitThreat
 	local rthreat, rrange = ThreatRange(rname)
-	EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
-	-- EchoDebug(value .. " " .. threat)
+	-- self:EchoDebug(value .. " " .. threat)
 	if threat <= maxThreat then
 		return cell
 	end
 end
 
-function TargetHandler:GetBestAttackCell(representative)
+function TargetHandler:GetBestAttackCell(representative, position, ourThreat)
 	if not representative then return end
+	position = position or representative:GetPosition()
 	self:UpdateMap()
 	local bestValueCell
 	local bestValue = -999999
@@ -869,9 +876,9 @@ function TargetHandler:GetBestAttackCell(representative)
 	local bestThreatCell
 	local bestThreat = 0
 	local name = representative:Name()
-	local rpos = representative:GetPosition()
 	local longrange = unitTable[name].groundRange > 1000
 	local mtype = unitTable[name].mtype
+	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhandler:GetCounter(mtype)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local possibilities = {}
 	local highestDist = 0
@@ -880,7 +887,7 @@ function TargetHandler:GetBestAttackCell(representative)
 		if cell.pos then
 			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
-				local dist = Distance(rpos, cell.pos)
+				local dist = Distance(position, cell.pos)
 				if dist > highestDist then highestDist = dist end
 				if dist < lowestDist then lowestDist = dist end
 				table.insert(possibilities, { cell = cell, value = value, threat = threat, dist = dist })
@@ -891,22 +898,24 @@ function TargetHandler:GetBestAttackCell(representative)
 	for i, pb in pairs(possibilities) do
 		local fraction = 1.5 - ((pb.dist - lowestDist) / distRange)
 		local value = pb.value * fraction
-		local threat = pb.threat
+		local threat = pb.threat * fraction
 		if pb.value > 750 then
-			value = 0 - threat
+			value = value - (threat * 0.5)
 			if value > bestValue then
 				bestValueCell = pb.cell
 				bestValue = value
 			end
 		elseif pb.value > 0 then
-			value = 0 - threat
+			value = value - (threat * 0.5)
 			if value > bestAnyValue then
 				bestAnyValueCell = pb.cell
 				bestAnyValue = value
 			end
-		elseif threat > bestThreat then
-			bestThreatCell = pb.cell
-			bestThreat = threat
+		else
+			if threat > bestThreat then
+				bestThreatCell = pb.cell
+				bestThreat = threat
+			end
 		end
 	end
 	local best
@@ -923,6 +932,44 @@ function TargetHandler:GetBestAttackCell(representative)
 	end
 	self.lastAttackCell = best
 	return best
+end
+
+function TargetHandler:GetNearestAttackCell(representative, position, ourThreat)
+	if not representative then return end
+	position = position or representative:GetPosition()
+	self:UpdateMap()
+	local name = representative:Name()
+	local longrange = unitTable[name].groundRange > 1000
+	local mtype = unitTable[name].mtype
+	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhandler:GetCounter(mtype)
+	if mtype ~= "sub" and longrange then longrange = true end
+	local lowestDistValueable
+	local lowestDistThreatening
+	local closestValuableCell
+	local closestThreateningCell
+	for i, cell in pairs(self.cellList) do
+		if cell.pos then
+			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
+				local value, threat = CellValueThreat(name, cell)
+				if threat <= ourThreat * 0.67 then
+					if value > 0 then
+						local dist = Distance(position, cell.pos)
+						if not lowestDistValueable or dist < lowestDistValueable then
+							lowestDistValueable = dist
+							closestValuableCell = cell
+						end
+					elseif threat > 0 then
+						local dist = Distance(position, cell.pos)
+						if not lowestDistThreatening or dist < lowestDistThreatening then
+							lowestDistThreatening = dist
+							closestThreateningCell = cell
+						end
+					end
+				end
+			end
+		end
+	end
+	return closestValuableCell or closestThreateningCell
 end
 
 function TargetHandler:GetBestNukeCell()
@@ -1020,9 +1067,9 @@ function TargetHandler:GetBestBomberTarget(torpedo)
 		local target = best.explosiveTarget
 		if target == nil then
 			if torpedo then
-				target = best.targets.air.submerged
+				target = best.targets.air.submerged.unit
 			else
-				target = best.targets.air.ground
+				target = best.targets.air.ground.unit
 			end
 		end
 		return target
@@ -1030,7 +1077,6 @@ function TargetHandler:GetBestBomberTarget(torpedo)
 end
 
 function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
-	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
 	local rname = representative:Name()
@@ -1040,12 +1086,27 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
-			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
-				local mod
-				if lookForEnergy then
-					mod = cell.energy
-				else
-					mod = cell.metal
+			local canGo = self.ai.maphandler:UnitCanGoHere(representative, cell.pos)
+			if not canGo then
+				self:EchoDebug("can't get to reclaim cell, trying nearby")
+				-- check nearby positions, because sometimes the commander is underwater in a crater but can still be reclaimed
+				for angle = halfPi, twicePi, halfPi do
+					local nearPos = RandomAway(cell.pos, 110, nil, angle)
+					canGo = self.ai.maphandler:UnitCanGoHere(representative, nearPos)
+					if canGo then
+						self:EchoDebug("found accessible position near reclaim cell")
+						break
+					end
+				end
+			end
+			if canGo then
+				local mod = 0
+				if #cell.reclaimables > 0 then
+					if lookForEnergy then
+						mod = cell.energy
+					else
+						mod = cell.metal
+					end
 				end
 				local vulnerable = CellVulnerable(cell, gas, representative.canReclaimGAS)
 				if vulnerable then mod = mod + vulnerableReclaimDistMod end
@@ -1063,7 +1124,7 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 	return best, bestVulnerable
 end
 
-function TargetHandler:WreckToResurrect(representative)
+function TargetHandler:WreckToResurrect(representative, alsoDamagedUnits)
 	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
@@ -1071,7 +1132,7 @@ function TargetHandler:WreckToResurrect(representative)
 	local best
 	local bestDist = 99999
 	for i, cell in pairs(self.cellList) do
-		if #cell.resurrectables ~= 0 then
+		if #cell.resurrectables ~= 0 or (alsoDamagedUnits and cell.damagedUnits and #cell.damagedUnits > 0) then
 			local value, threat, gas = CellValueThreat(rname, cell)
 			if threat == 0 and cell.pos then
 				if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
@@ -1085,7 +1146,23 @@ function TargetHandler:WreckToResurrect(representative)
 		end
 	end
 	if best then
-		EchoDebug("got wreck to resurrect")
+		self:EchoDebug("got wreck to resurrect")
+		if alsoDamagedUnits and best.damagedUnits and #best.damagedUnits > 0 then
+			local bestUnit
+			local bestHealth
+			local damaged = best.damagedUnits
+			for i = 1, #damaged do
+				local engUnit = damaged[i]
+				local health = engUnit:GetHealth() / engUnit:GetMaxHealth()
+				if not bestHealth or health < bestHealth then
+					bestHealth = health
+					bestUnit = engUnit
+				end
+			end
+			if bestUnit then
+				return bestUnit, best
+			end
+		end
 		local bestWreck
 		local bestMetalCost = 0
 		for i, w in pairs(best.resurrectables) do
@@ -1149,30 +1226,97 @@ function TargetHandler:IsBombardPosition(position, unitName)
 	end
 end
 
-function TargetHandler:IsSafePosition(position, unit, threshold)
+function TargetHandler:ValueHere(position, unitOrName)
 	self:UpdateMap()
-	if unit == nil then
-		game:SendToConsole("nil unit given to IsSafePosition")
+	if unitOrName == nil then
+		game:SendToConsole("nil unit or name given to ThreatHere")
 		return
 	end
 	local uname
-	if type(unit) == 'string' then
-		uname = unit
+	if type(unitOrName) == 'string' then
+		uname = unitOrName
 	else
-		uname = unit:Name()
+		uname = unitOrName:Name()
 	end
 	if uname == nil then
-		game:SendToConsole("nil unit name give nto IsSafePosition")
+		game:SendToConsole("nil unit name give nto ThreatHere")
 		return
 	end
-	local cell = self:GetCellHere(position)
-	if cell == nil then return 0, 0 end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
+	local value, _ = CellValueThreat(uname, cell)
+	return value, cell, uname
+end
+
+function TargetHandler:ThreatHere(position, unitOrName, adjacent)
+	self:UpdateMap()
+	if unitOrName == nil then
+		game:SendToConsole("nil unit or name given to ThreatHere")
+		return
+	end
+	local uname
+	if type(unitOrName) == 'string' then
+		uname = unitOrName
+	else
+		uname = unitOrName:Name()
+	end
+	if uname == nil then
+		game:SendToConsole("nil unit name give nto ThreatHere")
+		return
+	end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
 	local value, threat = CellValueThreat(uname, cell)
+	if adjacent then
+		for cx = px-1, px+1 do
+			if self.cells[cx] then
+				for cz = pz-1, pz+1 do
+					if not (cx == px and cz == pz) then
+						local c = self.cells[cx][cz]
+						if c then
+							local cvalue, cthreat = CellValueThreat(uname, c)
+							threat = threat + cthreat
+						end
+					end
+				end
+			end
+		end
+	end
+	return threat, cell, uname
+end
+
+
+function TargetHandler:IsSafePosition(position, unit, threshold, adjacent)
+	local threat, cell, uname = self:ThreatHere(position, unit, adjacent)
+	if not cell then
+		return true
+	end
 	if threshold then
 		return threat < unitTable[uname].metalCost * threshold, cell.response
 	else
 		return threat == 0, cell.response
 	end
+end
+
+function TargetHandler:GetPathModifierFunc(unitName, adjacent)
+	if self.pathModifierFuncs[unitName] then
+		return self.pathModifierFuncs[unitName]
+	end
+	local divisor = unitTable[unitName].metalCost / 40
+	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
+		local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor
+		if distanceToGoal then
+			if distanceToGoal <= 500 then
+				return 0
+			else
+				return threatMod * ((distanceToGoal  - 500) / 1000)
+			end
+		else
+			return threatMod
+		end
+	end
+	self.pathModifierFuncs[unitName] = modifier_node_func
+	return modifier_node_func
 end
 
 -- for on-the-fly enemy evasion
@@ -1192,7 +1336,7 @@ function TargetHandler:BestAdjacentPosition(unit, targetPosition)
 	local f = game:Frame()
 	local maxThreat = baseUnitThreat
 	local uthreat, urange = ThreatRange(uname)
-	EchoDebug(uname .. ": " .. uthreat .. " " .. urange)
+	self:EchoDebug(uname .. ": " .. uthreat .. " " .. urange)
 	if uthreat > maxThreat then maxThreat = uthreat end
 	local doubleUnitRange = urange * 2
 	for x = px - 1, px + 1 do
@@ -1287,4 +1431,30 @@ function TargetHandler:RaiderHere(raidbehaviour)
 		end
 	end
 	self.raiderCounted[raidbehaviour.id] = true -- reset with UpdateMap()
+end
+
+-- so that reclaimers don't try to reclaim a cell with nothing in it
+function TargetHandler:RemoveFeature(feature, position)
+	local px, pz = GetCellPosition(position)
+	local cell
+	if self.cells[px] then
+		cell = self.cells[px][pz]
+	end
+	if not cell then
+		return
+	end
+	for i = #cell.reclaimables, 1, -1 do
+		local recFeature = cell.reclaimables[i].feature
+		if recFeature == feature then
+			table.remove(cell.reclaimables, i)
+			return true
+		end
+	end
+	for i = #cell.resurrectables, 1, -1 do
+		local resFeature = cell.resurrectables[i].feature
+		if resFeature == feature then
+			table.remove(cell.resurrectables, i)
+			return true
+		end
+	end
 end

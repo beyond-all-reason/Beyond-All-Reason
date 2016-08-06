@@ -36,6 +36,22 @@ local function MaxBuildDist(unitName, speed)
 	return speedDist
 end
 
+function TaskQueueBehaviour:GetAmpOrGroundWeapon()
+	if ai.enemyBasePosition then
+		if ai.maphandler:MobilityNetworkHere('veh', self.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', self.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
+			EchoDebug('canbuild amphibious because of enemyBasePosition')
+			return true
+		end
+	end
+	local mtype = factoryMobilities[self.name][1]
+	local network = ai.maphandler:MobilityNetworkHere(mtype, self.position)
+	if not network or not ai.factoryBuilded[mtype] or not ai.factoryBuilded[mtype][network] then
+		EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+		return true
+	end
+	return false
+end
+
 function TaskQueueBehaviour:CategoryEconFilter(value)
 	if value == nil then return DummyUnitName end
 	if value == DummyUnitName then return DummyUnitName end
@@ -198,7 +214,6 @@ function TaskQueueBehaviour:HasQueues()
 end
 
 function TaskQueueBehaviour:OwnerBuilt()
-	self.ai.factorybuildershandler:UpdateFactories()
 	if self:IsActive() then self.progress = true end
 end
 
@@ -227,7 +242,6 @@ function TaskQueueBehaviour:OwnerDead()
 		ai.assisthandler:Release(nil, self.id, true)
 		ai.buildsitehandler:ClearMyPlans(self)
 		ai.buildsitehandler:ClearMyConstruction(self)
-		self.ai.factorybuildershandler:UpdateFactories()
 	end
 end
 
@@ -490,11 +504,7 @@ function TaskQueueBehaviour:GetQueue()
 	if self.isFactory and ai.factoryUnderConstruction and ( ai.Metal.full < 0.5 or ai.Energy.full < 0.5) then
 		q = {}
 	end
-	if not q and wateryTaskqueues[self.name] ~= nil then
-		if ai.mobRating["shp"] * 0.5 > ai.mobRating["veh"] then
-			q = wateryTaskqueues[self.name]
-		end
-	end
+	
 	self.outmodedTechLevel = false
 	local uT = unitTable
 	if outmodedTaskqueues[self.name] ~= nil and not q then 
@@ -551,6 +561,10 @@ function TaskQueueBehaviour:Update()
 		return
 	end
 	local f = game:Frame()
+	if self.isFactory and f % 311 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
+		self.AmpOrGroundWeapon = self:GetAmpOrGroundWeapon()
+	end
+		
 	-- watchdog check
 	if not self.constructing and not self.isFactory then
 		if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then

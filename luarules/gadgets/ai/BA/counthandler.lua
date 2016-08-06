@@ -24,7 +24,6 @@ function CountHandler:Init()
 	self.ai.mexCount = 0
 	self.ai.conCount = 0
 	self.ai.conList = {}
-	self.ai.army = 0
 	self.ai.combatCount = 0
 	self.ai.battleCount = 0
 	self.ai.breakthroughCount = 0
@@ -35,7 +34,8 @@ function CountHandler:Init()
 	self.ai.assistCount = 0
 	self.ai.nanoList = {}
 	
-	self.ai.mtypeLvCount= {}
+	self.ai.mtypeLvCount = {}
+	self.ai.mtypeCount = {veh = 0, bot = 0, air = 0, shp = 0, sub = 0, amp = 0, hov = 0 }
 	
 	self:InitializeNameCounts()
 end

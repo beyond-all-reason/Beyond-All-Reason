@@ -452,6 +452,8 @@ advConList = {
 	armacv = 1,
 	coraca = 1,
 	armaca = 1,
+	coracsub = 1,
+	armacsub = 1,
 }
 
 groundFacList = {

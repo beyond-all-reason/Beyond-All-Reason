@@ -46,24 +46,32 @@ function ConVehicle()
 end
 
 function Lvl1VehBreakthrough(tskqbhvr)
-	if MyTB.side == CORESideName then
-		return BuildBreakthroughIfNeeded("corlevlr")
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl1Amphibious(tskqbhvr)
 	else
-		-- armjanus isn't very a very good defense unit by itself
-		local output = BuildSiegeIfNeeded("armjanus")
-		if output == DummyUnitName then
-			output = BuildBreakthroughIfNeeded("armstump")
+		if MyTB.side == CORESideName then
+			return BuildBreakthroughIfNeeded("corlevlr")
+		else
+			-- armjanus isn't very a very good defense unit by itself
+			local output = BuildSiegeIfNeeded("armjanus")
+			if output == DummyUnitName then
+				output = BuildBreakthroughIfNeeded("armstump")
+			end
+			return output
 		end
-		return output
 	end
 end
 
-function Lvl1VehArty()
-	local unitName = ""
-	if MyTB.side == CORESideName then
-		unitName = "corwolv"
+function Lvl1VehArty(tskqbhvr)
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl1Amphibious(tskqbhvr)
 	else
-		unitName = "tawf013"
+		if MyTB.side == CORESideName then
+			unitName = "corwolv"
+		else
+			unitName = "tawf013"
+		end
 	end
 	return BuildSiegeIfNeeded(unitName)
 end
@@ -78,31 +86,53 @@ function AmphibiousRaider(tskqbhvr)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl1VehRaider(tskqbhvr)
+function Lvl1Amphibious(tskqbhvr)
 	local unitName = ""
 	if MyTB.side == CORESideName then
-		unitName = "corgator"
+		unitName = "corgarp"
 	else
-		unitName = "armflash"
+		unitName = "armpincer"
+	end
+	return unitName
+end
+
+function Lvl1VehRaider(tskqbhvr)
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl1Amphibious(tskqbhvr)
+	else
+		if MyTB.side == CORESideName then
+			unitName = "corgator"
+		else
+			unitName = "armflash"
+		end
 	end
 	return BuildRaiderIfNeeded(unitName)
 end
 
 function Lvl1VehBattle(tskqbhvr)
-	local unitName = ""
-	if MyTB.side == CORESideName then
-		unitName = "corraid"
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl1Amphibious(tskqbhvr)
 	else
-		unitName = "armstump"
+		if MyTB.side == CORESideName then
+			unitName = "corraid"
+		else
+			unitName = "armstump"
+		end
 	end
 	return BuildBattleIfNeeded(unitName)
 end
 
 function Lvl1VehRaiderOutmoded(tskqbhvr)
-	if MyTB.side == CORESideName then
-		return BuildRaiderIfNeeded("corgator")
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl1Amphibious(tskqbhvr)
 	else
-		return DummyUnitName
+		if MyTB.side == CORESideName then
+			return BuildRaiderIfNeeded("corgator")
+		else
+			return DummyUnitName
+		end
 	end
 end
 
@@ -148,25 +178,33 @@ function Lvl2VehAssist()
 end
 
 function Lvl2VehBreakthrough(tskqbhvr)
-	local unitName = ""
-	if MyTB.side == CORESideName then
-		return BuildBreakthroughIfNeeded("corgol")
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl2Amphibious(tskqbhvr)
 	else
-		-- armmanni isn't very a very good defense unit by itself
-		local output = BuildSiegeIfNeeded("armmanni")
-		if output == DummyUnitName then
-			output = BuildBreakthroughIfNeeded("armbull")
+		if MyTB.side == CORESideName then
+			return BuildBreakthroughIfNeeded("corgol")
+		else
+			-- armmanni isn't very a very good defense unit by itself
+			local output = BuildSiegeIfNeeded("armmanni")
+			if output == DummyUnitName then
+				output = BuildBreakthroughIfNeeded("armbull")
+			end
+			return output
 		end
-		return output
 	end
 end
 
 function Lvl2VehArty(tskqbhvr)
-	local unitName = ""
-	if MyTB.side == CORESideName then
-		unitName = "cormart"
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl2Amphibious(tskqbhvr)
 	else
-		unitName = "armmart"
+		if MyTB.side == CORESideName then
+			unitName = "cormart"
+		else
+			unitName = "armmart"
+		end
 	end
 	return BuildSiegeIfNeeded(unitName)
 end
@@ -175,11 +213,17 @@ end
 
 
 function Lvl2VehRaider(tskqbhvr)
-	if MyTB.side == CORESideName then
-		return BuildRaiderIfNeeded("corseal")
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl2Amphibious(tskqbhvr)
 	else
-		return BuildRaiderIfNeeded("armlatnk")
+		if MyTB.side == CORESideName then
+			unitName = ("corseal")
+		else
+			unitName = ("armlatnk")
+		end
 	end
+	return BuildRaiderIfNeeded(unitName)
 end
 
 
@@ -199,22 +243,41 @@ function AmphibiousBattle(tskqbhvr)
 	return BuildBattleIfNeeded(unitName)
 end
 
+function Lvl2Amphibious(tskqbhvr)
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		if ai.Metal.full < 0.5 then	
+			unitName = "corseal" 
+		else
+			unitName = "corparrow" 
+		end
+			
+	else
+		unitName = "armcroc"
+	end
+	return unitName
+end
+
 function AmphibiousBreakthrough(tskqbhvr)
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corparrow"
 	else
 		unitName = "armcroc"
 	end
-	BuildBreakthroughIfNeeded(unitName)
+	return BuildBreakthroughIfNeeded(unitName)
 end
 
 function Lvl2VehBattle(tskqbhvr)
-	local unitName = ""
-	if MyTB.side == CORESideName then
-		unitName = "correap"
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl2Amphibious(tskqbhvr)
 	else
-		unitName = "armbull"
+		if MyTB.side == CORESideName then
+			unitName = "correap"
+		else
+			unitName = "armbull"
+		end
 	end
 	return BuildBattleIfNeeded(unitName)
 end
@@ -227,12 +290,16 @@ function Lvl2AAVeh()
 	end
 end
 
-function Lvl2VehMerl()
-	local unitName = ""
-	if MyTB.side == CORESideName then
-		unitName = "corvroc"
+function Lvl2VehMerl(tskqbhvr)
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		return Lvl2Amphibious(tskqbhvr)
 	else
-		unitName = "armmerl"
+		if MyTB.side == CORESideName then
+			unitName = "corvroc"
+		else
+			unitName = "armmerl"
+		end
 	end
 	return BuildSiegeIfNeeded(unitName)
 end

@@ -528,3 +528,17 @@ function LosHandler:GhostPosition(unit)
 	end
 	return nil
 end
+
+function LosHandler:KnowEnemy(unit, los)
+	los = los or 2
+	local knownEnemy = self.ai.knownEnemies[unit:ID()]
+	if knownEnemy and knownEnemy.los >= los then
+		return
+	end
+	local upos = unit:GetPosition()
+	if not upos or not upos.x then
+		return
+	end
+	local enemy = { unit = unit, unitName = unit:Name(), position = upos, unitID = unit:ID(), cloaked = unit:IsCloaked(), beingBuilt = unit:IsBeingBuilt(), health = unit:GetHealth(), los = los }
+	self.ai.knownEnemies[unit:ID()] = enemy
+end

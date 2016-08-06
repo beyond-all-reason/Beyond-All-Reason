@@ -138,25 +138,4 @@
 		SendToUnsynced('ShardStopTimer', name)
 	end
 
-	function game:EnableDebugTimers()
-		local badKeys = {
-			is_a = true,
-			__index = true,
-			init = true,
-		}
-		local callins = {}
-		for k, v in pairs(AIBase) do
-			if not badKeys[k] then
-				callins[#callins+1] = k
-			end
-		end
-		for i, m in ipairs(self.ai.modules) do
-
-		end
-	end
-
-	function game:DisableDebugTimers()
-
-	end
-
 return game

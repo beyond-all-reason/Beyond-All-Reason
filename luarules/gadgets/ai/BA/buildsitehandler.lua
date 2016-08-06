@@ -519,7 +519,7 @@ function BuildSiteHandler:NewPlan(unitName, position, behaviour, resurrect)
 	end
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
-	if not resurrect and (unitTable[unitName].isBuilding or nanoTurretList[unitName]) then
+	if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
 		self.ai.turtlehandler:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)

@@ -56,8 +56,8 @@ function OverviewHandler:EvaluateSituation()
 	local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
 
-	self.keepCommanderSafe = self.ai.totalEnemyThreat > 2000 -- turn commander into assistant
-	self.paranoidCommander = self.ai.totalEnemyThreat > 3000 -- move commander to safest place assisting a factory
+	self.keepCommanderSafe = self.ai.totalEnemyThreat > 3000 -- turn commander into assistant, for now above paranoidCommander because the assistant behaviour isn't helpful or safe
+	self.paranoidCommander = self.ai.totalEnemyThreat > 2500 -- move commander to safest place assisting a factory
 
 	self:EchoDebug(self.ai.totalEnemyThreat .. " " .. self.ai.totalEnemyImmobileThreat .. " " .. self.ai.totalEnemyMobileThreat)
 	-- build siege units if the enemy is turtling, if a lot of our attackers are getting destroyed, or if we control over 40% of the metal spots

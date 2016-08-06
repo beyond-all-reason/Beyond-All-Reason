@@ -30,6 +30,7 @@ function FactoryRegisterBehaviour:OwnerBuilt()
 	-- don't add factories to factory location table until they're done
 	self.finished = true
 	self:Register()
+	self.ai.overviewhandler:EvaluateSituation()
 	self.ai.factorybuildershandler:UpdateFactories()
 end
 
@@ -42,6 +43,7 @@ function FactoryRegisterBehaviour:OwnerDead()
 	-- game:SendToConsole("factory " .. self.name .. " died")
 	if self.finished then
 		self:Unregister()
+		self.ai.overviewhandler:EvaluateSituation()
 		ai.factorybuildershandler:UpdateFactories()
 	end
 end
@@ -70,7 +72,10 @@ function FactoryRegisterBehaviour:Unregister()
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
 	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position)
-	self.ai.factoryBuilded[mtype][network] = (self.ai.factoryBuilded[mtype][network] or 0) - unitTable[self.name].techLevel
+	-- EchoDebug(mtype, network, self.ai.factoryBuilded[mtype], self.ai.factoryBuilded[mtype][network], self.name, unitTable[self.name], unitTable[self.name].techLevel)
+	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
+		self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - self.level
+	end
 	EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' subtract tech '.. self.level)
 end
 

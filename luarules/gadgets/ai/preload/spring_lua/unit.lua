@@ -162,7 +162,7 @@ end
 function ShardSpringUnit:GetPosition()
 	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
 	if not bpx then
-		Spring.Echo(self:Name(), self.id, "nil position")
+		-- Spring.Echo(self:Name(), self.id, "nil position")
 		return
 	end
 	return {
@@ -220,6 +220,9 @@ function ShardSpringUnit:ExecuteCustomCommand(  cmdId, params_list, options, tim
 	if params_list and params_list.push_back then
 		-- handle fake vectorFloat object
 		params_list = params_list.values
+	end
+	if options and options.push_back then
+		options = options.values
 	end
 	Spring.GiveOrderToUnit(self.id, cmdId, params_list, options)
 	return 0

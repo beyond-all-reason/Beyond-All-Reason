@@ -37,7 +37,12 @@ function RaiderBehaviour:Init()
 	end
 	self.hurtsList = UnitWeaponLayerList(self.name)
 	self.sightRange = utable.losRadius
-	local nodeSize = self.ai.raidhandler:GetPathNodeSize()
+
+	-- for pathfinding
+	self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
+	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
+	self.modifierFunc = self.ai.targethandler:GetPathModifierFunc(self.name)
+	local nodeSize = self.graph.positionUnitsPerNodeUnits
 	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
 	self.nearAttackDistance = nodeSize * 0.3 -- move this far away from targets before arriving
 	self.attackDistance = nodeSize * 0.6 -- move this far away from targets once arrived
@@ -54,7 +59,7 @@ end
 function RaiderBehaviour:OwnerDead()
 	-- game:SendToConsole("raider " .. self.name .. " died")
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 	if self.target then
 		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
@@ -88,7 +93,7 @@ function RaiderBehaviour:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 end
 
@@ -127,7 +132,7 @@ function RaiderBehaviour:Update()
 		if f > self.lastGetTargetFrame + 90 then
 			self.lastGetTargetFrame = f
 			self:GetTarget()
-		elseif not self.path and self.pathTry then
+		elseif not self.path and self.pathfinder then
 			self:FindPath()
 		end
 	end
@@ -204,7 +209,7 @@ end
 function RaiderBehaviour:GetTarget()
 	self.target = nil
 	self.unitTarget = nil
-	self.pathTry = nil
+	self.pathfinder = nil
 	self.path = nil
 	self.pathStep = nil
 	self.targetNode = nil
@@ -212,7 +217,7 @@ function RaiderBehaviour:GetTarget()
 	self.offPath = nil
 	self.arrived = nil
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 	local unit = self.unit:Internal()
 	local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
@@ -257,22 +262,18 @@ function RaiderBehaviour:BeginPath(position)
 		return
 	end
 	self:EchoDebug("getting new path")
-	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
 	local upos = self.unit:Internal():GetPosition()
-	local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-	self.pathTry = graph:PathfinderXYXY(upos.x, upos.z, position.x, position.z, nil, validFunc)
-	self.pathedTarget = position
-	self.pathedOrigin = self.unit:Internal():GetPosition()
+	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
+	self.pathfinder = self.graph:PathfinderPosPos(upos, position, nil, self.validFunc, nil, self.modifierFunc)
 	self:FindPath() -- try once
 end
 
 function RaiderBehaviour:FindPath()
-	if not self.pathTry then return end
-	local path, remaining, maxInvalid = self.pathTry:Find(1)
+	if not self.pathfinder then return end
+	local path, remaining, maxInvalid = self.pathfinder:Find(2)
 	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors")
-		self.pathTry = nil
 		if maxInvalid == 0 then
 			self:EchoDebug("path is entirely clear of danger, not using")
 			self.path = path
@@ -281,15 +282,26 @@ function RaiderBehaviour:FindPath()
 		else
 			self:ReceivePath(path)
 		end
+		self.pathfinder = nil
 		self.unit:ElectBehaviour()
 	elseif remaining == 0 then
 		self:EchoDebug("no path found")
-		self.pathTry = nil
+		self.pathfinder = nil
 	end
 end
 
 function RaiderBehaviour:ReceivePath(path)
 	if not path then return end
+	-- if self.DebugEnabled then
+	-- 	self.map:EraseLine(nil, nil, {0,0,1}, self.unit:Internal():ID(), nil, 8)
+	-- 	for i = 2, #path do
+	-- 		local pos1 = path[i-1].position
+	-- 		local pos2 = path[i].position
+	-- 		local arrow = i == #path
+	-- 		self.map:DrawLine(pos1, pos2, {0,0,1}, self.unit:Internal():ID(), arrow, 8)
+	-- 	end
+	-- end
+	-- path = SimplifyPathByAngle(path)
 	self.path = path
 	if not self.path[2] then
 		self.pathStep = 1
@@ -316,7 +328,7 @@ function RaiderBehaviour:UpdatePathProgress()
 		local x = myPos.x
 		local z = myPos.z
 		local r = self.pathingDistance
-		local nx, nz = self.targetNode.x, self.targetNode.y
+		local nx, nz = self.targetNode.position.x, self.targetNode.position.z
 		if nx < x + r and nx > x - r and nz < z + r and nz > z - r and self.pathStep < #self.path then
 			-- we're at the targetNode and it's not the last node
 			self.pathStep = self.pathStep + 1
@@ -346,8 +358,8 @@ function RaiderBehaviour:ResumeCourse()
 	local nearestStep
 	for i = 1, #self.path do
 		local node = self.path[i]
-		local dx = upos.x - node.x
-		local dz = upos.z - node.y
+		local dx = upos.x - node.position.x
+		local dz = upos.z - node.position.z
 		local distSq = dx*dx + dz*dz
 		if not lowestDist or distSq < lowestDist then
 			lowestDist = distSq
@@ -399,9 +411,8 @@ end
 
 function RaiderBehaviour:MoveToSafety()
 	local upos = self.unit:Internal():GetPosition()
-	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
-	local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-	local node = graph:NearestNode(upos.x, upos.z, validFunc)
+	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
+	local node = self.graph:NearestNodePosition(upos, self.validFunc)
 	if node then
 		self:MoveNear(node.position)
 	end

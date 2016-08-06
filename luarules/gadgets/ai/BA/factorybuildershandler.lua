@@ -11,9 +11,46 @@ end
 function FactoryBuildersHandler:Init()
 	self.DebugEnabled = false
 
-	self.lastCheckFrame = 0
+	self.lastCheckFrameForConName = {}
+	self.lastFactoriesForConName = {}
+	self.conTypesByName = {}
+	self.finishedConIDs = {}
 	self.factories = {}
 	self:EchoDebug('Initialize')
+end
+
+function FactoryBuildersHandler:UnitBuilt(engineUnit)
+	local uname = engineUnit:Name()
+	local ut = unitTable[uname]
+	if ut.isBuilding or not ut.buildOptions then
+		-- it's not a construction unit
+		return
+	end
+	self.finishedConIDs[engineUnit:ID()] = true
+	if not self.conTypesByName[uname] then
+		self:EchoDebug("new con type: " .. uname)
+		doUpdate = true
+		self.conTypesByName[uname] = { type = engineUnit:Type(), count = 1 }
+		self:UpdateFactories()
+	else
+		self.conTypesByName[uname].count = self.conTypesByName[uname].count + 1
+		self:EchoDebug("con type count: " .. uname .. " " .. self.conTypesByName[uname].count)
+	end
+end
+
+function FactoryBuildersHandler:UnitDead(engineUnit)
+	local uname = engineUnit:Name()
+	if not self.finishedConIDs[engineUnit:ID()] or not self.conTypesByName[uname] then
+		return
+	end
+	self.finishedConIDs[engineUnit:ID()] = nil
+	self.conTypesByName[uname].count = self.conTypesByName[uname].count - 1
+	self:EchoDebug("con type count: " .. uname .. " " .. self.conTypesByName[uname].count)
+	if self.conTypesByName[uname].count == 0 then
+		self:EchoDebug("none of con type: " .. uname)
+		self.conTypesByName[uname] = nil
+		self:UpdateFactories()
+	end
 end
 
 function FactoryBuildersHandler:UpdateFactories()
@@ -23,28 +60,20 @@ function FactoryBuildersHandler:UpdateFactories()
 end
 
 function FactoryBuildersHandler:AvailableFactories(factoriesPreCleaned)
-	for index, factoryName in pairs (ai.factoriesRanking) do
+	self.factories = {}
+	for order = 1, #factoriesPreCleaned do
+		local factoryName = factoriesPreCleaned[order]
 		local utype = game:GetTypeByName(factoryName)
-		self.factories[factoryName] = {}
-		for id, bldr in pairs(ai.conList) do
-			local builder = bldr.unit:Internal() 
-			if builder:CanBuild(utype) then
-				--table.insert(self.factories[factoryName], id)
-				self.factories[factoryName][id] = true
+		for name, typeAndCount in pairs(self.conTypesByName) do
+			if typeAndCount.type:CanBuild(utype) then
+				self.factories[#self.factories+1] = factoryName
+				break
 			end
-		end
-		local buildMe = false
-		for i,v in pairs(self.factories[factoryName]) do
-			buildMe = true
-			break
-		end
-		if not buildMe then
-			self.factories[factoryName] = nil
 		end
 	end
 	if self.DebugEnabled then
 		for i, v in pairs(self.factories) do
-			self:EchoDebug(i  ..' is available Factories' )
+			self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
 		end
 	end
 end	
@@ -52,7 +81,8 @@ end
 function FactoryBuildersHandler:PrePositionFilter()
 	self:EchoDebug('pre positional filtering...')
 	local factoriesPreCleaned = {}
-	for index, factoryName in pairs(ai.factoriesRanking) do
+	for rank = 1, #ai.factoriesRanking do
+		local factoryName = ai.factoriesRanking[rank]
 		local buildMe = true
 		local utn=unitTable[factoryName]
 		local level = utn.techLevel
@@ -67,8 +97,12 @@ function FactoryBuildersHandler:PrePositionFilter()
 			self:EchoDebug(factoryName ..' not Experimental when i need it')
 			buildMe = false 
 		end
+		if buildMe and not ai.needAdvanced and not ai.haveAdvFactory and isAdvanced then
+			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
+			buildMe = false
+		end
 		if buildMe and (not ai.needExperimental or ai.haveExpFactory) and expFactories[factoryName] then
-			self:EchoDebug('Experimental when i dont need it')
+			self:EchoDebug(factoryName .. ' Experimental when i dont need it')
 			buildMe = false 
 		end
 		if buildMe and mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 and utn.needsWater then
@@ -88,51 +122,58 @@ function FactoryBuildersHandler:PrePositionFilter()
 				end
 			end
 		end
-				
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
 	end
-	for i, v in pairs(factoriesPreCleaned) do
-		self:EchoDebug('rank ' .. i .. ' factoryPreCleaned '.. v)
+	if self.DebugEnabled then
+		for i, v in pairs(factoriesPreCleaned) do
+			self:EchoDebug('rank ' .. i .. ' ' .. v .. ' in factoryPreCleaned')
+		end
 	end
 	return factoriesPreCleaned
 end
 	
-function FactoryBuildersHandler:ConditionsToBuildFactories()
+function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 	local factories = {}
 	self:EchoDebug('measure conditions to build factories')
 	if ai.factoryUnderConstruction then
 		self:EchoDebug('other factory under construction')
 		return false
-	elseif not self.ai.buildsitehandler:CheckForDuplicates(factoryName) then
-		self:EchoDebug('other factory planned')
-		return false
 	end
-	self:EchoDebug('ai.army '..ai.army)
-	local idx= 0
-	for index , factoryName in pairs(ai.factoriesRanking) do
-		if self.factories[factoryName] then
-			idx=idx+1
-			local uTn = unitTable[factoryName]
-			self:EchoDebug('measure conditions to build ' .. factoryName .. ' factory')
-			--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.army >= ai.factories * 20 then
-			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.army >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
-				self:EchoDebug(factoryName .. ' can be builded')
-				factories[factoryName] = self.factories[factoryName]
+	self:EchoDebug('ai.combatCount '..ai.combatCount)
+	local canDoFactory = false
+	for order = 1, #self.factories do
+		local factoryName = self.factories[order]
+		local uTn = unitTable[factoryName]
+		--if ai.scaledMetal > uTn.metalCost * order and ai.scaledEnergy > uTn.energyCost * order and ai.combatCount >= ai.factories * 20 then
+		local factoryCountSq = ai.factories * ai.factories
+		local sameFactoryCount = ai.nameCountFinished[factoryName] or 0
+		local sameFactoryMetal = sameFactoryCount * 20
+		local sameFactoryEnergy = sameFactoryCount * 500
+		if (
+			ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
+			and ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
+			and ai.combatCount >= ai.factories * 20
+		) or (
+			ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
+			and ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)
+		) then
+			self:EchoDebug(factoryName .. ' conditions met')
+			local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
+			if canBuild then
+				factories[#factories+1] = factoryName
+				self:EchoDebug(#factories .. ' ' .. factoryName .. ' can be built by builder ' .. builder:Name())
+				canDoFactory = true
+			elseif not canDoFactory then
+				self:EchoDebug('best factory with conditions met ' .. factoryName .. ' cant be built by builder ' .. builder:Name())
+				return false
 			end
 		end
 	end
-	
-	local canDoFactory = false
-	for factoryName, _ in pairs(factories)do
-		canDoFactory = true
-		self:EchoDebug('OK Conditions to build something'  )
-		break
-	end
 	if canDoFactory then
+		self:EchoDebug('OK Conditions to build something'  )
 		self:EchoDebug('4')
 		return factories
 	else
-		
 		self:EchoDebug('5')
 		return false
 	end
@@ -140,22 +181,27 @@ end
 
 function FactoryBuildersHandler:GetBuilderFactory(builder)
 	local builderID = builder:ID()
+	local builderName = builder:Name()
 	local f = game:Frame()
-	if f - self.lastCheckFrame < 1000 then
-		return false
+	if self.lastCheckFrameForConName[builderName] and f - self.lastCheckFrameForConName[builderName] < 450 then
+		-- update every 15 seconds
+		-- between updates return the last factories we got for this builder
+		return self.lastFactoriesForConName[builderName]
 	end
-	self.lastCheckFrame = f
-	local factories = self:ConditionsToBuildFactories()
+	local factories = self:ConditionsToBuildFactories(builder)
+	self.lastCheckFrameForConName[builderName] = f
+	self.lastFactoriesForConName[builderName] = factories
 	if not factories then return false end
-	for rank, factoryName in pairs(ai.factoriesRanking ) do
-		if factories[factoryName] then
-			if factories[factoryName][builderID] then
-				self:EchoDebug(builder:Name())
-				local p = self:FactoryPosition(factoryName,builder)
-				if p then
-					if self.ai.factorybuildershandler:PostPositionalFilter(factoryName,p) then
-						return p, factoryName
-					end
+	for order = 1, #factories do
+		local factoryName = factories[order]
+		if not self.ai.buildsitehandler:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
+			self:EchoDebug(factoryName .. ' not duplicated')
+			self:EchoDebug(builder:Name())
+			local p = self:FactoryPosition(factoryName,builder)
+			if p then
+				if self:PostPositionalFilter(factoryName,p) then
+					self:EchoDebug(factoryName .. ' position passed filter')
+					return p, factoryName
 				end
 			end
 		end
@@ -167,21 +213,21 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local utype = game:GetTypeByName(factoryName)
 	local mtype = factoryMobilities[factoryName][1]
 	local builderPos = builder:GetPosition()
+	local factoryPos
 	local p
 	if p == nil then
-		self:EchoDebug("looking next to last nano turrets for " .. factoryName)
+		self:EchoDebug("looking next to nano turrets for " .. factoryName)
 		p = ai.buildsitehandler:BuildNearNano(builder, utype)
 	end
 	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)
-		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
+		factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 		if factoryPos then
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 	end
 	if p == nil then
 		self:EchoDebug('builfactory near hotSpot')
-		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 		local place = false
 		local distance = 99999
 		if factoryPos then
@@ -214,7 +260,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	end
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
-		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500) -- check at most 1500 elmos away
 	end
 	if p then
 		self:EchoDebug("position found for " .. factoryName)
@@ -223,30 +269,36 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 end
 
 function FactoryBuildersHandler:PostPositionalFilter(factoryName,p)
-	local buildMe = true
-	
-	local mtype = factoryMobilities[factoryName][1]
-	local network = ai.maphandler:MobilityNetworkHere(mtype ,p)
-	if ai.factoryBuilded[mtype] == nil or ai.factoryBuilded[mtype][network] == nil then
-		self:EchoDebug('area to small for ' .. factoryName)
+	local mobNetOkay = false
+	for i, mtype in pairs(factoryMobilities[factoryName]) do
+		local network = ai.maphandler:MobilityNetworkHere(mtype, p)
+		if ai.factoryBuilded[mtype] and ai.factoryBuilded[mtype][network] then
+			mobNetOkay = true
+			break
+		end
+	end
+	if not mobNetOkay then
+		self:EchoDebug('area to small or not enough spots for ' .. factoryName)
 		return false
 	end
-	if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
-		self:EchoDebug('Not enough tech level for '..factoryName)
-		buildMe = false
-	end
+	local mtype = factoryMobilities[factoryName][1]
+	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
+	-- if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
+	-- 	self:EchoDebug('tech level ' .. unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
+	-- 	return false
+	-- end
 	if mtype == 'bot' then
 		local vehNetwork = ai.factoryBuilded['veh'][ai.maphandler:MobilityNetworkHere('veh',p)]
 		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 or ai.factoryBuilded['air'][1] < 1) then
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
-			buildMe = false
+			return false
 		end
 	elseif mtype == 'veh' then
 		local botNetwork = ai.factoryBuilded['bot'][ai.maphandler:MobilityNetworkHere('bot',p)]
 		if (botNetwork and botNetwork > 0) and (botNetwork < 9 or ai.factoryBuilded['air'][1] < 1) then
 			self:EchoDebug('dont build veh where are already bot not on top of tech level')
-			buildMe = false
+			return false
 		end
 	end
-	return buildMe
+	return true
 end

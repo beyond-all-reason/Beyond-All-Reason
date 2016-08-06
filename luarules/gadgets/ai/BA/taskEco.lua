@@ -121,38 +121,33 @@ function TidalIfTidal()
 end
 
 function windLimit()
-	local minWind = map:MinimumWindSpeed()
-	local Wind = map:AverageWind()
-	EchoDebug('wind power = ' .. Wind)
-	if minWind >= 8 or Wind >= 10 then 
-		return Wind
+	if map:AverageWind() >= 10 then
+		local minWind = map:MinimumWindSpeed()
+		if minWind >= 8 then
+			EchoDebug("minimum wind high enough to build only wind")
+			return true
+		else
+			return math.random() < math.max(0.5, minWind / 8)
+		end
 	else
 		return false
 	end
 end
 
 function WindSolar()
-	local unitName = DummyUnitName
 	if windLimit() then
-		unitName = Wind()
+		return Wind()
 	else
-		unitName = Solar()
+		return Solar()
 	end
-	return unitName
 end
 
 function Energy1()
-	local unitName=DummyUnitName
-	local wind =0
-	if windLimit() then wind = windLimit() * 20 end
-	if ai.Energy.income > math.max(wind, 150) then --and ai.Metal.reserves >50
-		unitName = SolarAdv()
-	elseif windLimit() then
-		unitName = Wind()
+	if ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and ai.Metal.reserves >50
+		return SolarAdv()
 	else
-		unitName = Solar()
+		return WindSolar()
 	end
-	return unitName
 end
 
 function BuildGeo()

@@ -83,7 +83,6 @@ function defaultBehaviours(unit, ai)
 		table.insert(b, WardBehaviour)
 	elseif IsReclaimer(unit) then
 		table.insert(b, ReclaimBehaviour)
-		table.insert(b, DefendBehaviour)
 		table.insert(b, WardBehaviour)
 	else
 		if IsAttacker(unit) then

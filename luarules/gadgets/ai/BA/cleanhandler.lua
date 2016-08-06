@@ -11,10 +11,6 @@ function CleanHandler:internalName()
 end
 
 function CleanHandler:Init()
-	for k, v in pairs(self) do
-		game:SendToConsole(k, v)
-	end
-
 	self.DebugEnabled = false
 
 	self.cleanables = {}

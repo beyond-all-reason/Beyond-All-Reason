@@ -110,6 +110,10 @@ function AngleAtoB(x1, z1, x2, z2)
 	return atan2(-dz, dx)
 end
 
+function AnglePosPos(pos1, pos2)
+	return AngleAtoB(pos1.x, pos1.z, pos2.x, pos2.z)
+end
+
 function CheckRect(rect)
 	local new = {}
 	if rect.x1 > rect.x2 then
@@ -376,6 +380,33 @@ function FillCircle(grid, gridElmos, position, radius, sets, adds)
 	    end
 	end
 	return grid
+end
+
+function SimplifyPath(path)
+	if #path < 3 then
+		return path
+	end
+	local lastAngle
+	local removeIds = {}
+	for i = 1, #path-1 do
+		local node1 = path[i]
+		local node2 = path[i+1]
+		local angle = AngleAtoB(node1.position.x, node1.position.z, node2.position.x, node2.position.z)
+		if lastAngle then
+			local adist = AngleDist(angle, lastAngle)
+			if adist < 0.2 then
+				removeIds[node1.id] = true
+			end
+		end
+		lastAngle = angle
+	end
+	for i = #path-1, 2, -1 do
+		local node = path[i]
+		if removeIds[node.id] then
+			table.remove(path, i)
+		end
+	end 
+	return path
 end
 
 CommonFunctionsLoaded = true -- so that SpringShardLua doesn't load them multiple times
