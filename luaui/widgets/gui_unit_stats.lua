@@ -37,7 +37,7 @@ include("keysym.h.lua")
 local fontSize = 14
 local xOffset = 25
 local yOffset = 25
-local useSelection = false
+local useSelection = true
 
 local customFontSize = 18
 
@@ -81,6 +81,7 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount	= Spring.GetSelectedUnitsCount
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitExp = Spring.GetUnitExperience
@@ -215,7 +216,7 @@ function widget:DrawScreen()
 	if useSelection then
 		local selUnits = spGetSelectedUnits()
 		if #selUnits ~= 1 then
-			RemoveGuishader() return
+			--RemoveGuishader() return
 		end
 		uID = selUnits[1]
 	else
