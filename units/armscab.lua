@@ -15,7 +15,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = "Mobile Anti-Nuke",
-		energymake = 200,
+		energymake = 100,
 		energystorage = 1000,
 		explodeas = "LARGE_BUILDINGEX",
 		footprintx = 3,

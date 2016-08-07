@@ -3,6 +3,7 @@ XX/08/2016
 
 Balance changes:
 - marauder(arm t3): build time decreased by 10%, speed increased by 5%
+- mobile anti make only 100 energy now (was 200)
 
 
 
