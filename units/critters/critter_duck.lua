@@ -17,7 +17,7 @@ unitDef = {
   canPatrol           = true,
   canstop             = [[1]],
   category            = [[MOBILE NOWEAPON NOTAIR NOTSUB]],  
-  reclaimable         = true,
+  reclaimable         = false,
 	----------	
   defaultmissiontype  = [[Standby]],
   --explodeAs           = [[MEDIUM_UNIT]],

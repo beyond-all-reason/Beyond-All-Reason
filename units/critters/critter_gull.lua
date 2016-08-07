@@ -1,7 +1,7 @@
 local unitName = "critter_gull"
 
 unitDef = {
-name                = "SeaGull",
+  name                = "SeaGull",
   description         = "I´m so fly",
   objectName          = [[critter_gull.s3o]],
   script              = [[critter_gull.lua]],
@@ -33,8 +33,9 @@ name                = "SeaGull",
   TEDClass            = [[VTOL]],
   turnRate            = 500,
   turnRadius          = 5,
-  stealth 			  = true,
-  sonarStealth		  = true,
+  reclaimable         = false,
+  stealth 			      = true,
+  sonarStealth		    = true,
   ----aircraft related
   canFly              = true,
   cruiseAlt           = 200,

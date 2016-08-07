@@ -21,6 +21,7 @@ unitDef = {
   footprintZ             = 1,
   idleAutoHeal           = 5,
   idleTime               = 1800,
+  reclaimable            = false,
   mass                   = 1,
   maxDamage              = 10,
   maxVelocity            = 0.6,

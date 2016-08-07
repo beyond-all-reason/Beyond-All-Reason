@@ -1,7 +1,7 @@
 unitDef = {
   unitname            = [[critter_penguin]],
   name                = [[Penguin]],
-  iconType = "blank",
+  iconType            = "blank",
   description         = [[so cool!]],
   acceleration        = 0.15, 
   bmcode              = [[1]],
@@ -18,7 +18,7 @@ unitDef = {
   canstop             = [[1]],
   category            = [[MOBILE NOWEAPON NOTAIR NOTSUB]],
 --  corpse              = [[DEAD]],
-  reclaimable         = true,
+  reclaimable         = false,
 	----------	
   defaultmissiontype  = [[Standby]],
   --explodeAs           = [[MEDIUM_UNIT]],
