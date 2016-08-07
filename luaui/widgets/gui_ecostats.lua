@@ -82,6 +82,10 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
+--To determine faction at start
+local armcomDefID = UnitDefNames.armcom.id
+local corcomDefID = UnitDefNames.corcom.id
+
 local borderPadding					= 4
 	
 local avgFrames 					= 18
@@ -842,6 +846,19 @@ function setTeamTable(teamID)
 	local cp = ((startUnitDefID and UnitDefs[startUnitDefID]) and UnitDefs[startUnitDefID].customParams) or nil
 	if cp and cp.side then side = cp.side end
 		
+	-- code from ecostats widget
+	if Spring.GetTeamRulesParam(teamID, 'startUnit') then
+		local startunit = Spring.GetTeamRulesParam(teamID, 'startUnit')
+		if startunit == armcomDefID then 
+			teamside = "arm"
+		else
+			teamside = "core"
+		end
+	else
+		_,_,_,_,teamside = Spring.GetTeamInfo(teamID)
+	end
+	side = teamside
+	
 	if not teamData[teamID] then teamData[teamID] = {} end
 		
 	teamData[teamID]["teamID"] 			= teamID
