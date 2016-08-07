@@ -201,6 +201,8 @@ local newBroadcaster = false
 local totalTime = 0
 local playerScores = {}
 
+local aliveAllyTeams = {}
+
 local myLastCameraState
 
 
@@ -881,6 +883,19 @@ function GetAllPlayers()
 end
 
 
+function GetAliveAllyTeams()
+	aliveAllyTeams = {}
+	local allteams   = Spring_GetTeamList()
+	teamN = table.maxn(allteams) - 1               --remove gaia
+	for i = 0,teamN-1 do
+		local _,_, isDead, _, _, tallyteam = Spring_GetTeamInfo(i)
+		if not isDead then
+			aliveAllyTeams[tallyteam] = true
+		end
+	end
+end
+
+
 function round(num, idp)
   local mult = 10^(idp or 0)
   return math.floor(num * mult + 0.5) / mult
@@ -948,7 +963,7 @@ function CreatePlayer(playerID)
 	
 	-- resources
 	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0,1,0,1,0,0
-	if mySpecStatus or myAllyTeamID == tallyteam then
+	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
 		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(tteam, "energy")
 		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(tteam, "metal")
 		energy = math.floor(energy)
@@ -1029,7 +1044,7 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	
 	-- resources
 	local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0,1,0,1,0,0
-	if mySpecStatus or myAllyTeamID == tallyteam then
+	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
 		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(teamID, "energy")
 		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(teamID, "metal")
 		energy = math.floor(energy)
@@ -1065,7 +1080,7 @@ function UpdatePlayerResources()
 	local energy, energyStorage, metal, metalStorage = 0, 1, 0 ,1
 	for playerID,_ in pairs(player) do
 		if player[playerID].name and not player[playerID].spec and player[playerID].team then
-			if mySpecStatus or myAllyTeamID == player[playerID].allyteam then
+			if aliveAllyTeams[player[playerID].allyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				energy, energyStorage,_, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
 				metal, metalStorage,_, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
 				energy = math.floor(energy)
@@ -1406,6 +1421,7 @@ function CreateLists()
 	
 	UpdateRecentBroadcasters()
 	UpdateAlliances()
+	GetAliveAllyTeams()
 	
 	if m_resources.active then
 		UpdateResources()
@@ -1808,8 +1824,8 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			DrawAlly(posY, player[playerID].team)
 		end
 		
-		if m_resources.active and player[playerID].energy ~= nil then
-			if mySpecStatus or myAllyTeamID == player[playerID].allyteam then
+		if m_resources.active and aliveAllyTeams[allyteam] ~= nil and player[playerID].energy ~= nil then
+			if mySpecStatus or myAllyTeamID == allyteam then
 				local e = player[playerID].energy
 				local es = player[playerID].energyStorage
 				local ei = player[playerID].energyIncome
