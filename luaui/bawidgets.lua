@@ -1753,10 +1753,10 @@ end
 
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam,
-                                   cmdId, cmdOpts, cmdParams, cmdTag)
+                                   cmdId, cmdParams, cmdOpts, cmdTag)
   for _,w in ipairs(self.UnitCommandList) do
     w:UnitCommand(unitID, unitDefID, unitTeam,
-                  cmdId, cmdOpts, cmdParams, cmdTag)
+                  cmdId, cmdParams, cmdOpts, cmdTag)
   end
   return
 end

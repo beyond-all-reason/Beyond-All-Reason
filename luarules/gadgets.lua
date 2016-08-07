@@ -1360,9 +1360,9 @@ end
 
 
 
-function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdOpts, cmdParams, cmdTag)
+function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag)
   for _,g in ipairs(self.UnitCommandList) do
-    g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdOpts, cmdParams, cmdTag)
+    g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag)
   end
   return
 end
