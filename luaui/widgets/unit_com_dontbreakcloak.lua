@@ -47,7 +47,6 @@ function widget:UnitCommand(uID, uDefID, uTeam, cmdID, cmdParams, cmdOpts)
             widgetHandler:RemoveWidget(self)
             return
         end
-        Spring.Echo("CMD_CLOAK", cmdParams)
 		if cmdParams[1] == 1 then
 			spGiveOrderToUnit(uID, CMD_FIRE_STATE, {0}, 0)
             spGiveOrderToUnit(uID, CMD_INSERT, {0, 0, 0}, CMD_OPT_ALT)
