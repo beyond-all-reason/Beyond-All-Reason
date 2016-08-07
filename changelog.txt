@@ -6,6 +6,8 @@ Balance changes:
 - mobile anti make only 100 energy now (was 200)
 - Flying Fortress makes 50 energy (was 0)
 
+Other:
+- fixed "Com DontBreakCloak" widget
 
 
 9.40 -> 9.41
