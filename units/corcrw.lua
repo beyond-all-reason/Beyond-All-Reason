@@ -13,6 +13,7 @@ return {
 		collide = true,
 		cruisealt = 80,
 		description = "Flying Fortress",
+        energymake = 50,
 		explodeas = "SMALL_BUILDING",
 		footprintx = 3,
 		footprintz = 3,
