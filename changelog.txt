@@ -1,4 +1,12 @@
-﻿9.40 -> 9.41
+﻿9.41 -> 9.42
+XX/08/2016
+
+Balance changes:
+- marauder(arm t3): build time decreased by 10%, speed increased by 5%
+
+
+
+9.40 -> 9.41
 06/08/2016
 
 - Added "Idle Builders" widget (disabled by default)
@@ -26,7 +34,7 @@ Other:
 29/07/2016
 
 Balance changes:
-- Decrease LOS/radar accuracy to increase game performance
+- Decreased LOS/radar accuracy to increase game performance
 - Vanguard: Build time decreased by 10%
 - Tactical Nuke Launcher: metal cost increased from 804 to 1200
 
