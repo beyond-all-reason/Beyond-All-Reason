@@ -138,7 +138,7 @@ else
 			if s_ram ~= nil then system = system..'\nRAM:  '..string.gsub(s_ram, "  ", " ") end
 			if s_gpu ~= nil then system = system..'\nGPU:  '..string.gsub(s_gpu, "  ", " ") end
 			if s_gpuVram ~= nil then system = system..'\nGPU VRAM:  '..string.gsub(s_gpuVram, "  ", " ") end
-			if s_resolution ~= nil then system = system..'\nResolution:  '..string.gsub(s_resolution, "  ", " ") end
+			if s_resolution ~= nil then system = system..'\n'..string.gsub(s_resolution, "  ", " ") end
 			if s_os ~= nil then system = system..'\nOS:  '..s_os end
 			
 			system = string.sub(system, 2)
