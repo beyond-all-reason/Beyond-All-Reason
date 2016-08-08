@@ -8,6 +8,10 @@ Balance changes:
 
 Other:
 - fixed "Com DontBreakCloak" widget
+- Stockpiler queues 10 missiles instead of 5
+- Unit stats: instead of mousover unit +space, now select unit +space
+- Advplayerlist: hides resource bars for dead teams
+- Ecostats shows core faction icon again
 
 
 9.40 -> 9.41
