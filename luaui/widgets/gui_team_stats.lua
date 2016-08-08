@@ -605,32 +605,45 @@ function widget:IsAbove(x,y)
 end
 
 function widget:MousePress(mx,my,button)
+	return mouseEvent(mx,my,button)
+end
+
+function widget:MouseRelease(mx,my,button)
+	return mouseEvent(mx,my,button,true)
+end
+
+function mouseEvent(mx,my,button,release)
 	if gameStarted == nil then return end
 	
 	local boxType = widget:IsAbove(mx,my)
 	if not boxType then
-		guiData.mainPanel.visible = false
-		return false
+	  if release then
+			guiData.mainPanel.visible = false
+		end
+		return true
 	end
-	if boxType == "smallBox" then
-		guiData.mainPanel.visible = not guiData.mainPanel.visible
-		widget:GameFrame(GetGameFrame(),true)
-	elseif boxType == "mainPanel" then
-		local line, column = getLineAndColumn(mx,my)
-		if line <= 3 then -- header
-			local newSort = header[column]
-			if newSort then
-				if sortVar == newSort then
-					sortAscending = not sortAscending
-				end
-				sortVar = newSort
-			end
-		else
+	if release then
+		if boxType == "smallBox" then
 			guiData.mainPanel.visible = not guiData.mainPanel.visible
+			widget:GameFrame(GetGameFrame(),true)
+		elseif boxType == "mainPanel" then
+			local line, column = getLineAndColumn(mx,my)
+			if line <= 3 then -- header
+				local newSort = header[column]
+				if newSort then
+					if sortVar == newSort then
+						sortAscending = not sortAscending
+					end
+					sortVar = newSort
+				end
+			else
+				guiData.mainPanel.visible = not guiData.mainPanel.visible
+			end
 		end
 	end
 	return true
 end
+
 
 function getLineAndColumn(x,y)
 	local relativex = x - guiData.mainPanel.absSizes.x.min - columnSize/2

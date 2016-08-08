@@ -526,111 +526,129 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MousePress(x, y, button)
+	return mouseEvent(x, y, button, false)
+end
+
+function widget:MouseRelease(x, y, button)
+	return mouseEvent(x, y, button, true)
+end
+
+function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
     if amNewbie and not gameStarted then return end
     
-    if show then 
-		-- on window
-		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-		
-			-- on close button
-			local brectX1 = rectX2 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
-			local brectY2 = rectY1 - (closeButtonSize+bgMargin+bgMargin * widgetScale)
-			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
-				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-				show = not show
-				return true
-			end
+	  if show then 
+			-- on window
+			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 			
-			--[[ scroll text with mouse 2
-			if button == 1 or button == 3 then
-				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
-					local alt, ctrl, meta, shift = Spring.GetModKeyState()
-					local addLines = 3
-					
-					if ctrl or shift then 
-						addLines = 8
+				-- on close button
+				local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
+				local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
+				if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
+					if release then
+						showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
+						show = not show
 					end
-					if ctrl and shift then 
-						addLines = 22
-					end
-					if ctrl and shift and alt then 
-						addLines = 66
-					end
-					if button == 3 then 
-						addLines = -addLines
-					end
-					startLine = startLine + addLines
-					if startLine < 1 then startLine = 1 end
-					if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-					
-					if changelogList then
-						glDeleteList(changelogList)
-					end
-					changelogList = gl.CreateList(DrawWindow)
 					return true
 				end
-			end]]--
-			
-			-- version buttons
-			if button == 1 then
-			local yOffset = 24
-				local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-				local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
 				
-				local x,y = Spring.GetMouseState()
-				if changelogFile then
-					local lineKey = 1
-					local j = 0
-					while j < 25 do	
-						if (versionFontSize+versionOffsetY)*j > (screenHeight-yOffset) then
-							break;
-						end
-						if versions[lineKey] == nil then
-							break;
-						end
-						
-						-- version title
-						local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
-						local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
-						
-						local x1 = usedScreenX
-						local y1 = textY-(((versionFontSize*0.66)+yOffset)*widgetScale)
-						local x2 = usedScreenX+((70*widgetScale))
-						local y2 = textY+(((versionFontSize*1.21)-yOffset)*widgetScale)
-						if IsOnRect(x, y, x1, y1, x2, y2) then
-							startLine = versions[lineKey]
+				--[[ scroll text with mouse 2
+				if button == 1 or button == 3 then
+					if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
+						if release then
+							local alt, ctrl, meta, shift = Spring.GetModKeyState()
+							local addLines = 3
+							
+							if ctrl or shift then 
+								addLines = 8
+							end
+							if ctrl and shift then 
+								addLines = 22
+							end
+							if ctrl and shift and alt then 
+								addLines = 66
+							end
+							if button == 3 then 
+								addLines = -addLines
+							end
+							startLine = startLine + addLines
+							if startLine < 1 then startLine = 1 end
+							if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
+							
 							if changelogList then
 								glDeleteList(changelogList)
 							end
 							changelogList = gl.CreateList(DrawWindow)
-							break;
 						end
-						
-						j = j + 1
-						lineKey = lineKey + 1
+						return true
 					end
+				end]]--
+				
+				-- version buttons
+				if button == 1 and release then
+					local yOffset = 24
+					local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
+					local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+					
+					local x,y = Spring.GetMouseState()
+					if changelogFile then
+						local lineKey = 1
+						local j = 0
+						while j < 25 do	
+							if (versionFontSize+versionOffsetY)*j > (screenHeight-yOffset) then
+								break;
+							end
+							if versions[lineKey] == nil then
+								break;
+							end
+							
+							-- version title
+							local textX = usedScreenX-((10+versionOffsetX)*widgetScale)
+							local textY = usedScreenY-((((versionFontSize+versionOffsetY)*j)-5)*widgetScale)
+							
+							local x1 = usedScreenX
+							local y1 = textY-(((versionFontSize*0.66)+yOffset)*widgetScale)
+							local x2 = usedScreenX+((70*widgetScale))
+							local y2 = textY+(((versionFontSize*1.21)-yOffset)*widgetScale)
+							if IsOnRect(x, y, x1, y1, x2, y2) then
+								startLine = versions[lineKey]
+								if changelogList then
+									glDeleteList(changelogList)
+								end
+								changelogList = gl.CreateList(DrawWindow)
+								break;
+							end
+							
+							j = j + 1
+							lineKey = lineKey + 1
+						end
+					end
+					return true
 				end
-			end
-			
-			if button == 1 or button == 3 then
+				
+				if button == 1 or button == 3 then
+					return true
+				end
+			elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+				if release then
+					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
+					show = not show
+				end
 				return true
 			end
-		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
-			showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-			show = not show
-		end
     else
-		tx = (x - posX*vsx)/(17*widgetScale)
-		ty = (y - posY*vsy)/(17*widgetScale)
-		if tx < 0 or tx > 4.5 or ty < 0 or ty > 1.05 then return false end
-		
-		showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
-		show = not show
+			tx = (x - posX*vsx)/(17*widgetScale)
+			ty = (y - posY*vsy)/(17*widgetScale)
+			if tx < 0 or tx > 4.5 or ty < 0 or ty > 1.05 then return false end
+			if release then
+				showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
+				show = not show
+			end
+			return true
     end
 end
 

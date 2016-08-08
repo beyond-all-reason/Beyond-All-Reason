@@ -118,6 +118,12 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+		return true
+	end
+end
+
+function widget:MouseRelease(mx, my, mb)
+	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
 	end
