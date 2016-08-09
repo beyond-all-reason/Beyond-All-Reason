@@ -616,17 +616,21 @@ function mouseEvent(mx,my,button,release)
 	if gameStarted == nil then return end
 	
 	local boxType = widget:IsAbove(mx,my)
-	if not boxType then
+	if not boxType and guiData.mainPanel.visible then
 	  if release then
 			guiData.mainPanel.visible = false
+			return false
 		end
 		return true
 	end
-	if release then
-		if boxType == "smallBox" then
+	if boxType == "smallBox" then
+		if release then
 			guiData.mainPanel.visible = not guiData.mainPanel.visible
 			widget:GameFrame(GetGameFrame(),true)
-		elseif boxType == "mainPanel" then
+		end
+		return true
+	elseif boxType == "mainPanel" then
+		if release then
 			local line, column = getLineAndColumn(mx,my)
 			if line <= 3 then -- header
 				local newSort = header[column]
@@ -636,12 +640,10 @@ function mouseEvent(mx,my,button,release)
 					end
 					sortVar = newSort
 				end
-			else
-				guiData.mainPanel.visible = not guiData.mainPanel.visible
 			end
 		end
+		return true
 	end
-	return true
 end
 
 
