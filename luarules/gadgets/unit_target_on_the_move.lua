@@ -488,26 +488,28 @@ end
 -- Target update
 
 function gadget:GameFrame(n)
-	if n%SlowUpdate == SlowUpdate-1 then 
-		-- timing synced with slow update to reduce attack jittering
-		-- SlowUpdate+0 causes attack command to override target command
+	-- ideally timing would be synced with slow update to reduce attack jittering
+	-- SlowUpdate+ causes attack command to override target command
+	-- unfortunately since 103 that's not possible, attempt to override every frame
+	-- it might create a slight increase of cpu usage when hundreds of units gets
+	-- a set target command, howrever a quick test with 300 fidos only increased by 1%
+	-- sim here 
 
-		for unitID, unitData in pairs(unitTargets) do
-			local targetIndex
-			for index,targetData in ipairs(unitData.targets) do
-				if not checkTarget(unitID,targetData.target) then
-					removeTarget(unitID,index)
-				else
-					if setTarget(unitID,targetData) then
-						targetIndex = index
-						break
-					end
+	for unitID, unitData in pairs(unitTargets) do
+		local targetIndex
+		for index,targetData in ipairs(unitData.targets) do
+			if not checkTarget(unitID,targetData.target) then
+				removeTarget(unitID,index)
+			else
+				if setTarget(unitID,targetData) then
+					targetIndex = index
+					break
 				end
 			end
-			if unitData.currentIndex ~= targetIndex then
-				unitData.currentIndex = targetIndex
-				SendToUnsynced("targetIndex",unitID,targetIndex)
-			end
+		end
+		if unitData.currentIndex ~= targetIndex then
+			unitData.currentIndex = targetIndex
+			SendToUnsynced("targetIndex",unitID,targetIndex)
 		end
 	end
 
