@@ -47,6 +47,18 @@ local function ExtractWeaponDefs(udName, ud)
     end
   end
 
+  -- add this unitDef's weaponDefs
+  for wdName, wd in pairs(wds) do
+    if (isstring(wdName) and istable(wd)) then
+      local fullName = udName .. '_' .. wdName
+      WeaponDefs[fullName] = wd
+        
+      if SaveDefsToCustomParams then
+        MarkDefOmittedInCustomParams("WeaponDefs", fullName, wd)
+      end
+    end
+  end
+
   -- convert the weapon names
   local weapons = ud.weapons
   if (istable(weapons)) then
@@ -89,6 +101,11 @@ VFS.Include("gamedata/alldefs_post.lua")
 -- load functionality for saving to custom params
 VFS.Include("gamedata/post_save_to_customparams.lua")
 
+
+-- modify cratermult cause Spring v103 made too big craters
+for name,wd in pairs(WeaponDefs) do
+    WeaponDefs[name].cratermult = (wd.cratermult or 1) * 0.3
+end
 
 -- handle standalone weapondefs
 for name,wd in pairs(WeaponDefs) do
