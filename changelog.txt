@@ -7,11 +7,14 @@ Balance changes:
 - Flying Fortress makes 50 energy (was 0)
 
 Other:
-- fixed "Com DontBreakCloak" widget
+- Fixed big crater size
+- Fixed "Com DontBreakCloak" widget
 - Stockpiler queues 10 missiles instead of 5
 - Unit stats: instead of mousover unit +space, now select unit +space
 - Advplayerlist: hides resource bars for dead teams
 - Ecostats shows core faction icon again
+- Fixed set target functionality
+- On button press -> release.. for: keybinds info, commands info, changelog, clearmapmarks button, team stats
 
 
 9.40 -> 9.41
