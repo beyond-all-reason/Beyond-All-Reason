@@ -1,5 +1,5 @@
 ﻿9.41 -> 9.42
-XX/08/2016
+11/08/2016
 
 Balance changes:
 - marauder(arm t3): build time decreased by 10%, speed increased by 5%
