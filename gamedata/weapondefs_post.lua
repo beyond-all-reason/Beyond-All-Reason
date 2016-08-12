@@ -7,6 +7,13 @@
 -- basically, DONT TOUCH this! 
 --------------------------------------------------------------------------------
 
+-- see alldefs.lua for documentation
+-- load the games _Post functions for defs, and find out if saving to custom params is wanted
+VFS.Include("gamedata/alldefs_post.lua")
+-- load functionality for saving to custom params
+VFS.Include("gamedata/post_save_to_customparams.lua")
+
+
 local function isbool(x)   return (type(x) == 'boolean') end
 local function istable(x)  return (type(x) == 'table')   end
 local function isnumber(x) return (type(x) == 'number')  end
@@ -41,18 +48,8 @@ local function ExtractWeaponDefs(udName, ud)
       local fullName = udName .. '_' .. wdName
       WeaponDefs[fullName] = wd
         
-      if SaveDefsToCustomParams then
-        MarkDefOmittedInCustomParams("WeaponDefs", fullName, wd)
-      end
-    end
-  end
+      WeaponDef_Post(fullName, wd)
 
-  -- add this unitDef's weaponDefs
-  for wdName, wd in pairs(wds) do
-    if (isstring(wdName) and istable(wd)) then
-      local fullName = udName .. '_' .. wdName
-      WeaponDefs[fullName] = wd
-        
       if SaveDefsToCustomParams then
         MarkDefOmittedInCustomParams("WeaponDefs", fullName, wd)
       end
@@ -90,22 +87,11 @@ local function ExtractWeaponDefs(udName, ud)
     if (WeaponDefs[fullName]) then
       ud.selfdestructas = fullName
     end
-  end
+  end  
 end
 
 --------------------------------------------------------------------------------
 
--- see alldefs.lua for documentation
--- load the games _Post functions for defs, and find out if saving to custom params is wanted
-VFS.Include("gamedata/alldefs_post.lua")
--- load functionality for saving to custom params
-VFS.Include("gamedata/post_save_to_customparams.lua")
-
-
--- modify cratermult cause Spring v103 made too big craters
-for name,wd in pairs(WeaponDefs) do
-    WeaponDefs[name].cratermult = (wd.cratermult or 1) * 0.3
-end
 
 -- handle standalone weapondefs
 for name,wd in pairs(WeaponDefs) do

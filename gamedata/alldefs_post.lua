@@ -15,7 +15,7 @@
 -- strictly speaking, alldefs.lua is a misnomer since this file does not handle armordefs, featuredefs or movedefs
 
 -- Switch for when we want to save defs into customparams as strings (so as a widget can then write them to file)
--- The widget to do so can be found in 'etc/Lua/bake unitdefs_post'
+-- The widget to do so can be found in 'etc/Lua/bake_unitdefs_post'
 SaveDefsToCustomParams = false
 
 
@@ -30,7 +30,7 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-
+  wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
 end
 
 
