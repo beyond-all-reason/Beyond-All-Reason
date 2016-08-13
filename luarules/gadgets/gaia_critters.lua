@@ -22,18 +22,17 @@ end
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
 
-local minTotalUnits			= 700					-- starting removing critters at this total unit count
-local maxTotalunits			= 1700				-- finished removing critters at this total unit count
-local minimumCritters		= 0.18				-- dont remove further than (0.1 == 10%) of critters
-local minCritters				= (Game.mapSizeX*Game.mapSizeZ)/3000000				-- dont remove below this amount
-local critterDiffChange	= 8						-- dont add/remove less than x critters
+local minTotalUnits			= 1000					-- starting removing critters at this total unit count
+local maxTotalunits			= 2300				-- finished removing critters at this total unit count
+local minimumCritters		= 0.08					-- dont remove further than (0.1 == 10%) of critters
+local minCritters				= math.ceil((Game.mapSizeX*Game.mapSizeZ)/9000000)				-- dont remove below this amount
 local companionRadiusStart		= 140					-- if mapcritter is spawned this close it will be converted to companion critter
 local companionRadiusAfterStart = 13
 local companionPatrolRadius = 200
 
 local amountMultiplier = 1		-- will be set by mod option: critters_multiplier
 local minMulti = 0.2
-local maxMulti = 2
+local maxMulti = 5
 
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
@@ -241,11 +240,10 @@ local function adjustCritters(newAliveCritters)
 	if newAliveCritters == aliveCritters then return end
 	
 	local critterDifference = newAliveCritters - aliveCritters 
-	if critterDifference == 0 then return end
 	local add = false
 	if critterDifference > 0 then 
 		add = true 
-		if addCrittersAgain == false then return end
+		if not addCrittersAgain then return end
 	end
 	
 	local removeKeys = {}
@@ -385,7 +383,7 @@ function addMapCritters()
 						unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
 							randomPatrolInBox(unitID, cC.spawnBox, supplyMinWaterDepth)
-							makeUnitCritter(unitID)
+							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
 							Spring.Echo("Failed to create " .. unitName)
@@ -420,7 +418,7 @@ function addMapCritters()
 						unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
 							randomPatrolInCircle(unitID, cC.spawnCircle, supplyMinWaterDepth)
-							makeUnitCritter(unitID)
+							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
 							Spring.Echo("Failed to create " .. unitName)
@@ -508,21 +506,21 @@ function gadget:GameFrame(gameFrame)
 		processSceduledOrders()
 	end
 	
-	if gameFrame%202==0 then 
+	if gameFrame%102==0 then 
 		local totalUnits = getTotalUnits() -- is without critters
-		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
-		if multiplier < 0 then multiplier = 0 end
-		multiplier = multiplier + minimumCritters
+		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits)) 
+		if multiplier < minimumCritters then multiplier = minimumCritters end
 		if multiplier > 1 then multiplier = 1 end
 		local newAliveCritters = math.ceil(totalCritters * multiplier)
-		
-		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters)
-		local critterDifference = newAliveCritters - aliveCritters 
-		if critterDifference > 0 or (critterDifference < 0 and aliveCritters > minCritters)  then
-			if abs(critterDifference) >= critterDiffChange or (critterDifference < 0 and aliveCritters+critterDifference <= minCritters) then
-				adjustCritters(newAliveCritters)
+		if newAliveCritters < minCritters then
+			local mc = minCritters
+			if totalCritters < minCritters then
+				mc = totalCritters
 			end
+			newAliveCritters = mc
 		end
+		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters.."  minCritters: "..minCritters)
+		adjustCritters(newAliveCritters)
 	end
 	
 end
@@ -574,8 +572,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		-- make it a companion if close to a commander
 		companionRadius = companionRadiusStart
 		if unitTeam == GaiaTeamID then
-			makeUnitCritter(unitID)
-			critterUnits[unitID].unitName = UnitDefs[unitDefID].name
+			--if critterUnits[unitID] == nil then
+				makeUnitCritter(unitID)
+				critterUnits[unitID].unitName = UnitDefs[unitDefID].name
+		--end
 			commanders = getCommanders()
 			for _, comUnitID in pairs(commanders) do
 				--pairCompanionToUnit(unitID,comUnitID)
