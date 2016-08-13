@@ -213,18 +213,15 @@ function widget:DrawScreen()
 
 	local mx, my = spGetMouseState()
 	local uID
+	local rType, unitID = spTraceScreenRay(mx, my)
+	if rType == 'unit' then
+		uID = unitID
+	end
 	if useSelection then
 		local selUnits = spGetSelectedUnits()
-		if #selUnits ~= 1 then
-			--RemoveGuishader() return
+		if #selUnits >= 1 then
+			uID = selUnits[1]
 		end
-		uID = selUnits[1]
-	else
-		local rType, unitID = spTraceScreenRay(mx, my)
-		if rType ~= 'unit' then
-			RemoveGuishader() return
-		end
-		uID = unitID
 	end
 	if not uID then
 		RemoveGuishader() return
@@ -292,6 +289,9 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	-- Generic information, cost, move, class
 	------------------------------------------------------------------------------------
+	
+	--DrawText('Height:', uDefs[spGetUnitDefID(uID)].height)
+				
 	DrawText("Cost:", format(metalColor .. '%d' .. white .. ' / ' ..
 							energyColor .. '%d' .. white .. ' / ' ..
 							buildColor .. '%d', uDef.metalCost, uDef.energyCost, uDef.buildTime)
@@ -473,6 +473,7 @@ function widget:DrawScreen()
 										 drainAdjust * uWep.energyCost / oRld))
 			end
 			
+				
 			cY = cY - fontSize
 		end
 	end
