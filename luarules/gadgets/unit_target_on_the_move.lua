@@ -14,11 +14,14 @@ end
 
 --include("LuaRules/Configs/customcmds.h.lua")
 
+local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
 local CMD_UNIT_SET_TARGET = 34923
 local CMD_UNIT_CANCEL_TARGET = 34924
 local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
 
 --export to CMD table
+CMD.CMD_UNIT_SET_TARGET_NO_GROUND = CMD_UNIT_SET_TARGET_NO_GROUND
+CMD[CMD_UNIT_SET_TARGET_NO_GROUND] = 'UNIT_SET_TARGET_NO_GROUND'
 CMD.UNIT_SET_TARGET = CMD_UNIT_SET_TARGET
 CMD[CMD_UNIT_SET_TARGET] = 'UNIT_SET_TARGET'
 CMD.UNIT_CANCEL_TARGET = CMD_UNIT_SET_TARGET
@@ -109,10 +112,21 @@ unitTargets = {} -- data holds all unitID data
 
 local tooltipText = 'Sets a top priority attack target, to be used if within range (not removed by move commands)'
 
+
+local unitSetTargetNoGroundCmdDesc = {
+	id		= CMD_UNIT_SET_TARGET_NO_GROUND,
+	type	= CMDTYPE.ICON_UNIT,
+	name	= '\n Set\nUnit\nTarget\n',
+	action	= 'settargetnoground',
+	cursor	= 'settarget',
+	tooltip	= tooltipText,
+	hidden	= true,
+}
+
 local unitSetTargetRectangleCmdDesc = {
 	id		= CMD_UNIT_SET_TARGET_RECTANGLE,
 	type	= CMDTYPE.ICON_UNIT_OR_RECTANGLE,
-	name	= 'Target',
+	name	= '\n  Set\nTarget\n',
 	action	= 'settargetrectangle',
 	cursor	= 'settarget',
 	tooltip	= tooltipText,
@@ -304,6 +318,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
 	gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
+	gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_NO_GROUND)	
 
 	-- load active units
 	for _, unitID in pairs(Spring.GetAllUnits()) do
@@ -315,6 +330,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if validUnits[unitDefID] then
 		--spInsertUnitCmdDesc(unitID, unitSetTargetRectangleCmdDesc)
+		spInsertUnitCmdDesc(unitID, unitSetTargetNoGroundCmdDesc)
 		spInsertUnitCmdDesc(unitID, unitSetTargetCircleCmdDesc)
 		spInsertUnitCmdDesc(unitID, unitCancelTargetCmdDesc)
 		if unitTargets[builderID] then
@@ -340,7 +356,7 @@ end
 -- Command Tracking
 
 local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
+	if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 		if validUnits[unitDefID] then
 			local weaponList = UnitDefs[unitDefID].weapons
 			local append = cmdOptions.shift
@@ -583,6 +599,9 @@ function gadget:Initialize()
 	Spring.AssignMouseCursor("settarget", "cursorsettarget", false)
 	--show the command in the queue
 	Spring.SetCustomCommandDrawData(CMD_UNIT_SET_TARGET,"settarget",queueColour,true)
+	Spring.SetCustomCommandDrawData(CMD_UNIT_SET_TARGET_NO_GROUND,"settargetrectangle",queueColour,true)
+	Spring.SetCustomCommandDrawData(CMD_UNIT_SET_TARGET_RECTANGLE,"settargetnoground",queueColour,true)
+	
 end
 
 function gadget:Shutdown()
