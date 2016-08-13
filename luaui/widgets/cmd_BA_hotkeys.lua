@@ -159,7 +159,7 @@ function MakeBindsTable (swapYZ)
         
         -- set target
         "bind "..Y.." settargetnoground",
-        "bind shift+"..Y.." settarget",
+        "bind alt+"..Y.." settarget",
         "bind j canceltarget",
         
         "bind q drawinmap", --some keyboards don't have ` or \
