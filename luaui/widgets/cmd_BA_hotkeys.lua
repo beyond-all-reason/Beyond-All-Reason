@@ -158,7 +158,8 @@ function MakeBindsTable (swapYZ)
         "bind numpad1 movefast",
         
         -- set target
-        "bind "..Y.." settarget",
+        "bind "..Y.." settargetnoground",
+        "bind shift+"..Y.." settarget",
         "bind j canceltarget",
         
         "bind q drawinmap", --some keyboards don't have ` or \
