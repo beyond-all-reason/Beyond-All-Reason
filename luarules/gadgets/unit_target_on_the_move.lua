@@ -69,6 +69,7 @@ local spGetUnitsInRectangle		= Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder		= Spring.GetUnitsInCylinder
 local spSetUnitRulesParam		= Spring.SetUnitRulesParam
 local spGetCommandQueue     	= Spring.GetCommandQueue
+local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local spGetUnitWeaponTryTarget	= Spring.GetUnitWeaponTryTarget
 local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
 local spGetUnitWeaponTestRange	= Spring.GetUnitWeaponTestRange
@@ -362,85 +363,112 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 			local append = cmdOptions.shift
 			local userTarget = not cmdOptions.internal
 			local ignoreStop = cmdOptions.ctrl
-			local targets = {}
-			if #cmdParams == 6 then
-				--rectangle
-				local top, bot, left, right
-				if cmdParams[1] < cmdParams[4] then
-					left = cmdParams[1]
-					right = cmdParams[4]
-				else
-					left = cmdParams[4]
-					right = cmdParams[1]
-				end
+			if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
+				local targets = {}
+				if #cmdParams == 6 then
+					--rectangle
+					local top, bot, left, right
+					if cmdParams[1] < cmdParams[4] then
+						left = cmdParams[1]
+						right = cmdParams[4]
+					else
+						left = cmdParams[4]
+						right = cmdParams[1]
+					end
 
-				if cmdParams[3] < cmdParams[6] then
-					top = cmdParams[3]
-					bot = cmdParams[6]
-				else
-					bot = cmdParams[6]
-					top = cmdParams[3]
-				end
+					if cmdParams[3] < cmdParams[6] then
+						top = cmdParams[3]
+						bot = cmdParams[6]
+					else
+						bot = cmdParams[6]
+						top = cmdParams[3]
+					end
 
-				targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot)
-				--TODO: perhaps we should insert a new order on top of queue without cancelling area order
-				-- much like area reclaim, etc, until there are no enemies available
-
-
-			elseif #cmdParams == 4 then
-				-- if radius is 0, it's a single click
-				if cmdParams[4] == 0 then
-					--coordinate
-					cmdParams[4] = nil
-					targets = {cmdParams}
-				else
+					targets = CallAsTeam(teamID, spGetUnitsInRectangle, left, top, right, bot)
+				elseif #cmdParams == 4 then
 					--circle
 					targets = CallAsTeam(teamID, spGetUnitsInCylinder, cmdParams[1], cmdParams[3], cmdParams[4])
-					-- perhaps we should insert a new order on top of queue without cancelling area order
 				end
-			elseif #cmdParams == 3 then
-				--coordinate
-				targets = {cmdParams}
-			elseif #cmdParams == 1 then
-				--single target
-				targets = cmdParams
-			elseif #cmdParams == 0 then
-				--no param, unset target
-				removeUnit(unitID)
-			end
-			--filter target list
-			if targets then
-				local targetList = {}
-				for _,target in ipairs(targets) do
-					--accept either coordinate targets or enemy units
-					if not tonumber(target) or ( spValidUnitID(target) and not spAreTeamsAllied(teamID,spGetUnitTeam(target))) then
+				if targets then
+					local orders = {}
+					local optionKeys = {}
+					local optionKeysWithShift = {}
+					--re-insert back the command options
+					for optionName,optionValue in pairs(cmdOptions) do
+						if optionValue then
+							optionKeys[#optionKeys+1] = optionName
+							optionKeysWithShift[#optionKeysWithShift+1] = optionName
+						end
+						if  optionName == "shift" then --add a version with shift to swap between
+							optionKeysWithShift[#optionKeys+1] = optionName
+						end
+					end
+					for i,target in ipairs(targets) do
+						--if the order didn't have append (shift), we have to add for consequent area target inserts
+						orders[i] = {
+							CMD_UNIT_SET_TARGET,
+							{target},
+							i == 1 and optionKeys or optionKeysWithShift
+						}
+
+					end
+					--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
+					spGiveOrderArrayToUnitArray({unitID},orders)
+					
+				end
+			else
+				if #cmdParams == 3 or #cmdParams == 4 then
+					-- if radius is 0, it's a single click
+					if cmdParams[4] == 0 then 
+						cmdParams[4] = nil
+					end
+					local target = cmdParams
+					--coordinate
+					local validTarget = false
+					--only accept valid targets
+					for weaponID in ipairs(weaponList) do
+						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
+						if validTarget then
+							break
+						end
+					end
+					if validTarget then
+						addUnitTargets(unitID, unitDefID, { 
+							{
+								alwaysSeen = true,
+								ignoreStop = ignoreStop,
+								userTarget = userTarget,
+								target = target,
+							}
+						}, append )	
+					end
+				elseif #cmdParams == 1 then
+					--single target
+					local target = cmdParams[1]
+					if spValidUnitID(target) and not spAreTeamsAllied(teamID,spGetUnitTeam(target)) then
 						local validTarget = false
 						--only accept valid targets
 						for weaponID in ipairs(weaponList) do
 							--unit test target only tests the validity of the target type, not range or other variable things
-							if tonumber(target) then
-								--unitID target
-								validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target)
-							else
-								--coordinate target
-								validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
-							end
+							validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target)
 							if validTarget then
 								break
 							end
 						end
 						if validTarget then
-							targetList[#targetList+1] = {
-								alwaysSeen = not tonumber(target) or UnitDefs[spGetUnitDefID(target)].isBuilding or UnitDefs[spGetUnitDefID(target)].speed == 0,
-								ignoreStop = ignoreStop,
-								userTarget = userTarget,
-								target = target,
-							}
+							addUnitTargets(unitID, unitDefID, { 
+								{
+									alwaysSeen = UnitDefs[spGetUnitDefID(target)].isBuilding or UnitDefs[spGetUnitDefID(target)].speed == 0,
+									ignoreStop = ignoreStop,
+									userTarget = userTarget,
+									target = target,
+								}
+							}, append )	
 						end
 					end
-				end
-				if #targetList > 0 then
-					addUnitTargets(unitID, unitDefID, targetList, append )
+				elseif #cmdParams == 0 then
+					--no param, unset target
+					removeUnit(unitID)
 				end
 			end
 		end
