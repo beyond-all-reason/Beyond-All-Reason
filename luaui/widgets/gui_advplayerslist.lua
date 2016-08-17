@@ -1083,10 +1083,14 @@ function UpdatePlayerResources()
 			if aliveAllyTeams[player[playerID].allyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == player[playerID].allyteam) then
 				energy, energyStorage,_, energyIncome = Spring_GetTeamResources(player[playerID].team, "energy")
 				metal, metalStorage,_, metalIncome = Spring_GetTeamResources(player[playerID].team, "metal")
-				energy = math.floor(energy)
-				metal = math.floor(metal)
-				if energy < 0 then energy = 0 end
-				if metal < 0 then metal = 0 end
+				if energy == nil then		-- need to be there for when you do /specfullview
+					energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 0, 0, 0, 0, 0
+				else
+					energy = math.floor(energy)
+					metal = math.floor(metal)
+					if energy < 0 then energy = 0 end
+					if metal < 0 then metal = 0 end
+				end
 				player[playerID].energy = energy
 				player[playerID].energyIncome = energyIncome
 				player[playerID].energyStorage = energyStorage
