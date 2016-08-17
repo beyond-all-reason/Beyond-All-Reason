@@ -1836,8 +1836,10 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 				local m = player[playerID].metal
 				local ms = player[playerID].metalStorage
 				local mi = player[playerID].metalIncome
-				DrawResources(e, es, m, ms, posY)
-				if tipY == true then ResourcesTip(mouseX, e, es, ei, m, ms, mi) end
+				if es > 0 then
+					DrawResources(e, es, m, ms, posY)
+					if tipY == true then ResourcesTip(mouseX, e, es, ei, m, ms, mi) end
+				end
 			end
 		end
 	else -- spectator
