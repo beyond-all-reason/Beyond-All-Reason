@@ -57,7 +57,7 @@ else
 				if s_os ~= nil then
 				
 					if s_gpu ~= nil and string.find(line, ' video mode set to ') then
-						s_resolution = string.sub(line, 43)
+						s_resolution = string.sub(line, 44)
 					end
 					if s_gpu ~= nil and string.find(line, '^Video RAM:') and not string.find(line, 'unknown') then
 						s_gpuVram = string.sub(line, 14)
