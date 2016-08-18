@@ -12,7 +12,7 @@
 function widget:GetInfo()
 	return {
 		name      = "AdvPlayersList",
-		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize. '/cputext' displays cpu %",
+		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
 		version   = "19.0",
@@ -338,7 +338,7 @@ m_ID = {
 	spec      = true,
 	play      = true,
 	active    = false,
-	width     = 22,
+	width     = 17,
 	position  = position,
 	posX      = 0,
 	pic       = pics["idPic"],
