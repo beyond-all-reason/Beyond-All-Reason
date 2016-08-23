@@ -399,8 +399,6 @@ end
 
 function gadget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  screenX = (vsx*0.5) - (w/2)
-  screenY = (vsy*0.5) + (h/2)
   widgetScale = (0.75 + (vsx*vsy / 7500000))
 end
 
@@ -427,7 +425,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	local otherLine      = '\164' .. tostring(1+cowAward) .. '\165' ..  tostring(1+ecoAward) .. ':' .. tostring(ecoScore).. '\166' .. tostring(1+dmgRecAward) .. ':' .. tostring(dmgRecScore) ..'\167' .. tostring(1+sleepAward) .. ':' .. tostring(sleepScore)
 	local awardsMsg = ecoKillLine .. fightKillLine .. effKillLine .. otherLine
 	Spring.SendLuaRulesMsg(awardsMsg)
-    
+  
 	--create awards
 	CreateBackground()
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
@@ -684,6 +682,10 @@ end
 function gadget:DrawScreen()
 
 	if not drawAwards then return end
+	
+  vsx,vsy = Spring.GetViewGeometry()
+  widgetScale = (0.75 + (vsx*vsy / 7500000))
+  
 	glPushMatrix()
 		glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 		glScale(widgetScale, widgetScale, 1)
