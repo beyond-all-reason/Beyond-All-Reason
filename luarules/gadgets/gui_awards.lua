@@ -397,10 +397,6 @@ end
 end
 ]]--
 
-function gadget:ViewResize()
-  vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.75 + (vsx*vsy / 7500000))
-end
 
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
 						fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 
@@ -665,6 +661,7 @@ local graphsX = 250
 function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
 	if drawAwards then
+		x,y = correctMouseForScaling(x,y)
 		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
 			Spring.SendCommands("quitforce")
 		end
@@ -678,6 +675,11 @@ function gadget:MousePress(x,y,button)
 	end
 end
 
+function correctMouseForScaling(x,y)
+	x = x - (((x/vsx)-0.5) * vsx)*((widgetScale-1)/widgetScale)
+	y = y - (((y/vsy)-0.5) * vsy)*((widgetScale-1)/widgetScale)
+	return x,y
+end
 
 function gadget:DrawScreen()
 
@@ -707,7 +709,9 @@ function gadget:DrawScreen()
 		end
 		
 		--draw buttons, wastefully, but it doesn't matter now game is over
-		local x,y = Spring.GetMouseState()
+		local x1,y1 = Spring.GetMouseState()
+		local x,y = correctMouseForScaling(x1,y1)
+		
 		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else

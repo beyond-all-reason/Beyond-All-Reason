@@ -9,6 +9,7 @@ Other:
 - Unit stats: mouseover unit + space works again when no units selected (old behavior)
 - Set target (shortcut Y) now doesnt attack ground, ALT+Y will still do that
 - Critters dissapear less quickly
+- Awards screen scales according to resolution
 
 
 9.41 -> 9.42
