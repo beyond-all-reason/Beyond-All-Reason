@@ -1,4 +1,17 @@
-﻿9.41 -> 9.42
+﻿9.42 -> 9.43
+XX/08/2016
+
+Balance changes:
+- 
+
+Other:
+- Advplayerslist: fixed crash when doing /specfullview
+- Unit stats: mouseover unit + space works again when no units selected (old behavior)
+- Set target (shortcut Y) now doesnt attack ground, ALT+Y will still do that
+- Critters dissapear less quickly
+
+
+9.41 -> 9.42
 11/08/2016
 
 Balance changes:
