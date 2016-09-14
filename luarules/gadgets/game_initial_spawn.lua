@@ -315,9 +315,7 @@ end
 -- Spawning
 ----------------------------------------------------------------
 
-function gadget:GameStart() 
-		gl.DeleteList(readyButton)
-		gl.DeleteList(readyButtonHover)
+function gadget:GameStart()
         GetFFAStartPoints()		
 
     -- ffa mode spawning
@@ -554,7 +552,7 @@ function gadget:Initialize()
 	readyButton = gl.CreateList(function()
 		-- draws background rectangle
 		gl.Color(0.1,0.06,0,0.8)
-		RectRound(readyX-bgMargin, readyY+readyH,-bgMargin, readyX+readyW+bgMargin, readyY+bgMargin, 5)
+		RectRound(readyX-bgMargin, readyY+readyH-bgMargin, readyX+readyW+bgMargin, readyY+bgMargin, 5)
 		gl.Color(1,0.85,0.33,0.15)
 		RectRound(readyX,readyY+readyH, readyX+readyW, readyY)
 		gl.Color(1,1,1,1)
@@ -562,9 +560,8 @@ function gadget:Initialize()
 	-- create ready button
 	readyButtonHover = gl.CreateList(function()
 		-- draws background rectangle
-		local bgMargin = 3.5
 		gl.Color(0.03,0.1,0,0.8)
-		RectRound(readyX-bgMargin, readyY+readyH,-bgMargin, readyX+readyW+bgMargin, readyY+bgMargin, 5)
+		RectRound(readyX-bgMargin, readyY+readyH-bgMargin, readyX+readyW+bgMargin, readyY+bgMargin, 5)
 		gl.Color(0.66,1,0.33,0.2)
 		RectRound(readyX,readyY+readyH, readyX+readyW, readyY)
 		gl.Color(1,1,1,1)
@@ -625,10 +622,10 @@ function gadget:GameSetup(state,ready,playerStates)
 	return true, ready
 end
 
-		
+
 function correctMouseForScaling(x,y)
 	local buttonScreenCenterPosX = (readyX+(readyW/2))/vsx
-	local buttonScreenCenterPosY = (readyY+(readyY/2))/vsy
+	local buttonScreenCenterPosY = (readyY+(readyH/2))/vsy
 	x = x - (((x/vsx)-buttonScreenCenterPosX) * vsx)*((uiScale-1)/uiScale)
 	y = y - (((y/vsy)-buttonScreenCenterPosY) * vsy)*((uiScale-1)/uiScale)
 	return x,y
@@ -661,45 +658,44 @@ end
 
 
 function gadget:DrawScreen()
-	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
-		-- draw 'ready' button
-	  vsx,vsy = Spring.GetViewGeometry()
-	  uiScale = (0.75 + (vsx*vsy / 7500000))
-		--gl.PushMatrix()
-			gl.Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
-			gl.Scale(uiScale, uiScale, 1)
-			
-			-- ready text
-			local x,y = Spring.GetMouseState()
-			x,y = correctMouseForScaling(x,y)
-			if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
-				gl.CallList(readyButtonHover)
-				colorString = "\255\255\230\0"
-			else
-				gl.CallList(readyButton)
-        timer2 = timer2 + Spring.GetLastUpdateSeconds()
-        if timer2 % 0.75 <= 0.375 then
-            colorString = "\255\200\200\20"
-        else
-            colorString = "\255\255\255\255"
-        end
-			end
-			gl.Text(colorString .. "Ready", readyX+10, readyY+9, 25, "o")
-			gl.Color(1,1,1,1)
-		end
+	--gl.PushMatrix()
+  uiScale = (0.75 + (vsx*vsy / 7500000))
+	gl.Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
+	gl.Scale(uiScale, uiScale, 1)
 		
-		if gameStarting and not isReplay then 
-			timer = timer + Spring.GetLastUpdateSeconds()
-			if timer % 0.75 <= 0.375 then
-				colorString = "\255\200\200\20"
-			else
-				colorString = "\255\255\255\255"
-			end
-			local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
-			gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*20, vsy*0.71, 20, "o")
+	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
+
+		-- draw ready button and text
+		local x,y = Spring.GetMouseState()
+		x,y = correctMouseForScaling(x,y)
+		if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
+			gl.CallList(readyButtonHover)
+			colorString = "\255\255\230\0"
+		else
+			gl.CallList(readyButton)
+      timer2 = timer2 + Spring.GetLastUpdateSeconds()
+      if timer2 % 0.75 <= 0.375 then
+        colorString = "\255\200\200\20"
+      else
+        colorString = "\255\255\255\255"
+      end
 		end
-			gl.Scale(-uiScale, -uiScale, 1)
-			gl.Translate((vsx * (uiScale-1))/2, (vsy * (uiScale-1))/2, 0)
+		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 25, "o")
+		gl.Color(1,1,1,1)
+	end
+		
+	if gameStarting and not isReplay then 
+		timer = timer + Spring.GetLastUpdateSeconds()
+		if timer % 0.75 <= 0.375 then
+			colorString = "\255\200\200\20"
+		else
+			colorString = "\255\255\255\255"
+		end
+		local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
+		gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*20, vsy*0.71, 20, "o")
+	end
+	gl.Scale(-uiScale, -uiScale, 1)
+	gl.Translate((vsx * (uiScale-1))/2, (vsy * (uiScale-1))/2, 0)
 	--gl.PopMatrix()	-- this errored
 	
 	--remove if after gamestart
@@ -710,7 +706,8 @@ function gadget:DrawScreen()
 end
 
 function gadget:Shutdown()
-    gl.DeleteList(replayButton)
+		gl.DeleteList(readyButton)
+		gl.DeleteList(readyButtonHover)
 end
 
 ----------------------------------------------------------------

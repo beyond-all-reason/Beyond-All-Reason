@@ -243,6 +243,9 @@ end
 else -- begin unsynced section
 -----------------------------
 
+
+local bgcorner = ":n:LuaRules/Images/bgcorner.png"
+local uiScale = 1
 local x = 500
 local y = 500
 
@@ -256,99 +259,186 @@ function gadget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
 end
 
-local subsButton
+local subsButton, subsButtonHover
 local bX = vsx * 0.8
 local bY = vsy * 0.8 
 local bH = 30
 local bW = 140
+local bgMargin = 3.5
 local offer = false
+
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.07		-- texture offset, because else gaps could show
+	
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
+	gl.Texture(false)
+end
 
 function MakeButton()
 	subsButton = gl.CreateList(function()
-		-- draws background rectangle
-		gl.Color(0.1,0.1,.45,0.18)                              
-		gl.Rect(bX,bY+bH, bX+bW, bY)
-	
-		-- draws black border
-		gl.Color(0,0,0,1)
-		gl.BeginEnd(GL.LINE_LOOP, function()
-			gl.Vertex(bX,bY)
-			gl.Vertex(bX,bY+bH)
-			gl.Vertex(bX+bW,bY+bH)
-			gl.Vertex(bX+bW,bY)
-		end)
+		-- draws background rectangle 
+		gl.Color(0.1,0.06,0,0.8)
+		RectRound(bX-bgMargin, bY+bH-bgMargin, bX+bW+bgMargin, bY+bgMargin, 5)
+		gl.Color(1,0.85,0.33,0.15)                         
+		RectRound(bX,bY+bH, bX+bW, bY)
+		gl.Color(1,1,1,1)
+	end)
+	subsButtonHover = gl.CreateList(function()
+		-- draws background rectangle 
+		gl.Color(0.03,0.1,0,0.8)
+		RectRound(bX-bgMargin, bY+bH-bgMargin, bX+bW+bgMargin, bY+bgMargin, 5)
+		gl.Color(0.66,1,0.33,0.2)                      
+		RectRound(bX,bY+bH, bX+bW, bY)
 		gl.Color(1,1,1,1)
 	end)
 end
 
-function gadget:Initialize()
-    if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
-        gadgetHandler:RemoveGadget() -- don't run in FFA mode
-        return 
-    end
+function correctMouseForScaling(x,y)
+	local buttonScreenCenterPosX = (bX+(bW/2))/vsx
+	local buttonScreenCenterPosY = (bY+(bH/2))/vsy
+	x = x - (((x/vsx)-buttonScreenCenterPosX) * vsx)*((uiScale-1)/uiScale)
+	y = y - (((y/vsy)-buttonScreenCenterPosY) * vsy)*((uiScale-1)/uiScale)
+	return x,y
+end
 
-    gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
-    gadgetHandler:AddSyncAction("ForceSpec", ForceSpec)
-    
-    -- match the equivalent check in synced
-    local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) 
-    local tsMu = "30"--customtable.skill 
+function gadget:Initialize()
+  if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
+      gadgetHandler:RemoveGadget() -- don't run in FFA mode
+      return 
+  end
+
+  gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
+  gadgetHandler:AddSyncAction("ForceSpec", ForceSpec)
+  
+  -- match the equivalent check in synced
+  local customtable = select(10,Spring.GetPlayerInfo(myPlayerID)) 
+  local tsMu = "30"--customtable.skill 
 	local tsSigma = "0"--customtable.skilluncertainty
-    ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
-    tsSigma = tonumber(tsSigma)
-    eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
-    
-    MakeButton()
+  ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+  tsSigma = tonumber(tsSigma)
+  eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and spec
+  
+  MakeButton()
 end
 
 
 function gadget:DrawScreen()
-    if eligible then
-        -- ask each spectator if they would like to replace an absent player
-		-- draw button
-		gl.CallList(subsButton)
+  if eligible then
+	  -- ask each spectator if they would like to replace an absent player
 		
-		-- text
+		--gl.PushMatrix()
+	  uiScale = (0.75 + (vsx*vsy / 7500000))
+		gl.Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
+		gl.Scale(uiScale, uiScale, 1)
+	
+		-- draw button and its text
 		local x,y = Spring.GetMouseState()
+		x,y = correctMouseForScaling(x,y)
 		if x > bX and x < bX+bW and y > bY and y < bY+bH then
+			gl.CallList(subsButtonHover)
 			colorString = "\255\255\230\0"
 		else
+			gl.CallList(subsButton)
 			colorString = "\255\255\255\255"
 		end
-        local textString
-        if not offer then
-            textString = "Offer to play"
-        else
-            textString = "Withdraw offer"
-        end
+	  local textString
+	  if not offer then
+	    textString = "Offer to play"
+	  else
+	    textString = "Withdraw offer"
+	  end
 		gl.Text(colorString .. textString, bX+10, bY+9, 20, "o")
 		gl.Color(1,1,1,1)
-    else
-        gadgetHandler:RemoveCallIn("DrawScreen") -- no need to waste cycles
-    end
+		
+		gl.Scale(-uiScale, -uiScale, 1)
+		gl.Translate((vsx * (uiScale-1))/2, (vsy * (uiScale-1))/2, 0)
+		--gl.PopMatrix()	-- this errored
+  else
+    gadgetHandler:RemoveCallIn("DrawScreen") -- no need to waste cycles
+  end
 end
 
 function gadget:MousePress(sx,sy)
 	-- pressing b
+	sx,sy = correctMouseForScaling(sx,sy)
 	if sx > bX and sx < bX+bW and sy > bY and sy < bY+bH and eligible then
-        --Spring.Echo("sent", myPlayerID, ts)
-        if not offer then
-            Spring.SendLuaRulesMsg('\144')
-            Spring.Echo("If player(s) are afk when the game starts, you might be used as a substitute")
-            offer = true
-            bW = 160
-            MakeButton()
-            return true
-        else
-            Spring.SendLuaRulesMsg('\145')
-            Spring.Echo("Your offer to substitute has been withdrawn")
-            offer = false
-            bW = 140
-            MakeButton()
-            return true
-        end
+    --Spring.Echo("sent", myPlayerID, ts)
+    if not offer then
+        Spring.SendLuaRulesMsg('\144')
+        Spring.Echo("If player(s) are afk when the game starts, you might be used as a substitute")
+        offer = true
+        bW = 160
+        MakeButton()
+        return true
+    else
+        Spring.SendLuaRulesMsg('\145')
+        Spring.Echo("Your offer to substitute has been withdrawn")
+        offer = false
+        bW = 140
+        MakeButton()
+        return true
+    end
 	end
-    return false
+  return false
 end
 
 function gadget:MouseRelease(x,y)
@@ -387,7 +477,6 @@ end
 
 function gadget:GameFrame(n)
     if n~=5 then return end
-    
     if revealed then    
         Spring.Echo("Substitution occurred, revealed start positions to all")
     end
@@ -404,6 +493,8 @@ end
 end]]
 
 function gadget:Shutdown()
+    gl.DeleteList(subsButton)
+    gl.DeleteList(subsButtonHover)
     gadgetHandler:RemoveSyncAction("MarkStartPoint")
     gadgetHandler:RemoveSyncAction("ForceSpec")
 end
