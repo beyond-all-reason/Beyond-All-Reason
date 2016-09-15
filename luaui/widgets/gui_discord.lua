@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name		= "Discord button",
+		name		= "Discord icon",
 		desc		= "located next to advplayerlist",
 		author		= "Floris",
 		date		= "24 july 2016",
@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/discord.png"
-local iconSize = 28
+local iconSize = 32
 
 local spGetGameFrame			= Spring.GetGameFrame
 local myPlayerID				= Spring.GetMyPlayerID()
@@ -73,6 +73,8 @@ function updatePosition(force)
 		usedImgSize = iconSize * advplayerlistPos[5]
 		xPos = advplayerlistPos[4]
 		yPos = advplayerlistPos[1]
+		local vsx,vsy = Spring.GetViewGeometry()
+		if xPos > vsx then xPos = vsx end
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList(usedImgSize)
 		end
@@ -80,6 +82,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
+	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
 	updatePosition()
 end
 
@@ -89,17 +92,11 @@ function widget:Shutdown()
 	end
 end
 
-function widget:PlayerChanged(playerID)
-	if playerID == myPlayerID then
-		
-	end
+function widget:GameStart()
+	widgetHandler:RemoveWidget(self)
 end
 
 function widget:DrawScreen()
-	if spGetGameFrame() > 0 then
-		widgetHandler:RemoveWidget(self)
-		return
-	end
 	--if spGetGameFrame() == 0 then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
