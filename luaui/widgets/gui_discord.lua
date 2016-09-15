@@ -96,6 +96,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:DrawScreen()
+	if spGetGameFrame() > 0 then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 	--if spGetGameFrame() == 0 then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
