@@ -139,6 +139,6 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("We have our own Discord server now!\nour central community hub (chat/voice/info)\n\nhttps://discordapp.com/invite/aDtX3hW")
+		return string.format("We have our own Discord server now!\nour central community hub (chat/voice/info)\n\nhttps://discord.gg/aDtX3hW")
 	end
 end
