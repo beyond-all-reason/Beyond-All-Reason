@@ -29,6 +29,17 @@ local cursorSetsInv = table_invert(cursorSets)
 
 function widget:Initialize()
     SetCursor(Settings['cursorSet'])
+	  WG['cursors'] = {}
+	  WG['cursors'].getcursor = function()
+	  	return Settings['cursorSet']
+	  end
+	  WG['cursors'].getcursorsets = function()
+	  	return cursorSets
+	  end
+	  WG['cursors'].setcursor = function(cursorSet)
+	  	Settings['cursorSet'] = cursorSet
+	  	SetCursor(cursorSet)
+	  end
 end
 
 ----------------------------
