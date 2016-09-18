@@ -13,7 +13,7 @@ function widget:GetInfo()
   }
 end
 
-local opacityMultiplier = 0.14
+local opacityMultiplier = 0.15
 
 local spGetUnitViewPosition 	= Spring.GetUnitViewPosition
 local spGetUnitDefID			= Spring.GetUnitDefID
@@ -26,6 +26,7 @@ local spGetProjectilePosition	= Spring.GetProjectilePosition
 local spGetProjectileType		= Spring.GetProjectileType
 local spGetProjectileName		= Spring.GetProjectileName
 local spGetGameFrame 			= Spring.GetGameFrame
+local spGetVisibleProjectiles		= Spring.GetVisibleProjectiles
 
 local max						= math.max
 local floor						= math.floor
@@ -145,63 +146,7 @@ local x1, y1 = 0, 0
 local x2, y2 = Game.mapSizeX, Game.mapSizeZ
 function widget:DrawWorldPreUnit()
 
-	if frame < spGetGameFrame() then
-		frame = spGetGameFrame()
-	
-		local at, p = spTraceScreenRay(sx*0.5,sy*0.5,true,false,false)
-		if at=='ground' then
-			local cx, cy = p[1], p[3]
-			local dcxp1, dcxp3
-			local outofbounds = 0
-			local d = 0
-			--x2=math.min(x2, tl[1])
-			--y2=math.min(y2, tl[3])
-			
-			at, p = spTraceScreenRay(0, 0, true, false, false) --bottom left
-			if at=='ground' then
-				dcxp1, dcxp3 = cx-p[1], cy-p[3]
-				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
-			else 
-				outofbounds = outofbounds+1
-			end
-			at, p = spTraceScreenRay(sx-1, 0, true, false, false) --bottom left
-			if at=='ground' then
-				dcxp1, dcxp3 = cx-p[1], cy-p[3]
-				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
-			else 
-				outofbounds = outofbounds+1
-			end
-			at, p = spTraceScreenRay(sx-1, sy-1, true, false, false) --bottom left
-			if at=='ground' then
-				dcxp1, dcxp3 = cx-p[1], cy-p[3]
-				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
-			else 
-				outofbounds = outofbounds+1
-			end
-			at, p = spTraceScreenRay(0, sy-1, true, false, false) --bottom left
-			if at=='ground' then
-				dcxp1, dcxp3 = cx-p[1], cy-p[3]
-				d = max(d, dcxp1*dcxp1 + dcxp3*dcxp3)
-			else 
-				outofbounds = outofbounds+1
-			end
-			if outofbounds>=3 then
-				plist = spGetProjectilesInRectangle(x1, y1, x2, y2, false, false) --todo, only those in view or close:P
-			else
-				d = sqrt(d)
-				plist = spGetProjectilesInRectangle(cx-d, cy-d, cx+d, cy+d, false, false) 
-			end
-		else -- if we are not pointing at ground, get the whole list.
-			plist = spGetProjectilesInRectangle(x1, y1, x2, y2, false, false) --todo, only those in view or close:P
-		end
-	end
-	--Spring.GetCameraPosition 
-	--Spring.GetCameraPosition() -> number x, number y, number z
-	--Spring.GetCameraDirection() -> number forward_x, number forward_y, number forward_z
-	--Spring.GetCameraFOV( ) -> number fov
-
-	--Spring.Echo('mapview',nplist,outofbounds,d,cx,cy)
-	--Spring.Echo('fov',Spring.GetCameraFOV(),Spring.GetCameraPosition())
+	plist = spGetVisibleProjectiles(-1,true,true,true)
 	if #plist>0 then --dont do anything if there are no projectiles in range of view
 		--Spring.Echo('#projectiles:',#plist)
 		glTexture('luaui/images/pointlight.tga') --simple white square with alpha white blurred circle
