@@ -1,4 +1,15 @@
-﻿9.42 -> 9.43
+﻿9.43 -> 9.44
+XX/09/2016
+
+- Added Options widget
+- We are on 'Discord', pre gamestart icon shows
+- Ready/sub button appearance/size change and scales with resolution
+- Projectile lights widget has enhanced performance (by roinks[vegan])
+- fixed: partially built planes being incorrectly recognized as damaged and sent to repair pads
+- BA icon quality improved
+
+
+9.42 -> 9.43
 08/09/2016
 
 - Advplayerslist: fixed crash when doing /specfullview
