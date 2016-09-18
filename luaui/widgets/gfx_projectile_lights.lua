@@ -13,7 +13,7 @@ function widget:GetInfo()
   }
 end
 
-local opacityMultiplier = 0.15
+local opacityMultiplier = 0.16 --too low to be visible on some systems, fyi
 
 local spGetUnitViewPosition 	= Spring.GetUnitViewPosition
 local spGetUnitDefID			= Spring.GetUnitDefID
@@ -141,11 +141,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 local plist = {}
-local frame = 0
-local x1, y1 = 0, 0
-local x2, y2 = Game.mapSizeX, Game.mapSizeZ
 function widget:DrawWorldPreUnit()
-
 	plist = spGetVisibleProjectiles(-1,true,true,true)
 	if #plist>0 then --dont do anything if there are no projectiles in range of view
 		--Spring.Echo('#projectiles:',#plist)
