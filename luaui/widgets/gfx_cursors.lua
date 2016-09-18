@@ -97,12 +97,17 @@ function widget:SetConfigData(data)
     end
 end
 
-function widget:TextCommand(command)
-    if (string.find(command, "cursor") == 1  and  string.len(command) == 6) then
+function widget:TextCommand(cmd)
+  if (string.find(cmd, "cursor") == 1  and  string.len(cmd) == 6) then
 		Settings['cursorSet'] = cursorSets[cursorSetsInv[Settings['cursorSet']] + 1]
 		if not cursorSetsInv[Settings['cursorSet']] then
 			Settings['cursorSet'] = cursorSets[1]
 		end
 		SetCursor(Settings['cursorSet'])
+	end
+
+	local value = cmd:match("^cursor (.+)$")
+	if value then
+		SetCursor(value)
 	end
 end
