@@ -1,10 +1,16 @@
-﻿9.43 -> 9.44
+﻿9.44 -> 9.45
+XX/09/2016
+
+- 
+
+
+9.43 -> 9.44
 18/09/2016
 
 - Added Options widget
-- We are on 'Discord', pre gamestart icon shows
+- We are on 'Discord' at: discord.gg/aDtX3hW (pregame: above advplayerslist is discord icon)
 - Ready/sub button appearance/size change and scales with resolution
-- Projectile lights widget has enhanced performance (by roinks[vegan])
+- Projectile lights widget has enhanced performance (by roink[vegan])
 - fixed: partially built planes being incorrectly recognized as damaged and sent to repair pads
 - BA icon quality improved
 

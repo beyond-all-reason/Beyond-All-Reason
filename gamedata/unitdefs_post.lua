@@ -17,6 +17,9 @@ for name,ud in pairs(UnitDefs) do
 	end
   end 
   
+  --ud.acceleration = 0.75
+  --ud.turnrate = 800
+  
   if SaveDefsToCustomParams then
       SaveDefToCustomParams("UnitDefs", name, ud)    
   end
