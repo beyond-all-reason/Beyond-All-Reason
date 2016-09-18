@@ -612,8 +612,11 @@ function mouseEvent(x, y, button, release)
 							applyOptionValue(showSelectOptions)
 						end
 					end
-					if not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+					if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
 						showSelectOptions = nil
+						selectClickAllowHide = nil
+					else
+						selectClickAllowHide = true
 					end
 				end
 				
