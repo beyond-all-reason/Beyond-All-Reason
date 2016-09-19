@@ -452,8 +452,6 @@ function applyOptionValue(i)
 			Spring.SendCommands("AdvSky "..value)
 		elseif id == 'shadows' then
 			Spring.SendCommands("Shadows "..value)
-		elseif id == 'decals' then
-			Spring.SendCommands("GroundDecals "..value)
 		elseif id == 'highresLos' then
 			Spring.SendCommands("HighResLos "..value)
 		elseif id == 'fullscreen' then
@@ -461,8 +459,8 @@ function applyOptionValue(i)
 		elseif id == 'borderless' then
 			Spring.SendCommands("WindowBorderless "..value)
 		elseif id == 'screenedgemove' then
-			Spring.SendCommands("FullscreenEdgeMove "..value)
-			Spring.SendCommands("WindowedEdgeMove "..value)
+			Spring.SetConfigInt("FullscreenEdgeMove",value)
+			Spring.SetConfigInt("WindowedEdgeMove",value)
 		elseif id == 'hwcursor' then
 			Spring.SendCommands("hardwareCursor "..value)
 		elseif id == 'fps' then
@@ -477,6 +475,8 @@ function applyOptionValue(i)
 		local value =  options[i].value
 		if id == 'fsaa' then
 			Spring.SetConfigInt("FSAALevel ",value)
+		elseif id == 'decals' then
+			Spring.SendCommands("GroundDecals "..value)
 		elseif id == 'scrollspeed' then
 			Spring.SetConfigInt("ScrollWheelSpeed ",value)
 		elseif id == 'disticon' then
@@ -686,7 +686,7 @@ end
 
 function widget:Initialize()
 	options = {
-		{id="advmapshading", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1},
+		{id="advmapshading", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: shadows are disabled too'},
 		{id="advmodelshading", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
 		{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1},
 		{id="shadows", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Requires "Advanced map shading" to be enabled'},
@@ -699,7 +699,7 @@ function widget:Initialize()
 		{id="time", name="Show time", type="bool", value=tonumber(Spring.GetConfigInt("ShowClock",1) or 1) == 1, description='Located at the top right of the screen'},
 		{id="gamespeed", name="Show game speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowSpeed",0) or 0) == 1, description='Located at the top right of the screen'},
 		
-		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much map decals will be drawn\n\n(this draws unit footsteps/tracks and darkens craters)'},
+		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much/duration map decals will be drawn\n\n(unit footsteps/tracks, darkening under buildings and scorns ground at explosions)'},
 		{id="fsaa", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="scrollspeed", name="Scrollwheel speed", type="slider", min=10, max=40, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Changes will be applied next game'},
 		{id="disticon", name="Unit icon distance", type="slider", min=0, max=1000, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 1000)},
