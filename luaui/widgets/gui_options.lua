@@ -462,7 +462,6 @@ function applyOptionValue(i)
 			Spring.SendCommands("WindowBorderless "..value)
 		elseif id == 'screenedgemove' then
 			Spring.SendCommands("FullscreenEdgeMove "..value)
-		elseif id == 'screenedgemovewindowed' then
 			Spring.SendCommands("WindowedEdgeMove "..value)
 		elseif id == 'hwcursor' then
 			Spring.SendCommands("hardwareCursor "..value)
@@ -691,16 +690,16 @@ function widget:Initialize()
 		{id="advmodelshading", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
 		{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1},
 		{id="shadows", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Requires "Advanced map shading" to be enabled'},
-		{id="decals", name="Ground decals", type="bool", value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1) == 1},
-		{id="highreslos", name="High res LOS", type="bool", value=tonumber(Spring.GetConfigInt("HighResLos",1) or 1) == 1},
+		{id="highreslos", name="High res LOS", type="bool", value=tonumber(Spring.GetConfigInt("HighResLos",1) or 1) == 1, description='Changes will be applied next game'},
 		{id="fullscreen", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", name="Borderless", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1},
-		{id="screenedgemove", name="Screen edge move (fullscreen)", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1},
-		{id="screenedgemovewindowed", name="Screen edge move (windowed)", type="bool", value=tonumber(Spring.GetConfigInt("WindowedEdgeMove",1) or 1) == 1},
+		{id="screenedgemove", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 		{id="hwcursor", name="Hardware-cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1},
 		{id="fps", name="Show FPS", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen'},
 		{id="time", name="Show time", type="bool", value=tonumber(Spring.GetConfigInt("ShowClock",1) or 1) == 1, description='Located at the top right of the screen'},
 		{id="gamespeed", name="Show game speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowSpeed",0) or 0) == 1, description='Located at the top right of the screen'},
+		
+		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much map decals will be drawn\n\n(this draws unit footsteps/tracks and darkens craters)'},
 		{id="fsaa", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="scrollspeed", name="Scrollwheel speed", type="slider", min=10, max=40, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Changes will be applied next game'},
 		{id="disticon", name="Unit icon distance", type="slider", min=0, max=1000, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 1000)},
@@ -710,6 +709,7 @@ function widget:Initialize()
 		{id="grassdetail", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass displayed\n\nChanges will be applied next game'},
 		{id="grounddetail", name="Ground mesh detail", type="slider", min=50, max=200, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground mesh detail (amount of polygons)'},
 		{id="sndvolmaster", name="Sound volume", type="slider", min=0, max=200, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
+		
 		{id="water", name="Water type", type="select", options={'basic','reflective','reflective&refractive','dynamic','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 		{id="camera", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber(Spring.GetConfigInt("CamMode",1) or 2))},
 	}
