@@ -448,7 +448,7 @@ else
 ----------------------------------------------------------------
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
-local customScale = 1.25
+local customScale = 1.15
 local uiScale = customScale
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
@@ -642,7 +642,7 @@ function gadget:Initialize()
 		-- draws background rectangle
 		gl.Color(0,0,0,0.8)
 		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 6)
-		gl.Color(1,0.85,0.33,0.15)
+		gl.Color(1,1,1,0.13)
 		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 4)
 		gl.Color(1,1,1,1)
 	end)
@@ -652,7 +652,7 @@ function gadget:Initialize()
 		gl.Color(0.15,0.12,0,0.8)
 		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 6)
 		RectRound(readyX-bgMargin, readyY-bgMargin, readyX+readyW+bgMargin, readyY+readyH+bgMargin, 5)
-		gl.Color(1,0.82,0.4,0.33)
+		gl.Color(1,0.8,0.3,0.33)
 		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 4)
 		gl.Color(1,1,1,1)
 	end)

@@ -245,7 +245,7 @@ else -- begin unsynced section
 
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
-local customScale = 1.25
+local customScale = 1.15
 local uiScale = customScale
 local x = 500
 local y = 500
@@ -346,9 +346,9 @@ end
 function MakeButton()
 	subsButton = gl.CreateList(function()
 		-- draws background rectangle
-		gl.Color(0.1,0.06,0,0.8)
+		gl.Color(0,0,0,0.8)
 		RectRound(-((bW/2)+bgMargin), -((bH/2)+bgMargin), ((bW/2)+bgMargin), ((bH/2)+bgMargin), 6)
-		gl.Color(1,0.85,0.33,0.15)
+		gl.Color(1,1,1,0.13)
 		RectRound(-bW/2, -bH/2, bW/2, bH/2, 4)
 		gl.Color(1,1,1,1)
 	end)
@@ -356,7 +356,7 @@ function MakeButton()
 		-- draws background rectangle 
 		gl.Color(0.15,0.12,0,0.8)
 		RectRound(-((bW/2)+bgMargin), -((bH/2)+bgMargin), ((bW/2)+bgMargin), ((bH/2)+bgMargin), 6)
-		gl.Color(1,0.7,0.4,0.33)
+		gl.Color(1,0.8,0.3,0.33)
 		RectRound(-bW/2, -bH/2, bW/2, bH/2, 4)
 		gl.Color(1,1,1,1)
 	end)
