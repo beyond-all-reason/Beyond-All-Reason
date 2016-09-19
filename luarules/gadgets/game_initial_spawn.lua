@@ -448,7 +448,8 @@ else
 ----------------------------------------------------------------
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
-local uiScale = 1
+local customScale = 1.25
+local uiScale = customScale
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
@@ -496,9 +497,9 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Vertex(sx, sy-cs, 0)
 	
 	local offset = 0.07		-- texture offset, because else gaps could show
-	
+	local o = offset
 	-- bottom left
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+	--if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-o)
@@ -508,7 +509,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+	--if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-o)
@@ -518,7 +519,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
+	--if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-o)
@@ -528,7 +529,7 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(1-o,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
+	--if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-o)
@@ -542,30 +543,6 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.Texture(bgcorner)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
-end
-
-function gadget:Initialize()
-	-- add function to receive when startpoints were chosen
-	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
-	
-	-- create ready button
-	readyButton = gl.CreateList(function()
-		-- draws background rectangle
-		gl.Color(0.1,0.06,0,0.8)
-		RectRound(readyX-bgMargin, readyY+readyH-bgMargin, readyX+readyW+bgMargin, readyY+bgMargin, 5)
-		gl.Color(1,0.85,0.33,0.15)
-		RectRound(readyX,readyY+readyH, readyX+readyW, readyY, 4)
-		gl.Color(1,1,1,1)
-	end)
-	-- create ready button
-	readyButtonHover = gl.CreateList(function()
-		-- draws background rectangle
-		gl.Color(0.03,0.1,0,0.8)
-		RectRound(readyX-bgMargin, readyY+readyH-bgMargin, readyX+readyW+bgMargin, readyY+bgMargin, 5)
-		gl.Color(0.66,1,0.33,0.2)
-		RectRound(readyX,readyY+readyH, readyX+readyW, readyY, 4)
-		gl.Color(1,1,1,1)
-	end)
 end
 
 function StartPointChosen(_,playerID)
@@ -582,12 +559,12 @@ function gadget:GameSetup(state,ready,playerStates)
 	if gameStarting==nil and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then --ugly but effective (can also detect by parsing state string)
 		gameStarting = true
 	end
-
+	
 	-- if we can't choose startpositions, no need for ready button etc
 	if Game.startPosType ~= 2 or ffaMode then
 		return true,true
 	end
-
+	
 	-- notify LuaUI if readyStates have changed
 	for playerID,readyState in pairs(playerStates) do
 		if pStates[playerID] ~= readyState then
@@ -603,7 +580,7 @@ function gadget:GameSetup(state,ready,playerStates)
 			pStates[playerID] = readyState
 		end
 	end
-
+	
 	-- set my readyState to true if i am a newbie, or if ffa 
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
@@ -634,7 +611,7 @@ end
 function gadget:MousePress(sx,sy)
 	-- pressing ready
 	sx,sy = correctMouseForScaling(sx,sy)
-	if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
+	if sx > readyX-bgMargin and sx < readyX+readyW+bgMargin and sy > readyY-bgMargin and sy < readyY+readyH+bgMargin and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
 		if startPointChosen then
 			readied = true
 			return true
@@ -642,7 +619,7 @@ function gadget:MousePress(sx,sy)
 			Spring.Echo("Please choose a start point!")
 		end
 	end
-
+	
 	-- message when trying to place startpoint but can't
 	if amNewbie then
 		local target,_ = Spring.TraceScreenRay(sx,sy)
@@ -656,50 +633,73 @@ function gadget:MouseRelease(x,y)
 	return false
 end
 
+function gadget:Initialize()
+	-- add function to receive when startpoints were chosen
+	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
+	
+	-- create ready button
+	readyButton = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0,0,0,0.8)
+		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 6)
+		gl.Color(1,0.85,0.33,0.15)
+		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 4)
+		gl.Color(1,1,1,1)
+	end)
+	-- create ready button
+	readyButtonHover = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0.15,0.12,0,0.8)
+		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 6)
+		RectRound(readyX-bgMargin, readyY-bgMargin, readyX+readyW+bgMargin, readyY+readyH+bgMargin, 5)
+		gl.Color(1,0.82,0.4,0.33)
+		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 4)
+		gl.Color(1,1,1,1)
+	end)
+end
 
 function gadget:DrawScreen()
-	--gl.PushMatrix()
-  uiScale = (0.75 + (vsx*vsy / 7500000))
-	gl.Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
-	gl.Scale(uiScale, uiScale, 1)
-		
-	if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
-
-		-- draw ready button and text
-		local x,y = Spring.GetMouseState()
-		x,y = correctMouseForScaling(x,y)
-		if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
-			gl.CallList(readyButtonHover)
-			colorString = "\255\255\230\0"
-		else
-			gl.CallList(readyButton)
-      timer2 = timer2 + Spring.GetLastUpdateSeconds()
-      if timer2 % 0.75 <= 0.375 then
-        colorString = "\255\200\200\20"
-      else
-        colorString = "\255\255\255\255"
-      end
+  uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+	gl.PushMatrix()
+		gl.Translate(readyX+(readyW/2),readyY+(readyH/2),0)
+		gl.Scale(uiScale, uiScale, 1)
+			
+		if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
+		--if not readied and readyButton and not spec and not isReplay then
+			
+			-- draw ready button and text
+			local x,y = Spring.GetMouseState()
+			x,y = correctMouseForScaling(x,y)
+			if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
+				gl.CallList(readyButtonHover)
+				colorString = "\255\255\230\0"
+			else
+				gl.CallList(readyButton)
+	      timer2 = timer2 + Spring.GetLastUpdateSeconds()
+	      if timer2 % 0.75 <= 0.375 then
+	        colorString = "\255\233\233\20"
+	      else
+	        colorString = "\255\255\255\255"
+	      end
+			end
+			gl.Text(colorString .. "Ready", -((readyW/2)-13), -((readyH/2)-10), 25, "o")
+			gl.Color(1,1,1,1)
 		end
-		gl.Text(colorString .. "Ready", readyX+10, readyY+9, 25, "o")
-		gl.Color(1,1,1,1)
-	end
-		
-	if gameStarting and not isReplay then 
-		timer = timer + Spring.GetLastUpdateSeconds()
-		if timer % 0.75 <= 0.375 then
-			colorString = "\255\200\200\20"
-		else
-			colorString = "\255\255\255\255"
+			
+		if gameStarting and not isReplay then
+			timer = timer + Spring.GetLastUpdateSeconds()
+			if timer % 0.75 <= 0.375 then
+				colorString = "\255\233\233\20"
+			else
+				colorString = "\255\255\255\255"
+			end
+			local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
+			gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*20, vsy*0.71, 20, "o")
 		end
-		local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
-		gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*20, vsy*0.71, 20, "o")
-	end
-	gl.Scale(-uiScale, -uiScale, 1)
-	gl.Translate((vsx * (uiScale-1))/2, (vsy * (uiScale-1))/2, 0)
-	--gl.PopMatrix()	-- this errored
+	gl.PopMatrix()
 	
 	--remove if after gamestart
-	if Spring.GetGameFrame() > 0 then 
+	if Spring.GetGameFrame() > 0 then
 		gadgetHandler:RemoveGadget(self)
 		return
 	end

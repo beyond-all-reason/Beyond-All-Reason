@@ -245,7 +245,8 @@ else -- begin unsynced section
 
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
-local uiScale = 1
+local customScale = 1.25
+local uiScale = customScale
 local x = 500
 local y = 500
 
@@ -333,31 +334,31 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.Texture(false)
 end
 
-function MakeButton()
-	subsButton = gl.CreateList(function()
-		-- draws background rectangle 
-		gl.Color(0.1,0.06,0,0.8)
-		RectRound(bX-bgMargin, bY+bH-bgMargin, bX+bW+bgMargin, bY+bgMargin, 5)
-		gl.Color(1,0.85,0.33,0.15)                         
-		RectRound(bX,bY+bH, bX+bW, bY, 4)
-		gl.Color(1,1,1,1)
-	end)
-	subsButtonHover = gl.CreateList(function()
-		-- draws background rectangle 
-		gl.Color(0.03,0.1,0,0.8)
-		RectRound(bX-bgMargin, bY+bH-bgMargin, bX+bW+bgMargin, bY+bgMargin, 5)
-		gl.Color(0.66,1,0.33,0.2)                      
-		RectRound(bX,bY+bH, bX+bW, bY, 4)
-		gl.Color(1,1,1,1)
-	end)
-end
-
 function correctMouseForScaling(x,y)
 	local buttonScreenCenterPosX = (bX+(bW/2))/vsx
 	local buttonScreenCenterPosY = (bY+(bH/2))/vsy
 	x = x - (((x/vsx)-buttonScreenCenterPosX) * vsx)*((uiScale-1)/uiScale)
 	y = y - (((y/vsy)-buttonScreenCenterPosY) * vsy)*((uiScale-1)/uiScale)
 	return x,y
+end
+
+function MakeButton()
+	subsButton = gl.CreateList(function()
+		-- draws background rectangle
+		gl.Color(0.1,0.06,0,0.8)
+		RectRound(-((bW/2)+bgMargin), -((bH/2)+bgMargin), ((bW/2)+bgMargin), ((bH/2)+bgMargin), 6)
+		gl.Color(1,0.85,0.33,0.15)
+		RectRound(-bW/2, -bH/2, bW/2, bH/2, 4)
+		gl.Color(1,1,1,1)
+	end)
+	subsButtonHover = gl.CreateList(function()
+		-- draws background rectangle 
+		gl.Color(0.15,0.12,0,0.8)
+		RectRound(-((bW/2)+bgMargin), -((bH/2)+bgMargin), ((bW/2)+bgMargin), ((bH/2)+bgMargin), 6)
+		gl.Color(1,0.7,0.4,0.33)
+		RectRound(-bW/2, -bH/2, bW/2, bH/2, 4)
+		gl.Color(1,1,1,1)
+	end)
 end
 
 function gadget:Initialize()
@@ -384,34 +385,31 @@ end
 function gadget:DrawScreen()
   if eligible then
 	  -- ask each spectator if they would like to replace an absent player
+
+  	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+		gl.PushMatrix()
+			gl.Translate(bX+(bW/2),bY+(bH/2),0)
+			gl.Scale(uiScale, uiScale, 1)
 		
-		--gl.PushMatrix()
-	  uiScale = (0.75 + (vsx*vsy / 7500000))
-		gl.Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
-		gl.Scale(uiScale, uiScale, 1)
-	
-		-- draw button and its text
-		local x,y = Spring.GetMouseState()
-		x,y = correctMouseForScaling(x,y)
-		if x > bX and x < bX+bW and y > bY and y < bY+bH then
-			gl.CallList(subsButtonHover)
-			colorString = "\255\255\230\0"
-		else
-			gl.CallList(subsButton)
-			colorString = "\255\255\255\255"
-		end
-	  local textString
-	  if not offer then
-	    textString = "Offer to play"
-	  else
-	    textString = "Withdraw offer"
-	  end
-		gl.Text(colorString .. textString, bX+10, bY+9, 20, "o")
-		gl.Color(1,1,1,1)
-		
-		gl.Scale(-uiScale, -uiScale, 1)
-		gl.Translate((vsx * (uiScale-1))/2, (vsy * (uiScale-1))/2, 0)
-		--gl.PopMatrix()	-- this errored
+			-- draw button and its text
+			local x,y = Spring.GetMouseState()
+			x,y = correctMouseForScaling(x,y)
+			if x > bX-bgMargin and x < bX+bW+bgMargin and y > bY-bgMargin and y < bY+bH+bgMargin then
+				gl.CallList(subsButtonHover)
+				colorString = "\255\255\230\0"
+			else
+				gl.CallList(subsButton)
+				colorString = "\255\255\255\255"
+			end
+		  local textString
+		  if not offer then
+		    textString = "Offer to play"
+		  else
+		    textString = "Withdraw offer"
+		  end
+			gl.Text(colorString .. textString, -((bW/2)-13), -((bH/2)-10), 20, "o")
+			gl.Color(1,1,1,1)
+		gl.PopMatrix()
   else
     gadgetHandler:RemoveCallIn("DrawScreen") -- no need to waste cycles
   end
@@ -420,7 +418,7 @@ end
 function gadget:MousePress(sx,sy)
 	-- pressing b
 	sx,sy = correctMouseForScaling(sx,sy)
-	if sx > bX and sx < bX+bW and sy > bY and sy < bY+bH and eligible then
+	if sx > bX-bgMargin and sx < bX+bW+bgMargin and sy > bY-bgMargin and sy < bY+bH+bgMargin and eligible then
     --Spring.Echo("sent", myPlayerID, ts)
     if not offer then
         Spring.SendLuaRulesMsg('\144')
