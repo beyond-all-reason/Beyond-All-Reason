@@ -48,10 +48,9 @@ local floor, ceil = math.floor, math.ceil
 local sqrt = math.sqrt
 local huge = math.huge
 
-local spGetGroundInfo     = Spring.GetGroundInfo
-local spGetGroundHeight   = Spring.GetGroundHeight
-local spTestBuildOrder    = Spring.TestBuildOrder
-local spSetGameRulesParam = Spring.SetGameRulesParam
+local spGetGroundInfo = Spring.GetGroundInfo
+local spGetGroundHeight = Spring.GetGroundHeight
+local spTestBuildOrder = Spring.TestBuildOrder
 
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
@@ -74,7 +73,6 @@ local mexUnitDef = UnitDefNames["cormex"]
 
 local mexDefInfo = {
 	extraction = 0.001,
-	square = false,
 	oddX = mexUnitDef.xsize % 4 == 2,
 	oddZ = mexUnitDef.zsize % 4 == 2,
 }
@@ -84,53 +82,15 @@ if (Spring.GetModOptions) then
   modOptions = Spring.GetModOptions()
 end
 
-
-------------------------------------------------------------
--- Speedup
-------------------------------------------------------------
-local function GetSpotsByPos(spots)
-	local spotPos = {}
-	for i = 1, #spots do
-		local spot = spots[i]
-		local x = spot.x
-		local z = spot.z
-		--Spring.MarkerAddPoint(x,0,z,x .. ", " .. z)
-		spotPos[x] = spotPos[x] or {}
-		spotPos[x][z] = i
-	end
-	return spotPos
-end
-
-------------------------------------------------------------
--- Set Game Rules so widgets can read metal spots
-------------------------------------------------------------
-local function SetMexGameRulesParams(metalSpots)
-	if not metalSpots then -- Mexes can be built anywhere
-		spSetGameRulesParam("mex_count", -1)
-		return
-	end
-	
-	local mexCount = #metalSpots
-	spSetGameRulesParam("mex_count", mexCount)
-	
-	for i = 1, mexCount do
-		local mex = metalSpots[i]
-		spSetGameRulesParam("mex_x" .. i, mex.x)
-		spSetGameRulesParam("mex_y" .. i, mex.y)
-		spSetGameRulesParam("mex_z" .. i, mex.z)
-		spSetGameRulesParam("mex_metal" .. i, mex.metal)
-	end
-end
-
 ------------------------------------------------------------
 -- Callins
 ------------------------------------------------------------
 function gadget:Initialize()
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Mex Spot Finder Initialising")
-	local metalSpots, fromEngineMetalmap = GetSpots()
+	local metalSpots = GetSpots()
 	local metalSpotsByPos = false
 	
-	if fromEngineMetalmap and #metalSpots < 6 then
+	if #metalSpots < 6 then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Indiscrete metal map detected")
 		metalSpots = false
 	end
@@ -156,11 +116,10 @@ function gadget:Initialize()
 		
 		metalSpotsByPos = GetSpotsByPos(metalSpots)
 	end
-	
-	SetMexGameRulesParams(metalSpots)
 
 	GG.metalSpots = metalSpots
 	GG.metalSpotsByPos = metalSpotsByPos
+	_G.metalSpots = metalSpots
 	
 	GG.IntegrateMetal = IntegrateMetal
 	
@@ -196,28 +155,17 @@ function IntegrateMetal(x, z, radius)
 	endX, endZ = min(endX, MAP_SIZE_X_SCALED - 1), min(endZ, MAP_SIZE_Z_SCALED - 1)
 	
 	local mult = mexDefInfo.extraction
-	local square = mexDefInfo.square
 	local result = 0
 	
-	if (square) then
-		for i = startX, endX do
-			for j = startZ, endZ do
-				local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
+	for i = startX, endX do
+		for j = startZ, endZ do
+			local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
+			local dx, dz = cx - centerX, cz - centerZ
+			local dist = sqrt(dx * dx + dz * dz)
+			
+			if (dist < radius) then
 				local _, metal = spGetGroundInfo(cx, cz)
 				result = result + metal
-			end
-		end
-	else
-		for i = startX, endX do
-			for j = startZ, endZ do
-				local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
-				local dx, dz = cx - centerX, cz - centerZ
-				local dist = sqrt(dx * dx + dz * dz)
-				
-				if (dist < radius) then
-					local _, metal = spGetGroundInfo(cx, cz)
-					result = result + metal
-				end
 			end
 		end
 	end
@@ -273,7 +221,7 @@ function GetSpots()
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading gameside mex config")
 		if gameConfig.spots then
 			spots = SanitiseSpots(gameConfig.spots)
-			return spots, false
+			return spots
 		end
 	end
 	
@@ -281,7 +229,7 @@ function GetSpots()
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading mapside mex config")
 		loadConfig = true
 		spots = SanitiseSpots(mapConfig.spots)
-		return spots, false
+		return spots
 	end
 	
 	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Detecting mex config from metalmap")
@@ -427,7 +375,7 @@ function GetSpots()
 	--	Spring.MarkerAddPoint(spots[i].x,spots[i].y,spots[i].z,"")
 	--end
 	
-	return spots, true
+	return spots
 end
 
 function GetValidStrips(spot)
@@ -456,54 +404,93 @@ function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
---------------------------------------------------------------------------------
-else  -- UNSYNCED
---------------------------------------------------------------------------------
 
-function gadget:GameStart()
-	Spring.Utilities = Spring.Utilities or {}
-	VFS.Include("LuaRules/Utilities/json.lua");
+------------------------------------------------------------
+-- Speedup
+------------------------------------------------------------
+function GetSpotsByPos(spots)
+	local spotPos = {}
+	for i = 1, #spots do
+		local spot = spots[i]
+		local x = spot.x
+		local z = spot.z
+		--Spring.MarkerAddPoint(x,0,z,x .. ", " .. z)
+		spotPos[x] = spotPos[x] or {}
+		spotPos[x][z] = i
+	end
+	return spotPos
+end
 
-	local teamlist = Spring.GetTeamList();
-	local localPlayer = Spring.GetLocalPlayerID();
-	local mexes = "";
-	local encoded = false;
-	
-	for _, teamID in pairs(teamlist) do
-		local _,_,_,isAI = Spring.GetTeamInfo(teamID)
-		if isAI then
-			local aiid, ainame, aihost = Spring.GetAIInfo(teamID);
-			if (aihost == localPlayer) then
-				if not encoded then
-					local metalSpots = GetMexSpotsFromGameRules();
-					mexes = 'METAL_SPOTS:'..Spring.Utilities.json.encode(metalSpots);
-					encoded = true;
-				end
-				Spring.SendSkirmishAIMessage(teamID, mexes);
-			end
-		end
+------------------------------------------------------------
+-- Widget asks Gadget to send data
+------------------------------------------------------------
+function gadget:RecvLuaMsg(msg, playerID)
+	if msg == "RequestMetalSpots" then
+		SendToUnsynced("SendMetalSpots", playerID) 
 	end
 end
 
-function GetMexSpotsFromGameRules()
-	local spGetGameRulesParam = Spring.GetGameRulesParam
-	local mexCount = spGetGameRulesParam("mex_count")
-	if (not mexCount) or mexCount == -1 then
-		return {}
+------------------------------------------------------------
+-- UNSYNCED
+------------------------------------------------------------
+else
+
+local metalSpots = {}
+local metalSpotsByPos = {}
+
+function WrapToLuaUI(_,playerID)
+	if playerID == Spring.GetLocalPlayerID() and Script.LuaUI('SendMetalSpots') then
+		Script.LuaUI.SendMetalSpots(playerID, metalSpots, metalSpotsByPos)
 	end
-	
-	local metalSpots = {}
-	
-	for i = 1, mexCount do
-		metalSpots[i] = {
-			x = spGetGameRulesParam("mex_x" .. i),
-			y = spGetGameRulesParam("mex_y" .. i),
-			z = spGetGameRulesParam("mex_z" .. i),
-			metal = spGetGameRulesParam("mex_metal" .. i),
-		}
+end
+
+local prevFrame = 1
+local FRAME_GAP = 300
+
+function gadget:Update() 
+	local frame = Spring.GetGameFrame()
+	if Spring.IsReplay() then
+		if Script.LuaUI('SendMetalSpots') then
+			Script.LuaUI.SendMetalSpots(playerID, metalSpots, metalSpotsByPos)
+			gadgetHandler:RemoveCallIn("Update")
+		end
+		if (frame > prevFrame) then 
+			if Script.LuaUI('SendMetalSpots') then
+				Script.LuaUI.SendMetalSpots(playerID, metalSpots, metalSpotsByPos)
+				gadgetHandler:RemoveCallIn("Update")
+			else
+				prevFrame = frame + FRAME_GAP
+			end
+		end 
+	else
+		gadgetHandler:RemoveCallIn("Update")
 	end
+end 
+
+function gadget:Initialize()
 	
-	return metalSpots
+	if type(SYNCED.metalSpots) == "table" then
+		local metalSpotsSYNCED = SYNCED.metalSpots
+		if metalSpotsSYNCED ~= nil then
+			for i, v in pairs(metalSpotsSYNCED) do
+				local x = v.x
+				local z = v.z
+				metalSpots[i] = {
+					x = x,
+					y = v.y,
+					z = z,
+					metal = v.metal
+				}
+				--Spring.MarkerAddPoint(x,0,z,x .. ", " .. z)
+				metalSpotsByPos[x] = metalSpotsByPos[x] or {}
+				metalSpotsByPos[x][z] = i
+			end
+		end
+	else
+		metalSpots = false
+		metalSpotsByPos = false
+	end
+	gadgetHandler:AddSyncAction('SendMetalSpots',WrapToLuaUI)
 end
 
 end
