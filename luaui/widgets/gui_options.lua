@@ -184,6 +184,7 @@ end
 
 
 function DrawWindow()
+	-- add widget options
 	if not checkedCursorsets then
 		checkedCursorsets = true
 		local cursorsets = {}
@@ -198,7 +199,7 @@ function DrawWindow()
 					break
 				end
 			end
-			table.insert(options, {id="cursor", name="Cursor", type="select", options=cursorsets, value=cursor})
+			table.insert(options, {widget="cursors", id="cursor", name="Cursor", type="select", options=cursorsets, value=cursor})
 		end
 	end
 	
@@ -710,13 +711,13 @@ function widget:Initialize()
 		
 		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much/duration map decals will be drawn\n\n(unit footsteps/tracks, darkening under buildings and scorns ground at explosions)'},
 		{id="fsaa", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
-		{id="scrollspeed", name="Scrollwheel speed", type="slider", min=10, max=40, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Changes will be applied next game'},
+		{id="scrollspeed", name="Zoom direction/speed", type="slider", min=-45, max=45, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the bar means inversed scrolling!\nKeep in mind, having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
 		{id="disticon", name="Unit icon distance", type="slider", min=0, max=1000, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 1000)},
-		{id="treeradius", name="Tree render distance", type="slider", min=0, max=2000, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000)},
+		{id="treeradius", name="Tree render distance", type="slider", min=0, max=2000, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Changes will be applied next game'},
 		{id="particles", name="Max particles", type="slider", min=1000, max=6000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Changes will be applied next game'},
 		{id="nanoparticles", name="Max nano particles", type="slider", min=500, max=6000, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='Changes will be applied next game'},
 		{id="grassdetail", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass displayed\n\nChanges will be applied next game'},
-		{id="grounddetail", name="Ground mesh detail", type="slider", min=50, max=200, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground mesh detail (amount of polygons)'},
+		{id="grounddetail", name="Ground mesh detail", type="slider", min=50, max=200, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground mesh detail (polygon detail of the map)'},
 		{id="sndvolmaster", name="Sound volume", type="slider", min=0, max=200, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
 		
 		{id="water", name="Water type", type="select", options={'basic','reflective','reflective&refractive','dynamic','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
