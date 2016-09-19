@@ -1,7 +1,9 @@
 ﻿9.44 -> 9.45
-XX/09/2016
+19/09/2016
 
-- 
+- Fixed Ready/Substitute button
+- Discord icon: clicking it makes you say the invite link (so you can click it in lobby)
+- Options: Merged fullscreen+window screen edge move options
 
 
 9.43 -> 9.44
