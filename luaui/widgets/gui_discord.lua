@@ -84,7 +84,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	--if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
+	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
 	updatePosition()
 end
 
@@ -95,7 +95,7 @@ function widget:Shutdown()
 end
 
 function widget:GameStart()
-	--widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget(self)
 end
 
 function widget:DrawScreen()
@@ -137,7 +137,6 @@ end
 
 function widget:MouseRelease(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
-		--Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
 	end
 end
