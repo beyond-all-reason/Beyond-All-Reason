@@ -13,24 +13,26 @@ end
 local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/discord.png"
 local iconSize = 32
 
-local spGetGameFrame			= Spring.GetGameFrame
+local spGetGameFrame		= Spring.GetGameFrame
 local myPlayerID				= Spring.GetMyPlayerID()
 
-local glText	          		= gl.Text
-local glBlending          		= gl.Blending
-local glScale          			= gl.Scale
+local glText	          = gl.Text
+local glGetTextWidth		= gl.GetTextWidth
+local glBlending        = gl.Blending
+local glScale          	= gl.Scale
 local glRotate					= gl.Rotate
 local glTranslate				= gl.Translate
-local glPushMatrix          	= gl.PushMatrix
+local glPushMatrix      = gl.PushMatrix
 local glPopMatrix				= gl.PopMatrix
 
-local glCreateList				= gl.CreateList
-local glDeleteList				= gl.DeleteList
+local glCreateList			= gl.CreateList
+local glDeleteList			= gl.DeleteList
 local glCallList				= gl.CallList
 
 local drawlist = {}
 local xPos = 0
 local yPos = 0
+local clickTime = 0
 
 local shown = false
 local mouseover = false
@@ -82,7 +84,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
+	--if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
 	updatePosition()
 end
 
@@ -93,7 +95,7 @@ function widget:Shutdown()
 end
 
 function widget:GameStart()
-	widgetHandler:RemoveWidget(self)
+	--widgetHandler:RemoveWidget(self)
 end
 
 function widget:DrawScreen()
@@ -108,6 +110,11 @@ function widget:DrawScreen()
 					gl.Color(1,1,1,0.55)
 				end
 			glCallList(drawlist[1])
+			local mx,my = Spring.GetMouseState()
+			if widget:IsAbove(mx,my) then
+				local textWidth = glGetTextWidth("discord.gg/aDtX3hW") * 32
+				glText("discord.gg/aDtX3hW", -(textWidth+53+iconSize), 27, 32, "no")
+			end
 		glPopMatrix()
 		mouseover = false
 	end
@@ -119,6 +126,11 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+	
+		if os.clock() - clickTime > 60 then		-- prevent spamming
+			Spring.SendCommands("say BA's discord server: https://discord.gg/aDtX3hW")
+			clickTime = os.clock()
+		end
 		return true
 	end
 end
