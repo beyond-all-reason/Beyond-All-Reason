@@ -397,7 +397,7 @@ function gadget:DrawScreen()
 			x,y = correctMouseForScaling(x,y)
 			if x > bX-bgMargin and x < bX+bW+bgMargin and y > bY-bgMargin and y < bY+bH+bgMargin then
 				gl.CallList(subsButtonHover)
-				colorString = "\255\255\230\0"
+				colorString = "\255\255\222\0"
 			else
 				gl.CallList(subsButton)
 				colorString = "\255\255\255\255"
@@ -408,7 +408,7 @@ function gadget:DrawScreen()
 		  else
 		    textString = "Withdraw offer"
 		  end
-			gl.Text(colorString .. textString, -((bW/2)-13), -((bH/2)-10), 20, "o")
+			gl.Text(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 20, "o")
 			gl.Color(1,1,1,1)
 		gl.PopMatrix()
   else

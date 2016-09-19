@@ -672,17 +672,17 @@ function gadget:DrawScreen()
 			x,y = correctMouseForScaling(x,y)
 			if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
 				gl.CallList(readyButtonHover)
-				colorString = "\255\255\230\0"
+				colorString = "\255\255\222\0"
 			else
 				gl.CallList(readyButton)
 	      timer2 = timer2 + Spring.GetLastUpdateSeconds()
 	      if timer2 % 0.75 <= 0.375 then
-	        colorString = "\255\233\233\20"
+	        colorString = "\255\233\215\20"
 	      else
 	        colorString = "\255\255\255\255"
 	      end
 			end
-			gl.Text(colorString .. "Ready", -((readyW/2)-13), -((readyH/2)-10), 25, "o")
+			gl.Text(colorString .. "Ready", -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
 			gl.Color(1,1,1,1)
 		end
 			
