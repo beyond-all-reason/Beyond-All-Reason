@@ -449,11 +449,11 @@ function applyOptionValue(i)
 		elseif id == 'advmodelshading' then
 			Spring.SendCommands("AdvModelShading "..value)
 		elseif id == 'advsky' then
-			Spring.SendCommands("AdvSky "..value)
+			Spring.SetConfigInt("AdvSky",value)
 		elseif id == 'shadows' then
 			Spring.SendCommands("Shadows "..value)
 		elseif id == 'highresLos' then
-			Spring.SendCommands("HighResLos "..value)
+			Spring.SetConfigInt("HighResLos",value)
 		elseif id == 'fullscreen' then
 			Spring.SendCommands("Fullscreen "..value)
 		elseif id == 'borderless' then
@@ -515,7 +515,8 @@ function applyOptionValue(i)
 				Spring.SendCommands('viewfree')
 			end
 		elseif id == 'cursor' then
-			Spring.SendCommands("cursor "..options[i].options[value])
+			WG['cursors'].setcursor(options[i].options[value])
+			--Spring.SendCommands("cursor "..options[i].options[value])
 		end
 	end
 	
@@ -561,6 +562,14 @@ function getSliderValue(draggingSlider, cx)
 		value = math.floor((value / options[draggingSlider].step)+0.5) * options[draggingSlider].step
 	end
 	return value
+end
+
+function widget:MouseWheel(up, value)
+	local x,y = Spring.GetMouseState()
+	local cx, cy = correctMouseForScaling(x,y)
+	if show then	
+		return true
+	end
 end
 
 function widget:MouseMove(x, y)
@@ -688,7 +697,7 @@ function widget:Initialize()
 	options = {
 		{id="advmapshading", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: shadows are disabled too'},
 		{id="advmodelshading", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
-		{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1},
+		{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Changes will be applied next game'},
 		{id="shadows", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Requires "Advanced map shading" to be enabled'},
 		{id="highreslos", name="High res LOS", type="bool", value=tonumber(Spring.GetConfigInt("HighResLos",1) or 1) == 1, description='Changes will be applied next game'},
 		{id="fullscreen", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
