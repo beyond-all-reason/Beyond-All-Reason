@@ -32,7 +32,7 @@ local glCallList				= gl.CallList
 local drawlist = {}
 local xPos = 0
 local yPos = 0
-local clickTime = 0
+local clickTime = -60
 
 local shown = false
 local mouseover = false
