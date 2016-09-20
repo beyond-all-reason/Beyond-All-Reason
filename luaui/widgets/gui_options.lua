@@ -746,12 +746,22 @@ function widget:Initialize()
 		{id="camera", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber(Spring.GetConfigInt("CamMode",1) or 2))},
 	}
 	
+	local processedOptions = {}
+	local insert = true
 	for oid,option in pairs(options) do
+		insert = true
 		if option.type == 'slider' then
 			if option.value < option.min then option.value = option.min end
 			if option.value > option.max then option.value = option.max end
 		end
+		if option.widget ~= nil and fullWidgetsList[option.widget] == nil then
+			insert = false
+		end
+		if insert then
+			table.insert(processedOptions, option)
+		end
 	end
+	options = processedOptions
 end
 
 function widget:Shutdown()
