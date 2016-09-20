@@ -145,5 +145,161 @@ local options={
         max    = 2,
         step   = 0.2,
     },
+    
+    {
+			key    = "betterunitmovement",
+			name   = "Advanced Unit Movement and Pathing",
+			desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
+			type="list",
+			def="disabled",
+			section= "ba_options",
+			items={
+				{key="disabled", name="Disabled", desc=""},
+				{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
+			}
+    },
+	
+-- Control Victory Options	
+	{
+		key    = 'controlvictoryoptions',
+		name   = 'Control Victory Options',
+		desc   = 'Allows you to control at a granular level the individual options for Control Point Victory',
+		type   = 'section',
+	},
+	{
+		key="scoremode",
+		name="Scoring Mode (Control Victory Points)",
+		desc="Defines how the game is played",
+		type="list",
+		def="disabled",
+		section="controlvictoryoptions",
+		items={
+			{key="disabled", name="Disabled", desc="Disable Control Points as a victory condition."},
+			{key="countdown", name="Countdown", desc="A Control Point decreases all opponents' scores, zero means defeat."},
+			{key="tugofwar", name="Tug of War", desc="A Control Point steals enemy score, zero means defeat."},
+			{key="domination", name="Domination", desc="Holding all Control Points will grant 1000 score, first to reach the score limit wins."},
+		}
+	},	
+	{
+		key    = 'limitscore',
+		name   = 'Total Score',
+		desc   = 'Total score amount available.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 3500,
+		min    = 500,
+		max    = 5000,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
+		key    = 'captureradius',
+		name   = 'Capture Radius',
+		desc   = 'Radius around a point in which to capture it.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 500,
+		min    = 100,
+		max    = 1000,
+		step   = 25,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'capturetime',
+		name   = 'Capture Time',
+		desc   = 'Time to capture a point.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 30,
+		min    = 1,
+		max    = 60,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'capturebonus',
+		name   = 'Capture Bonus',
+		desc   = 'How much faster capture takes place by adding more units.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 0.5,
+		min    = 0,
+		max    = 10,
+		step   = 0.1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'decapspeed',
+		name   = 'De-Cap Speed',
+		desc   = 'Speed multiplier for neutralizing an enemy point.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 3,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'starttime',
+		name   = 'Start Time',
+		desc   = 'The time when capturing can start.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 0,
+		min    = 0,
+		max    = 300,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'metalperpoint',
+		name   = 'Metal given to each player per captured point',
+		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 5,
+		min    = 0,
+		max    = 20,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'energyperpoint',
+		name   = 'Energy given to each player per captured point',
+		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 0,
+		min    = 0,
+		max    = 20,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'dominationscoretime',
+		name   = 'Domination Score Time',
+		desc   = 'Time needed holding all points to score in multi domination.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 30,
+		min    = 1,
+		max    = 60,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+		{
+		key    = 'tugofwarmodifier',
+		name   = 'Tug of War Modifier',
+		desc   = 'The amount of score transfered between opponents when points are captured is multiplied by this amount.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 2,
+		min    = 0,
+		max    = 6,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+-- End Control Victory Options
 }
 return options

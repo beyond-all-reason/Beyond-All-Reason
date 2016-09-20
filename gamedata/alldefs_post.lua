@@ -40,21 +40,54 @@ end
 
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
-  if (Spring.GetModOptions) then
-    local modOptions = Spring.GetModOptions()
+	if (Spring.GetModOptions) then
+	local modOptions = Spring.GetModOptions()
 
-    -- transporting enemy coms
-    if (modOptions.mo_transportenemy == "notcoms") then
-      for name,ud in pairs(UnitDefs) do  
-        if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
-          ud.transportbyenemy = false
-        end
-      end
-    elseif (modOptions.mo_transportenemy == "none") then
-      for name, ud in pairs(UnitDefs) do  
-        ud.transportbyenemy = false
-      end
-    end
-  end
-  
+		-- transporting enemy coms
+		if (modOptions.mo_transportenemy == "notcoms") then
+			for name,ud in pairs(UnitDefs) do  
+				if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
+					ud.transportbyenemy = false
+				end
+			end
+		elseif (modOptions.mo_transportenemy == "none") then
+			for name, ud in pairs(UnitDefs) do  
+				ud.transportbyenemy = false
+			end
+		end
+		
+		if (modOptions.betterunitmovement == "enabled") then
+		Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
+			for id,unitDef in pairs(UnitDefs) do
+				--Spring.Echo(unitDef.turnrate)'
+				if unitDef.turnrate == nil and unitDef.canmove == true then
+					--Spring.Echo(unitDef.name)
+					unitDef.turnrate = 1000
+				end
+				
+				if unitDef.turnrate ~= nil and unitDef.canmove == true then
+					unitDef.turnrate = unitDef.turnrate * 2
+				end
+				
+				if unitDef.canfly == true and unitDef.hoverattack == false then
+					unitDef.turnrate = unitDef.turnrate + 5000
+					unitDef.acceleration = unitDef.acceleration + 5
+					--Spring.Echo(unitDef.name)
+					--Spring.Echo(unitDef.turnrate)
+					--Spring.Echo(unitDef.acceleration)
+				end
+				
+				if unitDef.acceleration == nil and unitDef.canmove == true then
+					--Spring.Echo(unitDef.name)
+					unitDef.acceleration = 1
+				end
+				if unitDef.acceleration ~= nil and unitDef.canmove == true then
+					unitDef.acceleration = unitDef.acceleration + 2
+					--Spring.Echo(unitDef.name)
+					--Spring.Echo(unitDef.turnrate)
+					--Spring.Echo(unitDef.acceleration)
+				end
+			end
+		end
+	end
 end
