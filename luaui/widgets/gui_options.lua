@@ -8,6 +8,7 @@ return {
 	license = "Dental flush",
 	layer   = -1,
 	enabled = true,
+  handler = true, 
 }
 end
 
@@ -77,7 +78,8 @@ local options = {}
 local optionButtons = {}
 local optionHover = {}
 local optionSelect = {}
-local checkedCursorsets = false
+local fullWidgetsList = {}
+local addedWidgetOptions = false
 
 
 function widget:ViewResize()
@@ -185,8 +187,10 @@ end
 
 function DrawWindow()
 	-- add widget options
-	if not checkedCursorsets then
-		checkedCursorsets = true
+	if not addedWidgetOptions then
+	
+		-- cursors
+		addedWidgetOptions = true
 		local cursorsets = {}
 		local cursor = 1
 		local cursoroption
@@ -244,7 +248,7 @@ function DrawWindow()
   	
 	-- draw options
 	local oHeight = 15
-	local oPadding = 7
+	local oPadding = 6
 	y = y - oPadding - 11
 	local oWidth = (screenWidth/3)-oPadding-oPadding
 	local yHeight = screenHeight-102-oPadding
@@ -471,6 +475,14 @@ function applyOptionValue(i)
 		elseif id == 'gamespeed' then
 			Spring.SendCommands("speed "..value)
 		end
+		
+		if options[i].widget ~= nil then
+			if value == 1 then
+				widgetHandler:EnableWidget(options[i].widget)
+			else
+				widgetHandler:DisableWidget(options[i].widget)
+			end
+		end
 	
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
@@ -695,6 +707,12 @@ function mouseEvent(x, y, button, release)
 end
 
 function widget:Initialize()
+
+	-- get widget list
+  for name,data in pairs(widgetHandler.knownWidgets) do
+		fullWidgetsList[name] = data
+  end
+	  
 	options = {
 		{id="advmapshading", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: shadows are disabled too'},
 		{id="advmodelshading", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
@@ -708,6 +726,12 @@ function widget:Initialize()
 		{id="fps", name="Show FPS", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen'},
 		{id="time", name="Show time", type="bool", value=tonumber(Spring.GetConfigInt("ShowClock",1) or 1) == 1, description='Located at the top right of the screen'},
 		{id="gamespeed", name="Show game speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowSpeed",0) or 0) == 1, description='Located at the top right of the screen'},
+		
+		{id="bloom", widget="Bloom Shader", name="Bloom Shader", type="bool", value=widgetHandler.orderList["Bloom Shader"] ~= nil and (widgetHandler.orderList["Bloom Shader"] > 0), description='Bloom will make the map and units glow'},
+		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the background/world under every user interface element'},
+		{id="projectilelights", widget="Projectile lights", name="Projectile lights", type="bool", value=widgetHandler.orderList["Projectile lights"] ~= nil and (widgetHandler.orderList["Projectile lights"] > 0), description='Projectiles are plasmaballs and rockets,\nthis will light up the map below them'},
+		{id="snow", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snow on winter maps, auto diminishes when your fps gets lower and unitcount higher\n\nWhen enabled you give the command /snow,\nthis toggles snow for the current map and will remember it for next time'},
+		{id="mapedgeextension", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nHave shaders enabled for best result'},
 		
 		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much/duration map decals will be drawn\n\n(unit footsteps/tracks, darkening under buildings and scorns ground at explosions)'},
 		{id="fsaa", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
