@@ -5,7 +5,7 @@
 
 piece  flare1, flare2, turret, base, sleeves, barrel1, barrel2;
 
-static-var  restore_delay, gun_1;
+static-var  restore_delay, gun_1, shooting_num;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -64,7 +64,7 @@ SetMaxReloadTime(Func_Var_1)
 
 RestoreAfterDelay()
 {
-	sleep restore_delay;
+	sleep 3000;
 	turn turret to y-axis <0.000000> speed <90.016484>;
 	turn sleeves to x-axis <0.000000> speed <50.005495>;
 }
@@ -83,25 +83,33 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 == 0 )
-	{
-		show flare1;
-		move barrel1 to z-axis [-1.400000] speed [300.000000];
-		sleep 150;
-		hide flare1;
-		wait-for-move barrel1 along z-axis;
-		move barrel1 to z-axis [0.000000] speed [3.000000];
-	}
-	if( gun_1 == 1 )
-	{
-		show flare2;
-		move barrel2 to z-axis [-1.400000] speed [300.000000];
-		sleep 150;
-		hide flare2;
-		wait-for-move barrel2 along z-axis;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
-	}
-	gun_1 = !gun_1;
+         if(shooting_num==1)
+         {
+         	//emit-sfx 1024 from flare2;
+         	show flare2;
+         	move barrel2 to z-axis [-0.500000] speed [300.000000];
+         	wait-for-move barrel2 along z-axis;
+         	move barrel2 to z-axis [0.000000] speed [10.000000];
+         	hide flare2;
+         }
+
+         if(shooting_num==2)
+         {
+         	//emit-sfx 1024 from flare1;
+         	show flare1;
+         	move barrel1 to z-axis [-0.500000] speed [300.000000];
+         	wait-for-move barrel1 along z-axis;
+         	move barrel1 to z-axis [0.000000] speed [10.000000];
+         	hide flare1;
+         	
+         }
+	
+   shooting_num=shooting_num+1;
+
+            if( shooting_num == 3)
+            {  
+            	shooting_num=1;
+            }
 }
 
 AimFromPrimary(piecenum)
@@ -111,7 +119,15 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = gun_1;
+if (shooting_num==1) 
+     {  
+     	piecenum=flare1;     
+     }
+
+     if (shooting_num==2)
+     {   
+     	piecenum=flare2;
+     } 
 }
 
 SweetSpot(piecenum)
