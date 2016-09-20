@@ -27,6 +27,7 @@ local players = {}
 local absent = {}
 local replaced = false
 local gameStarted = false
+local isReplay = Spring.IsReplay()
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local SpGetPlayerList = Spring.GetPlayerList
@@ -363,7 +364,7 @@ function MakeButton()
 end
 
 function gadget:Initialize()
-  if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
+  if isReplay or (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
       gadgetHandler:RemoveGadget() -- don't run in FFA mode
       return 
   end
