@@ -17,6 +17,7 @@ This gadget relies on three parts:
 • control point config file which is located in luarules/configs/controlpoints/ , and it must have a filename of cv_<mapname>.lua. So, in the case of a map named "Iammas Prime -" with a version of "v01", then the name of my file would be "cv_Iammas Prime - v01.lua".
 	PLEASE NOTE: If the map config file is not found and a capture mode is selected, the gadget will generate 7 points in a circle on the map automagically.
 • config placed in luarules/configs/ called cv_nonCapturingUnits.lua
+• config placed in luarules/configs/ called cv_buildableUnits.lua
 • modoptions
 
 The control point config is structured like this (cv_Iammas Prime - v01.lua):
@@ -38,6 +39,7 @@ return {
 ////
 
 The nonCapturingUnits.lua config file is structured like this:
+These are units that are not allowed to capture points.
 
 ////
 
@@ -51,6 +53,29 @@ local nonCapturingUnits = {
 }
 
 return nonCapturingUnits
+
+////
+
+The buildableUnits.lua config file is structured like this:
+These are units that are allowed to be built within control points.
+
+////
+
+local buildableUnits = {
+	"armamex",
+	"armmex",
+	"armmoho",
+	"armuwmex",
+	"armuwmme",
+	"corexp",
+	"cormex",
+	"cormexp",
+	"cormoho",
+	"coruwmex",
+	"coruwmme",
+}
+
+return buildableUnits
 
 ////
 
@@ -223,7 +248,7 @@ local startTime = tonumber(Spring.GetModOptions().starttime) or 0 -- The time wh
 
 local dominationScoreTime = tonumber(Spring.GetModOptions().dominationscoretime) or 30 -- Time needed holding all points to score in multi domination
 
-if Spring.GetModOptions().scoremode == "disabled" then return false end
+if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode == nil then return false end
 
 local limitScore = tonumber(Spring.GetModOptions().limitscore) or 2750
 
@@ -235,7 +260,7 @@ local scoreModes = {
 	tugofwar = 2, -- A point steals enemy score, zero means defeat
 	domination = 3, -- Holding all points will grant 100 score, first to reach the score limit wins
 }
-local scoreMode = scoreModes[Spring.GetModOptions().scoremode or "disabled"]
+local scoreMode = scoreModes[Spring.GetModOptions().scoremode or "countdown"]
 
 Spring.Echo("[ControlVictory] Control Victory Scoring Mode: " .. (Spring.GetModOptions().scoremode or "Countdown"))
 
@@ -601,9 +626,7 @@ else -- UNSYNCED
 				Color(r, g, b, 1)
 				--Spring.Echo("draw points", capturePoint.owner, r, g, b)
 				local y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z)
-				
-				
-				glLineWidth(2)
+				glLineWidth(2)		
 				DrawGroundCircle(capturePoint.x, capturePoint.y, capturePoint.z, captureRadius, 64)
 				if capturePoint.capture > 0 then
 					PushMatrix()
@@ -633,8 +656,8 @@ else -- UNSYNCED
 		gl.DepthTest(GL.LEQUAL)
 		--gl.PolygonOffset(-10, -10)
 		DrawPoints()
-		--gl.PolygonOffset(false)
 		gl.DepthTest(false)
+		--gl.PolygonOffset(false)
 	end
 	
 	function gadget:DrawScreen(vsx, vsy)
