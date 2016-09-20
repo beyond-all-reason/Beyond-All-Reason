@@ -31,14 +31,23 @@ local currentMapname = Game.mapName:lower()
 local maps = {}
 
 function widget:Initialize()
-    darken = gl.CreateList(function()
-		gl.PushMatrix()
-		gl.Translate(0,0,0)
-		gl.Rotate(90,1,0,0)
-		gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
-		gl.PopMatrix()
-    end)
-    
+  darken = gl.CreateList(function()
+	gl.PushMatrix()
+	gl.Translate(0,0,0)
+	gl.Rotate(90,1,0,0)
+	gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
+	gl.PopMatrix()
+  end)
+  
+  WG['darkenmap'] = {}
+  WG['darkenmap'].getMapDarkness = function()
+  	return darknessvalue
+  end
+  WG['darkenmap'].setMapDarkness = function(value)
+  	darknessvalue = value
+  	maps[currentMapname] = darknessvalue
+  end
+  
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
 	
 	widgetHandler:AddAction("mapDarknessIncrease", mapDarknessIncrease, nil, "t")
