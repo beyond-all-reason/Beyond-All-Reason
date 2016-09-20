@@ -468,11 +468,9 @@ function applyOptionValue(i)
 			Spring.SetConfigInt("WindowedEdgeMove",value)
 		elseif id == 'hwcursor' then
 			Spring.SendCommands("hardwareCursor "..value)
-		elseif id == 'fps' then
+		elseif id == 'fpstimespeed' then
 			Spring.SendCommands("fps "..value)
-		elseif id == 'time' then
 			Spring.SendCommands("clock "..value)
-		elseif id == 'gamespeed' then
 			Spring.SendCommands("speed "..value)
 		end
 		
@@ -723,15 +721,15 @@ function widget:Initialize()
 		{id="borderless", name="Borderless", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1},
 		{id="screenedgemove", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 		{id="hwcursor", name="Hardware-cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1},
-		{id="fps", name="Show FPS", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen'},
-		{id="time", name="Show time", type="bool", value=tonumber(Spring.GetConfigInt("ShowClock",1) or 1) == 1, description='Located at the top right of the screen'},
-		{id="gamespeed", name="Show game speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowSpeed",0) or 0) == 1, description='Located at the top right of the screen'},
+		{id="fpstimespeed", name="Show FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen'},
 		
 		{id="bloom", widget="Bloom Shader", name="Bloom Shader", type="bool", value=widgetHandler.orderList["Bloom Shader"] ~= nil and (widgetHandler.orderList["Bloom Shader"] > 0), description='Bloom will make the map and units glow'},
 		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the background/world under every user interface element'},
 		{id="projectilelights", widget="Projectile lights", name="Projectile lights", type="bool", value=widgetHandler.orderList["Projectile lights"] ~= nil and (widgetHandler.orderList["Projectile lights"] > 0), description='Projectiles are plasmaballs and rockets,\nthis will light up the map below them'},
 		{id="snow", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snow on winter maps, auto diminishes when your fps gets lower and unitcount higher\n\nWhen enabled you give the command /snow,\nthis toggles snow for the current map and will remember it for next time'},
 		{id="mapedgeextension", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nHave shaders enabled for best result'},
+		{id="lups", widget="LupsManager", name="Lups particle effects", type="bool", value=widgetHandler.orderList["LupsManager"] ~= nil and (widgetHandler.orderList["LupsManager"] > 0), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
+		{id="xrayshader", widget="XrayShader", name="Xray shader", type="bool", value=widgetHandler.orderList["XrayShader"] ~= nil and (widgetHandler.orderList["XrayShader"] > 0), description='Highlights all units, highlight diminishes on closeup\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		
 		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much/duration map decals will be drawn\n\n(unit footsteps/tracks, darkening under buildings and scorns ground at explosions)'},
 		{id="fsaa", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},

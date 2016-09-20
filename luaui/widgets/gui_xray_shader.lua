@@ -27,10 +27,10 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local edgeExponent = 7
+local edgeExponent = 5
 
 local zMin = 0
-local zMax = 5500
+local zMax = 5000
 
 local diminishAtFps		= 1
 local disableAtFps		= 1		-- not acurate
