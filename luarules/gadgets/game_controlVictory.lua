@@ -580,6 +580,7 @@ else -- UNSYNCED
 	local Billboard = gl.Billboard
 	local QUADS = GL.QUADS
 	local TRIANGLE_FAN = GL.TRIANGLE_FAN
+	local PolygonOffset = gl.PolygonOffset
 	local playerListEntry = {}
 	local capturePoints = {}
 	local controlPointSolidList = {}
@@ -588,10 +589,10 @@ else -- UNSYNCED
 	local currentRotationAngle = 0
 	local currentRotationAngleOpposite = 0
 	
-	local ringThickness = 4
+	local ringThickness = 3.5
 	local capturePieParts = 4 + math.floor(captureRadius / 8)
 	
-	local outerRingDistance = 5
+	local outerRingDistance = 4.5
 	local outerRingScale = (captureRadius + (ringThickness) + outerRingDistance) / captureRadius
 	
 	-----------------------------------------------------------------------------------------
@@ -699,7 +700,7 @@ else -- UNSYNCED
 		DrawPoints(true)
 		PopMatrix()
 	end
-	
+	
 	function gadget:Update()
 		clockDifference = Spring.DiffTimers(Spring.GetTimer(), prevTimer)
 		prevTimer = Spring.GetTimer()
@@ -745,14 +746,22 @@ else -- UNSYNCED
 	end
 	
 	function DrawPoints(simplified)
+		local capturedAlpha = 0.22
+		local capturingAlpha = 0.33
+		local prefix = ''
+		if simplified then	-- for minimap
+			capturedAlpha = 0.4
+			capturingAlpha = 0.6
+			prefix = 'm_'		-- so it uses different displaylists
+		end
 	  for i,point in pairs(capturePoints) do
    		PushMatrix()
 	   		Translate(point.x, point.y, point.z)
 	   		-- owner circle backgroundcolor
-	   		if controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]] == nil then
-	   			controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]] = gl.CreateList(DrawCircleSolid, captureRadius, (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), {0,0,0,0}, {point.color[1], point.color[2], point.color[3], 0.2})
+	   		if controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]] == nil then
+	   			controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]] = gl.CreateList(DrawCircleSolid, captureRadius, (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), {0,0,0,0}, {point.color[1], point.color[2], point.color[3], capturedAlpha})
 	   		end
-	   		CallList(controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]])
+	   		CallList(controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]])
 	   		
 	   		-- captured percentage
 	   		if point.capture > 0 then
@@ -761,10 +770,10 @@ else -- UNSYNCED
 	   				revert = true
 	   			end
 	   			local piesize = math.floor(((point.capture/captureTime) / (1/capturePieParts))+0.5)
-		   		if controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] == nil then
-		   			controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = gl.CreateList(DrawCircleSolid, captureRadius, capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], 0.3}, revert)
+		   		if controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] == nil then
+		   			controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = gl.CreateList(DrawCircleSolid, captureRadius, capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], capturingAlpha}, revert)
 		   		end
-		   		CallList(controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize])
+		   		CallList(controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize])
 	   		end
 	   		if simplified then	-- for minimap
 		   		--ring
@@ -785,9 +794,10 @@ else -- UNSYNCED
 	  end
 	end
 	
-	--function gadget:DrawWorldPreUnit()
-	function gadget:DrawWorld()
-	  DrawPoints()		-- Todo: use DrawWorldPreUnit make it so that it colorizes the map/ground
+	function gadget:DrawWorldPreUnit()
+		PolygonOffset(-10000, -1)  -- draw on top of water/map - sideeffect: will shine through terrain/mountains
+	  DrawPoints(false)		-- Todo: use DrawWorldPreUnit make it so that it colorizes the map/ground
+		PolygonOffset(false)
 	end
 	
 	function gadget:DrawScreen(vsx, vsy)
