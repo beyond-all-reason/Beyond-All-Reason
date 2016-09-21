@@ -557,10 +557,11 @@ else -- UNSYNCED
 	local OPTIONS = {
 		circlePieces					= pieces,
 		circlePieceDetail			= math.floor(pieces/4),
-		circleSpaceUsage			= 0.8,
+		circleSpaceUsage			= 0.88,
 		circleInnerOffset			= 0,
-		rotationSpeed					= 0.6,
+		rotationSpeed					= 0.5,
 	}
+	pieces = nil
 
 	local Text = gl.Text
 	local Color = gl.Color
@@ -569,10 +570,16 @@ else -- UNSYNCED
 	local PushMatrix = gl.PushMatrix
 	local PopMatrix = gl.PopMatrix
 	local Translate = gl.Translate
+	local BeginEnd = gl.BeginEnd
+	local CreateList = gl.CreateList
+	local CallList = gl.CallList
 	local Scale = gl.Scale
 	local Rotate = gl.Rotate
 	local Rect = gl.Rect
+	local Vertex = gl.Vertex
 	local Billboard = gl.Billboard
+	local QUADS = GL.QUADS
+	local TRIANGLE_FAN = GL.TRIANGLE_FAN
 	local playerListEntry = {}
 	local capturePoints = {}
 	local controlPointSolidList = {}
@@ -581,8 +588,8 @@ else -- UNSYNCED
 	local currentRotationAngle = 0
 	local currentRotationAngleOpposite = 0
 	
-	local ringThickness = 4.5
-	local capturePieParts = math.floor(captureRadius / 7)
+	local ringThickness = 4
+	local capturePieParts = 4 + math.floor(captureRadius / 8)
 	
 	local outerRingDistance = 5
 	local outerRingScale = (captureRadius + (ringThickness) + outerRingDistance) / captureRadius
@@ -629,7 +636,7 @@ else -- UNSYNCED
 	end	
 	
 	local function DrawCircleLine(innersize, outersize)
-		gl.BeginEnd(GL.QUADS, function()
+		BeginEnd(QUADS, function()
 			local detailPartWidth, a1,a2,a3,a4
 			local width = OPTIONS.circleSpaceUsage
 			local detail = OPTIONS.circlePieceDetail
@@ -645,30 +652,34 @@ else -- UNSYNCED
 					a4 = ((i+OPTIONS.circleInnerOffset+detailPartWidth) * radstep)
 					
 					--outer (fadein)
-					gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
-					gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
+					Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
+					Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
 					--outer (fadeout)
-					gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-					gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+					Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
+					Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
 				end
 			end
 		end)
 	end
 
-	function DrawCircleSolid(size, pieces, drawPieces, innercolor, outercolor)
-		gl.BeginEnd(GL.TRIANGLE_FAN, function()
+	function DrawCircleSolid(size, pieces, drawPieces, innercolor, outercolor, revert)
+		BeginEnd(TRIANGLE_FAN, function()
 			local radstep = (2.0 * math.pi) / pieces
 			local a1
 			if (innercolor) then
-				gl.Color(innercolor)
+				Color(innercolor)
 			end
-			gl.Vertex(0, 0, 0)
+			Vertex(0, 0, 0)
 			if (outercolor) then
-				gl.Color(outercolor)
+				Color(outercolor)
 			end
 			for i = 0, drawPieces do
-				a1 = (i * radstep)
-				gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+				if revert then
+					a1 = -(i * radstep)
+				else
+					a1 = (i * radstep)
+				end
+				Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
 			end
 		end)
 	end
@@ -676,7 +687,7 @@ else -- UNSYNCED
 	function gadget:Initialize()
 		playerListEntry = CreatePlayerList(playerEntries)
 		
-		controlPointList = gl.CreateList(DrawCircleLine, captureRadius-(ringThickness/2), captureRadius+(ringThickness/2))
+		controlPointList = CreateList(DrawCircleLine, captureRadius-(ringThickness/2), captureRadius+(ringThickness/2))
 	end
 
 	function gadget:DrawInMiniMap()
@@ -685,7 +696,7 @@ else -- UNSYNCED
 		Translate(0, 1, 0)
 		Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
 		Rotate(90, 1, 0, 0)
-		DrawPoints()
+		DrawPoints(true)
 		PopMatrix()
 	end
 	
@@ -696,7 +707,7 @@ else -- UNSYNCED
 		-- animate rotation
 		if OPTIONS.rotationSpeed > 0 then
 			local angleDifference = (OPTIONS.rotationSpeed) * (clockDifference * 5)
-			currentRotationAngle = currentRotationAngle + (angleDifference*0.66)
+			currentRotationAngle = currentRotationAngle + (angleDifference*0.6)
 			if currentRotationAngle > 360 then
 			   currentRotationAngle = currentRotationAngle - 360
 			end
@@ -733,36 +744,44 @@ else -- UNSYNCED
 		end
 	end
 	
-	function DrawPoints()
+	function DrawPoints(simplified)
 	  for i,point in pairs(capturePoints) do
-   		gl.PushMatrix()
-	   		gl.Translate(point.x, point.y, point.z)
+   		PushMatrix()
+	   		Translate(point.x, point.y, point.z)
 	   		-- owner circle backgroundcolor
 	   		if controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]] == nil then
 	   			controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]] = gl.CreateList(DrawCircleSolid, captureRadius, (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), {0,0,0,0}, {point.color[1], point.color[2], point.color[3], 0.2})
 	   		end
-	   		gl.CallList(controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]])
+	   		CallList(controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]])
 	   		
 	   		-- captured percentage
 	   		if point.capture > 0 then
+	   			local revert = false
+	   			if point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3] == '1_1_1' then
+	   				revert = true
+	   			end
 	   			local piesize = math.floor(((point.capture/captureTime) / (1/capturePieParts))+0.5)
 		   		if controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] == nil then
-		   			controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = gl.CreateList(DrawCircleSolid, captureRadius, capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], 0.3})
+		   			controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = gl.CreateList(DrawCircleSolid, captureRadius, capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], 0.3}, revert)
 		   		end
-		   		gl.CallList(controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize])
+		   		CallList(controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize])
 	   		end
-	   		--ring
-	   		gl.Color(1,1,1, 0.7)
-	   		gl.Rotate(currentRotationAngle,0,1,0)
-	   		gl.CallList(controlPointList)
-	   		--outer ring
-	   		gl.Rotate(currentRotationAngleOpposite,0,1,0)
-	   		gl.Scale(outerRingScale,outerRingScale,outerRingScale)
-				--gl.Color(point.r, point.g, point.b, 0.35)
-	   		gl.Color(1,1,1, 0.35)
-	   		gl.CallList(controlPointList)
-	   		
-			gl.PopMatrix()
+	   		if simplified then	-- for minimap
+		   		--ring
+		   		Color(1,1,1, 0.8)
+		   		CallList(controlPointList)
+	   		else
+		   		--ring
+		   		Color(1,1,1, 0.7)
+		   		Rotate(currentRotationAngle,0,1,0)
+		   		CallList(controlPointList)
+		   		--outer ring
+		   		Rotate(currentRotationAngleOpposite,0,1,0)
+		   		Scale(outerRingScale,outerRingScale,outerRingScale)
+		   		Color(1,1,1, 0.35)
+		   		CallList(controlPointList)
+	   		end
+			PopMatrix()
 	  end
 	end
 	
