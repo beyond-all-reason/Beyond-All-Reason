@@ -553,6 +553,15 @@ if (gadgetHandler:IsSyncedCode()) then
 
 else -- UNSYNCED
 
+	local pieces = math.floor(captureRadius / 22)
+	local OPTIONS = {
+		circlePieces					= pieces,
+		circlePieceDetail			= math.floor(pieces/4),
+		circleSpaceUsage			= 0.8,
+		circleInnerOffset			= 0,
+		rotationSpeed					= 0.6,
+	}
+
 	local Text = gl.Text
 	local Color = gl.Color
 	local DrawGroundCircle = gl.DrawGroundCircle
@@ -565,6 +574,18 @@ else -- UNSYNCED
 	local Rect = gl.Rect
 	local Billboard = gl.Billboard
 	local playerListEntry = {}
+	local capturePoints = {}
+	local controlPointSolidList = {}
+	
+	local prevTimer = Spring.GetTimer()
+	local currentRotationAngle = 0
+	local currentRotationAngleOpposite = 0
+	
+	local ringThickness = 4.5
+	local capturePieParts = math.floor(captureRadius / 7)
+	
+	local outerRingDistance = 5
+	local outerRingScale = (captureRadius + (ringThickness) + outerRingDistance) / captureRadius
 	
 	-----------------------------------------------------------------------------------------
 	-- creates initial player listing 
@@ -606,40 +627,56 @@ else -- UNSYNCED
 		end -- allyTeamID		
 		return playerEntries
 	end	
+	
+	local function DrawCircleLine(innersize, outersize)
+		gl.BeginEnd(GL.QUADS, function()
+			local detailPartWidth, a1,a2,a3,a4
+			local width = OPTIONS.circleSpaceUsage
+			local detail = OPTIONS.circlePieceDetail
+
+			local radstep = (2.0 * math.pi) / OPTIONS.circlePieces
+			for i = 1, OPTIONS.circlePieces do
+				for d = 1, detail do
+					
+					detailPartWidth = ((width / detail) * d)
+					a1 = ((i+detailPartWidth - (width / detail)) * radstep)
+					a2 = ((i+detailPartWidth) * radstep)
+					a3 = ((i+OPTIONS.circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
+					a4 = ((i+OPTIONS.circleInnerOffset+detailPartWidth) * radstep)
+					
+					--outer (fadein)
+					gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
+					gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
+					--outer (fadeout)
+					gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
+					gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+				end
+			end
+		end)
+	end
+
+	function DrawCircleSolid(size, pieces, drawPieces, innercolor, outercolor)
+		gl.BeginEnd(GL.TRIANGLE_FAN, function()
+			local radstep = (2.0 * math.pi) / pieces
+			local a1
+			if (innercolor) then
+				gl.Color(innercolor)
+			end
+			gl.Vertex(0, 0, 0)
+			if (outercolor) then
+				gl.Color(outercolor)
+			end
+			for i = 0, drawPieces do
+				a1 = (i * radstep)
+				gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+			end
+		end)
+	end
 
 	function gadget:Initialize()
 		playerListEntry = CreatePlayerList(playerEntries)
-	end
-	
-	-- draws ground circles
-	local function DrawPoints()
-		--local teamAllyTeamID = Spring.GetLocalAllyTeamID() -- << FFS this isn't even used.
-		for _, capturePoint in spairs(SYNCED.points) do
-		--Spring.Echo(capturePoint)
-		--Spring.Echo(SYNCED.points)
-				
-				local r, g, b = 1, 1, 1
-				if capturePoint.owner and capturePoint.owner ~= Spring.GetGaiaTeamID() then
-					r, g, b = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
-					--Spring.Echo("Owner ID: " .. capturePoint.owner .. " -- Color: " .. r, g, b)
-				end
-				Color(r, g, b, 1)
-				--Spring.Echo("draw points", capturePoint.owner, r, g, b)
-				local y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z)
-				glLineWidth(2)		
-				DrawGroundCircle(capturePoint.x, capturePoint.y, capturePoint.z, captureRadius, 64)
-				if capturePoint.capture > 0 then
-					PushMatrix()
-					Translate(capturePoint.x, y + 100, capturePoint.z)
-					Billboard()
-					Color(0, 0, 0, 1)
-					Rect(-26, 6, 26, -6)
-					Color(1, 1, 0, 1)
-					Rect(-25, 5, -25 + 50 * (capturePoint.capture / captureTime), -5)
-					PopMatrix()
-				end
-		end
-		Color(1, 1, 1, 1)
+		
+		controlPointList = gl.CreateList(DrawCircleLine, captureRadius-(ringThickness/2), captureRadius+(ringThickness/2))
 	end
 
 	function gadget:DrawInMiniMap()
@@ -651,13 +688,87 @@ else -- UNSYNCED
 		DrawPoints()
 		PopMatrix()
 	end
+	
+	function gadget:Update()
+		clockDifference = Spring.DiffTimers(Spring.GetTimer(), prevTimer)
+		prevTimer = Spring.GetTimer()
+		
+		-- animate rotation
+		if OPTIONS.rotationSpeed > 0 then
+			local angleDifference = (OPTIONS.rotationSpeed) * (clockDifference * 5)
+			currentRotationAngle = currentRotationAngle + (angleDifference*0.66)
+			if currentRotationAngle > 360 then
+			   currentRotationAngle = currentRotationAngle - 360
+			end
+		
+			currentRotationAngleOpposite = currentRotationAngleOpposite - angleDifference
+			if currentRotationAngleOpposite < -360 then
+			   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
+			end
+		end
+	end
 	
+	function gadget:GameFrame()
+		
+		for i, capturePoint in spairs(SYNCED.points) do
+			if capturePoints[i] == nil then
+				capturePoints[i] = {}
+				capturePoints[i].color = {1,1,1}
+				capturePoints[i].aggressorColor = {1,1,1}
+				capturePoints[i].x = capturePoint.x
+				capturePoints[i].y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z) + 25
+				capturePoints[i].z = capturePoint.z
+			end
+			if capturePoint.owner and capturePoint.owner ~= Spring.GetGaiaTeamID() then
+				capturePoints[i].color[1],capturePoints[i].color[2],capturePoints[i].color[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
+			else
+				capturePoints[i].color = {1,1,1}
+			end
+			if capturePoint.aggressor and capturePoint.aggressor ~= Spring.GetGaiaTeamID() then
+				capturePoints[i].aggressorColor[1],capturePoints[i].aggressorColor[2],capturePoints[i].aggressorColor[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.aggressor)[1])
+			else
+				capturePoints[i].aggressorColor = {1,1,1}
+			end
+			capturePoints[i].capture = capturePoint.capture
+		end
+	end
+	
+	function DrawPoints()
+	  for i,point in pairs(capturePoints) do
+   		gl.PushMatrix()
+	   		gl.Translate(point.x, point.y, point.z)
+	   		-- owner circle backgroundcolor
+	   		if controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]] == nil then
+	   			controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]] = gl.CreateList(DrawCircleSolid, captureRadius, (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), {0,0,0,0}, {point.color[1], point.color[2], point.color[3], 0.2})
+	   		end
+	   		gl.CallList(controlPointSolidList[point.color[1]..'_'..point.color[2]..'_'..point.color[3]])
+	   		
+	   		-- captured percentage
+	   		if point.capture > 0 then
+	   			local piesize = math.floor(((point.capture/captureTime) / (1/capturePieParts))+0.5)
+		   		if controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] == nil then
+		   			controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = gl.CreateList(DrawCircleSolid, captureRadius, capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], 0.3})
+		   		end
+		   		gl.CallList(controlPointSolidList[point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize])
+	   		end
+	   		--ring
+	   		gl.Color(1,1,1, 0.7)
+	   		gl.Rotate(currentRotationAngle,0,1,0)
+	   		gl.CallList(controlPointList)
+	   		--outer ring
+	   		gl.Rotate(currentRotationAngleOpposite,0,1,0)
+	   		gl.Scale(outerRingScale,outerRingScale,outerRingScale)
+				--gl.Color(point.r, point.g, point.b, 0.35)
+	   		gl.Color(1,1,1, 0.35)
+	   		gl.CallList(controlPointList)
+	   		
+			gl.PopMatrix()
+	  end
+	end
+	
+	--function gadget:DrawWorldPreUnit()
 	function gadget:DrawWorld()
-		gl.DepthTest(GL.LEQUAL)
-		--gl.PolygonOffset(-10, -10)
-		DrawPoints()
-		gl.DepthTest(false)
-		--gl.PolygonOffset(false)
+	  DrawPoints()		-- Todo: use DrawWorldPreUnit make it so that it colorizes the map/ground
 	end
 	
 	function gadget:DrawScreen(vsx, vsy)
