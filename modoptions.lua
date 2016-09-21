@@ -147,16 +147,29 @@ local options={
     },
     
     {
-			key    = "betterunitmovement",
-			name   = "Advanced Unit Movement and Pathing",
-			desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
-			type="list",
-			def="disabled",
-			section= "ba_options",
-			items={
-				{key="disabled", name="Disabled", desc=""},
-				{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
-			}
+		key    = "betterunitmovement",
+		name   = "Advanced Unit Movement and Pathing",
+		desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
+		type="list",
+		def="disabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
+		}
+    },
+	
+	{
+		key    = "firethroughfriendly",
+		name   = "Fire Through Friendly Units",
+		desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",		
+		type="list",
+		def="disabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay."},
+		}
     },
 	
 -- Control Victory Options	

@@ -89,5 +89,14 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				end
 			end
 		end
+		if (modOptions.firethroughfriendly == "enabled") then
+			for id,weaponDef in pairs(WeaponDefs) do
+				--Spring.Echo(weaponDef.name)
+				weaponDef.avoidFriendly = false
+				weaponDef.collideFriendly = false
+				--Spring.Echo(weaponDef.avoidFriendly)
+				--Spring.Echo(weaponDef.collideFriendly)
+			end
+		end
 	end
 end
