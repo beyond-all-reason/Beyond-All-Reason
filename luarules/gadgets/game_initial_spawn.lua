@@ -474,7 +474,7 @@ local readyX = vsx * 0.8
 local readyY = vsy * 0.8 
 local readyH = 35
 local readyW = 100
-local bgMargin = 3.5
+local bgMargin = 2.5
 
 local pStates = {} --local copy of playerStates table
 

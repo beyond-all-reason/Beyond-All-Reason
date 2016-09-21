@@ -266,7 +266,7 @@ local bX = vsx * 0.8
 local bY = vsy * 0.8 
 local bH = 30
 local bW = 140
-local bgMargin = 3.5
+local bgMargin = 2.5
 local offer = false
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
