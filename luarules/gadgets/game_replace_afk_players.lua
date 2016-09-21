@@ -27,7 +27,6 @@ local players = {}
 local absent = {}
 local replaced = false
 local gameStarted = false
-local isReplay = Spring.IsReplay()
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local SpGetPlayerList = Spring.GetPlayerList
@@ -253,6 +252,7 @@ local y = 500
 
 local myPlayerID = Spring.GetMyPlayerID()
 local spec,_ = Spring.GetSpectatingState()
+local isReplay = Spring.IsReplay()
 
 local eligible
 
