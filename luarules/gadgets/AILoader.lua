@@ -140,7 +140,7 @@ function gadget:Initialize()
 				AIs[#AIs+1] = thisAI
 				Shard.AIsByTeamID[id] = thisAI
 			else
-				spEcho("Player " .. teamList[i] .. " is another type of lua AI!")
+				spEcho("Player " .. teamList[i] .. " is another type of lua AI! ")
 			end
 		end
 	end
