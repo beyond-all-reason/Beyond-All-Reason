@@ -672,7 +672,7 @@ function mouseEvent(x, y, button, release)
 			else -- mousepress
 				if not showSelectOptions then
 					for i, o in pairs(optionButtons) do
-						if options[i].type == 'slider' and IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) then
+						if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
 							draggingSlider = i
 							options[draggingSlider].value = getSliderValue(draggingSlider,cx)
 							applyOptionValue(draggingSlider)
