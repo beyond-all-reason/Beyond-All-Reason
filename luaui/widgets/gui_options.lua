@@ -81,6 +81,8 @@ local optionSelect = {}
 local fullWidgetsList = {}
 local addedWidgetOptions = false
 
+local luaShaders = tonumber(Spring.GetConfigInt("LuaShaders",1) or 0)
+
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
@@ -245,10 +247,9 @@ function DrawWindow()
 	gl.Color(0.66,0.66,0.66,0.08)
 	RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
 	
-	-- description
+	-- description background
 	gl.Color(0.72,0.5,0.12,0.14)
 	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
-	--glText('\255\255\210\120'..description, screenX+15, screenY-screenHeight+64.5, 16, "no")
   	
 	-- draw options
 	local oHeight = 15
@@ -395,12 +396,14 @@ function widget:DrawScreen()
 		  local description = ''
 			local x,y = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
-			for i, o in pairs(optionHover) do
-				if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-					glColor(1,1,1,0.05)
-					RectRound(o[1]-8, o[2], o[3]+8, o[4], 4)
-					if options[i].description ~= nil then
-						glText('\255\255\210\120'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+			if not showSelectOptions then
+				for i, o in pairs(optionHover) do
+					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+						glColor(1,1,1,0.05)
+						RectRound(o[1]-8, o[2], o[3]+8, o[4], 4)
+						if options[i].description ~= nil then
+							glText('\255\255\210\120'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+						end
 					end
 				end
 			end
@@ -478,6 +481,12 @@ function applyOptionValue(i)
 		
 		if options[i].widget ~= nil then
 			if value == 1 then
+				if id == 'bloom' or id == 'guishader' or id == 'xrayshader' or id == 'snow' or id == 'mapedgeextension' then
+					if luaShaders ~= 1 and not enabledLuaShaders then
+						Spring.SetConfigInt("LuaShaders", 1)
+						enabledLuaShaders = true
+					end
+				end
 				widgetHandler:EnableWidget(options[i].widget)
 			else
 				widgetHandler:DisableWidget(options[i].widget)
@@ -623,18 +632,17 @@ function mouseEvent(x, y, button, release)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-		
+			
 			-- on option
 			local cx, cy = correctMouseForScaling(x,y)
 			
-	 	 -- apply new slider value
-			if release and draggingSlider ~= nil then
-				options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-				applyOptionValue(draggingSlider)
-				draggingSlider = nil
-			end
-		
 			if release then
+	 		 -- apply new slider value
+				if draggingSlider ~= nil then
+					options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+					applyOptionValue(draggingSlider)
+					draggingSlider = nil
+				end
 				-- select option
 				if showSelectOptions ~= nil then
 					for i, o in pairs(optionSelect) do
@@ -649,7 +657,7 @@ function mouseEvent(x, y, button, release)
 					else
 						selectClickAllowHide = true
 					end
-				end
+				else
 				
 				for i, o in pairs(optionButtons) do
 					if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
@@ -660,15 +668,20 @@ function mouseEvent(x, y, button, release)
 						
 					end
 				end
-			else
-				for i, o in pairs(optionButtons) do
-					if options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						draggingSlider = i
-					elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						if showSelectOptions == nil then
-							showSelectOptions = i
-						elseif showSelectOptions == i then
-							--showSelectOptions = nil
+				end
+			else -- mousepress
+				if not showSelectOptions then
+					for i, o in pairs(optionButtons) do
+						if options[i].type == 'slider' and IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) then
+							draggingSlider = i
+							options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+							applyOptionValue(draggingSlider)
+						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							if showSelectOptions == nil then
+								showSelectOptions = i
+							elseif showSelectOptions == i then
+								--showSelectOptions = nil
+							end
 						end
 					end
 				end
@@ -716,6 +729,7 @@ function mouseEvent(x, y, button, release)
   end
 end
 
+
 function widget:Initialize()
 
 	-- get widget list
@@ -738,7 +752,7 @@ function widget:Initialize()
 		
 		{id="bloom", widget="Bloom Shader", name="Bloom shader", type="bool", value=widgetHandler.orderList["Bloom Shader"] ~= nil and (widgetHandler.orderList["Bloom Shader"] > 0), description='Bloom will make the map and units glow'},
 		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how much/duration map decals will be drawn\n\n(unit footsteps/tracks, darkening under buildings and scorns ground at explosions)'},
-		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the background/world under every user interface element'},
+		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the background/world under every user interface element\n\nNot always working properly at intel gfx'},
 		{id="mapedgeextension", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nHave shaders enabled for best result'},
 		{id="water", name="Water type", type="select", options={'basic','reflective','reflective&refractive','dynamic','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 		{id="projectilelights", widget="Projectile lights", name="Projectile lights", type="bool", value=widgetHandler.orderList["Projectile lights"] ~= nil and (widgetHandler.orderList["Projectile lights"] > 0), description='Projectiles are plasmaballs and rockets,\nthis will light up the map below them'},
@@ -760,7 +774,7 @@ function widget:Initialize()
 		{id="fpstimespeed", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
 		
 		{id="snow", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Lets it snow on winter maps, auto reduces when your fps gets lower + unitcount higher\n\nYou can give the command /snow to toggle snow for the current map (it remembers)'},
-	
+		
 		{id="camera", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber(Spring.GetConfigInt("CamMode",1) or 2))},
 	}
 	
@@ -780,6 +794,11 @@ function widget:Initialize()
 		end
 		if option.widget ~= nil and fullWidgetsList[option.widget] == nil then
 			insert = false
+		end
+		if luaShaders ~= 1 then
+			if option.id == "bloom" or option.id == "guishader" or option.id == "xrayshader" or option.id == "mapedgeextension" or option.id == "snow" then
+				option.description = 'You dont have LuaShaders enabled, we will enable it for you but...\n\nChanges will be applied next game'
+			end
 		end
 		if insert then
 			table.insert(processedOptions, option)
