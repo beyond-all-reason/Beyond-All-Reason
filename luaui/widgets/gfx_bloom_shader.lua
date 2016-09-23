@@ -20,18 +20,18 @@ options = {
 		brightnessIncrease = 'Ctrl+Shift+]',
 		brightnessDecrease = 'Ctrl+Shift+[',
 	},
-	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false,		},
+	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false		},
 	
-	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.2,		min=0.1, 	max=0.6,	step=0.03, 	},
-	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.4, 		min=0, 		max=1,		step=0.01, 	},
-	blurPasses 		= { type='number', 		name='Blur Passes', 					value=2, 		min=0, 		max=10,		step=1,  	},
+	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.25,		min=0.1, 	max=1,	step=0.05 	},
+	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.37, 		min=0, 		max=1,		step=0.02 	},
+	blurPasses 		= { type='number', 		name='Blur Passes', 					value=2, 		min=0, 		max=5,		step=1  	},
 }
 
 
 -- config params
-local dbgDraw = 0					-- draw only the bloom-mask? [0 | 1]
-local maxBrightness = 0.15			-- maximum brightness of bloom additions [1, n]
-local illumThreshold = 0.44			-- how bright does a fragment need to be before being considered a glow source? [0, 1]
+local dbgDraw = false				-- draw only the bloom-mask? [0 | 1]
+local maxBrightness = 0.25			-- maximum brightness of bloom additions [1, n]
+local illumThreshold = 0.4			-- how bright does a fragment need to be before being considered a glow source? [0, 1]
 local blurPasses = 1				-- how many iterations of Gaussian blur should be applied to the glow sources?
 
 local function OnchangeFunc()
@@ -228,8 +228,8 @@ widget:ViewResize(widgetHandler:GetViewSizes())
 
 
 local mapMargin = 20000
-local darkenMapOpacity = 0.8
-local darkenWorldOpacity = 0.1
+local darkenMapOpacity = 0.7
+local darkenWorldOpacity = 0.12
 
 local msx = Game.mapSizeX
 local msz = Game.mapSizeZ
@@ -241,7 +241,7 @@ local glCallList	= gl.CallList
 
 function widget:DrawWorldPreUnit()
 	if darken ~= nil then
-		gl.Color(0,0,0,darkenMapOpacity*(options.maxBrightness.value-(options.maxBrightness.value*0.7)))
+		gl.Color(0,0,0,darkenMapOpacity*(options.maxBrightness.value-(options.maxBrightness.value*0.82)))
 		glCallList(darken)
 		gl.Color(1,1,1,1)
 	end
@@ -265,14 +265,28 @@ function widget:Initialize()
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
+	
+	
   
-    darken = glCreateList(function()
+  WG['bloom'] = {}
+  WG['bloom'].getBrightness = function()
+  	return options.maxBrightness.value
+  end
+  WG['bloom'].setBrightness = function(value)
+	  options.maxBrightness.value = value
+	  if (value > options.maxBrightness.max) then
+	  	 options.maxBrightness.value = options.maxBrightness.max
+	  end
+	  OnchangeFunc()
+  end
+  
+  darken = glCreateList(function()
 		gl.PushMatrix()
 		gl.Translate(0,0,0)
 		gl.Rotate(90,1,0,0)
 		gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
 		gl.PopMatrix()
-    end)
+  end)
     
 	SetIllumThreshold()
 
@@ -445,9 +459,6 @@ end
 
 
 
-
-
-
 local function mglDrawTexture(texUnit, tex, w, h, flipS, flipT)
 	glTexture(texUnit, tex)
 	glTexRect(0, 0, w, h, flipS, flipT)
@@ -489,8 +500,6 @@ local function Bloom()
 	gl.Color(1, 1, 1, 1)
 
 	glCopyToTexture(screenTexture, 0, 0, 0, 0, vsx, vsy)
-
-
 	
 	glUseShader(brightShader)
 		glUniformInt(brightShaderText0Loc, 0)
@@ -499,7 +508,7 @@ local function Bloom()
 		glUniform(   brightShaderIllumLoc, illumThreshold)
 		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
 	glUseShader(0)
-
+	
 	for i = 1, blurPasses do
 		glUseShader(blurShaderH71)
 			glUniformInt(blurShaderH71Text0Loc, 0)
@@ -514,7 +523,7 @@ local function Bloom()
 			mglRenderToTexture(brightTexture1, brightTexture2, 1, -1)
 		glUseShader(0)
 	end
-
+	
 	glUseShader(combineShader)
 		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
 		glUniformInt(combineShaderTexture0Loc, 0)
