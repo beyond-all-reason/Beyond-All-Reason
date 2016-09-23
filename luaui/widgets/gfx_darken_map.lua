@@ -32,11 +32,11 @@ local maps = {}
 
 function widget:Initialize()
   darken = gl.CreateList(function()
-	gl.PushMatrix()
-	gl.Translate(0,0,0)
-	gl.Rotate(90,1,0,0)
-	gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
-	gl.PopMatrix()
+		gl.PushMatrix()
+		gl.Translate(0,0,0)
+		gl.Rotate(90,1,0,0)
+		gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
+		gl.PopMatrix()
   end)
   
   WG['darkenmap'] = {}
@@ -92,6 +92,10 @@ function mapDarknessDecrease()
 end
 
 function widget:DrawWorldPreUnit()
+	
+  local drawMode = Spring.GetMapDrawMode()
+  if (drawMode=="height") or (drawMode=="path") then return end
+
 	if darken ~= nil and darknessvalue > 0 then
 		gl.Color(0,0,0,darknessvalue)
 		gl.CallList(darken)
