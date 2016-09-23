@@ -97,6 +97,17 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Spring.Echo(weaponDef.avoidFriendly)
 				--Spring.Echo(weaponDef.collideFriendly)
 			end
+			if (modOptions.fixedhitspheres == "enabled") then
+				for id,unitDef in pairs(UnitDefs) do
+					unitDef.collisionvolumetype = nil
+					unitDef.usepiececollisionvolumes = nil
+					--unitDef.collisionVolumeScales = [[0.0 0.0 0.0]]
+					--unitDef.collisionvolumeoffsets = [[0.0 0.0 0.0]]
+					--Spring.Echo(unitDef.name)
+					--Spring.Echo(unitDef.collisionvolumetype)
+					--unitDef.useFootPrintCollisionVolume = true
+				end
+			end
 		end
 	end
 end

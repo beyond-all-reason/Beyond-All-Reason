@@ -173,6 +173,19 @@ local options={
     },
 	
 	{
+		key    = "fixedhitspheres",
+		name   = "Fix unit hitspheres (Requires Fire Through Friendly Units Enabled)",
+		desc   = "Fixes the wonky and inconsistent hitboxes used when units cannot fire through one another.",		
+		type="list",
+		def="disabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Fixes the wonky and inconsistent hitboxes used when units cannot fire through one another."},
+		}
+    },
+	
+	{
 		key    = "smallfeaturenoblock",
 		name   = "Set small features to non-blocking status",
 		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",		
