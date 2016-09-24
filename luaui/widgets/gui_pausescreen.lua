@@ -46,8 +46,8 @@ local osClock                = os.clock
 
 local sizeMultiplier     = 1
 local maxAlpha           = 0.6
-local maxShaderAlpha		 = 0.44
-local maxNonShaderAlpha  = 0.14
+local maxShaderAlpha		 = 0.4
+local maxNonShaderAlpha  = 0.14			--background alpha when shaders arent availible
 local boxWidth           = 200
 local boxHeight          = 35
 local slideTime          = 0.4
@@ -75,7 +75,6 @@ local wndX2 = nil
 local wndY2 = nil
 local textX = nil
 local textY = nil
-local lineOffset = nil
 local mouseOverClose = false
 local checkedWindowSize = false
 local usedSizeMultiplier = 1
@@ -127,7 +126,7 @@ local fragmentShaderSource = {
 		  vec4 origColor = texture2D(screencopy, texCoord);
 		  float intensity = getIntensity(origColor);
 		  intensity = intensity * 1.15;
-		  float multi = intensity * 1.33;
+		  float multi = intensity * 0.9;
 		  if (intensity > 1) intensity = 1;
 		  if (intensity < 0.5) {
 				if (intensity < 0.2) {
@@ -293,7 +292,6 @@ function updateWindowCoords()
 
     textX = wndX1 + ( wndX2 - wndX1 ) * 0.33
     textY = wndY2 + ( wndY1 - wndY2 ) * 0.4
-    lineOffset = ( wndY1 - wndY2 ) * 0.32
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
