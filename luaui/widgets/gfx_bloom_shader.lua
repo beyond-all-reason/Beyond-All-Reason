@@ -1,21 +1,31 @@
--- $Id: BloomShader.lua 3171 2008-11-06 09:06:29Z det $
 function widget:GetInfo()
 	return {
 		name      = "Bloom Shader",
 		desc      = "Sets Spring In Bloom",
-		author    = "Kloot", --Updated by Shadowfury333
-		date      = "28-5-2008",
+		author    = "Floris", -- orginal bloom shader: Kloot
+		date      = "24-9-2016",
 		license   = "",
 		layer     = 9,
 		enabled   = false
 	}
 end
 
+--------------------------------------------------------------------------------
+-- config 
+--------------------------------------------------------------------------------
 
--- config params
-local dbgDraw = 0					-- draw only the bloom-mask? [0 | 1]
+local basicAlpha = 0.16
+
+local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
+local highlightsAlpha = 0.36
 
 
+local dbgDraw = 0					-- debug: draw only the bloom-mask?
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local addDrawWorldAlpha = 0
 
 local mapMargin = 20000
 
@@ -29,6 +39,8 @@ local blurShaderV71 = nil
 local brightShader = nil
 local brightTexture1 = nil
 local brightTexture2 = nil
+local brightTexture3 = nil
+local brightTexture4 = nil
 
 local combineShader = nil
 local screenTexture = nil
@@ -121,29 +133,40 @@ local function RemoveMe(msg)
 	widgetHandler:RemoveWidget()
 end
 
+function reset()
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx,vsy = gl.GetViewSizes()
-
-	ivsx = 1.0 / vsx
-	ivsy = 1.0 / vsy
-	kernelRadius = vsy / 85.0
-	kernelRadius2 = vsy / 27.0
+	if drawHighlights then
+		addDrawWorldAlpha = 0.04
+	end
 
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
+	if drawHighlights then
+		gl.DeleteTexture(brightTexture3 or "")
+		gl.DeleteTexture(brightTexture4 or "")
+	end
 	gl.DeleteTexture(screenTexture or "")
 	
-	
-	brightTexture1 = glCreateTexture(vsx/4, vsy/4, {
+	local btQuality = 4.5
+	brightTexture1 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
-	brightTexture2 = glCreateTexture(vsx/4, vsy/4, {
+	brightTexture2 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
-	
+	if drawHighlights then
+		btQuality = 3
+		brightTexture3 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
+			fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+			format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+		})
+		brightTexture4 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
+			fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+			format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+		})
+	end
 	screenTexture = glCreateTexture(vsx, vsy, {
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 	})
@@ -153,11 +176,18 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	screenTextureSixteenth = glCreateTexture(vsx/4, vsy/4, {
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 	})
+end
+
+
+function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx,vsy = gl.GetViewSizes()
 	
-	if (brightTexture1 == nil or brightTexture2 == nil or screenTexture == nil or screenTextureQuarter == nil or screenTextureSixteenth == nil) then
-		RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
-		return
-	end
+	ivsx = 1.0 / vsx
+	ivsy = 1.0 / vsy
+	kernelRadius = vsy / 64.0
+	kernelRadius2 = vsy / 27.0
+	
+	reset()
 end
 
 
@@ -166,13 +196,13 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	gl.Color(0,0,0,0.08)
+	gl.Color(0,0,0,0.06+(basicAlpha/5))
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
 
 function widget:DrawWorld()
-	gl.Color(0,0,0,0.12)
+	gl.Color(0,0,0,0.06+(basicAlpha/5)+addDrawWorldAlpha)
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
@@ -192,11 +222,19 @@ function widget:Initialize()
 
   WG['bloom'] = {}
   WG['bloom'].getBrightness = function()
-  	return mbrightness
+  	return basicAlpha
   end
   WG['bloom'].setBrightness = function(value)
-	  brightness = value
+	  basicAlpha = value
   end
+  WG['bloom'].getDrawHighlights = function()
+  	return drawHighlights
+  end
+  WG['bloom'].setDrawHighlights = function(value)
+	  drawHighlights = value
+		reset()
+  end
+  
   
   darken = gl.CreateList(function()
 		gl.PushMatrix()
@@ -357,6 +395,10 @@ end
 function widget:Shutdown()
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
+	if drawHighlights then
+		gl.DeleteTexture(brightTexture3 or "")
+		gl.DeleteTexture(brightTexture4 or "")
+	end
 	gl.DeleteTexture(screenTexture or "")
 
 	if (gl.DeleteShader) then
@@ -421,7 +463,7 @@ local function Bloom()
 		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
 	glUseShader(0)
 	
-	for i = 1, 2 do
+	for i = 1, 3 do
 		glUseShader(blurShaderH71)
 			glUniformInt(blurShaderH71Text0Loc, 0)
 			glUniform(   blurShaderH71InvRXLoc, ivsx)
@@ -441,47 +483,73 @@ local function Bloom()
 		glUniformInt(combineShaderTexture0Loc, 0)
 		glUniformInt(combineShaderTexture1Loc, 1)
 		glUniform(   combineShaderIllumLoc, illumThreshold)
-		glUniform(   combineShaderFragLoc, 0.15)
+		glUniform(   combineShaderFragLoc, basicAlpha)
 		mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
 		mglActiveTexture(1, brightTexture1, vsx, vsy, false, true)
 	glUseShader(0)
 	
-	--highlight blooming
-	glCopyToTexture(screenTexture, 0, 0, 0, 0, vsx, vsy)
-	
-	glUseShader(brightShader)
-		glUniformInt(brightShaderText0Loc, 0)
-		glUniform(   brightShaderInvRXLoc, ivsx)
-		glUniform(   brightShaderInvRYLoc, ivsy)
-		glUniform(   brightShaderIllumLoc, 0.5)
-		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
-	glUseShader(0)
-	
-	glUseShader(blurShaderH71)
-		glUniformInt(blurShaderH71Text0Loc, 0)
-		glUniform(   blurShaderH71InvRXLoc, ivsx)
-		glUniform(	 blurShaderH71FragLoc, kernelRadius2)
-		mglRenderToTexture(brightTexture2, brightTexture1, 1, -1)
-	glUseShader(0)
-	glUseShader(blurShaderV71)
-		glUniformInt(blurShaderV71Text0Loc, 0)
-		glUniform(   blurShaderV71InvRYLoc, ivsy)
-		glUniform(	 blurShaderV71FragLoc, kernelRadius2)
-		mglRenderToTexture(brightTexture1, brightTexture2, 1, -1)
-	glUseShader(0)
-	
-	glUseShader(combineShader)
-		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
-		glUniformInt(combineShaderTexture0Loc, 0)
-		glUniformInt(combineShaderTexture1Loc, 1)
-		glUniform(   combineShaderIllumLoc, illumThreshold)
-		glUniform(   combineShaderFragLoc, 0.36)
-		mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
-		mglActiveTexture(1, brightTexture1, vsx, vsy, false, true)
-	glUseShader(0)
+	-- highlights
+	if drawHighlights then
+		glCopyToTexture(screenTexture, 0, 0, 0, 0, vsx, vsy)
+		
+		glUseShader(brightShader)
+			glUniformInt(brightShaderText0Loc, 0)
+			glUniform(   brightShaderInvRXLoc, ivsx)
+			glUniform(   brightShaderInvRYLoc, ivsy)
+			glUniform(   brightShaderIllumLoc, 0.5)
+			mglRenderToTexture(brightTexture3, screenTexture, 1, -1)
+		glUseShader(0)
+		
+		glUseShader(blurShaderH71)
+			glUniformInt(blurShaderH71Text0Loc, 0)
+			glUniform(   blurShaderH71InvRXLoc, ivsx)
+			glUniform(	 blurShaderH71FragLoc, kernelRadius2)
+			mglRenderToTexture(brightTexture4, brightTexture3, 1, -1)
+		glUseShader(0)
+		glUseShader(blurShaderV71)
+			glUniformInt(blurShaderV71Text0Loc, 0)
+			glUniform(   blurShaderV71InvRYLoc, ivsy)
+			glUniform(	 blurShaderV71FragLoc, kernelRadius2)
+			mglRenderToTexture(brightTexture3, brightTexture4, 1, -1)
+		glUseShader(0)
+		
+		glUseShader(combineShader)
+			glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
+			glUniformInt(combineShaderTexture0Loc, 0)
+			glUniformInt(combineShaderTexture1Loc, 1)
+			glUniform(   combineShaderIllumLoc, illumThreshold)
+			glUniform(   combineShaderFragLoc, highlightsAlpha)
+			mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
+			mglActiveTexture(1, brightTexture3, vsx, vsy, false, true)
+		glUseShader(0)
+	end
 end
 
 function widget:DrawScreenEffects() 
 	Bloom()
 end
 
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.basicAlpha	= basicAlpha
+    savedTable.drawHighlights	= drawHighlights
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.basicAlpha ~= nil then
+		basicAlpha = data.basicAlpha
+		drawHighlights = data.drawHighlights
+	end
+end
+
+function widget:TextCommand(command)
+  if (string.find(command, "advbloom") == 1  and  string.len(command) == 8) then 
+		WG['bloom'].setDrawHighlights(not drawHighlights)
+		if drawHighlights then
+	 		Spring.Echo('Adv bloom enabled')
+	 	else
+	 		Spring.Echo('Adv bloom disabled')
+	 	end
+	end
+end
