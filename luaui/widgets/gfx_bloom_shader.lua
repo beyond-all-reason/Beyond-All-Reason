@@ -2,7 +2,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Bloom Shader",
-		desc      = "Sets Spring In Bloom (do not use with < 7xxx geforce series or non-latest ATI cards!)",
+		desc      = "Sets Spring In Bloom",
 		author    = "Kloot", --Updated by Shadowfury333
 		date      = "28-5-2008",
 		license   = "",
@@ -12,46 +12,15 @@ function widget:GetInfo()
 end
 
 
--- CarRepairer: v0.31 has configurable settings in the menu.
-
---options_path = 'Settings/Graphics/Effects/Bloom'
-options = {
-	shortcuts = {
-		brightnessIncrease = 'Ctrl+Shift+]',
-		brightnessDecrease = 'Ctrl+Shift+[',
-	},
-	dbgDraw 		= { type='bool', 		name='Draw Only Bloom Mask', 	value=false		},
-	
-	maxBrightness 	= { type='number', 		name='Maximum Highlight Brightness', 	value=0.25,		min=0.1, 	max=1,	step=0.05 	},
-	illumThreshold 	= { type='number', 		name='Illumination Threshold', 			value=0.37, 		min=0, 		max=1,		step=0.02 	},
-	blurPasses 		= { type='number', 		name='Blur Passes', 					value=2, 		min=0, 		max=5,		step=1  	},
-}
-
-
 -- config params
-local dbgDraw = false				-- draw only the bloom-mask? [0 | 1]
-local maxBrightness = 0.25			-- maximum brightness of bloom additions [1, n]
-local illumThreshold = 0.4			-- how bright does a fragment need to be before being considered a glow source? [0, 1]
-local blurPasses = 1				-- how many iterations of Gaussian blur should be applied to the glow sources?
+local dbgDraw = 0					-- draw only the bloom-mask? [0 | 1]
 
-local function OnchangeFunc()
-	dbgDraw 		= options.dbgDraw.value and 1 or 0
-	
-	maxBrightness 	= options.maxBrightness.value
-	illumThreshold 	= options.illumThreshold.value
-	blurPasses 		= options.blurPasses.value
-end
-for key,option in pairs(options) do
-	option.OnChange = OnchangeFunc
-end
-OnchangeFunc()
 
--- non-editables
-local vsx = 1						-- current viewport width
-local vsy = 1						-- current viewport height
-local ivsx = 1.0 / vsx
-local ivsy = 1.0 / vsy
-local kernelRadius = vsx / 36.0 --30 at 1080 px high
+
+local mapMargin = 20000
+
+local msx = Game.mapSizeX
+local msz = Game.mapSizeZ
 
 -- shader and texture handles
 local blurShaderH71 = nil
@@ -67,20 +36,13 @@ local screenTextureQuarter = nil
 local screenTextureSixteenth = nil
 
 -- speedups
-local glGetSun = gl.GetSun
-
 local glCreateTexture = gl.CreateTexture
-local glDeleteTexture = gl.DeleteTexture
 local glActiveTexture = gl.ActiveTexture
 local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local glGenerateMipmaps = gl.GenerateMipmap
 
-local glGetShaderLog = gl.GetShaderLog
-local glCreateShader = gl.CreateShader
-local glDeleteShader = gl.DeleteShader
 local glUseShader = gl.UseShader
 
 local glUniformInt = gl.UniformInt
@@ -137,37 +99,16 @@ local combineShaderTexture1Loc = nil
 local combineShaderIllumLoc = nil
 local combineShaderFragLoc = nil
 
-
-function bloomBrightnessIncrease()
-  options.maxBrightness.value = options.maxBrightness.value + options.maxBrightness.step
-  if (options.maxBrightness.value > options.maxBrightness.max) then
-  	 options.maxBrightness.value = options.maxBrightness.max
-  end
-  OnchangeFunc()
-  --Spring.Echo("Bloom: brightness: "..options.maxBrightness.value)
-  return true
-end
-
-function bloomBrightnessDecrease()
-  options.maxBrightness.value = options.maxBrightness.value - options.maxBrightness.step
-  if (options.maxBrightness.value < options.maxBrightness.min) then
-  	 options.maxBrightness.value = options.maxBrightness.min
-  end
-  OnchangeFunc()
-  --Spring.Echo("Bloom: brightness: "..options.maxBrightness.value)
-  return true
-end
-
 local function SetIllumThreshold()
-	local ra, ga, ba = glGetSun("ambient")
-	local rd, gd, bd = glGetSun("diffuse")
-	local rs, gs, bs = glGetSun("specular")
+	local ra, ga, ba = gl.GetSun("ambient")
+	local rd, gd, bd = gl.GetSun("diffuse")
+	local rs, gs, bs = gl.GetSun("specular")
 
 	local ambientIntensity  = ra * 0.299 + ga * 0.587 + ba * 0.114
 	local diffuseIntensity  = rd * 0.299 + gd * 0.587 + bd * 0.114
 	local specularIntensity = rs * 0.299 + gs * 0.587 + bs * 0.114
 
-	-- illumThreshold = (0.8 * ambientIntensity) + (0.1 * diffuseIntensity) + (0.1 * specularIntensity)
+	illumThreshold = (0.33 * ambientIntensity) + (0.05 * diffuseIntensity) + (0.05 * specularIntensity)
 
 	print("[BloomShader::SetIllumThreshold] sun ambient color:  ", ra .. ", " .. ga .. ", " .. ba .. " (intensity: " .. ambientIntensity .. ")")
 	print("[BloomShader::SetIllumThreshold] sun diffuse color:  ", rd .. ", " .. gd .. ", " .. bd .. " (intensity: " .. diffuseIntensity .. ")")
@@ -183,76 +124,57 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
+
+	ivsx = 1.0 / vsx
+	ivsy = 1.0 / vsy
+	kernelRadius = vsy / 85.0
+	kernelRadius2 = vsy / 27.0
+
+	gl.DeleteTexture(brightTexture1 or "")
+	gl.DeleteTexture(brightTexture2 or "")
+	gl.DeleteTexture(screenTexture or "")
 	
-		ivsx = 1.0 / vsx
-		ivsy = 1.0 / vsy
-		kernelRadius = vsy / 36.0
-
-		glDeleteTexture(brightTexture1 or "")
-		glDeleteTexture(brightTexture2 or "")
-		glDeleteTexture(screenTexture or "")
-
-
-		brightTexture1 = glCreateTexture(vsx/4, vsy/4, {
-			fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-			format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
-		})
-		brightTexture2 = glCreateTexture(vsx/4, vsy/4, {
-			fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-			format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
-		})
-
-		screenTexture = glCreateTexture(vsx, vsy, {
-			min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		})
-		screenTextureQuarter = glCreateTexture(vsx/2, vsy/2, {
-			min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		})
-		screenTextureSixteenth = glCreateTexture(vsx/4, vsy/4, {
-			min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
-		})
-
-		if (brightTexture1 == nil or brightTexture2 == nil or screenTexture == nil or screenTextureQuarter == nil or screenTextureSixteenth == nil) then
-			RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
-			return
-		end
+	
+	brightTexture1 = glCreateTexture(vsx/4, vsy/4, {
+		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+	})
+	brightTexture2 = glCreateTexture(vsx/4, vsy/4, {
+		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
+	})
+	
+	screenTexture = glCreateTexture(vsx, vsy, {
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+	})
+	screenTextureQuarter = glCreateTexture(vsx/2, vsy/2, {
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+	})
+	screenTextureSixteenth = glCreateTexture(vsx/4, vsy/4, {
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+	})
+	
+	if (brightTexture1 == nil or brightTexture2 == nil or screenTexture == nil or screenTextureQuarter == nil or screenTextureSixteenth == nil) then
+		RemoveMe("[BloomShader::ViewResize] removing widget, bad texture target")
+		return
+	end
 end
 
-widget:ViewResize(widgetHandler:GetViewSizes())
-
-
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-
-local mapMargin = 20000
-local darkenMapOpacity = 0.7
-local darkenWorldOpacity = 0.12
-
-local msx = Game.mapSizeX
-local msz = Game.mapSizeZ
-
-local glCreateList	= gl.CreateList
-local glDeleteList	= gl.DeleteList
-local glCallList	= gl.CallList
 
 
 function widget:DrawWorldPreUnit()
-	if darken ~= nil then
-		gl.Color(0,0,0,darkenMapOpacity*(options.maxBrightness.value-(options.maxBrightness.value*0.82)))
-		glCallList(darken)
-		gl.Color(1,1,1,1)
-	end
+	gl.Color(0,0,0,0.08)
+	gl.CallList(darken)
+	gl.Color(1,1,1,1)
 end
 
 function widget:DrawWorld()
-	if darken ~= nil then
-		gl.Color(0,0,0,darkenWorldOpacity*options.maxBrightness.value)
-		glCallList(darken)
-		gl.Color(1,1,1,1)
-	end
+	gl.Color(0,0,0,0.12)
+	gl.CallList(darken)
+	gl.Color(1,1,1,1)
 end
 
 
@@ -261,26 +183,22 @@ end
 
 
 function widget:Initialize()
-	if (glCreateShader == nil) then
+	if (gl.CreateShader == nil) then
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
 	
-	
-  
+	widget:ViewResize(widgetHandler:GetViewSizes())
+
   WG['bloom'] = {}
   WG['bloom'].getBrightness = function()
-  	return options.maxBrightness.value
+  	return mbrightness
   end
   WG['bloom'].setBrightness = function(value)
-	  options.maxBrightness.value = value
-	  if (value > options.maxBrightness.max) then
-	  	 options.maxBrightness.value = options.maxBrightness.max
-	  end
-	  OnchangeFunc()
+	  brightness = value
   end
   
-  darken = glCreateList(function()
+  darken = gl.CreateList(function()
 		gl.PushMatrix()
 		gl.Translate(0,0,0)
 		gl.Rotate(90,1,0,0)
@@ -290,7 +208,7 @@ function widget:Initialize()
     
 	SetIllumThreshold()
 
-	combineShader = glCreateShader({
+	combineShader = gl.CreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
 			uniform sampler2D texture1;
@@ -315,11 +233,11 @@ function widget:Initialize()
 	})
 
 	if (combineShader == nil) then
-		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); print(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] combineShader compilation failed"); print(gl.GetShaderLog()); return
 	end
 
 
-	blurShaderH71 = glCreateShader({
+	blurShaderH71 = gl.CreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
 			uniform float inverseRX;
@@ -351,10 +269,10 @@ function widget:Initialize()
 	})
 
 	if (blurShaderH71 == nil) then
-		RemoveMe("[BloomShader::Initialize] blurShaderH71 compilation failed"); print(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] blurShaderH71 compilation failed"); print(gl.GetShaderLog()); return
 	end
 
-	blurShaderV71 = glCreateShader({
+	blurShaderV71 = gl.CreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
 			uniform float inverseRY;
@@ -386,10 +304,10 @@ function widget:Initialize()
 	})
 
 	if (blurShaderV71 == nil) then
-		RemoveMe("[BloomShader::Initialize] blurShaderV71 compilation failed"); print(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] blurShaderV71 compilation failed"); print(gl.GetShaderLog()); return
 	end
 
-	brightShader = glCreateShader({
+	brightShader = gl.CreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
 			uniform float illuminationThreshold;
@@ -414,7 +332,7 @@ function widget:Initialize()
 	})
 
 	if (brightShader == nil) then
-		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); print(glGetShaderLog()); return
+		RemoveMe("[BloomShader::Initialize] brightShader compilation failed"); print(gl.GetShaderLog()); return
 	end
 
 	brightShaderText0Loc = glGetUniformLocation(brightShader, "texture0")
@@ -434,26 +352,19 @@ function widget:Initialize()
 	combineShaderTexture1Loc = glGetUniformLocation(combineShader, "texture1")
 	combineShaderIllumLoc = glGetUniformLocation(combineShader, "illuminationThreshold")
 	combineShaderFragLoc = glGetUniformLocation(combineShader, "fragMaxBrightness")
-	
-
-	widgetHandler:AddAction("bloom1BrightnessIncrease", bloomBrightnessIncrease, nil, "t")
-	Spring.SendCommands({"bind "..options.shortcuts.brightnessIncrease.." bloom1BrightnessIncrease"})
-
-	widgetHandler:AddAction("bloom1BrightnessDecrease", bloomBrightnessDecrease, nil, "t")
-	Spring.SendCommands({"bind "..options.shortcuts.brightnessDecrease.." bloom1BrightnessDecrease"})
 end
 
 function widget:Shutdown()
-	glDeleteTexture(brightTexture1 or "")
-	glDeleteTexture(brightTexture2 or "")
-	glDeleteTexture(screenTexture or "")
+	gl.DeleteTexture(brightTexture1 or "")
+	gl.DeleteTexture(brightTexture2 or "")
+	gl.DeleteTexture(screenTexture or "")
 
-	if (glDeleteShader) then
-		glDeleteShader(brightShader or 0)
-		glDeleteShader(blurShaderH71 or 0)
-		glDeleteShader(blurShaderV71 or 0)
-		glDeleteShader(combineShader or 0)
-		glDeleteList(darken)
+	if (gl.DeleteShader) then
+		gl.DeleteShader(brightShader or 0)
+		gl.DeleteShader(blurShaderH71 or 0)
+		gl.DeleteShader(blurShaderV71 or 0)
+		gl.DeleteShader(combineShader or 0)
+		gl.DeleteList(darken)
 	end
 end
 
@@ -498,9 +409,10 @@ end
 
 local function Bloom()
 	gl.Color(1, 1, 1, 1)
-
+	
 	glCopyToTexture(screenTexture, 0, 0, 0, 0, vsx, vsy)
 	
+	-- global bloomin
 	glUseShader(brightShader)
 		glUniformInt(brightShaderText0Loc, 0)
 		glUniform(   brightShaderInvRXLoc, ivsx)
@@ -509,7 +421,7 @@ local function Bloom()
 		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
 	glUseShader(0)
 	
-	for i = 1, blurPasses do
+	for i = 1, 2 do
 		glUseShader(blurShaderH71)
 			glUniformInt(blurShaderH71Text0Loc, 0)
 			glUniform(   blurShaderH71InvRXLoc, ivsx)
@@ -529,7 +441,41 @@ local function Bloom()
 		glUniformInt(combineShaderTexture0Loc, 0)
 		glUniformInt(combineShaderTexture1Loc, 1)
 		glUniform(   combineShaderIllumLoc, illumThreshold)
-		glUniform(   combineShaderFragLoc, maxBrightness)
+		glUniform(   combineShaderFragLoc, 0.15)
+		mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
+		mglActiveTexture(1, brightTexture1, vsx, vsy, false, true)
+	glUseShader(0)
+	
+	--highlight blooming
+	glCopyToTexture(screenTexture, 0, 0, 0, 0, vsx, vsy)
+	
+	glUseShader(brightShader)
+		glUniformInt(brightShaderText0Loc, 0)
+		glUniform(   brightShaderInvRXLoc, ivsx)
+		glUniform(   brightShaderInvRYLoc, ivsy)
+		glUniform(   brightShaderIllumLoc, 0.5)
+		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
+	glUseShader(0)
+	
+	glUseShader(blurShaderH71)
+		glUniformInt(blurShaderH71Text0Loc, 0)
+		glUniform(   blurShaderH71InvRXLoc, ivsx)
+		glUniform(	 blurShaderH71FragLoc, kernelRadius2)
+		mglRenderToTexture(brightTexture2, brightTexture1, 1, -1)
+	glUseShader(0)
+	glUseShader(blurShaderV71)
+		glUniformInt(blurShaderV71Text0Loc, 0)
+		glUniform(   blurShaderV71InvRYLoc, ivsy)
+		glUniform(	 blurShaderV71FragLoc, kernelRadius2)
+		mglRenderToTexture(brightTexture1, brightTexture2, 1, -1)
+	glUseShader(0)
+	
+	glUseShader(combineShader)
+		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
+		glUniformInt(combineShaderTexture0Loc, 0)
+		glUniformInt(combineShaderTexture1Loc, 1)
+		glUniform(   combineShaderIllumLoc, illumThreshold)
+		glUniform(   combineShaderFragLoc, 0.36)
 		mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
 		mglActiveTexture(1, brightTexture1, vsx, vsy, false, true)
 	glUseShader(0)
@@ -538,36 +484,4 @@ end
 function widget:DrawScreenEffects() 
 	Bloom()
 end
-
-
-
-function widget:TextCommand(command)
-	local cmdgiven = false
-	
-	if (string.find(command, "+illumthres") == 1) then illumThreshold = illumThreshold + 0.02 cmdgiven = true end
-	if (string.find(command, "-illumthres") == 1) then illumThreshold = illumThreshold - 0.02 cmdgiven = true end
-
-	if (string.find(command, "+glowamplif") == 1) then maxBrightness = maxBrightness + 0.05 cmdgiven = true end
-	if (string.find(command, "-glowamplif") == 1) then maxBrightness = maxBrightness - 0.05 cmdgiven = true end
-
-	if (string.find(command, "+blurpasses") == 1) then blurPasses = blurPasses + 1 cmdgiven = true end
-	if (string.find(command, "-blurpasses") == 1) then blurPasses = blurPasses - 1 cmdgiven = true end
-
-	if (string.find(command, "+bloomdebug") == 1) then dbgDraw = 1 cmdgiven = true end
-	if (string.find(command, "-bloomdebug") == 1) then dbgDraw = 0 cmdgiven = true end
-
-	if cmdgiven then
-		illumThreshold = math.max(0.0, math.min(1.0, illumThreshold))
-		blurPasses = math.max(0, blurPasses)
-		
-		Spring.Echo("[BloomShader::TextCommand]")
-		Spring.Echo("   illumThreshold: " .. illumThreshold)
-		Spring.Echo("   maxBrightness:  " .. maxBrightness)
-		--Spring.Echo("   blurAmplifier:  " .. blurAmplifier)
-		Spring.Echo("   blurPasses:     " .. blurPasses)
-		--Spring.Echo("   dilatePass:     " .. dilatePass)
-	end
-end
-
-
 
