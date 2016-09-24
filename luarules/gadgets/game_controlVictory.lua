@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name = "Control Victory",
 		desc = "Enables a victory through capture and hold",
-		author = "KDR_11k (David Becker), Smoth, Lurker, Forboding Angel",
+		author = "KDR_11k (David Becker), Smoth, Lurker, Forboding Angel, Floris",
 		date = "2008-03-22 -- Major update July 11th, 2016",
 		license = "Public Domain",
 		layer = 1,
@@ -236,7 +236,7 @@ buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
 
 --local pointMarker = FeatureDefNames.xelnotgawatchtower.id -- Feature marking a point- This doesn't do anything atm
 
-	
+
 local captureRadius = tonumber(Spring.GetModOptions().captureradius) or 500 -- Radius around a point in which to capture it
 local captureTime = tonumber(Spring.GetModOptions().capturetime) or 30 -- Time to capture a point
 local captureBonus = tonumber(Spring.GetModOptions().capturebonus) or.5 -- speedup from adding more units
@@ -264,7 +264,7 @@ local scoreMode = scoreModes[Spring.GetModOptions().scoremode or "countdown"]
 
 Spring.Echo("[ControlVictory] Control Victory Scoring Mode: " .. (Spring.GetModOptions().scoremode or "Countdown"))
 
-local _, _, _, _, _, gaia = Spring.GetTeamInfo(Spring.GetGaiaTeamID())
+local gaia = Spring.GetGaiaTeamID()
 local mapx, mapz = Game.mapSizeX, Game.mapSizeZ
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -410,25 +410,27 @@ if (gadgetHandler:IsSyncedCode()) then
 					end
 					if validUnit then
 						local unitOwner = Spring.GetUnitAllyTeam(u)
-						--Spring.Echo(unitOwner)
-						if owner then
-							if owner == unitOwner then
-								count = 0
-								break
-							else
-								count = count + 1
-							end
-						else
-							if aggressor then
-								if aggressor == unitOwner then
-									count = count + 1
-								else
-									aggressor = nil
+						if unitOwner ~= gaia then
+							--Spring.Echo(unitOwner)
+							if owner then
+								if owner == unitOwner then
+									count = 0
 									break
+								else
+									count = count + 1
 								end
 							else
-								aggressor = unitOwner
-								count = count + 1
+								if aggressor then
+									if aggressor == unitOwner then
+										count = count + 1
+									else
+										aggressor = nil
+										break
+									end
+								else
+									aggressor = unitOwner
+									count = count + 1
+								end
 							end
 						end
 					end
@@ -552,16 +554,33 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 else -- UNSYNCED
-
+	
 	local pieces = math.floor(captureRadius / 20)
 	local OPTIONS = {
 		circlePieces					= pieces,
 		circlePieceDetail			= math.floor(pieces/4),
-		circleSpaceUsage			= 0.88,
+		circleSpaceUsage			= 0.85,
 		circleInnerOffset			= 0,
-		rotationSpeed					= 0.5,
+		rotationSpeed					= 0.3,
 	}
 	pieces = nil
+	
+	local exampleImage = ":n:LuaRules/Images/controlpoints.png"
+	local showGameModeInfo = true
+	
+	
+	local bgMargin = 6
+	local closeButtonSize = 30
+	local vsx, vsy = Spring.GetViewGeometry()
+	local uiScale = 1
+	
+	local closeButtonSize = 30
+	local screenHeight = 212-bgMargin-bgMargin
+	local screenWidth = 1050-bgMargin-bgMargin
+	local screenX = (vsx*0.5) - (screenWidth/2)
+	local screenY = (vsy*0.5) + (screenHeight/2)
+	local loadedFontSize = 32
+	local font = gl.LoadFont("luaui/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 	local Text = gl.Text
 	local Color = gl.Color
@@ -585,17 +604,13 @@ else -- UNSYNCED
 	local capturePoints = {}
 	local controlPointSolidList = {}
 	
-	local uiScale =1
-	
 	local prevTimer = Spring.GetTimer()
 	local currentRotationAngle = 0
-	local currentRotationAngleOpposite = 0
 	
 	local ringThickness = 3.5
 	local capturePieParts = 4 + math.floor(captureRadius / 8)
 	
-	local outerRingDistance = 4.5
-	local outerRingScale = (captureRadius - (ringThickness) - outerRingDistance) / captureRadius
+	local scoreMode = Spring.GetModOptions().scoremode or "Countdown"
 	
 	-----------------------------------------------------------------------------------------
 	-- creates initial player listing 
@@ -604,37 +619,38 @@ else -- UNSYNCED
 		local playerEntries = {}
 		for allyTeamID, teamScore in spairs(SYNCED.score) do
 			-- note to self, allyTeamID +1 = ally team number	
-			--if allyTeamID ~= gaia then					
-			--does this allyteam have a table? if not, make one
-			if playerEntries[allyTeamID] == nil then 
-				playerEntries[allyTeamID] = {}
-				--	Spring.Echo("creating allyTeamID table")
-			end
-		
-			for _,teamId in pairs(Spring.GetTeamList(allyTeamID))do	
-				local playerList = Spring.GetPlayerList(teamId, true)	
-				-- does this team have an entry? if not, make one!
-				if playerEntries[allyTeamID][teamId] == nil then 
-					playerEntries[allyTeamID][teamId] = {}	
-				--	Spring.Echo("creating team table")
+			if allyTeamID ~= gaia then					
+				--does this allyteam have a table? if not, make one
+				if playerEntries[allyTeamID] == nil then 
+					playerEntries[allyTeamID] = {}
+					--	Spring.Echo("creating allyTeamID table")
 				end
-				local r, g, b 			= Spring.GetTeamColor(teamId)
-				local playerTeamColor	= string.char("255",r*255,g*255,b*255)
-				for k,v in pairs(playerList)do
-					-- does this player have an entry? if not, make one!
-					if playerEntries[allyTeamID][teamId][v] == nil then 
-						playerEntries[allyTeamID][teamId][v] = {}	
-					--	Spring.Echo("creating player table")
+			
+				for _,teamId in pairs(Spring.GetTeamList(allyTeamID))do	
+					local playerList = Spring.GetPlayerList(teamId, true)	
+					-- does this team have an entry? if not, make one!
+					if playerEntries[allyTeamID][teamId] == nil then 
+						playerEntries[allyTeamID][teamId] = {}	
+					--	Spring.Echo("creating team table")
 					end
-					
-				--	if Spring.Echo(playerEntries[allyTeamID][teamId][v]) then
-					--	Spring.Echo("waffles")
-					--end
-					playerEntries[allyTeamID][teamId][v]["name"] = Spring.GetPlayerInfo(v)
-					playerEntries[allyTeamID][teamId][v]["color"] = playerTeamColor
-				end -- end playerId
-			end -- end teamId
-		end -- allyTeamID		
+					local r, g, b 			= Spring.GetTeamColor(teamId)
+					local playerTeamColor	= string.char("255",r*255,g*255,b*255)
+					for k,v in pairs(playerList)do
+						-- does this player have an entry? if not, make one!
+						if playerEntries[allyTeamID][teamId][v] == nil then 
+							playerEntries[allyTeamID][teamId][v] = {}	
+						--	Spring.Echo("creating player table")
+						end
+						
+					--	if Spring.Echo(playerEntries[allyTeamID][teamId][v]) then
+						--	Spring.Echo("waffles")
+						--end
+						playerEntries[allyTeamID][teamId][v]["name"] = Spring.GetPlayerInfo(v)
+						playerEntries[allyTeamID][teamId][v]["color"] = playerTeamColor
+					end -- end playerId
+				end -- end teamId
+			end -- allyTeamID		
+		end -- gaia exclusion
 		return playerEntries
 	end	
 	
@@ -707,6 +723,7 @@ else -- UNSYNCED
 		gl.Vertex(sx, sy-cs, 0)
 		
 		local offset = 0.07		-- texture offset, because else gaps could show
+		o = offset
 		
 		-- bottom left
 		if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
@@ -754,12 +771,29 @@ else -- UNSYNCED
 		gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 		gl.Texture(false)
 	end
-
+	
+	function viewResize(force)
+		vsx2,vsy2 = Spring.GetViewGeometry()
+			if force or vsx2 ~= vsy or vsx2 ~= vsy then
+			vsx,vsy = vsx2,vsy2
+		  screenX = (vsx*0.5) - (screenWidth/2)
+		  screenY = (vsy*0.5) + (screenHeight/2)
+		  uiScale = (0.75 + (vsx*vsy / 7500000))
+		  
+		  if infoList then gl.DeleteList(infoList) end
+		  infoList = CreateList(drawGameModeInfo)
+		 end
+	end
 
 	function gadget:Initialize()
 		playerListEntry = CreatePlayerList(playerEntries)
 		
-		controlPointList = CreateList(DrawCircleLine, captureRadius-(ringThickness/2), captureRadius+(ringThickness/2))
+	  viewResize(true)
+	  
+		controlPointList = CreateList(DrawCircleLine, captureRadius-ringThickness, captureRadius)
+		if Spring.GetGameFrame() > 0 then
+			showGameModeInfo = false
+		end
 	end
 
 	function gadget:DrawInMiniMap()
@@ -783,11 +817,6 @@ else -- UNSYNCED
 			if currentRotationAngle > 360 then
 			   currentRotationAngle = currentRotationAngle - 360
 			end
-		
-			currentRotationAngleOpposite = currentRotationAngleOpposite - angleDifference
-			if currentRotationAngleOpposite < -360 then
-			   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
-			end
 		end
 	end
 	
@@ -802,12 +831,12 @@ else -- UNSYNCED
 				capturePoints[i].y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z) + 25
 				capturePoints[i].z = capturePoint.z
 			end
-			if capturePoint.owner and capturePoint.owner ~= Spring.GetGaiaTeamID() then
+			if capturePoint.owner and capturePoint.owner ~= gaia then
 				capturePoints[i].color[1],capturePoints[i].color[2],capturePoints[i].color[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
 			else
 				capturePoints[i].color = {1,1,1}
 			end
-			if capturePoint.aggressor and capturePoint.aggressor ~= Spring.GetGaiaTeamID() then
+			if capturePoint.aggressor and capturePoint.aggressor ~= gaia then
 				capturePoints[i].aggressorColor[1],capturePoints[i].aggressorColor[2],capturePoints[i].aggressorColor[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.aggressor)[1])
 			else
 				capturePoints[i].aggressorColor = {1,1,1}
@@ -817,20 +846,24 @@ else -- UNSYNCED
 	end
 	
 	function DrawPoints(simplified)
-		local capturedAlpha = 0.22
-		local capturingAlpha = 0.33
-		local prefix = ''
+		local capturedAlpha, capturingAlpha, prefix, parts
 		if simplified then	-- for minimap
-			capturedAlpha = 0.4
+			capturedAlpha = 0.45
 			capturingAlpha = 0.6
 			prefix = 'm_'		-- so it uses different displaylists
+			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 5)
+		else
+			capturedAlpha = 0.22
+			capturingAlpha = 0.33
+			prefix = ''
+			parts = (OPTIONS.circlePieces * OPTIONS.circlePieceDetail)
 		end
 	  for i,point in pairs(capturePoints) do
    		PushMatrix()
 	   		Translate(point.x, point.y, point.z)
 	   		-- owner circle backgroundcolor
 	   		if controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]] == nil then
-	   			controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]] = gl.CreateList(DrawCircleSolid, captureRadius - (ringThickness/2), (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), (OPTIONS.circlePieces * OPTIONS.circlePieceDetail), {0,0,0,0}, {point.color[1], point.color[2], point.color[3], capturedAlpha})
+	   			controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]] = CreateList(DrawCircleSolid, captureRadius+ringThickness, parts, parts, {0,0,0,0}, {point.color[1], point.color[2], point.color[3], capturedAlpha})
 	   		end
 	   		CallList(controlPointSolidList[prefix..point.color[1]..'_'..point.color[2]..'_'..point.color[3]])
 	   		
@@ -842,19 +875,14 @@ else -- UNSYNCED
 	   			end
 	   			local piesize = math.floor(((point.capture/captureTime) / (1/capturePieParts))+0.5)
 		   		if controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] == nil then
-		   			controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = gl.CreateList(DrawCircleSolid, captureRadius, capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], capturingAlpha}, revert)
+		   			controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize] = CreateList(DrawCircleSolid, (captureRadius-ringThickness*2), capturePieParts, piesize, {0,0,0,0}, {point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], capturingAlpha}, revert)
 		   		end
 		   		CallList(controlPointSolidList[prefix..point.aggressorColor[1]..'_'..point.aggressorColor[2]..'_'..point.aggressorColor[3]..'_'..piesize])
 	   		end
 	   		if not simplified then	-- not for minimap
 		   		--ring
-		   		Color(1,1,1, 0.6)
 		   		Rotate(currentRotationAngle,0,1,0)
-		   		--CallList(controlPointList)
-		   		--outer ring
-		   		Rotate(currentRotationAngleOpposite,0,1,0)
-		   		Scale(outerRingScale,outerRingScale,outerRingScale)
-		   		Color(1,1,1, 0.4)
+		   		Color(1,1,1, 0.6)
 		   		CallList(controlPointList)
 	   		end
 			PopMatrix()
@@ -867,14 +895,75 @@ else -- UNSYNCED
 		PolygonOffset(false)
 	end
 	
-	local screenX = 0.75
-	local screenY = 0.66
-	local screenHeight = 100
-	local screenWidth = 150
+	
+	function gadget:GameStart()
+		showGameModeInfo = false
+	end
+
+	
+	function drawGameModeInfo()
+  	PushMatrix()
+			Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
+	  	Scale(uiScale,uiScale,1)
+		  local x = screenX --rightwards
+		  local y = screenY --upwards
+			
+			-- background
+		  Color(0,0,0,0.8)
+			RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
+			-- content area
+			Color(0.33,0.33,0.33,0.15)
+			RectRound(x,y-screenHeight,x+screenWidth,y,6)
+			
+			-- close button
+			local size = closeButtonSize*0.7
+			local width = size*0.055
+		  Color(1,1,1,1)
+  		PushMatrix()
+				Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
+		  	gl.Rotate(-45,0,0,1)
+		  	gl.Rect(-width,size/2,width,-size/2)
+		  	gl.Rotate(90,0,0,1)
+		  	gl.Rect(-width,size/2,width,-size/2)
+			PopMatrix()
+			
+			-- title
+		  local title = "\255\210\210\210Area Capture Mode    \255\255\255\255"..scoreMode
+			local titleFontSize = 18
+		  Color(0,0,0,0.8)
+		  titleRect = {x-bgMargin, y+bgMargin, x+(gl.GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
+			
+			font:Begin()
+			font:SetTextColor(1,1,1,1)
+			font:SetOutlineColor(0,0,0,0.4)
+			font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+			font:End()
+		
+			-- image of minimap showing controlpoints
+			local imageSize = 200
+		  Color(1,1,1,1)
+			gl.Texture(exampleImage)
+			gl.TexRect(x,y,x+imageSize,y-imageSize)
+			gl.Texture(false)
+	
+			-- textarea
+			local infotext = "\255\210\210\210Controlpoints are spread across the map. They can be captured by moving units into the circles.\nNote that you can only build metal extractors inside them\n\nThere are 3 modes:\n- Countdown:  Your score counts down until zero\n- Domination: Control all points for 30 seconds\n- Tug of War: Own more circles to steal points from the enemy\n\nYou will also gain metal for each controlpoint you own.\n\nThere are various options availible in the lobby bsettings."
+
+			Text(infotext, x+imageSize+15, y-25, 16, "no")
+		
+		PopMatrix()
+	end
+	
+	
 	function gadget:DrawScreen(vsx, vsy)
 
-	  vsx,vsy = Spring.GetViewGeometry()
-	  uiScale = (0.75 + (vsx*vsy / 7500000))
+	  viewResize()
+	  
+	  if showGameModeInfo then
+		  if infoList == nil then infoList = CreateList(drawGameModeInfo) end
+	  	CallList(infoList)
+	  end
 	  
   	PushMatrix()
 			local frame = Spring.GetGameFrame()
@@ -884,7 +973,7 @@ else -- UNSYNCED
 				local dominationTime 	= SYNCED.dom.dominationTime
 				local white				= string.char("255","255","255","255")	
 				local allyCounter = 0
-				local scoreMode = Spring.GetModOptions().scoremode or "Countdown"
+				
 	
 				--Make it look Pretty
 				if scoreMode == "countdown" then scoreMode = "Countdown" end
@@ -953,5 +1042,47 @@ else -- UNSYNCED
 			
 		PopMatrix()
 	end
+	
 
+	function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
+		
+		-- check if the mouse is in a rectangle
+		return x >= BLcornerX and x <= TRcornerX
+		                      and y >= BLcornerY
+		                      and y <= TRcornerY
+	end
+
+	function gadget:MousePress(x, y, button)
+		return mouseEvent(x, y, button, false)
+	end
+
+	function gadget:MouseRelease(x, y, button)
+		return mouseEvent(x, y, button, true)
+	end
+
+	function mouseEvent(x, y, button, release)
+		
+		if Spring.IsGUIHidden() then return false end
+	  
+	  if showGameModeInfo then
+			-- on window
+			local rectX1 = ((screenX-bgMargin) * uiScale) - ((vsx * (uiScale-1))/2)
+			local rectY1 = ((screenY+bgMargin) * uiScale) - ((vsy * (uiScale-1))/2)
+			local rectX2 = ((screenX+screenWidth+bgMargin) * uiScale) - ((vsx * (uiScale-1))/2)
+			local rectY2 = ((screenY-screenHeight-bgMargin) * uiScale) - ((vsy * (uiScale-1))/2)
+			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+	  		
+	  		-- on close button
+				local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * uiScale)
+				local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * uiScale)
+				if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
+					if release then
+						showGameModeInfo = false
+					end
+					return true
+				end
+	  	end
+	  end
+	end
+	
 end
