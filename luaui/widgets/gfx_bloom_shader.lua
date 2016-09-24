@@ -14,7 +14,7 @@ end
 -- config 
 --------------------------------------------------------------------------------
 
-local basicAlpha = 0.16
+local basicAlpha = 0.36
 
 local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
 local highlightsAlpha = 0.36
@@ -136,6 +136,7 @@ end
 function reset()
 
 	if drawHighlights then
+		basicAlpha = basicAlpha * 0.6
 		addDrawWorldAlpha = 0.04
 	end
 
@@ -184,7 +185,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	
 	ivsx = 1.0 / vsx
 	ivsy = 1.0 / vsy
-	kernelRadius = vsy / 64.0
+	kernelRadius = vsy / 66.0
 	kernelRadius2 = vsy / 27.0
 	
 	reset()
@@ -196,13 +197,13 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	gl.Color(0,0,0,0.06+(basicAlpha/5))
+	gl.Color(0,0,0,0.06+(basicAlpha/6.2))
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
 
 function widget:DrawWorld()
-	gl.Color(0,0,0,0.06+(basicAlpha/5)+addDrawWorldAlpha)
+	gl.Color(0,0,0,0.06+(basicAlpha/6.2)+addDrawWorldAlpha)
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
