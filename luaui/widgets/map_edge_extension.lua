@@ -163,26 +163,26 @@ local function SetupShaderTable()
 		void main()
 		{
 		gl_TexCoord[0]= gl_TextureMatrix[0]*gl_MultiTexCoord0;
-		vertex = gl_Vertex;
+		vec4 vertex = gl_Vertex;
 		vertex.x = abs(mirrorX-vertex.x);
 		vertex.z = abs(mirrorZ-vertex.z);
 		
 		float alpha = 1.0;
 		#ifdef curvature
-		  if(mirrorX > 0)vertex.y -= pow(abs(vertex.x-left*mirrorX)/150.0, 2.0);
-		  if(mirrorZ > 0)vertex.y -= pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0);
+		  if(mirrorX != 0.0)vertex.y -= pow(abs(vertex.x-left*mirrorX)/150.0, 2.0);
+		  if(mirrorZ != 0.0)vertex.y -= pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0);
 		  alpha = 0.0;
-			if(mirrorX > 0) alpha -= pow(abs(vertex.x-left*mirrorX)/lengthX, 2.0);
-			if(mirrorZ > 0) alpha -= pow(abs(vertex.z-up*mirrorZ)/lengthZ, 2.0);
+			if(mirrorX != 0.0) alpha -= pow(abs(vertex.x-left*mirrorX)/lengthX, 2.0);
+			if(mirrorZ != 0.0) alpha -= pow(abs(vertex.z-up*mirrorZ)/lengthZ, 2.0);
 			alpha = 1.0 + (6.0 * (alpha + 0.18));
 		#endif
   
 		float ff = 20000.0;
-		if(((mirrorZ > 0) && (mirrorX > 0)))
+		if((mirrorZ != 0.0 && mirrorX != 0.0))
 		  ff=ff/(pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0)+pow(abs(vertex.x-left*mirrorX)/150.0, 2.0)+2.0);
-		else if(mirrorX > 0)
+		else if(mirrorX != 0.0)
 		  ff=ff/(pow(abs(vertex.x-left*mirrorX)/150.0, 2.0)+2.0);
-		else if(mirrorZ > 0)
+		else if(mirrorZ != 0.0)
 		  ff=ff/(pow(abs(vertex.z-up*mirrorZ)/150.0, 2.0)+2.0);
   
 		gl_Position  = gl_ModelViewProjectionMatrix*vertex;
