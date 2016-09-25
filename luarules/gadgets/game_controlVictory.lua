@@ -568,6 +568,10 @@ else -- UNSYNCED
 	local exampleImage = ":n:LuaRules/Images/controlpoints.png"
 	local showGameModeInfo = true
 	
+	local scoreboardRelX = 0.75
+	local scoreboardRelY = 0.7
+	local scoreboardWidth = 100
+	local scoreboardHeight = 100
 	
 	local bgMargin = 6
 	local closeButtonSize = 30
@@ -776,10 +780,14 @@ else -- UNSYNCED
 		vsx2,vsy2 = Spring.GetViewGeometry()
 			if force or vsx2 ~= vsy or vsx2 ~= vsy then
 			vsx,vsy = vsx2,vsy2
-		  screenX = (vsx*0.5) - (screenWidth/2)
-		  screenY = (vsy*0.5) + (screenHeight/2)
 		  uiScale = (0.75 + (vsx*vsy / 7500000))
 		  
+		  screenX = (vsx*0.5) - (screenWidth/2)
+		  screenY = (vsy*0.5) + (screenHeight/2)
+		  
+			scoreboardX = (vsx * scoreboardRelX) - (((vsx/2) * (scoreboardRelX-0.5)) * (uiScale-1))	-- not acurate :(
+			scoreboardY = (vsy * scoreboardRelY) - (((vsy/2) * (scoreboardRelY-0.5)) * (uiScale-1))	-- not acurate :(
+			
 		  if infoList then gl.DeleteList(infoList) end
 		  infoList = CreateList(drawGameModeInfo)
 		 end
@@ -955,6 +963,102 @@ else -- UNSYNCED
 		PopMatrix()
 	end
 	
+	function drawScoreboard()
+  	PushMatrix()
+			Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
+	  	Scale(uiScale,uiScale,1)
+		  local x = scoreboardX --rightwards
+		  local y = scoreboardY --upwards
+			local width = scoreboardWidth
+			local height = scoreboardHeight
+			local maxWidth = width
+			local maxHeight = height
+			
+			-- background
+		  Color(0,0,0,0.8)
+			RectRound(x-bgMargin,y-height-bgMargin,x+width+bgMargin,y+bgMargin,8, 0,1,1,1)
+			-- content area
+			Color(0.33,0.33,0.33,0.15)
+			RectRound(x,y-height,x+width,y,6)
+			
+			-- title
+		  local title = "\255\255\255\255"..scoreMode
+			local titleFontSize = 18
+		  Color(0,0,0,0.8)
+		  titleRect = {x-bgMargin, y+bgMargin, x+(gl.GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+			RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
+			
+			font:Begin()
+			font:SetTextColor(1,1,1,1)
+			font:SetOutlineColor(0,0,0,0.4)
+			font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+			font:End()
+			
+			local n = 1
+			local dominator				= SYNCED.dom.dominatorwa
+			local dominationTime	= SYNCED.dom.dominationTime
+			local white						= string.char("255","255","255","255")	
+			local allyCounter			= 0
+			
+			-- for all the scores with a team.
+			for allyTeamID, allyScore in spairs(SYNCED.score) do
+				--Spring.Echo("at allied team ID", allyTeamID)
+				-- note to self, allyTeamID +1 = ally team number	
+				local allyTeamMembers = Spring.GetTeamList(allyTeamID)
+				if allyTeamID ~= gaia and allyTeamMembers and (#allyTeamMembers > 0) then
+					local allyFound = false
+					local name = "Some Bot"
+					local team = allyTeamMembers[1]
+					
+					for _,teamId in pairs(Spring.GetTeamList(allyTeamID))do
+						--Spring.Echo("\tat team ID", teamId)
+						
+						local playerList = Spring.GetPlayerList(teamId)
+						--Spring.Echo("\t\t\tplayerList", #playerList)
+						for _,playerId in pairs(playerList)do
+							local _, _, spectator = Spring.GetPlayerInfo(playerId)
+							--Spring.Echo("\t\t\t\tplayer")
+							--Spring.Echo("allied team ID", allyTeamID, "\t", "team ID", teamId, Spring.GetPlayerInfo(playerId))
+							--Spring.Echo(Spring.GetPlayerInfo(_, _, spectator))
+							if not spectator and not allyFound then
+								name = Spring.GetPlayerInfo(playerId)
+								team = teamId
+								allyFound = true
+							end
+						end -- end playerId
+					end -- end teamId
+					
+					if allyFound == false then
+						if Spring.GetTeamLuaAI(team) == "" then
+							name = "Evil Machine"
+						else
+							name = Spring.GetTeamLuaAI(team)
+						end
+						--get AI info?
+					end
+					local r, g, b = Spring.GetTeamColor(team)
+					color = string.char("255",r*255,g*255,b*255)
+					Text(color .. name .. "'s team", x+10,  y - 22 - (55 * allyCounter-1), 16, "lo")
+					Text(white .. "\255\200\200\200Score: \255\255\255\255" .. allyScore, x+10,  y - 42 -(55 * allyCounter-1), 16, "lo")
+					
+					local textwidth = 20 + gl.GetTextWidth(name .. "'s team")*16
+					if textwidth > maxWidth then
+						maxWidth = textwidth
+					end
+					maxHeight = 42 +(55 * allyCounter-1) + 13
+					allyCounter = allyCounter + 1
+				end -- not gaia
+			end -- end allyTeamID
+
+			if dominator and dominationTime > Spring.GetGameFrame() then
+			--	Text( playerListEntry[dominator]["color"] .. "<" .. playerListEntry[dominator] .. "> will score a --Domination in " .. 
+			--		math.floor((dominationTime - Spring.GetGameFrame()) / 30) .. 
+			--		" seconds!", vsx *.5, vsy *.7, 24, "oc")
+			end
+			scoreboardWidth = maxWidth
+			scoreboardHeight = maxHeight
+		PopMatrix()
+	end
 	
 	function gadget:DrawScreen(vsx, vsy)
 
@@ -965,74 +1069,15 @@ else -- UNSYNCED
 	  	CallList(infoList)
 	  end
 	  
-  	PushMatrix()
 			local frame = Spring.GetGameFrame()
 			if frame / 1800 > startTime then
-				local n = 1
-				local dominator 		= SYNCED.dom.dominatorwa
-				local dominationTime 	= SYNCED.dom.dominationTime
-				local white				= string.char("255","255","255","255")	
-				local allyCounter = 0
-				
-	
-				--Make it look Pretty
-				if scoreMode == "countdown" then scoreMode = "Countdown" end
-				if scoreMode == "tugofwar" then scoreMode = "Tug of War" end
-				if scoreMode == "domination" then scoreMode = "Domination" end
-				
-				Text(white .. "Scoring Mode: " .. scoreMode, vsx - 280, vsy * .58 - 38 * -0.75, 18, "lo")
-				
-				-- for all the scores with a team.
-				for allyTeamID, allyScore in spairs(SYNCED.score) do
-					--Spring.Echo("at allied team ID", allyTeamID)
-					-- note to self, allyTeamID +1 = ally team number	
-					local allyTeamMembers = Spring.GetTeamList(allyTeamID)
-					if allyTeamID ~= gaia and allyTeamMembers and (#allyTeamMembers > 0) then
-						local allyFound = false
-						local name = "Some Bot"
-						local team = allyTeamMembers[1]
-						
-						for _,teamId in pairs(Spring.GetTeamList(allyTeamID))do
-							--Spring.Echo("\tat team ID", teamId)
-							
-							local playerList = Spring.GetPlayerList(teamId)
-							--Spring.Echo("\t\t\tplayerList", #playerList)
-							for _,playerId in pairs(playerList)do
-								local _, _, spectator = Spring.GetPlayerInfo(playerId)
-								--Spring.Echo("\t\t\t\tplayer")
-								--Spring.Echo("allied team ID", allyTeamID, "\t", "team ID", teamId, Spring.GetPlayerInfo(playerId))
-								--Spring.Echo(Spring.GetPlayerInfo(_, _, spectator))
-								if not spectator and not allyFound then
-									name = Spring.GetPlayerInfo(playerId)
-									team = teamId
-									allyFound = true
-								end
-							end -- end playerId
-						end -- end teamId
-						
-						if allyFound == false then
-							if Spring.GetTeamLuaAI(team) == "" then
-								name = "Evil Machine"
-							else
-								name = Spring.GetTeamLuaAI(team)
-							end
-							--get AI info?
-						end
-						
-						local r, g, b = Spring.GetTeamColor(team)
-						color = string.char("255",r*255,g*255,b*255)
-						Text(color .. name .. "'s Team (" .. team .. ")" .. white, vsx - 280, vsy * .58 - 38 * allyCounter, 16, "lo")
-						Text(white .. "Score: " .. allyScore, vsx - 250, vsy * .5625 - 38 * allyCounter, 16, "lo")
-						
-						allyCounter = allyCounter + 1
-					end -- not gaia
-				end -- end allyTeamID
-	
-				if dominator and dominationTime > Spring.GetGameFrame() then
-				--	Text( playerListEntry[dominator]["color"] .. "<" .. playerListEntry[dominator] .. "> will score a --Domination in " .. 
-				--		math.floor((dominationTime - Spring.GetGameFrame()) / 30) .. 
-				--		" seconds!", vsx *.5, vsy *.7, 24, "oc")
-				end
+			  if scoreboardList == nil or frame%15==0 then
+			  	if scoreboardList ~= nil then
+			  		gl.DeleteList(scoreboardList)
+			  	end
+			  	scoreboardList = CreateList(drawScoreboard)
+			  end
+		  	CallList(scoreboardList)
 			else
 				Text("Capturing points begins in:", vsx - 280, vsy *.58, 18, "lo")
 				local timeleft = startTime * 60 - frame / 30
@@ -1040,7 +1085,6 @@ else -- UNSYNCED
 				Text(timeleft .. " seconds", vsx - 280, vsy *.58 - 25, 18, "lo")
 			end
 			
-		PopMatrix()
 	end
 	
 
@@ -1050,6 +1094,18 @@ else -- UNSYNCED
 		return x >= BLcornerX and x <= TRcornerX
 		                      and y >= BLcornerY
 		                      and y <= TRcornerY
+	end
+	
+
+	function gadget:MouseMove(mx, my, dx, dy)
+		if draggingScoreboard then
+			scoreboardRelX = scoreboardRelX + (dx/vsx)
+			scoreboardRelY = scoreboardRelY + (dy/vsy)
+			if scoreboardList ~= nil then
+			 	gl.DeleteList(scoreboardList)
+	  	end
+	  	scoreboardList = CreateList(drawScoreboard)
+		end
 	end
 
 	function gadget:MousePress(x, y, button)
@@ -1063,6 +1119,19 @@ else -- UNSYNCED
 	function mouseEvent(x, y, button, release)
 		
 		if Spring.IsGUIHidden() then return false end
+	  if release and draggingScoreboard ~= nil then
+	  	draggingScoreboard = nil
+	  end
+	  if not release and Spring.GetGameFrame() > 0 then
+			local rectX1 = ((scoreboardX-bgMargin) * uiScale) - ((vsx * (uiScale-1))/2)
+			local rectY1 = ((scoreboardY+bgMargin) * uiScale) - ((vsy * (uiScale-1))/2)
+			local rectX2 = ((scoreboardX+scoreboardWidth+bgMargin) * uiScale) - ((vsx * (uiScale-1))/2)
+			local rectY2 = ((scoreboardY-scoreboardHeight-bgMargin) * uiScale) - ((vsy * (uiScale-1))/2)
+			if button == 2 and IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+				draggingScoreboard = true
+				return true
+	    end
+	  end
 	  
 	  if showGameModeInfo then
 			-- on window
