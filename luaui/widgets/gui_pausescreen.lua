@@ -5,8 +5,8 @@ function widget:GetInfo()
     return {
         name      = "Pause Screen",
         desc      = "Displays an overlay when the game is paused",
-        author    = "very_bad_soldier (enhanced by: Floris)",
-        date      = "2009.08.16",
+        author    = "Floris",
+        date      = "sept 2016",
         license   = "GNU GPL v2",
         layer     = math.huge,
         enabled   = true
@@ -59,6 +59,9 @@ local fontSizeAddon      = 15
 local fontPath           = "LuaUI/Fonts/MicrogrammaDBold.ttf"
 local autoFadeTime       = 1
 local forceHideWindow    = false
+
+local blurScreen				 = false 	-- makes use of guishader api widget
+
 --Color config in drawPause function
     
 ----------------
@@ -218,8 +221,14 @@ function widget:DrawScreen()
     if ( paused or ( ( now - pauseTimestamp) <= slideTime ) ) then
     		showPauseScreen = true
         drawPause()
+        if blurScreen and WG['guishader_api'] ~= nil then
+					WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'pausescreen')
+        end
     else
     		showPauseScreen = false
+        if blurScreen and WG['guishader_api'] ~= nil then
+					WG['guishader_api'].RemoveRect('pausescreen')
+        end
     end
     
     ResetGl()
