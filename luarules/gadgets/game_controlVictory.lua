@@ -223,6 +223,18 @@ Here are all of the modoptions in a neat copy pastable form... Place these modop
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
+		{
+		key    = 'dominationscore',
+		name   = 'Score awarded for Domination',
+		desc   = 'The amount of score awarded when you have scored a domination.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 1000,
+		min    = 500,
+		max    = 1000,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
 -- End Control Victory Options
 ////
 
@@ -521,7 +533,7 @@ if (gadgetHandler:IsSyncedCode()) then
 							capturePoint.owner = nil
 							capturePoint.capture = 0
 						end
-						score[dom.dominator] = score[dom.dominator] + 1000
+						score[dom.dominator] = score[dom.dominator] + Spring.GetModOptions().dominationscore
 						if score[dom.dominator] >= limitScore then
 							Winner(dom.dominator)
 						end
@@ -614,7 +626,7 @@ else -- UNSYNCED
 	local ringThickness = 3.5
 	local capturePieParts = 4 + math.floor(captureRadius / 8)
 	
-	local scoreMode = Spring.GetModOptions().scoremode or "Countdown"
+	local scoreMode = Spring.GetModOptions().scoremode or "countdown"
 	
 	-----------------------------------------------------------------------------------------
 	-- creates initial player listing 
@@ -803,7 +815,7 @@ else -- UNSYNCED
 			showGameModeInfo = false
 		end
 	end
-
+	
 	function gadget:DrawInMiniMap()
 		PushMatrix()
 			gl.LoadIdentity()
@@ -910,6 +922,15 @@ else -- UNSYNCED
 
 	
 	function drawGameModeInfo()
+	
+	local white = "\255\255\255\255"
+	local offwhite = "\255\210\210\210"
+	local yellow = "\255\255\255\0"
+	local orange = "\255\255\135\0"
+	local green = "\255\0\255\0"
+	local red = "\255\255\0\0"
+	local skyblue = "\255\136\197\226"
+	
   	PushMatrix()
 			Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
 	  	Scale(uiScale,uiScale,1)
@@ -936,7 +957,7 @@ else -- UNSYNCED
 			PopMatrix()
 			
 			-- title
-		  local title = "\255\210\210\210Area Capture Mode    \255\255\255\255"..scoreMode
+		  local title = offwhite .. [[Area Capture Mode    ]] .. yellow .. Spring.GetModOptions().scoremode
 			local titleFontSize = 18
 		  Color(0,0,0,0.8)
 		  titleRect = {x-bgMargin, y+bgMargin, x+(gl.GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
@@ -956,7 +977,18 @@ else -- UNSYNCED
 			gl.Texture(false)
 	
 			-- textarea
-			local infotext = "\255\210\210\210Controlpoints are spread across the map. They can be captured by moving units into the circles.\nNote that you can only build metal extractors inside them\n\nThere are 3 modes:\n- Countdown:  Your score counts down until zero\n- Domination: Control all points for 30 seconds\n- Tug of War: Own more circles to steal points from the enemy\n\nYou will also gain metal for each controlpoint you own.\n\nThere are various options availible in the lobby bsettings."
+			
+			local infotext = offwhite .. [[Controlpoints are spread across the map. They can be captured by moving units into the circles.
+Note that you can only build certain units inside them (e.g. Metal Extractors).
+ 
+There are 3 modes (Current mode is ]] .. yellow .. Spring.GetModOptions().scoremode .. offwhite .. [[):
+- Countdown:  Your score counts down until zero based upon how many points your enemy owns.
+- Tug of War: Score is transferred between teams. Score transferred is multiplied by ]] .. yellow .. Spring.GetModOptions().tugofwarmodifier .. offwhite .. [[. 
+- Domination: Capture all controlpoints on the map for ]] .. yellow .. Spring.GetModOptions().dominationscoretime .. offwhite .. [[ seconds in order to gain ]] .. yellow .. Spring.GetModOptions().dominationscore .. offwhite .. [[ score. Goal ]] .. yellow .. Spring.GetModOptions().limitscore .. offwhite .. [[. 
+ 
+You will also gain ]] .. white .. [[+]] .. skyblue .. Spring.GetModOptions().metalperpoint .. offwhite .. [[ metal and ]] .. white .. [[+]] .. yellow .. Spring.GetModOptions().energyperpoint .. offwhite ..[[ energy for each controlpoint you own.
+ 
+There are various options available in the lobby bsettings (use ]] .. yellow .. [[!list bsettings]] .. offwhite .. [[ in the lobby chat)]]
 
 			Text(infotext, x+imageSize+15, y-25, 16, "no")
 		

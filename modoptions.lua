@@ -339,6 +339,18 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
+		{
+		key    = 'dominationscore',
+		name   = 'Score awarded for Domination',
+		desc   = 'The amount of score awarded when you have scored a domination.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 1000,
+		min    = 500,
+		max    = 1000,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
 -- End Control Victory Options
 }
 return options
