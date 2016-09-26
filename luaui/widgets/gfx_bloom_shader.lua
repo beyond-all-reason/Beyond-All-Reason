@@ -14,18 +14,19 @@ end
 -- config 
 --------------------------------------------------------------------------------
 
-local basicAlpha = 0.36
+local basicAlpha = 0.35
 
 local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
-local highlightsAlpha = 0.36
-
+local highlightsAlpha = 0.5
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local addDrawWorldAlpha = 0
+local drawWorldAlpha = 0
+local drawWorldPreUnitAlpha = 0
+local usedBasicAlpha = basicAlpha
 
 local mapMargin = 20000
 
@@ -121,11 +122,6 @@ local function SetIllumThreshold()
 	local specularIntensity = rs * 0.299 + gs * 0.587 + bs * 0.114
 
 	illumThreshold = (0.33 * ambientIntensity) + (0.05 * diffuseIntensity) + (0.05 * specularIntensity)
-
-	print("[BloomShader::SetIllumThreshold] sun ambient color:  ", ra .. ", " .. ga .. ", " .. ba .. " (intensity: " .. ambientIntensity .. ")")
-	print("[BloomShader::SetIllumThreshold] sun diffuse color:  ", rd .. ", " .. gd .. ", " .. bd .. " (intensity: " .. diffuseIntensity .. ")")
-	print("[BloomShader::SetIllumThreshold] sun specular color: ", rs .. ", " .. gs .. ", " .. bs .. " (intensity: " .. specularIntensity .. ")")
-	print("[BloomShader::SetIllumThreshold] illumination threshold: " .. illumThreshold)
 end
 
 local function RemoveMe(msg)
@@ -136,10 +132,14 @@ end
 function reset()
 
 	if drawHighlights then
-		basicAlpha = basicAlpha * 0.6
-		addDrawWorldAlpha = 0.04
+		usedBasicAlpha = basicAlpha
+		drawWorldAlpha				= 0.24 - (illumThreshold*0.4) + (usedBasicAlpha/12) + (0.022 * highlightsAlpha)
+		drawWorldPreUnitAlpha = 0.24 - (illumThreshold*0.4)  + (usedBasicAlpha/6)  + (0.01 * highlightsAlpha)
+	else
+		usedBasicAlpha = basicAlpha
+		drawWorldAlpha = 0.05 + (usedBasicAlpha/11)
+		drawWorldPreUnitAlpha = 0.26 - (illumThreshold*0.4) + (usedBasicAlpha/6)
 	end
-
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
 	if drawHighlights then
@@ -185,8 +185,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	
 	ivsx = 1.0 / vsx
 	ivsy = 1.0 / vsy
-	kernelRadius = vsy / 66.0
-	kernelRadius2 = vsy / 27.0
+	kernelRadius = vsy / 70.0
+	kernelRadius2 = vsy / 24.0
 	
 	reset()
 end
@@ -197,13 +197,13 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	gl.Color(0,0,0,0.06+(basicAlpha/6.2))
+	gl.Color(0,0,0,drawWorldPreUnitAlpha)
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
 
 function widget:DrawWorld()
-	gl.Color(0,0,0,0.06+(basicAlpha/6.2)+addDrawWorldAlpha)
+	gl.Color(0,0,0,drawWorldAlpha)
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
@@ -218,6 +218,7 @@ function widget:Initialize()
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
+	SetIllumThreshold()
 	
 	widget:ViewResize(widgetHandler:GetViewSizes())
 
@@ -227,6 +228,7 @@ function widget:Initialize()
   end
   WG['bloom'].setBrightness = function(value)
 	  basicAlpha = value
+	  reset()
   end
   WG['bloom'].getDrawHighlights = function()
   	return drawHighlights
@@ -245,7 +247,6 @@ function widget:Initialize()
 		gl.PopMatrix()
   end)
     
-	SetIllumThreshold()
 
 	combineShader = gl.CreateShader({
 		fragment = [[
@@ -484,7 +485,7 @@ local function Bloom()
 		glUniformInt(combineShaderTexture0Loc, 0)
 		glUniformInt(combineShaderTexture1Loc, 1)
 		glUniform(   combineShaderIllumLoc, illumThreshold)
-		glUniform(   combineShaderFragLoc, basicAlpha)
+		glUniform(   combineShaderFragLoc, usedBasicAlpha)
 		mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
 		mglActiveTexture(1, brightTexture1, vsx, vsy, false, true)
 	glUseShader(0)
@@ -518,7 +519,7 @@ local function Bloom()
 			glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
 			glUniformInt(combineShaderTexture0Loc, 0)
 			glUniformInt(combineShaderTexture1Loc, 1)
-			glUniform(   combineShaderIllumLoc, illumThreshold)
+			glUniform(   combineShaderIllumLoc, illumThreshold*0.75)
 			glUniform(   combineShaderFragLoc, highlightsAlpha)
 			mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
 			mglActiveTexture(1, brightTexture3, vsx, vsy, false, true)
@@ -539,7 +540,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.basicAlpha ~= nil then
-		basicAlpha = data.basicAlpha
+		--basicAlpha = data.basicAlpha
 		drawHighlights = data.drawHighlights
 	end
 end
