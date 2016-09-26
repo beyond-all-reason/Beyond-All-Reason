@@ -26,8 +26,8 @@ function widget:GetInfo()
 end
 
 local drawFeatureHighlight	= false
-local unitAlpha				= 0.22
-local featureAlpha			= 0.15
+local unitAlpha				= 0.16
+local featureAlpha			= 0.14
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
