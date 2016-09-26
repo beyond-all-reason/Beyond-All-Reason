@@ -276,7 +276,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = true,
       water              = true,
       properties = {
@@ -304,7 +304,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = true,
       water              = true,
       properties = {
