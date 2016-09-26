@@ -215,7 +215,7 @@
 
 [GATE_CIRCLE_FLASH]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[groundflash]
 	{
 		flashSize = 430;

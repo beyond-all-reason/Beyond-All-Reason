@@ -1,6 +1,6 @@
 [DGUNTRACE]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=20;

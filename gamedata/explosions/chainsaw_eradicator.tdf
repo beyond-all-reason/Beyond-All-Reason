@@ -1,6 +1,6 @@
 [CORE_FIRE_SMALL]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		class=CSimpleParticleSystem;
@@ -44,7 +44,7 @@
 
 [CORE_FIRE_LARGE]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		class=CSimpleParticleSystem;
@@ -88,7 +88,7 @@
 
 [ARM_FIRE_SMALL]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		class=CSimpleParticleSystem;
@@ -132,7 +132,7 @@
 
 [ARM_FIRE_LARGE]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		class=CSimpleParticleSystem;

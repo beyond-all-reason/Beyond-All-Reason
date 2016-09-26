@@ -64,7 +64,7 @@
 			emitVector=0, 1, 0;
 			gravity=0, 0, 0;
 			colorMap=0.9 0.82 0.73 0	0.9 0.82 0.73 0.3	  0.9 0.82 0.73 0.6	  0.5 0.5 0.5 0.3	  0 0 0 0.1	  0 0 0 0.01;
-			texture=bombsmoke;
+			texture=dirt;
 			airdrag=0.95;
 			particleLife=18;
 			particleLifeSpread=12;
@@ -93,7 +93,7 @@
 			emitVector=0, 1, 0;
 			gravity=0,0,0;
 			colorMap=1 1 1 0	1 1 1 0.2	  1 1 1 0.4	  1 1 1 0.2	  0 0 0 0.1	  0 0 0 0.01;
-			texture=whitelight2;
+			texture=whitelightb;
 			airdrag=0.95;
 			particleLife=5;
 			particleLifeSpread=0;
@@ -163,7 +163,7 @@
 			emitVector=0, 1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=1;
 			particleLifeSpread=5;
@@ -185,7 +185,7 @@
 
 [CORE_KROGROCKET_EXPLOSION]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[pop2]
 	{
 		class=heatcloud;

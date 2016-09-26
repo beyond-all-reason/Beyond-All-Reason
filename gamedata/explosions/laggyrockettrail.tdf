@@ -9,7 +9,7 @@
 			emitVector=dir;
 			gravity=0, 0, 0;
 			colorMap=0 0 0 0.001   0 0 0 0.4   0.1 0.1 0.1 0.2   0 0 0 0.05   0 0 0 0;
-			Texture=graysmoke;
+			Texture=smoke;
 			airdrag=0.5;
 			particleLife=8;
 			particleLifeSpread=32;
@@ -39,7 +39,7 @@
 			emitVector=-1, 0, 0;
 			gravity=0, 0, 0;
 			colorMap=1 1 1 0.8  1 1 1 0.5;
-			texture=fireball;
+			texture=firenovaexplo;
 			airdrag=1;
 			particleLife=2;
 			particleLifeSpread=0;
@@ -60,7 +60,7 @@
 
 [ASTEROIDTRAIL_Expl_mod]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		alwaysVisible=1;
@@ -74,7 +74,7 @@
 			emitVector=0, 1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0  0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
-			texture=fireball;
+			texture=firenovaexplo;
 			airdrag=0.95;
 			particleLife=15;
 			particleLifeSpread=7;
@@ -104,7 +104,7 @@
 			emitVector=0, 1, 0;
 			gravity=0, 0, 0;
 			colorMap=0 0 0 0	0 0 0 0	  0.6 0.6 0.6 0.7	0.6 0.6 0.6 0.7	0.3 0.3 0.3 0.6	0 0 0 0.01;
-			texture=graysmoke;
+			texture=smoke;
 			airdrag=0.95;
 			particleLife=40;
 			particleLifeSpread=25;

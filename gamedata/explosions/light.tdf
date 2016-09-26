@@ -7,7 +7,7 @@
       		[properties]
       		{
       		heat = 25;
-		Texture=WhiteLight;
+		texture=WhiteLightb;
       		maxheat = 25;
       		heatFalloff = 1.14;
       		size = 12.0 r1;
@@ -33,7 +33,7 @@
       		[properties]
       		{
       		heat = 25;
-		Texture=YellowLight;
+		texture=WhiteLightb;
       		maxheat = 25;
       		heatFalloff = 0.55;
       		size = 12.0 r1;
@@ -60,7 +60,7 @@
       		[properties]
       		{
       		heat = 30;
-		Texture=WhiteLight;
+		texture=WhiteLightb;
       		maxheat = 30;
       		heatFalloff = 0.34;
       		size = 20.0 r1;

@@ -11,7 +11,7 @@
 			emitVector=0, -1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=3;
 			particleLifeSpread=12;
@@ -69,7 +69,7 @@
 			emitVector=0, 1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=3;
 			particleLifeSpread=6;
@@ -114,7 +114,7 @@
 			emitVector=0, -1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=6;
 			particleLifeSpread=8;
@@ -174,7 +174,7 @@
 			emitVector=0, 1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=3;
 			particleLifeSpread=7;
@@ -219,7 +219,7 @@
 			emitVector=0, -1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=6;
 			particleLifeSpread=8;

@@ -1,6 +1,6 @@
 [RocketFlare]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 
    [LARGEFLASH]
    {
@@ -15,8 +15,8 @@
           	sizeGrowth=0.75;
           	ttl=13;
           	frontOffset=0;
-          	sideTexture=muzzleside;
-          	frontTexture=muzzlefront;
+          	sideTexture=shot;
+          	frontTexture=flashcrap;
       	}
    water=1;
    air=1;

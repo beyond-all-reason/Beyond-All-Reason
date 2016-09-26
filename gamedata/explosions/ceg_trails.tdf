@@ -9,7 +9,7 @@
 			emitVector=dir;
 			gravity=0, 0, 0;
 			colorMap=0 0 0 0.001   0 0 0 0.4   0.1 0.1 0.1 0.2   0 0 0 0.05   0 0 0 0;
-			Texture=graysmoke;
+			Texture=smoke;
 			airdrag=0.5;
 			particleLife=20;
 			particleLifeSpread=15;

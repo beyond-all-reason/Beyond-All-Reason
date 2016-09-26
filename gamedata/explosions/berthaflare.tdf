@@ -1,6 +1,6 @@
 [BERTHAFLARE]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 
    [LARGEFLASH]
    {
@@ -15,8 +15,8 @@
           	sizeGrowth=-0.575;
           	ttl=20;
           	frontOffset=0;
-          	sideTexture=muzzleside;
-          	frontTexture=muzzlefront;
+          	sideTexture=shot;
+          	frontTexture=flashcrap;
       	}
    water=1;
    air=1;
@@ -53,7 +53,7 @@
 			emitVector=-0, 1, 0;
 			gravity=0, 0.00, 0;
 			colorMap= 1 0.5 0.3 0.01   1 0.8 0.7 0.9 0 0 0 0.01;
-			Texture=diamondstar;
+			Texture=flashcrap;
 			airdrag=1;
 			particleLife=5;
 			particleLifeSpread=0;

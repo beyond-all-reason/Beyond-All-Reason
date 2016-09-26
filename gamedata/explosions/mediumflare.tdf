@@ -15,8 +15,8 @@
           	sizeGrowth=-1;
           	ttl=15;
           	frontOffset=0;
-          	sideTexture=muzzleside;
-          	frontTexture=muzzlefront;
+          	sideTexture=shot;
+          	frontTexture=flashcrap;
       	}
    water=1;
    air=1;

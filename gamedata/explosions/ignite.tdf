@@ -1,6 +1,6 @@
 [IGNITE]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		class=CSimpleParticleSystem;
@@ -41,7 +41,7 @@
 			emitVector=0, 1, 0;
 			gravity=0, 0, 0;
 			colorMap=0 0 0 0	0 0 0 0	  0.4 0.4 0.4 0.5	0.1 0.1 0.1 0.3	0 0 0 0.1	0 0 0 0.01;
-			texture=graysmoke;
+			texture=smoke;
 			airdrag=0.95;
 			particleLife=5;
 			particleLifeSpread=10;
@@ -73,7 +73,7 @@
 
 [LARGE_IGNITE]
 {
-	usedefaultexplosions=1;	
+	usedefaultexplosions=0;	
 	[rocks]
 	{
 		class=CSimpleParticleSystem;
@@ -182,7 +182,7 @@
 			emitVector=0, 1, 0;
 			gravity=0, 0, 0;
 			colorMap=0 0 0 0	0 0 0 0	  0.4 0.4 0.4 0.5	0.1 0.1 0.1 0.3	0 0 0 0.1	0 0 0 0.01;
-			texture=graysmoke;
+			texture=smoke;
 			airdrag=0.95;
 			particleLife=5;
 			particleLifeSpread=20;

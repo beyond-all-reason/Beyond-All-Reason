@@ -12,7 +12,7 @@
 		emitVector=0, 1, 0;
 		gravity=0, -0.4, 0;
 		colorMap=0.6 1 0.6 0.01   1 0.7 0.2 0.01   0 0 0 0.01;
-		Texture=plasma;
+		Texture=plasmaball;
 		airdrag=0.97;
 		particleLife=2;
 		particleLifeSpread=7;
@@ -91,7 +91,7 @@
 		emitVector=0, 1, 0;
 		gravity=0, -0.4, 0;
 		colorMap=0.6 1 0.6 0.01   1 0.7 0.2 0.01   0 0 0 0.01;
-		Texture=plasma;
+		Texture=plasmaball;
 		airdrag=0.97;
 		particleLife=4;
 		particleLifeSpread=11;

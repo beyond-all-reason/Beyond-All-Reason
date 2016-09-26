@@ -16,7 +16,7 @@ return {
 		description = "Amphibious Crawling Bomb",
 		energymake = 0.1,
 		energyuse = 0.1,
-		explodeas = "largeExplosionGenericWhite",
+		explodeas = "crawl_blastsml",
 		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMVADER",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGenericWhite",
+		selfdestructas = "crawl_blast",
 		selfdestructcountdown = 0,
 		sightdistance = 273,
 		turninplace = 0,
@@ -127,7 +127,7 @@ return {
 				weaponvelocity = 1000,
 				damage = {
 					crawlingbombs = 1000,
-					default = 0,
+					default = 1000,
 				},
 			},
 			crawl_dummy = {

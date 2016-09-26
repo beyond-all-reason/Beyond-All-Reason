@@ -12,6 +12,14 @@ local smallNukeExplosion = 750
 local smallNukeExplosionImpulseFactor = 0
 local hugeNukeExplosion = 1000
 local hugeNukeExplosionImpulseFactor = 0
+local smallNukeExplosionDamage = 500
+local smallNukeExplosionDamageImpulseFactor = 0
+local hugeNukeExplosionDamage = 1280
+local hugeNukeExplosionDamageImpulseFactor = 0
+local giganticNukeExplosionDamage = 1920
+local giganticNukeExplosionDamageImpulseFactor = 0
+local commanderNukeExplosionDamage = 720
+local commanderNukeExplosionDamageImpulseFactor = 0
 
 unitDeaths = {
 
@@ -36,6 +44,55 @@ unitDeaths = {
 		cameraShake=hugeNukeExplosion,
 		damage = {
 			default            = 0,
+		},
+	},
+	
+
+--NUKE EXPLOSIONS WITH DAMAGE--
+
+	smallNukeExplosionGenericDamage = {
+		weaponType		   = "Cannon",
+		impulseFactor      = smallNukeExplosionDamageImpulseFactor,
+		AreaOfEffect=smallNukeExplosionDamage,
+		explosiongenerator="custom:nukedatbewmsmall",
+		cameraShake=smallNukeExplosionDamage,
+		damage = {
+			default            = 2400,
+		},
+	},
+
+	hugeNukeExplosionGenericDamage = {
+		weaponType		   = "Cannon",
+		impulseFactor      = hugeNukeExplosionDamageImpulseFactor,
+		AreaOfEffect=hugeNukeExplosionDamage,
+		explosiongenerator="custom:nukedatbewm",
+		cameraShake=hugeNukeExplosionDamage,
+		damage = {
+			commanders = 2500,
+			default = 9500,
+		},
+	},
+	
+	giganticNukeExplosionGenericDamage = {
+		weaponType		   = "Cannon",
+		impulseFactor      = hugeNukeExplosionDamageImpulseFactor,
+		AreaOfEffect=giganticNukeExplosionDamage,
+		explosiongenerator="custom:nukedatbewm",
+		cameraShake=giganticNukeExplosionDamage,
+		damage = {
+			commanders = 2500,
+			default = 11500,
+		},
+	},
+	
+	commanderNukeExplosionGenericDamage = {
+		weaponType		   = "Cannon",
+		impulseFactor      = hugeNukeExplosionDamageImpulseFactor,
+		AreaOfEffect=commanderNukeExplosionDamage,
+		explosiongenerator="custom:nukedatbewm",
+		cameraShake=commanderNukeExplosionDamage,
+		damage = {
+			default = 50000,
 		},
 	},
 

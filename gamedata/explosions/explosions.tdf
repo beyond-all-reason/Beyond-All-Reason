@@ -450,7 +450,7 @@
 
 [VSMLMISSILE_EXPLOSION]
 {
-    usedefaultexplosions=1;
+    usedefaultexplosions=0;
 	[groundflash]
 	{
 		flashSize = 12;
@@ -1458,7 +1458,7 @@
       	ground=1;
 }
 
-[EMPFLASH192]
+[EMPflashcrap92]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1492,9 +1492,9 @@
       	ground=1;
 }
 
-[FLASH1]
+[flashcrap]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=10;
@@ -1509,7 +1509,7 @@
       	ground=1;
 }
 
-[FLASH1ND]
+[flashcrapND]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1523,7 +1523,7 @@
 	}
 }
 
-[FLASH1RED]
+[flashcrapRED]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1537,7 +1537,7 @@
 	}
 }
 
-[FLASH1GREEN]
+[flashcrapGREEN]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1551,7 +1551,7 @@
 	}
 }
 
-[FLASH1BLUE]
+[flashcrapBLUE]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1565,7 +1565,7 @@
 	}
 }
 
-[FLASH1YELLOW]
+[flashcrapYELLOW]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1579,7 +1579,7 @@
 	}
 }
 
-[FLASH1YELLOW2]
+[flashcrapYELLOW2]
 {
 	usedefaultexplosions=0;
 	[GROUNDFLASH]
@@ -1595,7 +1595,7 @@
 
 [FLASH2]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=25;
@@ -1623,7 +1623,7 @@
 
 [FLASH3]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=40;
@@ -1651,7 +1651,7 @@
 
 [FLASH4]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=55;
@@ -1665,7 +1665,7 @@
 
 [FLASH64]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=64;
@@ -1679,7 +1679,7 @@
 
 [FLASH72]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=72;
@@ -1693,7 +1693,7 @@
 
 [FLASH96]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=96;
@@ -1705,9 +1705,9 @@
 	}
 }
 
-[FLASH144]
+[flashcrap44]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=144;
@@ -1721,7 +1721,7 @@
 
 [FLASH224]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=200;
@@ -1735,7 +1735,7 @@
 
 [FLASHANTIMINE]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=720;
@@ -1749,7 +1749,7 @@
 
 [FLASHSMALLUNITEX]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=60;
@@ -1763,7 +1763,7 @@
 
 [FLASHMEDIUMUNITEX]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=64;
@@ -1777,7 +1777,7 @@
 
 [FLASHBIGUNITEX]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=68;
@@ -1791,7 +1791,7 @@
 
 [FLASHSMALLUNIT]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=72;
@@ -1805,7 +1805,7 @@
 
 [FLASHMEDIUMUNIT]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=76;
@@ -1819,7 +1819,7 @@
 
 [FLASHBIGUNIT]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=80;
@@ -1833,7 +1833,7 @@
 
 [FLASHSMALLBUILDINGEX]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=128;
@@ -1847,7 +1847,7 @@
 
 [FLASHMEDIUMBUILDINGEX]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=134;
@@ -1861,7 +1861,7 @@
 
 [FLASHBIGBUILDINGEX]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=144;
@@ -1875,7 +1875,7 @@
 
 [FLASHSMALLBUILDING]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=160;
@@ -1889,7 +1889,7 @@
 
 [FLASHMEDIUMBUILDING]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=172;
@@ -1903,7 +1903,7 @@
 
 [FLASHBIGBUILDING]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=192;
@@ -1917,7 +1917,7 @@
 
 [FLASHNUKE240]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=260;
@@ -1931,7 +1931,7 @@
 
 [FLASHNUKE280]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=322;
@@ -1945,7 +1945,7 @@
 
 [FLASHNUKE320]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=368;
@@ -1959,7 +1959,7 @@
 
 [FLASHNUKE360]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=414;
@@ -1973,7 +1973,7 @@
 
 [FLASHNUKE480]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=552;
@@ -1987,7 +1987,7 @@
 
 [FLASHNUKE768]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=883;
@@ -2001,7 +2001,7 @@
 
 [FLASHNUKE960]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=1104;
@@ -2015,7 +2015,7 @@
 
 [FLASHNUKE1280]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=1472;
@@ -2029,7 +2029,7 @@
 
 [FLASHNUKE1920]
 {
-	usedefaultexplosions=1;
+	usedefaultexplosions=0;
 	[GROUNDFLASH]
 	{
 		flashsize=2208;
@@ -2217,7 +2217,7 @@
 }
 [LIGHTNING_FLASH]
 {
-		usedefaultexplosions=1;
+		usedefaultexplosions=0;
 		[groundflash]
 		{
 			flashSize = 28;
@@ -2266,7 +2266,7 @@
    	
 		[properties]
       		{
-		    texture=fireball;
+		    texture=firenovaexplo;
       		heat = 11;
       		maxheat = 15;
       		heatFalloff = 1.3;

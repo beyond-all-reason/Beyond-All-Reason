@@ -127,7 +127,7 @@
 
 [LARGE_NANO_FLASH]
 {
-    usedefaultexplosions=1;
+    usedefaultexplosions=0;
 	[nanodecay]
 	{
 	class=CSimpleParticleSystem;
@@ -178,7 +178,7 @@
 			emitVector=0, 1, 0;
 			gravity=0, 0, 0;
 			colorMap=0 0 0 0	0 0 0 0	  1 1 1 0.7	0.9 0.9 0.9 0.7	0.6 0.6 0.6 0.6	0 0 0 0.01;
-			texture=graysmoke;
+			texture=smoke;
 			airdrag=0.95;
 			particleLife=20;
 			particleLifeSpread=35;
@@ -242,7 +242,7 @@
 
 [LARGE_NANO_FLASH2]
 {
-    usedefaultexplosions=1;
+    usedefaultexplosions=0;
 	[nanodecay]
 	{
 	class=CSimpleParticleSystem;

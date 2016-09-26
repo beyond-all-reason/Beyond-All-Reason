@@ -7,7 +7,7 @@
 		[properties]
       	{
             alwaysVisible=1;
-            texture=fireball;
+            texture=firenovaexplo;
             heat = 10;
             maxheat = 10;
             heatFalloff = 0.4;
@@ -62,7 +62,7 @@
 		gravity= 0, 0.5, 0;
 
 		colorMap=1 0.5 0.5 0.2	   0.5 0.3 0.0 0.05    0.5 0.5 0.5 1.0    0 0 0 0.01;
-		Texture=graysmoke;
+		Texture=smoke;
 
 		airdrag=0.8;
 
@@ -106,7 +106,7 @@
 		[properties]
       	{
             alwaysVisible=1;
-            texture=fireball;
+            texture=firenovaexplo;
             heat = 10;
             maxheat = 10;
             heatFalloff = 0.4;
@@ -161,7 +161,7 @@
 		gravity= 0, 0.5, 0;
 
 		colorMap=0.75 0.7 0.5 0.2	   0.65 0.45 0.0 0.05    0.4 0.4 0.3 1.0    0 0 0 0.01;
-		Texture=graysmoke;
+		Texture=smoke;
 
 		airdrag=0.8;
 
@@ -200,7 +200,7 @@
 		gravity= 0, 0.5, 0;
 
 		colorMap=0.8 0.7 0.5 0.2	   0.65 0.3 0.0 0.05    0.5 0.3 0.3 1.0    0 0 0 0.01;
-		Texture=graysmoke;
+		Texture=smoke;
 
 		airdrag=0.8;
 
@@ -245,7 +245,7 @@
 		[properties]
       	{
             alwaysVisible=1;
-            texture=fireball;
+            texture=firenovaexplo;
             heat = 10;
             maxheat = 10;
             heatFalloff = 0.4;
@@ -300,7 +300,7 @@
 		gravity= 0, 0.5, 0;
 
 		colorMap=1 0.5 0.5 0.2	   0.0 0.3 0.5 0.05    0.3 0.3 0.5 1.0    0 0 0 0.01;
-		Texture=graysmoke;
+		Texture=smoke;
 
 		airdrag=0.8;
 
@@ -339,7 +339,7 @@
 		gravity= 0, 0.5, 0;
 
 		colorMap=0.5 0.5 1 0.2	   0.0 0.3 0.5 0.05    0.2 0.2 0.5 1.0    0 0 0.1 0.01;
-		Texture=graysmoke;
+		Texture=smoke;
 
 		airdrag=0.8;
 
@@ -378,7 +378,7 @@
 		gravity= 0, 0.4, 0;
 
 		colorMap=1 0.5 1 0.2	   0.5 0.3 0.5 0.05    0.4 0.3 0.5 1.0    0 0 0 0.01;
-		Texture=graysmoke;
+		Texture=smoke;
 
 		airdrag=0.8;
 

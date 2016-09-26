@@ -20,7 +20,7 @@
 			emitVector=dir;
 			gravity=0, -0.2, 0;
 			colorMap=1 1 0.4 0.01   1 1 0.4 0.01   1 0.8 0.3 0.01   0 0 0 0.01;
-			Texture=plasma;
+			Texture=plasmaball;
 			airdrag=0.97;
 			particleLife=7;
 			particleLifeSpread=0;
@@ -47,7 +47,7 @@
 			emitVector=dir;
 			gravity=0, -0.5, 0;
 			colorMap=1 1 0.4 0.01   0.7 0.7 0.5 0.01   0.2 0.2 0.5 0.01   0 0 0 0.01;
-			Texture=plasma;
+			Texture=plasmaball;
 			airdrag=0.97;
 			particleLife=5;
 			particleLifeSpread=0;
@@ -90,7 +90,7 @@
 		emitVector=dir;
 		gravity=0, -0.4, 0;
 		colorMap=1 1 0.4 0.01   1 1 0.4 0.01   1 0.8 0.3 0.01   0 0 0 0.01;
-		Texture=plasma;
+		Texture=plasmaball;
 		airdrag=0.97;
 		particleLife=6;
 		particleLifeSpread=6;
