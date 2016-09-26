@@ -3,7 +3,7 @@ return {
 		areaofeffect = 320,
 		craterboost = 0,
 		cratermult = 0,
-		explosiongenerator = "custom:FLASHNUKE320",
+		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		impulseboost = 0.12300000339746,
 		impulsefactor = 0.12300000339746,
 		name = "AtomicBlastWeapon",

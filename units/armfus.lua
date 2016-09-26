@@ -20,7 +20,7 @@ return {
 		description = "Produces Energy / Storage",
 		energymake = 1000,
 		energystorage = 2500,
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "smallNukeExplosionGeneric",
 		footprintx = 5,
 		footprintz = 4,
 		hidedamage = true,
@@ -33,10 +33,13 @@ return {
 		name = "Fusion Reactor",
 		objectname = "ARMFUS",
 		seismicsignature = 0,
-		selfdestructas = "MINE_NUKE",
+		selfdestructas = "smallNukeExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

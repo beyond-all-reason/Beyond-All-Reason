@@ -15,7 +15,7 @@ return {
 		description = "Seaplane Gunship",
 		energymake = 0.8,
 		energyuse = 0.8,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericPurple",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -30,11 +30,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSABER",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericPurple",
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 931,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

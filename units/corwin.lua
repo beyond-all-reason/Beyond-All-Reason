@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 0.5,
-		explodeas = "WIND_EX",
+		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -30,11 +30,14 @@ return {
 		name = "Wind Generator",
 		objectname = "CORWIN",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		windgenerator = 25,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

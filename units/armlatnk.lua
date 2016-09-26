@@ -15,7 +15,7 @@ return {
 		description = "Lightning Tank",
 		energymake = 1.5,
 		energyuse = 1.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericBlue",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMLATNK",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericBlue",
 		sightdistance = 390,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.19516,
 		turnrate = 550,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -81,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

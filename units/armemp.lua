@@ -17,7 +17,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "EMP Missile Launcher",
-		explodeas = "EMP_MEDIUM",
+		explodeas = "largeBuildingExplosionGenericBlueEMP",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -29,10 +29,13 @@ return {
 		name = "Detonator",
 		objectname = "ARMEMP",
 		seismicsignature = 0,
-		selfdestructas = "SPYBOMBX",
+		selfdestructas = "largeBuildingExplosionGenericBlueEMP",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

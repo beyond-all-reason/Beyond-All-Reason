@@ -38,6 +38,15 @@ return {
 		selfdestructcountdown = 0,
 		sightdistance = 83.2,
 		stealth = true,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

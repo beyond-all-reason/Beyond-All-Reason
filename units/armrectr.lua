@@ -19,7 +19,7 @@ return {
 		description = "Stealthy Rez Kbot",
 		energymake = 1.75,
 		energyuse = 1.75,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		objectname = "ARMRECTR",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 430,
 		stealth = true,
 		terraformspeed = 1000,
@@ -42,6 +42,9 @@ return {
 		turnrate = 1122,
 		upright = true,
 		workertime = 200,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -81,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

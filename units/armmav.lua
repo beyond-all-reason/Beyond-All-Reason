@@ -16,7 +16,7 @@ return {
 		description = "Skirmish Kbot (Fast Learning, Auto-Repair)",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -30,12 +30,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMMAV",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 550,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.089,
 		turnrate = 1118,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

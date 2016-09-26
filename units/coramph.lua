@@ -16,7 +16,7 @@ return {
 		description = "Amphibious Kbot",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -31,7 +31,7 @@ return {
 		radardistance = 300,
 		script = "coramph.lua",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 400,
 		sonardistance = 300,
 		sonarstealth = false,
@@ -39,6 +39,9 @@ return {
 		turninplacespeedlimit = 1.221,
 		turnrate = 998,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			heap = {
 				blocking = false,
@@ -58,6 +61,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

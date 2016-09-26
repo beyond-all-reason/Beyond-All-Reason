@@ -17,7 +17,7 @@ return {
 		description = "Radar Vehicle",
 		energymake = 8,
 		energyuse = 20,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		onoffable = true,
 		radardistance = 2300,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreenWhite",
 		sightdistance = 900,
 		trackoffset = 5,
 		trackstrength = 5,
@@ -43,6 +43,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -84,6 +87,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

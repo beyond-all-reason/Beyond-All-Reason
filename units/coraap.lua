@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Level 2 Aircraft",
 		energystorage = 200,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 6,
 		icontype = "building",
@@ -32,7 +32,7 @@ return {
 		name = "Advanced Aircraft Plant",
 		objectname = "CORAAP",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 305.5,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
@@ -47,6 +47,9 @@ return {
 			[6] = "corawac",
 			[7] = "armsl",
 			[8] = "corcrw",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -89,7 +92,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 			},

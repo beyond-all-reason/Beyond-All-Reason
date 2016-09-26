@@ -13,7 +13,7 @@ return {
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		description = "Amphibious Siege Mech",
-		explodeas = "MECH_BLASTSML",
+		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 15,
@@ -28,12 +28,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "SHIVA",
 		seismicsignature = 0,
-		selfdestructas = "MECH_BLAST",
+		selfdestructas = "hugeExplosionGeneric",
 		sightdistance = 299,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 616,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

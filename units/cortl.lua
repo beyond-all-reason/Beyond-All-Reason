@@ -13,7 +13,7 @@ return {
 		description = "Torpedo Launcher",
 		energymake = 0.2,
 		energyuse = 0.2,
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -25,10 +25,13 @@ return {
 		name = "Urchin",
 		objectname = "CORTL",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericRed",
 		sightdistance = 455,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -48,6 +51,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -15,7 +15,7 @@ return {
 		description = "Hovertank",
 		energymake = 2.1,
 		energyuse = 2.1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSNAP",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericBlue",
 		sightdistance = 491,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.518,
 		turnrate = 500,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

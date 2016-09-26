@@ -17,7 +17,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Tactical Nuke Launcher",
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "smallNukeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -29,10 +29,13 @@ return {
 		name = "Catalyst",
 		objectname = "CORTRON",
 		seismicsignature = 0,
-		selfdestructas = "NUCLEAR_MISSILE",
+		selfdestructas = "smallNukeExplosionGeneric",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

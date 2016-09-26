@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.2,
 		description = "Pop-Up Missile Battery",
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumBuildingExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -31,10 +31,13 @@ return {
 		nochasecategory = "ALL",
 		objectname = "PACKO",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumBuildingExplosionGenericBlue",
 		sightdistance = 375,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

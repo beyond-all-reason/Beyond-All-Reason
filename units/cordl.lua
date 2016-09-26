@@ -20,7 +20,7 @@ return {
 		description = "Depthcharge Launcher",
 		energymake = 0.1,
 		energyuse = 0.1,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -32,11 +32,14 @@ return {
 		name = "Jellyfish",
 		objectname = "CORDL",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallBuildingExplosionGeneric",
 		sightdistance = 611,
 		sonardistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

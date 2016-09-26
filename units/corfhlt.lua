@@ -16,7 +16,7 @@ return {
 		description = "Floating Heavy Laser Tower",
 		energymake = 5,
 		energystorage = 200,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumBuildingExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -28,10 +28,13 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORFHLT",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumBuildingExplosionGenericGreen",
 		sightdistance = 612,
 		waterline = 3,
 		yardmap = "wwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -51,6 +54,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -15,7 +15,7 @@ return {
 		description = "Fast Scout Kbot",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "FLEA_EX",
+		explodeas = "smallExplosionGenericRed",
 		footprintx = 1,
 		footprintz = 1,
 		idleautoheal = 5,
@@ -30,11 +30,14 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFLEA",
 		seismicsignature = 0,
-		selfdestructas = "FLEA_EX",
+		selfdestructas = "smallExplosionGenericRed",
 		sightdistance = 550,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.904,
 		turnrate = 1672,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

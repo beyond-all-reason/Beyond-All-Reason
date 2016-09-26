@@ -20,7 +20,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Level 1 Vehicles",
 		energystorage = 100,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeExplosionGenericRed",
 		footprintx = 7,
 		footprintz = 7,
 		icontype = "building",
@@ -35,7 +35,7 @@ return {
 		objectname = "CORVP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeExplosionGenericRed",
 		sightdistance = 279,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
@@ -52,6 +52,9 @@ return {
 			[8] = "corlevlr",
 			[9] = "corwolv",
 			[10] = "cormist",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -94,7 +97,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 			},

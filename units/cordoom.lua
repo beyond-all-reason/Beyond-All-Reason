@@ -20,7 +20,7 @@ return {
 		damagemodifier = 0.17,
 		description = "Energy Weapon",
 		energystorage = 2000,
-		explodeas = "ESTOR_BUILDING",
+		explodeas = "largeBuildingExplosionGenericGreen",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -37,10 +37,13 @@ return {
 		radardistance = 1200,
 		radaremitheight = 80,
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "largeBuildingExplosionGenericGreen",
 		sightdistance = 780,
 		usebuildinggrounddecal = true,
 		yardmap = "yooy oooo oooo yooy",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -82,6 +85,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

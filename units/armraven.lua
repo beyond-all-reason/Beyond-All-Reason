@@ -13,7 +13,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Heavy Rocket Kbot",
-		explodeas = "MECH_BLAST",
+		explodeas = "largeExplosionGenericBlue",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -28,12 +28,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMRAVEN",
 		seismicsignature = 0,
-		selfdestructas = "MECH_BLAST",
+		selfdestructas = "largeExplosionGenericBlue",
 		sightdistance = 700,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.056,
 		turnrate = 979,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

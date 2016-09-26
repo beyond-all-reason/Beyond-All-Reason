@@ -13,7 +13,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Battle Mech",
-		explodeas = "MECH_BLASTSML",
+		explodeas = "hugeExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -27,12 +27,15 @@ return {
 		name = "Razorback",
 		objectname = "ARMRAZ",
 		seismicsignature = 0,
-		selfdestructas = "MECH_BLAST",
+		selfdestructas = "hugeExplosionGenericRed",
 		sightdistance = 450,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.518,
 		turnrate = 668,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

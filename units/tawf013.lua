@@ -15,7 +15,7 @@ return {
 		description = "Light Artillery Vehicle",
 		energymake = 1,
 		energyuse = 1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		hightrajectory = 1,
@@ -32,7 +32,7 @@ return {
 		objectname = "TAWF013",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericWhite",
 		sightdistance = 364,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.29228,
 		turnrate = 393.79999,
 		customparams = {
+			death_sounds = "generic",
 			canareaattack = 1,
 		},
 		featuredefs = {
@@ -86,6 +87,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

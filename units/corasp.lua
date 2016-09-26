@@ -20,7 +20,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Automatically Repairs Aircraft",
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericGreen",
 		footprintx = 9,
 		footprintz = 9,
 		icontype = "building",
@@ -35,12 +35,15 @@ return {
 		objectname = "CORASP",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericGreen",
 		sightdistance = 357.5,
 		terraformspeed = 5000,
 		usebuildinggrounddecal = true,
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -82,6 +85,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

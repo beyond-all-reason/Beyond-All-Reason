@@ -15,7 +15,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (10000)",
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericBlue",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -28,10 +28,13 @@ return {
 		name = "Hardened Metal Storage",
 		objectname = "CORUWADVMS",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericBlue",
 		sightdistance = 182,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +75,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

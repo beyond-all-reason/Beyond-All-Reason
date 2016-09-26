@@ -15,7 +15,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Submarine",
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "sea",
@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSUB",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 400,
 		sonardistance = 475,
 		turninplaceanglelimit = 140,
@@ -37,6 +37,9 @@ return {
 		turnrate = 500,
 		upright = true,
 		waterline = 30,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

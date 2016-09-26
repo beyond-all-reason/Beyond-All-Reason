@@ -15,7 +15,7 @@ return {
 		damagemodifier = 0.25,
 		description = "Pop-up Flamethrower Turret",
 		energystorage = 15,
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "smallBuildingExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -32,12 +32,15 @@ return {
 		objectname = "CORMAW",
 		radardistancejam = 8,
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "smallBuildingExplosionGenericRed",
 		sightdistance = 422,
 		stealth = true,
 		turnrate = 0,
 		upright = true,
 		usebuildinggrounddecal = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				autoreclaimable = 0,
@@ -79,6 +82,12 @@ return {
 				reclaimable = true,
 				shadtrans = 1,
 				world = "greenworld",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

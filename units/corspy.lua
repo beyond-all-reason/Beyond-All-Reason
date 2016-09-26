@@ -38,7 +38,7 @@ return {
 		objectname = "CORSPY",
 		onoffable = true,
 		seismicsignature = 2,
-		selfdestructas = "SPYBOMBX",
+		selfdestructas = "smallExplosionGeneric",
 		selfdestructcountdown = 1,
 		sightdistance = 550,
 		sonarstealth = true,
@@ -48,6 +48,9 @@ return {
 		turnrate = 1320,
 		upright = true,
 		workertime = 50,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -87,6 +90,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

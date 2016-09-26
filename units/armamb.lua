@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = "Cloakable Heavy Plasma Cannon",
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		hightrajectory = 2,
@@ -32,10 +32,13 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMAMB",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericWhite",
 		sightdistance = 442,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

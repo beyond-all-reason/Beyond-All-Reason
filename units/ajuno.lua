@@ -16,7 +16,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti Radar/Jammer/Minefield/ScoutSpam Weapon",
-		explodeas = "ESTOR_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -28,11 +28,14 @@ return {
 		name = "Arm Juno",
 		objectname = "AJUNO",
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "largeBuildingExplosionGenericRed",
 		sightdistance = 494,
 		stealth = true,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,7 +79,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:juno_sphere_emit",
 			},

@@ -16,7 +16,7 @@ return {
 		corpse = "DEAD",
 		description = "Increases Energy Storage (40000)",
 		energystorage = 40000,
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -28,10 +28,13 @@ return {
 		name = "Hardened Energy Storage",
 		objectname = "CORUWADVES",
 		seismicsignature = 0,
-		selfdestructas = "MINE_NUKE",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 192,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +73,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

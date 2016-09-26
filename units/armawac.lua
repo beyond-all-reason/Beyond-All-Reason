@@ -14,7 +14,7 @@ return {
 		description = "Radar/Sonar Plane",
 		energymake = 23,
 		energyuse = 23,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -28,11 +28,20 @@ return {
 		objectname = "ARMAWAC",
 		radardistance = 2500,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericBlue",
 		sightdistance = 1275,
 		sonardistance = 1200,
 		turnrate = 392,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

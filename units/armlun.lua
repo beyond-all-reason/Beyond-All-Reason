@@ -18,7 +18,7 @@ return {
 		description = "Heavy Hovertank",
 		energymake = 2.8,
 		energyuse = 2.5,
-		explodeas = "BIG_UNIT",
+		explodeas = "largeExplosionGenericPurple",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -32,13 +32,16 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMLUN",
 		radardistance = 0,
-		selfdestructas = "ESTOR_BUILDINGEX",
+		selfdestructas = "largeExplosionGenericPurple",
 		sightdistance = 620,
 		sonardistance = 550,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

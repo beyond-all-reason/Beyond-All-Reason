@@ -14,7 +14,7 @@ return {
 		description = "Rapid Assault Gunship",
 		energymake = 0.8,
 		energyuse = 0.9,
-		explodeas = "GUNSHIPEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -29,11 +29,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "BLADE",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 624,
 		turninplaceanglelimit = 360,
 		turnrate = 720,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

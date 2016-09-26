@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = "Anti-Nuke System",
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericBlue",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -32,10 +32,13 @@ return {
 		objectname = "ARMAMD",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericBlue",
 		sightdistance = 201,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -21,7 +21,7 @@ return {
 		description = "Produces Energy",
 		energymake = 75,
 		energystorage = 100,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericBlueEMP",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -33,10 +33,13 @@ return {
 		name = "Advanced Solar Collector",
 		objectname = "ARMADVSOL",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericBlueEMP",
 		sightdistance = 260,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oooo yooy yooy",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

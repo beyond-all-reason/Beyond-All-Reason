@@ -14,7 +14,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Rapid-Fire Long-Range Plasma Cannon",
-		explodeas = "RLRPC_DEATH",
+		explodeas = "hugeBuildingExplosionGenericRed",
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
@@ -27,11 +27,14 @@ return {
 		name = "Vulcan",
 		objectname = "ARMVULC",
 		seismicsignature = 0,
-		selfdestructas = "RLRPC_DEATH",
+		selfdestructas = "hugeBuildingExplosionGenericRed",
 		sightdistance = 700,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,7 +76,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:vulcanflare",
 			},

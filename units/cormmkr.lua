@@ -15,7 +15,7 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Converts up to 600 energy into 10.3 metal per second",
-		explodeas = "ATOMIC_BLASTSML",
+		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -27,10 +27,13 @@ return {
 		name = "Moho Energy Converter",
 		objectname = "CORMMKR",
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +75,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

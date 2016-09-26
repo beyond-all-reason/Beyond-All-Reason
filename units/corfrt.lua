@@ -15,7 +15,7 @@ return {
 		corpse = "DEAD",
 		description = "Floating Anti-air Tower",
 		energyuse = 0.1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -27,10 +27,13 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORFRT",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 468,
 		waterline = 4,
 		yardmap = "wwwwwwwwwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -50,6 +53,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

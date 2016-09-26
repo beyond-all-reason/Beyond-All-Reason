@@ -17,7 +17,7 @@ return {
 		description = "Patrol Boat/Light Anti-Air",
 		energymake = 0.23,
 		energyuse = 0.23,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		floater = true,
 		footprintx = 2,
 		footprintz = 2,
@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "CORPT",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 585,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -40,6 +40,9 @@ return {
 		turnrate = 622,
 		waterline = 1.5,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -17,7 +17,7 @@ return {
 		description = "Naval Engineer",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
@@ -31,7 +31,7 @@ return {
 		name = "Pathfinder",
 		objectname = "CORMLS",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 260,
 		terraformspeed = 2000,
 		turninplace = 0,
@@ -60,6 +60,9 @@ return {
 			[16] = "corsub",
 			[17] = "coramph",
 			[18] = "corfmine3",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -101,6 +104,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -22,7 +22,7 @@ return {
 		description = "Stealthy Paratrooper K-bot",
 		energymake = 10,
 		energystorage = 20,
-		explodeas = "MINE_LIGHT",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 9,
@@ -37,7 +37,7 @@ return {
 		radardistance = 900,
 		radardistancejam = 150,
 		seismicsignature = 4,
-		selfdestructas = "MINE_MEDIUM",
+		selfdestructas = "smallExplosionGenericWhite",
 		sightdistance = 600,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -53,6 +53,15 @@ return {
 			[5] = "cordrag",
 			[6] = "coreyes",
 			[7] = "corjamt",
+		},
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath2",

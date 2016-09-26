@@ -15,7 +15,7 @@ return {
 		description = "Rocket Kbot",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMROCK",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 338,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.1484,
 		turnrate = 1106,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,7 +81,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},

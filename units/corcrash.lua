@@ -16,7 +16,7 @@ return {
 		description = "Amphibious Anti-air Kbot",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericPurple",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORCRASH",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericPurple",
 		sightdistance = 379.60001,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.17678,
 		turnrate = 1112,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

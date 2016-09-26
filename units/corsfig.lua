@@ -14,7 +14,7 @@ return {
 		collide = false,
 		cruisealt = 80,
 		description = "Seaplane Swarmer",
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericPurple",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
@@ -26,10 +26,19 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORSFIG",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericPurple",
 		sightdistance = 200,
 		turnrate = 1547,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

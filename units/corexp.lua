@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Armed Metal Extractor",
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericRed",
 		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
@@ -38,6 +38,9 @@ return {
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -16,7 +16,7 @@ return {
 		cruisealt = 150,
 		description = "Assault Transport",
 		energymake = 3,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		hoverattack = true,
@@ -31,7 +31,7 @@ return {
 		objectname = "ARMSL",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "hugeExplosionGeneric",
 		sightdistance = 260,
 		transportcapacity = 30,
 		transportsize = 15,
@@ -40,7 +40,14 @@ return {
 		upright = true,
 		blocking = false,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.025,
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

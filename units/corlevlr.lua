@@ -15,7 +15,7 @@ return {
 		description = "Riot Tank",
 		energymake = 0.3,
 		energyuse = 0.3,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORLEVLR",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 286,
 		trackoffset = 7,
 		trackstrength = 6,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.94149,
 		turnrate = 366.20001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -81,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

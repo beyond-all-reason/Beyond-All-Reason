@@ -20,7 +20,7 @@ return {
 		corpse = "DEAD",
 		description = "Long-Range Jamming Tower",
 		energyuse = 125,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -34,10 +34,13 @@ return {
 		onoffable = true,
 		radardistancejam = 700,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericWhite",
 		sightdistance = 155,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

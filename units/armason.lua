@@ -19,7 +19,7 @@ return {
 		description = "Extended Sonar",
 		energymake = 22,
 		energyuse = 22,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericWhite",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -32,11 +32,14 @@ return {
 		objectname = "ARMASON",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericWhite",
 		sightdistance = 215,
 		sonardistance = 2400,
 		usebuildinggrounddecal = true,
 		yardmap = "yooy oooo oooo yooy",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -56,6 +59,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

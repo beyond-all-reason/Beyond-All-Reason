@@ -15,7 +15,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Energy",
 		energystorage = 50,
-		explodeas = "TIDAL_DEATHEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -28,11 +28,14 @@ return {
 		objectname = "CORTIDE",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 130,
 		tidalgenerator = 1,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -73,6 +76,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Level 1 Kbots",
 		energystorage = 100,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericBlue",
 		footprintx = 6,
 		footprintz = 6,
 		icontype = "building",
@@ -33,7 +33,7 @@ return {
 		objectname = "CORLAB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericBlue",
 		sightdistance = 287.29999,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
@@ -46,6 +46,9 @@ return {
 			[4] = "corstorm",
 			[5] = "corthud",
 			[6] = "corcrash",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -88,7 +91,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 			},

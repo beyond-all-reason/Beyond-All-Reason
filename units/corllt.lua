@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		description = "Light Laser Tower",
 		energystorage = 20,
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -31,10 +31,13 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORLLT",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "smallBuildingExplosionGeneric",
 		sightdistance = 494,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

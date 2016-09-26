@@ -16,7 +16,7 @@ return {
 		description = "Missile Truck",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		name = "Slasher",
 		objectname = "CORMIST",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericRed",
 		sightdistance = 620,
 		trackoffset = -6,
 		trackstrength = 5,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.99,
 		turnrate = 370,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -83,7 +86,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},

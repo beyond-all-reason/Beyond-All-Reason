@@ -17,7 +17,7 @@ return {
 		description = "Cruiser",
 		energymake = 2.2,
 		energyuse = 2.2,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericRed",
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORCRUS",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericRed",
 		sightdistance = 533,
 		sonardistance = 375,
 		turninplace = 0,
@@ -41,6 +41,9 @@ return {
 		turnrate = 448,
 		waterline = 5.5,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -80,6 +83,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -17,7 +17,7 @@ return {
 		description = "Mobile Anti-Nuke",
 		energymake = 100,
 		energystorage = 1000,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -32,11 +32,14 @@ return {
 		objectname = "ARMSCAB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 450,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.122,
 		turnrate = 473,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

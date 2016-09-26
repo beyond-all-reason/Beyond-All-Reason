@@ -17,7 +17,7 @@ return {
 		description = "Radar Jammer Kbot",
 		energymake = 8,
 		energyuse = 100,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -33,12 +33,15 @@ return {
 		onoffable = true,
 		radardistance = 0,
 		radardistancejam = 450,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericWhite",
 		sightdistance = 250,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.858,
 		turnrate = 945,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

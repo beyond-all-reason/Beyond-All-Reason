@@ -15,7 +15,7 @@ return {
 		description = "Amphibious Kbot",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		floater = false,
 		footprintx = 3,
 		footprintz = 3,
@@ -29,13 +29,16 @@ return {
 		nochasecategory = "ANTILASER",
 		objectname = "ARMAMPH",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 377,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.98,
 		turnrate = 440,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

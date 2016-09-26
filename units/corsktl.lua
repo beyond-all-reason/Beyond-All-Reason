@@ -17,7 +17,7 @@ return {
 		description = "Advanced Amphibious Crawling Bomb",
 		energymake = 0.2,
 		energyuse = 0.2,
-		explodeas = "CRAWL_BLAST",
+		explodeas = "largeExplosionGeneric",
 		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
@@ -34,7 +34,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSKTL",
 		seismicsignature = 4,
-		selfdestructas = "CORMINE6",
+		selfdestructas = "largeExplosionGeneric",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
 		turninplace = 0,
@@ -42,6 +42,15 @@ return {
 		turninplacespeedlimit = 1.155,
 		turnrate = 1122,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

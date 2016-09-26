@@ -18,7 +18,7 @@ return {
 		energymake = 30,
 		energystorage = 150,
 		energyuse = 30,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "sea",
@@ -34,7 +34,7 @@ return {
 		objectname = "ARMACSUB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 156,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
@@ -57,6 +57,9 @@ return {
 			[12] = "armason",
 			[13] = "armfflak",
 --			[14] = "armatl",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -97,6 +100,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

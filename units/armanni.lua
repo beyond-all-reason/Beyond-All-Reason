@@ -17,7 +17,7 @@ return {
 		damagemodifier = 0.25,
 		description = "Tachyon Accelerator",
 		energystorage = 1500,
-		explodeas = "CRAWL_BLASTSML",
+		explodeas = "hugeBuildingExplosionGenericWhite",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -34,10 +34,13 @@ return {
 		radardistance = 1500,
 		radaremitheight = 72,
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "hugeBuildingExplosionGenericWhite",
 		sightdistance = 780,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

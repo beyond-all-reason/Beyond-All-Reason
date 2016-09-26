@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Large Amphibious Units",
 		energystorage = 1400,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericWhite",
 		footprintx = 9,
 		footprintz = 9,
 		icontype = "building",
@@ -35,7 +35,7 @@ return {
 		radardistance = 50,
 		script = "corgant.cob",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericWhite",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
@@ -48,6 +48,9 @@ return {
 			[3] = "corsok",
 			[4] = "corseal",
 			[5] = "corparrow",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -90,7 +93,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",

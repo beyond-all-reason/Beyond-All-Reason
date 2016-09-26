@@ -15,7 +15,7 @@ return {
 		description = "Mortar/Skirmish Kbot",
 		energymake = 0.8,
 		energyuse = 0.8,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -31,11 +31,14 @@ return {
 		onoffable = true,
 		activateWhenBuilt = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 400,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.518,
 		turnrate = 990,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

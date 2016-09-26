@@ -18,7 +18,7 @@ return {
 		energymake = 7,
 		energystorage = 50,
 		energyuse = 7,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		name = "Construction Kbot",
 		objectname = "CORCK",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 299,
 		terraformspeed = 450,
 		turninplace = 1,
@@ -73,6 +73,9 @@ return {
 			[28] = "corjamt",
 			[29] = "cjuno",
 			[30] = "corsy",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -115,6 +118,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -17,7 +17,7 @@ return {
 		description = "Locates Water Units",
 		energymake = 1,
 		energyuse = 1,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "smallBuildingExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -30,10 +30,13 @@ return {
 		objectname = "ARMSONAR",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "smallBuildingExplosionGenericWhite",
 		sightdistance = 515,
 		sonardistance = 1200,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -53,6 +56,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

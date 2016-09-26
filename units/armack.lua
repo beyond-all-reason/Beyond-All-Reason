@@ -18,7 +18,7 @@ return {
 		energymake = 14,
 		energystorage = 100,
 		energyuse = 14,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -34,7 +34,7 @@ return {
 		objectname = "ARMACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 323.70001,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -73,6 +73,9 @@ return {
 			[27] = "armdf",
 			[28] = "armlab",
 			[29] = "armalab",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -115,6 +118,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

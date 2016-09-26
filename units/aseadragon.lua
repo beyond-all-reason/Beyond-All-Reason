@@ -18,7 +18,7 @@ return {
 		energymake = 150,
 		energystorage = 1000,
 		energyuse = 150,
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "hugeExplosionGenericWhite",
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
@@ -37,7 +37,7 @@ return {
 		radardistance = 1530,
 		radaremitheight = 52,
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "hugeExplosionGenericWhite",
 		sightdistance = 689,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.518,
@@ -45,6 +45,7 @@ return {
 		waterline = 13,
 		windgenerator = 0.001,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0,
 		},
 		featuredefs = {
@@ -85,6 +86,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

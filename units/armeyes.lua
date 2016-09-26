@@ -31,6 +31,9 @@ return {
 		stealth = true,
 		waterline = 5,
 		yardmap = "o",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dragonseyes_dead = {
 				blocking = false,
@@ -54,6 +57,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

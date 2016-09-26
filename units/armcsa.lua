@@ -18,7 +18,7 @@ return {
 		energymake = 20,
 		energystorage = 75,
 		energyuse = 20,
-		explodeas = "CA_EX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -34,7 +34,7 @@ return {
 		name = "Construction Seaplane",
 		objectname = "ARMCSA",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 364,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
@@ -55,6 +55,15 @@ return {
 			[11] = "armfflak",
 --			[12] = "armatl",
 			[12] = "armason",
+		},
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

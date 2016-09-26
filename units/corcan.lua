@@ -15,7 +15,7 @@ return {
 		description = "Armored Assault Kbot",
 		energymake = 7.5,
 		energystorage = 25,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORCAN",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 350,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,
 		turnrate = 970,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

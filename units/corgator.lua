@@ -15,7 +15,7 @@ return {
 		description = "Light Tank",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORGATOR",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericRed",
 		sightdistance = 273,
 		trackoffset = 5,
 		trackstrength = 5,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.98,
 		turnrate = 484,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -81,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

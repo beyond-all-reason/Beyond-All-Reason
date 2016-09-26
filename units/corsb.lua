@@ -15,7 +15,7 @@ return {
 		description = "Seaplane Bomber",
 		energymake = 0.9,
 		energyuse = 0.9,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -30,10 +30,19 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSB",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 455,
 		turnrate = 368,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

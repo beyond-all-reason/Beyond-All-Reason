@@ -12,7 +12,7 @@ return {
 		corpse = "DEAD",
 		description = "Builds Seaplanes",
 		energystorage = 200,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericGreen",
 		footprintx = 7,
 		footprintz = 7,
 		icontype = "building",
@@ -26,7 +26,7 @@ return {
 		objectname = "ARMPLAT",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericGreen",
 		sightdistance = 169,
 		terraformspeed = 1000,
 		waterline = 53,
@@ -39,6 +39,9 @@ return {
 			[4] = "armseap",
 			[5] = "armsfig",
 			[6] = "armsehak",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -59,6 +62,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

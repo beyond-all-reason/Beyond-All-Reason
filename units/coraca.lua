@@ -17,7 +17,7 @@ return {
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
-		explodeas = "CA_EX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -34,7 +34,7 @@ return {
 		objectname = "CORACA",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
@@ -70,6 +70,15 @@ return {
 			[26] = "corap",
 			[27] = "coraap",
 			[28] = "corplat",
+		},
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath2",

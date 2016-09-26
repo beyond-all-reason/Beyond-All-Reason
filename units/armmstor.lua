@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (3000)",
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericBlue",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -31,10 +31,13 @@ return {
 		name = "Metal Storage",
 		objectname = "ARMMSTOR",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericBlue",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

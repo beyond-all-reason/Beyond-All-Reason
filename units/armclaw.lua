@@ -15,7 +15,7 @@ return {
 		damagemodifier = 0.25,
 		description = "Pop-up Lightning Turret",
 		energystorage = 15,
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "smallBuildingExplosionGenericBlueEMP",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -32,12 +32,15 @@ return {
 		objectname = "ARMCLAW",
 		radardistancejam = 8,
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "smallBuildingExplosionGenericBlueEMP",
 		sightdistance = 440,
 		stealth = true,
 		turnrate = 0,
 		upright = true,
 		usebuildinggrounddecal = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				autoreclaimable = 0,
@@ -80,6 +83,12 @@ return {
 				resurrectable = 0,
 				shadtrans = 1,
 				world = "greenworld",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -14,7 +14,7 @@ return {
 		description = "Torpedo Bomber",
 		energymake = 1.5,
 		energyuse = 1.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -28,10 +28,19 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORTITAN",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 455,
 		turnrate = 450,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

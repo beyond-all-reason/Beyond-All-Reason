@@ -18,7 +18,7 @@ return {
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		objectname = "CORCV",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 260,
 		terraformspeed = 450,
 		trackoffset = 3,
@@ -79,6 +79,9 @@ return {
 			[29] = "cjuno",
 			[30] = "corsy",
 		},
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -120,6 +123,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

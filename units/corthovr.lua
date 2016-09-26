@@ -17,7 +17,7 @@ return {
 		description = "Transport Hovercraft",
 		energymake = 2.3,
 		energyuse = 2.3,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "corthovr",
@@ -32,7 +32,7 @@ return {
 		objectname = "CORTHOVR",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericRed",
 		sightdistance = 325,
 		transportcapacity = 20,
 		transportsize = 3,
@@ -42,6 +42,9 @@ return {
 		turninplacespeedlimit = 1.4388,
 		turnrate = 370,
 		waterline = 4,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -61,6 +64,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

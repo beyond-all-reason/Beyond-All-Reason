@@ -18,7 +18,7 @@ return {
 		energymake = 14,
 		energystorage = 100,
 		energyuse = 14,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -34,7 +34,7 @@ return {
 		objectname = "CORACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 318.5,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -72,6 +72,9 @@ return {
 			[26] = "corbuzz",
 			[27] = "corlab",
 			[28] = "coralab",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -114,6 +117,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

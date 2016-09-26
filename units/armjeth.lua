@@ -16,7 +16,7 @@ return {
 		description = "Amphibious Anti-air Kbot",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMJETH",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 377,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.2375,
 		turnrate = 1118,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,7 +81,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
 			},

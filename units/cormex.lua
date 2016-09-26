@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Extracts Metal",
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "smallBuildingExplosionGenericRed",
 		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
@@ -33,11 +33,14 @@ return {
 		objectname = "CORMEX",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "TINY_BUILDINGEX",
+		selfdestructas = "smallBuildingExplosionGenericRed",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

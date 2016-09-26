@@ -15,7 +15,7 @@ return {
 		description = "Light Mobile Artillery",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		hightrajectory = 1,
@@ -32,7 +32,7 @@ return {
 		objectname = "CORWOLV",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericWhite",
 		sightdistance = 299,
 		trackoffset = 6,
 		trackstrength = 5,
@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.2342,
 		turnrate = 466,
 		customparams = {
+			death_sounds = "generic",
 			canareaattack = 1,
 		},
 		featuredefs = {
@@ -65,6 +66,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

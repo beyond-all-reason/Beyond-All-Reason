@@ -19,7 +19,7 @@ return {
 		collisionvolumetype = "CylY",
 		description = "Repairs and builds in large radius",
 		energyuse = 30,
-		explodeas = "NANOBOOM2",
+		explodeas = "mediumBuildingExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -33,13 +33,22 @@ return {
 		name = "Nano Turret",
 		objectname = "ARMNANOTC",
 		seismicsignature = 0,
-		selfdestructas = "TINY_BUILDINGEX",
+		selfdestructas = "mediumBuildingExplosionGenericGreen",
 		sightdistance = 380,
 		terraformspeed = 1000,
 		turnrate = 1,
 		upright = true,
 		useBuildingGroundDecal = true,
 		workertime = 200,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

@@ -16,7 +16,7 @@ return {
 		description = "Battle Submarine",
 		energymake = 15,
 		energyuse = 15,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "sea",
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSSUB",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericRed",
 		sightdistance = 520,
 		sonardistance = 550,
 		turninplaceanglelimit = 140,
@@ -38,6 +38,9 @@ return {
 		turnrate = 395,
 		upright = true,
 		waterline = 30,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

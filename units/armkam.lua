@@ -13,7 +13,7 @@ return {
 		cruisealt = 60,
 		description = "Light Gunship",
 		energyuse = 0.8,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -28,11 +28,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMKAM",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 520,
 		turninplaceanglelimit = 360,
 		turnrate = 693,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -15,7 +15,7 @@ return {
 		description = "Mobile Tachyon Weapon",
 		energymake = 5.2,
 		energyuse = 5.2,
-		explodeas = "ESTOR_BUILDINGEX",
+		explodeas = "hugeExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMMANNI",
 		seismicsignature = 0,
-		selfdestructas = "ESTOR_BUILDING",
+		selfdestructas = "hugeExplosionGenericBlue",
 		sightdistance = 650,
 		trackoffset = 16,
 		trackstrength = 10,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.00188,
 		turnrate = 151,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -81,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

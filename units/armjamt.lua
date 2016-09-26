@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		description = "Cloakable Jammer Tower",
 		energyuse = 40,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallBuildingExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -32,9 +32,12 @@ return {
 		onoffable = true,
 		radardistancejam = 500,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallBuildingExplosionGenericRed",
 		sightdistance = 195,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -55,6 +58,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

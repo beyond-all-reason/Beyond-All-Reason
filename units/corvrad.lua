@@ -17,7 +17,7 @@ return {
 		description = "Radar Vehicle",
 		energymake = 8,
 		energyuse = 20,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -32,7 +32,7 @@ return {
 		objectname = "CORVRAD",
 		onoffable = true,
 		radardistance = 2200,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericWhite",
 		sightdistance = 900,
 		sonardistance = 0,
 		trackstrength = 10,
@@ -42,6 +42,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.825,
 		turnrate = 210,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -83,6 +86,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

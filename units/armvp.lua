@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Level 1 Vehicles",
 		energystorage = 100,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericRed",
 		footprintx = 8,
 		footprintz = 6,
 		icontype = "building",
@@ -34,7 +34,7 @@ return {
 		objectname = "ARMVP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericRed",
 		sightdistance = 273,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
@@ -51,6 +51,9 @@ return {
 			[8] = "tawf013",
 			[9] = "armjanus",
 			[10] = "armsam",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -91,6 +94,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -16,7 +16,7 @@ return {
 		description = "Anti-Air Hovercraft",
 		energymake = 2.6,
 		energyuse = 2.6,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,13 +30,16 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORAH",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericRed",
 		sightdistance = 509,
 		sonardistance = 350,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.2044,
 		turnrate = 470,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

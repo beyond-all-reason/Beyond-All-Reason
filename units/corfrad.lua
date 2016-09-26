@@ -17,7 +17,7 @@ return {
 		description = "Early Warning System",
 		energymake = 4,
 		energyuse = 4,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -33,10 +33,13 @@ return {
 		radardistance = 2100,
 		radaremitheight = 72,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericWhite",
 		sightdistance = 740,
 		waterline = 4,
 		yardmap = "wwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -56,6 +59,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

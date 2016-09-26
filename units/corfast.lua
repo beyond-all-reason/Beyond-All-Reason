@@ -18,7 +18,7 @@ return {
 		energymake = 15,
 		energystorage = 100,
 		energyuse = 15,
-		explodeas = "BIG_UNIT",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		name = "Freaker",
 		objectname = "CORFAST",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 520,
 		terraformspeed = 750,
 		turninplace = 1,
@@ -65,6 +65,9 @@ return {
 			[20] = "coramph",
 			[21] = "corcs",
 			[22] = "corroy",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -107,6 +110,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

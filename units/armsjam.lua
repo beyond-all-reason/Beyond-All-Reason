@@ -16,7 +16,7 @@ return {
 		description = "Radar Jammer Ship",
 		energymake = 18,
 		energyuse = 18,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
@@ -33,7 +33,7 @@ return {
 		onoffable = true,
 		radardistancejam = 980,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "mediumExplosionGenericWhite",
 		sightdistance = 390,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -41,6 +41,9 @@ return {
 		turnrate = 540,
 		waterline = 3,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -80,6 +83,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

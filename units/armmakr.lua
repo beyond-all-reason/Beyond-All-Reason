@@ -17,7 +17,7 @@ return {
 		collisionvolumescales = "50 23 50",
 		collisionvolumetype = "CylY",
 		description = "Converts up to 70 energy into 1 metal per second",
-		explodeas = "ARMESTOR_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -29,10 +29,19 @@ return {
 		name = "Energy Converter",
 		objectname = "ARMMAKR",
 		seismicsignature = 0,
-		selfdestructas = "ARMESTOR_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			activate = "metlon1",
 			canceldestruct = "cancel2",

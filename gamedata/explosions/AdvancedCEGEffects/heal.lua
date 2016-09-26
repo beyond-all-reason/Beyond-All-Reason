@@ -1,0 +1,63 @@
+-- heal
+
+return {
+  ["heal"] = {
+    healg = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      properties = {
+        airdrag            = 0.7,
+        alwaysvisible      = false,
+        colormap           = [[0.25 0.60 0.10 1.0	0 0 0 0.0]],
+        directional        = true,
+        emitrot            = 90,
+        emitrotspread      = 0,
+        emitvector         = [[1 r0.3, 1 r0.3, 1 r0.3]],
+        gravity            = [[0, 0.3 r0.3, 0]],
+        numparticles       = 8,
+        particlelife       = 15,
+        particlelifespread = 20,
+        particlesize       = 4,
+        particlesizespread = 10,
+        particlespeed      = 1,
+        particlespeedspread = 2,
+        pos                = [[r-0.5 r0.5, 1 r2, r-0.5 r0.5]],
+        sizegrowth         = 0,
+        sizemod            = 1.0,
+        texture            = [[heal]],
+        useairlos          = false,
+      },
+    },
+    healw = {
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      water              = true,
+      properties = {
+        airdrag            = 0.7,
+        alwaysvisible      = false,
+        colormap           = [[1 0.5 1 1	0.5 0.5 1 1	0 0 0 0.5]],
+        directional        = true,
+        emitrot            = 90,
+        emitrotspread      = 0,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0.3 r0.3, 0]],
+        numparticles       = 10,
+        particlelife       = 15,
+        particlelifespread = 20,
+        particlesize       = [[4 r4]],
+        particlesizespread = 2,
+        particlespeed      = 1,
+        particlespeedspread = 2,
+        pos                = [[r-0.5 r0.5, 1 r2, r-0.5 r0.5]],
+        sizegrowth         = -0.2,
+        sizemod            = 1.0,
+        texture            = [[heal]],
+        useairlos          = false,
+      },
+    },
+  },
+
+}
+

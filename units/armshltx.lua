@@ -19,7 +19,7 @@ return {
 		corpse = "ARMSHLT_DEAD",
 		description = "Produces Level 3 Units",
 		energystorage = 1400,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericRed",
 		footprintx = 9,
 		footprintz = 9,
 		icontype = "building",
@@ -32,7 +32,7 @@ return {
 		name = "Experimental Gantry",
 		objectname = "ARMSHLTX",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericRed",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
@@ -44,6 +44,9 @@ return {
 			[3] = "marauder",
 			[4] = "armshock",
 			[5] = "armlun",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			armshlt_dead = {
@@ -86,7 +89,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 			},

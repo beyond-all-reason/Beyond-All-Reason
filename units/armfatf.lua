@@ -15,7 +15,7 @@ return {
 		corpse = "DEAD",
 		description = "Enhanced Radar Targeting",
 		energyuse = 150,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -29,10 +29,13 @@ return {
 		objectname = "ARMFATF",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 273,
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

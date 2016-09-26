@@ -18,7 +18,7 @@ return {
 		energymake = 20,
 		energystorage = 75,
 		energyuse = 20,
-		explodeas = "CA_EX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -34,7 +34,7 @@ return {
 		name = "Construction Seaplane",
 		objectname = "CORCSA",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 351,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
@@ -55,6 +55,15 @@ return {
 			[11] = "corenaa",
 --			[12] = "coratl",
 			[12] = "corason",
+		},
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

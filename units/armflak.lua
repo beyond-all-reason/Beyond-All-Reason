@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Anti-Air Flak Gun",
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -31,10 +31,13 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMFLAK",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericRed",
 		sightdistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

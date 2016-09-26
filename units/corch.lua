@@ -18,7 +18,7 @@ return {
 		energymake = 11,
 		energystorage = 75,
 		energyuse = 11,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -34,7 +34,7 @@ return {
 		objectname = "CORCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 338,
 		terraformspeed = 550,
 		turninplace = 1,
@@ -86,6 +86,9 @@ return {
 			[41] = "corfrt",
 			[42] = "cortl",
 		},
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -125,6 +128,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

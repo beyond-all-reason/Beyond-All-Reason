@@ -19,7 +19,7 @@ return {
 		description = "Hazardous Energy Source",
 		energymake = 1250,
 		energystorage = 12000,
-		explodeas = "NUCLEAR_MISSILE",
+		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 7,
 		footprintz = 5,
 		icontype = "building",
@@ -31,10 +31,19 @@ return {
 		name = "Moho Geothermal Powerplant",
 		objectname = "CMGEO",
 		seismicsignature = 0,
-		selfdestructas = "NUCLEAR_MISSILE",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooo ooooooo oGGoooo oGGoooo ooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -15,7 +15,7 @@ return {
 		description = "Advanced Radar/Sonar Plane",
 		energymake = 12,
 		energyuse = 12,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -29,11 +29,20 @@ return {
 		objectname = "ARMSEHAK",
 		radardistance = 2250,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericWhite",
 		sightdistance = 1100,
 		sonardistance = 900,
 		turnrate = 402,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

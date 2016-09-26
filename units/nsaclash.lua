@@ -15,7 +15,7 @@ return {
 		description = "Assault Hovertank",
 		energymake = 3.5,
 		energyuse = 3.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "NSACLASH",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 349,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.9768,
 		turnrate = 410,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

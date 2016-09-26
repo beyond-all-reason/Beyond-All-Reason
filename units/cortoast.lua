@@ -16,7 +16,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = "Heavy Plasma Cannon",
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		hightrajectory = 2,
@@ -30,11 +30,14 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORTOAST",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGeneric",
 		sightdistance = 416,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

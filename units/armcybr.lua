@@ -13,7 +13,7 @@ return {
 		cruisealt = 150,
 		description = "Atomic Bomber",
 		energyuse = 40,
-		explodeas = "SMALL_BUILDING",
+		explodeas = "hugeExplosionGenericWhite",
 		firestate = 0,
 		footprintx = 3,
 		footprintz = 3,
@@ -29,10 +29,19 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMCYBR",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNITEX",
+		selfdestructas = "hugeExplosionGenericWhite",
 		sightdistance = 455,
 		turnrate = 535,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -64,7 +73,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
+				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 100,
 				flighttime = 1.5,
 				impulseboost = 0.123,

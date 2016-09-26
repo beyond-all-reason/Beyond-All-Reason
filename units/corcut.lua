@@ -15,7 +15,7 @@ return {
 		description = "Seaplane Gunship",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -30,11 +30,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORCUT",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericRed",
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 828,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

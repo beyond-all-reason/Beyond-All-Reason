@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		description = "Intrusion Countermeasure System",
 		energyuse = 125,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericWhite",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -32,10 +32,13 @@ return {
 		onoffable = true,
 		seismicdistance = 2000,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericWhite",
 		sightdistance = 225,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

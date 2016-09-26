@@ -16,7 +16,7 @@ return {
 		description = "Cruise Missile Ship",
 		energymake = 0.9,
 		energyuse = 0.9,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericRed",
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
@@ -32,7 +32,7 @@ return {
 		objectname = "CORMSHIP",
 		radardistance = 1400,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericRed",
 		sightdistance = 318.5,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -40,6 +40,9 @@ return {
 		turnrate = 250,
 		waterline = 5,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

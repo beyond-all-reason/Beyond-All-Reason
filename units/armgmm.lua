@@ -19,7 +19,7 @@ return {
 		description = "Safe Geothermal Powerplant",
 		energymake = 750,
 		energystorage = 1500,
-		explodeas = "BIG_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericBlueEMP",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -31,10 +31,19 @@ return {
 		name = "Prude",
 		objectname = "ARMGMM",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericBlueEMP",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

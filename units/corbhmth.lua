@@ -17,7 +17,7 @@ return {
 		description = "Geothermal Plasma Battery",
 		energymake = 450,
 		energystorage = 500,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -30,10 +30,13 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORBHMTH",
 		seismicsignature = 0,
-		selfdestructas = "ESTOR_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 650,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +76,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

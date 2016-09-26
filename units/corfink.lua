@@ -14,7 +14,7 @@ return {
 		description = "Scout Plane",
 		energymake = 0.2,
 		energyuse = 0.2,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
@@ -28,11 +28,20 @@ return {
 		objectname = "CORFINK",
 		radardistance = 1120,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGeneric",
 		selfdestructcountdown = 1,
 		sightdistance = 835,
 		turnrate = 770,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

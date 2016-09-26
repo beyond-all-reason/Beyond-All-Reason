@@ -14,7 +14,7 @@ return {
 		description = "Gunship",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "GUNSHIPEX",
+		explodeas = "mediumExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -29,11 +29,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORAPE",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericRed",
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
 		turnrate = 594,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -15,7 +15,7 @@ return {
 		description = "Advanced Radar/Sonar Plane",
 		energymake = 15,
 		energyuse = 15,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -29,11 +29,20 @@ return {
 		objectname = "CORHUNT",
 		radardistance = 2200,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericWhite",
 		sightdistance = 1130,
 		sonardistance = 900,
 		turnrate = 450,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

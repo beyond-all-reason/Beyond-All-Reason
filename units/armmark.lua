@@ -17,7 +17,7 @@ return {
 		description = "Radar Kbot",
 		energymake = 8,
 		energyuse = 20,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -31,12 +31,15 @@ return {
 		objectname = "ARMMARK",
 		onoffable = true,
 		radardistance = 2200,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericWhite",
 		sightdistance = 900,
 		sonardistance = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.891,
 		turnrate = 505,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

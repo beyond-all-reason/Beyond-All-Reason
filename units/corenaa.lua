@@ -16,7 +16,7 @@ return {
 		corpse = "DEAD",
 		description = "Anti-Air Flak Gun - Naval Series",
 		energyuse = 0.1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericWhite",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -27,10 +27,13 @@ return {
 		name = "Cobra - NS",
 		objectname = "CORENAA",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericWhite",
 		sightdistance = 550,
 		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -51,6 +54,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

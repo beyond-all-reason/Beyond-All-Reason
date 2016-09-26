@@ -15,7 +15,7 @@ return {
 		description = "Experimental Assault Kbot",
 		energymake = 35,
 		energystorage = 350,
-		explodeas = "NUCLEAR_MISSILE",
+		explodeas = "hugeNukeExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "krogoth",
@@ -32,7 +32,7 @@ return {
 		objectname = "CORKROG",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "CRBLMSSL",
+		selfdestructas = "hugeNukeExplosionGeneric",
 		selfdestructcountdown = 10,
 		sightdistance = 845,
 		turninplaceanglelimit = 140,
@@ -40,6 +40,7 @@ return {
 		turnrate = 380,
 		upright = true,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0,
 		},
 		featuredefs = {
@@ -83,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

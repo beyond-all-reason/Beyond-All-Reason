@@ -15,7 +15,7 @@ return {
 		description = "Torpedo Gunship",
 		energymake = 0.7,
 		energyuse = 0.7,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -30,10 +30,19 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSEAP",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 455,
 		turnrate = 575,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

@@ -15,7 +15,7 @@ return {
 		description = "Fast Attack Hovercraft",
 		energymake = 2.6,
 		energyuse = 2.6,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -29,12 +29,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSH",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 582,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.9634,
 		turnrate = 640,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

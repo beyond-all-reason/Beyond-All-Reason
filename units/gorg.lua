@@ -15,7 +15,7 @@ return {
 		description = "(barely) Mobile Heavy Turret",
 		energymake = 35,
 		energystorage = 350,
-		explodeas = "CRAWL_BLASTSML",
+		explodeas = "hugeExplosionGenericWhite",
 		footprintx = 5,
 		footprintz = 5,
 		idleautoheal = 40,
@@ -31,12 +31,13 @@ return {
 		objectname = "GORG",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "CRAWL_BLAST",
+		selfdestructas = "hugeExplosionGenericWhite",
 		sightdistance = 720,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.363,
 		turnrate = 109,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0,
 		},
 		featuredefs = {
@@ -80,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

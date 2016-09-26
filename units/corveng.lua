@@ -13,7 +13,7 @@ return {
 		collide = false,
 		cruisealt = 110,
 		description = "Fighter",
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
@@ -25,10 +25,19 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORVENG",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 200,
 		turnrate = 839,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -17,7 +17,7 @@ return {
 		description = "Stealthy Armed Transport",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "mediumExplosionGenericPurple",
 		footprintx = 4,
 		footprintz = 4,
 		hoverattack = true,
@@ -33,7 +33,7 @@ return {
 		objectname = "ARMDFLY",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "mediumExplosionGenericPurple",
 		sightdistance = 318,
 		stealth = true,
 		transportcapacity = 30,
@@ -42,7 +42,14 @@ return {
 		turnrate = 420,
 		blocking = false,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.025,
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

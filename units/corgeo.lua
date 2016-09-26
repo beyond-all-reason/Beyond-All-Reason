@@ -20,7 +20,7 @@ return {
 		description = "Produces Energy / Storage",
 		energymake = 300,
 		energystorage = 1000,
-		explodeas = "ESTOR_BUILDING",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -32,10 +32,13 @@ return {
 		name = "Geothermal Powerplant",
 		objectname = "CORGEO",
 		seismicsignature = 0,
-		selfdestructas = "ESTOR_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oGGo oGGo oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

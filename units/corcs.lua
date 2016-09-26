@@ -17,7 +17,7 @@ return {
 		description = "Tech Level 1",
 		energymake = 15,
 		energystorage = 15,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
@@ -33,7 +33,7 @@ return {
 		objectname = "CORCS",
 		repairspeed = 125,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 286,
 		terraformspeed = 1250,
 		turninplace = 0,
@@ -65,6 +65,9 @@ return {
 			[18] = "corfrt",
 			[19] = "corfhlt",
 			[20] = "corplat",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -103,6 +106,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

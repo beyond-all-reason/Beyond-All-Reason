@@ -15,7 +15,7 @@ return {
 		description = "Light Scout Vehicle",
 		energymake = 0.3,
 		energyuse = 0.3,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORFAV",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGenericWhite",
 		sightdistance = 535,
 		trackoffset = -3,
 		trackstrength = 3,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.2274,
 		turnrate = 1097,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -81,6 +84,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

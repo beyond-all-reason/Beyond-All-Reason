@@ -15,7 +15,7 @@ return {
 		description = "Heavily Armored Assault Kbot",
 		energymake = 17.5,
 		energystorage = 100,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -31,12 +31,13 @@ return {
 		objectname = "CORSUMO",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericGreen",
 		sightdistance = 510,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.495,
 		turnrate = 320,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.5,
 		},
 		featuredefs = {
@@ -80,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

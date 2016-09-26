@@ -14,7 +14,7 @@ return {
 		description = "Air Transport",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 3,
 		hoverattack = true,
@@ -29,7 +29,7 @@ return {
 		objectname = "ARMATLAS",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGenericRed",
 		sightdistance = 260,
 		transportcapacity = 1,
 		transportmass = 5000,
@@ -38,7 +38,14 @@ return {
 		turnrate = 550,
 		blocking = false,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.025,
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -17,7 +17,7 @@ return {
 		description = "Amphibious Heavy Assault Transport",
 		energymake = 2.6,
 		energyuse = 2.9,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		objectname = "INTRUDER",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericRed",
 		sightdistance = 292,
 		trackoffset = -14,
 		trackstrength = 10,
@@ -47,6 +47,9 @@ return {
 		turninplacespeedlimit = 1.24872,
 		turnrate = 215.60001,
 		unloadspread = 3,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -88,6 +91,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

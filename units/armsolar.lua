@@ -20,7 +20,7 @@ return {
 		description = "Produces Energy",
 		energystorage = 50,
 		energyuse = -20,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericBlueEMP",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -33,10 +33,13 @@ return {
 		objectname = "ARMSOLAR",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericBlueEMP",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "yyoyy yoooy ooooo yoooy yyoyy",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

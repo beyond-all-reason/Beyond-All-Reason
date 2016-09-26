@@ -10,7 +10,7 @@ return {
 		buildtime = 2958,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		description = "Converts up to 70 energy into 1.1 metal per second",
-		explodeas = "ARMESTOR_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -22,10 +22,19 @@ return {
 		name = "Floating Energy Converter",
 		objectname = "ARMFMKR",
 		seismicsignature = 0,
-		selfdestructas = "ARMESTOR_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 273,
 		waterline = 4,
 		yardmap = "wwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			activate = "metlon1",
 			canceldestruct = "cancel2",

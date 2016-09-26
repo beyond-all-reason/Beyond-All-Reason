@@ -15,7 +15,7 @@ return {
 		description = "Light Plasma Kbot",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericPurple",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -30,12 +30,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMHAM",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericPurple",
 		sightdistance = 380,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0164,
 		turnrate = 1094,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

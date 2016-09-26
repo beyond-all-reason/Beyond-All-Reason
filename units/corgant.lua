@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Level 3 Units",
 		energystorage = 1400,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericRed",
 		footprintx = 9,
 		footprintz = 9,
 		icontype = "building",
@@ -33,7 +33,7 @@ return {
 		objectname = "CORGANT",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericRed",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
@@ -47,6 +47,9 @@ return {
 			[4] = "shiva",
 			[5] = "armraven",
 			[6] = "corsok",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -89,7 +92,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",

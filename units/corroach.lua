@@ -15,7 +15,7 @@ return {
 		description = "Amphibious Crawling Bomb",
 		energymake = 0.1,
 		energyuse = 0.1,
-		explodeas = "CRAWL_BLASTSML",
+		explodeas = "largeExplosionGenericWhite",
 		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
@@ -31,13 +31,22 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORROACH",
 		seismicsignature = 0,
-		selfdestructas = "CRAWL_BLAST",
+		selfdestructas = "largeExplosionGenericWhite",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.782,
 		turnrate = 1507,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

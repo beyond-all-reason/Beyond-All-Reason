@@ -30,5 +30,14 @@ return {
 		sightdistance = 1,
 		waterline = 12,
 		yardmap = "wwww",
+		sfxtypes = { 
+			pieceExplosionGenerators = { 
+				"deathceg3", 
+				"deathceg4", 
+			}, 
+		},
+		customparams = {
+			death_sounds = "generic",
+		},
 	},
 }

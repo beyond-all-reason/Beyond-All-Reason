@@ -14,7 +14,7 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (3000)",
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericPurple",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -27,10 +27,13 @@ return {
 		name = "Underwater Metal Storage",
 		objectname = "ARMUWMS",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericPurple",
 		sightdistance = 182,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +73,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

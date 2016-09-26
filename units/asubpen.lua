@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Amphibious/Underwater Units",
 		energystorage = 150,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericGreen",
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
@@ -33,7 +33,7 @@ return {
 		name = "Amphibious Complex",
 		objectname = "ASUBPEN",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericGreen",
 		sightdistance = 234,
 		terraformspeed = 750,
 		usebuildinggrounddecal = true,
@@ -48,6 +48,9 @@ return {
 			[6] = "armdecom",
 			[7] = "armsub",
 			[8] = "armrecl",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -69,6 +72,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

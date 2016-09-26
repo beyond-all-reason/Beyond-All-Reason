@@ -15,7 +15,7 @@ return {
 		description = "All-Terrain Rocket Spider",
 		energymake = 0.7,
 		energyuse = 0.7,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -29,12 +29,13 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSPTK",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericRed",
 		sightdistance = 440,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.1352,
 		turnrate = 1122,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.125,
 		},
 		featuredefs = {
@@ -78,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

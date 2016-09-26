@@ -15,7 +15,7 @@ return {
 		description = "Medium Assault Tank",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericBlue",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "type1",
@@ -31,7 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSTUMP",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericBlue",
 		sightdistance = 325,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -41,6 +41,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.914,
 		turnrate = 484,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -82,6 +85,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

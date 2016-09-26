@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		decoyfor = "armfus",
 		description = "Produces Energy / Storage",
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericBlueEMP",
 		footprintx = 5,
 		footprintz = 4,
 		hidedamage = true,
@@ -31,10 +31,13 @@ return {
 		name = "Fusion Reactor",
 		objectname = "ARMFUS",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericBlueEMP",
 		sightdistance = 210,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

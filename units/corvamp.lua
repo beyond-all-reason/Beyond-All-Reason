@@ -13,7 +13,7 @@ return {
 		collide = false,
 		cruisealt = 160,
 		description = "Stealth Fighter",
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
@@ -25,11 +25,20 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORVAMP",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGenericRed",
 		sightdistance = 200,
 		stealth = true,
 		turnrate = 1337,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

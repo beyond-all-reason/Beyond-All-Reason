@@ -17,7 +17,7 @@ return {
 		description = "Sniper Kbot",
 		energymake = 0.9,
 		energyuse = 0.9,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericBlue",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -32,12 +32,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSNIPE",
 		radardistancejam = 10,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericBlue",
 		sightdistance = 455,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.7788,
 		turnrate = 1338,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

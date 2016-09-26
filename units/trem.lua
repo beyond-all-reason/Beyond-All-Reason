@@ -15,7 +15,7 @@ return {
 		description = "Heavy Artillery Vehicle",
 		energymake = 2.1,
 		energyuse = 2.1,
-		explodeas = "BIG_UNIT",
+		explodeas = "largeExplosionGenericPurple",
 		footprintx = 4,
 		footprintz = 4,
 		hightrajectory = 1,
@@ -31,7 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "TREM",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericPurple",
 		sightdistance = 351,
 		trackoffset = -8,
 		trackstrength = 8,
@@ -41,6 +41,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.95832,
 		turnrate = 169.39999,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -82,6 +85,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

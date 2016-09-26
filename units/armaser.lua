@@ -16,7 +16,7 @@ return {
 		corpse = "DEAD",
 		description = "Radar Jammer Kbot",
 		energyuse = 100,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericBlue",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -33,11 +33,14 @@ return {
 		onoffable = true,
 		radardistancejam = 450,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericBlue",
 		sightdistance = 260,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1045,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

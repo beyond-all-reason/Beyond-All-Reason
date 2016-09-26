@@ -14,7 +14,7 @@ return {
 		cruisealt = 80,
 		description = "Flying Fortress",
         energymake = 50,
-		explodeas = "SMALL_BUILDING",
+		explodeas = "largeExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -29,12 +29,21 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORCRW",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeExplosionGenericGreen",
 		sightdistance = 494,
 		turninplaceanglelimit = 360,
 		turnrate = 297,
 		upright = true,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

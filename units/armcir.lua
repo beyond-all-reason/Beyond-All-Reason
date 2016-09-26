@@ -15,7 +15,7 @@ return {
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Bomb-Resistant Medium-Range Missile Battery",
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericPurple",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -27,10 +27,13 @@ return {
 		name = "Chainsaw",
 		objectname = "ARMCIR",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericPurple",
 		sightdistance = 350,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -72,6 +75,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

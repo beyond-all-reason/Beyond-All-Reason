@@ -14,7 +14,7 @@ return {
 		description = "Scout Plane",
 		energymake = 0.2,
 		energyuse = 0.2,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
@@ -28,11 +28,20 @@ return {
 		objectname = "ARMPEEP",
 		radardistance = 1140,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGenericWhite",
 		selfdestructcountdown = 1,
 		sightdistance = 865,
 		turnrate = 880,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

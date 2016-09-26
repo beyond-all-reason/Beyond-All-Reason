@@ -14,7 +14,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Long Range Plasma Cannon",
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -26,12 +26,13 @@ return {
 		name = "Intimidator",
 		objectname = "CORINT",
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			death_sounds = "generic",
 			canareaattack = 1,
 		},
 		featuredefs = {
@@ -77,7 +78,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:berthaflare",
 			},

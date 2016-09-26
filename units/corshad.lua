@@ -14,7 +14,7 @@ return {
 		description = "Bomber",
 		energymake = 0.9,
 		energyuse = 0.9,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericPurple",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -29,10 +29,19 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSHAD",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericPurple",
 		sightdistance = 169,
 		turnrate = 807,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

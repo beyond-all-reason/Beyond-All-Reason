@@ -17,7 +17,7 @@ return {
 		description = "Produces Energy / Storage",
 		energymake = 1200,
 		energystorage = 2500,
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 5,
 		footprintz = 4,
 		hidedamage = true,
@@ -29,10 +29,13 @@ return {
 		minwaterdepth = 25,
 		name = "Underwater Fusion Plant",
 		objectname = "ARMUWFUS",
-		selfdestructas = "MINE_NUKE",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +73,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -13,7 +13,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Amphibious Assault Mech",
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -28,13 +28,16 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "MARAUDER",
 		seismicsignature = 0,
-		selfdestructas = "CRAWL_BLASTSML",
+		selfdestructas = "mediumExplosionGenericBlue",
 		sightdistance = 455,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.98,
 		turnrate = 1056,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

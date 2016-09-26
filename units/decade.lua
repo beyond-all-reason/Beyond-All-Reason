@@ -15,7 +15,7 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Corvette",
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "DECADE",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 429,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -38,6 +38,9 @@ return {
 		turnrate = 530,
 		waterline = 3,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

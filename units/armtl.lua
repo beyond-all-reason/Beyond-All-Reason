@@ -13,7 +13,7 @@ return {
 		description = "Torpedo Launcher",
 		energymake = 0.1,
 		energyuse = 0.1,
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -24,10 +24,13 @@ return {
 		name = "Harpoon",
 		objectname = "ARMTL",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 455,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -47,6 +50,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

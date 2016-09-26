@@ -16,7 +16,7 @@ return {
 		description = "Submarine Killer",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "sea",
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSHARK",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 390,
 		sonardistance = 525,
 		turninplaceanglelimit = 140,
@@ -38,6 +38,9 @@ return {
 		turnrate = 289,
 		upright = true,
 		waterline = 30,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -36,6 +36,9 @@ return {
 		sightdistance = 1,
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			rockteethx = {
 				animating = 0,
@@ -56,6 +59,12 @@ return {
 				shadtrans = 1,
 				world = "greenworld",
 			},
+		},
+		sfxtypes = { 
+			pieceExplosionGenerators = { 
+				"deathceg3", 
+				"deathceg4", 
+			}, 
 		},
 	},
 }

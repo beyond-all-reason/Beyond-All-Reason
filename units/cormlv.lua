@@ -24,7 +24,7 @@ return {
 		description = "Stealthy Minelayer/Minesweeper",
 		energymake = 1,
 		energyuse = 1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -41,7 +41,7 @@ return {
 		objectname = "CORMLV",
 		radardistancejam = 64,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 188,
 		stealth = true,
 		terraformspeed = 120,
@@ -59,6 +59,9 @@ return {
 			[2] = "cormine3",
 			[3] = "cordrag",
 			[4] = "coreyes",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -101,6 +104,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

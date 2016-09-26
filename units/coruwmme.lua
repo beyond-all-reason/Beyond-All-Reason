@@ -17,7 +17,7 @@ return {
 		damagemodifier = 0.35,
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,
-		explodeas = "SMALL_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericRed",
 		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
@@ -32,10 +32,13 @@ return {
 		objectname = "CORUWMME",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericRed",
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

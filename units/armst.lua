@@ -17,7 +17,7 @@ return {
 		description = "Stealth Tank",
 		energymake = 0.9,
 		energyuse = 0.9,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericBlue",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMST",
 		seismicsignature = 4,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericBlue",
 		sightdistance = 494,
 		stealth = true,
 		trackstrength = 6,
@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1.64802,
 		turnrate = 701.79999,
         customparams = {
+			death_sounds = "generic",
             paralyzemultiplier = 0.2,
         },
 		featuredefs = {
@@ -87,6 +88,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -15,7 +15,7 @@ return {
 		description = "Heavy Plasma Kbot",
 		energymake = 5.1,
 		energyuse = 5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -31,11 +31,14 @@ return {
 		objectname = "ARMFBOY",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 510,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.66,
 		turnrate = 320,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

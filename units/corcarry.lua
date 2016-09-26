@@ -23,7 +23,7 @@ return {
 		energymake = 250,
 		energystorage = 1500,
 		energyuse = 25,
-		explodeas = "CRAWL_BLAST",
+		explodeas = "hugeExplosionGeneric",
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
@@ -44,7 +44,7 @@ return {
 		radardistance = 2700,
 		radaremitheight = 50,
 		seismicsignature = 0,
-		selfdestructas = "CRAWL_BLAST",
+		selfdestructas = "hugeExplosionGeneric",
 		sightdistance = 1040,
 		sonardistance = 740,
 		terraformspeed = 5000,
@@ -54,6 +54,9 @@ return {
 		waterline = 6,
 		windgenerator = 0.001,
 		workertime = 1000,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -93,6 +96,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

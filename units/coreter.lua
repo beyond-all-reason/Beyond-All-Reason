@@ -16,7 +16,7 @@ return {
 		corpse = "DEAD",
 		description = "Radar Jammer Vehicle",
 		energyuse = 100,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "mediumExplosionGenericWhite",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -33,7 +33,7 @@ return {
 		onoffable = true,
 		radardistancejam = 450,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "mediumExplosionGenericWhite",
 		sightdistance = 299,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -43,6 +43,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.95832,
 		turnrate = 619.29999,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -84,6 +87,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -20,7 +20,7 @@ return {
 		corpse = "DEAD",
 		description = "Plasma Deflector",
 		energystorage = 1500,
-		explodeas = "CRAWL_BLAST",
+		explodeas = "hugeBuildingExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -33,10 +33,13 @@ return {
 		objectname = "ARMGATE",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "MINE_NUKE",
+		selfdestructas = "hugeBuildingExplosionGenericRed",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -78,6 +81,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

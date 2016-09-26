@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		description = "Builds Hovercraft",
 		energystorage = 200,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 7,
 		icontype = "building",
@@ -32,7 +32,7 @@ return {
 		objectname = "ARMHP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 286,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
@@ -45,6 +45,9 @@ return {
 			[4] = "armah",
 			[5] = "armmh",
 			[6] = "armthovr",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -85,6 +88,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

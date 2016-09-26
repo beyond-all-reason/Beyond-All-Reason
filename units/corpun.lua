@@ -17,7 +17,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Medium Range Plasma Battery",
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		hightrajectory = 2,
@@ -31,10 +31,13 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORPUN",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericRed",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		description = "Converts up to 650 energy into 11.2 metal per second",
-		explodeas = "ATOMIC_BLASTSML",
+		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 5,
 		footprintz = 5,
@@ -31,11 +31,14 @@ return {
 		name = "Floating Moho Energy Converter",
 		objectname = "CORUWMMM",
 		seismicsignature = 0,
-		selfdestructas = "ATOMIC_BLAST",
+		selfdestructas = "hugeBuildingExplosionGeneric",
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		waterline = 17,
 		yardmap = "ooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

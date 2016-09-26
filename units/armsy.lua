@@ -16,7 +16,7 @@ return {
 		description = "Produces Level 1 Ships",
 		energymake = 15,
 		energystorage = 125,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
@@ -30,7 +30,7 @@ return {
 		objectname = "ARMSY",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 340,
 		terraformspeed = 500,
 		waterline = 26,
@@ -44,6 +44,9 @@ return {
 			[5] = "armtship",
 			[6] = "armsub",
 			[7] = "armrecl",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -66,7 +69,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 			},

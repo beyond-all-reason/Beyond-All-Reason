@@ -15,7 +15,7 @@ return {
 		description = "Heavy Assault Tank",
 		energymake = 0.8,
 		energyuse = 0.8,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORREAP",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericBlue",
 		sightdistance = 462,
 		trackoffset = 8,
 		trackstrength = 8,
@@ -40,6 +40,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.72656,
 		turnrate = 434,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -83,7 +86,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:MEDIUMFLARE",
 			},

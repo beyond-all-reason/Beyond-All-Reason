@@ -24,7 +24,7 @@ return {
 		corpse = "DEAD",
 		description = "Commander",
 		energymake = 25,
-		explodeas = "COMMANDER_BLAST",
+		explodeas = "hugeNukeExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -48,7 +48,7 @@ return {
 		radaremitheight = 40,
 		reclaimable = false,
 		seismicsignature = 0,
-		selfdestructas = "COMMANDER_BLAST",
+		selfdestructas = "hugeNukeExplosionGeneric",
 		selfdestructcountdown = 5,
 		showplayername = true,
 		sightdistance = 450,
@@ -88,6 +88,7 @@ return {
 			[26] = "corfrad",
 		},
 		customparams = {
+			death_sounds = "generic",
 			iscommander = true,
 			paralyzemultiplier = 0.025,
 		},
@@ -134,7 +135,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 			},

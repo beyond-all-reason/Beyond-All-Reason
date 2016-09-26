@@ -17,7 +17,7 @@ return {
 		description = "EMP Bomber",
 		energymake = 15,
 		energyuse = 15,
-		explodeas = "BIG_UNIT",
+		explodeas = "mediumExplosionGenericBlue",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -31,11 +31,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORGRIPN",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericBlue",
 		sightdistance = 390,
 		stealth = true,
 		turnrate = 396,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -14,7 +14,7 @@ return {
 		description = "Sea-To-Air Torpedo Launcher",
 		energymake = 0.1,
 		energyuse = 0.1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -25,10 +25,13 @@ return {
 		name = "Moray",
 		objectname = "ARMATL",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumBuildingExplosionGeneric",
 		sightdistance = 400,
 		waterline = 30,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -48,6 +51,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

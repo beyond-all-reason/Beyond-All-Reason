@@ -17,7 +17,7 @@ return {
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
-		explodeas = "CA_EX",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -34,7 +34,7 @@ return {
 		objectname = "ARMACA",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT_AIR",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
@@ -71,6 +71,15 @@ return {
 			[27] = "armap",
 			[28] = "armaap",
 			[29] = "armplat",
+		},
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

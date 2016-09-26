@@ -18,7 +18,7 @@ return {
 		corpse = "DEAD",
 		description = "Anti-Swarm Double LLT",
 		energystorage = 60,
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "smallBuildingExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -30,10 +30,13 @@ return {
 		name = "HLLT",
 		objectname = "HLLT",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "smallBuildingExplosionGenericRed",
 		sightdistance = 475,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

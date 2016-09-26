@@ -16,7 +16,7 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Armored Transport Ship",
-		explodeas = "BIG_UNITEX",
+		explodeas = "hugeExplosionGeneric",
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
@@ -32,7 +32,7 @@ return {
 		pushresistant = true,
 		releaseheld = false,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "hugeExplosionGeneric",
 		sightdistance = 550,
 		transportcapacity = 40,
 		transportsize = 4,
@@ -43,6 +43,9 @@ return {
 		unloadspread = 1,
 		waterline = 11,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -82,7 +85,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:shallow_water_dirt",
 			},

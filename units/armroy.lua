@@ -17,7 +17,7 @@ return {
 		description = "Destroyer",
 		energymake = 2,
 		energyuse = 2,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMROY",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 490,
 		sonardistance = 400,
 		turninplaceanglelimit = 140,
@@ -40,6 +40,9 @@ return {
 		turnrate = 199,
 		waterline = 4.5,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

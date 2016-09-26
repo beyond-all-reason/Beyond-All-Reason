@@ -14,7 +14,7 @@ return {
 		description = "Gunship",
 		energymake = 0.8,
 		energyuse = 0.8,
-		explodeas = "GUNSHIPEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -29,11 +29,20 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMBRAWL",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
 		turnrate = 792,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

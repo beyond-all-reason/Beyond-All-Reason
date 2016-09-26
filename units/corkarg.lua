@@ -13,7 +13,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "All-Terrain Assault Mech",
-		explodeas = "MECH_BLASTSML",
+		explodeas = "hugeExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -28,12 +28,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORKARG",
 		seismicsignature = 0,
-		selfdestructas = "MECH_BLAST",
+		selfdestructas = "hugeExplosionGenericRed",
 		sightdistance = 455,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.99,
 		turnrate = 528,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -53,6 +56,12 @@ return {
 				object = "CORKARG_DEAD",
 				reclaimable = true,
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

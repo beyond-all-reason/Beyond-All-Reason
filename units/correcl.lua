@@ -17,7 +17,7 @@ return {
 		collisionvolumescales = "37 15 48",
 		collisionvolumetype = "box",
 		description = "Ressurection Sub",
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "sea",
@@ -31,7 +31,7 @@ return {
 		objectname = "CORRECL",
 		repairspeed = 250,
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 430,
 		sonardistance = 270,
 		terraformspeed = 2250,
@@ -40,6 +40,15 @@ return {
 		turnrate = 600,
 		waterline = 17,
 		workertime = 450,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Produces Level 2 Kbots",
 		energystorage = 200,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericRed",
 		footprintx = 6,
 		footprintz = 6,
 		icontype = "building",
@@ -33,7 +33,7 @@ return {
 		objectname = "ARMALAB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericRed",
 		sightdistance = 286,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
@@ -58,6 +58,9 @@ return {
 			[16] = "armaser",
 			[17] = "armspy",
 			[18] = "armmark",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -98,6 +101,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -17,7 +17,7 @@ return {
 		description = "Anti-Air Ship",
 		energymake = 7,
 		energyuse = 7,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGeneric",
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
@@ -32,7 +32,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMAAS",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 475,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -40,6 +40,9 @@ return {
 		turnrate = 416,
 		waterline = 4,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -79,6 +82,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

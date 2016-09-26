@@ -14,7 +14,7 @@ return {
 		corpse = "DEAD",
 		description = "Fast Raider Kbot",
 		energymake = 0.4,
-		explodeas = "SMALL_UNITEX",
+		explodeas = "smallExplosionGenericRed",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -28,12 +28,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFAST",
 		seismicsignature = 0,
-		selfdestructas = "SMALL_UNIT",
+		selfdestructas = "smallExplosionGenericRed",
 		sightdistance = 351,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.4486,
 		turnrate = 1430,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

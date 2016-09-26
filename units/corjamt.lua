@@ -20,7 +20,7 @@ return {
 		corpse = "DEAD",
 		description = "Short-Range Jamming Device",
 		energyuse = 25,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericWhite",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -34,10 +34,13 @@ return {
 		onoffable = true,
 		radardistancejam = 360,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericWhite",
 		sightdistance = 104,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -58,6 +61,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

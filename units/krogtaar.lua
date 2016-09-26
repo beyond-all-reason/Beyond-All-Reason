@@ -12,7 +12,7 @@ return {
 		description = "Heavy Weapons Mech",
 		energymake = 3,
 		energyuse = 3,
-		explodeas = "CRAWL_BLAST",
+		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 35,
@@ -27,13 +27,16 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "krogtaar",
 		radardistance = 0,
-		selfdestructas = "CRAWL_BLAST",
+		selfdestructas = "hugeExplosionGeneric",
 		selfdestructcountdown = 10,
 		sightdistance = 390,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.8778,
 		turnrate = 1058,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +76,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

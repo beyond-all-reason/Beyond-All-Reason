@@ -15,7 +15,7 @@ return {
 		corpse = "DEAD",
 		description = "Increases Energy Storage (6000)",
 		energystorage = 6000,
-		explodeas = "ESTOR_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -27,10 +27,13 @@ return {
 		name = "Underwater Energy Storage",
 		objectname = "CORUWES",
 		seismicsignature = 0,
-		selfdestructas = "ESTOR_BUILDING",
+		selfdestructas = "largeBuildingExplosionGeneric",
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -70,6 +73,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

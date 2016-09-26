@@ -19,7 +19,7 @@ return {
 		corpse = "ARMSHLT_DEAD",
 		description = "Produces Large Amphibious Units",
 		energystorage = 1400,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "hugeBuildingExplosionGenericGreen",
 		footprintx = 9,
 		footprintz = 9,
 		icontype = "building",
@@ -34,7 +34,7 @@ return {
 		objectname = "ARMSHLTX",
 		script = "armshltx.cob",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "hugeBuildingExplosionGenericGreen",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
@@ -45,6 +45,9 @@ return {
 			[2] = "marauder",
 			[3] = "armlun",
 			[4] = "armcroc",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			armshlt_dead = {
@@ -87,7 +90,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
 			},

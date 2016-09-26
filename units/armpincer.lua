@@ -15,7 +15,7 @@ return {
 		description = "Light Amphibious Tank",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMPINCER",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 240,
 		trackoffset = 3,
 		trackstrength = 6,
@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.485,
 		turnrate = 398,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.125,
 		},
 		featuredefs = {
@@ -63,6 +64,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

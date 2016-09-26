@@ -16,7 +16,7 @@ return {
 		description = "Produces Level 1 Ships",
 		energymake = 15,
 		energystorage = 100,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericPurple",
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
@@ -29,7 +29,7 @@ return {
 		name = "Shipyard",
 		objectname = "CORSY",
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericPurple",
 		sightdistance = 340,
 		terraformspeed = 500,
 		waterline = 33,
@@ -43,6 +43,9 @@ return {
 			[5] = "cortship",
 			[6] = "corsub",
 			[7] = "correcl",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -65,7 +68,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 			},

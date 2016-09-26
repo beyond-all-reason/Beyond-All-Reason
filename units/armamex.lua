@@ -19,7 +19,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Stealthy Cloakable Metal Extractor",
-		explodeas = "TWILIGHT",
+		explodeas = "mediumBuildingExplosionGenericPurple",
 		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
@@ -36,12 +36,15 @@ return {
 		objectname = "ARMAMEX",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "TWILIGHT",
+		selfdestructas = "mediumBuildingExplosionGenericPurple",
 		selfdestructcountdown = 1,
 		sightdistance = 286,
 		stealth = true,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -82,6 +85,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

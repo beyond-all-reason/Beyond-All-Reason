@@ -14,7 +14,7 @@ return {
 		corpse = "DEAD",
 		description = "Assault Kbot",
 		energymake = 3.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericBlue",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -28,12 +28,15 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMZEUS",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericBlue",
 		sightdistance = 331.5,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0428,
 		turnrate = 1056,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

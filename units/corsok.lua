@@ -21,7 +21,7 @@ return {
 		description = "Heavy Hovertank",
 		energymake = 2.2,
 		energyuse = 2,
-		explodeas = "BIG_UNIT",
+		explodeas = "largeExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSOK",
 		radardistance = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericRed",
 		side = "CORE",
 		sightdistance = 650,
 		sonardistance = 700,
@@ -44,6 +44,9 @@ return {
 		turninplacespeedlimit = 1.056,
 		turnrate = 290,
 		waterline = 7,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -80,6 +83,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

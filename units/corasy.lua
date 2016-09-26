@@ -16,7 +16,7 @@ return {
 		description = "Produces Level 2 Ships",
 		energymake = 25,
 		energystorage = 200,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericGreen",
 		footprintx = 12,
 		footprintz = 12,
 		icontype = "building",
@@ -30,7 +30,7 @@ return {
 		objectname = "CORASY",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericGreen",
 		sightdistance = 301.60001,
 		terraformspeed = 1000,
 		waterline = 32,
@@ -48,6 +48,9 @@ return {
 			[9] = "corblackhy",
 			[10] = "corcarry",
 			[11] = "corsjam",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -70,7 +73,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
 			},

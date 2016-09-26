@@ -18,7 +18,7 @@ return {
 		description = "Floating Plasma Deflector",
 		energystorage = 2000,
 		energyuse = 0,
-		explodeas = "CRAWL_BLAST",
+		explodeas = "largeBuildingExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "building",
@@ -35,7 +35,7 @@ return {
 		objectname = "corfgate",
 		onoffable = 1,
 		seismicsignature = 0,
-		selfdestructas = "MINE_NUKE",
+		selfdestructas = "largeBuildingExplosionGenericRed",
 		side = "CORE",
 		sightdistance = 600,
 		smoothanim = 1,
@@ -46,6 +46,9 @@ return {
 		unitname = "corfgate",
 		waterline = 0,
 		workertime = 0,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -87,6 +90,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -15,7 +15,7 @@ return {
 		description = "Heavy All-terrain Assault Spider",
 		energymake = 0.7,
 		energyuse = 0.7,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericGreen",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,12 +30,13 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORTERMITE",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "mediumExplosionGenericGreen",
 		sightdistance = 380,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1056,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.125,
 		},
 		featuredefs = {
@@ -78,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

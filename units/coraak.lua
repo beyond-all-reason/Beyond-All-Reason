@@ -14,7 +14,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Heavy Amphibious Anti-Air Kbot",
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericPurple",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -26,12 +26,15 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORAAK",
 		seismicsignature = 1,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericPurple",
 		sightdistance = 390,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.759,
 		turnrate = 912,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -73,6 +76,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -24,7 +24,7 @@ return {
 		description = "Decoy Commander",
 		energymake = 15,
 		energystorage = 50,
-		explodeas = "DECOY_COMMANDER_BLAST",
+		explodeas = "hugeExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -46,7 +46,7 @@ return {
 		radardistance = 50,
 		reclaimable = false,
 		seismicsignature = 0,
-		selfdestructas = "DECOY_COMMANDER_BLAST",
+		selfdestructas = "hugeExplosionGeneric",
 		showplayername = true,
 		sightdistance = 377,
 		terraformspeed = 750,
@@ -72,7 +72,14 @@ return {
 			[14] = "corfmkr",
 		},
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 0.025,
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath2",

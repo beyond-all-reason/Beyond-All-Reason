@@ -16,7 +16,7 @@ return {
 		description = "Produces Level 2 Ships",
 		energymake = 25,
 		energystorage = 200,
-		explodeas = "LARGE_BUILDINGEX",
+		explodeas = "largeBuildingExplosionGenericGreen",
 		footprintx = 12,
 		footprintz = 12,
 		icontype = "building",
@@ -30,7 +30,7 @@ return {
 		objectname = "ARMASY",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "LARGE_BUILDING",
+		selfdestructas = "largeBuildingExplosionGenericGreen",
 		sightdistance = 299,
 		terraformspeed = 1000,
 		waterline = 26,
@@ -48,6 +48,9 @@ return {
 			[9] = "aseadragon",
 			[10] = "armcarry",
 			[11] = "armsjam",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -68,6 +71,12 @@ return {
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -17,7 +17,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Nuclear ICBM Launcher",
-		explodeas = "ATOMIC_BLAST",
+		explodeas = "smallNukeExplosionGeneric",
 		footprintx = 7,
 		footprintz = 7,
 		icontype = "building",
@@ -30,10 +30,13 @@ return {
 		objectname = "ARMSILO",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "NUCLEAR_MISSILE",
+		selfdestructas = "smallNukeExplosionGeneric",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

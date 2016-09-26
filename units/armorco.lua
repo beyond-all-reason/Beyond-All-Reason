@@ -16,7 +16,7 @@ return {
 		energymake = 40,
 		energystorage = 500,
 		energyuse = 0,
-		explodeas = "NUCLEAR_MISSILE",
+		explodeas = "smallNukeExplosionGeneric",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "orcone",
@@ -32,13 +32,16 @@ return {
 		objectname = "ARMORCO",
 		radardistance = 0,
 		seismicsignature = 100,
-		selfdestructas = "CRBLMSSL",
+		selfdestructas = "smallNukeExplosionGeneric",
 		selfdestructcountdown = 10,
 		sightdistance = 910,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.94116,
 		turnrate = 396,
 		upright = true,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

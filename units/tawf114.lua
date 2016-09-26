@@ -16,7 +16,7 @@ return {
 		energymake = 1.1,
 		energystorage = 22,
 		energyuse = 1.1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "TAWF114",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 546,
 		trackoffset = 8,
 		trackstrength = 10,
@@ -42,6 +42,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.2573,
 		turnrate = 375.10001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -83,6 +86,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

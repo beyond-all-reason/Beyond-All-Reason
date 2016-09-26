@@ -15,7 +15,7 @@ return {
 		description = "Mobile Artillery",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "ARMMART",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 286,
 		trackoffset = -8,
 		trackstrength = 8,
@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.1946,
 		turnrate = 402,
 		customparams = {
+			death_sounds = "generic",
 			canareaattack = 1,
 		},
 		featuredefs = {
@@ -84,6 +85,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

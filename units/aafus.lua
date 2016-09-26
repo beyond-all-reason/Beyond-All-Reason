@@ -20,7 +20,7 @@ return {
 		description = "Enhanced Energy Output",
 		energymake = 3000,
 		energystorage = 9000,
-		explodeas = "NUCLEAR_MISSILE",
+		explodeas = "hugeNukeExplosionGeneric",
 		footprintx = 7,
 		footprintz = 5,
 		icontype = "building",
@@ -32,10 +32,13 @@ return {
 		name = "Advanced Fusion Reactor",
 		objectname = "AAFUS",
 		seismicsignature = 0,
-		selfdestructas = "CRBLMSSL",
+		selfdestructas = "hugeNukeExplosionGeneric",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooooooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -77,6 +80,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

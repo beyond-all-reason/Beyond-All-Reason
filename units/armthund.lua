@@ -14,7 +14,7 @@ return {
 		description = "Bomber",
 		energymake = 1.1,
 		energyuse = 1.1,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -29,9 +29,18 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMTHUND",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericRed",
 		sightdistance = 195,
 		turnrate = 829,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

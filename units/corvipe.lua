@@ -15,7 +15,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = "Pop-up Sabot Battery",
-		explodeas = "MEDIUM_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericRed",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -28,11 +28,14 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORVIPE",
 		seismicsignature = 0,
-		selfdestructas = "MEDIUM_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericRed",
 		sightdistance = 546,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -74,6 +77,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

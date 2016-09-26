@@ -16,7 +16,7 @@ return {
 		description = "Assault Mech",
 		energymake = 12,
 		energystorage = 120,
-		explodeas = "BANTHA_DEATH",
+		explodeas = "smallNukeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 25,
@@ -32,7 +32,7 @@ return {
 		objectname = "ARMBANTH",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "BANTHA_NUKE",
+		selfdestructas = "smallNukeExplosionGeneric",
 		selfdestructcountdown = 10,
 		sightdistance = 617,
 		turninplaceanglelimit = 140,
@@ -40,6 +40,7 @@ return {
 		turnrate = 1056,
 		upright = true,
 		customparams = {
+			death_sounds = "generic",
 			paralyzemultiplier = 1.3,
 		},
 		featuredefs = {
@@ -85,7 +86,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:BANTHAMUZZLE",
 			},

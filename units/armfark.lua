@@ -19,7 +19,7 @@ return {
 		energymake = 12,
 		energystorage = 25,
 		energyuse = 12,
-		explodeas = "BIG_UNITEX",
+		explodeas = "smallExplosionGenericGreen",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -36,7 +36,7 @@ return {
 		radardistance = 50,
 		repairspeed = 150,
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "smallExplosionGenericGreen",
 		sightdistance = 377,
 		terraformspeed = 600,
 		turninplace = 1,
@@ -53,6 +53,9 @@ return {
 			[5] = "armeyes",
 			[6] = "armmark",
 			[7] = "armaser",
+		},
+		customparams = {
+			death_sounds = "generic",
 		},
 		featuredefs = {
 			dead = {
@@ -95,6 +98,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

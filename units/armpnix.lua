@@ -14,7 +14,7 @@ return {
 		description = "Strategic Bomber",
 		energymake = 1.8,
 		energyuse = 1.8,
-		explodeas = "BIG_UNITEX",
+		explodeas = "mediumExplosionGenericPurple",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "air",
@@ -29,10 +29,19 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMPNIX",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT_AIR",
+		selfdestructas = "mediumExplosionGenericPurple",
 		sightdistance = 260,
 		turnrate = 402,
 		blocking = false,
+		customparams = {
+			death_sounds = "generic",
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

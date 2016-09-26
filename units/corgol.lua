@@ -15,7 +15,7 @@ return {
 		description = "Very Heavy Assault Tank",
 		energymake = 0.5,
 		energyuse = 0.5,
-		explodeas = "BIG_UNITEX",
+		explodeas = "largeExplosionGenericRed",
 		footprintx = 4,
 		footprintz = 4,
 		idleautoheal = 5,
@@ -31,7 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORGOL",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "largeExplosionGenericRed",
 		sightdistance = 395,
 		trackoffset = 8,
 		trackstrength = 10,
@@ -41,6 +41,9 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.957,
 		turnrate = 220,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -84,7 +87,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = {
+		sfxtypes = { 
+ 			 pieceExplosionGenerators = { 
+ 				"deathceg3",
+ 				"deathceg4",
+ 			}, 
 			explosiongenerators = {
 				[1] = "custom:goliathflare",
 			},

@@ -13,7 +13,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "All-Terrain Heavy Plasma Cannon",
-		explodeas = "SHOCKER",
+		explodeas = "largeExplosionGenericPurple",
 		footprintx = 4,
 		footprintz = 4,
 		hightrajectory = 2,
@@ -29,11 +29,14 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSHOCK",
 		seismicsignature = 0,
-		selfdestructas = "SHOCKER",
+		selfdestructas = "largeExplosionGenericPurple",
 		sightdistance = 625,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.726,
 		turnrate = 231,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

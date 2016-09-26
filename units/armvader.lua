@@ -16,7 +16,7 @@ return {
 		description = "Amphibious Crawling Bomb",
 		energymake = 0.1,
 		energyuse = 0.1,
-		explodeas = "CRAWL_BLASTSML",
+		explodeas = "largeExplosionGenericWhite",
 		firestate = 2,
 		footprintx = 2,
 		footprintz = 2,
@@ -32,13 +32,16 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMVADER",
 		seismicsignature = 0,
-		selfdestructas = "CRAWL_BLAST",
+		selfdestructas = "largeExplosionGenericWhite",
 		selfdestructcountdown = 0,
 		sightdistance = 273,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.848,
 		turnrate = 1540,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			corpse = {
 				blocking = true,
@@ -73,6 +76,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Increases Energy Storage (6000)",
 		energystorage = 6000,
-		explodeas = "ESTOR_BUILDINGEX",
+		explodeas = "mediumBuildingExplosionGenericBlueEMP",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -31,10 +31,13 @@ return {
 		name = "Karate Energy Storage",
 		objectname = "ARMESTOR",
 		seismicsignature = 0,
-		selfdestructas = "ESTOR_BUILDING",
+		selfdestructas = "mediumBuildingExplosionGenericBlueEMP",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -76,6 +79,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {

@@ -16,7 +16,7 @@ return {
 		description = "Battleship",
 		energymake = 100,
 		energyuse = 48,
-		explodeas = "BIG_UNITEX",
+		explodeas = "hugeExplosionGenericPurple",
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
@@ -31,13 +31,16 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMBATS",
 		seismicsignature = 0,
-		selfdestructas = "BIG_UNIT",
+		selfdestructas = "hugeExplosionGenericPurple",
 		sightdistance = 455,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.9008,
 		turnrate = 310,
 		waterline = 12,
 		windgenerator = 0.001,
+		customparams = {
+			death_sounds = "generic",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -75,6 +78,12 @@ return {
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
+			},
+		},
+		sfxtypes = { 
+ 			pieceExplosionGenerators = { 
+				"deathceg3",
+				"deathceg4",
 			},
 		},
 		sounds = {
