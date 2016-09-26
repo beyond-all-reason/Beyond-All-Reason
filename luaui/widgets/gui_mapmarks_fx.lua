@@ -50,21 +50,21 @@ local imageDir					= ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/"
 
 local types = {
 	map_mark = {
-		size			= 2.5,
-		endSize			= 1.75,
-		duration		= 12,
+		size			= 4.0,
+		endSize			= 2.75,
+		duration		= 14,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.20},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.75}
 	},
 	map_draw = {
-		size			= 0.65,
+		size			= 0.75,
 		endSize			= 0.2,
 		duration		= 2,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.15},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.00}
 	},
 	map_erase = {
-		size			= 3.25,
+		size			= 3.5,
 		endSize			= 0.7,
 		duration		= 4,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.10},
@@ -221,9 +221,9 @@ function widget:DrawWorldPreUnit()
 			-- glow
 			if glowColor[4] > 0 then
 				gl.Color(glowColor[1],glowColor[2],glowColor[3],a)
-				gl.Scale(size,1,size)
+				gl.Scale(size*0.8,1,size*0.8)
 				glCallList(glowDlist)
-				gl.Scale(1/size,1,1/size)
+				gl.Scale(1/(size*0.8),1,1/(size*0.8))
 			end
 			-- ring
 			if aRing > 0 then
