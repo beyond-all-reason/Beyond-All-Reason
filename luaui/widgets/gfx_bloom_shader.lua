@@ -133,8 +133,8 @@ function reset()
 
 	if drawHighlights then
 		usedBasicAlpha = basicAlpha
-		drawWorldAlpha				= 0.24 - (illumThreshold*0.4) + (usedBasicAlpha/12) + (0.022 * highlightsAlpha)
-		drawWorldPreUnitAlpha = 0.24 - (illumThreshold*0.4)  + (usedBasicAlpha/6)  + (0.01 * highlightsAlpha)
+		drawWorldAlpha				= 0.22 - (illumThreshold*0.4) + (usedBasicAlpha/12) + (0.02 * highlightsAlpha)
+		drawWorldPreUnitAlpha = 0.22 - (illumThreshold*0.4)  + (usedBasicAlpha/6.5)  + (0.01 * highlightsAlpha)
 	else
 		usedBasicAlpha = basicAlpha
 		drawWorldAlpha = 0.05 + (usedBasicAlpha/11)
