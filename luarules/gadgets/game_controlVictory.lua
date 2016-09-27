@@ -917,7 +917,7 @@ else -- UNSYNCED
 	
 	
 	function gadget:GameStart()
-		showGameModeInfo = false
+		--showGameModeInfo = false
 	end
 
 	
