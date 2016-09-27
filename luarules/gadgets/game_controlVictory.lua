@@ -868,12 +868,12 @@ else -- UNSYNCED
 	function DrawPoints(simplified)
 		local capturedAlpha, capturingAlpha, prefix, parts
 		if simplified then	-- for minimap
-			capturedAlpha = 0.45
-			capturingAlpha = 0.6
+			capturedAlpha = 0.5
+			capturingAlpha = 0.65
 			prefix = 'm_'		-- so it uses different displaylists
 			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 5)
 		else
-			capturedAlpha = 0.22
+			capturedAlpha = 0.25
 			capturingAlpha = 0.33
 			prefix = ''
 			parts = (OPTIONS.circlePieces * OPTIONS.circlePieceDetail)
@@ -995,6 +995,28 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		PopMatrix()
 	end
 	
+	function drawMouseoverScoreboard()
+  	PushMatrix()
+			Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
+	  	Scale(uiScale,uiScale,1)
+		  local x = scoreboardX --rightwards
+		  local y = scoreboardY --upwards
+			local width = scoreboardWidth
+			local height = scoreboardHeight
+			local maxWidth = width
+			local maxHeight = height
+			
+			-- background
+		  Color(0,0,0,0.8)
+			RectRound(x-bgMargin,y-height-bgMargin,x+width+bgMargin,y+bgMargin,8, 0,1,1,1)
+			
+			-- text
+			Text("\255\200\200\200Use middlemouse\nto drag this window", x+scoreboardWidth/2, y-(scoreboardHeight/2)+7, 14, "co")
+			
+  	PopMatrix()
+	end
+	
+	
 	function drawScoreboard()
   	PushMatrix()
 			Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
@@ -1101,22 +1123,41 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 	  	CallList(infoList)
 	  end
 	  
-			local frame = Spring.GetGameFrame()
-			if frame / 1800 > startTime then
-			  if scoreboardList == nil or frame%15==0 then
-			  	if scoreboardList ~= nil then
-			  		gl.DeleteList(scoreboardList)
+		local frame = Spring.GetGameFrame()
+		if frame / 1800 > startTime then
+		  if scoreboardList == nil or frame%15==0 then
+		  	if scoreboardList ~= nil then
+		  		gl.DeleteList(scoreboardList)
+		  	end
+		  	scoreboardList = CreateList(drawScoreboard)
+		  end
+	  	CallList(scoreboardList)
+	  	
+  		local mx,my = Spring.GetMouseState()
+			local rectX1 = ((scoreboardX-bgMargin) * uiScale) - ((vsx * (uiScale-1))/2)
+			local rectY1 = ((scoreboardY+bgMargin) * uiScale) - ((vsy * (uiScale-1))/2)
+			local rectX2 = ((scoreboardX+scoreboardWidth+bgMargin) * uiScale) - ((vsx * (uiScale-1))/2)
+			local rectY2 = ((scoreboardY-scoreboardHeight-bgMargin) * uiScale) - ((vsy * (uiScale-1))/2)
+			if IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
+				if mouseoverScoreboard == nil then
+					mouseoverScoreboard = true
+					if mouseoverScoreboardList ~= nil then
+			  		gl.DeleteList(mouseoverScoreboardList)
 			  	end
-			  	scoreboardList = CreateList(drawScoreboard)
-			  end
-		  	CallList(scoreboardList)
+			  	mouseoverScoreboardList = CreateList(drawMouseoverScoreboard)
+				end
 			else
-				Text("Capturing points begins in:", vsx - 280, vsy *.58, 18, "lo")
-				local timeleft = startTime * 60 - frame / 30
-				timeleft = timeleft - timeleft % 1
-				Text(timeleft .. " seconds", vsx - 280, vsy *.58 - 25, 18, "lo")
+				mouseoverScoreboard = nil
 			end
-			
+			if mouseoverScoreboard then
+  			CallList(mouseoverScoreboardList)
+  		end
+		else
+			Text("Capturing points begins in:", vsx - 280, vsy *.58, 18, "lo")
+			local timeleft = startTime * 60 - frame / 30
+			timeleft = timeleft - timeleft % 1
+			Text(timeleft .. " seconds", vsx - 280, vsy *.58 - 25, 18, "lo")
+		end
 	end
 	
 
@@ -1129,7 +1170,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 	end
 	
 
-	function gadget:MouseMove(mx, my, dx, dy)
+	function gadget:MouseMove(x, y, dx, dy)
 		if draggingScoreboard then
 			scoreboardRelX = scoreboardRelX + (dx/vsx)
 			scoreboardRelY = scoreboardRelY + (dy/vsy)
@@ -1137,6 +1178,11 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			 	gl.DeleteList(scoreboardList)
 	  	end
 	  	scoreboardList = CreateList(drawScoreboard)
+				
+			if mouseoverScoreboardList ~= nil then
+	  		gl.DeleteList(mouseoverScoreboardList)
+	  	end
+	  	mouseoverScoreboardList = CreateList(drawMouseoverScoreboard)
 		end
 	end
 
