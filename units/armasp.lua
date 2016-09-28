@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 399,
 		builddistance = 136,
 		builder = true,
+		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 12,
 		buildinggrounddecalsizey = 12,

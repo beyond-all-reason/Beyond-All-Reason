@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 210,
 		builddistance = 400,
 		builder = true,
+		shownanospray = false,
 		buildingGroundDecalDecaySpeed=30,
 		buildingGroundDecalSizeX=5,
 		buildingGroundDecalSizeY=5,

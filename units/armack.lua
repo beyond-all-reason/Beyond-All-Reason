@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 370,
 		builddistance = 136,
 		builder = true,
+		shownanospray = false,
 		buildpic = "ARMACK.DDS",
 		buildtime = 9432,
 		canmove = true,

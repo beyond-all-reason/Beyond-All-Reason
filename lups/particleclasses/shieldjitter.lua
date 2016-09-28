@@ -26,7 +26,6 @@ function ShieldJitter.GetInfo()
     distortion= true,
     rtt       = false,
     ctt       = true,
-    atiseries = 2,
     intel     = 0,
   }
 end

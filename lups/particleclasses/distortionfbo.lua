@@ -55,8 +55,7 @@ local FLOAT_TEXTURES   = gl.HasExtension("GL_ARB_texture_float")
 PostDistortion.texRectangle     = false
 PostDistortion.jitterformat     = GL_RGBA16F_ARB
 PostDistortion.depthformat      = GL_DEPTH_COMPONENT
-PostDistortion.screenUpdateSkip = 0
-PostDistortion.copyDepthBuffer  = (NVseries>=7)or(NVseries==0)
+PostDistortion.copyDepthBuffer  = true
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
@@ -78,7 +77,6 @@ function PostDistortion.GetInfo()
     shader    = true,
     rtt       = true,
     ctt       = true,
-    atiseries = 2,
     ms        = -1,
   }
 end
@@ -136,23 +134,17 @@ local glCopyToTexture = gl.CopyToTexture
 local glCallList      = gl.CallList
 local glTexture       = gl.Texture
 
-local CLEAR_FBO = function() gl.Clear(GL_COLOR_BUFFER_BIT,0,0,0,0); end
 
-local screensUpdated = 0
 function PostDistortion:BeginDraw()
-  glActiveFBO(fbo,CLEAR_FBO) --//clear jitterTex
+  glActiveFBO(fbo, gl.Clear, GL_COLOR_BUFFER_BIT, 0,0,0,0) --//clear jitterTex
 
   --// copy depthbuffer to a seperated depth texture, so we can use it in the MRT
   if (pd.copyDepthBuffer) then
     glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy)
   end
 
-  --// don't update the screen copies each frame (needed for gfxs with slow screen copies, geforce5 etc.)
-  screensUpdated = screensUpdated + 1
-  if (screensUpdated>pd.screenUpdateSkip) then
-    glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-    screensUpdated = 0
-  end
+  --// update screen copy
+  glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 end
 
 function PostDistortion:EndDraw()
@@ -190,10 +182,6 @@ function PostDistortion.Initialize()
 
   ------------------------------------------------------------------------------------------
   ------------------------------------------------------------------------------------------
-
-  if (type(LupsConfig.distortionupdateskip)=="number") then
-    pd.screenUpdateSkip = LupsConfig.distortionupdateskip
-  end
 
   if (type(LupsConfig.distortioncopydepthbuffer)=="boolean") then
     pd.copyDepthBuffer = LupsConfig.distortioncopydepthbuffer

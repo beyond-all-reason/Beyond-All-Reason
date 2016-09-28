@@ -7,6 +7,7 @@ return {
 		buildcostmetal = 61,
 		builddistance = 96,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORMLV.DDS",
 		buildtime = 3640,
 		canassist = false,

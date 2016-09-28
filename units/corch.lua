@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 164,
 		builddistance = 112,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORCH.DDS",
 		buildtime = 4576,
 		canmove = true,

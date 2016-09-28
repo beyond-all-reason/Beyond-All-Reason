@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 273,
 		builddistance = 136,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORCSA.DDS",
 		buildtime = 20904,
 		canfly = true,

@@ -5,6 +5,7 @@ return {
 		buildcostenergy = 5277,
 		buildcostmetal = 1100,
 		builder = true,
+		shownanospray = false,
 		buildpic = "ARMFHP.DDS",
 		buildtime = 17362,
 		canmove = true,

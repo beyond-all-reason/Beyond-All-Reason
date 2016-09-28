@@ -27,7 +27,6 @@ function JitterParticles2.GetInfo()
     distortion= true,
     rtt       = false,
     ctt       = false,
-    atiseries = 1,
   }
 end
 
@@ -94,6 +93,7 @@ local spGetPositionLosState = Spring.GetPositionLosState
 local spGetUnitLosState     = Spring.GetUnitLosState
 local spIsSphereInView      = Spring.IsSphereInView
 local spGetUnitRadius       = Spring.GetUnitRadius
+local spGetProjectilePosition = Spring.GetProjectilePosition
 
 local IsPosInLos    = Spring.IsPosInLos
 local IsPosInAirLos = Spring.IsPosInAirLos
@@ -178,6 +178,16 @@ function JitterParticles2.EndDrawDistortion()
   glUseShader(0)
 
   lastTexture=""
+end
+
+function JitterParticles2:DrawDistortion()
+  if (lastTexture~=self.texture) then
+    glTexture(0,self.texture)
+    lastTexture=self.texture
+  end
+
+  glMultiTexCoord(5, self.frame/200, time*self.animSpeed)
+  glCallList(self.dlist)
 end
 
 
@@ -326,30 +336,23 @@ local function InitializeParticles(self)
   local emitMatrix = CreateEmitMatrix3x3(ev[1],ev[2],ev[3])
 
   --// global data
+  glMultiTexCoord(3, self.speedExp, self.sizeExp)
+  glMultiTexCoord(4, self.force[1], self.force[2], self.force[3], self.forceExp)
+  glMultiTexCoord(6, self.strength * 0.01, self.scale, self.heat/self.strength)
 
   self.maxSpawnRadius = 0
   for i=1,self.count do
     local life,delay, x,y,z, dx,dy,dz, sizeStart,sizeEnd = self:CreateParticleAttributes(up,right,forward, partposCode, i-1)
     dx,dy,dz = MultMatrix3x3(emitMatrix,dx,dy,dz)
-    self.dlData[i] = {life, delay,
+    DrawParticleForDList(life, delay,
                          x,y,z,    -- relative start pos
                          dx,dy,dz, -- speed vector
-                         sizeStart,sizeEnd}
+                         sizeStart,sizeEnd)
     local spawnDist = x*x + y*y + z*z
     if (spawnDist>self.maxSpawnRadius) then self.maxSpawnRadius=spawnDist end
   end
   self.maxSpawnRadius = sqrt(self.maxSpawnRadius)
-end
 
-local function InitializeParticlesDL(self)
-  glMultiTexCoord(3, self.speedExp, self.sizeExp)
-  glMultiTexCoord(4, self.force[1], self.force[2], self.force[3], self.forceExp)
-  glMultiTexCoord(6, self.strength * 0.01, self.scale, self.heat/self.strength)
-  for i=1,self.count do
-    local dld=self.dlData[i]
-    DrawParticleForDList(dld[1],dld[2],dld[3],dld[4],dld[5],dld[6],dld[7],dld[8],dld[9],dld[10])
-  end
-  self.dlData = {}
   glMultiTexCoord(2, 0,0,0,1)
   glMultiTexCoord(3, 0,0,0,1)
   glMultiTexCoord(4, 0,0,0,1)
@@ -360,27 +363,12 @@ end
 local function CreateDList(self)
   glPushMatrix()
     glTranslate(self.pos[1],self.pos[2],self.pos[3])
-    glBeginEnd(GL_QUADS,InitializeParticlesDL,self)
+    glBeginEnd(GL_QUADS,InitializeParticles,self)
   glPopMatrix()
 end
 
-function JitterParticles2:DrawDistortion()
-  if (lastTexture~=self.texture) then
-    glTexture(0,self.texture)
-    lastTexture=self.texture
-  end
-
-  glMultiTexCoord(5, self.frame/200, time*self.animSpeed)
-  if (self.dlist==0) then
-    self.dlist=glCreateList(CreateDList,self)
-  end
-  glCallList(self.dlist)
-end
-
 function JitterParticles2:CreateParticle()
-  self.dlist = 0
-  self.dlData = {}
-  InitializeParticles(self)
+  self.dlist = glCreateList(CreateDList,self)
 
   self.frame = 0
   self.firstGameFrame = thisGameFrame
@@ -394,9 +382,7 @@ function JitterParticles2:CreateParticle()
 end
 
 function JitterParticles2:Destroy()
-  if (self.dlist>0) then
-    gl.DeleteList(self.dlist)
-  end
+  gl.DeleteList(self.dlist)
   --gl.DeleteTexture(self.texture)
 end
 
@@ -406,20 +392,23 @@ function JitterParticles2:Visible()
   local posX,posY,posZ = self.pos[1],self.pos[2],self.pos[3]
   local losState
   if (self.unit and not self.worldspace) then
-    losState = (spGetUnitLosState(self.unit, LocalAllyTeamID) or {}).los or false
     local ux,uy,uz = spGetUnitViewPosition(self.unit)
     posX,posY,posZ = posX+ux,posY+uy,posZ+uz
     radius = radius + spGetUnitRadius(self.unit)
+    losState = GetUnitLosState(self.unit)
+  elseif (self.projectile and not self.worldspace) then
+    local px,py,pz = spGetProjectilePosition(self.projectile)
+    posX,posY,posZ = posX+px,posY+py,posZ+pz
   end
   if (losState==nil) then
     if (self.radar) then
-      losState = IsPosInRadar(posX,posY,posZ, LocalAllyTeamID)
+      losState = IsPosInRadar(posX,posY,posZ)
     end
     if ((not losState) and self.airLos) then
-      losState = IsPosInAirLos(posX,posY,posZ, LocalAllyTeamID)
+      losState = IsPosInAirLos(posX,posY,posZ)
     end
     if ((not losState) and self.los) then
-      losState = IsPosInLos(posX,posY,posZ, LocalAllyTeamID)
+      losState = IsPosInLos(posX,posY,posZ)
     end
   end
   return (losState)and(spIsSphereInView(posX,posY,posZ,radius))
@@ -436,7 +425,7 @@ function JitterParticles2.Create(Options)
   setmetatable(newObject,JitterParticles2)  --// make handle lookup
   newObject:CreateParticle()
   return newObject
-end 
+end
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------

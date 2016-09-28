@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 752,
 		builddistance = 112,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORDECOM.DDS",
 		buildtime = 26941,
 		candgun = true,

@@ -7,6 +7,7 @@ return {
 		buildcostmetal = 421,
 		builddistance = 140,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORRECL.DDS",
 		buildtime = 7596,
 		canassist = false,

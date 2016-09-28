@@ -36,9 +36,6 @@ Sound.Default = {
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local GetUnitLosState = Spring.GetUnitLosState
-local PlaySoundFile   = Spring.PlaySoundFile
-
 local lastPlayed = {}
 
 function Sound:Valid()
@@ -54,8 +51,8 @@ function Sound:CreateParticle()
   local pos    = self.pos
 
   if (self.unit) then
-    local losState = GetUnitLosState(self.unit,LocalAllyTeamID) or {}
-    if (not losState.los) then return false end
+    local losState = Spring.GetUnitLosState(self.unit,LocalAllyTeamID) or {}
+    if not(losState and losState.los) then return false end
     pos = {Spring.GetUnitPosition(self.unit)}
   end
 
@@ -63,9 +60,9 @@ function Sound:CreateParticle()
     if (thisGameFrame>(lastPlayed[self.file] or 0)) then  --// is the sound blocked?
       lastPlayed[self.file] = thisGameFrame + self.blockfor
       if (pos) then
-        Spring.PlaySoundFile(self.file,self.volume,pos[1],pos[2],pos[3])
+        Spring.PlaySoundFile(self.file,self.volume,pos[1],pos[2],pos[3], 'sfx')
       else
-        Spring.PlaySoundFile(self.file,self.volume)
+        Spring.PlaySoundFile(self.file,self.volume, 'sfx')
       end
     end
   end

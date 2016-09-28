@@ -26,7 +26,6 @@ function SimpleParticles2.GetInfo()
     shader    = true,
     rtt       = false,
     ctt       = false,
-    atiseries = 1,
   }
 end
 
@@ -84,6 +83,7 @@ local spGetPositionLosState = Spring.GetPositionLosState
 local spGetUnitLosState     = Spring.GetUnitLosState
 local spIsSphereInView      = Spring.IsSphereInView
 local spGetUnitRadius       = Spring.GetUnitRadius
+local spGetProjectilePosition = Spring.GetProjectilePosition
 
 local IsPosInLos    = Spring.IsPosInLos
 local IsPosInAirLos = Spring.IsPosInAirLos
@@ -171,6 +171,16 @@ function SimpleParticles2.EndDraw()
   glUseShader(0)
 
   lastTexture=""
+end
+
+function SimpleParticles2:Draw()
+  if (lastTexture~=self.texture) then
+    glTexture(0,self.texture)
+    lastTexture=self.texture
+  end
+
+  glMultiTexCoord(5, self.frame/200)
+  glCallList(self.dlist)
 end
 
 
@@ -312,6 +322,8 @@ local function InitializeParticles(self)
   self.force = Vmul(self.force,self.life + self.lifeSpread)
 
   --// global data
+  glMultiTexCoord(3, self.speedExp, self.sizeExp, self.rotExp, self.ncolors)
+  glMultiTexCoord(4, self.force[1], self.force[2], self.force[3], self.forceExp)
 
   local posX,posY,posZ = self.pos[1],self.pos[2],self.pos[3]
 
@@ -322,30 +334,20 @@ local function InitializeParticles(self)
   for i=1,self.count do
     local life,delay, x,y,z, dx,dy,dz, sizeStart,sizeEnd, rotStart,rotEnd = self:CreateParticleAttributes(up,right,forward, partposCode, i-1)
     dx,dy,dz = MultMatrix3x3(emitMatrix,dx,dy,dz)
-    self.dlData[i] = {life, delay,
+    DrawParticleForDList(life, delay,
                          x+posX,y+posY,z+posZ,    -- relative start pos
                          dx,dy,dz, -- speed vector
                          sizeStart,sizeEnd,
-                         rotStart,rotEnd}
+                         rotStart,rotEnd)
     local spawnDist = x*x + y*y + z*z
     if (spawnDist>self.maxSpawnRadius) then self.maxSpawnRadius=spawnDist end
   end
   self.maxSpawnRadius = sqrt(self.maxSpawnRadius)
-end
 
-local function InitializeParticlesDL(self)
-  glMultiTexCoord(3, self.speedExp, self.sizeExp, self.rotExp, self.ncolors)
-  glMultiTexCoord(4, self.force[1], self.force[2], self.force[3], self.forceExp)
-  for i=1,self.count do
-    local dld=self.dlData[i]
-    DrawParticleForDList(dld[1],dld[2],dld[3],dld[4],dld[5],dld[6],dld[7],dld[8],dld[9],dld[10],dld[11],dld[12])
-  end
-  self.dlData = {}
   glMultiTexCoord(2, 0,0,0,1)
   glMultiTexCoord(3, 0,0,0,1)
   glMultiTexCoord(4, 0,0,0,1)
 end
-
 
 local function CreateDList(self)
   --// FIXME: compress each color into 32bit register of a MultiTexCoord, so each MultiTexCoord can hold 4 rgba packs!
@@ -354,28 +356,13 @@ local function CreateDList(self)
     glUniform( colormapUniform[i] , color[1], color[2], color[3], color[4] )
   end
 
-  glBeginEnd(GL_QUADS,InitializeParticlesDL,self)
-end
-
-function SimpleParticles2:Draw()
-  if (lastTexture~=self.texture) then
-    glTexture(0,self.texture)
-    lastTexture=self.texture
-  end
-
-  glMultiTexCoord(5, self.frame/200)
-  if (self.dlist==0) then
-    self.dlist = glCreateList(CreateDList,self)
-  end
-  glCallList(self.dlist)
+  glBeginEnd(GL_QUADS,InitializeParticles,self)
 end
 
 function SimpleParticles2:CreateParticle()
   self.ncolors = #self.colormap-1
 
-  self.dlist = 0
-  self.dlData = {}
-  InitializeParticles(self)
+  self.dlist = glCreateList(CreateDList,self)
 
   self.frame = 0
   self.firstGameFrame = thisGameFrame
@@ -389,9 +376,7 @@ function SimpleParticles2:CreateParticle()
 end
 
 function SimpleParticles2:Destroy()
-  if (self.dlist>0) then
-    gl.DeleteList(self.dlist)
-  end
+  gl.DeleteList(self.dlist)
   --gl.DeleteTexture(self.texture)
 end
 
@@ -401,20 +386,23 @@ function SimpleParticles2:Visible()
   local posX,posY,posZ = self.pos[1],self.pos[2],self.pos[3]
   local losState
   if (self.unit and not self.worldspace) then
-    losState = (spGetUnitLosState(self.unit, LocalAllyTeamID) or {}).los or false
+    losState = GetUnitLosState(self.unit)
     local ux,uy,uz = spGetUnitViewPosition(self.unit)
     posX,posY,posZ = posX+ux,posY+uy,posZ+uz
     radius = radius + spGetUnitRadius(self.unit)
+  elseif (self.projectile and not self.worldspace) then
+    local px,py,pz = spGetProjectilePosition(self.projectile)
+    posX,posY,posZ = posX+px,posY+py,posZ+pz
   end
   if (losState==nil) then
     if (self.radar) then
-      losState = IsPosInRadar(posX,posY,posZ, LocalAllyTeamID)
+      losState = IsPosInRadar(posX,posY,posZ)
     end
     if ((not losState) and self.airLos) then
-      losState = IsPosInAirLos(posX,posY,posZ, LocalAllyTeamID)
+      losState = IsPosInAirLos(posX,posY,posZ)
     end
     if ((not losState) and self.los) then
-      losState = IsPosInLos(posX,posY,posZ, LocalAllyTeamID)
+      losState = IsPosInLos(posX,posY,posZ)
     end
   end
   return (losState)and(spIsSphereInView(posX,posY,posZ,radius))

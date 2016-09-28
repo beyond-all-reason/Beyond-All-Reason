@@ -24,7 +24,6 @@ function ShockWave.GetInfo()
     fbo       = true,
     shader    = true,
     distortion= true,
-    atiseries = 2,
     intel     = 0,
   }
 end

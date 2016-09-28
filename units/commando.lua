@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 1201,
 		builddistance = 275,
 		builder = true,
+		shownanospray = false,
 		buildpic = "COMMANDO.DDS",
 		buildtime = 17131,
 		canassist = true,

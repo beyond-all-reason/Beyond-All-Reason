@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 252,
 		builddistance = 136,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CONSUL.DDS",
 		buildtime = 6793,
 		canmove = true,

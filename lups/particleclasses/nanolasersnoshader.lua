@@ -46,7 +46,9 @@ NanoLasersNoShader.Default = {
   life         = 30,
 
   --// some unit informations
+  targetID  = -1,
   unitID    = -1,
+  unitpiece = -1,
   unitDefID = -1,
   teamID    = -1,
   allyID    = -1,
@@ -84,12 +86,7 @@ local glPopMatrix  = gl.PopMatrix
 local glBeginEnd   = gl.BeginEnd
 
 local max  = math.max
-local ceil = math.ceil
 
-local ALL_ACCESS_TEAM = Script.ALL_ACCESS_TEAM
-
-local spGetUnitBasePosition    = Spring.GetUnitBasePosition
-local GetPositionLosState = Spring.GetPositionLosState
 local GetCameraVectors    = Spring.GetCameraVectors
 local IsSphereInView      = Spring.IsSphereInView
 
@@ -111,7 +108,7 @@ end
 
 local function DrawNanoLasersNoShader(dir,dir_upright,visibility,streamThickness,core_alpha,core_thickness)
   local startF,endF = 0,1
-  if (visibility<0)
+  if (visibility==0)
     then startF=-visibility
     else endF  = visibility end
 
@@ -154,9 +151,9 @@ function NanoLasersNoShader:Draw()
     glMatrixMode(GL_TEXTURE)
     glPushMatrix()
       if (self.inversed) then
-        glTranslate( (thisGameFrame%self.streamSpeed)/self.streamSpeed ,0,0)
+        glTranslate(  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, 0,0)
       else
-        glTranslate( -(thisGameFrame%self.streamSpeed)/self.streamSpeed ,0,0)
+        glTranslate( -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, 0,0)
       end
 
       local dir_upright = Vcross(self.normdir,cam_up)
@@ -175,33 +172,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasersNoShader:Update(n)
-  if (self.allyID==LocalAllyTeamID)or(LocalAllyTeamID==ALL_ACCESS_TEAM) then
-    self.visibility = 1
-  end
+  UpdateNanoParticles(self)
 
-  local endPos = Vadd(self.pos,self.dir)
-  local _,startLos = GetPositionLosState(self.pos[1],self.pos[2],self.pos[3], LocalAllyTeamID)
-  local _,endLos   = GetPositionLosState(  endPos[1],  endPos[2],  endPos[3], LocalAllyTeamID)
-
-  self.visibility = 0
-  if (not startLos)and(not endLos) then
-    self.visibility = 0
-  elseif (startLos and endLos) then
-    self.visibility = 1
-  elseif (startLos) then
-    local losRayTile = ceil(Vlength(self.dir)/Game.squareSize)
-    for i=losRayTile,0,-1 do
-      local losPos = Vadd(self.pos,Vmul(self.dir,i/losRayTile))
-      local _,los = GetPositionLosState(losPos[1],losPos[2],losPos[3], LocalAllyTeamID)
-      if (los) then self.visibility = i/losRayTile; break end
-    end
-  else --//if (endLos) then
-    local losRayTile = ceil(Vlength(self.dir)/Game.squareSize)
-    for i=0,losRayTile do
-      local losPos = Vadd(self.pos,Vmul(self.dir,i/losRayTile))
-      local _,los = GetPositionLosState(losPos[1],losPos[2],losPos[3], LocalAllyTeamID)
-      if (los) then self.visibility = -i/losRayTile; break end
-    end
+  if (self._dead) then
+    RemoveParticles(self.id)
   end
 end
 
@@ -211,12 +185,12 @@ function NanoLasersNoShader:ReInitialize()
 end
 
 function NanoLasersNoShader:Visible()
-  if (not spGetUnitBasePosition(self.unitID)) then return false end
-  if (self.allyID==LocalAllyTeamID) then return true end
-  local half_dir = Vmul(self.dir,0.5)
-  local midPos   = Vadd(self.pos,half_dir)
-  local radius   = Vlength(half_dir)+200
-  return IsSphereInView(midPos[1],midPos[2],midPos[3],radius)
+  if (self.allyID ~= LocalAllyTeamID)and(self.visibility == 0) then
+    return false
+  end
+
+  local midPos = self._midpos
+  return IsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -236,47 +210,11 @@ function NanoLasersNoShader:CreateParticle()
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
 
-  self.normdir    = Vmul( self.dir, 1/Vlength(self.dir) )
   self.visibility = 0
   self:Update(0) --//update los
-  if (self:Visible()) then self.visible = true end --// include the fx into the render-pipeline, even if the visibility-check was already done
 
   if (self.streamThickness<0) then
     self.streamThickness = 4+self.count*0.34
-  end
-
-  if (self.flare) then
-    --[[if you add those flares, then the laser is slower as the engine, so it needs some tweaking]]--
-    if (self.flare1id and particles[self.flare1id] and particles[self.flare2id]) then
-      local flare1 = particles[self.flare1id]
-      CopyVector(flare1.pos,self.pos,3)
-      flare1.size  = self.count*0.1
-      flare1:ReInitialize()
-      local flare2 = particles[self.flare2id]
-      CopyVector(flare2.pos,self.pos,3)
-      flare2.size  = self.count*0.75
-      flare2:ReInitialize()
-      return
-    end
-    local r,g,b = max(self.color[1],0.13),max(self.color[2],0.13),max(self.color[3],0.13)
-    local flare = {
-      layer       = self.layer,
-      pos         = self.pos,
-      life        = 31,
-      size        = self.count*0.1,
-      sizeSpread  = 1,
-      sizeGrowth  = 0.1,
-      colormap    = { {r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01} },
-      texture     = 'bitmaps/GPL/groundflash.tga',
-      count       = 2,
-      repeatEffect = false,
-    }
-    self.flare1id  = AddParticles("StaticParticles",flare)
-    flare.size     = self.count*0.75
-    flare.texture  = 'bitmaps/flare.tga'
-    flare.colormap = { {r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009} }
-    flare.count    = 2
-    self.flare2id  = AddParticles("StaticParticles",flare)
   end
 end
 
@@ -301,7 +239,6 @@ function NanoLasersNoShader.Create(Options)
       end
       knownNanoLasersNoShader[unit][nanopiece] = newObject
     end
-
     return newObject
   end
 end

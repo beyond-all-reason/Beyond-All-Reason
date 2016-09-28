@@ -26,7 +26,6 @@ function AirJet.GetInfo()
     fbo       = true,
     shader    = true,
     distortion= true,
-    atiseries = 3,
     ms        = -1,
     intel     = -1,
   }
@@ -34,6 +33,11 @@ end
 
 
 AirJet.Default = {
+  --// visibility check
+  los            = true,
+  airLos         = true,
+  radar          = false,
+  
   layer = 4,
   life  = math.huge,
   repeatEffect  = true,
@@ -55,6 +59,15 @@ AirJet.Default = {
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
+local spGetUnitViewPosition = Spring.GetUnitViewPosition
+local spGetPositionLosState = Spring.GetPositionLosState
+local spGetUnitLosState     = Spring.GetUnitLosState
+local spIsSphereInView      = Spring.IsSphereInView
+local spGetUnitRadius       = Spring.GetUnitRadius
+
+local IsPosInLos    = Spring.IsPosInLos
+local IsPosInAirLos = Spring.IsPosInAirLos
+local IsPosInRadar  = Spring.IsPosInRadar
 
 local spGetGameSeconds = Spring.GetGameSeconds
 local glUseShader = gl.UseShader
@@ -80,29 +93,6 @@ function AirJet:EndDraw()
   lastTexture1,lastTexture2 = "",""
 end
 
-local glMultiTexCoord = gl.MultiTexCoord
-local glVertex        = gl.Vertex
-local glCreateList    = gl.CreateList
-local glDeleteList    = gl.DeleteList
-local glBeginEnd      = gl.BeginEnd
-local GL_QUADS        = GL.QUADS
-
-local function BeginEndDrawList(self)
-  local color = self.color
-  local ev    = self.emitVector 
-  glMultiTexCoord(0,self.jitterWidthScale,self.jitterLengthScale,self.width/self.length,self.distortion)
-  glMultiTexCoord(1,ev[1],ev[2],ev[3],1)
-  glMultiTexCoord(2,color[1],color[2],color[3],self.animSpeed)
-
-  --// xy = width/length ; zw = texcoord
-  local w = self.width
-  local l = self.length
-  glVertex(-l,-w, 1,0)
-  glVertex(0, -w, 1,1)
-  glVertex(0,  w, 0,1)
-  glVertex(-l, w, 0,0)
-end
-
 function AirJet:Draw()
   if (lastTexture1~=self.texture1) then
     glTexture(1,self.texture1)
@@ -113,9 +103,6 @@ function AirJet:Draw()
     lastTexture2=self.texture2
   end
 
-  if (self.dList==0) then
-    self.dList=glCreateList(glBeginEnd,GL_QUADS,BeginEndDrawList,self)
-  end
   glCallList(self.dList)
 end
 
@@ -143,9 +130,6 @@ function AirJet:DrawDistortion()
     lastTexture2=self.texture3
   end
 
-  if (self.dList==0) then
-    self.dList=glCreateList(glBeginEnd,GL_QUADS,BeginEndDrawList,self)
-  end
   glCallList(self.dList)
 end
 
@@ -211,7 +195,7 @@ function AirJet.Initialize()
           vec2 txCoord = texCoords.st;
           txCoord.s += (texture2D(noiseMap, displacement * distortion * 20.0).y - 0.5) * 40.0 * distortion;
           txCoord.t +=  texture2D(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * distortion;
-          float opac = texture2D(mask,texCoords.st).r;
+          float opac = texture2D(mask,txCoord.st).r;
 
           gl_FragColor.rgb  = opac * gl_Color.rgb; //color
           gl_FragColor.rgb += pow(opac, 5.0 );     //white flame
@@ -316,8 +300,33 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+local glMultiTexCoord = gl.MultiTexCoord
+local glVertex        = gl.Vertex
+local glCreateList    = gl.CreateList
+local glDeleteList    = gl.DeleteList
+local glBeginEnd      = gl.BeginEnd
+local GL_QUADS        = GL.QUADS
+
+local function BeginEndDrawList(self)
+  local color = self.color
+  local ev    = self.emitVector 
+  glMultiTexCoord(0,self.jitterWidthScale,self.jitterLengthScale,self.width/self.length,self.distortion)
+  glMultiTexCoord(1,ev[1],ev[2],ev[3],1)
+  glMultiTexCoord(2,color[1],color[2],color[3],self.animSpeed)
+
+  --// xy = width/length ; zw = texcoord
+  local w = self.width
+  local l = self.length
+  glVertex(-l,-w, 1,0)
+  glVertex(0, -w, 1,1)
+  glVertex(0,  w, 0,1)
+  glVertex(-l, w, 0,0)
+end
+
+
 function AirJet:CreateParticle()
-  self.dList = 0
+  self.dList = glCreateList(glBeginEnd,GL_QUADS,
+                            BeginEndDrawList,self)
 
   --// used for visibility check
   self.radius = self.length*self.jitterLengthScale
@@ -341,11 +350,34 @@ end
 function AirJet:Destroy()
   --gl.DeleteTexture(self.texture1)
   --gl.DeleteTexture(self.texture2)
-  if (self.dList>0) then
-    glDeleteList(self.dList)
-  end
+  glDeleteList(self.dList)
 end
 
+function AirJet:Visible()
+  local radius = self.length
+  local posX,posY,posZ = self.pos[1],self.pos[2],self.pos[3]
+  local losState
+  if (self.unit and not self.worldspace) then
+    losState = GetUnitLosState(self.unit)
+    local ux,uy,uz = spGetUnitViewPosition(self.unit)
+	if ux then
+      posX,posY,posZ = posX+ux,posY+uy,posZ+uz
+      radius = radius + (spGetUnitRadius(self.unit) or 30)
+	end
+  end
+  if (losState==nil) then
+    if (self.radar) then
+      losState = IsPosInRadar(posX,posY,posZ)
+    end
+    if ((not losState) and self.airLos) then
+      losState = IsPosInAirLos(posX,posY,posZ)
+    end
+    if ((not losState) and self.los) then
+      losState = IsPosInLos(posX,posY,posZ)
+    end
+  end
+  return (losState)and(spIsSphereInView(posX,posY,posZ,radius))
+end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 

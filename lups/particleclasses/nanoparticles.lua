@@ -15,7 +15,7 @@ local lastTexture = ""
 function NanoParticles.GetInfo()
   return {
     name      = "NanoParticles",
-    backup    = "", --// backup class, if this class doesn't work (old cards,ati's,etc.)
+    backup    = "NanoLasers", --// backup class, if this class doesn't work (old cards,ati's,etc.)
     desc      = "",
 
     layer     = 0, --// extreme simply z-ordering :x
@@ -25,7 +25,6 @@ function NanoParticles.GetInfo()
     shader    = true,
     rtt       = false,
     ctt       = false,
-    atiseries = 1,
   }
 end
 
@@ -35,9 +34,9 @@ NanoParticles.Default = {
   repeatEffect = false, --can be a number,too
 
   --// shared options with all nanofx
-  dir          = {0,1,0},
   pos          = {0,0,0}, --// start pos
-  radius       = 0,       --// terraform/unit radius
+  targetpos    = {0,0,0},
+  targetradius = 0,       --// terraform/unit radius
   color        = {0, 0, 0, 0},
   count        = 1,
   inversed     = false,   --// reclaim?
@@ -46,27 +45,28 @@ NanoParticles.Default = {
   nanopiece    = -1,
 
   --// some unit informations
+  targetID  = -1,
   unitID    = -1,
+  unitpiece = -1,
   unitDefID = -1,
   teamID    = -1,
   allyID    = -1,
 
   --//custom (user) options
+  life        = -1, --//auto adjusted on initialization
   alpha       = 1,
   delaySpread = 30,
   size        = 3,
   sizeSpread  = 1,
   sizeGrowth  = 0.05,
+  rotSpeed    = 0.15,
   particles   = 1,
-  texture     = 'bitmaps/PD/nano.tga',
+  texture     = 'bitmaps/PD/nano.png',
 
   --// internal used
   dlist       = 0,
-  life        = 0,
-  speed       = 3,
-  speedSpread = 1,
-  invspeed    = 3,
-  rotSpeed    = 0.15,
+  stopframe   = 1e9,
+  _dead       = false,
 }
 
 -----------------------------------------------------------------------------------------------------------------
@@ -74,20 +74,13 @@ NanoParticles.Default = {
 
 --// speed ups
 
-local abs  = math.abs
-local sqrt = math.sqrt
-local ceil = math.ceil
 local rand = math.random
 local twopi= 2*math.pi
 local cos  = math.cos
 local sin  = math.sin
 local min  = math.min
 local max  = math.max
-local degreeToPI = math.pi/180
 
-local ALL_ACCESS_TEAM = Script.ALL_ACCESS_TEAM
-
-local spGetPositionLosState = Spring.GetPositionLosState
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
 local spIsSphereInView      = Spring.IsSphereInView
 local spGetUnitRadius       = Spring.GetUnitRadius
@@ -95,12 +88,8 @@ local spGetUnitRadius       = Spring.GetUnitRadius
 local glTexture     = gl.Texture 
 local glBlending    = gl.Blending
 local glMultiTexCoord = gl.MultiTexCoord
-local glPushMatrix  = gl.PushMatrix
-local glPopMatrix   = gl.PopMatrix
-local glTranslate   = gl.Translate
 local glCreateList  = gl.CreateList
 local glCallList    = gl.CallList
-local glRotate      = gl.Rotate
 local glColor       = gl.Color
 local glUseShader   = gl.UseShader
 
@@ -115,29 +104,65 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-function NanoParticles:CreateParticleAttributes(minLength)
-  local target = self.dir
-  if (self.terraform) then
-    local r,alpha = rand()*self.radius,rand()*twopi
-    target = { target[1],  target[2] + r*cos(alpha),  target[3] + r*sin(alpha) }
+local function CreateParticleAttributes(inversed,terraform)
+  local offX = 0
+  local offY = 0
+  local offZ = 0
+  if (terraform) then
+    local r     = rand()
+    local alpha = rand()*twopi
+
+    offX = 0
+    offY = r*cos(alpha)
+    offZ = r*sin(alpha)
   else
-    local r,alpha,beta=rand()*self.radius,rand()*twopi,rand()*twopi
-    target = { target[1] + r*cos(alpha),  target[2] + r*cos(beta)*sin(alpha),  target[3] + r*sin(beta)*sin(alpha) }
+    local r     = rand()
+    local alpha = rand()*twopi
+    local beta  = rand()*twopi
+
+    local sin_alpha = sin(alpha)
+
+    offX = r * cos(alpha)
+    offY = r * cos(beta) * sin_alpha
+    offZ = r * sin(beta) * sin_alpha
   end
 
-  local distance = Vlength(target)
-  if (distance<minLength) then distance = minLength end
-
-  local speed  = self.speed + rand()*self.speedSpread
   local rot    = rand()*360
-  local size   = self.size + rand()*self.sizeSpread
-  local life   = distance/speed
-  local speedv = Vmul( target, 1/life )
-  local delay  = rand()*self.delaySpread
+  local size   = rand()
+  local delay  = rand()
+  if (inversed) then delay = -delay end
 
-  return life, delay, size,
-         speedv[1],speedv[2],speedv[3],
-         rot;
+  return delay, size, rot,
+         offX,offY,offZ;
+end
+
+local function DrawParticleForDList(size,delay,rot, offx,offy,offz)
+  glMultiTexCoord(4,delay,size,rot)
+  glMultiTexCoord(5,offx,offy,offz,0)
+  glVertex(0,0,-0.5,-0.5)
+  glVertex(1,0, 0.5,-0.5)
+  glVertex(1,1, 0.5, 0.5)
+  glVertex(0,1,-0.5, 0.5)
+end
+
+local function CreateParticlesForDList(count, inversed, terraform)
+  for i=1,count do
+    local delay,size,rot,offx,offy,offz = CreateParticleAttributes(inversed, terraform)
+    DrawParticleForDList(
+        size, delay, rot,
+        offx,offy,offz) -- offset vector
+  end
+end
+
+local buffDLists = {{},{},{}}
+local function GetParticlesDList(self)
+  local idx = (self.inversed and 2) or (self.terraform and 3) or 1
+  local dl = buffDLists[idx][self.count]
+  if (not dl) then
+    dl = glCreateList(glBeginEnd,GL_QUADS,CreateParticlesForDList,self.count, self.inversed, self.terraform)
+    buffDLists[idx][self.count] = dl
+  end
+  return dl
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -159,24 +184,33 @@ end
 function NanoParticles:Draw()
   if (lastTexture~=self.texture) then
     glTexture(self.texture)
-    lastTexture=self.texture
+    lastTexture = self.texture
   end
 
+  local startPos  = self.pos
+  local endPosNew = self.targetpos
+  local endPosOld = self.targetposStart
+  
+  if (not self.pos) or (not self.targetpos) or (not self.targetposStart) then
+    self._dead = true
+    return
+  end
+  
+  glMultiTexCoord(0,  startPos[1],  startPos[2],  startPos[3], 1)
+  glMultiTexCoord(1, endPosNew[1], endPosNew[2], endPosNew[3], 1)
+  glMultiTexCoord(2, endPosOld[1], endPosOld[2], endPosOld[3], 1)
+
+  glMultiTexCoord(6,self.size,self.sizeSpread,self.sizeGrowth,self.targetradius)
+  glMultiTexCoord(7,self.delaySpread,1/self.life)
+
+  local color = self.color
+  glColor(color[1],color[2],color[3],color[4])
+
   if (self.inversed)
-    then glMultiTexCoord(3,self.urot, self.maxLife - self.frame - Spring.GetFrameTimeOffset())
-    else glMultiTexCoord(3,self.urot, self.frame+Spring.GetFrameTimeOffset()) end
+    then glMultiTexCoord(3, self.urot, self.life - self.frame - Spring.GetFrameTimeOffset(), self.maxLife, self.stopframe)
+    else glMultiTexCoord(3, self.urot, self.frame + Spring.GetFrameTimeOffset(), self.maxLife, self.stopframe) end
 
   glCallList(self.dlist)
-end
-
-
-local function DrawParticleForDList(size,sizeGrowth,life,delay,dx,dy,dz,rot)
-  glMultiTexCoord(0,life,delay,size,sizeGrowth)
-  glMultiTexCoord(1,dx,dy,dz,rot)
-  glVertex(0,0,-0.5,-0.5)
-  glVertex(1,0, 0.5,-0.5)
-  glVertex(1,1, 0.5, 0.5)
-  glVertex(0,1,-0.5, 0.5)
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -185,21 +219,30 @@ end
 function NanoParticles:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
-      //gl.MultiTexCoord(0,life,delay,size,sizeGrowth)
-      //gl.MultiTexCoord(1,dx,dy,dz,rot_off)
-      //gl.MultiTexCoord(2,R,G,B,A)
-      //gl.MultiTexCoord(3,rot,frame)
-      //gl.Vertex(ox,oy,s,t)
+      //gl.Vertex(s,t,ox,oy)
 
-      #define size       gl_MultiTexCoord0.z
-      #define sizeGrowth gl_MultiTexCoord0.w
-      #define life       gl_MultiTexCoord0.x
-      #define delay      gl_MultiTexCoord0.y
-      #define speed      gl_MultiTexCoord1.xyz
-      #define rot_off    gl_MultiTexCoord1.w
+      #define delay      gl_MultiTexCoord4.x
+      #define size       gl_MultiTexCoord4.y
+      #define rot_off    gl_MultiTexCoord4.z
       #define rot        gl_MultiTexCoord3.x
       #define frame      gl_MultiTexCoord3.y
-      #define incolor    gl_MultiTexCoord2
+      #define maxlife    gl_MultiTexCoord3.z
+      #define stopframe  gl_MultiTexCoord3.w
+
+      #define minsize     gl_MultiTexCoord6.x
+      #define sizeSpread  gl_MultiTexCoord6.y
+      #define sizeGrowth  gl_MultiTexCoord6.z
+      #define radius      gl_MultiTexCoord6.w
+
+      #define delaySpread gl_MultiTexCoord7.x
+      #define invspeed    gl_MultiTexCoord7.y
+
+      #define offset     gl_MultiTexCoord5
+      #define startpos   gl_MultiTexCoord0
+      #define endpos_now gl_MultiTexCoord1
+      #define endpos_old gl_MultiTexCoord2
+
+      #define incolor    gl_Color
 
       const vec4 offscreen = vec4(-20000.0,-20000.0,-20000.0,-20000.0);
 
@@ -208,9 +251,9 @@ function NanoParticles:Initialize()
 
       void main()
       {
-         float lframe = frame - delay;
-         float lifeN  = lframe / life;
-         float psize  = lframe * sizeGrowth + size;
+         float lframe = frame - (delay * delaySpread);
+         float lifeN  = lframe * invspeed;
+         float psize  = (lframe * sizeGrowth) + minsize + (size * sizeSpread);
 
          if (lifeN<0.0 || lifeN>1.0 || psize<=0.0) {
            // paste dead particles offscreen, this way we don't dump the fragment shader with it
@@ -220,8 +263,9 @@ function NanoParticles:Initialize()
            if (lifeN>0.8) color *= (1.0-lifeN)*5.0; //fade out
 
            // calc vertex position
-           vec4 pos        = vec4( lframe * speed, 1.0);
-           gl_Position     = gl_ModelViewMatrix * pos;
+           vec4 finalpos = mix(endpos_old, endpos_now, max(frame / maxlife,lifeN));
+           vec4 pos      = mix(startpos, finalpos + (offset * radius), lifeN);
+           gl_Position   = gl_ModelViewMatrix * pos;
 
            // calc particle rotation
            float alpha     = (rot_off + rot) * 0.159; //0.159 := (1/2pi)
@@ -270,39 +314,53 @@ end
 function NanoParticles:Update(n)
   self.urot  = self.urot  + n*self.rotSpeed
   self.frame = self.frame + n
+
+  UpdateNanoParticles(self)
+
+  if (self._dead)and(self.stopframe == NanoParticles.Default.stopframe) then
+    self.stopframe = self.frame
+  end
 end
+
+function NanoParticles:Visible()
+  if (self.allyID ~= LocalAllyTeamID)and(self.visibility == 0) then
+    return false
+  end
+
+  local midPos = self._midpos
+  return spIsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
+end
+
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
 
 -- used if repeatEffect=true;
 function NanoParticles:ReInitialize()
   self.frame = 0
   self.urot  = 0
+
+  local endPos   = self.targetpos
+  self.targetposStart = {endPos[1],endPos[2],endPos[3]}
+
   self.dieGameFrame = self.dieGameFrame + self.maxLife
-end
-
-local function CreateParticlesForDList2(self,distance)
-  local sizeGrowth = self.sizeGrowth
-  for i=1,self.count do
-    local life,delay,size,dx,dy,dz,rot = self:CreateParticleAttributes(distance)
-    DrawParticleForDList(
-        size, sizeGrowth,
-        life, delay,
-        dx,dy,dz, -- speed vector
-        rot)
-  end
-end
-
-local function CreateParticlesForDList(self,distance)
-  glPushMatrix()
-  glTranslate(self.pos[1],self.pos[2],self.pos[3])
-  glRotate(90,self.dir[1],self.dir[2],self.dir[3])
-  glMultiTexCoord(2,self.color[1],self.color[2],self.color[3],self.color[4])
-  glBeginEnd(GL_QUADS,CreateParticlesForDList2,self,distance)
-  glPopMatrix()
 end
 
 function NanoParticles:CreateParticle()
   self.count = self.count * self.particles
   self.color = Vmul(self.color,self.alpha)
+
+  self.urot  = 0
+  self.frame = 0
+
+  self:Update(0)
+
+  if (self._dead) then
+    --// Update() sets _dead when the nanospray command is already finished (e.g. both units are dead etc.)
+    return false
+  end
+
+  local endPos   = self.targetpos
+  self.targetposStart = {endPos[1],endPos[2],endPos[3]}
 
   local col  = self.color
   local cmax = max(col[1],col[2],col[3])
@@ -314,63 +372,25 @@ function NanoParticles:CreateParticle()
     self.color[4] = col[4]
   end
 
-  if (self.speedSpread<0) then --// we need positive speedSpreads
-    self.speed       = self.speed-self.speedSpread
-    self.speedSpread = -self.speedSpread
-  end
-
+  --// defines the speed of the particles (life = time in gameframe the particles need for startpos->finalpos)
   local distance = Vlength(self.dir)
-  if (distance<100) then
-    local f = distance/100
-    if (f<0.4) then f=0.4 end
-    self.speed       = self.speed*f
-    self.speedSpread = self.speedSpread*f
-  end
+  self.life = 40 * math.log10(distance/136+1) / math.log10(2)
 
-  self.invspeed = 1/self.speed
-  self.dlist = glCreateList(CreateParticlesForDList,self,distance)
+  --// create the DisplayList
+  self.dlist = GetParticlesDList(self)
 
-  self.urot  = 0
-  self.frame = 0
-  self.maxLife        = self.life+self.delaySpread+ceil((Vlength(self.dir)+self.radius)/self.speed)
+  --// visibility check vars
+  self.sizeRadius = self.size + self.sizeSpread + 100
+
+  self.maxLife        = self.life + self.delaySpread
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.maxLife
 
-  --// visibility check vars
-  self.sizeRadius = self.size  + self.sizeSpread + 100
-  self.normdir    = Vmul( self.dir, 1/Vlength(self.dir) )
+  return true
 end
 
 function NanoParticles:Destroy()
-  gl.DeleteList(self.dlist)
-  --gl.DeleteTexture(self.texture)
-end
-
-function NanoParticles:Visible()
-  local frame = 0 --FIXME: frame is only updated on Update() after visible()-check!!!
-  if (self.inversed)
-    then frame = self.maxLife - self.frame
-    else frame = self.frame end
-
-  local radius = self.sizeRadius +
-                 self.delaySpread*self.speed*0.5+
-                 frame*(self.speedSpread*0.5+self.sizeGrowth)
-
-  local fTime = (self.speed+self.speedSpread*0.5)*frame
-
-  local spos  = self.pos
-  local sndir = self.normdir
-
-  local pos = {spos[1] + sndir[1]*fTime,
-               spos[2] + sndir[2]*fTime,
-               spos[3] + sndir[3]*fTime}
-
-  if (self.allyID==LocalAllyTeamID)or(LocalAllyTeamID==ALL_ACCESS_TEAM) then
-    return spIsSphereInView(pos[1],pos[2],pos[3],radius)
-  else
-    local _,los = spGetPositionLosState(pos[1],pos[2],pos[3], LocalAllyTeamID)
-    return (los)and(spIsSphereInView(pos[1],pos[2],pos[3],radius))
-  end
+  --gl.DeleteList(self.dlist)
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -379,8 +399,7 @@ end
 function NanoParticles.Create(Options)
   local newObject = MergeTable(Options, NanoParticles.Default)
   setmetatable(newObject,NanoParticles)  --// make handle lookup
-  newObject:CreateParticle()
-  return newObject
+  return newObject:CreateParticle() and newObject
 end
 
 -----------------------------------------------------------------------------------------------------------------

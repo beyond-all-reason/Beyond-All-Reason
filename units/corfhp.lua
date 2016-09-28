@@ -5,6 +5,7 @@ return {
 		buildcostenergy = 5421,
 		buildcostmetal = 1173,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORFHP.DDS",
 		buildtime = 17817,
 		canmove = true,

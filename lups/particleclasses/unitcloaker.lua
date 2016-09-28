@@ -26,7 +26,6 @@ function UnitCloaker.GetInfo()
     shader    = true,
     rtt       = false,
     ctt       = true,
-    atiseries = 2,
     intel     = 0,
   }
 end
@@ -259,20 +258,20 @@ function UnitCloaker:ReInitialize()
 end
 
 function UnitCloaker:CreateParticle()
-  self.isS3o = (UnitDefs[self.unitDefID].model.name:lower():find("s3o") and true)
+  local name = UnitDefs[self.unitDefID].model.name
+  self.isS3o = ((name:lower():find("s3o") or name:lower():find("obj")) and true)
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
 end
 
 function UnitCloaker:Visible()
-  local x,y,z    = Spring.GetUnitPosition(self.unit)
-  if (x==nil) then return false end
-  local _,inLos  = Spring.GetPositionLosState(x,y,z, LocalAllyTeamID)
-  if (self.enemy) then
-    local losState = Spring.GetUnitLosState(self.unit, LocalAllyTeamID) or {}
-    inLos = (inLos)and(not losState.los)
+  if self.allyTeam == LocalAllyTeamID then
+    return Spring.IsUnitVisible(self.unit)
   end
-  return (inLos)
+
+  local _, specFullView = Spring.GetSpectatingState()
+  local losState = Spring.GetUnitLosState(self.unit, LocalAllyTeamID) or {}
+  return specFullView or (losState and losState.los)
 end
 
 -----------------------------------------------------------------------------------------------------------------

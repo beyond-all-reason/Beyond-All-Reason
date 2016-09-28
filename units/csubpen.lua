@@ -5,6 +5,7 @@ return {
 		buildcostenergy = 5637,
 		buildcostmetal = 1271,
 		builder = true,
+		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,

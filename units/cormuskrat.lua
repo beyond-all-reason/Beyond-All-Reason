@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 172,
 		builddistance = 112,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORMUSKRAT.DDS",
 		buildtime = 6864,
 		canmove = true,

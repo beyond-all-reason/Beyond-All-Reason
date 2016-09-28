@@ -36,24 +36,26 @@ NanoLasers.Default = {
   repeatEffect = false,
 
   --// shared options with all nanofx
-  dir          = {0,1,0},
   pos          = {0,0,0}, --// start pos
-  radius       = 0,       --// terraform/unit radius
+  targetpos    = {0,0,0},
+  targetradius = 0,       --// terraform/unit radius
   color        = {0, 0, 0, 0},
   count        = 1,
   inversed     = false,   --// reclaim?
   terraform    = false,   --// for terraform (2d target)
   unit         = -1,
   nanopiece    = -1,
-  life         = 30,
 
   --// some unit informations
+  targetID  = -1,
   unitID    = -1,
+  unitpiece = -1,
   unitDefID = -1,
   teamID    = -1,
   allyID    = -1,
 
   --// custom (user) options
+  life            = 30,
   flare           = false,
   streamSpeed     = 10,
   streamThickness = -1,  --//streamThickness =  4+self.count*0.34,
@@ -89,12 +91,7 @@ local glAlphaTest  = gl.AlphaTest
 local glCallList   = gl.CallList
 
 local max  = math.max
-local ceil = math.ceil
 
-local ALL_ACCESS_TEAM = Script.ALL_ACCESS_TEAM
-
-local spGetUnitBasePosition    = Spring.GetUnitBasePosition
-local GetPositionLosState = Spring.GetPositionLosState
 local GetCameraVectors    = Spring.GetCameraVectors
 local IsSphereInView      = Spring.IsSphereInView
 
@@ -131,25 +128,18 @@ function NanoLasers:Draw()
     lastTexture=self.texture
   end
 
-  local startPos = {self.pos[1],self.pos[2],self.pos[3]}
-  local length   = self.length
-  if (self.visibility<0) then
-    startPos = Vadd(startPos,Vmul(self.dir,-self.visibility))
-    length   = length * (1+self.visibility)
-  else
-    length   = length * self.visibility
-  end
   local color = self.color
-  local ndir  = self.normdir
-
-  glColor(color[1],color[2],color[3],0.003)
-  glMultiTexCoord(0,ndir[1],ndir[2],ndir[3],1)
-  glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],length)
+  local startPos = self.pos
+  local endPos   = self.targetpos
+  
+  glColor(color[1],color[2],color[3],0.0003)
+  glMultiTexCoord(0,endPos[1] - self.normdir[3] * self.scane_mult ,endPos[2],endPos[3] + self.normdir[1] * self.scane_mult,1)
+  glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
 
   if (self.inversed) then
-    glMultiTexCoord(2,  (thisGameFrame%self.streamSpeed)/self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   else
-    glMultiTexCoord(2, -(thisGameFrame%self.streamSpeed)/self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
+    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   end
 
   glCallList(dlist)
@@ -159,33 +149,17 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  if (self.allyID==LocalAllyTeamID)or(LocalAllyTeamID==ALL_ACCESS_TEAM) then
-    self.visibility = 1
+  UpdateNanoParticles(self)
+  
+  self.fpos = (self.fpos or 0) + self.count * 5 * n
+  if (self.inversed) then 
+    self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/4000*math.pi)
+  else
+    self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/4000*math.pi)
   end
 
-  local endPos = Vadd(self.pos,self.dir)
-  local _,startLos = GetPositionLosState(self.pos[1],self.pos[2],self.pos[3], LocalAllyTeamID)
-  local _,endLos   = GetPositionLosState(  endPos[1],  endPos[2],  endPos[3], LocalAllyTeamID)
-
-  self.visibility = 0
-  if (not startLos)and(not endLos) then
-    self.visibility = 0
-  elseif (startLos and endLos) then
-    self.visibility = 1
-  elseif (startLos) then
-    local losRayTile = ceil(Vlength(self.dir)/Game.squareSize)
-    for i=losRayTile,0,-1 do
-      local losPos = Vadd(self.pos,Vmul(self.dir,i/losRayTile))
-      local _,los = GetPositionLosState(losPos[1],losPos[2],losPos[3], LocalAllyTeamID)
-      if (los) then self.visibility = i/losRayTile; break end
-    end
-  else --//if (endLos) then
-    local losRayTile = ceil(Vlength(self.dir)/Game.squareSize)
-    for i=0,losRayTile do
-      local losPos = Vadd(self.pos,Vmul(self.dir,i/losRayTile))
-      local _,los  = GetPositionLosState(losPos[1],losPos[2],losPos[3], LocalAllyTeamID)
-      if (los) then self.visibility = -i/losRayTile; break end
-    end
+  if (self._dead) then
+    RemoveParticles(self.id)
   end
 end
 
@@ -195,13 +169,12 @@ function NanoLasers:ReInitialize()
 end
 
 function NanoLasers:Visible()
-  if (self.allyID~=LocalAllyTeamID)and(not spGetUnitBasePosition(self.unitID)) then
+  if (self.allyID ~= LocalAllyTeamID) and (LocalAllyTeamID >= 0) and(self.visibility == 0) then
     return false
   end
-  local half_dir = Vmul(self.dir,0.5)
-  local midPos   = Vadd(self.pos,half_dir)
-  local radius   = Vlength(half_dir)+200
-  return IsSphereInView(midPos[1],midPos[2],midPos[3],radius)
+
+  local midPos = self._midpos
+  return IsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -210,17 +183,11 @@ end
 function NanoLasers:Initialize()
   laserShader = gl.CreateShader({
     vertex = [[
-      //gl.MultiTexCoord(0,emitVector[1],emitVector[2],emitVector[3],1.0)
-      //gl.MultiTexCoord(1,startPos[1],startPos[2],startPos[3],length)
-      //gl.MultiTexCoord(2,streamTranslate, streamThickness, coreAlpha, coreThickness)
-      //gl.MultiTexCoord(3,isCore)
-      //gl.Color(color[1],color[2],color[3])
       //gl.vertex.xy := length,width
       //gl.vertex.zw := texcoord
 
-      #define emitVector       gl_MultiTexCoord0
-      #define length           gl_MultiTexCoord1.w
-      #define startpos         vec4(gl_MultiTexCoord1.xyz,0.0)
+      #define startpos         gl_MultiTexCoord0
+      #define endpos           gl_MultiTexCoord1
       #define streamTranslate  gl_MultiTexCoord2.x
       #define streamThickness  gl_MultiTexCoord2.y
       #define coreAlpha        gl_MultiTexCoord2.z
@@ -229,24 +196,28 @@ function NanoLasers:Initialize()
 
       varying vec3 texCoord;
 
-      const vec4 centerPos = vec4(0.0,0.0,0.0,1.0);
-
       void main()
       {
-        texCoord =  vec3(gl_Vertex.z + streamTranslate, gl_Vertex.w, gl_Vertex.z);
-        gl_Position    = (gl_ModelViewMatrix * (centerPos + startpos));
-        vec3 dir3      = (gl_ModelViewMatrix * (emitVector + startpos)).xyz - gl_Position.xyz;
+        texCoord    =  vec3(gl_Vertex.z - streamTranslate, gl_Vertex.w, gl_Vertex.z);
+        vec3 dir3;
+        if (gl_Vertex.x>0.5) {
+          gl_Position = (gl_ModelViewMatrix * endpos);
+          dir3   = gl_Position.xyz - (gl_ModelViewMatrix * (startpos)).xyz;
+        } else {
+          gl_Position = (gl_ModelViewMatrix * startpos);
+          dir3   = (gl_ModelViewMatrix * (endpos)).xyz - gl_Position.xyz;
+        }
         vec3 v = normalize( dir3 );
         vec3 w = normalize( -gl_Position.xyz );
         vec3 u = normalize( cross(w,v) );
 
         if (isCore>0.0) {
-          gl_Position.xyz += (gl_Vertex.x * length) * v + (gl_Vertex.y * coreThickness) * u;
+          gl_Position.xyz  += (gl_Vertex.y * coreThickness) * u;
           gl_FrontColor.rgb = vec3(coreAlpha);
           gl_FrontColor.a   = 0.003;
         }else{
-          gl_Position.xyz += (gl_Vertex.x * length) * v + (gl_Vertex.y * streamThickness) * u;
-          gl_FrontColor = gl_Color;
+          gl_Position.xyz += (gl_Vertex.y * streamThickness) * u;
+          gl_FrontColor    = gl_Color;
         }
 
         gl_Position      = gl_ProjectionMatrix * gl_Position;
@@ -305,48 +276,47 @@ function NanoLasers:CreateParticle()
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
 
-  self.length     = Vlength(self.dir)
-  self.normdir    = Vmul( self.dir, 1/self.length )
-  self.visibility = 0
-  self:Update(0) --//update los
-  if (self:Visible()) then self.visible = true end --// include the fx into the render-pipeline, even if the visibility-check was already done
-
-  if (self.streamThickness<0) then
-    self.streamThickness = 4+self.count*0.34
-  end
 
   if (self.flare) then
     --[[if you add those flares, then the laser is slower as the engine, so it needs some tweaking]]--
     if (self.flare1id and particles[self.flare1id] and particles[self.flare2id]) then
       local flare1 = particles[self.flare1id]
-      CopyVector(flare1.pos,self.pos,3)
       flare1.size  = self.count*0.1
       flare1:ReInitialize()
       local flare2 = particles[self.flare2id]
-      CopyVector(flare2.pos,self.pos,3)
       flare2.size  = self.count*0.75
       flare2:ReInitialize()
       return
+    else
+      local r,g,b = max(self.color[1],0.13),max(self.color[2],0.13),max(self.color[3],0.13)
+      local flare = {
+        unit         = self.unitID,
+        piecenum     = self.unitpiece,
+        layer        = self.layer,
+        life         = 31,
+        size         = self.count*0.1,
+        sizeSpread   = 1,
+        sizeGrowth   = 0.1,
+        colormap     = { {r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01} },
+        texture      = 'bitmaps/GPL/groundflash.tga',
+        count        = 2,
+        repeatEffect = false,
+      }
+      self.flare1id  = AddParticles("StaticParticles",flare)
+      flare.size     = self.count*0.75
+      flare.texture  = 'bitmaps/flare.tga'
+      flare.colormap = { {r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009} }
+      flare.count    = 2
+      self.flare2id  = AddParticles("StaticParticles",flare)
     end
-    local r,g,b = max(self.color[1],0.13),max(self.color[2],0.13),max(self.color[3],0.13)
-    local flare = {
-      layer       = self.layer,
-      pos         = self.pos,
-      life        = 31,
-      size        = self.count*0.1,
-      sizeSpread  = 1,
-      sizeGrowth  = 0.1,
-      colormap    = { {r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01} },
-      texture     = 'bitmaps/GPL/groundflash.tga',
-      count       = 2,
-      repeatEffect = false,
-    }
-    self.flare1id  = AddParticles("StaticParticles",flare)
-    flare.size     = self.count*0.75
-    flare.texture  = 'bitmaps/flare.tga'
-    flare.colormap = { {r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009} }
-    flare.count    = 2
-    self.flare2id  = AddParticles("StaticParticles",flare)
+  end
+
+
+  self.visibility = 0
+  self:Update(0) --//update los
+
+  if (self.streamThickness<0) then
+    self.streamThickness = 4+self.count*0.34
   end
 end
 

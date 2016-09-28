@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 578,
 		builddistance = 136,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORACV.DDS",
 		buildtime = 12882,
 		canmove = true,

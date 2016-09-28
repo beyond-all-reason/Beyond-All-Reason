@@ -60,7 +60,7 @@ local function Hue2RGB( v1, v2, vH )
    elseif ((2*vH)<1) then
      return v2
    elseif ((3*vH)<2) then
-     return v1 + ((v2-v1)*0.6666 - vH)*6
+     return v1 + (v2-v1)*(0.6666 - vH)*6
    else
      return v1
    end

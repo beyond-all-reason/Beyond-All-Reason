@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 844,
 		builddistance = 160,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORACSUB.DDS",
 		buildtime = 24205,
 		canmove = true,

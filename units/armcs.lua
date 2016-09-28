@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 272,
 		builddistance = 200,
 		builder = true,
+		shownanospray = false,
 		buildpic = "ARMCS.DDS",
 		buildtime = 7686,
 		canmove = true,

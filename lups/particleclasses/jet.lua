@@ -23,7 +23,6 @@ function Jet.GetInfo()
     fbo       = true,
     shader    = true,
     distortion= true,
-    atiseries = 2,
     ms        = -1,
     intel     = -1,
   }

@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 2667,
 		builddistance = 130,
 		builder = true,
+		shownanospray = false,
 		buildpic = "ARMCOM.DDS",
 		buildtime = 75000,
 		cancapture = true,

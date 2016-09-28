@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 769,
 		builddistance = 112,
 		builder = true,
+		shownanospray = false,
 		buildpic = "ARMDECOM.DDS",
 		buildtime = 24048,
 		candgun = true,

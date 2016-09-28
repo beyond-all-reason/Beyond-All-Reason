@@ -16,6 +16,7 @@ Ribbon.__index = Ribbon
 local RibbonShader
 local widthLoc, quadsLoc
 local oldPosUniform = {}
+local lastTexture
 
 local DLists = {}
 
@@ -42,28 +43,36 @@ Ribbon.Default = {
   layer = 1,
 
   life     = math.huge,
-  unit     = 0,
+  unit     = nil,
+  projectile=nil,
   piece    = 0,
   width    = 1,
-  size     = 24, --//max 32
+  size     = 24, --//max 256
   color    = {0.9,0.9,1,1},
+  texture  = "bitmaps/GPL/Lups/jet.bmp",
+  decayRate = 0.01,
 
   worldspace = true,
   repeatEffect = true,
-  dieGameFrame = math.huge
+  dieGameFrame = math.huge,
+  
+  isvalid = true,
 }
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
 local spGetUnitDefID         = Spring.GetUnitDefID
-local spValidUnitID          = Spring.ValidUnitID
+local spGetUnitIsDead        = Spring.GetUnitIsDead
+local spIsUnitValid          = Spring.IsUnitValid
 local spIsSphereInView       = Spring.IsSphereInView
 local spGetUnitVelocity      = Spring.GetUnitVelocity
 local spGetUnitPiecePosition = Spring.GetUnitPiecePosition
 local spGetUnitViewPosition  = Spring.GetUnitViewPosition
 local spGetUnitPiecePosDir   = Spring.GetUnitPiecePosDir
 local spGetUnitVectors       = Spring.GetUnitVectors
+local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local glUniform    = gl.Uniform
 local glUniformInt = gl.UniformInt
 local glUseShader  = gl.UseShader
@@ -75,7 +84,7 @@ local GL_ONE = GL.ONE
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
-function GetPiecePos(unit,piece)
+local function GetPiecePos(unit,piece)
   local x,y,z = spGetUnitViewPosition(unit,false)
   local front,up,right = spGetUnitVectors(unit)
   local px,py,pz = spGetUnitPiecePosition(unit,piece)
@@ -89,7 +98,6 @@ end
 
 function Ribbon:BeginDraw()
   glUseShader(RibbonShader)
-  glTexture(0,":c:bitmaps/GPL/Lups/jet.bmp")
   glBlending(GL_SRC_ALPHA,GL_ONE)
 end
 
@@ -98,13 +106,18 @@ function Ribbon:EndDraw()
   glUseShader(0)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glTexture(0,false)
+  lastTexture = nil
   glColor(1,1,1,1)
 end
 
 
 function Ribbon:Draw()
+  
   local quads0 = self.quads0
-
+  if self.texture ~= lastTexture then
+	glTexture(0,":c:"..self.texture)
+	lastTexture = self.texture
+  end
   glUniform(widthLoc, self.width )
   glUniformInt(quadsLoc, quads0 )
 
@@ -117,9 +130,21 @@ function Ribbon:Draw()
   end
 
   --// insert interpolated current unit pos
-  local x,y,z = GetPiecePos(self.unit,self.piecenum)
-  --local x,y,z = spGetUnitPiecePosDir(self.unit,self.piecenum)
-  glUniform( oldPosUniform[quads0+1] , x,y,z )
+  if (self.isvalid) then
+    --local x,y,z = GetPiecePos(self.unit,self.piecenum)
+    local x,y,z
+    if self.unit then
+      x,y,z = spGetUnitPiecePosDir(self.unit,self.piecenum)
+    elseif self.projectile then
+      x,y,z = spGetProjectilePosition(self.projectile)
+    end
+    if x and y and z then 
+      glUniform( oldPosUniform[quads0+1] , x,y,z )
+    end
+  else
+    local dir = self.oldPos[j]
+    glUniform( oldPosUniform[quads0+1] , dir[1], dir[2], dir[3] )
+  end
 
   --// define color and add speed blending (don't show ribbon for slow/landing units!)
   if (self.blendfactor<1) then
@@ -128,7 +153,6 @@ function Ribbon:Draw()
   else
     glColor(self.color)
   end
-
   glCallList(DLists[quads0])
 end
 
@@ -140,7 +164,7 @@ function Ribbon.Initialize()
     vertex = [[
       uniform float width;
       uniform int   quads;
-      uniform vec3  oldPos[32];
+      uniform vec3  oldPos[256];
 
       varying vec2 texCoord;
 
@@ -193,10 +217,11 @@ function Ribbon.Initialize()
   widthLoc = gl.GetUniformLocation(RibbonShader, 'width')
   quadsLoc = gl.GetUniformLocation(RibbonShader, 'quads')
 
-  for i=1,32 do
+  for i=1,256 do
     oldPosUniform[i] = gl.GetUniformLocation(RibbonShader,"oldPos["..(i-1).."]")
   end
 end
+
 
 function Ribbon.Finalize()
   if (gl.DeleteShader) then
@@ -208,6 +233,53 @@ function Ribbon.Finalize()
     DLists[i] = nil
     gl.DeleteList(v)
   end
+end
+
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+function Ribbon:Update(n)
+  self.isvalid = (self.unit and spGetUnitIsDead(self.unit) == false) or (self.projectile and Spring.GetProjectileDefID(self.projectile))
+  if (self.isvalid) then
+    local x,y,z
+    if self.unit then
+      x, y, z = spGetUnitPiecePosDir(self.unit,self.piecenum)
+    elseif self.projectile then
+      x,y,z = spGetProjectilePosition(self.projectile)
+    end
+    if x and y and z then
+      self.posIdx = (self.posIdx % self.size)+1
+      self.oldPos[self.posIdx] = {x,y,z}
+
+      local vx,vy,vz
+      if self.unit then
+	vx, vy, vz = spGetUnitVelocity(self.unit)
+      elseif self.projectile then
+	vx, vy, vz = spGetProjectileVelocity(self.projectile)
+      end
+      if vx and vy and vz then
+	self.blendfactor = (vx*vx+vy*vy+vz*vz)/30
+      end
+    end
+  else
+    local lastIndex = self.posIdx 
+    self.posIdx = (self.posIdx % self.size)+1
+    self.oldPos[self.posIdx] = self.oldPos[lastIndex]
+    
+    self.blendfactor = self.blendfactor - n * self.decayRate
+  end
+end
+
+
+function Ribbon:Visible()
+  self.isvalid = (self.unit and spGetUnitIsDead(self.unit) == false) or (self.projectile and Spring.GetProjectileDefID(self.projectile))
+  local pos = self.oldPos[self.posIdx]
+  return (self.blendfactor>0) and (spIsSphereInView(pos[1],pos[2],pos[3], self.radius))
+end
+
+
+function Ribbon:Valid()
+  return self.isvalid or (self.blendfactor>0)
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -230,21 +302,6 @@ local function CreateDList(quads0)
 end
 
 
-function Ribbon:Update(n)
-  self.isvalid = spValidUnitID(self.unit)
-
-  if (self.isvalid) then
-    --if ((thisGameFrame%2)>0.1) then return end
-    local x,y,z = spGetUnitPiecePosDir(self.unit,self.piecenum)
-    self.posIdx = (self.posIdx % self.size)+1
-    self.oldPos[self.posIdx] = {x,y,z}
-
-    local vx,vy,vz = spGetUnitVelocity(self.unit)
-    self.blendfactor = (vx*vx+vz*vz)/30
-  end
-end
-
-
 -- used if repeatEffect=true;
 function Ribbon:ReInitialize()
   self.dieGameFrame = self.dieGameFrame + self.life
@@ -252,14 +309,19 @@ end
 
 
 function Ribbon:CreateParticle()
-  if (self.size>32) then self.size=32
-  elseif (self.size<5) then self.size=5 end
+  if (self.size>256) then self.size=256
+  elseif (self.size<2) then self.size=2 end
 
   self.posIdx = 1
   self.quads0 = self.size-1
   self.blendfactor = 1
 
-  local x,y,z = spGetUnitPiecePosDir(self.unit,self.piecenum)
+  local x,y,z 
+  if self.unit then
+    x,y,z = spGetUnitPiecePosDir(self.unit,self.piecenum)
+  elseif self.projectile then
+	x,y,z = spGetProjectilePosition(self.projectile)
+  end
   local curpos = {x,y,z}
 
   self.oldPos = {}
@@ -267,8 +329,10 @@ function Ribbon:CreateParticle()
     self.oldPos[i] = curpos
   end
 
-  local udid  = spGetUnitDefID(self.unit)
-  self.radius = (UnitDefs[udid].speed/30.0)*self.size
+  local udid  = self.unit and spGetUnitDefID(self.unit)
+  local weapon = self.weapon
+  local speed = self.speed or (UnitDefs[udid] and UnitDefs[udid].speed) or (weapon and WeaponDefs[weapon] and WeaponDefs[weapon].projectilespeed*30) or 100
+  self.radius = (speed/30.0)*self.size
 
   if (not DLists[self.quads0]) then
     DLists[self.quads0] = gl.CreateList(gl.BeginEnd,GL.QUADS,CreateDList,self.quads0)
@@ -276,17 +340,6 @@ function Ribbon:CreateParticle()
 
   self.startGameFrame = thisGameFrame
   self.dieGameFrame   = self.startGameFrame + self.life
-end
-
-
-function Ribbon:Visible()
-  local pos = self.oldPos[self.posIdx]
-  return (self.blendfactor>0) and (self.isvalid) and (spIsSphereInView(pos[1],pos[2],pos[3], self.radius))
-end
-
-
-function Ribbon:Valid()
-  return self.isvalid
 end
 
 -----------------------------------------------------------------------------------------------------------------

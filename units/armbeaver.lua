@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 150,
 		builddistance = 112,
 		builder = true,
+		shownanospray = false,
 		buildpic = "ARMBEAVER.DDS",
 		buildtime = 6708,
 		canmove = true,

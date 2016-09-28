@@ -25,7 +25,6 @@ function UnitJitter.GetInfo()
     fbo       = true,
     shader    = true,
     distortion= true,
-    atiseries = 2,
     intel     = 0,
   }
 end
@@ -39,6 +38,7 @@ UnitJitter.Default = {
   unit       = -1,
   unitDefID  = 0,
   team       = -1,
+  allyTeam   = -1,
 
   repeatEffect = false,
   dieGameFrame = math.huge
@@ -231,7 +231,7 @@ function UnitJitter.Initialize()
   })
 
   if (warpShader2 == nil) then
-    print(PRIO_MAJOR,"LUPS->UnitJitter: criticle shader2 error: "..gl.GetShaderLog())
+    print(PRIO_MAJOR,"LUPS->UnitJitter: critical shader2 error: "..gl.GetShaderLog())
     return false
   end
 end
@@ -253,17 +253,24 @@ function UnitJitter:ReInitialize()
 end
 
 function UnitJitter:CreateParticle()
-  self.isS3o = (UnitDefs[self.unitDefID].model.name:lower():find("s3o") and true)
+  local name = UnitDefs[self.unitDefID].model.name
+  self.isS3o = ((name:lower():find("s3o") or name:lower():find("obj")) and true)
   self.teamColor = {spGetTeamColor(self.team)}
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
 end
 
 function UnitJitter:Visible()
-  local x,y,z    = Spring.GetUnitPosition(self.unit)
-  if (x==nil) then return false end
-  local _,inLos  = Spring.GetPositionLosState(x,y,z, LocalAllyTeamID)
-  if (self.enemyHit)and(not Spring.AreTeamsAllied(self.team,LocalAllyTeamID)) then
+  if self.allyTeam == LocalAllyTeamID then
+    return Spring.IsUnitVisible(self.unit)
+  end
+
+  local inLos = true
+  if (self.enemyHit) then
+    local x,y,z = Spring.GetUnitPosition(self.unit)
+    if (x==nil) then return false end
+    inLos = select(2, Spring.GetPositionLosState(x,y,z, LocalAllyTeamID))
+  else
     local losState = Spring.GetUnitLosState(self.unit, LocalAllyTeamID) or {}
     inLos = (inLos)and(not losState.los)
   end

@@ -109,6 +109,33 @@ function Bursts:EndDraw()
   gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
+function Bursts:Draw()
+  if (lasttexture ~= self.texture) then
+    gl.Texture(self.texture)
+    lasttexture = self.texture
+  end
+  gl.Blending(self.srcBlend,self.dstBlend)
+  gl.PushMatrix()
+  gl.Translate(self.pos[1],self.pos[2],self.pos[3])
+
+  local partList
+  for i=1,#self.lists do
+      partList = self.lists[i]
+      local rotv = partList.rotv
+      local size = partList.size
+
+      gl.Color(partList.color)
+
+      gl.PushMatrix()
+        gl.Rotate(partList.rotArc,rotv[1],rotv[2],rotv[3])
+        gl.Scale(size,size,size)
+        gl.CallList(partList.dlist)
+      gl.PopMatrix()
+  end
+
+  gl.PopMatrix()
+end
+
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
@@ -198,43 +225,6 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-
-function Bursts:Draw()
-  if (lasttexture ~= self.texture) then
-    gl.Texture(self.texture)
-    lasttexture = self.texture
-  end
-  gl.Blending(self.srcBlend,self.dstBlend)
-  gl.PushMatrix()
-  gl.Translate(self.pos[1],self.pos[2],self.pos[3])
-
-  local partList
-  if (self.dListInit==0) then
-    for i=1,#self.lists do
-      partList = self.lists[i]
-      partList.dlist = gl.CreateList(DrawBurst,partList.rotv,self.directional,partList.arc)
-    end
-    self.dListInit=1
-  end
-
-  for i=1,#self.lists do
-      partList = self.lists[i]
-      local rotv = partList.rotv
-      local size = partList.size
-
-      gl.Color(partList.color)
-
-      gl.PushMatrix()
-        gl.Rotate(partList.rotArc,rotv[1],rotv[2],rotv[3])
-        gl.Scale(size,size,size)
-        gl.CallList(partList.dlist)
-      gl.PopMatrix()
-  end
-
-  gl.PopMatrix()
-end
-
-
 function Bursts:Update(n)
   local l = self.lists
   for i=1,#l do
@@ -270,9 +260,9 @@ function Bursts:CreateParticle()
   for i=1,self.count do
     local newPartList = {}
     self:InitializePartList(newPartList)
+    newPartList.dlist = gl.CreateList( DrawBurst ,newPartList.rotv,self.directional,newPartList.arc)
     table.insert(self.lists,newPartList)
   end
-  self.dListInit=0
 
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life + self.lifeSpread
@@ -289,10 +279,8 @@ function Bursts.Create(Options)
 end
 
 function Bursts:Destroy()
-  if (self.dListInit>0) then
-    for _,partList in ipairs(self.lists) do
-      gl.DeleteList(partList.dlist)
-    end
+  for _,partList in ipairs(self.lists) do
+    gl.DeleteList(partList.dlist)
   end
   --gl.DeleteTexture(self.texture)
 end

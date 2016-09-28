@@ -7,6 +7,7 @@ return {
 		buildcostenergy = 22187,
 		buildcostmetal = 1707,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORCARRY.DDS",
 		buildtime = 20800,
 		canassist = false,

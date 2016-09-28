@@ -6,6 +6,7 @@ return {
 		buildcostmetal = 109,
 		builddistance = 96,
 		builder = true,
+		shownanospray = false,
 		buildpic = "CORNECRO.DDS",
 		buildtime = 2400,
 		canassist = false,
