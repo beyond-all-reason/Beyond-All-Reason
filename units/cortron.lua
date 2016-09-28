@@ -119,7 +119,7 @@ return {
 				edgeeffectiveness = 0.4,
 				energypershot = 17437,
 				cegTag = "cruisemissiletrail",
-				explosiongenerator = "custom:FLASHNUKE480",
+				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 0,
 				flighttime = 400,
 				impulseboost = 0.123,

@@ -118,7 +118,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailflashy",
-				explosiongenerator = "custom:ARM_FIRE_SMALL",
+				explosiongenerator = "custom:genericshellexplosion-small-white",
 				firestarter = 20,
 				flighttime = 2.75,
 				impulseboost = 0,

@@ -75,7 +75,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				explosiongenerator = "custom:T1ARMBOMB",
+				explosiongenerator = "custom:genericshellexplosion-medium-red",
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 0.5,

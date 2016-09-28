@@ -75,7 +75,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.7,
-				explosiongenerator = "custom:CORE_BIGBOMB_EXPLOSION",
+				explosiongenerator = "custom:genericshellexplosion-medium-white",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

@@ -117,7 +117,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailgunshiplesssmokey",
-				explosiongenerator = "custom:FLASH2nd",
+				explosiongenerator = "custom:genericshellexplosion-large-purple",
 				firestarter = 70,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

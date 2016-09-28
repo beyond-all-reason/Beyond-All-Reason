@@ -78,7 +78,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				duration = 0.01,
-				explosiongenerator = "custom:EMPFLASH20",
+				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn",
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,

@@ -117,7 +117,7 @@ return {
 				cratermult = 0,
 				duration = 10,
 				energypershot = 35,
-				explosiongenerator = "custom:ZEUS_FLASH",
+				explosiongenerator = "custom:genericshellexplosion-medium-lightning",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,

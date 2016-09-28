@@ -119,7 +119,7 @@ return {
 				dance = 30,
 				edgeeffectiveness = 0.5,
 				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:MEDMISSILE_EXPLOSION",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				firestarter = 70,
 				flighttime = 3,
 				impulseboost = 0.123,

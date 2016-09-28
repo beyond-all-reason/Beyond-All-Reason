@@ -78,7 +78,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.1,
-				explosiongenerator = "custom:EMPFLASH240",
+				explosiongenerator = "custom:genericshellexplosion-large-lightning",
 				firestarter = 90,
 				gravityaffected = "true",
 				impulseboost = 0,

@@ -118,7 +118,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailgunshiplesssmokey",
-				explosiongenerator = "custom:CORE_FIRE_SMALL",
+				explosiongenerator = "custom:genericshellexplosion-medium-white",
 				firestarter = 20,
 				flighttime = 2.7,
 				impulseboost = 0,

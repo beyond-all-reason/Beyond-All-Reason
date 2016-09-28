@@ -121,7 +121,7 @@ return {
 				cratermult = 0,
 				duration = 0.0025,
 				energypershot = 500,
-				explosiongenerator = "custom:FLASH1nd",
+				explosiongenerator = "custom:genericshellexplosion-large-purple",
 				impulseboost = 0.234,
 				impulsefactor = 0.234,
 				intensity = 0.75,

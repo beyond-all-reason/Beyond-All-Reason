@@ -117,7 +117,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				energypershot = 3000,
-				explosiongenerator = "custom:FLASHBIGBUILDING",
+				explosiongenerator = "custom:genericshellexplosion-large-purple",
 				gravityaffected = "true",
 				heightboostfactor = 6,
 				impulseboost = 0.5,

@@ -188,7 +188,7 @@ return {
 				waterweapon = true, --dgun can pass trough water
 				firesubmersed = false, -- but not _fire_ underwater
 				energypershot = 500,
-				explosiongenerator = "custom:DGUNTRACE",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 100,
 				impulseboost = 0,
 				impulsefactor = 0,

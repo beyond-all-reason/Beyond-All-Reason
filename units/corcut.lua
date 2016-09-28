@@ -78,7 +78,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
+				explosiongenerator = "custom:genericshellexplosion-small-red",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "RiotCannon",

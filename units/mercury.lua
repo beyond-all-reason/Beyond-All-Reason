@@ -117,7 +117,7 @@ return {
 				edgeeffectiveness = 0.6,
 				energypershot = 1800,
 				cegTag = "missiletrailgunshiplesssmokey",
-				explosiongenerator = "custom:BURNTEAL",
+				explosiongenerator = "custom:genericshellexplosion-large-green",
 				firestarter = 90,
 				flighttime = 1.5,
 				impulseboost = 0,

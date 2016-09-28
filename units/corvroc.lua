@@ -122,7 +122,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
 				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:STARFIRE",
+				explosiongenerator = "custom:genericshellexplosion-large-purple",
 				firestarter = 100,
 				flighttime = 12,
 				impulseboost = 0.2,

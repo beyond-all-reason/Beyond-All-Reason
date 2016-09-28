@@ -122,6 +122,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				explosiongenerator = "custom:burnblack",
 				firestarter = 100,
 				flamegfxtime = 1.9,
 				groundbounce = true,

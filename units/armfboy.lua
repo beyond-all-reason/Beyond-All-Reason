@@ -117,7 +117,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.7,
 				energypershot = 0,
-				explosiongenerator = "custom:FLASH224",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
 				impulseboost = 0.4,
 				impulsefactor = 0.4,

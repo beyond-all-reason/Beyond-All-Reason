@@ -186,7 +186,7 @@ return {
 				waterweapon = true, --dgun can pass trough water
 				firesubmersed = false, -- but not _fire_ underwater
 				energypershot = 500,
-				explosiongenerator = "custom:DGUNTRACE",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 100,
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -219,7 +219,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.99,
-				explosiongenerator = "custom:SMALL_RED_BURN",
+				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn",
 				firestarter = 70,
 				impactonly = 1,
 				impulseboost = 0,
@@ -258,7 +258,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 1,
-				explosiongenerator = "custom:UW_LASER_BURN",
+				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn",
 				firestarter = 35,
 				firesubmersed = true,
 				impactonly = 1,

@@ -122,7 +122,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.75,
-				explosiongenerator = "custom:FLASH64",
+				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 1.8,
 				name = "RiotCannon",
 				noselfdamage = true,

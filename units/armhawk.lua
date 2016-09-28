@@ -69,7 +69,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailflashy",
-				explosiongenerator = "custom:FLASH2",
+				explosiongenerator = "custom:genericshellexplosion-small-white",
 				firestarter = 0,
 				impactonly = 1,
 				impulseboost = 0,

@@ -118,7 +118,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 7500,
-				explosiongenerator = "custom:FLASH4",
+				explosiongenerator = "custom:genericshellexplosion-large-red",
 				firestarter = 100,
 				flighttime = 120,
 				impulseboost = 0.123,

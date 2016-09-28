@@ -123,7 +123,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				duration = 8,
-				explosiongenerator = "custom:CLAW_FLASH",
+				explosiongenerator = "custom:genericshellexplosion-medium-lightning",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,

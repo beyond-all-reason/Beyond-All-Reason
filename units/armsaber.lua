@@ -79,7 +79,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				duration = 0.05,
-				explosiongenerator = "custom:FLASHBANTHA",
+				explosiongenerator = "custom:genericshellexplosion-small-green",
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,

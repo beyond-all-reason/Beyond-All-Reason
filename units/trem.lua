@@ -122,7 +122,7 @@ return {
 				craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:FLASH4",
+				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

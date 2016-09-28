@@ -117,7 +117,7 @@ return {
 				cratermult = 0,
 				duration = 0.02,
 				energypershot = 3,
-				explosiongenerator = "custom:FLASH1nd",
+				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,

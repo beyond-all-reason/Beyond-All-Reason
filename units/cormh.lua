@@ -114,7 +114,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:FLASH4",
+				explosiongenerator = "custom:genericshellexplosion-medium-purple",
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,

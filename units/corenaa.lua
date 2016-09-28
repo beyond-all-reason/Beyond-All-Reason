@@ -99,7 +99,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.85,
-				explosiongenerator = "custom:FLASH3",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
