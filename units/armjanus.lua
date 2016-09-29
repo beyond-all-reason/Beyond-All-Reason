@@ -121,7 +121,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:genericshellexplosion-medium-purple",
+				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
 				impulsefactor = 1.015,
 				model = "megamisl",

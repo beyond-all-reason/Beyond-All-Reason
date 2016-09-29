@@ -124,7 +124,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
 				cegTag = "missiletrailgunshiplesssmokey",
-				explosiongenerator = "custom:genericshellexplosion-large-purple",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				firestarter = 20,
 				flighttime = 3,
 				impulseboost = 0.123,
