@@ -121,7 +121,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-small-red",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 100,
 				gravityaffected = "true",
 				impulseboost = 0.123,
