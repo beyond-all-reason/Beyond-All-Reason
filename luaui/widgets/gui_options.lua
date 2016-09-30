@@ -458,21 +458,26 @@ function applyOptionValue(i)
 		end
 		if id == 'advmapshading' then
 			Spring.SendCommands("AdvMapShading "..value)
+			Spring.SetConfigInt("AdvMapShading",value)
 		elseif id == 'advmodelshading' then
 			Spring.SendCommands("AdvModelShading "..value)
+			Spring.SetConfigInt("AdvModelShading",value)
 		elseif id == 'advsky' then
 			Spring.SetConfigInt("AdvSky",value)
 		elseif id == 'shadows' then
 			Spring.SendCommands("Shadows "..value)
 		elseif id == 'fullscreen' then
 			Spring.SendCommands("Fullscreen "..value)
+			Spring.SetConfigInt("Fullscreen",value)
 		elseif id == 'borderless' then
 			Spring.SendCommands("WindowBorderless "..value)
+			Spring.SetConfigInt("WindowBorderless",value)
 		elseif id == 'screenedgemove' then
 			Spring.SetConfigInt("FullscreenEdgeMove",value)
 			Spring.SetConfigInt("WindowedEdgeMove",value)
 		elseif id == 'hwcursor' then
-			Spring.SendCommands("hardwareCursor "..value)
+			Spring.SendCommands("HardwareCursor "..value)
+			Spring.SetConfigInt("HardwareCursor",value)
 		elseif id == 'fpstimespeed' then
 			Spring.SendCommands("fps "..value)
 			Spring.SendCommands("clock "..value)
