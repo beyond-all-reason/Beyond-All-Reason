@@ -117,7 +117,7 @@ return {
         particlespeedspread = 2,
         pos                = [[0, 2, 0]],
         sizegrowth         = 1,
-        sizemod            = 1,
+        sizemod            = 10,
         texture            = [[gunshot]],
         useairlos          = false,
       },

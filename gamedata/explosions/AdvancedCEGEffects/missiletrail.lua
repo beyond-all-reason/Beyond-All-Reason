@@ -173,7 +173,7 @@ return {
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.01, 0]],
         numparticles       = 5,
-        particlelife       = 5,
+        particlelife       = 3,
         particlelifespread = 1,
         particlesize       = 8,
         particlesizespread = 0,
