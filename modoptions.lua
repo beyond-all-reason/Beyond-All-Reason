@@ -232,6 +232,18 @@ local options={
 		-- (step <= 0) means that there is no quantization
 	},
 	{
+		key    = "doublenumberofcontrolpoints",
+		name   = "Double the number of Control Points on the map",
+		desc   = "Increases the number of Control Points on the map to 13 (from 7) and doubles the total score amount. Has no effect if there is a pre-generated Control Point config for the selected map.",		
+		type="list",
+		def="disabled",
+		section= "controlvictoryoptions",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Increases the number of Control Points on the map to 13 (from 7) and doubles the total score amount. Has no effect if there is a pre-generated Control Point config for the selected map."},
+		}
+    },
+	{
 		key    = 'captureradius',
 		name   = 'Capture Radius',
 		desc   = 'Radius around a point in which to capture it.',

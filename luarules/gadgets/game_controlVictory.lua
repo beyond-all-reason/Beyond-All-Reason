@@ -116,6 +116,18 @@ Here are all of the modoptions in a neat copy pastable form... Place these modop
 		-- (step <= 0) means that there is no quantization
 	},
 	{
+		key    = "doublenumberofcontrolpoints",
+		name   = "Double the number of Control Points on the map",
+		desc   = "Increases the number of Control Points on the map to 13 (from 7) and doubles the total score amount. Has no effect if there is a pre-generated Control Point config for the selected map.",		
+		type="list",
+		def="disabled",
+		section= "controlvictoryoptions",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Increases the number of Control Points on the map to 13 (from 7) and doubles the total score amount. Has no effect if there is a pre-generated Control Point config for the selected map."},
+		}
+    },
+	{
 		key    = 'captureradius',
 		name   = 'Capture Radius',
 		desc   = 'Radius around a point in which to capture it.',
@@ -248,6 +260,32 @@ buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
 
 --local pointMarker = FeatureDefNames.xelnotgawatchtower.id -- Feature marking a point- This doesn't do anything atm
 
+--if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode == nil then return false end
+
+--Make controlvictory exit if chickens are present
+
+local teams = Spring.GetTeamList()
+for i =1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI ~= "" then
+		if luaAI == "Chicken: Very Easy" or 
+		luaAI == "Chicken: Easy" or 
+		luaAI == "Chicken: Normal" or 
+		luaAI == "Chicken: Hard" or 
+		luaAI == "Chicken: Very Hard" or 
+		luaAI == "Chicken: Epic!" or 
+		luaAI == "Chicken: Custom" or 
+		luaAI == "Chicken: Survival" then
+			chickensEnabled = true
+		end
+	end
+end
+
+if chickensEnabled == true then
+	Spring.Echo("[ControlVictory] Deactivated because Chickens are present!")
+	return false
+end
+
 
 local captureRadius = tonumber(Spring.GetModOptions().captureradius) or 500 -- Radius around a point in which to capture it
 local captureTime = tonumber(Spring.GetModOptions().capturetime) or 30 -- Time to capture a point
@@ -260,9 +298,18 @@ local startTime = tonumber(Spring.GetModOptions().starttime) or 0 -- The time wh
 
 local dominationScoreTime = tonumber(Spring.GetModOptions().dominationscoretime) or 30 -- Time needed holding all points to score in multi domination
 
-if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode == nil then return false end
+local doubleNumberOfControlPoints = Spring.GetModOptions().doublenumberofcontrolpoints or "disabled"
 
 local limitScore = tonumber(Spring.GetModOptions().limitscore) or 2750
+
+if doubleNumberOfControlPoints == "enabled" then
+	limitScore = limitScore * 2
+end
+
+local dominationScore = tonumber(Spring.GetModOptions().dominationscore) or 1000
+
+local metalPerPoint = tonumber(Spring.GetModOptions().metalperpoint) or 0
+local energyPerPoint = tonumber(Spring.GetModOptions().energyperpoint) or 0
 
 local allyTeamColorSets={}
 
@@ -273,6 +320,13 @@ local scoreModes = {
 	domination = 3, -- Holding all points will grant 100 score, first to reach the score limit wins
 }
 local scoreMode = scoreModes[Spring.GetModOptions().scoremode or "countdown"]
+
+--Lets add a pretty way to access scoremodes
+if scoreMode == 0 then scoreModeAsString = "Disabled" end
+if scoreMode == 1 then scoreModeAsString = "Countdown" end
+if scoreMode == 2 then scoreModeAsString = "Tug Of War" end
+if scoreMode == 3 then scoreModeAsString = "Domination" end
+
 
 Spring.Echo("[ControlVictory] Control Victory Scoring Mode: " .. (Spring.GetModOptions().scoremode or "Countdown"))
 
@@ -354,31 +408,66 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 			moveSpeed = 0
 		else
-			--Since no config file is found, we create 7 points spaced out in a circle on the map
-			local angle = math.random() * math.pi * 2
-			points = {}
-			for i=1,6 do
-				local angle = angle + i * math.pi * 2/6
-				points[i] = {
-					x=mapx/2 + mapx * .4 * math.sin(angle),
+			if scoreModeAsString == "Domination" then
+				local angle = math.random() * math.pi * 2
+				points = {}
+				for i=1,3 do
+					local angle = angle + i * math.pi * 1/1.5
+					points[i] = {
+						x=mapx/2 + mapx * .12 * math.sin(angle),
+						y=0,
+						z=mapz/2 + mapz * .12 * math.cos(angle),
+						--We can make them move around if we want to by uncommenting these lines and the ones below
+						--velx=moveSpeed * 10 * -1 * math.cos(angle),
+						--velz=moveSpeed * 10 * math.sin(angle),
+						owner=nil,
+						aggressor=nil,
+						capture=0,
+					}
+				end
+			else
+				--Since no config file is found, we create 7 points spaced out in a circle on the map
+				local angle = math.random() * math.pi * 2
+				points = {}
+				for i=2,7 do
+					local angle = angle + i * math.pi * 1/3
+					points[i] = {
+						x=mapx/2 + mapx * .4 * math.sin(angle),
+						y=0,
+						z=mapz/2 + mapz * .4 * math.cos(angle),
+						--We can make them move around if we want to by uncommenting these lines and the ones below
+						--velx=moveSpeed * 10 * -1 * math.cos(angle),
+						--velz=moveSpeed * 10 * math.sin(angle),
+						owner=nil,
+						aggressor=nil,
+						capture=0,
+					}
+				end
+				if doubleNumberOfControlPoints == "enabled" then
+					for i=8,13 do
+						local angle = angle + i * math.pi * 1/3
+						points[i] = {
+							x=mapx/2 + mapx * .2 * math.sin(angle),
+							y=0,
+							z=mapz/2 + mapz * .2 * math.cos(angle),
+							--We can make them move around if we want to by uncommenting these lines and the ones below
+							--velx=moveSpeed * 10 * -1 * math.cos(angle),
+							--velz=moveSpeed * 10 * math.sin(angle),
+							owner=nil,
+							aggressor=nil,
+							capture=0,
+						}
+					end
+				end
+				points[1] = {
+					x=mapx/2,
 					y=0,
-					z=mapz/2 + mapz * .4 * math.cos(angle),
-					--We can make them move around if we want to by uncommenting these lines and the ones below
-					--velx=moveSpeed * 10 * -1 * math.cos(angle),
-					--velz=moveSpeed * 10 * math.sin(angle),
+					z=mapz/2, 
 					owner=nil,
 					aggressor=nil,
 					capture=0,
 				}
 			end
-			points[7] = {
-				x=mapx/2,
-				y=0,
-				z=mapz/2, 
-				owner=nil,
-				aggressor=nil,
-				capture=0,
-			}
 		end
 		_G.points = points
 		_G.score = score
@@ -957,7 +1046,7 @@ else -- UNSYNCED
 			PopMatrix()
 			
 			-- title
-		  local title = offwhite .. [[Area Capture Mode    ]] .. yellow .. Spring.GetModOptions().scoremode
+		  local title = offwhite .. [[Area Capture Mode    ]] .. yellow .. scoreModeAsString
 			local titleFontSize = 18
 		  Color(0,0,0,0.8)
 		  titleRect = {x-bgMargin, y+bgMargin, x+(gl.GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
@@ -981,12 +1070,12 @@ else -- UNSYNCED
 			local infotext = offwhite .. [[Controlpoints are spread across the map. They can be captured by moving units into the circles.
 Note that you can only build certain units inside them (e.g. Metal Extractors).
  
-There are 3 modes (Current mode is ]] .. yellow .. Spring.GetModOptions().scoremode .. offwhite .. [[):
+There are 3 modes (Current mode is ]] .. yellow .. scoreModeAsString .. offwhite .. [[):
 - Countdown:  Your score counts down until zero based upon how many points your enemy owns.
-- Tug of War: Score is transferred between teams. Score transferred is multiplied by ]] .. yellow .. Spring.GetModOptions().tugofwarmodifier .. offwhite .. [[. 
-- Domination: Capture all controlpoints on the map for ]] .. yellow .. Spring.GetModOptions().dominationscoretime .. offwhite .. [[ seconds in order to gain ]] .. yellow .. Spring.GetModOptions().dominationscore .. offwhite .. [[ score. Goal ]] .. yellow .. Spring.GetModOptions().limitscore .. offwhite .. [[. 
+- Tug of War: Score is transferred between teams. Score transferred is multiplied by ]] .. yellow .. tugofWarModifier .. offwhite .. [[. 
+- Domination: Capture all controlpoints on the map for ]] .. yellow .. dominationScoreTime .. offwhite .. [[ seconds in order to gain ]] .. yellow .. dominationScore .. offwhite .. [[ score. Goal ]] .. yellow .. limitScore .. offwhite .. [[. 
  
-You will also gain ]] .. white .. [[+]] .. skyblue .. Spring.GetModOptions().metalperpoint .. offwhite .. [[ metal and ]] .. white .. [[+]] .. yellow .. Spring.GetModOptions().energyperpoint .. offwhite ..[[ energy for each controlpoint you own.
+You will also gain ]] .. white .. [[+]] .. skyblue .. metalPerPoint .. offwhite .. [[ metal and ]] .. white .. [[+]] .. yellow .. energyPerPoint .. offwhite ..[[ energy for each controlpoint you own.
  
 There are various options available in the lobby bsettings (use ]] .. yellow .. [[!list bsettings]] .. offwhite .. [[ in the lobby chat)]]
 
@@ -1196,7 +1285,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 
 	function mouseEvent(x, y, button, release)
 		
-		if Spring.IsGUIHidden() then return false end
+	if Spring.IsGUIHidden() then return false end
 	  if release and draggingScoreboard ~= nil then
 	  	draggingScoreboard = nil
 	  end
