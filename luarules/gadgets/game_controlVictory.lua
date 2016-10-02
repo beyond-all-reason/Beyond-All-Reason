@@ -260,7 +260,7 @@ buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
 
 --local pointMarker = FeatureDefNames.xelnotgawatchtower.id -- Feature marking a point- This doesn't do anything atm
 
---if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode == nil then return false end
+if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode == nil then return false end
 
 --Make controlvictory exit if chickens are present
 
