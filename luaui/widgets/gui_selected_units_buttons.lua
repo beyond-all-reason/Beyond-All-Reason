@@ -13,7 +13,7 @@
 
 function widget:GetInfo()
   return {
-    name      = "SelectionButtons",
+    name      = "Selected Units Buttons",
     desc      = "Buttons for the current selection (incomplete)",
     author    = "trepan, Floris",
     date      = "28 may 2015",
