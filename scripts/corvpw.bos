@@ -405,86 +405,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode arm1 type BITMAPONLY | BITMAP1;
-		explode arm2 type BITMAPONLY | BITMAP2;
-		explode base type BITMAPONLY | BITMAP3;
-		explode beam1 type BITMAPONLY | BITMAP4;
-		explode beam2 type BITMAPONLY | BITMAP5;
-		explode gun1 type BITMAPONLY | BITMAP1;
-		explode gun2 type BITMAPONLY | BITMAP2;
-		explode layer1a type BITMAPONLY | BITMAP3;
-		explode layer1b type BITMAPONLY | BITMAP4;
-		explode layer1c type BITMAPONLY | BITMAP5;
-		explode layer2a type BITMAPONLY | BITMAP1;
-		explode layer2b type BITMAPONLY | BITMAP2;
-		explode layer2c type BITMAPONLY | BITMAP3;
-		explode layer3a type BITMAPONLY | BITMAP4;
-		explode layer3b type BITMAPONLY | BITMAP5;
-		explode layer3c type BITMAPONLY | BITMAP1;
-		explode pad type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode arm1 type FALL | BITMAP1;
-		explode arm2 type FALL | BITMAP2;
-		explode base type BITMAPONLY | BITMAP3;
-		explode beam1 type FALL | BITMAP4;
-		explode beam2 type FALL | BITMAP5;
-		explode gun1 type FALL | BITMAP1;
-		explode gun2 type FALL | BITMAP2;
-		explode layer1a type BITMAPONLY | BITMAP3;
-		explode layer1b type BITMAPONLY | BITMAP4;
-		explode layer1c type BITMAPONLY | BITMAP5;
-		explode layer2a type BITMAPONLY | BITMAP1;
-		explode layer2b type BITMAPONLY | BITMAP2;
-		explode layer2c type SHATTER | BITMAP3;
-		explode layer3a type FALL | BITMAP4;
-		explode layer3b type FALL | BITMAP5;
-		explode layer3c type FALL | BITMAP1;
-		explode pad type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode base type BITMAPONLY | BITMAP3;
-		explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode layer1a type BITMAPONLY | BITMAP3;
-		explode layer1b type BITMAPONLY | BITMAP4;
-		explode layer1c type BITMAPONLY | BITMAP5;
-		explode layer2a type BITMAPONLY | BITMAP1;
-		explode layer2b type BITMAPONLY | BITMAP2;
-		explode layer2c type SHATTER | BITMAP3;
-		explode layer3a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode layer3b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode layer3c type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode pad type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode base type BITMAPONLY | BITMAP3;
-	explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode layer1a type BITMAPONLY | BITMAP3;
-	explode layer1b type BITMAPONLY | BITMAP4;
-	explode layer1c type BITMAPONLY | BITMAP5;
-	explode layer2a type BITMAPONLY | BITMAP1;
-	explode layer2b type BITMAPONLY | BITMAP2;
-	explode layer2c type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode layer3a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode layer3b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode layer3c type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode pad type BITMAPONLY | BITMAP2;
 	return (corpsetype);
 }

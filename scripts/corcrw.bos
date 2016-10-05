@@ -158,38 +158,8 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode wing1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode wing2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode wing3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode sphere1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode sphere2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode sphere3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode wing2top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode wing3top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode Turret1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode Turret2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode Turret3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode bladestop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-		explode bladesbottom type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode ring type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode wing1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode wing2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode wing3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode sphere1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode sphere2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode sphere3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode wing2top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode wing3top type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode Turret1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode Turret2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode Turret3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode bladestop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
-	explode bladesbottom type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAPNUKE;
 	return corpsetype;
 }

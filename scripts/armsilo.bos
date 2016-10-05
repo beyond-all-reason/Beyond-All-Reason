@@ -246,46 +246,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode arm type BITMAPONLY | BITMAP1;
-		explode base type BITMAPONLY | BITMAP2;
-		explode domes type BITMAPONLY | BITMAP3;
-		explode door1 type BITMAPONLY | BITMAP4;
-		explode door2 type BITMAPONLY | BITMAP5;
-		explode missile type BITMAPONLY | BITMAP1;
-		explode plate type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode arm type SHATTER | BITMAP1;
-		explode base type BITMAPONLY | BITMAP2;
-		explode domes type BITMAPONLY | BITMAP3;
-		explode door1 type FALL | BITMAP4;
-		explode door2 type FALL | BITMAP5;
-		explode missile type BITMAPONLY | BITMAP1;
-		explode plate type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode arm type SHATTER | BITMAP1;
-		explode base type BITMAPONLY | BITMAP2;
-		explode domes type BITMAPONLY | BITMAP3;
-		explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode missile type BITMAPONLY | BITMAP1;
-		explode plate type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode arm type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-	explode base type BITMAPONLY | BITMAP2;
-	explode domes type BITMAPONLY | BITMAP3;
-	explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode missile type BITMAPONLY | BITMAP1;
-	explode plate type BITMAPONLY | BITMAP2;
 	return (corpsetype);
 }

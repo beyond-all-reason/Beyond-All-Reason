@@ -267,49 +267,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode J2 type SHATTER;
-		explode J1 type SHATTER;
-		explode L6 type FALL;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode J2 type FALL;
-		explode J1 type FALL;
-		explode base type SHATTER;
-		explode spot2 type SHATTER;
-		explode L6 type SHATTER;
-		explode L2 type FALL;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode J2 type FALL;
-		explode J1 type FALL;
-		explode base type SHATTER;
-		explode spot2 type FALL;
-		explode spot1 type FALL;
-		explode L6 type FALL;
-		explode L5 type FALL;
-		explode L4 type FALL;
-		explode L3 type FALL;
-		explode L2 type SHATTER;
-		explode L1 type SHATTER;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode J2 type FALL;
-	explode J1 type FALL;
-	explode base type SHATTER;
-	explode spot2 type SHATTER;
-	explode spot1 type SHATTER;
-	explode L6 type FALL;
-	explode L5 type SHATTER;
-	explode L4 type SHATTER;
-	explode L3 type FALL;
-	explode L2 type FALL;
-	explode L1 type SHATTER;
 	return (corpsetype);
 }

@@ -205,62 +205,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP4;
-		explode armsl type BITMAPONLY | BITMAP5;
-		explode nose type BITMAPONLY | BITMAP1;
-		explode tail type BITMAPONLY | BITMAP2;
-		explode arm_lf type BITMAPONLY | BITMAP3;
-		explode arm_lr type BITMAPONLY | BITMAP4;
-		explode arm_rf type BITMAPONLY | BITMAP5;
-		explode arm_rr type BITMAPONLY | BITMAP1;
-		explode r_front type BITMAPONLY | BITMAP2;
-		explode r_rear type BITMAPONLY | BITMAP3;
-		explode r_pylon type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP4;
-		explode armsl type FALL | BITMAP5;
-		explode nose type FALL | BITMAP1;
-		explode tail type FALL | EXPLODE_ON_HIT | BITMAP2;
-		explode arm_lf type SHATTER | BITMAP3;
-		explode arm_lr type FALL | BITMAP4;
-		explode arm_rf type FALL | SMOKE | BITMAP5;
-		explode arm_rr type FALL | FIRE | BITMAP1;
-		explode r_front type FALL | BITMAP2;
-		explode r_rear type FALL | BITMAP3;
-		explode r_pylon type SHATTER | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP4;
-		explode armsl type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode nose type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-		explode tail type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode arm_lf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode arm_lr type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-		explode arm_rf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode arm_rr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-		explode r_front type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode r_rear type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode r_pylon type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP4;
-	explode armsl type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode nose type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode tail type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode arm_lf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode arm_lr type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode arm_rf type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode arm_rr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode r_front type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode r_rear type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode r_pylon type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 	return (corpsetype);
 }

@@ -95,17 +95,6 @@ SweetSpot(piecenum)
 Killed(severity, corpsetype)
 {
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode Left_Back_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode Left_Back_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode Right_Back_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-	explode Righ_Back_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-	explode Left_Front_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode Left_Front_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode Right_Front_Foot type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-	explode Right_Front_Leg type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-	explode Tail type FALL | EXPLODE_ON_HIT | BITMAP2;
-	explode Hump type FALL | EXPLODE_ON_HIT | BITMAP2;
 	return (corpsetype);
 }
 

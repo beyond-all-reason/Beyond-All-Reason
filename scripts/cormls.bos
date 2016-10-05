@@ -216,46 +216,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode Base type BITMAPONLY | BITMAP1;
-		explode Body type BITMAPONLY | BITMAP1;
-		explode NanoDoor1 type BITMAPONLY | BITMAP1;
-		explode NanoDoor2 type BITMAPONLY | BITMAP1;
-		explode Boom type BITMAPONLY | BITMAP1;
-		explode Neck type BITMAPONLY | BITMAP1;
-		explode NanoGun type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Base type BITMAPONLY | BITMAP1;
-		explode Body type BITMAPONLY | BITMAP1;
-		explode NanoDoor1 type BITMAPONLY | BITMAP1;
-		explode NanoDoor2 type BITMAPONLY | BITMAP1;
-		explode Boom type BITMAPONLY | BITMAP1;
-		explode Neck type BITMAPONLY | BITMAP1;
-		explode NanoGun type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode Base type SHATTER | BITMAP4;
-		explode Body type SHATTER | BITMAP4;
-		explode NanoDoor1 type SHATTER | BITMAP4;
-		explode NanoDoor2 type SHATTER | BITMAP4;
-		explode Boom type SHATTER | BITMAP4;
-		explode Neck type SHATTER | BITMAP4;
-		explode NanoGun type SHATTER | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode Base type SHATTER | BITMAP4;
-	explode Body type SHATTER | BITMAP4;
-	explode NanoDoor1 type SHATTER | BITMAP4;
-	explode NanoDoor2 type SHATTER | BITMAP4;
-	explode Boom type SHATTER | BITMAP4;
-	explode Neck type SHATTER | BITMAP4;
-	explode NanoGun type SHATTER | BITMAP4;
 	return corpsetype;
 }

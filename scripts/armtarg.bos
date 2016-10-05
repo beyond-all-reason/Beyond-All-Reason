@@ -146,58 +146,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode centerlight type BITMAPONLY | BITMAP2;
-		explode light1 type BITMAPONLY | BITMAP3;
-		explode light2 type BITMAPONLY | BITMAP4;
-		explode light3 type BITMAPONLY | BITMAP5;
-		explode light4 type BITMAPONLY | BITMAP1;
-		explode post1 type BITMAPONLY | BITMAP2;
-		explode post2 type BITMAPONLY | BITMAP3;
-		explode post3 type BITMAPONLY | BITMAP4;
-		explode post4 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode centerlight type FALL | BITMAP2;
-		explode light1 type FALL | BITMAP3;
-		explode light2 type FALL | BITMAP4;
-		explode light3 type FALL | BITMAP5;
-		explode light4 type FALL | BITMAP1;
-		explode post1 type SHATTER | BITMAP2;
-		explode post2 type BITMAPONLY | BITMAP3;
-		explode post3 type BITMAPONLY | BITMAP4;
-		explode post4 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-		explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-		explode post1 type SHATTER | BITMAP2;
-		explode post2 type BITMAPONLY | BITMAP3;
-		explode post3 type BITMAPONLY | BITMAP4;
-		explode post4 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode post1 type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode post2 type BITMAPONLY | BITMAP3;
-	explode post3 type BITMAPONLY | BITMAP4;
-	explode post4 type BITMAPONLY | BITMAP5;
 	return corpsetype;
 }

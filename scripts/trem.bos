@@ -213,40 +213,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP5;
-		explode turret type BITMAPONLY | BITMAP5;
-		explode spindle type BITMAPONLY | BITMAP4;
-		explode tread1 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP5;
-		explode turret type SHATTER | BITMAP5;
-		explode spindle type SHATTER | BITMAP5;
-		explode tread1 type SHATTER | BITMAP5;
-		explode tread2 type SHATTER | BITMAP5;
-		explode tread3 type SHATTER | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP5;
-		explode turret type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode spindle type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode tread1 type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode tread2 type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode tread3 type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP5;
-	explode turret type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode spindle type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode tread1 type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode tread2 type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode tread3 type FALL | SMOKE | SHATTER | EXPLODE_ON_HIT | BITMAP3;
 	return (corpsetype);
 }

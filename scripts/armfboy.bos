@@ -313,54 +313,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode holders type BITMAPONLY | BITMAP1;
-		explode leg1 type BITMAPONLY | BITMAP2;
-		explode leg2 type BITMAPONLY | BITMAP3;
-		explode foot1 type BITMAPONLY | BITMAP4;
-		explode foot2 type BITMAPONLY | BITMAP5;
-		explode turret1 type BITMAPONLY | BITMAP1;
-		explode turret2 type BITMAPONLY | BITMAP2;
-		explode barrel1 type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode holders type BITMAPONLY | BITMAP1;
-		explode leg1 type BITMAPONLY | BITMAP2;
-		explode leg2 type BITMAPONLY | BITMAP3;
-		explode foot1 type BITMAPONLY | BITMAP4;
-		explode foot2 type BITMAPONLY | BITMAP5;
-		explode turret1 type BITMAPONLY | BITMAP1;
-		explode turret2 type BITMAPONLY | BITMAP2;
-		explode barrel1 type FALL | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode holders type BITMAPONLY | BITMAP1;
-		explode leg1 type BITMAPONLY | BITMAP2;
-		explode leg2 type BITMAPONLY | BITMAP3;
-		explode foot1 type BITMAPONLY | BITMAP4;
-		explode foot2 type FALL | EXPLODE_ON_HIT | BITMAP5;
-		explode turret1 type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-		explode turret2 type BITMAPONLY | BITMAP2;
-		explode barrel1 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode holders type BITMAPONLY | BITMAP1;
-	explode leg1 type BITMAPONLY | BITMAP2;
-	explode leg2 type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode foot1 type BITMAPONLY | BITMAP4;
-	explode foot2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode turret1 type SHATTER | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode turret2 type SHATTER | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 	return (corpsetype);
 }

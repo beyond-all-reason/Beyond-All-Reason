@@ -231,54 +231,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP3;
-		explode leg1 type BITMAPONLY | BITMAP1;
-		explode leg2 type BITMAPONLY | BITMAP2;
-		explode leg3 type BITMAPONLY | BITMAP3;
-		explode leg4 type BITMAPONLY | BITMAP4;
-		explode leg5 type BITMAPONLY | BITMAP5;
-		explode leg6 type BITMAPONLY | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP2;
-		explode box type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP3;
-		explode leg1 type FALL | BITMAP1;
-		explode leg2 type FALL | BITMAP2;
-		explode leg3 type FALL | BITMAP3;
-		explode leg4 type FALL | BITMAP4;
-		explode leg5 type FALL | BITMAP5;
-		explode leg6 type FALL | BITMAP1;
-		explode turret type SHATTER | BITMAP2;
-		explode box type SHATTER | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP3;
-		explode leg1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode leg2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode leg3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode leg4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode leg5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode leg6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode turret type SHATTER | BITMAP2;
-		explode box type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP3;
-	explode leg1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode leg2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode leg3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode leg4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode leg5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode leg6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode box type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 	return corpsetype;
 }

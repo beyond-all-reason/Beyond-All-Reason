@@ -378,86 +378,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ground type BITMAPONLY | BITMAP1;
-		explode lcasedoor type BITMAPONLY | BITMAP2;
-		explode lforeleg type BITMAPONLY | BITMAP3;
-		explode lgunjoint type BITMAPONLY | BITMAP4;
-		explode lhindleg type BITMAPONLY | BITMAP5;
-		explode lnanocase type BITMAPONLY | BITMAP1;
-		explode lnanogun type BITMAPONLY | BITMAP2;
-		explode lnanospray type BITMAPONLY | BITMAP3;
-		explode pelvis type BITMAPONLY | BITMAP4;
-		explode rcasedoor type BITMAPONLY | BITMAP5;
-		explode rforeleg type BITMAPONLY | BITMAP1;
-		explode rgunjoint type BITMAPONLY | BITMAP2;
-		explode rhindleg type BITMAPONLY | BITMAP3;
-		explode rnanocase type BITMAPONLY | BITMAP4;
-		explode rnanogun type BITMAPONLY | BITMAP5;
-		explode rnanospray type BITMAPONLY | BITMAP1;
-		explode torso type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode ground type FALL | BITMAP1;
-		explode lcasedoor type FALL | BITMAP2;
-		explode lforeleg type FALL | BITMAP3;
-		explode lgunjoint type FALL | BITMAP4;
-		explode lhindleg type FALL | BITMAP5;
-		explode lnanocase type BITMAPONLY | BITMAP1;
-		explode lnanogun type FALL | BITMAP2;
-		explode lnanospray type FALL | BITMAP3;
-		explode pelvis type FALL | BITMAP4;
-		explode rcasedoor type FALL | BITMAP5;
-		explode rforeleg type FALL | BITMAP1;
-		explode rgunjoint type FALL | BITMAP2;
-		explode rhindleg type FALL | BITMAP3;
-		explode rnanocase type BITMAPONLY | BITMAP4;
-		explode rnanogun type FALL | BITMAP5;
-		explode rnanospray type FALL | BITMAP1;
-		explode torso type SHATTER | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode lcasedoor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode lforeleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode lgunjoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lhindleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode lnanocase type BITMAPONLY | BITMAP1;
-		explode lnanogun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode lnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode rcasedoor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode rforeleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode rgunjoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode rhindleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode rnanocase type BITMAPONLY | BITMAP4;
-		explode rnanogun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode rnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode torso type SHATTER | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode lcasedoor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode lforeleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode lgunjoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode lhindleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode lnanocase type BITMAPONLY | BITMAP1;
-	explode lnanogun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode lnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode rcasedoor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode rforeleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode rgunjoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode rhindleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode rnanocase type BITMAPONLY | BITMAP4;
-	explode rnanogun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode rnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 	return corpsetype;
 }

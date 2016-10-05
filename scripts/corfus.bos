@@ -53,42 +53,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode globetop type BITMAPONLY | BITMAP2;
-		explode globebottom type BITMAPONLY | BITMAP2;
-		explode tower1 type BITMAPONLY | BITMAP3;
-		explode tower2 type BITMAPONLY | BITMAP4;
-		explode tower3 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode globetop type BITMAPONLY | BITMAP2;
-		explode globebottom type BITMAPONLY | BITMAP2;
-		explode tower1 type BITMAPONLY | BITMAP3;
-		explode tower2 type BITMAPONLY | BITMAP4;
-		explode tower3 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode globetop type BITMAPONLY | BITMAP2;
-		explode globebottom type BITMAPONLY | BITMAP2;
-		explode tower1 type BITMAPONLY | BITMAP3;
-		explode tower2 type BITMAPONLY | BITMAP4;
-		explode tower3 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode globetop type BITMAPONLY | BITMAP2;
-	explode globebottom type BITMAPONLY | BITMAP2;
-	explode tower1 type BITMAPONLY | BITMAP3;
-	explode tower2 type BITMAPONLY | BITMAP4;
-	explode tower3 type BITMAPONLY | BITMAP5;
 	return (corpsetype);
 }

@@ -762,24 +762,5 @@ SweetSpot(piecenum)
 Killed(severity, corpsetype)
 {
 	corpsetype = 3;
-	explode head type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-	explode hips type FALL | FIRE | SMOKE | BITMAP2;
-	explode Larm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode Lfoot type FALL | FIRE | SMOKE | BITMAP4;
-	explode llathe type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode llathepoint type FALL | FIRE | SMOKE | BITMAP1;
-	explode Lleg type FALL | FIRE | SMOKE | BITMAP2;
-	explode Lshoulder type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode Rarm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode Rfoot type FALL | FIRE | SMOKE | BITMAP5;
-	explode rlathe type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode rlathepoint type FALL | FIRE | SMOKE | BITMAP2;
-	explode Rleg type FALL | FIRE | SMOKE | BITMAP3;
-	explode Rshoulder type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode shield1 type BITMAPONLY | BITMAP5;
-	explode shield2 type BITMAPONLY | BITMAP1;
-	explode shield3 type BITMAPONLY | BITMAP2;
-	explode shield4 type BITMAPONLY | BITMAP3;
-	explode torso type BITMAPONLY | BITMAP4;
 	return corpsetype;
 }

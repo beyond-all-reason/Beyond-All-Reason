@@ -179,51 +179,19 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode bombdrop type BITMAPONLY | BITMAP2;
-		explode flare1 type BITMAPONLY | BITMAP3;
-		explode flare2 type BITMAPONLY | BITMAP4;
-		explode lwing type BITMAPONLY | BITMAP5;
-		explode rwing type BITMAPONLY | BITMAP1;
-		explode wake1 type BITMAPONLY | BITMAP2;
-		explode wake2 type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode bombdrop type FALL | BITMAP2;
-		explode flare1 type FALL | BITMAP3;
-		explode flare2 type FALL | BITMAP4;
-		explode lwing type BITMAPONLY | BITMAP5;
-		explode rwing type BITMAPONLY | BITMAP1;
-		explode wake1 type FALL | BITMAP2;
-		explode wake2 type FALL | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode bombdrop type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode flare1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode flare2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-		explode lwing type BITMAPONLY | BITMAP5;
-		explode rwing type BITMAPONLY | BITMAP1;
-		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode bombdrop type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode flare1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode flare2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode lwing type BITMAPONLY | BITMAP5;
-	explode rwing type BITMAPONLY | BITMAP1;
-	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
 	return corpsetype;
 }
 

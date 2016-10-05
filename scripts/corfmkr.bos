@@ -195,65 +195,17 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode door1 type BITMAPONLY | BITMAP2;
-		explode door2 type BITMAPONLY | BITMAP3;
-		explode door3 type BITMAPONLY | BITMAP4;
-		explode door4 type BITMAPONLY | BITMAP5;
-		explode float1 type BITMAPONLY | BITMAP1;
-		explode float2 type BITMAPONLY | BITMAP2;
-		explode float3 type BITMAPONLY | BITMAP3;
-		explode float4 type BITMAPONLY | BITMAP4;
-		explode float5 type BITMAPONLY | BITMAP5;
-		explode float6 type BITMAPONLY | BITMAP1;
-		explode glow type BITMAPONLY | BITMAP2;
 		return corpsetype;
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode door1 type FALL | BITMAP2;
-		explode door2 type FALL | BITMAP3;
-		explode door3 type FALL | BITMAP4;
-		explode door4 type FALL | BITMAP5;
-		explode float1 type FALL | BITMAP1;
-		explode float2 type FALL | BITMAP2;
-		explode float3 type FALL | BITMAP3;
-		explode float4 type FALL | BITMAP4;
-		explode float5 type FALL | BITMAP5;
-		explode float6 type FALL | BITMAP1;
-		explode glow type SHATTER | BITMAP2;
 		return corpsetype;
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode door3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode float1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode float2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode float3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode float4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode float5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode float6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode glow type SHATTER | BITMAP2;
 		return corpsetype;
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode door3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode float1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode float2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode float3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode float4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode float5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode float6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode glow type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 }

@@ -156,50 +156,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode armu type BITMAPONLY | BITMAP1;
-		explode armdl type BITMAPONLY | BITMAP2;
-		explode armdr type BITMAPONLY | BITMAP3;
-		explode base type BITMAPONLY | BITMAP5;
-		explode top type BITMAPONLY | BITMAP1;
-		explode lightu type BITMAPONLY | BITMAP2;
-		explode lightdl type BITMAPONLY | BITMAP3;
-		explode lightdr type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode armu type BITMAPONLY | BITMAP1;
-		explode armdl type BITMAPONLY | BITMAP2;
-		explode armdr type BITMAPONLY | BITMAP3;
-		explode base type BITMAPONLY | BITMAP5;
-		explode top type SHATTER | BITMAP1;
-		explode lightu type FALL | BITMAP2;
-		explode lightdl type FALL | BITMAP3;
-		explode lightdr type FALL | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode armu type BITMAPONLY | BITMAP1;
-		explode armdl type BITMAPONLY | BITMAP2;
-		explode armdr type BITMAPONLY | BITMAP3;
-		explode base type BITMAPONLY | BITMAP5;
-		explode top type SHATTER | BITMAP1;
-		explode lightu type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode lightdl type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode lightdr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode armu type BITMAPONLY | BITMAP1;
-	explode armdl type BITMAPONLY | BITMAP2;
-	explode armdr type BITMAPONLY | BITMAP3;
-	explode base type BITMAPONLY | BITMAP5;
-	explode top type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-	explode lightu type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode lightdl type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode lightdr type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 	return (corpsetype);
 }

@@ -502,16 +502,5 @@ QueryTransport(piecenum)
 Killed(severity, corpsetype)
 {
 	corpsetype = 3;
-	explode hip type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode larm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode rlathe type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode lfoot type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode lleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode luparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode rarm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode rfoot type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode rleg type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode ruparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP5;
 	return corpsetype;
 }

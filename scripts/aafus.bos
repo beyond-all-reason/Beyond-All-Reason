@@ -131,38 +131,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode collar1 type BITMAPONLY | BITMAP2;
-		explode ball1 type SHATTER | BITMAP3;
-		explode collar2 type BITMAPONLY | BITMAP4;
-		explode ball2 type SHATTER | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode collar1 type BITMAPONLY | BITMAP2;
-		explode ball1 type SHATTER | BITMAP3;
-		explode collar2 type BITMAPONLY | BITMAP4;
-		explode ball2 type SHATTER | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode collar1 type BITMAPONLY | BITMAP2;
-		explode ball1 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode collar2 type BITMAPONLY | BITMAP4;
-		explode ball2 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode collar1 type BITMAPONLY | BITMAP2;
-	explode ball1 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode collar2 type BITMAPONLY | BITMAP4;
-	explode ball2 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
 	return (corpsetype);
 }

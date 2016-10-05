@@ -289,82 +289,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP3;
-		explode head type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode turret type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel1 type SHATTER | BITMAP4;
-		explode barrel2 type SHATTER | BITMAP5;
-		explode barrel3 type SHATTER | BITMAP5;
-		explode bodysect1 type BITMAPONLY | BITMAP3;
-		explode sect2 type BITMAPONLY | BITMAP3;
-		explode sect3 type BITMAPONLY | BITMAP3;
-		explode leg1 type BITMAPONLY | BITMAP4;
-		explode leg2 type BITMAPONLY | BITMAP3;
-		explode leg3 type BITMAPONLY | BITMAP5;
-		explode leg4 type BITMAPONLY | BITMAP3;
-		explode leg5 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode leg6 type BITMAPONLY | BITMAP5;
-		explode turretholder type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP3;
-		explode head type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode turret type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel1 type SHATTER | BITMAP4;
-		explode barrel2 type SHATTER | BITMAP5;
-		explode barrel3 type SHATTER | BITMAP5;
-		explode bodysect1 type BITMAPONLY | BITMAP3;
-		explode sect2 type BITMAPONLY | BITMAP3;
-		explode sect3 type BITMAPONLY | BITMAP3;
-		explode leg1 type SHATTER | BITMAP4;
-		explode leg2 type BITMAPONLY | BITMAP3;
-		explode leg3 type SHATTER | BITMAP5;
-		explode leg4 type BITMAPONLY | BITMAP3;
-		explode leg5 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode leg6 type BITMAPONLY | BITMAP5;
-		explode turretholder type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP3;
-		explode head type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode turret type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel1 type SHATTER | BITMAP4;
-		explode barrel2 type SHATTER | BITMAP5;
-		explode barrel3 type SHATTER | BITMAP5;
-		explode bodysect1 type BITMAPONLY | BITMAP3;
-		explode sect2 type BITMAPONLY | BITMAP3;
-		explode sect3 type BITMAPONLY | BITMAP3;
-		explode leg1 type BITMAPONLY | BITMAP4;
-		explode leg2 type BITMAPONLY | BITMAP3;
-		explode leg3 type BITMAPONLY | BITMAP5;
-		explode leg4 type BITMAPONLY | BITMAP3;
-		explode leg5 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode leg6 type BITMAPONLY | BITMAP5;
-		explode turretholder type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP3;
-	explode head type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode turret type FALL | EXPLODE_ON_HIT | BITMAP3;
-	explode barrel1 type SHATTER | BITMAP4;
-	explode barrel2 type SHATTER | BITMAP5;
-	explode barrel3 type SHATTER | BITMAP5;
-	explode bodysect1 type BITMAPONLY | BITMAP3;
-	explode sect2 type BITMAPONLY | BITMAP3;
-	explode sect3 type BITMAPONLY | BITMAP3;
-	explode leg1 type BITMAPONLY | BITMAP4;
-	explode leg2 type BITMAPONLY | BITMAP3;
-	explode leg3 type BITMAPONLY | BITMAP5;
-	explode leg4 type BITMAPONLY | BITMAP3;
-	explode leg5 type FALL | EXPLODE_ON_HIT | BITMAP3;
-	explode leg6 type BITMAPONLY | BITMAP5;
-	explode turretholder type BITMAPONLY | BITMAP5;
 	return corpsetype;
 }

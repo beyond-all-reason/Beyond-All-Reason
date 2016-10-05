@@ -162,58 +162,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode landpad1 type BITMAPONLY | BITMAP2;
-		explode landpad2 type BITMAPONLY | BITMAP3;
-		explode radar type BITMAPONLY | BITMAP4;
-		explode wake1 type BITMAPONLY | BITMAP5;
-		explode wake2 type BITMAPONLY | BITMAP1;
-		explode door1 type BITMAPONLY | BITMAP4;
-		explode door2 type BITMAPONLY | BITMAP3;
-		explode door3 type BITMAPONLY | BITMAP4;
-		explode door4 type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode landpad1 type FALL | EXPLODE_ON_HIT | BITMAP2;
-		explode landpad2 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode radar type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-		explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP5;
-		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode door1 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode door2 type FALL | EXPLODE_ON_HIT | BITMAP4;
-		explode door3 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode door4 type FALL | EXPLODE_ON_HIT | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode landpad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode landpad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode radar type SHATTER | BITMAP4;
-		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode door3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode landpad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode landpad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode radar type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode door3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
 	return corpsetype;
 }

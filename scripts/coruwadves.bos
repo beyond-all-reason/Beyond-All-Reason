@@ -54,38 +54,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode glowpart type BITMAPONLY | BITMAP2;
-		explode box type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode glow type SHATTER | BITMAP3;
-		explode towers type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode glowpart type SHATTER | BITMAP2;
-		explode box type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-		explode glow type SHATTER | BITMAP3;
-		explode towers type SHATTER | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode glowpart type SHATTER | BITMAP2;
-		explode box type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode glow type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode towers type SHATTER | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode glowpart type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode box type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode glow type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode towers type SHATTER | BITMAP5;
 	return (corpsetype);
 }

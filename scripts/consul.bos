@@ -193,62 +193,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode body type BITMAPONLY | BITMAP1;
-		explode rpinza type BITMAPONLY | BITMAP3;
-		explode rrwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode lfwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode rfwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode lrwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode lpinza type BITMAPONLY | BITMAP3;
-		explode rnanopoint type SHATTER | SMOKE | BITMAP4;
-		explode lnanopoint type SHATTER | SMOKE | BITMAP4;
-		explode nanopoint type SHATTER | SMOKE | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode body type BITMAPONLY | BITMAP1;
-		explode rpinza type BITMAPONLY | BITMAP3;
-		explode rrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode rfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lpinza type BITMAPONLY | BITMAP3;
-		explode rnanopoint type SHATTER | SMOKE | BITMAP4;
-		explode lnanopoint type SHATTER | SMOKE | BITMAP4;
-		explode nanopoint type SHATTER | SMOKE | FIRE | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode body type BITMAPONLY | BITMAP1;
-		explode rpinza type BITMAPONLY | BITMAP3;
-		explode rrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode rfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lpinza type BITMAPONLY | BITMAP3;
-		explode rnanopoint type SHATTER | SMOKE | FIRE | BITMAP4;
-		explode lnanopoint type SHATTER | SMOKE | FIRE | BITMAP4;
-		explode nanopoint type SHATTER | SMOKE | FIRE | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode body type BITMAPONLY | BITMAP1;
-	explode rpinza type BITMAPONLY | BITMAP2;
-	explode rrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode lfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode rfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode lrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode lpinza type BITMAPONLY | BITMAP2;
-	explode rnanopoint type SHATTER | SMOKE | FIRE | BITMAP4;
-	explode lnanopoint type SHATTER | SMOKE | FIRE | BITMAP4;
-	explode nanopoint type SHATTER | SMOKE | FIRE | BITMAP5;
 	return (corpsetype);
 }

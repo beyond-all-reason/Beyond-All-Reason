@@ -270,66 +270,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode body type BITMAPONLY | BITMAP2;
-		explode barrel type BITMAPONLY | BITMAP3;
-		explode leg1 type BITMAPONLY | BITMAP3;
-		explode leg2 type BITMAPONLY | BITMAP2;
-		explode leg3 type BITMAPONLY | BITMAP4;
-		explode leg4 type BITMAPONLY | BITMAP3;
-		explode turret type BITMAPONLY | BITMAP2;
-		explode head type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP4;
-		explode body type BITMAPONLY | BITMAP1;
-		explode barrel type FALL | BITMAP4;
-		explode leg1 type BITMAPONLY | BITMAP3;
-		explode leg2 type BITMAPONLY | BITMAP2;
-		explode leg3 type BITMAPONLY | BITMAP4;
-		explode leg4 type BITMAPONLY | BITMAP3;
-		explode foot1 type BITMAPONLY | BITMAP3;
-		explode foot2 type BITMAPONLY | BITMAP3;
-		explode foot3 type BITMAPONLY | BITMAP3;
-		explode foot4 type BITMAPONLY | BITMAP3;
-		explode turret type SHATTER | BITMAP3;
-		explode head type FALL | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP2;
-		explode body type BITMAPONLY | BITMAP1;
-		explode barrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode leg1 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode leg2 type FALL | EXPLODE_ON_HIT | BITMAP2;
-		explode leg3 type FALL | EXPLODE_ON_HIT | BITMAP4;
-		explode leg4 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode foot1 type BITMAPONLY | BITMAP3;
-		explode foot2 type BITMAPONLY | BITMAP3;
-		explode foot3 type BITMAPONLY | BITMAP3;
-		explode foot4 type BITMAPONLY | BITMAP3;
-		explode turret type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode head type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP4;
-	explode body type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode barrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode leg1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode leg2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode leg3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode leg4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode foot1 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode foot2 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-	explode foot3 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode foot4 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode turret type BITMAPONLY | BITMAP2;
-	explode head type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
 	return corpsetype;
 }

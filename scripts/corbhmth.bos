@@ -256,54 +256,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | BITMAP3;
-		explode fanbox type BITMAPONLY | BITMAP1;
-		explode vent1 type BITMAPONLY | BITMAP1;
-		explode vent2 type BITMAPONLY | BITMAP1;
-		explode fan type FALL | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP3;
-		explode barrel1 type BITMAPONLY | BITMAP2;
-		explode barrel2 type BITMAPONLY | BITMAP2;
-		explode barrel3 type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | BITMAP3;
-		explode fanbox type BITMAPONLY | BITMAP2;
-		explode vent1 type BITMAPONLY | BITMAP2;
-		explode vent2 type BITMAPONLY | BITMAP2;
-		explode fan type FALL | BITMAP1;
-		explode turret type FALL | SMOKE | BITMAP3;
-		explode barrel1 type BITMAPONLY | BITMAP3;
-		explode barrel2 type BITMAPONLY | BITMAP3;
-		explode barrel3 type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | BITMAP3;
-		explode fanbox type BITMAPONLY | BITMAP2;
-		explode vent1 type BITMAPONLY | BITMAP2;
-		explode vent2 type BITMAPONLY | BITMAP2;
-		explode fan type FALL | BITMAP2;
-		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel1 type BITMAPONLY | BITMAP3;
-		explode barrel2 type BITMAPONLY | BITMAP3;
-		explode barrel3 type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | BITMAP3;
-	explode fanbox type BITMAPONLY | BITMAP2;
-	explode vent1 type BITMAPONLY | BITMAP2;
-	explode vent2 type BITMAPONLY | BITMAP2;
-	explode fan type FALL | BITMAP2;
-	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode barrel1 type BITMAPONLY | BITMAP3;
-	explode barrel2 type BITMAPONLY | BITMAP3;
-	explode barrel3 type BITMAPONLY | BITMAP3;
 	return (corpsetype);
 }

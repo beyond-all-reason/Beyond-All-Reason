@@ -578,25 +578,5 @@ Killed(severity, corpsetype)
 	hide lfirept;
 	hide nanospray;
 	corpsetype = 1;
-	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode torso type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode pelvis type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode lthigh type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode lleg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode rthigh type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode rleg type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode ruparm type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode biggun type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode biggun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode nanolath type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode nanolath type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode head type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode head type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	return (corpsetype);
 }

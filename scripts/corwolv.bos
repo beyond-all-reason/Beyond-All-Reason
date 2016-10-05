@@ -141,42 +141,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP2;
-		explode treads type BITMAPONLY | BITMAP3;
-		explode arms type BITMAPONLY | BITMAP3;
-		explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode sk_barrel type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP2;
-		explode treads type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode arms type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode sleeve type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode sk_barrel type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP2;
-		explode treads type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode sleeve type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode sk_barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP2;
-	explode treads type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode sleeve type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode sk_barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	return (corpsetype);
 }

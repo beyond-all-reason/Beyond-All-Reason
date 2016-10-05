@@ -161,53 +161,17 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode Flare1 type BITMAPONLY | BITMAP1;
-		explode base type BITMAPONLY | BITMAP3;
-		explode wing1 type BITMAPONLY | BITMAP4;
-		explode wing2 type BITMAPONLY | BITMAP5;
-		explode laser type FALL | SMOKE | BITMAP1;
-		explode missle1 type FALL | EXPLODE_ON_HIT | BITMAP2;
-		explode missle2 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode jet1 type BITMAPONLY | BITMAP2;
-		explode jet2 type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Flare1 type FALL | SMOKE | BITMAP1;
-		explode base type BITMAPONLY | BITMAP3;
-		explode wing1 type SHATTER | BITMAP4;
-		explode wing2 type BITMAPONLY | BITMAP5;
-		explode laser type FALL | SMOKE | BITMAP1;
-		explode missle1 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP2;
-		explode missle2 type FALL | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode jet1 type FALL | SMOKE | FIRE | BITMAP2;
-		explode jet2 type FALL | SMOKE | FIRE | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	if( severity <= 99 )
 	{
-		explode Flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode base type BITMAPONLY | BITMAP3;
-		explode wing1 type BITMAPONLY | BITMAP4;
-		explode wing2 type SHATTER | BITMAP5;
-		explode laser type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode missle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode missle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode jet1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode jet2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
-	explode Flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode base type BITMAPONLY | BITMAP3;
-	explode wing1 type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-	explode wing2 type BITMAPONLY | BITMAP5;
-	explode laser type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode missle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode missle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode jet1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode jet2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	return corpsetype;
 }

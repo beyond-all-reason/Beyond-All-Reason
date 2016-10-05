@@ -448,66 +448,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode barrel1a type BITMAPONLY | BITMAP1;
-		explode barrel1b type BITMAPONLY | BITMAP2;
-		explode barrel1d type BITMAPONLY | BITMAP3;
-		explode tur5 type BITMAPONLY | BITMAP4;
-		explode tur3 type BITMAPONLY | BITMAP5;
-		explode tur1 type BITMAPONLY | BITMAP3;
-		explode tur2 type BITMAPONLY | BITMAP4;
-		explode tur4 type BITMAPONLY | BITMAP5;
-		explode body type BITMAPONLY | BITMAP1;
-		explode tur6 type BITMAPONLY | BITMAP4;
-		explode wake1 type BITMAPONLY | BITMAP1;
-		explode wake2 type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode barrel1a type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode barrel1b type FALL | EXPLODE_ON_HIT | BITMAP2;
-		explode barrel1d type FALL | EXPLODE_ON_HIT | BITMAP4;
-		explode barrel1c type FALL | EXPLODE_ON_HIT | BITMAP5;
-		explode tur5 type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode tur6 type FALL | EXPLODE_ON_HIT | BITMAP2;
-		explode gun6 type FALL | EXPLODE_ON_HIT | BITMAP3;
-		explode tur3 type FALL | EXPLODE_ON_HIT | BITMAP4;
-		explode tur4 type FALL | EXPLODE_ON_HIT | BITMAP5;
-		explode body type BITMAPONLY | BITMAP1;
-		explode gun5 type SHATTER | BITMAP5;
-		explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode barrel1a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode barrel1b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode barrel1c type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode barrel1d type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode gun5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode gun6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode tur3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode tur4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode body type BITMAPONLY | BITMAP1;
-		explode tur2 type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode barrel1a type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode barrel1c type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode barrel1b type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode barrel1d type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode gun5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode gun6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode tur4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode body type BITMAPONLY | BITMAP1;
-	explode tur1 type SHATTER | EXPLODE_ON_HIT | BITMAP5;
-	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	return corpsetype;
 }

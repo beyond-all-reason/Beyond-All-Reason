@@ -141,38 +141,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode missle1 type BITMAPONLY | BITMAP1;
-		explode missle2 type BITMAPONLY | BITMAP1;
-		explode thrusta1 type BITMAPONLY | BITMAP1;
-		explode thrusta2 type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode missle1 type FALL | BITMAP1;
-		explode missle2 type FALL | BITMAP1;
-		explode thrusta1 type FALL | BITMAP1;
-		explode thrusta2 type FALL | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode missle1 type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode missle2 type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode thrusta1 type FALL | EXPLODE_ON_HIT | BITMAP1;
-		explode thrusta2 type FALL | EXPLODE_ON_HIT | BITMAP1;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode missle1 type FALL | EXPLODE_ON_HIT | BITMAP1;
-	explode missle2 type FALL | EXPLODE_ON_HIT | BITMAP1;
-	explode thrusta1 type FALL | EXPLODE_ON_HIT | BITMAP1;
-	explode thrusta2 type FALL | EXPLODE_ON_HIT | BITMAP1;
 	return (corpsetype);
 }

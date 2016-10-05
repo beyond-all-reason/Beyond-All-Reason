@@ -227,46 +227,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode lwing type BITMAPONLY | BITMAP2;
-		explode rwing type BITMAPONLY | BITMAP3;
-		explode sonar1 type BITMAPONLY | BITMAP4;
-		explode sonar2 type BITMAPONLY | BITMAP5;
-		explode sonarholder1 type BITMAPONLY | BITMAP1;
-		explode sonarholder2 type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode lwing type BITMAPONLY | BITMAP2;
-		explode rwing type BITMAPONLY | BITMAP3;
-		explode sonar1 type SHATTER | BITMAP4;
-		explode sonar2 type BITMAPONLY | BITMAP5;
-		explode sonarholder1 type FALL | BITMAP1;
-		explode sonarholder2 type FALL | BITMAP2;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode lwing type BITMAPONLY | BITMAP2;
-		explode rwing type BITMAPONLY | BITMAP3;
-		explode sonar1 type SHATTER | BITMAP4;
-		explode sonar2 type BITMAPONLY | BITMAP5;
-		explode sonarholder1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-		explode sonarholder2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode lwing type BITMAPONLY | BITMAP2;
-	explode rwing type BITMAPONLY | BITMAP3;
-	explode sonar1 type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-	explode sonar2 type BITMAPONLY | BITMAP5;
-	explode sonarholder1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode sonarholder2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2;
 	return (corpsetype);
 }

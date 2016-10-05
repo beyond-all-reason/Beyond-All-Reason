@@ -155,29 +155,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP2;
-		explode wing2 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP2;
-		explode wing1 type BITMAPONLY | BITMAP4;
-		explode wing2 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP2;
-		explode wing1 type BITMAPONLY | BITMAP4;
-		explode wing2 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP2;
-	explode wing1 type BITMAPONLY | BITMAP4;
-	explode wing2 type BITMAPONLY | BITMAP5;
 	return (corpsetype);
 }

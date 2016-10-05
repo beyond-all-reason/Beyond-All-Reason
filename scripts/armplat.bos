@@ -261,62 +261,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode beam1 type BITMAPONLY | BITMAP2;
-		explode beam2 type BITMAPONLY | BITMAP3;
-		explode door1 type BITMAPONLY | BITMAP4;
-		explode door2 type BITMAPONLY | BITMAP5;
-		explode nano1 type BITMAPONLY | BITMAP1;
-		explode nano2 type BITMAPONLY | BITMAP2;
-		explode pad type BITMAPONLY | BITMAP3;
-		explode plate1 type BITMAPONLY | BITMAP4;
-		explode plate2 type BITMAPONLY | BITMAP5;
-		explode platform type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode beam1 type BITMAPONLY | BITMAP2;
-		explode beam2 type BITMAPONLY | BITMAP3;
-		explode door1 type BITMAPONLY | BITMAP4;
-		explode door2 type BITMAPONLY | BITMAP5;
-		explode nano1 type BITMAPONLY | BITMAP1;
-		explode nano2 type BITMAPONLY | BITMAP2;
-		explode pad type BITMAPONLY | BITMAP3;
-		explode plate1 type BITMAPONLY | BITMAP4;
-		explode plate2 type BITMAPONLY | BITMAP5;
-		explode platform type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode beam1 type BITMAPONLY | BITMAP2;
-		explode beam2 type BITMAPONLY | BITMAP3;
-		explode door1 type BITMAPONLY | BITMAP4;
-		explode door2 type BITMAPONLY | BITMAP5;
-		explode nano1 type BITMAPONLY | BITMAP1;
-		explode nano2 type BITMAPONLY | BITMAP2;
-		explode pad type BITMAPONLY | BITMAP3;
-		explode plate1 type BITMAPONLY | BITMAP4;
-		explode plate2 type BITMAPONLY | BITMAP5;
-		explode platform type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode beam1 type BITMAPONLY | BITMAP2;
-	explode beam2 type BITMAPONLY | BITMAP3;
-	explode door1 type BITMAPONLY | BITMAP4;
-	explode door2 type BITMAPONLY | BITMAP5;
-	explode nano1 type BITMAPONLY | BITMAP1;
-	explode nano2 type BITMAPONLY | BITMAP2;
-	explode pad type BITMAPONLY | BITMAP3;
-	explode plate1 type BITMAPONLY | BITMAP4;
-	explode plate2 type BITMAPONLY | BITMAP5;
-	explode platform type BITMAPONLY | BITMAP1;
 	return corpsetype;
 }

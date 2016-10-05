@@ -214,53 +214,24 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode launcher type BITMAPONLY | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP2;
-		explode door1 type BITMAPONLY | BITMAP5;
-		explode door2 type BITMAPONLY | BITMAP5;
-		explode door3 type BITMAPONLY | BITMAP5;
-		explode door4 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode launcher type BITMAPONLY | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP2;
-		explode door1 type BITMAPONLY | BITMAP5;
-		explode door2 type BITMAPONLY | BITMAP5;
-		explode door3 type BITMAPONLY | BITMAP5;
-		explode door4 type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP2;
 		if( Static_Var_1 )
 		{
-			explode launcher type SHATTER | EXPLODE_ON_HIT | BITMAP4;
 		}
 		if( !Static_Var_1 )
 		{
-			explode launcher type BITMAPONLY | BITMAP5;
 		}
-		explode door1 type BITMAPONLY | BITMAP2;
-		explode door2 type BITMAPONLY | BITMAP2;
-		explode door3 type BITMAPONLY | BITMAP2;
-		explode door4 type BITMAPONLY | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 4;
-	explode base type BITMAPONLY | BITMAP1;
-	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode launcher type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode door1 type BITMAPONLY | BITMAP3;
-	explode door2 type BITMAPONLY | BITMAP3;
-	explode door3 type BITMAPONLY | BITMAP3;
-	explode door4 type BITMAPONLY | BITMAP3;
 	return (corpsetype);
 }

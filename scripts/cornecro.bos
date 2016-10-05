@@ -539,69 +539,17 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode finger1 type BITMAPONLY | BITMAP1;
-		explode finger2 type BITMAPONLY | BITMAP2;
-		explode head type BITMAPONLY | BITMAP3;
-		explode hip type BITMAPONLY | BITMAP4;
-		explode larm type BITMAPONLY | BITMAP5;
-		explode lathe type BITMAPONLY | BITMAP1;
-		explode luparm type BITMAPONLY | BITMAP4;
-		explode rarm type BITMAPONLY | BITMAP5;
-		explode ruparm type BITMAPONLY | BITMAP3;
-		explode thumb type BITMAPONLY | BITMAP4;
-		explode torso type BITMAPONLY | BITMAP5;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode finger1 type FALL | BITMAP1;
-		explode finger2 type FALL | BITMAP2;
-		explode head type FALL | BITMAP3;
-		explode hip type FALL | BITMAP4;
-		explode larm type FALL | BITMAP5;
-		explode lathe type FALL | BITMAP1;
-		explode luparm type FALL | BITMAP4;
-		explode rarm type FALL | BITMAP5;
-		explode ruparm type FALL | BITMAP3;
-		explode thumb type FALL | BITMAP4;
-		explode torso type SHATTER | BITMAP5;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	if( severity <= 99 )
 	{
-		explode finger1 type FALL | FIRE | SMOKE | BITMAP1;
-		explode finger2 type FALL | FIRE | SMOKE | BITMAP2;
-		explode head type FALL | FIRE | SMOKE | BITMAP3;
-		explode hip type FALL | FIRE | SMOKE | BITMAP4;
-		explode larm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode lathe type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-		explode lfoot type FALL | FIRE | SMOKE | BITMAP2;
-		explode lleg type FALL | FIRE | SMOKE | BITMAP3;
-		explode luparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-		explode rarm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-		explode rfoot type FALL | FIRE | SMOKE | BITMAP1;
-		explode rleg type FALL | FIRE | SMOKE | BITMAP2;
-		explode ruparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-		explode thumb type FALL | FIRE | SMOKE | BITMAP4;
-		explode torso type SHATTER | BITMAP5;
 		return (corpsetype);
 	}
-	explode finger1 type FALL | FIRE | SMOKE | BITMAP1;
-	explode finger2 type FALL | FIRE | SMOKE | BITMAP2;
-	explode head type FALL | FIRE | SMOKE | BITMAP3;
-	explode hip type FALL | FIRE | SMOKE | BITMAP4;
-	explode larm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode lathe type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1;
-	explode lfoot type FALL | FIRE | SMOKE | BITMAP2;
-	explode lleg type FALL | FIRE | SMOKE | BITMAP3;
-	explode luparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
-	explode rarm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5;
-	explode rfoot type FALL | FIRE | SMOKE | BITMAP1;
-	explode rleg type FALL | FIRE | SMOKE | BITMAP2;
-	explode ruparm type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3;
-	explode thumb type FALL | FIRE | SMOKE | BITMAP4;
-	explode torso type SHATTER | BITMAP5;
 	return corpsetype;
 }

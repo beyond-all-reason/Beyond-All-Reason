@@ -213,46 +213,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode Base type BITMAPONLY | BITMAP1;
-		explode Body type BITMAPONLY | BITMAP1;
-		explode NanoDoor1 type BITMAPONLY | BITMAP1;
-		explode NanoDoor2 type BITMAPONLY | BITMAP1;
-		explode NanoTurret type BITMAPONLY | BITMAP1;
-		explode NanoPlate type BITMAPONLY | BITMAP1;
-		explode NanoGun type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Base type SHATTER | BITMAP4;
-		explode Body type SHATTER | BITMAP4;
-		explode NanoDoor1 type SHATTER | BITMAP4;
-		explode NanoDoor2 type SHATTER | BITMAP4;
-		explode NanoTurret type SHATTER | BITMAP4;
-		explode NanoPlate type SHATTER | BITMAP4;
-		explode NanoGun type SHATTER | BITMAP4;
 	return corpsetype;
 }
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode Base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode Body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoDoor1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoDoor2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoTurret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoPlate type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode NanoGun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode Base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode Body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoDoor1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoDoor2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoTurret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoPlate type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode NanoGun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	return corpsetype;
 }

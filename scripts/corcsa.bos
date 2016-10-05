@@ -173,35 +173,19 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode leftwing type BITMAPONLY | BITMAP2;
-		explode rightwing type BITMAPONLY | BITMAP3;
-		explode nanopoint type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode leftwing type SHATTER | BITMAP2;
-		explode rightwing type BITMAPONLY | BITMAP3;
-		explode nanopoint type FALL | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode leftwing type SHATTER | BITMAP2;
-		explode rightwing type BITMAPONLY | BITMAP3;
-		explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode leftwing type SHATTER | EXPLODE_ON_HIT | BITMAP2;
-	explode rightwing type BITMAPONLY | BITMAP3;
-	explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4;
 	return (corpsetype);
 }
 

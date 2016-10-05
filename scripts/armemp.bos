@@ -282,62 +282,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode Door1 type BITMAPONLY | BITMAP2;
-		explode Door2 type BITMAPONLY | BITMAP3;
-		explode dummy type BITMAPONLY | BITMAP4;
-		explode Frame1 type BITMAPONLY | BITMAP5;
-		explode Frame2 type BITMAPONLY | BITMAP1;
-		explode Frame3 type BITMAPONLY | BITMAP2;
-		explode Frame4 type BITMAPONLY | BITMAP3;
-		explode Cover1 type BITMAPONLY | BITMAP4;
-		explode Cover2 type BITMAPONLY | BITMAP5;
-		explode launch type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode Door1 type BITMAPONLY | BITMAP2;
-		explode Door2 type BITMAPONLY | BITMAP3;
-		explode dummy type BITMAPONLY | BITMAP4;
-		explode Frame1 type BITMAPONLY | BITMAP5;
-		explode Frame2 type BITMAPONLY | BITMAP1;
-		explode Frame3 type BITMAPONLY | BITMAP2;
-		explode Frame4 type SHATTER | BITMAP3;
-		explode Cover1 type FALL | BITMAP4;
-		explode Cover2 type FALL | BITMAP5;
-		explode launch type FALL | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type BITMAPONLY | BITMAP1;
-		explode Door1 type BITMAPONLY | BITMAP2;
-		explode Door2 type BITMAPONLY | BITMAP3;
-		explode dummy type BITMAPONLY | BITMAP4;
-		explode Frame1 type BITMAPONLY | BITMAP5;
-		explode Frame2 type BITMAPONLY | BITMAP1;
-		explode Frame3 type BITMAPONLY | BITMAP2;
-		explode Frame4 type SHATTER | BITMAP3;
-		explode Cover1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode Cover2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode Door1 type BITMAPONLY | BITMAP2;
-	explode Door2 type BITMAPONLY | BITMAP3;
-	explode dummy type BITMAPONLY | BITMAP4;
-	explode Frame1 type BITMAPONLY | BITMAP5;
-	explode Frame2 type BITMAPONLY | BITMAP1;
-	explode Frame3 type BITMAPONLY | BITMAP2;
-	explode Frame4 type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode Cover1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode Cover2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode launch type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
 	return (corpsetype);
 }

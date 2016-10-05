@@ -209,58 +209,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode body type BITMAPONLY | BITMAP1;
-		explode turret type BITMAPONLY | BITMAP1;
-		explode Rlauncher type BITMAPONLY | BITMAP1;
-		explode Rlauncherbase type BITMAPONLY | BITMAP1;
-		explode lfp type BITMAPONLY | BITMAP1;
-		explode Llauncher type BITMAPONLY | BITMAP1;
-		explode Llauncherbase type BITMAPONLY | BITMAP1;
-		explode rfp type BITMAPONLY | BITMAP1;
-		explode turrettop type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | BITMAP4;
-		explode body type SHATTER | BITMAP4;
-		explode turret type SHATTER | BITMAP4;
-		explode Rlauncher type SHATTER | BITMAP4;
-		explode Rlauncherbase type SHATTER | BITMAP4;
-		explode rfp type SHATTER | BITMAP4;
-		explode Llauncher type SHATTER | BITMAP4;
-		explode Llauncherbase type SHATTER | BITMAP4;
-		explode lfp type SHATTER | BITMAP4;
-		explode turrettop type SHATTER | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode body type SHATTER | BITMAP4;
-		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode Rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode Rlauncherbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode lfp type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode Llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode Llauncherbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode rfp type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode turrettop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode body type SHATTER | BITMAP4;
-	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode Rlauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode Rlauncherbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode rfp type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode Llauncher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode Llauncherbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode lfp type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode turrettop type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
 	return (corpsetype);
 }

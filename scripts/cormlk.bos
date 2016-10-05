@@ -569,54 +569,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ssbody type BITMAPONLY | BITMAP3;
-		explode sshead type BITMAPONLY | BITMAP2;
-		explode ssnano type BITMAPONLY | BITMAP3;
-		explode ssbotarm1 type BITMAPONLY | BITMAP4;
-		explode ssbotarm2 type BITMAPONLY | BITMAP3;
-		explode ssbotarm3 type BITMAPONLY | BITMAP2;
-		explode ssbotarm4 type BITMAPONLY | BITMAP4;
-		explode ssbotarm5 type BITMAPONLY | BITMAP2;
-		explode ssbotarm6 type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode ssbody type BITMAPONLY | BITMAP3;
-		explode sshead type BITMAPONLY | BITMAP2;
-		explode ssnano type SHATTER | BITMAP3;
-		explode ssbotarm1 type FALL | BITMAP4;
-		explode ssbotarm2 type BITMAPONLY | BITMAP3;
-		explode ssbotarm3 type FALL | BITMAP2;
-		explode ssbotarm4 type BITMAPONLY | BITMAP4;
-		explode ssbotarm5 type FALL | BITMAP2;
-		explode ssbotarm6 type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode ssbody type SHATTER | BITMAP3;
-		explode sshead type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode ssnano type SHATTER | BITMAP3;
-		explode ssbotarm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode ssbotarm2 type BITMAPONLY | BITMAP3;
-		explode ssbotarm3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode ssbotarm4 type BITMAPONLY | BITMAP4;
-		explode ssbotarm5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode ssbotarm6 type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode ssbody type SHATTER | BITMAP3;
-	explode sshead type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode ssnano type SHATTER | BITMAP3;
-	explode ssbotarm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode ssbotarm2 type BITMAPONLY | BITMAP3;
-	explode ssbotarm3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode ssbotarm4 type BITMAPONLY | BITMAP4;
-	explode ssbotarm5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode ssbotarm6 type BITMAPONLY | BITMAP1;
 	return (corpsetype);
 }

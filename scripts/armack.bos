@@ -587,82 +587,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ground type BITMAPONLY | BITMAP1;
-		explode guncase type BITMAPONLY | BITMAP2;
-		explode lfoot type BITMAPONLY | BITMAP3;
-		explode lleg type BITMAPONLY | BITMAP4;
-		explode lnanogun type BITMAPONLY | BITMAP5;
-		explode lnanospray type BITMAPONLY | BITMAP1;
-		explode lthigh type BITMAPONLY | BITMAP2;
-		explode nanoarm type BITMAPONLY | BITMAP3;
-		explode nanojoint type BITMAPONLY | BITMAP4;
-		explode pelvis type BITMAPONLY | BITMAP5;
-		explode rfoot type BITMAPONLY | BITMAP1;
-		explode rleg type BITMAPONLY | BITMAP2;
-		explode rnanogun type BITMAPONLY | BITMAP3;
-		explode rnanospray type BITMAPONLY | BITMAP4;
-		explode rthigh type BITMAPONLY | BITMAP5;
-		explode torso type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode ground type BITMAPONLY | BITMAP1;
-		explode guncase type BITMAPONLY | BITMAP2;
-		explode lfoot type BITMAPONLY | BITMAP3;
-		explode lleg type FALL | BITMAP4;
-		explode lnanogun type BITMAPONLY | BITMAP5;
-		explode lnanospray type FALL | BITMAP1;
-		explode lthigh type BITMAPONLY | BITMAP2;
-		explode nanoarm type BITMAPONLY | BITMAP3;
-		explode nanojoint type SHATTER | BITMAP4;
-		explode pelvis type BITMAPONLY | BITMAP5;
-		explode rfoot type BITMAPONLY | BITMAP1;
-		explode rleg type FALL | BITMAP2;
-		explode rnanogun type BITMAPONLY | BITMAP3;
-		explode rnanospray type FALL | BITMAP4;
-		explode rthigh type BITMAPONLY | BITMAP5;
-		explode torso type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode ground type BITMAPONLY | BITMAP1;
-		explode guncase type BITMAPONLY | BITMAP2;
-		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-		explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode lnanogun type BITMAPONLY | BITMAP5;
-		explode lnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode nanoarm type SHATTER | BITMAP3;
-		explode nanojoint type SHATTER | BITMAP4;
-		explode pelvis type BITMAPONLY | BITMAP5;
-		explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-		explode rnanogun type BITMAPONLY | BITMAP3;
-		explode rnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-		explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-		explode torso type BITMAPONLY | BITMAP1;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode ground type BITMAPONLY | BITMAP1;
-	explode guncase type BITMAPONLY | BITMAP2;
-	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3;
-	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode lnanogun type BITMAPONLY | BITMAP5;
-	explode lnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode nanoarm type SHATTER | EXPLODE_ON_HIT | BITMAP3;
-	explode nanojoint type SHATTER | EXPLODE_ON_HIT | BITMAP4;
-	explode pelvis type BITMAPONLY | BITMAP5;
-	explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
-	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2;
-	explode rnanogun type BITMAPONLY | BITMAP3;
-	explode rnanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4;
-	explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5;
-	explode torso type BITMAPONLY | BITMAP1;
 	return corpsetype;
 }

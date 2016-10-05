@@ -263,43 +263,13 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode beam1 type BITMAPONLY | BITMAP2;
-		explode beam2 type BITMAPONLY | BITMAP3;
-		explode explode1 type BITMAPONLY | BITMAP2;
-		explode explode2 type BITMAPONLY | BITMAP3;
-		explode nano1 type BITMAPONLY | BITMAP4;
-		explode nano2 type BITMAPONLY | BITMAP5;
-		explode piling1 type BITMAPONLY | BITMAP1;
-		explode piling2 type BITMAPONLY | BITMAP2;
-		explode slip type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode beam1 type BITMAPONLY | BITMAP2;
-		explode beam2 type BITMAPONLY | BITMAP3;
-		explode explode1 type BITMAPONLY | BITMAP2;
-		explode explode2 type BITMAPONLY | BITMAP3;
-		explode nano1 type BITMAPONLY | BITMAP4;
-		explode nano2 type BITMAPONLY | BITMAP5;
-		explode piling1 type BITMAPONLY | BITMAP1;
-		explode piling2 type BITMAPONLY | BITMAP2;
-		explode slip type BITMAPONLY | BITMAP3;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type BITMAPONLY | BITMAP1;
-	explode beam1 type BITMAPONLY | BITMAP2;
-	explode beam2 type BITMAPONLY | BITMAP3;
-	explode explode1 type BITMAPONLY | BITMAP2;
-	explode explode2 type BITMAPONLY | BITMAP3;
-	explode nano1 type BITMAPONLY | BITMAP4;
-	explode nano2 type BITMAPONLY | BITMAP5;
-	explode piling1 type BITMAPONLY | BITMAP1;
-	explode piling2 type BITMAPONLY | BITMAP2;
-	explode slip type BITMAPONLY | BITMAP3;
 	return (corpsetype);
 }
