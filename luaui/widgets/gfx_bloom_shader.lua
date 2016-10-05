@@ -14,10 +14,10 @@ end
 -- config 
 --------------------------------------------------------------------------------
 
-local basicAlpha = 0.35
+local basicAlpha = 0.43
 
 local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
-local highlightsAlpha = 0.5
+local highlightsAlpha = 0.53
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
@@ -133,8 +133,8 @@ function reset()
 
 	if drawHighlights then
 		usedBasicAlpha = basicAlpha
-		drawWorldAlpha				= 0.22 - (illumThreshold*0.4) + (usedBasicAlpha/12) + (0.02 * highlightsAlpha)
-		drawWorldPreUnitAlpha = 0.22 - (illumThreshold*0.4)  + (usedBasicAlpha/6.5)  + (0.01 * highlightsAlpha)
+		drawWorldAlpha				= 0.22 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
+		drawWorldPreUnitAlpha = 0.23 - (illumThreshold*0.4)  + (usedBasicAlpha/6.2)  + (0.022 * highlightsAlpha)
 	else
 		usedBasicAlpha = basicAlpha
 		drawWorldAlpha = 0.05 + (usedBasicAlpha/11)
@@ -148,7 +148,7 @@ function reset()
 	end
 	gl.DeleteTexture(screenTexture or "")
 	
-	local btQuality = 4.5
+	local btQuality = 4.6		-- high value creates flickering, but lower is more expensive
 	brightTexture1 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
@@ -158,7 +158,7 @@ function reset()
 		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
 	if drawHighlights then
-		btQuality = 3
+		btQuality = 3.2		-- high value creates flickering, but lower is more expensive
 		brightTexture3 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
 			fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 			format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
@@ -262,7 +262,6 @@ function widget:Initialize()
 				vec4 S0 = texture2D(texture0, C0);
 				vec4 S1 = texture2D(texture1, C0);
 				S1 = vec4(S1.rgb * fragMaxBrightness/max(1.0 - illuminationThreshold, 0.0001), 1.0);
-
 
 				gl_FragColor = bool(debugDraw) ? S1 : S0 + S1;
 			}
