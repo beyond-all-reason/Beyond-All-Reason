@@ -324,7 +324,7 @@ local scoreMode = scoreModes[Spring.GetModOptions().scoremode or "countdown"]
 --Lets add a pretty way to access scoremodes
 if scoreMode == 0 then scoreModeAsString = "Disabled" end
 if scoreMode == 1 then scoreModeAsString = "Countdown" end
-if scoreMode == 2 then scoreModeAsString = "Tug Of War" end
+if scoreMode == 2 then scoreModeAsString = "Tug of War" end
 if scoreMode == 3 then scoreModeAsString = "Domination" end
 
 
@@ -397,34 +397,35 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		end
 		score[gaia] = 0
-		local configfile, _ = string.gsub(Game.mapName, ".smf$", ".lua")
-		configfile = "LuaRules/Configs/ControlPoints/cv_" .. configfile .. ".lua"
-		Spring.Echo("[ControlVictory] " .. configfile .. " -This is the name of the control victory configfile-")
-		if VFS.FileExists(configfile) then
-			local config = VFS.Include(configfile)
-			points = config.points
-			for _, p in pairs(points) do
-				p.capture = 0
-			end
-			moveSpeed = 0
+		
+		if scoreModeAsString == "Domination" then
+			local angle = math.random() * math.pi * 2
+			points = {}
+			for i=1,3 do
+				local angle = angle + i * math.pi * 1/1.5
+				points[i] = {
+					x=mapx/2 + mapx * .12 * math.sin(angle),
+					y=0,
+					z=mapz/2 + mapz * .12 * math.cos(angle),
+					--We can make them move around if we want to by uncommenting these lines and the ones below
+					--velx=moveSpeed * 10 * -1 * math.cos(angle),
+					--velz=moveSpeed * 10 * math.sin(angle),
+					owner=nil,
+					aggressor=nil,
+					capture=0,
+				}
+			end	
 		else
-			if scoreModeAsString == "Domination" then
-				local angle = math.random() * math.pi * 2
-				points = {}
-				for i=1,3 do
-					local angle = angle + i * math.pi * 1/1.5
-					points[i] = {
-						x=mapx/2 + mapx * .12 * math.sin(angle),
-						y=0,
-						z=mapz/2 + mapz * .12 * math.cos(angle),
-						--We can make them move around if we want to by uncommenting these lines and the ones below
-						--velx=moveSpeed * 10 * -1 * math.cos(angle),
-						--velz=moveSpeed * 10 * math.sin(angle),
-						owner=nil,
-						aggressor=nil,
-						capture=0,
-					}
+			local configfile, _ = string.gsub(Game.mapName, ".smf$", ".lua")
+			configfile = "LuaRules/Configs/ControlPoints/cv_" .. configfile .. ".lua"
+			Spring.Echo("[ControlVictory] " .. configfile .. " -This is the name of the control victory configfile-")
+			if VFS.FileExists(configfile) then
+				local config = VFS.Include(configfile)
+				points = config.points
+				for _, p in pairs(points) do
+					p.capture = 0
 				end
+				moveSpeed = 0
 			else
 				--Since no config file is found, we create 7 points spaced out in a circle on the map
 				local angle = math.random() * math.pi * 2
@@ -1125,7 +1126,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			RectRound(x,y-height,x+width,y,6)
 			
 			-- title
-		  local title = "\255\255\255\255"..scoreMode
+		  local title = "\255\255\255\255"..scoreModeAsString
 			local titleFontSize = 18
 		  Color(0,0,0,0.8)
 		  titleRect = {x-bgMargin, y+bgMargin, x+(gl.GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
