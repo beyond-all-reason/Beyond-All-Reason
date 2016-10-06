@@ -107,7 +107,7 @@ end
 
 -- draw icons
 function widget:DrawWorld()
-	--if spIsGUIHidden() then return end
+	if spIsGUIHidden() then return end
 	
 	local gameSecs = Spring.GetGameSeconds()
 	
