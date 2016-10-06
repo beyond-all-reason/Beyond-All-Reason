@@ -577,18 +577,78 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode body type NOHEATCLOUD;
+		explode FLFoot type NOHEATCLOUD;
+		explode FRFoot type NOHEATCLOUD;
+		explode knobs type NOHEATCLOUD;
+		explode Lbarrel type NOHEATCLOUD;
+		explode leftchunk type NOHEATCLOUD;
+		explode lflare type NOHEATCLOUD;
+		explode Lgun type NOHEATCLOUD;
+		explode Rbarrel type NOHEATCLOUD;
+		explode rflare type NOHEATCLOUD;
+		explode Rgun type NOHEATCLOUD;
+		explode rightchunk type NOHEATCLOUD;
+		explode RLFoot type NOHEATCLOUD;
+		explode RRFoot type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode body type NOHEATCLOUD;
+		explode FLFoot type NOHEATCLOUD;
+		explode FRFoot type NOHEATCLOUD;
+		explode knobs type FALL | BITMAP3 | NOHEATCLOUD;
+		explode Lbarrel type FALL | BITMAP4 | NOHEATCLOUD;
+		explode leftchunk type NOHEATCLOUD;
+		explode lflare type FALL | BITMAP1 | NOHEATCLOUD;
+		explode Lgun type FALL | BITMAP2 | NOHEATCLOUD;
+		explode Rbarrel type FALL | BITMAP3 | NOHEATCLOUD;
+		explode rflare type FALL | BITMAP4 | NOHEATCLOUD;
+		explode Rgun type FALL | BITMAP5 | NOHEATCLOUD;
+		explode rightchunk type NOHEATCLOUD;
+		explode RLFoot type NOHEATCLOUD;
+		explode RRFoot type NOHEATCLOUD;
+		explode turret type FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode body type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode FLFoot type NOHEATCLOUD;
+		explode FRFoot type NOHEATCLOUD;
+		explode knobs type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode Lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode leftchunk type NOHEATCLOUD;
+		explode lflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode Lgun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode Rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode rflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode Rgun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode rightchunk type NOHEATCLOUD;
+		explode RLFoot type NOHEATCLOUD;
+		explode RRFoot type NOHEATCLOUD;
+		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode body type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode FLFoot type NOHEATCLOUD;
+	explode FRFoot type NOHEATCLOUD;
+	explode knobs type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode Lbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode leftchunk type NOHEATCLOUD;
+	explode lflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode Lgun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode Rbarrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode rflare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode Rgun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode rightchunk type NOHEATCLOUD;
+	explode RLFoot type NOHEATCLOUD;
+	explode RRFoot type NOHEATCLOUD;
+	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }

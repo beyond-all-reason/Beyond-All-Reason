@@ -319,18 +319,54 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode beama type NOHEATCLOUD;
+		explode beamb type NOHEATCLOUD;
+		explode dish type NOHEATCLOUD;
+		explode guna type NOHEATCLOUD;
+		explode gunb type NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode section1 type NOHEATCLOUD;
+		explode section2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode beama type FALL | BITMAP2 | NOHEATCLOUD;
+		explode beamb type FALL | BITMAP3 | NOHEATCLOUD;
+		explode dish type FALL | BITMAP4 | NOHEATCLOUD;
+		explode guna type FALL | BITMAP5 | NOHEATCLOUD;
+		explode gunb type FALL | BITMAP1 | NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode section1 type NOHEATCLOUD;
+		explode section2 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode dish type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode section1 type NOHEATCLOUD;
+		explode section2 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode dish type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode pad type NOHEATCLOUD;
+	explode section1 type NOHEATCLOUD;
+	explode section2 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }

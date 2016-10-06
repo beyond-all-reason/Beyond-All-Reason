@@ -88,18 +88,29 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode bouy type NOHEATCLOUD;
+		explode light type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode bouy type NOHEATCLOUD;
+		explode light type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode bouy type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode light type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode light type NOHEATCLOUD;
 	return (corpsetype);
 }

@@ -193,18 +193,62 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode body type NOHEATCLOUD;
+		explode rpinza type NOHEATCLOUD;
+		explode rrwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode lfwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode rfwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode lrwheel type SHATTER | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode lpinza type NOHEATCLOUD;
+		explode rnanopoint type SHATTER | SMOKE | BITMAP4 | NOHEATCLOUD;
+		explode lnanopoint type SHATTER | SMOKE | BITMAP4 | NOHEATCLOUD;
+		explode nanopoint type SHATTER | SMOKE | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode body type NOHEATCLOUD;
+		explode rpinza type NOHEATCLOUD;
+		explode rrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode rfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lpinza type NOHEATCLOUD;
+		explode rnanopoint type SHATTER | SMOKE | BITMAP4 | NOHEATCLOUD;
+		explode lnanopoint type SHATTER | SMOKE | BITMAP4 | NOHEATCLOUD;
+		explode nanopoint type SHATTER | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode body type NOHEATCLOUD;
+		explode rpinza type NOHEATCLOUD;
+		explode rrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode rfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lpinza type NOHEATCLOUD;
+		explode rnanopoint type SHATTER | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
+		explode lnanopoint type SHATTER | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
+		explode nanopoint type SHATTER | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode body type NOHEATCLOUD;
+	explode rpinza type NOHEATCLOUD;
+	explode rrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode lfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode rfwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode lrwheel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode lpinza type NOHEATCLOUD;
+	explode rnanopoint type SHATTER | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
+	explode lnanopoint type SHATTER | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
+	explode nanopoint type SHATTER | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 	return (corpsetype);
 }

@@ -261,18 +261,62 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode beam1 type NOHEATCLOUD;
+		explode beam2 type NOHEATCLOUD;
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode nano1 type NOHEATCLOUD;
+		explode nano2 type NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode plate1 type NOHEATCLOUD;
+		explode plate2 type NOHEATCLOUD;
+		explode platform type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode beam1 type NOHEATCLOUD;
+		explode beam2 type NOHEATCLOUD;
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode nano1 type NOHEATCLOUD;
+		explode nano2 type NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode plate1 type NOHEATCLOUD;
+		explode plate2 type NOHEATCLOUD;
+		explode platform type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode beam1 type NOHEATCLOUD;
+		explode beam2 type NOHEATCLOUD;
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode nano1 type NOHEATCLOUD;
+		explode nano2 type NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode plate1 type NOHEATCLOUD;
+		explode plate2 type NOHEATCLOUD;
+		explode platform type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode beam1 type NOHEATCLOUD;
+	explode beam2 type NOHEATCLOUD;
+	explode door1 type NOHEATCLOUD;
+	explode door2 type NOHEATCLOUD;
+	explode nano1 type NOHEATCLOUD;
+	explode nano2 type NOHEATCLOUD;
+	explode pad type NOHEATCLOUD;
+	explode plate1 type NOHEATCLOUD;
+	explode plate2 type NOHEATCLOUD;
+	explode platform type NOHEATCLOUD;
 	return corpsetype;
 }

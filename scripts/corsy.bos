@@ -259,18 +259,58 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode beama type NOHEATCLOUD;
+		explode beamb type NOHEATCLOUD;
+		explode blink type NOHEATCLOUD;
+		explode guna type NOHEATCLOUD;
+		explode gunb type NOHEATCLOUD;
+		explode turreta type NOHEATCLOUD;
+		explode turretb type NOHEATCLOUD;
+		explode explodpt1 type NOHEATCLOUD;
+		explode explodpt2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode beama type FALL | BITMAP2 | NOHEATCLOUD;
+		explode beamb type FALL | BITMAP3 | NOHEATCLOUD;
+		explode blink type FALL | BITMAP4 | NOHEATCLOUD;
+		explode guna type FALL | BITMAP5 | NOHEATCLOUD;
+		explode gunb type FALL | BITMAP1 | NOHEATCLOUD;
+		explode turreta type FALL | BITMAP2 | NOHEATCLOUD;
+		explode turretb type FALL | BITMAP3 | NOHEATCLOUD;
+		explode explodpt1 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode explodpt2 type FALL | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode blink type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode turreta type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode turretb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode explodpt1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode explodpt2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode blink type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode turreta type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode turretb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode explodpt1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode explodpt2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;
 }

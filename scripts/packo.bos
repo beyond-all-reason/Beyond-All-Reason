@@ -214,24 +214,53 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode launcher type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode door3 type NOHEATCLOUD;
+		explode door4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode launcher type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode door3 type NOHEATCLOUD;
+		explode door4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
 		if( Static_Var_1 )
 		{
+			explode launcher type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		}
 		if( !Static_Var_1 )
 		{
+			explode launcher type NOHEATCLOUD;
 		}
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode door3 type NOHEATCLOUD;
+		explode door4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 4;
+	explode base type NOHEATCLOUD;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode launcher type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode door1 type NOHEATCLOUD;
+	explode door2 type NOHEATCLOUD;
+	explode door3 type NOHEATCLOUD;
+	explode door4 type NOHEATCLOUD;
 	return (corpsetype);
 }

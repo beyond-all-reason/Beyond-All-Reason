@@ -252,18 +252,62 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode box type NOHEATCLOUD;
+		explode anti type NOHEATCLOUD;
+		explode Guard1 type NOHEATCLOUD;
+		explode Guard2 type NOHEATCLOUD;
+		explode Guard3 type NOHEATCLOUD;
+		explode Guard4 type NOHEATCLOUD;
+		explode LFwheel type NOHEATCLOUD;
+		explode RFwheel type NOHEATCLOUD;
+		explode LRwheel type NOHEATCLOUD;
+		explode RRwheel type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode box type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode anti type FALL | BITMAP3 | NOHEATCLOUD;
+		explode Guard1 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode Guard2 type FALL | BITMAP5 | NOHEATCLOUD;
+		explode Guard3 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode Guard4 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode LFwheel type FALL | BITMAP3 | NOHEATCLOUD;
+		explode RFwheel type FALL | BITMAP4 | NOHEATCLOUD;
+		explode LRwheel type FALL | BITMAP1 | NOHEATCLOUD;
+		explode RRwheel type FALL | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode box type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode anti type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode Guard1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode Guard2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode Guard3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode Guard4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode LFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode RFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode LRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode RRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode box type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode anti type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode Guard1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode Guard2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode Guard3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode Guard4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode LFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode RFwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode LRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode RRwheel type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return (corpsetype);
 }

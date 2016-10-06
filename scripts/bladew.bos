@@ -85,5 +85,6 @@ FirePrimary()
 Killed(severity, corpsetype)
 {
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
 	return corpsetype;
 }

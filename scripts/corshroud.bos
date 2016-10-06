@@ -147,18 +147,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode dish1 type NOHEATCLOUD;
+		explode dish2 type NOHEATCLOUD;
+		explode fork1 type NOHEATCLOUD;
+		explode fork2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode dish1 type NOHEATCLOUD;
+		explode dish2 type NOHEATCLOUD;
+		explode fork1 type NOHEATCLOUD;
+		explode fork2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode dish1 type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode dish2 type SHATTER | BITMAP3 | NOHEATCLOUD;
+		explode fork1 type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode fork2 type SHATTER | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode dish1 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode dish2 type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode fork1 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode fork2 type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return (corpsetype);
 }

@@ -344,9 +344,21 @@ Killed(severity, corpsetype)
 		if( severity <= 50 )
 		{
 			corpsetype = 2;
+			explode arm1 type FALL | BITMAP1 | NOHEATCLOUD;
+			explode arm2 type FALL | BITMAP1 | NOHEATCLOUD;
+			explode base type NOHEATCLOUD;
+			explode lmispoint type FALL | BITMAP3 | NOHEATCLOUD;
+			explode rmispoint type FALL | BITMAP3 | NOHEATCLOUD;
+			explode launcher type SHATTER | BITMAP4 | NOHEATCLOUD;
 			return (corpsetype);
 		}
 		corpsetype = 3;
+		explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode lmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode launcher type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( Static_Var_3 == 2 )
@@ -354,26 +366,62 @@ Killed(severity, corpsetype)
 		if( severity <= 50 )
 		{
 			corpsetype = 2;
+			explode arm1 type FALL | BITMAP1 | NOHEATCLOUD;
+			explode arm2 type FALL | BITMAP1 | NOHEATCLOUD;
+			explode base type NOHEATCLOUD;
+			explode lmispoint type FALL | BITMAP3 | NOHEATCLOUD;
+			explode rmispoint type FALL | BITMAP3 | NOHEATCLOUD;
+			explode launcher type SHATTER | BITMAP4 | NOHEATCLOUD;
 			return (corpsetype);
 		}
 		corpsetype = 3;
+		explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode lmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode launcher type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode arm1 type NOHEATCLOUD;
+		explode arm2 type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode lmispoint type NOHEATCLOUD;
+		explode rmispoint type NOHEATCLOUD;
+		explode launcher type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode arm1 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode arm2 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode lmispoint type FALL | BITMAP3 | NOHEATCLOUD;
+		explode rmispoint type FALL | BITMAP3 | NOHEATCLOUD;
+		explode launcher type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode lmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode launcher type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode arm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode arm2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type NOHEATCLOUD;
+	explode lmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode rmispoint type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode launcher type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }

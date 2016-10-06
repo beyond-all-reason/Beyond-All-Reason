@@ -62,18 +62,30 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode Lwing type NOHEATCLOUD;
+		explode Rwing type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode Lwing type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode Rwing type SHATTER | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode Lwing type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode Rwing type SHATTER | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode Lwing type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode Rwing type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	return corpsetype;
 }

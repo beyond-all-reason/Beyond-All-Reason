@@ -71,18 +71,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode smoke type NOHEATCLOUD;
+		explode dingle1 type NOHEATCLOUD;
+		explode dingle2 type NOHEATCLOUD;
+		explode spinner type NOHEATCLOUD;
 	return corpsetype;
 }
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode smoke type FALL | BITMAP2 | NOHEATCLOUD;
+		explode dingle1 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode dingle2 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode spinner type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode smoke type FALL | BITMAP2 | NOHEATCLOUD;
+		explode dingle1 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode dingle2 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode spinner type SHATTER | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode smoke type FALL | NOHEATCLOUD;
+	explode dingle1 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode dingle2 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode spinner type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return (corpsetype);
 }

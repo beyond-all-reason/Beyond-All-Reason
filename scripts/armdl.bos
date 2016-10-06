@@ -100,18 +100,34 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
+		explode launcher type NOHEATCLOUD;
+		explode plunger type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
+		explode launcher type NOHEATCLOUD;
+		explode plunger type FALL | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode turret type SHATTER | BITMAP3 | NOHEATCLOUD;
+		explode plunger type FALL | BITMAP4 | NOHEATCLOUD;
+		explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode turret type SHATTER | BITMAP3 | NOHEATCLOUD;
+	explode plunger type FALL | BITMAP4 | NOHEATCLOUD;
+	explode launcher type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return (corpsetype);
 }

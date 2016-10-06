@@ -133,18 +133,42 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode barrel type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode flash type NOHEATCLOUD;
+		explode sensor type NOHEATCLOUD;
+		explode sleeve type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode barrel type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode flash type FALL | BITMAP5 | NOHEATCLOUD;
+		explode sensor type FALL | BITMAP2 | NOHEATCLOUD;
+		explode sleeve type FALL | BITMAP3 | NOHEATCLOUD;
+		explode turret type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode barrel type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode flash type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode sensor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode turret type SHATTER | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode barrel type NOHEATCLOUD;
+	explode base type NOHEATCLOUD;
+	explode flash type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode sensor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }

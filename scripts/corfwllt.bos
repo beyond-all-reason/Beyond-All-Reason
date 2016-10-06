@@ -96,5 +96,8 @@ Killed(severity, corpsetype)
 {
 	hide flare;
 	corpsetype = 1;
+	explode base type NOHEATCLOUD;
+	explode gun type SHATTER | BITMAP4 | NOHEATCLOUD;
+	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	return (corpsetype);
 }

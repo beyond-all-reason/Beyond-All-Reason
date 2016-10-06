@@ -90,7 +90,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	move barrel to z-axis [-4.000000] speed [500.000000];
+	explode emit type NOHEATCLOUD;
 	sleep 150;
+	explode shell type FALL | SMOKE | NOHEATCLOUD;
 	move barrel to z-axis [0.000000] speed [6.000000];
 }
 
@@ -114,18 +116,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode barrel type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode sleeve type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
+		explode treads type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode barrel type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode sleeve type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode turret type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode treads type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode turret type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode treads type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode barrel type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode base type NOHEATCLOUD;
+	explode turret type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode treads type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	return corpsetype;
 }

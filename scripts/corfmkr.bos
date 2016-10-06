@@ -195,17 +195,65 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode door1 type NOHEATCLOUD;
+		explode door2 type NOHEATCLOUD;
+		explode door3 type NOHEATCLOUD;
+		explode door4 type NOHEATCLOUD;
+		explode float1 type NOHEATCLOUD;
+		explode float2 type NOHEATCLOUD;
+		explode float3 type NOHEATCLOUD;
+		explode float4 type NOHEATCLOUD;
+		explode float5 type NOHEATCLOUD;
+		explode float6 type NOHEATCLOUD;
+		explode glow type NOHEATCLOUD;
 		return corpsetype;
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode door1 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode door2 type FALL | BITMAP3 | NOHEATCLOUD;
+		explode door3 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode door4 type FALL | BITMAP5 | NOHEATCLOUD;
+		explode float1 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode float2 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode float3 type FALL | BITMAP3 | NOHEATCLOUD;
+		explode float4 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode float5 type FALL | BITMAP5 | NOHEATCLOUD;
+		explode float6 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode glow type SHATTER | BITMAP2 | NOHEATCLOUD;
 		return corpsetype;
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode door3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode float1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode float2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode float3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode float4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode float5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode float6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode glow type SHATTER | BITMAP2 | NOHEATCLOUD;
 		return corpsetype;
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode door1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode door2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode door3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode float1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode float2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode float3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode float4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode float5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode float6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode glow type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 }

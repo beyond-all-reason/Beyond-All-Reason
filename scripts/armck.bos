@@ -593,18 +593,66 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode arms type NOHEATCLOUD;
+		explode ground type NOHEATCLOUD;
+		explode guncover type NOHEATCLOUD;
+		explode lflap type NOHEATCLOUD;
+		explode lfoot type NOHEATCLOUD;
+		explode nanobody2 type NOHEATCLOUD;
+		explode nanospray type NOHEATCLOUD;
+		explode nozzle type NOHEATCLOUD;
+		explode pelvis type NOHEATCLOUD;
+		explode rflap type NOHEATCLOUD;
+		explode rfoot type NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode arms type FALL | BITMAP1 | NOHEATCLOUD;
+		explode ground type NOHEATCLOUD;
+		explode guncover type FALL | BITMAP3 | NOHEATCLOUD;
+		explode lflap type NOHEATCLOUD;
+		explode lfoot type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode nanobody2 type NOHEATCLOUD;
+		explode nanospray type FALL | BITMAP2 | NOHEATCLOUD;
+		explode nozzle type FALL | BITMAP3 | NOHEATCLOUD;
+		explode pelvis type NOHEATCLOUD;
+		explode rflap type NOHEATCLOUD;
+		explode rfoot type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode ground type NOHEATCLOUD;
+		explode guncover type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode lflap type NOHEATCLOUD;
+		explode lfoot type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode nanobody2 type NOHEATCLOUD;
+		explode nanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode nozzle type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode pelvis type NOHEATCLOUD;
+		explode rflap type NOHEATCLOUD;
+		explode rfoot type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode ground type NOHEATCLOUD;
+	explode guncover type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode lflap type NOHEATCLOUD;
+	explode lfoot type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode nanobody2 type NOHEATCLOUD;
+	explode nanospray type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode nozzle type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode pelvis type NOHEATCLOUD;
+	explode rflap type NOHEATCLOUD;
+	explode rfoot type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode turret type NOHEATCLOUD;
 	return corpsetype;
 }

@@ -565,18 +565,72 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode ground type NOHEATCLOUD;
+		explode lhand type NOHEATCLOUD;
+		explode lloarm type NOHEATCLOUD;
+		explode lthigh type NOHEATCLOUD;
+		explode luparm type NOHEATCLOUD;
+		explode rfirept type NOHEATCLOUD;
+		explode rfoot type NOHEATCLOUD;
+		explode rleg type NOHEATCLOUD;
+		explode rthigh type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode ground type NOHEATCLOUD;
+		explode lfoot type FALL | BITMAP2 | NOHEATCLOUD;
+		explode lhand type FALL | SMOKE | BITMAP3 | NOHEATCLOUD;
+		explode lleg type FALL | BITMAP4 | NOHEATCLOUD;
+		explode lloarm type FALL | SMOKE | BITMAP5 | NOHEATCLOUD;
+		explode lthigh type FALL | BITMAP1 | NOHEATCLOUD;
+		explode luparm type FALL | SMOKE | BITMAP2 | NOHEATCLOUD;
+		explode pelvis type FALL | BITMAP3 | NOHEATCLOUD;
+		explode rfirept type FALL | SMOKE | BITMAP4 | NOHEATCLOUD;
+		explode rfoot type FALL | BITMAP5 | NOHEATCLOUD;
+		explode rleg type FALL | SMOKE | BITMAP1 | NOHEATCLOUD;
+		explode rloarm type FALL | BITMAP2 | NOHEATCLOUD;
+		explode rthigh type FALL | SMOKE | BITMAP3 | NOHEATCLOUD;
+		explode ruparm type FALL | BITMAP4 | NOHEATCLOUD;
+		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 2;
+		explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode luparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode rfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode rloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode lloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode lthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode luparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode pelvis type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode rfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode rfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode rloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode ruparm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode torso type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	return corpsetype;
 }

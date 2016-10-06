@@ -115,18 +115,26 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode sonar type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode sonar type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode sonar type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode sonar type NOHEATCLOUD;
+	explode base type NOHEATCLOUD;
 	return (corpsetype);
 }

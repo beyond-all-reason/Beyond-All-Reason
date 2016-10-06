@@ -112,18 +112,26 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode extractor type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode extractor type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode extractor type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode extractor type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return corpsetype;
 }

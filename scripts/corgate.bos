@@ -109,6 +109,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	explode gun type FALL | BITMAP3 | NOHEATCLOUD;
 	sleep 100;
 }
 
@@ -135,6 +136,7 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
+	explode gun type FALL | BITMAP3 | NOHEATCLOUD;
 	sleep 100;
 }
 
@@ -153,18 +155,50 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode arms type NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode beam type NOHEATCLOUD;
+		explode disha type NOHEATCLOUD;
+		explode dishb type NOHEATCLOUD;
+		explode gun type NOHEATCLOUD;
+		explode legs type NOHEATCLOUD;
+		explode platform type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode arms type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode beam type FALL | BITMAP3 | NOHEATCLOUD;
+		explode disha type FALL | BITMAP4 | NOHEATCLOUD;
+		explode dishb type FALL | BITMAP5 | NOHEATCLOUD;
+		explode gun type NOHEATCLOUD;
+		explode legs type NOHEATCLOUD;
+		explode platform type FALL | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode arms type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode base type NOHEATCLOUD;
+		explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode disha type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode dishb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode gun type NOHEATCLOUD;
+		explode legs type NOHEATCLOUD;
+		explode platform type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type NOHEATCLOUD;
+	explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode disha type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode dishb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode gun type NOHEATCLOUD;
+	explode legs type NOHEATCLOUD;
+	explode platform type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;
 }

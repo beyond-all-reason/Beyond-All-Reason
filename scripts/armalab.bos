@@ -306,18 +306,66 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
+		explode base type NOHEATCLOUD;
+		explode beam1 type NOHEATCLOUD;
+		explode beam2 type NOHEATCLOUD;
+		explode centerbar1 type NOHEATCLOUD;
+		explode centerbar2 type NOHEATCLOUD;
+		explode nano1 type NOHEATCLOUD;
+		explode nano2 type NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode quarter1 type NOHEATCLOUD;
+		explode quarter2 type NOHEATCLOUD;
+		explode quarter3 type NOHEATCLOUD;
+		explode quarter4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
+		explode base type NOHEATCLOUD;
+		explode beam1 type FALL | FIRE | BITMAP2 | NOHEATCLOUD;
+		explode beam2 type FALL | SMOKE | BITMAP3 | NOHEATCLOUD;
+		explode centerbar1 type NOHEATCLOUD;
+		explode centerbar2 type NOHEATCLOUD;
+		explode nano1 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode nano2 type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode quarter1 type NOHEATCLOUD;
+		explode quarter2 type NOHEATCLOUD;
+		explode quarter3 type NOHEATCLOUD;
+		explode quarter4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
+		explode base type NOHEATCLOUD;
+		explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode centerbar1 type NOHEATCLOUD;
+		explode centerbar2 type NOHEATCLOUD;
+		explode nano1 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode nano2 type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode pad type NOHEATCLOUD;
+		explode quarter1 type NOHEATCLOUD;
+		explode quarter2 type NOHEATCLOUD;
+		explode quarter3 type NOHEATCLOUD;
+		explode quarter4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
+	explode base type NOHEATCLOUD;
+	explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode centerbar1 type NOHEATCLOUD;
+	explode centerbar2 type NOHEATCLOUD;
+	explode nano1 type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode nano2 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode pad type NOHEATCLOUD;
+	explode quarter1 type NOHEATCLOUD;
+	explode quarter2 type NOHEATCLOUD;
+	explode quarter3 type NOHEATCLOUD;
+	explode quarter4 type NOHEATCLOUD;
 	return (corpsetype);
 }
