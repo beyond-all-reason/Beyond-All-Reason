@@ -531,15 +531,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ground type NOHEATCLOUD;
-		explode head type NOHEATCLOUD;
-		explode lfoot type NOHEATCLOUD;
-		explode lleg type NOHEATCLOUD;
-		explode lthigh type NOHEATCLOUD;
-		explode rfoot type NOHEATCLOUD;
-		explode rleg type NOHEATCLOUD;
-		explode rthigh type NOHEATCLOUD;
-		explode torso type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

@@ -776,10 +776,5 @@ Killed(severity, corpsetype)
 	explode rlathepoint type FALL | FIRE | SMOKE | BITMAP2 | NOHEATCLOUD;
 	explode Rleg type FALL | FIRE | SMOKE | BITMAP3 | NOHEATCLOUD;
 	explode Rshoulder type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	explode shield1 type NOHEATCLOUD;
-	explode shield2 type NOHEATCLOUD;
-	explode shield3 type NOHEATCLOUD;
-	explode shield4 type NOHEATCLOUD;
-	explode torso type NOHEATCLOUD;
 	return corpsetype;
 }

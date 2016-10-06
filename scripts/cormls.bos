@@ -216,25 +216,11 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode Base type NOHEATCLOUD;
-		explode Body type NOHEATCLOUD;
-		explode NanoDoor1 type NOHEATCLOUD;
-		explode NanoDoor2 type NOHEATCLOUD;
-		explode Boom type NOHEATCLOUD;
-		explode Neck type NOHEATCLOUD;
-		explode NanoGun type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Base type NOHEATCLOUD;
-		explode Body type NOHEATCLOUD;
-		explode NanoDoor1 type NOHEATCLOUD;
-		explode NanoDoor2 type NOHEATCLOUD;
-		explode Boom type NOHEATCLOUD;
-		explode Neck type NOHEATCLOUD;
-		explode NanoGun type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )

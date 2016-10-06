@@ -129,50 +129,40 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode barrel1 type NOHEATCLOUD;
-		explode barrel2 type NOHEATCLOUD;
-		explode barrel3 type NOHEATCLOUD;
-		explode flare1 type NOHEATCLOUD;
-		explode flare2 type NOHEATCLOUD;
-		explode flare3 type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode barrel1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode barrel2 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode barrel3 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode flare1 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode flare2 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode flare3 type FALL | BITMAP2 | NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode barrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode barrel3 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode flare3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode barrel1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode barrel2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode barrel3 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode flare3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode turret type NOHEATCLOUD;
 	return (corpsetype);
 }

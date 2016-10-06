@@ -146,58 +146,40 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode centerlight type NOHEATCLOUD;
-		explode light1 type NOHEATCLOUD;
-		explode light2 type NOHEATCLOUD;
-		explode light3 type NOHEATCLOUD;
-		explode light4 type NOHEATCLOUD;
-		explode post1 type NOHEATCLOUD;
-		explode post2 type NOHEATCLOUD;
-		explode post3 type NOHEATCLOUD;
-		explode post4 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode centerlight type FALL | BITMAP2 | NOHEATCLOUD;
 		explode light1 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode light2 type FALL | BITMAP4 | NOHEATCLOUD;
 		explode light3 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode light4 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode post1 type SHATTER | BITMAP2 | NOHEATCLOUD;
-		explode post2 type NOHEATCLOUD;
-		explode post3 type NOHEATCLOUD;
-		explode post4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode post1 type SHATTER | BITMAP2 | NOHEATCLOUD;
-		explode post2 type NOHEATCLOUD;
-		explode post3 type NOHEATCLOUD;
-		explode post4 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode centerlight type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode light1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode light2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode light3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode light4 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode post1 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode post2 type NOHEATCLOUD;
-	explode post3 type NOHEATCLOUD;
-	explode post4 type NOHEATCLOUD;
 	return corpsetype;
 }

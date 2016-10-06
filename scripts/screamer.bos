@@ -111,19 +111,10 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode feet type NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
-		explode spindle type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
-		explode bigbox type NOHEATCLOUD;
-		explode littlebox type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode radardish type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode radarbase type NOHEATCLOUD;
-		explode gunbarrel type NOHEATCLOUD;
-		explode magazine type NOHEATCLOUD;
-		explode magclips type NOHEATCLOUD;
+		explode radarbase type SHATTER | NOHEATCLOUD;
 		explode sight type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode fins type NOHEATCLOUD;
 		explode port type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
@@ -131,19 +122,10 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode feet type NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
-		explode spindle type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
-		explode bigbox type NOHEATCLOUD;
-		explode littlebox type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode radardish type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode radarbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode gunbarrel type NOHEATCLOUD;
-		explode magazine type NOHEATCLOUD;
-		explode magclips type NOHEATCLOUD;
 		explode sight type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode fins type NOHEATCLOUD;
 		explode port type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
@@ -151,37 +133,19 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode feet type NOHEATCLOUD;
 		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode spindle type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
-		explode bigbox type NOHEATCLOUD;
-		explode littlebox type NOHEATCLOUD;
 		explode radardish type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode radarbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode gunbarrel type NOHEATCLOUD;
-		explode magazine type NOHEATCLOUD;
-		explode magclips type NOHEATCLOUD;
 		explode sight type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode fins type NOHEATCLOUD;
 		explode port type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode feet type NOHEATCLOUD;
 	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode spindle type NOHEATCLOUD;
-	explode turret type NOHEATCLOUD;
-	explode bigbox type NOHEATCLOUD;
-	explode littlebox type NOHEATCLOUD;
 	explode radardish type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode radarbase type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode gunbarrel type NOHEATCLOUD;
-	explode magazine type NOHEATCLOUD;
-	explode magclips type NOHEATCLOUD;
 	explode sight type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode fins type NOHEATCLOUD;
 	explode port type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	return corpsetype;

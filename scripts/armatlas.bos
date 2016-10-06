@@ -204,23 +204,14 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode arm1 type NOHEATCLOUD;
-		explode arm2 type NOHEATCLOUD;
-		explode arm3 type NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
-		explode jet1 type NOHEATCLOUD;
-		explode jet2 type NOHEATCLOUD;
-		explode jet3 type NOHEATCLOUD;
-		explode link type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode arm1 type NOHEATCLOUD;
-		explode arm2 type NOHEATCLOUD;
 		explode arm3 type SHATTER | BITMAP3 | NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode jet1 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode jet2 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode jet3 type FALL | BITMAP2 | NOHEATCLOUD;
@@ -230,10 +221,8 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode arm1 type NOHEATCLOUD;
-		explode arm2 type NOHEATCLOUD;
 		explode arm3 type SHATTER | BITMAP3 | NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode jet1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode jet2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode jet3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
@@ -241,10 +230,8 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode arm1 type NOHEATCLOUD;
-	explode arm2 type NOHEATCLOUD;
 	explode arm3 type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode jet1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode jet2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode jet3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;

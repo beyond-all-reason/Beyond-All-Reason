@@ -254,28 +254,18 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode arm type NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
-		explode beam type NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
-		explode nano type NOHEATCLOUD;
-		explode plate type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
-		explode wake1 type NOHEATCLOUD;
-		explode wake2 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode arm type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode beam type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode door1 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode door2 type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode nano type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode plate type NOHEATCLOUD;
 		explode turret type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
@@ -285,12 +275,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		explode arm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode door1 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode door2 type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode nano type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode plate type NOHEATCLOUD;
 		explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
@@ -298,12 +287,11 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode arm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode beam type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode door1 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode door2 type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode nano type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode plate type NOHEATCLOUD;
 	explode turret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;

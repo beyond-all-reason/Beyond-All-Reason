@@ -162,22 +162,13 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode landpad1 type NOHEATCLOUD;
-		explode landpad2 type NOHEATCLOUD;
-		explode radar type NOHEATCLOUD;
-		explode wake1 type NOHEATCLOUD;
-		explode wake2 type NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
-		explode door3 type NOHEATCLOUD;
-		explode door4 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode landpad1 type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode landpad2 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode radar type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
@@ -192,7 +183,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode landpad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode landpad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode radar type SHATTER | BITMAP4 | NOHEATCLOUD;
@@ -205,7 +196,7 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode landpad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode landpad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode radar type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;

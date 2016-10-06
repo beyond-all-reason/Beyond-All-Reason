@@ -565,21 +565,11 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ground type NOHEATCLOUD;
-		explode lhand type NOHEATCLOUD;
-		explode lloarm type NOHEATCLOUD;
-		explode lthigh type NOHEATCLOUD;
-		explode luparm type NOHEATCLOUD;
-		explode rfirept type NOHEATCLOUD;
-		explode rfoot type NOHEATCLOUD;
-		explode rleg type NOHEATCLOUD;
-		explode rthigh type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode ground type NOHEATCLOUD;
 		explode lfoot type FALL | BITMAP2 | NOHEATCLOUD;
 		explode lhand type FALL | SMOKE | BITMAP3 | NOHEATCLOUD;
 		explode lleg type FALL | BITMAP4 | NOHEATCLOUD;

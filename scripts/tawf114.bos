@@ -104,7 +104,6 @@ FirePrimary()
 {
 	if( gun_1 == 1 )
 	{
-		explode flare1 type NOHEATCLOUD;
 		sleep 20;
 		move missile1 to z-axis [-7.500000] now;
 		hide missile1;
@@ -113,7 +112,6 @@ FirePrimary()
 	}
 	if( gun_1 == 0 )
 	{
-		explode flare2 type NOHEATCLOUD;
 		sleep 20;
 		move missile2 to z-axis [-7.500000] now;
 		hide missile2;
@@ -147,8 +145,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | NOHEATCLOUD;
 		explode missile1 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode missile2 type SHATTER | BITMAP4 | NOHEATCLOUD;
@@ -157,7 +154,7 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode turret type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode sleeve type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | NOHEATCLOUD;
 		explode missile1 type SHATTER | BITMAP4 | NOHEATCLOUD;
@@ -167,7 +164,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode turret type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode missile1 type SHATTER | BITMAP4 | NOHEATCLOUD;
@@ -175,7 +172,7 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode turret type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode sleeve type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode missile1 type SHATTER | BITMAP4 | NOHEATCLOUD;

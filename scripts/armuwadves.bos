@@ -55,15 +55,14 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode glowpart type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode box type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode glowpart type SHATTER | BITMAP2 | NOHEATCLOUD;
 		explode box type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
@@ -71,13 +70,13 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode glowpart type SHATTER | BITMAP2 | NOHEATCLOUD;
 		explode box type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode glowpart type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode box type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return (corpsetype);

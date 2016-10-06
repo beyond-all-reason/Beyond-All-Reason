@@ -107,50 +107,40 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode barrel type NOHEATCLOUD;
-		explode bubbles type NOHEATCLOUD;
-		explode coil1 type NOHEATCLOUD;
-		explode coil2 type NOHEATCLOUD;
-		explode coil3 type NOHEATCLOUD;
-		explode flare type NOHEATCLOUD;
-		explode launcher type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode barrel type SHATTER | BITMAP2 | NOHEATCLOUD;
 		explode bubbles type FALL | BITMAP2 | NOHEATCLOUD;
 		explode coil1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode coil2 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode coil3 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode flare type FALL | BITMAP2 | NOHEATCLOUD;
-		explode launcher type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode barrel type SHATTER | BITMAP2 | NOHEATCLOUD;
 		explode bubbles type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode coil1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode coil2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode coil3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode flare type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode launcher type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode barrel type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode bubbles type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode coil1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode coil2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode coil3 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode flare type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode launcher type NOHEATCLOUD;
 	return (corpsetype);
 }

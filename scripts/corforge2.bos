@@ -307,90 +307,52 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode beama type NOHEATCLOUD;
-		explode beamb type NOHEATCLOUD;
-		explode blinka type NOHEATCLOUD;
-		explode blinkb type NOHEATCLOUD;
-		explode fork type NOHEATCLOUD;
-		explode glow type NOHEATCLOUD;
-		explode guna type NOHEATCLOUD;
-		explode gunb type NOHEATCLOUD;
-		explode maina type NOHEATCLOUD;
-		explode mainb type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode stepa1 type NOHEATCLOUD;
-		explode stepa2 type NOHEATCLOUD;
-		explode stepa3 type NOHEATCLOUD;
-		explode stepb1 type NOHEATCLOUD;
-		explode stepb2 type NOHEATCLOUD;
-		explode stepb3 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode beama type FALL | BITMAP2 | NOHEATCLOUD;
 		explode beamb type FALL | BITMAP3 | NOHEATCLOUD;
 		explode blinka type FALL | BITMAP4 | NOHEATCLOUD;
 		explode blinkb type FALL | BITMAP5 | NOHEATCLOUD;
-		explode fork type NOHEATCLOUD;
-		explode glow type NOHEATCLOUD;
 		explode guna type FALL | BITMAP3 | NOHEATCLOUD;
 		explode gunb type FALL | BITMAP4 | NOHEATCLOUD;
-		explode maina type NOHEATCLOUD;
-		explode mainb type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
 		explode stepa1 type SHATTER | BITMAP3 | NOHEATCLOUD;
-		explode stepa2 type NOHEATCLOUD;
 		explode stepa3 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode stepb1 type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode stepb2 type NOHEATCLOUD;
 		explode stepb3 type FALL | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode blinka type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode blinkb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-		explode fork type NOHEATCLOUD;
-		explode glow type NOHEATCLOUD;
 		explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode maina type NOHEATCLOUD;
-		explode mainb type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
 		explode stepa1 type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode stepa2 type NOHEATCLOUD;
 		explode stepa3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode stepb1 type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode stepb2 type NOHEATCLOUD;
 		explode stepb3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode beama type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode beamb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode blinka type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode blinkb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-	explode fork type NOHEATCLOUD;
-	explode glow type NOHEATCLOUD;
 	explode guna type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode gunb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	explode maina type NOHEATCLOUD;
-	explode mainb type NOHEATCLOUD;
-	explode pad type NOHEATCLOUD;
 	explode stepa1 type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode stepa2 type NOHEATCLOUD;
 	explode stepa3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode stepb1 type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode stepb2 type NOHEATCLOUD;
 	explode stepb3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return (corpsetype);
 }

@@ -655,28 +655,13 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode canbase type NOHEATCLOUD;
-		explode ground type NOHEATCLOUD;
-		explode lcannon type NOHEATCLOUD;
-		explode lfirept type NOHEATCLOUD;
-		explode lfoot type NOHEATCLOUD;
-		explode lleg type NOHEATCLOUD;
-		explode locase type NOHEATCLOUD;
-		explode lthigh type NOHEATCLOUD;
-		explode pelvis type NOHEATCLOUD;
-		explode rcannon type NOHEATCLOUD;
-		explode rfirept type NOHEATCLOUD;
-		explode rfoot type NOHEATCLOUD;
-		explode rleg type NOHEATCLOUD;
-		explode upcase2 type NOHEATCLOUD;
-		explode rthigh type NOHEATCLOUD;
-		explode torso type NOHEATCLOUD;
+		explode canbase type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode canbase type NOHEATCLOUD;
+		explode canbase type SHATTER | NOHEATCLOUD;
 		explode ground type FALL | BITMAP2 | NOHEATCLOUD;
 		explode lcannon type SHATTER | BITMAP3 | NOHEATCLOUD;
 		explode lfirept type FALL | BITMAP4 | NOHEATCLOUD;
@@ -691,13 +676,12 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | BITMAP3 | NOHEATCLOUD;
 		explode upcase2 type FALL | BITMAP4 | NOHEATCLOUD;
 		explode rthigh type FALL | BITMAP5 | NOHEATCLOUD;
-		explode torso type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode canbase type NOHEATCLOUD;
+		explode canbase type SHATTER | NOHEATCLOUD;
 		explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode lcannon type SHATTER | BITMAP3 | NOHEATCLOUD;
 		explode lfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
@@ -712,11 +696,10 @@ Killed(severity, corpsetype)
 		explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode upcase2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-		explode torso type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode canbase type NOHEATCLOUD;
+	explode canbase type SHATTER | NOHEATCLOUD;
 	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode lcannon type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode lfirept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
@@ -731,6 +714,5 @@ Killed(severity, corpsetype)
 	explode rleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode upcase2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode rthigh type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-	explode torso type NOHEATCLOUD;
 	return corpsetype;
 }

@@ -366,26 +366,13 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode head type NOHEATCLOUD;
-		explode lleg1 type NOHEATCLOUD;
-		explode lleg2 type NOHEATCLOUD;
-		explode lleg3 type NOHEATCLOUD;
-		explode lupleg1 type NOHEATCLOUD;
-		explode lupleg2 type NOHEATCLOUD;
-		explode lupleg3 type NOHEATCLOUD;
-		explode rleg1 type NOHEATCLOUD;
-		explode rleg2 type NOHEATCLOUD;
-		explode rleg3 type NOHEATCLOUD;
-		explode rupleg1 type NOHEATCLOUD;
-		explode rupleg2 type NOHEATCLOUD;
-		explode rupleg3 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode head type FALL | BITMAP2 | NOHEATCLOUD;
 		explode lleg1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode lleg2 type FALL | BITMAP1 | NOHEATCLOUD;
@@ -404,7 +391,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode head type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode lleg1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode lleg2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
@@ -421,7 +408,7 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode head type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode lleg1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode lleg2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;

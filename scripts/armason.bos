@@ -149,15 +149,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode dish1 type NOHEATCLOUD;
-		explode dish2 type NOHEATCLOUD;
-		explode dish3 type NOHEATCLOUD;
-		explode dish4 type NOHEATCLOUD;
-		explode hinge1 type NOHEATCLOUD;
-		explode hinge2 type NOHEATCLOUD;
-		explode hinge3 type NOHEATCLOUD;
-		explode hinge4 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode light type SHATTER | BITMAP5 | NOHEATCLOUD;
 		explode wheel type SHATTER | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
@@ -165,15 +157,7 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
-		explode dish1 type NOHEATCLOUD;
-		explode dish2 type NOHEATCLOUD;
-		explode dish3 type NOHEATCLOUD;
-		explode dish4 type NOHEATCLOUD;
-		explode hinge1 type NOHEATCLOUD;
-		explode hinge2 type NOHEATCLOUD;
-		explode hinge3 type NOHEATCLOUD;
-		explode hinge4 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode light type SHATTER | BITMAP5 | NOHEATCLOUD;
 		explode wheel type SHATTER | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
@@ -181,15 +165,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
-		explode dish1 type NOHEATCLOUD;
-		explode dish2 type NOHEATCLOUD;
-		explode dish3 type NOHEATCLOUD;
-		explode dish4 type NOHEATCLOUD;
-		explode hinge1 type NOHEATCLOUD;
-		explode hinge2 type NOHEATCLOUD;
-		explode hinge3 type NOHEATCLOUD;
-		explode hinge4 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode light type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode wheel type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);

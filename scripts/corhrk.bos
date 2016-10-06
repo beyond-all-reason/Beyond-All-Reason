@@ -639,18 +639,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode Foot1 type NOHEATCLOUD;
-		explode Foot2 type NOHEATCLOUD;
-		explode ground type NOHEATCLOUD;
-		explode head type NOHEATCLOUD;
-		explode launcher type NOHEATCLOUD;
-		explode Leg1 type NOHEATCLOUD;
-		explode Leg2 type NOHEATCLOUD;
-		explode missile1 type NOHEATCLOUD;
-		explode missile2 type NOHEATCLOUD;
-		explode Thigh1 type NOHEATCLOUD;
-		explode Thigh2 type NOHEATCLOUD;
-		explode torso type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
@@ -658,9 +646,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		explode Foot1 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode Foot2 type FALL | BITMAP2 | NOHEATCLOUD;
-		explode ground type NOHEATCLOUD;
 		explode head type FALL | SMOKE | BITMAP5 | NOHEATCLOUD;
-		explode launcher type NOHEATCLOUD;
 		explode Leg1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode Leg2 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode missile1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
@@ -675,9 +661,7 @@ Killed(severity, corpsetype)
 		corpsetype = 3;
 		explode Foot1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode Foot2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode ground type NOHEATCLOUD;
 		explode head type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
-		explode launcher type NOHEATCLOUD;
 		explode Leg1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode Leg2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode missile1 type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
@@ -690,9 +674,7 @@ Killed(severity, corpsetype)
 	corpsetype = 3;
 	explode Foot1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode Foot2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode ground type NOHEATCLOUD;
 	explode head type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
-	explode launcher type NOHEATCLOUD;
 	explode Leg1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode Leg2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode missile1 type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;

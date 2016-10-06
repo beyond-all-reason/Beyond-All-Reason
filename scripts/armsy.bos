@@ -259,18 +259,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode beam1 type NOHEATCLOUD;
-		explode beam2 type NOHEATCLOUD;
-		explode light type NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
-		explode slip type NOHEATCLOUD;
-		explode turret1 type NOHEATCLOUD;
-		explode turret2 type NOHEATCLOUD;
-		explode exlpode1 type NOHEATCLOUD;
-		explode explode2 type NOHEATCLOUD;
-		explode explode3 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

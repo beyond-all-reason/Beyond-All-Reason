@@ -332,35 +332,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ground type NOHEATCLOUD;
-		explode body type NOHEATCLOUD;
-		explode buildpad type NOHEATCLOUD;
-		explode connector type NOHEATCLOUD;
-		explode activator type NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
-		explode sign type NOHEATCLOUD;
-		explode LeftA1 type NOHEATCLOUD;
-		explode LeftB1 type NOHEATCLOUD;
-		explode LeftC1 type NOHEATCLOUD;
-		explode LeftA2 type NOHEATCLOUD;
-		explode LeftB2 type NOHEATCLOUD;
-		explode LeftC2 type NOHEATCLOUD;
-		explode LeftA3 type NOHEATCLOUD;
-		explode LeftB3 type NOHEATCLOUD;
-		explode LeftC3 type NOHEATCLOUD;
-		explode RightA2 type NOHEATCLOUD;
-		explode RightB2 type NOHEATCLOUD;
-		explode RightC2 type NOHEATCLOUD;
-		explode RightA1 type NOHEATCLOUD;
-		explode RightB1 type NOHEATCLOUD;
-		explode RightC1 type NOHEATCLOUD;
-		explode RightA3 type NOHEATCLOUD;
-		explode RightB3 type NOHEATCLOUD;
-		explode RightC3 type NOHEATCLOUD;
-		explode nanopieces type NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

@@ -262,62 +262,34 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode wing1 type NOHEATCLOUD;
-		explode wing2 type NOHEATCLOUD;
-		explode wing3 type NOHEATCLOUD;
-		explode wing4 type NOHEATCLOUD;
-		explode leg1 type NOHEATCLOUD;
-		explode leg2 type NOHEATCLOUD;
-		explode leg3 type NOHEATCLOUD;
-		explode leg4 type NOHEATCLOUD;
-		explode leg5 type NOHEATCLOUD;
-		explode leg6 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
-		explode wing1 type NOHEATCLOUD;
-		explode wing2 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode wing3 type FALL | BITMAP4 | NOHEATCLOUD;
 		explode wing4 type FALL | BITMAP2 | NOHEATCLOUD;
-		explode leg1 type NOHEATCLOUD;
 		explode leg2 type FALL | BITMAP1 | NOHEATCLOUD;
-		explode leg3 type NOHEATCLOUD;
-		explode leg4 type NOHEATCLOUD;
 		explode leg5 type FALL | BITMAP2 | NOHEATCLOUD;
-		explode leg6 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode wing1 type NOHEATCLOUD;
-		explode wing2 type NOHEATCLOUD;
 		explode wing3 type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
 		explode wing4 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
-		explode leg1 type NOHEATCLOUD;
 		explode leg2 type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
-		explode leg3 type NOHEATCLOUD;
-		explode leg4 type NOHEATCLOUD;
 		explode leg5 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
-		explode leg6 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode wing1 type NOHEATCLOUD;
-	explode wing2 type NOHEATCLOUD;
 	explode wing3 type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
 	explode wing4 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
-	explode leg1 type NOHEATCLOUD;
 	explode leg2 type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
-	explode leg3 type NOHEATCLOUD;
-	explode leg4 type NOHEATCLOUD;
 	explode leg5 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
-	explode leg6 type NOHEATCLOUD;
 	return corpsetype;
 }

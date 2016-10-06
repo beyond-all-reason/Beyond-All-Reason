@@ -666,7 +666,6 @@ FireTertiary()
 {
 	start-script SmokeGun();
 	show flare;
-	explode emit type NOHEATCLOUD;
 	explode exploder type FALL | NOHEATCLOUD;
 	explode exploder type FALL | NOHEATCLOUD;
 	explode exploder type FALL | NOHEATCLOUD;
@@ -685,30 +684,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode barrel type NOHEATCLOUD;
-		explode turret type NOHEATCLOUD;
-		explode hips type NOHEATCLOUD;
-		explode luparm type NOHEATCLOUD;
-		explode lloarm type NOHEATCLOUD;
-		explode lhand type NOHEATCLOUD;
-		explode fingerla type NOHEATCLOUD;
-		explode fingerlb type NOHEATCLOUD;
-		explode thumbl type NOHEATCLOUD;
-		explode ruparm type NOHEATCLOUD;
-		explode rloarm type NOHEATCLOUD;
-		explode rhand type NOHEATCLOUD;
-		explode fingerra type NOHEATCLOUD;
-		explode fingerrb type NOHEATCLOUD;
-		explode thumbr type NOHEATCLOUD;
-		explode body type NOHEATCLOUD;
-		explode arml type NOHEATCLOUD;
-		explode cannonl type NOHEATCLOUD;
-		explode flareb type NOHEATCLOUD;
-		explode canonbarrel1 type NOHEATCLOUD;
-		explode armr type NOHEATCLOUD;
-		explode cannonr type NOHEATCLOUD;
-		explode flarea type NOHEATCLOUD;
-		explode canonbarrel2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

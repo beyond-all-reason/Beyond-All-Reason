@@ -212,7 +212,6 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	explode flare1 type NOHEATCLOUD;
 	gun_1 = base;
 	start-script RequestState(1);
 }
@@ -232,31 +231,19 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode collar type NOHEATCLOUD;
-		explode gear type NOHEATCLOUD;
-		explode globetop type NOHEATCLOUD;
-		explode tower type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
-		explode collar type NOHEATCLOUD;
-		explode gear type NOHEATCLOUD;
-		explode globetop type NOHEATCLOUD;
-		explode tower type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
-		explode collar type NOHEATCLOUD;
-		explode gear type NOHEATCLOUD;
-		explode globetop type NOHEATCLOUD;
-		explode tower type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode emit1 type FALL | SMOKE | BITMAP5 | NOHEATCLOUD;
 		explode emit2 type FALL | SMOKE | BITMAP5 | NOHEATCLOUD;
 		explode emit3 type FALL | SMOKE | BITMAP5 | NOHEATCLOUD;
@@ -264,11 +251,7 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
-	explode collar type NOHEATCLOUD;
-	explode gear type NOHEATCLOUD;
-	explode globetop type NOHEATCLOUD;
-	explode tower type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode emit1 type SHATTER | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 	explode emit2 type SHATTER | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 	explode emit3 type SHATTER | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;

@@ -79,42 +79,31 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode bubbles1 type NOHEATCLOUD;
-		explode bubbles2 type NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
-		explode btmcover type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode bubbles1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode bubbles2 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
 		explode btmcover type FALL | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode bubbles1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode bubbles2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
 		explode btmcover type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode bubbles1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode bubbles2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode door1 type NOHEATCLOUD;
-	explode door2 type NOHEATCLOUD;
 	explode btmcover type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	return corpsetype;
 }

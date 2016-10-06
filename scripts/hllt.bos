@@ -127,12 +127,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode body type NOHEATCLOUD;
-		explode turret1 type NOHEATCLOUD;
-		explode flare1 type NOHEATCLOUD;
-		explode turret2 type NOHEATCLOUD;
-		explode flare2 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

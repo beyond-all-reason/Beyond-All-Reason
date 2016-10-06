@@ -309,24 +309,13 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode beam1 type NOHEATCLOUD;
-		explode beam2 type NOHEATCLOUD;
-		explode blink type NOHEATCLOUD;
-		explode drawer1 type NOHEATCLOUD;
-		explode drawer2 type NOHEATCLOUD;
-		explode gun1 type NOHEATCLOUD;
-		explode gun2 type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode wing1 type NOHEATCLOUD;
-		explode wing2 type NOHEATCLOUD;
-		explode wing3 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode beam1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode beam2 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode blink type SHATTER | BITMAP4 | NOHEATCLOUD;
@@ -334,16 +323,12 @@ Killed(severity, corpsetype)
 		explode drawer2 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode gun1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode gun2 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode wing1 type NOHEATCLOUD;
-		explode wing2 type NOHEATCLOUD;
-		explode wing3 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode blink type SHATTER | BITMAP4 | NOHEATCLOUD;
@@ -351,14 +336,10 @@ Killed(severity, corpsetype)
 		explode drawer2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode wing1 type NOHEATCLOUD;
-		explode wing2 type NOHEATCLOUD;
-		explode wing3 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode blink type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
@@ -366,9 +347,5 @@ Killed(severity, corpsetype)
 	explode drawer2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode gun2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode pad type NOHEATCLOUD;
-	explode wing1 type NOHEATCLOUD;
-	explode wing2 type NOHEATCLOUD;
-	explode wing3 type NOHEATCLOUD;
 	return (corpsetype);
 }

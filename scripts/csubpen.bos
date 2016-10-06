@@ -180,55 +180,16 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
-		explode explode1 type NOHEATCLOUD;
-		explode explode2 type NOHEATCLOUD;
-		explode explode3 type NOHEATCLOUD;
-		explode explode4 type NOHEATCLOUD;
-		explode explode5 type NOHEATCLOUD;
-		explode explode6 type NOHEATCLOUD;
-		explode gun1 type NOHEATCLOUD;
-		explode gun2 type NOHEATCLOUD;
-		explode piling1 type NOHEATCLOUD;
-		explode piling2 type NOHEATCLOUD;
-		explode slip type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
-		explode explode1 type NOHEATCLOUD;
-		explode explode2 type NOHEATCLOUD;
-		explode explode3 type NOHEATCLOUD;
-		explode explode4 type NOHEATCLOUD;
-		explode explode5 type NOHEATCLOUD;
-		explode explode6 type NOHEATCLOUD;
-		explode gun1 type NOHEATCLOUD;
-		explode gun2 type NOHEATCLOUD;
-		explode piling1 type NOHEATCLOUD;
-		explode piling2 type NOHEATCLOUD;
-		explode slip type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type NOHEATCLOUD;
-	explode nano1 type NOHEATCLOUD;
-	explode nano2 type NOHEATCLOUD;
-	explode explode1 type NOHEATCLOUD;
-	explode explode2 type NOHEATCLOUD;
-	explode explode3 type NOHEATCLOUD;
-	explode explode4 type NOHEATCLOUD;
-	explode explode5 type NOHEATCLOUD;
-	explode explode6 type NOHEATCLOUD;
-	explode gun1 type NOHEATCLOUD;
-	explode gun2 type NOHEATCLOUD;
-	explode piling1 type NOHEATCLOUD;
-	explode piling2 type NOHEATCLOUD;
-	explode slip type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	return (corpsetype);
 }

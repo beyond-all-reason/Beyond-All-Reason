@@ -311,22 +311,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type NOHEATCLOUD;
-		explode beam1 type NOHEATCLOUD;
-		explode beam2 type NOHEATCLOUD;
-		explode door1 type NOHEATCLOUD;
-		explode door1A type NOHEATCLOUD;
-		explode door2 type NOHEATCLOUD;
-		explode door2A type NOHEATCLOUD;
-		explode door3 type NOHEATCLOUD;
-		explode door3A type NOHEATCLOUD;
-		explode door4 type NOHEATCLOUD;
-		explode door4A type NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode stand1 type NOHEATCLOUD;
-		explode stand2 type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
@@ -343,11 +328,6 @@ Killed(severity, corpsetype)
 		explode door3A type FALL | BITMAP4 | NOHEATCLOUD;
 		explode door4 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode door4A type FALL | BITMAP1 | NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode stand1 type NOHEATCLOUD;
-		explode stand2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
@@ -364,11 +344,6 @@ Killed(severity, corpsetype)
 		explode door3A type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode door4A type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode nano1 type NOHEATCLOUD;
-		explode nano2 type NOHEATCLOUD;
-		explode pad type NOHEATCLOUD;
-		explode stand1 type NOHEATCLOUD;
-		explode stand2 type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
@@ -383,10 +358,5 @@ Killed(severity, corpsetype)
 	explode door3A type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode door4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode door4A type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode nano1 type NOHEATCLOUD;
-	explode nano2 type NOHEATCLOUD;
-	explode pad type NOHEATCLOUD;
-	explode stand1 type NOHEATCLOUD;
-	explode stand2 type NOHEATCLOUD;
 	return (corpsetype);
 }

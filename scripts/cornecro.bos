@@ -539,17 +539,6 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode finger1 type NOHEATCLOUD;
-		explode finger2 type NOHEATCLOUD;
-		explode head type NOHEATCLOUD;
-		explode hip type NOHEATCLOUD;
-		explode larm type NOHEATCLOUD;
-		explode lathe type NOHEATCLOUD;
-		explode luparm type NOHEATCLOUD;
-		explode rarm type NOHEATCLOUD;
-		explode ruparm type NOHEATCLOUD;
-		explode thumb type NOHEATCLOUD;
-		explode torso type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

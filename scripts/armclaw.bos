@@ -189,10 +189,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode barrel type NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
-		explode spikes type NOHEATCLOUD;
-		explode post type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
@@ -200,23 +197,19 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		explode barrel type FALL | BITMAP1 | NOHEATCLOUD;
 		explode base type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode spikes type NOHEATCLOUD;
-		explode post type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
 		explode barrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode base type NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
 		explode post type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode spikes type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode barrel type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode base type NOHEATCLOUD;
+	explode base type SHATTER | NOHEATCLOUD;
 	explode post type SHATTER | BITMAP1 | NOHEATCLOUD;
-	explode spikes type NOHEATCLOUD;
 	return (corpsetype);
 }
