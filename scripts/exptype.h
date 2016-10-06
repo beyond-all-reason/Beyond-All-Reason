@@ -29,6 +29,8 @@
 #define FIRE			16		// A fire trail will follow the piece through the air
 #define BITMAPONLY		32		// The piece will not fly off or shatter or anything.  Only a bitmap explosion will be rendered.
 #define NOCEGTRAIL		64		// Disables the cegtrail for the specific piece (defined in the unit fbi)
+#define NOHEATCLOUD		128		// No engine explosion (There frugly anyways)
+#define RECURSIVE		16384	// (OTA-inherited COB scripts map [1<<8, 1<<13] to BITMAP* explosions)
 #define BITMAP			10000001
 
 // Bitmap Explosion Types
