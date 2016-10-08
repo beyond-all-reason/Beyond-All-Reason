@@ -55,19 +55,19 @@ local drawUnitHighlightSkipFPS	= 5		-- (0 to disable) skip drawing when framerat
 local opacity      				= 0.95
 local duration     				= 2.5
 
-local lineWidth	   				= 7.5
-local lineOpacity				= 1
+local lineWidth	   				= 7
+local lineOpacity				= 0.8
 local lineDuration 				= 1		-- set a value <= 1
 local lineWidthEnd				= 0.5		-- multiplier (this wont affect textured lines)
-local lineTextureLength 		= 3.5
-local lineTextureSpeed  		= 2.2
+local lineTextureLength 		= 4
+local lineTextureSpeed  		= 2.4
 
 local glowRadius    			= 26
 local glowDuration  			= 0.5
 local glowOpacity   			= 0.11
 
 local glowImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/glow.dds"
-local lineImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/line.dds"
+local lineImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/line2.dds"
 
 
 local mapX = Game.mapSizeX
