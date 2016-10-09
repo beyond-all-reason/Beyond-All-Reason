@@ -129,7 +129,7 @@ end
 function createList(force)
 
 	local newCurLevel = spGetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
-	if newCurLevel ~= curLevel or force then
+	if (newCurLevel ~= curLevel or force) and type(newCurLevel) == 'number' then
 		curLevel = newCurLevel
 		
 		if dList ~= nil then
