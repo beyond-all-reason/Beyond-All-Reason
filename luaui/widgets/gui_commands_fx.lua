@@ -58,7 +58,7 @@ local duration     				= 2.6
 local lineWidth	   				= 8
 local lineOpacity				= 0.77
 local lineDuration 				= 1		-- set a value <= 1
-local lineWidthEnd				= 0.25		-- multiplier (this wont affect textured lines)
+local lineWidthEnd				= 0.5		-- multiplier
 local lineTextureLength 		= 4
 local lineTextureSpeed  		= 2.4
 
