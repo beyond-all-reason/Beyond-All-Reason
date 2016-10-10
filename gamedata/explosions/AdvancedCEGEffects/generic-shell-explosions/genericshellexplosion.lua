@@ -1,10 +1,6 @@
--- genericshellexplosion-small
--- genericshellexplosion
--- genericshellexplosion-medium
--- genericshellexplosion-large
-
-return {
-  ["genericshellexplosion-small"] = {
+local root = "genericshellexplosion"
+local definitions = {
+  [root.."-small"] = {
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -277,7 +273,7 @@ return {
 	
   },
 
-  ["genericshellexplosion"] = {
+  [root] = {
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -418,7 +414,7 @@ return {
     },
   },
 
-  ["genericshellexplosion-medium"] = {
+  [root.."-medium"] = {
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -642,7 +638,7 @@ return {
     },
   },
 
-  ["genericshellexplosion-large"] = {
+  [root.."-large"] = {
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -868,3 +864,98 @@ return {
   },
 
 }
+
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+-- add different sizes
+definitions[root] = definitions[root.."-small"]
+local sizes = {
+	small = {
+	
+	},
+	medium = {
+	
+	},
+	large = {
+	
+	},
+}
+for size, effects in pairs(sizes) do
+	if definitions[root.."-"..size] == nil then 
+		definitions[root.."-"..size] = deepcopy(definitions[root.."-small"])
+	end
+	for effect, attributes in pairs(effects) do
+		for attribute, value in pairs(attributes) do
+			if definitions[root.."-"..size][effect] == nil then 
+				definitions[root.."-"..size][effect] = deepcopy(attributes)
+				break
+			end
+			definitions[root.."-"..size][effect][attribute] = deepcopy(value)
+		end
+	end
+end
+
+-- add coloring
+local colors = {
+	blue = {
+		groundflash = {
+			color = {0,0,1}
+		}
+	},
+	["blue-emp"] = {
+		groundflash = {
+			color = {0,0,1}
+		}
+	},
+	green = {
+		groundflash = {
+			color = {0,1,0}
+		}
+	},
+	red = {
+		groundflash = {
+			color = {1,0,0}
+		}
+	},
+	white = {
+		groundflash = {
+			color = {1,1,1}
+		}
+	},
+	purple = {
+		groundflash = {
+			color = {1,0,1}
+		}
+	}
+}
+for color, effects in pairs(colors) do
+	for size, e in pairs(sizes) do
+		if definitions[root.."-"..size.."-"..color] == nil then
+			definitions[root.."-"..size.."-"..color] = deepcopy(definitions[root.."-"..size])
+		end
+		for effect, attributes in pairs(effects) do	-- the effects of colors
+			if definitions[root.."-"..size.."-"..color][effect] == nil then 
+				definitions[root.."-"..size.."-"..color][effect] = deepcopy(attributes)
+			else
+				for attribute, value in pairs(attributes) do
+					definitions[root.."-"..size.."-"..color][effect][attribute] = deepcopy(value)
+				end
+			end
+		end
+	end
+end
+
+return definitions
