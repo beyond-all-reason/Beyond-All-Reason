@@ -144,7 +144,7 @@ local definitions = {
         particlespeed      = 0.5,
         particlespeedspread = 5,
         pos                = [[0, 6, 0]],
-        sizegrowth         = -0.03,
+        sizegrowth         = -0.025,
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
@@ -226,6 +226,21 @@ local definitions = {
   },
 }
 
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+    	if type(v) == "table" then
+    		if type(t1[k] or false) == "table" then
+    			tableMerge(t1[k] or {}, t2[k] or {})
+    		else
+    			t1[k] = v
+    		end
+    	else
+    		t1[k] = v
+    	end
+    end
+    return t1
+end
+
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -247,83 +262,246 @@ local sizes = {
 	small = {
 	
 	},
+	
 	medium = {
+    centerflare = {
+      properties = {
+        size               = 3,
+        sizegrowth         = 22,
+      },
+    },
 		groundflash = {
 			flashalpha         = 0.25,
 	    flashsize          = 250,
 	    ground             = true,
 	    ttl                = 30,
-	  }
+	  },
+	  explosion = {
+      properties = {
+        numparticles       = 85,
+        particlelifespread = 24,
+        particlesize       = 6,
+        particlesizespread = 28,
+        particlespeedspread = 7,
+	  	}
+	  },
+    sparks = {
+      properties = {
+	    	numparticles = 90,
+	    	sizemod = 0.84,
+        particlelifespread = 17,
+        particlespeedspread = 9,
+	   	}
+    },
+    dirt = {
+      properties = {
+	    	numparticles = 120,
+        particlelifespread = 30,
+        particlespeed      = 0.7,
+        particlespeedspread = 7,
+	   	}
+    },
+    clouddust = {
+      properties = {
+      	particlelifespread = 500,
+        particlesize       = 90,
+        particlesizespread = 130,
+      }
+    },
+    grounddust = {
+      properties = {
+        airdrag            = 1.04,
+        numparticles       = 60,
+        particlelifespread = 50,
+        particlesize       = 2,
+        particlesizespread = 12,
+        particlespeed      = 3,
+        particlespeedspread = 2,
+	   	}
+    },
+    outerflash = {
+      properties = {
+        alwaysvisible      = true,
+        heat               = 16,
+        maxheat            = 50,
+        size               = 22,
+      },
+    },
 	},
-	large = {
 	
+	large = {
+    centerflare = {
+      properties = {
+        size               = 4.5,
+        sizegrowth         = 32,
+      },
+    },
+		groundflash = {
+			flashalpha         = 0.28,
+	    flashsize          = 350,
+	    ground             = true,
+	    ttl                = 45,
+	  },
+	  explosion = {
+      properties = {
+        numparticles       = 120,
+        particlelifespread = 33,
+        particlesize       = 10,
+        particlesizespread = 40,
+        particlespeedspread = 9,
+	  	}
+	  },
+    sparks = {
+      properties = {
+	    	numparticles = 120,
+	    	sizemod = 0.88,
+        particlelifespread = 20,
+        particlespeedspread = 11,
+	   	}
+    },
+    dirt = {
+      properties = {
+	    	numparticles = 150,
+        particlelifespread = 30,
+        particlespeed      = 0.9,
+        particlespeedspread = 9,
+	   	}
+    },
+    clouddust = {
+      properties = {
+      	particlelifespread = 600,
+        particlesize       = 120,
+        particlesizespread = 130,
+      }
+    },
+    grounddust = {
+      properties = {
+        airdrag            = 1.08,
+        numparticles       = 90,
+        particlelifespread = 50,
+        particlesize       = 3,
+        particlesizespread = 16,
+        particlespeed      = 4,
+        particlespeedspread = 3,
+	   	}
+    },
+    outerflash = {
+      properties = {
+        alwaysvisible      = true,
+        heat               = 20,
+        maxheat            = 60,
+        size               = 36,
+      },
+    },
 	},
+	
 	huge = {
+    centerflare = {
+      properties = {
+        size               = 6,
+        sizegrowth         = 40,
+      },
+    },
+		groundflash = {
+			flashalpha         = 0.28,
+	    flashsize          = 350,
+	    ground             = true,
+	    ttl                = 60,
+	  },
+	  explosion = {
+      properties = {
+        numparticles       = 160,
+        particlelifespread = 44,
+        particlesize       = 16,
+        particlesizespread = 60,
+        particlespeedspread = 14,
+	  	}
+	  },
+    sparks = {
+      properties = {
+	    	numparticles = 150,
+	    	sizemod = 0.9,
+        particlelifespread = 28,
+        particlespeedspread = 16,
+	   	}
+    },
+    dirt = {
+      properties = {
+	    	numparticles = 150,
+        particlelifespread = 30,
+        particlespeed      = 0.9,
+        particlespeedspread = 9,
+	   	}
+    },
+    clouddust = {
+      properties = {
+      	particlelifespread = 600,
+        particlesize       = 120,
+        particlesizespread = 130,
+      }
+    },
+    grounddust = {
+      properties = {
+        airdrag            = 1.12,
+        numparticles       = 130,
+        particlelifespread = 70,
+        particlesize       = 5,
+        particlesizespread = 25,
+        particlespeed      = 5,
+        particlespeedspread = 4,
+	   	}
+    },
+    outerflash = {
+      properties = {
+        alwaysvisible      = true,
+        heat               = 20,
+        maxheat            = 60,
+        size               = 36,
+      },
+    },
 	
 	},
 }
 for size, effects in pairs(sizes) do
-	if definitions[root.."-"..size] == nil then 
-		definitions[root.."-"..size] = deepcopy(definitions[root.."-small"])
-	end
-	for effect, attributes in pairs(effects) do
-		for attribute, value in pairs(attributes) do
-			if definitions[root.."-"..size][effect] == nil then 
-				definitions[root.."-"..size][effect] = deepcopy(attributes)
-				break
-			end
-			definitions[root.."-"..size][effect][attribute] = deepcopy(value)
-		end
-	end
+	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
 end
 
 -- add coloring
 local colors = {
 	blue = {
 		groundflash = {
-			color = {0,0,1}
+			color = {0,0,1},
 		}
 	},
 	["blue-emp"] = {
 		groundflash = {
-			color = {0,0,1}
+			color = {0,0,1},
 		}
 	},
 	green = {
 		groundflash = {
-			color = {0,1,0}
+			color = {0,1,0},
 		}
 	},
 	red = {
 		groundflash = {
-			color = {1,0,0}
+			color = {1,0,0},
 		}
 	},
 	white = {
 		groundflash = {
-			color = {1,1,1}
+			color = {1,1,1},
 		}
 	},
 	purple = {
 		groundflash = {
-			color = {1,0,1}
+			color = {1,0,1},
 		}
 	}
 }
 for color, effects in pairs(colors) do
 	for size, e in pairs(sizes) do
-		if definitions[root.."-"..size.."-"..color] == nil then
-			definitions[root.."-"..size.."-"..color] = deepcopy(definitions[root.."-"..size])
-		end
-		for effect, attributes in pairs(effects) do	-- the effects of colors
-			if definitions[root.."-"..size.."-"..color][effect] == nil then 
-				definitions[root.."-"..size.."-"..color][effect] = deepcopy(attributes)
-			else
-				for attribute, value in pairs(attributes) do
-					definitions[root.."-"..size.."-"..color][effect][attribute] = deepcopy(value)
-				end
-			end
-		end
+		definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
 	end
 end
 

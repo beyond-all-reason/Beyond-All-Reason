@@ -865,6 +865,22 @@ local definitions = {
 
 }
 
+
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+    	if type(v) == "table" then
+    		if type(t1[k] or false) == "table" then
+    			tableMerge(t1[k] or {}, t2[k] or {})
+    		else
+    			t1[k] = v
+    		end
+    	else
+    		t1[k] = v
+    	end
+    end
+    return t1
+end
+
 function deepcopy(orig)
     local orig_type = type(orig)
     local copy
@@ -886,75 +902,55 @@ local sizes = {
 	small = {
 	
 	},
+	
 	medium = {
 	
 	},
+	
 	large = {
 	
 	},
 }
 for size, effects in pairs(sizes) do
-	if definitions[root.."-"..size] == nil then 
-		definitions[root.."-"..size] = deepcopy(definitions[root.."-small"])
-	end
-	for effect, attributes in pairs(effects) do
-		for attribute, value in pairs(attributes) do
-			if definitions[root.."-"..size][effect] == nil then 
-				definitions[root.."-"..size][effect] = deepcopy(attributes)
-				break
-			end
-			definitions[root.."-"..size][effect][attribute] = deepcopy(value)
-		end
-	end
+	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
 end
 
 -- add coloring
 local colors = {
 	blue = {
 		groundflash = {
-			color = {0,0,1}
+			color = {0,0,1},
 		}
 	},
 	["blue-emp"] = {
 		groundflash = {
-			color = {0,0,1}
+			color = {0,0,1},
 		}
 	},
 	green = {
 		groundflash = {
-			color = {0,1,0}
+			color = {0,1,0},
 		}
 	},
 	red = {
 		groundflash = {
-			color = {1,0,0}
+			color = {1,0,0},
 		}
 	},
 	white = {
 		groundflash = {
-			color = {1,1,1}
+			color = {1,1,1},
 		}
 	},
 	purple = {
 		groundflash = {
-			color = {1,0,1}
+			color = {1,0,1},
 		}
 	}
 }
 for color, effects in pairs(colors) do
 	for size, e in pairs(sizes) do
-		if definitions[root.."-"..size.."-"..color] == nil then
-			definitions[root.."-"..size.."-"..color] = deepcopy(definitions[root.."-"..size])
-		end
-		for effect, attributes in pairs(effects) do	-- the effects of colors
-			if definitions[root.."-"..size.."-"..color][effect] == nil then 
-				definitions[root.."-"..size.."-"..color][effect] = deepcopy(attributes)
-			else
-				for attribute, value in pairs(attributes) do
-					definitions[root.."-"..size.."-"..color][effect][attribute] = deepcopy(value)
-				end
-			end
-		end
+		definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
 	end
 end
 
