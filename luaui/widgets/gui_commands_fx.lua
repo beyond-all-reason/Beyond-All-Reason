@@ -52,13 +52,13 @@ local drawLineTexture			= true
 local drawUnitHighlight 		= true
 local drawUnitHighlightSkipFPS	= 5		-- (0 to disable) skip drawing when framerate gets below this value
 
-local opacity      				= 0.95
-local duration     				= 2.5
+local opacity      				= 1
+local duration     				= 2.6
 
-local lineWidth	   				= 7
-local lineOpacity				= 0.8
+local lineWidth	   				= 8
+local lineOpacity				= 0.77
 local lineDuration 				= 1		-- set a value <= 1
-local lineWidthEnd				= 0.5		-- multiplier (this wont affect textured lines)
+local lineWidthEnd				= 0.25		-- multiplier (this wont affect textured lines)
 local lineTextureLength 		= 4
 local lineTextureSpeed  		= 2.4
 
@@ -571,9 +571,10 @@ function widget:DrawWorldPreUnit()
                         if lineAlpha > 0 then 
 							gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
 							if drawLineTexture then
-								usedLineWidth = lineWidth
+								
+                usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
 								gl.Texture(lineImg)
-								gl.BeginEnd(GL.QUADS, DrawLineTex, prevX,prevY,prevZ, X, Y, Z, usedLineWidth, lineTextureLength, texOffset)
+								gl.BeginEnd(GL.QUADS, DrawLineTex, prevX,prevY,prevZ, X, Y, Z, usedLineWidth, lineTextureLength * (lineWidth / usedLineWidth), texOffset)
 								gl.Texture(false)
 							else
 								gl.BeginEnd(GL.QUADS, DrawLine, prevX,prevY,prevZ, X, Y, Z, usedLineWidth)
