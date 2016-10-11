@@ -1,4 +1,4 @@
-ion IsRaider(unit)
+function IsRaider(unit)
 	return raiderList[unit:Internal():Name()] or false
 end
 

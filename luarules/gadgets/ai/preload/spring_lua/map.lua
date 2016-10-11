@@ -1,4 +1,4 @@
- map = {}
+local map = {}
 map.spots = shard_include("spring_lua/metal")
 
 	-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)

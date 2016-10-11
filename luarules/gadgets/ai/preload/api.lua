@@ -1,4 +1,4 @@
-mongous proxy class
+-- Humongous proxy class
 -- Created by Tom J Nowell 2010
 -- Shard AI
 

@@ -1,4 +1,4 @@
-ass.lua
+-- class.lua
 -- Compatible with Lua 5.1 (not 5.0).
 function class(base, init)
    local c = {}    -- a new class instance

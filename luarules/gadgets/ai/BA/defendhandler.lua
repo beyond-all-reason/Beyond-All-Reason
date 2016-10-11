@@ -1,4 +1,4 @@
- DebugEnabled = false
+local DebugEnabled = false
 
 
 local function EchoDebug(inStr)

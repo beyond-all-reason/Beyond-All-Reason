@@ -1,4 +1,4 @@
-ehaviour = class(Behaviour)
+NukeBehaviour = class(Behaviour)
 
 function NukeBehaviour:Name()
 	return "NukeBehaviour"

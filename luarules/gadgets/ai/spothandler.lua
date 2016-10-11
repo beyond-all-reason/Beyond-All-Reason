@@ -1,4 +1,4 @@
-SpotHandler = class(Module)
+MetalSpotHandler = class(Module)
 
 
 function MetalSpotHandler:Name()

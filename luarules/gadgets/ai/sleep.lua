@@ -1,4 +1,4 @@
- = class(Module)
+Sleep = class(Module)
 
 function Sleep:Name()
 	return "Sleep"
