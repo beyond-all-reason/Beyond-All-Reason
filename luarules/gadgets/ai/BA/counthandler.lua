@@ -1,4 +1,4 @@
-Handler = class(Module)
+CountHandler = class(Module)
 
 function CountHandler:Name()
 	return "CountHandler"

@@ -1,4 +1,4 @@
-SpringDamage = class(function(a)
+ShardSpringDamage = class(function(a)
    --
 end)
 

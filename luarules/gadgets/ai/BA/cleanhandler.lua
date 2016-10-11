@@ -1,4 +1,4 @@
-Handler = class(Module)
+CleanHandler = class(Module)
 
 local distancePerPriority = 100
 

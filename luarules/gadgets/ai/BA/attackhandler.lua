@@ -1,4 +1,4 @@
-kHandler = class(Module)
+AttackHandler = class(Module)
 
 function AttackHandler:Name()
 	return "AttackHandler"

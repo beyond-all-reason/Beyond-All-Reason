@@ -1,4 +1,4 @@
-cause often os.time is used to seed randomseed
+-- because often os.time is used to seed randomseed
 
 local fakeos = {}
 

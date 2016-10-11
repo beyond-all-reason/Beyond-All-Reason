@@ -1,4 +1,4 @@
-ion IsReclaimer(unit)
+function IsReclaimer(unit)
 	local tmpName = unit:Internal():Name()
 	return (reclaimerList[tmpName] or 0) > 0
 end

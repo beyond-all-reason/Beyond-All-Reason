@@ -1,4 +1,4 @@
-olPointHandler = class(Module)
+ControlPointHandler = class(Module)
 
 function ControlPointHandler:Name()
 	return "ControlPointHandler"

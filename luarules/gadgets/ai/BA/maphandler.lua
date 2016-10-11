@@ -1,4 +1,4 @@
-ndler = class(Module)
+MapHandler = class(Module)
 
 function MapHandler:Name()
 	return "MapHandler"

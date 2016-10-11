@@ -1,4 +1,4 @@
- elmosPerMetal = 16
+local elmosPerMetal = 16
 local metalmapSizeX = Game.mapSizeX / elmosPerMetal
 local metalmapSizeZ = Game.mapSizeZ / elmosPerMetal
 local extractorRadiusMetal = math.ceil( Game.extractorRadius / elmosPerMetal )

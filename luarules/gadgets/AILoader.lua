@@ -1,4 +1,4 @@
-ion gadget:GetInfo()
+function gadget:GetInfo()
    return {
       name = "ShardLua",
       desc = "Shard by AF for Spring Lua",

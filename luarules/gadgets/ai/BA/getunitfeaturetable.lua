@@ -1,4 +1,4 @@
-GIN CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
+-- BEGIN CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
 
 local hoverplatform = {
 	armhp = 1,

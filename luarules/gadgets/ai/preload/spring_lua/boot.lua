@@ -1,1 +1,1 @@
-itial setup of things
+-- initial setup of things

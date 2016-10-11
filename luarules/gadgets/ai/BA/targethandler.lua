@@ -1,4 +1,4 @@
-tHandler = class(Module)
+TargetHandler = class(Module)
 
 function TargetHandler:Name()
 	return "TargetHandler"
