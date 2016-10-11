@@ -89,7 +89,7 @@ return {
 			[26] = "corfrad",
 		},
 		customparams = {
-			death_sounds = "generic",
+			death_sounds = "nuke",
 			iscommander = true,
 			paralyzemultiplier = 0.025,
 		},
