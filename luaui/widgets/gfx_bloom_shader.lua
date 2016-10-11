@@ -14,10 +14,10 @@ end
 -- config 
 --------------------------------------------------------------------------------
 
-local basicAlpha = 0.43
+local basicAlpha = 0.4
 
 local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
-local highlightsAlpha = 0.53
+local highlightsAlpha = 0.5
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
@@ -120,7 +120,7 @@ local function SetIllumThreshold()
 	local ambientIntensity  = ra * 0.299 + ga * 0.587 + ba * 0.114
 	local diffuseIntensity  = rd * 0.299 + gd * 0.587 + bd * 0.114
 	local specularIntensity = rs * 0.299 + gs * 0.587 + bs * 0.114
-
+	--Spring.Echo(ambientIntensity..'  '..diffuseIntensity..'  '..specularIntensity)
 	illumThreshold = (0.33 * ambientIntensity) + (0.05 * diffuseIntensity) + (0.05 * specularIntensity)
 end
 
