@@ -912,7 +912,7 @@ local sizes = {
 	},
 }
 for size, effects in pairs(sizes) do
-	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
+	--definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
 end
 
 -- add coloring
