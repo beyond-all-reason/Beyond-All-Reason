@@ -508,9 +508,9 @@ function applyOptionValue(i)
 				enabled = 0
 			end
 			Spring.SendCommands("shadows "..enabled.." "..value)
-			Spring.SetConfigInt("shadows "..value)
+			Spring.SetConfigInt("shadows ", value)
 		elseif id == 'decals' then
-			Spring.SetConfigInt("GroundDecals "..value)
+			Spring.SetConfigInt("GroundDecals ", value)
 			Spring.SendCommands("GroundDecals "..value)
 		elseif id == 'scrollspeed' then
 			Spring.SetConfigInt("ScrollWheelSpeed ",value)
@@ -526,7 +526,7 @@ function applyOptionValue(i)
 		elseif id == 'grassdetail' then
 			Spring.SetConfigInt("GrassDetail ",value)
 		elseif id == 'grounddetail' then
-			Spring.SetConfigInt("GroundDetail "..value)
+			Spring.SetConfigInt("GroundDetail ", value)
 			Spring.SendCommands("grounddetail "..value)
 		elseif id == 'sndvolmaster' then
 			Spring.SetConfigInt("snd_volmaster", value)

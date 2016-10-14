@@ -118,7 +118,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				energypershot = 15644,
-				cegTag = "cruisemissiletrail",
+				cegTag = "cruisemissiletrail-emp",
 				explosiongenerator = "custom:genericshellexplosion-large-lightning",
 				firestarter = 0,
 				flighttime = 400,

@@ -118,7 +118,7 @@ return {
 				cratermult = 0.7,
 				edgeeffectiveness = 0.4,
 				energypershot = 17437,
-				cegTag = "cruisemissiletrail",
+				cegTag = "cruisemissiletrail-tacnuke",
 				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 0,
 				flighttime = 400,
