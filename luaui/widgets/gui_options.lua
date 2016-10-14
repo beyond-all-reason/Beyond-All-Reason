@@ -508,7 +508,9 @@ function applyOptionValue(i)
 				enabled = 0
 			end
 			Spring.SendCommands("shadows "..enabled.." "..value)
+			Spring.SetConfigInt("shadows "..value)
 		elseif id == 'decals' then
+			Spring.SetConfigInt("GroundDecals "..value)
 			Spring.SendCommands("GroundDecals "..value)
 		elseif id == 'scrollspeed' then
 			Spring.SetConfigInt("ScrollWheelSpeed ",value)
@@ -524,7 +526,7 @@ function applyOptionValue(i)
 		elseif id == 'grassdetail' then
 			Spring.SetConfigInt("GrassDetail ",value)
 		elseif id == 'grounddetail' then
-			--Spring.SetConfigInt("GroundDetail "..value)
+			Spring.SetConfigInt("GroundDetail "..value)
 			Spring.SendCommands("grounddetail "..value)
 		elseif id == 'sndvolmaster' then
 			Spring.SetConfigInt("snd_volmaster", value)
@@ -764,8 +766,8 @@ function widget:Initialize()
 		{id="xrayshader", widget="XrayShader", name="Unit xray shader", type="bool", value=widgetHandler.orderList["XrayShader"] ~= nil and (widgetHandler.orderList["XrayShader"] > 0), description='Highlights all units, highlight diminishes on closeup\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="disticon", name="Unit icon distance", type="slider", min=0, max=1000, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 1000)},
 		--{id="treeradius", name="Tree render distance", type="slider", min=0, max=2000, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
-		{id="particles", name="Max particles", type="slider", min=1000, max=20000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Changes will be applied next game'},
-		{id="nanoparticles", name="Max nano particles", type="slider", min=500, max=10000, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='Changes will be applied next game'},
+		{id="particles", name="Max particles", type="slider", min=1000, max=25000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Changes will be applied next game'},
+		--{id="nanoparticles", name="Max nano particles", type="slider", min=500, max=10000, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='Changes will be applied next game'},
 		{id="grounddetail", name="Ground mesh detail", type="slider", min=50, max=200, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground mesh detail (polygon detail of the map)'},
 		{id="grassdetail", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass displayed\n\nChanges will be applied next game'},
 		--{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},

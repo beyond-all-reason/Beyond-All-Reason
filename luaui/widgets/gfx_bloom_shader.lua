@@ -134,11 +134,11 @@ function reset()
 	if drawHighlights then
 		usedBasicAlpha = basicAlpha
 		drawWorldAlpha				= 0.22 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
-		drawWorldPreUnitAlpha = 0.23 - (illumThreshold*0.4)  + (usedBasicAlpha/6.2)  + (0.022 * highlightsAlpha)
+		drawWorldPreUnitAlpha = 0.2 - (illumThreshold*0.4)  + (usedBasicAlpha/6.2)  + (0.023 * highlightsAlpha)
 	else
 		usedBasicAlpha = basicAlpha
 		drawWorldAlpha = 0.05 + (usedBasicAlpha/11)
-		drawWorldPreUnitAlpha = 0.26 - (illumThreshold*0.4) + (usedBasicAlpha/6)
+		drawWorldPreUnitAlpha = 0.25 - (illumThreshold*0.4) + (usedBasicAlpha/6)
 	end
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
