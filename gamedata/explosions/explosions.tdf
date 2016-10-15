@@ -2058,23 +2058,6 @@
 		water=1;
 }
 
-[FLASHJUNO]
-{
-	usedefaultexplosions=0;
-	[GROUNDFLASH]
-	{
-		flashsize=500;
-		flashalpha=1.5;
-		circlegrowth=18;
-		circlealpha=0.5;
-		ttl=60;
-		color=0.7,0.9,0.55;
-	}
-		air=1;
-		ground=1;
-		water=1;
-}
-
 [PILOT]
 {
 	[HEATCLOUD]

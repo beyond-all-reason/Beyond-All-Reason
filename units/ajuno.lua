@@ -120,7 +120,7 @@ return {
 				edgeeffectiveness = 1,
 				energypershot = 12000,
 				cegTag = "missiletrailgunshiplesssmokey",
-				explosiongenerator = "custom:FLASHJUNO",
+				explosiongenerator = "custom:junoflash",
 				flighttime = 400,
 				impulseboost = 0,
 				impulsefactor = 0,
