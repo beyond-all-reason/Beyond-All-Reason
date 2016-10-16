@@ -1,16 +1,23 @@
 function widget:GetInfo()
 	return {
-	version   = "9",
+	version   = "9.1",
 	name      = "Red Build/Order Menu",
 	desc      = "Requires Red UI Framework",
-	author    = "Regret",
-	date      = "29 may 2015",
+	author    = "Regret, modified by CommonPlayer",
+	date      = "29 may 2015", --modified by CommonPlayer, Oct 2016
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
 	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
+
+-- build hotkeys stuff
+local building = -1
+local buildStartKey = 98
+local buildNextKey = 110
+local buildKeys = {113, 119, 101, 114, 116, 97, 115, 100, 102, 103, 122, 120, 99, 118, 98}
+local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 
 local stateTexture		= LUAUI_DIRNAME.."Images/resbar.dds"
 local buttonTexture		= LUAUI_DIRNAME.."Images/button.dds"
@@ -343,6 +350,24 @@ local function CreateGrid(r)
 		end
 	end
 	
+	local text = {"rectangle",
+	px,py = 0, 0,
+	sx=r.isx,sy=r.isy/4,
+	captioncolor={0.8,0.8,0.8,1},
+	caption = nil,
+	options = "on",
+	}
+	local texts = {}
+	for y=1,r.iy do
+		for x=1,r.ix do
+			local b = New(Copy(text,true))
+			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
+			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
+			table.insert(background.movableslaves,b)
+			texts[#texts+1] = b
+		end
+	end
+	
 	local staterect = {"rectangle",
 		border = r.cborder,
 		texture = stateTexture,
@@ -368,6 +393,7 @@ local function CreateGrid(r)
 		["indicator"] = indicator,
 		["staterectangles"] = staterectangles,
 		["staterect"] = staterect,
+		["texts"] = texts,
 	}
 end
 
@@ -415,6 +441,11 @@ local function UpdateGrid(g,cmds,ordertype)
 	end
 	local usedstaterectangles = 0
 	
+	for i=1,#g.texts do
+		local text = g.texts[i]
+		text.caption = nil
+	end
+	
 	for i=1,#page[curpage] do
 		local cmd = page[curpage][i]
 		local icon = icons[i]
@@ -450,6 +481,33 @@ local function UpdateGrid(g,cmds,ordertype)
 				icon.caption = "\n\n"..cmd.params[1].."        "
 			else
 				icon.caption = nil
+			end
+			
+			--text to show build hotkey
+			local white = "\255\255\255\255"
+			local offwhite = "\255\210\210\210"
+			local yellow = "\255\255\255\0"
+			local orange = "\255\255\135\0"
+			local green = "\255\0\255\0"
+			local red = "\255\255\0\0"
+			local skyblue = "\255\136\197\226"
+			
+			local text = g.texts[i]
+			text.px = icon.px
+			text.py = icon.py
+			local captionColor = white
+			if i <= 15 then
+				if building == 0 then
+					captionColor = skyblue
+				end
+				text.caption = captionColor..buildLetters[buildStartKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i]-96]
+			elseif i <= 30 then
+				if building == 1 then
+					captionColor = skyblue
+				end
+				text.caption = captionColor..buildLetters[buildNextKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i-15]-96]
+			else
+				text.caption = nil
 			end
 		else
 			if buttonTexture ~= nil then
@@ -754,4 +812,38 @@ function widget:Update(dt)
 			updatehax2 = false
 		end
 	end
+end
+
+
+
+function widget:KeyPress(key, mods, isRepeat)
+	if building ~= -1 then
+		local buildcmds, othercmds = GetCommands()
+		local found = -1
+		for index = 1, #buildKeys do
+			if buildKeys[index] == key then
+				found = index + (15*building)
+				break
+			end
+		end
+		if found ~= -1 and buildcmds[found] ~= nil then
+			Spring.SetActiveCommand(Spring.GetCmdDescIndex(buildcmds[found].id),1,true,false,Spring.GetModKeyState())
+		end
+		building = -1
+		onNewCommands(GetCommands())
+		return true
+	else
+		if key == buildStartKey then
+			building = 0
+			onNewCommands(GetCommands())
+			return true
+		elseif key == buildNextKey then
+			building = 1
+			onNewCommands(GetCommands())
+			return true
+		end
+	end
+	-- updates UI because hotkeys text changed color
+	onNewCommands(GetCommands())
+	return false
 end
