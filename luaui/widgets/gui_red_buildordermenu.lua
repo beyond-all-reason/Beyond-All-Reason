@@ -352,7 +352,7 @@ local function CreateGrid(r)
 	
 	local text = {"rectangle",
 	px,py = 0, 0,
-	sx=r.isx,sy=r.isy/4,
+	sx=r.isx,sy=r.isy,
 	captioncolor={0.8,0.8,0.8,1},
 	caption = nil,
 	options = "on",
@@ -492,20 +492,30 @@ local function UpdateGrid(g,cmds,ordertype)
 			local red = "\255\255\0\0"
 			local skyblue = "\255\136\197\226"
 			
+			local s, e = string.find(cmd.tooltip, "Metal cost %d*")
+			local metalCost = string.sub(cmd.tooltip, s + 11, e)
+			local s, e = string.find(cmd.tooltip, "Energy cost %d*")
+			local energyCost = string.sub(cmd.tooltip, s + 11, e)
+			--local metalColor = "\255\136\197\226"
+			
 			local text = g.texts[i]
 			text.px = icon.px
 			text.py = icon.py
 			local captionColor = white
+			
+-- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
 			if i <= 15 then
 				if building == 0 then
 					captionColor = skyblue
 				end
-				text.caption = captionColor..buildLetters[buildStartKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i]-96]
+				text.caption = captionColor..buildLetters[buildStartKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i]-96].."\n\n\n\n"..skyblue.." M:"..metalCost..offwhite.."\n"..yellow.." E:"..energyCost
+				text.options = "bs"
 			elseif i <= 30 then
 				if building == 1 then
 					captionColor = skyblue
 				end
-				text.caption = captionColor..buildLetters[buildNextKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i-15]-96]
+				text.caption = captionColor..buildLetters[buildNextKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i-15]-96].."\n\n\n\n"..skyblue.." M:"..metalCost..offwhite.."\n"..yellow.." E:"..energyCost
+				text.options = "bs"
 			else
 				text.caption = nil
 			end
