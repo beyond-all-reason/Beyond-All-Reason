@@ -197,7 +197,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 100,
-				explosiongenerator = "custom:genericshellexplosion-large-purple",
+				explosiongenerator = "custom:genericshellexplosion-medium-purple",
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 12,
