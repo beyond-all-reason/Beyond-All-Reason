@@ -1,5 +1,6 @@
 -- missiletrailblue
 -- missiletrail
+-- missiletrailtiny
 -- missiletrailsmall
 -- missiletrailgunshiplesssmokey
 -- missiletrailbomber
@@ -9,7 +10,7 @@
 -- missiletrailgunship
 -- missiletrailgreen
 
-return definitions = {
+return {
   ["missiletrailblue"] = {
     groundflash = {
       circlealpha        = 0.1,
