@@ -478,14 +478,15 @@ local function UpdateGrid(g,cmds,ordertype)
 			icon.texture = "#"..cmd.id*-1
 			if (cmd.params[1]) then
 				icon.options = "o"
-				icon.caption = "        "..cmd.params[1].." "
+				icon.caption = "      "..cmd.params[1].."  "
 			else
 				icon.caption = nil
 			end
+			icon.texturecolor = {0.93,0.93,0.93,1}
 			
 			--text to show build hotkey
 			local white = "\255\255\255\255"
-			local offwhite = "\255\210\210\210"
+			local offwhite = "\255\222\222\222"
 			local yellow = "\255\255\255\0"
 			local orange = "\255\255\135\0"
 			local green = "\255\0\255\0"
@@ -499,36 +500,34 @@ local function UpdateGrid(g,cmds,ordertype)
 			--local metalColor = "\255\136\197\226"
 			--Spring.Echo('m'..metalCost..'e'..energyCost)
 			local text = g.texts[i]
-			text.px = icon.px+(icon.sx/15)
+			text.px = icon.px+(icon.sx/20)
 			text.py = icon.py-(icon.sy/15)
 			
-			local captionColor = white
+			local captionColor = "\255\166\166\166"
 			
 -- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
 
 			-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 			local str = tostring(math.max(metalCost, energyCost))
-			local addedSpaces = "                   "			-- too bad 1 space isnt as wide as 1 number in the used font
+			local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
 			  for digit in string.gmatch(str, "%d") do
 			  addedSpaces = string.sub(addedSpaces, 0, -2)
 			end
+			
+			local shotcutCaption = ''
 			if i <= 15 then
 				if building == 0 then
 					captionColor = skyblue
 				end
-				--text.caption = captionColor..buildLetters[buildStartKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i]-96].."\n\n\n\n"..skyblue.." M:"..metalCost..offwhite.."\n"..yellow.." E:"..energyCost
-				text.caption = "\n"..captionColor..buildLetters[buildStartKey-96]..offwhite.."→"..captionColor..buildLetters[buildKeys[i]-96].."\n\n\n"..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
-				text.options = "bs"
+				shotcutCaption = captionColor..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
 			elseif i <= 30 then
 				if building == 1 then
 					captionColor = skyblue
 				end
-				--text.caption = captionColor..buildLetters[buildNextKey-96]..offwhite.." → "..captionColor..buildLetters[buildKeys[i-15]-96].."\n\n\n\n"..skyblue.." M:"..metalCost..offwhite.."\n"..yellow.." E:"..energyCost
-				text.caption = "\n"..captionColor..buildLetters[buildNextKey-96]..offwhite.."→"..captionColor..buildLetters[buildKeys[i-15]-96].."\n\n\n"..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
-				text.options = "bs"
-			else
-				text.caption = nil
+				shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
 			end
+			text.caption = "\n"..shotcutCaption.."\n\n\n"..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
+			text.options = "bs"
 		else
 			if buttonTexture ~= nil then
 				icon.texture = buttonTexture
