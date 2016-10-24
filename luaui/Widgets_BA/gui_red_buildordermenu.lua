@@ -227,16 +227,16 @@ local function CreateGrid(r)
 	}
 	
 	local mouseoverhighlight = Copy(selecthighlight,true)
-	mouseoverhighlight.color={1,1,1,0.17}
+	mouseoverhighlight.color={1,1,1,0.14}
 	mouseoverhighlight.border={1,1,1,0}
 	mouseoverhighlight.texture = LUAUI_DIRNAME.."Images/button-highlight.dds"
-	mouseoverhighlight.texturecolor={1,1,1,0.2}
+	mouseoverhighlight.texturecolor={1,1,1,0.14}
 	
 	local heldhighlight = Copy(selecthighlight,true)
-	heldhighlight.color={1,0.8,0,0.2}
+	heldhighlight.color={1,0.75,0,0.14}
 	heldhighlight.border={1,1,0,0}
 	heldhighlight.texture = LUAUI_DIRNAME.."Images/button-pushed.dds"
-	heldhighlight.texturecolor={1,0.8,0,0.2}
+	heldhighlight.texturecolor={1,0.75,0,0.14}
 	
 	local icon = {"rectangle",
 		px=0,py=0,
@@ -482,7 +482,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			else
 				icon.caption = nil
 			end
-			icon.texturecolor = {0.93,0.93,0.93,1}
+			icon.texturecolor = {0.86,0.86,0.86,1}
 			
 			--text to show build hotkey
 			local white = "\255\255\255\255"
