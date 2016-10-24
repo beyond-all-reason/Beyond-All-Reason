@@ -214,7 +214,7 @@ local function CreateGrid(r)
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
 		iconscale=(iconScaling and r.iconscale or 1),
-		color={1,0,0,0.26},
+		color={0.85,0.65,0,0.3},
 		border={0.8,0,0,0},
 		glone=0.12,
 		texture = LUAUI_DIRNAME.."Images/button-pushed.dds",
@@ -233,10 +233,10 @@ local function CreateGrid(r)
 	mouseoverhighlight.texturecolor={1,1,1,0.14}
 	
 	local heldhighlight = Copy(selecthighlight,true)
-	heldhighlight.color={1,0.75,0,0.14}
+	heldhighlight.color={1,0.75,0,0.08}
 	heldhighlight.border={1,1,0,0}
 	heldhighlight.texture = LUAUI_DIRNAME.."Images/button-pushed.dds"
-	heldhighlight.texturecolor={1,0.75,0,0.14}
+	heldhighlight.texturecolor={1,0.75,0,0.08}
 	
 	local icon = {"rectangle",
 		px=0,py=0,

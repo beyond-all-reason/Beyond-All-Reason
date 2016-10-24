@@ -15,7 +15,6 @@ local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
-local closeButtonTex = ":n:"..LUAUI_DIRNAME.."Images/close.dds"
 
 local bgMargin = 6
 
@@ -214,11 +213,17 @@ function DrawWindow()
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,8)
 	
-    gl.Color(1,1,1,1)
-	gl.Texture(closeButtonTex)
-	gl.TexRect(screenX+screenWidth-closeButtonSize,screenY,screenX+screenWidth,screenY-closeButtonSize)
-	gl.Texture(false)
-	
+	-- close button
+	local size = closeButtonSize*0.7
+	local width = size*0.055
+  gl.Color(1,1,1,1)
+	gl.PushMatrix()
+		gl.Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
+  	gl.Rotate(-45,0,0,1)
+  	gl.Rect(-width,size/2,width,-size/2)
+  	gl.Rotate(90,0,0,1)
+  	gl.Rect(-width,size/2,width,-size/2)
+	gl.PopMatrix()
 	
 	-- title background
     local title = "Keybinds"
