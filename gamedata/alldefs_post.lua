@@ -42,6 +42,32 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
+		
+		Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
+		Spring.Echo("\n")
+		for id,unitDef in pairs(UnitDefs) do
+			Spring.Echo("[Buildtime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
+			unitDef.buildtime = unitDef.buildtime * 0.01
+			Spring.Echo("[Buildtime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
+			Spring.Echo("\n")
+		end
+		Spring.Echo("End Buildtime Values----------------------------------------------------------------------------")
+		Spring.Echo("\n")
+		Spring.Echo("\n")
+		
+		Spring.Echo("Begin Workertime Values----------------------------------------------------------------------------")
+		Spring.Echo("\n")
+		for id,unitDef in pairs(UnitDefs) do
+			if unitDef.workertime then
+				Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+				unitDef.workertime = unitDef.workertime * 0.01
+				Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+				Spring.Echo("\n")
+			end
+		end
+		Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
+		Spring.Echo("\n")
+		Spring.Echo("\n")
 
 		-- transporting enemy coms
 		if (modOptions.mo_transportenemy == "notcoms") then
