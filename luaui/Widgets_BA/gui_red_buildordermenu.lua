@@ -460,7 +460,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			end
 		end
 		if (cmd.disabled) then
-			icon.texturecolor = {0.5,0.5,0.5,1}	
+			icon.texturecolor = {0.44,0.44,0.44,1}	
 		else
 			icon.texturecolor = {1,1,1,1}
 		end
@@ -482,7 +482,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			else
 				icon.caption = nil
 			end
-			icon.texturecolor = {0.86,0.86,0.86,1}
+			icon.texturecolor = {0.88,0.88,0.88,1}
 			
 			--text to show build hotkey
 			local white = "\255\255\255\255"
@@ -499,35 +499,38 @@ local function UpdateGrid(g,cmds,ordertype)
 			local energyCost = string.sub(cmd.tooltip, s + 12, e)
 			--local metalColor = "\255\136\197\226"
 			--Spring.Echo('m'..metalCost..'e'..energyCost)
-			local text = g.texts[i]
-			text.px = icon.px+(icon.sx/20)
-			text.py = icon.py-(icon.sy/15)
 			
-			local captionColor = "\255\166\166\166"
-			
--- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
+			if (not cmd.disabled) then
+				local text = g.texts[i]
+				text.px = icon.px+(icon.sx/20)
+				text.py = icon.py-(icon.sy/15)
+				
+				local captionColor = "\255\166\166\166"
+				
+	-- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
 
-			-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
-			local str = tostring(math.max(metalCost, energyCost))
-			local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
-			  for digit in string.gmatch(str, "%d") do
-			  addedSpaces = string.sub(addedSpaces, 0, -2)
-			end
-			
-			local shotcutCaption = ''
-			if i <= 15 then
-				if building == 0 then
-					captionColor = skyblue
+				-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
+				local str = tostring(math.max(metalCost, energyCost))
+				local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
+				  for digit in string.gmatch(str, "%d") do
+				  addedSpaces = string.sub(addedSpaces, 0, -2)
 				end
-				shotcutCaption = captionColor..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
-			elseif i <= 30 then
-				if building == 1 then
-					captionColor = skyblue
+				
+				local shotcutCaption = ''
+				if i <= 15 then
+					if building == 0 then
+						captionColor = skyblue
+					end
+					shotcutCaption = captionColor..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
+				elseif i <= 30 then
+					if building == 1 then
+						captionColor = skyblue
+					end
+					shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
 				end
-				shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
+				text.caption = "\n"..shotcutCaption.."\n\n\n"..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
+				text.options = "bs"
 			end
-			text.caption = "\n"..shotcutCaption.."\n\n\n"..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
-			text.options = "bs"
 		else
 			if buttonTexture ~= nil then
 				icon.texture = buttonTexture

@@ -1,4 +1,32 @@
-﻿9.45 -> 9.46
+﻿9.46 -> 9.47
+XX/10/2016
+
+Balance changes:
+- Commander buildrange is now the same as the t1 cons
+
+Important:
+- Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
+- Decay resigned as balancing dev/maintainer
+
+Other:
+- Lots of new particle effects!
+- Buildmenu: shows metal an energy cost
+- Buildmenu: shows shortcuts (B->Q means press B first and Q after)
+- Options: fixed that not all settings remembered their value
+- Bloomshader: prettier and more pronounced (but more heavy for system)
+- Commands FX lines get thinner over lifetime
+- Self-D icons dont show in f5 mode anymore
+- More unit types shatter on death
+- Nano effect has changed and is now done via a shader
+- Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
+- Area Capture Mode now shows info on startup and has a scoreboard window too
+- converted BA icon to png (was bmp)
+- Pausescreen changed uses decolorize shader effect
+- Mapmarks effect size increased
+- lots of changes under the hood
+
+
+9.45 -> 9.46
 22/09/2016
 
 - Ready/substitute button smaller
