@@ -38,7 +38,7 @@ return {
 		sightdistance = 287.29999,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
-		workertime = 100,
+		workertime = 300,
 		yardmap = "occccooccccooccccooccccooccccoocccco",
 		buildoptions = {
 			[1] = "corck",

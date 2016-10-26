@@ -43,7 +43,7 @@ return {
 		turnrate = 595,
 		waterline = 3,
 		windgenerator = 0.001,
-		workertime = 250,
+		workertime = 150,
 		buildoptions = {
 			[1] = "coreyes",
 			[2] = "cordl",

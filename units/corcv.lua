@@ -47,7 +47,7 @@ return {
 		turninplaceanglelimit = 60,
 		turninplacespeedlimit = 1.1979,
 		turnrate = 421,
-		workertime = 90,
+		workertime = 150,
 		buildoptions = {
 			[1] = "corsolar",
 			[2] = "coradvsol",

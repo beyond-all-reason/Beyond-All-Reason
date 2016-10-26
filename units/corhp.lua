@@ -37,7 +37,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
-		workertime = 200,
+		workertime = 300,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
 			[1] = "corch",

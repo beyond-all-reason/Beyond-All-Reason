@@ -43,7 +43,7 @@ return {
 		turnrate = 615,
 		waterline = 4,
 		windgenerator = 0.001,
-		workertime = 250,
+		workertime = 150,
 		buildoptions = {
 			[1] = "armeyes",
 			[2] = "armdl",

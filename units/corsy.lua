@@ -34,7 +34,7 @@ return {
 		sightdistance = 340,
 		terraformspeed = 500,
 		waterline = 33,
-		workertime = 220,
+		workertime = 300,
 		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
 		buildoptions = {
 			[1] = "corcs",

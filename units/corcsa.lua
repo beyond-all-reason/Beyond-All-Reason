@@ -40,7 +40,7 @@ return {
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
 		turnrate = 132,
-		workertime = 110,
+		workertime = 300,
 		blocking = false,
 		buildoptions = {
 			[1] = "corap",

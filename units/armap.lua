@@ -39,7 +39,7 @@ return {
 		sightdistance = 292,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
-		workertime = 100,
+		workertime = 300,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooo",
 		buildoptions = {
 			[1] = "armca",
