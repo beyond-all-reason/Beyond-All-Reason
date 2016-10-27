@@ -123,7 +123,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 1000,
-				explosiongenerator = "custom:genericshellexplosion-large-blue",
+				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 20,
