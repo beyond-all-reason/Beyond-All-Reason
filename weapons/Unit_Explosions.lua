@@ -21,8 +21,52 @@ local giganticNukeExplosionDamageImpulseFactor = 0
 local commanderNukeExplosionDamage = 720
 local commanderNukeExplosionDamageImpulseFactor = 0
 
-unitDeaths = {
 
+unitDeaths = {
+	
+	nanoboom = {
+		weaponType		   = "Cannon",
+		areaofeffect = 128,
+		edgeeffectiveness = 0.75,
+		explosiongenerator = "custom:genericbuildingexplosion-small-green",
+		damage = {
+			default = 10,
+			nanos = 380,
+		},
+	},
+	
+	metalmaker = {
+		areaofeffect = 150,
+		explosiongenerator = "custom:largeBuildingExplosionGeneric",
+		damage = {
+			default = 400,
+		},
+	},
+	
+	advmetalmaker = {
+		areaofeffect = 300,
+		explosiongenerator = "custom:hugeBuildingExplosionGeneric",
+		damage = {
+			default = 800,
+		},
+	},
+	
+	energystorage = {
+		areaofeffect = 200,
+		explosiongenerator = "custom:largeBuildingExplosionGeneric",
+		damage = {
+			default = 550,
+		},
+	},
+	
+	advenergystorage = {
+		areaofeffect = 400,
+		explosiongenerator = "custom:smallNukeExplosionGeneric",
+		damage = {
+			default = 1100,
+		},
+	},
+	
 --NUKE EXPLOSIONS--
 
 	smallNukeExplosionGeneric = {
@@ -43,7 +87,7 @@ unitDeaths = {
 		explosiongenerator="custom:nukedatbewm",
 		cameraShake=hugeNukeExplosion,
 		damage = {
-			default            = 0,
+			default            = 6500,
 		},
 	},
 	

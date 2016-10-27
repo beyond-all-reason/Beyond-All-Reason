@@ -24,7 +24,7 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.25,
+      flashalpha         = 0.21,
       flashsize          = 180,
       ground             = true,
       ttl                = 24,
@@ -32,8 +32,8 @@ local definitions = {
 	    underwater         = true,
       color = {
         [1]  = 1,
-        [2]  = 0.6,
-        [3]  = 0,
+        [2]  = 0.7,
+        [3]  = 0.3,
       },
     },
     kickedupwater = {
@@ -260,10 +260,17 @@ end
 definitions[root] = definitions[root.."-small"]
 local sizes = {
 	small = {
-	
+		areaofeffect = 90,
+		damage = {
+			default = 100,
+		},
 	},
 	
 	medium = {
+		areaofeffect = 140,
+		damage = {
+			default = 200,
+		},
     centerflare = {
       properties = {
         size               = 3,
@@ -271,7 +278,7 @@ local sizes = {
       },
     },
 		groundflash = {
-			flashalpha         = 0.25,
+			flashalpha         = 0.24,
 	    flashsize          = 250,
 	    ground             = true,
 	    ttl                = 30,
@@ -330,6 +337,10 @@ local sizes = {
 	},
 	
 	large = {
+		areaofeffect = 200,
+		damage = {
+			default = 350,
+		},
     centerflare = {
       properties = {
         size               = 4.5,
@@ -396,6 +407,10 @@ local sizes = {
 	},
 	
 	huge = {
+		areaofeffect = 320,
+		damage = {
+			default = 550,
+		},
     centerflare = {
       properties = {
         size               = 6,
