@@ -7,4 +7,7 @@ return {
   game='Total Annihilation',
   shortGame='TA',
   modtype=1,
+	depend = {
+		"Spring Features v1.9",		
+	},
 }
