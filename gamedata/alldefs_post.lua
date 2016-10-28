@@ -60,8 +60,9 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		for id,unitDef in pairs(UnitDefs) do
 			if unitDef.workertime then
 			
-				--quick fix for reclaim
+				--quick fix for reclaim/terraform
 				unitDef.reclaimspeed = unitDef.workertime
+				unitDef.terraformspeed = unitDef.workertime
 				
 				Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01
