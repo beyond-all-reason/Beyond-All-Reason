@@ -151,7 +151,7 @@ local options={
 		name   = "Advanced Unit Movement and Pathing",
 		desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
 		type="list",
-		def="disabled",
+		def="enabled",
 		section= "ba_options",
 		items={
 			{key="disabled", name="Disabled", desc=""},
@@ -164,7 +164,7 @@ local options={
 		name   = "Fire Through Friendly Units",
 		desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",		
 		type="list",
-		def="disabled",
+		def="enabled",
 		section= "ba_options",
 		items={
 			{key="disabled", name="Disabled", desc=""},
@@ -177,7 +177,7 @@ local options={
 		name   = "Fix unit hitspheres (Requires Fire Through Friendly Units Enabled)",
 		desc   = "Fixes the wonky and inconsistent hitboxes used when units cannot fire through one another.",		
 		type="list",
-		def="disabled",
+		def="enabled",
 		section= "ba_options",
 		items={
 			{key="disabled", name="Disabled", desc=""},
@@ -190,7 +190,8 @@ local options={
 		name   = "Set small features to non-blocking status",
 		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",		
 		type="list",
-		def="disabled",
+		def="enabled",
+		def="enabled",
 		section= "ba_options",
 		items={
 			{key="disabled", name="Disabled", desc=""},

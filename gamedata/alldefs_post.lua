@@ -43,20 +43,20 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
 		
-		Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
-		Spring.Echo("\n")
+		--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
+		--Spring.Echo("\n")
 		for id,unitDef in pairs(UnitDefs) do
-			Spring.Echo("[Buildtime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
+			--Spring.Echo("[Buildtime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
 			unitDef.buildtime = unitDef.buildtime * 0.01
-			Spring.Echo("[Buildtime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
-			Spring.Echo("\n")
+			--Spring.Echo("[Buildtime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
+			--Spring.Echo("\n")
 		end
-		Spring.Echo("End Buildtime Values----------------------------------------------------------------------------")
-		Spring.Echo("\n")
-		Spring.Echo("\n")
+		--Spring.Echo("End Buildtime Values----------------------------------------------------------------------------")
+		--Spring.Echo("\n")
+		--Spring.Echo("\n")
 		
-		Spring.Echo("Begin Workertime Values----------------------------------------------------------------------------")
-		Spring.Echo("\n")
+		--Spring.Echo("Begin Workertime Values----------------------------------------------------------------------------")
+		--Spring.Echo("\n")
 		for id,unitDef in pairs(UnitDefs) do
 			if unitDef.workertime then
 			
@@ -64,15 +64,15 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				unitDef.reclaimspeed = unitDef.workertime
 				unitDef.terraformspeed = unitDef.workertime
 				
-				Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+				--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01
-				Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
-				Spring.Echo("\n")
+				--Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+				--Spring.Echo("\n")
 			end
 		end
-		Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
-		Spring.Echo("\n")
-		Spring.Echo("\n")
+		--Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
+		--Spring.Echo("\n")
+		--Spring.Echo("\n")
 
 		-- transporting enemy coms
 		if (modOptions.mo_transportenemy == "notcoms") then
@@ -90,33 +90,45 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		if (modOptions.betterunitmovement == "enabled") then
 		Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
 			for id,unitDef in pairs(UnitDefs) do
+			
+			--Exclude all aircraft
 				--Spring.Echo(unitDef.turnrate)'
-				if unitDef.turnrate == nil and unitDef.canmove == true then
+				if unitDef.turnrate == nil and unitDef.canmove == true and unitDef.canfly ~= true then
 					--Spring.Echo(unitDef.name)
 					unitDef.turnrate = 1000
 				end
 				
-				if unitDef.turnrate ~= nil and unitDef.canmove == true then
+				if unitDef.turnrate ~= nil and unitDef.canmove == true and unitDef.canfly ~= true then
 					unitDef.turnrate = unitDef.turnrate * 2
 				end
 				
-				if unitDef.canfly == true and unitDef.hoverattack == false then
-					unitDef.turnrate = unitDef.turnrate + 5000
-					unitDef.acceleration = unitDef.acceleration + 5
-					--Spring.Echo(unitDef.name)
-					--Spring.Echo(unitDef.turnrate)
-					--Spring.Echo(unitDef.acceleration)
-				end
-				
-				if unitDef.acceleration == nil and unitDef.canmove == true then
+				if unitDef.acceleration == nil and unitDef.canmove == true and unitDef.canfly ~= true then
 					--Spring.Echo(unitDef.name)
 					unitDef.acceleration = 1
 				end
-				if unitDef.acceleration ~= nil and unitDef.canmove == true then
+				
+				if unitDef.acceleration ~= nil and unitDef.canmove == true and unitDef.canfly ~= true then
 					unitDef.acceleration = unitDef.acceleration + 2
 					--Spring.Echo(unitDef.name)
 					--Spring.Echo(unitDef.turnrate)
 					--Spring.Echo(unitDef.acceleration)
+				end
+				
+			--Target aircraft specifically
+				if unitDef.canfly == true then
+				
+				unitDef.brakerate = 1
+				unitDef.turnrate = unitDef.turnrate + 1000
+				unitDef.collide = false
+					
+					if unitDef.hoverattack == true then
+						--unitDef.airhoverfactor = 0.001
+						--unitDef.airstrafe = false
+						unitDef.maxacc	= 0.1
+					else
+						unitDef.acceleration = unitDef.acceleration + 5
+						unitDef.maxacc	= 0.3
+					end
 				end
 			end
 		end
