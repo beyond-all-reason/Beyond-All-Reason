@@ -73,6 +73,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		--Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
 		--Spring.Echo("\n")
 		--Spring.Echo("\n")
+		
+		--Set a minimum for builddistance
+		for id,unitDef in pairs(UnitDefs) do
+			if unitDef.builddistance ~= nil and unitDef.builddistance < 200 then
+				unitDef.builddistance = 200
+			end
+		end
 
 		-- transporting enemy coms
 		if (modOptions.mo_transportenemy == "notcoms") then
@@ -132,6 +139,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				end
 			end
 		end
+		
 		if (modOptions.firethroughfriendly == "enabled") then
 			for id,weaponDef in pairs(WeaponDefs) do
 				--Spring.Echo(weaponDef.name)
@@ -152,5 +160,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				end
 			end
 		end
+		
 	end
 end
