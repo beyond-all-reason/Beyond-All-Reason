@@ -59,6 +59,10 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		Spring.Echo("\n")
 		for id,unitDef in pairs(UnitDefs) do
 			if unitDef.workertime then
+			
+				--quick fix for reclaim
+				unitDef.reclaimspeed = unitDef.workertime
+				
 				Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01
 				Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
