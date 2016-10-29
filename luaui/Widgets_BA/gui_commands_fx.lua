@@ -167,6 +167,7 @@ local CONFIG = {
 --------------------------------------------------------------------------------
 
 local commands = {}
+local monitorCommands = {}
 local minCommand = 1 -- track lowest/highest entries that need to be processed
 local minQueueCommand = 1
 local maxCommand = 0
@@ -178,6 +179,8 @@ local osClock
 local UNITCONF = {}
 local shapes = {}
 
+local drawFrame = 0
+local gameframeDrawFrame = 0
 
 local spGetUnitPosition	= Spring.GetUnitPosition
 local spGetUnitCommands	= Spring.GetUnitCommands
@@ -448,8 +451,30 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
     return x,y,z
 end
 
+function getCommandsQueue(i)
+		local q = spGetUnitCommands(commands[i].unitID,50) or {} --limit to prevent mem leak, hax etc
+	  local our_q = {}
+	  for _,cmd in ipairs(q) do
+	      if CONFIG[cmd.id] or cmd.id < 0 then
+	          if cmd.id < 0 then
+	              cmd.buildingID = -cmd.id;
+	              cmd.id = BUILD
+	              if not cmd.params[4] then
+	                  cmd.params[4] = 0 --sometimes the facing param is missing (wtf)
+	              end
+	          end
+	          our_q[#our_q+1] = cmd
+	      end
+	  end
+	  return our_q
+end
+
 function widget:GameFrame(gameFrame)
-    
+    if drawFrame == gameframeDrawFrame then 
+    	return
+    end
+		gameframeDrawFrame = drawFrame
+		
     --Spring.Echo("GameFrame: minCommand " .. minCommand .. " minQueueCommand " .. minQueueCommand .. " maxCommand " .. maxCommand)
     local i = minQueueCommand
     while (i <= maxCommand) do
@@ -460,24 +485,13 @@ function widget:GameFrame(gameFrame)
         unitCommand[unitID] = i
 
         -- get pruned command queue
-        local q = spGetUnitCommands(commands[i].unitID,50) or {} --limit to prevent mem leak, hax etc
-        local our_q = {}
-        local gotHighlight = false
-        for _,cmd in ipairs(q) do
-            if CONFIG[cmd.id] or cmd.id < 0 then
-                if cmd.id < 0 then
-                    cmd.buildingID = -cmd.id;
-                    cmd.id = BUILD
-                    if not cmd.params[4] then
-                        cmd.params[4] = 0 --sometimes the facing param is missing (wtf)
-                    end
-                end
-                our_q[#our_q+1] = cmd
-            end
-        end
-        
+        local our_q = getCommandsQueue(i)
+        local qsize = #our_q
         commands[i].queue = our_q
-        commands[i].queueSize = #our_q 
+        commands[i].queueSize = qsize
+        if qsize > 1 then
+        	monitorCommands[i] = qsize
+        end
         if #our_q>0 then
             commands[i].highlight = CONFIG[our_q[1].id].colour
             commands[i].draw = true
@@ -499,6 +513,27 @@ function widget:GameFrame(gameFrame)
         minQueueCommand = minQueueCommand + 1
         i = i + 1
     end
+    
+		-- update queue (in case unit has reached the nearest queue coordinate)
+    for i, qsize in pairs(monitorCommands) do
+	    if commands[i] ~= nil then
+	    	if commands[i].draw == false then
+	    		monitorCommands[i] = nil
+	    	else
+		    	local q = spGetUnitCommands(commands[i].unitID,50) or {}
+		    	if qsize ~= #q then
+		    		local our_q = getCommandsQueue(i)
+		        commands[i].queue = our_q
+		        commands[i].queueSize = #our_q
+		        if qsize > 1 then
+		        	monitorCommands[i] = qsize
+		        else
+		      	  monitorCommands[i] = nil
+		        end
+		    	end
+		    end
+	    end
+	  end
 end
 
 local function IsPointInView(x,y,z)
@@ -513,18 +548,19 @@ local texOffset				= 0
 local prevOsClock = os.clock()
 
 function widget:DrawWorldPreUnit()
-    --Spring.Echo(maxCommand-minCommand) --EXPENSIVE! often handling hundreds of command queues at once 
-    --if spIsGUIHidden() then return end
+		drawFrame = drawFrame + 1
+	  --Spring.Echo(maxCommand-minCommand) --EXPENSIVE! often handling hundreds of command queues at once 
+	  --if spIsGUIHidden() then return end
 		
-    osClock = os.clock()
-    gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    gl.DepthTest(false)
-	if drawLineTexture then
-		texOffset = prevTexOffset - ((osClock - prevOsClock)*lineTextureSpeed)
-		texOffset = texOffset - math.floor(texOffset)
-		prevTexOffset = texOffset
-    end
-	prevOsClock = os.clock()
+	  osClock = os.clock()
+	  gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	  gl.DepthTest(false)
+		if drawLineTexture then
+			texOffset = prevTexOffset - ((osClock - prevOsClock)*lineTextureSpeed)
+			texOffset = texOffset - math.floor(texOffset)
+			prevTexOffset = texOffset
+	  end
+		prevOsClock = os.clock()
     local i = minCommand
     while (i <= maxCommand) do --only draw commands that have already been processed in GameFrame
         
@@ -557,71 +593,71 @@ function widget:DrawWorldPreUnit()
             ]]
             -- draw command queue
             if commands[i].queueSize > 0 and prevX then
-				local lineAlphaMultiplier  = 1 - (progress / lineDuration)
-                for j=1,commands[i].queueSize do
-                    --Spring.Echo(CMD[commands[i].queue[j].id]) --debug
-                    local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
-                    local validCoord = X and Z and X>=0 and X<=mapX and Z>=0 and Z<=mapZ
-                    -- draw
-                    if X and validCoord then
-                        -- lines
-                        local usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
-                        local lineColour = CONFIG[commands[i].queue[j].id].colour
-                        local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
-                        if lineAlpha > 0 then 
-							gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
-							if drawLineTexture then
-								
-                usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
-								gl.Texture(lineImg)
-								gl.BeginEnd(GL.QUADS, DrawLineTex, prevX,prevY,prevZ, X, Y, Z, usedLineWidth, lineTextureLength * (lineWidth / usedLineWidth), texOffset)
-								gl.Texture(false)
-							else
-								gl.BeginEnd(GL.QUADS, DrawLine, prevX,prevY,prevZ, X, Y, Z, usedLineWidth)
-							end
-							-- ghost of build queue
-							if drawBuildQueue and commands[i].queue[j].buildingID then
-								gl.PushMatrix()
-								gl.Translate(X,Y+1,Z)
-								gl.Rotate(90 * commands[i].queue[j].params[4], 0, 1, 0)
-								gl.UnitShape(commands[i].queue[j].buildingID, Spring.GetMyTeamID(), true, false, false)
-								gl.Rotate(-90 * commands[i].queue[j].params[4], 0, 1, 0)
-								gl.Translate(-X,-Y-1,-Z)
-								gl.PopMatrix()
-							end
-							if j == 1 and not drawLineTexture then
-								-- draw startpoint rounding
-								gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
-								gl.BeginEnd(GL.QUADS, DrawLineEnd, X, Y, Z, prevX,prevY,prevZ, usedLineWidth)
-							end
-						end
-                        if j==commands[i].queueSize then
-							
-							-- draw endpoint rounding
-							if drawLineTexture == false and lineAlpha > 0 then 
-								if drawLineTexture then
-									gl.Texture(lineImg)
-									gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
-									gl.BeginEnd(GL.QUADS, DrawLineEndTex, prevX,prevY,prevZ, X, Y, Z, usedLineWidth, lineTextureLength, texOffset)
-									gl.Texture(false)
-								else
-									gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
-									gl.BeginEnd(GL.QUADS, DrawLineEnd, prevX,prevY,prevZ, X, Y, Z, usedLineWidth)
-								end
-                            end
-                            
-							-- ground glow
-			                local size = (glowRadius * CONFIG[commands[i].queue[j].id].sizeMult) + ((glowRadius * CONFIG[commands[i].queue[j].id].endSize - glowRadius * CONFIG[commands[i].queue[j].id].sizeMult) * progress)
-							local glowAlpha = (1 - progress) * glowOpacity * opacity
-							
-							if commands[i].selected then
-								glowAlpha = glowAlpha * 2.5
-							end
-							gl.Color(lineColour[1],lineColour[2],lineColour[3],glowAlpha)
-							gl.Texture(glowImg)
-							gl.BeginEnd(GL.QUADS,DrawGroundquad,X,Y,Z,size)
-							gl.Texture(false)
-							
+								local lineAlphaMultiplier  = 1 - (progress / lineDuration)
+		            for j=1,commands[i].queueSize do
+		                --Spring.Echo(CMD[commands[i].queue[j].id]) --debug
+		                local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
+		                local validCoord = X and Z and X>=0 and X<=mapX and Z>=0 and Z<=mapZ
+		                -- draw
+		                if X and validCoord then
+		                    -- lines
+		                    local usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
+		                    local lineColour = CONFIG[commands[i].queue[j].id].colour
+		                    local lineAlpha = opacity * lineOpacity * (lineColour[4] * 2) * lineAlphaMultiplier
+		                    if lineAlpha > 0 then 
+														gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
+														if drawLineTexture then
+															
+							                usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
+															gl.Texture(lineImg)
+															gl.BeginEnd(GL.QUADS, DrawLineTex, prevX,prevY,prevZ, X, Y, Z, usedLineWidth, lineTextureLength * (lineWidth / usedLineWidth), texOffset)
+															gl.Texture(false)
+														else
+															gl.BeginEnd(GL.QUADS, DrawLine, prevX,prevY,prevZ, X, Y, Z, usedLineWidth)
+														end
+														-- ghost of build queue
+														if drawBuildQueue and commands[i].queue[j].buildingID then
+															gl.PushMatrix()
+															gl.Translate(X,Y+1,Z)
+															gl.Rotate(90 * commands[i].queue[j].params[4], 0, 1, 0)
+															gl.UnitShape(commands[i].queue[j].buildingID, Spring.GetMyTeamID(), true, false, false)
+															gl.Rotate(-90 * commands[i].queue[j].params[4], 0, 1, 0)
+															gl.Translate(-X,-Y-1,-Z)
+															gl.PopMatrix()
+														end
+														if j == 1 and not drawLineTexture then
+															-- draw startpoint rounding
+															gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
+															gl.BeginEnd(GL.QUADS, DrawLineEnd, X, Y, Z, prevX,prevY,prevZ, usedLineWidth)
+														end
+												end
+		                    if j==commands[i].queueSize then
+									
+														-- draw endpoint rounding
+														if drawLineTexture == false and lineAlpha > 0 then 
+															if drawLineTexture then
+																gl.Texture(lineImg)
+																gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
+																gl.BeginEnd(GL.QUADS, DrawLineEndTex, prevX,prevY,prevZ, X, Y, Z, usedLineWidth, lineTextureLength, texOffset)
+																gl.Texture(false)
+															else
+																gl.Color(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
+																gl.BeginEnd(GL.QUADS, DrawLineEnd, prevX,prevY,prevZ, X, Y, Z, usedLineWidth)
+															end
+		                     		end
+		                            
+														-- ground glow
+							              local size = (glowRadius * CONFIG[commands[i].queue[j].id].sizeMult) + ((glowRadius * CONFIG[commands[i].queue[j].id].endSize - glowRadius * CONFIG[commands[i].queue[j].id].sizeMult) * progress)
+														local glowAlpha = (1 - progress) * glowOpacity * opacity
+											
+														if commands[i].selected then
+															glowAlpha = glowAlpha * 2.5
+														end
+														gl.Color(lineColour[1],lineColour[2],lineColour[3],glowAlpha)
+														gl.Texture(glowImg)
+														gl.BeginEnd(GL.QUADS,DrawGroundquad,X,Y,Z,size)
+														gl.Texture(false)
+									
                         end
                         prevX, prevY, prevZ = X, Y, Z
                     end
