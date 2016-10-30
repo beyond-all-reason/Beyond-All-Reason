@@ -60,7 +60,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		for id,unitDef in pairs(UnitDefs) do
 			if unitDef.workertime then
 			
-				--quick fix for reclaim/terraform
+				--Make reclaim and terraform really fast
 				unitDef.reclaimspeed = unitDef.workertime
 				unitDef.terraformspeed = unitDef.workertime
 				
