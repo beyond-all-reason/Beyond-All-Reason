@@ -63,6 +63,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Make reclaim and terraform really fast
 				--unitDef.reclaimspeed = unitDef.workertime
 				unitDef.terraformspeed = unitDef.workertime
+				unitDef.resurrectspeed = unitDef.workertime
 				
 				--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01
