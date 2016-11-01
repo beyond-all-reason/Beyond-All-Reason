@@ -94,6 +94,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			end
 		end
 		
+		--Use good groundplates
+		for id,unitDef in pairs(UnitDefs) do
+			if unitDef.usebuildinggrounddecal == true then
+				unitDef.buildinggrounddecaltype = "groundplate.dds"
+			end
+		end
+		
 		if (modOptions.betterunitmovement ~= "disabled") then
 			Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
 			for id,unitDef in pairs(UnitDefs) do
