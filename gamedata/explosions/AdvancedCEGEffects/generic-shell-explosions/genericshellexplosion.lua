@@ -121,7 +121,7 @@ local definitions = {
       },
     },
     grounddust = {
-      air                = true,
+      air                = false,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
@@ -509,7 +509,7 @@ local definitions = {
       },
     },
     grounddust = {
-      air                = true,
+      air                = false,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
@@ -764,7 +764,7 @@ local definitions = {
       },
     },
     grounddust = {
-      air                = true,
+      air                = false,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
