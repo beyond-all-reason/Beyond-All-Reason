@@ -94,8 +94,8 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			end
 		end
 		
-		if (modOptions.betterunitmovement == "enabled") then
-		Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
+		if (modOptions.betterunitmovement ~= "disabled") then
+			Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
 			for id,unitDef in pairs(UnitDefs) do
 			
 			--Exclude all aircraft
@@ -140,15 +140,19 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			end
 		end
 		
-		if (modOptions.firethroughfriendly == "enabled") then
+		if (modOptions.firethroughfriendly ~= "disabled") then
+			Spring.Echo("[Fire through friendlies Modoption] Enabled")
 			for id,weaponDef in pairs(WeaponDefs) do
 				--Spring.Echo(weaponDef.name)
 				weaponDef.avoidFriendly = false
 				weaponDef.collideFriendly = false
+				weaponDef.avoidFeature = false
+				weaponDef.collideFeature = false
 				--Spring.Echo(weaponDef.avoidFriendly)
 				--Spring.Echo(weaponDef.collideFriendly)
 			end
-			if (modOptions.fixedhitspheres == "enabled") then
+			if (modOptions.fixedhitspheres ~= "disabled") then
+				Spring.Echo("[Fixed unit hitspheres Modoption] Enabled")
 				for id,unitDef in pairs(UnitDefs) do
 					unitDef.collisionvolumetype = nil
 					unitDef.usepiececollisionvolumes = nil
