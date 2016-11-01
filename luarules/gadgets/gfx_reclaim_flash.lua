@@ -22,6 +22,7 @@ function gadget:FeatureDestroyed(featureID,allyteam)
 		if (rm ~= nil) then
 			if mm==0 and re == 0 then
 				Spring.SpawnCEG("sparklegreen", fx, fy, fz)
+				Spring.PlaySoundFile("sounds/reclaimate.wav", 1, fx, fy, fz)
 			end
 		end
 	end
