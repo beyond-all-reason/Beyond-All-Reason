@@ -15,7 +15,7 @@ local modrules  = {
     unitEfficiency          = 1,  -- defaults to 1
     featureEnergyCostFactor = 0,  -- defaults to 0
 	
-    allowEnemies  = false,  -- defaults to true
+    allowEnemies  = true,  -- defaults to true
     allowAllies   = false,  -- defaults to true
   },
 
