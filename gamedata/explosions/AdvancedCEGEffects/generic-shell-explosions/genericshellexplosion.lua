@@ -909,9 +909,14 @@ for size, e in pairs(sizes) do
 	definitions[defname] = deepcopy(definitions[root.."-"..size])
 	definitions[defname].clouddust = nil
 	definitions[defname].groundflash.flashalpha = definitions[defname].groundflash.flashalpha / 5
+	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / 5)
+	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / 5)
+	definitions[defname].explosion.properties.numparticles = math.ceil(definitions[defname].explosion.properties.numparticles / 5)
+	definitions[defname].dirt.properties.numparticles = math.ceil(definitions[defname].dirt.properties.numparticles / 5)
+	definitions[defname].dirt2.properties.numparticles = math.ceil(definitions[defname].dirt2.properties.numparticles / 5)
 	definitions[defname].grounddust.properties.particlespeed = definitions[defname].grounddust.properties.particlespeed / 2
 	definitions[defname].grounddust.properties.particlespeedspread = definitions[defname].grounddust.properties.particlespeedspread * 2
-	definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 3)
+	definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
 end
 
 		
