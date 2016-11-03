@@ -37,7 +37,7 @@ unitDeaths = {
 	
 	metalmaker = {
 		areaofeffect = 150,
-		explosiongenerator = "custom:largeBuildingExplosionGeneric",
+		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		damage = {
 			default = 400,
 		},
@@ -45,7 +45,7 @@ unitDeaths = {
 	
 	advmetalmaker = {
 		areaofeffect = 300,
-		explosiongenerator = "custom:hugeBuildingExplosionGeneric",
+		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
 			default = 800,
 		},
@@ -53,7 +53,7 @@ unitDeaths = {
 	
 	energystorage = {
 		areaofeffect = 200,
-		explosiongenerator = "custom:largeBuildingExplosionGeneric",
+		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
 			default = 550,
 		},
@@ -61,7 +61,7 @@ unitDeaths = {
 	
 	advenergystorage = {
 		areaofeffect = 400,
-		explosiongenerator = "custom:smallNukeExplosionGeneric",
+		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
 			default = 1100,
 		},

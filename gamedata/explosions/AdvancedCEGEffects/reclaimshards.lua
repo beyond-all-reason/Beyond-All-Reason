@@ -1,5 +1,3 @@
--- deathceg1
--- deathceg0
 
 local definitions = {
   ["reclaimshards1"] = {
@@ -176,5 +174,8 @@ definitions["reclaimshards2"].shards.properties.texture = [[shard2]]
 definitions["reclaimshards3"] = deepcopy(definitions["reclaimshards1"])
 definitions["reclaimshards2"].shards.properties.texture = [[shard3]]
 
+definitions["wreckshards1"] = deepcopy(definitions["reclaimshards1"])
+definitions["wreckshards2"] = deepcopy(definitions["reclaimshards2"])
+definitions["wreckshards3"] = deepcopy(definitions["reclaimshards2"])
 
 return definitions
