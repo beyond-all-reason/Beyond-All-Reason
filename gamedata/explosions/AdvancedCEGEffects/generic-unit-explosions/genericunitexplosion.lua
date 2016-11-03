@@ -25,8 +25,8 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.3,
-      flashsize          = 65,
+      flashalpha         = 0.23,
+      flashsize          = 66,
       ground             = true,
       ttl                = 50,
       water              = true, 
@@ -311,18 +311,16 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      circlealpha        = 0.6,
-      circlegrowth       = 2,
-      flashalpha         = 0.55,
-      flashsize          = 300,
+      flashalpha         = 0.25,
+      flashsize          = 111,
       ground             = true,
       ttl                = 100,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
-        [2]  = 0.5,
-        [3]  = 0,
+        [2]  = 0.8,
+        [3]  = 0.5,
       },
     },
     kickedupwater = {
@@ -599,18 +597,16 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      circlealpha        = 0.6,
-      circlegrowth       = 3,
-      flashalpha         = 0.55,
-      flashsize          = 600,
+      flashalpha         = 0.28,
+      flashsize          = 175,
       ground             = true,
       ttl                = 100,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
-        [2]  = 0.5,
-        [3]  = 0,
+        [2]  = 0.8,
+        [3]  = 0.5,
       },
     },
     kickedupwater = {
@@ -906,18 +902,16 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      circlealpha        = 0.6,
-      circlegrowth       = 4,
-      flashalpha         = 0.55,
-      flashsize          = 600,
+      flashalpha         = 0.3,
+      flashsize          = 240,
       ground             = true,
       ttl                = 100,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
-        [2]  = 0.5,
-        [3]  = 0,
+        [2]  = 0.8,
+        [3]  = 0.5,
       },
     },
     kickedupdirt = {
@@ -1114,17 +1108,17 @@ end
 local colors = {
 	blue = {
 		groundflash = {
-			color = {0,0,1},
+			color = {0.15,0.15,1},
 		}
 	},
 	green = {
 		groundflash = {
-			color = {0,1,0},
+			color = {0.15,1,0.15},
 		}
 	},
 	red = {
 		groundflash = {
-			color = {1,0,0},
+			color = {1,0.15,0.15},
 		}
 	},
 	white = {
@@ -1134,7 +1128,7 @@ local colors = {
 	},
 	purple = {
 		groundflash = {
-			color = {1,0,1},
+			color = {1,0.15,1},
 		}
 	}
 }
