@@ -289,40 +289,37 @@ local function SetParticleDefinitions()
 		    texture     = "bitmaps/projectiletextures/randdots.tga",
 		    color       = {1,1,1}
 		  },
-	    xmas = {
-		    fxtype      = "NanoParticles",
-		    alpha       = "0.2+(math.random(1)/2.5)",
-		    size        = 1,
-		    sizeSpread  = 5,
-		    sizeGrowth  = 0.035,
-		    rotSpeed    = "0.3+math.random(1)/1.3",
-		    rotSpread   = 360,
-		    particles   = "math.random(1)/10",
-		    color       = {1,1,1},
-		    texture     = "bitmaps/xmas/star.png",
-		  },
 		}
 	}
-	if (currentDate ~= nil and string.sub(currentDate, 5, 6) == '11' and string.sub(currentDate, 5, 6) > '19') then
-		factionsNanoFx.default_high_quality.xmax1 = deepcopy(factionsNanoFx.default_high_quality.xmas)
-		factionsNanoFx.default_high_quality.xmax1.texture = "bitmaps/xmas/mistletoe.png"
-		factionsNanoFx.default_high_quality.xmax1.particles = "math.random(1)/9.1"
-		factionsNanoFx.default_high_quality.xmax2 = deepcopy(factionsNanoFx.default_high_quality.xmas)
-		factionsNanoFx.default_high_quality.xmax2.texture = "bitmaps/xmas/hat.png"
-		factionsNanoFx.default_high_quality.xmax2.particles = "math.random(1)/12.2"
-		factionsNanoFx.default_high_quality.xmax3 = deepcopy(factionsNanoFx.default_high_quality.xmas)
-		factionsNanoFx.default_high_quality.xmax3.texture = "bitmaps/xmas/ball.png"
-		factionsNanoFx.default_high_quality.xmax3.particles = "math.random(1)/10.3"
-		factionsNanoFx.default_high_quality.xmax4 = deepcopy(factionsNanoFx.default_high_quality.xmas)
-		factionsNanoFx.default_high_quality.xmax4.texture = "bitmaps/xmas/star.png"
-		factionsNanoFx.default_high_quality.xmax4.particles = "math.random(1)/6.4"
-		factionsNanoFx.default_high_quality.xmax5 = deepcopy(factionsNanoFx.default_high_quality.xmas)
-		factionsNanoFx.default_high_quality.xmax5.texture = "bitmaps/xmas/cane.png"
-		factionsNanoFx.default_high_quality.xmax5.particles = "math.random(1)/16.5"
-		
+	if (currentDate ~= nil and tonumber(string.sub(currentDate, 5, 6)) == 12 and tonumber(string.sub(currentDate, 7, 8)) >= 19) then
 		factionsNanoFx.default_high_quality.energypart = nil
-	else
-		factionsNanoFx.default_high_quality.xmas = nil
+		local xmas = {
+	    fxtype      = "NanoParticles",
+	    alpha       = "0.2+(math.random(1)/2.5)",
+	    size        = 1,
+	    sizeSpread  = 5,
+	    sizeGrowth  = 0.035,
+	    rotSpeed    = "0.3+math.random(1)/1.3",
+	    rotSpread   = 360,
+	    particles   = "math.random(1)/10",
+	    color       = {1,1,1},
+	    texture     = "bitmaps/xmas/star.png",
+	  }
+		factionsNanoFx.default_high_quality.xmas1 = deepcopy(xmas)
+		factionsNanoFx.default_high_quality.xmas1.texture = "bitmaps/xmas/mistletoe.png"
+		factionsNanoFx.default_high_quality.xmas1.particles = "math.random(1)/10"
+		factionsNanoFx.default_high_quality.xmas2 = deepcopy(xmas)
+		factionsNanoFx.default_high_quality.xmas2.texture = "bitmaps/xmas/hat.png"
+		factionsNanoFx.default_high_quality.xmas2.particles = "math.random(1)/14"
+		factionsNanoFx.default_high_quality.xmas3 = deepcopy(xmas)
+		factionsNanoFx.default_high_quality.xmas3.texture = "bitmaps/xmas/ball.png"
+		factionsNanoFx.default_high_quality.xmas3.particles = "math.random(1)/12"
+		factionsNanoFx.default_high_quality.xmas4 = deepcopy(xmas)
+		factionsNanoFx.default_high_quality.xmas4.texture = "bitmaps/xmas/star.png"
+		factionsNanoFx.default_high_quality.xmas4.particles = "math.random(1)/7"
+		factionsNanoFx.default_high_quality.xmas5 = deepcopy(xmas)
+		factionsNanoFx.default_high_quality.xmas5.texture = "bitmaps/xmas/cane.png"
+		factionsNanoFx.default_high_quality.xmas5.particles = "math.random(1)/22"
 	end
 end
 
@@ -420,7 +417,9 @@ function gadget:GameFrame(frame)
 						ExecuteLuaCode(nanoSettings)
 						if Lups then
 							for fxname, fxparams in pairs(nanoSettings) do
-								Lups.AddParticles(fxparams.fxtype, fxparams)
+								--if not inversed or (inversed and string.sub(fxname, 1, 4) ~= 'xmas') then
+									Lups.AddParticles(fxparams.fxtype, fxparams)
+								--end
 							end
 						end
 					end
