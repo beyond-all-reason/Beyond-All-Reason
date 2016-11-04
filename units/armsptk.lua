@@ -120,7 +120,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
 				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:genericshellexplosion-small-green",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
 				flighttime = 3,
 				impulseboost = 0.123,
