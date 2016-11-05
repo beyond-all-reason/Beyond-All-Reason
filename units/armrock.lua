@@ -1,4 +1,4 @@
-return {
+	return {
 	armrock = {
 		acceleration = 0.12,
 		brakerate = 0.564,
@@ -134,13 +134,13 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
-				startvelocity = 190,
+				startvelocity = 110,
 				texture2 = "armsmoketrail",
 				turret = true,
-				weaponacceleration = 120,
+				weaponacceleration = 110,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 190,
+				weaponvelocity = 240,
 				damage = {
 					default = 157,
 					subs = 5,

@@ -1125,6 +1125,11 @@ end
 
 -- add coloring
 local colors = {
+	aa = {
+		groundflash = {
+			color = {1,0.66,0.15},
+		}
+	},
 	blue = {
 		groundflash = {
 			color = {0.15,0.15,1},
