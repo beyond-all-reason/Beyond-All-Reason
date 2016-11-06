@@ -135,6 +135,7 @@ unitDeaths = {
 		AreaOfEffect=commanderNukeExplosionDamage,
 		explosiongenerator="custom:nukedatbewm",
 		cameraShake=commanderNukeExplosionDamage,
+		soundstart = "xplonuk3",
 		damage = {
 			default = 50000,
 		},
