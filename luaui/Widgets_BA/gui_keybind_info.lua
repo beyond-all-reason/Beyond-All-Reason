@@ -296,6 +296,12 @@ function widget:DrawScreen()
 	end
 end
 
+function widget:KeyPress(key)
+	if key == 27 then	-- ESC
+		show = false
+	end
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	
 	-- check if the mouse is in a rectangle
@@ -303,7 +309,6 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	                      and y >= BLcornerY
 	                      and y <= TRcornerY
 end
-
 
 function widget:MousePress(x, y, button)
 	return mouseEvent(x, y, button, false)

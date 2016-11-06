@@ -1,12 +1,14 @@
 ﻿9.46 -> 9.47
-XX/10/2016
-
-Balance changes:
-- Commander buildrange is now the same as the t1 cons
+XX/11/2016
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
 - Decay resigned as balancing dev/maintainer
+
+Balance changes:
+- Commander buildrange is now the same as the t1 cons
+- Missiles have slower startspeed, endspeed faster and soemtimes range too (for aa)
+- Building explosion damages
 
 Other:
 - Lots of new particle effects!
@@ -15,6 +17,7 @@ Other:
 - Options: fixed that not all settings remembered their value
 - Bloomshader: prettier and more pronounced (but more heavy for system)
 - Commands FX lines get thinner over lifetime
+- Engine trees replaced
 - Self-D icons dont show in f5 mode anymore
 - More unit types shatter on death
 - Nano effect has changed and is now done via a shader
@@ -23,7 +26,9 @@ Other:
 - converted BA icon to png (was bmp)
 - Pausescreen changed uses decolorize shader effect
 - Mapmarks effect size increased
-- lots of changes under the hood
+- Added grabinput widget
+- Removed BA hotkeys widget
+- Added loadscreen music 
 
 
 9.45 -> 9.46

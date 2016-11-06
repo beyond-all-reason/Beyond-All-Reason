@@ -568,6 +568,12 @@ function applyOptionValue(i)
 	windowList = gl.CreateList(DrawWindow)
 end
 
+function widget:KeyPress(key)
+	if key == 27 then	-- ESC
+		show = false
+	end
+end
+
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	
 	-- check if the mouse is in a rectangle
