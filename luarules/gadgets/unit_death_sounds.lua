@@ -22,7 +22,7 @@ local GetUnitPosition = Spring.GetUnitPosition
 local PlaySoundFile = Spring.PlaySoundFile
 
 -- constants
-local DEFAULT_VOLUME = 10
+local DEFAULT_VOLUME = 1
 local SOUNDS_PATH = "sounds/deathsounds/"
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
@@ -61,7 +61,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamId,attackerID)
-		--if attackerID ~= nil then --Add this so that units who are destroyed via lua (like salvaging) or self destructed, will not play an overlapping sound effect
+		if attackerID ~= nil then --Add this so that units who are destroyed via lua (like salvaging) or self destructed, will not play an overlapping sound effect
 			local soundClass = udSoundCache[unitDefID]
 			-- Spring.Echo (soundClass)
 			-- Spring.Echo (soundClasses)
@@ -73,7 +73,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				--Spring.Echo("OmgSounds!")
 				PlaySoundFile(soundClasses[soundClass][choice], volume, x, y, z)
 			end
-		--end
+		end
 	end
 
 end
