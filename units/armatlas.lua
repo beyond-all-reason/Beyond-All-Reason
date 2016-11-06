@@ -2,8 +2,8 @@ return {
 	armatlas = {
 		acceleration = 0.09,
 		brakerate = 0.75,
-		buildcostenergy = 1322,
-		buildcostmetal = 68,
+		buildcostenergy = 1300,
+		buildcostmetal = 70,
 		buildpic = "ARMATLAS.DDS",
 		buildtime = 3850,
 		canfly = true,

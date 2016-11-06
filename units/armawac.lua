@@ -2,8 +2,8 @@ return {
 	armawac = {
 		acceleration = 0.114,
 		brakerate = 0.05,
-		buildcostenergy = 8599,
-		buildcostmetal = 176,
+		buildcostenergy = 8600,
+		buildcostmetal = 180,
 		buildpic = "ARMAWAC.DDS",
 		buildtime = 12819,
 		canfly = true,

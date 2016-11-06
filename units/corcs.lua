@@ -2,8 +2,8 @@ return {
 	corcs = {
 		acceleration = 0.1,
 		brakerate = 0.3,
-		buildcostenergy = 2533,
-		buildcostmetal = 277,
+		buildcostenergy = 2500,
+		buildcostmetal = 280,
 		builddistance = 200,
 		builder = true,
 		shownanospray = false,

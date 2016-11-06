@@ -2,8 +2,8 @@ return {
 	cormabm = {
 		acceleration = 0.0198,
 		brakerate = 0.1122,
-		buildcostenergy = 32427,
-		buildcostmetal = 1227,
+		buildcostenergy = 32000,
+		buildcostmetal = 1220,
 		buildpic = "CORMABM.DDS",
 		buildtime = 42000,
 		canattack = false,

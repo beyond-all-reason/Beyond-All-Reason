@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		blocking = false,
 		brakerate = 0,
-		buildcostenergy = 267,
+		buildcostenergy = 270,
 		buildcostmetal = 5,
 		buildpic = "CORMINE1.DDS",
 		buildtime = 50,

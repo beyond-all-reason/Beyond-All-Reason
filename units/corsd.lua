@@ -2,8 +2,8 @@ return {
 	corsd = {
 		activatewhenbuilt = true,
 		buildangle = 4096,
-		buildcostenergy = 6787,
-		buildcostmetal = 745,
+		buildcostenergy = 6800,
+		buildcostmetal = 740,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,

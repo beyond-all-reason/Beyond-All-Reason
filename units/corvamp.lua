@@ -3,7 +3,7 @@ return {
 		acceleration = 0.166,
 		airsightdistance = 800,
 		brakerate = 0.0875,
-		buildcostenergy = 3678,
+		buildcostenergy = 3650,
 		buildcostmetal = 105,
 		buildpic = "CORVAMP.DDS",
 		buildtime = 6554,

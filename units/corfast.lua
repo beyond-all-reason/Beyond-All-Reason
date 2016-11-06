@@ -2,8 +2,8 @@ return {
 	corfast = {
 		acceleration = 0.2,
 		brakerate = 1.5,
-		buildcostenergy = 3822,
-		buildcostmetal = 205,
+		buildcostenergy = 3800,
+		buildcostmetal = 200,
 		builddistance = 136,
 		builder = true,
 		shownanospray = false,

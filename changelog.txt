@@ -7,7 +7,7 @@ Important:
 
 Balance changes:
 - Commander buildrange is now the same as the t1 cons
-- Missiles have slower startspeed, endspeed faster and soemtimes range too (for aa)
+- Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
 - Building explosion damages
 
 Other:
@@ -26,6 +26,7 @@ Other:
 - converted BA icon to png (was bmp)
 - Pausescreen changed uses decolorize shader effect
 - Mapmarks effect size increased
+- Keybinds, commands, changelog, options windows hide with Escape key
 - Added grabinput widget
 - Removed BA hotkeys widget
 - Added loadscreen music 

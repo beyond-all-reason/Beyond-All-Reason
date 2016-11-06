@@ -2,8 +2,8 @@ return {
 	armamph = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 2633,
-		buildcostmetal = 261,
+		buildcostenergy = 2600,
+		buildcostmetal = 260,
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5182,
 		canmove = true,

@@ -2,8 +2,8 @@ return {
 	corgripn = {
 		acceleration = 0.16,
 		brakerate = 0.04,
-		buildcostenergy = 17457,
-		buildcostmetal = 173,
+		buildcostenergy = 17500,
+		buildcostmetal = 175,
 		buildpic = "CORGRIPN.DDS",
 		buildtime = 21522,
 		canfly = true,

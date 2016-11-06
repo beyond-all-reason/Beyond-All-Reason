@@ -2,8 +2,8 @@ return {
 	armpw = {
 		acceleration = 0.36,
 		brakerate = 0.6,
-		buildcostenergy = 957,
-		buildcostmetal = 48,
+		buildcostenergy = 950,
+		buildcostmetal = 50,
 		buildpic = "ARMPW.DDS",
 		buildtime = 1420,
 		canmove = true,

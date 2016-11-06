@@ -3,7 +3,7 @@ return {
 		acceleration = 0.1,
 		activatewhenbuilt = true,
 		brakerate = 0.36,
-		buildcostenergy = 1550,
+		buildcostenergy = 1500,
 		buildcostmetal = 75,
 		buildpic = "CORSPEC.DDS",
 		buildtime = 5439,

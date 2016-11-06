@@ -2,8 +2,8 @@ return {
 	corck = {
 		acceleration = 0.456,
 		brakerate = 2.85,
-		buildcostenergy = 1730,
-		buildcostmetal = 121,
+		buildcostenergy = 1700,
+		buildcostmetal = 120,
 		builddistance = 130,
 		builder = true,
 		shownanospray = false,

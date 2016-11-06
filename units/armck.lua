@@ -2,8 +2,8 @@ return {
 	armck = {
 		acceleration = 0.48,
 		brakerate = 3,
-		buildcostenergy = 1622,
-		buildcostmetal = 109,
+		buildcostenergy = 1600,
+		buildcostmetal = 110,
 		builddistance = 130,
 		builder = true,
 		shownanospray = false,

@@ -2,8 +2,8 @@ return {
 	corch = {
 		acceleration = 0.12,
 		brakerate = 0.372,
-		buildcostenergy = 2956,
-		buildcostmetal = 164,
+		buildcostenergy = 3000,
+		buildcostmetal = 165,
 		builddistance = 112,
 		builder = true,
 		shownanospray = false,

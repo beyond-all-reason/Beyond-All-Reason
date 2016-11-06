@@ -2,8 +2,8 @@ return {
 	armsb = {
 		acceleration = 0.096,
 		brakerate = 1.5,
-		buildcostenergy = 30414,
-		buildcostmetal = 313,
+		buildcostenergy = 30400,
+		buildcostmetal = 310,
 		buildpic = "ARMSB.DDS",
 		buildtime = 27684,
 		canfly = true,

@@ -2,7 +2,7 @@ return {
 	armfhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5277,
+		buildcostenergy = 5300,
 		buildcostmetal = 1100,
 		builder = true,
 		shownanospray = false,

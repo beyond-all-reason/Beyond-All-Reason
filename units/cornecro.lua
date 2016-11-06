@@ -2,8 +2,8 @@ return {
 	cornecro = {
 		acceleration = 0.2,
 		brakerate = 0.75,
-		buildcostenergy = 1493,
-		buildcostmetal = 109,
+		buildcostenergy = 1500,
+		buildcostmetal = 110,
 		builddistance = 96,
 		builder = true,
 		shownanospray = false,

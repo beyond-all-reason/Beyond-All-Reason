@@ -2,8 +2,8 @@ return {
 	armacsub = {
 		acceleration = 0.038,
 		brakerate = 0.75,
-		buildcostenergy = 11486,
-		buildcostmetal = 848,
+		buildcostenergy = 11500,
+		buildcostmetal = 850,
 		builddistance = 160,
 		builder = true,
 		shownanospray = false,

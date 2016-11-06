@@ -2,8 +2,8 @@ return {
 	corseap = {
 		acceleration = 0.104,
 		brakerate = 0.0475,
-		buildcostenergy = 6171,
-		buildcostmetal = 245,
+		buildcostenergy = 6100,
+		buildcostmetal = 240,
 		buildpic = "CORSEAP.DDS",
 		buildtime = 10698,
 		canfly = true,

@@ -2,8 +2,8 @@ return {
 	armdfly = {
 		acceleration = 0.2,
 		brakerate = 0.625,
-		buildcostenergy = 6667,
-		buildcostmetal = 318,
+		buildcostenergy = 6600,
+		buildcostmetal = 320,
 		buildpic = "ARMDFLY.DDS",
 		buildtime = 16022,
 		canfly = true,

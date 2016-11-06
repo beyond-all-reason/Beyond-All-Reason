@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 4096,
-		buildcostenergy = 26289,
+		buildcostenergy = 26300,
 		buildcostmetal = 4660,
 		buildpic = "ARMCKFUS.DDS",
 		buildtime = 84389,

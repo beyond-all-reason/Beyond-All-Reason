@@ -3,7 +3,7 @@ return {
 		acceleration = 0.09,
 		activatewhenbuilt = true,
 		brakerate = 0.06,
-		buildcostenergy = 2057,
+		buildcostenergy = 2050,
 		buildcostmetal = 140,
 		buildpic = "ARMSJAM.DDS",
 		buildtime = 6708,

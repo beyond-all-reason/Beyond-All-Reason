@@ -2,7 +2,7 @@ return {
 	armch = {
 		acceleration = 0.144,
 		brakerate = 0.45,
-		buildcostenergy = 2691,
+		buildcostenergy = 2700,
 		buildcostmetal = 145,
 		builddistance = 112,
 		builder = true,

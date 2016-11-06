@@ -2,8 +2,8 @@ return {
 	armthund = {
 		acceleration = 0.032,
 		brakerate = 0.05,
-		buildcostenergy = 4129,
-		buildcostmetal = 147,
+		buildcostenergy = 4100,
+		buildcostmetal = 150,
 		buildpic = "ARMTHUND.DDS",
 		buildtime = 4778,
 		canfly = true,

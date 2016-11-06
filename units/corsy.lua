@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 800,
-		buildcostmetal = 443,
+		buildcostmetal = 440,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORSY.DDS",

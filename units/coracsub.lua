@@ -2,8 +2,8 @@ return {
 	coracsub = {
 		acceleration = 0.035,
 		brakerate = 0.636,
-		buildcostenergy = 11638,
-		buildcostmetal = 844,
+		buildcostenergy = 11500,
+		buildcostmetal = 840,
 		builddistance = 160,
 		builder = true,
 		shownanospray = false,

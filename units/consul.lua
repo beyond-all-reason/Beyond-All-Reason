@@ -2,8 +2,8 @@ return {
 	consul = {
 		acceleration = 0.165,
 		brakerate = 0.825,
-		buildcostenergy = 4297,
-		buildcostmetal = 252,
+		buildcostenergy = 4300,
+		buildcostmetal = 250,
 		builddistance = 136,
 		builder = true,
 		shownanospray = false,

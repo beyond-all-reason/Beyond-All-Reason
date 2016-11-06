@@ -2,8 +2,8 @@ return {
 	armcroc = {
 		acceleration = 0.0528,
 		brakerate = 0.0627,
-		buildcostenergy = 12279,
-		buildcostmetal = 498,
+		buildcostenergy = 12300,
+		buildcostmetal = 500,
 		buildpic = "ARMCROC.DDS",
 		buildtime = 13367,
 		canmove = true,

@@ -2,8 +2,8 @@ return {
 	cortermite = {
 		acceleration = 0.171,
 		brakerate = 0.525,
-		buildcostenergy = 12100,
-		buildcostmetal = 695,
+		buildcostenergy = 12000,
+		buildcostmetal = 700,
 		buildpic = "CORTERMITE.DDS",
 		buildtime = 18834,
 		canmove = true,

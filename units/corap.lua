@@ -2,8 +2,8 @@ return {
 	corap = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 1429,
-		buildcostmetal = 885,
+		buildcostenergy = 1400,
+		buildcostmetal = 880,
 		builder = true,
 		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,

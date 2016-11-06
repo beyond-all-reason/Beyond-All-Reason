@@ -2,8 +2,8 @@ return {
 	corvroc = {
 		acceleration = 0.025,
 		brakerate = 0.1254,
-		buildcostenergy = 6688,
-		buildcostmetal = 882,
+		buildcostenergy = 6700,
+		buildcostmetal = 880,
 		buildpic = "CORVROC.DDS",
 		buildtime = 15002,
 		canmove = true,

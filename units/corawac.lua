@@ -2,7 +2,7 @@ return {
 	corawac = {
 		acceleration = 0.114,
 		brakerate = 0.0375,
-		buildcostenergy = 8346,
+		buildcostenergy = 8300,
 		buildcostmetal = 180,
 		buildpic = "CORAWAC.DDS",
 		buildtime = 13264,

@@ -5,7 +5,7 @@ return {
 		brakerate = 0,
 		buildangle = 16500,
 		buildcostenergy = 1100,
-		buildcostmetal = 92,
+		buildcostmetal = 90,
 		buildpic = "CORFRT.DDS",
 		buildtime = 2357,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",

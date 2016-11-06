@@ -2,8 +2,8 @@ return {
 	cortitan = {
 		acceleration = 0.06,
 		brakerate = 0.0725,
-		buildcostenergy = 7241,
-		buildcostmetal = 339,
+		buildcostenergy = 7200,
+		buildcostmetal = 340,
 		buildpic = "CORTITAN.DDS",
 		buildtime = 14722,
 		canfly = true,

@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.086,
 		buildcostenergy = 17000,
-		buildcostmetal = 3050,
+		buildcostmetal = 3000,
 		buildpic = "CORMSHIP.DDS",
 		buildtime = 22200,
 		canmove = true,

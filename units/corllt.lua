@@ -2,8 +2,8 @@ return {
 	corllt = {
 		acceleration = 0,
 		brakerate = 0,
-		buildangle = 32768,
-		buildcostenergy = 695,
+		buildangle = 32000,
+		buildcostenergy = 700,
 		buildcostmetal = 90,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,

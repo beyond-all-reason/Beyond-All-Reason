@@ -2,8 +2,8 @@ return {
 	armsehak = {
 		acceleration = 0.069,
 		brakerate = 0.05,
-		buildcostenergy = 7066,
-		buildcostmetal = 127,
+		buildcostenergy = 7000,
+		buildcostmetal = 125,
 		buildpic = "ARMSEHAK.DDS",
 		buildtime = 9064,
 		canfly = true,

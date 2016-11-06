@@ -2,8 +2,8 @@ return {
 	armclaw = {
 		acceleration = 0,
 		buildangle = 8192,
-		buildcostenergy = 1649,
-		buildcostmetal = 336,
+		buildcostenergy = 1600,
+		buildcostmetal = 340,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,

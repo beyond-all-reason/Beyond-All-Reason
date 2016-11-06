@@ -2,8 +2,8 @@ return {
 	armhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4221,
-		buildcostmetal = 1019,
+		buildcostenergy = 4200,
+		buildcostmetal = 1020,
 		builder = true,
 		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,

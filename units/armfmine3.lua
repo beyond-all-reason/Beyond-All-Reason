@@ -4,7 +4,7 @@ return {
 		blocking = false,
 		brakerate = 0,
 		buildcostenergy = 1600,
-		buildcostmetal = 27,
+		buildcostmetal = 25,
 		buildpic = "ARMFMINE3.DDS",
 		buildtime = 150,
 		canattack = false,

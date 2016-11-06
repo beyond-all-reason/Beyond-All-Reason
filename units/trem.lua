@@ -2,10 +2,10 @@ return {
 	trem = {
 		acceleration = 0.0528,
 		brakerate = 0.33,
-		buildcostenergy = 48373,
-		buildcostmetal = 2081,
+		buildcostenergy = 48500,
+		buildcostmetal = 2080,
 		buildpic = "TREM.DDS",
-		buildtime = 31103,
+		buildtime = 31100,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 -3",

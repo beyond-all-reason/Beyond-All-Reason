@@ -5,7 +5,7 @@ return {
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 430,
-		buildcostmetal = 21,
+		buildcostmetal = 20,
 		buildpic = "ARMSONAR.DDS",
 		buildtime = 912,
 		canattack = false,
