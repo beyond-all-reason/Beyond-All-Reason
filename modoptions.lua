@@ -211,7 +211,7 @@ local options={
 		name="Scoring Mode (Control Victory Points)",
 		desc="Defines how the game is played",
 		type="list",
-		def="countdown",
+		def="disabled",
 		section="controlvictoryoptions",
 		items={
 			{key="disabled", name="Disabled", desc="Disable Control Points as a victory condition."},
