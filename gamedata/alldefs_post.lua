@@ -60,11 +60,22 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		for id,unitDef in pairs(UnitDefs) do
 			if unitDef.workertime then
 			
-				--Make reclaim and terraform really fast
-				--unitDef.reclaimspeed = unitDef.workertime
-				unitDef.terraformspeed = unitDef.workertime
-				unitDef.resurrectspeed = unitDef.workertime
-				--unitDef.capturespeed = unitDef.workertime
+				--Make terraform really fast
+				if unitDef.terraformspeed then
+					unitDef.terraformspeed = unitDef.terraformspeed * 0.01 + 1000
+				end
+				
+				if unitDef.reclaimspeed then
+					unitDef.resurrectspeed = unitDef.resurrectspeed * 0.01
+				end
+				
+				if unitDef.reclaimspeed then
+					unitDef.reclaimspeed = unitDef.reclaimspeed * 0.01
+				end
+				
+				if unitDef.capturespeed then
+					unitDef.capturespeed = unitDef.capturespeed * 0.01
+				end
 				
 				--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01
