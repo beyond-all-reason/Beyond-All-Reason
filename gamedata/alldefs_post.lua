@@ -64,6 +64,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--unitDef.reclaimspeed = unitDef.workertime
 				unitDef.terraformspeed = unitDef.workertime
 				unitDef.resurrectspeed = unitDef.workertime
+				--unitDef.capturespeed = unitDef.workertime
 				
 				--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01

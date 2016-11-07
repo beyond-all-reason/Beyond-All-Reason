@@ -19,7 +19,7 @@ local function CreateTreeDef(type)
      metal = 0,
 	 object				="features/0ad/ad0_pine_3_xl.s3o",
 
-     reclaimTime = 25,
+--     reclaimTime = 25,
      mass        = 5,
      drawType    = DRAWTYPE.MODEL,
      footprintX  = 2,
