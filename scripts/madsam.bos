@@ -3,10 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, body, turret, Rlauncher, Rlauncherbase, rfp, Llauncher, Llauncherbase,
-       lfp, turrettop;
+piece  base, body, turret, Rlauncher, Rlauncherbase, rfp, Llauncher, Llauncherbase, lfp, turrettop;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4;
+static-var  shooting_num;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -28,7 +27,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 			{
 				smoketype = 256 | 1;
 			}
-			emit-sfx smoketype from base;
+			emit-sfx smoketype from turrettop;
 		}
 		sleeptime = healthpercent * 50;
 		if( sleeptime < 200 )
@@ -40,17 +39,9 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	return (0);
 }
 
-Spinny()
-{
-	spin turret around y-axis speed <25.00000>;
-	return (0);
-}
 
-Create()
+Create() // tells it what to do on creation
 {
-	Static_Var_1 = 1;
-	Static_Var_3 = 0;
-	Static_Var_4 = 0;
 	dont-shade base;
 	dont-shade body;
 	dont-shade turret;
@@ -66,142 +57,54 @@ Create()
 		sleep 2000;
 	}
 	start-script SmokeUnit();
-	turn Llauncher to x-axis <-55.00000> speed <60.00000>;
-	turn Rlauncher to x-axis <-55.00000> speed <60.00000>;
-	wait-for-turn Llauncher around x-axis;
-	wait-for-turn Rlauncher around x-axis;
-	dont-cache turrettop;
-	start-script Spinny();
-	return (0);
 }
 
-OkYouCanGoOnNow()
+RestoreAfterDelay() // restore function to turn the turret and so forth back to start
 {
-	turn turret to y-axis <0.00000> speed <90.00000>;
-	turn Llauncher to x-axis <-55.00000> speed <60.00000>;
-	turn Rlauncher to x-axis <-55.00000> speed <60.00000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn Llauncher around x-axis;
-	wait-for-turn Rlauncher around x-axis;
-	start-script Spinny();
-	return (0);
+	sleep 3000;
+	turn turret to y-axis <0> speed <60>;
+	turn Llauncher to x-axis <0> speed <30>;
+	turn Rlauncher to x-axis <0> speed <30>;
 }
 
-CheckEnvironment()
-{
-	Static_Var_4 = Rand( 1, 4 );
-	if( Static_Var_4 == 1 )
-	{
-		turn turret to y-axis <-165.00000> speed <90.00000>;
-		turn Llauncher to x-axis <-30.00000> speed <20.00000>;
-		turn Rlauncher to x-axis <-30.00000> speed <20.00000>;
-		sleep 2300;
-		turn turret to y-axis <35.00000> speed <90.00000>;
-		turn Llauncher to x-axis <-75.00000> speed <25.00000>;
-		turn Rlauncher to x-axis <-75.00000> speed <25.00000>;
-		sleep 2300;
-	}
-	if( Static_Var_4 == 2 )
-	{
-		turn turret to y-axis <75.00000> speed <50.00000>;
-		turn Llauncher to x-axis <-10.00000> speed <6.00000>;
-		turn Rlauncher to x-axis <-10.00000> speed <6.00000>;
-		sleep 2600;
-		turn turret to y-axis <155.00000> speed <50.00000>;
-		turn Llauncher to x-axis <-80.00000> speed <35.00000>;
-		turn Rlauncher to x-axis <-80.00000> speed <35.00000>;
-		sleep 2600;
-	}
-	if( Static_Var_4 == 3 )
-	{
-		turn turret to y-axis <-45.00000> speed <20.00000>;
-		turn Llauncher to x-axis <-50.00000> speed <25.00000>;
-		turn Rlauncher to x-axis <-50.00000> speed <25.00000>;
-		sleep 2300;
-		turn turret to y-axis <95.00000> speed <90.00000>;
-		turn Llauncher to x-axis <-35.00000> speed <15.00000>;
-		turn Rlauncher to x-axis <-35.00000> speed <15.00000>;
-		sleep 2300;
-	}
-	if( Static_Var_4 == 4 )
-	{
-		turn turret to y-axis <175.00000> speed <100.00000>;
-		turn Llauncher to x-axis <-75.00000> speed <35.00000>;
-		turn Rlauncher to x-axis <-75.00000> speed <35.00000>;
-		sleep 2300;
-		turn turret to y-axis <-25.00000> speed <90.00000>;
-		turn Llauncher to x-axis <-60.00000> speed <9.00000>;
-		turn Rlauncher to x-axis <-60.00000> speed <9.00000>;
-		sleep 2300;
-	}
-	start-script OkYouCanGoOnNow();
-	return (0);
-}
-
-Reload()
-{
-	sleep 2500;
-	Static_Var_3 = 0;
-	return (0);
-}
-
-RestoreAfterDelay()
-{
-	set-signal-mask SIG_AIM;
-	sleep 5500;
-	turn turret to y-axis <0.00000> speed <90.00000>;
-	turn Llauncher to x-axis <0.00000> speed <60.00000>;
-	turn Rlauncher to x-axis <0.00000> speed <60.00000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn Llauncher around x-axis;
-	wait-for-turn Rlauncher around x-axis;
-	sleep 400;
-	start-script CheckEnvironment();
-	return (0);
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
-
-QueryPrimary(piecenum)
-{
-	if( Static_Var_2 )
-	{
-		piecenum = lfp;
-	}
-	else
-	{
-		piecenum = rfp;
-	}
-	return (0);
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = turret;
-	return (0);
-}
-
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch) // aiming animation and firing authorization
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <490.00000>;
-	turn Llauncher to x-axis <0.00000> - pitch speed <360.00000>;
-	turn Rlauncher to x-axis <0.00000> - pitch speed <360.00000>;
+	turn turret to y-axis heading speed <90>;
+	turn Llauncher to x-axis <0> - pitch speed <60>;
+	turn Rlauncher to x-axis <0> - pitch speed <60>;
+	
 	wait-for-turn turret around y-axis;
+	wait-for-turn Llauncher around x-axis;
 	wait-for-turn Rlauncher around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-Shot1()
+FireWeapon1() // what do while firing, fires 1 barrel then the next , and resets
 {
-	Static_Var_2 = !Static_Var_2;
-	return (0);
+		
+}
+
+AimFromWeapon1(piecenum) // where it aims the weapon from
+{
+	piecenum = turret;
+}
+
+QueryWeapon1(piecenum) // where the shot is created at
+{
+
+	 if (shooting_num==1) 
+     {  
+     	piecenum=lfp;     
+     }
+
+     if (shooting_num==2)
+     {   
+     	piecenum=rfp;
+     }
+	
 }
 
 Killed(severity, corpsetype)
