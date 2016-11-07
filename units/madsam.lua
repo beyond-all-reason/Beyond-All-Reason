@@ -129,7 +129,7 @@ return {
 				noselfdamage = true,
 				projectiles = 2,
 				proximitypriority = 1,
-				range = 900,
+				range = 1200,
 				reloadtime = 0.85,
 				smoketrail = false,
 				soundhit = "packohit",

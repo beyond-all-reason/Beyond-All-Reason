@@ -6,9 +6,11 @@ Important:
 - Decay resigned as balancing dev/maintainer
 
 Balance changes:
-- Commander buildrange is now the same as the t1 cons
+- Introduced a minimum buildrange (mainly commander has bigger buildrange due to this)
+- Standardized buildspeed numbers (due to this aircons can build faster now)
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
 - Building explosion damages
+- All Energy and metal prices are rounded off
 
 Other:
 - Lots of new particle effects!
@@ -27,9 +29,10 @@ Other:
 - Pausescreen changed uses decolorize shader effect
 - Mapmarks effect size increased
 - Keybinds, commands, changelog, options windows hide with Escape key
-- Added grabinput widget
+- Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
 - Removed BA hotkeys widget
-- Added loadscreen music 
+- Added loadscreen music
+- Various random deathsounds introduced
 
 
 9.45 -> 9.46
