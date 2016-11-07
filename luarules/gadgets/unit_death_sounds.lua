@@ -22,7 +22,7 @@ local GetUnitPosition = Spring.GetUnitPosition
 local PlaySoundFile = Spring.PlaySoundFile
 
 -- constants
-local DEFAULT_VOLUME = 1
+local DEFAULT_VOLUME = 7.5
 local SOUNDS_PATH = "sounds/deathsounds/"
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 

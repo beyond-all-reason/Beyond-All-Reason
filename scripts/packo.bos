@@ -3,11 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, door1, door2, door3, door4, turret, launcher, firep1,
-       firep2;
+piece  base, door1, door2, door3, door4, turret, launcher, firep1, firep2;
 
-static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, statechg_DesiredState,
-            statechg_StateChanging;
+static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, statechg_DesiredState,            statechg_StateChanging, shooting_num;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -172,7 +170,7 @@ SetMaxReloadTime(Func_Var_1)
 	restore_delay = Func_Var_1 * 2;
 }
 
-AimPrimary(heading, pitch)
+AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
@@ -189,24 +187,29 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-QueryPrimary(piecenum)
+FireWeapon1() // what do while firing, fires 1 barrel then the next , and resets
 {
-	piecenum = firep1 + Static_Var_2;
+		
 }
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum) // where it aims the weapon from
 {
 	piecenum = turret;
 }
 
-SweetSpot(piecenum)
+QueryWeapon1(piecenum) // where the shot is created at
 {
-	piecenum = base;
-}
 
-Shot1()
-{
-	Static_Var_2 = !Static_Var_2;
+	 if (shooting_num==1) 
+     {  
+     	piecenum=firep1;     
+     }
+
+     if (shooting_num==2)
+     {   
+     	piecenum=firep2;
+     }
+	
 }
 
 Killed(severity, corpsetype)
