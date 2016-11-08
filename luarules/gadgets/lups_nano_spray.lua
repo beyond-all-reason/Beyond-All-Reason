@@ -263,7 +263,7 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.05,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)/2.5",
+		    particles   = "math.random(1)/3",
 		    color       = {1,1,1},
 		  },
 	    energypart2 = {
@@ -274,7 +274,7 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.1,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)",
+		    particles   = "math.random(1)*0.8",
 		    texture     = "bitmaps/projectiletextures/flashcrap.png",
 		    color       = {1,1,1},
 		  },
@@ -286,7 +286,7 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.1,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)*1.1",
+		    particles   = "math.random(1)*0.7",
 		    texture     = "bitmaps/projectiletextures/flashcrap2.png",
 		    color       = {1,1,1},
 		  },
@@ -352,15 +352,18 @@ function gadget:GameFrame(frame)
 
 				if (target) then
 					local endpos
-					local radius = 30
+					local radius = 15
 					if (type=="restore") then
 						endpos = target
 						radius = target[4]
 						target = -1
 					elseif (not isFeature) then
-						radius = (GetUnitRadius(target) or 1) * 0.80
+						radius = (GetUnitRadius(target) or radius)
 					else
-						radius = (GetFeatureRadius(target) or 1) * 0.80
+						radius = (GetFeatureRadius(target) or radius)
+					end
+					if radius == 1 then	-- reclaim unit gives back 1 so yeah...
+						radius = 15
 					end
 
 					local terraform = false
