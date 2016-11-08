@@ -19,6 +19,7 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 
 local Config = {
 	metal = {
+		n = 'metal',
 		px = 370,py = -0.5, --default start position
 		sx = 260,sy = 29, --background size
 		
@@ -57,6 +58,7 @@ local Config = {
 	},
 	
 	energy = {
+		n = 'energy',
 		px = 636,py = -0.5,
 		sx = 260,sy = 29, --background size
 		
@@ -194,6 +196,18 @@ local function createbar(r)
 		sx=r.sx-r.padding-r.padding,sy=r.sy-r.padding-r.padding,
 		color=r.color2,
 	}
+	
+	local imagesize = r.sy / 1.6
+	local image = {"rectangle",
+		px=r.px+r.padding,py=r.py+r.padding,
+		sx=imagesize, sy=imagesize,
+		color={0,0,0,0},
+		border={0,0,0,0},
+		texture = LUAUI_DIRNAME.."Images/energy.png",
+	}
+	if r.n == 'metal' then
+		image.texture = LUAUI_DIRNAME.."Images/metal1.png"
+	end
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
 		sx=r.sx,sy=r.sy,
@@ -211,10 +225,15 @@ local function createbar(r)
 			background2.py = self.py + self.padding
 			background2.sx = self.sx - self.padding - self.padding
 			background2.sy = self.sy - self.padding - self.padding
+			local imagesize = self.sy / 1.6
+			image.px = self.px+self.padding+((self.sy-self.padding-self.padding-imagesize)/2)
+			image.py = self.py+self.padding+((self.sy-self.padding-self.padding-imagesize)/2)
 		end,
 	}
+	
 	New(background)
 	New(background2)
+	New(image)
 	
 	local number = {"text",
 		px=0,py=background.py+r.margin,fontsize=r.fontsize,
@@ -226,8 +245,8 @@ local function createbar(r)
 	income.color = r.cincome
 	
 	local barbackground = {"rectangle",
-		px=background.px+income.getwidth()-r.margin,py=income.py,
-		sx=background.sx-income.getwidth(),sy=r.barsy,
+		px=background.px+(income.getwidth()*1.22)-r.margin,py=income.py,
+		sx=background.sx-income.getwidth()*1.25,sy=r.barsy,
 		color=r.cbarbackground,
 		texture = barTexture,
 		texturecolor = {0.15,0.15,0.15,1},
@@ -252,7 +271,7 @@ local function createbar(r)
 	shareindicator.border = r.cborder
 	shareindicator.texture = barTexture
 	shareindicator.texturecolor = r.cindicator
-
+	
 	New(barbackground)
 	New(bar)
 	New(barborder)
