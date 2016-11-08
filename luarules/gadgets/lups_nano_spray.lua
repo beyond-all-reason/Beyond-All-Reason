@@ -228,12 +228,13 @@ local function SetParticleDefinitions()
 		    corethickness   = "limcount",
 		    streamThickness = "0.5+5*limcount",
 		    streamSpeed     = "limcount*0.05",
+		    brightenteamcolor = true,						-- lights up the darker teamcolors (similar threshhold used of when using white outline for the name)
 	    }
 	  },
 	  default_high_quality = {
 	  	cloud = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.075,
+		    alpha       = 0.07,
 		    size        = 8,
 		    sizeSpread  = 6,
 		    sizeGrowth  = 0.4,
@@ -245,7 +246,7 @@ local function SetParticleDefinitions()
 	  	cloud2 = {
 		    fxtype      = "NanoParticles",
 		    alpha       = 0.045,
-		    size        = 4.5,
+		    size        = 5,
 		    sizeSpread  = 3,
 		    sizeGrowth  = 0.4,
 		    rotSpeed    = "math.random(1)/2",
@@ -257,37 +258,37 @@ local function SetParticleDefinitions()
 	    energypart = {
 		    fxtype      = "NanoParticles",
 		    alpha       = "0.3+math.random(1)/4",
-		    size        = 0.5,
+		    size        = 0.4,
 		    sizeSpread  = 1.1,
-		    sizeGrowth  = 0.1,
+		    sizeGrowth  = 0.05,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    particles   = "math.random(1)/2.5",
-		    color       = {1,1,1}
+		    color       = {1,1,1},
 		  },
 	    energypart2 = {
 		    fxtype      = "NanoParticles",
-		    alpha       = "0.24+math.random(1)/3.5",
-		    size        = 0.5,
-		    sizeSpread  = 1.35,
-		    sizeGrowth  = 0.13,
+		    alpha       = "0.23+math.random(1)/3.3",
+		    size        = 1,
+		    sizeSpread  = 0,
+		    sizeGrowth  = 0.1,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)*2.5",
+		    particles   = "math.random(1)",
 		    texture     = "bitmaps/projectiletextures/flashcrap.png",
-		    color       = {1,1,1}
+		    color       = {1,1,1},
 		  },
 	    energypart3 = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.38,
-		    size        = 5,
-		    sizeSpread  = 3,
-		    sizeGrowth  = 0.2,
-		    rotSpeed    = "math.random(1)/2.2",
+		    alpha       = "0.23+math.random(1)/3.3",
+		    size        = 1,
+		    sizeSpread  = 0,
+		    sizeGrowth  = 0.1,
+		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)/3",
-		    texture     = "bitmaps/projectiletextures/randdots.tga",
-		    color       = {1,1,1}
+		    particles   = "math.random(1)*1.1",
+		    texture     = "bitmaps/projectiletextures/flashcrap2.png",
+		    color       = {1,1,1},
 		  },
 		}
 	}
@@ -385,6 +386,12 @@ function gadget:GameFrame(frame)
 					local teamColor = {Spring.GetTeamColor(teamID)}
 					local nanoPieces = Spring.GetUnitNanoPieces(unitID) or {}
 					
+					--local maxBrightness = math.max(teamColor[1], teamColor[2], teamColor[3])
+					--teamColor[1] = 0
+					--teamColor[2] = 0
+					--teamColor[3] = 0
+					--Spring.Echo(teamColor[1]..' '..teamColor[2]..' '..teamColor[3]..' : '..particleAlpha)
+					
 					for j=1,#nanoPieces do
 						local nanoPieceID = nanoPieces[j]
 						--local nanoPieceIDAlt = Spring.GetUnitScriptPiece(unitID, nanoPieceID)
@@ -429,7 +436,6 @@ function gadget:GameFrame(frame)
 
 	end --//for
 end
-
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------

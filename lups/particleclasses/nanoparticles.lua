@@ -348,7 +348,7 @@ end
 function NanoParticles:CreateParticle()
   self.count = self.count * self.particles
   self.color = Vmul(self.color,self.alpha)
-
+	--Spring.Echo(self.color)
   self.urot  = 0
   self.frame = 0
 
@@ -361,15 +361,16 @@ function NanoParticles:CreateParticle()
 
   local endPos   = self.targetpos
   self.targetposStart = {endPos[1],endPos[2],endPos[3]}
-
-  local col  = self.color
-  local cmax = max(col[1],col[2],col[3])
-  local cmin = min(col[1],col[2],col[3])
-  if ((cmax+cmin)<0.05) then
-    local hsl = HSL.new(col[1],col[2],col[3])
-    hsl.L = 0.5
-    self.color = hsl:getRGB()
-    self.color[4] = col[4]
+	if self.brightenteamcolor then
+	  local col  = self.color
+	  local cmax = max(col[1],col[2],col[3])
+	  local cmin = min(col[1],col[2],col[3])
+	  if ((cmax+cmin)<0.05) then
+	    local hsl = HSL.new(col[1],col[2],col[3])
+	    hsl.L = 0.5
+	    self.color = hsl:getRGB()
+	    self.color[4] = col[4]
+	  end
   end
 
   --// defines the speed of the particles (life = time in gameframe the particles need for startpos->finalpos)
