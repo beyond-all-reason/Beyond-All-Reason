@@ -166,6 +166,8 @@ function widget:Update()
 end
 
 function widget:DrawWorldPreUnit()
+  if Spring.IsGUIHidden() then return end
+  
 	local osClock = os.clock()
 	local camX, camY, camZ = spGetCameraPosition()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

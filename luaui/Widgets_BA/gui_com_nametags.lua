@@ -150,7 +150,7 @@ function widget:ViewResize()
 end
 
 function widget:DrawWorld()
-  --if Spring.IsGUIHidden() then return end
+  if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
   if not CheckedForSpec and Spring.GetGameFrame() > 1 then
 	  if GetSpectatingState() then

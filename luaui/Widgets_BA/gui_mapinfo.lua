@@ -238,7 +238,8 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
-    if Spring.IsGUIHidden() then return end
+  if Spring.IsGUIHidden() then return end
+  
 	if spIsAABBInView(offset, mapInfoBoxHeight, Game.mapSizeZ,   mapInfoWidth*scale, mapInfoBoxHeight+(thickness*scale), Game.mapSizeZ) then
 		local camX, camY, camZ = spGetCameraPosition()
 		local camDistance = math.diag(camX - (mapInfoWidth/2)*scale, camY - mapInfoBoxHeight, camZ - Game.mapSizeZ)

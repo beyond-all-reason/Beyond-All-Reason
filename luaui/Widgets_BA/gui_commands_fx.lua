@@ -550,7 +550,7 @@ local prevOsClock = os.clock()
 function widget:DrawWorldPreUnit()
 		drawFrame = drawFrame + 1
 	  --Spring.Echo(maxCommand-minCommand) --EXPENSIVE! often handling hundreds of command queues at once 
-	  --if spIsGUIHidden() then return end
+	  if spIsGUIHidden() then return end
 		
 	  osClock = os.clock()
 	  gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -674,7 +674,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawWorld()
-    --if spIsGUIHidden() then return end
+  if spIsGUIHidden() then return end
     
 	if drawUnitHighlightSkipFPS > 0 and spGetFPS() < drawUnitHighlightSkipFPS then return end
 	

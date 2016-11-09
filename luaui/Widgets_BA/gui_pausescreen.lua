@@ -46,21 +46,21 @@ local osClock                = os.clock
 
 local sizeMultiplier     = 1
 local maxAlpha           = 0.6
-local maxShaderAlpha		 = 0.35
-local maxNonShaderAlpha  = 0.13			--background alpha when shaders arent availible
+local maxShaderAlpha		 = 0.25
+local maxNonShaderAlpha  = 0.12			--background alpha when shaders arent availible
 local boxWidth           = 200
 local boxHeight          = 35
 local slideTime          = 0.4
 local fadeTime           = 0.22
 local fadeToAlpha        = 0
-local fadeToTextAlpha    = 0.25
+local fadeToTextAlpha    = 0.22
 local fontSizeHeadline   = 24
 local fontSizeAddon      = 15
 local fontPath           = "LuaUI/Fonts/MicrogrammaDBold.ttf"
 local autoFadeTime       = 1
 local forceHideWindow    = false
 
-local blurScreen				 = false 	-- makes use of guishader api widget
+local blurScreen				 = true 	-- makes use of guishader api widget
 
 --Color config in drawPause function
     
@@ -191,6 +191,7 @@ function widget:GamePaused(playerID, isGamePaused)
 end
 
 function widget:DrawScreen()
+  if Spring.IsGUIHidden() then return end
     local now = osClock()
     local drawScreenDelay = now - previousDrawScreenClock
     previousDrawScreenClock = now
@@ -239,8 +240,8 @@ function drawPause()
     local now = osClock()
     local diffPauseTime = ( now - pauseTimestamp)
     
-    local text           = { 1.0, 1.0, 1.0, 1.0*maxAlpha }
-    local outline        = { 0.0, 0.0, 0.0, 1.0*maxAlpha }     
+    local text           = { 1.0, 1.0, 1.0, 0*maxAlpha }
+    local outline        = { 0.0, 0.0, 0.0, 0*maxAlpha }     
     
     if paused then 
     	progress = ( now - pauseTimestamp ) / slideTime 
@@ -317,6 +318,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:DrawScreenEffects()
+  if Spring.IsGUIHidden() then return end
 	if shaderProgram and showPauseScreen then
 		glCopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
 		glTexture(0, screencopy)

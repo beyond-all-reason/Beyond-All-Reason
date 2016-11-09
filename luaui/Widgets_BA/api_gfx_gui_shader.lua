@@ -30,8 +30,7 @@ end
 --------------------------------------------------------------------------------
 
 local imageDirectory			= ":n:"..LUAUI_DIRNAME.."Images/guishader/"
-local blurIntensity				= 0.0006
-local useSimplifiedShaderBelow	= 0.0007		-- generally a blurIntensity higher than 0.0006 will look uglier with the simplified shader version
+local blurIntensity				= 0.0007
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -213,38 +212,22 @@ function CreateShaders()
         vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
   ]]
   
-  local str_blurShader_part2
-  if blurIntensity < useSimplifiedShaderBelow then 	-- a tad cheaper, but will show with higher blur value
-	  str_blurShader_part2 = [[
-			gl_FragColor = vec4(0.0,0.0,0.0,1.0);
-			
-			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2(-intensity, -intensity)).rgb;
-			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2(-intensity,  0.0)).rgb;
-			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2(-intensity,  intensity)).rgb;
-			
-			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2( intensity, -intensity)).rgb;
-			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2( intensity,  0.0)).rgb;
-			gl_FragColor.rgb += 0.165 * texture2D(tex0, texCoord + vec2( intensity,  intensity)).rgb;
-		 }
-	  ]]
-  else
-	  str_blurShader_part2 = [[
-			gl_FragColor = vec4(0.0,0.0,0.0,1.0);
-        
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity, -intensity)).rgb;
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity,  0.0)).rgb;
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity,  intensity)).rgb;
-			
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( 0.0,    -intensity)).rgb;
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( 0.0,     0.0)).rgb;
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( 0.0,     intensity)).rgb;
-			
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity, -intensity)).rgb;
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity,  0.0)).rgb;
-			gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity,  intensity)).rgb;
-		  }
-	  ]]
-  end
+  local str_blurShader_part2 = [[
+		gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+      
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity, -intensity)).rgb;
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity,  0.0)).rgb;
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2(-intensity,  intensity)).rgb;
+		
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( 0.0,    -intensity)).rgb;
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( 0.0,     0.0)).rgb;
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( 0.0,     intensity)).rgb;
+		
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity, -intensity)).rgb;
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity,  0.0)).rgb;
+		gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity,  intensity)).rgb;
+	  }
+  ]]
   
   -- create blur shaders
   blurShader = gl.CreateShader({
