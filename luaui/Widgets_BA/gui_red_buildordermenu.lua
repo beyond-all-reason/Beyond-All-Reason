@@ -29,7 +29,7 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
 local iconScaling = true
-local largeInfo = true
+local largeInfo = false
 local shortcutInfo = true
 
 local Config = {
@@ -42,8 +42,8 @@ local Config = {
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.92,
-		iconhoverscale = 0.92,
+		iconscale = 0.925,
+		iconhoverscale = 0.925,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -73,8 +73,8 @@ local Config = {
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.92,
-		iconhoverscale = 0.92,
+		iconscale = 0.925,
+		iconhoverscale = 0.925,
 		ispreadx=0,ispready=0,
 		
 		margin = 5,
@@ -684,6 +684,21 @@ function widget:Initialize()
 	ordermenu.page = 1
 	
 	AutoResizeObjects() --fix for displacement on crash issue
+	
+	
+  WG['red_buildmenu'] = {}
+  WG['red_buildmenu'].getConfigLargeInfo = function()
+  	return largeInfo
+  end
+  WG['red_buildmenu'].getConfigShortcutInfo = function()
+  	return shortcutInfo
+  end
+  WG['red_buildmenu'].setConfigLargeInfo = function(value)
+  	largeInfo = value
+  end
+  WG['red_buildmenu'].setConfigShortcutInfo = function(value)
+  	shortcutInfo = value
+  end
 end
 
 local function onNewCommands(buildcmds,othercmds)
