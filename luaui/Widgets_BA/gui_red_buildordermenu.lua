@@ -29,6 +29,8 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
 local iconScaling = true
+local largeInfo = true
+local shortcutInfo = true
 
 local Config = {
 	buildmenu = {
@@ -505,30 +507,37 @@ local function UpdateGrid(g,cmds,ordertype)
 				text.px = icon.px+(icon.sx/20)
 				text.py = icon.py-(icon.sy/15)
 				
-				local captionColor = "\255\166\166\166"
+				local captionColor = "\255\175\175\175"
 				
 	-- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
 
 				-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 				local str = tostring(math.max(metalCost, energyCost))
 				local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
-				  for digit in string.gmatch(str, "%d") do
+				local infoNewline = '\n'
+				if largeInfo then
+					addedSpaces = "              "			-- too bad 1 space isnt as wide as 1 number in the used font
+					infoNewline = ''
+				end
+				for digit in string.gmatch(str, "%d") do
 				  addedSpaces = string.sub(addedSpaces, 0, -2)
 				end
 				
 				local shotcutCaption = ''
-				if i <= 15 then
-					if building == 0 then
-						captionColor = skyblue
+				if shortcutInfo then
+					if i <= 15 then
+						if building == 0 then
+							captionColor = skyblue
+						end
+						shotcutCaption = captionColor..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
+					elseif i <= 30 then
+						if building == 1 then
+							captionColor = skyblue
+						end
+						shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
 					end
-					shotcutCaption = captionColor..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
-				elseif i <= 30 then
-					if building == 1 then
-						captionColor = skyblue
-					end
-					shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
 				end
-				text.caption = "\n"..shotcutCaption.."\n\n\n"..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
+				text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
 				text.options = "bs"
 			end
 		else
@@ -642,6 +651,26 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon spacing:  disabled")
 		end
 	end
+	if (string.find(command, "iconinfo") == 1  and  string.len(command) == 8) then 
+		largeInfo = not largeInfo
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if largeInfo then
+			Spring.Echo("Build/order menu icon info:  large")
+		else
+			Spring.Echo("Build/order menu icon info:  small")
+		end
+	end
+	if (string.find(command, "iconinfokeys") == 1  and  string.len(command) == 12) then 
+		shortcutInfo = not shortcutInfo
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if shortcutInfo then
+			Spring.Echo("Build/order menu icon shortcut info:  enabled")
+		else
+			Spring.Echo("Build/order menu icon shortcut info:  disabled")
+		end
+	end
 end
 
 function widget:Initialize()
@@ -682,7 +711,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling}
+		return {Config=Config, iconScaling=iconScaling, largeInfo=largeInfo, shortcutInfo=shortcutInfo}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -693,6 +722,12 @@ function widget:SetConfigData(data) --load config
 		Config.ordermenu.py = data.Config.ordermenu.py
 		if (data.iconScaling ~= nil) then
 			iconScaling = data.iconScaling
+		end
+		if (data.largeInfo ~= nil) then
+			largeInfo = data.largeInfo
+		end
+		if (data.shortcutInfo ~= nil) then
+			shortcutInfo = data.shortcutInfo
 		end
 	end
 end

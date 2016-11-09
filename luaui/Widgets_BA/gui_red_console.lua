@@ -46,7 +46,7 @@ local Config = {
 		px = 375,py = 35, --default start position
 		sx = 516, --background size
 		
-		fontsize = 11.33,
+		fontsize = 11.7,
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 6,
@@ -54,7 +54,7 @@ local Config = {
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
-		margin = 6, --distance from background border
+		margin = 7, --distance from background border
 		
 		fadetime = 0.25, --fade effect time, in seconds
 		fadedistance = 100, --distance from cursor at which console shows up when empty
@@ -739,12 +739,12 @@ local function updateconsole(g,cfg)
 		g.background.active = false
 		g.lines.active = false
 		g.vars._empty = true
-		g.background.sy = cfg.minlines*g.lines.fontsize + (g.lines.px-g.background.px)*2
+		g.background.sy = (cfg.minlines*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -cfg.margin
 	else
 		g.background.active = nil --activate
 		g.lines.active = nil --activate
 		g.vars._empty = nil
-		g.background.sy = count*g.lines.fontsize + (g.lines.px-g.background.px)*2
+		g.background.sy = (count*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -cfg.margin
 	end
 	
 	g.lines.caption = display
