@@ -4,7 +4,7 @@ return {
 		blocking = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 670,
+		buildcostenergy = 650,
 		buildcostmetal = 20,
 		buildpic = "CORFDRAG.DDS",
 		buildtime = 1000,

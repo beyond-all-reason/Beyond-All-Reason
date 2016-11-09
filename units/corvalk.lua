@@ -2,7 +2,7 @@ return {
 	corvalk = {
 		acceleration = 0.09,
 		brakerate = 0.75,
-		buildcostenergy = 1450,
+		buildcostenergy = 1500,
 		buildcostmetal = 75,
 		buildpic = "CORVALK.DDS",
 		buildtime = 4122,
@@ -23,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 250,
 		maxslope = 10,
-		maxvelocity = 7,
+		maxvelocity = 6.6,
 		maxwaterdepth = 0,
 		name = "Valkyrie",
 		objectname = "CORVALK",

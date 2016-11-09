@@ -2,7 +2,7 @@ return {
 	armmanni = {
 		acceleration = 0.0132,
 		brakerate = 0.4125,
-		buildcostenergy = 13300,
+		buildcostenergy = 13000,
 		buildcostmetal = 1200,
 		buildpic = "ARMMANNI.DDS",
 		buildtime = 25706,

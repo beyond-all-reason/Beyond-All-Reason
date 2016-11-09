@@ -2,8 +2,8 @@ return {
 	marauder = {
 		acceleration = 0.22,
 		brakerate = 0.714,
-		buildcostenergy = 21000,
-		buildcostmetal = 970,
+		buildcostenergy = 19000,
+		buildcostmetal = 1000,
 		buildpic = "MARAUDER.DDS",
 		buildtime = 26061,
 		canmove = true,

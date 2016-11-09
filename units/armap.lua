@@ -2,7 +2,7 @@ return {
 	armap = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 1460,
+		buildcostenergy = 1450,
 		buildcostmetal = 900,
 		builder = true,
 		shownanospray = false,

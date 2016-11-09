@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		autoheal = 5,
 		brakerate = 1.125,
-		buildcostenergy = 13000,
+		buildcostenergy = 12000,
 		buildcostmetal = 750,
 		builddistance = 112,
 		builder = true,

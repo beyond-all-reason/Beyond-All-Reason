@@ -2,7 +2,7 @@ return {
 	coruwadvms = {
 		buildangle = 6093,
 		buildcostenergy = 11000,
-		buildcostmetal = 760,
+		buildcostmetal = 750,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,

@@ -4,7 +4,7 @@ return {
 		airsightdistance = 800,
 		autoheal = 1.5,
 		brakerate = 0.075,
-		buildcostenergy = 980,
+		buildcostenergy = 1000,
 		buildcostmetal = 100,
 		buildpic = "CORPT.DDS",
 		buildtime = 1877,

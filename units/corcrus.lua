@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.186,
 		buildangle = 16384,
-		buildcostenergy = 14500,
+		buildcostenergy = 14000,
 		buildcostmetal = 1900,
 		buildpic = "CORCRUS.DDS",
 		buildtime = 19950,

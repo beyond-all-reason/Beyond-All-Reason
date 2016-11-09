@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4600,
+		maxdamage = 4250,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		name = "Intimidator",

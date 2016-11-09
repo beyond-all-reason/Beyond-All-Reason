@@ -4,7 +4,7 @@ return {
 		brakerate = 0.495,
 		buildangle = 16384,
 		buildcostenergy = 16000,
-		buildcostmetal = 1350,
+		buildcostmetal = 1400,
 		buildpic = "INTRUDER.DDS",
 		buildtime = 14177,
 		canmove = true,

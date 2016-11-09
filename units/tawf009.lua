@@ -3,7 +3,7 @@ return {
 		acceleration = 0.08,
 		activatewhenbuilt = true,
 		brakerate = 0.9,
-		buildcostenergy = 12200,
+		buildcostenergy = 12000,
 		buildcostmetal = 1800,
 		buildpic = "TAWF009.DDS",
 		buildtime = 21087,

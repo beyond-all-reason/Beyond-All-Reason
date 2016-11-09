@@ -2,10 +2,10 @@ return {
 	armpnix = {
 		acceleration = 0.0023,
 		brakerate = 0.035,
-		buildcostenergy = 16000,
-		buildcostmetal = 230,
+		buildcostenergy = 15000,
+		buildcostmetal = 240,
 		buildpic = "ARMPNIX.DDS",
-		buildtime = 22064,
+		buildtime = 20000,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP NOTHOVER",
@@ -92,7 +92,7 @@ return {
 				weapontype = "AircraftBomb",
 				damage = {
 					antibomber = 100,
-					default = 250,
+					default = 266,
 					l1bombers = 5,
 					l1subs = 5,
 				},

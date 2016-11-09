@@ -5,7 +5,7 @@ return {
 		brakerate = 0,
 		buildangle = 16384,
 		buildcostenergy = 23000,
-		buildcostmetal = 860,
+		buildcostmetal = 850,
 		buildpic = "ARMFFLAK.DDS",
 		buildtime = 21855,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",

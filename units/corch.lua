@@ -3,7 +3,7 @@ return {
 		acceleration = 0.12,
 		brakerate = 0.372,
 		buildcostenergy = 3000,
-		buildcostmetal = 165,
+		buildcostmetal = 160,
 		builddistance = 112,
 		builder = true,
 		shownanospray = false,

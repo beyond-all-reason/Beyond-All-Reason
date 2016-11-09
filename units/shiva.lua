@@ -3,7 +3,7 @@ return {
 		acceleration = 0.06,
 		brakerate = 0.714,
 		buildcostenergy = 23000,
-		buildcostmetal = 1550,
+		buildcostmetal = 1600,
 		buildpic = "SHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,

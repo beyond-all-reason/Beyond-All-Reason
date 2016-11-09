@@ -2,7 +2,7 @@ return {
 	armbrawl = {
 		acceleration = 0.24,
 		brakerate = 0.44,
-		buildcostenergy = 6150,
+		buildcostenergy = 6200,
 		buildcostmetal = 310,
 		buildpic = "ARMBRAWL.DDS",
 		buildtime = 13294,

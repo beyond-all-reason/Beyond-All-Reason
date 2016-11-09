@@ -2,7 +2,7 @@ return {
 	asubpen = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5450,
+		buildcostenergy = 5500,
 		buildcostmetal = 1200,
 		builder = true,
 		shownanospray = false,

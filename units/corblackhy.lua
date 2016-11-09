@@ -5,7 +5,7 @@ return {
 		brakerate = 0.057,
 		buildangle = 16384,
 		buildcostenergy = 270000,
-		buildcostmetal = 36900,
+		buildcostmetal = 37000,
 		buildpic = "CORBLACKHY.DDS",
 		buildtime = 309264,
 		canmove = true,

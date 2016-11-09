@@ -2,10 +2,10 @@ return {
 	armflea = {
 		acceleration = 0.5,
 		brakerate = 1.5,
-		buildcostenergy = 340,
-		buildcostmetal = 15,
+		buildcostenergy = 500,
+		buildcostmetal = 25,
 		buildpic = "ARMFLEA.DDS",
-		buildtime = 789,
+		buildtime = 850,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT",
 		collisionvolumeoffsets = "0 1 2",

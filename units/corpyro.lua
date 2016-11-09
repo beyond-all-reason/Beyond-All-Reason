@@ -2,8 +2,8 @@ return {
 	corpyro = {
 		acceleration = 0.45,
 		brakerate = 1.95,
-		buildcostenergy = 2969,
-		buildcostmetal = 202,
+		buildcostenergy = 3000,
+		buildcostmetal = 200,
 		buildpic = "CORPYRO.DDS",
 		buildtime = 5027,
 		canmove = true,

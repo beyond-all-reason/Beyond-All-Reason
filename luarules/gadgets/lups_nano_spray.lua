@@ -363,9 +363,10 @@ function gadget:GameFrame(frame)
 						radius = (GetFeatureRadius(target) or radius)
 					end
 					if radius == 1 then	-- reclaim unit gives back 1 so yeah...
-						radius = 15
+						radius = 20
 					end
-
+					radius = radius * 0.7
+					
 					local terraform = false
 					local inversed  = false
 					if (type=="restore") then

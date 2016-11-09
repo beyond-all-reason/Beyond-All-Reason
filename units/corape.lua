@@ -2,7 +2,7 @@ return {
 	corape = {
 		acceleration = 0.152,
 		brakerate = 0.356,
-		buildcostenergy = 6900,
+		buildcostenergy = 7000,
 		buildcostmetal = 370,
 		buildpic = "CORAPE.DDS",
 		buildtime = 14500,
@@ -23,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1400,
 		maxslope = 10,
-		maxvelocity = 5.19,
+		maxvelocity = 5.3,
 		maxwaterdepth = 0,
 		name = "Rapier",
 		nochasecategory = "VTOL",

@@ -2,7 +2,7 @@ return {
 	bladew = {
 		acceleration = 0.264,
 		brakerate = 0.55,
-		buildcostenergy = 1250,
+		buildcostenergy = 1300,
 		buildcostmetal = 60,
 		buildpic = "BLADEW.DDS",
 		buildtime = 2073,

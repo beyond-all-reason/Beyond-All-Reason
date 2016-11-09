@@ -2,7 +2,7 @@ return {
 	armsy = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 830,
+		buildcostenergy = 850,
 		buildcostmetal = 450,
 		builder = true,
 		shownanospray = false,

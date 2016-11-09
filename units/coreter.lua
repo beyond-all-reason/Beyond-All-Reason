@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.0594,
 		buildcostenergy = 1900,
-		buildcostmetal = 105,
+		buildcostmetal = 100,
 		buildpic = "CORETER.DDS",
 		buildtime = 6404,
 		canattack = false,

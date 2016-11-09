@@ -1,7 +1,7 @@
 return {
 	armuwadvms = {
 		buildangle = 5049,
-		buildcostenergy = 11200,
+		buildcostenergy = 11000,
 		buildcostmetal = 750,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,

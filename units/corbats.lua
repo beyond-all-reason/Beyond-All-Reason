@@ -2,8 +2,8 @@ return {
 	corbats = {
 		acceleration = 0.03,
 		brakerate = 0.075,
-		buildangle = 16384,
-		buildcostenergy = 23500,
+		buildangle = 16000,
+		buildcostenergy = 23000,
 		buildcostmetal = 5760,
 		buildpic = "CORBATS.DDS",
 		buildtime = 60640,

@@ -2,7 +2,7 @@ return {
 	armraz = {
 		acceleration = 0.206,
 		brakerate = 0.786,
-		buildcostenergy = 67500,
+		buildcostenergy = 67000,
 		buildcostmetal = 3800,
 		buildpic = "ARMRAZ.DDS",
 		buildtime = 88566,
