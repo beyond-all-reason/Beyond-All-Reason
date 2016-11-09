@@ -60,7 +60,7 @@ local fontPath           = "LuaUI/Fonts/MicrogrammaDBold.ttf"
 local autoFadeTime       = 1
 local forceHideWindow    = false
 
-local blurScreen				 = true 	-- makes use of guishader api widget
+local blurScreen				 = false 	-- makes use of guishader api widget
 
 --Color config in drawPause function
     
