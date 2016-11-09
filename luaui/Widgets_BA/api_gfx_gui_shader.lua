@@ -15,7 +15,7 @@ function widget:GetInfo()
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -10000,
+    layer     = -100000,
     enabled   = false  --  loaded by default?
   }
 end
@@ -29,8 +29,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local imageDirectory			= ":n:"..LUAUI_DIRNAME.."Images/guishader/"
-local blurIntensity				= 0.0007
+local imageDirectory			 = ":n:"..LUAUI_DIRNAME.."Images/guishader/"
+local defaultBlurIntensity = 0.0007
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -52,7 +52,9 @@ local screencopy
 local blurtex
 local blurtex2
 local stenciltex
+local screenBlur = false
 
+local blurIntensity = defaultBlurIntensity
 local guishaderRects = {}
 local updateStencilTexture = false
 
@@ -107,7 +109,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function DrawStencilTexture()
+local function DrawStencilTexture(fullscreen)
   if (next(guishaderRects)) then 
     if (stenciltex == nil)or(vsx+vsy~=oldvs) then
       gl.DeleteTextureFBO(stenciltex)
@@ -138,9 +140,13 @@ local function DrawStencilTexture()
     gl.PushMatrix()
       gl.Translate(-1,-1,0)
       gl.Scale(2/vsx,2/vsy,0)
-      for _,rect in pairs(guishaderRects) do
-        gl.Rect(rect[1],rect[2],rect[3],rect[4])
-      end
+      if not fullscreen then
+	      for _,rect in pairs(guishaderRects) do
+	        gl.Rect(rect[1],rect[2],rect[3],rect[4])
+	      end
+	    else
+	    	gl.Rect(0,0,vsx,vsy)
+	    end
     gl.PopMatrix()
   end)
 end
@@ -198,6 +204,18 @@ function widget:Initialize()
       guishaderRects[name] = nil;
       updateStencilTexture = true;
   end
+  WG['guishader_api'].getBlurDefault = function()
+  	return defaultBlurIntensity
+  end
+  WG['guishader_api'].getBlur = function()
+  	return blurIntensity
+  end
+  WG['guishader_api'].setBlur = function(value)
+  	blurIntensity = value
+  end
+  WG['guishader_api'].setScreenBlur = function(value)
+  	screenBlur = value
+  end
 end
 
 
@@ -242,7 +260,7 @@ function CreateShaders()
       tex2 = 2,
     }
   })
-
+	
   if (blurShader == nil) then
     Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: "..gl.GetShaderLog())
     widgetHandler:RemoveWidget()
@@ -300,35 +318,75 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawScreenEffectsBlur()
+	if Spring.IsGUIHidden() then return end
+	
+  if not screenBlur then
+	  if not next(guishaderRects) then return end
+
+	  gl.Texture(false)
+	  gl.Color(1,1,1,1)
+	  gl.Blending(false)
+
+	  if updateStencilTexture then
+	    DrawStencilTexture(false);
+	    updateStencilTexture = false;
+	  end
+
+	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+	  gl.Texture(screencopy)
+	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	  gl.UseShader(blurShader)
+
+	  gl.Texture(2,stenciltex)
+	  gl.Texture(2,false)
+
+	  gl.Texture(blurtex)
+	  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+	  gl.Texture(blurtex2)
+	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+
+	  gl.UseShader(0)
+	  gl.Texture(blurtex)
+	  gl.TexRect(0,vsy,vsx,0)
+	  gl.Texture(false)
+
+	  gl.Blending(true)
+	 end
+end
+
+function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
-  if not next(guishaderRects) then return end
+  
+	if screenBlur then
+	  if not next(guishaderRects) then return end
 
-  gl.Texture(false)
-  gl.Color(1,1,1,1)
-  gl.Blending(false)
+	  gl.Texture(false)
+	  gl.Color(1,1,1,1)
+	  gl.Blending(false)
 
-  if updateStencilTexture then
-    DrawStencilTexture();
-    updateStencilTexture = false;
-  end
+	  if updateStencilTexture then
+	    DrawStencilTexture(true);
+	    updateStencilTexture = false;
+	  end
 
-  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
-  gl.Texture(screencopy)
-  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
-  gl.UseShader(blurShader)
+	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+	  gl.Texture(screencopy)
+	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	  gl.UseShader(blurShader)
 
-  gl.Texture(2,stenciltex)
-  gl.Texture(2,false)
+	  gl.Texture(2,stenciltex)
+	  gl.Texture(2,false)
 
-  gl.Texture(blurtex)
-  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
-  gl.Texture(blurtex2)
-  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	  gl.Texture(blurtex)
+	  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+	  gl.Texture(blurtex2)
+	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 
-  gl.UseShader(0)
-  gl.Texture(blurtex)
-  gl.TexRect(0,vsy,vsx,0)
-  gl.Texture(false)
+	  gl.UseShader(0)
+	  gl.Texture(blurtex)
+	  gl.TexRect(0,vsy,vsx,0)
+	  gl.Texture(false)
 
-  gl.Blending(true)
+	  gl.Blending(true)
+	 end
 end
