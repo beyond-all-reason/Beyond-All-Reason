@@ -12,18 +12,21 @@ function widget:GetInfo()
 end
 
 local barTexture = LUAUI_DIRNAME.."Images/resbar.dds"
+local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
+local barGlowEdgeTexture = LUAUI_DIRNAME.."Images/barglow-edge.dds"
 
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
+local glowSizeMultiplier = 1.2
 local Config = {
 	metal = {
 		n = 'metal',
 		px = 370,py = -0.5, --default start position
 		sx = 260,sy = 29, --background size
 		
-		barsy = 4, --width of the actual bar
+		barsy = 4, --thickness of the actual bar
 		fontsize = 11,
 		
 		margin = 5, --distance from background border
@@ -262,6 +265,34 @@ local function createbar(r)
 	bar.color = r.cbar
 	bar.texture = barTexture
 	bar.texturecolor = r.cbar
+	--bar.texture = nil
+	--bar.texturecolor = nil
+	--bar[1] = "rectanglerounded"
+	--bar.roundedsize = barbackground.sy / 0.8
+	
+	local glowSize = bar.sy * glowSizeMultiplier
+	local barGlowCenter = Copy(bar)
+	barGlowCenter.py = bar.py - glowSize
+	barGlowCenter.sy = bar.sy + glowSize + glowSize
+	if r.n == 'energy' then
+		barGlowCenter.color = {1,1,0,0}
+		barGlowCenter.texturecolor = {1,1,0,0.13}
+	else
+		barGlowCenter.color = {1,1,1,0}
+		barGlowCenter.texturecolor = {1,1,1,0.095}
+	end
+	barGlowCenter.texture = barGlowCenterTexture
+	barGlowCenter[1] = "rectangle"
+	
+	local barGlowLeft = Copy(barGlowCenter)
+	barGlowLeft.texture = barGlowEdgeTexture
+	barGlowLeft.px = bar.px - (glowSize + glowSize)
+	barGlowLeft.sx = glowSize + glowSize
+	barGlowLeft.texture = barGlowEdgeTexture
+	
+	local barGlowRight = Copy(barGlowLeft)
+	barGlowRight.px = bar.px + bar.sx + glowSize + glowSize
+	barGlowRight.sx = -(glowSize + glowSize)
 	
 	local shareindicator = Copy(barbackground)
 	shareindicator.color = r.cindicator
@@ -273,6 +304,9 @@ local function createbar(r)
 	shareindicator.texturecolor = r.cindicator
 	
 	New(barbackground)
+	New(barGlowLeft)
+	New(barGlowRight)
+	New(barGlowCenter)
 	New(bar)
 	New(barborder)
 	New(shareindicator)
@@ -305,6 +339,7 @@ local function createbar(r)
 	background.movableslaves = {
 		barbackground,barborder,bar,shareindicator,
 		income,pull,expense,current,storage,
+		barGlowCenter, barGlowLeft, barGlowRight
 	}
 	
 	-- smaller fontsize for fontsize of income and pull
@@ -325,6 +360,9 @@ local function createbar(r)
 		["background2"] = background2,
 		["barbackground"] = barbackground,
 		["bar"] = bar,
+		["barGlowCenter"] = barGlowCenter,
+		["barGlowLeft"] = barGlowLeft,
+		["barGlowRight"] = barGlowRight,
 		["barborder"] = barborder,
 		["shareindicator"] = shareindicator,
 		["income"] = income,
@@ -346,6 +384,10 @@ local function updatebar(b,res)
 	if (b.bar.sx > barbacksx) then --happens on gamestart and storage destruction
 		b.bar.sx = barbacksx
 	end
+	local glowSize = b.bar.sy * glowSizeMultiplier
+	b.barGlowCenter.sx = b.bar.sx
+	b.barGlowRight.px = b.bar.px + b.bar.sx + glowSize + glowSize
+	b.barGlowRight.sx = -(glowSize + glowSize)
 	
 	b.income.caption = "+ "..short(r[4],(r[4] < 10 and 1 or 0))
 	b.pull.caption = "- "..short(r[3],(r[3] < 10 and 1 or 0))
