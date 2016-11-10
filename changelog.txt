@@ -16,15 +16,15 @@ Balance changes:
 
 Other:
 - Lots of new particle effects!
-- Buildmenu: shows metal an energy cost
-- Buildmenu: shows shortcuts (B->Q means press B first and Q after)
+- Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
+- Buildmenu: shows shortcuts (B->Q means press B first and Q after) (hides with /iconinfokeys)
 - Options: fixed that not all settings remembered their value
 - Bloomshader: prettier and more pronounced (but more heavy for system)
 - Commands FX lines get thinner over lifetime
 - Engine trees replaced
 - Self-D icons dont show in f5 mode anymore
 - More unit types shatter on death
-- Nano effect has changed and is now done via a shader
+- Nano effect has changed and is now done via lups shader
 - Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
 - Area Capture Mode now shows info on startup and has a scoreboard window too
 - converted BA icon to png (was bmp)
@@ -35,6 +35,8 @@ Other:
 - Removed BA hotkeys widget
 - Added loadscreen music
 - Various random deathsounds introduced
+- Guishader blurs UI too when showing popup windows
+- Resourcebars display a metal or energy icon
 
 
 9.45 -> 9.46
