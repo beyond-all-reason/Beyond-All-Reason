@@ -19,7 +19,7 @@ local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
-local glowSizeMultiplier = 1.2
+local glowSizeMultiplier = 1.75
 local Config = {
 	metal = {
 		n = 'metal',
@@ -276,10 +276,10 @@ local function createbar(r)
 	barGlowCenter.sy = bar.sy + glowSize + glowSize
 	if r.n == 'energy' then
 		barGlowCenter.color = {1,1,0,0}
-		barGlowCenter.texturecolor = {1,1,0,0.13}
+		barGlowCenter.texturecolor = {1,1,0,0.1}
 	else
 		barGlowCenter.color = {1,1,1,0}
-		barGlowCenter.texturecolor = {1,1,1,0.095}
+		barGlowCenter.texturecolor = {1,1,1,0.085}
 	end
 	barGlowCenter.texture = barGlowCenterTexture
 	barGlowCenter[1] = "rectangle"

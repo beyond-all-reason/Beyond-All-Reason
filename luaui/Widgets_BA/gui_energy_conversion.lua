@@ -21,6 +21,8 @@ local alterLevelFormat = string.char(137) .. '%i'
 local customScale			= 0.85
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local barbg					= ":n:"..LUAUI_DIRNAME.."Images/resbar.dds"
+local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
+local barGlowEdgeTexture = LUAUI_DIRNAME.."Images/barglow-edge.dds"
 local sliderMinimum			= 12
 local sliderMaximum			= 88
 
@@ -168,7 +170,17 @@ function createList(force)
 				glTexture(barbg)
 				glTexRect(sliderX + (panelPadding*2), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
 				
+				-- bar glow
+				glowSize = (((panelHeight/7.5)-1) - ((panelHeight/4.7)+1)) * 2.5
+				glColor(1, 1, 0, 0.095)
+				glTexture(barGlowCenterTexture)
+				glTexRect(sliderX + (panelPadding*2), panelPadding+(panelHeight/7.5) - glowSize, panelPadding*2, panelPadding+(panelHeight/4.7) + glowSize)
+				glTexture(barGlowEdgeTexture)
+				glTexRect(panelPadding*2+(glowSize*2), panelPadding+(panelHeight/7.5) - glowSize, panelPadding*2, panelPadding+(panelHeight/4.7) + glowSize)
+				glTexRect(sliderX + (panelPadding*2) - (glowSize*2), panelPadding+(panelHeight/7.5) - glowSize, sliderX + (panelPadding*2), panelPadding+(panelHeight/4.7) + glowSize)
+				
 				-- Slider
+				glTexture(barbg)
 				glColor(0, 0, 0, 0.33)
 				glRect(sliderX + (panelPadding*2) + (panelWidth/50)+1, panelPadding-1, sliderX + (panelPadding*2) - (panelWidth/50)-1, panelPadding+(panelHeight/3.1)+1)
 				glColor(0.88, 0.88, 0.1, 1)
