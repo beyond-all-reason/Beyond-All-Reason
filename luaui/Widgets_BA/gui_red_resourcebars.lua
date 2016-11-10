@@ -200,7 +200,7 @@ local function createbar(r)
 		color=r.color2,
 	}
 	
-	local imagesize = r.sy / 1.6
+	local imagesize = r.sy / 1.33
 	local image = {"rectangle",
 		px=r.px+r.padding,py=r.py+r.padding,
 		sx=imagesize, sy=imagesize,
@@ -209,7 +209,7 @@ local function createbar(r)
 		texture = LUAUI_DIRNAME.."Images/energy.png",
 	}
 	if r.n == 'metal' then
-		image.texture = LUAUI_DIRNAME.."Images/metal1.png"
+		image.texture = LUAUI_DIRNAME.."Images/metal.png"
 	end
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
@@ -228,7 +228,7 @@ local function createbar(r)
 			background2.py = self.py + self.padding
 			background2.sx = self.sx - self.padding - self.padding
 			background2.sy = self.sy - self.padding - self.padding
-			local imagesize = self.sy / 1.6
+			local imagesize = self.sy / 1.33
 			image.px = self.px+self.padding+((self.sy-self.padding-self.padding-imagesize)/2)
 			image.py = self.py+self.padding+((self.sy-self.padding-self.padding-imagesize)/2)
 		end,
