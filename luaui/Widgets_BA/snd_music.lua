@@ -83,11 +83,10 @@ function widget:Initialize()
 	--math.randomseed(os.clock()* 101.01)--lurker wants you to burn in hell rgn
 	-- for i=1,20 do Spring.Echo(math.random()) end
 
--- This does not work!
-	-- if #peaceTracks == 0 or #warTracks == 0 or #victoryTracks == 0 or #defeatTracks == 0 then 
-		-- Spring.Echo("music player has found no music")
-		-- widgetHandler:RemoveWidget()
-	-- end
+	if #peaceTracks == 0 and #warTracks == 0 then 
+		Spring.Echo("[Music Player] No music was found, Shutting Down")
+		widgetHandler:RemoveWidget()
+	end
 	
 	for i = 1, 30, 1 do
 		dethklok[i]=0

@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.75,
-		explosiongenerator = "custom:FLASH1",
+		explosiongenerator = "custom:genericunitexplosion-medium",
 		impulseboost = 0.12300000339746,
 		impulsefactor = 0.12300000339746,
 		name = "MEX",
