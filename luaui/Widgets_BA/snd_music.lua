@@ -83,7 +83,7 @@ function widget:Initialize()
 	--math.randomseed(os.clock()* 101.01)--lurker wants you to burn in hell rgn
 	-- for i=1,20 do Spring.Echo(math.random()) end
 
-	if #peaceTracks == 0 and #warTracks == 0 then 
+	if #peaceTracks == 0 and #warTracks == 0 and #victoryTracks == 0 and #defeatTracks == 0 then 
 		Spring.Echo("[Music Player] No music was found, Shutting Down")
 		widgetHandler:RemoveWidget()
 	end
