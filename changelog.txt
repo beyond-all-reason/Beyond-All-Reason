@@ -21,8 +21,7 @@ Other:
 - Options: fixed that not all settings remembered their value
 - Bloomshader: prettier and more pronounced (but more heavy for system)
 - Commands FX lines get thinner over lifetime
-- Engine trees replaced
-- Self-D icons dont show in f5 mode anymore
+- Engine trees replaced with better looking ones
 - More unit types shatter on death
 - Nano effect has changed and is now done via lups shader
 - Add modoption for fixed hitspheres (requires firethroughfriendly enabled)

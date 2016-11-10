@@ -217,6 +217,7 @@ function widget:Initialize()
   	return blurIntensity
   end
   WG['guishader_api'].setBlurIntensity = function(value)
+  	if value == nil then value = defaultBlurIntensity end
   	blurIntensity = value
   end
   WG['guishader_api'].setScreenBlur = function(value)
@@ -236,6 +237,10 @@ end
 
 function CreateShaders()
 
+  if (blurShader) then
+    gl.DeleteShader(blurShader or 0)
+  end
+  
   local str_blurShader_part1 = [[
       uniform sampler2D tex0;
       uniform float intensity;
@@ -300,6 +305,9 @@ function CreateShaders()
     wrap_t = GL.CLAMP,
     fbo = true,
   })
+  
+	intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
+	
   -- debug?
   if (blurtex == nil)or(blurtex2 == nil)or(screencopy == nil) then
     Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
@@ -350,17 +358,19 @@ function widget:DrawScreenEffectsBlur()
 	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
 	  gl.Texture(screencopy)
 	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	  
 	  gl.UseShader(blurShader)
+			gl.Uniform(intensityLoc, blurIntensity)
+			
+		  gl.Texture(2,stenciltex)
+		  gl.Texture(2,false)
 
-	  gl.Texture(2,stenciltex)
-	  gl.Texture(2,false)
-
-	  gl.Texture(blurtex)
-	  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
-	  gl.Texture(blurtex2)
-	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
-
+		  gl.Texture(blurtex)
+		  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+		  gl.Texture(blurtex2)
+		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 	  gl.UseShader(0)
+	  
 	  gl.Texture(blurtex)
 	  gl.TexRect(0,vsy,vsx,0)
 	  gl.Texture(false)
@@ -373,7 +383,6 @@ function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
   
 	if screenBlur and allowScreenBlur then
-	  if not next(guishaderRects) then return end
 
 	  gl.Texture(false)
 	  gl.Color(1,1,1,1)
@@ -387,17 +396,32 @@ function widget:DrawScreen()
 	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
 	  gl.Texture(screencopy)
 	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	  
 	  gl.UseShader(blurShader)
+			gl.Uniform(intensityLoc, blurIntensity)
+			
+		  gl.Texture(2,stenciltex)
+		  gl.Texture(2,false)
 
-	  gl.Texture(2,stenciltex)
-	  gl.Texture(2,false)
-
-	  gl.Texture(blurtex)
-	  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
-	  gl.Texture(blurtex2)
-	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
-
+		  gl.Texture(blurtex)
+		  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+		  gl.Texture(blurtex2)
+		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 	  gl.UseShader(0)
+	  
+	  --2nd pass
+	  gl.UseShader(blurShader)
+			gl.Uniform(intensityLoc, blurIntensity*0.4)
+			
+		  gl.Texture(2,stenciltex)
+		  gl.Texture(2,false)
+
+		  gl.Texture(blurtex)
+		  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+		  gl.Texture(blurtex2)
+		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	  gl.UseShader(0)
+	  
 	  gl.Texture(blurtex)
 	  gl.TexRect(0,vsy,vsx,0)
 	  gl.Texture(false)

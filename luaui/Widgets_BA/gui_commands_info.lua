@@ -363,6 +363,7 @@ function widget:DrawScreen()
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'commandslist')
+			WG['guishader_api'].setBlurIntensity(0.0018)
 			WG['guishader_api'].setScreenBlur(true)
 		end
 		showOnceMore = false
