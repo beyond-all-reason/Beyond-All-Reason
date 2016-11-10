@@ -10,7 +10,7 @@ function gadget:GetInfo()
   }
 end
 
-if Spring.GetModOptions().fixedhitspheres == "enabled" then return false end
+if Spring.GetModOptions().fixedhitspheres ~= "disabled" then return false end
 
 -- Pop-up style unit and per piece collision volume definitions
 local popupUnits = {}		--list of pop-up style units
