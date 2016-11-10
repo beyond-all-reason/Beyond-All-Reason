@@ -19,8 +19,10 @@ local buildNextKey = 110
 local buildKeys = {113, 119, 101, 114, 116, 97, 115, 100, 102, 103, 122, 120, 99, 118, 98}
 local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 
-local stateTexture		= LUAUI_DIRNAME.."Images/resbar.dds"
-local buttonTexture		= LUAUI_DIRNAME.."Images/button.dds"
+local stateTexture		     = LUAUI_DIRNAME.."Images/resbar.dds"
+local buttonTexture		     = LUAUI_DIRNAME.."Images/button.dds"
+local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
+local barGlowEdgeTexture   = LUAUI_DIRNAME.."Images/barglow-edge.dds"
 
 local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
@@ -546,7 +548,6 @@ local function UpdateGrid(g,cmds,ordertype)
 			end
 			if (cmd.type == 5) then --state cmds (fire at will, etc)
 				icon.caption = " "..(cmd.params[cmd.params[1]+2] or cmd.name).." "
-				
 				local statecount = #cmd.params-1 --number of states for the cmd
 				local curstate = cmd.params[1]+1
 				
@@ -555,6 +556,7 @@ local function UpdateGrid(g,cmds,ordertype)
 				local py = icon.py + ((icon.sy * (1-scale))/2)
 				local sx = icon.sx * scale
 				local sy = icon.sy * scale
+				local usr = nil
 					
 				for i=1,statecount do
 					usedstaterectangles = usedstaterectangles + 1
@@ -579,6 +581,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					--s.py = icon.py + icon.sy - s.sy -spread
 					
 					if (i == curstate) then
+						usr = usedstaterectangles
 						if (statecount < 4) then
 							if (i == 1) then
 								s.color = {0.8,0,0,1}
@@ -602,6 +605,46 @@ local function UpdateGrid(g,cmds,ordertype)
 					else
 						s.texturecolor = s.color
 					end
+				end
+				
+				-- add glow for current state
+				if (g.staterectangles[usr] ~= nil) then
+					usedstaterectangles = usedstaterectangles + 1
+					local s = g.staterectangles[usr]
+					local s2 = New(Copy(s,true))
+					g.staterectangles[usedstaterectangles] = s2
+					table.insert(g.background.movableslaves,s2)
+					
+					local glowSize = s.sy * 2.2
+					s2.sy = s.sy + glowSize + glowSize
+					s2.py = s.py - glowSize
+					--s2.px = s.px - (glowSize * 0.45)
+					--s2.sx = s.sx + (glowSize * 1)
+					s2.border = {0,0,0,0}
+					s2.texture = barGlowCenterTexture
+					s2.color[1] = s2.color[1] * 10
+					s2.color[2] = s2.color[2] * 10
+					s2.color[3] = s2.color[3] * 10
+					s2.color[4] = 0
+					s2.texturecolor[1] = s2.texturecolor[1] * 10
+					s2.texturecolor[2] = s2.texturecolor[2] * 10
+					s2.texturecolor[3] = s2.texturecolor[3] * 10
+					s2.texturecolor[4] = 0.08
+					
+					local s3 = New(Copy(s2,true))
+					usedstaterectangles = usedstaterectangles + 1
+					g.staterectangles[usedstaterectangles] = s3
+					table.insert(g.background.movableslaves,s3)
+					s3.texture = barGlowEdgeTexture
+					s3.px = s.px - (glowSize * 2)
+					s3.sx = (glowSize * 2)
+					
+					local s4 = New(Copy(s3,true))
+					usedstaterectangles = usedstaterectangles + 1
+					g.staterectangles[usedstaterectangles] = s4
+					table.insert(g.background.movableslaves,s4)
+					s4.px = s.px + s.sx + (glowSize * 2)
+					s4.sx = -(glowSize * 2)
 				end
 			else
 				icon.caption = " "..cmd.name.." "
