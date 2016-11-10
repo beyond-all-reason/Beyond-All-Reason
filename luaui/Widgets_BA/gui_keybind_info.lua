@@ -6,7 +6,7 @@ return {
 	author  = "Bluestone",
 	date    = "April 2015",
 	license = "Mouthwash",
-	layer   = -1,
+	layer   = -2000,
 	enabled = true,
 }
 end
@@ -287,11 +287,15 @@ function widget:DrawScreen()
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'keybindinfo')
+			WG['guishader_api'].setScreenBlur(true)
 		end
 		showOnceMore = false
     else
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('keybindinfo')
+			local removed = WG['guishader_api'].RemoveRect('keybindinfo')
+			if removed then
+				WG['guishader_api'].setScreenBlur(false)
+			end
 		end
 	end
 end

@@ -6,7 +6,7 @@ return {
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
-	layer   = -1,
+	layer   = -2000,
 	enabled = true,
 }
 end
@@ -363,12 +363,16 @@ function widget:DrawScreen()
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'commandslist')
+			WG['guishader_api'].setScreenBlur(true)
 		end
 		showOnceMore = false
 		
     else
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('commandslist')
+			local removed = WG['guishader_api'].RemoveRect('commandslist')
+			if removed then
+				WG['guishader_api'].setScreenBlur(false)
+			end
 		end
 	end
 end
@@ -426,6 +430,19 @@ function widget:MouseWheel(up, value)
 		return true
 	else
 		return false
+	end
+end
+
+function widget:MouseMove(x, y)
+  if show then
+		-- on window
+		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		if not IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			
+		end
 	end
 end
 

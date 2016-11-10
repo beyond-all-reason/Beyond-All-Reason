@@ -8,7 +8,7 @@ function widget:GetInfo()
         author    = "Floris",
         date      = "sept 2016",
         license   = "GNU GPL v2",
-        layer     = math.huge,
+        layer     = -1001,
         enabled   = true
     }
 end

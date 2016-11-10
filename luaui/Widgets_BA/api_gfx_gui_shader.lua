@@ -15,7 +15,7 @@ function widget:GetInfo()
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -100000,
+    layer     = -1000,
     enabled   = false  --  loaded by default?
   }
 end
@@ -53,6 +53,7 @@ local blurtex
 local blurtex2
 local stenciltex
 local screenBlur = false
+local allowScreenBlur = true
 
 local blurIntensity = defaultBlurIntensity
 local guishaderRects = {}
@@ -197,24 +198,38 @@ function widget:Initialize()
   
   WG['guishader_api'] = {}
   WG['guishader_api'].InsertRect = function(left,top,right,bottom,name)
-      guishaderRects[name] = {left,top,right,bottom};
-      updateStencilTexture = true;
+      guishaderRects[name] = {left,top,right,bottom}
+      updateStencilTexture = true
   end
   WG['guishader_api'].RemoveRect = function(name)
-      guishaderRects[name] = nil;
-      updateStencilTexture = true;
+  		local found = false
+  		if guishaderRects[name] ~= nil then
+  			found = true
+  		end
+      guishaderRects[name] = nil
+      updateStencilTexture = true
+      return found
   end
   WG['guishader_api'].getBlurDefault = function()
   	return defaultBlurIntensity
   end
-  WG['guishader_api'].getBlur = function()
+  WG['guishader_api'].getBlurIntensity = function()
   	return blurIntensity
   end
-  WG['guishader_api'].setBlur = function(value)
+  WG['guishader_api'].setBlurIntensity = function(value)
   	blurIntensity = value
   end
   WG['guishader_api'].setScreenBlur = function(value)
   	screenBlur = value
+  end
+  WG['guishader_api'].getScreenBlur = function(value)
+  	return screenBlur
+  end
+  WG['guishader_api'].setAllowScreenBlur = function(value)
+  	allowScreenBlur = value
+  end
+  WG['guishader_api'].getAllowScreenBlur = function(value)
+  	return screenBlur
   end
 end
 
@@ -320,7 +335,7 @@ end
 function widget:DrawScreenEffectsBlur()
 	if Spring.IsGUIHidden() then return end
 	
-  if not screenBlur then
+  if not screenBlur or not allowScreenBlur then
 	  if not next(guishaderRects) then return end
 
 	  gl.Texture(false)
@@ -357,7 +372,7 @@ end
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
   
-	if screenBlur then
+	if screenBlur and allowScreenBlur then
 	  if not next(guishaderRects) then return end
 
 	  gl.Texture(false)
@@ -389,4 +404,22 @@ function widget:DrawScreen()
 
 	  gl.Blending(true)
 	 end
+end
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.allowScreenBlur = allowScreenBlur
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.allowScreenBlur ~= nil then
+			allowScreenBlur = data.allowScreenBlur
+	end
+end
+
+function widget:TextCommand(command)
+    if (string.find(command, "allowscreenblur") == 1  and  string.len(command) == 15) then 
+		allowScreenBlur = not allowScreenBlur
+	end
 end

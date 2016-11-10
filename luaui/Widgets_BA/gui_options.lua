@@ -6,7 +6,7 @@ return {
 	author  = "Floris",
 	date    = "September 2016",
 	license = "Dental flush",
-	layer   = -1,
+	layer   = -2000,
 	enabled = true,
   handler = true, 
 }
@@ -390,6 +390,7 @@ function widget:DrawScreen()
 				local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 				WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
+				WG['guishader_api'].setScreenBlur(true)
 			end
 			showOnceMore = false
 			
@@ -447,7 +448,10 @@ function widget:DrawScreen()
 		glPopMatrix()
 	else
 		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('options')
+			local removed = WG['guishader_api'].RemoveRect('options')
+			if removed then
+				WG['guishader_api'].setScreenBlur(false)
+			end
 		end
 	end
 end

@@ -10,7 +10,7 @@ function widget:GetInfo()
 		author    = "very_bad_soldier",
 		date      = "October 21, 2007",
 		license   = "GNU GPL v2",
-		layer     = -10000000,
+		layer     = -100,
 		enabled   = true
 	}
 end
