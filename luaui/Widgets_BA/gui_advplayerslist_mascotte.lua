@@ -50,6 +50,7 @@ table.insert(OPTIONS, {
 })
 local currentOption = 1
 
+local usedImgSize = OPTIONS[currentOption]['imageSize']
 
 function table.shallow_copy(t)
 	local t2 = {}
