@@ -231,10 +231,10 @@ local function CreateGrid(r)
 	}
 	
 	local mouseoverhighlight = Copy(selecthighlight,true)
-	mouseoverhighlight.color={1,1,1,0.14}
+	mouseoverhighlight.color={1,1,1,0.1}
 	mouseoverhighlight.border={1,1,1,0}
 	mouseoverhighlight.texture = LUAUI_DIRNAME.."Images/button-highlight.dds"
-	mouseoverhighlight.texturecolor={1,1,1,0.14}
+	mouseoverhighlight.texturecolor={1,1,1,0.1}
 	
 	local heldhighlight = Copy(selecthighlight,true)
 	heldhighlight.color={1,0.75,0,0.08}
@@ -569,34 +569,41 @@ local function UpdateGrid(g,cmds,ordertype)
 					s.active = nil --activate
 					
 					
-					local spread = 2
+					local spread = 7
 					s.sx = (sx-(spread*(statecount-1+2)))/statecount
-					s.sy = (sy/6.75)
+					s.sy = (sy/8.5)
 					s.px = px+spread + (s.sx+spread)*(i-1)
-					s.py = py + sy - s.sy -spread
+					s.py = py + sy - s.sy - spread
 					
 					--s.sx = (icon.sx-(spread*(statecount-1+2)))/statecount
 					--s.sy = (icon.sy/7)
 					--s.px = icon.px+spread + (s.sx+spread)*(i-1)
 					--s.py = icon.py + icon.sy - s.sy -spread
+					s.border = {0.22,0.22,0.22,0.75}
 					
 					if (i == curstate) then
 						usr = usedstaterectangles
 						if (statecount < 4) then
 							if (i == 1) then
-								s.color = {0.8,0,0,1}
+								s.color = {0.83,0,0,1}
+								s.border = {0.83,0,0,1}
 							elseif (i == 2) then
 								if (statecount == 3) then
-									s.color = {0.8,0.8,0,1}
+									s.color = {0.83,0.83,0,1}
+									s.border = {0.83,0.83,0,1}
 								else
-									s.color = {0,0.8,0,1}
+									s.color = {0,0.83,0,1}
+									s.border = {0,0.83,0,1}
 								end
 							elseif (i == 3) then
-								s.color = {0,0.8,0,1}
+								s.color = {0,0.83,0,1}
+								s.border = {0,0.83,0,1}
 							end
 						else
-							s.color = {0.8,0.8,0.8,1}
+							s.color = {0.83,0.83,0.83,1}
+							s.border = {0.83,0.83,0.83,1}
 						end
+						s.border[4] = 0.3
 					else
 						s.color = nil
 					end
@@ -615,7 +622,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					g.staterectangles[usedstaterectangles] = s2
 					table.insert(g.background.movableslaves,s2)
 					
-					local glowSize = s.sy * 2.33
+					local glowSize = s.sy * 2.5
 					s2.sy = s.sy + glowSize + glowSize
 					s2.py = s.py - glowSize
 					--s2.px = s.px - (glowSize * 0.45)
@@ -629,7 +636,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					s2.texturecolor[1] = s2.texturecolor[1] * 10
 					s2.texturecolor[2] = s2.texturecolor[2] * 10
 					s2.texturecolor[3] = s2.texturecolor[3] * 10
-					s2.texturecolor[4] = 0.065
+					s2.texturecolor[4] = 0.075
 					
 					local s3 = New(Copy(s2,true))
 					usedstaterectangles = usedstaterectangles + 1

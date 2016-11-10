@@ -148,7 +148,7 @@ function createList(force)
 				--glRect(0, 0, panelWidth, panelHeight)
 				RectRound(xPos-panelPadding, yPos-panelPadding, xPos+panelWidth+panelPadding, yPos+panelHeight+panelPadding, 6*widgetScale)
 				
-				local borderPadding = 4
+				local borderPadding = 3.3*widgetScale
 				glColor(1,1,1,0.022)
 				RectRound(xPos-panelPadding+borderPadding, yPos-panelPadding+borderPadding, xPos+panelWidth+panelPadding-borderPadding, yPos+panelHeight+panelPadding-borderPadding, 5*widgetScale)
 				
@@ -160,8 +160,8 @@ function createList(force)
 				glEndText()
 				
 				-- Bar
-				glColor(0,0,0, 0.16)
-				glRect((panelWidth-(panelPadding*2))-1, panelPadding+(panelHeight/7.5)-1, (panelPadding*2)+1, panelPadding+(panelHeight/4.7)+1)
+				glColor(0,0,0, 0.11)
+				glRect((panelWidth-(panelPadding*2))+(1*widgetScale), panelPadding+(panelHeight/7.5)-(1*widgetScale), (panelPadding*2)-(1*widgetScale), panelPadding+(panelHeight/4.7)+(1*widgetScale))
 				glColor(1,1,1,1)
 				glTexture(barbg)
 				glTexRect((panelWidth-(panelPadding*2)), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
@@ -181,7 +181,7 @@ function createList(force)
 				
 				-- Slider
 				glTexture(barbg)
-				glColor(0, 0, 0, 0.33)
+				glColor(0, 0, 0, 0.25)
 				glRect(sliderX + (panelPadding*2) + (panelWidth/50)+1, panelPadding-1, sliderX + (panelPadding*2) - (panelWidth/50)-1, panelPadding+(panelHeight/3.1)+1)
 				glColor(0.88, 0.88, 0.1, 1)
 				glTexRect(sliderX + (panelPadding*2)  + (panelWidth/50), panelPadding, sliderX + (panelPadding*2) - (panelWidth/50), panelPadding+(panelHeight/3.1))
