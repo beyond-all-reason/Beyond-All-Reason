@@ -34,8 +34,8 @@ local unitExceptions = include("Configs/snd_music_exception.lua")
 
 local windows = {}
 
-local WAR_THRESHOLD = 5000
-local PEACE_THRESHOLD = 1000
+local WAR_THRESHOLD = 5000000000000000
+local PEACE_THRESHOLD = 1000000000000000
 
 local musicType = 'peace'
 local dethklok = {} -- keeps track of the number of doods killed in each time frame
