@@ -592,23 +592,23 @@ local function UpdateGrid(g,cmds,ordertype)
 						usr = usedstaterectangles
 						if (statecount < 4) then
 							if (i == 1) then
-								s.color = {0.83,0,0,1}
-								s.border = {0.83,0,0,1}
+								s.color = {0.85,0,0,1}
+								s.border = {0.85,0,0,1}
 							elseif (i == 2) then
 								if (statecount == 3) then
-									s.color = {0.83,0.83,0,1}
-									s.border = {0.83,0.83,0,1}
+									s.color = {0.85,0.85,0,1}
+									s.border = {0.85,0.85,0,1}
 								else
-									s.color = {0,0.83,0,1}
-									s.border = {0,0.83,0,1}
+									s.color = {0,0.85,0,1}
+									s.border = {0,0.85,0,1}
 								end
 							elseif (i == 3) then
-								s.color = {0,0.83,0,1}
-								s.border = {0,0.83,0,1}
+								s.color = {0,0.85,0,1}
+								s.border = {0,0.85,0,1}
 							end
 						else
-							s.color = {0.83,0.83,0.83,1}
-							s.border = {0.83,0.83,0.83,1}
+							s.color = {0.85,0.85,0.85,1}
+							s.border = {0.85,0.85,0.85,1}
 						end
 						s.border[4] = 0.3
 					else

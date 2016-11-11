@@ -234,18 +234,18 @@ local function SetParticleDefinitions()
 	  default_high_quality = {
 	  	cloud = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.07,
+		    alpha       = 0.06,
 		    size        = 8,
 		    sizeSpread  = 6,
 		    sizeGrowth  = 0.4,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    texture     = "bitmaps/Other/Poof.png",
-		    particles   = 4,
+		    particles   = 3.5,
 	    },
 	  	cloud2 = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.045,
+		    alpha       = 0.04,
 		    size        = 5,
 		    sizeSpread  = 3,
 		    sizeGrowth  = 0.4,
@@ -259,36 +259,39 @@ local function SetParticleDefinitions()
 		    fxtype      = "NanoParticles",
 		    alpha       = "0.3+math.random(1)/4",
 		    size        = 0.4,
-		    sizeSpread  = 1.1,
+		    sizeSpread  = 1.12,
 		    sizeGrowth  = 0.05,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    particles   = "math.random(1)/3",
 		    color       = {1,1,1},
+		    radiusMultiplier = 0.85,
 		  },
 	    energypart2 = {
 		    fxtype      = "NanoParticles",
 		    alpha       = "0.23+math.random(1)/3.3",
 		    size        = 1,
 		    sizeSpread  = 0,
-		    sizeGrowth  = 0.1,
+		    sizeGrowth  = 0.12,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
 		    particles   = "math.random(1)*0.8",
 		    texture     = "bitmaps/projectiletextures/flashcrap.png",
 		    color       = {1,1,1},
+		    radiusMultiplier = 0.85,
 		  },
 	    energypart3 = {
 		    fxtype      = "NanoParticles",
 		    alpha       = "0.23+math.random(1)/3.3",
 		    size        = 1,
 		    sizeSpread  = 0,
-		    sizeGrowth  = 0.1,
+		    sizeGrowth  = 0.12,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
 		    particles   = "math.random(1)*0.7",
 		    texture     = "bitmaps/projectiletextures/flashcrap2.png",
 		    color       = {1,1,1},
+		    radiusMultiplier = 0.85,
 		  },
 		}
 	}
@@ -300,11 +303,12 @@ local function SetParticleDefinitions()
 	    size        = 1.5,
 	    sizeSpread  = 5,
 	    sizeGrowth  = 0.04,
-	    rotSpeed    = "0.32+math.random(1)/1.3",
+	    rotSpeed    = "0.25+math.random(1)/2",
 	    rotSpread   = 360,
 	    particles   = "math.random(1)/10",
 	    color       = {1,1,1},
 	    texture     = "bitmaps/xmas/star.png",
+		  radiusMultiplier = 0.7,
 	  }
 		factionsNanoFx.default_high_quality.xmas1 = deepcopy(xmas)
 		factionsNanoFx.default_high_quality.xmas1.texture = "bitmaps/xmas/mistletoe.png"
@@ -342,10 +346,11 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
+local framesPerUpdate = 20		-- high value makes responsetime bad too
 function gadget:GameFrame(frame)
 	for i=1,#builders do
 		local unitID = builders[i]
-		if ((unitID + frame) % 20 < 1) then --// only update once per second
+		if ((unitID + frame) % framesPerUpdate < 1) then --// only update once per second
 			local strength = (Spring.GetUnitCurrentBuildPower(unitID) or 0)*(Spring.GetUnitRulesParam(unitID, "totalEconomyChange") or 1)	-- * 16
 			if (strength > 0) then
 				local type, target, isFeature = Spring.Utilities.GetUnitNanoTarget(unitID)
@@ -365,7 +370,7 @@ function gadget:GameFrame(frame)
 					if radius == 1 then	-- reclaim unit gives back 1 so yeah...
 						radius = 20
 					end
-					radius = radius * 0.7
+					radius = radius * 0.65
 					
 					local terraform = false
 					local inversed  = false
@@ -412,7 +417,7 @@ function gadget:GameFrame(frame)
 							allyID       = allyID,
 							nanopiece    = nanoPieceID,
 							targetpos    = endpos,
-							count        = strength * 20,
+							count        = strength * framesPerUpdate,
 							color        = teamColor,
 							type         = type,
 							targetradius = radius,
@@ -424,6 +429,10 @@ function gadget:GameFrame(frame)
 						local nanoSettings = deepcopy(factionsNanoFx[faction] or factionsNanoFx.default)
 						for fxname, fxparams in pairs(nanoSettings) do
 							nanoSettings[fxname] = CopyMergeTables(fxparams, nanoParams)
+							if nanoSettings[fxname].radiusMultiplier ~= nil then
+							 	nanoSettings[fxname].targetradius = nanoSettings[fxname].targetradius * nanoSettings[fxname].radiusMultiplier
+								nanoSettings[fxname].radiusMultiplier = nil
+							end
 						end
 						ExecuteLuaCode(nanoSettings)
 						if Lups then
@@ -492,7 +501,7 @@ function gadget:Update()
 
     local factionNanoFx = factionsNanoFx[faction]
     for fxname, fxparams in pairs(factionNanoFx) do
-	    factionNanoFx[fxname].delaySpread = 20
+	    factionNanoFx[fxname].delaySpread = framesPerUpdate
 	    factionNanoFx[fxname].fxtype = factionNanoFx[fxname].fxtype:lower()
 	    if ((Lups.Config["quality"] or 2)>=2)and((factionNanoFx[fxname].fxtype=="nanolasers")or(factionNanoFx[fxname].fxtype=="nanolasersshader")) then
 	      factionNanoFx[fxname].flare = true
