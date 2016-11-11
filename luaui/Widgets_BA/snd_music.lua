@@ -271,7 +271,7 @@ local function PlayNewTrack()
 		-- Spring.Echo("Song changed but unable to get the artist and title info")
 	-- end
 	curTrack = newTrack
-	
+	WG.music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
 	Spring.PlaySoundStream(newTrack)
 	Spring.SetSoundStreamVolume(WG.music_volume or 0.33)
 	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. WG.music_volume .. [[
