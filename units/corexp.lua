@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Armed Metal Extractor",
-		explodeas = "mediumBuildingExplosionGenericRed",
+		explodeas = "mediumBuildingexplosiongeneric",
 		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,

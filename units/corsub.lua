@@ -119,7 +119,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
-				explosiongenerator = "custom:genericshellexplosion-large-red",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				flighttime = 3,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

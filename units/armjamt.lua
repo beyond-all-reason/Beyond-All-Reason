@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		description = "Cloakable Jammer Tower",
 		energyuse = 40,
-		explodeas = "smallBuildingExplosionGenericRed",
+		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
@@ -32,7 +32,7 @@ return {
 		onoffable = true,
 		radardistancejam = 500,
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGenericRed",
+		selfdestructas = "smallBuildingexplosiongeneric",
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {

@@ -71,7 +71,7 @@ return {
 			core_seaadvbomb = {
 				areaofeffect = 100,
 				avoidfeature = false,
-				bounceexplosiongenerator = "custom:genericshellexplosion-small-blue",
+				bounceexplosiongenerator = "custom:genericshellexplosion-small",
 				bouncerebound = 0.15,
 				bounceslip = 0.75,
 				burst = 3,
@@ -82,7 +82,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				explosiongenerator = "custom:genericshellexplosion-small-red",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
