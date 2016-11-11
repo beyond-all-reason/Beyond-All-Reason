@@ -11,7 +11,7 @@ Balance changes:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
 - Building explosion damages
 - All Energy and metal prices are rounded off
-- Range of t1 aa pack0 and sam increased: 900 -> 1200
+- Range of t1 aa pack0 and sam increased
 - Terraform (restore) speed increased
 
 Other:

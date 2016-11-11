@@ -89,7 +89,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-large-blue",
+				explosiongenerator = "custom:genericshellexplosion-large",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",

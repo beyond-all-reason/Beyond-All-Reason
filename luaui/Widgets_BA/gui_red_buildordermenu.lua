@@ -379,6 +379,7 @@ local function CreateGrid(r)
 		effects = background.effects,
 	}
 	local staterectangles = {}
+	local staterectanglesglow = {}
 	
 	New(selecthighlight)
 	New(mouseoverhighlight)
@@ -396,6 +397,7 @@ local function CreateGrid(r)
 		["forward"] = forward,
 		["indicator"] = indicator,
 		["staterectangles"] = staterectangles,
+		["staterectanglesglow"] = staterectanglesglow,
 		["staterect"] = staterect,
 		["texts"] = texts,
 	}
@@ -444,6 +446,11 @@ local function UpdateGrid(g,cmds,ordertype)
 		g.staterectangles[i].active = false
 	end
 	local usedstaterectangles = 0
+	
+	for i=1,#g.staterectanglesglow do
+		g.staterectanglesglow[i].active = false
+	end
+	local usedstaterectanglesglow = 0
 	
 	for i=1,#g.texts do
 		local text = g.texts[i]
@@ -585,23 +592,23 @@ local function UpdateGrid(g,cmds,ordertype)
 						usr = usedstaterectangles
 						if (statecount < 4) then
 							if (i == 1) then
-								s.color = {0.83,0,0,1}
-								s.border = {0.83,0,0,1}
+								s.color = {0.85,0,0,1}
+								s.border = {0.85,0,0,1}
 							elseif (i == 2) then
 								if (statecount == 3) then
-									s.color = {0.83,0.83,0,1}
-									s.border = {0.83,0.83,0,1}
+									s.color = {0.85,0.85,0,1}
+									s.border = {0.85,0.85,0,1}
 								else
-									s.color = {0,0.83,0,1}
-									s.border = {0,0.83,0,1}
+									s.color = {0,0.85,0,1}
+									s.border = {0,0.85,0,1}
 								end
 							elseif (i == 3) then
-								s.color = {0,0.83,0,1}
-								s.border = {0,0.83,0,1}
+								s.color = {0,0.85,0,1}
+								s.border = {0,0.85,0,1}
 							end
 						else
-							s.color = {0.83,0.83,0.83,1}
-							s.border = {0.83,0.83,0.83,1}
+							s.color = {0.85,0.85,0.85,1}
+							s.border = {0.85,0.85,0.85,1}
 						end
 						s.border[4] = 0.3
 					else
@@ -616,42 +623,60 @@ local function UpdateGrid(g,cmds,ordertype)
 				
 				-- add glow for current state
 				if (g.staterectangles[usr] ~= nil) then
-					usedstaterectangles = usedstaterectangles + 1
-					local s = g.staterectangles[usr]
-					local s2 = New(Copy(s,true))
-					g.staterectangles[usedstaterectangles] = s2
-					table.insert(g.background.movableslaves,s2)
+					s = g.staterectangles[usr]
+					usedstaterectanglesglow = usedstaterectanglesglow + 1
+					local s2 = g.staterectanglesglow[usedstaterectanglesglow]
+					if (s2 == nil) then
+						s2 = New(Copy(g.staterectangles[usr],true))
+						g.staterectanglesglow[usedstaterectanglesglow] = s2
+						table.insert(g.background.movableslaves,s2)
+					end
 					
-					local glowSize = s.sy * 2.5
+					local glowSize = s.sy * 2.8
 					s2.sy = s.sy + glowSize + glowSize
 					s2.py = s.py - glowSize
-					--s2.px = s.px - (glowSize * 0.45)
-					--s2.sx = s.sx + (glowSize * 1)
-					s2.border = {0,0,0,0}
+					s2.px = s.px
+					s2.sx = s.sx
 					s2.texture = barGlowCenterTexture
-					s2.color[1] = s2.color[1] * 10
-					s2.color[2] = s2.color[2] * 10
-					s2.color[3] = s2.color[3] * 10
-					s2.color[4] = 0
-					s2.texturecolor[1] = s2.texturecolor[1] * 10
-					s2.texturecolor[2] = s2.texturecolor[2] * 10
-					s2.texturecolor[3] = s2.texturecolor[3] * 10
-					s2.texturecolor[4] = 0.075
+					s2.border = {0,0,0,0}
+					s2.color = {s.color[1] * 10, s.color[2] * 10, s.color[3] * 10, 0}
+					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.08}
+					s2.active = true
 					
-					local s3 = New(Copy(s2,true))
-					usedstaterectangles = usedstaterectangles + 1
-					g.staterectangles[usedstaterectangles] = s3
-					table.insert(g.background.movableslaves,s3)
-					s3.texture = barGlowEdgeTexture
+					usedstaterectanglesglow = usedstaterectanglesglow + 1
+					local s3 = g.staterectanglesglow[usedstaterectanglesglow]
+					if (s3 == nil) then
+						s3 = New(Copy(s2,true))
+						g.staterectanglesglow[usedstaterectanglesglow] = s3
+						table.insert(g.background.movableslaves,s3)
+					end
+					s3.sy = s.sy + glowSize + glowSize
+					s3.py = s.py - glowSize
 					s3.px = s.px - (glowSize * 2)
 					s3.sx = (glowSize * 2)
+					s3.texture = barGlowEdgeTexture
+					s3.border = s2.border
+					s3.color = s2.color
+					s3.texturecolor = s2.texturecolor
+					s3.active = true
 					
-					local s4 = New(Copy(s3,true))
-					usedstaterectangles = usedstaterectangles + 1
-					g.staterectangles[usedstaterectangles] = s4
-					table.insert(g.background.movableslaves,s4)
+					usedstaterectanglesglow = usedstaterectanglesglow + 1
+					local s4 = g.staterectanglesglow[usedstaterectanglesglow]
+					if (s4 == nil) then
+						s4 = New(Copy(s2,true))
+						g.staterectanglesglow[usedstaterectanglesglow] = s4
+						table.insert(g.background.movableslaves,s4)
+					end
+					s4.sy = s.sy + glowSize + glowSize
+					s4.py = s.py - glowSize
 					s4.px = s.px + s.sx + (glowSize * 2)
 					s4.sx = -(glowSize * 2)
+					s4.texture = barGlowEdgeTexture
+					s4.border = s2.border
+					s4.color = s2.color
+					s4.texturecolor = s2.texturecolor
+					s4.active = true
+					
 				end
 			else
 				icon.caption = " "..cmd.name.." "

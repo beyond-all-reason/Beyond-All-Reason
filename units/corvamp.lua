@@ -13,7 +13,7 @@ return {
 		collide = false,
 		cruisealt = 160,
 		description = "Stealth Fighter",
-		explodeas = "smallExplosionGenericRed",
+		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "air",
