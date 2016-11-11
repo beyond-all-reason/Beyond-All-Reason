@@ -70,6 +70,7 @@ options = {
 	pausemusic = {name='Pause Music', type='bool', value=false},
 }
 
+local vsx, vsy   = widgetHandler:GetViewSizes()
 
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local widgetScale = 1
@@ -123,6 +124,119 @@ function widget:Initialize()
 end
 
 
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.05		-- texture offset, because else gaps could show
+	local o = offset
+	
+	-- top left
+	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
+end
+
+
+local function createList()
+	if drawlist[1] ~= nil then
+		glDeleteList(drawlist[1])
+	end
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].InsertRect(left, bottom, right, top,'music')
+	end
+	drawlist[1] = glCreateList( function()
+		glColor(0, 0, 0, 0.6)
+		RectRound(left, bottom, right, top, 5.5*widgetScale)
+		
+		local borderPadding = 2.75*widgetScale
+		--glColor(1,1,1,0.022)
+		--RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
+		
+		-- track name
+		local textsize = 11*widgetScale
+		local maxTextWidth = 180*widgetScale
+		local textPadding = 8
+		glColor(0.3,0.3,0.3,1)
+		local text = ''
+		for i=1, #curTrack do
+	    local c = string.sub(curTrack, i,i)
+			local width = glGetTextWidth(text..c)*textsize
+	    if width > maxTextWidth then
+	    	break
+	    else
+	    	text = text..c
+	    end
+		end
+		glText(text, left + (textPadding*widgetScale), bottom + (textPadding*widgetScale), textsize)
+		
+		-- next button
+		
+		-- pause button
+		
+		-- volume slider
+		
+	end)
+end
+
+
 function widget:Shutdown()
 	Spring.StopSoundStream()
 	
@@ -166,6 +280,8 @@ local function PlayNewTrack()
 	playing = true
 
 	WG.music_start_volume = WG.music_volume
+	
+	createList()
 end
 
 function widget:Update(dt)
@@ -330,117 +446,6 @@ function widget:GameOver()
 	WG.music_start_volume = WG.music_volume
 end
 
-local function DrawRectRound(px,py,sx,sy,cs)
-	gl.TexCoord(0.8,0.8)
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-	
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
-	
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
-	gl.Vertex(sx, sy-cs, 0)
-end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
-	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
-	gl.Texture(false)
-end
-
-
-local function createList()
-	if drawlist[1] ~= nil then
-		glDeleteList(drawlist[1])
-	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(left, bottom, right, top,'music')
-	end
-	drawlist[1] = glCreateList( function()
-		glColor(0, 0, 0, 0.6)
-		RectRound(left, bottom, right, top, 5.5*widgetScale)
-		
-		local borderPadding = 2.75*widgetScale
-		--glColor(1,1,1,0.022)
-		--RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
-		
-		-- track name
-		local textsize = 11*widgetScale
-		local maxTextWidth = 180*widgetScale
-		local textPadding = 3.3*widgetScale
-		glColor(0.3,0.3,0.3,1)
-		local text = ''
-		for i=1, #curTrack do
-	    local c = string.sub(curTrack, i,i)
-			local width = glGetTextWidth(text..c)*textsize
-	    if width > maxTextWidth then
-	    	break
-	    else
-	    	text = text..c
-	    end
-		end
-		glText(text, left + (textPadding*widgetScale), bottom + (textPadding*widgetScale), textsize)
-		
-		-- next button
-		
-		-- pause button
-		
-		-- volume slider
-		
-	end)
-end
 
 function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
