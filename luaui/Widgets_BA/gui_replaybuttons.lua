@@ -24,7 +24,7 @@ local isActive = true --is the widget shown and reacts to clicks?
 
 function widget:Initialize()	
 	if (not Spring.IsReplay()) then
-		Spring.Echo ("replaycontrol: Not a replay, removing myself.")
+		Spring.Echo ("[Replay Control] Replay not detected, Shutting Down.")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
