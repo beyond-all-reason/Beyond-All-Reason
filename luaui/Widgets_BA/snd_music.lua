@@ -15,10 +15,10 @@ function widget:GetInfo()
 	return {
 		name	= "Music Player",
 		desc	= "Plays music based on situation",
-		author	= "cake, trepan, Smoth, Licho, xponen, Forboding Angel",
+		author	= "cake, trepan, Smoth, Licho, xponen, Forboding Angel, Floris",
 		date	= "Mar 01, 2008, Aug 20 2009, Nov 23 2011",
 		license	= "GNU GPL, v2 or later",
-		layer	= 0,
+		layer	= -3,
 		enabled	= true	--	loaded by default?
 	}
 end
@@ -70,6 +70,34 @@ options = {
 	pausemusic = {name='Pause Music', type='bool', value=false},
 }
 
+
+local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local widgetScale = 1
+local glText         = gl.Text
+local glGetTextWidth = gl.GetTextWidth
+local glBlending     = gl.Blending
+local glScale        = gl.Scale
+local glRotate       = gl.Rotate
+local glTranslate	   = gl.Translate
+local glPushMatrix   = gl.PushMatrix
+local glPopMatrix	   = gl.PopMatrix
+local glColor        = gl.Color
+local glRect         = gl.Rect
+local glTexRect	     = gl.TexRect
+local glTexture      = gl.Texture
+local glCreateList   = gl.CreateList
+local glDeleteList   = gl.DeleteList
+local glCallList     = gl.CallList
+
+local drawlist = {}
+local advplayerlistPos = {}
+local widgetHeight = 23
+local top, left, bottom, right = 0,0,0,0
+
+local shown = false
+local mouseover = false
+
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -91,11 +119,16 @@ function widget:Initialize()
 	for i = 1, 30, 1 do
 		dethklok[i]=0
 	end
+	updatePosition()
 end
 
 
 function widget:Shutdown()
 	Spring.StopSoundStream()
+	
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('music')
+	end
 
 	for i=1,#windows do
 		(windows[i]):Dispose()
@@ -297,6 +330,167 @@ function widget:GameOver()
 	WG.music_start_volume = WG.music_volume
 end
 
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.05		-- texture offset, because else gaps could show
+	local o = offset
+	
+	-- top left
+	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
+end
+
+
+local function createList()
+	if drawlist[1] ~= nil then
+		glDeleteList(drawlist[1])
+	end
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].InsertRect(left, bottom, right, top,'music')
+	end
+	drawlist[1] = glCreateList( function()
+		glColor(0, 0, 0, 0.6)
+		RectRound(left, bottom, right, top, 5.5*widgetScale)
+		
+		local borderPadding = 2.75*widgetScale
+		--glColor(1,1,1,0.022)
+		--RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
+		
+		-- track name
+		local textsize = 11*widgetScale
+		local maxTextWidth = 180*widgetScale
+		local textPadding = 3.3*widgetScale
+		glColor(0.3,0.3,0.3,1)
+		local text = ''
+		for i=1, #curTrack do
+	    local c = string.sub(curTrack, i,i)
+			local width = glGetTextWidth(text..c)*textsize
+	    if width > maxTextWidth then
+	    	break
+	    else
+	    	text = text..c
+	    end
+		end
+		glText(text, left + (textPadding*widgetScale), bottom + (textPadding*widgetScale), textsize)
+		
+		-- next button
+		
+		-- pause button
+		
+		-- volume slider
+		
+	end)
+end
+
+function updatePosition(force)
+	if (WG['advplayerlist_api'] ~= nil) then
+		local prevPos = advplayerlistPos
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		
+		left = advplayerlistPos[2]
+		bottom = advplayerlistPos[1]
+		right = advplayerlistPos[4]
+		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
+		widgetScale = advplayerlistPos[5]
+		
+		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+			createList()
+		end
+	end
+end
+
+function widget:ViewResize(newX,newY)
+	vsx, vsy = newX, newY
+end
+
+function widget:DrawScreen()
+	updatePosition()
+	if drawlist[1] ~= nil then
+		glPushMatrix()
+			glCallList(drawlist[1])
+		glPopMatrix()
+		mouseover = false
+	end
+end
+
+function widget:GetConfigData(data)
+	local playedTime, totalTime = Spring.GetSoundStreamTime()
+  local savedTable = {}
+  savedTable.curTrack	= curTrack
+  savedTable.playedTime = playedTime
+  savedTable.playing = playing
+  return savedTable
+end
+
+-- would be great if there is be a way to continue track where we left off after a /luaui reload
+function widget:SetConfigData(data)
+	if Spring.GetGameFrame() > 0 and data.curTrack ~= nil then
+		curTrack = data.curTrack
+		if data.playing then
+			
+		end
+	end
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
