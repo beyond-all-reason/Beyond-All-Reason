@@ -212,11 +212,11 @@ local function createList()
 		
 		-- track name
 		local textsize = 11*widgetScale
-		local maxTextWidth = 180*widgetScale
+		local maxTextWidth = 350*widgetScale
 		local textPadding = 8
 		glColor(0.3,0.3,0.3,1)
 		local text = ''
-		for i=1, #curTrack do
+		for i=30, #curTrack do
 	    local c = string.sub(curTrack, i,i)
 			local width = glGetTextWidth(text..c)*textsize
 	    if width > maxTextWidth then
