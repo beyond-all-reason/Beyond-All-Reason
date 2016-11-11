@@ -82,8 +82,8 @@ local function GetCommAttributes(unitID, unitDefID)
   local players = GetPlayerList(team)
   local name = (#players>0) and GetPlayerInfo(players[1]) or 'Robert Paulson'
   for _,pID in ipairs(players) do
-    local pname,active = GetPlayerInfo(pID)
-    if active then
+    local pname,active,spec = GetPlayerInfo(pID)
+    if active and not spec then
       name = pname
       break
     end
