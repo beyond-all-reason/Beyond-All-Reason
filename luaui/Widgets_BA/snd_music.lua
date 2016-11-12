@@ -59,6 +59,7 @@ local firstFade = true
 local initSeed = 0
 local seedInitialized = false
 local gameOver = false
+local playing = true
 
 local myTeam = Spring.GetMyTeamID()
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
@@ -72,6 +73,10 @@ options = {
 
 local vsx, vsy   = widgetHandler:GetViewSizes()
 
+local playTex				= ":n:"..LUAUI_DIRNAME.."Images/music/play.png"
+local pauseTex				= ":n:"..LUAUI_DIRNAME.."Images/music/pause.png"
+local nextTex				= ":n:"..LUAUI_DIRNAME.."Images/music/next.png"
+local musicTex				= ":n:"..LUAUI_DIRNAME.."Images/music/music.png"
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local widgetScale = 1
 local glText         = gl.Text
@@ -198,6 +203,8 @@ end
 local function createList()
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
+		glDeleteList(drawlist[2])
+		glDeleteList(drawlist[3])
 	end
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(left, bottom, right, top,'music')
@@ -210,11 +217,14 @@ local function createList()
 		--glColor(1,1,1,0.022)
 		--RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 		
+	end)
+	drawlist[2] = glCreateList( function()
+	
 		-- track name
 		local textsize = 11*widgetScale
-		local maxTextWidth = 350*widgetScale
 		local textPadding = 8
-		glColor(0.3,0.3,0.3,1)
+		local maxTextWidth = (right-left-textPadding-textPadding-widgetHeight)*widgetScale
+		glColor(0.45,0.45,0.45,1)
 		local text = ''
 		for i=30, #curTrack do
 	    local c = string.sub(curTrack, i,i)
@@ -225,17 +235,65 @@ local function createList()
 	    	text = text..c
 	    end
 		end
-		glText(text, left + (textPadding*widgetScale), bottom + (textPadding*widgetScale), textsize)
+		glText(text, left + ((widgetHeight+textPadding-6)*widgetScale), bottom + (textPadding*widgetScale), textsize)
 		
+		glColor(1,1,1,0.35)
+		padding = 4*widgetScale
+		if playing then
+			glTexture(pauseTex)
+		else
+			glTexture(playTex)
+		end
+		glTexRect(left+padding, bottom+padding, left+(widgetHeight*widgetScale)-padding, top-padding)
+		
+		
+	end)
+	drawlist[3] = glCreateList( function()
+				
+		local borderPadding = 2.75*widgetScale
+		glColor(1,1,1,0.11)
+		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		-- next button
 		
 		-- pause button
 		
 		-- volume slider
-		
 	end)
 end
 
+
+function isInBox(mx, my, box)
+    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
+
+function widget:MousePress(mx, my, mb)
+	--Spring.Echo(mb)
+	if mb == 1 and isInBox(mx, my, {left, bottom, right, top}) then
+		playing = not playing
+		Spring.PauseSoundStream()
+		createList()
+		return true
+	end
+end
+
+function widget:MouseRelease(mx, my, mb)
+	if mb == 1 and isInBox(mx, my, {left, bottom, right, top}) then
+	
+	end
+end
+
+function widget:IsAbove(mx, my)
+	if isInBox(mx, my, {left, bottom, right, top}) then
+		mouseover = true
+	end
+	return mouseover
+end
+
+function widget:GetTooltip(mx, my)
+	if widget:IsAbove(mx,my) then
+		return string.format("Music info and controls")
+	end
+end
 
 function widget:Shutdown()
 	Spring.StopSoundStream()
@@ -247,6 +305,10 @@ function widget:Shutdown()
 	for i=1,#windows do
 		(windows[i]):Dispose()
 	end
+	
+	glDeleteList(drawlist[1])
+	glDeleteList(drawlist[2])
+	glDeleteList(drawlist[3])
 end
 
 local function PlayNewTrack()
@@ -277,7 +339,9 @@ local function PlayNewTrack()
 	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. WG.music_volume .. [[
  
 [Music Player] Press Shift and the +/- keys to adjust the music volume]])
-	playing = true
+	if playing == false then
+		Spring.PauseSoundStream()
+	end
 
 	WG.music_start_volume = WG.music_volume
 	
@@ -364,7 +428,7 @@ function widget:Update(dt)
 				newTrackWait = 0
 			end
 		end
-        local _, _, paused = Spring.GetGameSpeed()
+    local _, _, paused = Spring.GetGameSpeed()
 		if (paused ~= wasPaused) and options.pausemusic.value then
 			Spring.PauseSoundStream()
 			wasPaused = paused
@@ -473,6 +537,10 @@ function widget:DrawScreen()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glCallList(drawlist[1])
+			glCallList(drawlist[2])
+			if mouseover then
+				glCallList(drawlist[3])
+			end
 		glPopMatrix()
 		mouseover = false
 	end
@@ -489,11 +557,8 @@ end
 
 -- would be great if there is be a way to continue track where we left off after a /luaui reload
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.curTrack ~= nil then
-		curTrack = data.curTrack
-		if data.playing then
-			
-		end
+	if Spring.GetGameFrame() > 0 and data.playing ~= nil then
+		playing = data.playing
 	end
 end
 
