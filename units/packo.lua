@@ -129,8 +129,6 @@ return {
 				model = "missile",
 				name = "AA2Missile",
 				noselfdamage = true,
-				projectiles = 2,
-				proximitypriority = 1,
 				range = 1150,
 				reloadtime = 0.425,
 				smoketrail = false,

@@ -52,6 +52,7 @@ Create() // tells it what to do on creation
 	dont-shade Llauncherbase;
 	dont-shade lfp;
 	dont-shade turrettop;
+	shooting_num=1;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 2000;
@@ -84,7 +85,12 @@ AimWeapon1(heading, pitch) // aiming animation and firing authorization
 
 FireWeapon1() // what do while firing, fires 1 barrel then the next , and resets
 {
-		
+	shooting_num=shooting_num+1;
+	
+    if( shooting_num == 3)
+    {  
+    	shooting_num=1;
+    }
 }
 
 AimFromWeapon1(piecenum) // where it aims the weapon from
