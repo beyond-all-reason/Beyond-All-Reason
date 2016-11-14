@@ -77,7 +77,10 @@ local playTex				= ":n:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex				= ":n:"..LUAUI_DIRNAME.."Images/music/pause.png"
 local nextTex				= ":n:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex				= ":n:"..LUAUI_DIRNAME.."Images/music/music.png"
+local buttonTex				= ":n:"..LUAUI_DIRNAME.."Images/button.dds"
+local buttonHighlightTex				= ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+
 local widgetScale = 1
 local glText         = gl.Text
 local glGetTextWidth = gl.GetTextWidth
@@ -199,7 +202,7 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
-
+local buttons = {}
 local function createList()
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
@@ -220,10 +223,16 @@ local function createList()
 	end)
 	drawlist[2] = glCreateList( function()
 	
+		local padding = 3*widgetScale -- button background margin
+		local padding2 = 2.5*widgetScale -- inner icon padding
+		buttons['playpause'] = {left+padding, bottom+padding, left+(widgetHeight*widgetScale)-padding, top-padding}
+		buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding}
+		
 		-- track name
 		local textsize = 11*widgetScale
-		local textPadding = 8
-		local maxTextWidth = (right-left-textPadding-textPadding-widgetHeight)*widgetScale
+		local textYPadding = 8*widgetScale
+		local textXPadding = 7*widgetScale
+		local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
 		glColor(0.45,0.45,0.45,1)
 		local text = ''
 		for i=30, #curTrack do
@@ -235,23 +244,33 @@ local function createList()
 	    	text = text..c
 	    end
 		end
-		glText(text, left + ((widgetHeight+textPadding-6)*widgetScale), bottom + (textPadding*widgetScale), textsize)
+		glText(text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize)
 		
+		local button = 'playpause'
+		glColor(1,1,1,0.66)
+		glTexture(buttonTex)
+		glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
 		glColor(1,1,1,0.35)
-		padding = 4*widgetScale
 		if playing then
 			glTexture(pauseTex)
 		else
 			glTexture(playTex)
 		end
-		glTexRect(left+padding, bottom+padding, left+(widgetHeight*widgetScale)-padding, top-padding)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
+		button = 'next'
+		glColor(1,1,1,0.66)
+		glTexture(buttonTex)
+		glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
+		glColor(1,1,1,0.35)
+		glTexture(nextTex)
+		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
 	end)
 	drawlist[3] = glCreateList( function()
 				
 		local borderPadding = 2.75*widgetScale
-		glColor(1,1,1,0.11)
+		glColor(0,0,0,0.5)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		-- next button
 		
@@ -269,16 +288,16 @@ end
 function widget:MousePress(mx, my, mb)
 	--Spring.Echo(mb)
 	if mb == 1 and isInBox(mx, my, {left, bottom, right, top}) then
-		playing = not playing
-		Spring.PauseSoundStream()
-		createList()
-		return true
-	end
-end
-
-function widget:MouseRelease(mx, my, mb)
-	if mb == 1 and isInBox(mx, my, {left, bottom, right, top}) then
-	
+		if mb == 1 and buttons['playpause'] ~= nil and isInBox(mx, my, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
+			playing = not playing
+			Spring.PauseSoundStream()
+			createList()
+			return true
+		end
+		if mb == 1 and buttons['next'] ~= nil and isInBox(mx, my, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
+			PlayNewTrack()
+			return true
+		end
 	end
 end
 
@@ -311,7 +330,7 @@ function widget:Shutdown()
 	glDeleteList(drawlist[3])
 end
 
-local function PlayNewTrack()
+function PlayNewTrack()
 	Spring.StopSoundStream()
 	local newTrack = previousTrack
 	repeat
@@ -539,7 +558,29 @@ function widget:DrawScreen()
 			glCallList(drawlist[1])
 			glCallList(drawlist[2])
 			if mouseover then
-				glCallList(drawlist[3])
+			  local mx, my, mlb = Spring.GetMouseState()
+			  local color = {1,1,1,0.25}
+			  local colorHighlight = {1,1,1,0.33}
+			  local button = 'playpause'
+				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
+					if mlb then
+						glColor(colorHighlight)
+					else
+						glColor(color)
+					end
+					glTexture(buttonHighlightTex)
+					glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
+				end
+				button = 'next'
+				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
+					if mlb then
+						glColor(colorHighlight)
+					else
+						glColor(color)
+					end
+					glTexture(buttonHighlightTex)
+					glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
+				end
 			end
 		glPopMatrix()
 		mouseover = false

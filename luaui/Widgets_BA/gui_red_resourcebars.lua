@@ -276,10 +276,10 @@ local function createbar(r)
 	barGlowCenter.sy = bar.sy + glowSize + glowSize
 	if r.n == 'energy' then
 		barGlowCenter.color = {1,1,0,0}
-		barGlowCenter.texturecolor = {1,1,0,0.075}
+		barGlowCenter.texturecolor = {1,1,0,0.066}
 	else
 		barGlowCenter.color = {1,1,1,0}
-		barGlowCenter.texturecolor = {1,1,1,0.06}
+		barGlowCenter.texturecolor = {1,1,1,0.055}
 	end
 	barGlowCenter.texture = barGlowCenterTexture
 	barGlowCenter[1] = "rectangle"
