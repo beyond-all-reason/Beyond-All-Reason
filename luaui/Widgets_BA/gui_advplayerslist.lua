@@ -2545,10 +2545,9 @@ function widget:MousePress(x,y,button) --super ugly code here
 		local alt,ctrl,meta,shift = Spring.GetModKeyState() 
 		sliderPosition = 0
 		amountEM = 0
-		
 		-- spectators label onclick
 		posY = widgetPosY + widgetHeight - specsLabelOffset
-		if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY+2, widgetPosX + widgetWidth - 2, pos+20) then
+		if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY+2, widgetPosX + widgetWidth - 2, posY+20) then
 			specListShow = not specListShow
 			SetModulesPositionX() --why?
 			SortList()
