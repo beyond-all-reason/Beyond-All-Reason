@@ -234,25 +234,25 @@ local function SetParticleDefinitions()
 	  default_high_quality = {
 	  	cloud = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.06,
+		    alpha       = 0.055,
 		    size        = 8,
 		    sizeSpread  = 6,
 		    sizeGrowth  = 0.4,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    texture     = "bitmaps/Other/Poof.png",
-		    particles   = 3.5,
+		    particles   = 4,
 	    },
 	  	cloud2 = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.04,
+		    alpha       = 0.035,
 		    size        = 5,
 		    sizeSpread  = 3,
 		    sizeGrowth  = 0.4,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    texture     = "bitmaps/Other/Poof.png",
-		    particles   = 2,
+		    particles   = 2.5,
 		    color				= {0,0,0}
 	    },
 	    energypart = {
@@ -265,7 +265,7 @@ local function SetParticleDefinitions()
 		    rotSpread   = 360,
 		    particles   = "math.random(1)/3",
 		    color       = {1,1,1},
-		    radiusMultiplier = 0.85,
+		    radiusMultiplier = 0.8,
 		  },
 	    energypart2 = {
 		    fxtype      = "NanoParticles",
@@ -275,10 +275,10 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.12,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)*0.8",
+		    particles   = "math.random(1)/1.5",
 		    texture     = "bitmaps/projectiletextures/flashcrap.png",
 		    color       = {1,1,1},
-		    radiusMultiplier = 0.85,
+		    radiusMultiplier = 0.8,
 		  },
 	    energypart3 = {
 		    fxtype      = "NanoParticles",
@@ -288,10 +288,10 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.12,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)*0.7",
+		    particles   = "math.random(1)/1.7",
 		    texture     = "bitmaps/projectiletextures/flashcrap2.png",
 		    color       = {1,1,1},
-		    radiusMultiplier = 0.85,
+		    radiusMultiplier = 0.8,
 		  },
 		}
 	}
@@ -370,7 +370,7 @@ function gadget:GameFrame(frame)
 					if radius == 1 then	-- reclaim unit gives back 1 so yeah...
 						radius = 20
 					end
-					radius = radius * 0.65
+					radius = radius * 0.6
 					
 					local terraform = false
 					local inversed  = false

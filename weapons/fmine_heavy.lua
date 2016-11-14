@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.94999998807907,
-		explosiongenerator = "custom:FLASH4",
+		explosiongenerator = "custom:largeexplosiongeneric",
 		impulseboost = 0,
 		impulsefactor = 0,
 		name = "HeavyFloatingMine",

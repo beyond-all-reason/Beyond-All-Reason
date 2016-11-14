@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
-		explosiongenerator = "custom:FLASHSMALLBUILDING",
+		explosiongenerator = "custom:smallexplosiongeneric",
 		impulseboost = 0,
 		impulsefactor = 0,
 		name = "LightMine",

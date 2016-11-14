@@ -217,8 +217,8 @@ local function createList()
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
 		local borderPadding = 2.75*widgetScale
-		--glColor(1,1,1,0.022)
-		--RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
+		glColor(1,1,1,0.022)
+		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 		
 	end)
 	drawlist[2] = glCreateList( function()
@@ -244,13 +244,13 @@ local function createList()
 	    	text = text..c
 	    end
 		end
-		glText(text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize)
+		glText('\255\135\135\135'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
 		
 		local button = 'playpause'
-		glColor(1,1,1,0.66)
+		glColor(1,1,1,0.7)
 		glTexture(buttonTex)
 		glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
-		glColor(1,1,1,0.35)
+		glColor(1,1,1,0.4)
 		if playing then
 			glTexture(pauseTex)
 		else
@@ -259,10 +259,10 @@ local function createList()
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
 		button = 'next'
-		glColor(1,1,1,0.66)
+		glColor(1,1,1,0.7)
 		glTexture(buttonTex)
 		glTexRect(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4])
-		glColor(1,1,1,0.35)
+		glColor(1,1,1,0.4)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
