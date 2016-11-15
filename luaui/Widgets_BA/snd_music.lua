@@ -298,30 +298,39 @@ local function createList()
 
 		local sliderWidth = 3.3*widgetScale
 		local sliderHeight = 3.3*widgetScale
-		local lineHeight = 0.7*widgetScale
+		local lineHeight = 0.8*widgetScale
+		local lineOutlineSize = 0.85*widgetScale
 		
 		button = 'musicvolumeicon'
 		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
-		glColor(0.6,0.6,0.6,1)
+		glColor(0.66,0.66,0.66,1)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
 		button = 'musicvolume'
-		glColor(0.35,0.35,0.35,1)
+		glColor(0,0,0,0.12)
+		RectRound(buttons[button][1]-lineOutlineSize, sliderY-lineHeight-lineOutlineSize, buttons[button][3]+lineOutlineSize, sliderY+lineHeight+lineOutlineSize, (lineHeight/2.2)*widgetScale)
+		glColor(0.5,0.5,0.5,1)
 		RectRound(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight, (lineHeight/2.2)*widgetScale)
-		glColor(0.6,0.6,0.6,1)
+		glColor(0,0,0,0.12)
+		RectRound(buttons[button][5]-sliderWidth-lineOutlineSize, sliderY-sliderHeight-lineOutlineSize, buttons[button][5]+sliderWidth+lineOutlineSize, sliderY+sliderHeight+lineOutlineSize, (sliderWidth/4)*widgetScale)
+		glColor(0.66,0.66,0.66,1)
 		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/4)*widgetScale)
 
 
 		button = 'volumeicon'
-		glColor(0.6,0.6,0.6,1)
+		glColor(0.66,0.66,0.66,1)
 		glTexture(volumeTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
 		
 		button = 'volume'
-		glColor(0.35,0.35,0.35,1)
+		glColor(0,0,0,0.12)
+		RectRound(buttons[button][1]-lineOutlineSize, sliderY-lineHeight-lineOutlineSize, buttons[button][3]+lineOutlineSize, sliderY+lineHeight+lineOutlineSize, (lineHeight/2.2)*widgetScale)
+		glColor(0.5,0.5,0.5,1)
 		RectRound(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight, (lineHeight/2.2)*widgetScale)
-		glColor(0.6,0.6,0.6,1)
+		glColor(0,0,0,0.12)
+		RectRound(buttons[button][5]-sliderWidth-lineOutlineSize, sliderY-sliderHeight-lineOutlineSize, buttons[button][5]+sliderWidth+lineOutlineSize, sliderY+sliderHeight+lineOutlineSize, (sliderWidth/4)*widgetScale)
+		glColor(0.66,0.66,0.66,1)
 		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/4)*widgetScale)
 		
 	end)
