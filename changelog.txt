@@ -8,8 +8,8 @@ Important:
 Balance changes:
 - Introduced a minimum buildrange (mainly commander has bigger buildrange due to this)
 - Standardized buildspeed numbers (due to this aircons can build faster now)
+- Labs have more buildpower
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
-- Building explosion damages
 - All Energy and metal prices are rounded off
 - Range of t1 aa pack0 and sam increased
 - Terraform (restore) speed increased
@@ -19,11 +19,11 @@ Other:
 - Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
 - Buildmenu: shows shortcuts (B->Q means press B first and Q after) (hides with /iconinfokeys)
 - Options: fixed that not all settings remembered their value
-- Bloomshader: prettier and more pronounced (but more heavy for system)
-- Commands FX lines get thinner over lifetime
-- Engine trees replaced with better looking ones
+- Bloomshader: prettier and more pronounced (but heavier on the gpu)
+- Commands FX lines get a bit thinner over lifetime
+- Engine trees replaced with more beautifull version and bigger in size
 - More unit types shatter on death
-- Nano effect has changed and is now done via lups shader
+- Nano effect has changed and is now done via lups shader (less cpu cost)
 - Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
 - Area Capture Mode now shows info on startup and has a scoreboard window too
 - converted BA icon to png (was bmp)
@@ -32,10 +32,14 @@ Other:
 - Keybinds, commands, changelog, options windows hide with Escape key
 - Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
 - Removed BA hotkeys widget
-- Added loadscreen music
+- Added music, and interface that controls it
+- Removed 'Allies' label from advplayerslist
+- Fixed commander nametrags occasionally showing spectator name
 - Various random deathsounds introduced
 - Guishader blurs UI too when showing popup windows
 - Resourcebars display a metal or energy icon
+- Sounds reprocessed to higher bitrate
+- Unit textures upscaled and reprocessed with bigger color range
 
 
 9.45 -> 9.46

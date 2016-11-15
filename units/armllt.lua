@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32768,
-		buildcostenergy = 680,
+		buildcostenergy = 700,
 		buildcostmetal = 85,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
