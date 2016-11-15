@@ -2,10 +2,10 @@ return {
 	armbrawl = {
 		acceleration = 0.24,
 		brakerate = 0.44,
-		buildcostenergy = 6200,
-		buildcostmetal = 310,
+		buildcostenergy = 6400,
+		buildcostmetal = 300,
 		buildpic = "ARMBRAWL.DDS",
-		buildtime = 13294,
+		buildtime = 13500,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP NOTHOVER",

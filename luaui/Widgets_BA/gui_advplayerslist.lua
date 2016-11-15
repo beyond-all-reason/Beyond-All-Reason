@@ -49,7 +49,7 @@ local customScale			= 1
 local customScaleStep		= 0.025
 local pointDuration    		= 40
 local cpuText				= false
-
+local drawAlliesLabel = false
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -1203,9 +1203,13 @@ function SortAllyTeams(vOffset)
 	for allyTeamID = 0, allyTeamsCount - 1 do
 		if allyTeamID == myAllyTeamID  then
 			vOffset = vOffset + labelOffset - 3
-			table.insert(drawListOffset, vOffset)
-			table.insert(drawList, -2)  -- "Allies" label
-			vOffset = SortTeams(allyTeamID, vOffset)+2	-- Add the teams from the allyTeam		
+			if drawAlliesLabel then
+				table.insert(drawListOffset, vOffset)
+			  table.insert(drawList, -2)  -- "Allies" label
+			  vOffset = SortTeams(allyTeamID, vOffset)+2	-- Add the teams from the allyTeam
+		 else
+			  SortTeams(allyTeamID, vOffset-labelOffset)
+			end	
 			break
 		end
 	end
