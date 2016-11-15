@@ -172,10 +172,10 @@ Here are all of the modoptions in a neat copy pastable form... Place these modop
 		desc   = 'How much faster capture takes place by adding more units.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 0.5,
+		def    = 0.05,
 		min    = 0,
-		max    = 10,
-		step   = 0.1,  -- quantization is aligned to the def value
+		max    = 1,
+		step   = 0.01,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
 		{
@@ -184,10 +184,10 @@ Here are all of the modoptions in a neat copy pastable form... Place these modop
 		desc   = 'Speed multiplier for neutralizing an enemy point.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 3,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,  -- quantization is aligned to the def value
+		def    = 0.50,
+		min    = 0,
+		max    = 1,
+		step   = 0.01,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
 		{
