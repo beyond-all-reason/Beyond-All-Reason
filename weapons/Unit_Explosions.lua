@@ -23,11 +23,20 @@ local commanderNukeExplosionDamageImpulseFactor = 0
 
 unitDeaths = {
 	
+	pyro = {
+		weaponType		   = "Cannon",
+		areaofeffect = 220,
+		explosiongenerator = "custom:genericunitexplosion-large",
+		damage = {
+			default = 350,
+		},
+	},
+	
 	nanoboom = {
 		weaponType		   = "Cannon",
 		areaofeffect = 128,
 		edgeeffectiveness = 0.75,
-		explosiongenerator = "custom:genericbuildingexplosion-small-green",
+		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
 			default = 10,
 			nanos = 380,
