@@ -236,8 +236,11 @@ local playerReadyState = {}
 local numberOfSpecs = 0
 
 --To determine faction at start
-local armcomDefID = UnitDefNames.armcom.id
-local corcomDefID = UnitDefNames.corcom.id
+local sideOneDefID = UnitDefNames.armcom.id
+local sideTwoDefID = UnitDefNames.corcom.id
+
+local teamSideOne = "arm"
+local teamSideTwo = "core"
 
 --Name for absent/resigned players
 local absentName = " --- "
@@ -826,21 +829,22 @@ function SetSidePics()
 	--set factions, from TeamRulesParam when possible and from initial info if not
 	teamList = Spring_GetTeamList()
 	for _, team in ipairs(teamList) do
-		local teamside
+		local teamSide
 		if Spring_GetTeamRulesParam(team, 'startUnit') then
 			local startunit = Spring_GetTeamRulesParam(team, 'startUnit')
-			if startunit == armcomDefID then 
-				teamside = "arm"
-			else
-				teamside = "core"
+			if startunit == sideOneDefID then 
+				teamSide = teamSideOne
+			end
+			if startunit == sideOneDefID then 
+				teamSide = teamSideTwo
 			end
 		else
-			_,_,_,_,teamside = Spring_GetTeamInfo(team)
+			_,_,_,_,teamSide = Spring_GetTeamInfo(team)
 		end
 	
-		if teamside then
-			sidePics[team] = imageDirectory..teamside.."_default.png"
-			sidePicsWO[team] = imageDirectory..teamside.."wo_default.png"
+		if teamSide then
+			sidePics[team] = imageDirectory..teamSide.."_default.png"
+			sidePicsWO[team] = imageDirectory..teamSide.."wo_default.png"
 		else
 			sidePics[team] = imageDirectory.."default.png"
 			sidePicsWO[team] = imageDirectory.."defaultwo.png"

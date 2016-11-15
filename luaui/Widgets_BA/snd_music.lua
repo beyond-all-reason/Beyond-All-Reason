@@ -53,6 +53,8 @@ local peaceTracks	=	VFS.DirList('luaui/Widgets_BA/music/peace/', '*.ogg')
 local victoryTracks	=	VFS.DirList('luaui/Widgets_BA/music/victory/', '*.ogg')
 local defeatTracks	=	VFS.DirList('luaui/Widgets_BA/music/defeat/', '*.ogg')
 
+local charactersInPath = 30
+
 local firstTime = false
 local wasPaused = false
 local firstFade = true
@@ -235,7 +237,7 @@ local function createList()
 		local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
 		glColor(0.45,0.45,0.45,1)
 		local text = ''
-		for i=30, #curTrack do
+		for i=charactersInPath, #curTrack do
 	    local c = string.sub(curTrack, i,i)
 			local width = glGetTextWidth(text..c)*textsize
 	    if width > maxTextWidth then
