@@ -126,7 +126,7 @@ return {
 				cegTag = "missiletraillarge",
 				explosiongenerator = "custom:genericshellexplosion-large",
 				firestarter = 20,
-				flighttime = 3,
+				flighttime = 25.,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "TAWF114a",
@@ -148,7 +148,7 @@ return {
 				weaponacceleration = 220,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 600,
+				weaponvelocity = 650,
 				damage = {
 					commanders = 1000,
 					default = 1000,
