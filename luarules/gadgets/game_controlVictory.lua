@@ -169,13 +169,13 @@ Here are all of the modoptions in a neat copy pastable form... Place these modop
 		{
 		key    = 'capturebonus',
 		name   = 'Capture Bonus',
-		desc   = 'How much faster capture takes place by adding more units.',
+		desc   = 'Percentage of how much faster capture takes place by adding more units.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 0.05,
-		min    = 0,
-		max    = 1,
-		step   = 0.01,  -- quantization is aligned to the def value
+		def    = 5,
+		min    = 1,
+		max    = 100,
+		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
 		{
@@ -184,10 +184,10 @@ Here are all of the modoptions in a neat copy pastable form... Place these modop
 		desc   = 'Speed multiplier for neutralizing an enemy point.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 0.50,
-		min    = 0,
-		max    = 1,
-		step   = 0.01,  -- quantization is aligned to the def value
+		def    = 2,
+		min    = 1,
+		max    = 3,
+		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
 		{
@@ -304,12 +304,12 @@ end
 
 local captureRadius = tonumber(Spring.GetModOptions().captureradius) or 500 -- Radius around a point in which to capture it
 local captureTime = tonumber(Spring.GetModOptions().capturetime) or 30 -- Time to capture a point
-local captureBonus = tonumber(Spring.GetModOptions().capturebonus) or.5 -- speedup from adding more units
+local captureBonus = tonumber(Spring.GetModOptions().capturebonus) * 0.01 or 5 -- speedup from adding more units
 local decapSpeed = tonumber(Spring.GetModOptions().decapspeed) or 3 -- speed multiplier for neutralizing an enemy point
 local dominationScore = tonumber(Spring.GetModOptions().dominationscore) or 1000
 local dominationScoreTime = tonumber(Spring.GetModOptions().dominationscoretime) or 30 -- Time needed holding all points to score in multi domination
 local usemapconfig = Spring.GetModOptions().usemapconfig or "disabled"
-local limitScore = tonumber(Spring.GetModOptions().limitscore) or 2750
+local limitScore = tonumber(Spring.GetModOptions().limitscore) or 3500
 
 -- These are together because they cover the same area (resourcing)
 local metalPerPoint = tonumber(Spring.GetModOptions().metalperpoint) or 0
