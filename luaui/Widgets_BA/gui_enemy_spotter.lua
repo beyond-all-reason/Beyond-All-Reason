@@ -34,7 +34,7 @@ local updateFrame        				= 25		-- only update every X gameframes (... if cam
 local drawPlatter						= true
 local useXrayHighlight					= false
 
-local drawWithHiddenGUI                 = true		-- keep widget enabled when graphical user interface is hidden (when pressing F5)
+local drawWithHiddenGUI                 = false		-- keep widget enabled when graphical user interface is hidden (when pressing F5)
 local renderAllTeamsAsSpec				= false		-- renders for all teams when spectator
 local renderAllTeamsAsPlayer			= false		-- keep this 'false' if you dont want circles rendered under your own units as player
 
