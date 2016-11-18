@@ -89,7 +89,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	--if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
+	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
 	updatePosition()
 end
 
@@ -100,11 +100,10 @@ function widget:Shutdown()
 end
 
 function widget:GameStart()
-	--widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget(self)
 end
 
 function widget:DrawScreen()
-	--if spGetGameFrame() == 0 then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
