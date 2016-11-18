@@ -18,7 +18,7 @@ function widget:GetInfo()
 		author	= "cake, trepan, Smoth, Licho, xponen, Forboding Angel, Floris",
 		date	= "Mar 01, 2008, Aug 20 2009, Nov 23 2011",
 		license	= "GNU GPL, v2 or later",
-		layer	= -3,
+		layer	= -4,
 		enabled	= true	--	loaded by default?
 	}
 end
@@ -136,6 +136,11 @@ function widget:Initialize()
 		dethklok[i]=0
 	end
 	updatePosition()
+	
+	WG['music'] = {}
+	WG['music'].GetPosition = function()
+		return {top,left,bottom,right,widgetScale}
+	end
 end
 
 

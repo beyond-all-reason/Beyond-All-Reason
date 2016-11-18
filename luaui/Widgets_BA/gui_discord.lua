@@ -6,7 +6,8 @@ function widget:GetInfo()
 		date		= "24 july 2016",
 		license		= "GNU GPL, v2 or later",
 		layer		= -3,			-- set to -5 to draw mascotte on top of advplayerlist
-		enabled		= true
+		enabled		= true,
+ 	  handler = true,
 	}
 end
 
@@ -71,7 +72,11 @@ local advplayerlistPos = {}
 function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		if WG['music'] ~= nil and widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
+			advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		else
+			advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		end
 		usedImgSize = iconSize * advplayerlistPos[5]
 		xPos = advplayerlistPos[4]
 		yPos = advplayerlistPos[1]
@@ -84,7 +89,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
+	--if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
 	updatePosition()
 end
 
@@ -95,7 +100,7 @@ function widget:Shutdown()
 end
 
 function widget:GameStart()
-	widgetHandler:RemoveWidget(self)
+	--widgetHandler:RemoveWidget(self)
 end
 
 function widget:DrawScreen()
@@ -112,8 +117,8 @@ function widget:DrawScreen()
 			glCallList(drawlist[1])
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
-				local textWidth = glGetTextWidth("discord.gg/aDtX3hW") * 32
-				glText("discord.gg/aDtX3hW", -(textWidth+53+iconSize), 27, 32, "no")
+				local textWidth = glGetTextWidth("discord.gg/aDtX3hW") * 13
+				glText("discord.gg/aDtX3hW", -(textWidth+5+iconSize)*advplayerlistPos[5], 12*advplayerlistPos[5], 13*advplayerlistPos[5], "no")
 			end
 		glPopMatrix()
 		mouseover = false
