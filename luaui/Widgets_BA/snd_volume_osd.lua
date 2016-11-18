@@ -49,7 +49,7 @@ local ftime 								= 2.5 --How long time before the volume display starts fadin
 local widgetWidth							= vsx/4.5 -- in pixels (changed from 400)
 local widgetHeight							= vsy/27 -- in pixels (changed from 40)
 local rectangles 							= 25 -- number of boxes in volume bar
-local boxspacing 							= 2 -- space between boxes
+local boxspacing 							= 5 -- space between boxes
 local red									= 0.1 -- volume bar colour, 0 to 1.
 local green									= 0.7 -- volume bar colour, 0 to 1.
 local blue									= 0 -- volume bar colour, 0 to 1.
@@ -127,30 +127,21 @@ function widget:DrawScreen()
 			alpha = 3*(dtime-t)/dtime
 		end
 		
-		gl.Color(0,0.15,0,0.15*alpha)                              -- draws empty rectangles
+		gl.Color(0,0.15,0,0.18*alpha)                              -- draws empty rectangles
 		for i = 1,rectangles do
 			local u1 = x1+(i-1)*boxwidth
 			local u2= u1+boxwidth-boxspacing
 			--gl.Rect(u1,y1,u2,y2)
-			RectRound(u1,y1,u2,y2,(u2-u1)/2.5)
+			RectRound(u1,y1,u2,y2,(u2-u1)/3)
 		end
 		local vol2 = math.floor(volume/(100/rectangles))
 		gl.Color(0,0.85,0,alpha)                              -- draws filled rectangles
-		local spacer2 = boxwidth / 6.5
-		local spacer3 = boxwidth / 6
-		gl.Color(0.2,1,0.2,alpha*0.75)   
+		local spacer2 = boxwidth / 10
+		gl.Color(0.2,1,0.2,alpha*0.8)   
 		for i = 1,vol2 do
 			local u1 = x1+(i-1)*boxwidth
 			local u2= u1+boxwidth-boxspacing            
-			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/2.5)
-		end
-		local vol3 = math.floor((100-volume)/(100/rectangles))
-		gl.Color(0,1,0,alpha*0.06)                              -- draws filled rectangles
-		for u = 1,vol3 do
-			i = vol2 + u
-			local u1 = x1+(i-1)*boxwidth
-			local u2= u1+boxwidth-boxspacing
-			RectRound(u1+spacer3,y1+spacer3,u2-spacer3,y2-spacer3,((u2-spacer3)-(u1+spacer3))/2.5)
+			RectRound(u1+spacer2,y1+spacer2,u2-spacer2,y2-spacer2,((u2-spacer2)-(u1+spacer2))/4)
 		end
 	end
 end

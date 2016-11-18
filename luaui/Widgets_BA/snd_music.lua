@@ -471,7 +471,7 @@ function PlayNewTrack()
 		-- Spring.Echo("Song changed but unable to get the artist and title info")
 	-- end
 	curTrack = newTrack
-	WG.music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
+	--WG.music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
 	Spring.PlaySoundStream(newTrack)
 	Spring.SetSoundStreamVolume(WG.music_volume or 0.33)
 	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. WG.music_volume .. [[
@@ -717,13 +717,15 @@ function widget:GetConfigData(data)
   savedTable.curTrack	= curTrack
   savedTable.playedTime = playedTime
   savedTable.playing = playing
+  savedTable.music_volume = WG.music_volume
   return savedTable
 end
 
 -- would be great if there is be a way to continue track where we left off after a /luaui reload
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.playing ~= nil then
+	if data.playing ~= nil then
 		playing = data.playing
+		WG.music_volume = data.music_volume
 	end
 end
 
