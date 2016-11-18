@@ -286,6 +286,9 @@ local function CreateGrid(r)
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
 			SetTooltip(self.tooltip)
+			if r.menuname == "ordermenu" then
+				mouseoverhighlight.texturecolor={1,1,1,0.02}
+			end
 			--[[
 			if r.menuname == "buildmenu" then
 				local CurMouseState = {Spring.GetMouseState()} --{mx,my,m1,m2,m3}
@@ -586,29 +589,29 @@ local function UpdateGrid(g,cmds,ordertype)
 					--s.sy = (icon.sy/7)
 					--s.px = icon.px+spread + (s.sx+spread)*(i-1)
 					--s.py = icon.py + icon.sy - s.sy -spread
-					s.border = {0.22,0.22,0.22,0.75}
+					s.border = {0.22,0.22,0.22,0.8}
 					
 					if (i == curstate) then
 						usr = usedstaterectangles
 						if (statecount < 4) then
 							if (i == 1) then
-								s.color = {0.85,0,0,1}
-								s.border = {0.85,0,0,1}
+								s.color = {0.9,0,0,1}
+								s.border = {0.9,0,0,1}
 							elseif (i == 2) then
 								if (statecount == 3) then
-									s.color = {0.85,0.85,0,1}
-									s.border = {0.85,0.85,0,1}
+									s.color = {0.9,0.9,0,1}
+									s.border = {0.9,0.9,0,1}
 								else
-									s.color = {0,0.85,0,1}
-									s.border = {0,0.85,0,1}
+									s.color = {0,0.9,0,1}
+									s.border = {0,0.9,0,1}
 								end
 							elseif (i == 3) then
-								s.color = {0,0.85,0,1}
-								s.border = {0,0.85,0,1}
+								s.color = {0,0.9,0,1}
+								s.border = {0,0.9,0,1}
 							end
 						else
-							s.color = {0.85,0.85,0.85,1}
-							s.border = {0.85,0.85,0.85,1}
+							s.color = {0.9,0.9,0.9,1}
+							s.border = {0.9,0.9,0.9,1}
 						end
 						s.border[4] = 0.3
 					else
@@ -632,7 +635,7 @@ local function UpdateGrid(g,cmds,ordertype)
 						table.insert(g.background.movableslaves,s2)
 					end
 					
-					local glowSize = s.sy * 2.8
+					local glowSize = s.sy * 4
 					s2.sy = s.sy + glowSize + glowSize
 					s2.py = s.py - glowSize
 					s2.px = s.px
@@ -640,7 +643,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					s2.texture = barGlowCenterTexture
 					s2.border = {0,0,0,0}
 					s2.color = {s.color[1] * 10, s.color[2] * 10, s.color[3] * 10, 0}
-					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.08}
+					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.12}
 					s2.active = true
 					
 					usedstaterectanglesglow = usedstaterectanglesglow + 1

@@ -117,7 +117,7 @@ function widget:DrawScreen()
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
 				local textWidth = glGetTextWidth("discord.gg/aDtX3hW") * 13
-				glText("discord.gg/aDtX3hW", -(textWidth+5+iconSize)*advplayerlistPos[5], 12*advplayerlistPos[5], 13*advplayerlistPos[5], "no")
+				glText("discord.gg/aDtX3hW", -(textWidth+6+iconSize)*advplayerlistPos[5], 12*advplayerlistPos[5], 13*advplayerlistPos[5], "no")
 			end
 		glPopMatrix()
 		mouseover = false
