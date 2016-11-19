@@ -434,10 +434,10 @@ end
 
 
 -- add commander companion critters
-local companionPlayers = {"UnnamedPlayer", "[teh]Lucy", "[teh]Flow", "[teh]decay"}
+local companionPlayers = {"[Evo]Forboding_Angel"}
 function addCompanionCritters()
   local allUnits = Spring.GetAllUnits()
-	local critterTypes = {"critter_penguin", "critter_penguin", "critter_duck"}
+	local critterTypes = {"critter_penguin", "critter_penguin", "critter_penguin", "critter_duck", "critter_duck", "critter_ant", "critter_gull"}
   for _, unitID in pairs(allUnits) do
     local unitDefID = GetUnitDefID(unitID)
     if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
@@ -452,8 +452,8 @@ function addCompanionCritters()
 		  end
 			if found then
 				local critters = {}
-				for i=1, random(-2, 2) do
-					local critterID = CreateUnit(critterTypes[random(1,2)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
+				for i=1, random(-2, 80) do
+					local critterID = CreateUnit(critterTypes[random(1,#critterTypes)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
 					setGaiaUnitSpecifics(critterID)
 					table.insert(critters, critterID)
 				end
