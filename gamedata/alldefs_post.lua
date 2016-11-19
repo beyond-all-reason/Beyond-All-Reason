@@ -119,7 +119,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			for id,unitDef in pairs(UnitDefs) do
 			
 			--Exclude all aircraft
-				--Spring.Echo(unitDef.turnrate)'
+				--Spring.Echo(unitDef.turnrate)
 				if unitDef.turnrate == nil and unitDef.canmove == true and unitDef.canfly ~= true then
 					--Spring.Echo(unitDef.name)
 					unitDef.turnrate = 1000
@@ -144,17 +144,17 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			--Target aircraft specifically
 				if unitDef.canfly == true then
 				
-				unitDef.brakerate = 1
-				unitDef.turnrate = unitDef.turnrate + 1000
-				unitDef.collide = false
+				--unitDef.brakerate = 1
+				--unitDef.turnrate = unitDef.turnrate + 1000
+				--unitDef.collide = false
 					
 					if unitDef.hoverattack == true then
 						--unitDef.airhoverfactor = 0.001
 						--unitDef.airstrafe = false
-						unitDef.maxacc	= 0.1
+						--unitDef.maxacc	= 0.1
 					else
-						unitDef.acceleration = unitDef.acceleration + 5
-						unitDef.maxacc	= 0.3
+						--unitDef.acceleration = unitDef.acceleration + 5
+						--unitDef.maxacc	= 0.3
 					end
 				end
 			end

@@ -27,8 +27,6 @@ end
 --------------------------------------------------------------------------------
 
 --Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
-music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
-music_start_volume = music_volume
 
 local unitExceptions = include("Configs/snd_music_exception.lua")
 
@@ -115,7 +113,8 @@ local volume
 
 function widget:Initialize()
 	
-  volume = Spring.GetConfigInt("snd_volmaster", 100)
+	volume = Spring.GetConfigInt("snd_volmaster", 100)
+	music_volume = Spring.GetConfigInt("snd_volmusic", 25)
   
 	-- Spring.Echo(math.random(), math.random())
 	-- Spring.Echo(os.clock())
@@ -357,11 +356,9 @@ function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
 			changeMusicVolume(getSliderValue('musicvolume', x) * 100)
-			Spring.SetConfigInt("snd_volmusic", music_volume)
 		end
 		if draggingSlider == 'volume' then
 			changeVolume(getSliderValue('volume', x) * 100)
-			Spring.SetConfigInt("snd_volmaster", volume)
 		end
 	end
 end
@@ -477,18 +474,14 @@ function PlayNewTrack()
 		-- Spring.Echo("Song changed but unable to get the artist and title info")
 	-- end
 	curTrack = newTrack
-	music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
+	local musicVolScaled = music_volume * 0.01	
 	Spring.PlaySoundStream(newTrack)
-	Spring.SetSoundStreamVolume(music_volume or 0.33)
-	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. music_volume .. [[
- 
-[Music Player] Press Shift and the +/- keys to adjust the music volume]])
+	Spring.SetSoundStreamVolume(musicVolScaled or 0.33)
+	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. musicVolScaled * 100)
+	Spring.Echo([[[Music Player] Master Volume is set to: ]] .. volume)
 	if playing == false then
 		Spring.PauseSoundStream()
-	end
-
-	music_start_volume = music_volume
-	
+	end	
 	createList()
 end
 
@@ -651,7 +644,6 @@ function widget:GameOver()
 	Spring.StopSoundStream()
 	Spring.PlaySoundStream(track)
 	Spring.SetSoundStreamVolume(music_volume or 0.33)
-	music_start_volume = music_volume
 end
 
 
