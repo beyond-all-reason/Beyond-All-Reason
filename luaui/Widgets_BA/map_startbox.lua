@@ -55,10 +55,15 @@ local shadowOpacity			= 0.35
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 10, 10)
 local shadowFont = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 38, 1.6)
 
+local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
+local infotextFontsize = 20
+local infotextWidth = gl.GetTextWidth(infotext) * infotextFontsize
+
 local comnameList = {}
 local drawShadow = fontShadow
 local usedFontSize = fontSize
 
+local vsx,vsy = Spring.GetViewGeometry()
 
 local gl = gl  --  use a local copy for faster access
 
@@ -69,6 +74,8 @@ local xformList = 0
 local coneList = 0
 local startboxDListStencil = 0
 local startboxDListColor = 0
+
+local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 
 local gaiaTeamID
 local gaiaAllyTeamID
@@ -211,6 +218,11 @@ function widget:Initialize()
     return
   end
 
+  infotextList = gl.CreateList(function()
+		gl.Color(1,1,1,0.5)
+		gl.Text(infotext, 0,0, infotextFontsize, "cno")
+  end)
+  
   -- get the gaia teamID and allyTeamID
   gaiaTeamID = Spring.GetGaiaTeamID()
   if (gaiaTeamID) then
@@ -293,6 +305,7 @@ end
 
 
 function widget:Shutdown()
+  gl.DeleteList(infotextList)
   gl.DeleteList(xformList)
   gl.DeleteList(coneList)
   gl.DeleteList(startboxDListStencil)
@@ -447,6 +460,17 @@ function widget:DrawScreenEffects()
   gl.Fog(true)
 end
 
+
+function widget:DrawScreen()
+	if not isSpec then
+		gl.PushMatrix()
+			gl.Translate(vsx/2, vsy/6.2, 0)
+			gl.Scale(1*widgetScale, 1*widgetScale, 1)
+		  gl.CallList(infotextList)
+	  gl.PopMatrix()
+  end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -522,7 +546,9 @@ function widget:DrawInMiniMap(sx, sz)
 end
 
 
-function widget:ViewResize(vsx, vsy)
+function widget:ViewResize(x, y)
+  vsx,vsy = x,y
+  widgetScale = (0.75 + (vsx*vsy / 7500000))
   removeTeamLists()
   usedFontSize = fontSize/1.44 + (fontSize * ((vsx*vsy / 10000000)))
 end
