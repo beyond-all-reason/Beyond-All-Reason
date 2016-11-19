@@ -15,7 +15,7 @@ function widget:GetInfo()
 	return {
 		name	= "Music Player and Volumes Control",
 		desc	= "Plays music and allows volumes to be controlled",
-		author	= "cake, trepan, Smoth, Licho, xponen, Forboding Angel, Floris",
+		author	= "Forboding Angel, Floris",
 		date	= "Mar 01, 2008, Aug 20 2009, Nov 23 2011",
 		license	= "GNU GPL, v2 or later",
 		layer	= -4,
@@ -28,8 +28,6 @@ end
 
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
-
-local unitExceptions = include("Configs/snd_music_exception.lua")
 
 local windows = {}
 
@@ -382,6 +380,7 @@ function mouseEvent(x, y, button, release)
 	end
 	
 end
+
 function widget:IsAbove(mx, my)
 	if isInBox(mx, my, {left, bottom, right, top}) then
   	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
