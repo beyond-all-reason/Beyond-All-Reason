@@ -27,9 +27,8 @@ end
 --------------------------------------------------------------------------------
 
 --Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
-
-WG.music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
-WG.music_start_volume = WG.music_volume
+music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
+music_start_volume = music_volume
 
 local unitExceptions = include("Configs/snd_music_exception.lua")
 
@@ -227,7 +226,7 @@ local function createList()
 	
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (WG.music_volume/100)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (music_volume/100)
 	
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding, buttons['volumeicon'][3]+padding+volumeWidth, top-padding}
@@ -358,9 +357,11 @@ function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
 			changeMusicVolume(getSliderValue('musicvolume', x) * 100)
+			Spring.SetConfigInt("snd_volmusic", music_volume)
 		end
 		if draggingSlider == 'volume' then
 			changeVolume(getSliderValue('volume', x) * 100)
+			Spring.SetConfigInt("snd_volmaster", volume)
 		end
 	end
 end
@@ -374,8 +375,8 @@ function widget:MouseRelease(x, y, button)
 end
 
 function changeMusicVolume(value)
-	WG.music_volume = value
-	Spring.SetConfigInt("snd_volmusic", WG.music_volume)
+	music_volume = value
+	Spring.SetConfigInt("snd_volmusic", music_volume)
   createList()
 end
 
@@ -476,17 +477,17 @@ function PlayNewTrack()
 		-- Spring.Echo("Song changed but unable to get the artist and title info")
 	-- end
 	curTrack = newTrack
-	--WG.music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
+	music_volume = Spring.GetConfigInt("snd_volmusic") * 0.01
 	Spring.PlaySoundStream(newTrack)
-	Spring.SetSoundStreamVolume(WG.music_volume or 0.33)
-	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. WG.music_volume .. [[
+	Spring.SetSoundStreamVolume(music_volume or 0.33)
+	Spring.Echo([[[Music Player] Music Volume is set to: ]] .. music_volume .. [[
  
 [Music Player] Press Shift and the +/- keys to adjust the music volume]])
 	if playing == false then
 		Spring.PauseSoundStream()
 	end
 
-	WG.music_start_volume = WG.music_volume
+	music_start_volume = music_volume
 	
 	createList()
 end
@@ -649,8 +650,8 @@ function widget:GameOver()
 	end
 	Spring.StopSoundStream()
 	Spring.PlaySoundStream(track)
-	Spring.SetSoundStreamVolume(WG.music_volume or 0.33)
-	WG.music_start_volume = WG.music_volume
+	Spring.SetSoundStreamVolume(music_volume or 0.33)
+	music_start_volume = music_volume
 end
 
 
@@ -722,7 +723,7 @@ function widget:GetConfigData(data)
   savedTable.curTrack	= curTrack
   savedTable.playedTime = playedTime
   savedTable.playing = playing
-  savedTable.music_volume = WG.music_volume
+  savedTable.music_volume = music_volume
   return savedTable
 end
 
@@ -730,7 +731,7 @@ end
 function widget:SetConfigData(data)
 	if data.playing ~= nil then
 		playing = data.playing
-		WG.music_volume = data.music_volume
+		music_volume = data.music_volume
 	end
 end
 
