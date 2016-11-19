@@ -13,15 +13,17 @@
 
 function widget:GetInfo()
 	return {
-		name	= "Music Player and Volumes Control",
-		desc	= "Plays music and allows volumes to be controlled",
-		author	= "cake, trepan, Smoth, Licho, xponen, Forboding Angel, Floris",
-		date	= "Mar 01, 2008, Aug 20 2009, Nov 23 2011",
+		name	= "Music Player",
+		desc	= "Plays music and offers volumes control",
+		author	= "Forboding Angel, Floris",
+		date	= "november 2016",
 		license	= "GNU GPL, v2 or later",
 		layer	= -4,
 		enabled	= true	--	loaded by default?
 	}
 end
+
+local pauseWhenPaused = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -29,9 +31,7 @@ end
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
 
-local unitExceptions = include("Configs/snd_music_exception.lua")
-
-local windows = {}
+local buttons = {}
 
 local previousTrack = ''
 local curTrack	= "no name"
@@ -43,8 +43,6 @@ local charactersInPath = 24
 local firstTime = false
 local wasPaused = false
 local firstFade = true
-local initSeed = 0
-local seedInitialized = false
 local gameOver = false
 local playing = true
 
@@ -91,7 +89,7 @@ local volume
 function widget:Initialize()
 	
 	volume = Spring.GetConfigInt("snd_volmaster", 100)
-	music_volume = Spring.GetConfigInt("snd_volmusic", 25)
+	music_volume = Spring.GetConfigInt("snd_volmusic", 20)
 
 	if #tracks == 0 then 
 		Spring.Echo("[Music Player] No music was found, Shutting Down")
@@ -177,7 +175,6 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
-local buttons = {}
 local function createList()
 	
 	local padding = 3*widgetScale -- button background margin
@@ -406,23 +403,17 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('music')
 	end
-
-	for i=1,#windows do
-		(windows[i]):Dispose()
-	end
 	
-	glDeleteList(drawlist[1])
-	glDeleteList(drawlist[2])
-	glDeleteList(drawlist[3])
-	glDeleteList(drawlist[4])
+	for i=1,#drawlist do
+		glDeleteList(drawlist[i])
+	end
 end
 
 function PlayNewTrack()
 	Spring.StopSoundStream()
 	local newTrack = previousTrack
 	repeat
-	newTrack = tracks[math.random(1, #tracks)]
-
+		newTrack = tracks[math.random(1, #tracks)]
 	until newTrack ~= previousTrack
 	firstFade = false
 	previousTrack = newTrack
@@ -430,8 +421,6 @@ function PlayNewTrack()
 	local musicVolScaled = music_volume * 0.01	
 	Spring.PlaySoundStream(newTrack)
 	Spring.SetSoundStreamVolume(musicVolScaled or 0.33)
-	--Spring.Echo([[[Music Player] Music Volume is set to: ]] .. musicVolScaled * 100)
-	--Spring.Echo([[[Music Player] Master Volume is set to: ]] .. volume)
 	if playing == false then
 		Spring.PauseSoundStream()
 	end	
@@ -451,26 +440,18 @@ function widget:Update(dt)
 	local playedTime, totalTime = Spring.GetSoundStreamTime()
 	playedTime = math.floor(playedTime)
 	totalTime = math.floor(totalTime)
-
+	
 	if playedTime >= totalTime then	-- both zero means track stopped in 8
 		PlayNewTrack()
 	end
 	
-	if (Spring.GetGameSeconds()>=0) then
-		if not seedInitialized then
-			math.randomseed(os.clock()* 100)
-			seedInitialized=true
-		end
+	if (pauseWhenPaused and Spring.GetGameSeconds()>=0) then
     local _, _, paused = Spring.GetGameSpeed()
-		if (paused ~= wasPaused) and options.pausemusic.value then
+		if (paused ~= wasPaused) then
 			Spring.PauseSoundStream()
 			wasPaused = paused
 		end
 	end
-end
-
-function widget:GameOver()
-
 end
 
 
@@ -537,10 +518,10 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData(data)
-	local playedTime, totalTime = Spring.GetSoundStreamTime()
+	--local playedTime, totalTime = Spring.GetSoundStreamTime()
   local savedTable = {}
-  savedTable.curTrack	= curTrack
-  savedTable.playedTime = playedTime
+  --savedTable.curTrack	= curTrack
+  --savedTable.playedTime = playedTime
   savedTable.playing = playing
   return savedTable
 end
