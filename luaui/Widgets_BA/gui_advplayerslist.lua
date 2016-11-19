@@ -1211,8 +1211,8 @@ function SortAllyTeams(vOffset)
 				table.insert(drawListOffset, vOffset)
 			  table.insert(drawList, -2)  -- "Allies" label
 			  vOffset = SortTeams(allyTeamID, vOffset)+2	-- Add the teams from the allyTeam
-		 else
-			  SortTeams(allyTeamID, vOffset-labelOffset)
+			else
+			  vOffset = SortTeams(allyTeamID, vOffset-labelOffset)
 			end	
 			break
 		end
