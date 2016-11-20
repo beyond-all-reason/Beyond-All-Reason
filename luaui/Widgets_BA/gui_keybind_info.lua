@@ -302,7 +302,6 @@ function widget:DrawScreen()
 end
 
 function widget:KeyPress(key)
-Spring.Echo(key)
 	if key == 27 then	-- ESC
 		show = false
 	end
