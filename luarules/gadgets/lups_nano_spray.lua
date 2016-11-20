@@ -241,18 +241,18 @@ local function SetParticleDefinitions()
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    texture     = "bitmaps/Other/Poof.png",
-		    particles   = 4,
+		    particles   = 3.3,
 	    },
 	  	cloud2 = {
 		    fxtype      = "NanoParticles",
-		    alpha       = 0.035,
+		    alpha       = 0.03,
 		    size        = 5,
 		    sizeSpread  = 3,
 		    sizeGrowth  = 0.4,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
 		    texture     = "bitmaps/Other/Poof.png",
-		    particles   = 2.5,
+		    particles   = 2,
 		    color				= {0,0,0}
 	    },
 	    energypart = {
@@ -263,9 +263,9 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.05,
 		    rotSpeed    = "math.random(1)/2",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)/3",
+		    particles   = "math.random(1)/3.8",
 		    color       = {1,1,1},
-		    radiusMultiplier = 0.8,
+		    radiusMultiplier = 0.83,
 		  },
 	    energypart2 = {
 		    fxtype      = "NanoParticles",
@@ -275,10 +275,10 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.12,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)/1.5",
+		    particles   = "math.random(1)/2.3",
 		    texture     = "bitmaps/projectiletextures/flashcrap.png",
 		    color       = {1,1,1},
-		    radiusMultiplier = 0.8,
+		    radiusMultiplier = 0.83,
 		  },
 	    energypart3 = {
 		    fxtype      = "NanoParticles",
@@ -288,10 +288,10 @@ local function SetParticleDefinitions()
 		    sizeGrowth  = 0.12,
 		    rotSpeed    = "math.random(1)/1.5",
 		    rotSpread   = 360,
-		    particles   = "math.random(1)/1.7",
+		    particles   = "math.random(1)/2.8",
 		    texture     = "bitmaps/projectiletextures/flashcrap2.png",
 		    color       = {1,1,1},
-		    radiusMultiplier = 0.8,
+		    radiusMultiplier = 0.83,
 		  },
 		}
 	}
@@ -308,7 +308,7 @@ local function SetParticleDefinitions()
 	    particles   = "math.random(1)/10",
 	    color       = {1,1,1},
 	    texture     = "bitmaps/xmas/star.png",
-		  radiusMultiplier = 0.7,
+		  radiusMultiplier = 0.73,
 	  }
 		factionsNanoFx.default_high_quality.xmas1 = deepcopy(xmas)
 		factionsNanoFx.default_high_quality.xmas1.texture = "bitmaps/xmas/mistletoe.png"
@@ -370,7 +370,7 @@ function gadget:GameFrame(frame)
 					if radius == 1 then	-- reclaim unit gives back 1 so yeah...
 						radius = 20
 					end
-					radius = radius * 0.6
+					radius = radius * 0.45
 					
 					local terraform = false
 					local inversed  = false
