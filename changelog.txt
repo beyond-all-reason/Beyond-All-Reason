@@ -28,7 +28,7 @@ Other:
 - When shaders are disabled: nanolasers are being used
 - Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
 - Area Capture Mode shows info on startup and has a scoreboard window too
-- Converted BA icon to png (was bmp)
+- BA icon is now a png (was bmp)
 - Pausescreen changed and uses darkens screen and decolorizes when shaders enabled
 - Mapmarks effect size increased
 - Keybinds, commands, changelog, options windows hide with Escape key
