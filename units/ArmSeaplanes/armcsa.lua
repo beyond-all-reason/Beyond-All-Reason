@@ -2,9 +2,9 @@ return {
 	armcsa = {
 		acceleration = 0.084,
 		brakerate = 0.4275,
-		buildcostenergy = 27000,
+		buildcostenergy = 54000,
 		buildcostmetal = 250,
-		builddistance = 136,
+		builddistance = 272,
 		builder = true,
 		shownanospray = false,
 		buildpic = "ARMCSA.DDS",
