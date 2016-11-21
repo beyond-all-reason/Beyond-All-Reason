@@ -1,4 +1,4 @@
-﻿9.46 -> 9.47
+﻿9.46 -> 9.48
 20/11/2016
 
 Important:
@@ -34,6 +34,7 @@ Other:
 - Keybinds, commands, changelog, options windows hide with Escape key
 - Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
 - Added music, and interface that can control it
+- Unit info widget removed (for now)
 - Removed 'Allies' label from advplayerslist
 - Fixed commander nametags occasionally showing spectator name
 - Various random deathsounds introduced
