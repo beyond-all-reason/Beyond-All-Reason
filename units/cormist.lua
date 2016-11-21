@@ -126,7 +126,7 @@ return {
 				cegTag = "missiletrailtiny",
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
-				flighttime = 3,
+				flighttime = 2,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
@@ -149,7 +149,7 @@ return {
 				weaponacceleration = 250,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 660,
+				weaponvelocity = 680,
 				damage = {
 					bombers = 120,
 					commanders = 32,
