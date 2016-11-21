@@ -4,8 +4,8 @@ return {
   shortname='BA',
   version='$VERSION',
   mutator='Official',
-  game='Total Annihilation',
-  shortGame='TA',
+  game='Balanced Annihilation',
+  shortGame='BA',
   modtype=1,
 	depend = {
 		"Spring Features v1.9",		
