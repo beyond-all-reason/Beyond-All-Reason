@@ -494,7 +494,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <5000.000000>;
+	turn torso to y-axis heading speed <600.000000>;
 	turn luparm to x-axis <-45.000000> - pitch speed <250.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
@@ -543,7 +543,7 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <5000.000000>;
+	turn torso to y-axis heading speed <600.000000>;
 	turn luparm to x-axis <-70.000000> - pitch speed <250.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
@@ -582,7 +582,7 @@ AimTertiary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	Static_Var_4 = 1;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <5000.000000>;
+	turn torso to y-axis heading speed <600.000000>;
 	turn ruparm to x-axis <-24.000000> - pitch speed <90.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn ruparm around x-axis;

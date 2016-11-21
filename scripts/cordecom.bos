@@ -520,7 +520,7 @@ AimPrimary(heading, pitch)
 	{
 		sleep 100;
 	}
-	turn torso to y-axis heading speed <5000.000000>;
+	turn torso to y-axis heading speed <600.000000>;
 	turn luparm to x-axis <-30.005495> speed <56.247253>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
@@ -557,7 +557,7 @@ AimTertiary(heading, pitch)
 	{
 		sleep 100;
 	}
-	turn torso to y-axis heading speed <5000.000000>;
+	turn torso to y-axis heading speed <600.000000>;
 	turn biggun to x-axis <0.000000> - pitch speed <150.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn biggun around x-axis;
