@@ -11,9 +11,9 @@ local modrules  = {
     reclaimMethod = 0,
 	unitMethod = 1,
 	
-    unitEnergyCostFactor    = 0.25,  -- defaults to 0
+    unitEnergyCostFactor    = 0.15,  -- defaults to 0
     unitEfficiency          = 1,  -- defaults to 1
-    featureEnergyCostFactor = 0.25,  -- defaults to 0
+    featureEnergyCostFactor = 0.15,  -- defaults to 0
 	
     allowEnemies  = true,  -- defaults to true
     allowAllies   = true,  -- defaults to true

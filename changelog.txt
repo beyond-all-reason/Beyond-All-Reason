@@ -1,4 +1,13 @@
-﻿9.46 -> 9.48
+﻿9.48 -> 9.49
+20/11/2016
+
+Balance changes:
+- Commander torso turnspeed doubled, and dgun reloadspeed increased 20%
+- Aircons cost doubled, movespeed halved
+- Repairing cost 15% of unit price
+
+
+9.46 -> 9.48
 20/11/2016
 
 Important:
@@ -13,6 +22,10 @@ Balance changes:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
 - Range of t1 aa pack0 and sam increased
 - Terraform (restore) speed increased
+- Projectiles dont hit allied units
+- Small wreckage dont block movement
+- Better pathing due to faster unit acceleration speed and turnrate
+
 
 Other:
 - Lots of new particle effects!
