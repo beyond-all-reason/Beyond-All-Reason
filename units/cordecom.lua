@@ -164,7 +164,7 @@ return {
 				noexplode = true,
 				noselfdamage = true,
 				range = 250,
-				reloadtime = 1.5,
+				reloadtime = 0.5,
 				soundhit = "xplomas2",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
