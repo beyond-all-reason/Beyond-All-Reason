@@ -25,7 +25,16 @@ unitDeaths = {
 	
 	pyro = {
 		weaponType		   = "Cannon",
-		areaofeffect = 220,
+		areaofeffect = 200,
+		explosiongenerator = "custom:genericunitexplosion-large",
+		damage = {
+			default = 250,
+		},
+	},
+	
+	pyroselfd = {
+		weaponType		   = "Cannon",
+		areaofeffect = 240,
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
 			default = 350,

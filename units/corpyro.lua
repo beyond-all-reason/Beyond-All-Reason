@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORPYRO",
 		seismicsignature = 0,
-		selfdestructas = "pyro",
+		selfdestructas = "pyroselfd",
 		selfdestructcountdown = 1,
 		sightdistance = 318,
 		turninplaceanglelimit = 140,
