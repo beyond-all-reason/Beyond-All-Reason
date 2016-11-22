@@ -1,11 +1,11 @@
 ﻿9.48 -> 9.49
-XX/11/2016
+22/11/2016
 
 Balance changes:
-- Commander torso turnspeed doubled, and dgun reloadspeed increased 20%
+- Commander torso turnspeed doubled, and dgun reloadspeed reduced 20%
 - Aircons cost doubled, movespeed halved
-- Repairing cost 15% of unit price
 - Packo and sam aa missile damage increased
+- Fixed some unit animations not fully opening or closing
 
 
 9.46 -> 9.48
