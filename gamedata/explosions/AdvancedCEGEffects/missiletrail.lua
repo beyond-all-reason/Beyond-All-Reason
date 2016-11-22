@@ -226,7 +226,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.018   0 0 0 0.01]],
+        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -413,7 +413,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.018   0 0 0 0.01]],
+        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -524,7 +524,7 @@ return {
     groundflash = {
       circlealpha        = 0,
       circlegrowth       = 0,
-      flashalpha         = 0.12,
+      flashalpha         = 0.07,
       flashsize          = 90,
       ttl                = 10,
       color = {
@@ -600,7 +600,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.018   0 0 0 0.01]],
+        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -709,7 +709,7 @@ return {
     groundflash = {
       circlealpha        = 0,
       circlegrowth       = 0,
-      flashalpha         = 0.13,
+      flashalpha         = 0.1,
       flashsize          = 90,
       ttl                = 10,
       color = {
@@ -785,7 +785,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.018   0 0 0 0.01]],
+        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,

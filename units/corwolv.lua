@@ -103,7 +103,7 @@ return {
 				craterareaofeffect = 113,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulseboost = 0.123,

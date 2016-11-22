@@ -131,7 +131,7 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "SabotFire",
-				startvelocity = 250,
+				startvelocity = 150,
 				targetmoveerror = 0.2,
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
@@ -142,6 +142,7 @@ return {
 				weapontimer = 0.1,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				flighttime = 2,
 				damage = {
 					bombers = 26,
 					default = 825,

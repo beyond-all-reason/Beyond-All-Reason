@@ -127,7 +127,7 @@ return {
 				name = "RocketBattery",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 0.23,
+				reloadtime = 0.3,
 				smoketrail = false,
 				soundhit = "xplosml2",
 				soundhitwet = "splsmed",
