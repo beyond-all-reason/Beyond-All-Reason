@@ -434,33 +434,35 @@ end
 
 
 -- add commander companion critters
-local companionPlayers = {"[Evo]Forboding_Angel"}
+--local companionPlayers = {"[Evo]Forboding_Angel"}
 function addCompanionCritters()
-  local allUnits = Spring.GetAllUnits()
-	local critterTypes = {"critter_penguin", "critter_penguin", "critter_penguin", "critter_duck", "critter_duck", "critter_ant", "critter_gull"}
-  for _, unitID in pairs(allUnits) do
-    local unitDefID = GetUnitDefID(unitID)
-    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
-   		local x,y,z = GetUnitPosition(unitID)
-      local team = GetUnitTeam(unitID)
-		  if team == nil then break end
-		  local players = Spring.GetPlayerList(team)
-		  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
-		  local found = false
-		  for _, cname in pairs(companionPlayers) do
-		  	if cname == name then found = true end
-		  end
-			if found then
-				local critters = {}
-				for i=1, random(-2, 80) do
-					local critterID = CreateUnit(critterTypes[random(1,#critterTypes)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
-					setGaiaUnitSpecifics(critterID)
-					table.insert(critters, critterID)
+	if companionPlayers ~= nil then
+	  local allUnits = Spring.GetAllUnits()
+		local critterTypes = {"critter_penguin", "critter_penguin", "critter_penguin", "critter_duck"}
+	  for _, unitID in pairs(allUnits) do
+	    local unitDefID = GetUnitDefID(unitID)
+	    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+	   		local x,y,z = GetUnitPosition(unitID)
+	      local team = GetUnitTeam(unitID)
+			  if team == nil then break end
+			  local players = Spring.GetPlayerList(team)
+			  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
+			  local found = false
+			  for _, cname in pairs(companionPlayers) do
+			  	if cname == name then found = true end
+			  end
+				if found then
+					local critters = {}
+					for i=1, random(-2, 1) do	-- amount of critters being spawn
+						local critterID = CreateUnit(critterTypes[random(1,#critterTypes)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
+						setGaiaUnitSpecifics(critterID)
+						table.insert(critters, critterID)
+					end
+					table.insert(companionCritters, unitID, critters)
 				end
-				table.insert(companionCritters, unitID, critters)
-			end
-    end
-  end
+	    end
+	  end
+	end
 end
 
 
