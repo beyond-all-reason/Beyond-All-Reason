@@ -14,7 +14,7 @@ static-var  Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
-	while( get BUILD_PERCENT_LEFT )
+	while( get BUILD_PERCENT_LEFT ) 
 	{
 		sleep 400;
 	}
