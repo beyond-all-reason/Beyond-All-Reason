@@ -80,6 +80,7 @@ return {
 				model = "missile",
 				name = "RiotRocket",
 				noselfdamage = true,
+				flighttime = 2,
 				range = 410,
 				reloadtime = 1.1,
 				smoketrail = false,

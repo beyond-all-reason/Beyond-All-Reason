@@ -28,6 +28,7 @@ Balance changes:
 - Labs have more buildspeed
 - All Energy and metal prices have been rounded
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
+- Fighters have more range but slower missile speed
 - Range of t1 aa pack0 and sam increased
 - Terraform (restore) speed increased
 - Projectiles dont hit allied units
