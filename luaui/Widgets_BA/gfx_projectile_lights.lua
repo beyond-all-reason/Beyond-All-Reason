@@ -88,11 +88,11 @@ function widget:Initialize() -- create lighttable
 			--These projectiles should have lights:
 				--Cannon (projectile size: tempsize = 2.0f + std::min(wd.damages[0] * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
 				--Dgun
-				--MissileLauncher
 				--StarburstLauncher
 				--LightningCannon --projectile is centered on emit point
 			--Shouldnt:
 				--AircraftBomb
+				--MissileLauncher
 				--BeamLaser --Beamlasers shouldnt, because they are buggy (GetProjectilePosition returns center of beam, no other info avalable)
 				--LaserCannon --only sniper uses it, no need to make shot more visible
 				--Melee
@@ -116,11 +116,11 @@ function widget:Initialize() -- create lighttable
 					--size=WeaponDefs[weaponID]['size']
 					plighttable[WeaponDefs[weaponID]['name']]={1,1,0.5,0.5}
 					
-				elseif (WeaponDefs[weaponID]['type'] == 'MissileLauncher') then
-					--Spring.Echo('MissileLauncher',WeaponDefs[weaponID]['name'],'size', WeaponDefs[weaponID]['size'])
-					size=WeaponDefs[weaponID]['size']
-					plighttable[WeaponDefs[weaponID]['name']]={1,1,0.8,0.5*((size-1)/3)}
-					
+				--elseif (WeaponDefs[weaponID]['type'] == 'MissileLauncher') then
+				--	--Spring.Echo('MissileLauncher',WeaponDefs[weaponID]['name'],'size', WeaponDefs[weaponID]['size'])
+				--	size=WeaponDefs[weaponID]['size']
+				--	plighttable[WeaponDefs[weaponID]['name']]={1,1,0.8,0.5*((size-1)/3)}
+				--	
 				elseif (WeaponDefs[weaponID]['type'] == 'StarburstLauncher') then
 					--Spring.Echo('StarburstLauncher',WeaponDefs[weaponID]['name'],'size', WeaponDefs[weaponID]['size'])
 					--size=WeaponDefs[weaponID]['size']

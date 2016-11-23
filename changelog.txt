@@ -1,4 +1,11 @@
-﻿9.48 -> 9.49
+﻿9.49 -> 9.50
+XX/11/2016
+
+Balance changes:
+- Commanders generate 50 energy (was 25)
+
+
+9.48 -> 9.49
 22/11/2016
 
 Balance changes:
@@ -26,6 +33,7 @@ Balance changes:
 - Projectiles dont hit allied units
 - Small wreckage dont block movement
 - Better pathing due to faster unit acceleration speed and turnrate
+- Wind generators dont chain explode
 
 Other:
 - Lots of new particle effects!
@@ -55,6 +63,7 @@ Other:
 - Resourcebars display a metal / energy icon
 - Unit textures reprocessed with bigger color range (less grainy textures)
 - Sounds reprocessed to higher bitrate
+- Common Colors widget has beed added
 
 
 9.45 -> 9.46
