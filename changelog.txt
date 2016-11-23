@@ -3,6 +3,7 @@ XX/11/2016
 
 Balance changes:
 - Commanders generate 50 energy (was 25)
+- Fixed Rapier missile premature hitting ground
 
 
 9.48 -> 9.49
