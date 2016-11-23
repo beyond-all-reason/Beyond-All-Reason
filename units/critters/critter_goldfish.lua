@@ -33,7 +33,6 @@ unitDef = {
   noChaseCategory        = [[MOBILE STATIC]],
   objectName             = [[critter_goldfish.s3o]],
   script                 = [[critter_goldfish.lua]],
-  side                   = [[CORE]],
   sightDistance          = 0,
   seismicSignature       = 0,
   sonarDistance          = 550,

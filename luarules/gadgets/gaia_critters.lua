@@ -193,13 +193,13 @@ end
 function gadget:Initialize()
 	local mo = Spring.GetModOptions()
 	if mo and tonumber(mo.critters)==0 then
-		Spring.Echo("gaia_critters.lua: turned off via modoptions")
+		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
 		gadgetHandler:RemoveGadget(self)
 	end
 	
-	Spring.Echo("gaia_critters.lua: gadget:Initialize() Game.mapName=" .. Game.mapName)
+	Spring.Echo("[Gaia Critters] gadget:Initialize() Game.mapName=" .. Game.mapName)
 	if not critterConfig[Game.mapName] then
-		Spring.Echo("no critter config for this map")
+		Spring.Echo("[Gaia Critters] No critter config for this map")
 		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
 	if mo.critters_multiplier ~= nil then
@@ -386,7 +386,7 @@ function addMapCritters()
 							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
-							Spring.Echo("Failed to create " .. unitName)
+							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
 						end
 					end
 				end
@@ -421,7 +421,7 @@ function addMapCritters()
 							--makeUnitCritter(unitID)
 							critterUnits[unitID].unitName = unitName
 						else
-							Spring.Echo("Failed to create " .. unitName)
+							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
 						end
 					end
 				end
@@ -614,9 +614,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	--Spring.Echo (CMD[cmdID] or "nil")
 	if cmdID and cmdID == CMD.ATTACK then 		
 		if cmdParams and #cmdParams == 1 then			
-			--Spring.Echo ("target is unit" .. cmdParams[1] .. " #cmdParams=" .. #cmdParams)
+			--Spring.Echo ("[Gaia Critters] target is unit" .. cmdParams[1] .. " #cmdParams=" .. #cmdParams)
 			if critterUnits[cmdParams[1]] ~= nil then 
-			--	Spring.Echo ("target is a critter and ignored!") 
+			--	Spring.Echo ("[Gaia Critters] target is a critter and ignored!") 
 				return false 
 			end
 		end

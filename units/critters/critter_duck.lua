@@ -42,7 +42,6 @@ unitDef = {
   upright=false,
   floater = true,
   waterline           = 6,
-  side                = [[GAYS]],
   sightDistance       = 0,--250
   seismicSignature    = 0,
   smoothAnim          = true,
