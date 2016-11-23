@@ -1130,36 +1130,6 @@ local colors = {
 			color = {1,0.66,0.15},
 		}
 	},
-	blue = {
-		groundflash = {
-			color = {0.15,0.15,1},
-		}
-	},
-	["blue-emp"] = {
-		groundflash = {
-			color = {0.15,0.15,1},
-		}
-	},
-	green = {
-		groundflash = {
-			color = {0.15,1,0.15},
-		}
-	},
-	red = {
-		groundflash = {
-			color = {1,0.15,0.15},
-		}
-	},
-	white = {
-		groundflash = {
-			color = {1,1,1},
-		}
-	},
-	purple = {
-		groundflash = {
-			color = {1,0.15,1},
-		}
-	}
 }
 for color, effects in pairs(colors) do
 	for size, e in pairs(sizes) do

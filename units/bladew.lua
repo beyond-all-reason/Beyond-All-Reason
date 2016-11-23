@@ -96,7 +96,7 @@ return {
 				soundstart = "hackshot",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
-				thickness = 1.2,
+				thickness = 1.6,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
