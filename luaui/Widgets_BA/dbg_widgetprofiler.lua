@@ -3,7 +3,7 @@
 
 function widget:GetInfo()
   return {
-    name      = "Widget Profiler",
+    name      = "WidgetProfiler",
     desc      = "",
     author    = "jK",
     version   = "2.0",
@@ -262,7 +262,7 @@ local redStrength = {}
 function DrawWidgetList(list,name,x,y,j)
     if j>=maxLines-5 then x = x - 350; j = 0; end
     j = j + 1
-    gl.Text("\255\160\255\160"..name.." WIDGETS", x+150, y-1-(12)*j, 10)
+    gl.Text("\255\160\255\160"..name.." WIDGETS", x+150, y-1-(12)*j, 10, "no")
     j = j + 2
     
     for i=1,#list do
@@ -272,14 +272,14 @@ function DrawWidgetList(list,name,x,y,j)
       local wname = v.fullname
       local tLoad = v.tLoad
       local colour = v.colourString
-      gl.Text(wname, x+150, y+1-(12)*j, 10)
-      gl.Text(colour .. ('%.3f%%'):format(tLoad), x+105, y+1-(12)*j, 10)	  
+      gl.Text(wname, x+150, y+1-(12)*j, 10, "no")
+      gl.Text(colour .. ('%.3f%%'):format(tLoad), x+105, y+1-(12)*j, 10, "no")	  
 
 	  j = j + 1
     end
     
-    gl.Text("\255\255\064\064total load ("..string.lower(name)..")", x+150, y+1-(12)*j, 10)
-    gl.Text("\255\255\064\064"..('%.3f%%'):format(list.allOverTime), x+105, y+1-(12)*j, 10)	  
+    gl.Text("\255\255\064\064total load ("..string.lower(name)..")", x+150, y+1-(12)*j, 10, "no")
+    gl.Text("\255\255\064\064"..('%.3f%%'):format(list.allOverTime), x+105, y+1-(12)*j, 10, "no")	  
     j = j + 1
     
     return x,j
@@ -321,6 +321,7 @@ end
     if not (next(callinTimes)) then
       return --// nothing to do
     end
+    
 
     deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTimer)
 
@@ -395,29 +396,36 @@ end
     
     -- draw
     local vsx, vsy = gl.GetViewSizes()
-    local x,y = vsx-350, vsy-150
+    local x,y = vsx-450, vsy-100
+  	local widgetScale = (1 + (vsx*vsy / 7500000))
+  	
+	  gl.PushMatrix()
+	    gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
+	    gl.Scale(widgetScale,widgetScale,1)
+	    
+	    gl.Color(1,1,1,1)
+	    gl.BeginText()
+			local j = -1 --line number
+	    
+	    x,j = DrawWidgetList(gameList,"GAME",x,y,j)
+	    x,j = DrawWidgetList(specialList,"API & SPECIAL",x,y,j)
+	    x,j = DrawWidgetList(userList,"USER",x,y,j)
+	    
+	    if j>=maxLines-5 then x = x - 350; j = 0; end
+	    j = j + 1
+	    gl.Text("\255\180\255\180TOTAL", x+150, y-1-(12)*j, 10, "no")
+	    j = j + 1
 
-    gl.Color(1,1,1,1)
-    gl.BeginText()
-	local j = -1 --line number
-    
-    x,j = DrawWidgetList(gameList,"GAME",x,y,j)
-    x,j = DrawWidgetList(specialList,"API & SPECIAL",x,y,j)
-    x,j = DrawWidgetList(userList,"USER",x,y,j)
-    
-    if j>=maxLines-5 then x = x - 350; j = 0; end
-    j = j + 1
-    gl.Text("\255\180\255\180TOTAL", x+150, y-1-(12)*j, 10)
-    j = j + 1
-
-	j = j + 1
-    gl.Text("\255\255\064\064total load", x+150, y-1-(12)*j, 10)
-    gl.Text("\255\255\064\064"..('%.1f%%'):format(allOverTime), x+105, y-1-(12)*j, 10)
-    j = j + 1
-    gl.Text("\255\255\064\064total time", x+150, y-1-(12)*j, 10)
-    gl.Text("\255\255\064\064"..('%.3fs'):format(allOverTimeSec), x+105, y-1-(12)*j, 10)
-    gl.EndText()
-  
+	    if j>=maxLines-5 then x = x - 350; j = 0; end
+		j = j + 1
+	    gl.Text("\255\255\064\064total load", x+150, y-1-(12)*j, 10, "no")
+	    gl.Text("\255\255\064\064"..('%.1f%%'):format(allOverTime), x+105, y-1-(12)*j, 10, "no")
+	    j = j + 1
+	    gl.Text("\255\255\064\064total time", x+150, y-1-(12)*j, 10, "no")
+	    gl.Text("\255\255\064\064"..('%.3fs'):format(allOverTimeSec), x+105, y-1-(12)*j, 10, "no")
+	    gl.EndText()
+	  
+	  gl.PopMatrix()
   end
   
   
