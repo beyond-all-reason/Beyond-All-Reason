@@ -223,10 +223,10 @@ local function SetParticleDefinitions()
 	  default = {
 	  	laser = {
 		    fxtype          = "NanoLasers",
-		    alpha           = "0.2+count/30",
-		    corealpha       = "0.2+count/120",
+		    alpha           = "0.12+count/50",
+		    corealpha       = "0.12+count/100",
 		    corethickness   = "limcount",
-		    streamThickness = "0.5+5*limcount",
+		    streamThickness = "1.5+5*limcount",
 		    streamSpeed     = "limcount*0.05",
 		    brightenteamcolor = true,						-- lights up the darker teamcolors (similar threshhold used of when using white outline for the name)
 	    }
@@ -234,10 +234,10 @@ local function SetParticleDefinitions()
 	  default_high_quality = {
 	  	laser = {
 		    fxtype          = "NanoLasers",
-		    alpha           = "0.2+count/30",
-		    corealpha       = "0.2+count/120",
+		    alpha           = "0.12+count/50",
+		    corealpha       = "0.12+count/100",
 		    corethickness   = "limcount",
-		    streamThickness = "0.5+5*limcount",
+		    streamThickness = "1.5+5*limcount",
 		    streamSpeed     = "limcount*0.05",
 		    brightenteamcolor = true,						-- lights up the darker teamcolors (similar threshhold used of when using white outline for the name)
 	    }
