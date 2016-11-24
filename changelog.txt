@@ -1,5 +1,7 @@
 ﻿9.49 -> 9.50
-XX/11/2016
+25/11/2016
+
+Fixed performance issue, using nanolaser effect solved it
 
 Balance changes:
 - Commanders generate 50 energy (was 25)
