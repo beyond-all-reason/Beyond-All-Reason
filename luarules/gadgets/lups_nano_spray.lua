@@ -232,19 +232,28 @@ local function SetParticleDefinitions()
 	    }
 	  },
 	  default_high_quality = {
-	  	cloud = {
-		    fxtype      = "NanoParticles",
-		    --alpha       = 0.055,
-		    alpha       = 0.18,
-		    size        = 8,
-		    sizeSpread  = 6,
-		    sizeGrowth  = 0.4,
-		    rotSpeed    = "math.random(1)/2",
-		    rotSpread   = 360,
-		    texture     = "bitmaps/Other/Poof.png",
-		    --particles   = 3.3,
-		    particles   = 1,
-	    },
+	  	laser = {
+		    fxtype          = "NanoLasers",
+		    alpha           = "0.2+count/30",
+		    corealpha       = "0.2+count/120",
+		    corethickness   = "limcount",
+		    streamThickness = "0.5+5*limcount",
+		    streamSpeed     = "limcount*0.05",
+		    brightenteamcolor = true,						-- lights up the darker teamcolors (similar threshhold used of when using white outline for the name)
+	    }
+	  	--cloud = {
+		  --  fxtype      = "NanoParticles",
+		  --  --alpha       = 0.055,
+		  --  alpha       = 0.18,
+		  --  size        = 8,
+		  --  sizeSpread  = 6,
+		  --  sizeGrowth  = 0.4,
+		  --  rotSpeed    = "math.random(1)/2",
+		  --  rotSpread   = 360,
+		  --  texture     = "bitmaps/Other/Poof.png",
+		  --  --particles   = 3.3,
+		  --  particles   = 1,
+	    --},
 	  	--cloud2 = {
 		  --  fxtype      = "NanoParticles",
 		  --  alpha       = 0.03,
@@ -297,37 +306,37 @@ local function SetParticleDefinitions()
 		  --},
 		}
 	}
-	if (currentDate ~= nil and tonumber(string.sub(currentDate, 5, 6)) == 12 and tonumber(string.sub(currentDate, 7, 8)) >= 19) then
-		factionsNanoFx.default_high_quality.energypart = nil
-		local xmas = {
-	    fxtype      = "NanoParticles",
-	    alpha       = "0.2+(math.random(1)/2.5)",
-	    size        = 1.5,
-	    sizeSpread  = 5,
-	    sizeGrowth  = 0.04,
-	    rotSpeed    = "0.25+math.random(1)/2",
-	    rotSpread   = 360,
-	    particles   = "math.random(1)/10",
-	    color       = {1,1,1},
-	    texture     = "bitmaps/xmas/star.png",
-		  radiusMultiplier = 0.73,
-	  }
-		factionsNanoFx.default_high_quality.xmas1 = deepcopy(xmas)
-		factionsNanoFx.default_high_quality.xmas1.texture = "bitmaps/xmas/mistletoe.png"
-		factionsNanoFx.default_high_quality.xmas1.particles = "math.random(1)/10"
-		factionsNanoFx.default_high_quality.xmas2 = deepcopy(xmas)
-		factionsNanoFx.default_high_quality.xmas2.texture = "bitmaps/xmas/hat.png"
-		factionsNanoFx.default_high_quality.xmas2.particles = "math.random(1)/14"
-		factionsNanoFx.default_high_quality.xmas3 = deepcopy(xmas)
-		factionsNanoFx.default_high_quality.xmas3.texture = "bitmaps/xmas/ball.png"
-		factionsNanoFx.default_high_quality.xmas3.particles = "math.random(1)/12"
-		factionsNanoFx.default_high_quality.xmas4 = deepcopy(xmas)
-		factionsNanoFx.default_high_quality.xmas4.texture = "bitmaps/xmas/star.png"
-		factionsNanoFx.default_high_quality.xmas4.particles = "math.random(1)/7"
-		factionsNanoFx.default_high_quality.xmas5 = deepcopy(xmas)
-		factionsNanoFx.default_high_quality.xmas5.texture = "bitmaps/xmas/cane.png"
-		factionsNanoFx.default_high_quality.xmas5.particles = "math.random(1)/22"
-	end
+	--if (currentDate ~= nil and tonumber(string.sub(currentDate, 5, 6)) == 12 and tonumber(string.sub(currentDate, 7, 8)) >= 19) then
+	--	factionsNanoFx.default_high_quality.energypart = nil
+	--	local xmas = {
+	--    fxtype      = "NanoParticles",
+	--    alpha       = "0.2+(math.random(1)/2.5)",
+	--    size        = 1.5,
+	--    sizeSpread  = 5,
+	--    sizeGrowth  = 0.04,
+	--    rotSpeed    = "0.25+math.random(1)/2",
+	--    rotSpread   = 360,
+	--    particles   = "math.random(1)/10",
+	--    color       = {1,1,1},
+	--    texture     = "bitmaps/xmas/star.png",
+	--	  radiusMultiplier = 0.73,
+	--  }
+	--	factionsNanoFx.default_high_quality.xmas1 = deepcopy(xmas)
+	--	factionsNanoFx.default_high_quality.xmas1.texture = "bitmaps/xmas/mistletoe.png"
+	--	factionsNanoFx.default_high_quality.xmas1.particles = "math.random(1)/10"
+	--	factionsNanoFx.default_high_quality.xmas2 = deepcopy(xmas)
+	--	factionsNanoFx.default_high_quality.xmas2.texture = "bitmaps/xmas/hat.png"
+	--	factionsNanoFx.default_high_quality.xmas2.particles = "math.random(1)/14"
+	--	factionsNanoFx.default_high_quality.xmas3 = deepcopy(xmas)
+	--	factionsNanoFx.default_high_quality.xmas3.texture = "bitmaps/xmas/ball.png"
+	--	factionsNanoFx.default_high_quality.xmas3.particles = "math.random(1)/12"
+	--	factionsNanoFx.default_high_quality.xmas4 = deepcopy(xmas)
+	--	factionsNanoFx.default_high_quality.xmas4.texture = "bitmaps/xmas/star.png"
+	--	factionsNanoFx.default_high_quality.xmas4.particles = "math.random(1)/7"
+	--	factionsNanoFx.default_high_quality.xmas5 = deepcopy(xmas)
+	--	factionsNanoFx.default_high_quality.xmas5.texture = "bitmaps/xmas/cane.png"
+	--	factionsNanoFx.default_high_quality.xmas5.particles = "math.random(1)/22"
+	--end
 end
 
 -------------------------------------------------------------------------------------
