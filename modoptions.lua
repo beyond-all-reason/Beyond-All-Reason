@@ -164,7 +164,7 @@ local options={
 		name   = "Fire Through Friendly Units",
 		desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",		
 		type="list",
-		def="enabled",
+		def="disabled",
 		section= "ba_options",
 		items={
 			{key="disabled", name="Disabled", desc=""},
@@ -190,7 +190,6 @@ local options={
 		name   = "Set small features to non-blocking status",
 		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",		
 		type="list",
-		def="enabled",
 		def="enabled",
 		section= "ba_options",
 		items={
