@@ -2,9 +2,9 @@ return {
 	corca = {
 		acceleration = 0.06,
 		brakerate = 0.4275,
-		buildcostenergy = 9800,
-		buildcostmetal = 120,
-		builddistance = 272,
+		buildcostenergy = 6000,
+		buildcostmetal = 130,
+		builddistance = 250,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORCA.DDS",
