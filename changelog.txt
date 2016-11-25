@@ -1,9 +1,7 @@
 ﻿9.49 -> 9.50
 25/11/2016
 
-Fixed performance issue, using nanolaser effect solved it
-
-Balance changes:
+- Fixed performance issue, using nanolaser effect solved it
 - Commanders generate 50 energy (was 25)
 - Fixed Rapier missile premature hitting ground
 
