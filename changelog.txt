@@ -1,4 +1,12 @@
-﻿9.49 -> 9.50
+﻿9.50 -> 9.51
+25/11/2016
+
+- Fixed Screamer having no stockpiling
+- Fighters dont attack ground
+- T2 aircons more expensive
+
+
+9.49 -> 9.50
 25/11/2016
 
 - Fixed performance issue, using nanolaser effect solved it

@@ -63,6 +63,7 @@ return {
 			corvtol_missile_a2a = {
 				areaofeffect = 48,
 				avoidfeature = false,
+		    canattackground = false,
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

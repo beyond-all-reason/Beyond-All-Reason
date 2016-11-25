@@ -65,6 +65,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				collidefriendly = false,
+		    canattackground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
