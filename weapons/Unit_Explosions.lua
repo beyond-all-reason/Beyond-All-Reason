@@ -52,6 +52,16 @@ unitDeaths = {
 		},
 	},
 	
+	smallbuilderboom = {
+		weaponType		   = "Cannon",
+		areaofeffect = 46,
+		edgeeffectiveness = 0.7,
+		explosiongenerator = "custom:genericbuildingexplosion-small",
+		damage = {
+			default = 175,
+		},
+	},
+	
 	metalmaker = {
 		weaponType		   = "Cannon",
 		areaofeffect = 150,
@@ -63,10 +73,10 @@ unitDeaths = {
 	
 	advmetalmaker = {
 		weaponType		   = "Cannon",
-		areaofeffect = 300,
+		areaofeffect = 350,
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 800,
+			default = 1200,
 		},
 	},
 	
@@ -84,7 +94,7 @@ unitDeaths = {
 		areaofeffect = 400,
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1100,
+			default = 1200,
 		},
 	},
 	

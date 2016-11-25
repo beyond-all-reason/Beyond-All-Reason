@@ -122,7 +122,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Spring.Echo(unitDef.turnrate)
 				if unitDef.turnrate == nil and unitDef.canmove == true and unitDef.canfly ~= true then
 					--Spring.Echo(unitDef.name)
-					unitDef.turnrate = 750
+					unitDef.turnrate = 666
 				end
 				
 				if unitDef.turnrate ~= nil and unitDef.canmove == true and unitDef.canfly ~= true then
@@ -135,7 +135,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				end
 				
 				if unitDef.acceleration ~= nil and unitDef.canmove == true and unitDef.canfly ~= true then
-					unitDef.acceleration = unitDef.acceleration + 1.5
+					unitDef.acceleration = unitDef.acceleration + 1.33
 					--Spring.Echo(unitDef.name)
 					--Spring.Echo(unitDef.turnrate)
 					--Spring.Echo(unitDef.acceleration)

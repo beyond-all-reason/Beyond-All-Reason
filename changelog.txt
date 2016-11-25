@@ -2,11 +2,12 @@
 25/11/2016
 
 - Disabled firethroughfriendly modoption
+- 1/3th less extra turnrate and acceleration speed
 - Repairing costs 15%
 - Fighters dont attack ground
 - T2 aircons more expensive
 - Fixed Screamer having no stockpiling
-- 1/4th less extra turnrate and acceleration speed
+- re-added chainign for rectors, necros, farks and freakers
 
 
 9.49 -> 9.50
