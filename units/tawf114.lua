@@ -139,7 +139,7 @@ return {
 				soundhitwet = "splsmed",
 				soundhitwetvolume = 0.5,
 				soundstart = "TAWF114a",
-				startvelocity = 80,
+				startvelocity = 100,
 				tolerance = 9000,
 				tracks = true,
 				trajectoryheight = 0.45,
