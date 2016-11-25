@@ -3,7 +3,7 @@ return {
 		acceleration = 0,
 		brakerate = 4.5,
 		buildcostenergy = 3200,
-		buildcostmetal = 210,
+		buildcostmetal = 200,
 		builddistance = 400,
 		builder = true,
 		shownanospray = false,
@@ -40,7 +40,7 @@ return {
 		turnrate = 1,
 		upright = true,
 		useBuildingGroundDecal = true,
-		workertime = 200,
+		workertime = 250,
 		customparams = {
 			death_sounds = "generic",
 		},
