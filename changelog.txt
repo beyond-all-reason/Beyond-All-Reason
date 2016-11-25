@@ -1,13 +1,17 @@
 ﻿9.50 -> 9.51
 25/11/2016
 
-- Disabled firethroughfriendly modoption
-- 1/3th less extra turnrate and acceleration speed
 - Repairing costs 15%
+- Disabled firethroughfriendly modoption
+- 1/3th fewer extra turnrate and acceleration speed
 - Fighters dont attack ground
 - T2 aircons more expensive
-- Fixed Screamer having no stockpiling
-- re-added chainign for rectors, necros, farks and freakers
+- Fixed Screamer having no stockpiling system
+- Re-added death chaining for rectors, necros, farks and freakers
+- T2 metalmakers explode a bit more violently
+- Arm/core defender range increased 15%
+- Pack0 and madsam aa cost increased 10%
+- Fixed gadget error
 
 
 9.49 -> 9.50
