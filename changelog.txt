@@ -6,6 +6,7 @@
 - Fighters dont attack ground
 - T2 aircons more expensive
 - Fixed Screamer having no stockpiling
+- 1/4th less extra turnrate and acceleration speed
 
 
 9.49 -> 9.50

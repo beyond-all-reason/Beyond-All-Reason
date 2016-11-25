@@ -80,7 +80,7 @@ function Spring.Utilities.GetUnitNanoTarget(unitID)
         local x = cmd.params[1]
         local z = cmd.params[3]
         type   = "restore"
-        target = {x, GetGroundHeight(x,z)+5, z, cmd.params[4]}
+        target = {x, Spring.GetGroundHeight(x,z)+5, z, cmd.params[4]}
 	    inRange = IsGroundPosInRange(unitID, x, z, buildRange)
 
       elseif cmdID == CMD.CAPTURE then
