@@ -60,6 +60,9 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		for id,unitDef in pairs(UnitDefs) do
 			if unitDef.workertime then
 			
+				-- Enable default Nanospray
+				unitDef.shownanospray = true
+			
 				--Make terraform really fast
 				if unitDef.terraformspeed then
 					unitDef.terraformspeed = unitDef.terraformspeed * 0.01 + 1000
