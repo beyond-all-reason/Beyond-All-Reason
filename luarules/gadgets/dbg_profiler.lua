@@ -223,6 +223,7 @@ else
     end
   end
   local function StartSYNCED(cmd, msg, words, playerID)
+    show = true
     if (Spring.GetLocalPlayerID() ~= playerID) then
       return
     end
@@ -234,9 +235,14 @@ else
       UpdateDrawCallin()
     end
   end
+  local show = true
   local function StartBoth(cmd, msg, words, playerID)
+    show = true
     Start(cmd, msg, words, playerID)
     StartSYNCED(cmd, msg, words, playerID)
+  end
+  local function Hide(cmd, msg, words, playerID)
+    show = false
   end
     
 
@@ -268,6 +274,7 @@ else
     )
     gadgetHandler.actionHandler.AddChatAction(gadget, 'profile', StartSYNCED,"")
     gadgetHandler.actionHandler.AddChatAction(gadget, 'ap', StartBoth,"")
+    gadgetHandler.actionHandler.AddChatAction(gadget, 'hideprofile', Hide,"")
     --StartHook()
   end
 
@@ -298,6 +305,7 @@ local function SortFunc(a,b)
 end
 
   function gadget:DrawScreen_()
+  	if not show then return end
     if not (next(callinTimes)) then
         --Spring.Echo("no callin times in profiler!")
       return --// nothing to do

@@ -10,7 +10,7 @@ XX/11/2016
 9.50 -> 9.51
 25/11/2016
 
-- Repairing costs 15%
+- Repairing costs 15% Energy
 - Disabled firethroughfriendly modoption
 - 1/3th fewer extra turnrate and acceleration speed
 - Fighters dont attack ground
