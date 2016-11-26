@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "hllt_aoplane.dds",
 		buildpic = "HLLT.DDS",
-		buildtime = 5448,
+		buildtime = 7000,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 100 32",
