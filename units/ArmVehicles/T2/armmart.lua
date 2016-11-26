@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 600,
 		maxslope = 12,
-		maxvelocity = 1.81,
+		maxvelocity = 1.6,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Luger",

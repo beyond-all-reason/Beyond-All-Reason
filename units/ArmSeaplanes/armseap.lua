@@ -79,7 +79,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.1,
 				explosiongenerator = "custom:genericshellexplosion-small",
-				flighttime = 1.5,
+				flighttime = 1.75,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",

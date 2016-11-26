@@ -124,7 +124,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-small",
-				flighttime = 1.5,
+				flighttime = 1.75,
 				groundbounce = true,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

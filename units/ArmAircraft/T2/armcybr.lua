@@ -76,7 +76,7 @@ return {
 				cegTag = "missiletrailmedium",
 				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 100,
-				flighttime = 1.5,
+				flighttime = 1.75,
 				impulseboost = 0.123,
 				impulsefactor = 2,
 				model = "plasmafire",

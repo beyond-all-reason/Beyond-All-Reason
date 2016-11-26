@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2250,
 		maxslope = 20,
-		maxvelocity = 1.905,
+		maxvelocity = 1.65,
 		maxwaterdepth = 20,
 		metalstorage = 4,
 		movementclass = "HTANK4",

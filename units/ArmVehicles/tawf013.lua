@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 556,
 		maxslope = 15,
-		maxvelocity = 1.958,
+		maxvelocity = 1.35,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
 		name = "Shellshocker",

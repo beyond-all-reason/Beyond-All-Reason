@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1205,
 		maxslope = 15,
-		maxvelocity = 2.25,
+		maxvelocity = 2.1,
 		maxwaterdepth = 125,
 		movementclass = "ATANK3",
 		name = "Pincer",
