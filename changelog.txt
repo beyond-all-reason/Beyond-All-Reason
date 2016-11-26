@@ -1,5 +1,5 @@
 ﻿9.51 -> 9.52
-XX/11/2016
+26/11/2016
 
 - Unit speed for all vehicles reduced 10%
 - Repair, reclaim, resurrect speeds * 0.6 (of buildspeed)
