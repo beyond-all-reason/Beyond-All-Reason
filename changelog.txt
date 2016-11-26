@@ -1,4 +1,13 @@
-﻿9.50 -> 9.51
+﻿9.51 -> 9.52
+XX/11/2016
+
+- Reverted back to old nanoparticles
+- Repair, reclaim, resurrect speeds * 0.6 (of buildspeed)
+- Reverted reprocessed sounds
+- Fixed core solar and arm T3 lab unitscript
+
+
+9.50 -> 9.51
 25/11/2016
 
 - Repairing costs 15%
