@@ -187,7 +187,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Spring.Echo(weaponDef.avoidFriendly)
 				--Spring.Echo(weaponDef.collideFriendly)
 			end
-			if (modOptions.fixedhitspheres ~= "disabled") then
+			if (modOptions.firethroughfriendly ~= "disabled" or modOptions.fixedhitspheres ~= "disabled") then
 				Spring.Echo("[Fixed unit hitspheres Modoption] Enabled")
 				for id,unitDef in pairs(UnitDefs) do
 					unitDef.collisionvolumetype = nil
