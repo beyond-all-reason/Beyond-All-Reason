@@ -30,7 +30,6 @@ return {
 		movementclass = "UBOAT3",
 		name = "Grim Reaper",
 		objectname = "ARMRECL",
-		repairspeed = 250,
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongeneric",
 		sightdistance = 430,

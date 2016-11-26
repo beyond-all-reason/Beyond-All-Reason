@@ -35,7 +35,6 @@ return {
 		name = "Fark",
 		objectname = "ARMFARK",
 		radardistance = 50,
-		repairspeed = 150,
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderboom",
 		sightdistance = 377,

@@ -30,7 +30,6 @@ return {
 		movementclass = "UBOAT3",
 		name = "Death Cavalry",
 		objectname = "CORRECL",
-		repairspeed = 250,
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongeneric",
 		sightdistance = 430,

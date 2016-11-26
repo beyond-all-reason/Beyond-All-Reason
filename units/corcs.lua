@@ -32,7 +32,6 @@ return {
 		movementclass = "BOAT4",
 		name = "Construction Ship",
 		objectname = "CORCS",
-		repairspeed = 125,
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 286,
