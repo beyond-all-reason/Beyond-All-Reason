@@ -77,10 +77,19 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 					unitDef.capturespeed = unitDef.capturespeed * 0.01
 				end
 				
+				if unitDef.repairspeed then
+					unitDef.repairspeed = unitDef.repairspeed * 0.01
+				end
+				
 				--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				unitDef.workertime = unitDef.workertime * 0.01
 				--Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
 				--Spring.Echo("\n")
+				
+				--Set Repairspeed to be half of buildspeed
+				if unitDef.repairspeed then
+					unitDef.repairspeed = unitDef.workertime * 0.5
+				end
 			end
 		end
 		--Spring.Echo("End Workertime Values----------------------------------------------------------------------------")

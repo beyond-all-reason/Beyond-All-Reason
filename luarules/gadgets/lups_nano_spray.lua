@@ -125,21 +125,6 @@ local function CopyMergeTables(table1,table2)
   return ret
 end
 
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -185,23 +170,19 @@ local function ParseLuaStrFunc(strfunc)
 end
 
 local function ParseLuaCode(t)
-  for fxname,fxparams in pairs(t) do
-	  for i,v in pairs(fxparams) do
-	    if (type(v)=="string")and(i~="texture")and(i~="fxtype") then
-	      t[fxname][i] = ParseLuaStrFunc(v)
-	    end
+  for i,v in pairs(t) do
+    if (type(v)=="string")and(i~="texture")and(i~="fxtype") then
+      t[i] = ParseLuaStrFunc(v)
     end
   end
 end
 
 local function ExecuteLuaCode(t)
-  for fxname,fxparams in pairs(t) do
-	  for i,v in pairs(fxparams) do
-	    if (type(v)=="function") then
-	      t[fxname][i]=v(fxparams.count,fxparams.inversed)
-	    end
-	  end
-	end
+  for i,v in pairs(t) do
+    if (type(v)=="function") then
+      t[i]=v(t.count,t.inversed)
+    end
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -210,7 +191,8 @@ end
 --  «« NanoSpray handling »»
 --
 
-local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 20000)
+local nanoParticles = {}
+local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
 
 local function GetFaction(udid)
   --local udef_factions = UnitDefs[udid].factions or {}
@@ -218,126 +200,62 @@ local function GetFaction(udid)
   return "default" -- default 
 end
 
-local function SetParticleDefinitions()
-	factionsNanoFx = {
-	  default = {
-	  	laser = {
-		    fxtype          = "NanoLasers",
-		    alpha           = "0.12+count/50",
-		    corealpha       = "0.12+count/100",
-		    corethickness   = "limcount",
-		    streamThickness = "1.5+5*limcount",
-		    streamSpeed     = "limcount*0.05",
-		    brightenteamcolor = true,						-- lights up the darker teamcolors (similar threshhold used of when using white outline for the name)
-	    }
-	  },
-	  default_high_quality = {
-	  	laser = {
-		    fxtype          = "NanoLasers",
-		    alpha           = "0.12+count/50",
-		    corealpha       = "0.12+count/100",
-		    corethickness   = "limcount",
-		    streamThickness = "1.5+5*limcount",
-		    streamSpeed     = "limcount*0.05",
-		    brightenteamcolor = true,						-- lights up the darker teamcolors (similar threshhold used of when using white outline for the name)
-	    }
-	  	--cloud = {
-		  --  fxtype      = "NanoParticles",
-		  --  --alpha       = 0.055,
-		  --  alpha       = 0.18,
-		  --  size        = 8,
-		  --  sizeSpread  = 6,
-		  --  sizeGrowth  = 0.4,
-		  --  rotSpeed    = "math.random(1)/2",
-		  --  rotSpread   = 360,
-		  --  texture     = "bitmaps/Other/Poof.png",
-		  --  --particles   = 3.3,
-		  --  particles   = 1,
-	    --},
-	  	--cloud2 = {
-		  --  fxtype      = "NanoParticles",
-		  --  alpha       = 0.03,
-		  --  size        = 5,
-		  --  sizeSpread  = 3,
-		  --  sizeGrowth  = 0.4,
-		  --  rotSpeed    = "math.random(1)/2",
-		  --  rotSpread   = 360,
-		  --  texture     = "bitmaps/Other/Poof.png",
-		  --  particles   = 2,
-		  --  color				= {0,0,0}
-	    --},
-	    --energypart = {
-		  --  fxtype      = "NanoParticles",
-		  --  alpha       = "0.3+math.random(1)/4",
-		  --  size        = 0.4,
-		  --  sizeSpread  = 1.12,
-		  --  sizeGrowth  = 0.05,
-		  --  rotSpeed    = "math.random(1)/2",
-		  --  rotSpread   = 360,
-		  --  particles   = "math.random(1)/3.8",
-		  --  color       = {1,1,1},
-		  --  radiusMultiplier = 0.83,
-		  --},
-	    --energypart2 = {
-		  --  fxtype      = "NanoParticles",
-		  --  alpha       = "0.23+math.random(1)/3.3",
-		  --  size        = 1,
-		  --  sizeSpread  = 0,
-		  --  sizeGrowth  = 0.12,
-		  --  rotSpeed    = "math.random(1)/1.5",
-		  --  rotSpread   = 360,
-		  --  particles   = "math.random(1)/2.3",
-		  --  texture     = "bitmaps/projectiletextures/flashcrap.png",
-		  --  color       = {1,1,1},
-		  --  radiusMultiplier = 0.83,
-		  --},
-	    --energypart3 = {
-		  --  fxtype      = "NanoParticles",
-		  --  alpha       = "0.23+math.random(1)/3.3",
-		  --  size        = 1,
-		  --  sizeSpread  = 0,
-		  --  sizeGrowth  = 0.12,
-		  --  rotSpeed    = "math.random(1)/1.5",
-		  --  rotSpread   = 360,
-		  --  particles   = "math.random(1)/2.8",
-		  --  texture     = "bitmaps/projectiletextures/flashcrap2.png",
-		  --  color       = {1,1,1},
-		  --  radiusMultiplier = 0.83,
-		  --},
-		}
-	}
-	--if (currentDate ~= nil and tonumber(string.sub(currentDate, 5, 6)) == 12 and tonumber(string.sub(currentDate, 7, 8)) >= 19) then
-	--	factionsNanoFx.default_high_quality.energypart = nil
-	--	local xmas = {
-	--    fxtype      = "NanoParticles",
-	--    alpha       = "0.2+(math.random(1)/2.5)",
-	--    size        = 1.5,
-	--    sizeSpread  = 5,
-	--    sizeGrowth  = 0.04,
-	--    rotSpeed    = "0.25+math.random(1)/2",
-	--    rotSpread   = 360,
-	--    particles   = "math.random(1)/10",
-	--    color       = {1,1,1},
-	--    texture     = "bitmaps/xmas/star.png",
-	--	  radiusMultiplier = 0.73,
-	--  }
-	--	factionsNanoFx.default_high_quality.xmas1 = deepcopy(xmas)
-	--	factionsNanoFx.default_high_quality.xmas1.texture = "bitmaps/xmas/mistletoe.png"
-	--	factionsNanoFx.default_high_quality.xmas1.particles = "math.random(1)/10"
-	--	factionsNanoFx.default_high_quality.xmas2 = deepcopy(xmas)
-	--	factionsNanoFx.default_high_quality.xmas2.texture = "bitmaps/xmas/hat.png"
-	--	factionsNanoFx.default_high_quality.xmas2.particles = "math.random(1)/14"
-	--	factionsNanoFx.default_high_quality.xmas3 = deepcopy(xmas)
-	--	factionsNanoFx.default_high_quality.xmas3.texture = "bitmaps/xmas/ball.png"
-	--	factionsNanoFx.default_high_quality.xmas3.particles = "math.random(1)/12"
-	--	factionsNanoFx.default_high_quality.xmas4 = deepcopy(xmas)
-	--	factionsNanoFx.default_high_quality.xmas4.texture = "bitmaps/xmas/star.png"
-	--	factionsNanoFx.default_high_quality.xmas4.particles = "math.random(1)/7"
-	--	factionsNanoFx.default_high_quality.xmas5 = deepcopy(xmas)
-	--	factionsNanoFx.default_high_quality.xmas5.texture = "bitmaps/xmas/cane.png"
-	--	factionsNanoFx.default_high_quality.xmas5.particles = "math.random(1)/22"
-	--end
-end
+local factionsNanoFx = {
+  default = {
+    fxtype          = "NanoLasers",
+    alpha           = "0.2+count/30",
+    corealpha       = "0.2+count/120",
+    corethickness   = "limcount",
+    streamThickness = "0.5+5*limcount",
+    streamSpeed     = "limcount*0.05",
+  },
+  ["default_high_quality"] = {
+    fxtype      = "NanoParticles",
+    alpha       = 0.27,
+    size        = 6,
+    sizeSpread  = 6,
+    sizeGrowth  = 0.65,
+    rotSpeed    = 0.1,
+    rotSpread   = 360,
+    texture     = "bitmaps/Other/Poof.png",
+    particles   = 1.2,
+  },
+  --[[arm = {
+    fxtype      = "NanoParticles",
+    delaySpread = 30,
+    size        = 3,
+    sizeSpread  = 5,
+    sizeGrowth  = 0.25,
+    texture     = "bitmaps/PD/nano.png"
+  },
+  ["arm_high_quality"] = {
+    fxtype      = "NanoParticles",
+    alpha       = 0.27,
+    size        = 6,
+    sizeSpread  = 6,
+    sizeGrowth  = 0.65,
+    rotSpeed    = 0.1,
+    rotSpread   = 360,
+    texture     = "bitmaps/Other/Poof.png",
+    particles   = 1.2,
+  },
+  core = {
+    fxtype          = "NanoLasers",
+    alpha           = "0.2+count/30",
+    corealpha       = "0.2+count/120",
+    corethickness   = "limcount",
+    streamThickness = "0.5+5*limcount",
+    streamSpeed     = "limcount*0.05",
+  },
+  unknown = {
+    fxtype          = "NanoLasers",
+    alpha           = "0.2+count/30",
+    corealpha       = "0.2+count/120",
+    corethickness   = "limcount",
+    streamThickness = "0.5+5*limcount",
+    streamSpeed     = "limcount*0.05",
+  },]]--
+}
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -357,32 +275,27 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
-local framesPerUpdate = 20		-- high value makes responsetime bad too
 function gadget:GameFrame(frame)
 	for i=1,#builders do
 		local unitID = builders[i]
-		if ((unitID + frame) % framesPerUpdate < 1) then --// only update once per second
+		if ((unitID + frame) % 30 < 1) then --// only update once per second
 			local strength = (Spring.GetUnitCurrentBuildPower(unitID) or 0)*(Spring.GetUnitRulesParam(unitID, "totalEconomyChange") or 1)	-- * 16
 			if (strength > 0) then
 				local type, target, isFeature = Spring.Utilities.GetUnitNanoTarget(unitID)
 
 				if (target) then
 					local endpos
-					local radius = 15
+					local radius = 30
 					if (type=="restore") then
 						endpos = target
 						radius = target[4]
 						target = -1
 					elseif (not isFeature) then
-						radius = (GetUnitRadius(target) or radius)
+						radius = (GetUnitRadius(target) or 1) * 0.80
 					else
-						radius = (GetFeatureRadius(target) or radius)
+						radius = (GetFeatureRadius(target) or 1) * 0.80
 					end
-					if radius == 1 then	-- reclaim unit gives back 1 so yeah...
-						radius = 20
-					end
-					radius = radius * 0.45
-					
+
 					local terraform = false
 					local inversed  = false
 					if (type=="restore") then
@@ -405,19 +318,14 @@ function gadget:GameFrame(frame)
 					local faction = GetFaction(unitDefID)
 					local teamColor = {Spring.GetTeamColor(teamID)}
 					local nanoPieces = Spring.GetUnitNanoPieces(unitID) or {}
-					
-					--local maxBrightness = math.max(teamColor[1], teamColor[2], teamColor[3])
-					--teamColor[1] = 0
-					--teamColor[2] = 0
-					--teamColor[3] = 0
-					--Spring.Echo(teamColor[1]..' '..teamColor[2]..' '..teamColor[3]..' : '..particleAlpha)
-					
+
 					for j=1,#nanoPieces do
 						local nanoPieceID = nanoPieces[j]
 						--local nanoPieceIDAlt = Spring.GetUnitScriptPiece(unitID, nanoPieceID)
 						--if (unitID+frame)%60 == 0 then
 						--	Spring.Echo("Nanopiece nums (output)", j, UnitDefs[unitDefID].name, nanoPieceID, nanoPieceIDAlt)
 						--end
+
 						local nanoParams = {
 							targetID     = target,
 							isFeature    = isFeature,
@@ -428,7 +336,7 @@ function gadget:GameFrame(frame)
 							allyID       = allyID,
 							nanopiece    = nanoPieceID,
 							targetpos    = endpos,
-							count        = strength * framesPerUpdate,
+							count        = strength * 30,
 							color        = teamColor,
 							type         = type,
 							targetradius = radius,
@@ -437,21 +345,15 @@ function gadget:GameFrame(frame)
 							cmdTag       = cmdTag, --//used to end the fx when the command is finished
 							life = 60,
 						}
-						local nanoSettings = deepcopy(factionsNanoFx[faction] or factionsNanoFx.default)
-						for fxname, fxparams in pairs(nanoSettings) do
-							nanoSettings[fxname] = CopyMergeTables(fxparams, nanoParams)
-							if nanoSettings[fxname].radiusMultiplier ~= nil then
-							 	nanoSettings[fxname].targetradius = nanoSettings[fxname].targetradius * nanoSettings[fxname].radiusMultiplier
-								nanoSettings[fxname].radiusMultiplier = nil
-							end
-						end
+
+						local nanoSettings = CopyMergeTables(factionsNanoFx[faction] or factionsNanoFx.default, nanoParams)
 						ExecuteLuaCode(nanoSettings)
+
+						local fxType  = nanoSettings.fxtype
+						if (not nanoParticles[unitID]) then nanoParticles[unitID] = {} end
+						local unitFxs = nanoParticles[unitID]
 						if Lups then
-							for fxname, fxparams in pairs(nanoSettings) do
-								--if not inversed or (inversed and string.sub(fxname, 1, 4) ~= 'xmas') then
-									Lups.AddParticles(fxparams.fxtype, fxparams)
-								--end
-							end
+							unitFxs[#unitFxs+1] = Lups.AddParticles(nanoSettings.fxtype,nanoSettings)
 						end
 					end
 				end
@@ -460,6 +362,7 @@ function gadget:GameFrame(frame)
 
 	end --//for
 end
+
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -486,47 +389,41 @@ function gadget:Update()
 
   --// init user custom nano fxs
   for faction,fx in pairs(Lups.Config or {}) do
-    if (fx and (type(fx)=='table')) then
-	    for fxname, fxparams in pairs(fx) do
-	    	if fxparams.fxtype then
-		      local fxType = fxparams.fxtype 
-		      local fxSettings = fxparams
+    if (fx and (type(fx)=='table') and fx.fxtype) then
+      local fxType = fx.fxtype 
+      local fxSettings = fx
 
-		      if (fxType)and
-		         ((fxType:lower()=="nanolasers")or
-		          (fxType:lower()=="nanoparticles"))and
-		         (fxSupported(fxType))and
-		         (fxSettings)
-		      then
-		        factionsNanoFx[faction][fxname] = fxSettings
-		      end
-		    end
-	    end
+      if (fxType)and
+         ((fxType:lower()=="nanolasers")or
+          (fxType:lower()=="nanoparticles"))and
+         (fxSupported(fxType))and
+         (fxSettings)
+      then
+        factionsNanoFx[faction] = fxSettings
+      end
     end
   end
-	
+
   for faction,fx in pairs(factionsNanoFx) do
-    --if (not fxSupported(fx.fxtype or "noneNANO")) then
-    --  factionsNanoFx[faction] = factionsNanoFx.default
-    --end
+    if (not fxSupported(fx.fxtype or "noneNANO")) then
+      factionsNanoFx[faction] = factionsNanoFx.default
+    end
 
     local factionNanoFx = factionsNanoFx[faction]
-    for fxname, fxparams in pairs(factionNanoFx) do
-	    factionNanoFx[fxname].delaySpread = framesPerUpdate
-	    factionNanoFx[fxname].fxtype = factionNanoFx[fxname].fxtype:lower()
-	    if ((Lups.Config["quality"] or 2)>=2)and((factionNanoFx[fxname].fxtype=="nanolasers")or(factionNanoFx[fxname].fxtype=="nanolasersshader")) then
-	      factionNanoFx[fxname].flare = true
-	    end
-		end
+    factionNanoFx.delaySpread = 30
+    factionNanoFx.fxtype = factionNanoFx.fxtype:lower()
+    if ((Lups.Config["quality"] or 2)>=2)and((factionNanoFx.fxtype=="nanolasers")or(factionNanoFx.fxtype=="nanolasersshader")) then
+      factionNanoFx.flare = true
+    end
+
     --// parse lua code in the table, so we can execute it later
     ParseLuaCode(factionNanoFx)
   end
 
 end
-
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-
+  
 local registeredBuilders = {}
 
 function gadget:UnitFinished(uid, udid)
@@ -543,29 +440,7 @@ function gadget:UnitDestroyed(uid, udid)
 	end
 end
 
-function lines(str)
-  local t = {}
-  local function helper(line) table.insert(t, line) return "" end
-  helper((str:gsub("(.-)\r?\n", helper)))
-  return t
-end
-	
 function gadget:Initialize()
-
-	-- extract date from infolog
-	local infolog = VFS.LoadFile("infolog.txt")
-	if infolog then
-		local fileLines = lines(infolog)
-		for i, line in ipairs(fileLines) do
-			if string.find(line, 'Recording demo to:') then
-				currentDate = string.match(line, '([0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9])')
-				break
-			end
-			if i == 500 then break end
-		end
-	end
-	SetParticleDefinitions()
-	
 	for _,unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		gadget:UnitFinished(unitID, unitDefID)
