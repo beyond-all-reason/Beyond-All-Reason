@@ -1,4 +1,10 @@
-﻿9.51 -> 9.52
+﻿9.52 -> 9.53
+XX/11/2016
+
+- Buildtime for T1 and T2 slightly increased
+
+
+9.51 -> 9.52
 26/11/2016
 
 - Unit speed for all vehicles reduced 10%
