@@ -34,7 +34,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		windgenerator = 25,
-		yardmap = "ooooooooo",
+		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			death_sounds = "generic",
 		},
