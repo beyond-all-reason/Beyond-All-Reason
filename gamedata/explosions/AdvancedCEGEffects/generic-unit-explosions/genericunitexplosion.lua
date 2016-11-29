@@ -1105,17 +1105,17 @@ for size, effects in pairs(sizes) do
 end
 
 -- add coloring
-local colors = {
-	--blue = {
-	--	groundflash = {
-	--		color = {0.15,0.15,1},
-	--	}
-	--},
-}
-for color, effects in pairs(colors) do
-	for size, e in pairs(sizes) do
-		definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
-	end
-end
+--local colors = {
+--	--blue = {
+--	--	groundflash = {
+--	--		color = {0.15,0.15,1},
+--	--	}
+--	--},
+--}
+--for color, effects in pairs(colors) do
+--	for size, e in pairs(sizes) do
+--		definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+--	end
+--end
 
 return definitions
