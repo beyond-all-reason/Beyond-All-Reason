@@ -25,19 +25,20 @@ unitDeaths = {
 	
 	pyro = {
 		weaponType		   = "Cannon",
-		areaofeffect = 200,
+		areaofeffect = 64,
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
-			default = 250,
+			default = 50,
 		},
 	},
 	
 	pyroselfd = {
 		weaponType		   = "Cannon",
-		areaofeffect = 240,
+		areaofeffect = 200,
+		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:genericunitexplosion-large",
 		damage = {
-			default = 350,
+			default = 1000,
 		},
 	},
 	
@@ -48,57 +49,52 @@ unitDeaths = {
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
 			default = 10,
-			nanos = 380,
+			nanos = 400,
 		},
 	},
 	
 	smallbuilderboom = {
 		weaponType		   = "Cannon",
-		areaofeffect = 46,
-		edgeeffectiveness = 0.7,
+		areaofeffect = 64,
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
-			default = 175,
+			default = 25,
 		},
 	},
 	
 	metalmaker = {
 		weaponType		   = "Cannon",
-		areaofeffect = 150,
-		edgeeffectiveness = 0.7,
+		areaofeffect = 210,
 		explosiongenerator = "custom:genericbuildingexplosion-medium",
 		damage = {
-			default = 400,
+			default = 590,
 		},
 	},
 	
 	advmetalmaker = {
 		weaponType		   = "Cannon",
-		areaofeffect = 350,
-		edgeeffectiveness = 0.7,
+		areaofeffect = 320,
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 1200,
+			default = 1100,
 		},
 	},
 	
 	energystorage = {
 		weaponType		   = "Cannon",
-		areaofeffect = 200,
-		edgeeffectiveness = 0.7,
+		areaofeffect = 210,
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 550,
+			default = 590,
 		},
 	},
 	
 	advenergystorage = {
 		weaponType		   = "Cannon",
-		areaofeffect = 400,
-		edgeeffectiveness = 0.7,
+		areaofeffect = 480,
 		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
-			default = 1200,
+			default = 2400,
 		},
 	},
 	
