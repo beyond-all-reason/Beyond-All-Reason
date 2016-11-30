@@ -41,7 +41,6 @@ return {
 		turninplacespeedlimit = 1.50282,
 		turnrate = 615,
 		waterline = 4,
-		windgenerator = 0.001,
 		workertime = 150,
 		buildoptions = {
 			[1] = "armeyes",

@@ -40,7 +40,6 @@ return {
 		turninplacespeedlimit = 1.386,
 		turnrate = 377,
 		waterline = 3,
-		windgenerator = 0.001,
 		workertime = 400,
 		buildoptions = {
 			[1] = "cortide",

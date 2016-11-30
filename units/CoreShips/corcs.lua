@@ -41,7 +41,6 @@ return {
 		turninplacespeedlimit = 1.3662,
 		turnrate = 595,
 		waterline = 3,
-		windgenerator = 0.001,
 		workertime = 150,
 		buildoptions = {
 			[1] = "coreyes",

@@ -42,7 +42,6 @@ return {
 		turnrate = 420,
 		unloadspread = 1,
 		waterline = 11,
-		windgenerator = 0.001,
 		customparams = {
 			death_sounds = "generic",
 		},

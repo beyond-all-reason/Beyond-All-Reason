@@ -53,7 +53,6 @@ return {
 		turninplacespeedlimit = 1.7424,
 		turnrate = 210,
 		waterline = 6,
-		windgenerator = 0.001,
 		workertime = 1000,
 		customparams = {
 			death_sounds = "generic",

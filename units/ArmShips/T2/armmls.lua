@@ -40,7 +40,6 @@ return {
 		turninplacespeedlimit = 1.584,
 		turnrate = 388,
 		waterline = 2,
-		windgenerator = 0.001,
 		workertime = 400,
 		buildoptions = {
 			[1] = "armtide",
