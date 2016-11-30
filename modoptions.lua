@@ -146,18 +146,18 @@ local options={
         step   = 0.2,
     },
     
-    {
-		key    = "betterunitmovement",
-		name   = "Advanced Unit Movement and Pathing",
-		desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
-		type="list",
-		def="enabled",
-		section= "ba_options",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
-		}
-    },
+    --{ 
+		--key    = "betterunitmovement",  -- commented out because i made balance (speed) changes to units to compensate
+		--name   = "Advanced Unit Movement and Pathing",
+		--desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
+		--type="list",
+		--def="enabled",
+		--section= "ba_options",
+		--items={
+		--	{key="disabled", name="Disabled", desc=""},
+		--	{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
+		--}
+    --},
 	
 	{
 		key    = "firethroughfriendly",
@@ -194,7 +194,7 @@ local options={
 		section= "ba_options",
 		items={
 			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Small rocks/trees/unit wrecks will no longer block unit pathing"},
+			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
 		}
     },
 	
