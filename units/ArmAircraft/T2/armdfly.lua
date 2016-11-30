@@ -32,12 +32,14 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMDFLY",
 		releaseheld = true,
+		script = "armdfly_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 318,
 		stealth = true,
 		transportcapacity = 30,
 		transportsize = 15,
+		loadingradius = 600,
 		turninplaceanglelimit = 360,
 		turnrate = 420,
 		blocking = false,
@@ -49,6 +51,9 @@ return {
  			pieceExplosionGenerators = { 
 				"deathceg3",
 				"deathceg4",
+			},
+			explosiongenerators      = {
+				"custom:blacksmoke",
 			},
 		},
 		sounds = {
