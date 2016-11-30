@@ -1,5 +1,5 @@
 ﻿9.46 -> 9.53
-XX/11/2016
+XX/12/2016
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
@@ -23,13 +23,14 @@ Balance changes:
 - Unit speed for all vehicles reduced 10% (needed because they respond faster now)
 
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
-- T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
 - All aa missile range increased a few %
+- T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
 - Arm/core defender range increased 15%
 - Fighters have more range due to slower missile speed and missile turnrate
 - Fighters dont attack ground (because bigger range means more frequent attacks on ground)
 
 - Wind generators get a bigger footprint: 4x4 (was 3x3), fan blades wont touch neighbours any longer
+- Wind generaters are 50% more expensive for 50% more energy production/health/buildtime/storage
 - All Energy and metal prices have been rounded (because buildmenu now shows prices)
 
 Other:

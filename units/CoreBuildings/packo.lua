@@ -129,7 +129,7 @@ return {
 				model = "missile",
 				name = "AA2Missile",
 				noselfdamage = true,
-				range = 1150,
+				range = 1110,
 				reloadtime = 0.425,
 				smoketrail = false,
 				soundhit = "packohit",
@@ -148,7 +148,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
 				damage = {
-					default = 125,
+					default = 115,
 					subs = 5,
 				},
 			},
