@@ -1,103 +1,66 @@
-﻿9.52 -> 9.53
+﻿9.46 -> 9.53
 XX/11/2016
-
-- Buildtime for T1 and T2 slightly increased
-
-
-9.51 -> 9.52
-26/11/2016
-
-- Unit speed for all vehicles reduced 10%
-- Repair, reclaim, resurrect speeds * 0.6 (of buildspeed)
-- Fixed core solar and arm T3 lab unitscript
-- Reverted reprocessed sounds
-- Reverted back to old nanoparticles
-
-
-9.50 -> 9.51
-25/11/2016
-
-- Repairing costs 15% Energy
-- Disabled firethroughfriendly modoption
-- 1/3th fewer extra turnrate and acceleration speed
-- Fighters dont attack ground
-- T2 aircons more expensive
-- Fixed Screamer having no stockpiling system
-- Re-added death chaining for rectors, necros, farks and freakers
-- T2 metalmakers explode a bit more violently
-- Arm/core defender range increased 15%
-- Pack0 and madsam aa cost increased 10%
-- Fixed gadget error
-
-
-9.49 -> 9.50
-25/11/2016
-
-- Fixed performance issue, using nanolaser effect solved it
-- Commanders generate 50 energy (was 25)
-- Fixed Rapier missile premature hitting ground
-
-
-9.48 -> 9.49
-22/11/2016
-
-Balance changes:
-- Commander torso turnspeed doubled, and dgun reloadspeed reduced 20%
-- Aircons cost doubled, movespeed halved
-- Packo and sam aa missile damage increased
-- Fixed some unit animations not fully opening or closing
-
-
-9.46 -> 9.48
-20/11/2016
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
 - Decay resigned as balancing dev/maintainer
+- Forboding Angel helped us out with the new particle effect system and other structural changes, but he himself is not a BA dev.
+- Lots of things changed a little bit, please grant us some time to make balance fixes.
 
 Balance changes:
-- Introduced a minimum buildrange (mainly commander has bigger buildrange due to this)
-- Standardized buildspeed numbers (due to this aircons can build faster now)
-- Labs have more buildspeed
-- All Energy and metal prices have been rounded
-- Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
-- Fighters have more range but slower missile speed
-- Range of t1 aa pack0 and sam increased
+- Introduced a minimum (bigger) buildrange
+- Standardized and increased buildspeed numbers (labs, cons and nanos have more buildspeed)
+- Buildtime for T1 and T2 porc slightly increased
+- Repairing costs 15% Energy
+- Aircons cost doubled, movespeed halved (because buildspeed now is same as other t1 cons)
 - Terraform (restore) speed increased
-- Projectiles dont hit allied units
-- Small wreckage dont block movement
-- Better pathing due to faster unit acceleration speed and turnrate
-- Wind generators dont chain explode
+- Repair, reclaim, resurrect speeds * 0.6 (of buildspeed)
+- Commanders generate 50 energy (was 25)
+- Commander torso turnspeed doubled, and dgun reloadspeed reduced 20%
+
+- Small wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
+- Better/responsive pathing due to faster unit acceleration and turnrate for all units (they dont arrive faster)
+- Unit speed for all vehicles reduced 10% (needed because they respond faster now)
+
+- Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
+- T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
+- All aa missile range increased a few %
+- Arm/core defender range increased 15%
+- Fighters have more range due to slower missile speed and missile turnrate
+- Fighters dont attack ground (because bigger range means more frequent attacks on ground)
+
+- Wind generators get a bigger footprint: 4x4 (was 3x3), fan blades wont touch neighbours any longer
+- All Energy and metal prices have been rounded (because buildmenu now shows prices)
 
 Other:
 - Lots of new particle effects!
+
 - Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
 - Buildmenu: shows shortcuts (B->Q means press B first and Q after) (hides with /iconinfokeys)
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
+- Keybinds, commands, changelog, options windows hide with Escape key
+
+- Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
+- Area Capture Mode displays info on startup and gets a scoreboard window
+
+- Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
+- Common Colors widget has beed added (rainbow scemed team colors)
+- Added music, and interface that can control it
+- Unit textures reprocessed with bigger color range (less grainy)
+- Engine trees replaced with more beautifull version and bigger in size
+- Units have a shatter effect on death
 - Options: fixed that not all settings remembered their value
+- Fixed commander nametags occasionally showing spectator name
 - Bloomshader: prettier and more pronounced (but heavier on the gpu)
 - Commands FX lines get a bit thinner over lifetime
-- Engine trees replaced with more beautifull version and bigger in size
-- More unit types shatter on death
-- Nano effect is now done via lups shader (less cpu cost)
-- When shaders are disabled: nanolasers are being used
-- Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
-- Area Capture Mode shows info on startup and has a scoreboard window too
 - BA icon is now a png (was bmp)
 - Pausescreen changed and uses darkens screen and decolorizes when shaders enabled
 - Mapmarks effect size increased
-- Keybinds, commands, changelog, options windows hide with Escape key
-- Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
-- Added music, and interface that can control it
 - Unit info widget removed (for now)
 - Removed 'Allies' label from advplayerslist
-- Fixed commander nametags occasionally showing spectator name
 - Various random deathsounds introduced
 - Guishader blurs UI too when displaying popup windows
 - Resourcebars display a metal / energy icon
-- Unit textures reprocessed with bigger color range (less grainy textures)
-- Sounds reprocessed to higher bitrate
-- Common Colors widget has beed added
 
 
 9.45 -> 9.46
