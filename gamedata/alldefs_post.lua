@@ -130,7 +130,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			end
 		end]]--
 		
-		if (modOptions.betterunitmovement ~= "disabled") then
+		--if (modOptions.betterunitmovement ~= "disabled") then
 			Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
 			for id,unitDef in pairs(UnitDefs) do
 			
@@ -174,9 +174,14 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 					end
 				end
 			end
-		end
+		--end
 		
-		if (modOptions.firethroughfriendly ~= nil and modOptions.firethroughfriendly ~= "disabled") then
+		--Fire through friendly needs fixed hitspeheres, likewise, fixed hitspheres needs fire through friendly.
+		--For the sake of keeping it simple, rolled both into one modoption.
+		
+		--Uncomment/recommend the following line for easier testing
+		--modOptions.firethroughfriendly = "enabled"
+		if (modOptions.firethroughfriendly == "enabled") then
 			Spring.Echo("[Fire through friendlies Modoption] Enabled")
 			for id,weaponDef in pairs(WeaponDefs) do
 				--Spring.Echo(weaponDef.name)
@@ -187,17 +192,14 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Spring.Echo(weaponDef.avoidFriendly)
 				--Spring.Echo(weaponDef.collideFriendly)
 			end
-			if (modOptions.firethroughfriendly ~= "disabled" or modOptions.fixedhitspheres ~= "disabled") then
-				Spring.Echo("[Fixed unit hitspheres Modoption] Enabled")
-				for id,unitDef in pairs(UnitDefs) do
-					unitDef.collisionvolumetype = nil
-					unitDef.usepiececollisionvolumes = nil
-					--unitDef.collisionVolumeScales = [[0.0 0.0 0.0]]
-					--unitDef.collisionvolumeoffsets = [[0.0 0.0 0.0]]
-					--Spring.Echo(unitDef.name)
-					--Spring.Echo(unitDef.collisionvolumetype)
-					--unitDef.useFootPrintCollisionVolume = true
-				end
+			for id,unitDef in pairs(UnitDefs) do
+				unitDef.collisionvolumetype = nil
+				unitDef.usepiececollisionvolumes = nil
+				--unitDef.collisionVolumeScales = [[0.0 0.0 0.0]]
+				--unitDef.collisionvolumeoffsets = [[0.0 0.0 0.0]]
+				--Spring.Echo(unitDef.name)
+				--Spring.Echo(unitDef.collisionvolumetype)
+				--unitDef.useFootPrintCollisionVolume = true
 			end
 		end
 		
