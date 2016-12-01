@@ -9,31 +9,53 @@ function script.Create()
 	StartThread(common.SmokeUnit, {base, patch, wing4, wing3, link, wing2, wing1})
 	Hide(flare)
 	Move(link, y_axis, 0, 5000)
-	script.CloseWings()
+	script.CloseWingsInstantly()
 end
 
 common = include("headers/common_includes_lus.lua")
+
+--This is unfortunately necessary due to the fact that the model is a 3do
+function script.CloseWingsInstantly()
+	Turn(wing3, y_axis, -20, 20)
+	Turn(wing4, y_axis, 20, 20)
+end
 
 function script.CloseWings()
 	Turn(wing3, y_axis, -20, 1)
 	Turn(wing4, y_axis, 20, 1)
 end
 
-function script.OpenWings()
+function script.OpenWingsPartially()
 	Turn(wing3, y_axis, 0, 1)
 	Turn(wing4, y_axis, -0, 1)
+	
+end
+
+function script.OpenWings()
+	Turn(wing3, y_axis, -0.7, 1)
+	Turn(wing4, y_axis, 0.7, 1)
 end
 
 
 function script.StartMoving()
    isMoving = true
-   script.OpenWings()
 end
 
 function script.StopMoving()
    isMoving = false
-   script.CloseWings()
 end   
+
+function script.MoveRate(moveRate)
+	if moveRate == 0 then
+		script.CloseWings()
+	end
+	if moveRate == 1 then
+		script.OpenWingsPartially()
+	end
+	if moveRate == 2 then
+		script.OpenWings()
+	end
+end
 
 function script.TransportPickup ( passengerID )
 	UnitScript.AttachUnit ( link, passengerID )
