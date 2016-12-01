@@ -39,7 +39,6 @@ return {
 		stealth = true,
 		transportcapacity = 30,
 		transportsize = 15,
-		loadingradius = 600,
 		turninplaceanglelimit = 360,
 		turnrate = 420,
 		blocking = false,
