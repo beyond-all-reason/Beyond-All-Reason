@@ -176,7 +176,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			end
 		end
 		
-		if (modOptions.firethroughfriendly ~= "disabled") then
+		if (modOptions.firethroughfriendly ~= nil and modOptions.firethroughfriendly ~= "disabled") then
 			Spring.Echo("[Fire through friendlies Modoption] Enabled")
 			for id,weaponDef in pairs(WeaponDefs) do
 				--Spring.Echo(weaponDef.name)

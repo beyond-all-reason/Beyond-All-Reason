@@ -67,6 +67,20 @@ unitDeaths = {
 		},
 	},
 	
+	windboom = {
+		weaponType		   = "Cannon",
+		AreaOfEffect = 180,
+		cameraShake = 180,
+		edgeeffectiveness = 0.6,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundstart = "xplosml3",
+		explosiongenerator="custom:genericbuildingexplosion-small",
+		damage = {
+			default = 100,
+		},
+	},
+	
 	metalmaker = {
 		weaponType		   = "Cannon",
 		areaofeffect = 210,
@@ -123,27 +137,27 @@ unitDeaths = {
 
 	smallNukeExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=smallNukeExplosion,
-		cameraShake=smallNukeExplosion,
+		AreaOfEffect = smallNukeExplosion,
+		cameraShake = smallNukeExplosion,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplonuk3",
 		explosiongenerator="custom:nukedatbewmsmall",
 		damage = {
-			default            = 0,
+			default = 0,
 		},
 	},
 
 	hugeNukeExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=hugeNukeExplosion,
-		cameraShake=hugeNukeExplosion,
+		AreaOfEffect = hugeNukeExplosion,
+		cameraShake = hugeNukeExplosion,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplonuk3",
 		explosiongenerator="custom:nukedatbewm",
 		damage = {
-			default            = 6500,
+			default = 6500,
 		},
 	},
 	
@@ -152,21 +166,21 @@ unitDeaths = {
 
 	smallNukeExplosionGenericDamage = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=smallNukeExplosionDamage,
-		cameraShake=smallNukeExplosionDamage,
+		AreaOfEffect = smallNukeExplosionDamage,
+		cameraShake = smallNukeExplosionDamage,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplonuk3",
 		explosiongenerator="custom:nukedatbewmsmall",
 		damage = {
-			default            = 2400,
+			default = 2400,
 		},
 	},
 
 	hugeNukeExplosionGenericDamage = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=hugeNukeExplosionDamage,
-		cameraShake=hugeNukeExplosionDamage,
+		AreaOfEffect = hugeNukeExplosionDamage,
+		cameraShake = hugeNukeExplosionDamage,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplonuk3",
@@ -179,8 +193,8 @@ unitDeaths = {
 	
 	commanderNukeExplosionGenericDamage = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=commanderNukeExplosionDamage,
-		cameraShake=commanderNukeExplosionDamage,
+		AreaOfEffect = commanderNukeExplosionDamage,
+		cameraShake = commanderNukeExplosionDamage,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "newboom",
@@ -195,53 +209,53 @@ unitDeaths = {
 
 	smallBuildingExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect= 180,
-		cameraShake=180,
+		AreaOfEffect =  180,
+		cameraShake = 180,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplosml3",
 		explosiongenerator="custom:genericbuildingexplosion-small",
 		damage = {
-			default            = 80,
+			default = 80,
 		},
 	},
 
 	mediumBuildingExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect= 260,
-		cameraShake=260,
+		AreaOfEffect =  260,
+		cameraShake = 260,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplomed1",
 		explosiongenerator="custom:genericbuildingexplosion-medium",
 		damage = {
-			default            = 200,
+			default = 200,
 		},
 	},
 	
 	largeBuildingExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect= 340,
-		cameraShake=340,
+		AreaOfEffect =  340,
+		cameraShake = 340,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplolrg3",
 		explosiongenerator="custom:genericbuildingexplosion-large",
 		damage = {
-			default            = 600,
+			default = 600,
 		},
 	},
 
 	hugeBuildingExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=420,
-		cameraShake=420,
+		AreaOfEffect = 420,
+		cameraShake = 420,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplolrg4",
 		explosiongenerator="custom:genericbuildingexplosion-huge",
 		damage = {
-			default            = 1200,
+			default = 1200,
 		},
 	},
 	
@@ -250,53 +264,53 @@ unitDeaths = {
 
 	smallExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=32,
-		cameraShake=32,
+		AreaOfEffect = 32,
+		cameraShake = 32,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplomed2",
 		explosiongenerator="custom:genericunitexplosion-small",
 		damage = {
-			default            = 10,
+			default = 10,
 		},
 	},
 
 	mediumExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=48,
-		cameraShake=48,
+		AreaOfEffect = 48,
+		cameraShake = 48,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplomed2",
 		explosiongenerator="custom:genericunitexplosion-medium",
 		damage = {
-			default            = 20,
+			default = 20,
 		},
 	},
 	
 	largeExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=64,
-		cameraShake=64,
+		AreaOfEffect = 64,
+		cameraShake = 64,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplolrg3",
 		explosiongenerator="custom:genericunitexplosion-large",
 		damage = {
-			default            = 40,
+			default = 40,
 		},
 	},
 	
 	hugeExplosionGeneric = {
 		weaponType		   = "Cannon",
-		AreaOfEffect=96,
-		cameraShake=96,
+		AreaOfEffect = 96,
+		cameraShake = 96,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplolrg4",
 		explosiongenerator="custom:genericunitexplosion-huge",
 		damage = {
-			default            = 80,
+			default = 80,
 		},
 	},
 	
