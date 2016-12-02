@@ -17,7 +17,7 @@ Balance changes:
 - Commanders generate 50 energy (was 25)
 - Commander torso turnspeed doubled, and dgun reloadspeed reduced 20%
 
-- Small wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
+- Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 - Better/responsive pathing due to faster unit acceleration and turnrate for all units (they dont arrive faster)
 - Unit speed for all vehicles reduced 10% (needed because they respond faster now)
 
@@ -30,7 +30,7 @@ Balance changes:
 
 - Wind generators get a bigger footprint: 4x4 (was 3x3), fan blades wont touch neighbours this way
 - Wind generaters 50% more expensive for 50% more energy production/health/buildtime/storage
-- Windspeed 50%  increased for all maps
+- Windspeed 50%  increased for all maps (but due to price increases: not more effective wind generators)
 - Unbound 'I' key (mapinfo display) cause it shows engine default windspeed which is inacurate now
 
 - All Energy and metal prices have been rounded (because buildmenu now shows prices)
@@ -39,7 +39,7 @@ Other:
 - Lots of new particle effects!
 
 - Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
-- Buildmenu: shows shortcuts (B->Q means press B first and Q after) (hides with /iconinfokeys)
+- Buildmenu: can show shortcuts via Options widget (B->Q means press B first and Q after) 
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
 - Keybinds, commands, changelog, options windows hide with Escape key
 
