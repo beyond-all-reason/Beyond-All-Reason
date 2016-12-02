@@ -29,7 +29,7 @@ local airbaseDefIDs = {
 }
 
 local snapDist = nil -- default snap distance, if not found in table
-    
+
 
 --------------------------------------------------------------------------------
 -- Synced

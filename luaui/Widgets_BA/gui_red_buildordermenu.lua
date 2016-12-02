@@ -32,7 +32,7 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 
 local iconScaling = true
 local largeInfo = false
-local shortcutInfo = true
+local shortcutsInfo = false
 
 local Config = {
 	buildmenu = {
@@ -536,7 +536,7 @@ local function UpdateGrid(g,cmds,ordertype)
 				end
 				
 				local shotcutCaption = ''
-				if shortcutInfo then
+				if shortcutsInfo then
 					if i <= 15 then
 						if building == 0 then
 							captionColor = skyblue
@@ -740,10 +740,10 @@ function widget:TextCommand(command)
 		end
 	end
 	if (string.find(command, "iconinfokeys") == 1  and  string.len(command) == 12) then 
-		shortcutInfo = not shortcutInfo
+		shortcutsInfo = not shortcutsInfo
 		--AutoResizeObjects()
 		Spring.ForceLayoutUpdate()
-		if shortcutInfo then
+		if shortcutsInfo then
 			Spring.Echo("Build/order menu icon shortcut info:  enabled")
 		else
 			Spring.Echo("Build/order menu icon shortcut info:  disabled")
@@ -768,14 +768,14 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigLargeInfo = function()
   	return largeInfo
   end
-  WG['red_buildmenu'].getConfigShortcutInfo = function()
-  	return shortcutInfo
+  WG['red_buildmenu'].getConfigShortcutsInfo = function()
+  	return shortcutsInfo
   end
   WG['red_buildmenu'].setConfigLargeInfo = function(value)
   	largeInfo = value
   end
-  WG['red_buildmenu'].setConfigShortcutInfo = function(value)
-  	shortcutInfo = value
+  WG['red_buildmenu'].setConfigShortcutsInfo = function(value)
+  	shortcutsInfo = value
   end
 end
 
@@ -804,7 +804,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, largeInfo=largeInfo, shortcutInfo=shortcutInfo}
+		return {Config=Config, iconScaling=iconScaling, largeInfo=largeInfo, shortcutsInfo=shortcutsInfo}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -819,8 +819,8 @@ function widget:SetConfigData(data) --load config
 		if (data.largeInfo ~= nil) then
 			largeInfo = data.largeInfo
 		end
-		if (data.shortcutInfo ~= nil) then
-			shortcutInfo = data.shortcutInfo
+		if (data.shortcutsInfo ~= nil) then
+			shortcutsInfo = data.shortcutsInfo
 		end
 	end
 end
@@ -967,33 +967,35 @@ end
 
 
 function widget:KeyPress(key, mods, isRepeat)
-	if building ~= -1 then
-		local buildcmds, othercmds = GetCommands()
-		local found = -1
-		for index = 1, #buildKeys do
-			if buildKeys[index] == key then
-				found = index + (15*building)
-				break
+	if shortcutsInfo then
+		if building ~= -1 then
+			local buildcmds, othercmds = GetCommands()
+			local found = -1
+			for index = 1, #buildKeys do
+				if buildKeys[index] == key then
+					found = index + (15*building)
+					break
+				end
+			end
+			if found ~= -1 and buildcmds[found] ~= nil then
+				Spring.SetActiveCommand(Spring.GetCmdDescIndex(buildcmds[found].id),1,true,false,Spring.GetModKeyState())
+			end
+			building = -1
+			onNewCommands(GetCommands())
+			return true
+		else
+			if key == buildStartKey then
+				building = 0
+				onNewCommands(GetCommands())
+				return true
+			elseif key == buildNextKey then
+				building = 1
+				onNewCommands(GetCommands())
+				return true
 			end
 		end
-		if found ~= -1 and buildcmds[found] ~= nil then
-			Spring.SetActiveCommand(Spring.GetCmdDescIndex(buildcmds[found].id),1,true,false,Spring.GetModKeyState())
-		end
-		building = -1
+		-- updates UI because hotkeys text changed color
 		onNewCommands(GetCommands())
-		return true
-	else
-		if key == buildStartKey then
-			building = 0
-			onNewCommands(GetCommands())
-			return true
-		elseif key == buildNextKey then
-			building = 1
-			onNewCommands(GetCommands())
-			return true
-		end
+		return false
 	end
-	-- updates UI because hotkeys text changed color
-	onNewCommands(GetCommands())
-	return false
 end

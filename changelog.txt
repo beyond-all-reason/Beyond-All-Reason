@@ -1,11 +1,10 @@
 ﻿9.46 -> 9.53
-XX/12/2016
+02/12/2016
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
 - Decay resigned as balancing dev/maintainer
-- Forboding Angel helped us out with the new particle effect system and other structural changes, but he himself is not a BA dev.
-- Lots of things changed a little bit, please grant us some time to make balance fixes.
+- Lots of things changed, please grant us some time to adjust
 
 Balance changes:
 - Introduced a minimum (bigger) buildrange
@@ -29,8 +28,11 @@ Balance changes:
 - Fighters have more range due to slower missile speed and missile turnrate
 - Fighters dont attack ground (because bigger range means more frequent attacks on ground)
 
-- Wind generators get a bigger footprint: 4x4 (was 3x3), fan blades wont touch neighbours any longer
-- Wind generaters are 50% more expensive for 50% more energy production/health/buildtime/storage
+- Wind generators get a bigger footprint: 4x4 (was 3x3), fan blades wont touch neighbours this way
+- Wind generaters 50% more expensive for 50% more energy production/health/buildtime/storage
+- Windspeed 50%  increased for all maps
+- Unbound 'I' key (mapinfo display) cause it shows engine default windspeed which is inacurate now
+
 - All Energy and metal prices have been rounded (because buildmenu now shows prices)
 
 Other:
