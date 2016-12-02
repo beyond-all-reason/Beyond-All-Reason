@@ -33,10 +33,11 @@ return {
 		selfdestructas = "windboom",
 		sightdistance = 300,
 		usebuildinggrounddecal = true,
-		windgenerator = 37,
+		windgenerator = 40,
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			death_sounds = "generic",
+			windgen = 0.5,		-- UPDATE WIND DISPLAY WIDGET IF YOU CHANGE... extra wind energy multiplier (0.5 = 50% on top of currentwind)
 		},
 		featuredefs = {
 			dead = {

@@ -29,8 +29,8 @@ local spEcho                = Spring.Echo
 local spGetGameFrame        = Spring.GetGameFrame
 local spGetMouseState		= Spring.GetMouseState
 local spWind                = Spring.GetWind
-local minWind               = Game.windMin
-local maxWind               = Game.windMax
+local minWind               = Game.windMin * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+local maxWind               = Game.windMax * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 
 local glTranslate           = gl.Translate
 local glRotate              = gl.Rotate
@@ -79,6 +79,7 @@ local avgSpeedTextPosY		= 0
 
 function GetWind()
     local _, _, _, currentWind = spWind()
+    currentWind = currentWind * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
     if currentWind > maxWind then currentWind = maxWind end
     local windPercent
     if vsSolarOn then
@@ -328,7 +329,7 @@ function widget:Initialize()
 	
 	GetWind()
     --if maxWind > maxWindEnergy[curModID] then maxWind = maxWindEnergy[curModID] end
-    if maxWind > 25 then maxWind = 25 end
+    if maxWind > 40 then maxWind = 40 end
     
 	processGuishader()
 end
