@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMDFLY",
 		releaseheld = true,
-		script = "armdfly_lus.lua",
+		--script = "armdfly_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 318,
