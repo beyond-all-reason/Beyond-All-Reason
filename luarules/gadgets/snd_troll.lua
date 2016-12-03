@@ -14,7 +14,7 @@ end
 local enabled = false
 local soundfile = 'luarules/music/trollsong.ogg'
 local dorepeat = true
-local playernames = {"[AFUS]Ares"}
+local playernames = {"[AFUS]Ares", "Sprung"}
 				
 function gadget:Initialize()
 	local myPlayerName,_ = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
