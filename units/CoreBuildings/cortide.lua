@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 4096,
-		buildcostenergy = 310,
+		buildcostenergy = 300,
 		buildcostmetal = 85,
 		buildpic = "CORTIDE.DDS",
 		buildtime = 2094,

@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 430,
+		buildcostenergy = 450,
 		buildcostmetal = 20,
 		buildpic = "ARMSONAR.DDS",
 		buildtime = 912,
