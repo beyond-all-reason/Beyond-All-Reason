@@ -79,6 +79,7 @@ local optionHover = {}
 local optionSelect = {}
 local fullWidgetsList = {}
 local addedWidgetOptions = false
+local showPresetButtons = true
 
 local luaShaders = tonumber(Spring.GetConfigInt("LuaShaders",1) or 0)
 
@@ -185,6 +186,64 @@ function DrawButton()
   glText("Options", textMargin, textMargin, textSize, "no")
 end
 
+local presets = {
+	low      = {
+		label = 'Low',
+		order = 1
+	},
+	medium   = {
+		label = 'Medium',
+		order = 2
+	},
+	high     = {
+		label = 'High',
+		order = 3
+	},
+	ultra    = {
+		label = 'Ultra',
+		order = 4
+	}
+}
+function DrawPresets()
+	local margin = 7
+	local padding = 3.5
+	local totalWidth = screenWidth * 0.6666 - margin
+	for preset, pp in pairs(presets) do
+		gl.Color(0.1,0.05,0.016,0.75)
+		local x = screenX + margin
+		presets[preset].pos = {
+			x + ((totalWidth/4)*(pp.order-1)),
+			screenY-screenHeight+margin,
+			x + ((totalWidth/4)*(pp.order))-margin,
+			screenY-screenHeight+90-margin,
+			padding
+		}
+		RectRound(
+			presets[preset].pos[1],
+			presets[preset].pos[2],
+			presets[preset].pos[3],
+			presets[preset].pos[4],
+			6
+		)
+		gl.Color(1,0.8,0.2,0.15)
+		RectRound(
+			presets[preset].pos[1]+padding,
+			presets[preset].pos[2]+padding,
+			presets[preset].pos[3]-padding,
+			presets[preset].pos[4]-padding,
+			4
+		)
+		local fontSize = 18
+		local textWidth = glGetTextWidth(presets[preset].label)*fontSize
+  	glText(
+  		'\255\230\230\230'..presets[preset].label, 
+  		presets[preset].pos[3]-((presets[preset].pos[3]-presets[preset].pos[1])/2)-(textWidth/2), 
+  		presets[preset].pos[2]+42-(fontSize/2), 
+  		fontSize, 
+  		"no"
+  	)
+	end
+end
 
 function DrawWindow()
 	-- add widget options
@@ -227,7 +286,7 @@ function DrawWindow()
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 	
-	-- close button
+	--[[ close button
 	local size = closeButtonSize*0.7
 	local width = size*0.055
   gl.Color(1,1,1,1)
@@ -237,7 +296,7 @@ function DrawWindow()
   	gl.Rect(-width,size/2,width,-size/2)
   	gl.Rotate(90,0,0,1)
   	gl.Rect(-width,size/2,width,-size/2)
-	gl.PopMatrix()
+	gl.PopMatrix()]]--
 	
 	-- title
   local title = "Options"
@@ -253,13 +312,13 @@ function DrawWindow()
 	font:End()
 	
 	local width = screenWidth/3
-	gl.Color(0.66,0.66,0.66,0.08)
-	RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
+	--gl.Color(0.66,0.66,0.66,0.08)
+	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
 	
 	-- description background
 	gl.Color(0.72,0.5,0.12,0.14)
 	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
-  	
+  
 	-- draw options
 	local oHeight = 15
 	local oPadding = 6
@@ -276,58 +335,61 @@ function DrawWindow()
 	local i = 0
 	optionButtons = {}
 	optionHover = {}
+	local row = 1 
 	for oid,option in pairs(options) do
 		yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 		if yPos-oHeight < yPosMax then
+		  row = row + 1
 			i = 0
-			xPos = x + 10 + oPadding + (screenWidth/3)
-			xPosMax = xPos + oWidth - oPadding - oPadding
+			xPos = x + (( (screenWidth/3))*(row-1))
+			xPosMax = xPos + oWidth
 			yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 			gl.Color(0,0,0,0.25)
-			RectRound(xPos-oPadding-8-2.5,y-screenHeight+118,xPos-oPadding-8+2.5,y,2)
+			RectRound(xPos-oPadding-2.5,y-screenHeight+118,xPos-oPadding+2.5,y,2)
 		end
 		
 		--option name
-  	glText('\255\230\230\230'..option.name, xPos, yPos-(oHeight/3)-oPadding, oHeight, "no")
+  	glText('\255\230\230\230'..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
   	
   	-- define hover area
 		optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
 			
   	-- option controller
+  	local rightPadding = 4
   	if option.type == 'bool' then
 			optionButtons[oid] = {}
-			optionButtons[oid] = {xPosMax-boolWidth, yPos-oHeight, xPosMax, yPos}
+			optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
 			glColor(1,1,1,0.11)
-			RectRound(xPosMax-boolWidth, yPos-oHeight, xPosMax, yPos, 3)
+			RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
 			if option.value == true then
 				glColor(0.66,0.92,0.66,1)
-				RectRound(xPosMax-oHeight+boolPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding, yPos-boolPadding, 2.5)
+				RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
 			else
 				glColor(0.92,0.66,0.66,1)
-				RectRound(xPosMax-boolWidth+boolPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding, yPos-boolPadding, 2.5)
+				RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
 			end
 		
 		elseif option.type == 'slider' then
 			local sliderSize = oHeight*0.75
 			local sliderPos = (option.value-option.min) / (option.max-option.min)
 			glColor(1,1,1,0.11)
-			RectRound(xPosMax-(sliderSize/2)-sliderWidth, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2), yPos-((oHeight/7)*2.8), 1)
+			RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
 			glColor(0.8,0.8,0.8,1)
-			RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2), yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2), yPos-((oHeight-sliderSize)/2), 3)
-			optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2), yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2), yPos-((oHeight-sliderSize)/2)}
-			optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth, xPosMax-(sliderSize/2)}
+			RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 3)
+			optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
+			optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
 			
 		elseif option.type == 'select' then
-			optionButtons[oid] = {xPosMax-selectWidth, yPos-oHeight, xPosMax, yPos}
+			optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
 			glColor(1,1,1,0.11)
-			RectRound(xPosMax-selectWidth, yPos-oHeight, xPosMax, yPos, 3)
-  		glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
+			RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+  		glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
 			glColor(1,1,1,0.11)
-			RectRound(xPosMax-oHeight, yPos-oHeight, xPosMax, yPos, 2.5)
+			RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
 			glColor(1,1,1,0.16)
 			glTexture(bgcorner1)
  			glPushMatrix()
-   			glTranslate(xPosMax-(oHeight*0.5), yPos-(oHeight*0.33), 0)
+   			glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
 				glRotate(-45,0,0,1)
 				glTexRect(-(oHeight*0.25),-(oHeight*0.25),(oHeight*0.25),(oHeight*0.25))
  	 		glPopMatrix()
@@ -373,6 +435,9 @@ function widget:DrawScreen()
   if not windowList then
     windowList = gl.CreateList(DrawWindow)
   end
+  if not presetsList then
+    presetsList = gl.CreateList(DrawPresets)
+  end
   
   -- update new slider value
 	if sliderValueChanged then
@@ -407,12 +472,15 @@ function widget:DrawScreen()
 		  local description = ''
 			local x,y = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
+		  showPresetButtons = true
 			if not showSelectOptions then
 				for i, o in pairs(optionHover) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						glColor(1,1,1,0.05)
 						RectRound(o[1]-8, o[2], o[3]+8, o[4], 4)
+						showPresetButtons = false
 						if options[i].description ~= nil then
+							description = options[i].description
 							glText('\255\255\210\120'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
 						end
 					end
@@ -427,6 +495,7 @@ function widget:DrawScreen()
 			
 			-- draw select options
 			if showSelectOptions ~= nil then
+				showPresetButtons = false
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
 				local oPadding = 4
 				y = optionButtons[showSelectOptions][4] -oPadding
@@ -448,6 +517,19 @@ function widget:DrawScreen()
 					end
 					table.insert(optionSelect, {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i})
 					glText('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+				end
+			end
+			
+			-- draw preset quality buttons
+			if showPresetButtons == true then
+				glCallList(presetsList)
+				
+				for preset, pp in pairs(presets) do
+					if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
+						glColor(0.7,1,0.3,0.2)
+						local padding = pp.pos[5]
+						RectRound(pp.pos[1]+padding, pp.pos[2]+padding, pp.pos[3]-padding, pp.pos[4]-padding, 6)
+					end
 				end
 			end
 		glPopMatrix()
@@ -580,6 +662,12 @@ function applyOptionValue(i)
 	windowList = gl.CreateList(DrawWindow)
 end
 
+
+function loadPreset(preset)
+	Spring.Echo('loading options preset: '..presets[preset].label)
+end
+
+
 function widget:KeyPress(key)
 	if key == 27 then	-- ESC
 		show = false
@@ -688,6 +776,14 @@ function mouseEvent(x, y, button, release)
 					end
 				else
 				
+				if showPresetButtons then
+					for preset, pp in pairs(presets) do
+						if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
+							loadPreset(preset)
+						end
+					end
+				end
+				
 				for i, o in pairs(optionButtons) do
 					if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						applyOptionValue(i)
@@ -715,7 +811,7 @@ function mouseEvent(x, y, button, release)
 					end
 				end
 			end
-			-- on close button
+			--[[ on close button
 			local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
 			local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
 			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
@@ -724,7 +820,7 @@ function mouseEvent(x, y, button, release)
 					show = not show
 				end
 				return true
-			end
+			end]]--
 			
 			if button == 1 or button == 3 then
 				return true
@@ -784,16 +880,16 @@ function widget:Initialize()
 		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the background/world under every user interface element\n\nNot always working properly at intel gfx'},
 		{id="mapedgeextension", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nHave shaders enabled for best result'},
 		{id="water", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
-		--{id="projectilelights", widget="Projectile lights", name="Projectile lights", type="bool", value=widgetHandler.orderList["Projectile lights"] ~= nil and (widgetHandler.orderList["Projectile lights"] > 0), description='Projectiles are plasmaballs, \nthis will light up the map below them'},
+		{id="projectilelights", widget="Projectile lights", name="Projectile lights", type="bool", value=widgetHandler.orderList["Projectile lights"] ~= nil and (widgetHandler.orderList["Projectile lights"] > 0), description='Projectiles are plasmaballs, \nthis will light up the map below them'},
 		{id="lups", widget="LupsManager", name="Lups particle effects", type="bool", value=widgetHandler.orderList["LupsManager"] ~= nil and (widgetHandler.orderList["LupsManager"] > 0), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		{id="xrayshader", widget="XrayShader", name="Unit xray shader", type="bool", value=widgetHandler.orderList["XrayShader"] ~= nil and (widgetHandler.orderList["XrayShader"] > 0), description='Highlights all units, highlight diminishes on closeup\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="disticon", name="Unit icon distance", type="slider", min=0, max=1000, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 1000)},
-		--{id="treeradius", name="Tree render distance", type="slider", min=0, max=2000, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		{id="treeradius", name="Tree render distance", type="slider", min=0, max=2000, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="particles", name="Max particles", type="slider", min=1000, max=25000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Changes will be applied next game'},
 		{id="nanoparticles", name="Max nano particles", type="slider", min=500, max=7000, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='Changes will be applied next game'},
 		{id="grounddetail", name="Ground mesh detail", type="slider", min=50, max=200, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground mesh detail (polygon detail of the map)'},
 		{id="grassdetail", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass displayed\n\nChanges will be applied next game'},
-		--{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+		{id="advsky", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 		
 		{id="crossalpha", name="Mouse cross alpha", type="slider", min=0, max=1, value=tonumber(Spring.GetConfigInt("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(\'icon\' looks like: dot in center with 4 arrowed pointing in all directions) '},
 		{id="commandsfx", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shortly shows unit command target lines when you give orders\n\nAlso see the commands your teammates are giving to their units'},
