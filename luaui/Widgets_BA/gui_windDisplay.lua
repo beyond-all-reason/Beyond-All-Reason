@@ -32,6 +32,9 @@ local spWind                = Spring.GetWind
 local minWind               = Game.windMin * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 local maxWind               = Game.windMax * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 
+if minWind > 40 then minWind = 40 end
+if maxWind > 40 then maxWind = 40 end
+  
 local glTranslate           = gl.Translate
 local glRotate              = gl.Rotate
 local glColor               = gl.Color
@@ -329,7 +332,6 @@ function widget:Initialize()
 	
 	GetWind()
     --if maxWind > maxWindEnergy[curModID] then maxWind = maxWindEnergy[curModID] end
-    if maxWind > 40 then maxWind = 40 end
     
 	processGuishader()
 end

@@ -28,9 +28,6 @@ local windDefs = {
 
 local windmills = {}
 
-local teamList = Spring.GetTeamList()
-local teamEnergy = {}
-
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
@@ -38,7 +35,6 @@ local teamEnergy = {}
 
 local spGetWind              = Spring.GetWind
 local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitTeam          = Spring.GetUnitTeam
 local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitIsStunned     = Spring.GetUnitIsStunned
 local spAddUnitResource      = Spring.AddUnitResource
@@ -49,22 +45,19 @@ local spAddUnitResource      = Spring.AddUnitResource
 function gadget:GameFrame(n)
 	if (n % 30 < 0.1) then
 		if (next(windmills)) then
-			for i = 1, #teamList do
-				teamEnergy[teamList[i]] = 0
-			end
 			local _, _, _, windStrength, _, _, _ = spGetWind()
-			local windEnergy = windStrength * 0.5
+			local windEnergy = 0
 			for unitID, entry in pairs(windmills) do
+				windEnergy = windStrength * entry[1]
+				if windEnergy > entry[2] then windEnergy = entry[2] end
 				local paralyzed = spGetUnitIsStunned(unitID)
 				if (not paralyzed) then
-					teamEnergy[entry[1]] = teamEnergy[entry[1]] + windEnergy -- monitor team energy
 					spAddUnitResource(unitID, 'energy', windEnergy)
 				end
 			end
 		end
 	end
 end
-
 
 function gadget:Initialize()
 
@@ -73,25 +66,21 @@ function gadget:Initialize()
 	for _, unitID in pairs(allUnits) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if (unitDefID and windDefs[unitDefID]) then
-		  windmills[unitID] = {spGetUnitTeam(unitID)}
+		  windmills[unitID] = {windDefs[unitDefID], (UnitDefs[unitDefID].windGenerator * windDefs[unitDefID])}
 		end
-	end
-	
-	for i = 1, #teamList do
-		teamEnergy[teamList[i]] = 0
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if (windDefs[unitDefID]) then 
-		windmills[unitID] = {unitTeam}
+		windmills[unitID] = {windDefs[unitDefID], (UnitDefs[unitDefID].windGenerator * windDefs[unitDefID])}
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, oldTeam, unitTeam)
 	if (windDefs[unitDefID]) then 
 		if windmills[unitID] then
-			windmills[unitID] = {unitTeam}
+			windmills[unitID] = {windDefs[unitDefID], (UnitDefs[unitDefID].windGenerator * windDefs[unitDefID])}
 		end
 	end
 end
