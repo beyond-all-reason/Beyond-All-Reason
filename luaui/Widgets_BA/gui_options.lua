@@ -187,23 +187,31 @@ function DrawButton()
 	glShape(GL_LINE_STRIP, vertices)
   glText("Options", textMargin, textMargin, textSize, "no")
 end
+	
+function lines(str)
+  local t = {}
+  local function helper(line) table.insert(t, line) return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
 
 local presets = {
-	low      = {
-		label = 'Low',
-		order = 1
+	low = {
+		label   = '\255\195\155\110Set quality for:\n   \255\255\255\255GPU   \255\150\120\090CPU',
+		order   = 1,
+		toggler = 'GPU'
 	},
-	medium   = {
-		label = 'Medium',
-		order = 2
+	medium = {
+		label   = 'Low',
+		order   = 2
 	},
-	high     = {
-		label = 'High',
-		order = 3
+	high = {
+		label   = 'Medium',
+		order   = 3
 	},
-	ultra    = {
-		label = 'Ultra',
-		order = 4
+	ultra = {
+		label   = 'High',
+		order   = 4
 	}
 }
 function DrawPresets()
@@ -237,10 +245,11 @@ function DrawPresets()
 		)
 		local fontSize = 18
 		local textWidth = glGetTextWidth(presets[preset].label)*fontSize
+		local labellines = #lines(presets[preset].label)
   	glText(
   		'\255\230\230\230'..presets[preset].label, 
   		presets[preset].pos[3]-((presets[preset].pos[3]-presets[preset].pos[1])/2)-(textWidth/2), 
-  		presets[preset].pos[2]+42-(fontSize/2), 
+  		presets[preset].pos[2]+23+((fontSize*labellines)/2), 
   		fontSize, 
   		"no"
   	)
@@ -667,6 +676,10 @@ end
 
 function loadPreset(preset)
 	Spring.Echo('loading options preset: '..presets[preset].label)
+	
+	
+	gl.DeleteList(windowList)
+	windowList = gl.CreateList(DrawWindow)
 end
 
 
@@ -781,7 +794,19 @@ function mouseEvent(x, y, button, release)
 				if showPresetButtons then
 					for preset, pp in pairs(presets) do
 						if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
-							loadPreset(preset)
+							if pp.toggler ~= nil then
+								if presets[preset].toggler == 'GPU' then
+									presets[preset].toggler = 'CPU'
+									presets[preset].label = '\255\195\155\110Set quality for:\n   \255\150\120\090GPU   \255\255\255\255CPU'
+								else
+									presets[preset].toggler = 'GPU'
+									presets[preset].label = '\255\195\155\110Set quality for:\n   \255\255\255\255GPU   \255\150\120\090CPU'
+								end
+							  if presetsList then gl.DeleteList(presetsList) end
+							  presetsList = gl.CreateList(DrawPresets)
+							else
+								loadPreset(preset)
+							end
 						end
 					end
 				end
