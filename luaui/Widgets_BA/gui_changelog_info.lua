@@ -5,7 +5,7 @@ return {
 	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
 	author  = "Floris",
 	date    = "August 2015",
-	license = "Dental flush",
+	license = "For use in Balanced Annihilation and non BA forks only (unless Floris permits)",
 	layer   = -2000,
 	enabled = true,
 }

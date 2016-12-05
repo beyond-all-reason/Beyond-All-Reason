@@ -4,7 +4,7 @@ function gadget:GetInfo()
     desc      = "units spawn and wander around the map",
     author    = "Floris (original: knorke, 2013)",
     date      = "2016",
-    license   = "penguin",
+	  license = "For use in Balanced Annihilation and non BA forks only (unless Floris permits)",
     layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
     enabled   = true,
 	}

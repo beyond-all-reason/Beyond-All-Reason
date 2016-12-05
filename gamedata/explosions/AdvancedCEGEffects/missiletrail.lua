@@ -1,15 +1,5 @@
--- missiletrailblue
--- missiletrail
--- missiletrailtiny
--- missiletrailsmall
--- missiletrailmedium
--- missiletraillarge
--- missiletrailbomber
--- missiletrailflashy
--- missiletrailnuke
--- missiletrailaa
--- missiletrailgunship
--- missiletrailgreen
+-- license = "These effects are for use in Balanced Annihilation and non BA forks only (unless Floris permits)"
+
 
 return {
   ["missiletrailblue"] = {

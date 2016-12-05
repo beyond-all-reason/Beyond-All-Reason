@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		desc	= "",
 		author	= "Floris",
 		date	= "July,2016",
-		license	= "GNU GPL, v2 or later",
+	  license = "For use in Balanced Annihilation and non BA forks only (unless Floris permits)",
 		layer	= 0,
 		enabled = true,
 	}

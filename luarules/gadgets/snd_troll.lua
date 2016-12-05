@@ -3,6 +3,7 @@ function gadget:GetInfo()
     name      = "Troll music",
     author    = "Floris",
     layer     = 0,
+	  license = "For use in Balanced Annihilation and non BA forks only (unless Floris permits)",
     enabled   = true,
   }
 end
