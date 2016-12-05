@@ -643,7 +643,7 @@ function applyOptionValue(i)
 		if id == 'water' then
 			Spring.SendCommands("water "..(value-1))
 		elseif id == 'camera' then
-			Spring.SetConfigInt("CamMode ",value)
+			Spring.SetConfigInt("CamMode",value)
 			if value == 1 then 
 				Spring.SendCommands('viewfps')
 			elseif value == 2 then 
