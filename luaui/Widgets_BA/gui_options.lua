@@ -91,6 +91,8 @@ function widget:ViewResize()
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
+  if presetsList then gl.DeleteList(presetsList) end
+  presetsList = gl.CreateList(DrawPresets)
 end
 
 function widget:GameStart()
@@ -935,10 +937,9 @@ end
 function widget:Shutdown()
     if buttonGL then
         glDeleteList(buttonGL)
-        buttonGL = nil
     end
     if windowList then
         glDeleteList(windowList)
-        windowList = nil
+        glDeleteList(presetsList)
     end
 end
