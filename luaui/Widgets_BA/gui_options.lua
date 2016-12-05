@@ -602,32 +602,32 @@ function applyOptionValue(i)
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
 		if id == 'fsaa' then
-			Spring.SetConfigInt("FSAALevel ",value)
+			Spring.SetConfigInt("FSAALevel",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
 			if value == options.min then 
 				enabled = 0
 			end
 			Spring.SendCommands("shadows "..enabled.." "..value)
-			Spring.SetConfigInt("shadows ", value)
+			Spring.SetConfigInt("shadows", value)
 		elseif id == 'decals' then
-			Spring.SetConfigInt("GroundDecals ", value)
+			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
 		elseif id == 'scrollspeed' then
-			Spring.SetConfigInt("ScrollWheelSpeed ",value)
+			Spring.SetConfigInt("ScrollWheelSpeed",value)
 		elseif id == 'disticon' then
 			--Spring.SetConfigInt("UnitIconDist "..value)
 			Spring.SendCommands("disticon "..value)
 		elseif id == 'treeradius' then
-			Spring.SetConfigInt("TreeRadius ",value)
+			Spring.SetConfigInt("TreeRadius",value)
 		elseif id == 'particles' then
-			Spring.SetConfigInt("MaxParticles ",value)
+			Spring.SetConfigInt("MaxParticles",value)
 		elseif id == 'nanoparticles' then
-			Spring.SetConfigInt("MaxNanoParticles ",value)
+			Spring.SetConfigInt("MaxNanoParticles",value)
 		elseif id == 'grassdetail' then
-			Spring.SetConfigInt("GrassDetail ",value)
+			Spring.SetConfigInt("GrassDetail",value)
 		elseif id == 'grounddetail' then
-			Spring.SetConfigInt("GroundDetail ", value)
+			Spring.SetConfigInt("GroundDetail", value)
 			Spring.SendCommands("grounddetail "..value)
 		elseif id == 'sndvolmaster' then
 			Spring.SetConfigInt("snd_volmaster", value)
