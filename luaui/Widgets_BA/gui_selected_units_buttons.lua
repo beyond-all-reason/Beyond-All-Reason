@@ -263,6 +263,7 @@ function RectRound(px,py,sx,sy,cs)
 	
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 	
+	glTexture(false)
 	glRect(px+cs, py, sx-cs, sy)
 	glRect(sx-cs, py+cs, sx, sy-cs)
 	glRect(px+cs, py+cs, px, sy-cs)

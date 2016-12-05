@@ -372,6 +372,7 @@ function widget:DrawScreen()
 		if (WG['guishader_api'] ~= nil) then
 			local removed = WG['guishader_api'].RemoveRect('commandslist')
 			if removed then
+				WG['guishader_api'].setBlurIntensity()
 				WG['guishader_api'].setScreenBlur(false)
 			end
 		end
