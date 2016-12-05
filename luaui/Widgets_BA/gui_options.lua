@@ -479,7 +479,7 @@ function widget:DrawScreen()
 				for i, o in pairs(optionHover) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						glColor(1,1,1,0.05)
-						RectRound(o[1]-8, o[2], o[3]+8, o[4], 4)
+						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
 						showPresetButtons = false
 						if options[i].description ~= nil then
 							description = options[i].description
