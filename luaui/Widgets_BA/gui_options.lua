@@ -531,8 +531,9 @@ function widget:DrawScreen()
 			end
 			
 			-- draw preset quality buttons
+			showPresetButtons = false
 			if showPresetButtons == true then
-				glCallList(presetsList)
+				--glCallList(presetsList)
 				
 				for preset, pp in pairs(presets) do
 					if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
