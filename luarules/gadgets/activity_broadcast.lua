@@ -5,7 +5,6 @@ function gadget:GetInfo()
 		desc	= "Checks if there is keyboard/mouse activity or camera changes",
 		author	= "Floris",
 		date	= "July,2016",
-	  license = "For use in Balanced Annihilation and non BA forks only (unless Floris permits)",
 		layer	= 0,
 		enabled = true,
 	}

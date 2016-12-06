@@ -12,7 +12,6 @@ function gadget:GetInfo()
 		desc     = "adds extra wind energy income as defined in customparams.windgen",
 		author   = "Floris",
 		date     = "November, 2016",
-	  license = "For use in Balanced Annihilation and non BA forks only (unless Floris permits)",
 		layer    = 0,
 		enabled  = true -- loaded by default?
 	}

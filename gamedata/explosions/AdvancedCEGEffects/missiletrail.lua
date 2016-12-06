@@ -1,5 +1,3 @@
--- license = "These effects are for use in Balanced Annihilation and non BA forks only (unless Floris permits)"
-
 
 return {
   ["missiletrailblue"] = {
