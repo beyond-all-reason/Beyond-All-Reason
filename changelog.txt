@@ -1,4 +1,17 @@
-﻿9.46 -> 9.53
+﻿9.53 -> 9.54
+07/12/2016
+
+Important:
+- Floris resigned as dev/maintainer
+
+Other:
+- Rounded a few more unit prices
+- Removed right column on options menu to allow a 3rd column of options
+- Capped extra wind generation to a limit (like old behavior)
+- Various small fixes
+
+
+9.46 -> 9.53
 02/12/2016
 
 Important:
