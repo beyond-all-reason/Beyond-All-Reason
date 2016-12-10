@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2350,
 		maxslope = 16,
-		maxvelocity = 2.25,
+		maxvelocity = 2.5,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Phalanx",

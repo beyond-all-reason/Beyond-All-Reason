@@ -1,4 +1,4 @@
-return {
+3return {
 	armbull = {
 		acceleration = 0.0396,
 		brakerate = 0.165,
@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 4200,
 		maxslope = 12,
-		maxvelocity = 2.15,
+		maxvelocity = 2.44,
 		maxwaterdepth = 15,
 		movementclass = "HTANK3",
 		name = "Bulldog",

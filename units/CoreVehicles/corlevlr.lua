@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1338,
 		maxslope = 17,
-		maxvelocity = 1.3,
+		maxvelocity = 1.43,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Leveler",

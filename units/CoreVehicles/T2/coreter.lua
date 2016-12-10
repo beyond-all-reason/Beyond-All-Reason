@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 520,
 		maxslope = 16,
-		maxvelocity = 1.33,
+		maxvelocity = 1.45,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Deleter",

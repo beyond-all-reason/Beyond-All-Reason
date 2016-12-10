@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1279,
 		maxslope = 12,
-		maxvelocity = 1.9,
+		maxvelocity = 2.1,
 		maxwaterdepth = 200,
 		movementclass = "ATANK3",
 		name = "Garpike",

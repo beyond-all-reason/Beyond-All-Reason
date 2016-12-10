@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 3360,
 		maxslope = 12,
-		maxvelocity = 1.8,
+		maxvelocity = 2,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		name = "Triton",

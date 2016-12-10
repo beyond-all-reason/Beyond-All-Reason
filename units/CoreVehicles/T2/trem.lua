@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2700,
 		maxslope = 14,
-		maxvelocity = 1.33,
+		maxvelocity = 1.45,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		name = "Tremor",

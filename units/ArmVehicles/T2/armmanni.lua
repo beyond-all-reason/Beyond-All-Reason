@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2500,
 		maxslope = 12,
-		maxvelocity = 1.4,
+		maxvelocity = 1.52,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Penetrator",

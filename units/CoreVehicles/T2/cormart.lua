@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 560,
 		maxslope = 12,
-		maxvelocity = 1.75,
+		maxvelocity = 1.95,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Pillager",
