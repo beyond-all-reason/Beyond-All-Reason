@@ -145,19 +145,59 @@ local options={
         max    = 2,
         step   = 0.2,
     },
+
+--Forb's modoptions start here
+--Any modoptions in this block that are default enabled have been set that way at Floris' request
+    { 
+		key    = "logicalbuildtime",
+		name   = "Logical and meaninful buildtimes",
+		desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime.",
+		type="list",
+		def="disabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime."},
+		}
+    },
+	
+    { 
+		key    = "minimumbuilddistance",
+		name   = "Minimum build distance",
+		desc   = "Enables a global minimum builddistance which results in units spending less time moving and unpacking for construction projects.",		
+		type="list",
+		def="disabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Enables a global minimum builddistance which results in units spending less time moving and unpacking for construction projects."},
+		}
+    },
+	
+    {
+        key    = 'minimumbuilddistancerange',
+        name   = 'Minimum Build Distance Range',
+        desc   = 'If Minimum build distance is enabled, this options sets the minimum distance for buildrange. Builders with buildrange below this amount with be given this amount. Does not effect builders with longer buildranges than the amount set here.',
+        type   = 'number',
+        section= 'ba_options',
+        def    = 200,
+        min    = 1,
+        max    = 500,
+        step   = 1,
+    },
     
-    --{ 
-		--key    = "betterunitmovement",  -- commented out because i made balance (speed) changes to units to compensate
-		--name   = "Advanced Unit Movement and Pathing",
-		--desc   = "Adds some presets to units that allow for better pathing and more agile movement",		
-		--type="list",
-		--def="enabled",
-		--section= "ba_options",
-		--items={
-		--	{key="disabled", name="Disabled", desc=""},
-		--	{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
-		--}
-    --},
+    { 
+		key    = "betterunitmovement",
+		name   = "Advanced Unit Movement and Pathing",
+		desc   = "Adds some presets to units that allow for better pathing and more agile unit movement",		
+		type="list",
+		def="enabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
+		}
+    },
 	
 	{
 		key    = "firethroughfriendly",
@@ -184,6 +224,20 @@ local options={
 			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
 		}
     },
+	
+	{
+		key    = "nonlaggybuildplates",
+		name   = "Non-Lagging Buildplates",
+		desc   = "Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance).",		
+		type="list",
+		def="disabled",
+		section= "ba_options",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance)."},
+		}
+    },
+--Forb's modoptions end here
 	
 -- Control Victory Options	
 	{

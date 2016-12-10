@@ -43,70 +43,75 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
 		
-		--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
-		--Spring.Echo("\n")
-		for id,unitDef in pairs(UnitDefs) do
-			--Spring.Echo("[Buildtime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
-			unitDef.buildtime = unitDef.buildtime * 0.01
-			--Spring.Echo("[Buildtime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
+		if (modOptions.logicalbuildtime == "enabled") then
+			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
 			--Spring.Echo("\n")
-		end
-		--Spring.Echo("End Buildtime Values----------------------------------------------------------------------------")
-		--Spring.Echo("\n")
-		--Spring.Echo("\n")
-		
-		--Spring.Echo("Begin Workertime Values----------------------------------------------------------------------------")
-		--Spring.Echo("\n")
-		for id,unitDef in pairs(UnitDefs) do
-			if unitDef.workertime then
-			
-				-- Enable default Nanospray
-				unitDef.shownanospray = true
-			
-				--Make terraform really fast
-				if unitDef.terraformspeed then
-					unitDef.terraformspeed = unitDef.terraformspeed * 0.01 + 1000
-				end
-				
-				if unitDef.reclaimspeed then
-					unitDef.resurrectspeed = unitDef.resurrectspeed * 0.01
-				end
-				
-				if unitDef.reclaimspeed then
-					unitDef.reclaimspeed = unitDef.reclaimspeed * 0.01
-				end
-				
-				if unitDef.capturespeed then
-					unitDef.capturespeed = unitDef.capturespeed * 0.01
-				end
-				
-				if unitDef.repairspeed then
-					unitDef.repairspeed = unitDef.repairspeed * 0.01
-				end
-				
-				--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
-				unitDef.workertime = unitDef.workertime * 0.01
-				--Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+			for id,unitDef in pairs(UnitDefs) do
+				--Spring.Echo("[Buildtime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
+				unitDef.buildtime = unitDef.buildtime * 0.01
+				--Spring.Echo("[Buildtime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.buildtime)
 				--Spring.Echo("\n")
+			end
+			--Spring.Echo("End Buildtime Values----------------------------------------------------------------------------")
+			--Spring.Echo("\n")
+			--Spring.Echo("\n")
+			
+			--Spring.Echo("Begin Workertime Values----------------------------------------------------------------------------")
+			--Spring.Echo("\n")
+			for id,unitDef in pairs(UnitDefs) do
+				if unitDef.workertime then
 				
-				--Set Repairspeed to be less of buildspeed
-				if unitDef.repairspeed then
-					unitDef.repairspeed = unitDef.workertime * 0.6
-				end
-				if unitDef.reclaimspeed then
-					unitDef.resurrectspeed = unitDef.workertime * 0.6
-					unitDef.reclaimspeed = unitDef.workertime * 0.6
+					-- Enable default Nanospray
+					unitDef.shownanospray = true
+				
+					--Make terraform really fast
+					if unitDef.terraformspeed then
+						unitDef.terraformspeed = unitDef.terraformspeed * 0.01 + 1000
+					end
+					
+					if unitDef.reclaimspeed then
+						unitDef.resurrectspeed = unitDef.resurrectspeed * 0.01
+					end
+					
+					if unitDef.reclaimspeed then
+						unitDef.reclaimspeed = unitDef.reclaimspeed * 0.01
+					end
+					
+					if unitDef.capturespeed then
+						unitDef.capturespeed = unitDef.capturespeed * 0.01
+					end
+					
+					if unitDef.repairspeed then
+						unitDef.repairspeed = unitDef.repairspeed * 0.01
+					end
+					
+					--Spring.Echo("[Workertime-Old] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+					unitDef.workertime = unitDef.workertime * 0.01
+					--Spring.Echo("[Workertime-New] " .. unitDef.objectname .. " (" .. unitDef.name .. ")" .. ": " .. unitDef.workertime)
+					--Spring.Echo("\n")
+					
+					--Set Repairspeed to be less of buildspeed
+					if unitDef.repairspeed then
+						unitDef.repairspeed = unitDef.workertime * 0.6
+					end
+					if unitDef.reclaimspeed then
+						unitDef.resurrectspeed = unitDef.workertime * 0.6
+						unitDef.reclaimspeed = unitDef.workertime * 0.6
+					end
 				end
 			end
+			--Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
+			--Spring.Echo("\n")
+			--Spring.Echo("\n")
 		end
-		--Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
-		--Spring.Echo("\n")
-		--Spring.Echo("\n")
 		
+		if (modOptions.minimumbuilddistance == "enabled") then
 		--Set a minimum for builddistance
-		for id,unitDef in pairs(UnitDefs) do
-			if unitDef.builddistance ~= nil and unitDef.builddistance < 200 then
-				unitDef.builddistance = 200
+			minimumbuilddistancerange = modOptions.minimumbuilddistancerange or 200
+			for id,unitDef in pairs(UnitDefs) do
+				if unitDef.builddistance ~= nil and unitDef.builddistance < minimumbuilddistancerange then
+					unitDef.builddistance = minimumbuilddistancerange
+				end
 			end
 		end
 
@@ -123,14 +128,15 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			end
 		end
 		
-		--[[Use good groundplates
-		for id,unitDef in pairs(UnitDefs) do
-			if unitDef.usebuildinggrounddecal == true then
-				unitDef.buildinggrounddecaltype = "groundplate.dds"
+		if (modOptions.nonlaggybuildplates == "enabled") then
+			for id,unitDef in pairs(UnitDefs) do
+				if unitDef.usebuildinggrounddecal == true then
+					unitDef.buildinggrounddecaltype = "groundplate.dds"
+				end
 			end
-		end]]--
+		end
 		
-		--if (modOptions.betterunitmovement ~= "disabled") then
+		if (modOptions.betterunitmovement == "enabled") then
 			Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
 			for id,unitDef in pairs(UnitDefs) do
 			
@@ -174,7 +180,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 					end
 				end
 			end
-		--end
+		end
 		
 		--Fire through friendly needs fixed hitspeheres, likewise, fixed hitspheres needs fire through friendly.
 		--For the sake of keeping it simple, rolled both into one modoption.
