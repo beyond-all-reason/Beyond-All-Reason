@@ -926,6 +926,7 @@ function widget:Initialize()
 		{id="fpstimespeed", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
 		
 		{id="snow", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Lets it snow on winter maps, auto reduces when your fps gets lower + unitcount higher\n\nYou can give the command /snow to toggle snow for the current map (it remembers)'},
+		{id="teamcolors", widget="Common Team Colors", name="Use team colors based on a palette", type="bool", value=widgetHandler.orderList["Common Team Colors"] ~= nil and (widgetHandler.orderList["Common Team Colors"] > 0), description='Replaces lobby team colors for a color palette based one'},
 		
 		{id="camera", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber(Spring.GetConfigInt("CamMode",1) or 2))},
 	}
