@@ -1,3 +1,4 @@
+-- the commented out slopemod were there to compensate for modoption betterunitmovement
 
 local moveDatas = {
 	AKBOT2 = {
@@ -36,6 +37,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 36,
+		--slopeMod = 32,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
@@ -135,6 +137,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 22,
+		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
 	HHOVER3 = {
@@ -144,6 +147,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 22,
+		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
 	HOVER4 = {
@@ -153,6 +157,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 22,
+		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
 	HTANK3 = {
@@ -160,6 +165,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 18,
+		--slopeMod = 32,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -172,6 +178,7 @@ local moveDatas = {
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 18,
+		--slopeMod = 32,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -221,6 +228,7 @@ local moveDatas = {
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = 18,
+		--slopeMod = 32,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,
@@ -233,6 +241,7 @@ local moveDatas = {
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 18,
+		--slopeMod = 32,
 		maxwaterdepth = 22,
 		depthModParams = {
 			minHeight = 4,

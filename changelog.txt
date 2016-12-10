@@ -1,8 +1,18 @@
 ﻿9.54 -> 9.55
 XX/12/2016
 
+Making BA great again
+
+Balance
+- Betterunitmovement modoption disabled by default
+- Reverted vehicle speed to old values because betterunitmovement is disabled (plus removed slope slowdown corrections)
+- Minimum buildrange is now behind a modoption: minimumbuilddistancerange, default is 200.
+- Reverted buildspeeds
+
+Other:
 - Removed music
 - Removed spring features dependency
+- Made 'Common Team Colors' widget toggable via Options widget
 
 
 9.53 -> 9.54
