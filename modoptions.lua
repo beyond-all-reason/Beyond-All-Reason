@@ -148,17 +148,11 @@ local options={
 
 --Forb's modoptions start here
 --Any modoptions in this block that are default enabled have been set that way at Floris' request
-    { 
-		key    = "logicalbuildtime",
-		name   = "Logical and meaninful buildtimes",
-		desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime.",
-		type="list",
-		def="disabled",
-		section= "ba_options",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime."},
-		}
+    {
+       key="ba_enhancements_build",
+       name="Balanced Annihilation - Gameplay Enhancements: Build Range",
+       desc="Balanced Annihilation - Gameplay Enhancements: Build Range",
+       type="section",
     },
 	
     { 
@@ -167,7 +161,7 @@ local options={
 		desc   = "Enables a global minimum builddistance which results in units spending less time moving and unpacking for construction projects.",		
 		type="list",
 		def="disabled",
-		section= "ba_options",
+		section= "ba_enhancements_build",
 		items={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Enables a global minimum builddistance which results in units spending less time moving and unpacking for construction projects."},
@@ -179,33 +173,108 @@ local options={
         name   = 'Minimum Build Distance Range',
         desc   = 'If Minimum build distance is enabled, this options sets the minimum distance for buildrange. Builders with buildrange below this amount with be given this amount. Does not effect builders with longer buildranges than the amount set here.',
         type   = 'number',
-        section= 'ba_options',
+        section= 'ba_enhancements_build',
         def    = 200,
         min    = 1,
         max    = 500,
         step   = 1,
     },
-    
+
+    {
+       key="ba_enhancements_movement",
+       name="Balanced Annihilation - Gameplay Enhancements: Unit Movement",
+       desc="Balanced Annihilation - Gameplay Enhancements: Unit Movement",
+       type="section",
+    },
+	
     { 
 		key    = "betterunitmovement",
 		name   = "Advanced Unit Movement and Pathing",
 		desc   = "Adds some presets to units that allow for better pathing and more agile unit movement",		
 		type="list",
-		def="enabled",
-		section= "ba_options",
+		def="disabled",
+		section= "ba_enhancements_movement",
 		items={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
 		}
     },
 	
+    {
+        key    = 'additionalturnrate',
+        name   = 'Added static turnrate amount',
+        desc   = 'Adds a static amount of turnrate to the existing turnrate of all ground based units (Not Aircraft)',
+        type   = 'number',
+        section= 'ba_enhancements_movement',
+        def    = 500,
+        min    = 1,
+        max    = 5000,
+        step   = 1,
+    },
+
+    {
+        key    = 'turnratemultiplier',
+        name   = 'Turnrate multiplier',
+        desc   = 'Adds a multiplier to the default and additional turnrate of all ground based units (Not Aircraft)',
+        type   = 'number',
+        section= 'ba_enhancements_movement',
+        def    = 2,
+        min    = 1,
+        max    = 10,
+        step   = 1,
+    },	
+
+    {
+        key    = 'additionalacceleration',
+        name   = 'Added static acceleration amount',
+        desc   = 'Adds a static amount of acceleration to the existing acceleration of all ground based units (Not Aircraft)',
+        type   = 'number',
+        section= 'ba_enhancements_movement',
+        def    = 500,
+        min    = 1,
+        max    = 5000,
+        step   = 1,
+    },
+
+    {
+        key    = 'accelerationmultiplier',
+        name   = 'Acceleration multiplier',
+        desc   = 'Adds a multiplier to the default and additional acceleration of all ground based units (Not Aircraft)',
+        type   = 'number',
+        section= 'ba_enhancements_movement',
+        def    = 1,
+        min    = 1,
+        max    = 10,
+        step   = 1,
+    },	
+	
+    {
+       key="ba_enhancements_misc",
+       name="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
+       desc="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
+       type="section",
+    },
+	
+    { 
+		key    = "logicalbuildtime",
+		name   = "Logical and meaninful buildtimes",
+		desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime.",
+		type="list",
+		def="disabled",
+		section= "ba_enhancements_misc",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime."},
+		}
+    },
+
 	{
 		key    = "firethroughfriendly",
 		name   = "Fire Through Friendly Units",
 		desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. Also fixes unit hitspheres. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",		
 		type="list",
 		def="disabled",
-		section= "ba_options",
+		section= "ba_enhancements_misc",
 		items={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Causes weapons not to collide with nor avoid friendly units, resulting in very TA style gameplay and promotes unit/group micro."},
@@ -218,7 +287,7 @@ local options={
 		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",		
 		type="list",
 		def="enabled",
-		section= "ba_options",
+		section= "ba_enhancements_misc",
 		items={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
@@ -231,12 +300,13 @@ local options={
 		desc   = "Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance).",		
 		type="list",
 		def="disabled",
-		section= "ba_options",
+		section= "ba_enhancements_misc",
 		items={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance)."},
 		}
-    },
+    },	
+	
 --Forb's modoptions end here
 	
 -- Control Victory Options	

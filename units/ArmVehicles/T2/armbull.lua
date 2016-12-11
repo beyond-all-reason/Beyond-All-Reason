@@ -1,4 +1,4 @@
-3return {
+return {
 	armbull = {
 		acceleration = 0.0396,
 		brakerate = 0.165,
