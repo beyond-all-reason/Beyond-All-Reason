@@ -19,8 +19,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local minFps					= 40		-- stops snowing at
-local maxFps					= 60		-- max particles at
+local minFps					= 33		-- stops snowing at
+local maxFps					= 55		-- max particles at
 local particleSteps				= 14		-- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
 local particleMultiplier		= 0.005		-- amount of particles
 local windMultiplier			= 3
