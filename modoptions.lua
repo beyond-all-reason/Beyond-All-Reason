@@ -257,7 +257,7 @@ local options={
 	
     { 
 		key    = "logicalbuildtime",
-		name   = "Logical and meaninful buildtimes",
+		name   = "Logical and meaningful buildtimes",
 		desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime.",
 		type="list",
 		def="disabled",
