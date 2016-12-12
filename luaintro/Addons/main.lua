@@ -50,18 +50,24 @@ function addon.DrawLoadScreen()
 	local hsw = 0.2
 	local vsw = 0.2
 	
+	local loadvalue = 0.2 + (math.max(0, loadProgress) * 0.6)
+	
 	--bar bg
 	local paddingW = 0.004 * (vsy/vsx)
 	local paddingH = 0.004
-	gl.Color(0,0,0,0.85)
-	RectRound(0.2-paddingW,0.1-paddingH,0.8+paddingW,0.15+paddingH,0.0044)
+	gl.Color(0.06,0.06,0.06,0.8)
+	RectRound(0.2-paddingW,0.1-paddingH,0.8+paddingW,0.15+paddingH,0.0065)
 	
-	local loadvalue = 0.2 + math.max(0, loadProgress-0.01) * 0.6
-	gl.Color(1-(loadProgress/3),loadProgress,0,0.23)
-	RectRound(0.2,0.1,loadvalue,0.15,0.0033)
+	gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
+	RectRound(0.2,0.1,loadvalue,0.15,0.005)
 	
-	local glowSize = 0.07
-	gl.Color(1-(loadProgress/3)+0.1,loadProgress+0.1,0+0.1,0.07)
+	gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.08)
+	gl.Texture(":n:luaui/Images/barglow-center.dds")
+	gl.TexRect(0.2,0.1,loadvalue,0.15)
+	
+	
+	local glowSize = 0.045
+	gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.07)
 	gl.Texture(":n:luaui/Images/barglow-center.dds")
 	gl.TexRect(0.2,	0.1-glowSize,	loadvalue,	0.15+glowSize)
 	
