@@ -43,6 +43,12 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
 		
+		
+		for id,unitDef in pairs(UnitDefs) do
+			-- Enable default Nanospray
+			unitDef.shownanospray = true
+		end
+			
 		if (modOptions.logicalbuildtime == "enabled") then
 			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
 			--Spring.Echo("\n")
@@ -60,9 +66,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			--Spring.Echo("\n")
 			for id,unitDef in pairs(UnitDefs) do
 				if unitDef.workertime then
-				
-					-- Enable default Nanospray
-					unitDef.shownanospray = true
 				
 					--Make terraform really fast
 					if unitDef.terraformspeed then
