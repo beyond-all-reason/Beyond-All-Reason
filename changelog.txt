@@ -11,8 +11,9 @@ Balance
 
 Other:
 - Removed music
-- Removed spring features dependency
+- Removed spring features 1.9 dependency
 - Made 'Common Team Colors' widget toggable via Options widget
+- Removed all old loadscreens, added some new ones
 
 
 9.53 -> 9.54
