@@ -26,10 +26,8 @@ SaveDefsToCustomParams = false
 -- process unitdef
 function UnitDef_Post(name, uDef)
 		
-	for id,unitDef in pairs(UnitDefs) do
-		-- Enable default Nanospray
-		unitDef.shownanospray = true
-	end
+	-- Enable default Nanospray
+	uDef.shownanospray = true
 end
 
 -- process weapondef
