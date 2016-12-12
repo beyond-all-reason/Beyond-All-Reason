@@ -40,7 +40,7 @@ return {
 		turnrate = 1,
 		upright = true,
 		useBuildingGroundDecal = true,
-		workertime = 250,
+		workertime = 200,
 		customparams = {
 			death_sounds = "generic",
 		},

@@ -31,7 +31,7 @@ return {
 		sightdistance = 169,
 		terraformspeed = 1000,
 		waterline = 43,
-		workertime = 300,
+		workertime = 200,
 		yardmap = "wwwwwwwwCCCCCwwCCCCCwwCCCCCwwCCCCCwwCCCCCwwwwwwww",
 		buildoptions = {
 			[1] = "corcsa",

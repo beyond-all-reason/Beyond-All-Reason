@@ -40,7 +40,7 @@ return {
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
 		turnrate = 148,
-		workertime = 300,
+		workertime = 110,
 		blocking = false,
 		buildoptions = {
 			[1] = "armap",

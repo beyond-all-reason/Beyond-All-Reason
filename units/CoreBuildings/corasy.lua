@@ -35,7 +35,7 @@ return {
 		sightdistance = 301.60001,
 		terraformspeed = 1000,
 		waterline = 32,
-		workertime = 300,
+		workertime = 400,
 		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
 		buildoptions = {
 			[1] = "coracsub",

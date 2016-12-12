@@ -41,7 +41,7 @@ return {
 		turninplacespeedlimit = 1.3662,
 		turnrate = 595,
 		waterline = 3,
-		workertime = 150,
+		workertime = 250,
 		buildoptions = {
 			[1] = "coreyes",
 			[2] = "cordl",

@@ -40,7 +40,7 @@ return {
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 138,
-		workertime = 300,
+		workertime = 150,
 		blocking = false,
 		buildoptions = {
 			[1] = "armfus",

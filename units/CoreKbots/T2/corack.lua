@@ -43,7 +43,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 935,
 		upright = true,
-		workertime = 300,
+		workertime = 180,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "corgant",

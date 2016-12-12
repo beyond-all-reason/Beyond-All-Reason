@@ -25,7 +25,11 @@ SaveDefsToCustomParams = false
 
 -- process unitdef
 function UnitDef_Post(name, uDef)
-
+		
+	for id,unitDef in pairs(UnitDefs) do
+		-- Enable default Nanospray
+		unitDef.shownanospray = true
+	end
 end
 
 -- process weapondef
@@ -43,12 +47,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
 		
-		
-		for id,unitDef in pairs(UnitDefs) do
-			-- Enable default Nanospray
-			unitDef.shownanospray = true
-		end
-			
 		if (modOptions.logicalbuildtime == "enabled") then
 			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
 			--Spring.Echo("\n")

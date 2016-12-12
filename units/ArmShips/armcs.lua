@@ -41,7 +41,7 @@ return {
 		turninplacespeedlimit = 1.50282,
 		turnrate = 615,
 		waterline = 4,
-		workertime = 150,
+		workertime = 250,
 		buildoptions = {
 			[1] = "armeyes",
 			[2] = "armdl",

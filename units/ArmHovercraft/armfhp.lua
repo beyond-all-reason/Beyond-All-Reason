@@ -32,7 +32,7 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 300,
+		workertime = 200,
 		yardmap = "wCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCwwCCCCCCw",
 		buildoptions = {
 			[1] = "armch",

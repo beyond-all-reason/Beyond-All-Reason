@@ -38,7 +38,7 @@ return {
 		sightdistance = 234,
 		terraformspeed = 750,
 		usebuildinggrounddecal = true,
-		workertime = 300,
+		workertime = 150,
 		yardmap = "oooooooooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCooCCCCCCo",
 		buildoptions = {
 			[1] = "armbeaver",
