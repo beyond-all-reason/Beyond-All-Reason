@@ -22,8 +22,7 @@ end
 
 ------------------------------------------
 
-local font = gl.LoadFont("FreeSansBold.otf", 50, 20, 1.95)
-
+local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function RectRound(px,py,sx,sy,cs)
 	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
@@ -52,38 +51,35 @@ function addon.DrawLoadScreen()
 	local vsw = 0.2
 	
 	--bar bg
-	local paddingW = 0.005 * (vsy/vsx)
-	local paddingH = 0.005
+	local paddingW = 0.004 * (vsy/vsx)
+	local paddingH = 0.004
 	gl.Color(0,0,0,0.85)
-	RectRound(0.2-paddingW,0.1-paddingH,0.8+paddingW,0.15+paddingH,0.004,0.035)
+	RectRound(0.2-paddingW,0.1-paddingH,0.8+paddingW,0.15+paddingH,0.0044)
 	
-	gl.Color(1,loadProgress,0,0.25)
-	RectRound(0.2,0.1,0.2 + math.max(0, loadProgress-0.01) * 0.6,0.15,0.004,0.02)
+	local loadvalue = 0.2 + math.max(0, loadProgress-0.01) * 0.6
+	gl.Color(1-(loadProgress/3),loadProgress,0,0.23)
+	RectRound(0.2,0.1,loadvalue,0.15,0.0033)
 	
-
---[[
-	gl.Color(0,0,0,1)
-	gl.Rect(0.2,0.15,0.8,0.2)
-	gl.Color(1,1,1,1)
-	gl.Rect(0.2,0.15,0.2 + math.max(0, loadProgress) * 0.6,0.2)
-	gl.LineWidth(5)
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-	gl.Rect(0.2,0.15,0.8,0.2)
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-	gl.LineWidth(1)
-	gl.Color(1,1,1,1)
---]]
-
+	local glowSize = 0.07
+	gl.Color(1-(loadProgress/3)+0.1,loadProgress+0.1,0+0.1,0.07)
+	gl.Texture(":n:luaui/Images/barglow-center.dds")
+	gl.TexRect(0.2,	0.1-glowSize,	loadvalue,	0.15+glowSize)
+	
+	gl.Texture(":n:luaui/Images/barglow-edge.dds")
+	gl.TexRect(0.2-(glowSize*1.33), 0.1-glowSize, 0.2, 0.15+glowSize)
+	
+	gl.TexRect(loadvalue+(glowSize*1.33), 0.1-glowSize, loadvalue, 0.15+glowSize)
+	
 	-- progressbar text
 	gl.PushMatrix()
 	gl.Scale(1/vsx,1/vsy,1)
-		local barTextSize = vsy * (0.05 - 0.015)
+		local barTextSize = vsy * 0.026
 
 		--font:Print(lastLoadMessage, vsx * 0.5, vsy * 0.3, 50, "sc")
 		--font:Print(Game.gameName, vsx * 0.5, vsy * 0.95, vsy * 0.07, "sca")
-		font:Print(lastLoadMessage, vsx * 0.209, vsy * 0.134, barTextSize * 0.5, "sa")
+		font:Print(lastLoadMessage, vsx * 0.209, vsy * 0.133, barTextSize * 0.64, "oa")
 		if loadProgress>0 then
-			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * 0.115, barTextSize, "oc")
+			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * 0.1175, barTextSize, "oc")
 		else
 			font:Print("Loading...", vsx * 0.5, vsy * 0.165, barTextSize, "oc")
 		end
