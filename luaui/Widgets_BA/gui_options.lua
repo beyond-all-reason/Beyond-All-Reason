@@ -279,6 +279,13 @@ function DrawWindow()
 		if (WG['darkenmap'] ~= nil) then
 			table.insert(options, {id="darkenmap", name="Darken map", min=0, max=0.55, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
 		end
+		-- Enemyspotter
+		if (WG['enemyspotter'] ~= nil) then
+			table.insert(options, {id="enemyspotter_opacity", name="Enemyspotter opacity", min=0.15, max=0.4, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
+		end
+		if (WG['enemyspotter'] ~= nil) then
+			table.insert(options, {id="enemyspotter_highlight", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
+		end
 		
 		if WG['red_buildmenu'] ~= nil then
 	  	table.insert(options, {id="buildmenushortcuts", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n(reselect something to see the change applied)'})
@@ -592,6 +599,8 @@ function applyOptionValue(i)
 			Spring.SendCommands("speed "..value)
 		elseif id == 'buildmenushortcuts' then
 			WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
+		elseif id == 'enemyspotter_highlight' then
+			WG['enemyspotter'].setHighlight(options[i].value)
 		end
 		
 		if options[i].widget ~= nil then
@@ -645,6 +654,8 @@ function applyOptionValue(i)
 			Spring.SetConfigInt("CrossAlpha", value)
 		elseif id == 'darkenmap' then
 			WG['darkenmap'].setMapDarkness(value)
+		elseif id == 'enemyspotter_opacity' then
+			WG['enemyspotter'].setOpacity(value)
 		end
 		
 	elseif options[i].type == 'select' then

@@ -98,7 +98,7 @@ local scalefaktor			= 2.9
 
 
 function CreateHighlightShader()
-	if shader ~= nil then
+	if shader then
 		gl.DeleteShader(shader)
 	end
 	shader = gl.CreateShader({
@@ -259,6 +259,21 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+  
+  WG['enemyspotter'] = {}
+  WG['enemyspotter'].getOpacity = function()
+  	return spotterOpacity
+  end
+  WG['enemyspotter'].setOpacity = function(value)
+  	spotterOpacity = value
+  end
+  WG['enemyspotter'].getHighlight = function()
+  	return useXrayHighlight
+  end
+  WG['enemyspotter'].setHighlight = function(value)
+  	useXrayHighlight = value
+  end
+  
 	SetUnitConf()
 	setColors()
 	checkAllUnits()
@@ -270,7 +285,7 @@ end
 
 function widget:Shutdown()
 	
-	if shader ~= nil then
+	if shader then
 		gl.DeleteShader(shader)
 	end
 end
@@ -351,7 +366,12 @@ function widget:DrawWorld()
 			end
 
 			gl.Color(1, 1, 1, 0.7)
-			gl.UseShader(shader)
+			if shader then
+				gl.UseShader(shader)
+				opacity = highlightOpacity
+			else
+				opacity = 0.25
+			end
 			gl.DepthTest(true)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE)
 			gl.PolygonOffset(-2, -2)
@@ -361,7 +381,7 @@ function widget:DrawWorld()
 			for allyTeamListIndex = 1, numberOfAllyTeams do
 				local allyID = allyTeamList[allyTeamListIndex]
 				if drawUnits[allyID] ~= nil and allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
-					gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],highlightOpacity)
+					gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],opacity)
 					for unitID, unitScale in pairs(drawUnits[allyID]) do
 						gl.Unit(unitID, true)
 					end
@@ -371,7 +391,9 @@ function widget:DrawWorld()
 			gl.PolygonOffset(false)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			gl.DepthTest(false)
-			gl.UseShader(0)
+			if shader then
+				gl.UseShader(0)
+			end
 			gl.Color(1, 1, 1, 0.7)
 			
 			if (smoothPolys) then
