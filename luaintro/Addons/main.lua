@@ -117,8 +117,8 @@ function addon.DrawLoadScreen()
 	local loadvalue = 0.2 + (math.max(0, loadProgress) * 0.6)
 	
 	--bar bg
-	local paddingW = 0.004 * (vsy/vsx)
 	local paddingH = 0.004
+	local paddingW = paddingH * (vsy/vsx)
 	gl.Color(0.06,0.06,0.06,0.8)
 	RectRound(0.2-paddingW,0.1-paddingH,0.8+paddingW,0.15+paddingH,0.007)
 	
@@ -145,6 +145,7 @@ function addon.DrawLoadScreen()
 	gl.TexRect(0.2-(glowSize*1.3), 0.1-glowSize, 0.2, 0.15+glowSize)
 	gl.TexRect(loadvalue+(glowSize*1.3), 0.1-glowSize, loadvalue, 0.15+glowSize)
 	
+	
 	-- progressbar text
 	gl.PushMatrix()
 	gl.Scale(1/vsx,1/vsy,1)
@@ -159,6 +160,28 @@ function addon.DrawLoadScreen()
 			font:Print("Loading...", vsx * 0.5, vsy * 0.165, barTextSize, "oc")
 		end
 
+	gl.PopMatrix()
+	
+	-- round off screen edges
+	local cornersizeH = 0.0035
+	local cornersizeW = cornersizeH * (vsy/vsx)
+	gl.Color(0,0,0,1)
+	gl.Texture(":n:luaui/Images/bgcorner-inverted.png")
+	gl.PushMatrix()
+		gl.Translate(0+cornersizeW,0+cornersizeH,0)
+		gl.TexRect(-cornersizeW,cornersizeH,cornersizeW,-cornersizeH)
+	gl.PopMatrix()
+	gl.PushMatrix()
+		gl.Translate(1-cornersizeW,0+cornersizeH,0)
+		gl.TexRect(cornersizeW,cornersizeH,-cornersizeW,-cornersizeH)
+	gl.PopMatrix()
+	gl.PushMatrix()
+		gl.Translate(1-cornersizeW,1-cornersizeH,0)
+		gl.TexRect(cornersizeW,-cornersizeH,-cornersizeW,cornersizeH)
+	gl.PopMatrix()
+	gl.PushMatrix()
+		gl.Translate(0+cornersizeW,1-cornersizeH,0)
+		gl.TexRect(-cornersizeW,-cornersizeH,cornersizeW,cornersizeH)
 	gl.PopMatrix()
 end
 
