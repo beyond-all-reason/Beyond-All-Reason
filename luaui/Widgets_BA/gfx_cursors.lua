@@ -63,20 +63,6 @@ function SetCursor(cursorSet)
             Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
         end
     end
-    
-    local result = ''
-    local color = ''
-    local separator = ''
-    for i=1, #cursorSets do
-	    if cursorSets[i] == cursorSet then
-	    	color = '\255\255\255\255'
-	    else
-	    	color = '\255\200\200\200'
-	    end
-    	result = result..separator..'  '..color..cursorSets[i]..'  '
-    	separator = '|'
-    end
-    Spring.Echo('Loaded cursor:'..result)
 end
 
 
@@ -95,6 +81,10 @@ function widget:SetConfigData(data)
 				end
         Settings = data
     end
+end
+
+function widget:ViewResize(vsx,vsy)
+	SetCursor(Settings['cursorSet'])
 end
 
 function widget:TextCommand(cmd)
