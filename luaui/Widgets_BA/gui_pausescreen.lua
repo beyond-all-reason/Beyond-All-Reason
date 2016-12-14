@@ -321,7 +321,7 @@ function widget:DrawScreenEffects()
   if Spring.IsGUIHidden() then return end
 	if shaderProgram and showPauseScreen then
 		glCopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
-		glTexture(0, screencopy, vsx, vsy)
+		glTexture(0, screencopy)
 		glUseShader(shaderProgram)
 		glUniform(alphaLoc, shaderAlpha)
 		glTexRect(0,vsy,vsx,0)
