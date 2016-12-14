@@ -431,7 +431,7 @@ function init()
 	builderFilter = {}
 	buildingFilter = {}
 	mobileFilter = {}
-
+	
 	for udid, udef in pairs(UnitDefs) do
 		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc"))
 		local builder = (udef.canReclaim and udef.reclaimSpeed > 0) or
@@ -448,7 +448,7 @@ function init()
 	end
 end
 function widget:Initialize()
-
+	
   WG['smartselect'] = {}
   WG['smartselect'].getIncludeBuildings = function()
   	return selectBuildingsWithMobile
@@ -473,7 +473,6 @@ function widget:DrawWorld()
 		glColor(1, 1, 1, 1)
 		glLineWidth(1.0)
 		glDepthTest(false)
-
 		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)
 	end
 end

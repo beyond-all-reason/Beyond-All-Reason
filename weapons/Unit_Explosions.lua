@@ -109,14 +109,14 @@ unitDeaths = {
 	
 	energystorage = {
 		weaponType		   = "Cannon",
-		areaofeffect = 210,
+		areaofeffect = 400,
 		camerashake = 210,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplolrg3",
 		explosiongenerator = "custom:genericbuildingexplosion-large",
 		damage = {
-			default = 590,
+			default = 880,
 		},
 	},
 	
