@@ -278,12 +278,11 @@ function DrawWindow()
 		-- Darken map
 		if (WG['darkenmap'] ~= nil) then
 			table.insert(options, {id="darkenmap", name="Darken map", min=0, max=0.55, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
+			table.insert(options, {id="darkenmap_darkenfeatures", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting is CPU intensive because it cycles through all visible features \nand renders then another time.'})
 		end
 		-- EnemySpotter
 		if (WG['enemyspotter'] ~= nil) then
 			table.insert(options, {id="enemyspotter_opacity", name="Enemyspotter opacity", min=0.15, max=0.4, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
-		end
-		if (WG['enemyspotter'] ~= nil) then
 			table.insert(options, {id="enemyspotter_highlight", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
 		end
 		-- Smart Select
@@ -603,6 +602,8 @@ function applyOptionValue(i)
 			Spring.SendCommands("speed "..value)
 		elseif id == 'buildmenushortcuts' then
 			WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
+		elseif id == 'darkenmap_darkenfeatures' then
+			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
 			WG['enemyspotter'].setHighlight(options[i].value)
 		elseif id == 'smartselect_includebuildings' then

@@ -21,6 +21,7 @@ local darknessIncrease = 'Ctrl+Alt+]'
 local darknessDecrease = 'Ctrl+Alt+['
 local darknessStep = 0.02
 local maxDarkness = 0.6
+local darkenFeatures = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -29,6 +30,7 @@ local msx = Game.mapSizeX
 local msz = Game.mapSizeZ
 local currentMapname = Game.mapName:lower()
 local maps = {}
+local gaia = Spring.GetGaiaTeamID()
 
 function widget:Initialize()
   darken = gl.CreateList(function()
@@ -46,6 +48,12 @@ function widget:Initialize()
   WG['darkenmap'].setMapDarkness = function(value)
   	darknessvalue = value
   	maps[currentMapname] = darknessvalue
+  end
+  WG['darkenmap'].getDarkenFeatures = function()
+  	return darkenFeatures
+  end
+  WG['darkenmap'].setDarkenFeatures = function(value)
+  	darkenFeatures = value
   end
   
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
@@ -104,15 +112,50 @@ function widget:DrawWorldPreUnit()
 end
 
 
+local prevCam = {}
+prevCam[1],prevCam[2],prevCam[3] = Spring.GetCameraPosition()
+function widget:Update(dt)
+	local camX, camY, camZ = Spring.GetCameraPosition()
+	if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
+		features = Spring.GetVisibleFeatures(gaia, 250, false)
+	end
+end
+
+local spGetFeatureDefID = Spring.GetFeatureDefID
+function widget:DrawWorld()
+	if darkenFeatures and darken ~= nil and darknessvalue > 0.03 then
+		
+		if features == nil then
+			features = Spring.GetVisibleFeatures(gaia, 250, false)
+		end
+		
+		gl.DepthTest(true)
+		gl.PolygonOffset(-2, -2)
+		gl.Color(0,0,0,darknessvalue)
+		for i, featureID in pairs(features) do
+			gl.Texture('%-'..spGetFeatureDefID(featureID)..':1')
+		  gl.Feature(featureID, true)
+		end
+		gl.PolygonOffset(false)
+		gl.DepthTest(false)
+		gl.Texture(false)
+	end
+end
+
+
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.maps	= maps
+    savedTable.darkenFeatures	= darkenFeatures
     return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.maps ~= nil then
 		maps = data.maps
+		if data.darkenFeatures ~= nil then
+			darkenFeatures = data.darkenFeatures
+		end
 		if data.maps[currentMapname] ~= nil then
 			darknessvalue = data.maps[currentMapname]
 		end
