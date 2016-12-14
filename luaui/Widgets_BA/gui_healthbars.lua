@@ -680,7 +680,7 @@ function init()
              gl_TexCoord[0]= gl_TextureMatrix[0]*gl_MultiTexCoord0;
              gl_FrontColor = gl_Color;
              gl_Position   = ftransform();
-             return;
+             //return;			-- commenting out this line fixes glitchy healthbars on intel gfx
            }
            vertex = gl_Vertex;
            if (vertex.w==1) {
@@ -1161,6 +1161,7 @@ do
         end
       end
 
+			gl.Texture(false)
       --// DRAW BARS
       DrawBars(fullText)
 
