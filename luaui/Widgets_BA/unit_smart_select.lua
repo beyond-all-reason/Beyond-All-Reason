@@ -448,6 +448,14 @@ function init()
 	end
 end
 function widget:Initialize()
+
+  WG['smartselect'] = {}
+  WG['smartselect'].getIncludeBuildings = function()
+  	return selectBuildingsWithMobile
+  end
+  WG['smartselect'].setIncludeBuildings = function(value)
+  	selectBuildingsWithMobile = value
+  end
 	init()
 end
 

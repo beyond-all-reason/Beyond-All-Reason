@@ -279,14 +279,18 @@ function DrawWindow()
 		if (WG['darkenmap'] ~= nil) then
 			table.insert(options, {id="darkenmap", name="Darken map", min=0, max=0.55, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
 		end
-		-- Enemyspotter
+		-- EnemySpotter
 		if (WG['enemyspotter'] ~= nil) then
 			table.insert(options, {id="enemyspotter_opacity", name="Enemyspotter opacity", min=0.15, max=0.4, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
 		end
 		if (WG['enemyspotter'] ~= nil) then
 			table.insert(options, {id="enemyspotter_highlight", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
 		end
-		
+		-- Smart Select
+		if (WG['smartselect'] ~= nil) then
+			table.insert(options, {id="smartselect_includebuildings", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
+		end
+		-- redui buildmenu
 		if WG['red_buildmenu'] ~= nil then
 	  	table.insert(options, {id="buildmenushortcuts", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n(reselect something to see the change applied)'})
 		end
@@ -601,6 +605,8 @@ function applyOptionValue(i)
 			WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
 			WG['enemyspotter'].setHighlight(options[i].value)
+		elseif id == 'smartselect_includebuildings' then
+			WG['smartselect'].setIncludeBuildings(options[i].value)
 		end
 		
 		if options[i].widget ~= nil then
