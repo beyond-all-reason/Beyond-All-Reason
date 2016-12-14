@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "armanni_aoplane.dds",
 		buildpic = "ARMANNI.DDS",
-		buildtime = 63000,
+		buildtime = 52071,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,

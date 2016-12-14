@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "cortoast_aoplane.dds",
 		buildpic = "CORTOAST.DDS",
-		buildtime = 30000,
+		buildtime = 25717,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,

@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "corvipe_aoplane.dds",
 		buildpic = "CORVIPE.DDS",
-		buildtime = 18000,
+		buildtime = 15035,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
