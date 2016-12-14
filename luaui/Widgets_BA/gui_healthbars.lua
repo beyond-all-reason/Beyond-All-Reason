@@ -671,7 +671,6 @@ function init()
         #define offset   gl_MultiTexCoord2.y
         
         uniform float glowAlpha;
-        varying vec4 vertex;
 
         void main()
         {
@@ -682,7 +681,7 @@ function init()
              gl_Position   = ftransform();
              //return;			-- commenting out this line fixes glitchy healthbars on intel gfx
            }
-           vertex = gl_Vertex;
+           vec4 vertex = gl_Vertex;
            if (vertex.w==1) {
              gl_FrontColor = gl_Color;
              if (vertex.z>0.0) {
