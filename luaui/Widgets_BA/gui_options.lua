@@ -255,44 +255,69 @@ function DrawPresets()
 	end
 end
 
+function getOptionByID(id)
+	for i, option in pairs(options) do
+		if option.id == id then
+			return i
+		end
+	end
+	return false
+end
+
+function checkWidgets()
+		
+	-- bloom
+	local bloomValue = 0
+	if widgetHandler.orderList["Bloom Shader"] ~= nil and widgetHandler.orderList["Bloom Shader"] > 0 then
+		bloomValue = 1
+		if WG['bloom'] ~= nil and WG['bloom'].getAdvBloom() then
+			bloomValue = 2
+		end
+	end
+	options[getOptionByID('bloom')].value = bloomValue
+	
+	-- cursors
+	local cursorsets = {}
+	local cursor = 1
+	local cursoroption
+	if (WG['cursors'] ~= nil) then
+		cursorsets = WG['cursors'].getcursorsets()
+		local cursorname = WG['cursors'].getcursor()
+		for i,c in pairs(cursorsets) do
+			if c == cursorname then
+				cursor = i
+				break
+			end
+		end
+		table.insert(options, {id="cursor", name="Cursor", type="select", options=cursorsets, value=cursor})
+	end
+	-- Darken map
+	if (WG['darkenmap'] ~= nil) then
+		table.insert(options, {id="darkenmap", name="Darken map", min=0, max=0.55, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
+		table.insert(options, {id="darkenmap_darkenfeatures", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting is CPU intensive because it cycles through all visible features \nand renders then another time.'})
+	end
+	-- EnemySpotter
+	if (WG['enemyspotter'] ~= nil) then
+		table.insert(options, {id="enemyspotter_opacity", name="Enemyspotter opacity", min=0.15, max=0.4, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
+		table.insert(options, {id="enemyspotter_highlight", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
+	end
+	-- Smart Select
+	if (WG['smartselect'] ~= nil) then
+		table.insert(options, {id="smartselect_includebuildings", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
+	end
+	-- redui buildmenu
+	if WG['red_buildmenu'] ~= nil then
+  	table.insert(options, {id="buildmenushortcuts", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n(reselect something to see the change applied)'})
+	end
+end
+
+
 function DrawWindow()
+
 	-- add widget options
 	if not addedWidgetOptions then
-	
-		-- cursors
 		addedWidgetOptions = true
-		local cursorsets = {}
-		local cursor = 1
-		local cursoroption
-		if (WG['cursors'] ~= nil) then
-			cursorsets = WG['cursors'].getcursorsets()
-			local cursorname = WG['cursors'].getcursor()
-			for i,c in pairs(cursorsets) do
-				if c == cursorname then
-					cursor = i
-					break
-				end
-			end
-			table.insert(options, {id="cursor", name="Cursor", type="select", options=cursorsets, value=cursor})
-		end
-		-- Darken map
-		if (WG['darkenmap'] ~= nil) then
-			table.insert(options, {id="darkenmap", name="Darken map", min=0, max=0.55, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
-			table.insert(options, {id="darkenmap_darkenfeatures", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting is CPU intensive because it cycles through all visible features \nand renders then another time.'})
-		end
-		-- EnemySpotter
-		if (WG['enemyspotter'] ~= nil) then
-			table.insert(options, {id="enemyspotter_opacity", name="Enemyspotter opacity", min=0.15, max=0.4, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
-			table.insert(options, {id="enemyspotter_highlight", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
-		end
-		-- Smart Select
-		if (WG['smartselect'] ~= nil) then
-			table.insert(options, {id="smartselect_includebuildings", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
-		end
-		-- redui buildmenu
-		if WG['red_buildmenu'] ~= nil then
-	  	table.insert(options, {id="buildmenushortcuts", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n(reselect something to see the change applied)'})
-		end
+		checkWidgets()
 	end
 	
   local vsx,vsy = Spring.GetViewGeometry()
@@ -611,7 +636,7 @@ function applyOptionValue(i)
 		end
 		
 		if options[i].widget ~= nil then
-			if value == 1 then
+			if value ~= 0 then
 				if id == 'bloom' or id == 'guishader' or id == 'xrayshader' or id == 'snow' or id == 'mapedgeextension' then
 					if luaShaders ~= 1 and not enabledLuaShaders then
 						Spring.SetConfigInt("LuaShaders", 1)
@@ -666,6 +691,21 @@ function applyOptionValue(i)
 			WG['darkenmap'].setMapDarkness(value)
 		elseif id == 'enemyspotter_opacity' then
 			WG['enemyspotter'].setOpacity(value)
+		elseif id == 'bloom' then
+			if value > 0 then
+				widgetHandler:EnableWidget(options[i].widget)
+				if luaShaders ~= 1 and not enabledLuaShaders then
+					Spring.SetConfigInt("LuaShaders", 1)
+					enabledLuaShaders = true
+				end
+			end
+			if value == 1 then
+				WG['bloom'].setAdvBloom(false)
+			elseif value == 2 then
+				WG['bloom'].setAdvBloom(true)
+			else
+				widgetHandler:DisableWidget(options[i].widget)
+			end
 		end
 		
 	elseif options[i].type == 'select' then
@@ -910,6 +950,8 @@ function widget:Initialize()
 		fullWidgetsList[name] = data
   end
 	  
+		local bloomValue = 0
+		
 	options = {
 		{id="fullscreen", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", name="Borderless", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1},
@@ -923,8 +965,9 @@ function widget:Initialize()
 		{id="shadows", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", name="Shadows", type="slider", min=1500, max=6000, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
 		
-		{id="bloom", widget="Bloom Shader", name="Bloom shader", type="bool", value=widgetHandler.orderList["Bloom Shader"] ~= nil and (widgetHandler.orderList["Bloom Shader"] > 0), description='Bloom will make the map and units glow'},
-		{id="decals", name="Ground decals", type="slider", min =0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
+		--{id="bloom", widget="Bloom Shader", name="Bloom shader", type="bool", value=widgetHandler.orderList["Bloom Shader"] ~= nil and (widgetHandler.orderList["Bloom Shader"] > 0), description='Bloom will make the map and units glow'},
+		{id="bloom", widget="Bloom Shader", name="Bloom shader", type="slider", min=0, max=2, step=1, value=0, description='Bloom will make the map and units glow\n\nSetting the slider all the way will stress your GPU more'},
+		{id="decals", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="mapedgeextension", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnabled shaders for best result'},
 		{id="water", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},

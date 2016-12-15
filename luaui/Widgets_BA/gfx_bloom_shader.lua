@@ -223,19 +223,19 @@ function widget:Initialize()
 	widget:ViewResize(widgetHandler:GetViewSizes())
 
   WG['bloom'] = {}
+  WG['bloom'].getAdvBloom = function()
+  	return drawHighlights
+  end
+  WG['bloom'].setAdvBloom = function(value)
+  	drawHighlights = value
+		reset()
+  end
   WG['bloom'].getBrightness = function()
   	return basicAlpha
   end
   WG['bloom'].setBrightness = function(value)
 	  basicAlpha = value
 	  reset()
-  end
-  WG['bloom'].getDrawHighlights = function()
-  	return drawHighlights
-  end
-  WG['bloom'].setDrawHighlights = function(value)
-	  drawHighlights = value
-		reset()
   end
   
   
@@ -546,7 +546,7 @@ end
 
 function widget:TextCommand(command)
   if (string.find(command, "advbloom") == 1  and  string.len(command) == 8) then 
-		WG['bloom'].setDrawHighlights(not drawHighlights)
+		WG['bloom'].setAdvBloom(not drawHighlights)
 		if drawHighlights then
 	 		Spring.Echo('Adv bloom enabled')
 	 	else
