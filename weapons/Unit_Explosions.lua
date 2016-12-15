@@ -101,7 +101,7 @@ unitDeaths = {
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplolrg4",
-		explosiongenerator = "custom:genericbuildingexplosion-large",
+		explosiongenerator = "custom:genericbuildingexplosion-huge",
 		damage = {
 			default = 1100,
 		},
@@ -261,6 +261,19 @@ unitDeaths = {
 	
 	
 --UNIT DEATHS--
+
+	tinyExplosionGeneric = {
+		weaponType		   = "Cannon",
+		AreaOfEffect = 24,
+		cameraShake = 24,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundstart = "xplomed2",
+		explosiongenerator="custom:genericunitexplosion-tiny",
+		damage = {
+			default = 5,
+		},
+	},
 
 	smallExplosionGeneric = {
 		weaponType		   = "Cannon",

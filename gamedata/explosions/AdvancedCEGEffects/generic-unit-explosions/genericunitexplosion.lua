@@ -1,7 +1,6 @@
 local root = "genericunitexplosion"
 local definitions = {
-  [root.."-small"] = {
-  
+  [root.."-tiny"] = {
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -21,7 +20,232 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-	
+    groundflash = {
+      air                = true,
+      alwaysvisible      = true,
+      flashalpha         = 0.2,
+      flashsize          = 40,
+      ground             = true,
+      ttl                = 40,
+      water              = true, 
+	  underwater         = true,
+      color = {
+        [1]  = 1,
+        [2]  = 0.8,
+        [3]  = 0.5,
+      },
+    },
+    kickedupwater = {
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      water              = true, 
+	  underwater         = true,
+      properties = {
+        airdrag            = 0.87,
+        alwaysvisible      = true,
+        colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
+        directional        = false,
+        emitrot            = 90,
+        emitrotspread      = 5,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0.1, 0]],
+        numparticles       = 30,
+        particlelife       = 2,
+        particlelifespread = 30,
+        particlesize       = 1.5,
+        particlesizespread = 1,
+        particlespeed      = 1.5,
+        particlespeedspread = 4,
+        pos                = [[0, 1, 0]],
+        sizegrowth         = 0.5,
+        sizemod            = 1.0,
+        texture            = [[wake]],
+      },
+    },
+    explosion = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true, 
+	  underwater         = true,
+      properties = {
+        airdrag            = 0.82,
+        alwaysvisible      = true,
+        colormap           = [[0 0 0 0   1 0.9 0.6 0.09   0.9 0.5 0.2 0.066   0.66 0.28 0.04 0.033   0 0 0 0]],
+        directional        = true,
+        emitrot            = 45,
+        emitrotspread      = 32,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.01, 0]],
+        numparticles       = 20,
+        particlelife       = 4,
+        particlelifespread = 9,
+        particlesize       = 1.7,
+        particlesizespread = 5,
+        particlespeed      = 0.6,
+        particlespeedspread = 3.2,
+        pos                = [[0, 2, 0]],
+        sizegrowth         = 0.3,
+        sizemod            = 1,
+        texture            = [[flashside2]],
+        useairlos          = false,
+      },
+    },
+    sparks = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      water              = true, 
+	  underwater         = true,
+      properties = {
+        airdrag            = 1,
+        alwaysvisible      = true,
+        colormap           = [[0.8 0.5 0.2 0.01   0.9 0.5 0.2 0.017   0 0 0 0]],
+        directional        = true,
+        emitrot            = 45,
+        emitrotspread      = 32,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.25, 0]],
+        numparticles       = 40,
+        particlelife       = 3,
+        particlelifespread = 8,
+        particlesize       = 2,
+        particlesizespread = 8,
+        particlespeed      = 0.7,
+        particlespeedspread = 2.8,
+        pos                = [[0, 4, 0]],
+        sizegrowth         = 1,
+        sizemod            = 0.8,
+        texture            = [[gunshot]],
+        useairlos          = false,
+      },
+    },
+    dirt = {
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.96,
+        alwaysvisible      = true,
+        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+        directional        = true,
+        emitrot            = 25,
+        emitrotspread      = 33,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.3, 0]],
+        numparticles       = 12,
+        particlelife       = 17,
+        particlelifespread = 11,
+        particlesize       = 1.2,
+        particlesizespread = -1,
+        particlespeed      = 1.7,
+        particlespeedspread = 3,
+        pos                = [[0, 3, 0]],
+        sizegrowth         = -0.01,
+        sizemod            = 1,
+        texture            = [[bigexplosmoke]],
+        useairlos          = false,
+      },
+    },
+    dirt2 = {
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.96,
+        alwaysvisible      = true,
+        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+        directional        = true,
+        emitrot            = 0,
+        emitrotspread      = 15,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.25, 0]],
+        numparticles       = 6,
+        particlelife       = 24,
+        particlelifespread = 16,
+        particlesize       = 1.25,
+        particlesizespread = -1.1,
+        particlespeed      = 2,
+        particlespeedspread = 3.3,
+        pos                = [[0, 3, 0]],
+        sizegrowth         = -0.01,
+        sizemod            = 1,
+        texture            = [[bigexplosmoke]],
+        useairlos          = false,
+      },
+    },
+    outerflash = {
+      air                = true,
+      class              = [[heatcloud]],
+      count              = 1,
+      ground             = true,
+      water              = true, 
+	  underwater         = true,
+      properties = {
+        alwaysvisible      = true,
+        heat               = 10,
+        heatfalloff        = 1.1,
+        maxheat            = 20,
+        pos                = [[r-2 r2, 5, r-2 r2]],
+        size               = 0.5,
+        sizegrowth         = 3.5,
+        speed              = [[0, 1 0, 0]],
+        texture            = [[brightblueexplo]],
+      },
+    },
+    grounddust = {
+      air                = false,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      unit               = false,
+      properties = {
+        airdrag            = 0.92,
+        alwaysvisible      = true,
+        colormap           = [[0.085 0.085 0.085 0.13 	0 0 0 0.0]],
+        directional        = false,
+        emitrot            = 90,
+        emitrotspread      = -2,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, 0.03, 0]],
+        numparticles       = 35,
+        particlelife       = 5,
+        particlelifespread = 40,
+        particlesize       = 2.4,
+        particlesizespread = 1.5,
+        particlespeed      = 2.3,
+        particlespeedspread = 1,
+        pos                = [[0, 5, 0]],
+        sizegrowth         = 0.2,
+        sizemod            = 1.0,
+        texture            = [[bigexplosmoke]],
+      },
+    },
+  },
+  [root.."-small"] = {
+    centerflare = {
+      air                = true,
+      class              = [[heatcloud]],
+      count              = 1,
+      ground             = true,
+      water              = true, 
+	  underwater         = true,
+      properties = {
+        alwaysvisible      = true,
+        heat               = 10,
+        heatfalloff        = 1.3,
+        maxheat            = 20,
+        pos                = [[r-2 r2, 5, r-2 r2]],
+        size               = 1,
+        sizegrowth         = 5,
+        speed              = [[0, 1 0, 0]],
+        texture            = [[flare]],
+      },
+    },
     groundflash = {
       air                = true,
       alwaysvisible      = true,
@@ -80,13 +304,13 @@ local definitions = {
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.01, 0]],
-        numparticles       = 50,
+        numparticles       = 40,
         particlelife       = 4,
         particlelifespread = 9,
-        particlesize       = 2.5,
-        particlesizespread = 8,
-        particlespeed      = 1,
-        particlespeedspread = 5,
+        particlesize       = 2.2,
+        particlesizespread = 7,
+        particlespeed      = 0.8,
+        particlespeedspread = 4.4,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0.3,
         sizemod            = 1,
@@ -115,8 +339,8 @@ local definitions = {
         particlelifespread = 8,
         particlesize       = 1.7,
         particlesizespread = 8,
-        particlespeed      = 1.5,
-        particlespeedspread = 5.5,
+        particlespeed      = 1.3,
+        particlespeedspread = 5,
         pos                = [[0, 4, 0]],
         sizegrowth         = 1,
         sizemod            = 0.8,
@@ -141,10 +365,10 @@ local definitions = {
         numparticles       = 50,
         particlelife       = 23,
         particlelifespread = 15,
-        particlesize       = 1.6,
+        particlesize       = 1.5,
         particlesizespread = -1.3,
-        particlespeed      = 4,
-        particlespeedspread = 5.5,
+        particlespeed      = 2.5,
+        particlespeedspread = 3.5,
         pos                = [[0, 3, 0]],
         sizegrowth         = -0.01,
         sizemod            = 1,
@@ -166,13 +390,13 @@ local definitions = {
         emitrotspread      = 13,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = 30,
+        numparticles       = 25,
         particlelife       = 38,
         particlelifespread = 17,
-        particlesize       = 1.5,
-        particlesizespread = -1.25,
-        particlespeed      = 5.5,
-        particlespeedspread = 8,
+        particlesize       = 1.4,
+        particlesizespread = -1.2,
+        particlespeed      = 3,
+        particlespeedspread = 4.5,
         pos                = [[0, 3, 0]],
         sizegrowth         = -0.01,
         sizemod            = 1,
@@ -235,7 +459,7 @@ local definitions = {
       properties = {
         airdrag            = 0.92,
         alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
+        colormap           = [[0.085 0.085 0.085 0.13 	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = -2,
@@ -521,7 +745,7 @@ local definitions = {
       properties = {
         airdrag            = 0.92,
         alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
+        colormap           = [[0.085 0.085 0.085 0.13 	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = -2,
@@ -807,7 +1031,7 @@ local definitions = {
       properties = {
         airdrag            = 0.92,
         alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
+        colormap           = [[0.085 0.085 0.085 0.13 	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = -2,
@@ -896,7 +1120,7 @@ local definitions = {
         sizegrowth         = 4, -- same as groundflash circlegrowth
         sizemod            = 1.0,
         texture            = [[explosionwave]],
-	  },
+	  	},
     },
 	
     groundflash = {
@@ -1082,27 +1306,27 @@ function deepcopy(orig)
 end
 
 -- add different sizes
-definitions[root] = definitions[root.."-small"]
-local sizes = {
-	small = {
-	
-	},
-	
-	medium = {
-	
-	},
-	
-	large = {
-	
-	},
-	
-	huge = {
-	
-	},
-}
-for size, effects in pairs(sizes) do
-	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
-end
+--definitions[root] = definitions[root.."-small"]
+--local sizes = {
+--	small = {
+--	
+--	},
+--	
+--	medium = {
+--	
+--	},
+--	
+--	large = {
+--	
+--	},
+--	
+--	huge = {
+--	
+--	},
+--}
+--for size, effects in pairs(sizes) do
+--	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
+--end
 
 -- add coloring
 --local colors = {
