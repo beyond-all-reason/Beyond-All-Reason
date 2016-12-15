@@ -13,9 +13,6 @@
 if (not gadgetHandler:IsSyncedCode()) then
   return
 end
-function gadget:GameFrame()
-
-end
 
 local random = math.random
 
