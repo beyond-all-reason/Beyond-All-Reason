@@ -17,7 +17,7 @@ local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
-local bgcorner1 = ":n:"..LUAUI_DIRNAME.."Images/bgcorner1.png"
+local bgcorner1 = ":n:"..LUAUI_DIRNAME.."Images/bgcorner1.png" -- only used to draw dropdown arrow
 
 local bgMargin = 6
 
@@ -819,6 +819,35 @@ function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
   
   if show then
+		local cx, cy = correctMouseForScaling(x,y)
+  
+		if release then
+		 	-- apply new slider value
+			if draggingSlider ~= nil then
+				options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+				applyOptionValue(draggingSlider)
+				draggingSlider = nil
+				return
+			end
+			
+			-- select option
+			if showSelectOptions ~= nil then
+				for i, o in pairs(optionSelect) do
+					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+						options[showSelectOptions].value = o[5]
+						applyOptionValue(showSelectOptions)
+					end
+				end
+				if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+					showSelectOptions = nil
+					selectClickAllowHide = nil
+				else
+					selectClickAllowHide = true
+				end
+				return
+			end
+		end
+		
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
@@ -826,61 +855,40 @@ function mouseEvent(x, y, button, release)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 			
-			-- on option
-			local cx, cy = correctMouseForScaling(x,y)
 			
 			if release then
-	 		 -- apply new slider value
-				if draggingSlider ~= nil then
-					options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-					applyOptionValue(draggingSlider)
-					draggingSlider = nil
-				end
+			
 				-- select option
-				if showSelectOptions ~= nil then
-					for i, o in pairs(optionSelect) do
-						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-							options[showSelectOptions].value = o[5]
-							applyOptionValue(showSelectOptions)
-						end
-					end
-					if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
-						showSelectOptions = nil
-						selectClickAllowHide = nil
-					else
-						selectClickAllowHide = true
-					end
-				else
-				
-				if showPresetButtons then
-					for preset, pp in pairs(presets) do
-						if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
-							if pp.toggler ~= nil then
-								if presets[preset].toggler == 'GPU' then
-									presets[preset].toggler = 'CPU'
-									presets[preset].label = '\255\195\155\110Set quality for:\n   \255\150\120\090GPU   \255\255\255\255CPU'
+				if showSelectOptions == nil then
+					if showPresetButtons then
+						for preset, pp in pairs(presets) do
+							if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
+								if pp.toggler ~= nil then
+									if presets[preset].toggler == 'GPU' then
+										presets[preset].toggler = 'CPU'
+										presets[preset].label = '\255\195\155\110Set quality for:\n   \255\150\120\090GPU   \255\255\255\255CPU'
+									else
+										presets[preset].toggler = 'GPU'
+										presets[preset].label = '\255\195\155\110Set quality for:\n   \255\255\255\255GPU   \255\150\120\090CPU'
+									end
+								  if presetsList then gl.DeleteList(presetsList) end
+								  presetsList = gl.CreateList(DrawPresets)
 								else
-									presets[preset].toggler = 'GPU'
-									presets[preset].label = '\255\195\155\110Set quality for:\n   \255\255\255\255GPU   \255\150\120\090CPU'
+									loadPreset(preset)
 								end
-							  if presetsList then gl.DeleteList(presetsList) end
-							  presetsList = gl.CreateList(DrawPresets)
-							else
-								loadPreset(preset)
 							end
 						end
 					end
-				end
-				
-				for i, o in pairs(optionButtons) do
-					if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						applyOptionValue(i)
-					elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-					
-					elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						
+					for i, o in pairs(optionButtons) do
+						if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							applyOptionValue(i)
+						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+						
+						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							
+						end
 					end
-				end
 				end
 			else -- mousepress
 				if not showSelectOptions then
@@ -914,7 +922,7 @@ function mouseEvent(x, y, button, release)
 				return true
 			end
 		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
-			if release then
+			if release and draggingSlider == nil then
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
 			end
