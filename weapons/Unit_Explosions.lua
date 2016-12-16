@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- These represent both the area of effect and the camerashake amount
-local smallNukeExplosion = 450
+local smallNukeExplosion = 480
 local hugeNukeExplosion = 750
 
 local smallNukeExplosionDamage = 500
@@ -61,7 +61,7 @@ unitDeaths = {
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundstart = "xplomed2",
-		explosiongenerator = "custom:genericbuildingexplosion-small",
+		explosiongenerator = "custom:genericbuildingexplosion-tiny",
 		damage = {
 			default = 25,
 		},
@@ -144,7 +144,7 @@ unitDeaths = {
 		soundstart = "xplonuk3",
 		explosiongenerator="custom:nukedatbewmsmall",
 		damage = {
-			default = 0,
+			default = 2400,
 		},
 	},
 

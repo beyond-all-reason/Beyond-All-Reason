@@ -4,7 +4,7 @@ return {
 		craterboost = 5,
 		cratermult = 2.5,
 		edgeeffectiveness = 0.20000000298023,
-		explosiongenerator = "custom:hugeexplosiongeneric",
+		explosiongenerator = "custom:genericunitexplosion-huge",
 		impulseboost = 0.25,
 		impulsefactor = 0.25,
 		name = "NuclearMine",
