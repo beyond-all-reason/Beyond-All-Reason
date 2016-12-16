@@ -15,7 +15,7 @@ return {
 		description = "Fast Attack Hovercraft",
 		energymake = 2.6,
 		energyuse = 2.6,
-		explodeas = "mediumExplosionGeneric",
+		explodeas = "smallExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSH",
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 509,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -81,8 +81,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
-				"deathceg4",
 			},
 		},
 		sounds = {

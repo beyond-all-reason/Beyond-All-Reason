@@ -32,8 +32,7 @@ return {
 		yardmap = "wwww",
 			sfxtypes = { 
 			pieceExplosionGenerators = { 
-				"deathceg3", 
-				"deathceg4", 
+			
 			}, 
 		},
 		customparams = {

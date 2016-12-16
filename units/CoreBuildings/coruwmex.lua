@@ -80,8 +80,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
-				"deathceg4",
 			},
 		},
 		sounds = {

@@ -13,7 +13,7 @@ return {
 		cruisealt = 78,
 		description = "Light Paralyzer Drone",
 		energymake = 2,
-		explodeas = "smallExplosionGeneric",
+		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -28,7 +28,7 @@ return {
 		nochasecategory = "COMMANDERS VTOL",
 		objectname = "BLADEW",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "tinyExplosionGeneric",
 		sightdistance = 364,
 		turninplaceanglelimit = 360,
 		turnrate = 1144,
@@ -40,8 +40,7 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
+				"deathceg2",
 			},
 		},
 		sounds = {

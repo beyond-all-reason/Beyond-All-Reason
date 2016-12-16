@@ -265,7 +265,7 @@ function getOptionByID(id)
 end
 
 function checkWidgets()
-		
+
 	-- bloom
 	local bloomValue = 0
 	if widgetHandler.orderList["Bloom Shader"] ~= nil and widgetHandler.orderList["Bloom Shader"] > 0 then

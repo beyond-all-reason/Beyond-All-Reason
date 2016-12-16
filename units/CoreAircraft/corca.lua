@@ -18,7 +18,7 @@ return {
 		energymake = 5,
 		energystorage = 25,
 		energyuse = 5,
-		explodeas = "mediumexplosiongeneric",
+		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
 		hoverattack = true,
@@ -35,7 +35,7 @@ return {
 		objectname = "CORCA",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "smallexplosiongeneric",
 		sightdistance = 351,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
@@ -80,8 +80,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
-				"deathceg4",
 			},
 		},
 		sounds = {

@@ -14,7 +14,7 @@ return {
 		description = "Air Transport",
 		energymake = 0.6,
 		energyuse = 0.6,
-		explodeas = "smallexplosiongeneric",
+		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 3,
 		hoverattack = true,
@@ -29,7 +29,7 @@ return {
 		objectname = "ARMATLAS",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 260,
 		transportcapacity = 1,
 		transportmass = 5000,
@@ -43,6 +43,7 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
 				"deathceg4",
 			},

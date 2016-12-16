@@ -17,7 +17,7 @@ return {
 		description = "Transport Hovercraft",
 		energymake = 2.4,
 		energyuse = 2.4,
-		explodeas = "largeExplosionGeneric",
+		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
 		icontype = "armthovr",
@@ -32,7 +32,7 @@ return {
 		objectname = "ARMTHOVR",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "hugeExplosionGeneric",
 		sightdistance = 325,
 		transportcapacity = 20,
 		transportsize = 3,
@@ -68,6 +68,7 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
 				"deathceg4",
 			},

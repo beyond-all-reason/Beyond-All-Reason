@@ -16,7 +16,7 @@ return {
 		description = "Anti-Air Hovercraft",
 		energymake = 2.6,
 		energyuse = 2.6,
-		explodeas = "mediumexplosiongeneric",
+		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -30,7 +30,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMAH",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "smallexplosiongeneric",
 		sightdistance = 509,
 		sonardistance = 350,
 		turninplace = 0,
@@ -83,8 +83,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
-				"deathceg4",
 			},
 		},
 		sounds = {

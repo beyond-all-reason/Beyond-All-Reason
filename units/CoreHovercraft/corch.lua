@@ -1,4 +1,4 @@
-return {
+3return {
 	corch = {
 		acceleration = 0.12,
 		brakerate = 0.372,
@@ -19,7 +19,7 @@ return {
 		energymake = 11,
 		energystorage = 75,
 		energyuse = 11,
-		explodeas = "mediumexplosiongeneric",
+		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		objectname = "CORCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "smallexplosiongeneric",
 		sightdistance = 338,
 		terraformspeed = 550,
 		turninplace = 1,
@@ -133,8 +133,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
+				"deathceg2",
 				"deathceg3",
-				"deathceg4",
 			},
 		},
 		sounds = {

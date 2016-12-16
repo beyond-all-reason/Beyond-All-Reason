@@ -84,7 +84,7 @@ return {
 		sfxtypes = { 
  			 pieceExplosionGenerators = { 
  				"deathceg3",
- 				"deathceg4",
+ 				"deathceg2",
  			}, 
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
