@@ -111,7 +111,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "CORSFIG_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "VTOL",
 			},
 		},
 	},
