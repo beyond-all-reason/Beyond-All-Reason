@@ -1,11 +1,11 @@
 return {
 	corhurc = {
-		acceleration = 0.02,
-		brakerate = 0.035,
-		buildcostenergy = 23000,
+		acceleration = 0.03,
+		brakerate = 0.1,
+		buildcostenergy = 18500,
 		buildcostmetal = 310,
 		buildpic = "CORHURC.DDS",
-		buildtime = 33000,
+		buildtime = 31000,
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON VTOL ANTIFLAME ANTIEMG ANTILASER NOTSUB NOTSHIP NOTHOVER",

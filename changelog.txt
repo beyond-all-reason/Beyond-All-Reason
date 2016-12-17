@@ -11,6 +11,8 @@ Balance changes:
 - Introduced a minimum (bigger) buildrange (also behind a modoption: minimumbuilddistancerange, default is 200)
 - Commander torso turnspeed doubled, and dgun reloadspeed reduced 20%
 - Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
+- T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
+
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
