@@ -24,7 +24,7 @@ return {
 		commander = true,
 		corpse = "DEAD",
 		description = "Commander",
-		energymake = 25,
+		energymake = 40,
 		explodeas = "commanderNukeExplosionGenericDamage",
 		footprintx = 2,
 		footprintz = 2,
