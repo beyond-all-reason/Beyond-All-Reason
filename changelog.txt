@@ -12,7 +12,7 @@ Balance changes:
 - Commander torso turnspeed doubled, and dgun reloadspeed reduced 20%
 - Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 
-AA missiles:
+(AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
 - All aa missile range increased a few % (because missiles travel slightly slower so catchup target slower too)
 - T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
@@ -21,41 +21,49 @@ AA missiles:
 - Fighters dont attack ground (because bigger range means more frequent attacks on ground)
 
 Wind:
-- Wind generators get a bigger footprint: 4x4 (was 3x3), fan blades wont touch neighbours this way
-- Wind generaters 50% more expensive for 50% more energy production/health/buildtime/storage
-- Windspeed 50%  increased for all maps (but due to price increases: isnt more effective)
+- Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
+- Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
+- Windspeed gained 50% (but due to price increases: generators wont be more effective)
+
+Mod options: (default disabled)
+- control victory options: shows info on startup and offers a better scoreboard window
+- Better unit movement: configurable additionalturnrate/turnratemultiplier and additionalacceleration/accelerationmultiplier
+- Added modoption minimumbuilddistancerange (defaults 180)
+- Added modoption for fixed hitspheres (requires firethroughfriendly enabled)
+This replaces hitboxes with correctly sized hitspheres. 
+Currently hitboxes are smaller than desired, this was done so that units can somewhat can fire over others
+Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
+
 
 Other:
 - Lots of new particle effects!
 
 - Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
-- Buildmenu: can show shortcuts via Options widget (B->Q means press B first and Q after) 
+- Buildmenu: could show shortcuts when enabled via Options widget
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
 - Keybinds, commands, changelog, options windows hide with Escape key
-
-- Add modoption for fixed hitspheres (requires firethroughfriendly enabled)
-- Area Capture Mode displays info on startup and gets a scoreboard window
-
 - Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
-- Common Colors widget has beed added (rainbow scemed team colors)
+- Common Colors widget has beed added (rainbow scemed team coloring, toggable via Options widget)
 - Unit textures reprocessed with bigger color range (less grainy)
-- Units have a shatter effect on death
+- More units have a shatter effect on death
 - Options: fixed that not all settings remembered their value
-- Made 'Common Team Colors' widget toggable via Options widget
 - Removed right column on options menu to allow a 3rd column of options
-- Fixed commander nametags occasionally showing spectator name
-- Bloomshader: prettier and more pronounced (but heavier on the gpu)
-- Commands FX lines get a bit thinner over lifetime
-- BA icon is now a png (was bmp)
-- Pausescreen changed and uses darkens screen and decolorizes when shaders enabled
-- Mapmarks effect size increased
-- Unit info widget removed (for now)
-- Removed 'Allies' label from advplayerslist
+- Bloomshader: prettier and more pronounced, offers 2 levels (cheap/expensive) via options widget
+- Pausescreen changed and darkens screen or decolorizes it when shaders enabled
 - Various random deathsounds introduced
-- Guishader blurs UI too when displaying popup windows
-- Resourcebars display a metal / energy icon
+- Removed 'Allies' label from advplayerslist
+- Unit info widget removed
+- Guishader blurs UI too when displaying keybind/commands/changelog/options windows
+- RedUI Resource bars have a metal / energy icon
 - Removed all old loadscreens, added some new ones
-- Spiced up the loadscreen loadbar
+- Commands FX lines get a bit thinner over lifetime
+- Fixed commander nametags occasionally showing spectator name
+- Spiced up the loadscreen progress bar
+- Fixed cursor size changing after alt-tabbed to desktop and back
+- Fixed glitchy healthbars-shader on intel gfx and very old cards
+- Darken map widget can now darken features (trees/wreckages) but is costly to do so (via options widget)
+- Added "Include buildings in area selections" option via option widget (from Smart Select widget)
+- Enemy spotter opacity and unit teamcolor highlight configurable via options widget
 
 
 9.45 -> 9.46

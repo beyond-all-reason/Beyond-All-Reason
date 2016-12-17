@@ -1,4 +1,4 @@
-return {
+local defs = {
 
   ["deathceg2"] = {
     groundflash = {
@@ -32,12 +32,12 @@ return {
         numparticles       = 9,
         particlelife       = 4,
         particlelifespread = 2,
-        particlesize       = 1.1,
+        particlesize       = 1.15,
         particlesizespread = 0.5,
         particlespeed      = 0,
         particlespeedspread = 1.45,
         pos                = [[0.0, 2, 0.0]],
-        sizegrowth         = -0.33,
+        sizegrowth         = -0.3,
         sizemod            = 1,
         texture            = [[dirt]],
         useairlos          = true,
@@ -555,6 +555,73 @@ return {
       },
     },
   },
-
 }
 
+
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+    	if type(v) == "table" then
+    		if type(t1[k] or false) == "table" then
+    			tableMerge(t1[k] or {}, t2[k] or {})
+    		else
+    			t1[k] = v
+    		end
+    	else
+    		t1[k] = v
+    	end
+    end
+    return t1
+end
+
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+--local effects = {
+--  searingflame = {
+--    air                = true,
+--    class              = [[CSimpleParticleSystem]],
+--    count              = 1,
+--    ground             = true,
+--    water              = true,
+--    properties = {
+--      airdrag            = 1,
+--      alwaysvisible      = true,
+--      colormap           = [[1 0.8 0.5 0.04   0.6 0.1 0.1 0.01]],
+--      directional        = true,
+--      emitrot            = 90,
+--      --emitrotspread      = 45,
+--      emitvector         = [[dir]],
+--      gravity            = [[0, -0.1, 0]],
+--      numparticles       = 12,
+--      particlelife       = 150,
+--      particlelifespread = 2,
+--      particlesize       = 3,
+--      particlesizespread = 1.5,
+--      particlespeed      = 0.02,
+--      particlespeedspread = 0.02,
+--      pos                = [[0, 2, 0]],
+--      sizegrowth         = -0.01,
+--      sizemod            = 0.5,
+--      texture            = [[gunshot]],
+--      useairlos          = false,
+--    },
+--  },
+--}
+--defs["deathceg2-air"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
+--defs["deathceg3-air"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+
+
+
+return defs

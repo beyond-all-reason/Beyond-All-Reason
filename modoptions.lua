@@ -174,9 +174,9 @@ local options={
         desc   = 'If Minimum build distance is enabled, this options sets the minimum distance for buildrange. Builders with buildrange below this amount with be given this amount. Does not effect builders with longer buildranges than the amount set here.',
         type   = 'number',
         section= 'ba_enhancements_build',
-        def    = 200,
-        min    = 1,
-        max    = 500,
+        def    = 180,
+        min    = 100,
+        max    = 250,
         step   = 1,
     },
 
@@ -255,18 +255,18 @@ local options={
        type="section",
     },
 	
-    { 
-		key    = "logicalbuildtime",
-		name   = "Logical and meaningful buildtimes",
-		desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime.",
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_misc",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit. Additionally speeds up terraform and sets repair speed to be 60% of total workertime."},
-		}
-    },
+    --{ 
+		--key    = "logicalbuildtime",
+		--name   = "Logical and meaningful buildtimes",
+		--desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit.",
+		--type="list",
+		--def="disabled",
+		--section= "ba_enhancements_misc",
+		--items={
+		--	{key="disabled", name="Disabled", desc=""},
+		--	{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit."},
+		--}
+    --},
 
 	{
 		key    = "firethroughfriendly",
@@ -279,7 +279,7 @@ local options={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Causes weapons not to collide with nor avoid friendly units, resulting in very TA style gameplay and promotes unit/group micro."},
 		}
-    },
+  },
 	
 	{
 		key    = "smallfeaturenoblock",
@@ -292,20 +292,20 @@ local options={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
 		}
-    },
+  },
 	
-	{
-		key    = "nonlaggybuildplates",
-		name   = "Non-Lagging Buildplates",
-		desc   = "Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance).",		
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_misc",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance)."},
-		}
-    },	
+	--{
+	--	key    = "nonlaggybuildplates",
+	--	name   = "Non-Lagging Buildplates",
+	--	desc   = "Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance).",		
+	--	type="list",
+	--	def="disabled",
+	--	section= "ba_enhancements_misc",
+	--	items={
+	--		{key="disabled", name="Disabled", desc=""},
+	--		{key="enabled", name="Enabled", desc="Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance)."},
+	--	}
+  --},	
 	
 --Forb's modoptions end here
 	

@@ -97,7 +97,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		
 		if (modOptions.minimumbuilddistance == "enabled") then
 		--Set a minimum for builddistance
-			minimumbuilddistancerange = tonumber(modOptions.minimumbuilddistancerange) or 200
+			minimumbuilddistancerange = tonumber(modOptions.minimumbuilddistancerange) or 180
 			for id,unitDef in pairs(UnitDefs) do
 				if unitDef.builddistance ~= nil and unitDef.builddistance < minimumbuilddistancerange then
 					unitDef.builddistance = minimumbuilddistancerange
