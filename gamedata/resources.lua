@@ -30,10 +30,11 @@ local resources = {
             explofade			= 'default/explofade.tga',
             heatcloud			= 'default/explo.tga',
             flame				= 'default/flame.tga',
+            muzzlesideflipped			= 'default/muzzlesideflipped.tga',
             muzzleside			= 'default/muzzleside.tga',
             muzzlefront			= 'default/muzzlefront.tga',
             largebeam			= 'default/largelaserfalloff.tga',
-			null='PD/null.tga',
+						null='PD/null.tga',
          },
       }
    }

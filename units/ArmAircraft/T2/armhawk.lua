@@ -70,7 +70,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailtiny",
+				cegTag = "missiletrailfighter",
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 0,
 				impactonly = 1,

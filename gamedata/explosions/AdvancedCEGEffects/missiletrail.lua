@@ -1,6 +1,48 @@
 
 return {
 
+  ["missiletrailfighter"] = {
+    engine = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = true,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.4 0.01		1.0 0.35 0.1 0.01	 0.5 0.2 0.05 0.01   0 0 0 0   0 0 0 0]],
+        dir                = [[dir]],
+        frontoffset        = 0,
+        fronttexture       = [[none]],
+        length             = 24,
+        sidetexture        = [[muzzlesideflipped]],
+        size               = 2.5,
+        sizegrowth         = 0.5,
+        ttl                = 1,
+      },
+    },
+    trail = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = true,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0.09 0.07 0.055 0.27   0.07 0.065 0.055 0.17   0.05 0.05 0.05 0.13   0.05 0.05 0.05 0.09    0.03 0.03 0.03 0.06    0 0 0 0]],
+        dir                = [[dir]],
+        frontoffset        = 0,
+        fronttexture       = [[trans]],
+        length             = 25,
+        sidetexture        = [[smoketrail]],
+        size               = 2.6,
+        sizegrowth         = 0,
+        ttl                = 18,
+      },
+    },
+  },
+  
+  
   ["missiletrailtiny"] = {
     groundflash = {
       circlealpha        = 0,
