@@ -70,6 +70,7 @@ local glScissor = gl.Scissor
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glUnitShape = gl.UnitShape
+local glUnitShapeTextures = gl.UnitShapeTextures
 local glClear = gl.Clear
 local glText = gl.Text
 local glUnit = gl.Unit
@@ -269,12 +270,12 @@ local function DrawUnitIcons(number)
 		
 		if (type(unitID) == 'number' and ValidUnitID(unitID)) or type(unitID) == 'table' then
 			
-			glPushMatrix()
 			X1 = X_MIN+(ICON_SIZE_X*(ct-1))
 			X2 = X1+ICON_SIZE_X
 			
+			glPushMatrix()
 			glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
-		
+			
 			glTranslate(0.5*(X2+X1), 0.5*(Y_MAX+Y_MIN), 0)
 			glRotate(18, 1, 0, 0)
 			glRotate(rot, 0, 1, 0)
@@ -283,8 +284,12 @@ local function DrawUnitIcons(number)
 			glColor(1,1,1,1)
 			--glTexture('%'..drawTable[ct].unitDefID..':1')
 			glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), false, true, true)
-			glScissor(false)
 			
+		  --glUnitShapeTextures(drawTable[ct].unitDefID, true)
+	    --glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), true)
+	    --glUnitShapeTextures(drawTable[ct].unitDefID, false)
+    	
+			glScissor(false)
 			glPopMatrix()
 			
 			if CONDENSE then

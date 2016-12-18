@@ -204,25 +204,6 @@ local definitions = {
         useairlos          = false,
       },
     },
-    outerflash = {
-      air                = true,
-      class              = [[heatcloud]],
-      count              = 2,
-      ground             = true,
-      water              = true, 
-	  underwater         = true,
-      properties = {
-        alwaysvisible      = true,
-        heat               = 8,
-        heatfalloff        = 1.1,
-        maxheat            = 20,
-        pos                = [[r-2 r2, 5, r-2 r2]],
-        size               = 1.2,
-        sizegrowth         = 3,
-        speed              = [[0, 1 0, 0]],
-        texture            = [[orangenovaexplo]],
-      },
-    },
     sparks = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -289,11 +270,11 @@ local definitions = {
 	  underwater         = true,
       properties = {
         alwaysvisible      = true,
-        heat               = 10,
-        heatfalloff        = 2.5,
-        maxheat            = 30,
+        heat               = 8,
+        heatfalloff        = 1.1,
+        maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
-        size               = 8,
+        size               = 6,
         sizegrowth         = 1,
         speed              = [[0, 1 0, 0]],
         texture            = [[orangenovaexplo]],
@@ -1129,6 +1110,11 @@ local colors = {
 			color = {1,0.66,0.15},
 		}
 	},
+	fighter = {
+		groundflash = {
+			color = {1,0.66,0.15},
+		}
+	},
 }
 for color, effects in pairs(colors) do
 	for size, e in pairs(sizes) do
@@ -1152,5 +1138,29 @@ for size, e in pairs(sizes) do
 	definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
 end
 
-		
+-- add fighter, not hitting ground
+definitions[root.."-fighter"] = deepcopy(definitions[root.."-small"])
+definitions[root.."-fighter"].groundflash = nil
+definitions[root.."-fighter"].underwaterexplosionsparks = nil
+definitions[root.."-fighter"].kickedupwater = nil
+definitions[root.."-fighter"].centerflare.ground = false
+definitions[root.."-fighter"].dirt.ground = false
+definitions[root.."-fighter"].dirt2.ground = false
+definitions[root.."-fighter"].clouddust.ground = false
+definitions[root.."-fighter"].grounddust.ground = false
+definitions[root.."-fighter"].explosion.ground = false
+definitions[root.."-fighter"].sparks.ground = false
+definitions[root.."-fighter"].outerflash.ground = false
+
+definitions[root.."-fighter"].centerflare.water = false
+definitions[root.."-fighter"].dirt.water = false
+definitions[root.."-fighter"].dirt2.water = false
+definitions[root.."-fighter"].clouddust.water = false
+definitions[root.."-fighter"].grounddust.water = false
+definitions[root.."-fighter"].explosion.water = false
+definitions[root.."-fighter"].sparks.water = false
+definitions[root.."-fighter"].outerflash.water = false
+
+
+
 return definitions
