@@ -33,7 +33,7 @@ return {
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[trans]],
-        length             = 25,
+        length             = 32,
         sidetexture        = [[smoketrail]],
         size               = 2.6,
         sizegrowth         = 0,
