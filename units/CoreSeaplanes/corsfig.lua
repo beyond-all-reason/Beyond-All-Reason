@@ -78,7 +78,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
-				model = "missile",
+				model = "missilesmalllauncher.s3o",
 				name = "GuidedMissiles",
 				noselfdamage = true,
 				range = 830,

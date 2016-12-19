@@ -125,7 +125,7 @@ return {
 				flighttime = 2.2,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "missile",
+				model = "missilesmalllauncher.s3o",
 				name = "AA2Missile",
 				noselfdamage = true,
 				range = 1110,

@@ -126,7 +126,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
-				model = "missile",
+				model = "missilesmalllauncher.s3o",
 				name = "Missiles",
 				noselfdamage = true,
 				range = 850,
