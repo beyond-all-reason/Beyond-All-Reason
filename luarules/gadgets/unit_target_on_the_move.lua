@@ -360,7 +360,7 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 	if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 		if validUnits[unitDefID] then
 			local weaponList = UnitDefs[unitDefID].weapons
-			local append = cmdOptions.shift
+			local append = cmdOptions.shift or false
 			local userTarget = not cmdOptions.internal
 			local ignoreStop = cmdOptions.ctrl
 			if #cmdParams > 3 and not (#cmdParams == 4 and cmdParams[4] == 0) then
