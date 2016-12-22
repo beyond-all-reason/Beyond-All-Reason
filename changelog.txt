@@ -14,6 +14,7 @@ Balance changes:
 - T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
 - T1 kbot/veh/air lab got 50% additional buildspeed
 - Commanders produce 60% additional energy
+- 'scouts' armflea, armfav and corfav cost more energy to make (around 30%)
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
@@ -36,7 +37,6 @@ Mod options: (default disabled)
 This replaces hitboxes with correctly sized hitspheres. 
 Currently hitboxes are smaller than desired, this was done so that units can somewhat can fire over others
 Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
-
 
 Other:
 - Lots of new particle effects!

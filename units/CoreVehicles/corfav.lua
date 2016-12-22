@@ -2,7 +2,7 @@ return {
 	corfav = {
 		acceleration = 0.11,
 		brakerate = 0.435,
-		buildcostenergy = 600,
+		buildcostenergy = 450,
 		buildcostmetal = 25,
 		buildpic = "CORFAV.DDS",
 		buildtime = 1150,
