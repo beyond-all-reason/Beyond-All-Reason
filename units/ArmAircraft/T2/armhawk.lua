@@ -91,7 +91,7 @@ return {
 				texture2 = "armsmoketrail",
 				tolerance = 8000,
 				tracks = true,
-				turnrate = 20000,
+				turnrate = 23000,
 				weaponacceleration = 450,
 				weapontimer = 7,
 				weapontype = "MissileLauncher",
