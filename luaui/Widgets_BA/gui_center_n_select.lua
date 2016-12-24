@@ -36,7 +36,7 @@ function widget:Update()
     return
   end
   if (t > 0) then
-    unitArray = Spring.GetTeamUnits(Spring.GetMyPlayerID())
+    unitArray = Spring.GetTeamUnits(Spring.GetMyTeamID())
     if (go and unitArray[1]) then
       local x, y, z = Spring.GetUnitPosition(unitArray[1])
       Spring.SetCameraTarget(x, y, z)
