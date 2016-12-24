@@ -30,13 +30,13 @@ local unitArray = {}
 
 function widget:Update()
   local t = Spring.GetGameSeconds()
-  _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyTeamID())
+  _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
   if (spectator or t > 10) then
     widgetHandler:RemoveWidget()
     return
   end
   if (t > 0) then
-    unitArray = Spring.GetTeamUnits(Spring.GetMyTeamID())
+    unitArray = Spring.GetTeamUnits(Spring.GetMyPlayerID())
     if (go and unitArray[1]) then
       local x, y, z = Spring.GetUnitPosition(unitArray[1])
       Spring.SetCameraTarget(x, y, z)
