@@ -220,8 +220,8 @@ function createList(force)
 				glTexRect(sliderX + (panelPadding*2), panelPadding+(panelHeight/7.5), panelPadding*2, panelPadding+(panelHeight/4.7))
 				
 				-- bar glow
-				glowSize = (((panelHeight/7.5)-1) - ((panelHeight/4.7)+1)) * 2.5
-				glColor(1, 1, 0, 0.095)
+				glowSize = (((panelHeight/7.5)-1) - ((panelHeight/4.7)+1)) * 2.8
+				glColor(1, 1, 0, 0.075)
 				glTexture(barGlowCenterTexture)
 				glTexRect(sliderX + (panelPadding*2), panelPadding+(panelHeight/7.5) - glowSize, panelPadding*2, panelPadding+(panelHeight/4.7) + glowSize)
 				glTexture(barGlowEdgeTexture)
