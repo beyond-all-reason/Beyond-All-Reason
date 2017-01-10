@@ -118,8 +118,8 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailflashy",
-				explosiongenerator = "custom:genericshellexplosion-small-aa",
+				cegTag = "missiletrailaa",
+				explosiongenerator = "custom:genericshellexplosion-small-air",
 				firestarter = 70,
 				flighttime = 1.75,
 				impulseboost = 0.123,
@@ -146,8 +146,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					default = 62,
-					subs = 5,
+					bombers = 62,
+					fighters = 62,
+					vtol = 62,
 				},
 			},
 			bogus_missile = {

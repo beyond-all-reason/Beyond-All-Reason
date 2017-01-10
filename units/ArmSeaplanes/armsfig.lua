@@ -73,7 +73,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailfighter",
-				explosiongenerator = "custom:genericshellexplosion-fighter",
+				explosiongenerator = "custom:genericshellexplosion-small-air",
 				firestarter = 0,
 				impulseboost = 0,
 				impulsefactor = 0,

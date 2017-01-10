@@ -1133,15 +1133,19 @@ end
 
 -- add coloring
 local colors = {
-	aa = {
-		groundflash = {
-			color = {1,0.66,0.15},
-		}
-	},
-	fighter = {
-		groundflash = {
-			color = {1,0.66,0.15},
-		}
+	air = {
+		groundflash = false,
+		underwaterexplosionsparks = false,
+		kickedupwater = false,
+		dirt = false,
+		dirt2 = false,
+		grounddust = false,
+		centerflare = {ground=false, water=false},
+		clouddust = {ground=false, water=false},
+		explosion = {ground=false, water=false},
+		sparks = {ground=false, water=false},
+		outerflash = {ground=false, water=false},
+		centerflare = {ground=false, water=false},
 	},
 }
 for color, effects in pairs(colors) do
@@ -1165,29 +1169,6 @@ for size, e in pairs(sizes) do
 	definitions[defname].grounddust.properties.particlespeedspread = definitions[defname].grounddust.properties.particlespeedspread * 2
 	definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
 end
-
--- add fighter, not hitting ground
-definitions[root.."-fighter"] = deepcopy(definitions[root.."-small"])
-definitions[root.."-fighter"].groundflash = nil
-definitions[root.."-fighter"].underwaterexplosionsparks = nil
-definitions[root.."-fighter"].kickedupwater = nil
-definitions[root.."-fighter"].centerflare.ground = false
-definitions[root.."-fighter"].dirt.ground = false
-definitions[root.."-fighter"].dirt2.ground = false
-definitions[root.."-fighter"].clouddust.ground = false
-definitions[root.."-fighter"].grounddust.ground = false
-definitions[root.."-fighter"].explosion.ground = false
-definitions[root.."-fighter"].sparks.ground = false
-definitions[root.."-fighter"].outerflash.ground = false
-
-definitions[root.."-fighter"].centerflare.water = false
-definitions[root.."-fighter"].dirt.water = false
-definitions[root.."-fighter"].dirt2.water = false
-definitions[root.."-fighter"].clouddust.water = false
-definitions[root.."-fighter"].grounddust.water = false
-definitions[root.."-fighter"].explosion.water = false
-definitions[root.."-fighter"].sparks.water = false
-definitions[root.."-fighter"].outerflash.water = false
 
 
 

@@ -117,8 +117,8 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailflashy",
-				explosiongenerator = "custom:genericshellexplosion-medium-aa",
+				cegTag = "missiletrailaa",
+				explosiongenerator = "custom:genericshellexplosion-medium-air",
 				firestarter = 70,
 				flighttime = 1.75,
 				impulseboost = 0.123,
@@ -145,8 +145,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
 				damage = {
-					default = 138,
-					subs = 5,
+					bombers = 138,
+					fighters = 138,
+					vtol = 138,
 				},
 			},
 			cormship_rocket = {
