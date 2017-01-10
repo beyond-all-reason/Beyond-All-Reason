@@ -1,5 +1,5 @@
 ﻿9.46 -> 9.55
-XX/12/2016
+XX/01/2017
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
@@ -28,6 +28,7 @@ Wind:
 - Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
 - Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
 - Windspeed gained 50% (but due to price increases: generators wont be more effective)
+- Core and arm are the same now
 
 Mod options: (default disabled)
 - control victory options: shows info on startup and offers a better scoreboard window

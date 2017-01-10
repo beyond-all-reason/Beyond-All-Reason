@@ -2,8 +2,8 @@ local modrules  = {
 
   construction = {
     constructionDecay      = true, -- defaults to true
-    constructionDecayTime  = 10,  -- defaults to 6.66
-    constructionDecaySpeed = 1,  -- defaults to 0.03
+    constructionDecayTime  = 9,  -- defaults to 6.66
+    constructionDecaySpeed = 0.03,  -- defaults to 0.03
   },
 
   reclaim = {
