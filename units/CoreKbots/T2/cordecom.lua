@@ -158,7 +158,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 50,
-				explosiongenerator = "custom:genericshellexplosion-small",
+				explosiongenerator = "custom:expldgun",
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disintegrator",

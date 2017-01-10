@@ -42,7 +42,7 @@ local definitions = {
       ground             = true,
       unit               = false,
       properties = {
-        airdrag            = 1,
+        airdrag            = 0.95,
         alwaysvisible      = true,
         colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
         directional        = true,
@@ -100,21 +100,21 @@ local definitions = {
       properties = {
         airdrag            = 0.91,
         alwaysvisible      = true,
-        colormap           = [[0.022 0.022 0.022 0.03  0.05 0.05 0.05 0.068  0.042 0.042 0.042 0.052  0.023 0.023 0.023 0.028  0 0 0 0]],
+        colormap           = [[0.025 0.025 0.025 0.035  0.06 0.06 0.06 0.08  0.05 0.05 0.05 0.065  0.026 0.026 0.026 0.035  0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 4,
         emitvector         = [[0.25, 0.8, 0.25]],
-        gravity            = [[0, 0.025, 0]],
+        gravity            = [[0, 0.02, 0]],
         numparticles       = 2,
         particlelife       = 40,
         particlelifespread = 90,
         particlesize       = 8,
-        particlesizespread = 16,
+        particlesizespread = 13,
         particlespeed      = 3,
         particlespeedspread = 3,
         pos                = [[0, 6, 0]],
-        sizegrowth         = 0.4,
+        sizegrowth         = 0.25,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
       },
@@ -469,12 +469,12 @@ local definitions = {
       properties = {
         airdrag            = 0.88,
         alwaysvisible      = true,
-        colormap           = [[0.022 0.022 0.022 0.03  0.05 0.05 0.05 0.068  0.042 0.042 0.042 0.052  0.023 0.023 0.023 0.028  0 0 0 0]],
+        colormap           = [[0.025 0.025 0.025 0.035  0.06 0.06 0.06 0.08  0.05 0.05 0.05 0.065  0.026 0.026 0.026 0.035  0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 4,
         emitvector         = [[0.5, 1, 0.5]],
-        gravity            = [[0, 0.025, 0]],
+        gravity            = [[0, 0.02, 0]],
         numparticles       = 2,
         particlelife       = 45,
         particlelifespread = 170,
@@ -483,7 +483,7 @@ local definitions = {
         particlespeed      = 2.5,
         particlespeedspread = 3,
         pos                = [[0, 4, 0]],
-        sizegrowth         = 0.5,
+        sizegrowth         = 0.42,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
       },
@@ -1170,6 +1170,37 @@ for size, e in pairs(sizes) do
 	definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
 end
 
-
-
+definitions['expldgun'] = deepcopy(definitions[root.."-small"])
+definitions['expldgun'].groundflash = {
+      air                = true,
+      alwaysvisible      = true,
+      flashalpha         = 0.045,
+      flashsize          = 100,
+      ground             = true,
+      ttl                = 20,
+      water              = true, 
+	  underwater         = true,
+      color = {
+        [1]  = 1,
+        [2]  = 0.7,
+        [3]  = 0.2,
+      },
+}
+definitions['expldgun'].groundflash2 = {
+    class              = [[CSimpleGroundFlash]],
+    properties = {
+    	size = 150,
+    	ttl = 200,
+    	texture = [[bigexplosmoke]],
+      colormap           = [[0.2 0.4 0.1 0.62 	0 0 0 0.0]],
+    }
+}
+definitions['expldgun'].sparks.properties.particlelife = definitions['expldgun'].sparks.properties.particlelife*1.3
+definitions['expldgun'].sparks.properties.particlespeed = definitions['expldgun'].sparks.properties.particlespeed*1.3
+definitions['expldgun'].dirt.properties.numparticles = definitions['expldgun'].dirt.properties.numparticles*6
+definitions['expldgun'].sparks.properties.particlespeedspread = definitions['expldgun'].sparks.properties.particlespeedspread*1.8
+definitions['expldgun'].dirt.properties.particlelife = definitions['expldgun'].dirt.properties.particlelife*1.9
+definitions['expldgun'].dirt.properties.particlespeed = definitions['expldgun'].dirt.properties.particlespeed*1.9
+definitions['expldgun'].dirt.properties.particlespeedspread = definitions['expldgun'].dirt.properties.particlespeedspread*2
+definitions['expldgun'].grounddust = nil
 return definitions
