@@ -28,6 +28,14 @@ function UnitDef_Post(name, uDef)
 		
 	-- Enable default Nanospray
 	uDef.shownanospray = true
+	
+	--Set reverse velocity automatically
+	for id,unitDef in pairs(UnitDefs) do
+		if unitDef.maxvelocity then
+			unitDef.maxreversevelocity = unitDef.maxvelocity * 0.75
+		end
+	end
+	
 end
 
 -- process weapondef
