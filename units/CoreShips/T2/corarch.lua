@@ -167,7 +167,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "packolau",
 				soundtrigger = true,
-				startvelocity = 250,
+				startvelocity = 320,
 				tolerance = 9950,
 				tracks = true,
 				turnrate = 68000,

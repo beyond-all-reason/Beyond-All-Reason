@@ -139,7 +139,7 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
-				startvelocity = 250,
+				startvelocity = 320,
 				texture2 = "armsmoketrail",
 				tolerance = 9000,
 				tracks = true,

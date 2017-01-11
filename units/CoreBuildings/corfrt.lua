@@ -110,7 +110,7 @@ return {
 				soundhitwet = "splssml",
 				soundhitwetvolume = 0.5,
 				soundstart = "rockhvy2",
-				startvelocity = 250,
+				startvelocity = 320,
 				texture2 = "armsmoketrail",
 				tolerance = 10000,
 				tracks = true,
