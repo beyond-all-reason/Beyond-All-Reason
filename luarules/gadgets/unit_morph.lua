@@ -1216,7 +1216,7 @@ local function DrawMorphUnit(unitID, morphData, localTeamID)
     glTranslate(px, py+14, pz)
     glBillboard()
     local progStr = string.format("%.1f%%", 100 * morphData.progress)
-    gl.Text(progStr, 0, -20, 9, "oc")
+    gl.Text(progStr, 0, -65, 24, "oc")
     glPopAttrib()
     glPopMatrix()
   end
