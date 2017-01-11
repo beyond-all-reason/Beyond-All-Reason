@@ -299,6 +299,19 @@ local options={
 		--	{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit."},
 		--}
     --},
+	
+	{
+		key    = "mightymorphinpowerunits",
+		name   = "Allow basic Metal Extractors to Morph into Moho Metal Extractors",
+		desc   = "Adds an upgrade button to the orders menu of Basic Metal Extractors so that they can be morphed into Moho Metal Extractors.",		
+		type="list",
+		def="disabled",
+		section= "ba_enhancements_misc",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Adds an upgrade button to the orders menu of Basic Metal Extractors so that they can be morphed into Moho Metal Extractors."},
+		}
+  },
 
 	{
 		key    = "firethroughfriendly",
