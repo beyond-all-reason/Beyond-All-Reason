@@ -1224,12 +1224,7 @@ end
 
 
 function gadget:DrawWorld()
-  if (not morphUnits) then
-    morphUnits = SYNCED.morphUnits
-    if (not morphUnits) then return end
-  end
-
-  if (not snext(morphUnits)) then
+  if (not snext(SYNCED.morphUnits)) then
     return --//no morphs to draw
   end
 
@@ -1247,7 +1242,7 @@ function gadget:DrawWorld()
   end
 
   CallAsTeam({ ['read'] = readTeam }, function()
-    for unitID, morphData in spairs(morphUnits) do
+    for unitID, morphData in spairs(SYNCED.morphUnits) do
       if (unitID and morphData)and(IsUnitVisible(unitID)) then
         DrawMorphUnit(unitID, morphData,readTeam)
       end
