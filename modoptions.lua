@@ -181,9 +181,9 @@ local options={
     },
 
     {
-       key="ba_enhancements_movement",
-       name="Balanced Annihilation - Gameplay Enhancements: Unit Movement",
-       desc="Balanced Annihilation - Gameplay Enhancements: Unit Movement",
+       key="ba_enhancements_agility",
+       name="Balanced Annihilation - Gameplay Enhancements: Unit Agility",
+       desc="Balanced Annihilation - Gameplay Enhancements: Unit Agility",
        type="section",
     },
 	
@@ -193,7 +193,7 @@ local options={
 		desc   = "Adds some presets to units that allow for better pathing and more agile unit movement",		
 		type="list",
 		def="disabled",
-		section= "ba_enhancements_movement",
+		section= "ba_enhancements_agility",
 		items={
 			{key="disabled", name="Disabled", desc=""},
 			{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
@@ -205,7 +205,7 @@ local options={
         name   = 'Added static turnrate amount',
         desc   = 'Adds a static amount of turnrate to the existing turnrate of all ground based units (Not Aircraft)',
         type   = 'number',
-        section= 'ba_enhancements_movement',
+        section= 'ba_enhancements_agility',
         def    = 500,
         min    = 1,
         max    = 5000,
@@ -217,7 +217,7 @@ local options={
         name   = 'Turnrate multiplier',
         desc   = 'Adds a multiplier to the default and additional turnrate of all ground based units (Not Aircraft)',
         type   = 'number',
-        section= 'ba_enhancements_movement',
+        section= 'ba_enhancements_agility',
         def    = 2,
         min    = 1,
         max    = 10,
@@ -229,7 +229,7 @@ local options={
         name   = 'Added static acceleration amount',
         desc   = 'Adds a static amount of acceleration to the existing acceleration of all ground based units (Not Aircraft)',
         type   = 'number',
-        section= 'ba_enhancements_movement',
+        section= 'ba_enhancements_agility',
         def    = 500,
         min    = 1,
         max    = 5000,
@@ -241,11 +241,43 @@ local options={
         name   = 'Acceleration multiplier',
         desc   = 'Adds a multiplier to the default and additional acceleration of all ground based units (Not Aircraft)',
         type   = 'number',
-        section= 'ba_enhancements_movement',
+        section= 'ba_enhancements_agility',
         def    = 1,
         min    = 1,
         max    = 10,
         step   = 1,
+    },	
+	
+    {
+       key="ba_enhancements_reverse",
+       name="Balanced Annihilation - Gameplay Enhancements: Units Drive in Reverse",
+       desc="Balanced Annihilation - Gameplay Enhancements: Unit Drives in Reverse",
+       type="section",
+    },
+	
+    { 
+		key    = "unitscanreverse",
+		name   = "Allow units to drive backwards",
+		desc   = "Allows units to drive backwards at a percentage of their maximum speed",		
+		type="list",
+		def="disabled",
+		section= "ba_enhancements_reverse",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Allows units to drive backwards at a percentage of their maximum speed"},
+		}
+    },
+	
+    {
+        key    = 'maxreversevelocity',
+        name   = 'Maximum Reverse Speed',
+        desc   = 'Sets the percentage of the unit maximum speed that it can maintain while driving in reverse,',
+        type   = 'number',
+        section= 'ba_enhancements_reverse',
+        def    = 0.75,
+        min    = 0.60,
+        max    = 0.75,
+        step   = 0.01,
     },	
 	
     {

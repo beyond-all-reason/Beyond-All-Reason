@@ -29,13 +29,6 @@ function UnitDef_Post(name, uDef)
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 	
-	--Set reverse velocity automatically
-	for id,unitDef in pairs(UnitDefs) do
-		if unitDef.maxvelocity then
-			unitDef.maxreversevelocity = unitDef.maxvelocity * 0.75
-		end
-	end
-	
 end
 
 -- process weapondef
@@ -52,6 +45,16 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
+		
+		if (modOptions.unitscanreverse == "enabled") then
+			maxReverseVelocity = tonumber(modOptions.maxreversevelocity) or 0.75
+			--Set reverse velocity automatically
+			for id,unitDef in pairs(UnitDefs) do
+				if unitDef.maxvelocity then
+					unitDef.maxreversevelocity = unitDef.maxvelocity * maxReverseVelocity
+				end
+			end
+		end
 		
 		if (modOptions.logicalbuildtime == "enabled") then
 			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
