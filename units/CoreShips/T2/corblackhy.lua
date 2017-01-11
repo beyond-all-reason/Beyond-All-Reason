@@ -199,7 +199,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "missilesmalllauncher.s3o",
+				model = "missile",
 				name = "RapidSamMissile",
 				noselfdamage = true,
 				range = 950,

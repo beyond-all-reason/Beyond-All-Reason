@@ -124,7 +124,7 @@ return {
 				firestarter = 70,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "missilesmalllauncher.s3o",
+				model = "missile",
 				name = "RocketBattery",
 				noselfdamage = true,
 				range = 650,

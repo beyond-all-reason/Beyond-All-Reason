@@ -124,7 +124,7 @@ return {
 				flighttime = 2.3,
 				impulseboost = 0,
 				impulsefactor = 0,
-				model = "missilesmalllauncher.s3o",
+				model = "missile",
 				name = "ExplosiveRockets",
 				noselfdamage = true,
 				projectiles = 1,
