@@ -292,13 +292,13 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
   else
-		--if (WG['guishader_api'] ~= nil) then
-		--	local removed = WG['guishader_api'].RemoveRect('keybindinfo')
-		--	if removed then
-		--		WG['guishader_api'].setBlurIntensity()
-		--		WG['guishader_api'].setScreenBlur(false)
-		--	end
-		--end
+		if (WG['guishader_api'] ~= nil) then
+			local removed = WG['guishader_api'].RemoveRect('keybindinfo')
+			if removed then
+				--WG['guishader_api'].setBlurIntensity()
+				WG['guishader_api'].setScreenBlur(false)
+			end
+		end
 	end
 end
 

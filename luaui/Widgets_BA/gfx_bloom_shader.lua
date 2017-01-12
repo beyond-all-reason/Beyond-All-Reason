@@ -126,11 +126,13 @@ end
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
-	widgetHandler:RemoveWidget()
+	--widgetHandler:RemoveWidget()
 end
 
 function reset()
 
+	--if not initialized then return end
+	
 	if drawHighlights then
 		usedBasicAlpha = basicAlpha
 		drawWorldAlpha				= 0.22 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
@@ -197,12 +199,14 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if initialized == false then return end
 	gl.Color(0,0,0,drawWorldPreUnitAlpha)
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
 end
 
 function widget:DrawWorld()
+	if initialized == false then return end
 	gl.Color(0,0,0,drawWorldAlpha)
 	gl.CallList(darken)
 	gl.Color(1,1,1,1)
@@ -212,15 +216,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
+local initialized = false
 function widget:Initialize()
-	if (gl.CreateShader == nil) then
-		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
-		return
-	end
-	SetIllumThreshold()
-	
-	widget:ViewResize(widgetHandler:GetViewSizes())
 
   WG['bloom'] = {}
   WG['bloom'].getAdvBloom = function()
@@ -229,15 +226,29 @@ function widget:Initialize()
   WG['bloom'].setAdvBloom = function(value)
   	drawHighlights = value
 		reset()
+  	if initialized == false then
+  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+  	end
   end
   WG['bloom'].getBrightness = function()
   	return basicAlpha
   end
   WG['bloom'].setBrightness = function(value)
 	  basicAlpha = value
-	  reset()
+		reset()
+  	if initialized == false then
+  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+  	end
   end
   
+	if (gl.CreateShader == nil) then
+	
+		RemoveMe("[BloomShader::Initialize] no shader support")
+		return
+	end
+	SetIllumThreshold()
+	
+	widget:ViewResize(widgetHandler:GetViewSizes())
   
   darken = gl.CreateList(function()
 		gl.PushMatrix()
@@ -357,7 +368,7 @@ function widget:Initialize()
 				vec2 C0 = vec2(gl_TexCoord[0]);
 				vec3 color = vec3(texture2D(texture0, C0));
 				float illum = dot(color, vec3(0.2990, 0.5870, 0.1140));
-
+		
 				if (illum > illuminationThreshold) {
 					gl_FragColor = vec4((color - color*(illuminationThreshold/max(illum, 0.00001))), 1.0);
 				} else {
@@ -391,23 +402,27 @@ function widget:Initialize()
 	combineShaderTexture1Loc = glGetUniformLocation(combineShader, "texture1")
 	combineShaderIllumLoc = glGetUniformLocation(combineShader, "illuminationThreshold")
 	combineShaderFragLoc = glGetUniformLocation(combineShader, "fragMaxBrightness")
+	
+	initialized = true
 end
 
 function widget:Shutdown()
-	gl.DeleteTexture(brightTexture1 or "")
-	gl.DeleteTexture(brightTexture2 or "")
-	if drawHighlights then
-		gl.DeleteTexture(brightTexture3 or "")
-		gl.DeleteTexture(brightTexture4 or "")
-	end
-	gl.DeleteTexture(screenTexture or "")
+	if initialized then
+		gl.DeleteTexture(brightTexture1 or "")
+		gl.DeleteTexture(brightTexture2 or "")
+		if drawHighlights then
+			gl.DeleteTexture(brightTexture3 or "")
+			gl.DeleteTexture(brightTexture4 or "")
+		end
+		gl.DeleteTexture(screenTexture or "")
 
-	if (gl.DeleteShader) then
-		gl.DeleteShader(brightShader or 0)
-		gl.DeleteShader(blurShaderH71 or 0)
-		gl.DeleteShader(blurShaderV71 or 0)
-		gl.DeleteShader(combineShader or 0)
-		gl.DeleteList(darken)
+		if (gl.DeleteShader) then
+			gl.DeleteShader(brightShader or 0)
+			gl.DeleteShader(blurShaderH71 or 0)
+			gl.DeleteShader(blurShaderV71 or 0)
+			gl.DeleteShader(combineShader or 0)
+			gl.DeleteList(darken)
+		end
 	end
 end
 
@@ -526,7 +541,8 @@ local function Bloom()
 	end
 end
 
-function widget:DrawScreenEffects() 
+function widget:DrawScreenEffects()
+	if initialized == false then return end
 	Bloom()
 end
 

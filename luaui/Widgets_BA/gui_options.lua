@@ -80,7 +80,7 @@ local fullWidgetsList = {}
 local addedWidgetOptions = false
 local showPresetButtons = true
 
-local luaShaders = tonumber(Spring.GetConfigInt("LuaShaders",1) or 0)
+local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
 
 function widget:ViewResize()
@@ -580,13 +580,13 @@ function widget:DrawScreen()
 			end
 		glPopMatrix()
 	else
-		--if (WG['guishader_api'] ~= nil) then
-		--	local removed = WG['guishader_api'].RemoveRect('options')
-		--	if removed then
-		--		WG['guishader_api'].setBlurIntensity()
-		--	  WG['guishader_api'].setScreenBlur(false)
-		--	end
-		--end
+		if (WG['guishader_api'] ~= nil) then
+			local removed = WG['guishader_api'].RemoveRect('options')
+			if removed then
+				--WG['guishader_api'].setBlurIntensity()
+			  WG['guishader_api'].setScreenBlur(false)
+			end
+		end
 	end
 end
 
@@ -639,7 +639,7 @@ function applyOptionValue(i)
 			if value ~= 0 then
 				if id == 'bloom' or id == 'guishader' or id == 'xrayshader' or id == 'snow' or id == 'mapedgeextension' then
 					if luaShaders ~= 1 and not enabledLuaShaders then
-						Spring.SetConfigInt("LuaShaders", 1)
+						Spring.SetConfigInt("ForceShaders", 1)
 						enabledLuaShaders = true
 					end
 				end
@@ -695,7 +695,7 @@ function applyOptionValue(i)
 			if value > 0 then
 				widgetHandler:EnableWidget(options[i].widget)
 				if luaShaders ~= 1 and not enabledLuaShaders then
-					Spring.SetConfigInt("LuaShaders", 1)
+					Spring.SetConfigInt("ForceShaders", 1)
 					enabledLuaShaders = true
 				end
 			end
@@ -1022,7 +1022,7 @@ function widget:Initialize()
 		end
 		if luaShaders ~= 1 then
 			if option.id == "advmapshading" or option.id == "advmodelshading" or option.id == "bloom" or option.id == "guishader" or option.id == "xrayshader" or option.id == "mapedgeextension" or option.id == "snow" then
-				option.description = 'You dont have LuaShaders enabled, we will enable it for you but...\n\nChanges will be applied next game'
+				option.description = 'You dont have shaders enabled, we will enable it for you but...\n\nChanges will be applied next game'
 			end
 		end
 		if insert then
