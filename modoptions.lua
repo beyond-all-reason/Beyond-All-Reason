@@ -281,6 +281,52 @@ local options={
     },	
 	
     {
+       key="ba_enhancements_morph",
+       name="Balanced Annihilation - Gameplay Enhancements: Morphing",
+       desc="Balanced Annihilation - Gameplay Enhancements: Morphing",
+       type="section",
+    },
+
+	{
+		key    = "mightymorphinpowerunits",
+		name   = "Allow Some lower tier units to morph into higher tier units",
+		desc   = "Adds an upgrade button to the orders menu of some tech 1 units to allow them to upgrade into higher tech units.",		
+		type="list",
+		def="disabled",
+		section= "ba_enhancements_morph",
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Adds an upgrade button to the orders menu of some tech 1 units to allow them to upgrade into higher tech units."},
+		}
+  },
+  
+	{
+		key    = 'morphpenalty',
+		name   = 'Morph Penalty',
+		desc   = 'Adds a percentage penalty to buildtime, metal and energy cost of units that are morphed.',
+		type   = 'number',
+		section= 'ba_enhancements_morph',
+		def    = 1.01,
+		min    = 1.00,
+		max    = 2.00,
+		step   = 0.01,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	
+	{
+		key    = 'requiredtechlevel',
+		name   = 'Require Tech Level for Morph',
+		desc   = 'Sets a minimum tech level required for morphing.',
+		type   = 'number',
+		section= 'ba_enhancements_morph',
+		def    = 1,
+		min    = 0,
+		max    = 2,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	
+    {
        key="ba_enhancements_misc",
        name="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
        desc="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
@@ -299,19 +345,6 @@ local options={
 		--	{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit."},
 		--}
     --},
-	
-	{
-		key    = "mightymorphinpowerunits",
-		name   = "Allow basic Metal Extractors to Morph into Moho Metal Extractors",
-		desc   = "Adds an upgrade button to the orders menu of Basic Metal Extractors so that they can be morphed into Moho Metal Extractors.",		
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_misc",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Adds an upgrade button to the orders menu of Basic Metal Extractors so that they can be morphed into Moho Metal Extractors."},
-		}
-  },
 
 	{
 		key    = "firethroughfriendly",

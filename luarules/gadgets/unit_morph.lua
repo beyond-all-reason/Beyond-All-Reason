@@ -62,13 +62,14 @@ local MAX_MORPH = 0 --// will increase dynamically
 --  COMMON
 --------------------------------------------------------------------------------
 
---[[ // for use with any mod -_-
+-- for use with any mod -_-
 function GetTechLevel(udid)
   local ud = UnitDefs[udid];
   return (ud and ud.techLevel) or 0
 end
-]]--
 
+
+--[[
 -- // for use with mods like CA <_<
 local function GetTechLevel(UnitDefID)
   --return UnitDefs[UnitDefID].techLevel or 0
@@ -85,6 +86,7 @@ local function GetTechLevel(UnitDefID)
   end
   return 0
 end
+]]--
 
 local function isFactory(UnitDefID)
   return UnitDefs[UnitDefID].isFactory or false
