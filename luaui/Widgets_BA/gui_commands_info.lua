@@ -324,32 +324,32 @@ end
 
 
 function widget:DrawScreen()
-    if spIsGUIHidden() then return end
-    if amNewbie and not gameStarted then return end
-    
-    -- draw the button
-    if not buttonGL then
-        buttonGL = gl.CreateList(DrawButton)
-    end
-    
-    glLineWidth(lineWidth)
-	
-    glPushMatrix()
-        glTranslate(posX*vsx, posY*vsy, 0)
-        glScale(17*widgetScale, 17*widgetScale, 1)
-		glColor(0, 0, 0, (0.3*bgColorMultiplier))
-        glCallList(buttonGL)
-    glPopMatrix()
+  if spIsGUIHidden() then return end
+  if amNewbie and not gameStarted then return end
+  
+  -- draw the button
+  if not buttonGL then
+      buttonGL = gl.CreateList(DrawButton)
+  end
+  
+  glLineWidth(lineWidth)
 
-    glColor(1, 1, 1, 1)
-    glLineWidth(1)
-    
-    -- draw the help
-    if not changelogList then
-        changelogList = gl.CreateList(DrawWindow)
-    end
-    
-    if show or showOnceMore then
+  glPushMatrix()
+      glTranslate(posX*vsx, posY*vsy, 0)
+      glScale(17*widgetScale, 17*widgetScale, 1)
+	glColor(0, 0, 0, (0.3*bgColorMultiplier))
+      glCallList(buttonGL)
+  glPopMatrix()
+
+  glColor(1, 1, 1, 1)
+  glLineWidth(1)
+  
+  -- draw the help
+  if not changelogList then
+      changelogList = gl.CreateList(DrawWindow)
+  end
+  
+  if show or showOnceMore then
     
 		-- draw the changelog panel
 		glPushMatrix()
@@ -363,19 +363,19 @@ function widget:DrawScreen()
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'commandslist')
-			WG['guishader_api'].setBlurIntensity(0.0017)
-			WG['guishader_api'].setScreenBlur(true)
+			--WG['guishader_api'].setBlurIntensity(0.0017)
+			--WG['guishader_api'].setScreenBlur(true)
 		end
 		showOnceMore = false
 		
-    else
-		if (WG['guishader_api'] ~= nil) then
-			local removed = WG['guishader_api'].RemoveRect('commandslist')
-			if removed then
-				WG['guishader_api'].setBlurIntensity()
-				WG['guishader_api'].setScreenBlur(false)
-			end
-		end
+  else
+		--if (WG['guishader_api'] ~= nil) then
+		--	local removed = WG['guishader_api'].RemoveRect('commandslist')
+		--	if removed then
+		--		WG['guishader_api'].setBlurIntensity()
+		--		WG['guishader_api'].setScreenBlur(false)
+		--	end
+		--end
 	end
 end
 

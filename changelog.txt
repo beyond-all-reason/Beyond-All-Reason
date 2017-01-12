@@ -57,7 +57,6 @@ Other:
 - Various random deathsounds introduced
 - Removed 'Allies' label from advplayerslist
 - Unit info widget removed
-- Guishader blurs UI too when displaying keybind/commands/changelog/options windows
 - RedUI Resource bars have a metal / energy icon
 - Removed all old loadscreens, added some new ones
 - Commands FX lines get a bit thinner over lifetime
