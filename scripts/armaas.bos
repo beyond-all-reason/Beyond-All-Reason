@@ -176,19 +176,15 @@ FireTertiary()
 {
 	if( gun_3 )
 	{
-		show flare2;
+		emit-sfx 1024 + 0 from flare2;
 		move gunbarrel2 to z-axis [-2.400000] speed [500.000000];
-		sleep 150;
-		hide flare2;
 		wait-for-move gunbarrel2 along z-axis;
 		move gunbarrel2 to z-axis [0.000000] speed [3.000000];
 	}
 	else
 	{
-		show flare1;
+		emit-sfx 1024 + 0 from flare1;
 		move gunbarrel1 to z-axis [-2.400000] speed [500.000000];
-		sleep 150;
-		hide flare1;
 		wait-for-move gunbarrel1 along z-axis;
 		move gunbarrel1 to z-axis [0.000000] speed [3.000000];
 	}

@@ -323,7 +323,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-
+	emit-sfx 1024 + 0 from flarea;
 }
 
 AimSecondary(heading, pitch)
@@ -343,7 +343,7 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-
+	emit-sfx 1024 + 0 from flareb;
 }
 
 AimTertiary(heading, pitch)

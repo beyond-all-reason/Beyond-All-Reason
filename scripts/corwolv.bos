@@ -104,6 +104,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-10.00000] speed [1250.00000];
 	move sk_barrel to z-axis [-7.50000] speed [500.00000];
 	turn arms to y-axis <-50.01099> speed <500.00000>;

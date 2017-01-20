@@ -92,7 +92,7 @@ return {
  				"deathceg4",
  			}, 
 			explosiongenerators = {
-				[1] = "custom:MEDIUMFLARE",
+				[1] = "custom:barrelshot-medium",
 			},
 		},
 		sounds = {

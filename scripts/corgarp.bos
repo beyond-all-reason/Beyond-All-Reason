@@ -89,6 +89,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
+	emit-sfx 1024 + 0 from emit;
 	move barrel to z-axis [-1.000000] speed [500.000000];
 	sleep 150;
 	wait-for-move barrel along z-axis;

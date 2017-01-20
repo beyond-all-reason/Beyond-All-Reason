@@ -117,7 +117,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-
+	emit-sfx 1024 + 0 from flare;
 }
 
 Killed(severity, corpsetype)
