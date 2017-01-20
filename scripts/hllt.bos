@@ -115,6 +115,11 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+FirePrimary()
+{
+
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

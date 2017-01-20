@@ -76,6 +76,11 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+FirePrimary()
+{
+
+}
+
 AimFromPrimary(piecenum)
 {
 	piecenum = turret;

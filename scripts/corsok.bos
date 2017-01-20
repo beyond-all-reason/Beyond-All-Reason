@@ -188,6 +188,11 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+FirePrimary()
+{
+
+}
+
 AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;

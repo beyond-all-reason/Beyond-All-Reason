@@ -150,6 +150,11 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+FirePrimary()
+{
+
+}
+
 QueryPrimary(piecenum)
 {
 	piecenum = flare;

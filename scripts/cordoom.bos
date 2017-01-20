@@ -321,6 +321,11 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+FirePrimary()
+{
+
+}
+
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
@@ -334,6 +339,11 @@ AimSecondary(heading, pitch)
 	wait-for-turn turretb around y-axis;
 	wait-for-turn sleeveb around x-axis;
 	return (1);
+}
+
+FireSecondary()
+{
+
 }
 
 AimTertiary(heading, pitch)
