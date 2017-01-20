@@ -115,13 +115,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
-{
-	show flare2;
-	sleep 150;
-	hide flare2;
-}
-
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

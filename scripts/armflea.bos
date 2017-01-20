@@ -362,9 +362,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
 	sleep 100;
-	hide flare;
 }
 
 Killed(severity, corpsetype)

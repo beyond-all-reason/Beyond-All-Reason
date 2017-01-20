@@ -351,34 +351,8 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
-{
-	show flarea;
-	sleep 150;
-	hide flarea;
-}
-
-FireSecondary()
-{
-	show flareb;
-	sleep 150;
-	hide flareb;
-}
-
 FireTertiary()
 {
-	if( gun_3 )
-	{
-		show flarec2;
-		sleep 150;
-		hide flarec2;
-	}
-	else
-	{
-		show flarec1;
-		sleep 150;
-		hide flarec1;
-	}
 	gun_3 = !gun_3;
 }
 

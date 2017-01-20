@@ -104,13 +104,10 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
 	move barrel to z-axis [-10.00000] speed [1250.00000];
 	move sk_barrel to z-axis [-7.50000] speed [500.00000];
 	turn arms to y-axis <-50.01099> speed <500.00000>;
 	turn sleeve to y-axis <50.01099> speed <500.00000>;
-	sleep 100;
-	hide flare;
 	move barrel to z-axis [0.00000] speed [5.00000];
 	move sk_barrel to z-axis [0.00000] speed [7.50000];
 	turn arms to y-axis <0.00000> speed <23.00000>;

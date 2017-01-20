@@ -70,9 +70,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
 	sleep 150;
-	hide flare;
 	return (0);
 }
 

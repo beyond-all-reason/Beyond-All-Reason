@@ -149,10 +149,7 @@ AimFromTertiary(piecenum)
 
 FirePrimary()
 {
-	show flare;
 	move cannon to z-axis [-10.00000] speed [1250.00000];
-	sleep 150;
-	hide flare;
 	move cannon to z-axis [0.00000] speed [7.50000];
 	return (0);
 }

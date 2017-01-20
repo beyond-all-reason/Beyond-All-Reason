@@ -150,13 +150,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
-{
-	show flare;
-	sleep 150;
-	hide flare;
-}
-
 QueryPrimary(piecenum)
 {
 	piecenum = flare;

@@ -149,13 +149,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
-{
-	show flare;
-	sleep 150;
-	hide flare;
-}
-
 AimFromPrimary(piecenum)
 {
 	piecenum = turret;

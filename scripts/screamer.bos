@@ -81,15 +81,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-
-FirePrimary()
-{
-	show flare1;
-	sleep 150;
-	hide flare1;
-//	set DELAY_UNIT_VAR to 0;
-}
-
 QueryPrimary(piecenum)
 {
 	piecenum = firepoint;

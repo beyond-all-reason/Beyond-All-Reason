@@ -242,9 +242,7 @@ AimPrimary()
 
 FirePrimary()
 {
-	show flare;
 	sleep 100;
-	hide flare;
 }
 
 QueryPrimary(piecenum)
