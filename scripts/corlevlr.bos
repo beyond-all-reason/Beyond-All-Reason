@@ -64,6 +64,9 @@ HitByWeapon(anglex, anglez)
 Create()
 {
 	hide flash;
+	turn flash to y-axis <90> now;
+	move flash to x-axis [9] now;
+	move flash to z-axis [-0.5] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	return (0);

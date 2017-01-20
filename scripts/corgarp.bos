@@ -59,6 +59,8 @@ HitByWeapon(Func_Var_1, Func_Var_2)
 
 Create()
 {
+	turn emit to y-axis <-90> now;
+	move emit to z-axis [1] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }

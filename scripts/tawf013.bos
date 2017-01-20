@@ -63,10 +63,9 @@ RockUnit(anglex, anglez)
 
 Create()
 {
-	dont-cache flare;
-	dont-shade flare;
 	hide shell;
 	hide flare;
+	move flare to z-axis [1] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	return (0);

@@ -61,6 +61,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	turn emit to y-axis <-90> now;
+	move emit to z-axis [0.5] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }

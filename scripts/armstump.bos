@@ -61,6 +61,7 @@ HitByWeapon(anglex, anglez)
 Create()
 {
 	hide flare;
+	move flare to z-axis [-2.4] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }
