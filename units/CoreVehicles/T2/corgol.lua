@@ -93,7 +93,7 @@ return {
  				"deathceg4",
  			}, 
 			explosiongenerators = {
-				[1] = "custom:goliathflare",
+				[1] = "custom:gdhcannon",
 			},
 		},
 		sounds = {
