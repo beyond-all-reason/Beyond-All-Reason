@@ -1547,12 +1547,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
-{
-	sleep 150;
-	return (0);
-}
-
 QueryPrimary(piecenum)
 {
 	piecenum = flare;

@@ -240,11 +240,6 @@ AimPrimary()
 	return (1);
 }
 
-FirePrimary()
-{
-	sleep 100;
-}
-
 QueryPrimary(piecenum)
 {
 	piecenum = flare;

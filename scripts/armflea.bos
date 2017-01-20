@@ -360,11 +360,6 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
-{
-	sleep 100;
-}
-
 Killed(severity, corpsetype)
 {
 	var Func_Var_3;

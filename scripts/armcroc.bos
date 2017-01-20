@@ -95,7 +95,6 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	move barrel to z-axis [-2.400000] speed [500.000000];
-	sleep 150;
 	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.000000] speed [3.000000];
 }
