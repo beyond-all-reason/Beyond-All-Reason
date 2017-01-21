@@ -365,7 +365,7 @@ local sizes = {
 	  },
 	  explosion = {
       properties = {
-        numparticles       = 66,
+        numparticles       = 60,
         particlelifespread = 11,
         particlesize       = 3.3,
         particlesizespread = 10,
@@ -386,7 +386,7 @@ local sizes = {
     },
     sparks = {
       properties = {
-	    	numparticles = 110,
+	    	numparticles = 80,
 	    	sizemod = 0.815,
         particlespeed      = 2.5,
         particlespeedspread = 5,
@@ -394,7 +394,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-	    	numparticles = 200,
+	    	numparticles = 130,
         particlelifespread = 44,
         particlespeed      = 3.5,
         particlespeedspread = 4.4,
@@ -402,7 +402,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-	    	numparticles = 100,
+	    	numparticles = 65,
         particlelifespread = 50,
         particlespeed      = 3.5,
         particlespeedspread = 5.5,
@@ -410,15 +410,15 @@ local sizes = {
     },
     clouddust = {
       properties = {
-        numparticles       = 6,
-      	particlelifespread = 450,
+        numparticles       = 5,
+      	particlelifespread = 400,
         particlesize       = 70,
         particlesizespread = 90,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 110,
+        numparticles       = 95,
         particlelifespread = 100,
         particlesize       = 6,
         particlesizespread = 3,
@@ -451,7 +451,7 @@ local sizes = {
 	  },
 	  explosion = {
       properties = {
-        numparticles       = 85,
+        numparticles       = 80,
         particlelifespread = 13,
         particlesize       = 4,
         particlesizespread = 13,
@@ -472,7 +472,7 @@ local sizes = {
     },
     sparks = {
       properties = {
-	    	numparticles = 200,
+	    	numparticles = 130,
 	    	sizemod = 0.83,
         particlespeed      = 2.8,
         particlespeedspread = 5.5,
@@ -480,7 +480,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-	    	numparticles = 350,
+	    	numparticles = 240,
         particlelifespread = 50,
         particlespeed      = 5,
         particlespeedspread = 6,
@@ -488,7 +488,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-	    	numparticles = 175,
+	    	numparticles = 120,
         particlelifespread = 55,
         particlespeed      = 5.3,
         particlespeedspread = 7.3,
@@ -496,15 +496,15 @@ local sizes = {
     },
     clouddust = {
       properties = {
-        numparticles       = 10,
-      	particlelifespread = 500,
+        numparticles       = 8,
+      	particlelifespread = 450,
         particlesize       = 85,
         particlesizespread = 90,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 140,
+        numparticles       = 120,
         particlelifespread = 115,
         particlesize       = 8.5,
         particlesizespread = 4.4,
@@ -537,7 +537,7 @@ local sizes = {
 	  },
 	  explosion = {
       properties = {
-        numparticles       = 100,
+        numparticles       = 90,
         particlelifespread = 15,
         particlesize       = 6,
         particlesizespread = 18,
@@ -558,7 +558,7 @@ local sizes = {
     },
     sparks = {
       properties = {
-	    	numparticles = 250,
+	    	numparticles = 170,
 	    	sizemod = 0.84,
         particlespeed      = 3.2,
         particlespeedspread = 7.4,
@@ -566,32 +566,32 @@ local sizes = {
     },
     dirt = {
       properties = {
-	    	numparticles = 500,
-        particlelifespread = 60,
+	    	numparticles = 280,
+        particlelifespread = 55,
         particlespeed      = 6,
         particlespeedspread = 7.5,
 	   	}
     },
     dirt2 = {
       properties = {
-	    	numparticles = 250,
-        particlelifespread = 65,
+	    	numparticles = 140,
+        particlelifespread = 60,
         particlespeed      = 6.5,
         particlespeedspread = 10,
 	   	}
     },
     clouddust = {
       properties = {
-        numparticles       = 14,
-      	particlelifespread = 550,
+        numparticles       = 10,
+      	particlelifespread = 500,
         particlesize       = 100,
         particlesizespread = 100,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 170,
-        particlelifespread = 133,
+        numparticles       = 150,
+        particlelifespread = 130,
         particlesize       = 11,
         particlesizespread = 5,
         particlespeed      = 9,
