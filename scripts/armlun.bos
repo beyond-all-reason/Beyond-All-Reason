@@ -119,6 +119,10 @@ Create()
 {
 	hide lflare;
 	hide rflare;
+	turn lflare to y-axis <175> now;
+	turn rflare to y-axis <175> now;
+	move lflare to z-axis [6] now;
+	move rflare to z-axis [6] now;
 	bAiming = FALSE;
 	gun_1 = lflare;
 	gun_2 = lflare;
@@ -167,18 +171,14 @@ FirePrimary()
 {
 	if( !gun_1 )
 	{
-		show rflare;
+		emit-sfx 1024 + 0 from rflare;
 		move rbarrel to z-axis [-5.00000] now;
-		sleep 150;
-		hide rflare;
 		move rbarrel to z-axis [0.00000] speed [7.50000];
 	}
 	if( gun_1 )
 	{
-		show lflare;
+		emit-sfx 1024 + 0 from lflare;
 		move lbarrel to z-axis [-5.00000] now;
-		sleep 150;
-		hide lflare;
 		move lbarrel to z-axis [0.00000] speed [7.50000];
 	}
 	gun_1 = !gun_1;

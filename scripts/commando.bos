@@ -400,6 +400,7 @@ Create()
 	Static_Var_5 = 0;
 	spray = base;
 	hide flare;
+	turn flare to x-axis <170> now;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
@@ -464,10 +465,8 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-    move gunbarrel to y-axis [-0.5] speed [3.322148];
-	show flare;
-	sleep 100;
-	hide flare;
+  move gunbarrel to y-axis [-0.6] speed [3.5];
+	emit-sfx 1024 + 0 from flare;
 	move gunbarrel to y-axis [0] now;
 }
 

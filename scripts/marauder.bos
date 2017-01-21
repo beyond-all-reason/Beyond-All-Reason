@@ -173,6 +173,12 @@ Create()
 	hide misflare;
 	hide flarea;
 	hide flareb;
+	turn flarea to y-axis <135> now;
+	turn flarea to z-axis <-25> now;
+	turn flarea to x-axis <-70> now;
+	turn flareb to y-axis <135> now;
+	turn flareb to z-axis <-25> now; 
+	turn flareb to x-axis <-70> now;
 	dont-cache lleg;
 	dont-cache rleg;
 	dont-cache llowleg;
@@ -250,9 +256,8 @@ FirePrimary()
 	if( gun_1 == 1 )
 	{
 		move lbarrel to z-axis [-2.000000] speed [30.000000];
-		show flareb;
+		emit-sfx 1024 + 0 from flareb;
 		sleep 150;
-		hide flareb;
 		move lbarrel to z-axis [0.000000] speed [10.000000];
 		gun_1 = llowleg;
 		return (0);
@@ -260,9 +265,8 @@ FirePrimary()
 	if( gun_1 == 2 )
 	{
 		move rbarrel to z-axis [-2.000000] speed [30.000000];
-		show flarea;
+		emit-sfx 1024 + 0 from flarea;
 		sleep 150;
-		hide flarea;
 		move rbarrel to z-axis [0.000000] speed [10.000000];
 		gun_1 = rleg;
 		return (0);

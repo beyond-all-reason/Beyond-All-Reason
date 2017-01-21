@@ -64,6 +64,9 @@ return {
 				"deathceg3",
 				"deathceg4",
 			},
+			explosiongenerators = {
+				[1] = "custom:barrelshot-small",
+			},
 		},
 		sounds = {
 			build = "nanlath2",

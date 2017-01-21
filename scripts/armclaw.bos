@@ -109,6 +109,7 @@ Create()
 	hide flare;
 	dont-shade flare;
 	dont-cache flare;
+	move flare to z-axis [-5] now;
 	restore_delay = 2000;
 	Static_Var_1 = 0;
 	call-script InitState();

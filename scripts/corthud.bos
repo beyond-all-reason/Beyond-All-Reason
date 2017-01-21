@@ -470,6 +470,11 @@ Create()
 {
 	hide rfirept;
 	hide lfirept;
+	turn rfirept to x-axis <10> now;
+	move rfirept to z-axis [-1.6] now;
+	move rfirept to y-axis [1] now;
+	turn lfirept to x-axis <160> now;
+	move lfirept to z-axis [1.5] now;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;
@@ -540,9 +545,7 @@ FirePrimary()
 	if( gun_1 == 0 )
 	{
 		move rgun to z-axis [-2.000000] speed [60.000000];
-		show rfirept;
-		sleep 100;
-		hide rfirept;
+		emit-sfx 1024 + 0 from rfirept;
 		wait-for-move rgun along z-axis;
 		gun_1 = gun;
 		move rgun to z-axis [0.000000] speed [4.000000];
@@ -552,9 +555,7 @@ FirePrimary()
 	if( gun_1 == 1 )
 	{
 		move lgun to z-axis [-2.000000] speed [60.000000];
-		show lfirept;
-		sleep 100;
-		hide lfirept;
+		emit-sfx 1024 + 0 from lfirept;
 		wait-for-move lgun along z-axis;
 		gun_1 = torso;
 		move lgun to z-axis [0.000000] speed [4.000000];

@@ -95,6 +95,7 @@ FirePrimary()
 {
 	emit-sfx 1024 + 0 from emit;
 	move barrel to z-axis [-2.700000] speed [1000.000000];
+	sleep 150;
 	move barrel to z-axis [0.000000] speed [6.000000];
 }
 

@@ -233,7 +233,8 @@ Create()
 	Static_Var_2 = 0;
 	Static_Var_3 = 1;
 	hide flare;
-	dont-cache flare;
+	turn flare to y-axis <180> now
+	move flare to z-axis [27] now;
 	restore_delay = 3000;
 	start-script MotionControl();
 	start-script SmokeUnit();
@@ -299,11 +300,9 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	move barrel1 to z-axis [-7.500000] now;
-	show flare;
-	sleep 120;
-	hide flare;
-	move barrel1 to z-axis [0.000000] speed [2.500000];
+	emit-sfx 1024 + 0 from flare;
+	move barrel1 to z-axis [-7.000000] now;
+	move barrel1 to z-axis [0.000000] speed [3.000000];
 	return (0);
 }
 

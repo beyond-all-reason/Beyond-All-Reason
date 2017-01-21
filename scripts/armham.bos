@@ -561,6 +561,11 @@ Create()
 	restore_delay = 3000;
 	hide rfirept;
 	hide lfirept;
+	turn rfirept to x-axis <10> now;
+	move rfirept to z-axis [-3] now;
+	move rfirept to y-axis [1] now;
+	turn lfirept to x-axis <160> now;
+	move lfirept to z-axis [1.8] now;
 	dont-shade locase;
 	dont-shade lcannon;
 	dont-shade rcannon;
@@ -631,18 +636,16 @@ FirePrimary()
 {
 	if( gun_1 )
 	{
-		show rfirept;
+		emit-sfx 1024 + 0 from rfirept;
 		move rcannon to z-axis [-2.000000] speed [25.000000];
-		sleep 100;
-		hide rfirept;
+		sleep 150;
 		move rcannon to z-axis [0.000000] speed [4.000000];
 	}
 	else
 	{
-		show lfirept;
+		emit-sfx 1024 + 0 from lfirept;
 		move lcannon to z-axis [-2.000000] speed [25.000000];
-		sleep 100;
-		hide lfirept;
+		sleep 150;
 		move lcannon to z-axis [0.000000] speed [4.000000];
 	}
 	gun_1 = !gun_1;

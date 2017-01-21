@@ -354,6 +354,8 @@ Create()
 	bAiming = FALSE;
 	Static_Var_3 = 1;
 	hide flare;
+	turn flare to x-axis <-30> now;
+	move flare to z-axis [-0.8] now;
 	dont-cache flare;
 	restore_delay = 2000;
 	start-script SmokeUnit();
@@ -413,12 +415,10 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	move Barrel to z-axis [-12.500000] speed [1250.000000];
-	show flare;
+	move Barrel to z-axis [-8.500000] speed [1150.000000];
+	emit-sfx 1024 + 0 from flare;
 	sleep 150;
 	turn Torso to x-axis <-10.000000> speed <500.120879>;
-	sleep 150;
-	hide flare;
 	turn Torso to x-axis <0.000000> speed <20.000000>;
 	move Barrel to z-axis [0.000000] speed [7.500000];
 	return (0);
