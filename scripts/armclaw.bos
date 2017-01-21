@@ -57,7 +57,7 @@ Stop()
 	turn post to y-axis <0.00000> speed <300.00000>;
 	wait-for-turn barrel around x-axis;
 	wait-for-turn post around y-axis;
-	move post to y-axis [-42.50000] speed [375.00000];
+	move post to y-axis [-17] speed [375.00000];
 	wait-for-move post along y-axis;
 	return (0);
 }
