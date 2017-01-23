@@ -21,7 +21,7 @@ return {
 		energymake = 1000,
 		energystorage = 2500,
 		explodeas = "smallNukeExplosionGenericDamage",
-		footprintx = 5,
+		footprintx = 7,
 		footprintz = 4,
 		hidedamage = true,
 		icontype = "building",
@@ -36,7 +36,7 @@ return {
 		selfdestructas = "smallNukeExplosionGenericDamage",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
-		yardmap = "oooooooooooooooooooo",
+		yardmap = "ooooooo ooooooo ooooooo ooooooo",
 		customparams = {
 			death_sounds = "generic",
 		},
