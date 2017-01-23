@@ -38,7 +38,7 @@ function deepcopy(orig)
 end
 
 
-}
+
 definitions['explotest'] = explosion
 
 

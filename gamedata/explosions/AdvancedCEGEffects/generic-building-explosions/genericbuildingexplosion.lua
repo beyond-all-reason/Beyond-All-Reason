@@ -346,6 +346,92 @@ end
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
+
+	tiny = {
+    centerflare = {
+      properties = {
+        size               = 1.3,
+        sizegrowth         = 11,
+      },
+    },
+		groundflash = {
+			flashalpha         = 0.2,
+	    flashsize          = 75,
+	    ground             = true,
+	    ttl                = 16,
+	  },
+	  explosion = {
+      properties = {
+        numparticles       = 14,
+        particlelifespread = 8,
+        particlesize       = 1.5,
+        particlesizespread = 3.5,
+        particlespeedspread = 2,
+	  	}
+	  },
+    fireglow = {
+      properties = {
+        particlesize       = 13,
+        particlelife       = 11,
+      }
+    },
+    fireglow2 = {
+      properties = {
+        particlesize       = 30,
+        particlelife       = 14,
+      }
+    },
+    sparks = {
+      properties = {
+	    	numparticles = 20,
+        particlespeed      = 0.9,
+        particlespeedspread = 2.8,
+	   	}
+    },
+    dirt = {
+      properties = {
+	    	numparticles = 40,
+        particlelifespread = 13,
+        particlespeed      = 2.5,
+        particlespeedspread = 3.4,
+	   	}
+    },
+    dirt2 = {
+      properties = {
+	    	numparticles = 20,
+        particlelifespread = 16,
+        particlespeed      = 2.5,
+        particlespeedspread = 4,
+	   	}
+    },
+    clouddust = {
+      properties = {
+        numparticles       = 2,
+      	particlelifespread = 280,
+        particlesize       = 30,
+        particlesizespread = 50,
+      }
+    },
+    grounddust = {
+      properties = {
+        numparticles       = 25,
+        particlelifespread = 65,
+        particlesize       = 3.6,
+        particlesizespread = 2,
+        particlespeed      = 2.1,
+        particlespeedspread = 0.9,
+	   	}
+    },
+    outerflash = {
+      properties = {
+        alwaysvisible      = true,
+        heat               = 10,
+        maxheat            = 30,
+        size               = 8.5,
+      },
+    },
+	},
+	
 	small = {
 	
 	},

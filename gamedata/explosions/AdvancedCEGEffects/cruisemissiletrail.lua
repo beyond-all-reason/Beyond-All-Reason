@@ -185,6 +185,7 @@ local definitions = {
         texture            = [[randomdots]],
       },
     },
+  },
 }
 
 
