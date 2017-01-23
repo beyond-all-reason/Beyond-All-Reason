@@ -207,6 +207,11 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Spring.Echo(unitDef.collisionvolumetype)
 				--unitDef.useFootPrintCollisionVolume = true
 			end
+		else
+			weaponDef.avoidFriendly = true
+			weaponDef.collideFriendly = false
+			weaponDef.avoidFeature = true
+			weaponDef.collideFeature = true
 		end
 		
 	end
