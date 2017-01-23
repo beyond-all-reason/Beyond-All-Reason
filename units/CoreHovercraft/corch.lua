@@ -1,4 +1,4 @@
-3return {
+return {
 	corch = {
 		acceleration = 0.12,
 		brakerate = 0.372,
