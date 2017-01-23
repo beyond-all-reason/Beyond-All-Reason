@@ -208,10 +208,12 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--unitDef.useFootPrintCollisionVolume = true
 			end
 		else
-			weaponDef.avoidFriendly = true
-			weaponDef.collideFriendly = false
-			weaponDef.avoidFeature = true
-			weaponDef.collideFeature = true
+			for id,weaponDef in pairs(WeaponDefs) do
+				weaponDef.avoidFriendly = true
+				weaponDef.collideFriendly = false
+				weaponDef.avoidFeature = true
+				weaponDef.collideFeature = true
+			end
 		end
 		
 	end
