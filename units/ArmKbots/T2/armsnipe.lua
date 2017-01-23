@@ -33,7 +33,6 @@ return {
 		objectname = "ARMSNIPE",
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 455,
-		stealth = true,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.7788,
 		turnrate = 1338,
