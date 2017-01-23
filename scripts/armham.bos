@@ -24,10 +24,6 @@ walk()
 		move rcannon to y-axis [0.000000] now;
 		move rcannon to z-axis [0.000000] now;
 		move locase to y-axis [0.000000] now;
-		move rfirept to y-axis [-0.300000] speed [2.560345] *  currentSpeed / 100;
-		move rfirept to z-axis [0.209998] speed [1.792224] *  currentSpeed / 100;
-		move lfirept to y-axis [-0.300000] speed [2.560345] *  currentSpeed / 100;
-		move lfirept to z-axis [0.209998] speed [1.792224] *  currentSpeed / 100;
 		turn lthigh to x-axis <-62.934066> speed <537.109701> *  currentSpeed / 100;
 		turn rthigh to x-axis <3.505495> speed <29.917587> *  currentSpeed / 100;
 		turn torso to z-axis <-4.560440> speed <38.920997> *  currentSpeed / 100;
@@ -206,10 +202,6 @@ walklegs()
 		move rcannon to y-axis [0.000000] now;
 		move rcannon to z-axis [0.000000] now;
 		move locase to y-axis [0.000000] now;
-		move rfirept to y-axis [-0.300000] now;
-		move rfirept to z-axis [0.209998] now;
-		move lfirept to y-axis [-0.300000] now;
-		move lfirept to z-axis [0.209998] now;
 		turn lthigh to x-axis <-62.934066> speed <3.048031> *  currentSpeed / 100;
 		turn rthigh to x-axis <3.505495> speed <116.997440> *  currentSpeed / 100;
 		turn rleg to x-axis <82.978022> speed <459.220820> *  currentSpeed / 100;
@@ -380,10 +372,6 @@ Go()
 		move locase to y-axis [0.000000] now;
 		move locase to z-axis [0.000000] now;
 		move locase to z-axis [-0.739990] speed [0.000000];
-		move rfirept to y-axis [-0.300000] now;
-		move rfirept to z-axis [0.209998] now;
-		move lfirept to y-axis [-0.300000] now;
-		move lfirept to z-axis [0.209998] now;
 		turn upcase2 to x-axis <0.000000> now;
 		turn upcase2 to x-axis <-43.005495> speed <266.000000>;
 		turn locase to x-axis <0.000000> now;
@@ -424,10 +412,6 @@ Stop()
 		move upcase2 to z-axis [0.950000] speed [22.000000];
 		move locase to y-axis [0.000000] now;
 		move locase to z-axis [-0.739990] speed [2.953992];
-		move rfirept to y-axis [-0.300000] now;
-		move rfirept to z-axis [0.209998] now;
-		move lfirept to y-axis [-0.300000] now;
-		move lfirept to z-axis [0.209998] now;
 		turn upcase2 to x-axis <-47.104396> speed <188.037710>;
 		turn locase to x-axis <61.527473> speed <245.613703>;
 		sleep 229;
@@ -559,13 +543,13 @@ Create()
 	Static_Var_4 = 0;
 	gun_1 = pelvis;
 	restore_delay = 3000;
-	hide rfirept;
-	hide lfirept;
-	turn rfirept to x-axis <10> now;
+	//show rfirept;
+	//show lfirept;
+	turn rfirept to x-axis <10.5> now;
 	move rfirept to z-axis [-3] now;
 	move rfirept to y-axis [1] now;
 	turn lfirept to x-axis <160> now;
-	move lfirept to z-axis [1.8] now;
+	move lfirept to z-axis [2.5] now;
 	dont-shade locase;
 	dont-shade lcannon;
 	dont-shade rcannon;
@@ -653,8 +637,6 @@ FirePrimary()
 
 Killed(severity, corpsetype)
 {
-	hide rfirept;
-	hide lfirept;
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
