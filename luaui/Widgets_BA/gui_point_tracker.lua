@@ -1,3 +1,4 @@
+-- $Id$
 local versionNumber = "v2.3"
 
 function widget:GetInfo()
@@ -8,7 +9,7 @@ function widget:GetInfo()
     date      = "29 December 2008",
     license   = "GNU LGPL, v2.1 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -31,6 +32,7 @@ local minimapHighlightSize = 8
 local minimapHighlightLineMin = 6
 local minimapHighlightLineMax = 10
 
+local useFade = true
 ----------------------------------------------------------------
 --speedups
 ----------------------------------------------------------------
@@ -59,7 +61,8 @@ local GL_FILL = GL.FILL
 ----------------------------------------------------------------
 --table; i = {r, g, b, a, px, pz, label, expiration}
 local mapPoints = {}
-local lastPoint = 1
+local mapPointCount = 0
+local MAP_POINT_LIMIT = 50
 local myPlayerID
 local timeNow, timePart
 local on = false
@@ -72,7 +75,8 @@ local vsx, vsy, sMidX, sMidY
 --local functions
 ----------------------------------------------------------------
 local function GetPlayerColor(playerID)
-	local _, _, _, teamID = GetPlayerInfo(playerID)
+	local _, _, isSpec, teamID = GetPlayerInfo(playerID)
+	if (isSpec) then return GetTeamColor(Spring.GetGaiaTeamID()) end
 	if (not teamID) then return nil end
 	return GetTeamColor(teamID)
 end
@@ -85,6 +89,13 @@ local function StartTime()
 	on = true
 end
 
+local function ClearPoints()
+	mapPoints = {}
+end
+
+local function SetUseFade(bool)
+	useFade = bool
+end
 ----------------------------------------------------------------
 --callins
 ----------------------------------------------------------------
@@ -93,6 +104,15 @@ function widget:Initialize()
 	timeNow = false
 	timePart = false
 	myPlayerID = Spring.GetMyPlayerID()
+	
+	WG.PointTracker = {
+		ClearPoints = ClearPoints,
+		SetUseFade = SetUseFade
+	}
+end
+
+function widget:Shutdown()
+	WG.PointTracker = nil
 end
 
 function widget:DrawScreen()
@@ -100,17 +120,20 @@ function widget:DrawScreen()
 	
 	glLineWidth(lineWidth)
 	
-	for i=lastPoint,#mapPoints do
+	local i = 1
+	while i <= mapPointCount do
 		local curr = mapPoints[i]
 		local alpha = maxAlpha * (curr[6] - timeNow) / ttl
 		if (alpha <= 0) then
-			lastPoint = lastPoint + 1
+			mapPoints[i] = mapPoints[mapPointCount]
+			mapPoints[mapPointCount] = nil
+			mapPointCount = mapPointCount - 1
 		else
 			local sx, sy, sz = WorldToScreenCoords(curr[2], curr[3], curr[4])
 			glColor(curr[1][1], curr[1][2], curr[1][3], alpha)
 			if (sx >= 0 and sy >= 0
 					and sx <= vsx and sy <= vsy) then
-				--[[in screen
+				--in screen
 				local vertices = {
 					{v = {sx, sy - highlightLineMin, 0}},
 					{v = {sx, sy - highlightLineMax, 0}},
@@ -123,7 +146,7 @@ function widget:DrawScreen()
 				}
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 				glRect(sx - highlightSize, sy - highlightSize, sx + highlightSize, sy + highlightSize)
-				glShape(GL_LINES, vertices)]]--
+				glShape(GL_LINES, vertices)
 			else
 				--out of screen
 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
@@ -182,6 +205,7 @@ function widget:DrawScreen()
 				glColor(1, 1, 1, alpha)
 				glText(curr[5], textX, textY, fontSize, textOptions)
 			end
+			i = i + 1
 		end
 	end
 	
@@ -198,6 +222,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
+	if mapPointCount >= MAP_POINT_LIMIT then
+		return
+	end
 	if (not timeNow) then
 		StartTime()
 	end
@@ -213,14 +240,17 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 	local color = {r, g, b}
 	local expiration = timeNow + ttl
 	
-	table.insert(mapPoints, {color, px, py, pz, strSub(label, 1, maxLabelLength), expiration})
+	mapPointCount = mapPointCount + 1
+	mapPoints[mapPointCount] = {color, px, py, pz, strSub(label, 1, maxLabelLength), expiration}
 end
 
 function widget:Update(dt)
 	if (not timeNow) then
 		StartTime()
 	else
-		timeNow = timeNow + dt
+		if useFade then
+			timeNow = timeNow + dt
+		end
 		timePart = timePart + dt
 		if (timePart > blinkPeriod and blinkPeriod > 0) then
 			timePart = timePart - blinkPeriod
@@ -236,28 +266,33 @@ function widget:DrawInMiniMap(sx, sy)
 	local ratioX = sx / mapX
 	local ratioY = sy / mapY
 	
-	for i=lastPoint,#mapPoints do
+	local i = 1
+	while i <= mapPointCount do
 		local curr = mapPoints[i]
 		local x = curr[2] * ratioX
 		local y = sy - curr[4] * ratioY
 		local alpha = maxAlpha * (curr[6] - timeNow) / ttl
 		if (alpha <= 0) then
-			lastPoint = lastPoint + 1
+			mapPoints[i] = mapPoints[mapPointCount]
+			mapPoints[mapPointCount] = nil
+			mapPointCount = mapPointCount - 1
 		else
 			glColor(curr[1][1], curr[1][2], curr[1][3], alpha)
 			local vertices = {
-					{v = {x, y - minimapHighlightLineMin, 0}},
-					{v = {x, y - minimapHighlightLineMax, 0}},
-					{v = {x, y + minimapHighlightLineMin, 0}},
-					{v = {x, y + minimapHighlightLineMax, 0}},
-					{v = {x - minimapHighlightLineMin, y, 0}},
-					{v = {x - minimapHighlightLineMax, y, 0}},
-					{v = {x + minimapHighlightLineMin, y, 0}},
-					{v = {x + minimapHighlightLineMax, y, 0}},
-				}
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-				glRect(x - minimapHighlightSize, y - minimapHighlightSize, x + minimapHighlightSize, y + minimapHighlightSize)
-				glShape(GL_LINES, vertices)
+				{v = {x, y - minimapHighlightLineMin, 0}},
+				{v = {x, y - minimapHighlightLineMax, 0}},
+				{v = {x, y + minimapHighlightLineMin, 0}},
+				{v = {x, y + minimapHighlightLineMax, 0}},
+				{v = {x - minimapHighlightLineMin, y, 0}},
+				{v = {x - minimapHighlightLineMax, y, 0}},
+				{v = {x + minimapHighlightLineMin, y, 0}},
+				{v = {x + minimapHighlightLineMax, y, 0}},
+			}
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+			glRect(x - minimapHighlightSize, y - minimapHighlightSize, x + minimapHighlightSize, y + minimapHighlightSize)
+			glShape(GL_LINES, vertices)
+			
+			i = i + 1
 		end
 	end
 	
