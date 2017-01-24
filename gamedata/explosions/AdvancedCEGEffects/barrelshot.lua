@@ -16,8 +16,8 @@ local definitions = {
         length             = 33,
         sidetexture        = [[shotgunside]],
         size               = 8,
-        sizegrowth         = -0.6,
-        ttl                = 4,
+        sizegrowth         = -0.006,
+        ttl                = 64,
       },
     },
     fire2 = {

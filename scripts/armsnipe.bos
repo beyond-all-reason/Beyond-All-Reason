@@ -1086,10 +1086,9 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flash;
 	turn rarm to x-axis <-45.010989> speed <200.000000>;
+	emit-sfx 1024 + 0 from flash;
 	sleep 150;
-	hide flash;
 	turn rarm to x-axis <-23.005495> speed <50.000000>;
 	sleep 1000;
 	turn rarm to x-axis <-68.016484> speed <50.000000>;
