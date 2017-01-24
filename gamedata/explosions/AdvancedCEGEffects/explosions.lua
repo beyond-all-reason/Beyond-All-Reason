@@ -38,7 +38,7 @@ function deepcopy(orig)
 end
 
 
-
+local definitions = {}
 definitions['explotest'] = explosion
 
 
