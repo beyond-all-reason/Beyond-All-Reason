@@ -117,6 +117,8 @@ Create()
 	hide flarea1;
 	hide flarea2;
 	hide flareb;
+	move flarea1 to z-axis [0.5] now;
+	move flarea2 to z-axis [0.5] now;
 	gun_1 = 0;
 	Static_Var_5 = 0;
 	restore_delay = 3000;
@@ -198,18 +200,14 @@ FireWeapon1()
 		move barrel2 to z-axis [-2.000000] speed [500.000000];
 		wait-for-move barrel2 along z-axis;
 		move barrel2 to z-axis [0.000000] speed [3.000000];
-		show flarea2;
-		sleep 150;
-		hide flarea2;
+		emit-sfx 1024 + 0 from flarea2;
 	}
 	else
 	{
 		move barrel1 to z-axis [-2.000000] speed [500.000000];
 		wait-for-move barrel1 along z-axis;
 		move barrel1 to z-axis [0.000000] speed [3.000000];
-		show flarea1;
-		sleep 150;
-		hide flarea1;
+		emit-sfx 1024 + 0 from flarea1;
 	}
 	gun_1 = !gun_1;
 }
