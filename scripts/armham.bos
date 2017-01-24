@@ -543,8 +543,8 @@ Create()
 	Static_Var_4 = 0;
 	gun_1 = pelvis;
 	restore_delay = 3000;
-	//show rfirept;
-	//show lfirept;
+	hide rfirept;
+	hide lfirept;
 	turn rfirept to x-axis <10.5> now;
 	move rfirept to z-axis [-3] now;
 	move rfirept to y-axis [1] now;
