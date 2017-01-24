@@ -130,7 +130,7 @@ return {
 				cratermult 				  = 0,
 				duration                  = 0.1,
 				energypershot             = 500,
-				explosionGenerator        = "custom:genericshellexplosion-large",
+				explosionGenerator        = "custom:genericshellexplosion-medium",
 				fallOffRate               = 0.5,
 				fireStarter               = 100,
 				impulseboost 			  = 0.234,

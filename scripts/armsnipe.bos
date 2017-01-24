@@ -1094,10 +1094,6 @@ FirePrimary()
 	emit-sfx 1024 + 0 from flash;
 	sleep 150;
 	turn rarm to x-axis <-23.005495> speed <50.000000>;
-	sleep 1000;
-	turn rarm to x-axis <-68.016484> speed <50.000000>;
-	sleep 17000;
-	turn rarm to x-axis <-23.005495> speed <50.000000>;
 }
 
 AimFromPrimary(piecenum)

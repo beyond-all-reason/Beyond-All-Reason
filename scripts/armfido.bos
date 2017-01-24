@@ -237,6 +237,9 @@ Create()
 {
 	hide flash;
 	dont-cache flash;
+	turn flash to x-axis <170> now;
+	move flash to z-axis [6.75] now;
+	move flash to y-axis [1.5] now;
 	restore_delay = 3000;
 	Static_Var_2 = 0;
 	gun_2 = gauss;
@@ -349,9 +352,9 @@ FirePrimary()
 {
 	gun_2 = turret;
 	emit-sfx 1024 + 0 from flash;
-	move barrel to z-axis [-1.500000] speed [7.500000];
+	move gauss to z-axis [-0.75000] speed [7.00000];
 	sleep 150;
-	move barrel to z-axis [0.000000] speed [1.000000];
+	move gauss to z-axis [0.000000] speed [1.500000];
 	start-script Reload();
 }
 
@@ -359,9 +362,9 @@ FireSecondary()
 {
 	gun_2 = turret;
 	emit-sfx 1024 + 0 from flash;
-	move barrel to z-axis [-1.500000] speed [7.500000];
+	move gauss to z-axis [-0.75000] speed [7.00000];
 	sleep 150;
-	move barrel to z-axis [0.000000] speed [1.000000];
+	move gauss to z-axis [0.000000] speed [1.500000];
 	start-script Reload();
 }
 
