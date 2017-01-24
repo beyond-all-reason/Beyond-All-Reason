@@ -23,9 +23,9 @@ walk()
 		move rleg to y-axis [0.319995] speed [3.816808] *  currentSpeed / 100;
 		move lleg to y-axis [0.650000] speed [7.753012] *  currentSpeed / 100;
 		move head to y-axis [0.000000] now;
-		move flash to x-axis [0.000000] now;
-		move flash to y-axis [-0.900000] speed [10.734940] *  currentSpeed / 100;
-		move flash to z-axis [-0.200000] speed [2.385542] *  currentSpeed / 100;
+		//move flash to x-axis [0.000000] now;
+		//move flash to y-axis [-0.900000] speed [10.734940] *  currentSpeed / 100;
+		//move flash to z-axis [-0.200000] speed [2.385542] *  currentSpeed / 100;
 		turn hip to x-axis <2.098901> speed <25.035084> *  currentSpeed / 100;
 		turn torso to y-axis <4.736264> speed <56.492787> *  currentSpeed / 100;
 		turn lupleg to x-axis <-3.505495> speed <41.812531> *  currentSpeed / 100;
@@ -481,9 +481,9 @@ walklegs()
 		move rleg to y-axis [0.319995] speed [1.908481] *  currentSpeed / 100;
 		move lleg to y-axis [0.150000] speed [3.816808] *  currentSpeed / 100;
 		move head to y-axis [0.000000] now;
-		move flash to x-axis [0.000000] now;
-		move flash to y-axis [-0.900000] now;
-		move flash to z-axis [-0.200000] now;
+		//move flash to x-axis [0.000000] now;
+		//move flash to y-axis [-0.900000] now;
+		//move flash to z-axis [-0.200000] now;
 		turn hip to x-axis <2.098901> speed <12.648622> *  currentSpeed / 100;
 		turn lupleg to x-axis <-3.505495> speed <75.301869> *  currentSpeed / 100;
 		turn rupleg to x-axis <24.434066> speed <179.308883> *  currentSpeed / 100;
@@ -764,7 +764,7 @@ OpenGun()
 {
 	move head to y-axis [0.000000] now;
 	move larm to y-axis [0.000000] now;
-	move flash to z-axis [-0.100000] speed [0.352313];
+	//move flash to z-axis [-0.100000] speed [0.352313];
 	turn torso to x-axis <0.000000> now;
 	turn torso to x-axis <-3.000000> speed <13.000000>;
 	turn ruparm to x-axis <0.000000> now;
@@ -1036,6 +1036,10 @@ Create()
 	Static_Var_4 = 1;
 	Static_Var_1 = 0;
 	hide flash;
+	turn flash to x-axis <180> now;
+	move flash to z-axis [4.5] now;
+	turn flash to y-axis <10> now;
+	move flash to x-axis [-1] now;
 	restore_delay = 2000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
