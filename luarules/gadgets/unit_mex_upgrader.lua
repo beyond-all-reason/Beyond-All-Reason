@@ -80,6 +80,20 @@ local upgradeMexCmdDesc = {
   params  = {} 
 } 
 
+local function GetClosestMetalSpot(x, z)
+	local bestSpot
+	local bestDist = math.huge
+	for i = 1, #GG.metalSpots do
+		local spot = GG.metalSpots[i]
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx*dx + dz*dz
+		if dist < bestDist then
+			bestSpot = spot
+			bestDist = dist
+		end
+	end
+	return bestSpot
+end
 
 function determine(ud, wd)
   local tmpbuilders = {} 
@@ -184,6 +198,7 @@ function gadget:GameFrame(n)
       local y = GetGroundHeight(builder.targetX, builder.targetZ) 
 
       GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_RECLAIM, CMD_OPT_INTERNAL, data}, {"alt"});    
+	  --Spring.Echo("the order goes through @ " .. builder.targetX .. "/" .. builder.targetZ)
       GiveOrderToUnit(unitID, CMD_INSERT, {1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {"alt"});    
     
     
@@ -261,9 +276,13 @@ function upgradeMex(unitID, mexID, teamID)
   
   builder.targetMex = mexID 
   builder.targetUpgrade = upgradePairs[mex.unitDefID] 
-  builder.targetX = mex.x 
+
+  local spot = GetClosestMetalSpot(mex.x, mex.z) 
+  --Spring.Echo("mex is still @ " .. mex.x .. "/" .. mex.z)
+  --Spring.Echo("the closest spot is @ " .. spot.x .. "/" .. spot.z)
+  builder.targetX = spot.x
   builder.targetY = mex.y 
-  builder.targetZ = mex.z 
+  builder.targetZ = spot.z
   
   mex.assignedBuilder = unitID 
   
@@ -362,6 +381,7 @@ function registerUnit(unitID, unitDefID, unitTeam)
     mex.unitDefID = unitDefID 
     mex.teamID = unitTeam 
     mex.x, mex.y, mex.z = GetUnitPosition(unitID) 
+	--Spring.Echo("original mex built @ " .. mex.x .. "/" .. mex.z)
     mexes[unitTeam][unitID] = mex 
     assignClosestBuilder(unitID, mex, unitTeam) 
   end 

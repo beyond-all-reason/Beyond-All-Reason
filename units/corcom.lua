@@ -92,6 +92,7 @@ return {
 			death_sounds = "commander",
 			iscommander = true,
 			paralyzemultiplier = 0.025,
+			area_mex_def = "cormex",
 		},
 		featuredefs = {
 			dead = {

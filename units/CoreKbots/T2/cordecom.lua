@@ -74,6 +74,7 @@ return {
 		},
 		customparams = {
 			death_sounds = "generic",
+			area_mex_def = "cormex",
 			paralyzemultiplier = 0.025,
 		},
 		sfxtypes = { 

@@ -77,6 +77,7 @@ return {
 		},
 		customparams = {
 			death_sounds = "generic",
+			area_mex_def = "armmoho",
 		},
 		featuredefs = {
 			dead = {

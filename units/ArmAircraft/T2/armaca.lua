@@ -75,6 +75,7 @@ return {
 		},
 		customparams = {
 			death_sounds = "generic",
+			area_mex_def = "armmoho",
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
