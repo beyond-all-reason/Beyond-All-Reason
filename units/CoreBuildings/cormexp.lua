@@ -18,10 +18,8 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.3,
-		description = "Convertible Metal Extractor",
-		energyuse = 12,
+		description = "Armed Moho Metal Extractor",
 		explodeas = "hugeBuildingexplosiongeneric",
-		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -42,6 +40,7 @@ return {
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			death_sounds = "generic",
+			metal_extractor = 4,
 		},
 		featuredefs = {
 			dead = {

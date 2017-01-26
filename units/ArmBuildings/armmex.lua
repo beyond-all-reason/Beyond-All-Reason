@@ -19,7 +19,6 @@ return {
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "tinyBuildingExplosionGeneric",
-		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -27,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 170,
 		maxslope = 20,
-		maxwaterdepth = 20,
+		maxwaterdepth = 5000,
 		metalstorage = 50,
 		name = "Metal Extractor",
 		objectname = "ARMMEX",
@@ -40,6 +39,7 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			death_sounds = "generic",
+			metal_extractor = 1,
 		},
 		featuredefs = {
 			dead = {

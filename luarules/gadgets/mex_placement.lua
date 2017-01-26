@@ -26,8 +26,8 @@ include("LuaRules/Configs/customcmds.h.lua")
 
 local mexDefID = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.isExtractor then
-		mexDefID[udid] = true
+	if ud.customParams.metal_extractor then
+		mexDefID[udid] = tonumber (ud.customParams.metal_extractor)
 	end
 end
 
@@ -143,12 +143,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	
 	if mexDefID[unitDefID] then
 		local x,_,z = Spring.GetUnitPosition(unitID)
+		local income
 		if metalSpots then
 			local spotID = metalSpotsByPos[x] and metalSpotsByPos[x][z]
 			if spotID then
 				spotByID[unitID] = spotID
 				spotData[spotID] = {unitID = unitID}
-				Spring.SetUnitRulesParam(unitID, "mexIncome", metalSpots[spotID].metal, inlosTrueTable)
+				income = metalSpots[spotID].metal
 				--GG.UnitEcho(unitID,spotID)
 			else
 		        local nearestspot, dist, spotindex = GetClosestMetalSpot(x, z)
@@ -159,12 +160,17 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				    end
 					spotByID[unitID] = spotindex
 					spotData[spotindex] = {unitID = unitID}
-					Spring.SetUnitRulesParam(unitID, "mexIncome", metalSpots[spotindex].metal, inlosTrueTable)
+					income = metalSpots[spotindex].metal
 				end
 			end
 		else
-			local metal = GG.IntegrateMetal(x, z)
-			Spring.SetUnitRulesParam(unitID, "mexIncome", metal, inlosTrueTable)
+			income = GG.IntegrateMetal(x, z)
+		end
+
+		if income then
+			income = income * mexDefID[unitDefID]
+			Spring.SetUnitRulesParam(unitID, "mexIncome", income, inlosTrueTable)
+			Spring.SetUnitResourcing(unitID, "cmm", income)
 		end
 	end
 end

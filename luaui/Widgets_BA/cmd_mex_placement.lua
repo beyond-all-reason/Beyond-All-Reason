@@ -14,6 +14,7 @@ function widget:GetInfo()
 end
 
 VFS.Include("LuaRules/Configs/customcmds.h.lua")
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 7, 4)
 
 ------------------------------------------------------------
 -- Speedups
@@ -106,8 +107,7 @@ local allyTeams = {}	-- [id] = {team1, team2, ...}
 -- Config
 ------------------------------------------------------------
 
-local TEXT_SIZE = 16
-local TEXT_CORRECT_Y = 1.25
+local TEXT_SIZE = 15
 
 local MINIMAP_DRAW_SIZE = math.max(mapX,mapZ) * 0.0145
 
@@ -154,17 +154,10 @@ options = {
 
 local mexDefID = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.isExtractor then
-		mexDefID[udid] = true
+	if ud.customParams.metal_extractor then
+		mexDefID[udid] = tonumber (ud.customParams.metal_extractor)
 	end
 end
-
-local mexUnitDef = UnitDefNames["cormex"] -- reference mex
-local mexDefInfo = {
-	extraction = 0.001,
-	oddX = mexUnitDef.xsize % 4 == 2,
-	oddZ = mexUnitDef.zsize % 4 == 2,
-}
 
 local mexBuilder = {}
 
@@ -190,6 +183,18 @@ local metalSpotsNil = true
 ------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------
+local function GetNearestMex (x, z)
+	local units = Spring.GetUnitsInRectangle(x-1, z-1, x+1, z+1)
+	local myAlly = spGetMyAllyTeamID()
+	for i = 1, #units do
+		local unitID = units[i]
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		if unitDefID and mexDefID[unitDefID] and spGetUnitAllyTeam(unitID) == myAlly then
+			return unitID
+		end
+	end
+end
+
 local function GetClosestMetalSpot(x, z) --is used by single mex placement, not used by areamex
 	local bestSpot
 	local bestDist = math.huge
@@ -216,17 +221,8 @@ end
 local function IntegrateMetal(x, z, forceUpdate)
 	local newCenterX, newCenterZ
 	
-	if (mexDefInfo.oddX) then
-		newCenterX = (floor( x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
-	else
-		newCenterX = floor( x / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
-	end
-	
-	if (mexDefInfo.oddZ) then
-		newCenterZ = (floor( z / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
-	else
-		newCenterZ = floor( z / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
-	end
+	newCenterX = (floor( x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
+	newCenterZ = (floor( z / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
 	
 	if (centerX == newCenterX and centerZ == newCenterZ and not forceUpdate) then 
 		return 
@@ -242,7 +238,7 @@ local function IntegrateMetal(x, z, forceUpdate)
 	startX, startZ = max(startX, 0), max(startZ, 0)
 	endX, endZ = min(endX, MAP_SIZE_X_SCALED - 1), min(endZ, MAP_SIZE_Z_SCALED - 1)
 	
-	local mult = mexDefInfo.extraction
+	local mult = Spring.GetGameRulesParam("base_extraction")
 	local result = 0
 
 	for i = startX, endX do
@@ -351,7 +347,17 @@ function widget:CommandNotify(cmdID, params, options)
 				local z = command.z
 				local y = Spring.GetGroundHeight(x, z)
 
-				commandArrayToIssue[#commandArrayToIssue+1] = {-mexType, {x,y,z,0} , {"shift"}}
+				local unit = GetNearestMex (x, z)
+				if unit then
+					if Spring.GetUnitDefID(unit) ~= mexType then
+						commandArrayToIssue[#commandArrayToIssue+1] = {CMD.RECLAIM, {unit}, {"shift"}}
+						commandArrayToIssue[#commandArrayToIssue+1] = {CMD.INSERT, {-1, -mexType, CMD.OPT_INTERNAL, x,y,z,0}, {"alt"}}
+					elseif select (5, Spring.GetUnitHealth (unit)) < 1 then
+						commandArrayToIssue[#commandArrayToIssue+1] = {CMD.REPAIR, {unit}, {"shift"}}
+					end
+				else
+					commandArrayToIssue[#commandArrayToIssue+1] = {-mexType, {x,y,z,0} , {"shift"}}
+				end
 			end
 
 			if (#commandArrayToIssue > 0) then
@@ -365,36 +371,20 @@ function widget:CommandNotify(cmdID, params, options)
 		local bx, bz = params[1], params[3]
 		local closestSpot = GetClosestMetalSpot(bx, bz)
 		if closestSpot then
-			local units = spGetUnitsInRectangle(closestSpot.x-1, closestSpot.z-1, closestSpot.x+1, closestSpot.z+1)
-			local foundUnit = false
-			local myAlly = spGetMyAllyTeamID()
-			for i = 1, #units do
-				local unitID = units[i]
-				local unitDefID = Spring.GetUnitDefID(unitID)
-				if unitDefID and mexDefID[unitDefID] and spGetUnitAllyTeam(unitID) == myAlly then
-					foundUnit = unitID
-					break
-				end
-			end
-			
+			local commandHeight = math.max(0, Spring.GetGroundHeight(closestSpot.x, closestSpot.z))
+			local foundUnit = GetNearestMex (closestSpot.x, closestSpot.z)
 			if foundUnit then
-				local build = select(5, spGetUnitHealth(foundUnit))
-				if build ~= 1 then
-					--Spring.Echo("Found a mex in progress, assisting")
+				if Spring.GetUnitDefID(unit) ~= mexType then
+					spGiveOrder(CMD.RECLAIM, {foundUnit}, CMD.OPT_INTERNAL)
+					spGiveOrder(CMD.INSERT, {-1, cmdID, options.coded, closestSpot.x, commandHeight, closestSpot.z, params[4]} , {"alt"})
+				elseif select (5, Spring.GetUnitHealth (foundUnit)) < 1 then
 					spGiveOrder(CMD.REPAIR, {foundUnit}, options.coded)
-				else
-					--Spring.Echo("Found a finished mex, nothing to do")
 				end
-				return true
 			else
-				local commandHeight = math.max(0, Spring.GetGroundHeight(closestSpot.x, closestSpot.z))
 				spGiveOrder(cmdID, {closestSpot.x, commandHeight, closestSpot.z, params[4]}, options.coded)
-				--Spring.Echo("Queueing a mex")
-				return true
 			end
-		else
-			--Spring.Echo("No nearby mexspot found to snap to")
 		end
+		return true
 	end
 end
 
@@ -508,7 +498,7 @@ function widget:Update()
 			return 
 		end
 		IntegrateMetal(coords[1], coords[3])
-		WG.mouseoverMexIncome = extraction
+		WG.mouseoverMexIncome = extraction * mexDefID[-cmd_id]
 	end
 end
 
@@ -570,10 +560,10 @@ function calcMainMexDrawList()
 			glColor(0,0,0,0.7)
 			-- glDepthTest(false)
 			glLineWidth(spot.metal*2.4)
-			glDrawGroundCircle(x, 1, z, 40, 21)
+			glDrawGroundCircle(x, 1, z, 40, 32)
 			glColor(mexColor)
 			glLineWidth(spot.metal*1.5)
-			glDrawGroundCircle(x, 1, z, 40, 21)	
+			glDrawGroundCircle(x, 1, z, 40, 32)	
 			
 			glPopMatrix()	
 			
@@ -606,7 +596,13 @@ function calcMainMexDrawList()
 				glRotate(270,1,0,0)
   				glColor(1,1,1)
 				glTranslate(x,-z-40-options.size.value, y)
-				glText("+" .. ("%."..options.rounding.value.."f"):format(metal), 0.0, 0.0, options.size.value , "cno")
+				
+				--glText("+" .. ("%."..options.rounding.value.."f"):format(metal), 0.0, 0.0, options.size.value , "cno")
+				font:Begin()
+				font:SetTextColor(1,1,1)
+				font:SetOutlineColor(0,0,0)
+				font:Print("+" .. ("%."..options.rounding.value.."f"):format(metal), 0, 0, options.size.value, "con")
+				font:End()
 			end	
 	
 			glPopMatrix()	
@@ -668,7 +664,12 @@ function widget:DrawWorld()
 	if WG.metalSpots and pos and ((cmdID and mexDefID[-cmdID]) or peruse or CMD_AREA_MEX == cmdID) then
 	
 		-- Find build position and check if it is valid (Would get 100% metal)
-		local bx, by, bz = Spring.Pos2BuildPos(mexUnitDef.id, pos[1], pos[2], pos[3])
+		local bx, by, bz
+		if cmdID and cmdID < 0 then
+			bx, by, bz = Spring.Pos2BuildPos(-cmdID, pos[1], pos[2], pos[3])
+		else
+			bx, by, bz = pos[1], pos[2], pos[3]
+		end
 		local bface = Spring.GetBuildFacing()
 		local closestSpot, distance, index = GetClosestMetalSpot(bx, bz)
 		

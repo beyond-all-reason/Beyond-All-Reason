@@ -19,7 +19,6 @@ return {
 		corpse = "DEAD",
 		description = "Armed Metal Extractor",
 		explodeas = "mediumBuildingexplosiongeneric",
-		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -40,6 +39,7 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			death_sounds = "generic",
+			metal_extractor = 1,
 		},
 		featuredefs = {
 			dead = {

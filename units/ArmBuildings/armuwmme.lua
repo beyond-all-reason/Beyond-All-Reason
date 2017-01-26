@@ -17,7 +17,6 @@ return {
 		description = "Advanced Metal Extractor / Storage",
 		energyuse = 25,
 		explodeas = "hugeBuildingExplosionGeneric",
-		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -37,6 +36,7 @@ return {
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			death_sounds = "generic",
+			metal_extractor = 4,
 		},
 		featuredefs = {
 			dead = {
