@@ -35,7 +35,7 @@ function BuildSpecialLT(tskqbhvr)
 		if MyTB.side == CORESideName then
 			unitName = "hllt"
 		else
-			unitName = "tawf001"
+			unitName = "armbeamer"
 		end
 	end
 	local unit = tskqbhvr.unit:Internal()
@@ -47,7 +47,7 @@ function BuildSpecialLTOnly(tskqbhvr)
 	if MyTB.side == CORESideName then
 		unitName = "hllt"
 	else
-		unitName = "tawf001"
+		unitName = "armbeamer"
 	end
 	local unit = tskqbhvr.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)

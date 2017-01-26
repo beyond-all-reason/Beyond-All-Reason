@@ -58,7 +58,7 @@ return {
 			[8] = "armarad",
 			[9] = "armmine2",
 			[10] = "armdl",
-			[11] = "tawf001",
+			[11] = "armbeamer",
 			[12] = "armamb",
 			[13] = "packo",
 			[14] = "armflak",

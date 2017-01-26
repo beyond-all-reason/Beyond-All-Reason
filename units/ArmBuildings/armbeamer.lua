@@ -1,5 +1,5 @@
 return {
-	tawf001 = {
+	armbeamer = {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32768,
@@ -8,8 +8,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "tawf001_aoplane.dds",
-		buildpic = "TAWF001.DDS",
+		buildinggrounddecaltype = "armbeamer_aoplane.dds",
+		buildpic = "armbeamer.DDS",
 		buildtime = 5324,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
@@ -28,7 +28,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Beamer",
-		objectname = "TAWF001",
+		objectname = "ARMBEAMER",
 		script = "armbeamer_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingexplosiongeneric",
@@ -55,7 +55,7 @@ return {
 				height = 50,
 				hitdensity = 100,
 				metal = 114,
-				object = "TAWF001_DEAD",
+				object = "armbeamer_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -111,7 +111,7 @@ return {
 			},
 		},
 		weapondefs = {
-			tawf001_weapon = {
+			armbeamer_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -155,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "TAWF001_WEAPON",
+				def = "armbeamer_WEAPON",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

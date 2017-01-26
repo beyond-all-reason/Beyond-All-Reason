@@ -38,7 +38,7 @@ modConfig["BA"]["unitList"] =
 								armclaw = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
 								armllt = { weapons = { 1 } },
-								tawf001 = { weapons = { 1 } },
+								armbeamer = { weapons = { 1 } },
 								armhlt = { weapons = { 1 } },
 								armguard = { weapons = { 1, 1 } },
 								armrl = { weapons = { 2 } }, --light aa
@@ -116,7 +116,7 @@ modConfig["BARC"]["unitList"] =
 								armclaw = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
 								armllt = { weapons = { 1 } },
-								tawf001 = { weapons = { 1 } },
+								armbeamer = { weapons = { 1 } },
 								armhlt = { weapons = { 1 } },
 								armguard = { weapons = { 1, 1 } },
 								armrl = { weapons = { 2 } }, --light aa

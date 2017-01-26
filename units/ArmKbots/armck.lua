@@ -64,7 +64,7 @@ return {
 			[18] = "armdrag",
 			[19] = "armclaw",
 			[20] = "armllt",
-			[21] = "tawf001",
+			[21] = "armbeamer",
 			[22] = "armhlt",
 			[23] = "armguard",
 			[24] = "armrl",
