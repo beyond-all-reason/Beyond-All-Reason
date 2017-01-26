@@ -103,7 +103,7 @@ fixGo()
 	turn turret2 to y-axis Static_Var_12 speed <200.000000>;
 	wait-for-turn turret2 around y-axis;
 	move stands to y-axis [0.000000] now;
-	move stands to y-axis [25.875000] speed [32.500000];
+	move stands to y-axis [8.875000] speed [32.500000];
 	if( Static_Var_11 )
 	{
 		turn sleeve1 to x-axis <0.000000> speed <200.000000>;
@@ -148,12 +148,12 @@ Stop()
 		turn dingle1 to y-axis <0.000000> speed <120.000000>;
 		turn dingle2 to y-axis <0.000000> speed <120.000000>;
 		move stands to y-axis [0.000000] now;
-		move stands to y-axis [25.875000] speed [32.500000];
+		move stands to y-axis [8.875000] speed [32.500000];
 		turn shell to x-axis <-180.038462> now;
 		sleep 250;
 		turn shell to x-axis <0.000000> speed <261.000000>;
 		sleep 250;
-		move turret2 to y-axis [12.500000] speed [30.000000];
+		move turret2 to y-axis [6.500000] speed [30.000000];
 		wait-for-move turret2 along y-axis;
 		turn sleeve1 to x-axis <0.000000> speed <200.000000>;
 		move stands to y-axis [0.000000] speed [32.500000];

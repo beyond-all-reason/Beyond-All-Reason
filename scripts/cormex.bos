@@ -43,7 +43,7 @@ fixGo()
 	dont-cache hand2;
 	dont-cache hand3;
 	dont-cache stand;
-	move stand to y-axis [13.750000] speed [5.000000];
+	move stand to y-axis [6.750000] speed [5.000000];
 	wait-for-move stand along y-axis;
 	spin arms around y-axis speed <-100> accelerate <1>;
 }
