@@ -374,7 +374,7 @@ function widget:CommandNotify(cmdID, params, options)
 			local commandHeight = math.max(0, Spring.GetGroundHeight(closestSpot.x, closestSpot.z))
 			local foundUnit = GetNearestMex (closestSpot.x, closestSpot.z)
 			if foundUnit then
-				if Spring.GetUnitDefID(unit) ~= mexType then
+				if Spring.GetUnitDefID(unit) and Spring.GetUnitDefID(unit) ~= mexType then
 					spGiveOrder(CMD.RECLAIM, {foundUnit}, CMD.OPT_INTERNAL)
 					spGiveOrder(CMD.INSERT, {-1, cmdID, options.coded, closestSpot.x, commandHeight, closestSpot.z, params[4]} , {"alt"})
 				elseif select (5, Spring.GetUnitHealth (foundUnit)) < 1 then
