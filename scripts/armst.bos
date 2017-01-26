@@ -54,6 +54,12 @@ HitByWeapon(anglex, anglez)
 Create()
 {
 	hide flare;
+	turn flare to y-axis <180> now;
+	turn flare to x-axis <-10> now;
+	turn flare to z-axis <-235> now;
+	move flare to y-axis [-0.5] now;
+	move flare to z-axis [1] now;
+	move barrel to z-axis [0.5] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	return (0);
@@ -87,6 +93,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-0.6500] speed [500.000000];
+	wait-for-move barrel along z-axis;
+	move barrel to z-axis [0.5000000] speed [2.00000];
 }
 
 AimFromPrimary(piecenum)
