@@ -27,7 +27,7 @@ return {
 		minwaterdepth = 15,
 		name = "Underwater Metal Extractor",
 		objectname = "ARMUWMEX",
-		onoffable = true,
+		onoffable = false,
 		seismicsignature = 0,
 		selfdestructcountdown = 1,
 		sightdistance = 182,

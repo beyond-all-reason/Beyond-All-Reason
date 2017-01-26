@@ -14,14 +14,14 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5
 
 fixGo()
 {
-	spin arms1 around y-axis speed Static_Var_1 accelerate Static_Var_3;
-	spin arms2 around y-axis speed Static_Var_2 accelerate Static_Var_4;
+	spin arms1 around y-axis speed <300> accelerate <1>;
+	spin arms2 around y-axis speed <-300> accelerate <1>;
 }
 
 Stop()
 {
-	stop-spin arms1 around y-axis decelerate Static_Var_5;
-	stop-spin arms2 around y-axis decelerate Static_Var_6;
+	stop-spin arms1 around y-axis decelerate <1>;
+	stop-spin arms2 around y-axis decelerate <1>;
 	wait-for-turn arms1 around y-axis;
 	wait-for-turn arms2 around y-axis;
 }

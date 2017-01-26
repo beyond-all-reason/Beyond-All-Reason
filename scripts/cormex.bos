@@ -45,12 +45,12 @@ fixGo()
 	dont-cache stand;
 	move stand to y-axis [13.750000] speed [5.000000];
 	wait-for-move stand along y-axis;
-	spin arms around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin arms around y-axis speed <-100> accelerate <1>;
 }
 
 Stop()
 {
-	stop-spin arms around y-axis decelerate Static_Var_3;
+	stop-spin arms around y-axis decelerate <1>;
 	wait-for-turn arms around y-axis;
 	turn arms to y-axis <0.000000> speed <70.000000>;
 	wait-for-turn arms around y-axis;

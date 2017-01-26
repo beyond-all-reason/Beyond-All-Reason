@@ -15,7 +15,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, statechg_Des
 
 fixGo()
 {
-	spin drive around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin drive around y-axis speed <-300> accelerate <1>;
 	move doors1 to y-axis [-5.000000] speed [5.000000];
 	move doors2 to y-axis [-5.000000] speed [5.000000];
 	wait-for-move doors1 along y-axis;
@@ -28,7 +28,7 @@ fixGo()
 
 Stop()
 {
-	stop-spin drive around y-axis decelerate Static_Var_3;
+	stop-spin drive around y-axis decelerate <1>;
 	wait-for-turn drive around y-axis;
 	Static_Var_4 = 0;
 	turn doors1 to y-axis <0.000000> speed <60.000000>;

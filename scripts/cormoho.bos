@@ -107,16 +107,16 @@ fixedGo()
 	dont-cache shell;
 	dont-cache stands;
 	call-script activatescr();
-	spin rotary around y-axis speed Static_Var_1 accelerate Static_Var_2;
-	spin dingle1 around y-axis speed Static_Var_1;
-	spin dingle2 around y-axis speed Static_Var_1;
+	spin rotary around y-axis speed <-300> accelerate <1>;
+	spin dingle1 around y-axis speed <-50>;
+	spin dingle2 around y-axis speed <50>;
 }
 
 Stop()
 {
-	stop-spin rotary around y-axis decelerate Static_Var_3;
-	stop-spin dingle1 around y-axis decelerate Static_Var_3;
-	stop-spin dingle2 around y-axis decelerate Static_Var_3;
+	stop-spin rotary around y-axis decelerate <1>;
+	stop-spin dingle1 around y-axis decelerate <1>;
+	stop-spin dingle2 around y-axis decelerate <1>;
 	wait-for-turn rotary around y-axis;
 	wait-for-turn dingle1 around y-axis;
 	wait-for-turn dingle2 around y-axis;

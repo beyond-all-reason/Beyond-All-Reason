@@ -37,12 +37,12 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 fixGo()
 {
-	spin extractor around y-axis speed Static_Var_1 accelerate <0.500000>;
+	spin extractor around y-axis speed <300> accelerate <1>;
 }
 
 Stop()
 {
-	stop-spin extractor around y-axis decelerate <1.000000>;
+	stop-spin extractor around y-axis decelerate <1>;
 	wait-for-turn extractor around y-axis;
 }
 

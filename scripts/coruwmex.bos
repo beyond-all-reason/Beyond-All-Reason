@@ -13,12 +13,12 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, sta
 
 fixGo()
 {
-	spin drive around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin drive around y-axis speed <-100> accelerate <1>;
 }
 
 Stop()
 {
-	stop-spin drive around y-axis decelerate Static_Var_3;
+	stop-spin drive around y-axis decelerate <1>;
 	wait-for-turn drive around y-axis;
 }
 

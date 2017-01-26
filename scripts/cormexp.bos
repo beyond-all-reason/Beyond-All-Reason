@@ -120,9 +120,9 @@ fixGo()
 	sleep 250;
 	hide fakeshell;
 	set ACTIVATION to 100;
-	spin rotary around y-axis speed Static_Var_1 accelerate Static_Var_2;
-	spin dingle1 around y-axis speed Static_Var_1;
-	spin dingle2 around y-axis speed Static_Var_1;
+	spin rotary around y-axis speed <-300> accelerate <1>;
+	spin dingle1 around y-axis speed <-50>;
+	spin dingle2 around y-axis speed <50>;
 }
 
 Stop()
@@ -139,9 +139,9 @@ Stop()
 		show rocketbox;
 		start-script LowerArmor();
 		set ACTIVATION to 0;
-		stop-spin rotary around y-axis decelerate Static_Var_3;
-		stop-spin dingle1 around y-axis decelerate Static_Var_3;
-		stop-spin dingle2 around y-axis decelerate Static_Var_3;
+		stop-spin rotary around y-axis decelerate <1>;
+		stop-spin dingle1 around y-axis decelerate <1>;
+		stop-spin dingle2 around y-axis decelerate <1>;
 		wait-for-turn rotary around y-axis;
 		wait-for-turn dingle1 around y-axis;
 		wait-for-turn dingle2 around y-axis;
@@ -320,8 +320,8 @@ AimPrimary(heading, pitch)
 	}
 	Static_Var_11 = 0 - pitch;
 	Static_Var_12 = heading;
-	turn turret1 to y-axis Static_Var_12 speed Static_Var_9;
-	turn sleeve1 to x-axis Static_Var_11 speed Static_Var_10;
+	turn turret1 to y-axis Static_Var_12 speed <100>;
+	turn sleeve1 to x-axis Static_Var_11 speed <50>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	if( bAiming )
@@ -391,8 +391,8 @@ AimSecondary(heading, pitch)
 	{
 		sleep 250;
 	}
-	turn turret2 to y-axis heading speed Static_Var_9;
-	turn rocketbox to x-axis <0.000000> - pitch speed Static_Var_10;
+	turn turret2 to y-axis heading speed <150>;
+	turn rocketbox to x-axis <0.000000> - pitch speed <50>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn rocketbox around x-axis;
 	return (1);

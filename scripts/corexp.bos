@@ -39,116 +39,32 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-fixGo()
+Go()
 {
-	spin arms around y-axis speed Static_Var_3 accelerate Static_Var_4;
-	spin ear1 around x-axis speed Static_Var_3 accelerate Static_Var_4;
-	spin ear2 around x-axis speed Static_Var_3 accelerate Static_Var_4;
 }
 
 Stop()
 {
-	stop-spin arms around y-axis decelerate Static_Var_5;
-	stop-spin ear1 around x-axis decelerate Static_Var_5;
-	stop-spin ear2 around x-axis decelerate Static_Var_5;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script fixGo();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
 }
 
 Create()
 {
-	Static_Var_3 = 0;
-	Static_Var_4 = 91;
-	Static_Var_5 = 182;
-	Static_Var_7 = 0;
-	Static_Var_8 = 0;
 	gun_1 = base;
-	Static_Var_1 = 1;
 	hide flare1;
 	hide flare2;
-	dont-cache arms;
-	dont-cache ear1;
-	dont-cache ear2;
-	dont-cache turret;
-	dont-cache sleeve;
-	dont-cache flare1;
-	dont-cache flare2;
-	dont-shade flare1;
-	dont-shade flare2;
-	call-script InitState();
+	spin arms around y-axis speed <-100> accelerate <1>;
+	spin ear1 around x-axis speed <50> accelerate <1>;
+	spin ear2 around x-axis speed <50> accelerate <1>;
 	start-script SmokeUnit();
 }
 
-Activate()
-{
-	start-script RequestState(0);
-}
-
-Deactivate()
-{
-	start-script RequestState(1);
-}
-
-SetMaxReloadTime(Func_Var_1)
-{
-	restore_delay = Func_Var_1 * 8;
-}
-
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	set-signal-mask 0;
-	start-script RequestState(1);
-}
-
-SetSpeed(Func_Var_1)
-{
-	Static_Var_3 = Func_Var_1 * 45;
-	Static_Var_7 = Func_Var_1 * 400;
-	Static_Var_8 = Func_Var_1 * 400;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed Static_Var_7;
-	turn sleeve to x-axis <0.000000> - pitch speed Static_Var_8;
+	turn turret to y-axis heading speed <300>;
+	turn sleeve to x-axis <0.000000> - pitch speed <100>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	return (1);

@@ -30,7 +30,7 @@ return {
 		metalstorage = 50,
 		name = "Metal Extractor",
 		objectname = "ARMMEX",
-		onoffable = true,
+		onoffable = false,
 		seismicsignature = 0,
 		selfdestructas = "tinyBuildingExplosionGeneric",
 		selfdestructcountdown = 1,

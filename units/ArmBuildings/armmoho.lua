@@ -30,7 +30,7 @@ return {
 		metalstorage = 1000,
 		name = "Moho Mine",
 		objectname = "ARMMOHO",
-		onoffable = true,
+		onoffable = false,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingexplosiongeneric",
 		sightdistance = 273,

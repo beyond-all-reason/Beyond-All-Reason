@@ -33,7 +33,7 @@ return {
 		mincloakdistance = 66,
 		name = "Twilight",
 		objectname = "ARMAMEX",
-		onoffable = true,
+		onoffable = false,
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingexplosiongeneric",
 		selfdestructcountdown = 1,

@@ -37,12 +37,12 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 fixGo()
 {
-	spin arms around y-axis speed Static_Var_1 accelerate Static_Var_2;
+	spin arms around y-axis speed <100> accelerate <1>;
 }
 
 Stop()
 {
-	stop-spin arms around y-axis decelerate Static_Var_3;
+	stop-spin arms around y-axis decelerate <1>;
 	wait-for-turn arms around y-axis;
 }
 
