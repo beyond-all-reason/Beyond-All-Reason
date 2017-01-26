@@ -25,7 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 3500,
-		maxslope = 20,
+		maxslope = 30,
 		maxwaterdepth = 5000,
 		metalstorage = 1000,
 		name = "Moho Mine",

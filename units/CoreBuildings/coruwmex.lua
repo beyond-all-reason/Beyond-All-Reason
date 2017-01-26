@@ -22,7 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 185,
-		maxslope = 20,
+		maxslope = 30,
 		metalstorage = 50,
 		minwaterdepth = 15,
 		name = "Underwater Metal Extractor",

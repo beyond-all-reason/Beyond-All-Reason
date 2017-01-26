@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 2072,
-		maxslope = 24,
+		maxslope = 30,
 		metalstorage = 1000,
 		minwaterdepth = 15,
 		name = "Underwater Moho Mine",

@@ -25,7 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 170,
-		maxslope = 20,
+		maxslope = 30,
 		maxwaterdepth = 5000,
 		metalstorage = 50,
 		name = "Metal Extractor",
