@@ -27,11 +27,11 @@ end
 function script.AimWeapon(weaponID, heading, pitch)
 	Signal(SIG_AIM)
 	SetSignalMask(SIG_AIM)
-	Turn(turret, y_axis, heading, 100)
-	Turn(sleeve, x_axis, -pitch, 100)
+	Turn(turret, y_axis, heading, 5)
+	Turn(sleeve, x_axis, -pitch, 5)
 	WaitForTurn(turret, y_axis)
 	WaitForTurn(sleeve, x_axis)
-	StartThread(RestoreAfterDelay)
+	--StartThread(RestoreAfterDelay)
 	--Spring.Echo("AimWeapon: FireWeapon")
 	return true
 end
