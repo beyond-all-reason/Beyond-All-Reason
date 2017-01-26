@@ -10,8 +10,8 @@ common = include("headers/common_includes_lus.lua")
 
 local function RestoreAfterDelay()
 	Sleep(2000)
-	Turn(turret, y_axis, 0, 5)
-	Turn(sleeve, x_axis, 0, 5)
+	Turn(turret, y_axis, 0, 8.72)
+	Turn(sleeve, x_axis, 0, 4.36)
 end		
 
 function script.AimFromWeapon(weaponID)
@@ -27,8 +27,8 @@ end
 function script.AimWeapon(weaponID, heading, pitch)
 	Signal(SIG_AIM)
 	SetSignalMask(SIG_AIM)
-	Turn(turret, y_axis, heading, 5)
-	Turn(sleeve, x_axis, -pitch, 5)
+	Turn(turret, y_axis, heading, 8.72)
+	Turn(sleeve, x_axis, -pitch, 4.36)
 	WaitForTurn(turret, y_axis)
 	WaitForTurn(sleeve, x_axis)
 	--StartThread(RestoreAfterDelay)
