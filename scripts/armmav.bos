@@ -1174,9 +1174,16 @@ Create()
 	hide rgunshaft;
 	hide rgunbase;
 	hide flare1;
+	turn flare1 to z-axis <-52> now;
+	turn flare1 to y-axis <-63> now;
+	turn flare1 to x-axis <-35> now;
+	move flare1 to z-axis [0.5] now;
+	move flare1 to y-axis [0.26] now;
 	hide flare2;
-	spin flare1 around y-axis speed <100.016484>;
-	spin flare2 around y-axis speed <100.016484>;
+	turn flare2 to z-axis <-75> now;
+	turn flare2 to y-axis <60> now;
+	turn flare2 to x-axis <45> now;
+	move flare2 to y-axis [-2.42] now;
 	restore_delay = 2000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -1231,13 +1238,13 @@ FirePrimary()
 	if( gun_1 )
 	{
 		move lgunbarrel to y-axis [1.000000] speed [5.439560];
-		emit-sfx 1024 + 0 from flare2;
+		emit-sfx 1024 + 0 from flare1;
 		move lgunbarrel to y-axis [0.000000] speed [15.000000];
 	}
 	else
 	{
 		move rgunbarrel to y-axis [1.000000] speed [5.439560];
-		emit-sfx 1024 + 0 from flare1;
+		emit-sfx 1024 + 0 from flare2;
 		move rgunbarrel to y-axis [0.000000] speed [15.000000];
 	}
 	gun_1 = !gun_1;
