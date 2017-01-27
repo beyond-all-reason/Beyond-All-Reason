@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().luamex ~= "enabled" then return false end
+
 VFS.Include("LuaRules/Configs/customcmds.h.lua")
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 80, 8, 3)
 
@@ -115,40 +117,8 @@ local MINIMAP_DRAW_SIZE = math.max(mapX,mapZ) * 0.0145
 
 options_path = 'Settings/Interface/Map/Metal Spots'
 options_order = { 'drawicons', 'size', 'specPlayerColours', 'rounding'}
-options = {
-	
-	drawicons = {
-		name = 'Show Income as Icon',
-		type = 'bool',
-		value = false,
-		tooltip = "When enabled income is shown pictorially. When disabled income is shown as a number.",
-		OnChange = function() updateMexDrawList() end
-	},
-	size = {
-		name = "Income Display Size", 
-		type = "number", 
-		value = 30, 
-		min = 10,
-		max = 150,
-		step = 5,
-		OnChange = function() updateMexDrawList() end
-	},
-	rounding = {
-		name = "Display digits",
-		type = "number",
-		value = 1,
-		min = 1,
-		max = 4,
-		advanced = true,
-		OnChange = function() updateMexDrawList() end
-	},
-	specPlayerColours = {
-		name = "Use player colours when spectating",
-		type = "bool",
-		value = true,
-		OnChange = function() updateMexDrawList() end
-	}
-}
+
+VFS.Include("LuaUI/Configs/LuaMex/options.lua")
 
 local circleOptions = {
 	enabled							= true,
@@ -415,7 +385,8 @@ function widget:CommandNotify(cmdID, params, options)
 			local commandHeight = math.max(0, Spring.GetGroundHeight(closestSpot.x, closestSpot.z))
 			local foundUnit = GetNearestMex (closestSpot.x, closestSpot.z)
 			if foundUnit then
-				if Spring.GetUnitDefID(unit) and Spring.GetUnitDefID(unit) ~= mexType then
+
+				if Spring.GetUnitDefID(foundUnit) ~= mexType then
 					spGiveOrder(CMD.RECLAIM, {foundUnit}, CMD.OPT_INTERNAL)
 					spGiveOrder(CMD.INSERT, {-1, cmdID, options.coded, closestSpot.x, commandHeight, closestSpot.z, params[4]} , {"alt"})
 				elseif select (5, Spring.GetUnitHealth (foundUnit)) < 1 then
@@ -628,6 +599,7 @@ function calcMainMexDrawList(valuesonly)
 							size = 2.5
 						end
 					end
+
 					
 					size = options.size.value
 					
@@ -644,11 +616,14 @@ function calcMainMexDrawList(valuesonly)
 	  				glColor(1,1,1)
 					glTranslate(x,-z-52-options.size.value, y)
 					
-					--glText("+" .. ("%."..options.rounding.value.."f"):format(metal), 0.0, 0.0, options.size.value , "cno")
 					font:Begin()
 					font:SetTextColor(1,1,1)
 					font:SetOutlineColor(0,0,0)
-					font:Print(("%."..options.rounding.value.."f"):format(metal), 0, 0, options.size.value, "con")
+					if options.drawcustomincomeamount.value ~= true then
+						font:Print(("%."..options.rounding.value.."f"):format(metal*options.multiplier.value), 0, 0, options.size.value, "con")
+					else
+						font:Print(("%."..options.rounding.value.."f"):format(options.customamount.value), 0, 0, options.size.value, "con")
+					end
 					font:End()
 				end	
 		
@@ -729,6 +704,7 @@ function widget:DrawWorldPreUnit()
 	local peruse = spGetGameFrame() < 1 or spGetMapDrawMode() == 'metal'
 
 	drawMexSpots = WG.metalSpots and ((cmdID and mexDefID[-cmdID]) or CMD_AREA_MEX == cmdID or peruse)
+
 
 	if drawMexSpots or (circleOptions.enabled and circleOptions.alwaysshow) then
 			
@@ -841,6 +817,7 @@ function widget:DrawInMiniMap()
 			local mexColor = getSpotColor(x,y,z,i,specatate,2)
 			
 			glLighting(false)
+
 			glColor(0,0,0,0.66)
 			glLineWidth(((spot.metal > 0 and spot.metal) or 0.1)*2.0)
 			glDrawGroundCircle(x, 0, z, MINIMAP_DRAW_SIZE, 32)
