@@ -13,8 +13,6 @@ function widget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions().luamex ~= "enabled" then return false end
-
 VFS.Include("LuaRules/Configs/customcmds.h.lua")
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 80, 8, 3)
 
