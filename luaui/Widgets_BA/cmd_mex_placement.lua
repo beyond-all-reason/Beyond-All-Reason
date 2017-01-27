@@ -14,7 +14,7 @@ function widget:GetInfo()
 end
 
 VFS.Include("LuaRules/Configs/customcmds.h.lua")
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 7, 4)
+local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 80, 8, 3)
 
 ------------------------------------------------------------
 -- Speedups
@@ -103,11 +103,13 @@ local enemyMexColor = {[1] = {1, 0, 0, 0.7}, [2] = {1, 0, 0, 1}}
 
 local allyTeams = {}	-- [id] = {team1, team2, ...}
 
+local previousOsClock = os.clock()
+local currentRotationAngle = 0
+local currentRotationAngleOpposite = 0
+
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
-
-local TEXT_SIZE = 15
 
 local MINIMAP_DRAW_SIZE = math.max(mapX,mapZ) * 0.0145
 
@@ -125,7 +127,7 @@ options = {
 	size = {
 		name = "Income Display Size", 
 		type = "number", 
-		value = 40, 
+		value = 30, 
 		min = 10,
 		max = 150,
 		step = 5,
@@ -146,6 +148,19 @@ options = {
 		value = true,
 		OnChange = function() updateMexDrawList() end
 	}
+}
+
+local circleOptions = {
+	enabled							= true,
+	animating						= true,	-- its only rotation, but will cost more performance
+	alwaysshow					= false,
+	innersize						= 40,		-- outersize-innersize = circle width
+	outersize						= 43,		-- outersize-innersize = circle width
+	circlePieces				= 24,
+	circlePieceDetail		= 1,
+	circleSpaceUsage		= 0.45,
+	circleInnerOffset		= 0.42,
+	rotationSpeed				= 2.5,
 }
 
 -------------------------------------------------------------------------------------
@@ -257,6 +272,32 @@ local function IntegrateMetal(x, z, forceUpdate)
 	extraction = result * mult
 end
 
+local function DrawCircleLine(innersize, outersize)
+	gl.BeginEnd(GL.QUADS, function()
+		local detailPartWidth, a1,a2,a3,a4
+		local width = circleOptions.circleSpaceUsage
+		local detail = circleOptions.circlePieceDetail
+
+		local radstep = (2.0 * math.pi) / circleOptions.circlePieces
+		for i = 1, circleOptions.circlePieces do
+			for d = 1, detail do
+				
+				detailPartWidth = ((width / detail) * d)
+				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
+				a2 = ((i+detailPartWidth) * radstep)
+				a3 = ((i+circleOptions.circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
+				a4 = ((i+circleOptions.circleInnerOffset+detailPartWidth) * radstep)
+				
+				--outer (fadein)
+				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
+				gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
+				--outer (fadeout)
+				gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
+				gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+			end
+		end
+	end)
+end
 ------------------------------------------------------------
 -- Command Handling
 ------------------------------------------------------------
@@ -439,6 +480,9 @@ end
 
 local function Initialize() 
 
+	circleList = gl.CreateList(DrawCircleLine, circleOptions.innersize, circleOptions.outersize)
+	currentClock = os.clock()
+	
 	local units = spGetAllUnits()
 	for i, unitID in ipairs(units) do 
 		local unitDefID = spGetUnitDefID(unitID)
@@ -511,6 +555,7 @@ local centerZ
 local extraction = 0
 
 local mainMexDrawList = 0
+local mainMexValueDrawList = 0
 local miniMexDrawList = 0
 
 local function getSpotColor(x,y,z,id, specatate, t)
@@ -539,91 +584,138 @@ local function getSpotColor(x,y,z,id, specatate, t)
 	end
 end
 
-function calcMainMexDrawList()
+function calcMainMexDrawList(valuesonly)
 	local specatate = spGetSpectatingState()
+	
+	if WG.metalSpots then
+		if not valuesonly and circleOptions.enabled then
+			if circleOptions.animating == false then
+				DrawMexList()
+			end
+		end
+		
+		for i = 1, #WG.metalSpots do
+			local spot = WG.metalSpots[i]
+			local x,z,y = spot.x, spot.z, spot.y
+			if y < 0 then y = 0 end
+			local mexColor = getSpotColor(x,y+45,z,i,specatate,1)
+			local metal = spot.metal
+			
+			glPushMatrix()	
+			if not valuesonly and not circleOptions.enabled then
+				glDepthTest(true)
+				glColor(0,0,0,0.7)
+				glLineWidth(spot.metal*2.6)
+				glDrawGroundCircle(x, 1, z, 40, 32)
+				glColor(mexColor)
+				glLineWidth(spot.metal*1.6)
+				glDrawGroundCircle(x, 1, z, 40, 32)
+			end
+			glPopMatrix()	
+			
+			if valuesonly then 
+				glPushMatrix()
+				
+				glDepthTest(false)
+				if options.drawicons.value then
+					local size = 1
+					if metal > 10 then
+						if metal > 100 then
+							metal = metal*0.01
+							size = 5
+						else
+							metal = metal*0.1
+							size = 2.5
+						end
+					end
+					
+					size = options.size.value
+					
+					glRotate(90,1,0,0)	
+					glTranslate(0,0,-y-10)
+					glColor(1,1,1)
+					glTexture("LuaUI/Images/ibeam.png")
+					local width = metal*size
+					glTexRect(x-width/2, z+42, x+width/2, z+40+size,0,0,metal,1)
+					glTexture(false)
+				else
+					-- Draws the metal spot's base income "south" of the metal spot
+					glRotate(270,1,0,0)
+	  				glColor(1,1,1)
+					glTranslate(x,-z-52-options.size.value, y)
+					
+					--glText("+" .. ("%."..options.rounding.value.."f"):format(metal), 0.0, 0.0, options.size.value , "cno")
+					font:Begin()
+					font:SetTextColor(1,1,1)
+					font:SetOutlineColor(0,0,0)
+					font:Print(("%."..options.rounding.value.."f"):format(metal), 0, 0, options.size.value, "con")
+					font:End()
+				end	
+		
+				glPopMatrix()	
+			end
+		end
+		glLineWidth(1.0)
+		glColor(1,1,1,1)
+	end
+end
 
+-- only used when animating
+function DrawMexList()
+	local specatate = spGetSpectatingState()
+	
 	if WG.metalSpots then
 		for i = 1, #WG.metalSpots do
 			local spot = WG.metalSpots[i]
-			local x,z = spot.x, spot.z
-			local y = spGetGroundHeight(x,z)
+			local x,z,y = spot.x, spot.z, spot.y
 			if y < 0 then y = 0 end
-
 			local mexColor = getSpotColor(x,y+45,z,i,specatate,1)
 			local metal = spot.metal
-		
-
+			
 			glPushMatrix()	
-			
-			gl.DepthTest(true)
-
-			glColor(0,0,0,0.7)
-			-- glDepthTest(false)
-			glLineWidth(spot.metal*2.4)
-			glDrawGroundCircle(x, 1, z, 40, 32)
-			glColor(mexColor)
-			glLineWidth(spot.metal*1.5)
-			glDrawGroundCircle(x, 1, z, 40, 32)	
-			
-			glPopMatrix()	
-			
-			glPushMatrix()
-			
-			glDepthTest(false)
-			if options.drawicons.value then
-				local size = 1
-				if metal > 10 then
-					if metal > 100 then
-						metal = metal*0.01
-						size = 5
-					else
-						metal = metal*0.1
-						size = 2.5
-					end
-				end
+				glTranslate(x,y,z)
+				glColor(0,0,0,0.75)
+				glRotate(currentRotationAngle,0,1,0)
+				glScale(1.04,1,1.04)
+				glCallList(circleList)
+				mexColor[4] = 1
+				glColor(mexColor)
+				glScale(1/1.04,1,1/1.04)
+				glCallList(circleList)
+				glRotate(-currentRotationAngle,0,1,0)
 				
-				size = options.size.value
-				
-				glRotate(90,1,0,0)	
-				glTranslate(0,0,-y-10)
-				glColor(1,1,1)
-				glTexture("LuaUI/Images/ibeam.png")
-				local width = metal*size
-				glTexRect(x-width/2, z+40, x+width/2, z+40+size,0,0,metal,1)
-				glTexture(false)
-			else
-				-- Draws the metal spot's base income "south" of the metal spot
-				glRotate(270,1,0,0)
-  				glColor(1,1,1)
-				glTranslate(x,-z-40-options.size.value, y)
-				
-				--glText("+" .. ("%."..options.rounding.value.."f"):format(metal), 0.0, 0.0, options.size.value , "cno")
-				font:Begin()
-				font:SetTextColor(1,1,1)
-				font:SetOutlineColor(0,0,0)
-				font:Print("+" .. ("%."..options.rounding.value.."f"):format(metal), 0, 0, options.size.value, "con")
-				font:End()
-			end	
-	
+				glRotate(currentRotationAngleOpposite,0,1,0)
+				glRotate(180,1,0,0)
+				glColor(0,0,0,0.4)
+				glScale(1.21,1,1.21)
+				glCallList(circleList)
+				mexColor[4] = 0.47
+				glColor(mexColor)
+				glScale(1/1.04,1,1/1.04)
+				glCallList(circleList)
+				glTranslate(-x,-y,-z)
+				glRotate(-currentRotationAngleOpposite,0,1,0)
 			glPopMatrix()	
 		end
-
-		glLineWidth(1.0)
-		glColor(1,1,1,1)
 	end
 end
 
 function updateMexDrawList()
 	if (mainMexDrawList) then 
 		gl.DeleteList(mainMexDrawList); 
+		gl.DeleteList(mainMexValueDrawList); 
 		mainMexDrawList = nil 
+		mainMexValueDrawList = nil 
 	end --delete previous list if exist (ref:gui_chicken.lua by quantum)
-	mainMexDrawList = glCreateList(calcMainMexDrawList)
+	mainMexDrawList = glCreateList(calcMainMexDrawList, false)
+	mainMexValueDrawList = glCreateList(calcMainMexDrawList, true)
 	--miniMexDrawList = glCreateList(calcMiniMexDrawList)
 end
 
 function widget:Shutdown()
 	gl.DeleteList(mainMexDrawList)
+	gl.DeleteList(mainMexValueDrawList)
+	gl.DeleteList(circleList)
 end
 
 local function DoLine(x1, y1, z1, x2, y2, z2)
@@ -632,21 +724,45 @@ local function DoLine(x1, y1, z1, x2, y2, z2)
 end
 
 function widget:DrawWorldPreUnit()
-
 	-- Check command is to build a mex
 	local _, cmdID = spGetActiveCommand()
 	local peruse = spGetGameFrame() < 1 or spGetMapDrawMode() == 'metal'
 
 	drawMexSpots = WG.metalSpots and ((cmdID and mexDefID[-cmdID]) or CMD_AREA_MEX == cmdID or peruse)
 
+	if drawMexSpots or (circleOptions.enabled and circleOptions.alwaysshow) then
+			
+		if circleOptions.enabled and circleOptions.animating then
+			local clockDifference = (os.clock() - previousOsClock)
+			previousOsClock = os.clock()
+			
+			-- animate rotation
+			if circleOptions.rotationSpeed > 0 then
+				local angleDifference = (circleOptions.rotationSpeed) * (clockDifference * 5)
+				currentRotationAngle = currentRotationAngle + (angleDifference*0.66)
+				if currentRotationAngle > 360 then
+				   currentRotationAngle = currentRotationAngle - 360
+				end
+			
+				currentRotationAngleOpposite = currentRotationAngleOpposite - angleDifference
+				if currentRotationAngleOpposite < -360 then
+				   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
+				end
+			end
+			
+			DrawMexList()
+		end
+	end
 	if drawMexSpots then
-			
-			gl.DepthTest(true)
-			gl.DepthMask(true)
-		glCallList(mainMexDrawList)
-			
-			gl.DepthTest(false)
-			gl.DepthMask(false)
+		gl.DepthTest(true)
+		gl.DepthMask(true)
+		if not circleOptions.enabled then
+			glCallList(mainMexDrawList)
+		end
+		glCallList(mainMexValueDrawList)
+
+		gl.DepthTest(false)
+		gl.DepthMask(false)
 	end
 end
 
@@ -682,7 +798,7 @@ function widget:DrawWorld()
 			
 			gl.DepthTest(false)
 			
-			gl.LineWidth(1.49)
+			gl.LineWidth(1.7)
 			gl.Color(1, 1, 0, 0.5)
 			gl.BeginEnd(GL.LINE_STRIP, DoLine, bx, by, bz, closestSpot.x, height, closestSpot.z)
 			gl.LineWidth(1.0)
@@ -725,10 +841,11 @@ function widget:DrawInMiniMap()
 			local mexColor = getSpotColor(x,y,z,i,specatate,2)
 			
 			glLighting(false)
-			glColor(0,0,0,1)
+			glColor(0,0,0,0.66)
 			glLineWidth(((spot.metal > 0 and spot.metal) or 0.1)*2.0)
 			glDrawGroundCircle(x, 0, z, MINIMAP_DRAW_SIZE, 32)
 			glLineWidth((spot.metal > 0 and spot.metal) or 0.1)
+			mexColor[4] = 0.85
 			glColor(mexColor)
 			
 			glDrawGroundCircle(x, 0, z, MINIMAP_DRAW_SIZE, 32)
