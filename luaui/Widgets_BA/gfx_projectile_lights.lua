@@ -159,7 +159,7 @@ function widget:DrawWorldPreUnit()
 
 		local x,y,z
 		--local fx, fy = 32, 32	--footprint
-		glBlending("alpha_add") --makes it go into +
+		--glBlending("alpha_add") --makes it go into +
 		local lightparams
 		-- AND NOW FOR THE FUN STUFF!
 		for i=1, #plist do

@@ -72,6 +72,7 @@ local glUseShader  = gl.UseShader
 local glUniform    = gl.Uniform
 local glUniformInt = gl.UniformInt
 
+local glBlending  = gl.Blending
 local glClear    = gl.Clear
 local glTexRect  = gl.TexRect
 local glColor    = gl.Color
@@ -305,6 +306,7 @@ local blur_v = function()
 end
 
 function widget:DrawWorldPreUnit()
+	glBlending(true)
   glCopyToTexture(depthtex, 0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
 
@@ -326,7 +328,7 @@ function widget:DrawWorldPreUnit()
   glRenderToTexture(blurtex, blur_h)
   glTexture(blurtex)
   glRenderToTexture(offscreentex, blur_v)
-
+  
   glCallList(enter2d)
   glTexture(offscreentex)
   glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
