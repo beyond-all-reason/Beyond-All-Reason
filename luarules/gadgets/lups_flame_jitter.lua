@@ -72,6 +72,7 @@ else
   local lastShoot = {}
 
   function FlameShot(_,unitID, unitDefID, weapon)
+ 		if Spring.IsUnitIcon(unitID) then return end 
 	-- why is this even needed? we limited frequency of fire FX back in synced
 	--[[
     local n = Spring.GetGameFrame()
