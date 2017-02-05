@@ -306,8 +306,8 @@ local blur_v = function()
 end
 
 function widget:DrawWorldPreUnit()
-	glBlending(true)
-  glCopyToTexture(depthtex, 0, 0, 0, 0, vsx, vsy)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+  glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
 
   if (resChanged) then
@@ -333,6 +333,7 @@ function widget:DrawWorldPreUnit()
   glTexture(offscreentex)
   glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
   glCallList(leave2d)
+	glBlending(false)
 end
 
 --------------------------------------------------------------------------------
