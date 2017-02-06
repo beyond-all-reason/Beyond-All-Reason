@@ -496,6 +496,7 @@ end
 
 function widget:GameFrame(gameFrame)
 
+	if gameFrame%2 == 0 then
     if drawFrame == gameframeDrawFrame then 
     	return
     end
@@ -541,25 +542,28 @@ function widget:GameFrame(gameFrame)
     end
     
 		-- update queue (in case unit has reached the nearest queue coordinate)
-    for i, qsize in pairs(monitorCommands) do
-	    if commands[i] ~= nil then
-	    	if commands[i].draw == false then
-	    		monitorCommands[i] = nil
-	    	else
-		    	local q = spGetUnitCommands(commands[i].unitID,50) or {}
-		    	if qsize ~= #q then
-		    		local our_q = getCommandsQueue(i)
-		        commands[i].queue = our_q
-		        commands[i].queueSize = #our_q
-		        if qsize > 1 then
-		        	monitorCommands[i] = qsize
-		        else
-		      	  monitorCommands[i] = nil
-		        end
-		    	end
+		if gameFrame%6 == 0 then
+		  for i, qsize in pairs(monitorCommands) do
+		    if commands[i] ~= nil then
+		    	if commands[i].draw == false then
+		    		monitorCommands[i] = nil
+		    	else
+			    	local q = spGetUnitCommands(commands[i].unitID,50) or {}
+			    	if qsize ~= #q then
+			    		local our_q = getCommandsQueue(i)
+			        commands[i].queue = our_q
+			        commands[i].queueSize = #our_q
+			        if qsize > 1 then
+			        	monitorCommands[i] = qsize
+			        else
+			      	  monitorCommands[i] = nil
+			        end
+			    	end
+			    end
 		    end
-	    end
-	  end
+		  end
+		end
+	end
 end
 
 local function IsPointInView(x,y,z)
