@@ -290,7 +290,7 @@ local function DrawVisibleUnits()
   for i=1,#visibleUnits do  
     glUnit(visibleUnits[i],true)
     count = count + 1
-    if count == maxOutlineUnits then break end
+    if count >= maxOutlineUnits then break end
   end
 end
 
