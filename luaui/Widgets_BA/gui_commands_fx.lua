@@ -68,9 +68,9 @@ local glowDuration  			= 0.5
 local glowOpacity   			= 0.11
 
 -- limit amount of effects to keep performance sane
-local maxCommandCount			= 400
-local drawUnitHightlightMaxUnits = 80
+local maxCommandCount			= 450
 local maxGroundGlowCount  = 80
+local drawUnitHightlightMaxUnits = 80
 
 local glowImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/glow.dds"
 local lineImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/line2.dds"
@@ -465,7 +465,7 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
 end
 
 function getCommandsQueue(unitID)
-		local q = spGetUnitCommands(unitID, 40) or {} --limit to prevent mem leak, hax etc
+		local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	  local our_q = {}
 	  for _,cmd in ipairs(q) do
 	      if CONFIG[cmd.id] or cmd.id < 0 then
@@ -504,7 +504,7 @@ function widget:Update(dt)
 	    	if commands[i].draw == false then
 	    		monitorCommands[i] = nil
 	    	else
-		    	local q = spGetUnitCommands(commands[i].unitID,50) or {}
+		    	local q = spGetUnitCommands(commands[i].unitID,40) or {}
 		    	if qsize ~= #q then
 		    		local our_q = getCommandsQueue(commands[i].unitID)
 		        commands[i].queue = our_q
@@ -632,13 +632,13 @@ function widget:DrawWorldPreUnit()
 
             -- draw command queue
             if commands[i].queueSize > 0 and prevX and commandCount < maxCommandCount then
-            		commandCount = commandCount + 1
-								local lineAlphaMultiplier  = 1 - (progress / lineDuration)
+            		local lineAlphaMultiplier  = 1 - (progress / lineDuration)
 		            for j=1,commands[i].queueSize do
 		                local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
 		                local validCoord = X and Z and X>=0 and X<=mapX and Z>=0 and Z<=mapZ
 		                -- draw
 		                if X and validCoord then
+		                		commandCount = commandCount + 1
 		                    -- lines
 		                    local usedLineWidth = lineWidth - (progress * (lineWidth - (lineWidth * lineWidthEnd)))
 		                    local lineColour = CONFIG[commands[i].queue[j].id].colour
@@ -707,7 +707,6 @@ function widget:DrawWorldPreUnit()
             end
         end
     end
-    
     gl.Scale(1,1,1)
     gl.Color(1,1,1,1)
 end
