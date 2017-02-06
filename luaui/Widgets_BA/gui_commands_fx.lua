@@ -55,10 +55,10 @@ local drawUnitHighlightSkipFPS	= 5		-- (0 to disable) skip drawing when framerat
 local opacity      				= 1
 local duration     				= 2.6
 
-local lineWidth	   				= 8
-local lineOpacity				= 0.77
+local lineWidth	   				= 7.8
+local lineOpacity				= 0.75
 local lineDuration 				= 1		-- set a value <= 1
-local lineWidthEnd				= 0.82		-- multiplier
+local lineWidthEnd				= 0.85		-- multiplier
 local lineTextureLength 		= 4
 local lineTextureSpeed  		= 2.4
 
@@ -173,7 +173,6 @@ local minQueueCommand = 1
 local maxCommand = 0
 
 local unitCommand = {} -- most recent key in command table of order for unitID 
-local setTarget = {} -- set targets of units
 local osClock
 
 local UNITCONF = {}
@@ -470,6 +469,15 @@ function getCommandsQueue(i)
 end
 
 function widget:GameFrame(gameFrame)
+
+	--if gameFrame%30==0 then	-- debug printing
+	--	local count = 0
+	--	for i, v in pairs(monitorCommands) do
+	--		count = count + 1
+	--	end
+	--	Spring.Echo(count)
+	--end
+
     if drawFrame == gameframeDrawFrame then 
     	return
     end
@@ -567,10 +575,13 @@ function widget:DrawWorldPreUnit()
         local progress = (osClock - commands[i].time) / duration
         local unitID = commands[i].unitID
         
-        if progress > 1 and commands[i].processed then
+        if progress >= 1 and commands[i].processed then
             -- remove when duration has passed (also need to check if it was processed yet, because of pausing)
             --Spring.Echo("Removing " .. i)
             commands[i] = nil
+            unitCommand[unitID] = nil
+            monitorCommands[i] = nil
+            
             minCommand = minCommand + 1
             
         elseif commands[i].draw and (spIsUnitInView(unitID) or IsPointInView(commands[i].x,commands[i].y,commands[i].z)) then 				
