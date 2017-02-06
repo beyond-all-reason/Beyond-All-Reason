@@ -504,7 +504,7 @@ function widget:Update(dt)
 	    	if commands[i].draw == false then
 	    		monitorCommands[i] = nil
 	    	else
-		    	local q = spGetUnitCommands(commands[i].unitID,40) or {}
+		    	local q = spGetUnitCommands(commands[i].unitID,35) or {}
 		    	if qsize ~= #q then
 		    		local our_q = getCommandsQueue(commands[i].unitID)
 		        commands[i].queue = our_q

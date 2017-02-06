@@ -12,10 +12,15 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local minFps = 12	-- disables below this average fps
+local fpsDiff = 5	-- enabled aain above minFps + fpsDiff
+
+local maxOutlineUnits = 2200		-- ignores other units above this amount
+
 function widget:GetInfo()
   return {
     name      = "Outline",
-    desc      = "Displays a nice cartoon like outline around units.",
+    desc      = "Displays small outline around units. Disables on low fps ("..minFps.."), re-enables on high fps ("..minFps+fpsDiff..")",
     author    = "jK",
     date      = "Dec 06, 2007",
     license   = "GNU GPL, v2 or later",
@@ -43,7 +48,10 @@ local vsx, vsy = 0,0
 local resChanged = false
 
 --// display lists
-local enter2d,leave2d
+local enter2d,leave2d 
+
+local averageFps = minFps + fpsDiff + 6
+local show = true
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -278,8 +286,11 @@ end
 
 local function DrawVisibleUnits()
   local visibleUnits = GetVisibleUnits(ALL_UNITS,nil,true)
+  local count = 0
   for i=1,#visibleUnits do  
     glUnit(visibleUnits[i],true)
+    count = count + 1
+    if count == maxOutlineUnits then break end
   end
 end
 
@@ -305,7 +316,27 @@ local blur_v = function()
   glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
 end
 
+local sec = 0
+local lastUpdate = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > lastUpdate + 2 then
+		lastUpdate = sec
+
+		local modelCount = #Spring.GetVisibleUnits(-1,nil,false)
+		averageFps = averageFps + (((Spring.GetFPS()*(modelCount/50)) - averageFps*(modelCount/50)) / 70)
+		
+		if averageFps < minFps then
+			show = false
+		elseif averageFps > minFps + fpsDiff then
+			show = true
+		end
+	end
+end 
+
 function widget:DrawWorldPreUnit()
+	if not show then return end
+	
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
   glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
