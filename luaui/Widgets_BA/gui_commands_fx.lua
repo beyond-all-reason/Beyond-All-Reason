@@ -416,15 +416,24 @@ function RemovePreviousCommand(unitID)
     end
 end
 
+function addUnitCommand(unitID, unitDefID, cmdID)
+	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
+  if string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then return end
+  if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
+    local el = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=spGetUnitDefID(unitID)} -- command queue is not updated until next gameframe
+    maxCommand = maxCommand + 1
+    commands[maxCommand] = el
+  end
+end
+
+local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
-    -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
-    if string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then return end
-    if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
-	    local el = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=spGetUnitDefID(unitID)} -- command queue is not updated until next gameframe
-        maxCommand = maxCommand + 1
-        --Spring.Echo("Adding " .. maxCommand)
-        commands[maxCommand] = el
-    end
+		if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
+    	addUnitCommand(unitID, unitDefID, cmdID)
+    	newUnitCommands[unitID] = true
+    else
+			newUnitCommands[unitID] = {unitDefID, cmdID}
+		end
 end
 
 function ExtractTargetLocation(a,b,c,d,cmdID)
@@ -468,15 +477,24 @@ function getCommandsQueue(i)
 	  return our_q
 end
 
-function widget:GameFrame(gameFrame)
+local sec = 0
+local echoedSec = 0
+local updaterate = 5  -- 1 == 1 sec,  4 == 250ms,  5 == 200ms
+function widget:Update(dt)
+	sec=sec+dt
+	if math.floor(sec*updaterate)%1 == 0 and math.floor(sec*updaterate) ~= echoedSec then
+		echoedSec = math.floor(sec*updaterate)
+		-- process newly given commands
+		for i, v in pairs(newUnitCommands) do
+			if v ~= true then
+				addUnitCommand(i, v[1], v[2])
+			end
+		end
+		newUnitCommands = {}
+	end
+end
 
-	--if gameFrame%30==0 then	-- debug printing
-	--	local count = 0
-	--	for i, v in pairs(monitorCommands) do
-	--		count = count + 1
-	--	end
-	--	Spring.Echo(count)
-	--end
+function widget:GameFrame(gameFrame)
 
     if drawFrame == gameframeDrawFrame then 
     	return
