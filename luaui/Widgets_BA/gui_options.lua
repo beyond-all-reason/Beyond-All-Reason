@@ -958,8 +958,9 @@ function widget:Initialize()
 		fullWidgetsList[name] = data
   end
 	  
-		local bloomValue = 0
-		
+	--local bloomValue = 0
+	
+	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	options = {
 		{id="fullscreen", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", name="Borderless", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1},

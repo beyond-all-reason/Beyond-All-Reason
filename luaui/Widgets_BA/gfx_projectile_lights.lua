@@ -192,7 +192,7 @@ function widget:DrawWorldPreUnit()
 		end
 		glTexture(false) --be nice, reset stuff 
 		glColor(1.0,1.0,1.0,1.0)
-		glBlending(false)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		glDepthTest(true)
 	end
 end

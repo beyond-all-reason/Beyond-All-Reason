@@ -17,7 +17,7 @@ end
 local basicAlpha = 0.4
 
 local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
-local highlightsAlpha = 0.5
+local highlightsAlpha = 0.4
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
@@ -135,12 +135,12 @@ function reset()
 	
 	if drawHighlights then
 		usedBasicAlpha = basicAlpha
-		drawWorldAlpha				= 0.22 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
-		drawWorldPreUnitAlpha = 0.2 - (illumThreshold*0.4)  + (usedBasicAlpha/6.2)  + (0.023 * highlightsAlpha)
+		drawWorldAlpha				= 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
+		drawWorldPreUnitAlpha = 0.16 - (illumThreshold*0.4)  + (usedBasicAlpha/6.2)  + (0.023 * highlightsAlpha)
 	else
 		usedBasicAlpha = basicAlpha
-		drawWorldAlpha = 0.05 + (usedBasicAlpha/11)
-		drawWorldPreUnitAlpha = 0.25 - (illumThreshold*0.4) + (usedBasicAlpha/6)
+		drawWorldAlpha = 0.035 + (usedBasicAlpha/11)
+		drawWorldPreUnitAlpha = 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/6)
 	end
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
@@ -187,8 +187,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	
 	ivsx = 1.0 / vsx
 	ivsy = 1.0 / vsy
-	kernelRadius = vsy / 70.0
-	kernelRadius2 = vsy / 24.0
+	kernelRadius = vsy / 73.0
+	kernelRadius2 = vsy / 25.0
 	
 	reset()
 end
@@ -479,7 +479,7 @@ local function Bloom()
 		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
 	glUseShader(0)
 	
-	for i = 1, 3 do
+	for i = 1, 4 do
 		glUseShader(blurShaderH71)
 			glUniformInt(blurShaderH71Text0Loc, 0)
 			glUniform(   blurShaderH71InvRXLoc, ivsx)
@@ -516,24 +516,25 @@ local function Bloom()
 			mglRenderToTexture(brightTexture3, screenTexture, 1, -1)
 		glUseShader(0)
 		
-		glUseShader(blurShaderH71)
-			glUniformInt(blurShaderH71Text0Loc, 0)
-			glUniform(   blurShaderH71InvRXLoc, ivsx)
-			glUniform(	 blurShaderH71FragLoc, kernelRadius2)
-			mglRenderToTexture(brightTexture4, brightTexture3, 1, -1)
-		glUseShader(0)
-		glUseShader(blurShaderV71)
-			glUniformInt(blurShaderV71Text0Loc, 0)
-			glUniform(   blurShaderV71InvRYLoc, ivsy)
-			glUniform(	 blurShaderV71FragLoc, kernelRadius2)
-			mglRenderToTexture(brightTexture3, brightTexture4, 1, -1)
-		glUseShader(0)
-		
+		for i = 1, 1 do
+			glUseShader(blurShaderH71)
+				glUniformInt(blurShaderH71Text0Loc, 0)
+				glUniform(   blurShaderH71InvRXLoc, ivsx)
+				glUniform(	 blurShaderH71FragLoc, kernelRadius2)
+				mglRenderToTexture(brightTexture4, brightTexture3, 1, -1)
+			glUseShader(0)
+			glUseShader(blurShaderV71)
+				glUniformInt(blurShaderV71Text0Loc, 0)
+				glUniform(   blurShaderV71InvRYLoc, ivsy)
+				glUniform(	 blurShaderV71FragLoc, kernelRadius2)
+				mglRenderToTexture(brightTexture3, brightTexture4, 1, -1)
+			glUseShader(0)
+		end
 		glUseShader(combineShader)
 			glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
 			glUniformInt(combineShaderTexture0Loc, 0)
 			glUniformInt(combineShaderTexture1Loc, 1)
-			glUniform(   combineShaderIllumLoc, illumThreshold*0.75)
+			glUniform(   combineShaderIllumLoc, illumThreshold*0.66)
 			glUniform(   combineShaderFragLoc, highlightsAlpha)
 			mglActiveTexture(0, screenTexture, vsx, vsy, false, true)
 			mglActiveTexture(1, brightTexture3, vsx, vsy, false, true)
