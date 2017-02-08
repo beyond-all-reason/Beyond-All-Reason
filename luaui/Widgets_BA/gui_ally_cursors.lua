@@ -27,9 +27,9 @@ end
 local cursorSize					= 11
 local drawNamesCursorSize			= 8.5
 
-local dlistAmount					= 3		-- number of dlists generated for each player (# available opacity levels)
+local dlistAmount					= 5		-- number of dlists generated for each player (# available opacity levels)
 
-local sendPacketEvery				= 0.8
+local sendPacketEvery				= 0.7
 local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
@@ -320,49 +320,52 @@ end
 local camDistance, glScale
 
 local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
-    local gy = spGetGroundHeight(wx,wz)
-    if not (spIsSphereInView(wx,gy,wz,usedCursorSize)) then
-        return 
-    end
-        
-    --calc scale
-    camDistance = diag(camX-wx, camY-gy, camZ-wz) 
-    glScale = 0.83 + camDistance / 5000
-    
-    -- calc opacity
-    local opacityMultiplier = 1
-    if drawNamesFade and camDistance > NameFadeStartDistance then 
-        opacityMultiplier = (1 - (camDistance-NameFadeStartDistance) / (NameFadeEndDistance-NameFadeStartDistance))
-        if opacityMultiplier > 1 then
-            opacityMultiplier = 1
-        end
-    end
-    
-    opacityMultiplier = math.floor(opacityMultiplier * dlistAmount)/dlistAmount
-    opacityMultiplier = opacityMultiplier * opacity
-    
-    if opacityMultiplier > 0.11 then
-        if allycursorDrawList[playerID] == nil then 
-            allycursorDrawList[playerID] = {}
-        end
-        if allycursorDrawList[playerID][opacityMultiplier] == nil then
-            allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
-        end
-        
+	local gy = spGetGroundHeight(wx,wz)
+	if not (spIsSphereInView(wx,gy,wz,usedCursorSize)) then
+		return 
+	end
+
+	--calc scale
+	camDistance = diag(camX-wx, camY-gy, camZ-wz) 
+	glScale = 0.83 + camDistance / 5000
+
+	-- calc opacity
+	local opacityMultiplier = 1
+	if drawNamesFade and camDistance > NameFadeStartDistance then 
+		opacityMultiplier = (1 - (camDistance-NameFadeStartDistance) / (NameFadeEndDistance-NameFadeStartDistance))
+		if opacityMultiplier > 1 then
+			opacityMultiplier = 1
+		end
+	end
+
+	if opacity >= 1 then
+		opacityMultiplier = math.floor(opacityMultiplier * dlistAmount)/dlistAmount
+	else	-- if (spec and) fading out due to idling
+		opacityMultiplier = math.floor(opacityMultiplier * (opacity * dlistAmount))/dlistAmount
+	end
+	
+	if opacityMultiplier > 0.11 then
+		if allycursorDrawList[playerID] == nil then 
+			allycursorDrawList[playerID] = {}
+		end
+		if allycursorDrawList[playerID][opacityMultiplier] == nil then
+			allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
+		end
+
 		--local rotValue = (-camRotX * 180 / math.pi)
 		local rotValue = 0
-        gl.PushMatrix()
-			gl.Translate(wx, gy, wz)
-			gl.Rotate(rotValue,0,1,0)
-			if drawNamesScaling then
-				gl.Scale(glScale,0,glScale)
-			end
-			glCallList(allycursorDrawList[playerID][opacityMultiplier])
-			if drawNamesScaling then
-				gl.Scale(-glScale,0,-glScale)
-			end
-        gl.PopMatrix()
-    end
+		gl.PushMatrix()
+		gl.Translate(wx, gy, wz)
+		gl.Rotate(rotValue,0,1,0)
+		if drawNamesScaling then
+			gl.Scale(glScale,0,glScale)
+		end
+		glCallList(allycursorDrawList[playerID][opacityMultiplier])
+		if drawNamesScaling then
+			gl.Scale(-glScale,0,-glScale)
+		end
+		gl.PopMatrix()
+	end
 end
 
 function widget:DrawWorldPreUnit()
@@ -376,40 +379,40 @@ function widget:DrawWorldPreUnit()
     camRotX, camRotY, camRotZ = spGetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
     --Spring.Echo(camRotX.."   "..camRotY.."   "..camRotZ)
     for playerID,data in pairs(alliedCursorsPos) do 
-        name,_,spec,teamID = spGetPlayerInfo(playerID)
-        
-        wx,wz = data[1],data[2]
-        lastUpdatedDiff = time-data[#data-2] + 0.025
-        
-        if (lastUpdatedDiff<sendPacketEvery) then
-            scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
-            iscale = min(floor(scale),numMousePos-1)
-            fscale = scale-iscale
-            wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
-            wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
-        end
-        
-        if notIdle[playerID] and alliedCursorsTime[playerID] > (time-idleCursorTime) then
-			local opacity = 1
-			if spec then
-				opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
-				if opacity > 1 then opacity = 1 end
+			name,_,spec,teamID = spGetPlayerInfo(playerID)
+
+			wx,wz = data[1],data[2]
+			lastUpdatedDiff = time-data[#data-2] + 0.025
+
+			if (lastUpdatedDiff<sendPacketEvery) then
+				scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
+				iscale = min(floor(scale),numMousePos-1)
+				fscale = scale-iscale
+				wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
+				wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
 			end
-			if opacity > 0.1 then
-				DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
+
+			if notIdle[playerID] and alliedCursorsTime[playerID] > (time-idleCursorTime) then
+				local opacity = 1
+				if spec then
+					opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
+					if opacity > 1 then opacity = 1 end
+				end
+				if opacity > 0.1 then
+					DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
+				end
+			else
+				--mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
+				if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
+				  notIdle[playerID] = true
+				  wx_old = nil
+				  wz_old = nil
+				else
+				  wx_old = wx
+				  wz_old = wz
+				end
+
 			end
-        else
-            --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-            if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
-                notIdle[playerID] = true
-                wx_old = nil
-                wz_old = nil
-            else
-                wx_old = wx
-                wz_old = wz
-            end
-            
-        end
     end
     --gl.EndText
     gl.PolygonOffset(false)
