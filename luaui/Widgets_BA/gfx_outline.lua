@@ -336,8 +336,8 @@ end
 
 function widget:DrawWorldPreUnit()
 	if not show then return end
-	
-	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+ 	gl.ResetState()
+	--glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
   glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
 
