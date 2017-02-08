@@ -19,11 +19,11 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local minFps					= 33		-- stops snowing at
+local minFps					= 30		-- stops snowing at
 local maxFps					= 55		-- max particles at
 local particleSteps				= 14		-- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
-local particleMultiplier		= 0.005		-- amount of particles
-local windMultiplier			= 3
+local particleMultiplier		= 0.006		-- amount of particles
+local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
 local particleScaleMultiplier	= 1
@@ -411,6 +411,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen()
+	if not enabled then return end
 
 	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
 		local now = os.clock()
@@ -429,8 +430,8 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
+	if enabled == false then return end
 	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
-		if enabled == false then return end
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
 			glUseShader(shader)	
 			camX,camY,camZ = Spring.GetCameraPosition()
