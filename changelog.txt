@@ -1,5 +1,5 @@
 ﻿9.46 -> 9.55
-XX/01/2017
+XX/03/2017
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
@@ -15,6 +15,7 @@ Balance changes:
 - T1 kbot/veh/air lab got 50% additional buildspeed
 - Commanders produce 60% additional energy
 - 'scouts' armflea, armfav and corfav cost more energy to make (around 30%)
+- Sniper projectile is visible again
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
@@ -42,12 +43,15 @@ Smaller than desired hitboxes result in missed projectiles or projectiles passin
 Other:
 - Lots of new particle effects!
 
+- Common Colors widget has beed added (rainbow scemed team coloring, toggable via Options widget)
+- Added 'mex' button (area drag) for units that can build metal extractors, area drag will cap all metal extraction points
+- Added luamex (lua metal extractor points) functionality for mappers
 - Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
 - Buildmenu: could show shortcuts when enabled via Options widget
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
 - Keybinds, commands, changelog, options windows hide with Escape key
 - Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
-- Common Colors widget has beed added (rainbow scemed team coloring, toggable via Options widget)
+- Added outline widget (default disabled)
 - Unit textures reprocessed with bigger color range (less grainy)
 - More units have a shatter effect on death
 - Options: fixed that not all settings remembered their value
@@ -59,7 +63,7 @@ Other:
 - Unit info widget removed
 - RedUI Resource bars have a metal / energy icon
 - Removed all old loadscreens, added some new ones
-- Commands FX lines get a bit thinner over lifetime
+- Commands FX widget: improved performance
 - Fixed commander nametags occasionally showing spectator name
 - Spiced up the loadscreen progress bar
 - Fixed cursor size changing after alt-tabbed to desktop and back
@@ -67,6 +71,8 @@ Other:
 - Darken map widget can now darken features (trees/wreckages) but is costly to do so (via options widget)
 - Added "Include buildings in area selections" option via option widget (from Smart Select widget)
 - Enemy spotter opacity and unit teamcolor highlight configurable via options widget
+- Arm Beamer updates its aim faster when firing
+- A few more turrets/barrels get a kickback when they fire
 
 
 9.45 -> 9.46
