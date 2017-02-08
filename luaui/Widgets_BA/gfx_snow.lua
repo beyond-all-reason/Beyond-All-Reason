@@ -22,16 +22,16 @@ end
 local minFps					= 30		-- stops snowing at
 local maxFps					= 55		-- max particles at
 local particleSteps				= 14		-- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
-local particleMultiplier		= 0.006		-- amount of particles
+local particleMultiplier		= 0.0045		-- amount of particles
 local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
 local particleScaleMultiplier	= 1
 
 -- pregame info message
-local fadetime = 12
-local fadetimeThreshold = 24
-local textStartOpacity = 0.55
+local fadetime = 13
+local fadetimeThreshold = 30
+local textStartOpacity = 0.58
 
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
@@ -82,7 +82,7 @@ table.insert(particleTypes, {
 		scale = 6600
 })
 
-
+local avgFpsInit = false
 
 local math_random = math.random
 local math_randomseed = math.randomseed
@@ -97,7 +97,7 @@ local startTimer = Spring.GetTimer()
 local diffTime = 0
 
 local spGetFPS					= Spring.GetFPS
-local averageFps				= spGetFPS()
+local averageFps				= 60
 local spGetVisibleUnits			= Spring.GetVisibleUnits
 local spGetVisibleFeatures		= Spring.GetVisibleFeatures
 
@@ -414,6 +414,10 @@ function widget:DrawScreen()
 	if not enabled then return end
 
 	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
+		if not avgFpsInit then
+			avgFpsInit = true
+			averageFps = spGetFPS()
+		end
 		local now = os.clock()
 		local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
 		if opacityMultiplier > 1 then opacityMultiplier = 1 end
@@ -430,7 +434,8 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
-	if enabled == false then return end
+	if not enabled then return end
+	
 	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
 			glUseShader(shader)	
@@ -494,9 +499,12 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-    if data.snowMaps ~= nil 	then  snowMaps		= data.snowMaps end
-    if data.gameframe ~= nil and data.gameframe > 0	then  
-		if data.averageFps ~= nil 	then  averageFps	= data.averageFps end
+  if data.snowMaps ~= nil 	then  snowMaps		= data.snowMaps end
+  if data.gameframe ~= nil and data.gameframe > 0	then  
+		if data.averageFps ~= nil 	then  
+			averageFps = data.averageFps
+			avgFpsInit = true
+		end
 		if data.particleStep ~= nil and data.gameframe ~= nil and Spring.GetGameFrame() > 0 then  
 			particleStep = data.particleStep
 			if particleStep < 1 then particleStep = 1 end
