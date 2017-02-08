@@ -294,7 +294,6 @@ function init()
 	if particleLists[1] == nil then
 		CreateParticleLists()
 	end
-	Spring.Echo(averageFps)
 end
 
 
