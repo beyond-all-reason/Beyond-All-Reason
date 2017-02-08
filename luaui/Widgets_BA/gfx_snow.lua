@@ -224,7 +224,6 @@ function init()
 	-- abort if not enabled
 	if enabled == false then return end
 	
-	
 	if (glCreateShader == nil) then
 		Spring.Echo("[Snow widget:Initialize] no shader support")
 		widgetHandler:RemoveWidget()
@@ -295,6 +294,7 @@ function init()
 	if particleLists[1] == nil then
 		CreateParticleLists()
 	end
+	Spring.Echo(averageFps)
 end
 
 
@@ -358,20 +358,20 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local widgetDisabledSnow = false
 function widget:GameFrame(gameFrame)
-
-	if snowMaps[currentMapname] == nil then return end
+	if not enabled and not widgetDisabledSnow then return end
 	
 	if gameFrameCountdown <= 0 then
-		if gameFrame%11==0 then
+		if gameFrame%31==0 then
 			getWindSpeed()
 		end
-		if gameFrame%33==0 then 
+		if gameFrame%44==0 then 
 			averageFps = ((averageFps * 50) + spGetFPS()) / 51
 			if averageFps < 1 then averageFps = 1 end
 			--Spring.Echo(particleStep.."  avg fps:  "..averageFps)
 		end
-		if gameFrame%66==0 then 
+		if gameFrame%88==0 then 
 			if averageFps >= previousFps+fpsDifference or averageFps <= previousFps-fpsDifference then
 				local particleAmount = (averageFps-minFps) / (maxFps-minFps)
 				if particleAmount > 1 then 
@@ -382,12 +382,14 @@ function widget:GameFrame(gameFrame)
 					previousFps = averageFps
 					if particleAmount <= 1/particleSteps then 
 						enabled = false
+						widgetDisabledSnow = true
 					else
 						particleDensity = math.floor(particleDensityMax * particleAmount)
 						if particleDensity > particleDensityMax then particleDensity = particleDensityMax end
 						particleStep = math.floor(particleDensity / (particleDensityMax / particleSteps))
 						if particleStep < 1 then particeStep = 1 end
 						enabled = true
+						widgetDisabledSnow = false
 					end
 				end
 			end
