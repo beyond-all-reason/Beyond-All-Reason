@@ -215,6 +215,11 @@ function createBackgroundList2()
 	end)
 end
 
+function drawWindValue(value)
+	glText(value, windTextPosX, windTextPosY, textSize*widgetScale, 'oc') -- Wind speed text
+end
+
+local windValueDrawList = {}
 function widget:DrawScreen()
 	glCallList(backgroundList)
 	if rotationOn then -- Rotation
@@ -224,7 +229,10 @@ function widget:DrawScreen()
 	end
 	glCallList(backgroundList2)
 	if spGetGameFrame() > 1 then
-		glText(printWind, windTextPosX, windTextPosY, textSize*widgetScale, 'oc') -- Wind speed text
+		if windValueDrawList[printWind] == nil then
+			windValueDrawList[printWind] = glCreateList(drawWindValue, printWind)
+		end
+		glCallList(windValueDrawList[printWind])
 	end
 	glPopMatrix()
 end
@@ -340,9 +348,12 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('winddisplay')
 	end
-	
 	if backgroundList ~= nil then
 		glDeleteList(backgroundList)
 		glDeleteList(backgroundList2)
+		
+		for value,dlist in pairs(windValueDrawList) do 
+			glDeleteList(windValueDrawList[value])
+		end
 	end
 end
