@@ -233,8 +233,11 @@ Create()
 	Static_Var_2 = 0;
 	Static_Var_3 = 1;
 	hide flare;
-	turn flare to y-axis <180> now
+	turn flare to y-axis <180> now;
+	turn flare to z-axis <-10> now;
+	turn flare to x-axis <-9> now;
 	move flare to z-axis [27] now;
+	move flare to y-axis [-2.5] now;
 	restore_delay = 3000;
 	start-script MotionControl();
 	start-script SmokeUnit();

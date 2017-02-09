@@ -1451,6 +1451,7 @@ Create()
 	Static_Var_4 = 0;
 	gun_3 = body;
 	hide flare;
+	move flare to z-axis [-9] now;
 	hide pontoons;
 	restore_delay = 3000;
 	start-script MotionControl();
