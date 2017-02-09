@@ -42,7 +42,6 @@ Smaller than desired hitboxes result in missed projectiles or projectiles passin
 
 Other:
 - Lots of new particle effects!
-
 - Common Colors widget has beed added (rainbow scemed team coloring, toggable via Options widget)
 - Added 'mex' button (area drag) for units that can build metal extractors, area drag will cap all metal extraction points
 - Added luamex (lua metal extractor points) functionality for mappers
@@ -64,6 +63,8 @@ Other:
 - RedUI Resource bars have a metal / energy icon
 - Removed all old loadscreens, added some new ones
 - Commands FX widget: improved performance
+- Ally Cursors widget: improved performance
+- Wind Speed widget: improved performance
 - Fixed commander nametags occasionally showing spectator name
 - Spiced up the loadscreen progress bar
 - Fixed cursor size changing after alt-tabbed to desktop and back

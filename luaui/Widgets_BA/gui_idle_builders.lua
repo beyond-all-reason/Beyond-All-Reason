@@ -188,10 +188,6 @@ end
 
 local function DrawBoxes(number)
 	glColor({ 0, 0, 0, 0.7})
-	X_MIN = POSITION_X*vsx-0.5*number*ICON_SIZE_X
-	X_MAX = POSITION_X*vsx+0.5*number*ICON_SIZE_X
-	Y_MIN = POSITION_Y*vsy-0.5*ICON_SIZE_Y
-	Y_MAX = POSITION_Y*vsy+0.5*ICON_SIZE_Y
 	local X1 = X_MIN
 	local ct = 0
 	while (ct < number) do
@@ -210,6 +206,7 @@ local function DrawBoxes(number)
 			--DrawIconQuad((ct-1), { 0, 0, 0, 0.4 }, 1.2)
 		end
 	end
+	--Spring.Echo(X2)
 end--]]
 
 local function CenterUnitDef(unitDefID)
@@ -258,7 +255,6 @@ local function DrawUnitIcons(number)
 	if not drawTable then
 		return -1 
 	end
-	
 	local ct = 0
 	local X1, X2
 	glTexture(false)
@@ -503,6 +499,7 @@ function widget:Update(dt)
 		end
 	end
 	
+	oldNoOfIcons = noOfIcons
 	noOfIcons = 0
 	drawTable = {}
 	
@@ -517,23 +514,34 @@ function widget:Update(dt)
 			noOfIcons = noOfIcons + table.getn(units)
 		end
 	end
-		if noOfIcons > MAX_ICONS then
-			noOfIcons = MAX_ICONS
-		end
+	if noOfIcons > MAX_ICONS then
+		noOfIcons = MAX_ICONS
+	end
+	if noOfIcons ~= oldNoOfIcons then
+		calcSizes(noOfIcons)
+	end
 end
 
-
+function calcSizes(numIcons)
+	X_MIN = POSITION_X*vsx-0.5*numIcons*ICON_SIZE_X
+	X_MAX = POSITION_X*vsx+0.5*numIcons*ICON_SIZE_X
+	Y_MIN = POSITION_Y*vsy-0.5*ICON_SIZE_Y
+	Y_MAX = POSITION_Y*vsy+0.5*ICON_SIZE_Y
+end
 
 function widget:DrawScreen()
 
 	if widgetHandler:InTweakMode() then
+		calcSizes(MAX_ICONS)
 		DrawBoxes(MAX_ICONS)
+		calcSizes(noOfIcons)
 		local line1 = "Idle cons tweak mode"
 		local line2 = "Click and drag here to move icons around, hover over icons and move mouse wheel to change max number of icons"
 		glText(line1, POSITION_X*vsx, POSITION_Y*vsy, 15, "c")
 		glText(line2, POSITION_X*vsx, (POSITION_Y*vsy)-10, 10, "c")
 		return
 	end
+	
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('idlebuilders1')
 		WG['guishader_api'].RemoveRect('idlebuilders2')
@@ -552,7 +560,6 @@ function widget:DrawScreen()
 			end
 		end
 		glClear(GL_DEPTH_BUFFER_BIT)
-		DrawBoxes(noOfIcons)
 		DrawUnitIcons(noOfIcons)
 	end
 end

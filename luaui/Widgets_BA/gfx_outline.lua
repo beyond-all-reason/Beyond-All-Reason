@@ -336,8 +336,8 @@ end
 
 function widget:DrawWorldPreUnit()
 	if not show then return end
- 	gl.ResetState()
-	--glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+ 	gl.ResetState()		-- to prevent on/off flicker induced by other widgets maybe (i tried single out which thing included in gl.ResetSate fixed it but it kept doing it)
+ 	
   glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
 
@@ -364,7 +364,6 @@ function widget:DrawWorldPreUnit()
   glTexture(offscreentex)
   glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
   glCallList(leave2d)
-	glBlending(false)
 end
 
 --------------------------------------------------------------------------------
