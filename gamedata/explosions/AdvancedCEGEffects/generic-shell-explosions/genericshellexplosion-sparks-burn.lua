@@ -7,10 +7,10 @@ return {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.04,
+      flashalpha         = 0.045,
       flashsize          = 44,
       ground             = true,
-      ttl                = 8,
+      ttl                = 5,
       water              = true, 
 	  underwater         = true,
       color = {
@@ -132,7 +132,7 @@ return {
       flashalpha         = 0.04,
       flashsize          = 50,
       ground             = true,
-      ttl                = 10,
+      ttl                = 8,
       water              = true, 
 	  underwater         = true,
       color = {
