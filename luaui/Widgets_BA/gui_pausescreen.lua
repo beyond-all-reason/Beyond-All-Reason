@@ -46,8 +46,8 @@ local osClock                = os.clock
 
 local sizeMultiplier     = 1
 local maxAlpha           = 0.6
-local maxShaderAlpha		 = 0.25
-local maxNonShaderAlpha  = 0.12			--background alpha when shaders arent availible
+local maxShaderAlpha		 = 0.2
+local maxNonShaderAlpha  = 0.1			--background alpha when shaders arent availible
 local boxWidth           = 200
 local boxHeight          = 35
 local slideTime          = 0.4
