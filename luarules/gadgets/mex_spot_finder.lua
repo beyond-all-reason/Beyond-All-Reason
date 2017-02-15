@@ -1,4 +1,6 @@
 
+if not gadgetHandler:IsSyncedCode() then return end
+
 function gadget:GetInfo()
 	return {
 		name      = "Metalspot Finder Gadget",
@@ -11,12 +13,6 @@ function gadget:GetInfo()
 		enabled   = true
 	}
 end
-
---------------------------------------------------------------------------------
--- SYNCED
---------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
-
 
 ------------------------------------------------------------
 -- Config
@@ -200,7 +196,7 @@ end
 ------------------------------------------------------------
 -- Mex finding
 ------------------------------------------------------------
-local function SanitiseSpots(spots)
+local function SanitiseSpots(spots, metalValueOverride)
 	local i = 1
 	while i <= #spots do
 		local spot = spots[i]
@@ -208,7 +204,7 @@ local function SanitiseSpots(spots)
 			local metal
 			metal, spot.x, spot.z = IntegrateMetal(spot.x, spot.z)
 			spot.y = spGetGroundHeight(spot.x, spot.z)
-			spot.metal = metalValueOverride or spot.metal or (metal > 0 and metal) or DEFAULT_MEX_INCOME
+			spot.metal = spot.metal or metalValueOverride or (metal > 0 and metal) or DEFAULT_MEX_INCOME
 			i = i + 1
 		else
 			spot[i] = spot[#spots]
@@ -244,7 +240,7 @@ function GetSpots()
 	if gameConfig then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading gameside mex config")
 		if gameConfig.spots then
-			spots = SanitiseSpots(gameConfig.spots)
+			spots = SanitiseSpots(gameConfig.spots, gameConfig.metalValueOverride)
 			return spots, false
 		end
 	end
@@ -252,7 +248,7 @@ function GetSpots()
 	if mapConfig then
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading mapside mex config")
 		loadConfig = true
-		spots = SanitiseSpots(mapConfig.spots)
+		spots = SanitiseSpots(mapConfig.spots, mapConfig.metalValueOverride)
 		return spots, false
 	end
 	
@@ -428,54 +424,3 @@ function GetValidStrips(spot)
 	spot.validRight = validRight
 end
 
---------------------------------------------------------------------------------
-else  -- UNSYNCED
---------------------------------------------------------------------------------
-
-function gadget:GameStart()
-	Spring.Utilities = Spring.Utilities or {}
-	VFS.Include("LuaRules/Utilities/json.lua");
-
-	local teamlist = Spring.GetTeamList();
-	local localPlayer = Spring.GetLocalPlayerID();
-	local mexes = "";
-	local encoded = false;
-	
-	for _, teamID in pairs(teamlist) do
-		local _,_,_,isAI = Spring.GetTeamInfo(teamID)
-		if isAI then
-			local aiid, ainame, aihost = Spring.GetAIInfo(teamID);
-			if (aihost == localPlayer) then
-				if not encoded then
-					local metalSpots = GetMexSpotsFromGameRules();
-					mexes = 'METAL_SPOTS:'..Spring.Utilities.json.encode(metalSpots);
-					encoded = true;
-				end
-				Spring.SendSkirmishAIMessage(teamID, mexes);
-			end
-		end
-	end
-end
-
-function GetMexSpotsFromGameRules()
-	local spGetGameRulesParam = Spring.GetGameRulesParam
-	local mexCount = spGetGameRulesParam("mex_count")
-	if (not mexCount) or mexCount == -1 then
-		return {}
-	end
-	
-	local metalSpots = {}
-	
-	for i = 1, mexCount do
-		metalSpots[i] = {
-			x = spGetGameRulesParam("mex_x" .. i),
-			y = spGetGameRulesParam("mex_y" .. i),
-			z = spGetGameRulesParam("mex_z" .. i),
-			metal = spGetGameRulesParam("mex_metal" .. i),
-		}
-	end
-	
-	return metalSpots
-end
-
-end
