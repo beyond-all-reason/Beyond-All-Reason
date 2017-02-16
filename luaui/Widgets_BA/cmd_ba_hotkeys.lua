@@ -168,7 +168,6 @@ function MakeBindsTable (swapYZ)
         "bind ,	buildfacing inc", --because some keyboards don't have [ and ] ke"..Y.."s
         "bind .	buildfacing dec",
         "bind o buildfacing inc", --apparently some keyboards don't have , and . either...
-
     }
     
     binds = _binds

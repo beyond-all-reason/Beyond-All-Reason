@@ -70,6 +70,8 @@ CMD_RESTORE = 39739
 CMD_BUMPY = 39740
 CMD_TERRAFORM_INTERNAL = 39801
 
+CMD_RAW_MOVE = 39812
+
 -- not included here, just listed
 --[[
 CMD_PURCHASE = 32601	-- planetwars, range up to 32601 + #purchases

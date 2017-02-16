@@ -51,6 +51,7 @@ local lineFadeRate = 2.0
 
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = 34923
+local CMD_RAW_MOVE = 39812
 
 local formationCmds = {
 	[CMD.MOVE] = true,
@@ -58,12 +59,13 @@ local formationCmds = {
 	[CMD.ATTACK] = true,
 	[CMD.PATROL] = true,
 	[CMD.UNLOAD_UNIT] = true,
-	[CMD_SETTARGET] = true -- set target
+	[CMD_SETTARGET] = true, -- set target
+	[CMD_RAW_MOVE] = true
 }
 
 -- What commands require alt to be held 
 local requiresAlt = {
-	--nothing!
+	[CMD_RAW_MOVE] = true,
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
@@ -450,6 +452,11 @@ function widget:MousePress(mx, my, mButton)
 	if not (formationCmds[usingCmd] and (alt or not requiresAlt[usingCmd])) then
 		return false
 	end
+
+	-- Set move cmd to raw move if appropriate
+	if alt and usingCmd == CMD_MOVE then
+		usingCmd = CMD_RAW_MOVE
+	end
 	
 	-- Get clicked position
 	local _, pos = spTraceScreenRay(mx, my, true, inMinimap)
@@ -521,6 +528,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 end
 function widget:MouseRelease(mx, my, mButton)
 	
+	Spring.Echo("release")
+
 	-- It is possible for MouseRelease to fire after MouseRelease
 	if #fNodes == 0 then
 		return false
@@ -541,6 +550,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Override checking
 	if overriddenCmd then
+		Spring.Echo("overriding")
 	
 		local targetID
 		local targType, targID = spTraceScreenRay(mx, my, false, inMinimap)
@@ -563,7 +573,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Using path? If so then we do nothing
 	if draggingPath then
-		
+		Spring.Echo("using path")
 		draggingPath = false
 		
 	-- Using formation? If so then it's time to calculate and issue orders.
@@ -600,8 +610,16 @@ function widget:MouseRelease(mx, my, mButton)
 			if targetID then
 				-- Give order (i.e. pass the command to the engine to use as normal)
 				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
-			elseif usingCmd == CMD_MOVE then 
-				GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)			
+			elseif usingCmd == CMD_MOVE or usingCmd == CMD_RAW_MOVE then 
+				VFS.Include("LuaRules/Configs/customcmds.h.lua")
+				Spring.Echo("Issuing move order: " .. usingCmd)
+				local selUnits = spGetSelectedUnits()
+				local uSpeed = UnitDefs[spGetUnitDefID(selUnits[1])].speed
+				--spGiveOrderToUnit(selUnits[1],
+			--		CMD_INSERT,
+			--		{-1,CMD_RAW_MOVE,0,fNodes[1][1],fNodes[1][2],fNodes[1][3]},
+			--		{"alt"})
+			    GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)			
 			else
 				-- Deselect command, select default command instead
 				spSetActiveCommand(0)
