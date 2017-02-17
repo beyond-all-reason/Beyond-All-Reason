@@ -1,3 +1,7 @@
+local modOptions = Spring.GetModOptions()
+local wreck_metal = 2500
+if (modOptions) then wreck_metal = modOptions.comm_wreck_metal or 2500 end
+
 return {
 	armcom = {
 		acceleration = 0.18,
@@ -109,7 +113,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				hitdensity = 100,
-				metal = 2500,
+				metal = wreck_metal,
 				object = "ARMCOM_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
