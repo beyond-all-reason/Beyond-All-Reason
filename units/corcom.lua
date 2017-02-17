@@ -1,6 +1,8 @@
 local modOptions = Spring.GetModOptions()
 local wreck_metal = 2500
-if (modOptions) then wreck_metal = modOptions.comm_wreck_metal or 2500 end
+if (modOptions) then 
+	wreck_metal = modOptions.comm_wreck_metal or 2500
+end
 
 return {
 	corcom = {
