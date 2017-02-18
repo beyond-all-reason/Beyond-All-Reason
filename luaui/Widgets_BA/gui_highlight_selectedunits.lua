@@ -26,7 +26,7 @@ function widget:GetInfo()
 end
 
 
-highlightAlpha = 0.2
+highlightAlpha = 0.21
 
 
 --------------------------------------------------------------------------------
@@ -80,6 +80,14 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+  WG['highlightselunits'] = {}
+  WG['highlightselunits'].getOpacity = function()
+  	return highlightAlpha
+  end
+  WG['highlightselunits'].setOpacity = function(value)
+  	highlightAlpha = value
+  end
+  
   SetupCommandColors(false)
 end
 
@@ -117,6 +125,17 @@ end
 widget.DrawWorldReflection = widget.DrawWorld
 
 widget.DrawWorldRefraction = widget.DrawWorld
+
+
+
+function widget:GetConfigData()
+	return {highlightAlpha = highlightAlpha}
+end
+
+function widget:SetConfigData(data)
+	highlightAlpha = data.highlightAlpha or highlightAlpha
+end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
