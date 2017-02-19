@@ -1169,6 +1169,10 @@ for size, e in pairs(sizes) do
 	definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
 end
 
+definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-medium"])
+definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0 0 0.22   1 0.13 0.11 0.16   0.8 0.13 0.07 0.07   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = [[1 0.3 0.1 0.01   0.9 0.35 0.2 0.017   0 0 0 0]]
+
 definitions['expldgun'] = deepcopy(definitions[root.."-small"])
 definitions['expldgun'].groundflash = {
       air                = true,
@@ -1194,6 +1198,7 @@ definitions['expldgun'].groundflash2 = {
       colormap  = [[0.2 0.4 0.1 0.62 	0 0 0 0.0]],
     }
 }
+
 definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2
 definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.5
 definitions['expldgun'].explosion.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
