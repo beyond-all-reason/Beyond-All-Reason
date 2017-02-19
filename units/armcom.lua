@@ -95,7 +95,7 @@ return {
 			[26] = "armfrad",
 		},
 		customparams = {
-			death_sounds = "commander",
+			--death_sounds = "commander",
 			area_mex_def = "armmex",
 			iscommander = true,
 			paralyzemultiplier = 0.025,

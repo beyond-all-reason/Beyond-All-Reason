@@ -95,7 +95,7 @@ return {
 			[26] = "corfrad",
 		},
 		customparams = {
-			death_sounds = "commander",
+			--death_sounds = "commander",
 			iscommander = true,
 			paralyzemultiplier = 0.025,
 			area_mex_def = "cormex",
