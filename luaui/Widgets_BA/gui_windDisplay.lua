@@ -196,7 +196,8 @@ function createBackgroundList()
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (panelHeight-(36*widgetScale))/2, 0) -- Spacing of icon
 			glColor(1,1,1,0.25)
-			glText(avgWind, -(14*widgetScale)+panelWidth, ((textSize*0.8*widgetScale)/7), textSize*0.8*widgetScale, 'r') -- Wind speed text
+			glText(minWind, -(14*widgetScale)+panelWidth, panelWidth/1.58, textSize*0.8*widgetScale, 'r') -- Wind speed text
+			glText(maxWind, -(14*widgetScale)+panelWidth, ((textSize*0.8*widgetScale)/7), textSize*0.8*widgetScale, 'r') -- Wind speed text
 			glPushMatrix() -- Blades
 				glTranslate(0, 9*widgetScale, 0)
 	end)

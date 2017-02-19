@@ -20,7 +20,7 @@ local maxOutlineUnits = 1500		-- ignores other units above this amount
 function widget:GetInfo()
   return {
     name      = "Outline",
-    desc      = "Displays small outline around units. Disables on low fps ("..minFps.."), re-enables on high fps ("..minFps+fpsDiff..")",
+    desc      = "Displays small outline around units (max "..maxOutlineUnits.."). Disables on low fps ("..minFps.."), re-enables on high fps ("..minFps+fpsDiff..")",
     author    = "jK",
     date      = "Dec 06, 2007",
     license   = "GNU GPL, v2 or later",
@@ -332,7 +332,7 @@ function widget:Update(dt)
 			show = true
 		end
 	end
-end 
+end
 
 function widget:DrawWorldPreUnit()
 	if not show then return end
@@ -340,7 +340,7 @@ function widget:DrawWorldPreUnit()
  	
   glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
-
+	
   if (resChanged) then
     resChanged = false
     if (vsx==1) or (vsy==1) then return end
@@ -351,10 +351,10 @@ function widget:DrawWorldPreUnit()
      glUseShader(blurShader_v)
     glUniformInt(uniformScreenY, vsy )
   end
-
+	
   glUseShader(depthShader)
   glRenderToTexture(offscreentex,MyDrawVisibleUnits)
-
+	
   glTexture(offscreentex)
   glRenderToTexture(blurtex, blur_h)
   glTexture(blurtex)
