@@ -184,7 +184,7 @@ function DrawButton()
 		{v = {1, 0, 0}},
 	}
 	glShape(GL_LINE_STRIP, vertices)
-  glText("Options", textMargin, textMargin, textSize, "no")
+  glText("[ Options ]", textMargin, textMargin, textSize, "no")
 end
 	
 function lines(str)
