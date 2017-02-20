@@ -195,8 +195,8 @@ function createBackgroundList()
 			
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (panelHeight-(36*widgetScale))/2, 0) -- Spacing of icon
-			glColor(1,1,1,0.25)
-			glText(minWind, -(14*widgetScale)+panelWidth, panelWidth/1.58, textSize*0.8*widgetScale, 'r') -- Wind speed text
+			glColor(1,1,1,0.33)
+			glText(minWind, -(14*widgetScale)+panelWidth, panelWidth/1.6, textSize*0.8*widgetScale, 'r') -- Wind speed text
 			glText(maxWind, -(14*widgetScale)+panelWidth, ((textSize*0.8*widgetScale)/7), textSize*0.8*widgetScale, 'r') -- Wind speed text
 			glPushMatrix() -- Blades
 				glTranslate(0, 9*widgetScale, 0)
@@ -320,7 +320,7 @@ function init()
 	panelWidth 	= customPanelWidth * widgetScale
 	panelHeight	= customPanelHeight * widgetScale
 	windTextPosX = -(12*widgetScale)+(panelWidth*0.5)
-	windTextPosY = (panelHeight/1.73)-((textSize*widgetScale)/2)
+	windTextPosY = (panelHeight/1.79)-((textSize*widgetScale)/2)
 	createBackgroundList()
 	createBackgroundList2()
 	processGuishader()
