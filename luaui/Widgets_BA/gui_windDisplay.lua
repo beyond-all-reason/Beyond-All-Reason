@@ -17,6 +17,7 @@ end
 -- Config
 local rotationOn            = true
 local vsSolarOn             = true -- If true, color is more of a guide of when winds are good to make
+local rotSpeedMultiplier    = 0.55
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
@@ -81,7 +82,7 @@ local avgSpeedTextPosY		= 0
 --------------------------------------------------------------------------------
 
 function GetWind()
-    local _, _, _, currentWind = spWind()
+    _, _, _, currentWind = spWind()
     currentWind = currentWind * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
     if currentWind > maxWind then currentWind = maxWind end
     local windPercent
@@ -94,7 +95,7 @@ function GetWind()
     if minWind == maxWind then
         count = count + 1
     else
-        count = count + windPercent*speedMultiplier
+        count = count + ((windPercent*speedMultiplier) * rotSpeedMultiplier)
     end
 end
 
@@ -185,7 +186,7 @@ end
 -- using listst didnt improve much in performance
 function createBackgroundList()
 	backgroundList = glCreateList(function()
-        glPushMatrix()
+    glPushMatrix()
 			glColor(panelColor)
 			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6*widgetScale)
 			
@@ -202,9 +203,12 @@ function createBackgroundList()
 				glTranslate(0, 9*widgetScale, 0)
 	end)
 end
+
+local windEfficiency = 1
 function createBackgroundList2()
+	windEfficiency = currentWind / 22
 	backgroundList2 = glCreateList(function()
-				glColor(1,1,1,0.3)
+				glColor(1.4-windEfficiency,0.77*windEfficiency,0,0.4)
 				glTexture(':c:LuaUI/Images/blades.png')
 				glTexRect(0, 0, 27*widgetScale, 28*widgetScale)
 				glTexture(false)
@@ -221,12 +225,17 @@ function drawWindValue(value)
 end
 
 local windValueDrawList = {}
+local oldGameFrame = 0
 function widget:DrawScreen()
 	glCallList(backgroundList)
 	if rotationOn then -- Rotation
 		glTranslate(oorx*widgetScale, oory*widgetScale, 0)
 		glRotate(count, 0, 0, 1)
 		glTranslate(-oorx*widgetScale, -oory*widgetScale, 0)
+	end
+	if Spring.GetGameFrame() > oldGameFrame + 66 then
+		oldGameFrame = Spring.GetGameFrame()
+		createBackgroundList2()
 	end
 	glCallList(backgroundList2)
 	if spGetGameFrame() > 1 then
