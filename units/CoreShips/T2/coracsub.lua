@@ -57,7 +57,7 @@ return {
 			[11] = "csubpen",
 			[12] = "corason",
 			[13] = "corenaa",
---			[14] = "coratl",
+			[14] = "coratl",
 		},
 		customparams = {
 			death_sounds = "generic",

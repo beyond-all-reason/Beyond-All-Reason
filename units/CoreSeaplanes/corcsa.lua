@@ -55,7 +55,7 @@ return {
 			[[coruwadves]],
 			[[coruwadvms]],
 			[[corenaa]],
---			[[coratl]],
+			[[coratl]],
 			[[corason]],
 		},
 		customparams = {

@@ -55,7 +55,7 @@ return {
 			[[armuwadves]],
 			[[armuwadvms]],
 			[[armfflak]],
---			[[armatl]],
+			[[armatl]],
 			[[armason]],
 		},
 		customparams = {
