@@ -68,9 +68,9 @@ local glowDuration  			= 0.5
 local glowOpacity   			= 0.11
 
 -- limit amount of effects to keep performance sane
-local maxCommandCount			= 450
-local maxGroundGlowCount  = 80
-local drawUnitHightlightMaxUnits = 80
+local maxCommandCount			= 400
+local maxGroundGlowCount  = 50
+local drawUnitHightlightMaxUnits = 50
 
 local glowImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/glow.dds"
 local lineImg			= ":n:"..LUAUI_DIRNAME.."Images/commandsfx/line2.dds"
