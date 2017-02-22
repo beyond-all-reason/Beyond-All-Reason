@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local minFps = 12	-- disables below this average fps
+local minFps = 13	-- disables below this average fps
 local fpsDiff = 5	-- enabled aain above minFps + fpsDiff
 
 local maxOutlineUnits = 1500		-- ignores other units above this amount
