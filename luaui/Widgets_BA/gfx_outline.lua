@@ -13,9 +13,9 @@
 --------------------------------------------------------------------------------
 
 local minFps = 13	-- disables below this average fps
-local fpsDiff = 5	-- enabled aain above minFps + fpsDiff
+local fpsDiff = 4	-- enabled aain above minFps + fpsDiff
 
-local maxOutlineUnits = 1500		-- ignores other units above this amount
+local maxOutlineUnits = 1200		-- ignores other units above this amount
 
 function widget:GetInfo()
   return {
