@@ -3,7 +3,6 @@ Widget dependent:
 /selectionmode                   "SmartSelect"   Filter buildings when 1 or more mobile units is under selection
 /iconspace                       "Red build/Order menu"   Add/remove spacing between build/order icons.
 /cputext                         "AdvPlayerList"   Uses exact number instead of a the colored icon.
-/mascotte                        "AdvPlayerList mascotte"   Switch to different mascotte.
 /unitcounter                     "Red Tooltip"   Shows total units on map as spec, as player only for your team.
 /unitinfo                        "Unit Info"   usage: /unitinfo armcom
 /losradar                        "BA LOS colors"   Increases contrast to show radar view better.
@@ -12,19 +11,15 @@ Widget dependent:
 /comranges_nearbyenemy           "Comblast & Dgun Range"   Always draw ranges or only when an enemy is near.
 /defrange                        "Defense Range"  usage: /defrange enemy/air/+    (use combinations)
 /stockpilecount                  "Stockpiler (dynamic)"   usage: /stockpilecount 10   sets default stockpile amount
-/allyresbars_sizeup              "Ally Resource Bars"   (widget auto-scales according to resolution aswell)
-/allyresbars_sizedown            "Ally Resource Bars"
 /enemyspotter_all                "Enemyspotter"   BEING SPEC Draw spotters for all teams.
 /enemyspotter_self               "Enemyspotter"   BEING PLAYER Draw spotters for your own team aswell.
 /enemyspotter_highlight          "Enemyspotter"   Toggle highlight shader
 /+enemyspotter_highlight         "Enemyspotter"   Adjust highlight intensity also:  /-enemyspotter_highlight
 /enemyspotter_platter            "Enemyspotter"   Toggle platter (turn off only if you use /enemyspotter_highlight)
-/+enemyspotter_platter           "Enemyspotter"   Adjust spotter opacity.   also:  /-enemyspotter_platter
 /comnamescale                    "Commander Name Tags"   names stay big when viewing from large distance
-/placebet                        "Bet Frontend"   CTRL+ALT+B   /selectbets   /printbets   /printscores   /viewbets   /bettime   /bet
 /resetmapdarkness                "Darken map"   CTRL+ALT+[or]
 
-Spring Engine (v99):
+Spring Engine (v103):
 
 /Atm                             (synced)    Gives 1000 metal and 1000 energy to the issuing players team
 /Cheat                           (synced)    Enables/Disables cheating, which is required for a lot of other commands to be usable
@@ -34,8 +29,8 @@ Spring Engine (v99):
 /Give                            (synced)    Places one or multiple units of a single or multiple types on the map, instantly; by default to your own team
 /GlobalLOS                       (synced)    Enables/Disables global line-of-sight, which makes the whole map permanently visible to everyone or to a specific allyteam
 /GodMode                         (synced)    Enables/Disables god-mode, which allows all players (even spectators) to control all units (even during replays, which will DESYNC them)
-/LuaGaia                         (synced)    Allows one to reload or disable Lua-Gaia, or alternatively to send a chat message to Lua-Gaia
-/LuaRules                        (synced)    Allows one to reload or disable Lua-rules, or alternatively to send a chat message to Lua-rules
+/LuaGaia                         (synced)    Allows reloading or disabling LuaGaia, and to send a chat message to LuaGaia scripts
+/LuaRules                        (synced)    Allows reloading or disabling LuaRules, and to send a chat message to LuaRules scripts
 /NoCost                          (synced)    Enables/Disables everything-for-free, which allows everyone to build everything for zero resource costs
 /NoHelp                          (synced)    Enables/Disables widgets (LuaUI control)
 /NoSpecDraw                      (synced)    Allows/Disallows spectators to draw on the map
@@ -44,7 +39,6 @@ Spring Engine (v99):
 /ReloadCOB                       (synced)    Reloads COB scripts
 /Skip                            (synced)    Fast-forwards to a given frame, or stops fast-forwarding
 /Take                            (synced)    Transfers all units of allied teams without any active players to the team of the issuing player
-
 /AdvMapShading                   (unsynced)  Set or toggle advanced map shading mode
 /AdvModelShading                 (unsynced)  Set or toggle advanced model shading mode
 /AIControl                       (unsynced)  Creates a new instance of a Skirmish AI, to let it controll a specific team
@@ -70,7 +64,7 @@ Spring Engine (v99):
 /Crash                           (unsynced)  Invoke an artificial crash through a NULL-pointer dereference (SIGSEGV)
 /CreateVideo                     (unsynced)  Start/Stop capturing a video of the game in progress
 /Cross                           (unsynced)  Allows one to exchange and modify the appearance of the cross/mouse-pointer in first-person-control view
-/CtrlPanel                       (unsynced)  Reloads ctrlpanel.txt
+/CtrlPanel                       (unsynced)  Reloads GUI config
 /Debug                           (unsynced)  Enable/Disable debug info rendering mode
 /DebugColVol                     (unsynced)  Enable/Disable drawing of collision volumes
 /DebugDrawAI                     (unsynced)  Enables/Disables debug drawing for AIs
@@ -102,6 +96,7 @@ Spring Engine (v99):
 /Give                            (unsynced)  Places one or multiple units of a single or multiple types on the map, instantly; by default to your own team
 /GrabInput                       (unsynced)  Prevents/Enables the mouse from leaving the game window (windowed mode only)
 /GroundDecals                    (unsynced)  Disable/Enable ground-decals rendering. Ground-decals are things like scars appearing on the map after an explosion.
+/GroundDetail                    (unsynced)  Set the level of ground detail
 /Group                           (unsynced)  Allows modifying the members of a group
 /Group0                          (unsynced)  Allows modifying the members of group 0
 /Group1                          (unsynced)  Allows modifying the members of group 1
@@ -124,7 +119,9 @@ Spring Engine (v99):
 /LessTrees                       (unsynced)  Decreases the distance to the camera, in which trees are still shown (higher performance)
 /LODScale                        (unsynced)  Set the scale for either of: LOD (level-of-detail), shadow-LOD, reflection-LOD, refraction-LOD
 /LuaGaia                         (unsynced)  Redirects command /LuaGaia to its synced processor
+/LuaModUICtrl                    (unsynced)  Allow/Disallow Lua to receive UI control events, like mouse-, keyboard- and joystick-events
 /LuaRules                        (unsynced)  Redirects command /LuaRules to its synced processor
+/LuaSave                         (unsynced)  Save the game state to a specific file, add -y to overwrite when file is already present
 /LuaUI                           (unsynced)  Allows one to reload or disable LuaUI, or alternatively to send a chat message to LuaUI
 /MapBorder                       (unsynced)  Set or toggle map border rendering
 /MapMarks                        (unsynced)  Enables/Disables map marks rendering
@@ -160,7 +157,7 @@ Spring Engine (v99):
 /Resync                          (unsynced)  Redirects command /Resync to its synced processor
 /roam                            (unsynced)  Disables/Enables ROAM mesh rendering: 0=off, 1=on
 /SafeGL                          (unsynced)  Enables/Disables OpenGL safe-mode
-/Save                            (unsynced)  Save the game state to a specific file (BROKEN)
+/Save                            (unsynced)  Save the game state to a specific file, add -y to overwrite when file is already present
 /SaveGame                        (unsynced)  Save the game state to QuickSave.ssf (BROKEN)
 /Say                             (unsynced)  Say something in (public) chat
 /ScreenShot                      (unsynced)  Take a screen-shot of the current view
@@ -201,6 +198,6 @@ Spring Engine (v99):
 /ViewSelection                   (unsynced)  Moves the camera to the center of the currently selected units
 /VSync                           (unsynced)  Enables/Disables vertical-sync (Graphics setting)
 /W                               (unsynced)  Say something in private to a specific player, by player-name
-/Water                           (unsynced)  Set water rendering mode: 0=basic, 1=reflective, 2=dynamic, 3=reflective&refractive?, 4=bump-mapped
+/Water                           (unsynced)  Set water rendering mode: 0=basic, 1=reflective, 2=dynamic, 3=reflective&refractive, 4=bump-mapped
 /WByNum                          (unsynced)  Say something in private to a specific player, by player-ID
 /WireMap                         (unsynced)  Enable/Disable drawing of the map as wire-frame (no textures) (Graphic setting)

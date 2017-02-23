@@ -67,6 +67,7 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
 local vsx, vsy = Spring.GetViewGeometry()
+local resolutionX, resolutionY = Spring.GetScreenGeometry()
 
 local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
@@ -596,7 +597,6 @@ function widget:DrawScreen()
 	end
 end
 
-
 function applyOptionValue(i)
 	local id = options[i].id
 	if options[i].type == 'bool' then
@@ -619,11 +619,17 @@ function applyOptionValue(i)
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
 		elseif id == 'borderless' then
-			Spring.SendCommands("WindowBorderless "..value)
 			Spring.SetConfigInt("WindowBorderless",value)
 			if value == 1 then
 				Spring.SetConfigInt("WindowPosX",0)
 				Spring.SetConfigInt("WindowPosY",0)
+				Spring.SetConfigInt("XResolutionWindowed",resolutionX)
+				Spring.SetConfigInt("YResolutionWindowed",resolutionY)
+				Spring.SetConfigInt("WindowState",0)
+			else
+				Spring.SetConfigInt("WindowPosX",0)
+				Spring.SetConfigInt("WindowPosY",50)
+				Spring.SetConfigInt("WindowState",1)
 			end
 		elseif id == 'screenedgemove' then
 			Spring.SetConfigInt("FullscreenEdgeMove",value)
@@ -975,7 +981,7 @@ function widget:Initialize()
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	options = {
 		{id="fullscreen", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
-		{id="borderless", name="Borderless", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="If fullscreen is disabled, this option makes the windowed mode have no borders.\n...also set window position at top left corner.\n\nChanges will be applied next game"},
+		{id="borderless", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game. (dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="screenedgemove", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 		{id="hwcursor", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
 		{id="fsaa", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
