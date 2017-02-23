@@ -89,6 +89,9 @@ return {
 				"deathceg3",
 				"deathceg4",
 			},
+			explosiongenerators = {
+				[1] = "custom:barrelshot-large",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -52,6 +52,11 @@ Create()
 	dont-shade barrel2;
 	dont-shade sleeves;
 	dont-shade turret;
+	turn flare1 to x-axis <10> now;
+	move flare1 to z-axis [-0.5] now;
+	move flare1 to y-axis [0.5] now;
+	turn flare2 to x-axis <160> now;
+	move flare2 to z-axis [-0.5] now;
 	Static_Var_1 = 0;
 	Static_Var_2 = 0;
 	start-script SmokeUnit();
@@ -93,18 +98,16 @@ FireWeapon1()
 	start-script Reload1();
 	if( Static_Var_1 == 0 )
 	{
+		emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-6.25000] now;
-		show flare1;
 		sleep 150;
-		hide flare1;
 		move barrel1 to z-axis [0.00000] speed [2.50000];
 	}
 	if( Static_Var_1 == 1 )
 	{
+		emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-6.25000] now;
-		show flare2;
 		sleep 150;
-		hide flare2;
 		move barrel2 to z-axis [0.00000] speed [2.50000];
 	}
 	Static_Var_1 = !Static_Var_1;

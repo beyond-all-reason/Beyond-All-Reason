@@ -628,7 +628,7 @@ function applyOptionValue(i)
 				Spring.SetConfigInt("WindowState",0)
 			else
 				Spring.SetConfigInt("WindowPosX",0)
-				Spring.SetConfigInt("WindowPosY",50)
+				Spring.SetConfigInt("WindowPosY",0)
 				Spring.SetConfigInt("WindowState",1)
 			end
 		elseif id == 'screenedgemove' then

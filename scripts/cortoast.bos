@@ -155,7 +155,9 @@ Create()
 	dont-shade turretback;
 	dont-shade turretssides;
 	hide flare;
-	move turret to y-axis [2.25] now;
+	turn flare to y-axis <32.5> now;
+	move flare to z-axis [-0.2] now;
+	move flare to y-axis [-0.2] now;
 	move pillartops to y-axis [1.45] now;
 	Static_Var_1 = 1;
 	Static_Var_5 = 0;
@@ -208,10 +210,9 @@ FireWeapon1()
 {
 	Static_Var_5 = 1;
 	start-script Reload1();
+	emit-sfx 1024 + 0 from flare;
 	move barrel3 to z-axis [-5.000000] speed [500.000000];
-	show flare;
 	sleep 250;
-	hide flare;
 	move barrel3 to z-axis [0.000000] speed [3.000000];
 }
 
