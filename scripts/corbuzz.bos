@@ -109,7 +109,7 @@ FirePrimary()
 		move barrel1 to z-axis [-6.000000] now;
 		emit-sfx 1024 + 0 from flare1;
 		sleep 55;
-		move barrel1 to z-axis [0.000000] speed [4.000000];
+		move barrel1 to z-axis [0.000000] speed [6.000000];
 	}
 	if( gun_1 == 1 )
 	{
@@ -117,8 +117,8 @@ FirePrimary()
 		move barrel2 to z-axis [-3.000000] now;
 		emit-sfx 1024 + 0 from flare2;
 		sleep 55;
-		move barrel2 to y-axis [0.000000] speed [4.000000];
-		move barrel2 to z-axis [0.000000] speed [4.000000];
+		move barrel2 to y-axis [0.000000] speed [5.000000];
+		move barrel2 to z-axis [0.000000] speed [3.000000];
 	}
 	if( gun_1 == 2 )
 	{
@@ -126,15 +126,15 @@ FirePrimary()
 		move barrel3 to z-axis [3.000000] now;
 		emit-sfx 1024 + 0 from flare3;
 		sleep 55;
-		move barrel3 to y-axis [0.000000] speed [4.000000];
-		move barrel3 to z-axis [0.000000] speed [4.000000];
+		move barrel3 to y-axis [0.000000] speed [5.000000];
+		move barrel3 to z-axis [0.000000] speed [3.000000];
 	}
 	if( gun_1 == 3 )
 	{
 		move barrel4 to z-axis [6.000000] now;
 		emit-sfx 1024 + 0 from flare4;
 		sleep 55;
-		move barrel4 to z-axis [0.000000] speed [4.000000];
+		move barrel4 to z-axis [0.000000] speed [6.000000];
 	}
 	if( gun_1 == 4 )
 	{
@@ -142,8 +142,8 @@ FirePrimary()
 		move barrel5 to z-axis [3.000000] now;
 		emit-sfx 1024 + 0 from flare5;
 		sleep 55;
-		move barrel5 to y-axis [0.000000] speed [4.000000];
-		move barrel5 to z-axis [0.000000] speed [4.000000];
+		move barrel5 to y-axis [0.000000] speed [5.000000];
+		move barrel5 to z-axis [0.000000] speed [3.000000];
 	}
 	if( gun_1 == 5 )
 	{
@@ -151,8 +151,8 @@ FirePrimary()
 		move barrel6 to z-axis [-3.000000] now;
 		emit-sfx 1024 + 0 from flare6;
 		sleep 55;
-		move barrel6 to y-axis [0.000000] speed [4.000000];
-		move barrel6 to z-axis [0.000000] speed [4.000000];
+		move barrel6 to y-axis [0.000000] speed [5.000000];
+		move barrel6 to z-axis [0.000000] speed [3.000000];
 	}
 	++gun_1;
 	if( gun_1 == 6 )
