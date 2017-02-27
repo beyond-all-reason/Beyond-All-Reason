@@ -84,7 +84,7 @@ return {
  				"deathceg4",
  			}, 
 			explosiongenerators = {
-				[1] = "custom:vulcanflare",
+				[1] = "custom:barrelshot-huge",
 			},
 		},
 		sounds = {

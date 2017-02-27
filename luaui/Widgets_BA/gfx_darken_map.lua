@@ -129,16 +129,18 @@ function widget:DrawWorld()
 			features = Spring.GetVisibleFeatures(gaia, 250, false)
 		end
 		
-		gl.DepthTest(true)
-		gl.PolygonOffset(-2, -2)
-		gl.Color(0,0,0,darknessvalue)
-		for i, featureID in pairs(features) do
-			gl.Texture('%-'..spGetFeatureDefID(featureID)..':1')
-		  gl.Feature(featureID, true)
+		if features ~= nil then
+			gl.DepthTest(true)
+			gl.PolygonOffset(-2, -2)
+			gl.Color(0,0,0,darknessvalue)
+			for i, featureID in pairs(features) do
+				gl.Texture('%-'..spGetFeatureDefID(featureID)..':1')
+			  gl.Feature(featureID, true)
+			end
+			gl.PolygonOffset(false)
+			gl.DepthTest(false)
+			gl.Texture(false)
 		end
-		gl.PolygonOffset(false)
-		gl.DepthTest(false)
-		gl.Texture(false)
 	end
 end
 

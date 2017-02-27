@@ -82,9 +82,9 @@ return {
  			 pieceExplosionGenerators = { 
  				"deathceg3",
  				"deathceg4",
- 			}, 
+ 			},
 			explosiongenerators = {
-				[1] = "custom:berthaflare",
+				[1] = "custom:barrelshot-huge",
 			},
 		},
 		sounds = {

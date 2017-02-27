@@ -83,6 +83,10 @@ Create()
 	hide flare4;
 	hide flare5;
 	hide flare6;
+	turn flare2 to x-axis <-12> now;
+	turn flare3 to x-axis <192> now;
+	turn flare5 to x-axis <-12> now;
+	turn flare6 to x-axis <192> now;
 	gun_1 = flare1;
 	start-script SmokeUnit();
 }
@@ -104,51 +108,51 @@ FirePrimary()
 	{
 		move barrel1 to z-axis [-6.000000] now;
 		emit-sfx 1024 + 0 from flare1;
-		sleep 100;
-		move barrel1 to z-axis [0.000000] speed [2.000000];
+		sleep 55;
+		move barrel1 to z-axis [0.000000] speed [4.000000];
 	}
 	if( gun_1 == 1 )
 	{
 		move barrel2 to y-axis [-5.000000] now;
 		move barrel2 to z-axis [-3.000000] now;
 		emit-sfx 1024 + 0 from flare2;
-		sleep 100;
-		move barrel2 to y-axis [0.000000] speed [2.000000];
-		move barrel2 to z-axis [0.000000] speed [2.000000];
+		sleep 55;
+		move barrel2 to y-axis [0.000000] speed [4.000000];
+		move barrel2 to z-axis [0.000000] speed [4.000000];
 	}
 	if( gun_1 == 2 )
 	{
 		move barrel3 to y-axis [-5.000000] now;
 		move barrel3 to z-axis [3.000000] now;
 		emit-sfx 1024 + 0 from flare3;
-		sleep 100;
-		move barrel3 to y-axis [0.000000] speed [2.000000];
-		move barrel3 to z-axis [0.000000] speed [2.000000];
+		sleep 55;
+		move barrel3 to y-axis [0.000000] speed [4.000000];
+		move barrel3 to z-axis [0.000000] speed [4.000000];
 	}
 	if( gun_1 == 3 )
 	{
 		move barrel4 to z-axis [6.000000] now;
 		emit-sfx 1024 + 0 from flare4;
-		sleep 100;
-		move barrel4 to z-axis [0.000000] speed [2.000000];
+		sleep 55;
+		move barrel4 to z-axis [0.000000] speed [4.000000];
 	}
 	if( gun_1 == 4 )
 	{
 		move barrel5 to y-axis [5.000000] now;
 		move barrel5 to z-axis [3.000000] now;
 		emit-sfx 1024 + 0 from flare5;
-		sleep 100;
-		move barrel5 to y-axis [0.000000] speed [2.000000];
-		move barrel5 to z-axis [0.000000] speed [2.000000];
+		sleep 55;
+		move barrel5 to y-axis [0.000000] speed [4.000000];
+		move barrel5 to z-axis [0.000000] speed [4.000000];
 	}
 	if( gun_1 == 5 )
 	{
 		move barrel6 to y-axis [5.000000] now;
 		move barrel6 to z-axis [-3.000000] now;
 		emit-sfx 1024 + 0 from flare6;
-		sleep 100;
-		move barrel6 to y-axis [0.000000] speed [2.000000];
-		move barrel6 to z-axis [0.000000] speed [2.000000];
+		sleep 55;
+		move barrel6 to y-axis [0.000000] speed [4.000000];
+		move barrel6 to z-axis [0.000000] speed [4.000000];
 	}
 	++gun_1;
 	if( gun_1 == 6 )
