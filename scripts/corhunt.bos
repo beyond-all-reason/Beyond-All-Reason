@@ -30,8 +30,8 @@ activatescr()
 	}
 	if( TRUE )
 	{
-		move rsonar to y-axis [16.25000] speed [32.50000];
-		move lsonar to y-axis [16.25000] speed [32.50000];
+		move rsonar to x-axis [-2.25000] speed [5.50000];
+		move lsonar to x-axis [2.25000] speed [5.50000];
 		sleep 491;
 	}
 	sleep 25;
@@ -43,10 +43,8 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move rsonar to y-axis [16.25000] now;
-		move rsonar to y-axis [0.00000] speed [32.50000];
-		move lsonar to y-axis [16.25000] now;
-		move lsonar to y-axis [0.00000] speed [32.50000];
+		move rsonar to x-axis [0.00000] speed [5.50000];
+		move lsonar to x-axis [0.00000] speed [5.50000];
 		turn lwing to z-axis <90.02198> now;
 		turn rwing to z-axis <-90.02198> now;
 		turn ltail to z-axis <45.26923> now;
