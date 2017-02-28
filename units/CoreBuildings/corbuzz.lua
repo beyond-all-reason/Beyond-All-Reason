@@ -139,6 +139,7 @@ return {
 				damage = {
 					default = 1330,
 					subs = 5,
+					shields = 665,
 				},
 			},
 		},
