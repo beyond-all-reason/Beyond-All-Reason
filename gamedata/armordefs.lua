@@ -392,6 +392,12 @@ local armorDefs = {
 		"corcrw",
 		"corcut",
 	},
+	shields = {
+		"armgate",
+		"corgate",
+		--"armfgate", Not currently used by BA
+		--"corfgate", Not currently used by BA
+	},
 }
 
 
