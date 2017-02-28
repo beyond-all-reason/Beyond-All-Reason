@@ -16,7 +16,7 @@ Balance changes:
 - Commanders produce 60% additional energy
 - 'scouts' armflea, armfav and corfav cost more energy to make (around 30%)
 - Sea T2 torpedo launcher is back
-- Plasma shields are 50% weaker to non LRPC shots
+- Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
