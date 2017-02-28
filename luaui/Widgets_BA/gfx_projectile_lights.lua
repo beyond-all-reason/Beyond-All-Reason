@@ -200,9 +200,10 @@ local function GetLightsFromUnitDefs()
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
 		
-		local r = weaponDef.visuals.colorR + 0.15
-		local g = weaponDef.visuals.colorG + 0.15
-		local b = weaponDef.visuals.colorB + 0.15
+		local lightMultiplier = 0.66
+		local r = (weaponDef.visuals.colorR*lightMultiplier) + 0.15
+		local g = (weaponDef.visuals.colorG*lightMultiplier) + 0.15
+		local b = (weaponDef.visuals.colorB*lightMultiplier) + 0.15
 
 		local weaponData = {r = r, g = g, b = b, radius = 100}
 		
@@ -217,18 +218,18 @@ local function GetLightsFromUnitDefs()
 				weaponData.radius = 10 + 70 * weaponDef.size
 			end
 		elseif (weaponDef.type == 'LaserCannon') then
-			weaponData.radius = 100 * weaponDef.size
+			weaponData.radius = 130 * weaponDef.size
 		elseif (weaponDef.type == 'DGun') then
 			weaponData.radius = 60
 		elseif (weaponDef.type == 'MissileLauncher') then
-			weaponData.radius = 120 * weaponDef.size
+			weaponData.radius = 130 * weaponDef.size
 		elseif (weaponDef.type == 'StarburstLauncher') then
 			weaponData.radius = 250
 		elseif (weaponDef.type == 'LightningCannon') then
-			weaponData.radius = math.min(weaponDef.range, 100)
+			weaponData.radius = math.min(weaponDef.range, 130)
 			weaponData.beam = true
 		elseif (weaponDef.type == 'BeamLaser') then
-			weaponData.radius = math.min(weaponDef.range, 100)
+			weaponData.radius = math.min(weaponDef.range, 130)
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
 				weaponData.fadeTime = weaponDef.beamTTL
