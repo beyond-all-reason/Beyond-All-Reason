@@ -160,7 +160,7 @@ local options={
 		name   = "Minimum build distance",
 		desc   = "Enables a global minimum builddistance which results in units spending less time moving and unpacking for construction projects.",		
 		type="list",
-		def="disabled",
+		def="enabled",
 		section= "ba_enhancements_build",
 		items={
 			{key="disabled", name="Disabled", desc=""},
@@ -174,9 +174,9 @@ local options={
         desc   = 'If Minimum build distance is enabled, this options sets the minimum distance for buildrange. Builders with buildrange below this amount with be given this amount. Does not effect builders with longer buildranges than the amount set here.',
         type   = 'number',
         section= 'ba_enhancements_build',
-        def    = 180,
-        min    = 100,
-        max    = 250,
+        def    = 155,
+        min    = 120,
+        max    = 220,
         step   = 1,
     },
 
