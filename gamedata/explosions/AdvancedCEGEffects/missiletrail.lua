@@ -63,18 +63,18 @@ return {
   
   
   ["missiletrailtiny"] = {
-    groundflash = {
-      circlealpha        = 0,
-      circlegrowth       = 0,
-      flashalpha         = 0.02,
-      flashsize          = 40,
-      ttl                = 10,
-      color = {
-        [1]  = 1,
-        [2]  = 0.75,
-        [3]  = 0.25,
-      },
-    },
+    --groundflash = {
+    --  circlealpha        = 0,
+    --  circlegrowth       = 0,
+    --  flashalpha         = 0.02,
+    --  flashsize          = 40,
+    --  ttl                = 10,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.75,
+    --    [3]  = 0.25,
+    --  },
+    --},
     searingflame = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -143,7 +143,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
+        colormap           = [[0.145 0.066 0.013 0.08   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -152,7 +152,7 @@ return {
         numparticles       = 1,
         particlelife       = 2,
         particlelifespread = 0,
-        particlesize       = 26,
+        particlesize       = 34,
         particlesizespread = 5,
         particlespeed      = 0,
         particlespeedspread = 0,
@@ -251,18 +251,18 @@ return {
   },
   
   ["missiletrailsmall"] = {
-    groundflash = {
-      circlealpha        = 0,
-      circlegrowth       = 0,
-      flashalpha         = 0.025,
-      flashsize          = 45,
-      ttl                = 10,
-      color = {
-        [1]  = 1,
-        [2]  = 0.75,
-        [3]  = 0.25,
-      },
-    },
+    --groundflash = {
+    --  circlealpha        = 0,
+    --  circlegrowth       = 0,
+    --  flashalpha         = 0.025,
+    --  flashsize          = 50,
+    --  ttl                = 12,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.75,
+    --    [3]  = 0.25,
+    --  },
+    --},
     engine = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -320,7 +320,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.145 0.066 0.013 0.02   0 0 0 0.01]],
+        colormap           = [[0.145 0.066 0.013 0.07   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -329,7 +329,7 @@ return {
         numparticles       = 1,
         particlelife       = 2,
         particlelifespread = 0,
-        particlesize       = 32,
+        particlesize       = 43,
         particlesizespread = 6,
         particlespeed      = 0,
         particlespeedspread = 0,
@@ -401,18 +401,18 @@ return {
   },
 
   ["missiletrailmedium"] = {
-    groundflash = {
-      circlealpha        = 0,
-      circlegrowth       = 0,
-      flashalpha         = 0.035,
-      flashsize          = 65,
-      ttl                = 10,
-      color = {
-        [1]  = 0.9,
-        [2]  = 0.55,
-        [3]  = 0.15,
-      },
-    },
+    --groundflash = {
+    --  circlealpha        = 0,
+    --  circlegrowth       = 0,
+    --  flashalpha         = 0.035,
+    --  flashsize          = 65,
+    --  ttl                = 10,
+    --  color = {
+    --    [1]  = 0.9,
+    --    [2]  = 0.55,
+    --    [3]  = 0.15,
+    --  },
+    --},
     engine = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -499,7 +499,7 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
+        colormap           = [[0.145 0.066 0.013 0.063   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -508,7 +508,7 @@ return {
         numparticles       = 1,
         particlelife       = 2,
         particlelifespread = 0,
-        particlesize       = 36,
+        particlesize       = 75,
         particlesizespread = 9,
         particlespeed      = 0,
         particlespeedspread = 0,
@@ -634,18 +634,18 @@ return {
   },
 
   ["missiletraillarge"] = {
-    groundflash = {
-      circlealpha        = 0,
-      circlegrowth       = 0,
-      flashalpha         = 0.05,
-      flashsize          = 85,
-      ttl                = 10,
-      color = {
-        [1]  = 0.80000001192093,
-        [2]  = 0.50000000149012,
-        [3]  = 0.15,
-      },
-    },
+    --groundflash = {
+    --  circlealpha        = 0,
+    --  circlegrowth       = 0,
+    --  flashalpha         = 0.05,
+    --  flashsize          = 85,
+    --  ttl                = 10,
+    --  color = {
+    --    [1]  = 0.80000001192093,
+    --    [2]  = 0.50000000149012,
+    --    [3]  = 0.15,
+    --  },
+    --},
     fire = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -713,16 +713,16 @@ return {
       properties = {
         airdrag            = 0,
         alwaysvisible      = true,
-        colormap           = [[0.13 0.063 0.012 0.017   0 0 0 0.01]],
+        colormap           = [[0.145 0.066 0.013 0.055   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
         emitvector         = [[0.0, 1, 0.0]],
         gravity            = [[0.0, 0.0, 0.0]],
         numparticles       = 1,
-        particlelife       = 3,
+        particlelife       = 2,
         particlelifespread = 0,
-        particlesize       = 50,
+        particlesize       = 105,
         particlesizespread = 10,
         particlespeed      = 0,
         particlespeedspread = 0,
@@ -877,18 +877,18 @@ return {
   },
 
   ["missiletrailaa"] = {
-    groundflash = {
-      circlealpha        = 0,
-      circlegrowth       = 0,
-      flashalpha         = 0.05,
-      flashsize          = 38,
-      ttl                = 10,
-      color = {
-        [1]  = 0.80000001192093,
-        [2]  = 0.50000000149012,
-        [3]  = 0.15,
-      },
-    },
+    --groundflash = {
+    --  circlealpha        = 0,
+    --  circlegrowth       = 0,
+    --  flashalpha         = 0.05,
+    --  flashsize          = 38,
+    --  ttl                = 10,
+    --  color = {
+    --    [1]  = 0.80000001192093,
+    --    [2]  = 0.50000000149012,
+    --    [3]  = 0.15,
+    --  },
+    --},
     engine = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
