@@ -251,34 +251,30 @@ FireWeapon1()
 	if( Static_Var_1 == 0 )
 	{
 		move barrel1a to z-axis [-2.000000] speed [500.000000];
-		show flare1a;
+		emit-sfx 1024 + 0 from flare1a;
 		sleep 150;
 		move barrel1a to z-axis [0.000000] speed [3.000000];
-		hide flare1a;
 	}
 	else if( Static_Var_1 == 1 )
 	{
 		move barrel1b to z-axis [-2.000000] speed [500.000000];
-		show flare1b;
+		emit-sfx 1024 + 0 from flare1b;
 		sleep 150;
 		move barrel1b to z-axis [0.000000] speed [3.000000];
-		hide flare1b;
 	}
 	else if( Static_Var_1 == 2 )
 	{
 		move barrel1c to z-axis [-2.000000] speed [500.000000];
-		show flare1c;
+		emit-sfx 1024 + 0 from flare1c;
 		sleep 150;
 		move barrel1c to z-axis [0.000000] speed [3.000000];
-		hide flare1c;
 	}
 	else if( Static_Var_1 == 3 )
 	{
 		move barrel1d to z-axis [-2.000000] speed [500.000000];
-		show flare1d;
+		emit-sfx 1024 + 0 from flare1d;
 		sleep 150;
 		move barrel1d to z-axis [0.000000] speed [3.000000];
-		hide flare1d;
 	}
 	++Static_Var_1;
 	if( Static_Var_1 >= 4 )

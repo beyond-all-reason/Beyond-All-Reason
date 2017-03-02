@@ -188,27 +188,24 @@ FirePrimary()
 {
 	if( bAiming == 1 )
 	{
-		show flare1a;
+		emit-sfx 1024 + 0 from flare1a;
 		move barrel1a to z-axis [-2.500000] now;
 		sleep 150;
-		hide flare1a;
 		move barrel1a to z-axis [0.000000] speed [1.000000];
 	}
 	if( bAiming == 2 )
 	{
-		show flare1b;
+		emit-sfx 1024 + 0 from flare1b;
 		move barrel1b to z-axis [-2.500000] now;
 		sleep 150;
-		hide flare1b;
 		move barrel1b to z-axis [0.000000] speed [1.000000];
 	}
 	if( bAiming == 3 )
 	{
 		gun_1 = flare1b;
-		show flare1c;
+		emit-sfx 1024 + 0 from flare1c;
 		move barrel1c to z-axis [-2.500000] now;
 		sleep 150;
-		hide flare1c;
 		move barrel1c to z-axis [0.000000] speed [1.000000];
 	}
 	++bAiming;
@@ -218,27 +215,24 @@ FireSecondary()
 {
 	if( Static_Var_2 == 1 )
 	{
-		show flare2a;
+		emit-sfx 1024 + 0 from flare2a;
 		move barrel2a to z-axis [-2.500000] now;
 		sleep 150;
-		hide flare2a;
 		move barrel2a to z-axis [0.000000] speed [1.000000];
 	}
 	if( Static_Var_2 == 2 )
 	{
-		show flare2b;
+		emit-sfx 1024 + 0 from flare2b;
 		move barrel2b to z-axis [-2.500000] now;
 		sleep 150;
-		hide flare2b;
 		move barrel2b to z-axis [0.000000] speed [1.000000];
 	}
 	if( Static_Var_2 == 3 )
 	{
 		gun_2 = flare1b;
-		show flare2c;
+		emit-sfx 1024 + 0 from flare2c;
 		move barrel2c to z-axis [-2.500000] now;
 		sleep 150;
-		hide flare2c;
 		move barrel2c to z-axis [0.000000] speed [1.000000];
 	}
 	++Static_Var_2;
