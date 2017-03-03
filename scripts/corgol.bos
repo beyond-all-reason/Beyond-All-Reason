@@ -61,6 +61,7 @@ HitByWeapon(Func_Var_1, Func_Var_2)
 Create()
 {
 	hide flare;
+	move flare to x-axis [0.4] now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }

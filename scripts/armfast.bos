@@ -482,6 +482,9 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide rfirept;
+	turn rfirept to x-axis <160> now;
+	move rfirept to y-axis [-3.7] now;
+	move rfirept to z-axis [1.35] now;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;
@@ -554,9 +557,15 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show rfirept;
+	emit-sfx 1024 + 0 from rfirept;
 	sleep 100;
-	hide rfirept;
+	emit-sfx 1024 + 0 from rfirept;
+	sleep 100;
+	emit-sfx 1024 + 0 from rfirept;
+	sleep 100;
+	emit-sfx 1024 + 0 from rfirept;
+	sleep 100;
+	emit-sfx 1024 + 0 from rfirept;
 }
 
 Killed(severity, corpsetype)
