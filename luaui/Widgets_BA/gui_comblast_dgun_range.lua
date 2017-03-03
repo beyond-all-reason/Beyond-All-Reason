@@ -34,7 +34,6 @@ local spGetUnitNearestEnemy	= Spring.GetUnitNearestEnemy
 local spIsGUIHidden			= Spring.IsGUIHidden
 
 local glDepthTest 			= gl.DepthTest
-local glDrawGroundCircle 	= gl.DrawGroundCircle
 local glLineWidth 			= gl.LineWidth
 local glColor				= gl.Color
 local glTranslate			= gl.Translate

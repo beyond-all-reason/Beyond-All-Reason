@@ -201,7 +201,7 @@ function widget:DrawWorld()
 		
 		glLineWidth(1)
 		glColor(1, 0, 0, 0.5)
-		glDrawGroundCircle(centerX, 0, centerZ, MEX_RADIUS, 32)
+		glDrawGroundCircle(centerX, 0, centerZ, MEX_RADIUS, 48)
 		if defaultDefID then
 			glPushMatrix()
 				glColor(1, 1, 1, 0.25)

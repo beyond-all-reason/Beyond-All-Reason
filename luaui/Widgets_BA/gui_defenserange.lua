@@ -371,7 +371,6 @@ local glBeginEnd            = gl.BeginEnd
 local glBillboard           = gl.Billboard
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
-local glDrawGroundCircle    = gl.DrawGroundCircle
 local glDrawGroundQuad      = gl.DrawGroundQuad
 local glLineWidth           = gl.LineWidth
 local glPopMatrix           = gl.PopMatrix

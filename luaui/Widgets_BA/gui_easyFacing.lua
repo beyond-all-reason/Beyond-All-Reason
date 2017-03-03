@@ -64,7 +64,6 @@ local glColor               = gl.Color
 local glLineWidth           = gl.LineWidth
 local glDepthTest           = gl.DepthTest
 local glTexture             = gl.Texture
-local glDrawGroundCircle    = gl.DrawGroundCircle
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate

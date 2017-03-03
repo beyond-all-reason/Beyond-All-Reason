@@ -264,7 +264,7 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 
 		if isMex[bDefID] then
 			gl.Color(1.0, 0.3, 0.3, 0.7)
-			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 40)
+			gl.DrawGroundCircle(bx, by, bz, Game.extractorRadius, 50)
 		end
 
 		local wRange = weaponRange[bDefID]

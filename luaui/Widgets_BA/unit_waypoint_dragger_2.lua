@@ -350,7 +350,7 @@ function widget:DrawWorld()
 		glColor(r, g, b, a)
 
 		if (d > (wayPtSelDist * wayPtSelDist)) then
-			glDrawGroundCircle(ox, oy, oz, 13, 16)
+			glDrawGroundCircle(ox, oy, oz, 13, 48)
 		end
 
 		local pattern = (65536 - 775)

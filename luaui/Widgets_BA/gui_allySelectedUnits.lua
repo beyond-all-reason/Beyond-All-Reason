@@ -36,7 +36,6 @@ local spIsSphereInView  	= Spring.IsSphereInView
 local spGetSpectatingState	= Spring.GetSpectatingState
 local spGetGameSeconds		= Spring.GetGameSeconds
 local spIsGUIHidden			= Spring.IsGUIHidden
-local glDrawGroundCircle 	= gl.DrawGroundCircle
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
 local glUnitShape			= gl.UnitShape
