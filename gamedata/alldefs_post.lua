@@ -34,6 +34,15 @@ end
 -- process weapondef
 function WeaponDef_Post(name, wDef)
   wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
+  
+	if wDef.weapontype == "Cannon" then
+		if wDef.stages == nil then
+			wDef.stages = 9
+			if wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
+				wDef.stages = math.floor(wDef.stages + math.min(wDef.damage.default * 0.004, wDef.areaofeffect * 0.16))
+			end
+		end
+	end
 end
 
 

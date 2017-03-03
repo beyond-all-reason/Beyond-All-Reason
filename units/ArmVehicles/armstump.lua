@@ -141,6 +141,7 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 225,
+				--stages = 10,
 				damage = {
 					bombers = 18,
 					default = 97,
