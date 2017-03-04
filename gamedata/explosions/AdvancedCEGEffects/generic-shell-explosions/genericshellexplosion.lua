@@ -1173,44 +1173,43 @@ definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-mediu
 definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0 0 0.22   1 0.13 0.11 0.16   0.8 0.13 0.07 0.07   0 0 0 0]]
 definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = [[1 0.3 0.1 0.01   0.9 0.35 0.2 0.017   0 0 0 0]]
 
-definitions['expldgun'] = {}
---definitions['expldgun'] = deepcopy(definitions[root.."-small"])
---definitions['expldgun'].groundflash = {
---      air                = true,
---      alwaysvisible      = true,
---      flashalpha         = 0.045,
---      flashsize          = 100,
---      ground             = true,
---      ttl                = 20,
---      water              = true, 
---	  underwater         = true,
---      color = {
---        [1]  = 1,
---        [2]  = 0.7,
---        [3]  = 0.2,
---      },
---}
---definitions['expldgun'].groundflash2 = {
---    class              = [[CSimpleGroundFlash]],
---    properties = {
---    	size = 150,
---    	ttl = 200,
---    	texture = [[bigexplosmoke]],
---      colormap  = [[0.2 0.4 0.1 0.62 	0 0 0 0.0]],
---    }
---}
---
---definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2
---definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.5
---definitions['expldgun'].explosion.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
---definitions['expldgun'].sparks.properties.particlelife            = definitions['expldgun'].sparks.properties.particlelife*1.3
---definitions['expldgun'].sparks.properties.particlespeed           = definitions['expldgun'].sparks.properties.particlespeed*1.3
---definitions['expldgun'].sparks.properties.particlespeedspread     = definitions['expldgun'].sparks.properties.particlespeedspread*1.8
---definitions['expldgun'].sparks.properties.numparticles            = definitions['expldgun'].sparks.properties.numparticles*0.7
---definitions['expldgun'].dirt2 = nil
---definitions['expldgun'].dirt.properties.numparticles              = definitions['expldgun'].dirt.properties.numparticles*4
---definitions['expldgun'].dirt.properties.particlelife              = definitions['expldgun'].dirt.properties.particlelife*1.9
---definitions['expldgun'].dirt.properties.particlespeed             = definitions['expldgun'].dirt.properties.particlespeed*1.9
---definitions['expldgun'].dirt.properties.particlespeedspread       = definitions['expldgun'].dirt.properties.particlespeedspread*2
---definitions['expldgun'].grounddust = nil
+definitions['expldgun'] = deepcopy(definitions[root.."-small"])
+definitions['expldgun'].groundflash = {
+      air                = true,
+      alwaysvisible      = true,
+      flashalpha         = 0.045,
+      flashsize          = 100,
+      ground             = true,
+      ttl                = 20,
+      water              = true, 
+	  underwater         = true,
+      color = {
+        [1]  = 1,
+        [2]  = 0.7,
+        [3]  = 0.2,
+      },
+}
+definitions['expldgun'].groundflash2 = {
+    class              = [[CSimpleGroundFlash]],
+    properties = {
+    	size = 150,
+    	ttl = 200,
+    	texture = [[bigexplosmoke]],
+      colormap  = [[0.2 0.4 0.1 0.62 	0 0 0 0.0]],
+    }
+}
+
+definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2
+definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.5
+definitions['expldgun'].explosion.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
+definitions['expldgun'].sparks.properties.particlelife            = definitions['expldgun'].sparks.properties.particlelife*1.3
+definitions['expldgun'].sparks.properties.particlespeed           = definitions['expldgun'].sparks.properties.particlespeed*1.3
+definitions['expldgun'].sparks.properties.particlespeedspread     = definitions['expldgun'].sparks.properties.particlespeedspread*1.8
+definitions['expldgun'].sparks.properties.numparticles            = definitions['expldgun'].sparks.properties.numparticles*0.7
+definitions['expldgun'].dirt2 = nil
+definitions['expldgun'].dirt.properties.numparticles              = definitions['expldgun'].dirt.properties.numparticles*4
+definitions['expldgun'].dirt.properties.particlelife              = definitions['expldgun'].dirt.properties.particlelife*1.9
+definitions['expldgun'].dirt.properties.particlespeed             = definitions['expldgun'].dirt.properties.particlespeed*1.9
+definitions['expldgun'].dirt.properties.particlespeedspread       = definitions['expldgun'].dirt.properties.particlespeedspread*2
+definitions['expldgun'].grounddust = nil
 return definitions

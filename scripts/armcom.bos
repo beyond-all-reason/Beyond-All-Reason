@@ -417,6 +417,12 @@ Create()
 {
 	hide rbigflash;
 	hide lfirept;
+	turn lfirept to x-axis <90> now;
+	move lfirept to x-axis [0.5] now;
+	move lfirept to z-axis [0.25] now;
+	turn rbigflash to x-axis <90> now;
+	move rbigflash to x-axis [0.5] now;
+	move rbigflash to y-axis [-0.35] now;
 	hide nanospray;
 	bMoving = FALSE;
 	bAiming = FALSE;
@@ -467,12 +473,12 @@ RestorePosition()
 
 ResumeBuilding()
 {
-     sleep 400;
-     if ((building) AND (NOT justfired))
-     {
-           turn torso to y-axis buildy speed <150.000000>;
-           turn luparm to x-axis <-30.000000> - buildx speed <45.000000>;
-     }
+	sleep 400;
+	if ((building) AND (NOT justfired))
+	{
+		turn torso to y-axis buildy speed <150.000000>;
+		turn luparm to x-axis <-30.000000> - buildx speed <45.000000>;
+	}
 }
 
 AimFromPrimary(piecenum)
@@ -591,9 +597,8 @@ AimTertiary(heading, pitch)
 
 FireTertiary()
 {
-	show rbigflash;
+	emit-sfx 1024 + 1 from rbigflash;
 	sleep 100;
-	hide rbigflash;
 	Static_Var_4 = 0;
 }
 
@@ -620,10 +625,10 @@ TargetCleared(Func_Var_1)
 
 StopBuilding()
 {
-    building = FALSE;
+  building = FALSE;
 	set INBUILDSTANCE to 0;
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;;
+	set-signal-mask SIG_AIM;
 	sleep 3000;
 	if (building) return;
 	call-script RestorePosition();

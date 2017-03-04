@@ -150,6 +150,7 @@ return {
  			}, 
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
+				[2] = "custom:barrelshot-medium",
 			},
 		},
 		sounds = {
