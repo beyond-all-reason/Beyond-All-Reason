@@ -200,7 +200,7 @@ local function GetLightsFromUnitDefs()
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
 		
-		local lightMultiplier = 0.18
+		local lightMultiplier = 0.2
 		local r = (weaponDef.visuals.colorR + 0.13) * lightMultiplier
 		local g = (weaponDef.visuals.colorG + 0.13) * lightMultiplier
 		local b = (weaponDef.visuals.colorB + 0.13) * lightMultiplier
@@ -220,7 +220,7 @@ local function GetLightsFromUnitDefs()
 		elseif (weaponDef.type == 'LaserCannon') then
 			weaponData.radius = 110 * weaponDef.size
 		elseif (weaponDef.type == 'DGun') then
-			weaponData.radius = 60
+			weaponData.radius = 250
 		elseif (weaponDef.type == 'MissileLauncher') then
 			weaponData.radius = 110 * weaponDef.size
 		elseif (weaponDef.type == 'StarburstLauncher') then
