@@ -105,6 +105,16 @@ QuerySecondary(piecenum)
 	piecenum = wingb;
 }
 
+QueryWeapon3(piecenum)
+{
+	piecenum = winga;
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = wingb;
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;

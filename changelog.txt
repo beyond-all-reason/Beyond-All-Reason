@@ -25,8 +25,9 @@ Balance changes:
 - All aa missile range increased a few % (because missiles travel slightly slower so catchup target slower too)
 - T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
 - Arm/core defender range increased 15%
-- Fighters have more range due to slower missile speed and missile turnrate
-- Fighters dont attack ground (because bigger range means more frequent attacks on ground)
+- Fighters have been given more range due to slower missile speed and missile turnrate 
+(old fighter missile range was too short to show missile exhaust effect properly)
+- Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
 
 Wind:
 - Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way

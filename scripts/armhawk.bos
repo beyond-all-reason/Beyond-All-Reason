@@ -131,6 +131,18 @@ QuerySecondary(piecenum)
 	return (0);
 }
 
+QueryWeapon3(piecenum)
+{
+	piecenum = flare1;
+	return (0);
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = flare2;
+	return (0);
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;

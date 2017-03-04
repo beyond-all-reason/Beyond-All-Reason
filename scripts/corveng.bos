@@ -118,13 +118,25 @@ Deactivate()
 	return (0);
 }
 
-ePrimary(Func_Var_1)
+FirePrimary(Func_Var_1)
 {
 	Static_Var_2 = !Static_Var_2;
 	return (0);
 }
 
 QueryPrimary(piecenum)
+{
+	piecenum = Static_Var_2;
+	return (0);
+}
+
+FireSecondary(Func_Var_1)
+{
+	Static_Var_2 = !Static_Var_2;
+	return (0);
+}
+
+QuerySecondary(piecenum)
 {
 	piecenum = Static_Var_2;
 	return (0);
