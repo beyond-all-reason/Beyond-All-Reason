@@ -793,7 +793,21 @@ teamDeathMessages = {
     "XX doesn't accept reality",
     "XX doesn't accept virtual reality",
     "XX storms out",
-    
+    "XX hit by a turtle when he was small",
+"XX didn't build enough afus",
+"XX had parachute failure",
+"XX thought he was superman and jumped from a high place",
+"XX killed John Wick's dog",
+"XX teched in 1v1",
+"XX tried so hard and got so far but in the end it doesnt even matter",
+"XX should have used his brain",
+"XX committed suicide",
+"XX spent his last hour to play Balanced Annihilation",
+"XX will rest in peace",
+"XX cut wrong cable of bomb",
+"XX killed by Bugs Bunny in XX season",
+"XX spent his ninth live",
+
 }
     
     
