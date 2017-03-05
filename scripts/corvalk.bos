@@ -182,12 +182,12 @@ ProcessFlames()
 	{
 		if( Static_Var_1 == 1 OR Static_Var_1 == 2 )
 		{
-			emit-sfx 0 from thrust1;
-			emit-sfx 0 from thrust2;
-			emit-sfx 0 from thrust3;
-			emit-sfx 0 from thrust4;
+			emit-sfx 1024 from thrust1;
+			emit-sfx 1024 from thrust2;
+			emit-sfx 1024 from thrust3;
+			emit-sfx 1024 from thrust4;
 		}
-		sleep 67;
+		sleep 50;
 	}
 	return (0);
 }

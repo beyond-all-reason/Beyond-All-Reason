@@ -109,6 +109,17 @@ local UnitEffects = {
   },
 
   --// PLANES still need to do work here //----------------------------
+  [UnitDefNames["armatlas"].id] = {
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="jet1", onActive=true}},
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="jet2", onActive=true}},
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="jet3", onActive=true}},
+ },
+  [UnitDefNames["corvalk"].id] = {
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust1", onActive=true}},
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust2", onActive=true}},
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust3", onActive=true}},
+    {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust4", onActive=true}},
+ },
   [UnitDefNames["armfig"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=45, piece="rearthrust", onActive=true}},
  },

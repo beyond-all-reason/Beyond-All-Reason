@@ -107,6 +107,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	turn jet2 to x-axis <180> now;
+	move jet2 to y-axis [-2] now;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
@@ -161,11 +163,11 @@ ProcessFlames()
 	{
 		if( Static_Var_1 == 1 OR Static_Var_1 == 2 )
 		{
-			emit-sfx 0 from jet1;
-			emit-sfx 0 from jet2;
-			emit-sfx 0 from jet3;
+			emit-sfx 1024 from jet1;
+			emit-sfx 1024 from jet2;
+			emit-sfx 1024 from jet3;
 		}
-		sleep 67;
+		sleep 50;
 	}
 }
 
