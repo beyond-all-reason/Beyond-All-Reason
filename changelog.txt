@@ -19,6 +19,7 @@ Balance changes:
 - Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 - Vanguard does 20% more damage
 - Armmart and cormart do 15% more damage
+- armvulc and corbuzz cost increased by 40%
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
