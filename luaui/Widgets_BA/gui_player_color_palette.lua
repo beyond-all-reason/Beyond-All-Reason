@@ -1,0 +1,89 @@
+function widget:GetInfo()
+	return {
+		name = "Player Color Palette",
+		desc = "Applies an evenly distributed color palette among players",
+		author = "Floris",
+		date = "March 2017",
+		license = "GPL v2",
+		layer = -10001,
+		enabled = true,
+	}
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local function hue2rgb(p, q, t)
+  if (t < 0) then t = t + 1 end
+  if (t > 1) then t = t - 1 end
+  if (t < 1/6) then return p + (q - p) * 6 * t end
+  if (t < 1/2) then return q end
+  if (t < 2/3) then return p + (q - p) * (2/3 - t) * 6 end
+  return p
+end
+
+local function hslToRgb(h, s, l)
+  local r, g, b
+  if s == 0 then
+      r = l
+      g = l
+      b = l
+  else
+    local q = l + s - l * s
+    if l < 0.5 then
+    	q = l * (1 + s)
+    end
+    local p = 2 * l - q
+    r = hue2rgb(p, q, h + 1/3)
+    g = hue2rgb(p, q, h)
+    b = hue2rgb(p, q, h - 1/3)
+  end
+  return r,g,b
+end
+
+local function GetColor(i, teams)
+	teams = teams * 1.1 -- so last teamcolor isnt very similar to first teamcolor
+	local l = 0.53
+	--if i > (teams * 0.33) then l = 0.7 end
+	--if i > (teams * 0.66) then l = 0.3 end
+	if teams > 12 then
+		if i%3==0 then
+			l = 0.89
+		end
+		if i%3==2 then
+			l = 0.25
+		end
+	end
+	local r,g,b = hslToRgb((i/teams) - (1/teams), 1, l)
+	return r,g,b
+end
+
+local function SetNewTeamColors() 
+	
+	local numteams = #Spring.GetTeamList() - 1 -- minus gaia
+	--local numallyteams = #Spring.GetAllyTeamList() - 1 -- minus gaia
+	
+	local i = 0
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		i = i + 1
+		local r,g,b = GetColor(i, numteams, numallyteams)
+		
+		local _, playerID = Spring.GetTeamInfo(teamID)
+		local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
+		Spring.SetTeamColor(teamID, r,g,b)
+	end
+end
+
+local function ResetOldTeamColors()
+	for _,team in ipairs(Spring.GetTeamList()) do
+		Spring.SetTeamColor(team,Spring.GetTeamOrigColor(team))
+	end
+end
+
+function widget:Initialize()
+	SetNewTeamColors()
+end
+
+function widget:Shutdown()
+	ResetOldTeamColors()
+end
