@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Player Color Palette",
-		desc = "Applies an evenly distributed color palette among players",
+		desc = "Player colors based on an evenly distributed color palette",
 		author = "Floris",
 		date = "March 2017",
 		license = "GPL v2",
