@@ -53,6 +53,15 @@ local function GetColor(i, teams)
 		if i%3==2 then
 			l = 0.25
 		end
+	else
+		if teams > 8 then
+			if i%2==0 then
+				l = 0.78
+			end
+			if i%2==1 then
+				l = 0.42
+			end
+		end
 	end
 	local r,g,b = hslToRgb((i/teams) - (1/teams), 1, l)
 	return r,g,b
