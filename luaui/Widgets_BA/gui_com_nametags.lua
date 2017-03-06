@@ -90,8 +90,8 @@ local function GetCommAttributes(unitID, unitDefID)
   end
   local r, g, b, a = GetTeamColor(team)
   local bgColor = {0,0,0,1}
-  if (r + g*1.35 + b*0.5) < 0.75 then  -- not acurate (enough) with playerlist   but...   font:SetAutoOutlineColor(true)   doesnt seem to work
-	bgColor = {1,1,1,1}
+  if (r + g*1.35 + b*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
+		bgColor = {1,1,1,1}
   end
   
   local height = UnitDefs[unitDefID].height + heightOffset
@@ -101,7 +101,7 @@ end
 local function createComnameList(attributes)
 	comnameList[attributes[1]] = gl.CreateList( function()
 		local outlineColor = {0,0,0,1}
-		if (attributes[2][1] + attributes[2][2]*1.35 + attributes[2][3]*0.5) < 0.8 then
+		if (attributes[2][1] + attributes[2][2]*1.35 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
 			outlineColor = {1,1,1,1}
 		end
 		if useThickLeterring then
