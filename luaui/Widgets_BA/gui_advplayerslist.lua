@@ -1108,7 +1108,7 @@ end
 
 function GetDark(red,green,blue)                  	
 	-- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
-	if red*1.2 + green*1.1 + blue*0.8 < 0.9 then return true end
+	if red + green*1.2 + blue*0.4 < 0.8 then return true end
 	return false
 end
 
@@ -2150,7 +2150,7 @@ function DrawName(name, team, posY, dark, playerID)
 		xPadding = 16
 		DrawState(playerID, m_name.posX + widgetPosX, posY)
 	end
-	if (nameColourR + nameColourG*1.35 + nameColourB*0.4) < 0.8 then
+	if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
 		gl_Text(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o") -- draws name
 	else
 		gl_Color(0,0,0,0.45)
@@ -2177,7 +2177,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 		
 		if playerSpecs[playerID] ~= nil then 
 			nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
-			if (nameColourR + nameColourG*1.35 + nameColourB*0.5) < 0.75 then
+			if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
 				gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
 			else
 				gl_Color(0,0,0,0.3)

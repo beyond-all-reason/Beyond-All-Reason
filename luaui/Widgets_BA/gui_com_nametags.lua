@@ -90,7 +90,7 @@ local function GetCommAttributes(unitID, unitDefID)
   end
   local r, g, b, a = GetTeamColor(team)
   local bgColor = {0,0,0,1}
-  if (r + g*1.35 + b*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
+  if (r + g*1.2 + b*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
 		bgColor = {1,1,1,1}
   end
   
@@ -101,7 +101,7 @@ end
 local function createComnameList(attributes)
 	comnameList[attributes[1]] = gl.CreateList( function()
 		local outlineColor = {0,0,0,1}
-		if (attributes[2][1] + attributes[2][2]*1.35 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
+		if (attributes[2][1]*0.9 + attributes[2][2]*1.2 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
 			outlineColor = {1,1,1,1}
 		end
 		if useThickLeterring then
