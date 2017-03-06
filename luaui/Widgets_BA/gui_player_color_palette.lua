@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Player Color Palette",
-		desc = "Player colors based on an evenly distributed color palette",
+		desc = "Applies an evenly distributed color palette among players",
 		author = "Floris",
 		date = "March 2017",
 		license = "GPL v2",
@@ -48,7 +48,7 @@ local function GetColor(i, teams)
 	--if i > (teams * 0.66) then l = 0.3 end
 	if teams > 12 then
 		if i%3==0 then
-			l = 0.89
+			l = 0.88
 		end
 		if i%3==2 then
 			l = 0.25
@@ -59,18 +59,20 @@ local function GetColor(i, teams)
 end
 
 local function SetNewTeamColors() 
-	
+	local allyTeamList = Spring.GetAllyTeamList()
 	local numteams = #Spring.GetTeamList() - 1 -- minus gaia
 	--local numallyteams = #Spring.GetAllyTeamList() - 1 -- minus gaia
 	
 	local i = 0
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		i = i + 1
-		local r,g,b = GetColor(i, numteams, numallyteams)
-		
-		local _, playerID = Spring.GetTeamInfo(teamID)
-		local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
-		Spring.SetTeamColor(teamID, r,g,b)
+	for _, allyID in ipairs(allyTeamList) do
+		for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
+			i = i + 1
+			local r,g,b = GetColor(i, numteams, numallyteams)
+			
+			local _, playerID = Spring.GetTeamInfo(teamID)
+			local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
+			Spring.SetTeamColor(teamID, r,g,b)
+		end
 	end
 end
 
