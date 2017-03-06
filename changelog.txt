@@ -47,7 +47,7 @@ Smaller than desired hitboxes result in missed projectiles or projectiles passin
 
 Other:
 - Lots of new particle effects!
-- Common Colors widget has beed added (rainbow scemed team coloring, toggable via Options widget)
+- Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options widget)
 - Added 'mex' button (area drag) for units that can build metal extractors, area drag will cap all metal extraction points
 - Added luamex (lua metal extractor points) functionality for mappers
 - Buildmenu: shows metal an energy cost (toggle size with /iconinfo)

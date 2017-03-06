@@ -42,7 +42,6 @@ local function hslToRgb(h, s, l)
 end
 
 local function GetColor(i, teams)
-	teams = teams * 1.1 -- so last teamcolor isnt very similar to first teamcolor
 	local l = 0.53
 	--if i > (teams * 0.33) then l = 0.7 end
 	--if i > (teams * 0.66) then l = 0.3 end
@@ -63,6 +62,7 @@ local function GetColor(i, teams)
 			end
 		end
 	end
+	teams = teams * 1.1 -- so last teamcolor isnt very similar to first teamcolor
 	local r,g,b = hslToRgb((i/teams) - (1/teams), 1, l)
 	return r,g,b
 end
