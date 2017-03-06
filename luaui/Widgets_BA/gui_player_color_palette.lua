@@ -89,7 +89,7 @@ local function GetColor(i, teams)
 		end
 	end
 	if useHueRGB then
-		r,g,b = hslToRgb((i/(hueteams*1.1)) - (1/teams), s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
+		r,g,b = hslToRgb((i/(hueteams*1.1)) - (1/hueteams), s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
 	end
 	return r,g,b
 end
