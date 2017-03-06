@@ -42,6 +42,7 @@ local function hslToRgb(h, s, l)
 end
 
 local function GetColor(i, teams)
+	local s = 1
 	local l = 0.53
 	--if i > (teams * 0.33) then l = 0.7 end
 	--if i > (teams * 0.66) then l = 0.3 end
@@ -55,15 +56,41 @@ local function GetColor(i, teams)
 	else
 		if teams > 8 then
 			if i%2==0 then
-				l = 0.82
+				l = 0.8
 			end
 			if i%2==1 then
 				l = 0.42
 			end
 		end
 	end
-	teams = teams * 1.1 -- so last teamcolor isnt very similar to first teamcolor
-	local r,g,b = hslToRgb((i/teams) - (1/teams), 1, l)
+	
+	local r,g,b = 0,0,0
+	local hueteams = teams
+	local useHueRGB = true
+	if teams > 9 then
+		hueteams = hueteams - 1
+		if i == teams then
+			r,g,b = 0.5, 0.5, 0.5
+			useHueRGB = false
+		end
+	end
+	if teams > 13 then
+		hueteams = hueteams - 1
+	 	if i == teams-1 then
+			r,g,b = 0.9, 0.9, 0.9
+			useHueRGB = false
+		end
+	end
+	if teams > 15 then
+		hueteams = hueteams - 1
+		if i == teams-2 then
+			r,g,b = 0, 0, 0
+			useHueRGB = false
+		end
+	end
+	if useHueRGB then
+		r,g,b = hslToRgb((i/(hueteams*1.1)) - (1/teams), s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
+	end
 	return r,g,b
 end
 
