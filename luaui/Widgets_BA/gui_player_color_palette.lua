@@ -55,7 +55,7 @@ local function GetColor(i, teams)
 	else
 		if teams > 8 then
 			if i%2==0 then
-				l = 0.78
+				l = 0.82
 			end
 			if i%2==1 then
 				l = 0.42
