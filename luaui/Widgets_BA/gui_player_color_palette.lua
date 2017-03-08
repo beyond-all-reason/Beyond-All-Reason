@@ -10,6 +10,9 @@ function widget:GetInfo()
 	}
 end
 
+local randomize = false					-- randomize player colors
+local offsetstartcolor = true		-- when false it will always use red as start color, when true it starts with an offset towards center of rgb hue palette more in effect with small playernumbers
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -44,6 +47,7 @@ end
 local function GetColor(i, teams)
 	local s = 1
 	local l = 0.53
+	local h = 0
 	--if i > (teams * 0.33) then l = 0.7 end
 	--if i > (teams * 0.66) then l = 0.3 end
 	if teams > 12 then
@@ -88,10 +92,29 @@ local function GetColor(i, teams)
 			useHueRGB = false
 		end
 	end
+	
 	if useHueRGB then
-		r,g,b = hslToRgb((i/(hueteams*1.1)) - (1/hueteams), s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
+		local offset = 0
+		if offsetstartcolor then
+			offset = 1 / (hueteams*6)
+		end
+		h = ((i-1)/(hueteams*(1+offset))) + offset
+		Spring.Echo(i.."  "..h.."  "..hueteams)
+		r,g,b = hslToRgb(h, s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
 	end
 	return r,g,b
+end
+
+local colorOrder = {}
+local function GetShuffledNumber(i, numteams)
+	local n
+	while true do
+		n = math.floor((math.random() * numteams) + 1.5)
+		if colorOrder[n] == nil then
+			colorOrder[n] = i
+			return n
+		end
+	end
 end
 
 local function SetNewTeamColors() 
@@ -102,7 +125,11 @@ local function SetNewTeamColors()
 	local i = 0
 	for _, allyID in ipairs(allyTeamList) do
 		for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
-			i = i + 1
+			if randomize then
+				i = GetShuffledNumber(i, numteams)
+			else
+				i = i + 1
+			end
 			local r,g,b = GetColor(i, numteams, numallyteams)
 			
 			local _, playerID = Spring.GetTeamInfo(teamID)
