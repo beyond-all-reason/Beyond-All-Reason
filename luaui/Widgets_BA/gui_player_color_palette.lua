@@ -98,7 +98,7 @@ local function GetColor(i, teams)
 		if offsetstartcolor then
 			offset = 1 / (hueteams*6)
 		end
-		h = ((i-1)/(hueteams*(1+offset))) + offset
+		h = ((i-1)/(hueteams*(1.035+offset))) + offset
 		Spring.Echo(i.."  "..h.."  "..hueteams)
 		r,g,b = hslToRgb(h, s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
 	end
