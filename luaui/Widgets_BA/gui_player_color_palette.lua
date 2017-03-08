@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Player Color Palette",
-		desc = "Applies an evenly distributed color palette among players",
+		desc = "Applies an evenly distributed color palette among players. Toggle randomized colors with /shufflecolors, order by hue with /ordercolors",
 		author = "Floris",
 		date = "March 2017",
 		license = "GPL v2",
@@ -99,7 +99,6 @@ local function GetColor(i, teams)
 			offset = 1 / (hueteams*6)
 		end
 		h = ((i-1)/(hueteams*(1.035+offset))) + offset
-		Spring.Echo(i.."  "..h.."  "..hueteams)
 		r,g,b = hslToRgb(h, s, l)  -- teams *1.1 so last teamcolor isnt very similar to first teamcolor
 	end
 	return r,g,b
@@ -122,6 +121,7 @@ local function SetNewTeamColors()
 	local numteams = #Spring.GetTeamList() - 1 -- minus gaia
 	--local numallyteams = #Spring.GetAllyTeamList() - 1 -- minus gaia
 	
+	colorOrder = {}
 	local i = 0
 	for _, allyID in ipairs(allyTeamList) do
 		for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
@@ -145,10 +145,53 @@ local function ResetOldTeamColors()
 	end
 end
 
+
+function ordercolors(_,_,params)
+	local oldRandomize = randomize
+	randomize = false
+	if oldRandomize == randomize then
+		Spring.Echo("Player Color Palette:  Player colors are already ordered by hue")
+	else
+  	SetNewTeamColors()
+  	Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
+  end
+end
+
+function shufflecolors(_,_,params)
+	randomize = true
+	SetNewTeamColors()
+	Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
+end
+
 function widget:Initialize()
+  WG['playercolorpalette'] = {}
+  WG['playercolorpalette'].getRandomize = function()
+  	return randomize
+  end
+  WG['playercolorpalette'].setRandomize = function(value)
+  	randomize = value
+  	SetNewTeamColors()
+  end
+  
+	widgetHandler:AddAction("shufflecolors", shufflecolors, nil, "t")
+	widgetHandler:AddAction("ordercolors", ordercolors, nil, "t")
+  
 	SetNewTeamColors()
 end
 
 function widget:Shutdown()
 	ResetOldTeamColors()
+end
+
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.randomize = randomize
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.randomize ~= nil then
+		randomize = data.randomize
+	end
 end

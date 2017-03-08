@@ -5,7 +5,7 @@
 function widget:GetInfo()
   return {
     name      = "Darken map",
-    desc      = "use: Ctrl+Alt+] or [   or use /mapdarkness 0.3   remembers per map",
+    desc      = "darkens the map, not units",
     author    = "Floris",
     date      = "2015",
     license   = "GNU GPL, v2 or later",
@@ -57,12 +57,6 @@ function widget:Initialize()
   end
   
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
-	
-	widgetHandler:AddAction("mapDarknessIncrease", mapDarknessIncrease, nil, "t")
-	Spring.SendCommands({"bind "..darknessIncrease.." mapDarknessIncrease"})
-
-	widgetHandler:AddAction("mapDarknessDecrease", mapDarknessDecrease, nil, "t")
-	Spring.SendCommands({"bind "..darknessDecrease.." mapDarknessDecrease"})
 end
 
 
@@ -81,22 +75,6 @@ function mapDarkness(_,_,params)
 			maps[currentMapname] = darknessvalue
 		end
 	end
-end
-
-function mapDarknessIncrease()
-	darknessvalue = darknessvalue + darknessStep
-	if darknessvalue > maxDarkness then
-		darknessvalue = maxDarkness
-	end
-	maps[currentMapname] = darknessvalue
-end
-
-function mapDarknessDecrease()
-	darknessvalue = darknessvalue - darknessStep
-	if darknessvalue < 0 then
-		darknessvalue = 0
-	end
-	maps[currentMapname] = darknessvalue
 end
 
 function widget:DrawWorldPreUnit()
