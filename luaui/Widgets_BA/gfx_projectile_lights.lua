@@ -512,6 +512,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	return beamLights, beamLightCount, pointLights, pointLightCount
 end
 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

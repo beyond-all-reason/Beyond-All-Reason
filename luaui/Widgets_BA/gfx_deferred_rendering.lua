@@ -76,6 +76,11 @@ local spWorldToScreenCoords  = Spring.WorldToScreenCoords
 local spTraceScreenRay       = Spring.TraceScreenRay
 local spGetSmoothMeshHeight  = Spring.GetSmoothMeshHeight
 
+
+local glowImg			= ":n:"..LUAUI_DIRNAME.."Images/glow.dds"
+local beamGlowImg = LUAUI_DIRNAME.."Images/barglow-center.dds"
+local beamGlowEndImg = LUAUI_DIRNAME.."Images/barglow-edge.dds"
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Config
@@ -571,6 +576,60 @@ local function Bloom()
 		glTexture(1, false)
 	glUseShader(0)
 end
+
+
+-- adding a glow to the projectile
+function widget:DrawWorld()
+	
+	local beamLights = {}
+	local beamLightCount = 0
+	local pointLights = {}
+	local pointLightCount = 0
+	
+	for i = 1, collectionFunctionCount do
+		beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
+	end
+	
+	local lights = pointLights
+	gl.Texture(glowImg)
+	for i = 1, pointLightCount do
+		local light = lights[i]
+		local param = light.param
+		size = param.radius*0.55
+		gl.PushMatrix()
+			local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
+			gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.3/colorMultiplier)
+			gl.Translate(light.px, light.py, light.pz)
+			gl.Billboard(true)
+			gl.TexRect(-(size/2), -(size/2), (size/2), (size/2))
+		gl.PopMatrix()
+	end
+	
+	---- dont know how to do this yet...
+	--lights = beamLights
+	--gl.Texture(beamGlowImg)
+	--for i = 1, beamLightCount do
+	--	local light = lights[i]
+	--	local param = light.param
+	--	size = param.radius/2
+	--	--local dist_sq = (light.px-(light.px+light.dx))^2 + (light.py-(light.py+light.dy))^2 + (light.pz-(light.pz+light.dz))^2
+	--	gl.PushMatrix()
+	--		gl.Color(param.r*4, param.g*4, param.b*4, 0.5)		-- '*4' still needs to be changed to proper values
+	--		gl.Translate(light.px, light.py, light.pz)
+	--		--gl.Billboard(true)
+	--		gl.BeginEnd(GL.QUADS, function()
+	--			gl.Vertex(0,-(size/2),0)
+	--			gl.Vertex(0,(size/2),0)
+	--			gl.Vertex(light.px, light.py-(size/2), light.pz)
+	--			gl.Vertex(light.px, light.py+(size/2), light.pz)
+	--		end)
+	--	gl.PopMatrix()
+	--end
+	
+	gl.Billboard(false)
+	gl.Texture(false)
+end
+
 
 function widget:DrawScreenEffects()
 	if not (GLSLRenderer) then
