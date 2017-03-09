@@ -147,20 +147,20 @@ end
 local function UnitParalysed(uID, uDefID, uTeam)
 	local cDefs = convertCapacities[uDefID]
     if cDefs then
-        if teamMMList[uTeam][cDefs.e][uID].built then
-			teamMMList[uTeam][cDefs.e][uID].emped = true
-            AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
-        end
+      if teamMMList[uTeam][cDefs.e][uID].built then
+				teamMMList[uTeam][cDefs.e][uID].emped = true
+        AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
+      end
     end
 end
 
 local function UnitParalysisOver(uID, uDefID, uTeam)
 	local cDefs = convertCapacities[uDefID]
     if cDefs then
-		if (teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built) then
-			teamMMList[uTeam][cDefs.e][uID].emped = false
-			AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)
-		end
+			if (teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built) then
+				teamMMList[uTeam][cDefs.e][uID].emped = false
+				AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)
+			end
     end
 end
 
@@ -246,14 +246,14 @@ function gadget:Initialize()
     for i = 1, #teamList do
         local tID = teamList[i]
         teamCapacities[tID] = {}
-		teamEfficiencies[tID] = prototype(Efficiencies)
-		teamEfficiencies[tID]:init(tID)
+				teamEfficiencies[tID] = prototype(Efficiencies)
+				teamEfficiencies[tID]:init(tID)
         teamMMList[tID] = {}
         teamActiveMM[tID] = 0
         lastPost[tID] = 0
         for j = 1, #eSteps do
-			teamCapacities[tID][eSteps[j]] = 0
-			teamMMList[tID][eSteps[j]] = {}
+				teamCapacities[tID][eSteps[j]] = 0
+				teamMMList[tID][eSteps[j]] = {}
         end
         teamUsages[tID] = 0
         spSetTeamRulesParam(tID, mmLevelParamName, 0.75)

@@ -156,7 +156,7 @@ options = {
 	},
 }
 
-local gibParams = {r = 0.5, g = 0.5, b = 0.25, radius = 100}
+local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 100, gib = true}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -435,10 +435,12 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 			if explosionflags and (explosionflags%32) > 15 then --only stuff with the FIRE explode tag gets a light
 				--Spring.Echo('explosionflag = ', explosionflags)
 				local drawParams = {pID = pID, px = x, py = y, pz = z, param = (doOverride and overrideParam) or gibParams, colMult = 1}
-				pointLightCount = pointLightCount + 1
-				pointLights[pointLightCount] = drawParams
-				if projectileDrawParams then
-					projectileDrawParams[#projectileDrawParams + 1] = drawParams
+				if drawParams.param.gib == true or drawParams.param.gib == nil then
+					pointLightCount = pointLightCount + 1
+					pointLights[pointLightCount] = drawParams
+					if projectileDrawParams then
+						projectileDrawParams[#projectileDrawParams + 1] = drawParams
+					end
 				end
 			end
 		else
