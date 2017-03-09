@@ -577,28 +577,33 @@ local function Bloom()
 	glUseShader(0)
 end
 
-
--- adding a glow to the projectile
-function widget:DrawWorld()
 	
-	local beamLights = {}
-	local beamLightCount = 0
-	local pointLights = {}
-	local pointLightCount = 0
-	
+local beamLights = {}
+local beamLightCount = 0
+local pointLights = {}
+local pointLightCount = 0
+function widget:Update()
+	beamLights = {}
+	beamLightCount = 0
+	pointLights = {}
+	pointLightCount = 0
 	for i = 1, collectionFunctionCount do
 		beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
 	end
-	
+end
+
+-- adding a glow to the projectile
+function widget:DrawWorld()
+
 	local lights = pointLights
 	gl.Texture(glowImg)
 	for i = 1, pointLightCount do
 		local light = lights[i]
 		local param = light.param
-		size = param.radius*0.55
+		size = param.radius*0.5
 		gl.PushMatrix()
 			local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
-			gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.3/colorMultiplier)
+			gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.22/colorMultiplier)
 			gl.Translate(light.px, light.py, light.pz)
 			gl.Billboard(true)
 			gl.TexRect(-(size/2), -(size/2), (size/2), (size/2))
@@ -640,15 +645,6 @@ function widget:DrawScreenEffects()
 	
 	if options.enableHDR.value then
 		glCopyToTexture(screenHDR, 0, 0, 0, 0, vsx, vsy) -- copy the screen to an HDR texture
-	end
-	
-	local beamLights = {}
-	local beamLightCount = 0
-	local pointLights = {}
-	local pointLightCount = 0
-	
-	for i = 1, collectionFunctionCount do
-		beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
 	end
 	
 	glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
