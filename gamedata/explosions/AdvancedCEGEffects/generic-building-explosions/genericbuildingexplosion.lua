@@ -23,8 +23,8 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.24,
-      flashsize          = 120,
+      flashalpha         = 0.28,
+      flashsize          = 125,
       ground             = true,
       ttl                = 16,
       water              = true, 
@@ -32,7 +32,7 @@ local definitions = {
       color = {
         [1]  = 1,
         [2]  = 0.8,
-        [3]  = 0.3,
+        [3]  = 0.4,
       },
     },
     kickedupwater = {
@@ -355,10 +355,10 @@ local sizes = {
       },
     },
 		groundflash = {
-			flashalpha         = 0.2,
-	    flashsize          = 75,
+			flashalpha         = 0.24,
+	    flashsize          = 77,
 	    ground             = true,
-	    ttl                = 16,
+	    ttl                = 18,
 	  },
 	  explosion = {
       properties = {
@@ -444,10 +444,10 @@ local sizes = {
       },
     },
 		groundflash = {
-			flashalpha         = 0.26,
-	    flashsize          = 220,
+			flashalpha         = 0.32,
+	    flashsize          = 230,
 	    ground             = true,
-	    ttl                = 22,
+	    ttl                = 26,
 	  },
 	  explosion = {
       properties = {
@@ -530,10 +530,10 @@ local sizes = {
       },
     },
 		groundflash = {
-			flashalpha         = 0.3,
-	    flashsize          = 275,
+			flashalpha         = 0.35,
+	    flashsize          = 290,
 	    ground             = true,
-	    ttl                = 23,
+	    ttl                = 25,
 	  },
 	  explosion = {
       properties = {
@@ -616,10 +616,10 @@ local sizes = {
       },
     },
 		groundflash = {
-			flashalpha         = 0.32,
-	    flashsize          = 333,
+			flashalpha         = 0.4,
+	    flashsize          = 350,
 	    ground             = true,
-	    ttl                = 25,
+	    ttl                = 30,
 	  },
 	  explosion = {
       properties = {

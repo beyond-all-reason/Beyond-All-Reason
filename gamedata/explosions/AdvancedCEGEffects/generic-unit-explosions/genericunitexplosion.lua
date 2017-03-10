@@ -23,8 +23,8 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.2,
-      flashsize          = 40,
+      flashalpha         = 0.22,
+      flashsize          = 42,
       ground             = true,
       ttl                = 40,
       water              = true, 
@@ -32,7 +32,7 @@ local definitions = {
       color = {
         [1]  = 1,
         [2]  = 0.8,
-        [3]  = 0.5,
+        [3]  = 0.4,
       },
     },
     outerflash = {
@@ -251,8 +251,8 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.23,
-      flashsize          = 66,
+      flashalpha         = 0.26,
+      flashsize          = 77,
       ground             = true,
       ttl                = 50,
       water              = true, 
@@ -260,7 +260,7 @@ local definitions = {
       color = {
         [1]  = 1,
         [2]  = 0.8,
-        [3]  = 0.5,
+        [3]  = 0.4,
       },
     },
     outerflash = {
@@ -505,16 +505,16 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.25,
-      flashsize          = 111,
+      flashalpha         = 0.32,
+      flashsize          = 120,
       ground             = true,
-      ttl                = 100,
+      ttl                = 80,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
         [2]  = 0.8,
-        [3]  = 0.5,
+        [3]  = 0.4,
       },
     },
     outerflash = {
@@ -759,8 +759,8 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.25,
-      flashsize          = 111,
+      flashalpha         = 0.36,
+      flashsize          = 160,
       ground             = true,
       ttl                = 100,
       water              = true, 
@@ -768,7 +768,7 @@ local definitions = {
       color = {
         [1]  = 1,
         [2]  = 0.8,
-        [3]  = 0.5,
+        [3]  = 0.4,
       },
     },
     outerflash = {
@@ -1013,16 +1013,16 @@ local definitions = {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.28,
-      flashsize          = 175,
+      flashalpha         = 0.4,
+      flashsize          = 200,
       ground             = true,
-      ttl                = 100,
+      ttl                = 120,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
         [2]  = 0.8,
-        [3]  = 0.5,
+        [3]  = 0.4,
       },
     },
     outerflash = {

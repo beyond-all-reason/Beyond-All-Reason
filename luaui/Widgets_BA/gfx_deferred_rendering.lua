@@ -452,15 +452,16 @@ end
 function widget:DrawWorld()
 
 	local lights = pointLights
+	glBlending(GL.SRC_ALPHA, GL.ONE)
 	gl.Texture(glowImg)
 	for i = 1, pointLightCount do
 		local light = lights[i]
 		local param = light.param
 		if param.gib == nil then
-			size = param.radius
+			size = param.radius * 0.7
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
-				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.055)
+				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.025)
 				gl.Translate(light.px, light.py, light.pz)
 				gl.Billboard(true)
 				gl.TexRect(-(size/2), -(size/2), (size/2), (size/2))
@@ -491,6 +492,7 @@ function widget:DrawWorld()
 	
 	gl.Billboard(false)
 	gl.Texture(false)
+	glBlending(false)
 end
 
 
@@ -501,7 +503,8 @@ function widget:DrawScreenEffects()
 		return
 	end
 	
-	glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
+	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
+	glBlending(GL.SRC_ALPHA, GL.ONE)
 	
 	if beamLightCount > 0 then
 		DrawLightType(beamLights, beamLightCount, 1)

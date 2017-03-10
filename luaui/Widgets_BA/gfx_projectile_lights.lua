@@ -78,8 +78,6 @@ local function LoadParams(param)
 	WG.RemakeEpicMenu()
 end
 
-options_path = 'Settings/Graphics/Lighting'
-options_order = {'light_projectile_enable', 'useLOD', 'projectileFade', 'light_override', 'light_radius', 'light_brightness', 'light_color', 'light_reload'}
 options = {
 	light_projectile_enable = {
 		name = "Enable Projectile Lights",
@@ -200,41 +198,49 @@ local function GetLightsFromUnitDefs()
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
 		
-		local lightMultiplier = 0.25
-		local r = (weaponDef.visuals.colorR + 0.13) * lightMultiplier
-		local g = (weaponDef.visuals.colorG + 0.13) * lightMultiplier
-		local b = (weaponDef.visuals.colorB + 0.13) * lightMultiplier
+		local lightMultiplier = 0.2
+		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB
 
-		local weaponData = {r = r, g = g, b = b, radius = 100}
+		local weaponData = {r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
+		local recalcRGB = false
 		
 		if (weaponDef.type == 'Cannon') then
 			if customParams.single_hit then
 				weaponData.beamOffset = 1
 				weaponData.beam = true
-				r = 1
-				g = 2
-				b = 2
 			else
-				weaponData.radius = 28 * weaponDef.size
+				weaponData.radius = 0.36 * weaponDef.size
+				if weaponDef.damageAreaOfEffect ~= nil  then
+					weaponData.radius = 36 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+				end
+				lightMultiplier = 0.17
+				recalcRGB = true
 			end
 		elseif (weaponDef.type == 'LaserCannon') then
-			weaponData.radius = 110 * weaponDef.size
+			weaponData.radius = 45 * weaponDef.size
 		elseif (weaponDef.type == 'DGun') then
-			weaponData.radius = 250
+			weaponData.radius = 220
 		elseif (weaponDef.type == 'MissileLauncher') then
-			weaponData.radius = 110 * weaponDef.size
+			weaponData.radius = 45 * weaponDef.size
+			lightMultiplier = 0.25
+			recalcRGB = true
 		elseif (weaponDef.type == 'StarburstLauncher') then
-			weaponData.radius = 250
+			weaponData.radius = 220
 		elseif (weaponDef.type == 'LightningCannon') then
-			weaponData.radius = math.min(weaponDef.range, 110)
+			weaponData.radius = 45 * weaponDef.size
 			weaponData.beam = true
 		elseif (weaponDef.type == 'BeamLaser') then
-			weaponData.radius = math.min(weaponDef.range, 110)
+			weaponData.radius = 45 * weaponDef.size
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
 				weaponData.fadeTime = weaponDef.beamTTL
 				weaponData.fadeOffset = 0
 			end
+		end
+		
+		if customParams.light_multiplier ~= nil then
+			recalcRGB = true 
+			lightMultiplier = customParams.lightmultiplier
 		end
 		
 		-- For long lasers or projectiles
@@ -272,9 +278,15 @@ local function GetLightsFromUnitDefs()
 		
 		if customParams.light_color then
 			local colorList = Split(customParams.light_color, " ")
-			weaponData.r = colorList[1]
-			weaponData.g = colorList[2]
-			weaponData.b = colorList[3]
+			r = colorList[1]
+			g = colorList[2]
+			b = colorList[3]
+		end
+		
+		if recalcRGB then
+			weaponData.r = (r + 0.1) * lightMultiplier
+			weaponData.g = (g + 0.1) * lightMultiplier
+			weaponData.b = (b + 0.1) * lightMultiplier
 		end
 		
 		if weaponData.radius > 0 and not customParams.fake_weapon then
