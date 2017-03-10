@@ -240,7 +240,7 @@ local function GetLightsFromUnitDefs()
 		
 		if customParams.light_multiplier ~= nil then
 			recalcRGB = true 
-			lightMultiplier = customParams.lightmultiplier
+			lightMultiplier = customParams.light_multiplier
 		end
 		
 		-- For long lasers or projectiles
