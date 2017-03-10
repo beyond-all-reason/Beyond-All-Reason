@@ -457,10 +457,10 @@ function widget:DrawWorld()
 		local light = lights[i]
 		local param = light.param
 		if param.gib == nil then
-			size = param.radius*0.5
+			size = param.radius
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
-				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.22/colorMultiplier)
+				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.055)
 				gl.Translate(light.px, light.py, light.pz)
 				gl.Billboard(true)
 				gl.TexRect(-(size/2), -(size/2), (size/2), (size/2))
