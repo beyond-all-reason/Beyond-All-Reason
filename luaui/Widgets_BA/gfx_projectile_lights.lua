@@ -200,7 +200,7 @@ local function GetLightsFromUnitDefs()
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
 		
-		local lightMultiplier = 0.18
+		local lightMultiplier = 0.2
 		local r = (weaponDef.visuals.colorR + 0.13) * lightMultiplier
 		local g = (weaponDef.visuals.colorG + 0.13) * lightMultiplier
 		local b = (weaponDef.visuals.colorB + 0.13) * lightMultiplier
