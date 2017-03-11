@@ -43,6 +43,10 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 	end
+	if wDef.weapontype == "BeamLaser" then
+		wDef.beamttl = 5
+		wDef.beamdecay = 0.55
+	end
 end
 
 

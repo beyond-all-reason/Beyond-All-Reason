@@ -154,7 +154,7 @@ options = {
 	},
 }
 
-local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 100, gib = true}
+local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 75, gib = true}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -217,20 +217,20 @@ local function GetLightsFromUnitDefs()
 				recalcRGB = true
 			end
 		elseif (weaponDef.type == 'LaserCannon') then
-			weaponData.radius = 45 * weaponDef.size
+			weaponData.radius = 40 * weaponDef.size
 		elseif (weaponDef.type == 'DGun') then
 			weaponData.radius = 220
 		elseif (weaponDef.type == 'MissileLauncher') then
-			weaponData.radius = 45 * weaponDef.size
-			lightMultiplier = 0.25
+			weaponData.radius = 40 * weaponDef.size
+			lightMultiplier = 0.15
 			recalcRGB = true
 		elseif (weaponDef.type == 'StarburstLauncher') then
 			weaponData.radius = 220
 		elseif (weaponDef.type == 'LightningCannon') then
-			weaponData.radius = 45 * weaponDef.size
+			weaponData.radius = 40 * weaponDef.size
 			weaponData.beam = true
 		elseif (weaponDef.type == 'BeamLaser') then
-			weaponData.radius = 45 * weaponDef.size
+			weaponData.radius = 40 * weaponDef.size
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
 				weaponData.fadeTime = weaponDef.beamTTL
