@@ -198,7 +198,9 @@ local function GetLightsFromUnitDefs()
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
 		
-		local lightMultiplier = 0.2
+		local skip = false
+		
+		local lightMultiplier = 0.16
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB
 
 		local weaponData = {r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
@@ -226,11 +228,16 @@ local function GetLightsFromUnitDefs()
 			recalcRGB = true
 		elseif (weaponDef.type == 'StarburstLauncher') then
 			weaponData.radius = 220
+		elseif (weaponDef.type == 'Flame') then
+			weaponData.radius = 40 * weaponDef.size
+			lightMultiplier = 0.05
+			recalcRGB = true
+			skip = true
 		elseif (weaponDef.type == 'LightningCannon') then
 			weaponData.radius = 40 * weaponDef.size
 			weaponData.beam = true
 		elseif (weaponDef.type == 'BeamLaser') then
-			weaponData.radius = 40 * weaponDef.size
+			weaponData.radius = 5 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
 				weaponData.fadeTime = weaponDef.beamTTL
@@ -289,7 +296,7 @@ local function GetLightsFromUnitDefs()
 			weaponData.b = (b + 0.1) * lightMultiplier
 		end
 		
-		if weaponData.radius > 0 and not customParams.fake_weapon then
+		if weaponData.radius > 0 and not customParams.fake_weapon and skip == false then
 			plighttable[weaponDefID] = weaponData
 		end
 	end

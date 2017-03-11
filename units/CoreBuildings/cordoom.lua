@@ -150,6 +150,9 @@ return {
 					default = 4500,
 					subs = 5,
 				},
+				customparams = {
+					light_radius = "190",		-- used by projectile lights widget
+				},
 			},
 			doomsday_green_laser = {
 				areaofeffect = 12,

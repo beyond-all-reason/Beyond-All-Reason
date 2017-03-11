@@ -39,7 +39,9 @@ function WeaponDef_Post(name, wDef)
 		if wDef.stages == nil then
 			wDef.stages = 9
 			if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
-				wDef.stages = math.floor(wDef.stages + math.min(wDef.damage.default * 0.004, wDef.areaofeffect * 0.16))
+				wDef.stages = math.floor(6.5 + math.min(wDef.damage.default * 0.0035, wDef.areaofeffect * 0.14))
+				wDef.alphadecay = 1.25
+				wDef.sizedecay = 0.033
 			end
 		end
 	end

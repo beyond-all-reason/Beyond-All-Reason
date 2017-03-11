@@ -180,6 +180,9 @@ return {
 				damage = {
 					default = 20,
 				},
+				customparams = {
+					light_radius = "55",		-- used by projectile lights widget
+				},
 			},
 		},
 		weapons = {

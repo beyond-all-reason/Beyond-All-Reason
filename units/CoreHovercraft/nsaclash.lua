@@ -147,6 +147,9 @@ return {
 					subs = 5,
 					vtol = 55,
 				},
+				customparams = {
+					light_radius = "48",		-- used by projectile lights widget
+				},
 			},
 		},
 		weapons = {

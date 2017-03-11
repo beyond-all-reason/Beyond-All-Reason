@@ -149,6 +149,9 @@ return {
 					default = 10800,
 					subs = 5,
 				},
+				customparams = {
+					light_radius = "190",		-- used by projectile lights widget
+				},
 			},
 		},
 		weapons = {
