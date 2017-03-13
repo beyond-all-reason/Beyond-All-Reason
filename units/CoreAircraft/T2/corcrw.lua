@@ -71,7 +71,9 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.1,
-				corethickness = 0.1,
+				beamttl = 2,
+				beamdecay = 0.55,
+				corethickness = 0.2,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -94,7 +96,7 @@ return {
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
-				thickness = 2.75,
+				thickness = 3,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -103,12 +105,18 @@ return {
 					default = 90,
 					subs = 5,
 				},
+				customparams = {
+					light_radius_mult = "1.3",		-- used by projectile lights widget
+					light_multiplier = "1.1",		-- used by projectile lights widget
+				},
 			},
 			krowlaser2 = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				beamtime = 0.25,
-				corethickness = 0.2,
+				beamttl = 2,
+				beamdecay = 0.55,
+				corethickness = 0.28,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -130,7 +138,7 @@ return {
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
 				targetmoveerror = 0.15,
-				thickness = 3,
+				thickness = 3.3,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -138,6 +146,10 @@ return {
 				damage = {
 					default = 250,
 					subs = 5,
+				},
+				customparams = {
+					light_radius_mult = "1.3",		-- used by projectile lights widget
+					light_multiplier = "1.1",		-- used by projectile lights widget
 				},
 			},
 		},

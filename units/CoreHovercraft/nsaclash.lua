@@ -148,7 +148,7 @@ return {
 					vtol = 55,
 				},
 				customparams = {
-					light_radius = "48",		-- used by projectile lights widget
+					light_multiplier = "0.75",		-- used by projectile lights widget
 				},
 			},
 		},

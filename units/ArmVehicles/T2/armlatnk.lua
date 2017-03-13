@@ -188,7 +188,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.015",		-- used by projectile lights widget
+					light_multiplier = "0.25",		-- used by projectile lights widget
 				},
 			},
 		},

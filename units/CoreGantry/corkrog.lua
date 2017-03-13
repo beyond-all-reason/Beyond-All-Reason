@@ -191,7 +191,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.066",		-- used by projectile lights widget
+					light_multiplier = "2",		-- used by projectile lights widget
 				},
 			},
 			corkrog_rocket = {

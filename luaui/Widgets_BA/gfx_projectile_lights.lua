@@ -211,9 +211,9 @@ local function GetLightsFromUnitDefs()
 				weaponData.beamOffset = 1
 				weaponData.beam = true
 			else
-				weaponData.radius = 230 * weaponDef.size
+				weaponData.radius = 200 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 230 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+					weaponData.radius = 200 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
 				end
 				lightMultiplier = 0.066
 				recalcRGB = true
@@ -223,14 +223,14 @@ local function GetLightsFromUnitDefs()
 		elseif (weaponDef.type == 'DGun') then
 			weaponData.radius = 320
 		elseif (weaponDef.type == 'MissileLauncher') then
-			weaponData.radius = 260 * weaponDef.size
+			weaponData.radius = 250 * weaponDef.size
 			if weaponDef.damageAreaOfEffect ~= nil  then
-				weaponData.radius = 260 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+				weaponData.radius = 250 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
 			end
 			lightMultiplier = 0.02 + (weaponDef.size/30)
 			recalcRGB = true
 		elseif (weaponDef.type == 'StarburstLauncher') then
-			weaponData.radius = 220
+			weaponData.radius = 400
 		elseif (weaponDef.type == 'Flame') then
 			weaponData.radius = 70 * weaponDef.size
 			lightMultiplier = 0.05
@@ -250,7 +250,7 @@ local function GetLightsFromUnitDefs()
 		
 		if customParams.light_multiplier ~= nil then
 			recalcRGB = true 
-			lightMultiplier = customParams.light_multiplier
+			lightMultiplier = lightMultiplier * tonumber(customParams.light_multiplier)
 		end
 		
 		-- For long lasers or projectiles
@@ -264,6 +264,10 @@ local function GetLightsFromUnitDefs()
 		if customParams.light_fade_time and customParams.light_fade_offset then
 			weaponData.fadeTime = tonumber(customParams.light_fade_time)
 			weaponData.fadeOffset = tonumber(customParams.light_fade_offset)
+		end
+		
+		if customParams.light_radius_mult then
+			weaponData.radius = weaponData.radius * tonumber(customParams.light_radius_mult)
 		end
 		
 		if customParams.light_radius then
