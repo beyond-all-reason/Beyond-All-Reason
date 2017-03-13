@@ -200,10 +200,10 @@ local function GetLightsFromUnitDefs()
 		
 		local skip = false
 		
-		local lightMultiplier = 0.16
+		local lightMultiplier = 0.045
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB
 
-		local weaponData = {r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
+		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 		local recalcRGB = false
 		
 		if (weaponDef.type == 'Cannon') then
@@ -211,33 +211,36 @@ local function GetLightsFromUnitDefs()
 				weaponData.beamOffset = 1
 				weaponData.beam = true
 			else
-				weaponData.radius = 0.36 * weaponDef.size
+				weaponData.radius = 230 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 36 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+					weaponData.radius = 230 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
 				end
-				lightMultiplier = 0.17
+				lightMultiplier = 0.066
 				recalcRGB = true
 			end
 		elseif (weaponDef.type == 'LaserCannon') then
-			weaponData.radius = 40 * weaponDef.size
+			weaponData.radius = 70 * weaponDef.size
 		elseif (weaponDef.type == 'DGun') then
-			weaponData.radius = 220
+			weaponData.radius = 320
 		elseif (weaponDef.type == 'MissileLauncher') then
-			weaponData.radius = 40 * weaponDef.size
-			lightMultiplier = 0.15
+			weaponData.radius = 260 * weaponDef.size
+			if weaponDef.damageAreaOfEffect ~= nil  then
+				weaponData.radius = 260 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+			end
+			lightMultiplier = 0.02 + (weaponDef.size/30)
 			recalcRGB = true
 		elseif (weaponDef.type == 'StarburstLauncher') then
 			weaponData.radius = 220
 		elseif (weaponDef.type == 'Flame') then
-			weaponData.radius = 40 * weaponDef.size
+			weaponData.radius = 70 * weaponDef.size
 			lightMultiplier = 0.05
 			recalcRGB = true
 			skip = true
 		elseif (weaponDef.type == 'LightningCannon') then
-			weaponData.radius = 40 * weaponDef.size
+			weaponData.radius = 70 * weaponDef.size
 			weaponData.beam = true
 		elseif (weaponDef.type == 'BeamLaser') then
-			weaponData.radius = 5 * (weaponDef.size * weaponDef.size * weaponDef.size)
+			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
 				weaponData.fadeTime = weaponDef.beamTTL

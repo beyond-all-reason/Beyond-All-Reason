@@ -152,6 +152,9 @@ return {
 					default = 450,
 					subs = 5,
 				},
+				customparams = {
+					light_multiplier = "0.038",		-- used by projectile lights widget
+				},
 			},
 		},
 		weapons = {

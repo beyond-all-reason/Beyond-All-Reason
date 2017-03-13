@@ -148,6 +148,9 @@ return {
 					default = 165,
 					subs = 5,
 				},
+				customparams = {
+					light_multiplier = "0.03",		-- used by projectile lights widget
+				},
 			},
 			corkrog_laser = {
 				areaofeffect = 72,
@@ -186,6 +189,9 @@ return {
 					commanders = 1200,
 					default = 5500,
 					subs = 5,
+				},
+				customparams = {
+					light_multiplier = "0.066",		-- used by projectile lights widget
 				},
 			},
 			corkrog_rocket = {
