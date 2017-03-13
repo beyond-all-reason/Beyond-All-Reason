@@ -4,10 +4,10 @@
 function widget:GetInfo()
 	return {
 		name      = "Projectile Lights",
-		version   = 3,
+		version   = 4,
 		desc      = "Collects projectiles and sends them to the deferred renderer.",
-		author    = "GoogleFrog (beherith orgional)",
-		date      = "5 March 2016",
+		author    = "Floris (beherith orgional)",
+		date      = "March 2017",
 		license   = "GPL V2",
 		layer     = 0,
 		enabled   = true
@@ -34,127 +34,15 @@ local fadeProjectiles, fadeProjectileTimes = {}, {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Config
-local lightsEnabled = true
+
+local useLOD = false		-- Reduces the number of lights drawn based on camera distance and current fps.
+local projectileFade = true
 local FADE_TIME = 5
 
-local colorOverride = {1, 1, 1}
-local colorBrightness = 1
-local radiusOverride = 200
+local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 75, gib = true}
+
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
-
-local wantLoadParams = false
-
-
-local function Format(value)
-	return string.format("%.2f", value)
-end
-
-local function ApplySetting()
-	overrideParam.r = colorOverride[1] * colorBrightness
-	overrideParam.g = colorOverride[2] * colorBrightness
-	overrideParam.b = colorOverride[3] * colorBrightness
-	overrideParam.radius = radiusOverride
-	Spring.Utilities.TableEcho(overrideParam)
-	Spring.Echo("light_color = [[" .. Format(overrideParam.r) .. " " .. Format(overrideParam.g) .. " " .. Format(overrideParam.b) .. "]]")
-	Spring.Echo("light_radius = " .. Format(radiusOverride) .. ",")
-end
-
-local function LoadParams(param)
-	options.light_radius.value = param.radius
-	options.light_brightness.value = math.max(param.r, param.g, param.b)
-	options.light_color.value = {
-		param.r / options.light_brightness.value,
-		param.g / options.light_brightness.value,
-		param.b / options.light_brightness.value,
-	}
-	radiusOverride = options.light_radius.value
-	colorBrightness = options.light_brightness.value
-	colorOverride = options.light_color.value
-	
-	Spring.Echo("Loading Settings")
-	ApplySetting()
-	wantLoadParams = false
-	WG.RemakeEpicMenu()
-end
-
-options = {
-	light_projectile_enable = {
-		name = "Enable Projectile Lights",
-		type = 'bool',
-		value = true,
-		OnChange = function (self) 
-			lightsEnabled = self.value
-		end,
-		noHotkey = true,
-	},
-	useLOD = {
-		name = 'Use LOD',
-		type = 'bool',
-		desc = 'Reduces the number of lights drawn based on camera distance and current fps.',
-		value = true,
-	},
-	projectileFade = {
-		name = 'Fade Projectiles',
-		type = 'bool',
-		desc = 'Projectile lights smoothly fade out after the projectile disappears.',
-		value = true,
-	},
-	light_override = {
-		name = "Override Parameters",
-		desc = "Override lights with the following parameters.",
-		type = 'bool',
-		value = false,
-		OnChange = function (self) 
-			doOverride = self.value
-		end,
-		noHotkey = true,
-		advanced = true
-	},
-	light_radius = {
-		name = 'Light Radius',
-		type = 'number',
-		value = 3,
-		min = 20, max = 1000, step = 10,
-		OnChange = function (self)
-			radiusOverride = self.value
-			ApplySetting()
-		end,
-		advanced = true
-	},
-	light_brightness = {
-		name = 'Light Brightness',
-		type = 'number',
-		value = 2,
-		min = 0.05, max = 5, step = 0.05,
-		OnChange = function (self) 
-			colorBrightness = self.value
-			ApplySetting()
-		end,
-		advanced = true
-	},
-	light_color = {
-		name = 'Light Color',
-		type = 'colors',
-		value = { 0.8, 0.8, 0.8, 1},
-		OnChange = function (self)
-			colorOverride = self.value
-			ApplySetting()
-		end,
-		advanced = true
-	},
-	light_reload = {
-		name = 'Reload',
-		type = 'button',
-		desc = "Reload settings from the next projectile fired.",
-		OnChange = function (self)
-			wantLoadParams = true
-		end,
-		advanced = true
-	},
-}
-
-local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 75, gib = true}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -211,11 +99,11 @@ local function GetLightsFromUnitDefs()
 				weaponData.beamOffset = 1
 				weaponData.beam = true
 			else
-				weaponData.radius = 200 * weaponDef.size
+				weaponData.radius = 125 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 200 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+					weaponData.radius = 125 * (weaponDef.size  + (weaponDef.damageAreaOfEffect * 0.009))
 				end
-				lightMultiplier = 0.066
+				lightMultiplier = 0.022 * (weaponDef.size  + (weaponDef.damageAreaOfEffect * 0.009))
 				recalcRGB = true
 			end
 		elseif (weaponDef.type == 'LaserCannon') then
@@ -434,13 +322,9 @@ end
 
 local function GetProjectileLights(beamLights, beamLightCount, pointLights, pointLightCount)
 
-	if not lightsEnabled then
-		return beamLights, beamLightCount, pointLights, pointLightCount
-	end
-
 	local projectiles = spGetVisibleProjectiles()
 	local projectileCount = #projectiles
-	if (not options.projectileFade.value) and projectileCount == 0 then
+	if (not projectileFade) and projectileCount == 0 then
 		return beamLights, beamLightCount, pointLights, pointLightCount
 	end
 	
@@ -448,7 +332,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	local cameraHeight = math.floor(GetCameraHeight()*0.01)*100
 	--Spring.Echo("cameraHeight", cameraHeight, "fps", fps)
 	local projectilePresent = {}
-	local projectileDrawParams = options.projectileFade.value and {}
+	local projectileDrawParams = projectileFade and {}
 	
 	for i = 1, projectileCount do
 		local pID = projectiles[i]
@@ -471,10 +355,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 			end
 		else
 			lightParams = projectileLightTypes[spGetProjectileDefID(pID)]
-			if wantLoadParams and lightParams then
-				LoadParams(lightParams)
-			end
-			if lightParams and (not options.useLOD.value or ProjectileLevelOfDetailCheck(lightParams, pID, fps, cameraHeight)) then
+			if lightParams and (not useLOD or ProjectileLevelOfDetailCheck(lightParams, pID, fps, cameraHeight)) then
 				if lightParams.beam then --BEAM type
 					local drawParams = GetBeamLights(lightParams, pID, x, y, z)
 					beamLightCount = beamLightCount + 1
@@ -497,7 +378,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		end
 	end
 	
-	if options.projectileFade.value then
+	if projectileFade then
 		local frame = Spring.GetGameFrame()
 		if previousProjectileDrawParams then
 			for i = 1, #previousProjectileDrawParams do

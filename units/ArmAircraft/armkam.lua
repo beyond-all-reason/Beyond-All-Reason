@@ -100,6 +100,9 @@ return {
 					subs = 1,
 					vtol = 1,
 				},
+				customparams = {
+					light_multiplier = "0.27",		-- used by projectile lights widget
+				},
 			},
 		},
 		weapons = {
