@@ -152,7 +152,6 @@ return {
 				},
 				customparams = {
 					light_radius_mult = "1.1",		-- used by projectile lights widget
-					light_multiplier = "1.75",		-- used by projectile lights widget
 				},
 			},
 		},

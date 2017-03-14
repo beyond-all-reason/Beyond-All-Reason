@@ -448,7 +448,7 @@ function widget:Update()
 	end
 end
 
--- adding a glow to the projectile
+-- adding a glow to Cannon projectiles
 function widget:DrawWorld()
 
 	local lights = pointLights
@@ -458,7 +458,7 @@ function widget:DrawWorld()
 		local light = lights[i]
 		local param = light.param
 		if param.gib == nil and param.type == "Cannon"then
-			size = param.radius * 0.3
+			size = param.glowradius * 0.3
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
 				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, size/17000)
@@ -468,28 +468,6 @@ function widget:DrawWorld()
 			gl.PopMatrix()
 		end
 	end
-	
-	---- dont know how to do this yet, or if it will look satisfying enough
-	--lights = beamLights
-	--gl.Texture(beamGlowImg)
-	--for i = 1, beamLightCount do
-	--	local light = lights[i]
-	--	local param = light.param
-	--	size = param.radius/2
-	--	--local dist_sq = (light.px-(light.px+light.dx))^2 + (light.py-(light.py+light.dy))^2 + (light.pz-(light.pz+light.dz))^2
-	--	gl.PushMatrix()
-	--		gl.Color(param.r*4, param.g*4, param.b*4, 0.5)		-- '*4' still needs to be changed to proper values
-	--		gl.Translate(light.px, light.py, light.pz)
-	--		--gl.Billboard(true)
-	--		gl.BeginEnd(GL.QUADS, function()
-	--			gl.Vertex(0,-(size/2),0)
-	--			gl.Vertex(0,(size/2),0)
-	--			gl.Vertex(light.px, light.py-(size/2), light.pz)
-	--			gl.Vertex(light.px, light.py+(size/2), light.pz)
-	--		end)
-	--	gl.PopMatrix()
-	--end
-	
 	gl.Billboard(false)
 	gl.Texture(false)
 	glBlending(false)

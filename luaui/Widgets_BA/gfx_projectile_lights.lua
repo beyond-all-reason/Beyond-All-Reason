@@ -44,6 +44,9 @@ local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 75, gib = true}
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
+local globalLightMult = 1
+local globalRadiusMult = 1.3
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -89,8 +92,9 @@ local function GetLightsFromUnitDefs()
 		
 		if customParams.light_skip == nil then
 			local skip = false
-			local lightMultiplier = 0.045
-			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB
+			local lightMultiplier = 0.055
+			local bMult = 3		-- because blue appears to be very faint
+			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 			local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 			local recalcRGB = false
@@ -100,11 +104,11 @@ local function GetLightsFromUnitDefs()
 					weaponData.beamOffset = 1
 					weaponData.beam = true
 				else
-					weaponData.radius = 125 * weaponDef.size
+					weaponData.radius = 120 * weaponDef.size
 					if weaponDef.damageAreaOfEffect ~= nil  then
-						weaponData.radius = 125 * (weaponDef.size  + (weaponDef.damageAreaOfEffect * 0.009))
+						weaponData.radius = 120 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.013))
 					end
-					lightMultiplier = 0.022 * (weaponDef.size  + (weaponDef.damageAreaOfEffect * 0.009))
+					lightMultiplier = 0.018 * ((weaponDef.size*0.8) + (weaponDef.damageAreaOfEffect * 0.013))
 					recalcRGB = true
 				end
 			elseif (weaponDef.type == 'LaserCannon') then
@@ -112,11 +116,11 @@ local function GetLightsFromUnitDefs()
 			elseif (weaponDef.type == 'DGun') then
 				weaponData.radius = 320
 			elseif (weaponDef.type == 'MissileLauncher') then
-				weaponData.radius = 250 * weaponDef.size
+				weaponData.radius = 160 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 250 * ((weaponDef.size*0.6)  + weaponDef.damageAreaOfEffect * 0.009)
+					weaponData.radius = 160 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.013))
 				end
-				lightMultiplier = 0.02 + (weaponDef.size/30)
+				lightMultiplier = 0.02 + (weaponDef.size/40)
 				recalcRGB = true
 			elseif (weaponDef.type == 'StarburstLauncher') then
 				weaponData.radius = 400
@@ -183,14 +187,20 @@ local function GetLightsFromUnitDefs()
 				local colorList = Split(customParams.light_color, " ")
 				r = colorList[1]
 				g = colorList[2]
-				b = colorList[3]
+				b = colorList[3]*bMult
 			end
 			
-			if recalcRGB then
-				weaponData.r = (r + 0.1) * lightMultiplier
-				weaponData.g = (g + 0.1) * lightMultiplier
-				weaponData.b = (b + 0.1) * lightMultiplier
+			if recalcRGB or globalLightMult ~= 1 then
+				weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult
+				weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult
+				weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult
 			end
+			
+			if (weaponDef.type == 'Cannon') then
+				weaponData.glowradius = weaponData.radius
+			end
+			
+			weaponData.radius = weaponData.radius * globalRadiusMult
 			
 			if weaponData.radius > 0 and not customParams.fake_weapon and skip == false then
 				plighttable[weaponDefID] = weaponData
