@@ -7,7 +7,7 @@ return {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.05,
+      flashalpha         = 0.04,
       flashsize          = 50,
       ground             = true,
       ttl                = 5,
@@ -129,7 +129,7 @@ return {
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.055,
+      flashalpha         = 0.048,
       flashsize          = 68,
       ground             = true,
       ttl                = 8,

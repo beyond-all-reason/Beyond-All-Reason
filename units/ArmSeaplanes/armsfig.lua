@@ -102,6 +102,9 @@ return {
 					fighters = 210,
 					vtol = 210,
 				},
+				customparams = {
+					light_skip = true,		-- used by projectile lights widget
+				},
 			},
 			armsfig_weapon_a2g = {
 				areaofeffect = 48,

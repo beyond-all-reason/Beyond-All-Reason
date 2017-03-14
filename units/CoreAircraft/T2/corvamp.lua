@@ -101,6 +101,9 @@ return {
 					fighters = 400,
 					vtol = 250,
 				},
+				customparams = {
+					light_skip = true,		-- used by projectile lights widget
+				},
 			},
 			corvtol_advmissile_a2g = {
 				areaofeffect = 8,

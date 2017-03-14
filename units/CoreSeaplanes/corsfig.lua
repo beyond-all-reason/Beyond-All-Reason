@@ -102,6 +102,9 @@ return {
 					fighters = 200,
 					vtol = 200,
 				},
+				customparams = {
+					light_skip = true,		-- used by projectile lights widget
+				},
 			},
 			corsfig_weapon_a2g = {
 				areaofeffect = 48,

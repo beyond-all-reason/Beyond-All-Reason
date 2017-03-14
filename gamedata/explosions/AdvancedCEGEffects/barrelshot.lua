@@ -151,7 +151,7 @@ definitions["barrelshot-tiny"].fire2.properties.size										= definitions["bar
 definitions["barrelshot-tiny"].fire2.properties.ttl											= 3
 definitions["barrelshot-tiny"].fireglow.properties.particlesize					= definitions["barrelshot-tiny"].fireglow.properties.particlesize * size
 definitions["barrelshot-tiny"].fireglow.properties.particlelife					= 2.5 + definitions["barrelshot-tiny"].fireglow.properties.particlelife * size
-definitions["barrelshot-tiny"].fireglow.properties.colormap       			= [[0.122 0.066 0.013 0.05   0 0 0 0.01]]
+definitions["barrelshot-tiny"].fireglow.properties.colormap       			= [[0.122 0.066 0.013 0.06   0 0 0 0.01]]
 definitions["barrelshot-tiny"].smoke																		= nil
 definitions["barrelshot-tiny"].clouddust																= nil
 
