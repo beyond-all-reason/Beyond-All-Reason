@@ -44,10 +44,10 @@ local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 75, gib = true}
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
-local globalLightMult = 1
+local globalLightMult = 1.15
 local globalRadiusMult = 1.15
 local globalLightMultLaser = 1.1
-local globalRadiusMultLaser = 1.25		-- gets applied on top op globalRadiusMult
+local globalRadiusMultLaser = 1.2		-- gets applied on top op globalRadiusMult
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ local function GetLightsFromUnitDefs()
 		if customParams.light_skip == nil then
 			local skip = false
 			local lightMultiplier = 0.055
-			local bMult = 4		-- because blue appears to be very faint
+			local bMult = 2		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 			local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
@@ -464,20 +464,21 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeam)
-	if attackerID ~= nil then -- if not reclaimed
-		local params = {param={type='explosion'}}
-		local ysize = Spring.GetUnitHeight(unitID)
-		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
-		params.py = params.py + (ysize * 1.2)
-		params.orgMult = 0.7
-		params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
-		params.param.radius = 24 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
-		params.frame = Spring.GetGameFrame()
-		params.life = 20 + (params.param.radius/100)
-		explosionLightsCount = explosionLightsCount + 1
-		explosionLights[explosionLightsCount] = params
-	end
+	local params = {param={type='explosion'}}
+	local ysize = Spring.GetUnitHeight(unitID)
+	--local radius = Spring.GetUnitRadius(unitID)
+	--local mass = Spring.GetUnitMass(unitID)
+	params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
+	params.py = params.py + (ysize * 1.2)
+	params.orgMult = 0.66
+	params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
+	params.param.radius = 24 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
+	params.frame = Spring.GetGameFrame()
+	params.life = 20 + (params.param.radius/100)
+	explosionLightsCount = explosionLightsCount + 1
+	explosionLights[explosionLightsCount] = params
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
