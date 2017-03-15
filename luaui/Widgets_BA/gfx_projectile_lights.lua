@@ -46,8 +46,8 @@ local doOverride = false
 
 local globalLightMult = 1
 local globalRadiusMult = 1.15
-local globalLightMultLaser = 1.08
-local globalRadiusMultLaser = 1.3		-- gets applied on top op globalRadiusMult
+local globalLightMultLaser = 1.1
+local globalRadiusMultLaser = 1.25		-- gets applied on top op globalRadiusMult
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -464,17 +464,19 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeam)
-	local params = {param={type='explosion'}}
-	local ysize = Spring.GetUnitHeight(unitID)
-	params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
-	params.py = params.py + (ysize * 1.2)
-	params.orgMult = 0.75
-	params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
-	params.param.radius = 26 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
-	params.frame = Spring.GetGameFrame()
-	params.life = 20 + (params.param.radius/100)
-	explosionLightsCount = explosionLightsCount + 1
-	explosionLights[explosionLightsCount] = params
+	if attackerID ~= nil then -- if not reclaimed
+		local params = {param={type='explosion'}}
+		local ysize = Spring.GetUnitHeight(unitID)
+		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
+		params.py = params.py + (ysize * 1.2)
+		params.orgMult = 0.7
+		params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
+		params.param.radius = 24 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
+		params.frame = Spring.GetGameFrame()
+		params.life = 20 + (params.param.radius/100)
+		explosionLightsCount = explosionLightsCount + 1
+		explosionLights[explosionLightsCount] = params
+	end
 end
 
 --------------------------------------------------------------------------------
