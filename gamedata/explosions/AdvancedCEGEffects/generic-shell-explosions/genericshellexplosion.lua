@@ -1,21 +1,21 @@
 local root = "genericshellexplosion"
 local definitions = {
   [root.."-small"] = {
-    groundflash = {
-      air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.2,
-      flashsize          = 67,
-      ground             = true,
-      ttl                = 13,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.75,
-        [3]  = 0.3,
-      },
-    },
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.2,
+    --  flashsize          = 67,
+    --  ground             = true,
+    --  ttl                = 13,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.75,
+    --    [3]  = 0.3,
+    --  },
+    --},
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -302,21 +302,21 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    groundflash = {
-      air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.3,
-      flashsize          = 110,
-      ground             = true,
-      ttl                = 17,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.75,
-        [3]  = 0.3,
-      },
-    },
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.3,
+    --  flashsize          = 110,
+    --  ground             = true,
+    --  ttl                = 17,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.75,
+    --    [3]  = 0.3,
+    --  },
+    --},
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -556,21 +556,21 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    groundflash = {
-      air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.35,
-      flashsize          = 200,
-      ground             = true,
-      ttl                = 22,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.75,
-        [3]  = 0.3,
-      },
-    },
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.35,
+    --  flashsize          = 200,
+    --  ground             = true,
+    --  ttl                = 22,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.75,
+    --    [3]  = 0.3,
+    --  },
+    --},
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -811,21 +811,21 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    groundflash = {
-      air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.4,
-      flashsize          = 275,
-      ground             = true,
-      ttl                = 25,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.75,
-        [3]  = 0.3,
-      },
-    },
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.4,
+    --  flashsize          = 275,
+    --  ground             = true,
+    --  ttl                = 25,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.75,
+    --    [3]  = 0.3,
+    --  },
+    --},
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -1132,7 +1132,7 @@ end
 -- add coloring
 local colors = {
 	air = {
-		groundflash = false,
+		--groundflash = false,
 		underwaterexplosionsparks = false,
 		kickedupwater = false,
 		dirt = false,
@@ -1157,7 +1157,7 @@ for size, e in pairs(sizes) do
 	local defname = root.."-"..size.."-beam"
 	definitions[defname] = deepcopy(definitions[root.."-"..size])
 	definitions[defname].clouddust = nil
-	definitions[defname].groundflash.flashalpha = definitions[defname].groundflash.flashalpha / 5
+	--definitions[defname].groundflash.flashalpha = definitions[defname].groundflash.flashalpha / 5
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / 5)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / 5)
 	definitions[defname].explosion.properties.numparticles = math.ceil(definitions[defname].explosion.properties.numparticles / 5)
@@ -1188,15 +1188,15 @@ definitions['expldgun'].groundflash = {
         [3]  = 0.25,
       },
 }
-definitions['expldgun'].groundflash2 = {
-    class              = [[CSimpleGroundFlash]],
-    properties = {
-    	size = 150,
-    	ttl = 200,
-    	texture = [[bigexplosmoke]],
-      colormap  = [[0.2 0.4 0.1 0.62 	0 0 0 0.0]],
-    }
-}
+--definitions['expldgun'].groundflash2 = {
+--    class              = [[CSimpleGroundFlash]],
+--    properties = {
+--    	size = 150,
+--    	ttl = 200,
+--    	texture = [[bigexplosmoke]],
+--      colormap  = [[0.2 0.4 0.1 0.62 	0 0 0 0.0]],
+--    }
+--}
 
 definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2
 definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.5

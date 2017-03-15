@@ -6,7 +6,7 @@ function widget:GetInfo()
 		name      = "Projectile Lights",
 		version   = 4,
 		desc      = "Collects projectiles and sends them to the deferred renderer.",
-		author    = "Floris (beherith orgional)",
+		author    = "Floris (original by beherith)",
 		date      = "March 2017",
 		license   = "GPL V2",
 		layer     = 0,
@@ -45,7 +45,9 @@ local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
 local globalLightMult = 1
-local globalRadiusMult = 1.3
+local globalRadiusMult = 1.15
+local globalLightMultLaser = 1.1
+local globalRadiusMultLaser = 1.35		-- gets applied on top op globalRadiusMult
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -56,6 +58,10 @@ local projectileLightTypes = {}
 	--[3] blue
 	--[4] radius
 	--[5] BEAMTYPE, true if BEAM
+
+local explosionLightsCount = 0
+local explosionLights = {}
+
 
 local function Split(s, separator)
 	local results = {}
@@ -93,7 +99,7 @@ local function GetLightsFromUnitDefs()
 		if customParams.light_skip == nil then
 			local skip = false
 			local lightMultiplier = 0.055
-			local bMult = 3		-- because blue appears to be very faint
+			local bMult = 4		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 			local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
@@ -106,9 +112,9 @@ local function GetLightsFromUnitDefs()
 				else
 					weaponData.radius = 120 * weaponDef.size
 					if weaponDef.damageAreaOfEffect ~= nil  then
-						weaponData.radius = 120 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.013))
+						weaponData.radius = 120 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
 					end
-					lightMultiplier = 0.018 * ((weaponDef.size*0.8) + (weaponDef.damageAreaOfEffect * 0.013))
+					lightMultiplier = 0.018 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
 					recalcRGB = true
 				end
 			elseif (weaponDef.type == 'LaserCannon') then
@@ -118,7 +124,7 @@ local function GetLightsFromUnitDefs()
 			elseif (weaponDef.type == 'MissileLauncher') then
 				weaponData.radius = 160 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 160 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.013))
+					weaponData.radius = 160 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
 				end
 				lightMultiplier = 0.02 + (weaponDef.size/40)
 				recalcRGB = true
@@ -190,17 +196,25 @@ local function GetLightsFromUnitDefs()
 				b = colorList[3]*bMult
 			end
 			
-			if recalcRGB or globalLightMult ~= 1 then
-				weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult
-				weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult
-				weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult
+			if recalcRGB or globalLightMult ~= 1 or globalLightMultLaser ~= 1 then
+				local laserMult = 1
+				if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
+					laserMult = globalLightMultLaser
+				end
+				weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult * laserMult
+				weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult * laserMult
+				weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult * laserMult
 			end
+			
 			
 			if (weaponDef.type == 'Cannon') then
 				weaponData.glowradius = weaponData.radius
 			end
 			
 			weaponData.radius = weaponData.radius * globalRadiusMult
+			if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
+				weaponData.radius = weaponData.radius * globalRadiusMultLaser
+			end
 			
 			if weaponData.radius > 0 and not customParams.fake_weapon and skip == false then
 				plighttable[weaponDefID] = weaponData
@@ -390,8 +404,8 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		end
 	end
 	
+	local frame = Spring.GetGameFrame()
 	if projectileFade then
-		local frame = Spring.GetGameFrame()
 		if previousProjectileDrawParams then
 			for i = 1, #previousProjectileDrawParams do
 				local pID = previousProjectileDrawParams[i].pID
@@ -430,9 +444,39 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		previousProjectileDrawParams = projectileDrawParams
 	end
 	
+	-- add explosion lights
+	for i, params in pairs(explosionLights) do
+		local progress = 1-((frame-params.frame)/params.life)
+		params.colMult = params.orgMult * progress
+		params.param.r = params.param.sr
+		params.param.g = params.param.sg * ((progress/2) + 0.5)
+		params.param.b = params.param.sb * ((progress/4) + 0.25)
+		if params.colMult <= 0 then
+			explosionLights[i] = nil
+		else
+			pointLightCount = pointLightCount + 1
+			pointLights[pointLightCount] = params
+		end
+	end
+	
 	return beamLights, beamLightCount, pointLights, pointLightCount
 end
 
+
+function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeam)
+	local params = {param={type='explosion'}}
+	local ysize = Spring.GetUnitHeight(unitID)
+	params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
+	params.py = params.py + (ysize * 1.2)
+	params.orgMult = 0.75
+	params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
+	params.param.radius = 26 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
+	params.frame = Spring.GetGameFrame()
+	params.life = 20 + (params.param.radius/100)
+	Spring.Echo(params.param.radius..'   '..params.life)
+	explosionLightsCount = explosionLightsCount + 1
+	explosionLights[explosionLightsCount] = params
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

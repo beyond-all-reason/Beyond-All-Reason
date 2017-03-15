@@ -20,21 +20,21 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    groundflash = {
-      air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.28,
-      flashsize          = 125,
-      ground             = true,
-      ttl                = 16,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.8,
-        [3]  = 0.4,
-      },
-    },
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.28,
+    --  flashsize          = 125,
+    --  ground             = true,
+    --  ttl                = 16,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.8,
+    --    [3]  = 0.4,
+    --  },
+    --},
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -354,12 +354,12 @@ local sizes = {
         sizegrowth         = 11,
       },
     },
-		groundflash = {
-			flashalpha         = 0.24,
-	    flashsize          = 77,
-	    ground             = true,
-	    ttl                = 18,
-	  },
+		--groundflash = {
+		--	flashalpha         = 0.24,
+	  --  flashsize          = 77,
+	  --  ground             = true,
+	  --  ttl                = 18,
+	  --},
 	  explosion = {
       properties = {
         numparticles       = 14,
@@ -443,12 +443,12 @@ local sizes = {
         sizegrowth         = 22,
       },
     },
-		groundflash = {
-			flashalpha         = 0.32,
-	    flashsize          = 230,
-	    ground             = true,
-	    ttl                = 26,
-	  },
+		--groundflash = {
+		--	flashalpha         = 0.32,
+	  --  flashsize          = 230,
+	  --  ground             = true,
+	  --  ttl                = 26,
+	  --},
 	  explosion = {
       properties = {
         numparticles       = 60,
@@ -529,12 +529,12 @@ local sizes = {
         sizegrowth         = 32,
       },
     },
-		groundflash = {
-			flashalpha         = 0.35,
-	    flashsize          = 290,
-	    ground             = true,
-	    ttl                = 25,
-	  },
+		--groundflash = {
+		--	flashalpha         = 0.35,
+	  --  flashsize          = 290,
+	  --  ground             = true,
+	  --  ttl                = 25,
+	  --},
 	  explosion = {
       properties = {
         numparticles       = 80,
@@ -615,12 +615,12 @@ local sizes = {
         sizegrowth         = 40,
       },
     },
-		groundflash = {
-			flashalpha         = 0.4,
-	    flashsize          = 350,
-	    ground             = true,
-	    ttl                = 30,
-	  },
+		--groundflash = {
+		--	flashalpha         = 0.4,
+	  --  flashsize          = 350,
+	  --  ground             = true,
+	  --  ttl                = 30,
+	  --},
 	  explosion = {
       properties = {
         numparticles       = 90,
