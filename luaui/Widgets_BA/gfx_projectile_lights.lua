@@ -46,8 +46,8 @@ local doOverride = false
 
 local globalLightMult = 1
 local globalRadiusMult = 1.15
-local globalLightMultLaser = 1.1
-local globalRadiusMultLaser = 1.35		-- gets applied on top op globalRadiusMult
+local globalLightMultLaser = 1.08
+local globalRadiusMultLaser = 1.3		-- gets applied on top op globalRadiusMult
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -473,7 +473,6 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	params.param.radius = 26 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
 	params.frame = Spring.GetGameFrame()
 	params.life = 20 + (params.param.radius/100)
-	Spring.Echo(params.param.radius..'   '..params.life)
 	explosionLightsCount = explosionLightsCount + 1
 	explosionLights[explosionLightsCount] = params
 end
