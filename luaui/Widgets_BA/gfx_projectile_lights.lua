@@ -47,7 +47,7 @@ local doOverride = false
 local globalLightMult = 1.15
 local globalRadiusMult = 1.15
 local globalLightMultLaser = 1.1
-local globalRadiusMultLaser = 1.2		-- gets applied on top op globalRadiusMult
+local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -464,21 +464,23 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeam)
-	local params = {param={type='explosion'}}
-	local ysize = Spring.GetUnitHeight(unitID)
-	--local radius = Spring.GetUnitRadius(unitID)
-	--local mass = Spring.GetUnitMass(unitID)
-	params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
-	params.py = params.py + (ysize * 1.2)
-	params.orgMult = 0.66
-	params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
-	params.param.radius = 24 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
-	params.frame = Spring.GetGameFrame()
-	params.life = 20 + (params.param.radius/100)
-	explosionLightsCount = explosionLightsCount + 1
-	explosionLights[explosionLightsCount] = params
+	local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
+	if buildprogress == 1 then
+		local params = {param={type='explosion'}}
+		local ysize = Spring.GetUnitHeight(unitID)
+		--local radius = Spring.GetUnitRadius(unitID)
+		--local mass = Spring.GetUnitMass(unitID)
+		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
+		params.py = params.py + (ysize * 1.2)
+		params.orgMult = 0.66
+		params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
+		params.param.radius = 24 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
+		params.frame = Spring.GetGameFrame()
+		params.life = 21 + (params.param.radius/100)
+		explosionLightsCount = explosionLightsCount + 1
+		explosionLights[explosionLightsCount] = params
+	end
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
