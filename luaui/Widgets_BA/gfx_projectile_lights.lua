@@ -39,7 +39,6 @@ local useLOD = false		-- Reduces the number of lights drawn based on camera dist
 local projectileFade = true
 local FADE_TIME = 5
 
-local gibParams = {r = 0.22, g = 0.15, b = 0.1, radius = 75, gib = true}
 
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
@@ -48,6 +47,8 @@ local globalLightMult = 1.15
 local globalRadiusMult = 1.15
 local globalLightMultLaser = 1.1
 local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
+
+local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -99,7 +100,7 @@ local function GetLightsFromUnitDefs()
 		if customParams.light_skip == nil then
 			local skip = false
 			local lightMultiplier = 0.055
-			local bMult = 2		-- because blue appears to be very faint
+			local bMult = 1.6		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 			local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
@@ -129,7 +130,7 @@ local function GetLightsFromUnitDefs()
 				if weaponDef.damageAreaOfEffect ~= nil  then
 					weaponData.radius = 160 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
 				end
-				lightMultiplier = 0.02 + (weaponDef.size/40)
+				lightMultiplier = 0.015 + (weaponDef.size/40)
 				recalcRGB = true
 			elseif (weaponDef.type == 'StarburstLauncher') then
 				weaponData.radius = 400
