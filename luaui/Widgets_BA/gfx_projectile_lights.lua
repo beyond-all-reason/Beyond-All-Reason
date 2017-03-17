@@ -115,6 +115,9 @@ local function GetLightsFromUnitDefs()
 						weaponData.radius = 120 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
 					end
 					lightMultiplier = 0.018 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
+					if lightMultiplier > 0.07 then
+						lightMultiplier = 0.07
+					end
 					recalcRGB = true
 				end
 			elseif (weaponDef.type == 'LaserCannon') then
@@ -448,9 +451,6 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	for i, params in pairs(explosionLights) do
 		local progress = 1-((frame-params.frame)/params.life)
 		params.colMult = params.orgMult * progress
-		params.param.r = params.param.sr
-		params.param.g = params.param.sg * ((progress/2) + 0.5)
-		params.param.b = params.param.sb * ((progress/4) + 0.25)
 		if params.colMult <= 0 then
 			explosionLights[i] = nil
 		else
@@ -463,20 +463,43 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 end
 
 
-function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeam)
+local unitConf = {}
+function SetUnitConf()
+	for udid, unitDef in pairs(UnitDefs) do
+		local xsize, zsize = unitDef.xsize, unitDef.zsize
+		--local radius = Spring.GetUnitRadius(unitID)
+		--local mass = Spring.GetUnitMass(unitID)
+		
+		local params = {param={type='explosion'}}
+		params.param.r, params.param.g, params.param.b = 1, 0.8, 0.4
+		params.param.radius = 25 + (33 * (xsize + zsize))
+		params.life = 20 + (params.param.radius/100)
+		
+		params.orgMult = 0.22 + (params.param.radius/3000)
+		if params.orgMult > 0.5 then params.orgMult = 0.5 end
+		local worth = (unitDef.metalCost + (unitDef.energyCost/8)) / 3500
+		params.orgMult = params.orgMult + worth
+		if params.orgMult > 0.8 then params.orgMult = 0.8 end
+		
+		unitConf[udid] = params
+	end
+end
+
+
+function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
 	if buildprogress == 1 then
 		local params = {param={type='explosion'}}
-		local ysize = Spring.GetUnitHeight(unitID)
-		--local radius = Spring.GetUnitRadius(unitID)
-		--local mass = Spring.GetUnitMass(unitID)
-		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
-		params.py = params.py + (ysize * 1.2)
-		params.orgMult = 0.66
-		params.param.sr, params.param.sg, params.param.sb = 1, 0.8, 0.4
-		params.param.radius = 24 * (UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize + (ysize/3))
+		params.param.r, params.param.g, params.param.b = unitConf[unitDefID].param.r, unitConf[unitDefID].param.g, unitConf[unitDefID].param.b
+		params.life = unitConf[unitDefID].life
+		params.orgMult = unitConf[unitDefID].orgMult
+		params.param.radius = unitConf[unitDefID].param.radius
+		
 		params.frame = Spring.GetGameFrame()
-		params.life = 21 + (params.param.radius/100)
+		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
+		params.py = params.py + (Spring.GetUnitHeight(unitID) * 1.2)
+		
+		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 	end
@@ -486,6 +509,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
+	SetUnitConf()
 	if WG.DeferredLighting_RegisterFunction then
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()
