@@ -16,11 +16,17 @@ end
 
 local startframe = 1000000000
 local index=1
+local counter = 1
 local unitnames={}
-local timedelay=30*10 --yeah this crap takes 8 hours, for a total of 427 units :D
+local timedelay=45*10 --yeah this crap takes 8 hours, for a total of 427 units :D
 
-function buildslowly()
-Spring.Echo('building icons all slow-like')
+function buildslowly(_,_,params)
+	if #params == 1 then
+		if type(tonumber(params[1])) == "number" then
+			index = tonumber(params[1])
+		end
+	end
+	Spring.Echo('building icons all slow-like, starting from '..index)
 	startframe=Spring.GetGameFrame()
 end
 
@@ -42,11 +48,12 @@ end
 
 function gadget:GameFrame(n)
 	-- Spring.Echo(n,startframe,index)
-	if (n>startframe+timedelay*index and index <=#unitnames) then 
+	if (n>startframe+timedelay*counter and index <=#unitnames) then 
 		-- Spring.Echo(" Drawing unit ",index,UnitDefNames[index]["name"])
 		Spring.Echo(" Drawing unit ",index,unitnames[index]," out of ", #unitnames)
 		Spring.SendCommands("luarules buildicon "..unitnames[index])
 		index=index+1
+		counter=counter+1
 	end
 end
 

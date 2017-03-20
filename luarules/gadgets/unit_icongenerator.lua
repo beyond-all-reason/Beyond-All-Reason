@@ -655,7 +655,8 @@ local function DrawIcon(udid,teamID,uid)
     gl.Texture(0,false);
   else
 	gl.Texture(0, "%" .. udid .. ":0");
-	gl.UnitShape(udid, teamID);
+	gl.UnitShapeTextures(udid, true)
+	gl.UnitShape(udid, teamID, true, true, true);
 	gl.Texture(0,false);
   end
 

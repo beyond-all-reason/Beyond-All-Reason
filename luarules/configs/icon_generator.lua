@@ -8,7 +8,7 @@
 --// Info
 if (info) then
   local ratios      = {["1to1"]=(1/1)} --{["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
-  local resolutions = {{128,128}} --{{128,128},{64,64}}
+  local resolutions = {{256,256}} --{{128,128},{64,64}}
   local schemes     = {""}
 
   return schemes,resolutions,ratios
@@ -43,9 +43,9 @@ factionColors = {
 
 --// render options textured
 textured = (scheme~="bw")
-lightAmbient = {1.1,1.1,1.1}
-lightDiffuse = {0.4,0.4,0.4}
-lightPos     = {-0.2,0.4,0.5}
+lightAmbient = {1,1,1}
+lightDiffuse = {0,0,0}
+lightPos     = {-0.3,0.5,0.6}
 
 --// Ambient Occlusion & Outline settings
 aoPower     = ((scheme=="bw") and 1.5) or 1
