@@ -1,6 +1,6 @@
    function gadget:GetInfo()
       return {
-        name      = "Reclaim effecg",
+        name      = "Reclaim effect",
         desc      = "Nice unit reclaim effect",
         author    = "Floris",
         date      = "December 2016",
@@ -22,7 +22,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		if ux ~= nil then
 			local udef = UnitDefs[unitDefID]
 			local x,y,z = ux,uy,uz
-			Spring.SpawnCEG("wreckshards1", x, y, z)
+			Spring.SpawnCEG("metalshards1", x, y, z)
 			
 			-- add more effects depending on unit cost
 			local numFx = math.floor(UnitDefs[unitDefID].metalCost/170)
@@ -31,9 +31,81 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 				x = ux + (random(udef.model.minx, udef.model.maxx)*posMultiplier)
 				z = uz + (random(udef.model.minz, udef.model.maxz)*posMultiplier)
 				y = uy + (random() * udef.model.maxy*posMultiplier)
-				Spring.SpawnCEG("wreckshards"..(((i+1)%3)+1), x, y, z)
+				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 			end
 		end
 	end
 end
 
+
+function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	fx,fy,fz = Spring.GetFeaturePosition(featureID)
+	if (fx ~= nil) then
+		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+			
+		if me ~= nil and me > 0 then
+			local numFx = math.floor(me/200)
+			local posMultiplier = 0.5
+			Spring.SpawnCEG("energyshards1", x, y, z)
+			for i=1, numFx, 1 do
+				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+			end
+			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
+		end
+		if mm ~= nil and mm > 0 then
+			local numFx = math.floor(mm/75)
+			local posMultiplier = 0.5
+			Spring.SpawnCEG("metalshards1", x, y, z)
+			for i=1, numFx, 1 do
+				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+			end
+			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
+		end
+	end
+end
+
+function gadget:FeatureDestroyed(featureID, allyteam)
+	fx,fy,fz = Spring.GetFeaturePosition(featureID)
+	if (fx ~= nil) then
+		--local featureDefID = Spring.GetFeatureDefID(featureID)
+		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+			
+		if me ~= nil and me > 0 then
+			local numFx = math.floor(me/200)
+			local posMultiplier = 0.5
+			Spring.SpawnCEG("energyshards1", x, y, z)
+			for i=1, numFx, 1 do
+				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+			end
+			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
+		end
+		if mm ~= nil and mm > 0 then
+			local numFx = math.floor(mm/75)
+			local posMultiplier = 0.5
+			Spring.SpawnCEG("metalshards1", x, y, z)
+			for i=1, numFx, 1 do
+				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+			end
+			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
+		end
+		
+		if (rm ~= nil) then
+			if mm==0 and re == 0 then
+				Spring.SpawnCEG("sparklegreen", fx, fy, fz)
+				Spring.PlaySoundFile("sounds/reclaimate.wav", 1, fx, fy, fz)
+			end
+		end
+	end
+end

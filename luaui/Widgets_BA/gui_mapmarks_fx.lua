@@ -50,8 +50,8 @@ local imageDir					= ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/"
 
 local types = {
 	map_mark = {
-		size			= 4.0,
-		endSize			= 2.75,
+		size			= 3.2,
+		endSize			= 2.25,
 		duration		= 14,
 		glowColor		= {1.00 ,1.00 ,1.00 ,0.20},
 		ringColor		= {1.00 ,1.00 ,1.00 ,0.75}
