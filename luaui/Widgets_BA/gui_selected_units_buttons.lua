@@ -252,14 +252,16 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID] 
 
-  glColor(1, 1, 1, 1)
+  glColor(1, 1, 1, 0.9)
   glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin))
   glTexture(false)
-
-  -- draw the count text
-  local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
-  glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16) , fontSize, "or")
+  
+	if count > 1 then
+	  -- draw the count text
+	  local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
+	  glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16) , fontSize, "or")
+	 end
 end
 
 

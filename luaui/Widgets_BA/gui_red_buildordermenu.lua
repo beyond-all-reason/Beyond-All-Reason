@@ -496,7 +496,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			else
 				icon.caption = nil
 			end
-			icon.texturecolor = {0.9,0.9,0.9,1}
+			icon.texturecolor = {0.95,0.95,0.95,1}
 			
 			--text to show build hotkey
 			local white = "\255\255\255\255"
