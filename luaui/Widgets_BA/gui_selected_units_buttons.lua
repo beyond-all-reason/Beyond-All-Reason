@@ -72,8 +72,8 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local backgroundColor = {0,0,0,0.18}
-local highlightColor = {1, 0.7, 0.2, 0.35}
+local backgroundColor = {0,0,0,0.5}
+local highlightColor = {1, 0.55, 0.22, 0.8}
 local hoverColor = { 1, 1, 1, 0.22 }
 
 local unitTypes = 0
@@ -82,8 +82,9 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 
-local iconSizeX = 68
+local iconSizeX = 66
 local iconSizeY = 66
+local iconImgMult = 0.83
 
 local usedIconSizeX = iconSizeX
 local usedIconSizeY = iconSizeY
@@ -95,8 +96,8 @@ local rectMaxY = 0
 
 local enabled = true
 local backgroundDimentions = {}
-local iconMargin = usedIconSizeX / 15		-- changed in ViewResize anyway
-local fontSize = iconSizeY * 0.3		-- changed in ViewResize anyway
+local iconMargin = usedIconSizeX / 18		-- changed in ViewResize anyway
+local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
 local picList
 
 -------------------------------------------------------------------------------
@@ -128,8 +129,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
-  fontSize = usedIconSizeY * 0.31
-  iconMargin = usedIconSizeX / 15
+  fontSize = usedIconSizeY * 0.28
+  iconMargin = usedIconSizeX / 18
   
   if picList then
     gl.DeleteList(picList)
@@ -148,7 +149,6 @@ function widget:DrawScreen()
 		  end
 		  if icon > 0 then
 			enabled = true
-			gl.CallList(picList)
 			-- draw the highlights
 			local x,y,lb,mb,rb = spGetMouseState()
 			local mouseIcon = MouseOverIcon(x, y)
@@ -159,6 +159,7 @@ function widget:DrawScreen()
 				DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
 			  end
 		  end
+			gl.CallList(picList)
 		end
 	  end    
 	end
@@ -237,12 +238,15 @@ end
 
 
 function DrawUnitDefTexture(unitDefID, iconPos, count, row)
-  local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos))
-  local xmax = xmin + usedIconSizeX
+  local yPad = (usedIconSizeY*(1-iconImgMult)) / 2
+  local xPad = (usedIconSizeX*(1-iconImgMult)) / 2
+  
+  local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
+  local xmax = xmin + usedIconSizeX - xPad
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
   
-  local ymin = rectMinY
-  local ymax = rectMaxY
+  local ymin = rectMinY + yPad
+  local ymax = rectMaxY - yPad
   local xmid = (xmin + xmax) * 0.5
   local ymid = (ymin + ymax) * 0.5
 
@@ -250,7 +254,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   glColor(1, 1, 1, 1)
   glTexture('#' .. unitDefID)
-  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin))
+  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin))
   glTexture(false)
 
   -- draw the count text

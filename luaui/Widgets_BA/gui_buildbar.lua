@@ -109,6 +109,7 @@ end
 -------------------------------------------------------------------------------
 local iconSizeX  = 65
 local iconSizeY  = math.floor(iconSizeX * 0.91)
+local iconImgMult= 0.75
 local repIcoSize = math.floor(iconSizeY*0.6)   --repeat iconsize
 local fontSize   = iconSizeY * 0.25
 local borderSize = 1.5
@@ -364,16 +365,13 @@ local function DrawBuildProgress(left,top,right,bottom, progress, color)
 end
 
 
-local function DrawButton(rect, unitDefID, options)
+local function DrawButton(rect, unitDefID, options, iconResize)
   -- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
 
   if (#rect<4) then
     Spring.Echo('Incorrect arguments to DrawButton(rect={left,top,right,bottom}, unitDefID, options)')
     return
   end
-
-  -- draw icon
-  DrawTexRect(rect, '#'..unitDefID,options.alpha or 1)
 
   -- Progress
   if (options.progress or -1)>-1 then
@@ -389,17 +387,27 @@ local function DrawButton(rect, unitDefID, options)
   if (options.hovered_repeat) then
     DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic)
   elseif (options.pressed) then
-    DrawRect(rect, { 1, 0.6, 0, 0.3 })  -- pressed
+    DrawRect(rect, { 1, 0.6, 0, 0.25 })  -- pressed
     glBlending(GL_SRC_ALPHA, GL_ONE)
-      DrawRect(rect, { 1, 0.6, 0, 0.35 })  -- pressed
+      DrawRect(rect, { 1, 0.6, 0, 0.25 })  -- pressed
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   elseif (options.hovered) then
-    DrawRect(rect, { 1, 1, 1, 0.2})  -- hover
+    DrawRect(rect, { 1, 1, 1, 0.15})  -- hover
     glBlending(GL_SRC_ALPHA, GL_ONE)
-      DrawRect(rect, { 1, 1, 1, 0.24 })  -- hover
+      DrawRect(rect, { 1, 1, 1, 0.18 })  -- hover
     glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   end
 
+  -- draw icon
+  if iconResize then
+	  local yPad = (iconSizeY*(1-iconImgMult)) / 2
+	  local xPad = (iconSizeX*(1-iconImgMult)) / 2
+	  local imgRect = {rect[1]+xPad,rect[2]-yPad,rect[3]-xPad,rect[4]+yPad}
+  	DrawTexRect(imgRect, '#'..unitDefID,options.alpha or 1)
+	else
+  	DrawTexRect(rect, '#'..unitDefID,options.alpha or 1)
+  end
+  
   -- amount
   if ((options.amount or 0)>0) then
     glText( options.amount ,rect[1]+5,rect[4]+6.5,fontSize,"o")
@@ -444,11 +452,13 @@ function widget:DrawScreen()
 
     -- determine options -------------------------------------------------------------------
      -- building?
+     local iconResize = true
       unitBuildID      = GetUnitIsBuilding(facInfo.unitID)
       if unitBuildID then
         unitBuildDefID = GetUnitDefID(unitBuildID)
         _, _, _, _, options.progress = GetUnitHealth(unitBuildID)
         unitDefID      = unitBuildDefID
+        iconResize = true
       elseif (unfinished_facs[facInfo.unitID]) then
         _, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
         if (options.progress>=1) then 
@@ -473,7 +483,7 @@ function widget:DrawScreen()
       options.waypoint = (waypointMode>1)and(i==waypointFac+1)
       options.selected = (i==openedMenu+1)
     -----------------------------------------------------------------------------------------
-    DrawButton(fac_rec,unitDefID,options)
+    DrawButton(fac_rec,unitDefID,options, iconResize)
 
     -- draw build list
     if i==openedMenu+1 then
@@ -500,7 +510,7 @@ function widget:DrawScreen()
           end
           options.alpha = 0.75
         -----------------------------------------------------------------------------------------
-        DrawButton(bopt_rec,unitDefID,options)
+        DrawButton(bopt_rec,unitDefID,options, true)
 
         -- setup next icon pos
         OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])
@@ -522,7 +532,10 @@ function widget:DrawScreen()
           if (n==1) then count=count-1 end -- cause we show the actual in building unit instead of the factory icon
 
           if (count>0) then
-            DrawTexRect(bopt_rec,"#"..unitBuildDefID,0.5)
+          
+					  local yPad = (iconSizeY*(1-iconImgMult)) / 2
+					  local xPad = (iconSizeX*(1-iconImgMult)) / 2
+            DrawTexRect({bopt_rec[1]+xPad,bopt_rec[2]-yPad,bopt_rec[3]-xPad,bopt_rec[4]+yPad},"#"..unitBuildDefID,0.5)
             if (count>1) then glText( count ,bopt_rec[1]+5,bopt_rec[4]+6.5,fontSize,"o") end
 
             OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])
