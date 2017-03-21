@@ -44,8 +44,8 @@ local Config = {
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.925,
-		iconhoverscale = 0.925,
+		iconscale = 0.9,
+		iconhoverscale = 0.9,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -75,8 +75,8 @@ local Config = {
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.925,
-		iconhoverscale = 0.925,
+		iconscale = 0.9,
+		iconhoverscale = 0.9,
 		ispreadx=0,ispready=0,
 		
 		margin = 5,
@@ -218,11 +218,11 @@ local function CreateGrid(r)
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
 		iconscale=(iconScaling and r.iconscale or 1),
-		color={0.85,0.65,0,0.3},
+		color={0.85,0.65,0,0.25},
 		border={0.8,0,0,0},
 		glone=0.12,
 		texture = LUAUI_DIRNAME.."Images/button-pushed.dds",
-		texturecolor={1,0,0,0.18},
+		texturecolor={1,0,0,0.15},
 		
 		active=false,
 		onupdate=function(self)
@@ -231,16 +231,16 @@ local function CreateGrid(r)
 	}
 	
 	local mouseoverhighlight = Copy(selecthighlight,true)
-	mouseoverhighlight.color={1,1,1,0.1}
+	mouseoverhighlight.color={1,1,1,0.08}
 	mouseoverhighlight.border={1,1,1,0}
 	mouseoverhighlight.texture = LUAUI_DIRNAME.."Images/button-highlight.dds"
-	mouseoverhighlight.texturecolor={1,1,1,0.1}
+	mouseoverhighlight.texturecolor={1,1,1,0.08}
 	
 	local heldhighlight = Copy(selecthighlight,true)
-	heldhighlight.color={1,0.75,0,0.08}
+	heldhighlight.color={1,0.75,0,0.06}
 	heldhighlight.border={1,1,0,0}
 	heldhighlight.texture = LUAUI_DIRNAME.."Images/button-pushed.dds"
-	heldhighlight.texturecolor={1,0.75,0,0.08}
+	heldhighlight.texturecolor={1,0.75,0,0.06}
 	
 	local icon = {"rectangle",
 		px=0,py=0,
@@ -496,7 +496,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			else
 				icon.caption = nil
 			end
-			icon.texturecolor = {0.88,0.88,0.88,1}
+			icon.texturecolor = {0.9,0.9,0.9,1}
 			
 			--text to show build hotkey
 			local white = "\255\255\255\255"

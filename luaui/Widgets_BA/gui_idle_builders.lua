@@ -278,13 +278,16 @@ local function DrawUnitIcons(number)
 			
 			CenterUnitDef(drawTable[ct].unitDefID)
 			glColor(1,1,1,1)
-			--glTexture('%'..drawTable[ct].unitDefID..':1')
+			glTexture('%'..drawTable[ct].unitDefID..':1')
+			
+			--glUnitShapeTextures(drawTable[ct].unitDefID, true)
 			glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), false, true, true)
 			
 		  --glUnitShapeTextures(drawTable[ct].unitDefID, true)
 	    --glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), true)
 	    --glUnitShapeTextures(drawTable[ct].unitDefID, false)
-    	
+	    
+    	glTexture(false)
 			glScissor(false)
 			glPopMatrix()
 			

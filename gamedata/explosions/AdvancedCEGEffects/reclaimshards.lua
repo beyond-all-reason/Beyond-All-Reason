@@ -172,17 +172,17 @@ end
 definitions["reclaimshards2"] = deepcopy(definitions["reclaimshards1"])
 definitions["reclaimshards2"].shards.properties.texture = [[shard2]]
 definitions["reclaimshards3"] = deepcopy(definitions["reclaimshards1"])
-definitions["reclaimshards2"].shards.properties.texture = [[shard3]]
+definitions["reclaimshards3"].shards.properties.texture = [[shard3]]
 
 definitions["metalshards1"] = deepcopy(definitions["reclaimshards1"])
 definitions["metalshards2"] = deepcopy(definitions["reclaimshards2"])
-definitions["metalshards3"] = deepcopy(definitions["reclaimshards2"])
+definitions["metalshards3"] = deepcopy(definitions["reclaimshards3"])
 
 definitions["energyshards1"] = deepcopy(definitions["reclaimshards1"])
 definitions["energyshards2"] = deepcopy(definitions["reclaimshards2"])
-definitions["energyshards3"] = deepcopy(definitions["reclaimshards2"])
-definitions["energyshards1"].shards.properties.colorMap = [[0.2 1 0.2 1   0.1 0.5 0.1 0.5]],
-definitions["energyshards2"].shards.properties.colorMap = [[0.2 1 0.2 1   0.1 0.5 0.1 0.5]],
-definitions["energyshards3"].shards.properties.colorMap = [[0.2 1 0.2 1   0.1 0.5 0.1 0.5]],
+definitions["energyshards3"] = deepcopy(definitions["reclaimshards3"])
+definitions["energyshards1"].shards.properties.colorMap = [[0.2 1 0.2 1   0.1 0.5 0.1 0.5]]
+definitions["energyshards2"].shards.properties.colorMap = [[0.2 1 0.2 1   0.1 0.5 0.1 0.5]]
+definitions["energyshards3"].shards.properties.colorMap = [[0.2 1 0.2 1   0.1 0.5 0.1 0.5]]
 
 return definitions
