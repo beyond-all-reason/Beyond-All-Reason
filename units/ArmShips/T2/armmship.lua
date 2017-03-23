@@ -206,7 +206,7 @@ return {
 			},
 			[3] = {
 				def = "ARMSHIP_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
