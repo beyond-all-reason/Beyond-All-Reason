@@ -286,34 +286,6 @@ local armorDefs = {
 		"cortl",
         "armatl",
 		"coratl",
-        "armacsub",
-		"armbats",
-		"armcarry",
-		"armcrus",
-		"armcs",
-		"armmls",
-		"armmship",
-		"armpt",
-		"armrecl",
-		"armroy",
-		"armtship",
-		"coracsub",
-		"corbats",
-		"corcarry",
-		"corcrus",
-		"corcs",
-		"coresupp",
-		"cormls",
-		"cormship",
-		"corpt",
-		"correcl",
-		"corroy",
-		"cortship",
-		"decade",
-        "armaas",
-		"corarch",
-        "aseadragon",
-        "corblackhy",
         "armcir",
 		"armuwadves",
 		"armuwadvms",
@@ -398,6 +370,68 @@ local armorDefs = {
 		--"armfgate", Not currently used by BA
 		--"corfgate", Not currently used by BA
 	},
+	scouts = {
+		"corpt",
+		"armpt",
+		},
+
+	corvettes = {
+
+		"armcs",
+		"armmls",
+		"armsjam",
+		"corcs",
+		"coresupp",
+		"cormls",
+		"decade",
+		"corsjam",
+
+		},
+
+	destroyers = {
+		"armroy",
+		"corroy",
+		"corarch",
+		"armaas",
+		},
+
+	cruisers = {
+
+		"armcrus",
+		"armmship",
+		"corcrus",
+		"cormship",
+		},
+
+	carriers = {
+		"armcarry",
+		"corcarry",
+		"armtship",
+		"cortship",
+		},
+		
+	battleships = {
+		"armbats",
+		"corbats",
+		},
+
+	flagships = {
+		"aseadragon",
+		"corblackhy",
+		},
+	lightsubmarines = {
+		"armsub",
+		"corsub",
+        	"armsubk",
+		"corshark",
+		},
+
+	heavysubmarines = {
+        	"corssub",
+		"tawf009",
+		"armacsub",
+        	"coracsub",
+		},
 }
 
 
