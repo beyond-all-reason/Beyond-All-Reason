@@ -74,7 +74,7 @@ local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
 local backgroundColor = {0,0,0,0.5}
 local highlightColor = {1, 0.55, 0.22, 0.8}
-local hoverColor = { 1, 1, 1, 0.22 }
+local hoverColor = { 1, 1, 1, 0.3 }
 
 local unitTypes = 0
 local countsTable = {}
