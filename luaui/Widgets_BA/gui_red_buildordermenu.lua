@@ -31,7 +31,9 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
 local iconScaling = true
-local largeInfo = false
+local highlightscale = true
+local drawPrice = true
+local largePrice = true
 local shortcutsInfo = false
 
 local Config = {
@@ -217,7 +219,7 @@ local function CreateGrid(r)
 		roundedsize = math.floor(r.isy*r.roundedPercentage),
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
-		iconscale=(iconScaling and r.iconscale or 1),
+		iconscale=(iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and r.iconscale or 1),
 		color={0.85,0.65,0,0.25},
 		border={0.8,0,0,0},
 		glone=0.12,
@@ -260,7 +262,7 @@ local function CreateGrid(r)
 		mouseheld={
 			{1,function(mx,my,self)
 				self.iconscale=(iconScaling and self.iconhoverscale or 1)
-				heldhighlight.iconscale=(iconScaling and self.iconhoverscale or 1)
+				heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
@@ -271,7 +273,7 @@ local function CreateGrid(r)
 			{1,function(mx,my,self)
 				if r.menuname == "buildmenu" then
 					self.iconscale=(iconScaling and self.iconhoverscale or 1)
-					heldhighlight.iconscale=(iconScaling and self.iconhoverscale or 1)
+					heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
 					heldhighlight.px = self.px
 					heldhighlight.py = self.py
 					heldhighlight.active = nil
@@ -281,7 +283,7 @@ local function CreateGrid(r)
 		
 		mouseover=function(mx,my,self)
 			self.iconscale=(iconScaling and self.iconhoverscale or 1)
-			mouseoverhighlight.iconscale=(iconScaling and self.iconhoverscale or 1)
+			mouseoverhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
 			mouseoverhighlight.px = self.px
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
@@ -303,7 +305,7 @@ local function CreateGrid(r)
 		onupdate=function(self)
 			local _,_,_,curcmdname = sGetActiveCommand()
 			self.iconscale= (iconScaling and self.iconnormalscale or 1)
-			selecthighlight.iconscale = (iconScaling and self.iconhoverscale or 1)
+			selecthighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
 			if (curcmdname ~= nil) then
 				if (self.cmdname == curcmdname) then
 					selecthighlight.px = self.px
@@ -522,18 +524,7 @@ local function UpdateGrid(g,cmds,ordertype)
 				local captionColor = "\255\175\175\175"
 				
 	-- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
-
-				-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
-				local str = tostring(math.max(metalCost, energyCost))
-				local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
-				local infoNewline = '\n'
-				if largeInfo then
-					addedSpaces = "              "			-- too bad 1 space isnt as wide as 1 number in the used font
-					infoNewline = ''
-				end
-				for digit in string.gmatch(str, "%d") do
-				  addedSpaces = string.sub(addedSpaces, 0, -2)
-				end
+				
 				
 				local shotcutCaption = ''
 				if shortcutsInfo then
@@ -549,7 +540,25 @@ local function UpdateGrid(g,cmds,ordertype)
 						shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
 					end
 				end
-				text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
+				
+				if not drawPrice then
+					text.caption = "\n"..shotcutCaption.."\n\n\n"
+				else
+					-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
+					local str = tostring(math.max(metalCost, energyCost))
+					local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
+					local infoNewline = '\n'
+					if largePrice then
+						addedSpaces = "               "			-- too bad 1 space isnt as wide as 1 number in the used font
+						infoNewline = ''
+						metalCost = '  '..metalCost
+						energyCost = '  '..energyCost
+					end
+					for digit in string.gmatch(str, "%d") do
+					  addedSpaces = string.sub(addedSpaces, 0, -2)
+					end
+					text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
+				end
 				text.options = "bs"
 			end
 		else
@@ -729,11 +738,21 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon spacing:  disabled")
 		end
 	end
-	if (string.find(command, "iconinfo") == 1  and  string.len(command) == 8) then 
-		largeInfo = not largeInfo
+	if (string.find(command, "iconprice") == 1  and  string.len(command) == 9) then 
+		drawPrice = not drawPrice
 		--AutoResizeObjects()
 		Spring.ForceLayoutUpdate()
-		if largeInfo then
+		if drawPrice then
+			Spring.Echo("Build/order menu icon price:  enabled")
+		else
+			Spring.Echo("Build/order menu icon price:  disabled")
+		end
+	end
+	if (string.find(command, "iconprizesize") == 1  and  string.len(command) == 13) then 
+		largePrice = not largePrice
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if largePrice then
 			Spring.Echo("Build/order menu icon info:  large")
 		else
 			Spring.Echo("Build/order menu icon info:  small")
@@ -765,14 +784,20 @@ function widget:Initialize()
 	
 	
   WG['red_buildmenu'] = {}
-  WG['red_buildmenu'].getConfigLargeInfo = function()
-  	return largeInfo
+  WG['red_buildmenu'].getConfigUnitPrice = function()
+  	return drawPrice
+  end
+  WG['red_buildmenu'].getConfigUnitPriceLarge = function()
+  	return largePrice
   end
   WG['red_buildmenu'].getConfigShortcutsInfo = function()
   	return shortcutsInfo
   end
-  WG['red_buildmenu'].setConfigLargeInfo = function(value)
-  	largeInfo = value
+  WG['red_buildmenu'].setConfigUnitPrice = function(value)
+  	drawPrice = value
+  end
+  WG['red_buildmenu'].setConfigUnitPriceLarge = function(value)
+  	largePrice = value
   end
   WG['red_buildmenu'].setConfigShortcutsInfo = function(value)
   	shortcutsInfo = value
@@ -804,7 +829,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, largeInfo=largeInfo, shortcutsInfo=shortcutsInfo}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, largePrice=largePrice, shortcutsInfo=shortcutsInfo}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -813,11 +838,14 @@ function widget:SetConfigData(data) --load config
 		Config.buildmenu.py = data.Config.buildmenu.py
 		Config.ordermenu.px = data.Config.ordermenu.px
 		Config.ordermenu.py = data.Config.ordermenu.py
+		if (data.drawPrice ~= nil) then
+			drawPrice = data.drawPrice
+		end
 		if (data.iconScaling ~= nil) then
 			iconScaling = data.iconScaling
 		end
-		if (data.largeInfo ~= nil) then
-			largeInfo = data.largeInfo
+		if (data.largePrice ~= nil) then
+			largePrice = data.largePrice
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo
