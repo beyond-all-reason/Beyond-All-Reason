@@ -236,8 +236,7 @@ TargetCleared(Func_Var_1)
 
 FirePrimary()
 {
-	++gun_1;
-	if( gun_1 >= 3 ) gun_1 = 0;
+
 }
 
 FireTertiary()
@@ -248,6 +247,8 @@ FireTertiary()
 AimFromPrimary(piecenum)
 {
 	piecenum = plate;
+	++gun_1;
+	if( gun_1 >= 3 ) gun_1 = 0;
 }
 
 AimFromTertiary(piecenum)

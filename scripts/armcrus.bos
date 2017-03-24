@@ -283,28 +283,36 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+
+FireShell()
 {
-	start-script RockZ(-7, aimDir);
+	start-script RockZ(-5, aimDir);
 	if( gun_1 )
 	{
 		emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-2.300000] now;
-		sleep 150;
-		move barrel2 to z-axis [0.000000] speed [1.500000];
+		move barrel2 to z-axis [0.000000] speed [2.50000];
 	}
 	else
 	{
 		emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-2.300000] now;
-		sleep 150;
-		move barrel1 to z-axis [0.000000] speed [1.500000];
+		move barrel1 to z-axis [0.000000] speed [2.500000];
 	}
-	gun_1 = !gun_1;
+}
+
+FirePrimary()
+{
+	start-script FireShell();
+	sleep 460;
+	start-script FireShell();
+	sleep 460;
+	start-script FireShell();
 }
 
 AimFromPrimary(piecenum)
 {
+	gun_1 = !gun_1;
 	piecenum = turret;
 }
 
