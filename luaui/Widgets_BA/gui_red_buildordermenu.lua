@@ -997,6 +997,11 @@ end
 function widget:KeyPress(key, mods, isRepeat)
 	if shortcutsInfo then
 		if building ~= -1 then
+ 			if building == 1 and key == buildNextKey then
+ 				building = 2
+ 				onNewCommands(GetCommands())
+ 				return true
+			end
 			local buildcmds, othercmds = GetCommands()
 			local found = -1
 			for index = 1, #buildKeys do
@@ -1012,6 +1017,10 @@ function widget:KeyPress(key, mods, isRepeat)
 			onNewCommands(GetCommands())
 			return true
 		else
+			-- this prevents keys to be captured when you cannot build anything
+			local buildcmds = GetCommands()
+			if #buildcmds == 0 then return false end
+			
 			if key == buildStartKey then
 				building = 0
 				onNewCommands(GetCommands())
