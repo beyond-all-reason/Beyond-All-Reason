@@ -654,7 +654,7 @@ local function DrawIcon(udid,teamID,uid)
 		gl.UnitShape(udid, teamID, true);
 		gl.UnitShapeTextures(udid, false)
   end
-
+	
   gl.ActiveTexture(0,gl.MatrixMode,GL.TEXTURE);
   gl.PopMatrix();
   gl.MatrixMode(GL.PROJECTION);
@@ -732,7 +732,6 @@ end
     end
   end
 
-
   local function Background(unitdefid)
     local udef = UnitDefs[unitdefid];
     for i=1,#backgrounds do
@@ -754,6 +753,21 @@ end
         end
       end
     end
+  end
+  
+  
+  local function Overlay(unitdefid)
+	  if (UnitDefs[unitdefid].waterline ~= nil and UnitDefs[unitdefid].waterline > 0) or (UnitDefs[unitdefid].minWaterDepth ~= nil and UnitDefs[unitdefid].minWaterDepth > 0) then
+	    gl.Texture(":n:LuaRules/Images/waterunit.png");
+	    gl.TexRect(-1,-1,1,1);
+	    gl.Texture(false);
+	  end
+	  
+	  if (UnitDefs[unitdefid].buildSpeed ~= nil and UnitDefs[unitdefid].buildSpeed > 0) and  (UnitDefs[unitdefid].canAssist == nil or UnitDefs[unitdefid].canAssist == true) then
+	    gl.Texture(":n:LuaRules/Images/constructionunit.png");
+	    gl.TexRect(-1,-1,1,1);
+	    gl.Texture(false);
+	  end
   end
 
 --------------------------------------------------------------------------------
@@ -943,6 +957,9 @@ end
       gl.TexRect(-1,-1,1,1,
         left/(renderX), bottom/(renderY),
         (left+width)/(renderX), (bottom+height)/(renderY));
+        
+      Overlay(udid)	-- draw water drop if water unit
+      
       gl.Blending(false);
       gl.Texture(false);
 
