@@ -164,6 +164,8 @@ end
 --initialization
 --------------------------------------------------------------------------------
 
+local dgunRange	= WeaponDefNames["armcom_arm_disintegrator"].range + WeaponDefNames["armcom_arm_disintegrator"].damageAreaOfEffect
+
 local function SetupUnitDef(unitDefID, unitDef)
   if (not unitDef.weapons) then return end
   
@@ -175,7 +177,7 @@ local function SetupUnitDef(unitDefID, unitDef)
       local weaponDef = WeaponDefs[weapon.weaponDef]
       if (weaponDef) then
         if (weaponDef.type == "DGun") then
-          dgunInfo[unitDefID] = {range = weaponDef.range, aoe = weaponDef.damageAreaOfEffect}
+          dgunInfo[unitDefID] = {range = dgunRange, aoe = weaponDef.damageAreaOfEffect}
         elseif (weaponDef.canAttackGround
                 and not (weaponDef.type == "Shield")
                 and not ToBool(weaponDef.interceptor)

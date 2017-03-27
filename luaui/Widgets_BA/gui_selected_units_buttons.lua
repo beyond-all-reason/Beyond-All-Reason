@@ -74,7 +74,7 @@ local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
 local backgroundColor = {0,0,0,0.5}
 local highlightColor = {1, 0.55, 0.22, 0.8}
-local hoverColor = { 1, 1, 1, 0.3 }
+local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
 local countsTable = {}
@@ -96,7 +96,7 @@ local rectMaxY = 0
 
 local enabled = true
 local backgroundDimentions = {}
-local iconMargin = usedIconSizeX / 18		-- changed in ViewResize anyway
+local iconMargin = usedIconSizeX / 20		-- changed in ViewResize anyway
 local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
 local picList
 
@@ -130,7 +130,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
   fontSize = usedIconSizeY * 0.28
-  iconMargin = usedIconSizeX / 18
+  iconMargin = usedIconSizeX / 20
   
   if picList then
     gl.DeleteList(picList)
@@ -154,9 +154,9 @@ function widget:DrawScreen()
 			local mouseIcon = MouseOverIcon(x, y)
 			if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
 			  if (lb or mb or rb) then
-				DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
+					DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
 			  else
-				DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
+					DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
 			  end
 		  end
 			gl.CallList(picList)

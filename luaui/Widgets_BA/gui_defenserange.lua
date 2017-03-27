@@ -359,9 +359,9 @@ state["curModID"] = nil
 state["myPlayerID"] = nil
 
 local lineConfig = {}
-lineConfig["lineWidth"] = 1.0 -- calcs dynamic now
+lineConfig["lineWidth"] = 1.5 -- calcs dynamic now
 lineConfig["alphaValue"] = 0.0 --> dynamic behavior can be found in the function "widget:Update"
-lineConfig["circleDivs"] = 40.0 
+lineConfig["circleDivs"] = 80.0 
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -906,23 +906,23 @@ function widget:Update()
 		_, camy, _ = spGetCameraPosition()
 		if ( camy < 700 ) and ( oldcamy >= 700 ) then
 			oldcamy = camy
-			lineConfig["lineWidth"] = 2.0
+			lineConfig["lineWidth"] = 2.33
 			lineConfig["alphaValue"] = 0.25
 			UpdateCircleList()
 		elseif ( camy < 1800 ) and ( oldcamy >= 1800 ) then
 			oldcamy = camy
-			lineConfig["lineWidth"] = 1.5
+			lineConfig["lineWidth"] = 1.8
 			lineConfig["alphaValue"] = 0.3
 			UpdateCircleList()
 		elseif ( camy > 1800 ) and ( oldcamy <= 1800 ) then
 			oldcamy = camy
-			lineConfig["lineWidth"] = 1.0
+			lineConfig["lineWidth"] = 1.33
 			lineConfig["alphaValue"] = 0.35
 			UpdateCircleList()
 		end
         ]]
         
-        lineConfig["lineWidth"] = 1.0
+        lineConfig["lineWidth"] = 1.33
         lineConfig["alphaValue"] = darkOpacity
         UpdateCircleList()
 	
