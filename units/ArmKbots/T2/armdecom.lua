@@ -82,14 +82,21 @@ return {
 				"deathceg2",
 				"deathceg3",
 				"deathceg4",
+			}, 
+			explosiongenerators = {
+				[1] = "custom:com_sea_laser_bubbles",
+				[2] = "custom:barrelshot-medium",
 			},
 		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
 			capture = "capture1",
+			cloak = "kloak1",
 			repair = "repair1",
-			underattack = "warning1",
+			uncloak = "kloak1un",
+			underattack = "warning2",
+			unitcomplete = "kcarmmov",
 			working = "reclaim1",
 			cant = {
 				[1] = "cantdo4",
@@ -103,10 +110,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "kbarmmov",
+				[1] = "kcarmmov",
 			},
 			select = {
-				[1] = "kbarmsel",
+				[1] = "kcarmsel",
 			},
 		},
 		weapondefs = {
