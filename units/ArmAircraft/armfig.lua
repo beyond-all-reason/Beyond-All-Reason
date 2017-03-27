@@ -20,7 +20,7 @@ return {
 		maxdamage = 150,
 		maxslope = 10,
 		maxvelocity = 9.64,
-		maxwaterdepth = 255,
+		maxwaterdepth = 0,
 		name = "Freedom Fighter",
 		nochasecategory = "NOTAIR",
 		objectname = "ARMFIG",

@@ -23,7 +23,7 @@ return {
 		maxdamage = 1760,
 		maxslope = 10,
 		maxvelocity = 10.58,
-		maxwaterdepth = 255,
+		maxwaterdepth = 0,
 		name = "Titan",
 		nochasecategory = "VTOL",
 		objectname = "CORTITAN",

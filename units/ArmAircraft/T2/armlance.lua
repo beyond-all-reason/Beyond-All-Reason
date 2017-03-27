@@ -23,7 +23,7 @@ return {
 		maxdamage = 1727,
 		maxslope = 10,
 		maxvelocity = 10.92,
-		maxwaterdepth = 255,
+		maxwaterdepth = 0,
 		name = "Lancet",
 		nochasecategory = "VTOL",
 		objectname = "ARMLANCE",

@@ -757,17 +757,31 @@ end
   
   
   local function Overlay(unitdefid)
+  	local waterunit, amfibianunit = false, false
 	  if (UnitDefs[unitdefid].waterline ~= nil and UnitDefs[unitdefid].waterline > 0) or (UnitDefs[unitdefid].minWaterDepth ~= nil and UnitDefs[unitdefid].minWaterDepth > 0) then
+	  	waterunit = true
+	  	if UnitDefs[unitdefid].levelGround == false then
+		    amfibianunit = true
+		  end
+	  end
+	  if (UnitDefs[unitdefid].maxWaterDepth ~= nil and UnitDefs[unitdefid].maxWaterDepth >= 255 and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0) then
+		  amfibianunit = true
+	  end
+	  if amfibianunit then 
+	    gl.Texture(":n:LuaRules/Images/amfibianunit.png");
+	    gl.TexRect(-1,-1,1,1);
+	    gl.Texture(false);
+		elseif waterunit then
 	    gl.Texture(":n:LuaRules/Images/waterunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 	  end
-	  
-	  if (UnitDefs[unitdefid].buildSpeed ~= nil and UnitDefs[unitdefid].buildSpeed > 0) and  (UnitDefs[unitdefid].canAssist == nil or UnitDefs[unitdefid].canAssist == true) then
-	    gl.Texture(":n:LuaRules/Images/constructionunit.png");
-	    gl.TexRect(-1,-1,1,1);
-	    gl.Texture(false);
-	  end
+	   
+	  --if (UnitDefs[unitdefid].buildSpeed ~= nil and UnitDefs[unitdefid].buildSpeed > 0) and  (UnitDefs[unitdefid].canAssist == nil or UnitDefs[unitdefid].canAssist == true) then
+	  --  gl.Texture(":n:LuaRules/Images/constructionunit.png");
+	  --  gl.TexRect(-1,-1,1,1);
+	  --  gl.Texture(false);
+	  --end
   end
 
 --------------------------------------------------------------------------------
