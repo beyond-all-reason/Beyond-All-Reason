@@ -42,8 +42,8 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 	fx,fy,fz = Spring.GetFeaturePosition(featureID)
 	if (fx ~= nil) then
 		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
-			
 		if me ~= nil and me > 0 then
+			local fdef = FeatureDefs[featureDefID]
 			local numFx = math.floor(me/200)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("energyshards1", x, y, z)
@@ -56,6 +56,7 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 		end
 		if mm ~= nil and mm > 0 then
+			local fdef = FeatureDefs[featureDefID]
 			local numFx = math.floor(mm/75)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("metalshards1", x, y, z)
@@ -77,6 +78,7 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
 			
 		if me ~= nil and me > 0 then
+			local fdef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
 			local numFx = math.floor(me/200)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("energyshards1", x, y, z)
@@ -89,6 +91,7 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 		end
 		if mm ~= nil and mm > 0 then
+			local fdef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
 			local numFx = math.floor(mm/75)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("metalshards1", x, y, z)

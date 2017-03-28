@@ -35,6 +35,21 @@ local definitions = {
     --    [3]  = 0.4,
     --  },
     --},
+    groundflash = {
+      air                = true,
+      alwaysvisible      = true,
+      flashalpha         = 0.6,
+      flashsize          = 16,
+      ground             = true,
+      ttl                = 44,
+      water              = true, 
+	  underwater         = true,
+      color = {
+        [1]  = 1,
+        [2]  = 0.15,
+        [3]  = 0.05,
+      },
+    },
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -360,6 +375,10 @@ local sizes = {
 	  --  ground             = true,
 	  --  ttl                = 18,
 	  --},
+    groundflash = {
+      flashsize          = 8,
+      ttl                = 34,
+    },
 	  explosion = {
       properties = {
         numparticles       = 14,
@@ -449,6 +468,10 @@ local sizes = {
 	  --  ground             = true,
 	  --  ttl                = 26,
 	  --},
+    groundflash = {
+      flashsize          = 20,
+      ttl                = 47,
+    },
 	  explosion = {
       properties = {
         numparticles       = 60,
@@ -535,6 +558,10 @@ local sizes = {
 	  --  ground             = true,
 	  --  ttl                = 25,
 	  --},
+    groundflash = {
+      flashsize          = 30,
+      ttl                = 50,
+    },
 	  explosion = {
       properties = {
         numparticles       = 80,
@@ -621,6 +648,10 @@ local sizes = {
 	  --  ground             = true,
 	  --  ttl                = 30,
 	  --},
+    groundflash = {
+      flashsize          = 36,
+      ttl                = 54,
+    },
 	  explosion = {
       properties = {
         numparticles       = 90,
