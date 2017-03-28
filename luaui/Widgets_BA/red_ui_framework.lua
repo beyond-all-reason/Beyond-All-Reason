@@ -455,8 +455,8 @@ local function processMouseEvents(o)
 					local newpy = Mouse.y + o.wasclicked[2]
 					
 					if (o.obeyscreenedge) then
-						if (newpx<0) then newpx = 0 end
-						if (newpy<0) then newpy = 0 end
+						if (newpx<0) then newpx = -0.1 end
+						if (newpy<0) then newpy = -0.1  end
 						if (newpx>(vsx-o.sx)) then newpx = vsx-o.sx end
 						if (newpy>(vsy-o.sy)) then newpy = vsy-o.sy end
 					elseif (o.movablearea) then
