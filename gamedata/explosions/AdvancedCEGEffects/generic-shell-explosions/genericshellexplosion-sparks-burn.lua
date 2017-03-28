@@ -4,19 +4,34 @@
 
 return {
   ["genericshellexplosion-small-sparks-burn"] = {
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.04,
+    --  flashsize          = 50,
+    --  ground             = true,
+    --  ttl                = 5,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.8,
+    --    [3]  = 0.5,
+    --  },
+    --},
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.04,
-      flashsize          = 50,
+      flashalpha         = 0.4,
+      flashsize          = 2,
       ground             = true,
-      ttl                = 5,
+      ttl                = 27,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
-        [2]  = 0.8,
-        [3]  = 0.5,
+        [2]  = 0.15,
+        [3]  = 0.05,
       },
     },
     centerflare = {
@@ -126,19 +141,34 @@ return {
   },
 
   ["genericshellexplosion-medium-sparks-burn"] = {
+    --groundflash = {
+    --  air                = true,
+    --  alwaysvisible      = true,
+    --  flashalpha         = 0.048,
+    --  flashsize          = 68,
+    --  ground             = true,
+    --  ttl                = 8,
+    --  water              = true, 
+	  --underwater         = true,
+    --  color = {
+    --    [1]  = 1,
+    --    [2]  = 0.8,
+    --    [3]  = 0.5,
+    --  },
+    --},
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.048,
-      flashsize          = 68,
+      flashalpha         = 0.45,
+      flashsize          = 2.5,
       ground             = true,
-      ttl                = 8,
+      ttl                = 30,
       water              = true, 
 	  underwater         = true,
       color = {
         [1]  = 1,
-        [2]  = 0.8,
-        [3]  = 0.5,
+        [2]  = 0.15,
+        [3]  = 0.05,
       },
     },
     centerflare = {
@@ -293,6 +323,21 @@ return {
         sizegrowth         = 7.5,
         speed              = [[0, 0, 0]],
         texture            = [[flare]],
+      },
+    },
+    groundflash = {
+      air                = true,
+      alwaysvisible      = true,
+      flashalpha         = 0.5,
+      flashsize          = 3,
+      ground             = true,
+      ttl                = 33,
+      water              = true, 
+	  underwater         = true,
+      color = {
+        [1]  = 1,
+        [2]  = 0.15,
+        [3]  = 0.05,
       },
     },
     kickedupdirt = {
