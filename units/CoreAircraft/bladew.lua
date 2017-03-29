@@ -103,6 +103,9 @@ return {
 				damage = {
 					default = 400,
 				},
+				customparams = {
+					light_multiplier = "0.7",		-- used by projectile lights widget
+				},
 			},
 		},
 		weapons = {
