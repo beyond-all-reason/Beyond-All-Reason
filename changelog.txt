@@ -21,6 +21,17 @@ Balance changes:
 - Armmart and cormart do 15% more damage
 - Armvulc and corbuzz cost increased by 40%
 - Decoy commanders have been given same lasers as regular commanders
+- Fixed viper overshooting
+- Decoy commanders have been given underwater laser
+
+Wind:
+- Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
+- Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
+- Windspeed gained 50% (but due to price increases: generators wont be more effective)
+- Core and arm are the same now
+
+Sea reworked:
+- Jizah... up to you to fill this section.
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
@@ -30,12 +41,6 @@ Balance changes:
 - Fighters have been given more range due to slower missile speed and missile turnrate 
 (old fighter missile range was too short to show missile exhaust effect properly)
 - Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
-
-Wind:
-- Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
-- Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
-- Windspeed gained 50% (but due to price increases: generators wont be more effective)
-- Core and arm are the same now
 
 Mod options: (default disabled)
 - control victory options: shows info on startup and offers a better scoreboard window
@@ -51,11 +56,13 @@ Other:
 - Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options widget)
 - Added 'mex' button (area drag) for units that can build metal extractors, area drag will cap all metal extraction points
 - Added luamex (lua metal extractor points) functionality for mappers
-- Buildmenu: shows metal an energy cost (toggle size with /iconinfo)
+- New uniticons with transparant background
+- Buildmenu: shows metal an energy cost
 - Buildmenu: could show shortcuts when enabled via Options widget
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
 - Keybinds, commands, changelog, options windows hide with Escape key
 - Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
+- Projectile/explosions/laserbeams have real lighting. option toggable via options widget
 - Added outline widget (default disabled)
 - Unit textures reprocessed with bigger color range (less grainy)
 - More units have a shatter effect on death
