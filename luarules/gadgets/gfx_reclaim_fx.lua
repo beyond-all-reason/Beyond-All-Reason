@@ -39,8 +39,9 @@ end
 
 
 function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	fx,fy,fz = Spring.GetFeaturePosition(featureID)
+	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 	if (fx ~= nil) then
+		local x,y,z = fx,fy,fz
 		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
 		if me ~= nil and me > 0 then
 			local fdef = FeatureDefs[featureDefID]
@@ -48,9 +49,9 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("energyshards1", x, y, z)
 			for i=1, numFx, 1 do
-				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = fy + (random() * fdef.model.maxy*posMultiplier)
 				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
 			end
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
@@ -61,9 +62,9 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("metalshards1", x, y, z)
 			for i=1, numFx, 1 do
-				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = fy + (random() * fdef.model.maxy*posMultiplier)
 				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 			end
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
@@ -72,8 +73,9 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 end
 
 function gadget:FeatureDestroyed(featureID, allyteam)
-	fx,fy,fz = Spring.GetFeaturePosition(featureID)
+	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 	if (fx ~= nil) then
+		local x,y,z = fx,fy,fz
 		--local featureDefID = Spring.GetFeatureDefID(featureID)
 		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
 			
@@ -83,9 +85,9 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("energyshards1", x, y, z)
 			for i=1, numFx, 1 do
-				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = fy + (random(fdef.model.miny, fdef.model.maxy)*posMultiplier)
 				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
 			end
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
@@ -96,9 +98,9 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("metalshards1", x, y, z)
 			for i=1, numFx, 1 do
-				x = ux + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = uz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = uy + (random() * fdef.model.maxy*posMultiplier)
+				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+				y = fy + (random(fdef.model.miny, fdef.model.maxy)*posMultiplier)
 				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 			end
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
