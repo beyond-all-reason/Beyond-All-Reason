@@ -72,8 +72,7 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local backgroundColor = {0,0,0,0.5}
-local highlightColor = {1, 0.55, 0.22, 0.8}
+local highlightColor = {1, 0.6, 0.25, 0.8}
 local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
@@ -82,9 +81,9 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 
-local iconSizeX = 66
-local iconSizeY = 66
-local iconImgMult = 0.83
+local iconSizeX = 65
+local iconSizeY = 65
+local iconImgMult = 0.78
 
 local usedIconSizeX = iconSizeX
 local usedIconSizeY = iconSizeY
@@ -96,7 +95,7 @@ local rectMaxY = 0
 
 local enabled = true
 local backgroundDimentions = {}
-local iconMargin = usedIconSizeX / 20		-- changed in ViewResize anyway
+local iconMargin = usedIconSizeX / 25		-- changed in ViewResize anyway
 local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
 local picList
 
@@ -130,11 +129,11 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
   fontSize = usedIconSizeY * 0.28
-  iconMargin = usedIconSizeX / 20
+  iconMargin = usedIconSizeX / 25
   
   if picList then
     gl.DeleteList(picList)
-	picList = gl.CreateList(DrawPicList)
+		picList = gl.CreateList(DrawPicList)
   end
 end
 
@@ -203,26 +202,26 @@ function DrawPicList()
   rectMaxY = math.floor(rectMinY + usedIconSizeY)
   
   -- draw background bar
-  if backgroundColor[4] > 0 then
-    local icon = -1
-    for udid,count in pairs(unitCounts) do
-      icon = icon + 1
-    end
-    local xmin = math.floor(rectMinX)
-    local xmax = math.floor(rectMinX + (usedIconSizeX * icon))
-    if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
-    
-    local ymin = rectMinY
-    local ymax = rectMaxY
-    local xmid = (xmin + xmax) * 0.5
-    local ymid = (ymin + ymax) * 0.5
-    
-    backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
-    gl.Color(backgroundColor)
-    RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
+  local icon = -1
+  for udid,count in pairs(unitCounts) do
+    icon = icon + 1
   end
+  local xmin = math.floor(rectMinX)
+  local xmax = math.floor(rectMinX + (usedIconSizeX * icon))
+  if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
   
+  local ymin = rectMinY
+  local ymax = rectMaxY
+  local xmid = (xmin + xmax) * 0.5
+  local ymid = (ymin + ymax) * 0.5
   
+  backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
+  gl.Color(0,0,0,0.6)
+  RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
+	local borderPadding = iconMargin
+	glColor(1,1,1,0.022)
+  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 9)
+
   -- draw the buildpics
   unitCounts.n = nil 
   local row = 0 
@@ -242,7 +241,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local xPad = (usedIconSizeX*(1-iconImgMult)) / 2
   
   local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
-  local xmax = xmin + usedIconSizeX - xPad
+  local xmax = xmin + usedIconSizeX - xPad - xPad
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
   
   local ymin = rectMinY + yPad
