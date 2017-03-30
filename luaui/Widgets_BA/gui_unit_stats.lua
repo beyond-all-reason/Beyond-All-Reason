@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date      = "Jan 11, 2009",
 		version   = 1.3,
 		license   = "GNU GPL, v2 or later",
-		layer     = 6,
+		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
 	}
 end
@@ -199,8 +199,8 @@ function init()
 	
 	bgcornerSize = fontSize*0.45
 	bgpadding = fontSize*0.9
-	xOffset = 50 + bgpadding
-	yOffset = 10 + bgpadding
+	xOffset = 100 + bgpadding
+	yOffset = -40 + bgpadding
 end
 
 function widget:ViewResize(x,y)

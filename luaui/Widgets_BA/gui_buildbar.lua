@@ -107,11 +107,11 @@ end
 -------------------------------------------------------------------------------
 -- SCREENSIZE FUNCTIONS
 -------------------------------------------------------------------------------
-local iconSizeX  = 65
-local iconSizeY  = math.floor(iconSizeX * 0.91)
-local iconImgMult= 0.75
+local iconSizeX  = 70
+local iconSizeY  = math.floor(iconSizeX * 0.92)
+local iconImgMult= 0.66
 local repIcoSize = math.floor(iconSizeY*0.6)   --repeat iconsize
-local fontSize   = iconSizeY * 0.25
+local fontSize   = iconSizeY * 0.28
 local borderSize = 1.5
 local maxVisibleBuilds = 3
 local vsx, vsy   = widgetHandler:GetViewSizes()
@@ -136,8 +136,8 @@ end
 
 
 local function UpdateIconSizes()
-  iconSizeX = math.floor(bar_iconSizeBase+((vsx-800)/38))
-  iconSizeY = math.floor(iconSizeX * 0.91)
+  iconSizeX = math.floor(bar_iconSizeBase+((vsx-800)/35))
+  iconSizeY = math.floor(iconSizeX * 0.95)
   fontSize  = iconSizeY * 0.27
   repIcoSize = math.floor(iconSizeY*0.4)
 end
@@ -365,7 +365,7 @@ local function DrawBuildProgress(left,top,right,bottom, progress, color)
 end
 
 
-local function DrawButton(rect, unitDefID, options, iconResize)
+local function DrawButton(rect, unitDefID, options, iconResize, isFac)
   -- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
 
   if (#rect<4) then
@@ -380,32 +380,32 @@ local function DrawButton(rect, unitDefID, options, iconResize)
 
   -- loop status?
   if options['repeat'] then
-    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic, 0.65)
+    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic, 0.7)
+  elseif isFac then
+    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic, 0.2)
   end
 
   -- hover or pressed?
+  local hoverPadding = 0
   if (options.hovered_repeat) then
     DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic)
   elseif (options.pressed) then
-    DrawRect(rect, { 1, 0.6, 0, 0.25 })  -- pressed
-    glBlending(GL_SRC_ALPHA, GL_ONE)
-      DrawRect(rect, { 1, 0.6, 0, 0.25 })  -- pressed
-    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    DrawRect(rect, { 1, 0.6, 0, 0.45 })  -- pressed
+    hoverPadding = -iconSizeX/12
   elseif (options.hovered) then
-    DrawRect(rect, { 1, 1, 1, 0.15})  -- hover
-    glBlending(GL_SRC_ALPHA, GL_ONE)
-      DrawRect(rect, { 1, 1, 1, 0.18 })  -- hover
-    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    DrawRect(rect, { 1, 1, 1, 0.45})  -- hover
+    hoverPadding = -iconSizeX/15
   end
 
   -- draw icon
+	local imgRect = {rect[1]+hoverPadding, rect[2]-hoverPadding, rect[3]-hoverPadding, rect[4]+hoverPadding}
   if iconResize then
 	  local yPad = (iconSizeY*(1-iconImgMult)) / 2
 	  local xPad = (iconSizeX*(1-iconImgMult)) / 2
-	  local imgRect = {rect[1]+xPad,rect[2]-yPad,rect[3]-xPad,rect[4]+yPad}
+	  imgRect = {imgRect[1]+xPad, imgRect[2]-yPad, imgRect[3]-xPad, imgRect[4]+yPad}
   	DrawTexRect(imgRect, '#'..unitDefID,options.alpha or 1)
 	else
-  	DrawTexRect(rect, '#'..unitDefID,options.alpha or 1)
+  	DrawTexRect(imgRect, '#'..unitDefID,options.alpha or 1)
   end
   
   -- amount
@@ -483,7 +483,7 @@ function widget:DrawScreen()
       options.waypoint = (waypointMode>1)and(i==waypointFac+1)
       options.selected = (i==openedMenu+1)
     -----------------------------------------------------------------------------------------
-    DrawButton(fac_rec,unitDefID,options, iconResize)
+    DrawButton(fac_rec,unitDefID,options, iconResize, true)
 
     -- draw build list
     if i==openedMenu+1 then

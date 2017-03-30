@@ -72,7 +72,7 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local highlightColor = {1, 0.6, 0.25, 0.8}
+local highlightColor = {1, 0.5, 0, 0.8}
 local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
@@ -81,9 +81,9 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 
-local iconSizeX = 65
-local iconSizeY = 65
-local iconImgMult = 0.78
+local iconSizeX = 64
+local iconSizeY = 64
+local iconImgMult = 0.76
 
 local usedIconSizeX = iconSizeX
 local usedIconSizeY = iconSizeY
@@ -137,6 +137,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   end
 end
 
+local prevMouseIcon
 function widget:DrawScreen()
 	enabled = false
 	if (not spIsGUIHidden()) then
@@ -147,19 +148,24 @@ function widget:DrawScreen()
 			icon = icon + 1
 		  end
 		  if icon > 0 then
-			enabled = true
-			-- draw the highlights
-			local x,y,lb,mb,rb = spGetMouseState()
-			local mouseIcon = MouseOverIcon(x, y)
-			if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
-			  if (lb or mb or rb) then
-					DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
-			  else
-					DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
+				enabled = true
+				-- draw the highlights
+				local x,y,lb,mb,rb = spGetMouseState()
+				mouseIcon = MouseOverIcon(x, y)
+				if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
+				  if (lb or mb or rb) then
+						DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
+				  else
+						--DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
+				  end
 			  end
-		  end
-			gl.CallList(picList)
-		end
+			  if mouseIcon ~= prevMouseIcon then
+			    gl.DeleteList(picList)
+					picList = gl.CreateList(DrawPicList)
+					prevMouseIcon = mouseIcon
+				end
+				gl.CallList(picList)
+			end
 	  end    
 	end
 	updateGuishader()
@@ -230,15 +236,26 @@ function DrawPicList()
     if icon % iconsPerRow == 0 then 
 		row = row + 1
 	end
-    DrawUnitDefTexture(udid, icon, count, row)
+  DrawUnitDefTexture(udid, icon, count, row)
 	icon = icon + 1
   end
 end
 
 
 function DrawUnitDefTexture(unitDefID, iconPos, count, row)
-  local yPad = (usedIconSizeY*(1-iconImgMult)) / 2
-  local xPad = (usedIconSizeX*(1-iconImgMult)) / 2
+	local usedIconImgMult = iconImgMult
+	local ypad2 = -usedIconSizeY/50
+	local color = {1, 1, 1, 0.9}
+	if mouseIcon ~= -1 then
+		color = {1, 1, 1, 0.75}
+	end
+	if iconPos == mouseIcon then
+		usedIconImgMult = iconImgMult*1.12
+		color = {1, 1, 1, 1}
+		ypad2 = 0
+	end
+  local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 2
+  local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 2
   
   local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
   local xmax = xmin + usedIconSizeX - xPad - xPad
@@ -251,9 +268,9 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID] 
 
-  glColor(1, 1, 1, 0.9)
+  glColor(color)
   glTexture('#' .. unitDefID)
-  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin))
+  glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
   
 	if count > 1 then
