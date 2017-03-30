@@ -19,6 +19,9 @@ local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = (1 + (vsx*vsy / 7500000))
+  	
 local glowSizeMultiplier = 2.5
 local Config = {
 	metal = {
@@ -31,12 +34,12 @@ local Config = {
 		
 		margin = 5, --distance from background border
 		
-		padding = 4, -- for border effect
-		color2 = {1,1,1,0.022}, -- for border effect
+		padding = 3*widgetScale, -- for border effect
+		color2 = {1,1,1,0.025}, -- for border effect
 		
 		expensefadetime = 0.25, --fade effect time, in seconds
 		
-		cbackground = {0,0,0,0.6}, --color {r,g,b,alpha}
+		cbackground = {0,0,0,0.66}, --color {r,g,b,alpha}
 		cborder = {0,0,0,0.75},
 		cbarbackground = {0,0,0,1},
 		cbar = {1,1,1,1},
@@ -70,12 +73,12 @@ local Config = {
 		
 		margin = 5,
 		
-		padding = 4, -- for border effect
-		color2 = {1,1,1,0.022}, -- for border effect
+		padding = 3*widgetScale, -- for border effect
+		color2 = {1,1,1,0.025}, -- for border effect
 		
 		expensefadetime = 0.25,
 		
-		cbackground = {0,0,0,0.6},
+		cbackground = {0,0,0,0.66},
 		cborder = {0,0,0,0.75},
 		cbarbackground = {0,0,0,1},
 		cbar = {1,1,0,1},

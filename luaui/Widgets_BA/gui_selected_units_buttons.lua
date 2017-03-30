@@ -222,10 +222,10 @@ function DrawPicList()
   local ymid = (ymin + ymax) * 0.5
   
   backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
-  gl.Color(0,0,0,0.6)
+  gl.Color(0,0,0,0.66)
   RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
 	local borderPadding = iconMargin
-	glColor(1,1,1,0.022)
+	glColor(1,1,1,0.025)
   RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 9)
 
   -- draw the buildpics

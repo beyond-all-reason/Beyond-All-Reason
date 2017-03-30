@@ -1538,11 +1538,11 @@ function CreateBackground()
 	end
 	
 	Background = gl_CreateList(function()
-		gl_Color(0,0,0,0.6)
+		gl_Color(0,0,0,0.66)
 		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
 		
 		local padding = 2.75
-		gl_Color(1,1,1,0.022)
+		gl_Color(1,1,1,0.025)
 		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding)
 		
 		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)

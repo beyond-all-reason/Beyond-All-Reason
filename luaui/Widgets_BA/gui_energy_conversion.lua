@@ -193,12 +193,12 @@ function createList(force)
 			gl.PushMatrix()
 				
 				-- Panel
-				glColor(0, 0, 0, 0.6)
+				glColor(0, 0, 0, 0.66)
 				--glRect(0, 0, panelWidth, panelHeight)
 				RectRound(xPos-panelPadding, yPos-panelPadding, xPos+panelWidth+panelPadding, yPos+panelHeight+panelPadding, 6*widgetScale)
 				
 				local borderPadding = 3.3*widgetScale
-				glColor(1,1,1,0.022)
+				glColor(1,1,1,0.025)
 				RectRound(xPos-panelPadding+borderPadding, yPos-panelPadding+borderPadding, xPos+panelWidth+panelPadding-borderPadding, yPos+panelHeight+panelPadding-borderPadding, 5*widgetScale)
 				
 				glTranslate(xPos, yPos, 0)

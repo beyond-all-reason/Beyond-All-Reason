@@ -36,6 +36,9 @@ local drawPrice = true
 local largePrice = true
 local shortcutsInfo = false
 
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = (1 + (vsx*vsy / 7500000))
+
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
@@ -52,14 +55,14 @@ local Config = {
 		
 		margin = 5, --distance from background border
 		
-		padding = 4, -- for border effect
-		color2 = {1,1,1,0.022}, -- for border effect
+		padding = 3*widgetScale, -- for border effect
+		color2 = {1,1,1,0.025}, -- for border effect
 		
 		fadetime = 0.14, --fade effect time, in seconds
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
-		cbackground = {0,0,0,0.6},
+		cbackground = {0,0,0,0.66},
 		cborder = {0,0,0,1},
 		cbuttonbackground = {0.1,0.1,0.1,1},
 		dragbutton = {2,3}, --middle mouse button
@@ -83,14 +86,14 @@ local Config = {
 		
 		margin = 5,
 		
-		padding = 4, -- for border effect
-		color2 = {1,1,1,0.022}, -- for border effect
+		padding = 3*widgetScale, -- for border effect
+		color2 = {1,1,1,0.025}, -- for border effect
 		
 		fadetime = 0.14,
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1},
-		cbackground = {0,0,0,0.6},
+		cbackground = {0,0,0,0.66},
 		cborder = {0,0,0,1},
 		cbuttonbackground={0.1,0.1,0.1,1},
 		

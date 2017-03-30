@@ -428,6 +428,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
+	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
 	calcAbsSizes()
 	updateFontSize()
 	createButtonList()
@@ -807,11 +808,11 @@ function DrawButton()
 	end]]--
 	local x1,y1,x2,y2 = guiData.smallBox.absSizes.x.min, guiData.smallBox.absSizes.y.min, guiData.smallBox.absSizes.x.max, guiData.smallBox.absSizes.y.max
 	
-	gl.Color(0,0,0,0.6)
-	RectRound(x1,y1,x2,y2,7)
+	gl.Color(0,0,0,0.66)
+	RectRound(x1,y1,x2,y2,5*widgetScale)
 	
 	local borderPadding = 3.5
-	gl.Color(1,1,1,0.022)
+	gl.Color(1,1,1,0.025)
 	RectRound(x1+borderPadding,y1+borderPadding,x2-borderPadding,y2-borderPadding,6)
 	
 	if (WG['guishader_api'] ~= nil) then

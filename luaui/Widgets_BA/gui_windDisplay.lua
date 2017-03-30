@@ -17,7 +17,6 @@ end
 -- Config
 local rotationOn            = true
 local vsSolarOn             = true -- If true, color is more of a guide of when winds are good to make
-local rotSpeedMultiplier    = 0.55
 
 local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
@@ -63,7 +62,7 @@ local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 local widgetScale			= customScale
 local panelWidth 			= customPanelWidth
 local panelHeight 			= customPanelHeight
-local panelColor            = {0, 0, 0, 0.6}
+local panelColor            = {0, 0, 0, 0.66}
 local oorx, oory            = 10, 13
 local count                 = 0
 local speedMultiplier       = 8
@@ -82,7 +81,7 @@ local avgSpeedTextPosY		= 0
 --------------------------------------------------------------------------------
 
 function GetWind()
-    _, _, _, currentWind = spWind()
+    local _, _, _, currentWind = spWind()
     currentWind = currentWind * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
     if currentWind > maxWind then currentWind = maxWind end
     local windPercent
@@ -95,7 +94,7 @@ function GetWind()
     if minWind == maxWind then
         count = count + 1
     else
-        count = count + ((windPercent*speedMultiplier) * rotSpeedMultiplier)
+        count = count + windPercent*speedMultiplier
     end
 end
 
@@ -186,29 +185,26 @@ end
 -- using listst didnt improve much in performance
 function createBackgroundList()
 	backgroundList = glCreateList(function()
-    glPushMatrix()
+        glPushMatrix()
 			glColor(panelColor)
 			RectRound(xPos, yPos, xPos+panelWidth, yPos+panelHeight, 6*widgetScale)
 			
 			local borderPadding = 3.5*widgetScale
-			glColor(1,1,1,0.022)
+			glColor(1,1,1,0.025)
 			RectRound(xPos+borderPadding, yPos+borderPadding, xPos+panelWidth-borderPadding, yPos+panelHeight-borderPadding, 6*widgetScale)
 			
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (panelHeight-(36*widgetScale))/2, 0) -- Spacing of icon
-			glColor(1,1,1,0.33)
-			glText(minWind, -(14*widgetScale)+panelWidth, panelWidth/1.6, textSize*0.8*widgetScale, 'r') -- Wind speed text
+			glColor(1,1,1,0.25)
+			glText(minWind, -(14*widgetScale)+panelWidth, panelWidth/1.58, textSize*0.8*widgetScale, 'r') -- Wind speed text
 			glText(maxWind, -(14*widgetScale)+panelWidth, ((textSize*0.8*widgetScale)/7), textSize*0.8*widgetScale, 'r') -- Wind speed text
 			glPushMatrix() -- Blades
 				glTranslate(0, 9*widgetScale, 0)
 	end)
 end
-
-local windEfficiency = 1
 function createBackgroundList2()
-	windEfficiency = currentWind / 22
 	backgroundList2 = glCreateList(function()
-				glColor(1.4-windEfficiency,0.77*windEfficiency,0,0.4)
+				glColor(1,1,1,0.3)
 				glTexture(':c:LuaUI/Images/blades.png')
 				glTexRect(0, 0, 27*widgetScale, 28*widgetScale)
 				glTexture(false)
@@ -225,17 +221,12 @@ function drawWindValue(value)
 end
 
 local windValueDrawList = {}
-local oldGameFrame = 0
 function widget:DrawScreen()
 	glCallList(backgroundList)
 	if rotationOn then -- Rotation
 		glTranslate(oorx*widgetScale, oory*widgetScale, 0)
 		glRotate(count, 0, 0, 1)
 		glTranslate(-oorx*widgetScale, -oory*widgetScale, 0)
-	end
-	if Spring.GetGameFrame() > oldGameFrame + 66 then
-		oldGameFrame = Spring.GetGameFrame()
-		createBackgroundList2()
 	end
 	glCallList(backgroundList2)
 	if spGetGameFrame() > 1 then
@@ -329,7 +320,7 @@ function init()
 	panelWidth 	= customPanelWidth * widgetScale
 	panelHeight	= customPanelHeight * widgetScale
 	windTextPosX = -(12*widgetScale)+(panelWidth*0.5)
-	windTextPosY = (panelHeight/1.79)-((textSize*widgetScale)/2)
+	windTextPosY = (panelHeight/1.73)-((textSize*widgetScale)/2)
 	createBackgroundList()
 	createBackgroundList2()
 	processGuishader()

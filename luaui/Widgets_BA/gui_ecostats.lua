@@ -522,9 +522,9 @@ end
 local function DrawBackground(posY, allyID)
 	local y1 = widgetPosY - posY + widgetHeight
 	local y2 = widgetPosY - posY + tH + widgetHeight
-	glColor(0,0,0,0.6)
-	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 7)
-	glColor(1,1,1,0.022)
+	glColor(0,0,0,0.66)
+	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
+	glColor(1,1,1,0.025)
 	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
@@ -1342,6 +1342,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
+	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
 	Reinit()
 end
 

@@ -31,9 +31,9 @@ local fontSize = 17
 local margin = 6
 
 local borderPadding = 2.5
-local borderColor = {1,1,1,0.022}
+local borderColor = {1,1,1,0.025}
 
-local backgroundColor = {0,0,0,0.6}
+local backgroundColor = {0,0,0,0.66}
 local hoverColor = {1,1,1,0.25}
 local pushedColor = {1,0.1,0,0.33}
 local clickColor = {0.66,1,0,0.25}
