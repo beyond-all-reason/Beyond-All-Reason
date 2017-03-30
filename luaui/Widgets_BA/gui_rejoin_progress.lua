@@ -39,23 +39,8 @@ local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 --------------------------------------------------------------------------------
 --Localize Spring function------------------------------------------------------
 local spGetSpectatingState = Spring.GetSpectatingState
---------------------------------------------------------------------------------
---Chili Variable----------------------------------------------------------------- ref: gui_chili_vote.lua by KingRaptor
-local Chili
-local Button
-local Label
-local Window
-local Panel
-local TextBox
-local Image
-local Progressbar
-local Control
-local Font
 
 -- elements
-local window, stack_main, label_title
-local stack_vote, label_vote, button_vote, progress_vote
-
 local voteCount, voteMax
 
 local glTranslate			= gl.Translate
@@ -121,12 +106,10 @@ end
 local function ActivateGUI_n_TTS (frameDistanceToFinish, ui_active, altThreshold)
 	if frameDistanceToFinish >= (altThreshold or 120) then
 		if not ui_active then
-			--screen0:AddChild(window)
 			ui_active = true
 		end
 	elseif frameDistanceToFinish < (altThreshold or 120) then
 		if ui_active then
-			--screen0:RemoveChild(window)
 			ui_active = false
 		end
 	end
@@ -136,13 +119,11 @@ end
 function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
 	local myGameFrame = myGameFrame_G
 	local ui_active = ui_active_G
-	-----localize--
 
 	local serverFrameNum1 = serverFrameNum
 	local frameDistanceToFinish = serverFrameNum1-myGameFrame
 	ui_active = ActivateGUI_n_TTS (frameDistanceToFinish, ui_active)
 	
-	-----return--
 	serverFrameNum1_G = serverFrameNum1
 	ui_active_G = ui_active
 	gameProgressActive_G = true
@@ -182,9 +163,6 @@ function widget:Update(dt) --this function run 4th. It update the progressBar
 			local minute, second = math.modf(timeToComplete/60) --second divide by 60sec-per-minute, then saperate result from its remainder
 			second = 60*second --multiply remainder with 60sec-per-minute to get second back.
 			timeToComplete_string = string.format ("Time Remaining: %d:%02d" , minute, second)
-		
-			--progress_vote:SetCaption(timeToComplete_string)
-			--rogress_vote:SetValue(myGameFrame/serverFrameNum)
 			
 			oneSecondElapsed = 0
 			myLastFrameNum = myGameFrame
@@ -219,7 +197,7 @@ end
 function widget:DrawScreen()
 	if ui_active_G and myGameFrame_G ~= nil and myGameFrame_G > 1 and serverFrameNum1_G ~= nil then
 		glPushMatrix()
-			glColor(0,0,0,0.6)
+			glColor(0,0,0,0.66)
 			glCallList(backgroundList)
 			local progress = myGameFrame_G / serverFrameNum1_G
 			if progress < 0 then 
@@ -261,96 +239,24 @@ function createBackgroundList()
 		glDeleteList(backgroundList)
 	end
 	backgroundList = glCreateList( function()
-		RectRound(xPos,yPos,xPos+panelWidth,yPos+panelHeight,6)
-		local borderPadding = 3.5
-		glColor(1,1,1,0.022)
-		RectRound(xPos+borderPadding,yPos+borderPadding,xPos+panelWidth-borderPadding,yPos+panelHeight-borderPadding,5)
+		RectRound(xPos,yPos,xPos+panelWidth,yPos+panelHeight,5*widgetScale)
+		local borderPadding = 3.5*widgetScale
+		glColor(1,1,1,0.025)
+		RectRound(xPos+borderPadding,yPos+borderPadding,xPos+panelWidth-borderPadding,yPos+panelHeight-borderPadding,4*widgetScale)
 		local text = 'Catching up...'
 		local width = glGetTextWidth(text)*(panelHeight/3)
 		glText('\255\255\255\255'..text, xPos+(panelHeight*bgmargin), yPos+(panelHeight*bgmargin), panelHeight/3, 'o')
 	end)
 end
 
-----------------------------------------------------------
---Chili--------------------------------------------------
 function widget:Initialize()
 	functionContainer_G = RemoveLUARecvMsg
 	myPlayerID_G = Spring.GetMyPlayerID()
 	iAmReplay_G = Spring.IsReplay()
 	
 	createBackgroundList()
-	--[[ setup Chili
-	Chili = WG.Chili
-	Button = Chili.Button
-	Label = Chili.Label
-	Colorbars = Chili.Colorbars
-	Window = Chili.Window
-	StackPanel = Chili.StackPanel
-	Image = Chili.Image
-	Progressbar = Chili.Progressbar
-	Control = Chili.Control
-	screen0 = Chili.Screen0
-	]]--
-	--create main Chili elements
-	-- local height = tostring(math.floor(screenWidth/screenHeight*0.35*0.35*100)) .. "%"
-	-- local y = tostring(math.floor((1-screenWidth/screenHeight*0.35*0.35)*100)) .. "%"
 	local screenWidth, screenHeight = Spring.GetWindowGeometry()
 	local y = screenWidth*2/11 + 32
-	-- local labelHeight = 24
-	-- local fontSize = 16
---[[
-	window = Window:New{
-		--parent = screen0,
-		name   = 'rejoinProgress';
-		color = {0, 0, 0, 0},
-		width = 260,
-		height = 60,
-		left = 2, --dock left?
-		y = y, --halfway on screen?
-		dockable = true,
-		draggable = false, --disallow drag to avoid capturing mouse click
-		resizable = false,
-		tweakDraggable = true,
-		tweakResizable = true,
-		minWidth = MIN_WIDTH, 
-		minHeight = MIN_HEIGHT,
-		padding = {0, 0, 0, 0},
-		savespace = true, --probably could save space?
-		--itemMargin  = {0, 0, 0, 0},
-	}
-	stack_main = StackPanel:New{
-		parent = window,
-		resizeItems = true;
-		orientation   = "vertical";
-		height = "100%";
-		width =  "100%";
-		padding = {0, 0, 0, 0},
-		itemMargin  = {0, 0, 0, 0},
-	}
-	label_title = Label:New{
-		parent = stack_main,
-		autosize=false;
-		align="center";
-		valign="top";
-		caption = '';
-		height = 16,
-		width = "100%";
-	}
-	progress_vote = Progressbar:New{
-		parent = stack_main,
-		x		= "0%",
-		y 		= '40%', --position at 40% of the window's height
-		width   = "100%"; --maximum width
-		height	= "100%",
-		max     = 1;
-		caption = "?/?";
-		color   =  {0.9,0.15,0.2,1}; --Red, {0.2,0.9,0.3,1} --Green
-	}
-	progress_vote:SetValue(0)
-	voteCount = 0
-	voteMax = 1	-- protection against div0
-	label_title:SetCaption("Catching up.. Please Wait")
-	]]--
 	
 	if forceDisplay then
 		ActivateGUI_n_TTS (1, false, false, 0) --force GUI to display for testing

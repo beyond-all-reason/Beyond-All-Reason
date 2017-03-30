@@ -82,6 +82,9 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
+local vsx,vsy = gl.GetViewSizes()
+local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
+	
 --To determine faction at start
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
