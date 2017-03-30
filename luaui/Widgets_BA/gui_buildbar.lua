@@ -387,14 +387,17 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 
   -- hover or pressed?
   local hoverPadding = 0
+  local iconAlpha = (options.alpha or 1)
   if (options.hovered_repeat) then
     DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic)
   elseif (options.pressed) then
     DrawRect(rect, { 1, 0.6, 0, 0.45 })  -- pressed
-    hoverPadding = -iconSizeX/12
+    hoverPadding = -iconSizeX/13.5
+    iconAlpha = 1
   elseif (options.hovered) then
     DrawRect(rect, { 1, 1, 1, 0.45})  -- hover
-    hoverPadding = -iconSizeX/15
+    hoverPadding = -iconSizeX/17
+    iconAlpha = 1
   end
 
   -- draw icon
@@ -403,9 +406,9 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 	  local yPad = (iconSizeY*(1-iconImgMult)) / 2
 	  local xPad = (iconSizeX*(1-iconImgMult)) / 2
 	  imgRect = {imgRect[1]+xPad, imgRect[2]-yPad, imgRect[3]-xPad, imgRect[4]+yPad}
-  	DrawTexRect(imgRect, '#'..unitDefID,options.alpha or 1)
+  	DrawTexRect(imgRect, '#'..unitDefID,iconAlpha)
 	else
-  	DrawTexRect(imgRect, '#'..unitDefID,options.alpha or 1)
+  	DrawTexRect(imgRect, '#'..unitDefID,iconAlpha)
   end
   
   -- amount
@@ -508,7 +511,7 @@ function widget:DrawScreen()
             options.pressed = (lb or mb or rb)
             options.hovered = true
           end
-          options.alpha = 0.75
+          options.alpha = 0.85
         -----------------------------------------------------------------------------------------
         DrawButton(bopt_rec,unitDefID,options, true)
 
