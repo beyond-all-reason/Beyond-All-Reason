@@ -17,6 +17,7 @@ end
 local wWidth, wHeight = Spring.GetWindowGeometry()
 local px, py = 50, 0.55*wHeight
 
+
 --------------------------------------------------------------------------------
 -- Speedups
 --------------------------------------------------------------------------------
@@ -56,14 +57,90 @@ local amNewbie = (spGetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local factionChangeList
 
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = (0.50 + (vsx*vsy / 5000000))
+
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+
 --------------------------------------------------------------------------------
 -- Funcs
 --------------------------------------------------------------------------------
+
 local function QuadVerts(x, y, z, r)
 	glTexCoord(0, 0); glVertex(x - r, y, z - r)
 	glTexCoord(1, 0); glVertex(x + r, y, z - r)
 	glTexCoord(1, 1); glVertex(x + r, y, z + r)
 	glTexCoord(0, 1); glVertex(x - r, y, z + r)
+end
+
+local function DrawRectRound(px,py,sx,sy,cs)
+	gl.TexCoord(0.8,0.8)
+	gl.Vertex(px+cs, py, 0)
+	gl.Vertex(sx-cs, py, 0)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.Vertex(px+cs, sy, 0)
+	
+	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px, sy-cs, 0)
+	
+	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx, sy-cs, 0)
+	
+	local offset = 0.05		-- texture offset, because else gaps could show
+	local o = offset
+	
+	-- top left
+	--if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, py+cs, 0)
+	-- top right
+	--if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, py+cs, 0)
+	-- bottom left
+	--if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(px+cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(px+cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(px, sy-cs, 0)
+	-- bottom right
+	--if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(o,1-o)
+	gl.Vertex(sx-cs, sy, 0)
+	gl.TexCoord(1-o,1-o)
+	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.TexCoord(1-o,o)
+	gl.Vertex(sx, sy-cs, 0)
+end
+
+function RectRound(px,py,sx,sy,cs)
+	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+	
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
 end
 
 --------------------------------------------------------------------------------
@@ -118,29 +195,38 @@ function widget:DrawScreen()
 	
 end
 
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx, vsy = gl.GetViewSizes()
+	widgetScale = (0.50 + (vsx*vsy / 5000000))
+end
+
 function FactionChangeList()
 	-- Panel
-	glColor(0, 0, 0, 0.5)
-	glRect(0, 0, 128, 80)
+	glColor(0, 0, 0, 0.6)
+	RectRound(0, 0, 128*widgetScale, 80*widgetScale,6*widgetScale)
+	glColor(1, 1, 1, 0.025)
+	RectRound(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 5*widgetScale)
+	
 		-- Highlight
-	glColor(1, 1, 0, 0.5)
+	glColor(0.8, 1, 0.8, 0.3)
 	if commanderDefID == armcomDefID then
-		glRect(1, 1, 63, 63)
+		RectRound(3*widgetScale, 3*widgetScale, 61*widgetScale, 61*widgetScale,4.5*widgetScale)
 	else
-		glTexRect(65, 1, 127, 63)
+		RectRound(65*widgetScale, 3*widgetScale, 125*widgetScale, 61*widgetScale,4.5*widgetScale)
 	end
 		-- Icons
 	glColor(1, 1, 1, 1)
 	glTexture('LuaUI/Images/ARM.png')
-	glTexRect(8, 8, 56, 56)
+	glTexRect(12*widgetScale, 17*widgetScale, 52*widgetScale, 59*widgetScale)
 	glTexture('LuaUI/Images/CORE.png')
-	glTexRect(72, 8, 120, 56)
+	glTexRect(76*widgetScale, 20*widgetScale, 116*widgetScale, 60*widgetScale)
 	glTexture(false)
+	
 		-- Text
 	glBeginText()
-		glText('Choose Your Faction', 64, 64, 12, 'cd')
-		glText('ARM', 32, 0, 12, 'cd')
-		glText('CORE', 96, 0, 12, 'cd')
+		glText('Choose Your Faction', 64*widgetScale, 64*widgetScale, 11.5*widgetScale, 'ocd')
+		glText('ARM', 32*widgetScale, 4*widgetScale, 12*widgetScale, 'ocd')
+		glText('CORE', 96*widgetScale, 4*widgetScale, 12*widgetScale, 'ocd')
 	glEndText()
 end
 
@@ -149,7 +235,7 @@ end
 function widget:MousePress(mx, my, mButton)
 
 	-- Check 3 of the 4 sides
-	if mx >= px and my >= py and my < py + 80 then
+	if mx >= px and my >= py and my < py + (80*widgetScale) then
 
 		-- Check buttons
 		if mButton == 1 then
@@ -162,9 +248,9 @@ function widget:MousePress(mx, my, mButton)
 
 			local newCom
 			-- Which button?
-			if mx < px + 64 then
+			if mx < px + (64*widgetScale) then
 				newCom = armcomDefID
-			elseif mx < px + 128 then
+			elseif mx < px + (128*widgetScale) then
 				newCom = corcomDefID
 			end
 			if newCom then
@@ -185,7 +271,7 @@ function widget:MousePress(mx, my, mButton)
 				return true
 			end
 			
-		elseif (mButton == 2 or mButton == 3) and mx < px + 128 then
+		elseif (mButton == 2 or mButton == 3) and mx < px + (128*widgetScale) then
 			-- Dragging
 			return true
 		end
