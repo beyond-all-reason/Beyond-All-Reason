@@ -1037,7 +1037,7 @@ function widget:Initialize()
 		{id="fpstimespeed", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
 		
 		{id="snow", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
-		{id="idlebuilders", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a bar with a list of idle builder units if there are any'},
+		{id="idlebuilders", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a row containing a list of idle builder units (if there are any)'},
 		{id="teamcolors", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		
 		{id="camera", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},

@@ -1,5 +1,5 @@
 ﻿9.46 -> 9.55
-XX/03/2017
+XX/XX/2017
 
 Important:
 - Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
@@ -21,7 +21,8 @@ Balance changes:
 - Armmart and cormart do 15% more damage
 - Armvulc and corbuzz cost increased by 40%
 - Decoy commanders have been given same lasers as regular commanders
-- Fixed viper overshooting
+- Fixed viper overshooting (when aiming at radar dots)
+- Fixed flak doing ludicrous damage to ground units
 - Decoy commanders have been given underwater laser
 
 Wind:

@@ -247,10 +247,10 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 	local ypad2 = -usedIconSizeY/50
 	local color = {1, 1, 1, 0.9}
 	if mouseIcon ~= -1 then
-		color = {1, 1, 1, 0.75}
+		color = {1, 1, 1, 0.8}
 	end
 	if iconPos == mouseIcon then
-		usedIconImgMult = iconImgMult*1.12
+		usedIconImgMult = iconImgMult*1.1
 		color = {1, 1, 1, 1}
 		ypad2 = 0
 	end
