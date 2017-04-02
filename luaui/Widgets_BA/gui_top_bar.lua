@@ -278,6 +278,8 @@ local function updateResbar(res)
 		local shareSliderHeightAdd = barHeight / 4
 		local shareSliderWidth = barHeight + shareSliderHeightAdd + shareSliderHeightAdd
 		
+		resbarArea[res].bar = barArea
+		
 		-- background
 		glColor(0,0,0,0.7)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
@@ -485,15 +487,15 @@ end
 
 function widget:MouseMove(x, y)
 	if draggingShareIndicator ~= nil and not spec then
-		local shareValue =	(x - resbarArea[draggingShareIndicator][1]) / (resbarArea[draggingShareIndicator][3] - resbarArea[draggingShareIndicator][1])
+		local shareValue =	(x - resbarArea[draggingShareIndicator]['bar'][1]) / (resbarArea[draggingShareIndicator]['bar'][3] - resbarArea[draggingShareIndicator]['bar'][1])
 		if shareValue < 0 then shareValue = 0 end
 		if shareValue > 1 then shareValue = 1 end
 		Spring.SetShareLevel(draggingShareIndicator, shareValue)
 	end
 	if showConversionSlider and draggingConversionIndicator and not spec then
-		local convValue = 0
-		if convValue < 0.15 then convValue = 0.15 end
-		if convValue > 1 then convValue = 1 end
+		local convValue = (x - resbarArea['energy']['bar'][1]) / (resbarArea['energy']['bar'][3] - resbarArea['energy']['bar'][1]) * 100
+		if convValue < 12 then convValue = 12 end
+		if convValue > 88 then convValue = 88 end
 		Spring.SendLuaRulesMsg(sformat(string.char(137)..'%i', convValue))
 	end
 end
@@ -517,6 +519,7 @@ end
 
 function widget:MouseRelease(x, y, button)
 	draggingShareIndicator = nil
+	draggingConversionIndicator = nil
 end
 
 function widget:PlayerChanged()
