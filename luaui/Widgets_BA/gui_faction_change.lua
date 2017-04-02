@@ -202,7 +202,7 @@ end
 
 function FactionChangeList()
 	-- Panel
-	glColor(0, 0, 0, 0.6)
+	glColor(0, 0, 0, 0.66)
 	RectRound(0, 0, 128*widgetScale, 80*widgetScale,6*widgetScale)
 	glColor(1, 1, 1, 0.025)
 	RectRound(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 5*widgetScale)
