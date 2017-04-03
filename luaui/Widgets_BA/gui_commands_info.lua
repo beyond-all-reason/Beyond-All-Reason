@@ -6,7 +6,7 @@ return {
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
-	layer   = -2000,
+	layer   = 2,
 	enabled = true,
 }
 end
@@ -85,16 +85,7 @@ function widget:GameStart()
     gameStarted = true
 end
 
--- button
-local textSize		= 0.75
-local textMargin	= 0.25
-local lineWidth		= 0.0625
-
-local posX = 0.05
-local posY = 0
 local showOnceMore = false		-- used because of GUI shader delay
-local buttonGL
-local startPosX = posX
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
@@ -160,18 +151,6 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.Texture(bgcorner)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
-end
-
-function DrawButton()
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	RectRound(0,0,4.5,1.05,0.25, 2,2,0,0)
-	local vertices = {
-		{v = {0, 1, 0}},
-		{v = {0, 0, 0}},
-		{v = {1, 0, 0}},
-	}
-	glShape(GL_LINE_STRIP, vertices)
-    glText("[ Commands ]", textMargin, textMargin, textSize, "no")
 end
 
 
@@ -327,23 +306,6 @@ function widget:DrawScreen()
   if spIsGUIHidden() then return end
   if amNewbie and not gameStarted then return end
   
-  -- draw the button
-  if not buttonGL then
-      buttonGL = gl.CreateList(DrawButton)
-  end
-  
-  glLineWidth(lineWidth)
-
-  glPushMatrix()
-      glTranslate(posX*vsx, posY*vsy, 0)
-      glScale(17*widgetScale, 17*widgetScale, 1)
-	glColor(0, 0, 0, (0.3*bgColorMultiplier))
-      glCallList(buttonGL)
-  glPopMatrix()
-
-  glColor(1, 1, 1, 1)
-  glLineWidth(1)
-  
   -- draw the help
   if not changelogList then
       changelogList = gl.CreateList(DrawWindow)
@@ -458,50 +420,41 @@ end
 
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
-    if amNewbie and not gameStarted then return end
-    
-    if show then 
-			-- on window
-			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-			
-				-- on close button
-				local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-				local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-				if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
-					if release then
-						showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-						show = not show
-					end
-					return true
-				end
-				
-				if button == 1 or button == 3 then
-					if button == 3 and release then
-						show = not show
-					end
-					return true
-				end
-			elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+  if amNewbie and not gameStarted then return end
+  
+  if show then 
+		-- on window
+		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		
+			-- on close button
+			local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
+			local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
+			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
 				if release then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 					show = not show
 				end
 				return true
 			end
-	    else
-			tx = (x - posX*vsx)/(17*widgetScale)
-			ty = (y - posY*vsy)/(17*widgetScale)
-			if tx < 0 or tx > 5.5 or ty < 0 or ty > 1.05 then return false end
+			
+			if button == 1 or button == 3 then
+				if button == 3 and release then
+					show = not show
+				end
+				return true
+			end
+		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 			if release then
-				showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
-				show = not show
+				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
+				show = false
 			end
 			return true
-    end
+		end
+	end
 end
 
 function lines(str)
@@ -513,6 +466,16 @@ end
 
 function widget:Initialize()
 	if changelogFile then
+
+		WG['commands'] = {}
+		WG['commands'].toggle = function(state)
+			if state ~= nil then
+				show = state
+			else
+				show = not show
+			end
+		end
+		
 		-- somehow there are a few characters added at the start that we need to remove
 		--changelogFile = string.sub(changelogFile, 4)
 		

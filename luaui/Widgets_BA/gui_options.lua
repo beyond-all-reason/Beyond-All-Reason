@@ -5,7 +5,7 @@ return {
 	desc    = "",
 	author  = "Floris",
 	date    = "September 2016",
-	layer   = -2000,
+	layer   = 2,
 	enabled = true,
   handler = true, 
 }
@@ -99,16 +99,7 @@ function widget:GameStart()
 	gameStarted = true
 end
 
--- button
-local textSize		= 0.75
-local textMargin	= 0.25
-local lineWidth		= 0.0625
-
-local posX = 0.15
-local posY = 0
 local showOnceMore = false		-- used because of GUI shader delay
-local buttonGL
-local startPosX = posX
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
@@ -468,24 +459,6 @@ function widget:DrawScreen()
   if spIsGUIHidden() then return end
   if amNewbie and not gameStarted then return end
   
-  -- draw the button
-  if not buttonGL then
-    buttonGL = gl.CreateList(DrawButton)
-  end
-  
-  glLineWidth(lineWidth)
-
-  glPushMatrix()
-    glTranslate(posX*vsx, posY*vsy, 0)
-    glScale(17*widgetScale, 17*widgetScale, 1)
-		glColor(0, 0, 0, (0.3*bgColorMultiplier))
-    glCallList(buttonGL)
-  glPopMatrix()
-
-  glColor(1, 1, 1, 1)
-  glLineWidth(1)
-  
-  	
   -- draw the window
   if not windowList then
     windowList = gl.CreateList(DrawWindow)
@@ -959,8 +932,9 @@ function mouseEvent(x, y, button, release)
 		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 			if release and draggingSlider == nil then
 				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-				show = not show
+				show = false
 			end
+			return true
 		end
 		
 		if show then
@@ -968,26 +942,21 @@ function mouseEvent(x, y, button, release)
 			windowList = gl.CreateList(DrawWindow)
 		end
 		
-		return true
-  else
-		tx = (x - posX*vsx)/(17*widgetScale)
-		ty = (y - posY*vsy)/(17*widgetScale)
-		if tx < 0 or tx > 4.5 or ty < 0 or ty > 1.05 then return false end
-		if release then
-			showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
-			show = not show
-		end
-		if show then
-			if windowList then gl.DeleteList(windowList) end
-			windowList = gl.CreateList(DrawWindow)
-		end
-		return true
   end
 end
 
 
 function widget:Initialize()
 
+	WG['options'] = {}
+	WG['options'].toggle = function(state)
+		if state ~= nil then
+			show = state
+		else
+			show = not show
+		end
+	end
+	
 	-- get widget list
   for name,data in pairs(widgetHandler.knownWidgets) do
 		fullWidgetsList[name] = data
@@ -1073,9 +1042,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    if buttonGL then
-        glDeleteList(buttonGL)
-    end
     if windowList then
         glDeleteList(windowList)
         glDeleteList(presetsList)
