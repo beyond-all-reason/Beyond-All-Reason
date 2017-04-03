@@ -69,7 +69,7 @@ local useBlurShader   = false   -- it has a fallback, if the gfx don't support g
 local blured          = false
 local blurFullscreen  = function() return end
 
-local bgcorner		= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner		= LUAUI_DIRNAME.."Images/bgcorner.png"
 local repeatPic		= ":n:"..LUAUI_DIRNAME.."Images/repeat.png"
 
 local GL_ONE                   = GL.ONE

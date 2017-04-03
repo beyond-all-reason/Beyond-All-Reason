@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner				= LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local speedbuttons={} --the 1x 2x 3x etc buttons
 local buttons={}	--other buttons (atm only pause/play)

@@ -66,7 +66,7 @@ entryFont  = ":n:" .. entryFont
 headerFont = ":n:" .. headerFont
 
 local bgPadding = 6
-local bgcorner	= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner	= LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local maxWidth = 0.01
 local borderx = yStep * 0.75

@@ -67,7 +67,7 @@ include("colors.h.lua")
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in

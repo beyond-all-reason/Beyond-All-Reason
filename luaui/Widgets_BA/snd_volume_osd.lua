@@ -37,7 +37,7 @@ local widgetPosX 							= vsx/2.5
 local widgetPosY 							= vsy/7.5
 local pressedToMove		 					= false
 local dt									= -1
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 --------------------------------------------------------------------------------
 -- SETTINGS, configurable
 --------------------------------------------------------------------------------

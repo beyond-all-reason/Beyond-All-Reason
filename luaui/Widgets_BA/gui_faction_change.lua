@@ -60,7 +60,7 @@ local factionChangeList
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.50 + (vsx*vsy / 5000000))
 
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 
 --------------------------------------------------------------------------------
 -- Funcs

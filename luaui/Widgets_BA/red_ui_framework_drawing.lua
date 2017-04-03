@@ -52,7 +52,7 @@ function widget:SetConfigData(data)
 end
 
 local bgcornerSize = 8
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 	
 local TN = "Red_Drawing" --WG name for function list
 local version = 9

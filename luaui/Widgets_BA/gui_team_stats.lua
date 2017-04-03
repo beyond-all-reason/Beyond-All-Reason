@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local bgcorner	= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner	= LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local fontSize = 12
 local update = 30 -- in frames

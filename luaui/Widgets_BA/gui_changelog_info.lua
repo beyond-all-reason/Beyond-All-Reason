@@ -15,7 +15,7 @@ end
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local changelogFile = VFS.LoadFile("changelog.txt")
 

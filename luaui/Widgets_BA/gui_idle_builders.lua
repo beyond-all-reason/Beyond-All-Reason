@@ -29,7 +29,7 @@ local NEAR_IDLE = 0 -- this means that factories with only X build items left wi
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgcorner			= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner			= LUAUI_DIRNAME.."Images/bgcorner.png"
 local cornerSize		= 12
 local bgcornerSize		= cornerSize
 

@@ -19,7 +19,7 @@ local bladeSpeedMultiplier = 0.25
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
-local bgcorner							= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner							= LUAUI_DIRNAME.."Images/bgcorner.png"
 local barbg									= ":n:"..LUAUI_DIRNAME.."Images/resbar.dds"
 local barGlowCenterTexture	= LUAUI_DIRNAME.."Images/barglow-center.dds"
 local barGlowEdgeTexture		= LUAUI_DIRNAME.."Images/barglow-edge.dds"
