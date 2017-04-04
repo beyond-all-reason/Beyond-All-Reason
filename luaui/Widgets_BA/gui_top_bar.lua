@@ -259,38 +259,6 @@ local function updateRejoin()
 end
 
 
-local function updateButtonsHover()
-	local area = buttonsArea
-	
-	local x,y = spGetMouseState()
-	if buttonsArea['buttons'] ~= nil then
-		buttonsAreaHovered = nil
-		for button, pos in pairs(buttonsArea['buttons']) do
-			if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-				buttonsAreaHovered = button
-			end
-		end
-		if buttonsAreaHovered ~= nil then
-			local margin = height*widgetScale / 11
-			if dlistButtons3 ~= nil then
-				glDeleteList(dlistButtons3)
-			end
-			dlistButtons3 = glCreateList( function()
-				glColor(1,1,1,0.22)
-				RectRound(buttonsArea['buttons'][buttonsAreaHovered][1]+margin, buttonsArea['buttons'][buttonsAreaHovered][2]+margin, buttonsArea['buttons'][buttonsAreaHovered][3]-margin, buttonsArea['buttons'][buttonsAreaHovered][4], 3.5*widgetScale)
-			end)
-		else
-		end
-	end
-	if buttonsAreaHovered == nil then
-		if dlistButtons3 ~= nil then
-			glDeleteList(dlistButtons3)
-		end
-		dlistButtons3 = glCreateList( function() end)
-	end
-end
-
-
 local function updateButtons()
 	local area = buttonsArea
 	
@@ -345,8 +313,6 @@ local function updateButtons()
 		glText('\255\210\210\210   Commands    Keybinds    Changelog    Options    Quit  ', area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
 		
 	end)
-	
-	updateButtonsHover()
 end
 
 
@@ -799,9 +765,6 @@ function widget:Update(dt)
 		end
 	end
 	
-	-- buttons
-	updateButtonsHover()
-	
 	if (gameFrame ~= lastFrame) then
 		lastFrame = gameFrame
 	end
@@ -852,7 +815,19 @@ function widget:DrawScreen()
 	
 	if dlistButtons1 then
 		glCallList(dlistButtons1)
-		glCallList(dlistButtons3)
+		-- hovered?
+		local x,y = spGetMouseState()
+		if buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+			buttonsAreaHovered = nil
+			for button, pos in pairs(buttonsArea['buttons']) do
+				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+					local margin = height*widgetScale / 11
+					glColor(1,1,1,0.22)
+					RectRound(buttonsArea['buttons'][button][1]+margin, buttonsArea['buttons'][button][2]+margin, buttonsArea['buttons'][button][3]-margin, buttonsArea['buttons'][button][4], 3.5*widgetScale)
+					break
+				end
+			end
+		end
 		glCallList(dlistButtons2)
 	end
 end
@@ -1179,7 +1154,6 @@ function widget:Shutdown()
 		glDeleteList(dlistComs2)
 		glDeleteList(dlistButtons1)
 		glDeleteList(dlistButtons2)
-		glDeleteList(dlistButtons3)
 		glDeleteList(dlistRejoin)
 	end
 	if WG['guishader_api'] ~= nil then
