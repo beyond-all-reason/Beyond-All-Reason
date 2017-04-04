@@ -82,8 +82,6 @@ local enemyComCount			= 0 -- if we are receiving a count from the gadget part (n
 local prevEnemyComCount		= 0
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 local lastResbarValuesUpdate = 0
-local prevResE = {0,0,0,0,0,0}
-local prevResM = {0,0,0,0,0,0}
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -205,6 +203,11 @@ local function updateRejoin()
 	local area = rejoinArea
 	local catchup = gameFrame / serverFrameNum1_G
 	
+	Spring.Echo(serverFrameNum1_G - gameFrame)
+	if serverFrameNum1_G - gameFrame < 20 then
+		showRejoinUI = false
+	end
+	
 	if dlistRejoin ~= nil then
 		glDeleteList(dlistRejoin)
 	end
@@ -264,20 +267,24 @@ local function updateButtonsHover()
 				buttonsAreaHovered = button
 			end
 		end
-		if dlistButtons3 ~= nil then
-			glDeleteList(dlistButtons3)
-		end
 		if buttonsAreaHovered ~= nil then
 			local margin = height*widgetScale / 11
+			if dlistButtons3 ~= nil then
+				glDeleteList(dlistButtons3)
+			end
 			dlistButtons3 = glCreateList( function()
 				glColor(1,1,1,0.22)
 				RectRound(buttonsArea['buttons'][buttonsAreaHovered][1]+margin, buttonsArea['buttons'][buttonsAreaHovered][2]+margin, buttonsArea['buttons'][buttonsAreaHovered][3]-margin, buttonsArea['buttons'][buttonsAreaHovered][4], 3.5*widgetScale)
 			end)
 		else
-			dlistButtons3 = glCreateList( function() end)
 		end
 	end
-	
+	if buttonsAreaHovered == nil then
+		if dlistButtons3 ~= nil then
+			glDeleteList(dlistButtons3)
+		end
+		dlistButtons3 = glCreateList( function() end)
+	end
 end
 
 local function updateButtons()
@@ -334,6 +341,8 @@ local function updateButtons()
 		glText('\255\210\210\210   Commands    Keybinds    Changelog    Options    Quit  ', area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
 		
 	end)
+	
+	updateButtonsHover()
 end
 
 local function updateComs()
@@ -643,7 +652,6 @@ function init()
 	end
 end
 
-
 function widget:GameStart()
 	checkStatus()
 	countComs()
@@ -657,13 +665,11 @@ function widget:GameStart()
 	myTimestamp_G = myTimestamp
 end
 
-
 function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 end
-
 
 function widget:GameFrame(n)
   windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
@@ -671,7 +677,8 @@ function widget:GameFrame(n)
 	functionContainer_G(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
-
+local prevResE = {0,0,0,0,0,0}
+local prevResM = {0,0,0,0,0,0}
 function widget:Update(dt)
 	
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
@@ -776,7 +783,10 @@ function widget:Update(dt)
 				myLastFrameNum_G = myLastFrameNum
 				simpleMovingAverageLocalSpeed_G = simpleMovingAverageLocalSpeed
 			end
-			updateRejoin()
+			
+			if gameFrame / serverFrameNum1_G < 1 then
+				updateRejoin()
+			end
 		end
 	end
 	
