@@ -82,6 +82,8 @@ local enemyComCount			= 0 -- if we are receiving a count from the gadget part (n
 local prevEnemyComCount		= 0
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 local lastResbarValuesUpdate = 0
+local prevResE = {0,0,0,0,0,0}
+local prevResM = {0,0,0,0,0,0}
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -199,11 +201,11 @@ local function short(n,f)
 	end
 end
 
+
 local function updateRejoin()
 	local area = rejoinArea
 	local catchup = gameFrame / serverFrameNum1_G
 	
-	Spring.Echo(serverFrameNum1_G - gameFrame)
 	if serverFrameNum1_G - gameFrame < 20 then
 		showRejoinUI = false
 	end
@@ -256,6 +258,7 @@ local function updateRejoin()
 	end)
 end
 
+
 local function updateButtonsHover()
 	local area = buttonsArea
 	
@@ -286,6 +289,7 @@ local function updateButtonsHover()
 		dlistButtons3 = glCreateList( function() end)
 	end
 end
+
 
 local function updateButtons()
 	local area = buttonsArea
@@ -345,6 +349,7 @@ local function updateButtons()
 	updateButtonsHover()
 end
 
+
 local function updateComs()
 	local area = comsArea
 	
@@ -391,6 +396,7 @@ local function updateComs()
 	
 	comcountChanged = nil
 end
+
 
 local function updateWind()
 	local area = windArea
@@ -494,6 +500,7 @@ local function updateResbarValues(res)
 		glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 	end)
 end
+
 
 local function updateResbar(res)
 	local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
@@ -652,6 +659,7 @@ function init()
 	end
 end
 
+
 function widget:GameStart()
 	checkStatus()
 	countComs()
@@ -665,11 +673,13 @@ function widget:GameStart()
 	myTimestamp_G = myTimestamp
 end
 
+
 function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 end
+
 
 function widget:GameFrame(n)
   windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
@@ -677,8 +687,7 @@ function widget:GameFrame(n)
 	functionContainer_G(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
-local prevResE = {0,0,0,0,0,0}
-local prevResM = {0,0,0,0,0,0}
+
 function widget:Update(dt)
 	
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
