@@ -14,7 +14,7 @@ end
 local height = 38
 local borderPadding = 5
 local showConversionSlider = true
-local bladeSpeedMultiplier = 0.25
+local bladeSpeedMultiplier = 0.22
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
@@ -67,20 +67,23 @@ local lastFrame = -1
 local gameFrame = 0
 local topbarArea = {}
 local barContentArea = {}
-local resbarArea = {'metal', 'energy'}
-local shareIndicatorArea = {'metal', 'energy'}
-local dlistResbar = {}
+local resbarArea = {metal={}, energy={}}
+local resbarDrawinfo = {metal={}, energy={}}
+local shareIndicatorArea = {metal={}, energy={}}
+local dlistResbar = {metal={}, energy={}}
 local energyconvArea = {}
 local windArea = {}
 local comsArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
-
 local allyComs				= 0
 local enemyComs				= 0 -- if we are counting ourselves because we are a spec
 local enemyComCount			= 0 -- if we are receiving a count from the gadget part (needs modoption on)
 local prevEnemyComCount		= 0
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
+local lastResbarValuesUpdate = 0
+local prevResE = {0,0,0,0,0,0}
+local prevResM = {0,0,0,0,0,0}
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -202,6 +205,9 @@ local function updateRejoin()
 	local area = rejoinArea
 	local catchup = gameFrame / serverFrameNum1_G
 	
+	if dlistRejoin ~= nil then
+		glDeleteList(dlistRejoin)
+	end
 	dlistRejoin = glCreateList( function()
 	
 		-- background
@@ -247,10 +253,42 @@ local function updateRejoin()
 	end)
 end
 
+local function updateButtonsHover()
+	local area = buttonsArea
+	
+	local x,y = spGetMouseState()
+	if buttonsArea['buttons'] ~= nil then
+		buttonsAreaHovered = nil
+		for button, pos in pairs(buttonsArea['buttons']) do
+			if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+				buttonsAreaHovered = button
+			end
+		end
+		if dlistButtons3 ~= nil then
+			glDeleteList(dlistButtons3)
+		end
+		if buttonsAreaHovered ~= nil then
+			local margin = height*widgetScale / 11
+			dlistButtons3 = glCreateList( function()
+				glColor(1,1,1,0.22)
+				RectRound(buttonsArea['buttons'][buttonsAreaHovered][1]+margin, buttonsArea['buttons'][buttonsAreaHovered][2]+margin, buttonsArea['buttons'][buttonsAreaHovered][3]-margin, buttonsArea['buttons'][buttonsAreaHovered][4], 3.5*widgetScale)
+			end)
+		else
+			dlistButtons3 = glCreateList( function() end)
+		end
+	end
+	
+end
+
 local function updateButtons()
 	local area = buttonsArea
 	
-	dlistButtons = glCreateList( function()
+	local fontsize = 11.2*widgetScale
+	
+	if dlistButtons1 ~= nil then
+		glDeleteList(dlistButtons1)
+	end
+	dlistButtons1 = glCreateList( function()
 	
 		-- background
 		glColor(0,0,0,0.7)
@@ -263,8 +301,6 @@ local function updateButtons()
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
 		end
 		
-		
-		local fontsize = 11.2*widgetScale
 		if buttonsArea['buttons'] == nil then
 			buttonsArea['buttons'] = {}
 			
@@ -288,21 +324,12 @@ local function updateButtons()
 			width = glGetTextWidth('  Quit  ') * fontsize
 			buttonsArea['buttons']['quit'] = {area[1]+offset, area[2], area[3], area[4]}
 		end
-		
-		local x,y = spGetMouseState()
-		if buttonsArea['buttons'] ~= nil then
-			buttonsAreaHovered = nil
-			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					buttonsAreaHovered = button
-				end
-			end
-			if buttonsAreaHovered ~= nil then
-				glColor(1,1,1,0.22)
-				local margin = height*widgetScale / 11
-				RectRound(buttonsArea['buttons'][buttonsAreaHovered][1]+margin, buttonsArea['buttons'][buttonsAreaHovered][2]+margin, buttonsArea['buttons'][buttonsAreaHovered][3]-margin, buttonsArea['buttons'][buttonsAreaHovered][4], 3.5*widgetScale)
-			end
-		end
+	end)
+	
+	if dlistButtons2 ~= nil then
+		glDeleteList(dlistButtons2)
+	end
+	dlistButtons2 = glCreateList( function()
 		
 		glText('\255\210\210\210   Commands    Keybinds    Changelog    Options    Quit  ', area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
 		
@@ -312,7 +339,10 @@ end
 local function updateComs()
 	local area = comsArea
 	
-	dlistComs = glCreateList( function()
+	if dlistComs1 ~= nil then
+		glDeleteList(dlistComs1)
+	end
+	dlistComs1 = glCreateList( function()
 	
 		-- background
 		glColor(0,0,0,0.7)
@@ -324,14 +354,14 @@ local function updateComs()
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
 		end
-		
+	end)
+	
+	if dlistComs2 ~= nil then
+		glDeleteList(dlistComs2)
+	end
+	dlistComs2 = glCreateList( function()
 		-- Commander icon
 		local sizeHalf = (height/2.75)*widgetScale
-		if allyComs == 1 and (gameFrame % 12 < 6) then
-			glColor(1,0.6,0,0.6)
-		else
-			glColor(1,1,1,0.3)
-		end
 		glTexture(comTexture)
 		glTexRect(area[1]+((area[3]-area[1])/2)-sizeHalf, area[2]+((area[4]-area[2])/2)-sizeHalf, area[1]+((area[3]-area[1])/2)+sizeHalf, area[2]+((area[4]-area[2])/2)+sizeHalf)
 		glTexture(false)
@@ -349,17 +379,31 @@ local function updateComs()
 			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
 		end
 	end)
+	
+	comcountChanged = nil
 end
 
-local function updateWind(currentWind)
+local function updateWind()
 	local area = windArea
 		
-	dlistWind = glCreateList( function()
+	local xPos =  area[1] 
+	local yPos =  area[2] + ((area[4] - area[2])/3.5)
+	local oorx = 10*widgetScale
+	local oory = 13*widgetScale
+	
+	local bgpadding = 3*widgetScale
+	
+	local poleWidth = 6 * widgetScale
+	local poleHeight = 14 * widgetScale
+	
+	if dlistWind1 ~= nil then
+		glDeleteList(dlistWind1)
+	end
+	dlistWind1 = glCreateList( function()
 		
 		-- background
 		glColor(0,0,0,0.7)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
-		local bgpadding = 3*widgetScale
 		glColor(1,1,1,0.03)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
@@ -367,29 +411,25 @@ local function updateWind(currentWind)
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
 		end
 		
-		local xPos =  area[1] 
-		local yPos =  area[2] + ((area[4] - area[2])/3.5)
-		local oorx = 10*widgetScale
-		local oory = 13*widgetScale
-		
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
 			glTranslate(12*widgetScale, (height-(36*widgetScale))/2, 0) -- Spacing of icon
 			glPushMatrix() -- Blades
 				glTranslate(0, 9*widgetScale, 0)
-				
 				glTranslate(oorx, oory, 0)
-				glRotate(windRotation, 0, 0, 1)
+	end)
+	
+	if dlistWind2 ~= nil then
+		glDeleteList(dlistWind2)
+	end
+	dlistWind2 = glCreateList( function()
 				glTranslate(-oorx, -oory, 0)
-				
 				glColor(1,1,1,0.3)
 				glTexture(bladesTexture)
 				glTexRect(0, 0, 27*widgetScale, 28*widgetScale)
 				glTexture(false)
 			glPopMatrix()
 			
-			local poleWidth = 6 * widgetScale
-			local poleHeight = 14 * widgetScale
 			x,y = 9*widgetScale, 2*widgetScale -- Pole
 			glTexture(poleTexture)
 			glTexRect(x, y, (7*widgetScale)+x, y+(18*widgetScale))
@@ -401,35 +441,89 @@ local function updateWind(currentWind)
 		glText("\255\133\133\133"..minWind, area[3]-(2.5*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
 		glText("\255\133\133\133"..maxWind, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 		
-		-- current wind
-		if gameFrame > 0 then
-			fontSize = (height/2.66)*widgetScale
-			glText("\255\255\255\255"..currentWind, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
-		end
 	end)
+		-- current wind
+		--if gameFrame > 0 then
+		--	fontSize = (height/2.66)*widgetScale
+		--	glText("\255\255\255\255"..currentWind, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+		--end
 end
 
+
+local function updateResbarValues(res)
+	
+	if dlistResbar[res][3] ~= nil then
+		glDeleteList(dlistResbar[res][3])
+	end
+	dlistResbar[res][3] = glCreateList( function()
+		local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
+		
+		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+		local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 4
+	
+		-- Bar value
+		glColor(resbarDrawinfo[res].barColor)
+		glTexture(barbg)
+		glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
+		
+		-- Bar value glow
+		glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.07)
+		glTexture(barGlowCenterTexture)
+		glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
+		glTexture(barGlowEdgeTexture)
+		glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
+		glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((r[1]/r[2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
+		
+		-- Text: current
+		glColor(1, 1, 1, 1)
+		glText(short(r[1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+		-- Text: storage
+		glText("\255\133\133\133"..short(r[2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+		-- Text: pull
+		glText("\255\200\100\100"..short(r[3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+		-- Text: income
+		glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+	end)
+end
 
 local function updateResbar(res)
 	local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
 	
 	local area = resbarArea[res]
 	
-	if dlistResbar[res] ~= nil then
-		glDeleteList(dlistResbar[res])
+	if dlistResbar[res][1] ~= nil then
+		glDeleteList(dlistResbar[res][1])
+		glDeleteList(dlistResbar[res][2])
 	end
-	dlistResbar[res] = glCreateList( function()
-		
-		local barHeight = (height*widgetScale/10)
-		local barHeighPadding = 6*widgetScale --((height/2) * widgetScale) - (barHeight/2)
-		local barLeftPadding = 3 * widgetScale
-		local barRightPadding = 6 * widgetScale
-		local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
-		local barWidth = barArea[3] - barArea[1]
-		local shareSliderHeightAdd = barHeight / 4
-		local shareSliderWidth = barHeight + shareSliderHeightAdd + shareSliderHeightAdd
-		
-		resbarArea[res].bar = barArea
+	
+	local barHeight = (height*widgetScale/10)
+	local barHeighPadding = 6*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+	local barLeftPadding = 3 * widgetScale
+	local barRightPadding = 6 * widgetScale
+	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
+	local shareSliderHeightAdd = barHeight / 4
+	local shareSliderWidth = barHeight + shareSliderHeightAdd + shareSliderHeightAdd
+	local barWidth = barArea[3] - barArea[1]
+	local glowSize = barHeight * 4
+
+	if res == 'metal' then
+		resbarDrawinfo[res].barColor = {1,1,1,1}
+	else
+		resbarDrawinfo[res].barColor = {1,1,0,1}
+	end
+	resbarDrawinfo[res].barArea = barArea
+	
+	resbarDrawinfo[res].barTexRect = {barArea[1], barArea[2], barArea[1]+((r[1]/r[2]) * barWidth), barArea[4]}
+	resbarDrawinfo[res].barGlowMiddleTexRect = {barArea[1], barArea[2] - glowSize, barArea[1]+((r[1]/r[2]) * barWidth), barArea[4] + glowSize}
+	resbarDrawinfo[res].barGlowLeftTexRect = {barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize}
+	resbarDrawinfo[res].barGlowRightTexRect = {(barArea[1]+((r[1]/r[2]) * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+((r[1]/r[2]) * barWidth), barArea[4] + glowSize}
+	
+	resbarDrawinfo[res].textCurrent = {short(r[1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
+	resbarDrawinfo[res].textStorage = {"\255\133\133\133"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textPull = {"\255\200\100\100"..short(r[3]), barArea[1]+(50*widgetScale), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
+	resbarDrawinfo[res].textIncome = {"\255\100\200\100"..short(r[4]), barArea[1], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
+	
+	dlistResbar[res][1] = glCreateList( function()
 		
 		-- background
 		glColor(0,0,0,0.7)
@@ -461,30 +555,9 @@ local function updateResbar(res)
 		end
 		glTexture(barbg)
 		glTexRect(barArea[1], barArea[2], barArea[3], barArea[4])
-
-		-- Bar value
-		if res == 'metal' then
-			glColor(1, 1, 1, 1)
-		else
-			glColor(1, 1, 0, 1)
-		end
-		glTexture(barbg)
-		glTexRect(barArea[1], barArea[2], barArea[1]+((r[1]/r[2]) * barWidth), barArea[4])
+	end)
 		
-		
-		-- Bar value glow
-		local glowSize = barHeight * 4
-		if res == 'metal' then
-			glColor(1, 1, 1, 0.07)
-		else
-			glColor(1, 1, 0, 0.07)
-		end
-		glTexture(barGlowCenterTexture)
-		glTexRect(barArea[1], barArea[2] - glowSize, barArea[1]+((r[1]/r[2]) * barWidth), barArea[4] + glowSize)
-		glTexture(barGlowEdgeTexture)
-		glTexRect(barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize)
-		glTexRect((barArea[1]+((r[1]/r[2]) * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+((r[1]/r[2]) * barWidth), barArea[4] + glowSize)
-		
+	dlistResbar[res][2] = glCreateList( function()
 		-- Share slider
 		shareIndicatorArea[res] = {barArea[1]+(r[6] * barWidth)-(shareSliderWidth/2), barArea[2]-shareSliderHeightAdd, barArea[1]+(r[6] * barWidth)+(shareSliderWidth/2), barArea[4]+shareSliderHeightAdd}
 		glTexture(barbg)
@@ -500,25 +573,13 @@ local function updateResbar(res)
 			glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
 		end
 		glTexture(false)
-		
-		-- Text: current
-		glColor(1, 1, 1, 1)
-		glText(short(r[1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd')
-		
-		-- Text: storage
-		glText("\255\133\133\133"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord')
-		
-		-- Text: pull
-		glText("\255\200\100\100"..short(r[3]), barArea[1]+(50*widgetScale), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od')
-		
-		-- Text: income
-		glText("\255\100\200\100"..short(r[4]), barArea[1], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od')
-		
 	end)
+	
+	updateResbarValues(res)
 end
 
+
 function init()
-	
 	if dlistBackground then
 		glDeleteList(dlistBackground)
 	end
@@ -558,10 +619,12 @@ function init()
 	width = ((height*1.18)*widgetScale)
 	windArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
+	updateWind()
 	
 	-- coms
 	comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
+	updateComs()
 	
 	-- rejoin
 	width = (totalWidth/4) / 3.3
@@ -572,12 +635,14 @@ function init()
 	width = (totalWidth/4)
 	buttonsArea = {barContentArea[3]-width, barContentArea[2], barContentArea[3], barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
+	updateButtons()
 	
 	WG['topbar'] = {}
 	WG['topbar'].GetPosition = function()
 		return {topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
 	end
 end
+
 
 function widget:GameStart()
 	checkStatus()
@@ -592,36 +657,59 @@ function widget:GameStart()
 	myTimestamp_G = myTimestamp
 end
 
+
 function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
+
 function widget:GameFrame(n)
+  windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
 	functionContainer_G(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
+
 function widget:Update(dt)
-	if (gameFrame ~= lastFrame) then
-		lastFrame = gameFrame
-		
-		-- metal
+	
+	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 		updateResbar('metal')
-		
-		-- energy
 		updateResbar('energy')
+	elseif (gameFrame ~= lastFrame) then
+		
+		-- resource bars
+		lastResbarValuesUpdate = lastResbarValuesUpdate + dt
+		if (lastResbarValuesUpdate > 0.08) then	-- resource values just dont change any faster than this (0.15 but thats results in jumpy resbar updating)
+			local updateResbars = false
+			local resE = {spGetTeamResources(spGetMyTeamID(),'energy')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
+			local resM = {}
+			if resE[1] ~= prevResE[1] or resE[2] ~= prevResE[2] or resE[3] ~= prevResE[3] or resE[4] ~= prevResE[4] then
+				updateResbars = true
+			end
+			if not updateresbars then
+				resM = {spGetTeamResources(spGetMyTeamID(),'metal')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
+				if resM[1] ~= prevResM[1] or resM[2] ~= prevResM[2] or resM[3] ~= prevResM[3] or resM[4] ~= prevResM[4] then
+					updateResbars = true
+				end
+			end
+			if updateResbars then
+				if resM == nil then
+					resM = {spGetTeamResources(spGetMyTeamID(),'metal')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
+				end
+				--Spring.Echo(gameFrame)
+				prevResE = resE
+				prevResM = resM
+				updateResbarValues('metal')
+				updateResbarValues('energy')
+				lastResbarValuesUpdate = 0
+			end
+		end
 		
 		-- wind
     _, _, _, currentWind = spWind()
-    currentWind = currentWind * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
-		updateWind(sformat('%.1f', currentWind))
-		if minWind == maxWind then
-      windRotation = windRotation + 1
-    else
-      windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
-    end
+    currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 	end
     
  	-- coms
@@ -632,11 +720,13 @@ function widget:Update(dt)
 	if not spec and receiveCount then	-- check if we have received a TeamRulesParam from the gadget part
 		enemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
 		if enemyComCount ~= prevEnemyComCount then
-			countChanged = true
+			comcountChanged = true
 			prevEnemyComCount = enemyComCount
 		end
 	end
-	updateComs()
+	if comcountChanged then
+		updateComs()
+	end
 	
 	-- rejoin
 	if (gameFrame ~= lastFrame) then
@@ -691,7 +781,11 @@ function widget:Update(dt)
 	end
 	
 	-- buttons
-	updateButtons()
+	updateButtonsHover()
+	
+	if (gameFrame ~= lastFrame) then
+		lastFrame = gameFrame
+	end
 end
 
 
@@ -699,23 +793,48 @@ function widget:DrawScreen()
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
-	if dlistResbar['metal'] then
-		glCallList(dlistResbar['metal'])
+	
+	if dlistResbar['metal'][1] then
+		glCallList(dlistResbar['metal'][1])
+		glCallList(dlistResbar['metal'][3])
+		glCallList(dlistResbar['metal'][2])
 	end
-	if dlistResbar['energy'] then
-		glCallList(dlistResbar['energy'])
+	
+	if dlistResbar['energy'][1] then
+		glCallList(dlistResbar['energy'][1])
+		glCallList(dlistResbar['energy'][3])
+		glCallList(dlistResbar['energy'][2])
 	end
-	if dlistWind then
-		glCallList(dlistWind)
+	
+	if dlistWind1 then
+		glCallList(dlistWind1)
+		glRotate(windRotation, 0, 0, 1)
+		glCallList(dlistWind2)
+		-- current wind
+		if gameFrame > 0 then
+			local fontSize = (height/2.66)*widgetScale
+			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+		end
 	end
-	if dlistComs then
-		glCallList(dlistComs)
+	
+	if dlistComs1 then
+		glCallList(dlistComs1)
+		if allyComs == 1 and (gameFrame % 12 < 6) then
+			glColor(1,0.6,0,0.6)
+		else
+			glColor(1,1,1,0.3)
+		end
+		glCallList(dlistComs2)
 	end
+	
 	if dlistRejoin and showRejoinUI then
 		glCallList(dlistRejoin)
 	end
-	if dlistButtons then
-		glCallList(dlistButtons)
+	
+	if dlistButtons1 then
+		glCallList(dlistButtons1)
+		glCallList(dlistButtons3)
+		glCallList(dlistButtons2)
 	end
 end
 
@@ -730,16 +849,18 @@ end
 
 function widget:MouseMove(x, y)
 	if draggingShareIndicator ~= nil and not spec then
-		local shareValue =	(x - resbarArea[draggingShareIndicator]['bar'][1]) / (resbarArea[draggingShareIndicator]['bar'][3] - resbarArea[draggingShareIndicator]['bar'][1])
+		local shareValue =	(x - resbarDrawinfo[draggingShareIndicator]['barArea'][1]) / (resbarDrawinfo[draggingShareIndicator]['barArea'][3] - resbarDrawinfo[draggingShareIndicator]['barArea'][1])
 		if shareValue < 0 then shareValue = 0 end
 		if shareValue > 1 then shareValue = 1 end
 		Spring.SetShareLevel(draggingShareIndicator, shareValue)
+		updateResbar(draggingShareIndicator)
 	end
 	if showConversionSlider and draggingConversionIndicator and not spec then
-		local convValue = (x - resbarArea['energy']['bar'][1]) / (resbarArea['energy']['bar'][3] - resbarArea['energy']['bar'][1]) * 100
+		local convValue = (x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100
 		if convValue < 12 then convValue = 12 end
 		if convValue > 88 then convValue = 88 end
 		Spring.SendLuaRulesMsg(sformat(string.char(137)..'%i', convValue))
+		updateResbar('energy')
 	end
 end
 
@@ -852,7 +973,7 @@ function countComs()
 	for _,teamID in ipairs(myAllyTeamList) do
 		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 	end
-	countChanged = true
+	comcountChanged = true
 	
 	if spec then
 		-- recount enemy ally team coms
@@ -881,7 +1002,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	elseif spec then
 		enemyComs = enemyComs + 1
 	end
-	countChanged = true
+	comcountChanged = true
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
@@ -895,7 +1016,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	elseif spec then
 		enemyComs = enemyComs - 1
 	end
-	countChanged = true
+	comcountChanged = true
 end
 
 
@@ -1029,11 +1150,17 @@ function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	if dlistBackground ~= nil then
 		glDeleteList(dlistBackground)
-		glDeleteList(dlistResbar['metal'])
-		glDeleteList(dlistResbar['energy'])
-		glDeleteList(dlistWind)
-		glDeleteList(dlistComs)
-		glDeleteList(dlistButtons)
+		glDeleteList(dlistResbar['metal'][1])
+		glDeleteList(dlistResbar['metal'][2])
+		glDeleteList(dlistResbar['energy'][1])
+		glDeleteList(dlistResbar['energy'][2])
+		glDeleteList(dlistWind1)
+		glDeleteList(dlistWind2)
+		glDeleteList(dlistComs1)
+		glDeleteList(dlistComs2)
+		glDeleteList(dlistButtons1)
+		glDeleteList(dlistButtons2)
+		glDeleteList(dlistButtons3)
 		glDeleteList(dlistRejoin)
 	end
 	if WG['guishader_api'] ~= nil then
