@@ -243,8 +243,8 @@ local function updateRejoin()
 		glTexRect(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4])
 		
 		-- Bar value glow
-		local glowSize = barHeight * 4
-		glColor(0, 1, 0, 0.07)
+		local glowSize = barHeight * 5
+		glColor(0, 1, 0, 0.06)
 		glTexture(barGlowCenterTexture)
 		glTexRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
 		glTexture(barGlowEdgeTexture)
@@ -320,7 +320,7 @@ local function updateButtons()
 end
 
 
-local function updateComs()
+local function updateComs(forceText)
 	local area = comsArea
 	
 	if dlistComs1 ~= nil then
@@ -351,7 +351,7 @@ local function updateComs()
 		glTexture(false)
 		
 		-- Text
-		if gameFrame > 0 then
+		if gameFrame > 0 or forceText then
 			local fontsize = (height/2.85)*widgetScale
 			local usedEnemyComs = enemyComs
 			if not spec and receiveCount then
@@ -444,7 +444,7 @@ local function updateResbarValues(res)
 		local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
 		
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-		local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 4
+		local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5
 	
 		-- Bar value
 		glColor(resbarDrawinfo[res].barColor)
@@ -452,7 +452,7 @@ local function updateResbarValues(res)
 		glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
 		
 		-- Bar value glow
-		glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.07)
+		glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.06)
 		glTexture(barGlowCenterTexture)
 		glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
 		glTexture(barGlowEdgeTexture)
@@ -633,6 +633,7 @@ end
 function widget:GameStart()
 	checkStatus()
 	countComs()
+	updateComs(true)
 	
 	-- code for rejoin
 	local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
@@ -965,12 +966,14 @@ end
 
 function countComs()
 	-- recount my own ally team coms
+	local prevAllyComs = allyComs
+	local prevEnemyComs = enemyComs
+	
 	allyComs = 0
 	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 	for _,teamID in ipairs(myAllyTeamList) do
 		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 	end
-	comcountChanged = true
 	
 	if spec then
 		-- recount enemy ally team coms
@@ -986,6 +989,9 @@ function countComs()
 		end
 	end
 	
+	if allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
+		comcountChanged = true
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
