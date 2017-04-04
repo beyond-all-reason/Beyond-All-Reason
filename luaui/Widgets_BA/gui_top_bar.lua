@@ -262,7 +262,10 @@ end
 local function updateButtons()
 	local area = buttonsArea
 	
-	local fontsize = 11.2*widgetScale
+	local totalWidth = area[3] - area[1]
+	local text = '    Commands    Keybinds    Changelog    Options    Quit    '
+	
+	local fontsize = totalWidth / glGetTextWidth(text)
 	
 	if dlistButtons1 ~= nil then
 		glDeleteList(dlistButtons1)
@@ -283,25 +286,26 @@ local function updateButtons()
 		if buttonsArea['buttons'] == nil then
 			buttonsArea['buttons'] = {}
 			
-			local offset = 0
+			local margin = height*widgetScale / 11
+			local offset = margin
 			local width = glGetTextWidth('   Commands  ') * fontsize
-			buttonsArea['buttons']['commands'] = {area[1]+offset, area[2], area[1]+offset+width, area[4]}
+			buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			
 			offset = offset+width
 			width = glGetTextWidth('  Keybinds  ') * fontsize
-			buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2], area[1]+offset+width, area[4]}
+			buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			
 			offset = offset+width
 			width = glGetTextWidth('  Changelog  ') * fontsize
-			buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2], area[1]+offset+width, area[4]}
+			buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			
 			offset = offset+width
 			width = glGetTextWidth('  Options  ') * fontsize
-			buttonsArea['buttons']['options'] = {area[1]+offset, area[2], area[1]+offset+width, area[4]}
+			buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			
 			offset = offset+width
-			width = glGetTextWidth('  Quit  ') * fontsize
-			buttonsArea['buttons']['quit'] = {area[1]+offset, area[2], area[3], area[4]}
+			width = glGetTextWidth('  Quit    ') * fontsize
+			buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 		end
 	end)
 	
@@ -310,7 +314,7 @@ local function updateButtons()
 	end
 	dlistButtons2 = glCreateList( function()
 		
-		glText('\255\210\210\210   Commands    Keybinds    Changelog    Options    Quit  ', area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
+		glText('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
 		
 	end)
 end
@@ -663,7 +667,7 @@ function widget:Update(dt)
 		
 		-- resource bars
 		lastResbarValuesUpdate = lastResbarValuesUpdate + dt
-		if (lastResbarValuesUpdate > 0.08) then	-- resource values just dont change any faster than this (0.15 but thats results in jumpy resbar updating)
+		if (lastResbarValuesUpdate > 0.05) then
 			local updateResbars = false
 			local resE = {spGetTeamResources(spGetMyTeamID(),'energy')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
 			local resM = {}
@@ -821,9 +825,8 @@ function widget:DrawScreen()
 			buttonsAreaHovered = nil
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					local margin = height*widgetScale / 11
 					glColor(1,1,1,0.22)
-					RectRound(buttonsArea['buttons'][button][1]+margin, buttonsArea['buttons'][button][2]+margin, buttonsArea['buttons'][button][3]-margin, buttonsArea['buttons'][button][4], 3.5*widgetScale)
+					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale)
 					break
 				end
 			end
