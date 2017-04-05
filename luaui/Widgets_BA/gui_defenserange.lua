@@ -330,8 +330,9 @@ local buttonList --glList for drawing buttons
 local rangeCircleList --glList for drawing range circles
 local _,oldcamy,_ = Spring.GetCameraPosition() --for tracking if we should change the alpha/linewidth based on camheight
 
-
-
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetMyTeamID = Spring.GetMyTeamID
+local spec = spGetSpectatingState()
 
 
 local tooltips = {
@@ -893,8 +894,14 @@ function SetOpacity(dark,light)
     darkOpacity = dark
 end
 
+function widget:PlayerChanged()
+	spec = spGetSpectatingState()
+end
 
 function widget:Update()
+	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+
+	end
 	local timef = spGetGameSeconds()
 	local time = floor(timef)
 
@@ -935,7 +942,7 @@ function widget:Update()
 		--do update stuff:
 		
 		if ( CheckSpecState() == false ) then
-			return false
+			--return false
 		end
 	
 		--remove dead units

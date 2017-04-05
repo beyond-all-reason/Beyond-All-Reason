@@ -167,7 +167,7 @@ function DrawSidebar(x,y,width,height)
 	local fontOffsetX	= versionOffsetX
 	
 	-- background
-	gl.Color(0.72,0.5,0.12,0.3)
+	gl.Color(0.72,0.5,0.15,0.25)
 	RectRound(x,y-height,x+width,y,6)
 	
 	-- version links
@@ -651,7 +651,8 @@ function widget:Initialize()
 		local versionKey = 0
 		for i, line in ipairs(changelogLines) do
 		
-			if string.find(line, '^(%d*%d.?%d+ /-)') then
+			if string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9]0)$') or  string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9])$') then
+			--if string.find(line, '^(%d*%d.?%d+ [/-]> )') then
 				versionKey = versionKey + 1
 				versions[versionKey] = i
 			end

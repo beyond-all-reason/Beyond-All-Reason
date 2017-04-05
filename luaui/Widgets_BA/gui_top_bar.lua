@@ -826,7 +826,7 @@ function widget:DrawScreen()
 			buttonsAreaHovered = nil
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					glColor(1,1,1,0.22)
+					glColor(1,1,1,0.25)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5*widgetScale)
 					break
 				end
