@@ -14,7 +14,6 @@ Balance changes:
 - T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
 - T1 kbot/veh/air lab got 50% additional buildspeed
 - Commanders produce 60% additional energy
-- 'scouts' armflea, armfav and corfav cost more energy to make (around 30%)
 - Sea T2 torpedo launcher is back
 - Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 - Vanguard does 20% more damage
@@ -57,8 +56,10 @@ Other:
 - Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options widget)
 - Added 'mex' button (area drag) for units that can build metal extractors, area drag will cap all metal extraction points
 - Added luamex (lua metal extractor points) functionality for mappers
+- Widgets: Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into new 'Top Bar' widget
+- Added Tooltip widget (other widgets use this to show tooltips at location of the mouse)
 - New uniticons with transparant background
-- Buildmenu: shows metal an energy cost
+- Buildmenu: shows metal/energy cost and tooltip on hover
 - Buildmenu: could show shortcuts when enabled via Options widget
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
 - Keybinds, commands, changelog, options windows hide with Escape key
@@ -72,6 +73,10 @@ Other:
 - Bloomshader: prettier and more pronounced, offers 2 levels (cheap/expensive) via options widget
 - Pausescreen changed and darkens screen or decolorizes it when shaders enabled
 - Various random deathsounds introduced
+- Changelog widget: version shortcuts only show for every 10th version number
+- 10% darker GUI background elements
+- Spiced up 'Buildbar' and 'Selected Unit Buttons' widgets
+- Restyled prestart faction change widget and also scales with resolution
 - Removed 'Allies' label from advplayerslist
 - Unit info widget removed
 - RedUI Resource bars have a metal / energy icon

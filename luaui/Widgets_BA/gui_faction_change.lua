@@ -208,7 +208,7 @@ function FactionChangeList()
 	RectRound(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 5*widgetScale)
 	
 		-- Highlight
-	glColor(0.8, 1, 0.8, 0.3)
+	glColor(0.8, 0.8, 0.8, 0.3)
 	if commanderDefID == armcomDefID then
 		RectRound(3*widgetScale, 3*widgetScale, 61*widgetScale, 61*widgetScale,4.5*widgetScale)
 	else

@@ -409,7 +409,7 @@ function gadget:DrawScreen()
 		  else
 		    textString = "Withdraw offer"
 		  end
-			gl.Text(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 20, "o")
+			gl.Text(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 19, "o")
 			gl.Color(1,1,1,1)
 		gl.PopMatrix()
   else
