@@ -2446,14 +2446,14 @@ function DrawTip(mouseX, mouseY)
 
 		local bottomY = mouseY-(th-(26*oldWidgetScale))
 		local ycorrection = 0
-		if bottomY < 0 then ycorrection = 8-bottomY end
+		if bottomY < 0 then ycorrection = (15*widgetScale)-bottomY end
 		
 		local padding = -1.8*oldWidgetScale
-		gl_Color(0.7,0.7,0.7,0.8)
+		gl_Color(0.8,0.8,0.8,0.75)
 		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding,4.5*oldWidgetScale)
 		
 		padding = 0*oldWidgetScale
-		gl_Color(0,0,0,0.3)
+		gl_Color(0,0,0,0.28)
 		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
 		
 		widgetScale = oldWidgetScale
@@ -2463,7 +2463,7 @@ function DrawTip(mouseX, mouseY)
 		th = 0
 		gl.BeginText()
 		for i, line in ipairs(textLines) do
-			gl_Text('\255\240\240\240'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+			gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
 			th = th - lineHeight
 		end
 		gl.EndText()

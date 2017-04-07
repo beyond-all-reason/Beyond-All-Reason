@@ -520,7 +520,12 @@ function widget:DrawScreen()
 					glColor(1,1,1,0.08)
 					RectRound(o[1], o[2], o[3], o[4], 2.5)
 					if WG['tooltip'] ~= nil and options[i].type == 'slider' then
-						WG['tooltip'].ShowTooltip('options_showvalue', options[i].value)
+						local value = options[i].value
+						local decimalValue, floatValue = math.modf(options[i].step)
+						if floatValue ~= 0 then
+							value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+						end
+						WG['tooltip'].ShowTooltip('options_showvalue', value)
 					end
 				end
 			end
@@ -792,6 +797,12 @@ function widget:GetTooltip(mx, my)
 	end
 end
 
+function round(num, numDecimalPlaces)
+    local mult = 10^(numDecimalPlaces or 0)
+    if num >= 0 then return math.floor(num * mult + 0.5) / mult
+    else return math.ceil(num * mult - 0.5) / mult end
+end
+
 function getSliderValue(draggingSlider, cx)
 	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
 	local value = (cx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
@@ -799,9 +810,9 @@ function getSliderValue(draggingSlider, cx)
 	if value < options[draggingSlider].min then value = options[draggingSlider].min end
 	if value > options[draggingSlider].max then value = options[draggingSlider].max end
 	if options[draggingSlider].step ~= nil then
-		value = math.floor((value / options[draggingSlider].step)+0.5) * options[draggingSlider].step
+		value = math.floor(value / options[draggingSlider].step) * options[draggingSlider].step
 	end
-	return value
+	return value	-- is a string now :(
 end
 
 function widget:MouseWheel(up, value)

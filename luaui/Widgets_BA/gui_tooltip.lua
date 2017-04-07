@@ -149,10 +149,10 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.7,0.7,0.7,0.8)
+	glColor(0.8,0.8,0.8,0.8)
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
 	cornersize = 1.75*widgetScale
-	glColor(0,0,0,0.3)
+	glColor(0,0,0,0.28)
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize-0.06, 5*widgetScale)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(posX-paddingW-cornersize, posY-maxHeight-paddingH-cornersize, posX+maxWidth+paddingW+cornersize, posY+paddingH+cornersize, 'tooltip_'..name)
@@ -163,23 +163,30 @@ function drawTooltip(name, x, y)
 	glTranslate(posX, posY, 0)
 	gl.BeginText()
 	for i, line in ipairs(lines) do
-		glText('\255\240\240\240'..line, 0, maxHeight, fontSize, "o")
+		glText('\255\244\244\244'..line, 0, maxHeight, fontSize, "o")
 		maxHeight = maxHeight - lineHeight
 	end
 	gl.EndText()
 	glTranslate(-posX, -posY, 0)
 end
 
-
+local cleanupGuishaderAreas = {} 
 function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
 	
+	if (WG['guishader_api'] ~= nil) then
+		for name, _ in pairs(cleanupGuishaderAreas) do
+			WG['guishader_api'].RemoveRect(name)
+			cleanupGuishaderAreas[name] = nil
+		end
+	end
 	for name, tooltip in pairs(tooltips) do
 		if tooltip.area == nil or IsOnRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4]) then
 			if tooltip.area == nil then
 				drawTooltip(name, x, y)
 				tooltips[name] = nil
+				cleanupGuishaderAreas['tooltip_'..name] = true
 			else
 				if tooltip.displayTime == nil then
 					tooltip.displayTime = now + tooltip.delay

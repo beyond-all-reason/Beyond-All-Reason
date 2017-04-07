@@ -46,14 +46,14 @@ function widget:Initialize()
   	return darknessvalue
   end
   WG['darkenmap'].setMapDarkness = function(value)
-  	darknessvalue = value
+  	darknessvalue = tonumber(value)
   	maps[currentMapname] = darknessvalue
   end
   WG['darkenmap'].getDarkenFeatures = function()
   	return darkenFeatures
   end
   WG['darkenmap'].setDarkenFeatures = function(value)
-  	darkenFeatures = value
+  	darkenFeatures =  tonumber(value)
   end
   
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
