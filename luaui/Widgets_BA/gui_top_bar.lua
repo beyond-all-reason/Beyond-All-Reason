@@ -367,7 +367,7 @@ local function updateComs(forceText)
 	
 	comcountChanged = nil
 	
-	WG['tooltip'].AddTooltip('coms', area, "Displays the amount of ally\nand enemy commanders")
+	WG['tooltip'].AddTooltip('coms', area, "\255\215\255\215Commander Counter\n\255\240\240\240Displays the number of ally\nand enemy commanders")
 end
 
 
@@ -431,7 +431,7 @@ local function updateWind()
 		
 	end)
 	
-	WG['tooltip'].AddTooltip('wind', area, "Displays current wind strenght\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
+	WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strenght\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
 end
 
 
@@ -562,8 +562,8 @@ local function updateResbar(res)
 	
 	-- add tooltips
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip(res..'_share_slider', shareIndicatorArea[res], "You overflow to your team when your\n"..res.." goes beyond this slider")
-		WG['tooltip'].AddTooltip(res..'_metalmaker_slider', conversionIndicatorArea, "All excess energy beyond this point will be\nconverted to metal (by your metalmaker units)")
+		WG['tooltip'].AddTooltip(res..'_share_slider', shareIndicatorArea[res], "\255\215\255\215"..res:sub(1,1):upper()..res:sub(2).." Share Slider\n\255\240\240\240Overflowing to your team when \n"..res.." goes beyond this point")
+		WG['tooltip'].AddTooltip(res..'_metalmaker_slider', conversionIndicatorArea, "\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Convertor units)")
 			
 		WG['tooltip'].AddTooltip(res..'_pull',    {resbarDrawinfo[res].textPull[2]-(resbarDrawinfo[res].textPull[4]*0.5),       resbarDrawinfo[res].textPull[3],    resbarDrawinfo[res].textPull[2]+(resbarDrawinfo[res].textPull[4]*2),       resbarDrawinfo[res].textPull[3]+resbarDrawinfo[res].textPull[4]}, ""..res.." usage")
 		WG['tooltip'].AddTooltip(res..'_income',  {resbarDrawinfo[res].textIncome[2]-(resbarDrawinfo[res].textIncome[4]*0.5),   resbarDrawinfo[res].textIncome[3],  resbarDrawinfo[res].textIncome[2]+(resbarDrawinfo[res].textIncome[4]*2),   resbarDrawinfo[res].textIncome[3]+resbarDrawinfo[res].textIncome[4]}, ""..res.." income")
