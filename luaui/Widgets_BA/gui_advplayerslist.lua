@@ -2395,7 +2395,7 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
 			tipText = "FPS: "..fps.."    "..tipText
 		end
 		if system ~= nil then 
-			tipText = "\255\000\000\000"..name.."\n\255\255\255\255"..tipText.."\n"..system
+			tipText = "\255\000\000\000"..name.."\n\255\233\180\180"..tipText.."\n\255\240\240\240"..system
 		end
 	end
 end
@@ -2414,6 +2414,13 @@ function PointTip(mouseX)
 end
 
 
+function stringToLines(str)
+  local t = {}
+  local function helper(line) table.insert(t, line) return "" end
+  helper((str:gsub("(.-)\r?\n", helper)))
+  return t
+end
+
 	
 function DrawTip(mouseX, mouseY)
 	
@@ -2425,12 +2432,14 @@ function DrawTip(mouseX, mouseY)
 	
 	text = tipText --this is needed because we're inside a gllist
 	if text ~= nil then
-		local tw = (14*gl_GetTextWidth(text) + 16)*widgetScale
+		local fontSize = 14*widgetScale
+		local tw = fontSize*gl_GetTextWidth(text) + (20*widgetScale)
 		local _, lines = string.gsub(text, "\n", "")
 		lines = lines + 1
-		local th = (((14*widgetScale) * lines) + (13*widgetScale))
 		
-		--Spring.Echo(lines)
+		local lineHeight = fontSize + (fontSize/4.5)
+		local th = lineHeight * lines + (fontSize*0.75)
+		
 		if right ~= true then tw = -tw end
 		local oldWidgetScale = widgetScale
 		widgetScale = 1
@@ -2439,21 +2448,25 @@ function DrawTip(mouseX, mouseY)
 		local ycorrection = 0
 		if bottomY < 0 then ycorrection = 8-bottomY end
 		
-		gl_Color(0.7,0.7,0.7,0.7)
-		RectRound(mouseX-tw,bottomY+ycorrection,mouseX,mouseY+(26*oldWidgetScale)+ycorrection,4.5*oldWidgetScale)
+		local padding = -1.8*oldWidgetScale
+		gl_Color(0.7,0.7,0.7,0.8)
+		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding,4.5*oldWidgetScale)
 		
-		local padding = 1.8*oldWidgetScale
-		gl_Color(0,0,0,0.22)
+		padding = 0*oldWidgetScale
+		gl_Color(0,0,0,0.3)
 		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
 		
 		widgetScale = oldWidgetScale
-		--gl_Rect(mouseX-tw,mouseY,mouseX,mouseY+(30*widgetScale)) 
-		gl_Color(1,1,1,1)
-		if right == true then
-			gl_Text(text,mouseX+(8*widgetScale)-tw,mouseY+(8*widgetScale)+ycorrection, (14*widgetScale), "o")
-		else
-			gl_Text(text,mouseX+(8*widgetScale),mouseY+(8*widgetScale)+ycorrection, (14*widgetScale), "o")
+	
+		-- draw text
+		local textLines = stringToLines(text)
+		th = 0
+		gl.BeginText()
+		for i, line in ipairs(textLines) do
+			gl_Text('\255\240\240\240'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+			th = th - lineHeight
 		end
+		gl.EndText()
 	end
 	tipText = nil
 	

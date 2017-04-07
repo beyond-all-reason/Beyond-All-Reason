@@ -84,13 +84,13 @@ function init()
 			if delay == nil then delay = defaultDelay end
 			tooltips[name] = {area=area, delay=delay}
 			if value ~= nil then
-				tooltips[name].value = value
+				tooltips[name].value = tostring(value)
 			end
 		end
 	end
 	WG['tooltip'].ShowTooltip = function(name, value)
 		if value ~= nil then
-			tooltips[name] = {value=value}
+			tooltips[name] = {value=tostring(value)}
 		end
 	end
 end
@@ -115,17 +115,16 @@ end
 
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
-	
-	local maxWidth = 0
   
-	local padding = 7 *widgetScale
-	local posX = x + (xOffset*widgetScale) + padding
-	local posY = y + (yOffset*widgetScale) + padding
+	local paddingH = 7 *widgetScale
+	local paddingW = paddingH * 1.33
+	local posX = x + (xOffset*widgetScale) + paddingW
+	local posY = y + (yOffset*widgetScale) + paddingH
 	
 	local fontSize = usedFontSize*widgetScale
 	local maxWidth = 0
 	local maxHeight = 0
-	local lineHeight = fontSize + (fontSize/4)
+	local lineHeight = fontSize + (fontSize/4.5)
 	local lines = lines(tooltips[name].value)
 	
 	-- get text dimentions
@@ -135,38 +134,39 @@ function drawTooltip(name, x, y)
 	end
 	
 	-- adjust position when needed
-	if posX+maxWidth+padding+padding > vsx then
-		posX = (posX - (posX - vsX)) - padding - padding
+	if posX+maxWidth+paddingW+paddingW > vsx then
+		posX = (posX - (posX - vsX)) - paddingW - paddingW
 	end
-	if posX - padding < 0 then
-		posX = 0 + padding
+	if posX - paddingW < 0 then
+		posX = 0 + paddingW
 	end
-	if posY + padding > vsy then
-		posY = (posY - (posY - vsy)) - padding
+	if posY + paddingH > vsy then
+		posY = (posY - (posY - vsy)) - paddingH
 	end
-	if posY-maxHeight-padding-padding < 0 then
-		posY = 0 + maxHeight + padding + padding
+	if posY-maxHeight-paddingH-paddingH < 0 then
+		posY = 0 + maxHeight + paddingH + paddingH
 	end
 	
 	-- draw background
 	local cornersize = 0
 	glColor(0.7,0.7,0.7,0.8)
-	RectRound(posX-padding+cornersize, posY-maxHeight-padding+cornersize, posX+maxWidth+padding-cornersize, posY+padding-cornersize, 5*widgetScale)
-	cornersize = 1.66*widgetScale
-	glColor(0,0,0,0.25)
-	RectRound(posX-padding+cornersize, posY-maxHeight-padding+cornersize, posX+maxWidth+padding-cornersize, posY+padding-cornersize, 4*widgetScale)
+	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
+	cornersize = 1.75*widgetScale
+	glColor(0,0,0,0.3)
+	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize-0.06, 5*widgetScale)
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(posX-padding-cornersize, posY-maxHeight-padding-cornersize, posX+maxWidth+padding+cornersize, posY+padding+cornersize, 'tooltip_'..name)
+		WG['guishader_api'].InsertRect(posX-paddingW-cornersize, posY-maxHeight-paddingH-cornersize, posX+maxWidth+paddingW+cornersize, posY+paddingH+cornersize, 'tooltip_'..name)
 	end
 	
 	-- draw text
-	maxHeight = -fontSize*0.9
+	maxHeight = -fontSize*0.93
 	glTranslate(posX, posY, 0)
-	glColor(1,1,1,1)
+	gl.BeginText()
 	for i, line in ipairs(lines) do
-		glText(line, 0, maxHeight, fontSize, "o")
+		glText('\255\240\240\240'..line, 0, maxHeight, fontSize, "o")
 		maxHeight = maxHeight - lineHeight
 	end
+	gl.EndText()
 	glTranslate(-posX, -posY, 0)
 end
 

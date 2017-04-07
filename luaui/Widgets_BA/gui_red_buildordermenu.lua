@@ -187,6 +187,7 @@ local function AutoResizeObjects() --autoresize v2
 	end
 end
 
+
 local function CreateGrid(r)
 
 	local background2 = {"rectanglerounded",
@@ -307,7 +308,7 @@ local function CreateGrid(r)
 			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
 				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
 					local udefid =  tonumber(string.sub(self.texture, 2))
-					local text = "\255\222\255\222"..UnitDefs[udefid].humanName.."\n\255\222\222\222"..UnitDefs[udefid].tooltip
+					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"..UnitDefs[udefid].tooltip
 					WG['tooltip'].ShowTooltip('redui_buildmenu', text)
 				end
 			end
@@ -515,7 +516,6 @@ local function UpdateGrid(g,cmds,ordertype)
 		
 		if (ordertype == 1) then --build orders
 			icon.texture = "#"..cmd.id*-1
-			icon.unitid = cmd.id
 			if (cmd.params[1]) then
 				icon.options = "o"
 				icon.caption = "      "..cmd.params[1].."  "
