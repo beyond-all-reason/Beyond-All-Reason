@@ -307,6 +307,7 @@ function checkWidgets()
 	if WG['red_buildmenu'] ~= nil then
   	table.insert(options, {id="buildmenushortcuts", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n(reselect something to see the change applied)'})
 		table.insert(options, {id="buildmenuprices", name="Buildmenu prices", type="bool", value=WG['red_buildmenu'].getConfigUnitPrice(), description='Enables and shows unit prices in the buildmenu\n(reselect something to see the change applied)'})
+		table.insert(options, {id="buildmenutooltip", name="Buildmenu tooltip", type="bool", value=WG['red_buildmenu'].getConfigUnitTooltip(), description='Enables unit tooltip when hovering over unit in buildmenu'})
 	end
 end
 
@@ -621,6 +622,8 @@ function applyOptionValue(i)
 			WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
 		elseif id == 'buildmenuprices' then
 			WG['red_buildmenu'].setConfigUnitPrice(options[i].value)
+		elseif id == 'buildmenutooltip' then
+			WG['red_buildmenu'].setConfigUnitTooltip(options[i].value)
 		elseif id == 'darkenmap_darkenfeatures' then
 			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then

@@ -33,6 +33,7 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 local iconScaling = true
 local highlightscale = true
 local drawPrice = true
+local drawTooltip = true
 local largePrice = true
 local shortcutsInfo = false
 
@@ -265,7 +266,11 @@ local function CreateGrid(r)
 		mouseheld={
 			{1,function(mx,my,self)
 				self.iconscale=(iconScaling and self.iconhoverscale or 1)
-				heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+					heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+				else
+					heldhighlight.iconscale = self.iconscale
+				end
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
@@ -276,7 +281,11 @@ local function CreateGrid(r)
 			{1,function(mx,my,self)
 				if r.menuname == "buildmenu" then
 					self.iconscale=(iconScaling and self.iconhoverscale or 1)
-					heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+					if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+						heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+					else
+						heldhighlight.iconscale = self.iconscale
+					end
 					heldhighlight.px = self.px
 					heldhighlight.py = self.py
 					heldhighlight.active = nil
@@ -286,11 +295,22 @@ local function CreateGrid(r)
 		
 		mouseover=function(mx,my,self)
 			self.iconscale=(iconScaling and self.iconhoverscale or 1)
-			mouseoverhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+			if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+				mouseoverhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+			else
+				mouseoverhighlight.iconscale = self.iconscale
+			end
 			mouseoverhighlight.px = self.px
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
 			SetTooltip(self.tooltip)
+			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
+				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+					local udefid =  tonumber(string.sub(self.texture, 2))
+					local text = "\255\222\255\222"..UnitDefs[udefid].humanName.."\n\255\222\222\222"..UnitDefs[udefid].tooltip
+					WG['tooltip'].ShowTooltip('redui_buildmenu', text)
+				end
+			end
 			if r.menuname == "ordermenu" then
 				mouseoverhighlight.texturecolor={1,1,1,0.02}
 			end
@@ -363,11 +383,11 @@ local function CreateGrid(r)
 	end
 	
 	local text = {"rectangle",
-	px,py = 0, 0,
-	sx=r.isx,sy=r.isy,
-	captioncolor={0.8,0.8,0.8,1},
-	caption = nil,
-	options = "on",
+		px,py = 0, 0,
+		sx=r.isx,sy=r.isy,
+		captioncolor={0.8,0.8,0.8,1},
+		caption = nil,
+		options = "on",
 	}
 	local texts = {}
 	for y=1,r.iy do
@@ -495,6 +515,7 @@ local function UpdateGrid(g,cmds,ordertype)
 		
 		if (ordertype == 1) then --build orders
 			icon.texture = "#"..cmd.id*-1
+			icon.unitid = cmd.id
 			if (cmd.params[1]) then
 				icon.options = "o"
 				icon.caption = "      "..cmd.params[1].."  "
@@ -741,6 +762,16 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon spacing:  disabled")
 		end
 	end
+	if (string.find(command, "icontooltip") == 1  and  string.len(command) == 11) then 
+		drawTooltip = not drawTooltip
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if drawTooltip then
+			Spring.Echo("Build menu icon tooltip:  enabled")
+		else
+			Spring.Echo("Build menu icon tooltip:  disabled")
+		end
+	end
 	if (string.find(command, "iconprice") == 1  and  string.len(command) == 9) then 
 		drawPrice = not drawPrice
 		--AutoResizeObjects()
@@ -790,6 +821,9 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigUnitPrice = function()
   	return drawPrice
   end
+  WG['red_buildmenu'].getConfigUnitTooltip = function()
+  	return drawTooltip
+  end
   WG['red_buildmenu'].getConfigUnitPriceLarge = function()
   	return largePrice
   end
@@ -798,6 +832,9 @@ function widget:Initialize()
   end
   WG['red_buildmenu'].setConfigUnitPrice = function(value)
   	drawPrice = value
+  end
+  WG['red_buildmenu'].setConfigUnitTooltip = function(value)
+  	drawTooltip = value
   end
   WG['red_buildmenu'].setConfigUnitPriceLarge = function(value)
   	largePrice = value
@@ -832,7 +869,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, largePrice=largePrice, shortcutsInfo=shortcutsInfo}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, largePrice=largePrice, shortcutsInfo=shortcutsInfo}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -843,6 +880,9 @@ function widget:SetConfigData(data) --load config
 		Config.ordermenu.py = data.Config.ordermenu.py
 		if (data.drawPrice ~= nil) then
 			drawPrice = data.drawPrice
+		end
+		if (data.drawTooltip ~= nil) then
+			drawTooltip = data.drawTooltip
 		end
 		if (data.iconScaling ~= nil) then
 			iconScaling = data.iconScaling

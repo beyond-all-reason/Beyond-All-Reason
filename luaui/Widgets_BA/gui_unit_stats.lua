@@ -245,7 +245,7 @@ function widget:DrawScreen()
 	local text = yellow .. uDef.humanName .. white .. "    " .. uDef.name .. "    (#" .. uID .. " , "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. white .. ")"
 	
 	local cornersize = 0
-	glColor(0,0,0,0.73)
+	glColor(0,0,0,0.66)
 	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding-cornersize, cY+(fontSize/2)+bgpadding-cornersize, bgcornerSize)
 	cornersize = ceil(bgpadding*0.21)
 	glColor(1,1,1,0.025)
@@ -479,11 +479,11 @@ function widget:DrawScreen()
 	end
 	
 	-- background
-	glColor(0,0,0,0.57)
+	glColor(0,0,0,0.66)
 	cornersize = 0
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 	cornersize = ceil(bgpadding*0.16)
-	glColor(1,1,1,0.017)
+	glColor(1,1,1,0.025)
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 
 	DrawTextBuffer()

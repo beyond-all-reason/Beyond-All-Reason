@@ -256,6 +256,7 @@ local function updateRejoin()
 		glText('\255\225\255\225Catching up', area[1]+((area[3]-area[1])/2), area[2]+barHeight*2+fontsize, fontsize, 'cor')
 		
 	end)
+	WG['tooltip'].AddTooltip('rejoin', area, "Displays the catchup progress")
 end
 
 
@@ -365,6 +366,8 @@ local function updateComs(forceText)
 	end)
 	
 	comcountChanged = nil
+	
+	WG['tooltip'].AddTooltip('coms', area, "Displays the amount of ally\nand enemy commanders")
 end
 
 
@@ -427,11 +430,8 @@ local function updateWind()
 		glText("\255\133\133\133"..maxWind, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 		
 	end)
-		-- current wind
-		--if gameFrame > 0 then
-		--	fontSize = (height/2.66)*widgetScale
-		--	glText("\255\255\255\255"..currentWind, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
-		--end
+	
+	WG['tooltip'].AddTooltip('wind', area, "Displays current wind strenght\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
 end
 
 
@@ -487,8 +487,8 @@ local function updateResbar(res)
 	local barLeftPadding = 3 * widgetScale
 	local barRightPadding = 6 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
-	local shareSliderHeightAdd = barHeight / 4
-	local shareSliderWidth = barHeight + shareSliderHeightAdd + shareSliderHeightAdd
+	local sliderHeightAdd = barHeight / 3.5
+	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 4
 
@@ -544,22 +544,31 @@ local function updateResbar(res)
 	end)
 		
 	dlistResbar[res][2] = glCreateList( function()
-		-- Share slider
-		shareIndicatorArea[res] = {barArea[1]+(r[6] * barWidth)-(shareSliderWidth/2), barArea[2]-shareSliderHeightAdd, barArea[1]+(r[6] * barWidth)+(shareSliderWidth/2), barArea[4]+shareSliderHeightAdd}
-		glTexture(barbg)
-		glColor(0.8, 0, 0, 1)
-		glTexRect(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4])
-		
 		-- Metalmaker Conversion slider
 		if showConversionSlider and res == 'energy' then 
 			local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
-			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-shareSliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+shareSliderHeightAdd}
+			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 			glTexture(barbg)
 			glColor(0.85, 0.85, 0.55, 1)
 			glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
 		end
+		-- Share slider
+		shareIndicatorArea[res] = {barArea[1]+(r[6] * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(r[6] * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
+		glTexture(barbg)
+		glColor(0.8, 0, 0, 1)
+		glTexRect(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4])
 		glTexture(false)
 	end)
+	
+	-- add tooltips
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip(res..'_share_slider', shareIndicatorArea[res], "You overflow to your team when your\n"..res.." goes beyond this slider")
+		WG['tooltip'].AddTooltip(res..'_metalmaker_slider', conversionIndicatorArea, "All excess energy beyond this point will be\nconverted to metal (by your metalmaker units)")
+			
+		WG['tooltip'].AddTooltip(res..'_pull',    {resbarDrawinfo[res].textPull[2]-(resbarDrawinfo[res].textPull[4]*0.5),       resbarDrawinfo[res].textPull[3],    resbarDrawinfo[res].textPull[2]+(resbarDrawinfo[res].textPull[4]*2),       resbarDrawinfo[res].textPull[3]+resbarDrawinfo[res].textPull[4]}, ""..res.." usage")
+		WG['tooltip'].AddTooltip(res..'_income',  {resbarDrawinfo[res].textIncome[2]-(resbarDrawinfo[res].textIncome[4]*0.5),   resbarDrawinfo[res].textIncome[3],  resbarDrawinfo[res].textIncome[2]+(resbarDrawinfo[res].textIncome[4]*2),   resbarDrawinfo[res].textIncome[3]+resbarDrawinfo[res].textIncome[4]}, ""..res.." income")
+		WG['tooltip'].AddTooltip(res..'_storage', {resbarDrawinfo[res].textStorage[2]-(resbarDrawinfo[res].textStorage[4]*2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3]+resbarDrawinfo[res].textStorage[4]}, ""..res.." storage")
+	end
 	
 	updateResbarValues(res)
 end
@@ -838,14 +847,11 @@ end
 
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-	                      and y >= BLcornerY
-	                      and y <= TRcornerY
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-function widget:MouseMove(x, y)
+
+local function adjustSliders(x, y)
 	if draggingShareIndicator ~= nil and not spec then
 		local shareValue =	(x - resbarDrawinfo[draggingShareIndicator]['barArea'][1]) / (resbarDrawinfo[draggingShareIndicator]['barArea'][3] - resbarDrawinfo[draggingShareIndicator]['barArea'][1])
 		if shareValue < 0 then shareValue = 0 end
@@ -862,6 +868,11 @@ function widget:MouseMove(x, y)
 	end
 end
 
+function widget:MouseMove(x, y)
+	adjustSliders(x, y)
+end
+
+
 local function hideWindows()
 	if (WG['options'] ~= nil) then
 		WG['options'].toggle(false)
@@ -876,6 +887,7 @@ local function hideWindows()
 		WG['commands'].toggle(false)
 	end
 end
+
 local function applyButtonAction(button)
 	if button == 'quit' then
 		hideWindows()
@@ -933,8 +945,14 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseRelease(x, y, button)
-	draggingShareIndicator = nil
-	draggingConversionIndicator = nil
+	if draggingShareIndicator ~= nil then
+		adjustSliders(x, y)
+		draggingShareIndicator = nil
+	end
+	if draggingConversionIndicator ~= nil then
+		adjustSliders(x, y)
+		draggingConversionIndicator = nil
+	end
 	
 	if button == 1 then
 		if buttonsArea['buttons'] ~= nil then	-- reapply again because else the other widgets disable when there is a click outside of their window
