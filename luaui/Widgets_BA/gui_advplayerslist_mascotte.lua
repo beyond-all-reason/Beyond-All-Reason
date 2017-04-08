@@ -172,16 +172,21 @@ function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		local musicPos = nil
+		local alternativePos = nil
 		if WG['music'] ~= nil then
 			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
-				musicPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+				alternativePos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+			end
+		end
+		if WG['displayinfo'] ~= nil then
+			if widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0) then
+				alternativePos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 			end
 		end
 		usedImgSize = OPTIONS[currentOption]['imageSize'] * advplayerlistPos[5]
-		if musicPos ~= nil then
-			xPos = musicPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * musicPos[5])
-			yPos = musicPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * musicPos[5])
+		if alternativePos ~= nil then
+			xPos = alternativePos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * alternativePos[5])
+			yPos = alternativePos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * alternativePos[5])
 		else
 			xPos = advplayerlistPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * advplayerlistPos[5])
 			yPos = advplayerlistPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * advplayerlistPos[5])
