@@ -68,21 +68,27 @@ local function createList(size)
 	end)
 end
 
-local advplayerlistPos = {}
+local parentPos = {}
 function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
-		local prevPos = advplayerlistPos
-		if WG['music'] ~= nil and widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
-			advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		local prevPos = parentPos
+		if WG['displayinfo'] ~= nil then
+			if widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0) then
+				parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+			end
+		elseif WG['music'] ~= nil then
+			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
+				parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+			end
 		else
-			advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
-		usedImgSize = iconSize * advplayerlistPos[5]
-		xPos = advplayerlistPos[4]
-		yPos = advplayerlistPos[1]
+		usedImgSize = iconSize * parentPos[5]
+		xPos = parentPos[4]
+		yPos = parentPos[1]
 		local vsx,vsy = Spring.GetViewGeometry()
 		if xPos > vsx then xPos = vsx end
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
 			createList(usedImgSize)
 		end
 	end
@@ -117,7 +123,7 @@ function widget:DrawScreen()
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
 				local textWidth = glGetTextWidth("discord.gg/aDtX3hW") * 13
-				glText("discord.gg/aDtX3hW", -(textWidth+6+iconSize)*advplayerlistPos[5], 12*advplayerlistPos[5], 13*advplayerlistPos[5], "no")
+				glText("discord.gg/aDtX3hW", -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
 			end
 		glPopMatrix()
 		mouseover = false

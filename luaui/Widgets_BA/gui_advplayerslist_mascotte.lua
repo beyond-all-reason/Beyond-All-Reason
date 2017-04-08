@@ -167,31 +167,26 @@ local function createList(size)
 	end)
 end
 
-local advplayerlistPos = {}
+local parentPos = {}
 function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
-		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		local alternativePos = nil
-		if WG['music'] ~= nil then
-			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
-				alternativePos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-			end
-		end
+		local prevPos = parentPos
 		if WG['displayinfo'] ~= nil then
 			if widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0) then
-				alternativePos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+				parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 			end
-		end
-		usedImgSize = OPTIONS[currentOption]['imageSize'] * advplayerlistPos[5]
-		if alternativePos ~= nil then
-			xPos = alternativePos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * alternativePos[5])
-			yPos = alternativePos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * alternativePos[5])
+		elseif WG['music'] ~= nil then
+			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
+				parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+			end
 		else
-			xPos = advplayerlistPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * advplayerlistPos[5])
-			yPos = advplayerlistPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * advplayerlistPos[5])
+			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+		usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
+		xPos = parentPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
+		yPos = parentPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
+		
+		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
 			createList(usedImgSize)
 		end
 	end
@@ -199,7 +194,7 @@ end
 
 
 function widget:Initialize()
-    loadOption()
+  loadOption()
 	updatePosition()
 end
 
