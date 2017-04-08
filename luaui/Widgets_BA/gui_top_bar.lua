@@ -112,7 +112,7 @@ local serverFrameNum2_G = 0
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (vsx*vsy / 3750000)
+	widgetScale = 0.9 + (vsx*vsy / 6000000)
 	xPos = vsx*0.28
 	init()
 end
