@@ -112,7 +112,7 @@ local serverFrameNum2_G = 0
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (0.60 + (vsx*vsy / 5000000))
+	widgetScale = (vsx*vsy / 3750000)
 	xPos = vsx*0.28
 	init()
 end
@@ -431,7 +431,7 @@ local function updateWind()
 		
 	end)
 	
-	WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strenght\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
+	WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
 end
 
 
@@ -524,7 +524,7 @@ local function updateResbar(res)
 		
 		-- Icon
 		glColor(1,1,1,1)
-		local iconPadding = 3*widgetScale
+		local iconPadding = (area[4] - area[2]) / 7.5
 		if res == 'metal' then
 			glTexture(LUAUI_DIRNAME.."Images/metal.png")
 		else
@@ -634,7 +634,7 @@ function init()
 	
 	WG['topbar'] = {}
 	WG['topbar'].GetPosition = function()
-		return {topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale}
+		return {topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, barContentArea[2]}
 	end
 end
 

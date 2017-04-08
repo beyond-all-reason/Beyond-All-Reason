@@ -126,11 +126,11 @@ local function GetLightsFromUnitDefs()
 			elseif (weaponDef.type == 'DGun') then
 				weaponData.radius = 320
 			elseif (weaponDef.type == 'MissileLauncher') then
-				weaponData.radius = 160 * weaponDef.size
+				weaponData.radius = 125 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 160 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
+					weaponData.radius = 125 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.01))
 				end
-				lightMultiplier = 0.015 + (weaponDef.size/40)
+				lightMultiplier = 0.01 + (weaponDef.size/55)
 				recalcRGB = true
 			elseif (weaponDef.type == 'StarburstLauncher') then
 				weaponData.radius = 400

@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris  (original by Jools)",
 		date = "nov, 2015",
 		license = "GNU GPL, v2 or later",
-		layer = -1,
+		layer = 1,
 		enabled = true
 	}
 end
@@ -71,7 +71,6 @@ local widgetWidth                	= 130
 local tH						 	= 50 -- team row height
 local WBadge					 	= 14 -- width of player badge (side icon)
 local iPosX, iPosY
-local InfotablePosX, InfotablePosY	-- Expand bar bottom left coordinates
 local cW 							= 100 -- column width
 local ctrlDown 						= false
 local textsize						= 14
@@ -104,6 +103,8 @@ local sizeMultiplier   = 1
 	Options["disable"]["On"] = true
 	Options["resText"] = {}
 	Options["resText"]["On"] = false
+	Options["sticktotopbar"] = {}
+	Options["sticktotopbar"]["On"] = true
 	Options["removeDead"] = {}
 	Options["removeDead"]["On"] = false
 	
@@ -149,9 +150,7 @@ function removeGuiShaderRects()
 	if (WG['guishader_api'] ~= nil) then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
-			
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
-				
 				WG['guishader_api'].RemoveRect('ecostats_'..aID)
 			end
 		end
@@ -166,7 +165,7 @@ function widget:Shutdown()
 end
 
 function Init()
-
+	
 	
 	if not Options.disable then
 		Echo("Ecostats:Options not loaded, using default settings. (This is normal during first run.)")
@@ -190,13 +189,6 @@ function Init()
 			comDefs[id] = true
 		end
 	end	
-	
-	if right then
-		InfotablePosX = widgetPosX - ((180*sizeMultiplier) + cW*maxPlayers)
-	else
-		InfotablePosX = widgetPosX + widgetWidth
-	end
-	InfotablePosY = widgetPosY + widgetHeight
 	
 	allyData  = {}
 	for _, allyID in ipairs (Spring.GetAllyTeamList() ) do		
@@ -338,6 +330,8 @@ function widget:SetConfigData(data)      -- load
 	Options["disable"]["On"] = data.disableOn or false
 	Options["resText"] = {}
 	Options["resText"]["On"] = data.resTextOn or false
+	Options["sticktotopbar"] = {}
+	Options["sticktotopbar"]["On"] = data.sticktotopbar or true
 	Options["removeDead"] = {}
 	--Options["removeDead"]["On"] = data.removeDeadOn or false
 	Options["removeDead"]["On"] = false
@@ -346,6 +340,7 @@ function widget:SetConfigData(data)      -- load
 	
 	vsx,vsy 			= gl.GetViewSizes()
 	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
+	
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -536,7 +531,7 @@ local function DrawBackground(posY, allyID)
 end
 
 local function DrawOptionRibbon()
-	local h = 50*sizeMultiplier
+	local h = 70*sizeMultiplier
 	local dx = 80*sizeMultiplier
 	local x0
 	local t = 12*sizeMultiplier
@@ -559,10 +554,15 @@ local function DrawOptionRibbon()
 	Options["resText"]["y2"] = yPos - (30*sizeMultiplier)
 	Options["resText"]["y1"] = yPos - (30*sizeMultiplier) - t
 	
+	Options["sticktotopbar"]["x1"] = x1 - (20*sizeMultiplier)
+	Options["sticktotopbar"]["x2"] = x1 - (20*sizeMultiplier) + t
+	Options["sticktotopbar"]["y2"] = yPos - (50*sizeMultiplier)
+	Options["sticktotopbar"]["y1"] = yPos - (50*sizeMultiplier) - t
+	
 	Options["removeDead"]["x1"] = x0 + (190*sizeMultiplier)
 	Options["removeDead"]["x2"] = x0 + (190*sizeMultiplier) + t
-	Options["removeDead"]["y2"] = yPos - (50*sizeMultiplier)
-	Options["removeDead"]["y1"] = yPos - (50*sizeMultiplier) - t
+	Options["removeDead"]["y2"] = yPos - (70*sizeMultiplier)
+	Options["removeDead"]["y1"] = yPos - (70*sizeMultiplier) - t
 	
 	
 	glColor(0,0,0,0.4)                              -- draws background rectangle
@@ -572,6 +572,7 @@ local function DrawOptionRibbon()
 	glColor(0.8,0.8,1,0.8)
 	glText("Disable when playing:", x0+(10*sizeMultiplier), Options["disable"]["y1"]+(textsize/2),textsize)
 	glText("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+(textsize/2),textsize)
+	glText("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+(textsize/2),textsize)
 	--glText("Remove dead teams:", x0+10, Options["removeDead"]["y1"]+(textsize/2),textsize)
 	glColor(1,1,1,1)
 	if Options["disable"]["On"] then
@@ -584,7 +585,7 @@ local function DrawOptionRibbon()
 		Options["disable"]["y1"],
 		Options["disable"]["x2"],
 		Options["disable"]["y2"]
-		)
+	)
 	if Options["resText"]["On"] then
 		glTexture(images["checkboxon"])
 	else
@@ -595,7 +596,18 @@ local function DrawOptionRibbon()
 		Options["resText"]["y1"],
 		Options["resText"]["x2"],
 		Options["resText"]["y2"]
-		)
+	)
+	if Options["sticktotopbar"]["On"] then
+		glTexture(images["checkboxon"])
+	else
+		glTexture(images["checkboxoff"])
+	end
+	glTexRect(
+		Options["sticktotopbar"]["x1"],
+		Options["sticktotopbar"]["y1"],
+		Options["sticktotopbar"]["x2"],
+		Options["sticktotopbar"]["y2"]
+	)
 	--[[if Options["removeDead"]["On"] then
 		glTexture(images["checkboxon"])
 	else
@@ -606,7 +618,7 @@ local function DrawOptionRibbon()
 		Options["removeDead"]["y1"],
 		Options["removeDead"]["x2"],
 		Options["removeDead"]["y2"]
-		)]]--
+	)]]--
 	glTexture(false)
 end
 
@@ -1049,6 +1061,7 @@ end
 
 function updateButtons()
 	
+	
 	if widgetPosX < 0 then
 		widgetPosX = 0
 	elseif widgetPosX + widgetWidth > vsx then
@@ -1059,6 +1072,12 @@ function updateButtons()
 		widgetPosY = 0
 	elseif widgetPosY + widgetHeight > vsy then
 		widgetPosY = vsy - widgetHeight
+	end
+	
+	if Options["sticktotopbar"]["On"] and WG['topbar'] ~= nil then
+		local topbarArea = WG['topbar'].GetPosition()
+		widgetPosX = topbarArea[3] - widgetWidth
+		widgetPosY = topbarArea[6] - widgetHeight
 	end
 	
 	widgetRight = widgetPosX + widgetWidth
@@ -1205,7 +1224,7 @@ end
 
 function widget:TweakMousePress(x, y, button)
 	if button == 2 or button == 3 then
-		if IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
+		if Options["sticktotopbar"]["On"] == false and IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
 			pressedToMove = true
 			return true
 		end
@@ -1226,6 +1245,9 @@ function widget:TweakMousePress(x, y, button)
 			return true]]--
 		elseif IsOnButton(x, y, Options["resText"]["x1"],Options["resText"]["y1"],Options["resText"]["x2"],Options["resText"]["y2"]) then
 			Options["resText"]["On"] = not Options["resText"]["On"]	
+			return true
+		elseif IsOnButton(x, y, Options["sticktotopbar"]["x1"],Options["sticktotopbar"]["y1"],Options["sticktotopbar"]["x2"],Options["sticktotopbar"]["y2"]) then
+			Options["sticktotopbar"]["On"] = not Options["sticktotopbar"]["On"]	
 			return true
 		elseif IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) or 
 		IsOnButton(x, y, x0, widgetPosY - (300*sizeMultiplier), x1, widgetPosY) 

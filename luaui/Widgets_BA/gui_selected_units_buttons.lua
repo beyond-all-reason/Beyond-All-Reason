@@ -72,8 +72,8 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local highlightColor = {1, 0.5, 0, 0.8}
-local hoverColor = { 1, 1, 1, 0.25 }
+local highlightColor = {0.55, 1, 0.2, 0.33}
+--local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
 local countsTable = {}
@@ -247,10 +247,10 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 	local ypad2 = -usedIconSizeY/50
 	local color = {1, 1, 1, 0.9}
 	if mouseIcon ~= -1 then
-		color = {1, 1, 1, 0.8}
+		color = {1, 1, 1, 0.75}
 	end
 	if iconPos == mouseIcon then
-		usedIconImgMult = iconImgMult*1.1
+		usedIconImgMult = iconImgMult*1.12
 		color = {1, 1, 1, 1}
 		ypad2 = 0
 	end
