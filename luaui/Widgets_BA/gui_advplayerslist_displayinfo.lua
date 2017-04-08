@@ -155,6 +155,7 @@ local function updateValues()
 	end
 	drawlist[2] = glCreateList( function()
 		local _,gamespeed,_ = Spring.GetGameSpeed()
+		gamespeed = string.format("%.2f", gamespeed)
 		local fps = Spring.GetFPS()
 		local titleColor = '\255\133\133\133'
 		local valueColor = '\255\200\200\200'
@@ -169,7 +170,7 @@ local function updateValues()
 		local time = minutes..':'..seconds
 		
 		glColor(0.45,0.45,0.45,1)
-		glText(titleColor..''..valueColor..time..titleColor..'    speed  '..valueColor..gamespeed..titleColor..'    fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
+		glText(titleColor..'time  '..valueColor..time..titleColor..'     speed  '..valueColor..gamespeed..titleColor..'     fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
 	end)
 end
 
