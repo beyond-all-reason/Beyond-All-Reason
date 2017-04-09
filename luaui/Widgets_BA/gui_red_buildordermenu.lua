@@ -43,7 +43,7 @@ local widgetScale = (1 + (vsx*vsy / 7500000))
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
-		px = -0.5,py = CanvasY - 415, --default start position
+		px = 0,py = CanvasY - 415, --default start position
 		
 		isx = 45,isy = 40, --icon size
 		ix = 5,iy = 8, --icons x/y
@@ -74,7 +74,7 @@ local Config = {
 	
 	ordermenu = {
 		menuname = "ordermenu",
-		px = -0.5,py = CanvasY - 415 - 145,
+		px = 0,py = CanvasY - 415 - 145,
 		
 		isx = 45,isy = 33,
 		ix = 5,iy = 4,
@@ -104,6 +104,14 @@ local Config = {
 		},
 	},
 }
+
+
+function widget:ViewResize(newX,newY)
+	vsx, vsy = gl.GetViewSizes()
+	widgetScale = (1 + (vsx*vsy / 7500000))
+	Config.buildmenu.padding = 3*widgetScale
+	Config.ordermenu.padding = 3*widgetScale
+end
 
 local guishaderEnabled = WG['guishader_api'] or false
 
