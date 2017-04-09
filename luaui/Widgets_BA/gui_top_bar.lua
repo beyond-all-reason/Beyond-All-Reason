@@ -88,24 +88,23 @@ local prevResM = {0,0,0,0,0,0}
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
-local serverFrameRate_G = 30 --//constant: assume server run at x1.0 gamespeed. 
-local serverFrameNum1_G = nil --//variable: get the latest server's gameFrame from GameProgress() and do work with it.  
-local oneSecondElapsed_G = 0 --//variable: a timer for 1 second, used in Update(). Update UI every 1 second.
-local myLastFrameNum_G = 0 --//variable: used to calculate local game-frame rate.
+local serverFrameRate = 30 --//constant: assume server run at x1.0 gamespeed. 
+local oneSecondElapsed = 0 --//variable: a timer for 1 second, used in Update(). Update UI every 1 second.
 local showRejoinUI = false --//variable:indicate whether UI is shown or hidden.
-local averageLocalSpeed_G = {sumOfSpeed= 0, sumCounter= 0} --//variable: store the local-gameFrame speeds so that an average can be calculated. 
-local defaultAverage_G = 30 --//constant: Initial/Default average is set at 30gfps (x1.0 gameSpeed)
-local simpleMovingAverageLocalSpeed_G = {storage={},index = 1, runningAverage=defaultAverage_G} --//variable: for calculating rolling average. Initial/Default average is set at 30gfps (x1.0 gameSpeed)
+local averageLocalSpeed = {sumOfSpeed= 0, sumCounter= 0} --//variable: store the local-gameFrame speeds so that an average can be calculated. 
+local defaultAverage = 30 --//constant: Initial/Default average is set at 30gfps (x1.0 gameSpeed)
+local simpleMovingAverageLocalSpeed = {storage={},index = 1, runningAverage=defaultAverage} --//variable: for calculating rolling average. Initial/Default average is set at 30gfps (x1.0 gameSpeed)
 
 --Variable for fixing GameProgress delay at rejoin------------------------------
-local myTimestamp_G = 0 --//variable: store my own timestamp at GameStart
-local serverFrameNum2_G = nil --//variable: the expected server-frame of current running game
-local submittedTimestamp_G = {} --//variable: store all timestamp at GameStart submitted by original players (assuming we are rejoining)
-local functionContainer_G = function(x) end --//variable object: store a function 
-local gameProgressActive_G = false --//variable: signal whether GameProgress has been updated.
+local myTimestamp = 0 --//variable: store my own timestamp at GameStart
+local submittedTimestamp = {} --//variable: store all timestamp at GameStart submitted by original players (assuming we are rejoining)
+local functionContainer = function(x) end --//variable object: store a function 
+local gameProgressActive = false --//variable: signal whether GameProgress has been updated.
 
-local serverFrameNum1_G = 0
-local serverFrameNum2_G = 0
+local serverFrameNum1 = 0
+local serverFrameNum2 = 0
+local myLastFrameNum = 0
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -204,9 +203,9 @@ end
 
 local function updateRejoin()
 	local area = rejoinArea
-	local catchup = gameFrame / serverFrameNum1_G
+	local catchup = gameFrame / serverFrameNum1
 	
-	if serverFrameNum1_G - gameFrame < 20 then
+	if serverFrameNum1 - gameFrame < 20 then
 		showRejoinUI = false
 	end
 	
@@ -357,6 +356,8 @@ local function updateComs(forceText)
 			local usedEnemyComs = enemyComs
 			if not spec and receiveCount then
 				usedEnemyComs = enemyComCount
+			else
+				usedEnemyComs = 2		-- dunno why though
 			end
 			glText('\255\255\000\000'..enemyComs, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
@@ -364,7 +365,6 @@ local function updateComs(forceText)
 			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
 		end
 	end)
-	
 	comcountChanged = nil
 	
 	WG['tooltip'].AddTooltip('coms', area, "\255\215\255\215Commander Counter\n\255\240\240\240Displays the number of ally\nand enemy commanders")
@@ -647,10 +647,9 @@ function widget:GameStart()
 	-- code for rejoin
 	local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
 	local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
-	local myTimestamp = systemSecond
 	local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
 	Spring.SendLuaUIMsg(timestampMsg) --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-	myTimestamp_G = myTimestamp
+	myTimestamp = systemSecond
 end
 
 
@@ -664,7 +663,7 @@ end
 function widget:GameFrame(n)
   windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
-	functionContainer_G(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
+	functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
 
@@ -727,28 +726,21 @@ function widget:Update(dt)
 	-- rejoin
 	if (gameFrame ~= lastFrame) then
 		if showRejoinUI then
-			oneSecondElapsed_G = oneSecondElapsed_G + dt
-			if oneSecondElapsed_G >= 1 then --wait for 1 second period
+			oneSecondElapsed = oneSecondElapsed + dt
+			if oneSecondElapsed >= 1 then --wait for 1 second period
 				-----var localize-----
-				local serverFrameNum1 = serverFrameNum1_G
-				local serverFrameNum2 = serverFrameNum2_G
-				local oneSecondElapsed = oneSecondElapsed_G
-				local myLastFrameNum = myLastFrameNum_G
-				local serverFrameRate = serverFrameRate_G
-				local myGameFrame = gameFrame		
-				local simpleMovingAverageLocalSpeed = simpleMovingAverageLocalSpeed_G
 				-----localize
 				
 				local serverFrameNum = serverFrameNum1 or serverFrameNum2 --use FrameNum from GameProgress if available, else use FrameNum derived from LUA_msg.
 				serverFrameNum = serverFrameNum + serverFrameRate*oneSecondElapsed -- estimate Server's frame number after each widget:Update() while waiting for GameProgress() to refresh with actual value.
-				local frameDistanceToFinish = serverFrameNum-myGameFrame
+				local frameDistanceToFinish = serverFrameNum-gameFrame
 
-				local myGameFrameRate = (myGameFrame - myLastFrameNum) / oneSecondElapsed
+				local myGameFrameRate = (gameFrame - myLastFrameNum) / oneSecondElapsed
 				--Method1: simple average
 				--[[
-				averageLocalSpeed_G.sumOfSpeed = averageLocalSpeed_G.sumOfSpeed + myGameFrameRate -- try to calculate the average of local gameFrame speed.
-				averageLocalSpeed_G.sumCounter = averageLocalSpeed_G.sumCounter + 1
-				myGameFrameRate = averageLocalSpeed_G.sumOfSpeed/averageLocalSpeed_G.sumCounter -- using the average to calculate the estimate for time of completion.
+				averageLocalSpeed.sumOfSpeed = averageLocalSpeed.sumOfSpeed + myGameFrameRate -- try to calculate the average of local gameFrame speed.
+				averageLocalSpeed.sumCounter = averageLocalSpeed.sumCounter + 1
+				myGameFrameRate = averageLocalSpeed.sumOfSpeed/averageLocalSpeed.sumCounter -- using the average to calculate the estimate for time of completion.
 				--]]
 				--Method2: simple moving average
 				myGameFrameRate = SimpleMovingAverage(myGameFrameRate, simpleMovingAverageLocalSpeed) -- get our average frameRate
@@ -761,19 +753,17 @@ function widget:Update(dt)
 				timeToComplete_string = string.format ("Time Remaining: %d:%02d" , minute, second)
 				
 				oneSecondElapsed = 0
-				myLastFrameNum = myGameFrame
+				myLastFrameNum = gameFrame
 				
-				if serverFrameNum1 then serverFrameNum1 = serverFrameNum --update serverFrameNum1 if value from GameProgress() is used,
-				else serverFrameNum2 = serverFrameNum end --update serverFrameNum2 if value from LuaRecvMsg() is used.
-				-----return
-				serverFrameNum1_G = serverFrameNum1
-				serverFrameNum2_G = serverFrameNum2
-				oneSecondElapsed_G = oneSecondElapsed
-				myLastFrameNum_G = myLastFrameNum
-				simpleMovingAverageLocalSpeed_G = simpleMovingAverageLocalSpeed
+				if serverFrameNum1 then 
+					serverFrameNum1 = serverFrameNum --update serverFrameNum1 if value from GameProgress() is used,
+				else 
+					serverFrameNum2 = serverFrameNum
+				end --update serverFrameNum2 if value from LuaRecvMsg() is used.
+				
 			end
 			
-			if gameFrame / serverFrameNum1_G < 1 then
+			if gameFrame / serverFrameNum1 < 1 then
 				updateRejoin()
 			end
 		end
@@ -992,6 +982,7 @@ function countComs()
 	for _,teamID in ipairs(myAllyTeamList) do
 		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 	end
+	comcountChanged = true
 	
 	if spec then
 		-- recount enemy ally team coms
@@ -1060,19 +1051,18 @@ end
 function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
 	local ui_active = showRejoinUI
 
-	local serverFrameNum1 = serverFrameNum
-	local frameDistanceToFinish = serverFrameNum1-Spring.GetGameFrame()
+	local frameDistanceToFinish = serverFrameNum-Spring.GetGameFrame()
 	ui_active = ActivateGUI_n_TTS (frameDistanceToFinish, ui_active)
 	
-	serverFrameNum1_G = serverFrameNum1
+	serverFrameNum1 = serverFrameNum
 	showRejoinUI = ui_active
-	gameProgressActive_G = true
+	gameProgressActive = true
 end
 
 -- used for rejoin progress functionality
 function widget:RecvLuaMsg(bigMsg, playerID) --this function run 2nd. It read the LUA timestamp
 	
-	if gameProgressActive_G or isReplay then --skip LUA message if gameProgress is already active OR game is a replay
+	if gameProgressActive or isReplay then --skip LUA message if gameProgress is already active OR game is a replay
 		return false 
 	end
 
@@ -1081,8 +1071,6 @@ function widget:RecvLuaMsg(bigMsg, playerID) --this function run 2nd. It read th
 		if bigMsg:sub(1,9) == "rejnProg " then --check for identifier
 			-----var localize-----
 			local ui_active = showRejoinUI
-			local submittedTimestamp = submittedTimestamp_G
-			local myTimestamp = myTimestamp_G
 			-----localize
 			
 			local timeMsg = bigMsg:sub(10) --saperate time-message from the identifier
@@ -1100,13 +1088,11 @@ function widget:RecvLuaMsg(bigMsg, playerID) --this function run 2nd. It read th
 			--Spring.Echo(secondDiff ..  " E")
 			local frameDiff = secondDiff*30
 			
-			local serverFrameNum2 = frameDiff --this value represent the estimate difference in frame when everyone was submitting their timestamp at game start. Therefore the difference in frame will represent how much frame current player are ahead of us.
+			serverFrameNum2 = frameDiff --this value represent the estimate difference in frame when everyone was submitting their timestamp at game start. Therefore the difference in frame will represent how much frame current player are ahead of us.
 			ui_active = ActivateGUI_n_TTS (frameDiff, ui_active, 1800)
 			
 			-----return
 			showRejoinUI = ui_active
-			serverFrameNum2_G = serverFrameNum2
-			submittedTimestamp_G = submittedTimestamp
 		end
 	end
 end
@@ -1117,7 +1103,7 @@ local function RemoveLUARecvMsg(n)
 	if n > 150 then
 		isReplay = nil
 		widgetHandler:RemoveCallIn("RecvLuaMsg") --remove unused method for increase efficiency after frame> timestampLimit (150frame or 5 second).
-		functionContainer_G = function(x) end --replace this function with an empty function/method
+		functionContainer = function(x) end --replace this function with an empty function/method
 	end 
 end
 
@@ -1134,7 +1120,7 @@ function SimpleMovingAverage(myGameFrameRate, simpleMovingAverageLocalSpeed)
 	end
 	--//update averages
 	index = (simpleMovingAverageLocalSpeed.index) --retrieve an index advanced by 1.
-	local oldAverage = (simpleMovingAverageLocalSpeed.storage[index] or defaultAverage_G) --retrieve old average or use initial/default average as old average.
+	local oldAverage = (simpleMovingAverageLocalSpeed.storage[index] or defaultAverage) --retrieve old average or use initial/default average as old average.
 	simpleMovingAverageLocalSpeed.runningAverage = simpleMovingAverageLocalSpeed.runningAverage + myGameFrameRate/poolingSize - oldAverage/poolingSize --calculate average: add new value, remove old value. Ref: http://en.wikipedia.org/wiki/Moving_average#Simple_moving_average
 	local avgGameFrameRate = simpleMovingAverageLocalSpeed.runningAverage -- replace myGameFrameRate with its average value.
 
@@ -1145,13 +1131,12 @@ end
 function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
 	local ui_active = showRejoinUI
 
-	local serverFrameNum1 = serverFrameNum
-	local frameDistanceToFinish = serverFrameNum1-gameFrame
+	serverFrameNum1 = serverFrameNum
+	local frameDistanceToFinish = serverFrameNum-gameFrame
 	ui_active = ActivateGUI_n_TTS (frameDistanceToFinish, ui_active)
 	
-	serverFrameNum1_G = serverFrameNum1
 	showRejoinUI = ui_active
-	gameProgressActive_G = true
+	gameProgressActive = true
 end
 
 
@@ -1163,7 +1148,7 @@ function widget:Initialize()
 	init()
 	
 	-- used for rejoin progress functionality
-	functionContainer_G = RemoveLUARecvMsg
+	functionContainer = RemoveLUARecvMsg
 	isReplay = Spring.IsReplay()
 end
 

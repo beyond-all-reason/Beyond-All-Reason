@@ -170,7 +170,7 @@ local function updateValues()
 		local time = minutes..':'..seconds
 		
 		glColor(0.45,0.45,0.45,1)
-		glText(titleColor..'time  '..valueColor..time..titleColor..'     speed  '..valueColor..gamespeed..titleColor..'     fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
+		glText(titleColor..'time  '..valueColor..time..titleColor..'      speed  '..valueColor..gamespeed..titleColor..'      fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
 	end)
 end
 
