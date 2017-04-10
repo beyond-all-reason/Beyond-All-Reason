@@ -31,7 +31,14 @@ Wind:
 - Core and arm are the same now
 
 Sea reworked:
-- Jizah... up to you to fill this section.
+--T1--
+- Increased maxspeed for submarines
+- Decreased maxspeed for destroyers
+- Common turnrate for submarines/destroyers (450)
+- Acceleration and brakerate values based on maxspeed and a factor that depends on the ship's chassis class. (i.e scouts will reach maxspeed in 1 second while destroyers will reach maxspeed in 2 seconds)
+- Added a Slow Effect on torpedo launchers and depthcharge launchers. The customParams "slowlength" and "slowstrength" will allow to finetune the slow effect. If no customParams are defined, a 0% slow of 30 frames will be applied.
+- Armsub torpedo applies a 30% slow for 30 frames, has increased aoe (128 vs 64), and deals more damages to other submarines (350) with a lower reload time.
+- Corsub main torpedo applies a 20 % slow, has increased aoe and deals more damages to other submarines (350) however, upon reaching a distance to its initial target (ground/feature/unit/projectile) < 100 elmos, it splits into 8 smaller torpedo which deal 1/10th only of the main torpedo damages and apply a 1% slow for 3 frames each. These smaller torpedos track their target.
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
