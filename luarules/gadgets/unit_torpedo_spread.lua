@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "03/28/17",
 		license = "Free",
 		layer = 0,
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -98,7 +98,7 @@ local distance = math.sqrt(dx^2 + dy ^2 + dz^2)
 
 if distance then
 if proOwner[proID] then
-	if distance <= 200 then
+	if distance <= 100 then
 
 	local vx, vy, vz = Spring.GetProjectileVelocity(proID)
 		dirx, diry, dirz = vx/math.abs(vx), vy/math.abs(vy), vz/math.abs(vz)

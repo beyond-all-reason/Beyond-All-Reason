@@ -3,10 +3,10 @@ function gadget:GetInfo()
 		name = "Torpedo Slow",
 		desc = "Torpedo slows down units (add slowslength and slowstrength tags in wdefs' customParams to use custom values)",
 		author = "[Fx]Doo",
-		date = "03/28/17,
+		date = "03/28/17",
 		license = "Free",
 		layer = 0,
-		enabled = false -- Not used for now, remember to turn on when/if it is implemented
+		enabled = true -- 
 	}
 end
 
@@ -14,7 +14,7 @@ function gadget:Initialize()
 		slowStrength = {}
 		slowLength = {}
     for wDefID, wDef in pairs(WeaponDefs) do
-        slowStrength[wDefID] = wDef.customParams and wDef.customParams.slowstrength or 5
+        slowStrength[wDefID] = wDef.customParams and wDef.customParams.slowstrength or 0
 		slowLength[wDefID] = wDef.customParams and wDef.customParams.slowslength or 30
     end
 end
