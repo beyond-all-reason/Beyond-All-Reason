@@ -506,10 +506,10 @@ function widget:Shutdown()
 	if panelList then
 		gl.DeleteList(panelList)
 	end
-	WG["faction_change"] = nil
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('initialqueue')
 	end
+	WG["faction_change"] = nil
 end
 
 

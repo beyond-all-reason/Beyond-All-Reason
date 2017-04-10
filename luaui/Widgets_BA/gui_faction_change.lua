@@ -154,6 +154,12 @@ function widget:Initialize()
 	end
 end
 
+function widget:Shutdown()
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('factionchange')
+	end
+end
+
 function widget:DrawWorld()
 	glColor(1, 1, 1, 0.5)
 	glDepthTest(false)
@@ -206,6 +212,11 @@ function FactionChangeList()
 	RectRound(0, 0, 128*widgetScale, 80*widgetScale,6*widgetScale)
 	glColor(1, 1, 1, 0.025)
 	RectRound(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 5*widgetScale)
+	
+	
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].InsertRect(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 'factionchange')
+	end
 	
 		-- Highlight
 	glColor(0.8, 0.8, 0.8, 0.3)
