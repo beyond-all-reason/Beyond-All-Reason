@@ -158,6 +158,9 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('factionchange')
 	end
+	if factionChangeList then
+		glDeleteList(factionChangeList)
+	end
 end
 
 function widget:DrawWorld()
@@ -294,6 +297,10 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 	if mButton == 2 or mButton == 3 then
 		px = px + dx
 		py = py + dy
+		if factionChangeList then
+			glDeleteList(factionChangeList)
+		end
+		factionChangeList = glCreateList(FactionChangeList)
 	end
 end
 
