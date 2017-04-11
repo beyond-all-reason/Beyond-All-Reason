@@ -373,6 +373,8 @@ local armorDefs = {
 	scouts = {
 		"corpt",
 		"armpt",
+		"armpship",
+		"corlship",
 		},
 
 	corvettes = {
