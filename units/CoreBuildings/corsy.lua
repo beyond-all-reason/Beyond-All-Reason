@@ -39,11 +39,12 @@ return {
 		buildoptions = {
 			[1] = "corcs",
 			[2] = "corpt",
-			[3] = "coresupp",
-			[4] = "corroy",
-			[5] = "cortship",
-			[6] = "corsub",
-			[7] = "correcl",
+			[3] = "corlship",
+			[4] = "coresupp",
+			[5] = "corroy",
+			[6] = "cortship",
+			[7] = "corsub",
+			[8] = "correcl",
 		},
 		customparams = {
 			death_sounds = "generic",

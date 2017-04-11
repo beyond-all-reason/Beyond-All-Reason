@@ -40,11 +40,12 @@ return {
 		buildoptions = {
 			[1] = "armcs",
 			[2] = "armpt",
-			[3] = "decade",
-			[4] = "armroy",
-			[5] = "armtship",
-			[6] = "armsub",
-			[7] = "armrecl",
+			[3] = "armpship",
+			[4] = "decade",
+			[5] = "armroy",
+			[6] = "armtship",
+			[7] = "armsub",
+			[8] = "armrecl",
 		},
 		customparams = {
 			death_sounds = "generic",
