@@ -184,11 +184,11 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 105,
 				damage = {
-					default = 60,
-					lightsubmarines = 15,
-					heavysubmarines = 15,
-					corvettes = 75,
-					scouts = 75,
+					default = 73,
+					lightsubmarines = 39,
+					heavysubmarines = 39,
+					corvettes = 80,
+					scouts = 80,
 				},
 				customParams = {
 					slowstrength = 1,
