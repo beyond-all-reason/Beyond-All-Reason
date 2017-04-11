@@ -111,7 +111,7 @@ local myLastFrameNum = 0
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = 0.8 + (vsx*vsy / 5750000)
+	widgetScale = (vsy / 734) * 0.775	-- using 734 because redui-console uses this value too
 	xPos = vsx*0.28
 	init()
 end
