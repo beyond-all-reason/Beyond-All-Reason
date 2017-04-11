@@ -218,4 +218,33 @@ definitions["barrelshot-huge"].clouddust.properties.particlesizespread	= definit
 definitions["barrelshot-huge"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
 definitions["barrelshot-huge"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
+definitions["barrelshot-huge"].flash = {
+	air = 1,
+	water = 1,
+	ground = 1,
+	count = 1,
+	class = [[CSimpleParticleSystem]],
+	properties  =  {
+		sizeGrowth = -4,
+		sizeMod = 1.0,
+		pos = [[0, 4, 0]],
+		emitVector = [[-0, 1, 0]],
+		gravity = [[0, 0.00, 0]],
+		colorMap =  [[1 0.8 0.55 0.01   1 0.8 0.65 0.9   0 0 0 0.01]],
+		Texture = [[dirt]],
+		airdrag = 1,
+		particleLife = 5,
+		particleLifeSpread = 0,
+		numParticles = 1,
+		particleSpeed = 1,
+		particleSpeedSpread = 0,
+		particleSize = 22,
+		particleSizeSpread = 4,
+		emitRot = 0,
+		emitRotSpread = 180,
+		directional = 1,
+		alwaysVisible = 0,
+	},
+}
+
 return definitions

@@ -28,7 +28,7 @@ local poleTexture						= LUAUI_DIRNAME.."Images/pole.png"
 local comTexture						= LUAUI_DIRNAME.."Images/comIcon.png"
 
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (0.60 + (vsx*vsy / 5000000))
+local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*0.28
 local currentWind = 0
 
@@ -111,7 +111,7 @@ local myLastFrameNum = 0
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = 1 + (vsx*vsy / 6600000)
+	widgetScale = 0.8 + (vsx*vsy / 5750000)
 	xPos = vsx*0.28
 	init()
 end

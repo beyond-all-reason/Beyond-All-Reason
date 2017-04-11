@@ -64,6 +64,8 @@ Create()
 {
 	hide flare1;
 	hide flare2;
+	move flare1 to x-axis [0.5] now;
+	move flare2 to x-axis [0.5] now;
 	gun_1 = flare1;
 	restore_delay = 3000;
 	start-script SmokeUnit();
