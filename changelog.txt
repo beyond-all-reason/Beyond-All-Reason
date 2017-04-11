@@ -32,13 +32,30 @@ Wind:
 
 Sea reworked:
 --T1--
-- Increased maxspeed for submarines
-- Decreased maxspeed for destroyers
-- Common turnrate for submarines/destroyers (450)
+- Increased maxspeed for submarines/corvettes
+- Decreased maxspeed for destroyers/scouts
+- Common turnrate for submarines/destroyers/scouts/corvettes (450)
 - Acceleration and brakerate values based on maxspeed and a factor that depends on the ship's chassis class. (i.e scouts will reach maxspeed in 1 second while destroyers will reach maxspeed in 2 seconds)
 - Added a Slow Effect on torpedo launchers and depthcharge launchers. The customParams "slowlength" and "slowstrength" will allow to finetune the slow effect. If no customParams are defined, a 0% slow of 30 frames will be applied.
 - Armsub torpedo applies a 30% slow for 30 frames, has increased aoe (128 vs 64), and deals more damages to other submarines (350) with a lower reload time.
 - Corsub main torpedo applies a 20 % slow, has increased aoe and deals more damages to other submarines (350) however, upon reaching a distance to its initial target (ground/feature/unit/projectile) < 100 elmos, it splits into 8 smaller torpedo which deal 1/10th only of the main torpedo damages and apply a 1% slow for 3 frames each. These smaller torpedos track their target.
+- Armroy HP decreased to 2250 HP. Range decreased to 650 and sonar/sightdistance decreased (350/400). Projectile speed increased. Metal, energy cost and build time decreased (850/5000/12000). Model size increased (1.25 factor) (decrease dodge chance and fits more with cost/power)
+- Corroy HP decreased to 2950, range decreased to 700 (vs 710) and sonar/sightdistance decreased (350/400). Plasma canon damages increased (450). Metal cost decreased (1050/6000/13000). Model size increased (1.5 factor) (decrease dodge chance and fits more with cost/power)
+- Armpt/corpt weapons changed to a rapid fire/low dps laser canon with bonus damages towards other scoutclass boats.
+- Added Armpship (Plasma bombs boat, strong vs Cap ships and buildings) and corlship (strong vs boats and corvs)
+- Decade = Gun corvette, strong vs scouts/corvettes -- Decreased max hp, default damages and added bonus damages towards scouts/corvettes.
+- Coresupp = Paralyzer corvette -- decreased max hp, most effective against scouts/corvettes but also effective against lone cap ships.
+- Armcs/corcs = now belong to corvette class (corvetteclass-like movements speeds applied)
+- More updates to come for t1
+
+--T2--
+- Armcrus plasma weapon changed to a Burst plasma weapon with slower projectile (Should be 3*2 plasma rounds once script gets fixed) -- Not balanced yet/!\
+- Armmship weapons changed to tracking rockets. Goal is to have a more dynamic gameplay with those. -- Not balanced yet /!\
+
+--Buildings--
+- All sea defenses buffed (no more "heavyunits" armor type for ships so all units do default damages unless specified not to)
+- OnHit Impulse on torpedo launchers (will soon be changed to the torpedo slow effect)
+- Bonus damages from plasma batteries to ALL ships
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
