@@ -71,6 +71,9 @@ function widget:Initialize()
 	WG['displayinfo'].GetPosition = function()
 		return {top,left,bottom,right,widgetScale}
 	end
+	Spring.SendCommands("fps 0")
+	Spring.SendCommands("clock 0")
+	Spring.SendCommands("speed 0")
 end
 
 
@@ -201,6 +204,9 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	Spring.SendCommands("fps 1")
+	Spring.SendCommands("clock 1")
+	Spring.SendCommands("speed 1")
 end
 
 local passedTime = 0

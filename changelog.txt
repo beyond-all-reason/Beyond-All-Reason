@@ -14,7 +14,6 @@ Balance changes:
 - T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
 - T1 kbot/veh/air lab got 50% additional buildspeed
 - Commanders produce 60% additional energy
-- Sea T2 torpedo launcher is back
 - Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 - Vanguard does 20% more damage
 - Armmart and cormart do 15% more damage
@@ -49,6 +48,7 @@ Sea reworked:
 - More updates to come for t1
 
 --T2--
+- Sea T2 torpedo launcher is back
 - Armcrus plasma weapon changed to a Burst plasma weapon with slower projectile (Should be 3*2 plasma rounds once script gets fixed) -- Not balanced yet/!\
 - Armmship weapons changed to tracking rockets. Goal is to have a more dynamic gameplay with those. -- Not balanced yet /!\
 

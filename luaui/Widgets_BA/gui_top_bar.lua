@@ -226,9 +226,9 @@ local function updateRejoin()
 		end
 		
 		local barHeight = (height*widgetScale/10)
-		local barHeighPadding = 6*widgetScale --((height/2) * widgetScale) - (barHeight/2)
-		local barLeftPadding = 6 * widgetScale
-		local barRightPadding = 6 * widgetScale
+		local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+		local barLeftPadding = 7* widgetScale
+		local barRightPadding = 7 * widgetScale
 		local barArea = {area[1]+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 		local barWidth = barArea[3] - barArea[1]
 		
@@ -483,9 +483,9 @@ local function updateResbar(res)
 	end
 	
 	local barHeight = (height*widgetScale/10)
-	local barHeighPadding = 6*widgetScale --((height/2) * widgetScale) - (barHeight/2)
-	local barLeftPadding = 3 * widgetScale
-	local barRightPadding = 6 * widgetScale
+	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+	local barLeftPadding = 2 * widgetScale
+	local barRightPadding = 7 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 3.5
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
