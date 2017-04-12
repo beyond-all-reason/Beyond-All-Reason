@@ -335,7 +335,7 @@ local function CreateGrid(r)
 			 		tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
 				end
 			end
-			if drawPrice then
+			if drawPrice and tt ~= nil then
 			  tt = string.gsub(tt, "Metal cost %d*\nEnergy cost %d*\n", "")
 			end
 			SetTooltip(tt)
