@@ -195,6 +195,20 @@ local function AutoResizeObjects() --autoresize v2
 	end
 end
 
+local function esc(x)
+   return (x:gsub('%%', '%%%%')
+            :gsub('^%^', '%%^')
+            :gsub('%$$', '%%$')
+            :gsub('%(', '%%(')
+            :gsub('%)', '%%)')
+            :gsub('%.', '%%.')
+            :gsub('%[', '%%[')
+            :gsub('%]', '%%]')
+            :gsub('%*', '%%*')
+            :gsub('%+', '%%+')
+            :gsub('%-', '%%-')
+            :gsub('%?', '%%?'))
+end
 
 local function CreateGrid(r)
 
@@ -312,14 +326,19 @@ local function CreateGrid(r)
 			mouseoverhighlight.px = self.px
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
-			SetTooltip(self.tooltip)
+			local tt = self.tooltip
 			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
 				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
 					local udefid =  tonumber(string.sub(self.texture, 2))
 					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"..UnitDefs[udefid].tooltip
 					WG['tooltip'].ShowTooltip('redui_buildmenu', text)
+			 		tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
 				end
 			end
+			if drawPrice then
+			  tt = string.gsub(tt, "Metal cost %d*\nEnergy cost %d*\n", "")
+			end
+			SetTooltip(tt)
 			if r.menuname == "ordermenu" then
 				mouseoverhighlight.texturecolor={1,1,1,0.02}
 			end
@@ -540,11 +559,10 @@ local function UpdateGrid(g,cmds,ordertype)
 			local green = "\255\0\255\0"
 			local red = "\255\255\0\0"
 			local skyblue = "\255\136\197\226"
-			
 			local s, e = string.find(cmd.tooltip, "Metal cost %d*")
 			local metalCost = string.sub(cmd.tooltip, s + 11, e)
 			local s, e = string.find(cmd.tooltip, "Energy cost %d*")
-			local energyCost = string.sub(cmd.tooltip, s + 12, e)
+		  local energyCost = string.sub(cmd.tooltip, s + 12, e)
 			--local metalColor = "\255\136\197\226"
 			--Spring.Echo('m'..metalCost..'e'..energyCost)
 			
