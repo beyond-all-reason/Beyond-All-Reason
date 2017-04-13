@@ -649,12 +649,14 @@ function widget:Initialize()
 		changelogLines = lines(changelogFile)
 		
 		local versionKey = 0
+		local insertedLatest = false
 		for i, line in ipairs(changelogLines) do
 		
-			if string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9]0)$') or  string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9])$') then
+			if insertedLatest == false or string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9]0)$') or  string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9])$') then
 			--if string.find(line, '^(%d*%d.?%d+ [/-]> )') then
 				versionKey = versionKey + 1
 				versions[versionKey] = i
+				insertedLatest = true
 			end
 			totalChangelogLines = i
 		end
