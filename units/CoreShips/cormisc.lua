@@ -1,5 +1,5 @@
 return {
-	corMISC = {
+	cormisc = {
 		acceleration = 0.10,
 		airsightdistance = 800,
 		activatewhenbuilt = true,
