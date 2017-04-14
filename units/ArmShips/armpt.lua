@@ -1,7 +1,6 @@
 return {
 	armpt = {
 		acceleration = 0.14,
-		airsightdistance = 800,
 		autoheal = 1.5,
 		brakerate = 0.075,
 		buildcostenergy = 1000,
@@ -197,11 +196,6 @@ return {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "ARMPT_LASER",
 				onlytargetcategory = "NOTSUB",
-			},
-			[3] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "ARMPT_MISSILE",
-				onlytargetcategory = "VTOL",
 			},
 		},
 	},

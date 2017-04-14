@@ -1,7 +1,6 @@
 return {
 	corpt = {
 		acceleration = 0.156,
-		airsightdistance = 800,
 		autoheal = 1.5,
 		brakerate = 0.078,
 		buildcostenergy = 1000,
@@ -198,11 +197,7 @@ return {
 				def = "CORPT_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORPT_MISSILE",
-				onlytargetcategory = "VTOL",
-			},
+
 		},
 	},
 }

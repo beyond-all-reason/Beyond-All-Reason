@@ -40,11 +40,12 @@ Sea reworked:
 - Corsub main torpedo applies a 20 % slow, has increased aoe and deals more damages to other submarines (350) however, upon reaching a distance to its initial target (ground/feature/unit/projectile) < 100 elmos, it splits into 8 smaller torpedo which deal 1/10th only of the main torpedo damages and apply a 1% slow for 3 frames each. These smaller torpedos track their target.
 - Armroy HP decreased to 2250 HP. Range decreased to 650 and sonar/sightdistance decreased (350/400). Projectile speed increased. Metal, energy cost and build time decreased (850/5000/12000). Model size increased (1.25 factor) (decrease dodge chance and fits more with cost/power)
 - Corroy HP decreased to 2950, range decreased to 700 (vs 710) and sonar/sightdistance decreased (350/400). Plasma canon damages increased (450). Metal cost decreased (1050/6000/13000). Model size increased (1.25 factor) (decrease dodge chance and fits more with cost/power)
-- /!\ Check wrecks models /!\ Armpt/corpt weapons changed to a rapid fire/low dps laser canon with bonus damages towards other scoutclass boats.
+- /!\ Check wrecks models /!\ Armpt/corpt weapons changed to a rapid fire/low dps laser canon with bonus damages towards other scoutclass boats, AA weapon erased and airlos tag erased
 - /!\ Check wrecks models /!\ Added Armpship (Plasma bombs boat, strong vs Cap ships and buildings) and corlship (strong vs boats and corvs)
 - Decade = Gun corvette, strong vs scouts/corvettes -- Decreased max hp, default damages and added bonus damages towards scouts/corvettes.
 - Coresupp = Paralyzer corvette -- decreased max hp, most effective against scouts/corvettes but also effective against lone cap ships.
 - /!\ Check models + wrecks models /!\ Armcs/corcs = now belong to corvette class (corvetteclass-like movements speeds applied)
+- Armmisc/Cormisc (Light AA corvettes) added -- PackO/madsam weapons (1/3rd of firerate but two per ship). Replaces patrol's boats AA.
 - More updates to come for t1
 
 --T2--
