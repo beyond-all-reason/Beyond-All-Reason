@@ -34,7 +34,7 @@ return {
 		sonardistance = 750,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.584,
-		turnrate = 450,
+		turnrate = 576,
 		upright = true,
 		waterline = 30,
 		customparams = {

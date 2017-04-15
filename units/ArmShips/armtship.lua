@@ -39,6 +39,7 @@ return {
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.2044,
+		turnrate = 240,
 		unloadspread = 1,
 		waterline = 11,
 		customparams = {

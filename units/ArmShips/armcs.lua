@@ -39,7 +39,7 @@ return {
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.50282,
-		turnrate = 450,
+		turnrate = 457,
 		waterline = 4,
 		workertime = 250,
 		buildoptions = {
