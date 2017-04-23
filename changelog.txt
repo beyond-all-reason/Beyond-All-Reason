@@ -32,8 +32,8 @@ Wind:
 Sea reworked:
 --T1--
 - Increased maxspeed for submarines/corvettes
-- Decreased maxspeed for destroyers/scouts
-- Common turnrate for submarines/destroyers/scouts/corvettes (450)
+- Decreased maxspeed for destroyers/scouts/carriers
+- Turnrates updated (based on ship's length) = 720*40 / ship's length which makes around 600 for scouts, 500 for corvettes, 300 for destroyers...
 - Acceleration and brakerate values based on maxspeed and a factor that depends on the ship's chassis class. (i.e scouts will reach maxspeed in 1 second while destroyers will reach maxspeed in 2 seconds)
 - Added a Slow Effect on torpedo launchers and depthcharge launchers. The customParams "slowlength" and "slowstrength" will allow to finetune the slow effect. If no customParams are defined, a 0% slow of 30 frames will be applied.
 - Armsub torpedo applies a 30% slow for 30 frames, has increased aoe (128 vs 64), and deals more damages to other submarines (350) with a lower reload time.
@@ -46,7 +46,7 @@ Sea reworked:
 - Coresupp = Paralyzer corvette -- decreased max hp, most effective against scouts/corvettes but also effective against lone cap ships.
 - /!\ Check models + wrecks models /!\ Armcs/corcs = now belong to corvette class (corvetteclass-like movements speeds applied)
 - Armmisc/Cormisc (Light AA corvettes) added -- PackO/madsam weapons (1/3rd of firerate but two per ship). Replaces patrol's boats AA.
-- More updates to come for t1
+- Tships speeds/accel/brake/turnrates updated.
 
 --T2--
 - Sea T2 torpedo launcher is back
@@ -118,6 +118,7 @@ Other:
 - Enemy spotter opacity and unit teamcolor highlight configurable via options widget
 - Arm Beamer updates its aim faster when firing
 - A few more turrets/barrels get a kickback when they fire
+- Fixed unit_stats dps values for beamlaser weapons (dps = damages/beamtime+reloadtime instead of dps = damages/reloadtime). Also changed the minimal reload time to 1/600 instead of 1/30, which caused some weapons with reload times < 0.03 to show wrong dps values.
 
 
 9.45 -> 9.46
