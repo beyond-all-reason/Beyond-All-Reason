@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc      = "Shows detailed unit stats",
 		author    = "Niobium + Doo",
 		date      = "Jan 11, 2009",
-		version   = 1.5,
+		version   = 1.6,
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
@@ -13,6 +13,9 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
+
+----v1.6 by Doo changes
+-- Fixed crashing when hovering some enemy units
 
 ----v1.5 by Doo changes
 -- Fixed some issues with the add of BeamTime values
@@ -346,10 +349,15 @@ function widget:DrawScreen()
 
 	local maxHP = uDef.health
 	if ctrl then
-		maxHP = uMaxHp
+		maxHP = uMaxHp or '???'
 	end
 	if uExp ~= 0 then
+		if uMaxHp then
 		DrawText("Exp:", format("+%d%% health", (uMaxHp/uDef.health-1)*100))
+		else
+		DrawText("Exp:                 unknown",'\255\255\77\77')
+		end
+		
 	end
 	DrawText("Open:", format("maxHP: %d", maxHP) )
 	if uDef.armoredMultiple ~= 1 then DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/uDef.armoredMultiple-1) *100,maxHP/uDef.armoredMultiple)) end

@@ -120,6 +120,7 @@ Other:
 - A few more turrets/barrels get a kickback when they fire
 - Fixed unit_stats dps values for beamlaser weapons (dps = damages/beamtime+reloadtime instead of dps = damages/reloadtime). Also changed the minimal reload time to 1/600 instead of 1/30, which caused some weapons with reload times < 0.03 to show wrong dps values.
 - Fixed unit_stats dps values for stockpiling weapons (had to apply a 1/30 factor)
+- Fixed unit_stats crashes when hovering enemy units
 
 
 9.45 -> 9.46
