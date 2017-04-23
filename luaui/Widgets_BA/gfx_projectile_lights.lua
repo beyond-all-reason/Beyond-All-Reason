@@ -465,25 +465,23 @@ end
 
 
 local unitConf = {}
-function SetUnitConf()
-	for udid, unitDef in pairs(UnitDefs) do
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		--local radius = Spring.GetUnitRadius(unitID)
-		--local mass = Spring.GetUnitMass(unitID)
-		
-		local params = {param={type='explosion'}}
-		params.param.r, params.param.g, params.param.b = 1, 0.8, 0.4
-		params.param.radius = 25 + (33 * (xsize + zsize))
-		params.life = 20 + (params.param.radius/100)
-		
-		params.orgMult = 0.22 + (params.param.radius/3000)
-		if params.orgMult > 0.5 then params.orgMult = 0.5 end
-		local worth = (unitDef.metalCost + (unitDef.energyCost/8)) / 3500
-		params.orgMult = params.orgMult + worth
-		if params.orgMult > 0.8 then params.orgMult = 0.8 end
-		
-		unitConf[udid] = params
-	end
+for udid, unitDef in pairs(UnitDefs) do
+	local xsize, zsize = unitDef.xsize, unitDef.zsize
+	--local radius = Spring.GetUnitRadius(unitID)
+	--local mass = Spring.GetUnitMass(unitID)
+	
+	local params = {param={type='explosion'}}
+	params.param.r, params.param.g, params.param.b = 1, 0.85, 0.4
+	params.param.radius = 40 * (xsize + zsize)
+	params.life = 20 + (params.param.radius/100)
+	
+	params.orgMult = 0.13 + (params.param.radius/1800)
+	if params.orgMult > 0.5 then params.orgMult = 0.5 end
+	local worth = (unitDef.metalCost + (unitDef.energyCost/8)) / 3500
+	params.orgMult = params.orgMult + worth
+	if params.orgMult > 0.8 then params.orgMult = 0.8 end
+	
+	unitConf[udid] = params
 end
 
 
@@ -506,11 +504,39 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	end
 end
 
+
+local weaponConf = {}
+for i=1, #WeaponDefs do
+  local params = {}
+	params.r, params.g, params.b = 1, 0.85, 0.45
+	params.radius = WeaponDefs[i].damageAreaOfEffect*3.8
+	params.orgMult = 0.66 + (params.radius/3000)
+  params.life = 14*(0.8+ params.radius/1500)
+	weaponConf[i] = params
+end
+
+-- function called by explosion_lights gadget
+function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+	local params = {param={type='explosion'}}
+	params.param.r, params.param.g, params.param.b = weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b
+	params.life = weaponConf[weaponID].life
+	params.orgMult = weaponConf[weaponID].orgMult
+	params.param.radius = weaponConf[weaponID].radius
+	
+	params.frame = Spring.GetGameFrame()
+	params.px, params.py, params.pz = px, py, pz
+	params.py = params.py + 10
+	
+	--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
+	explosionLightsCount = explosionLightsCount + 1
+	explosionLights[explosionLightsCount] = params
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	SetUnitConf()
+	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
 	if WG.DeferredLighting_RegisterFunction then
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()
