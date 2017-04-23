@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc      = "Shows detailed unit stats",
 		author    = "Niobium + Doo",
 		date      = "Jan 11, 2009",
-		version   = 1.4,
+		version   = 1.5,
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
@@ -13,6 +13,10 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
+
+----v1.5 by Doo changes
+-- Fixed some issues with the add of BeamTime values
+-- Added a 1/30 factor to stockpiling weapons (seems like the lua wDef.stockpileTime is in frames while the weaponDefs uses seconds) Probably the 1/30 value in older versions wasnt a "min reloadtime" but the 1/30 factor for stockpile weapons with a typo
 
 ----v1.4 by Doo changes
 -- Added beamtime to oRld value to properly count dps of BeamLaser weapons
@@ -394,8 +398,8 @@ function widget:DrawScreen()
 
 		if uWep.range > 16 then
 			local oBurst = uWep.salvoSize * uWep.projectiles
-			local oRld = max(1/600,uWep.stockpile and uWep.stockpileTime or uWep.reload, (uWep.beamtime + uWep.reload) or uWep.reload)
-			if useExp and not ((uWep.stockpile and uWep.stockpileTime) or (uWep.beamtime)) then
+			local oRld = max(1/600,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload, (uWep.type == "BeamLaser") and (uWep.beamtime + uWep.reload) or uWep.reload)
+			if useExp and not ((uWep.stockpile and uWep.stockpileTime) or (uWep.type == "BeamLaser")) then
 				oRld = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or oRld
 			end
 			local wepCount = wepCounts[wDefId]
