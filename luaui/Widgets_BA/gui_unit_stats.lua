@@ -3,9 +3,9 @@ function widget:GetInfo()
 	return {
 		name      = "Unit Stats",
 		desc      = "Shows detailed unit stats",
-		author    = "Niobium",
+		author    = "Niobium + Doo",
 		date      = "Jan 11, 2009",
-		version   = 1.3,
+		version   = 1.4,
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
@@ -13,6 +13,9 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
+
+----v1.4 by Doo changes
+-- Added beamtime to oRld value to properly count dps of BeamLaser weapons
 
 ---- v1.3 changes
 -- Fix for 87.0
