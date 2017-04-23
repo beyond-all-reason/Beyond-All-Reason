@@ -1318,7 +1318,7 @@ end
 
 function SortSpecs(vOffset)
 	-- Adds specs to the draw list
-	local playersList = Spring_GetPlayerList(_,true)
+	local playersList = Spring_GetPlayerList(-1,true)
 	local noSpec = true
 	for _,playerID in ipairs(playersList) do
 		_,active,spec = Spring_GetPlayerInfo(playerID)

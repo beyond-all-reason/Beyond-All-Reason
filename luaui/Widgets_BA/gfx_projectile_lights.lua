@@ -509,9 +509,13 @@ local weaponConf = {}
 for i=1, #WeaponDefs do
   local params = {}
 	params.r, params.g, params.b = 1, 0.85, 0.45
-	params.radius = WeaponDefs[i].damageAreaOfEffect*3.8
+	params.radius = WeaponDefs[i].damageAreaOfEffect*4.5
 	params.orgMult = 0.66 + (params.radius/3000)
   params.life = 14*(0.8+ params.radius/1500)
+  if WeaponDefs[i].type == 'DGun' then
+  	params.orgMult = params.orgMult * 0.7
+  	params.radius = params.radius * 1.2
+  end
 	weaponConf[i] = params
 end
 
@@ -525,7 +529,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	
 	params.frame = Spring.GetGameFrame()
 	params.px, params.py, params.pz = px, py, pz
-	params.py = params.py + 10
+	params.py = params.py + 5 + (params.param.radius/35)
 	
 	--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 	explosionLightsCount = explosionLightsCount + 1
