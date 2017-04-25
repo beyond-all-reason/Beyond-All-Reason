@@ -713,6 +713,22 @@ for size, effects in pairs(sizes) do
 	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
 end
 
+
+
+definitions['genericshellexplosion-meteor'] = deepcopy(definitions[root.."-huge"])
+definitions['genericshellexplosion-meteor'].groundflash.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].explosion.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].centerflare.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].sparks.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].dirt.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].dirt2.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].grounddust.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].clouddust.properties.alwaysvisible = true
+--definitions['genericshellexplosion-meteor'].groundclouddust.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].outerflash.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].kickedupwater.properties.alwaysvisible = true
+
+
 -- add coloring
 --local colors = {
 --	--blue = {

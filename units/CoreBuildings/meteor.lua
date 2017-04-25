@@ -57,13 +57,13 @@ return {
 			weapon = {
 				areaofeffect = 450,
 				avoidfeature = false,
-				cegtag = "ASTEROIDTRAIL_Expl",
+				cegtag = "meteortrail",
 				collidefriendly = 1,
 				craterareaofeffect = 450,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.6,
-				explosiongenerator = "custom:meteor_explosion",
+				explosiongenerator = "custom:genericshellexplosion-meteor",
 				firestarter = 70,
 				flighttime = 100,
 				metalpershot = 0,
@@ -80,6 +80,7 @@ return {
 				weapontimer = 10,
 				weaponvelocity = 2000,
 				wobble = 0,
+				stages = 0,
 				damage = {
 					commanders = 10,
 					default = 700,
