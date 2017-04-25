@@ -37,8 +37,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.05,
-        alwaysvisible      = true,
-        color              = 0.1,
+                color              = 0.1,
         pos                = [[r-800 r800, 3, r-800 r800]],
         size               = 2,
         sizeexpansion      = 0.6,

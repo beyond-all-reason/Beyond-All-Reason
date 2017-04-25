@@ -10,8 +10,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.3,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -23,8 +22,7 @@ return {
     },
     --groundflash = {
     --  air                = true,
-    --  alwaysvisible      = true,
-    --  circlealpha        = 0.6,
+    --      --  circlealpha        = 0.6,
     --  circlegrowth       = 1.5,
     --  flashalpha         = 0.9,
     --  flashsize          = 50,
@@ -40,8 +38,7 @@ return {
     --},
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.4,
+            flashalpha         = 0.4,
       flashsize          = 2,
       ground             = true,
       ttl                = 27,
@@ -60,8 +57,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[0.25 0.20 0.10 0.35	0 0 0 0.0]],
+                colormap           = [[0.25 0.20 0.10 0.35	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -87,8 +83,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
+                colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -116,8 +111,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.8 0.9 0.03   0.9 0.5 0.2 0.01]],
+                colormap           = [[0.7 0.8 0.9 0.03   0.9 0.5 0.2 0.01]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -145,8 +139,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.1,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],

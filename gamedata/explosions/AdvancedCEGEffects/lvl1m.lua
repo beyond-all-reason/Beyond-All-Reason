@@ -19,8 +19,7 @@ return {
       class              = [[heatcloud]],
       count              = 3,
       properties = {
-        alwaysvisible      = true,
-        heat               = 15,
+                heat               = 15,
         heatfalloff        = 2.5,
         maxheat            = 15,
         pos                = [[0,1, 0]],
@@ -37,8 +36,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.6 0.3 0.01  0 0 0 0.01]],
+                colormap           = [[0.7 0.6 0.3 0.01  0 0 0 0.01]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -64,8 +62,7 @@ return {
       ground             = true,
       properties = {
         agespeed           = 0.15,
-        alwaysvisible      = true,
-        color              = 0.3,
+                color              = 0.3,
         pos                = [[0,-1 i4,0]],
         size               = 10,
         sizegrowth         = 0,

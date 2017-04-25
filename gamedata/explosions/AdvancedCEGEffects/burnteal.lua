@@ -11,8 +11,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.8 0.2 0.01 0.2 0.8 0.2 0.01  0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.8 0.2 0.01 0.2 0.8 0.2 0.01  0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -36,8 +35,7 @@ return {
 
   ["burnteal"] = {
     groundflash = {
-      alwaysvisible      = true,
-      circlealpha        = 1,
+            circlealpha        = 1,
       circlegrowth       = 3,
       flashalpha         = 1,
       flashsize          = 25,
@@ -55,8 +53,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.0 1.0 1.0 0.04   0.2 0.9 0.9 0.01  0.1 0.8 0.8 0.01]],
+                colormap           = [[0.0 1.0 1.0 0.04   0.2 0.9 0.9 0.01  0.1 0.8 0.8 0.01]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -84,8 +81,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.8 0.2 0.01 0.2 0.8 0.2 0.01  0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.8 0.2 0.01 0.2 0.8 0.2 0.01  0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -112,8 +108,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1,
         maxheat            = 10,
         pos                = [[0, 5, 0]],
@@ -130,8 +125,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1,
         maxheat            = 15,
         pos                = [[r-3 r3, 5, r-3 r3]],

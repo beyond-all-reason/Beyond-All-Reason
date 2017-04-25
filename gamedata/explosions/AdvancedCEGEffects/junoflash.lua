@@ -13,8 +13,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 9,
+                heat               = 9,
         heatfalloff        = 1.3,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -41,8 +40,7 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.18,
+            flashalpha         = 0.18,
       flashsize          = 770,
       ground             = true,
       ttl                = 166,
@@ -62,8 +60,7 @@ return {
       water              = true, 
 	    underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 8,
+                heat               = 8,
         heatfalloff        = 1.8,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],

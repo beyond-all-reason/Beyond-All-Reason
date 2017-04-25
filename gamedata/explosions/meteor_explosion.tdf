@@ -7,7 +7,6 @@
    	
 		[properties]
       		{
-		alwaysVisible=1;
 		texture=firenovaexplo;
       		heat = 10;
       		maxheat = 10;
@@ -31,7 +30,6 @@
    	
 		[properties]
       		{
-		alwaysVisible=1;
 		texture=purpleexplo;
       		heat = 10;
       		maxheat = 15;
@@ -54,7 +52,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 
@@ -92,7 +89,6 @@
 	{
 		[properties]
 		{
-		alwaysVisible=1;
 		size=20;
 		color=0.2, 0.1, 0.05;
 		alphaFalloff=2;
@@ -105,7 +101,6 @@
 
 	[groundflash]
    	{
-	alwaysVisible=1;
       	ttl = 17;
       	flashSize = 120;
       	flashAlpha = 0.9;

@@ -6,8 +6,7 @@ return {
   ["genericshellexplosion-small-sparks-burn"] = {
     --groundflash = {
     --  air                = true,
-    --  alwaysvisible      = true,
-    --  flashalpha         = 0.04,
+    --      --  flashalpha         = 0.04,
     --  flashsize          = 50,
     --  ground             = true,
     --  ttl                = 5,
@@ -21,8 +20,7 @@ return {
     --},
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.4,
+            flashalpha         = 0.4,
       flashsize          = 2,
       ground             = true,
       ttl                = 27,
@@ -43,8 +41,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.5,
         maxheat            = 22,
         pos                = [[r-2 r2, 2, r-2 r2]],
@@ -61,8 +58,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
+                colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -90,8 +86,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[1 0.75 0.55 0.04   1 0.5 0.2 0.02   0 0 0 0 ]],
+                colormap           = [[1 0.75 0.55 0.04   1 0.5 0.2 0.02   0 0 0 0 ]],
         directional        = true,
         emitrot            = 15,
         emitrotspread      = 60,
@@ -117,8 +112,7 @@ return {
       underwater         = 1,
       properties = {
         airdrag            = 0.9,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
+                colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -143,8 +137,7 @@ return {
   ["genericshellexplosion-medium-sparks-burn"] = {
     --groundflash = {
     --  air                = true,
-    --  alwaysvisible      = true,
-    --  flashalpha         = 0.048,
+    --      --  flashalpha         = 0.048,
     --  flashsize          = 68,
     --  ground             = true,
     --  ttl                = 8,
@@ -158,8 +151,7 @@ return {
     --},
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.45,
+            flashalpha         = 0.45,
       flashsize          = 2.5,
       ground             = true,
       ttl                = 30,
@@ -180,8 +172,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.45,
         maxheat            = 22,
         pos                = [[r-2 r2, 2.5, r-2 r2]],
@@ -198,8 +189,7 @@ return {
     --  ground             = true,
     --  properties = {
     --    airdrag            = 0.66,
-    --    alwaysvisible      = true,
-    --    colormap           = [[0.8 0.2 0.0 0.35	0.5 0.5 0.0 0.35	0 0 0 0.0]],
+    --        --    colormap           = [[0.8 0.2 0.0 0.35	0.5 0.5 0.0 0.35	0 0 0 0.0]],
     --    directional        = false,
     --    emitrot            = 60,
     --    emitrotspread      = 30,
@@ -225,8 +215,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
+                colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -254,8 +243,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[1 0.75 0.55 0.04   1 0.5 0.2 0.02   0 0 0 0 ]],
+                colormap           = [[1 0.75 0.55 0.04   1 0.5 0.2 0.02   0 0 0 0 ]],
         directional        = true,
         emitrot            = 15,
         emitrotspread      = 60,
@@ -281,8 +269,7 @@ return {
       underwater         = 1,
       properties = {
         airdrag            = 0.9,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
+                colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -314,8 +301,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.4,
         maxheat            = 22,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -327,8 +313,7 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      flashalpha         = 0.5,
+            flashalpha         = 0.5,
       flashsize          = 3,
       ground             = true,
       ttl                = 33,
@@ -347,8 +332,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.2 0.0 0.35	0.5 0.5 0.0 0.35	0 0 0 0.0]],
+                colormap           = [[0.8 0.2 0.0 0.35	0.5 0.5 0.0 0.35	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -374,8 +358,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
+                colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -403,8 +386,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[1 0.75 0.55 0.04   1 0.5 0.2 0.02   0 0 0 0 ]],
+                colormap           = [[1 0.75 0.55 0.04   1 0.5 0.2 0.02   0 0 0 0 ]],
         directional        = true,
         emitrot            = 15,
         emitrotspread      = 60,
@@ -430,8 +412,7 @@ return {
       underwater         = 1,
       properties = {
         airdrag            = 0.9,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
+                colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,

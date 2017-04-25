@@ -6,8 +6,7 @@ return {
   ["factory_explosion_medium"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.6,
+            circlealpha        = 0.6,
       circlegrowth       = 3,
       flashalpha         = 0.9,
       flashsize          = 128,
@@ -28,8 +27,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.95,
-        alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 1.0   0.5 0.4 0.3 1.0      0 0 0 0.0]],
+                colormap           = [[0.1 0.1 0.1 1.0   0.5 0.4 0.3 1.0      0 0 0 0.0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -56,8 +54,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -74,8 +71,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -93,8 +89,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.01,
-        alwaysvisible      = true,
-        color              = 0.1,
+                color              = 0.1,
         pos                = [[r-60 r60, 24, r-60 r60]],
         size               = 25,
         sizeexpansion      = 0.3,
@@ -111,8 +106,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.02,
-        alwaysvisible      = true,
-        color              = 0.8,
+                color              = 0.8,
         pos                = [[r-60 r60, 24, r-60 r60]],
         size               = 25,
         sizeexpansion      = 0.3,
@@ -126,8 +120,7 @@ return {
   ["factory_explosion"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.6,
+            circlealpha        = 0.6,
       circlegrowth       = 6,
       flashalpha         = 0.9,
       flashsize          = 256,
@@ -148,8 +141,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.95,
-        alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 1.0   0.5 0.4 0.3 1.0      0 0 0 0.0]],
+                colormap           = [[0.1 0.1 0.1 1.0   0.5 0.4 0.3 1.0      0 0 0 0.0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -176,8 +168,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -194,8 +185,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -213,8 +203,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.01,
-        alwaysvisible      = true,
-        color              = 0.1,
+                color              = 0.1,
         pos                = [[r-60 r60, 24, r-60 r60]],
         size               = 50,
         sizeexpansion      = 0.6,
@@ -231,8 +220,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.02,
-        alwaysvisible      = true,
-        color              = 0.8,
+                color              = 0.8,
         pos                = [[r-60 r60, 24, r-60 r60]],
         size               = 50,
         sizeexpansion      = 0.6,
@@ -246,8 +234,7 @@ return {
   ["factory_explosion_small"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.6,
+            circlealpha        = 0.6,
       circlegrowth       = 2,
       flashalpha         = 0.9,
       flashsize          = 66,
@@ -268,8 +255,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.95,
-        alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 1.0   0.5 0.4 0.3 1.0      0 0 0 0.0]],
+                colormap           = [[0.1 0.1 0.1 1.0   0.5 0.4 0.3 1.0      0 0 0 0.0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -296,8 +282,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -314,8 +299,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -333,8 +317,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.01,
-        alwaysvisible      = true,
-        color              = 0.1,
+                color              = 0.1,
         pos                = [[r-60 r60, 24, r-60 r60]],
         size               = 12,
         sizeexpansion      = 0.2,
@@ -351,8 +334,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.02,
-        alwaysvisible      = true,
-        color              = 0.8,
+                color              = 0.8,
         pos                = [[r-60 r60, 24, r-60 r60]],
         size               = 12,
         sizeexpansion      = 0.2,

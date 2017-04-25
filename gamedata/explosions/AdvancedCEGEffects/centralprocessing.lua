@@ -9,7 +9,6 @@ return {
       ground             = true,
       properties = {
         alpha              = 0.4,
-        alwaysvisible      = false,
         color              = [[0.0, 0.3, 0.5]],
         expansionspeed     = [[3 r3]],
         ttl                = 20,
@@ -24,7 +23,6 @@ return {
       properties = {
         alpha              = 1,
         alphadecay         = 0.19,
-        alwaysvisible      = false,
         color              = [[0.0, 0.3, 1]],
         dir                = [[-45 r90,-45 r90,-45 r90]],
         length             = 0.4,
@@ -38,7 +36,6 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = false,
         heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 10,

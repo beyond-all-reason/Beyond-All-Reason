@@ -4,8 +4,7 @@ return {
   ["launchsmoke"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.2,
+            circlealpha        = 0.2,
       circlegrowth       = 6,
       flashalpha         = 0.3,
       flashsize          = 100,
@@ -26,8 +25,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.95,
-        alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 1.0	0.5 0.4 0.3 1.0		0 0 0 0.0]],
+                colormap           = [[0.1 0.1 0.1 1.0	0.5 0.4 0.3 1.0		0 0 0 0.0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,

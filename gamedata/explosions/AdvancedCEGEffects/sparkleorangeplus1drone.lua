@@ -11,7 +11,6 @@ return {
       properties = {
         alpha              = 1,
         alphadecay         = 0.19,
-        alwaysvisible      = false,
         color              = [[0.8, 0.6, 0.1]],
         dir                = [[-45 r90,-45 r90,-45 r90]],
         length             = 0.2,
@@ -20,7 +19,6 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = false,
       circlealpha        = 0.0,
       circlegrowth       = 8,
       flashalpha         = 0.9,
@@ -41,7 +39,6 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.2,
-        alwaysvisible      = false,
         colormap           = [[1.0 1.0 1.0 0.04	0.9 0.5 0.2 0.01	0.1 0.1 0.1 0.01]],
         directional        = false,
         emitrot            = 45,
@@ -69,7 +66,6 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = false,
         heat               = 10,
         heatfalloff        = 1.8,
         maxheat            = 10,
@@ -90,7 +86,6 @@ return {
 		class              	= [[CSimpleParticleSystem]],
 		
 		properties = {
-			alwaysvisible      = false,
 			sizeGrowth			= 0,
 			sizeMod				= 1,
 			pos					= [[0, 20, 0]],

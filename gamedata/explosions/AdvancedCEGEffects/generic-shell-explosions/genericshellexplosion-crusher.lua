@@ -10,8 +10,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.3,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -32,8 +31,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[1 0.30000001192093 0.5 0.05	0 0 0 0.0]], -- same as groundflash colors
+                colormap           = [[1 0.30000001192093 0.5 0.05	0 0 0 0.0]], -- same as groundflash colors
         directional        = false,
         emitrot            = 90,
         emitrotspread      = 5,
@@ -55,8 +53,7 @@ return {
 	
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.6,
+            circlealpha        = 0.6,
       circlegrowth       = 6,
       flashalpha         = 0.9,
       flashsize          = 150,
@@ -107,8 +104,7 @@ return {
 	  underwater         = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1.0 1.0 1.0 0.04	0.5 0.0 0.5 0.01	0.1 0.1 0.1 0.011]],
+                colormap           = [[1.0 1.0 1.0 0.04	0.5 0.0 0.5 0.01	0.1 0.1 0.1 0.011]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -136,8 +132,7 @@ return {
       water              = true, 
 	  underwater         = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.1,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],

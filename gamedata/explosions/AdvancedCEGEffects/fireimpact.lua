@@ -4,8 +4,7 @@ return {
   ["fireimpact"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.0,
+            circlealpha        = 0.0,
       circlegrowth       = 9,
       flashalpha         = 0.3,
       flashsize          = 50,
@@ -25,8 +24,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.7,
         maxheat            = 15,
         pos                = [[0, 0, 0]],

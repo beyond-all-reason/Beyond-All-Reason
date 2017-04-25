@@ -63,11 +63,9 @@
 	usedefaultexplosions=0;	
 	[rocks]
 	{
-		alwaysVisible=1;
 		class=CSimpleParticleSystem;
 		[properties]
 		{
-			alwaysVisible=1;
 			sizeGrowth=1.25;
 			sizeMod=1.0;
 			pos=0, 0, 0;
@@ -97,7 +95,6 @@
 		class=CSimpleParticleSystem;
 		[properties]
 		{
-			alwaysVisible=1;
 			sizeGrowth=0.05;
 			sizeMod=1.0;
 			pos=0, 0, 0;

@@ -4,8 +4,7 @@ return {
   ["prettypop"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.0,
+            circlealpha        = 0.0,
       circlegrowth       = 8,
       flashalpha         = 0.9,
       flashsize          = 20,
@@ -25,8 +24,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.2,
-        alwaysvisible      = true,
-        colormap           = [[1.0 1.0 1.0 0.04	1.0 0.0 0.5 0.01	0.1 0.1 0.1 0.01]],
+                colormap           = [[1.0 1.0 1.0 0.04	1.0 0.0 0.5 0.01	0.1 0.1 0.1 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -53,8 +51,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 10,
         pos                = [[r-2 r2, 5, r-2 r2]],

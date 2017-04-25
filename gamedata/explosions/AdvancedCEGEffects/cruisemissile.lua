@@ -2,11 +2,9 @@
 
 return {
   ["cruisemissile"] = {
-    alwaysvisible      = true,
-    groundflash = {
+        groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.5,
+            circlealpha        = 0.5,
       circlegrowth       = 2,
       flashalpha         = 0.5,
       flashsize          = 1000,
@@ -26,8 +24,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.6 0.2 0.01   0 0 0 0.01  0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.6 0.2 0.01   0 0 0 0.01  0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 15,
         emitrotspread      = 90,
@@ -54,8 +51,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.6 0 0.01 0.4 0.4 0.4 0.01  0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.6 0 0.01 0.4 0.4 0.4 0.01  0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -82,8 +78,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.6 0 0.01 0 0 0 0.01  0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.6 0 0.01 0 0 0 0.01  0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 15,
         emitrotspread      = 300,
@@ -110,8 +105,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.6 0 0.01 0.4 0.4 0.4 0.01  0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.6 0 0.01 0.4 0.4 0.4 0.01  0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -133,14 +127,12 @@ return {
     },
     pop1 = {
       air                = true,
-      alwaysvisible      = true,
-      class              = [[heatcloud]],
+            class              = [[heatcloud]],
       count              = 2,
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 5,
+                heat               = 5,
         heatfalloff        = 0.4,
         maxheat            = 5,
         pos                = [[r-10 r10, 0, r-10 r10]],
@@ -152,14 +144,12 @@ return {
     },
     pop2 = {
       air                = true,
-      alwaysvisible      = true,
-      class              = [[heatcloud]],
+            class              = [[heatcloud]],
       count              = 10,
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 5,
+                heat               = 5,
         heatfalloff        = 0.6,
         maxheat            = 8,
         pos                = [[r-150 r150, 0, r-300 r150]],

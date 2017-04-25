@@ -10,8 +10,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1 0.5 0.3 0.3  0.45 0.37 0.3 1  0.45 0.37 0.3 1 0.0 0.0 0.0 0.01 0 0 0 0.01]],
+                colormap           = [[1 0.5 0.3 0.3  0.45 0.37 0.3 1  0.45 0.37 0.3 1 0.0 0.0 0.0 0.01 0 0 0 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 25,
@@ -38,8 +37,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1 0.5 0.3 0.3	 0 0 0 0.01]],
+                colormap           = [[1 0.5 0.3 0.3	 0 0 0 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 25,
@@ -60,8 +58,7 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.3,
+            circlealpha        = 0.3,
       circlegrowth       = 1,
       flashalpha         = 0.9,
       flashsize          = 100,

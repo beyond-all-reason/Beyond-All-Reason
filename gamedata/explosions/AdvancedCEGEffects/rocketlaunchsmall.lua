@@ -4,8 +4,7 @@ return {
   ["rocketlaunchsmall"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.6,
+            circlealpha        = 0.6,
       circlegrowth       = 6,
       flashalpha         = 0.9,
       flashsize          = 120,
@@ -26,8 +25,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.9,
-        alwaysvisible      = true,
-        colormap           = [[0.4 0.4 0.4 0.5   0.4 0.4 0.4 0.3	0.0 0.0 0.0 0.0]],
+                colormap           = [[0.4 0.4 0.4 0.5   0.4 0.4 0.4 0.3	0.0 0.0 0.0 0.0]],
         directional        = false,
         emitrot            = 0,
         emitrotspread      = 20,
@@ -54,8 +52,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.6,
-        alwaysvisible      = true,
-        colormap           = [[0.9 0.4 0.4 0.01   0.4 0.4 0.4 0.01	0.0 0.0 0.0 0.0]],
+                colormap           = [[0.9 0.4 0.4 0.01   0.4 0.4 0.4 0.01	0.0 0.0 0.0 0.0]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 1,

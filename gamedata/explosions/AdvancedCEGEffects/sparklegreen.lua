@@ -11,7 +11,6 @@ return {
       properties = {
         alpha              = 0.5,
         alphadecay         = 0.2,
-        alwaysvisible      = false,
         color              = [[0.1, 0.6, 0.1]],
         dir                = [[-45 r90,-45 r90,-45 r90]],
         length             = 0.004,
@@ -20,8 +19,7 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.0,
+            circlealpha        = 0.0,
       circlegrowth       = 8,
       flashalpha         = 0.15,
       flashsize          = 24,
@@ -41,7 +39,6 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.86,
-        alwaysvisible      = false,
         colormap           = [[0.22 0.9 0.22 0.017  0.15 0.66 0.15 0.01   0.1 0.1 0.1 0.01]],
         directional        = true,
         emitrot            = 10,
@@ -69,8 +66,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+                colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
         directional        = true,
         emitrot            = 9,
         emitrotspread      = 25,
@@ -97,8 +93,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+                colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 10,
@@ -125,8 +120,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[0.07 0.8 0.07 0.017  0.05 0.66 0.05 0.014   0.03 0.55 0.03 0.011   0.1 0.1 0.1 0.01]],
+                colormap           = [[0.07 0.8 0.07 0.017  0.05 0.66 0.05 0.014   0.03 0.55 0.03 0.011   0.1 0.1 0.1 0.01]],
         directional        = true,
         emitrot            = 10,
         emitrotspread      = 20,
@@ -153,8 +147,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-        alwaysvisible      = true,
-        colormap           = [[0.12 1.0 0.12 0.017  0.1 0.88 0.1 0.014   0.07 0.66 0.07 0.011   0.1 0.1 0.1 0.01]],
+                colormap           = [[0.12 1.0 0.12 0.017  0.1 0.88 0.1 0.014   0.07 0.66 0.07 0.011   0.1 0.1 0.1 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 16,
@@ -181,8 +174,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.88,
-        alwaysvisible      = true,
-        colormap           = [[0.04 0.04 0.04 0.055  0.066 0.066 0.066 0.08  0.055 0.055 0.055 0.06  0.03 0.03 0.03 0.033  0 0 0 0]],
+                colormap           = [[0.04 0.04 0.04 0.055  0.066 0.066 0.066 0.08  0.055 0.055 0.055 0.06  0.03 0.03 0.03 0.033  0 0 0 0]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 33,
@@ -209,8 +201,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 0.92,
-        alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
+                colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = -2,
@@ -236,7 +227,6 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = false,
         heat               = 6,
         heatfalloff        = 3,
         maxheat            = 6,

@@ -4,8 +4,7 @@ return {
   ["beam_explosion"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.5,
+            circlealpha        = 0.5,
       circlegrowth       = 10,
       circlesize         = 10,
       flashalpha         = 0.9,
@@ -26,8 +25,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.4,
         maxheat            = 15,
         pos                = [[r-25 r25, 5, r-25 r25]],
@@ -44,8 +42,7 @@ return {
       water              = true,
       properties = {
         agespeed           = 0.04,
-        alwaysvisible      = true,
-        color              = 0.1,
+                color              = 0.1,
         pos                = [[r-3 r3, r-3 r3, r-3 r3]],
         size               = 40,
         sizeexpansion      = 0.9,

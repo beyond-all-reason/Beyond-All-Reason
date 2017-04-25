@@ -22,8 +22,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.9 0.5 0.4 0.04   0.9 0.4 0.1 0.012  0.5 0.1 0.1 0]],
+                colormap           = [[0.9 0.5 0.4 0.04   0.9 0.4 0.1 0.012  0.5 0.1 0.1 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -51,8 +50,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.3,
-        alwaysvisible      = true,
-        colormap           = [[0.7 0.6 0.35 0.16   0.44 0.34 0.06 0.2    0.34 0.17 0 0.15    0.09 0.03 0 0.11     0.05 0.015 0 0.09   0.024 0.012 0 0.065   0.015 0.01 0 0.03   0.012 0.008 0 0.02   0 0 0 0.01]],
+                colormap           = [[0.7 0.6 0.35 0.16   0.44 0.34 0.06 0.2    0.34 0.17 0 0.15    0.09 0.03 0 0.11     0.05 0.015 0 0.09   0.024 0.012 0 0.065   0.015 0.01 0 0.03   0.012 0.008 0 0.02   0 0 0 0.01]],
         directional        = true,
         emitrot            = [[90 i1]],
         emitrotspread      = 6,
@@ -80,8 +78,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.85,
-        alwaysvisible      = true,
-        colormap           = [[0.035 0.035 0.035 0.15  0.09 0.09 0.09 0.14  0.06 0.06 0.06 0.08    0.02 0.02 0.02 0.03    0 0 0 0]],
+                colormap           = [[0.035 0.035 0.035 0.15  0.09 0.09 0.09 0.14  0.06 0.06 0.06 0.08    0.02 0.02 0.02 0.03    0 0 0 0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 4,
@@ -108,8 +105,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.85,
-        alwaysvisible      = true,
-        colormap           = [[0.015 0.015 0.015 0.06  0.04 0.04 0.04 0.066   0.015 0.015 0.015 0.022   0 0 0 0]],
+                colormap           = [[0.015 0.015 0.015 0.06  0.04 0.04 0.04 0.066   0.015 0.015 0.015 0.022   0 0 0 0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 5,

@@ -9,8 +9,7 @@ return {
       ground             = true,
       properties = {
         alpha              = 0.4,
-        alwaysvisible      = true,
-        color              = [[1, 0.3, 0]],
+                color              = [[1, 0.3, 0]],
         expansionspeed     = [[10 r3]],
         ttl                = 5,
       },
@@ -24,8 +23,7 @@ return {
       properties = {
         alpha              = 1,
         alphadecay         = 0.19,
-        alwaysvisible      = true,
-        color              = [[1, 0.3, 0]],
+                color              = [[1, 0.3, 0]],
         dir                = [[-45 r90,-45 r90,-45 r90]],
         length             = 0.1,
         width              = 1,
@@ -33,8 +31,7 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.5,
+            circlealpha        = 0.5,
       circlegrowth       = 4,
       flashalpha         = 0.9,
       flashsize          = 50,
@@ -54,8 +51,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1.0 0.0 1.0 0.04   0.8 0.2 0.2 0.01  0.4 0.2 0.2 0.01]],
+                colormap           = [[1.0 0.0 1.0 0.04   0.8 0.2 0.2 0.01  0.4 0.2 0.2 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -82,8 +78,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.2 0.2 0.01 0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.2 0.2 0.01 0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -110,8 +105,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 0.8,
         maxheat            = 10,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -128,8 +122,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1,
         maxheat            = 15,
         pos                = [[r-3 r3, 5, r-3 r3]],

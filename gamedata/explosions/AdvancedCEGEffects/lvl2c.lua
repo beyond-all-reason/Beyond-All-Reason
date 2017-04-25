@@ -10,8 +10,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1 0.5 0.3 0.3  0.45 0.37 0.3 1  0.45 0.37 0.3 1 0.0 0.0 0.0 0.01 0 0 0 0.01]],
+                colormap           = [[1 0.5 0.3 0.3  0.45 0.37 0.3 1  0.45 0.37 0.3 1 0.0 0.0 0.0 0.01 0 0 0 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 25,
@@ -38,8 +37,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1 0.5 0.3 0.3	 0 0 0 0.01]],
+                colormap           = [[1 0.5 0.3 0.3	 0 0 0 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 25,
@@ -66,8 +64,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.7,
-        alwaysvisible      = true,
-        colormap           = [[0.1 0.1 0.1 1.0	0.3 0.2 0.1 1.0		0 0 0 0.0]],
+                colormap           = [[0.1 0.1 0.1 1.0	0.3 0.2 0.1 1.0		0 0 0 0.0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -96,8 +93,7 @@ return {
       properties = {
         alpha              = 1,
         alphadecay         = 0.19,
-        alwaysvisible      = true,
-        color              = [[1, 0.5, 0.0]],
+                color              = [[1, 0.5, 0.0]],
         dir                = [[-45 r90,-45 r90,-45 r90]],
         length             = 0.1,
         width              = 8,
@@ -105,8 +101,7 @@ return {
     },
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.3,
+            circlealpha        = 0.3,
       circlegrowth       = 5,
       flashalpha         = 0.9,
       flashsize          = 200,
@@ -127,8 +122,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.9 0.8 0.7 0.04	0.9 0.5 0.2 0.01	0.5 0.1 0.1 0.01]],
+                colormap           = [[0.9 0.8 0.7 0.04	0.9 0.5 0.2 0.01	0.5 0.1 0.1 0.01]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,

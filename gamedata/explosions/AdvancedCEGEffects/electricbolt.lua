@@ -153,8 +153,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.2,
         maxheat            = 15,
         pos                = [[r-2 r2, 5, r-2 r2]],

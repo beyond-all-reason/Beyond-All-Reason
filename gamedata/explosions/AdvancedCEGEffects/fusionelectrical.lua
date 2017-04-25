@@ -9,8 +9,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.7,
-        alwaysvisible      = true,
-        colormap           = [[1 1 1 1  1 1 1 1]],
+                colormap           = [[1 1 1 1  1 1 1 1]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 0,

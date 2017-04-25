@@ -6,7 +6,6 @@
    	
 		[properties]
       	{
-            alwaysVisible=1;
             texture=firenovaexplo;
             heat = 10;
             maxheat = 10;
@@ -30,7 +29,6 @@
    	
 		[properties]
       	{
-            alwaysVisible=1;
             texture=purpleexplo;
             heat = 10;
             maxheat = 15;
@@ -53,7 +51,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 
@@ -105,7 +102,6 @@
    	
 		[properties]
       	{
-            alwaysVisible=1;
             texture=firenovaexplo;
             heat = 10;
             maxheat = 10;
@@ -129,7 +125,6 @@
    	
 		[properties]
       	{
-            alwaysVisible=1;
             texture=purpleexplo;
             heat = 10;
             maxheat = 15;
@@ -152,7 +147,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 
@@ -191,7 +185,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 
@@ -244,7 +237,6 @@
    	
 		[properties]
       	{
-            alwaysVisible=1;
             texture=firenovaexplo;
             heat = 10;
             maxheat = 10;
@@ -268,7 +260,6 @@
    	
 		[properties]
       	{
-            alwaysVisible=1;
             texture=purpleexplo;
             heat = 10;
             maxheat = 15;
@@ -291,7 +282,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 
@@ -330,7 +320,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 
@@ -369,7 +358,6 @@
 	class=CSimpleParticleSystem;
 		[properties]
 		{
-		alwaysVisible=1;
 		sizeGrowth=3;
 		sizeMod=1.0;
 

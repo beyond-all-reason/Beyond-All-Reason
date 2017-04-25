@@ -47,7 +47,6 @@ local definitions = {
 	    water              = true,
 	    properties = {
 	      airdrag            = 0,
-	      alwaysvisible      = true,
 	      colormap           = [[0.122 0.066 0.013 0.04   0 0 0 0.01]],
 	      directional        = true,
 	      emitrot            = 90,
@@ -102,7 +101,6 @@ local definitions = {
       ground             = true,
       properties = {
         airdrag            = 0.85,
-        alwaysvisible      = true,
         colormap           = [[0.02 0.02 0.02 0.03  0.045 0.045 0.045 0.07  0.035 0.035 0.035 0.05  0.019 0.019 0.019 0.03  0 0 0 0]],
         directional        = true,
         emitrot            = 45,
@@ -243,7 +241,6 @@ definitions["barrelshot-huge"].flash = {
 		emitRot = 0,
 		emitRotSpread = 180,
 		directional = 1,
-		alwaysVisible = 0,
 	},
 }
 

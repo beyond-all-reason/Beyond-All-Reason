@@ -4,8 +4,7 @@ return {
   ["beamimpact"] = {
     groundflash = {
       air                = true,
-      alwaysvisible      = true,
-      circlealpha        = 0.2,
+            circlealpha        = 0.2,
       circlegrowth       = 4,
       flashalpha         = 0.5,
       flashsize          = 110,
@@ -26,8 +25,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[0.8 0.2 0.8 0.01	0.2 0.2 0.8 0.01	0.0 0.0 0.0 0.01]],
+                colormap           = [[0.8 0.2 0.8 0.01	0.2 0.2 0.8 0.01	0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -54,8 +52,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1,
         maxheat            = 10,
         pos                = [[0, 5, 0]],
@@ -72,8 +69,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 2,
         maxheat            = 15,
         pos                = [[r-3 r3, 5, r-3 r3]],

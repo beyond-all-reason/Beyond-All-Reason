@@ -40,7 +40,6 @@ return {
 		-- ground		= true,
 		-- underwater	= true,
       -- properties = {
-        -- alwaysvisible      = false,
         -- heat               = 5,
         -- heatfalloff        = 0.1,
         -- maxheat            = 10,
@@ -64,7 +63,6 @@ return {
 		ground		= true,
 		underwater	= true,
       properties = {
-        alwaysvisible      = false,
         heat               = 5,
         heatfalloff        = 0.1,
         maxheat            = 10,

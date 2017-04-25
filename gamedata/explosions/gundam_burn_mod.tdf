@@ -6,7 +6,6 @@
 
 		[properties]
 		{
-		alwaysVisible=1;
 		Texture=gunshot;
 
 		colorMap	= 0.9 0.5 0.4 0.04	0.9 0.4 0.1 0.01	0.5 0.1 0.1 0.01;
@@ -81,7 +80,6 @@
 
 		[properties]
 		{
-		alwaysVisible=1;
 		Texture=gunshot;
 
 		colorMap	= 0.9 0.5 0.4 0.04	0.9 0.4 0.1 0.01	0.5 0.1 0.1 0.01;
@@ -157,7 +155,6 @@
 
 		[properties]
 		{
-		alwaysVisible=1;
 		Texture=gunshot;
 
 		colorMap	= 1 1 1 0.04	0.7 0.7 0.8 0.01	0.4 0.4 0.6 0.01;
@@ -233,7 +230,6 @@
 
 		[properties]
 		{
-		alwaysVisible=1;
 		Texture=gunshot;
 
 		colorMap	= 1 1 1 0.04	0.7 0.7 0.8 0.01	0.4 0.4 0.6 0.01;
@@ -309,7 +305,6 @@
 
 		[properties]
 		{
-		alwaysVisible=1;
 		Texture=gunshot;
 
 		colorMap	= 1 1 0.0 0.04	0.8 0.8 0.1 0.01	0.5 0.5 0.1 0.01;
@@ -386,7 +381,6 @@
 
 		[properties]
 		{
-		alwaysVisible=0;
 		Texture=gunshot;
 
 		colorMap	= 1 1 1 0.04	0.6 0.6 0.8 0.01	0.3 0.3 0.6 0.01;

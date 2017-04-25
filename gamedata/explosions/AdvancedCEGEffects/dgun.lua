@@ -10,8 +10,7 @@ return {
       water              = true,
       properties = {
         airdrag            = 0.8,
-        alwaysvisible      = true,
-        colormap           = [[1.0 1.0 1.0 0.04   0.5 0.3 0.0 0.01  0.5 0 0.0 0.01]],
+                colormap           = [[1.0 1.0 1.0 0.04   0.5 0.3 0.0 0.01  0.5 0 0.0 0.01]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -38,8 +37,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
-        alwaysvisible      = true,
-        heat               = 10,
+                heat               = 10,
         heatfalloff        = 1.3,
         maxheat            = 15,
         pos                = [[0, 0, 0]],
