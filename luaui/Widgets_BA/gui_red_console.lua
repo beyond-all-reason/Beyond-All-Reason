@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 	name      = "Red Console", --version 4.1
 	desc      = "Requires Red UI Framework",
-	author    = "Regret",
+	author    = "Regret + doo fix",
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
@@ -10,6 +10,10 @@ function widget:GetInfo()
 	handler   = true, --can use widgetHandler:x()
 	}
 end
+
+-- Doo on 04.27.17: Fixed issue where console would crash for everyone when spec with number name (i.e "23") would send a message starting with "> <"
+
+
 local NeededFrameworkVersion = 8
 local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
@@ -462,7 +466,11 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,3)
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
                 local i = sfind(ssub(line,4,slen(line)), ">")
+			if (i) then
                 name = ssub(line,4,i+2)
+			else
+		name = "unknown"
+			end
             end
 		end		
     end
