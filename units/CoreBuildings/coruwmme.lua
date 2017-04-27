@@ -16,7 +16,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.35,
 		description = "Advanced Metal Extractor / Storage",
-		explodeas = "largeBuildingexplosiongeneric",
+		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",

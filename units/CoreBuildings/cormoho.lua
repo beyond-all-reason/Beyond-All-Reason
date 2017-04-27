@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3500,
 		maxslope = 30,
-		maxwaterdepth = 0,
+		maxwaterdepth = 20,
 		metalstorage = 1000,
 		name = "Moho Mine",
 		objectname = "CORMOHO",

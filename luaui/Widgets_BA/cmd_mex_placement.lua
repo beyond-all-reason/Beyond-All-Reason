@@ -128,7 +128,7 @@ local circleOptions = {
 	circlePieceDetail		= 1,
 	circleSpaceUsage		= 0.45,
 	circleInnerOffset		= 0.42,
-	rotationSpeed				= 1.7,
+	rotationSpeed				= 1.5,
 }
 
 -------------------------------------------------------------------------------------

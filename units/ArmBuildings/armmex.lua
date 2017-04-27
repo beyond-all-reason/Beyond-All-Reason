@@ -26,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 170,
 		maxslope = 30,
-		maxwaterdepth = 0,
+		maxwaterdepth = 20,
 		metalstorage = 50,
 		name = "Metal Extractor",
 		objectname = "ARMMEX",

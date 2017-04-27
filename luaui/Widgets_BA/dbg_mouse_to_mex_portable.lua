@@ -69,7 +69,7 @@ end
 
 function widget:Shutdown()
 	for _, i in pairs (markers) do
-                Spring.MarkerErasePosition (i[1], i[2], i[3])
+    Spring.MarkerErasePosition (i[1], i[2], i[3])
 	end
 	if handle ~= nil then
 		io.close(handle)
