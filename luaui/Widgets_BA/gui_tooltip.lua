@@ -15,7 +15,7 @@ end
 -- Config
 ------------------------------------------------------------------------------------
 
-local defaultDelay = 0.5
+local defaultDelay = 0.4
 local usedFontSize = 13
 local xOffset = 32
 local yOffset = -32-usedFontSize

@@ -65,6 +65,9 @@ local function createList(size)
 		DrawRect(-usedImgSize, 0, 0, usedImgSize)
 		gl.Texture(false)
 	end)
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, "clear mapmarks/drawings")
+	end
 end
 
 local advplayerlistPos = {}
@@ -91,12 +94,6 @@ function widget:Shutdown()
 	end
 end
 
-function widget:PlayerChanged(playerID)
-	if playerID == myPlayerID then
-		
-	end
-end
-
 function widget:DrawScreen()
 	--if spGetGameFrame() == 0 then return end
 	updatePosition()
@@ -106,7 +103,7 @@ function widget:DrawScreen()
 				if mouseover then
 					gl.Color(1,1,1,1)
 				else
-					gl.Color(1,1,1,0.55)
+					gl.Color(1,1,1,0.75)
 				end
 			glCallList(drawlist[1])
 		glPopMatrix()
@@ -136,10 +133,4 @@ function widget:IsAbove(mx, my)
 		mouseover = true
 	end
 	return mouseover
-end
-
-function widget:GetTooltip(mx, my)
-	if widget:IsAbove(mx,my) then
-		return string.format("This buttons clears all mapmarks and drawings.")
-	end
 end
