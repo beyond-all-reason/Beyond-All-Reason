@@ -60,6 +60,7 @@ local cX, cY
 local bgcorner				= LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local white = '\255\255\255\255'
+local grey = '\255\190\190\190'
 local green = '\255\1\255\1'
 local yellow = '\255\255\255\1'
 local orange = '\255\255\128\1'
@@ -79,7 +80,9 @@ local char = string.char
 
 local glColor = gl.Color
 local glText = gl.Text
+local glTexture = gl.Texture
 local glRect = gl.Rect
+local glTexRect = gl.TexRect
 
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetTeamResources = Spring.GetTeamResources
@@ -252,23 +255,33 @@ function widget:DrawScreen()
 	cY = my + yOffset
 	cYstart = cY
 	
-	local text = yellow .. uDef.humanName .. white .. "    " .. uDef.name .. "    (#" .. uID .. " , "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. white .. ")"
+  
+	local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 	
+	local titleFontSize = fontSize*1.12
+  local iconHalfSize = titleFontSize*0.75
 	local cornersize = 0
-	glColor(0,0,0,0.66)
-	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding-cornersize, cY+(fontSize/2)+bgpadding-cornersize, bgcornerSize)
+	glColor(0,0,0,0.75)
+	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
 	cornersize = ceil(bgpadding*0.21)
 	glColor(1,1,1,0.025)
-	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding-cornersize, cY+(fontSize/2)+bgpadding-cornersize, bgcornerSize)
+	RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
 	
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*fontSize)+bgpadding, cY+(fontSize/2)+bgpadding, 'unit_stats_title')
+		WG['guishader_api'].InsertRect(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding, cY+(titleFontSize/2)+bgpadding, 'unit_stats_title')
 	end
 	
-	glColor(1.0, 1.0, 1.0, 1.0)
-	glText(text, cX, cY, fontSize, "o")
-	cY = cY - 2 * fontSize
+	-- icon
+  glColor(1,1,1,1)
+  glTexture('#' .. uDefID)
+  glTexRect(cX, cY+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cY+cornersize+iconHalfSize)
+  glTexture(false)
+  
+  -- title
+	glColor(1,1,1,1)
+	glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cY, titleFontSize, "o")
+	cY = cY - 2 * titleFontSize
 	textBuffer = {}
 	textBufferCount = 0
 
