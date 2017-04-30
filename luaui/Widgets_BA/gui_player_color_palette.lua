@@ -50,7 +50,7 @@ local function GetColor(i, teams)
 	local h = 0
 	--if i > (teams * 0.33) then l = 0.7 end
 	--if i > (teams * 0.66) then l = 0.3 end
-	if teams > 12 then
+	if teams > 10 then
 		if i%3==0 then
 			l = 0.88
 		end
@@ -58,7 +58,7 @@ local function GetColor(i, teams)
 			l = 0.25
 		end
 	else
-		if teams > 8 then
+		if teams > 6 then
 			if i%2==0 then
 				l = 0.8
 			end
@@ -71,14 +71,14 @@ local function GetColor(i, teams)
 	local r,g,b = 0,0,0
 	local hueteams = teams
 	local useHueRGB = true
-	if teams > 9 then
+	if teams > 7 then
 		hueteams = hueteams - 1
 		if i == teams then
 			r,g,b = 0.5, 0.5, 0.5
 			useHueRGB = false
 		end
 	end
-	if teams > 13 then
+	if teams > 11 then
 		hueteams = hueteams - 1
 	 	if i == teams-1 then
 			r,g,b = 0.9, 0.9, 0.9

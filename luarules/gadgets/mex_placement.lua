@@ -42,7 +42,7 @@ local cmdMex = {
 }
 
 local canMex = {}
-for udid, ud in ipairs(UnitDefs) do 
+for udid, ud in ipairs(UnitDefs) do
 	if ud.customParams.area_mex_def then
 		canMex[udid] = true
 	end
