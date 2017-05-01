@@ -881,6 +881,9 @@ local function hideWindows()
 	if (WG['commands'] ~= nil) then
 		WG['commands'].toggle(false)
 	end
+	if (WG['gameinfo'] ~= nil) then
+		WG['gameinfo'].toggle(false)
+	end
 end
 
 local function applyButtonAction(button)

@@ -487,8 +487,27 @@ function lines(str)
   return t
 end
 
+
+local function hideWindows()
+	if (WG['options'] ~= nil) then
+		WG['options'].toggle(false)
+	end
+	if (WG['changelog'] ~= nil) then
+		WG['changelog'].toggle(false)
+	end
+	if (WG['keybinds'] ~= nil) then
+		WG['keybinds'].toggle(false)
+	end
+	if (WG['commands'] ~= nil) then
+		WG['commands'].toggle(false)
+	end
+end
+
 function toggle()
 	show = not show
+	if show then
+		hideWindows()
+	end
 end
 
 function widget:Initialize()
@@ -505,6 +524,9 @@ function widget:Initialize()
 				show = state
 			else
 				show = not show
+			end
+			if show then
+				hideWindows()
 			end
 		end
 		
