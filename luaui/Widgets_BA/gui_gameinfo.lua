@@ -35,7 +35,11 @@ changelogFile = changelogFile .. keycolor.."Size".."    "..valuecolor..Game.mapX
 changelogFile = changelogFile .. keycolor.."Gavity".."    "..valuecolor..Game.gravity.."\n"
 changelogFile = changelogFile .. keycolor.."Hardness".."    "..valuecolor..Game.mapHardness.. keycolor.."\n"
 changelogFile = changelogFile .. keycolor.."Tidal speed".."    "..valuecolor..Game.tidal.. keycolor.."\n"
-changelogFile = changelogFile .. keycolor.."Wind speed".."    "..valuecolor..Game.windMin..valuegreycolor.." - "..valuecolor..Game.windMax.."\n"
+if Game.windMin == Game.windMax then
+	changelogFile = changelogFile .. keycolor.."Wind speed".."    "..valuecolor..(Game.windMin*1.5)..valuegreycolor.."\n"
+else
+	changelogFile = changelogFile .. keycolor.."Wind speed".."    "..valuecolor..(Game.windMin*1.5)..valuegreycolor.." - "..valuecolor..(Game.windMax*1.5).."\n"
+end
 changelogFile = changelogFile .. keycolor.."Water damage".."    "..valuecolor..Game.waterDamage .. keycolor.."\n"
 changelogFile = changelogFile .. "\n"
 
@@ -491,6 +495,8 @@ function widget:Initialize()
 	if changelogFile then
 	
   	widgetHandler:AddAction("customgameinfo", toggle)
+		Spring.SendCommands("unbind any+i gameinfo")
+		Spring.SendCommands("unbind i gameinfo")
 		Spring.SendCommands("bind i customgameinfo")
 
 		WG['gameinfo'] = {}
@@ -520,6 +526,8 @@ end
 
 function widget:Shutdown()
 		Spring.SendCommands("unbind i customgameinfo")
+		Spring.SendCommands("bind any+i gameinfo")
+		Spring.SendCommands("bind i gameinfo")
   	widgetHandler:RemoveAction("customgameinfo", toggle)
   	
     if buttonGL then
