@@ -524,7 +524,7 @@ local function updateResbar(res)
 		
 		-- Icon
 		glColor(1,1,1,1)
-		local iconPadding = (area[4] - area[2]) / 7.5
+		local iconPadding = (area[4] - area[2]) / 9
 		if res == 'metal' then
 			glTexture(LUAUI_DIRNAME.."Images/metal.png")
 		else

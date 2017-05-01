@@ -11,8 +11,6 @@ return {
 }
 end
 
---local show = true
-
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
@@ -25,10 +23,11 @@ local valuecolor = "\255\255\255\255"
 local valuegreycolor = keycolor
 
 local changelogFile = ""
---changelogFile = changelogFile .. keycolor.."Game".."    "..valuecolor..Game.gameName.." "..Game.gameVersion.."\n"
 changelogFile = changelogFile .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
 changelogFile = changelogFile .. keycolor.."Engine".."    "..valuecolor..Game.version.."\n"
 changelogFile = changelogFile .. "\n"
+
+-- map info
 changelogFile = changelogFile .. titlecolor..Game.mapName.."\n"
 changelogFile = changelogFile .. valuegreycolor..Game.mapDescription.."\n"
 changelogFile = changelogFile .. keycolor.."Size".."    "..valuecolor..Game.mapX..valuegreycolor.." x "..valuecolor..Game.mapY.."\n"
@@ -43,17 +42,54 @@ end
 changelogFile = changelogFile .. keycolor.."Water damage".."    "..valuecolor..Game.waterDamage .. keycolor.."\n"
 changelogFile = changelogFile .. "\n"
 
-changelogFile = changelogFile .. titlecolor.."Modoptions\n"
-local modoptions = Spring.GetModOptions()
-for key, value in pairs(modoptions) do
-	changelogFile = changelogFile .. keycolor..key.."    "..valuecolor..value.."\n"
+-- modoptions
+local defaultModoptions = VFS.Include("modoptions.lua")
+local modoptionsDefault = {}
+
+for key, value in pairs(defaultModoptions) do
+	local v = value.def
+	if value.def == false then
+		v = 0
+	elseif value.def == true then
+		v = 1
+	end
+  modoptionsDefault[tostring(value.key)] = tostring(v)
+	--changelogFile = changelogFile .. valuecolor..value.key.."\n"
 end
+-- modoptionsDefault doesnt contain engine modoptions: maxunits, pathfinder, startmetal, startenergy, disablemapdamage, fixedallies
+modoptionsDefault['pathfinder'] = 'normal'
+modoptionsDefault['startmetal'] = '1000'
+modoptionsDefault['startenergy'] = '1000'
+modoptionsDefault['fixedallies'] = '1'
+modoptionsDefault['maxunits'] = '1000'
+modoptionsDefault['disablemapdamage'] = '0'
+
+local modoptions = Spring.GetModOptions()
+local vcolor = valuegreycolor
+local changedModoptionCount = 0
+local changedModoptions = {}
+local unchangedModoptions = {}
+for key, value in pairs(modoptions) do
+	if value == modoptionsDefault[key] then
+		unchangedModoptions[key] = value
+	else
+		changedModoptions[key] = value
+	end
+end
+changelogFile = changelogFile .. titlecolor.."Mod options\n"
+for key, value in pairs(changedModoptions) do
+	changelogFile = changelogFile .. valuecolor..key.."    "..valuecolor..value.."\n"
+end
+for key, value in pairs(unchangedModoptions) do
+	changelogFile = changelogFile .. valuegreycolor..key.."    "..valuegreycolor..value.."\n"
+end
+
 
 local bgMargin = 6
 
 local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
-local screenWidth = 550-bgMargin-bgMargin
+local screenWidth = 520-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
