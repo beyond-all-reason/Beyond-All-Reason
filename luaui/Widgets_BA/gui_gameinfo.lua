@@ -1,11 +1,11 @@
 
 function widget:GetInfo()
 return {
-	name    = "Commands info",
-	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
+	name    = "Game info",
+	desc    = "",
 	author  = "Floris",
-	date    = "August 2015",
-	license = "Dental flush",
+	date    = "May 2017",
+	license = "",
 	layer   = 2,
 	enabled = true,
 }
@@ -18,13 +18,38 @@ local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize
 
 local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 
-local changelogFile = VFS.LoadFile("commandlist.txt")
+		
+local titlecolor = "\255\255\205\100"
+local keycolor = "\255\180\180\180"
+local valuecolor = "\255\255\255\255"
+local valuegreycolor = keycolor
+
+local changelogFile = ""
+--changelogFile = changelogFile .. keycolor.."Game".."    "..valuecolor..Game.gameName.." "..Game.gameVersion.."\n"
+changelogFile = changelogFile .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
+changelogFile = changelogFile .. keycolor.."Engine".."    "..valuecolor..Game.version.."\n"
+changelogFile = changelogFile .. "\n"
+changelogFile = changelogFile .. titlecolor..Game.mapName.."\n"
+changelogFile = changelogFile .. valuegreycolor..Game.mapDescription.."\n"
+changelogFile = changelogFile .. keycolor.."Size".."    "..valuecolor..Game.mapX..valuegreycolor.." x "..valuecolor..Game.mapY.."\n"
+changelogFile = changelogFile .. keycolor.."Gavity".."    "..valuecolor..Game.gravity.."\n"
+changelogFile = changelogFile .. keycolor.."Hardness".."    "..valuecolor..Game.mapHardness.. keycolor.."\n"
+changelogFile = changelogFile .. keycolor.."Tidal speed".."    "..valuecolor..Game.tidal.. keycolor.."\n"
+changelogFile = changelogFile .. keycolor.."Wind speed".."    "..valuecolor..Game.windMin..valuegreycolor.." - "..valuecolor..Game.windMax.."\n"
+changelogFile = changelogFile .. keycolor.."Water damage".."    "..valuecolor..Game.waterDamage .. keycolor.."\n"
+changelogFile = changelogFile .. "\n"
+
+changelogFile = changelogFile .. titlecolor.."Modoptions\n"
+local modoptions = Spring.GetModOptions()
+for key, value in pairs(modoptions) do
+	changelogFile = changelogFile .. keycolor..key.."    "..valuecolor..value.."\n"
+end
 
 local bgMargin = 6
 
 local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
-local screenWidth = 1050-bgMargin-bgMargin
+local screenWidth = 550-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
@@ -256,9 +281,9 @@ end
 
 
 function DrawWindow()
-    local vsx,vsy = Spring.GetViewGeometry()
-    local x = screenX --rightwards
-    local y = screenY --upwards
+  local vsx,vsy = Spring.GetViewGeometry()
+  local x = screenX --rightwards
+  local y = screenY --upwards
 	
 	-- background
     gl.Color(0,0,0,0.8)
@@ -280,7 +305,7 @@ function DrawWindow()
 	gl.PopMatrix()
 	
 	-- title
-    local title = "Commmands"
+    local title = "Game info"
 	local titleFontSize = 18
     gl.Color(0,0,0,0.8)
     titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
@@ -318,7 +343,7 @@ function widget:DrawScreen()
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'commandslist')
+			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'gameinfo')
 			--WG['guishader_api'].setBlurIntensity(0.0017)
 			--WG['guishader_api'].setScreenBlur(true)
 		end
@@ -326,7 +351,7 @@ function widget:DrawScreen()
 		
   else
 		if (WG['guishader_api'] ~= nil) then
-			local removed = WG['guishader_api'].RemoveRect('commandslist')
+			local removed = WG['guishader_api'].RemoveRect('gameinfo')
 			if removed then
 				--WG['guishader_api'].setBlurIntensity()
 				WG['guishader_api'].setScreenBlur(false)
@@ -458,11 +483,18 @@ function lines(str)
   return t
 end
 
+function toggle()
+	show = not show
+end
+
 function widget:Initialize()
 	if changelogFile then
+	
+  	widgetHandler:AddAction("customgameinfo", toggle)
+		Spring.SendCommands("bind i customgameinfo")
 
-		WG['commands'] = {}
-		WG['commands'].toggle = function(state)
+		WG['gameinfo'] = {}
+		WG['gameinfo'].toggle = function(state)
 			if state ~= nil then
 				show = state
 			else
@@ -481,12 +513,15 @@ function widget:Initialize()
 		end
 		
 	else
-		Spring.Echo("Commands info: couldn't load the commandslist file")
+		--Spring.Echo("Commands info: couldn't load the commandslist file")
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Shutdown()
+		Spring.SendCommands("unbind i customgameinfo")
+  	widgetHandler:RemoveAction("customgameinfo", toggle)
+  	
     if buttonGL then
         glDeleteList(buttonGL)
         buttonGL = nil
