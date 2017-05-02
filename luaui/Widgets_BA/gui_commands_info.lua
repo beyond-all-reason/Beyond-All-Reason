@@ -238,12 +238,12 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			else
 				-- line
 				font:SetTextColor(fontColorLine)
-				line = "  " .. line
+				line = line
 				line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
 				if (fontSizeTitle)*(j+numLines-1) > height then 
 					break;
 				end
-				font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				font:Print(line, x+10, y-(fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
 

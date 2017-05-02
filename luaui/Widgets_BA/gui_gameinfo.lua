@@ -18,28 +18,35 @@ local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 
 		
 local titlecolor = "\255\255\205\100"
-local keycolor = "\255\180\180\180"
+local keycolor = ""
 local valuecolor = "\255\255\255\255"
-local valuegreycolor = keycolor
+local valuegreycolor = "\255\180\180\180"
+local vcolor = valuegreycolor
+local separator = "::"
 
 local changelogFile = ""
 changelogFile = changelogFile .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
-changelogFile = changelogFile .. keycolor.."Engine".."    "..valuecolor..Game.version.."\n"
+changelogFile = changelogFile .. keycolor.."Engine"..separator..valuegreycolor..Game.version.."\n"
 changelogFile = changelogFile .. "\n"
 
 -- map info
 changelogFile = changelogFile .. titlecolor..Game.mapName.."\n"
 changelogFile = changelogFile .. valuegreycolor..Game.mapDescription.."\n"
-changelogFile = changelogFile .. keycolor.."Size".."    "..valuecolor..Game.mapX..valuegreycolor.." x "..valuecolor..Game.mapY.."\n"
-changelogFile = changelogFile .. keycolor.."Gavity".."    "..valuecolor..Game.gravity.."\n"
-changelogFile = changelogFile .. keycolor.."Hardness".."    "..valuecolor..Game.mapHardness.. keycolor.."\n"
-changelogFile = changelogFile .. keycolor.."Tidal speed".."    "..valuecolor..Game.tidal.. keycolor.."\n"
+changelogFile = changelogFile .. keycolor.."Size"..separator..valuegreycolor..Game.mapX..valuegreycolor.." x "..valuegreycolor..Game.mapY.."\n"
+changelogFile = changelogFile .. keycolor.."Gavity"..separator..valuegreycolor..Game.gravity.."\n"
+changelogFile = changelogFile .. keycolor.."Hardness"..separator..valuegreycolor..Game.mapHardness.. keycolor.."\n"
+changelogFile = changelogFile .. keycolor.."Tidal speed"..separator..valuegreycolor..Game.tidal.. keycolor.."\n"
 if Game.windMin == Game.windMax then
-	changelogFile = changelogFile .. keycolor.."Wind speed".."    "..valuecolor..(Game.windMin*1.5)..valuegreycolor.."\n"
+	changelogFile = changelogFile .. keycolor.."Wind speed"..separator..valuegreycolor..(Game.windMin*1.5)..valuegreycolor.."\n"
 else
-	changelogFile = changelogFile .. keycolor.."Wind speed".."    "..valuecolor..(Game.windMin*1.5)..valuegreycolor.." - "..valuecolor..(Game.windMax*1.5).."\n"
+	changelogFile = changelogFile .. keycolor.."Wind speed"..separator..valuegreycolor..(Game.windMin*1.5)..valuegreycolor.."  -  "..valuegreycolor..(Game.windMax*1.5).."\n"
 end
-changelogFile = changelogFile .. keycolor.."Water damage".."    "..valuecolor..Game.waterDamage .. keycolor.."\n"
+if Game.waterDamage == 0 then 
+	vcolor = valuegreycolor
+else
+	vcolor = valuecolor
+end
+changelogFile = changelogFile .. keycolor.."Water damage"..separator..vcolor..Game.waterDamage .. keycolor.."\n"
 changelogFile = changelogFile .. "\n"
 
 -- modoptions
@@ -54,9 +61,8 @@ for key, value in pairs(defaultModoptions) do
 		v = 1
 	end
   modoptionsDefault[tostring(value.key)] = tostring(v)
-	--changelogFile = changelogFile .. valuecolor..value.key.."\n"
 end
--- modoptionsDefault doesnt contain engine modoptions: maxunits, pathfinder, startmetal, startenergy, disablemapdamage, fixedallies
+-- modoptions.lua doesnt contain engine modoptions: maxunits, pathfinder, startmetal, startenergy, disablemapdamage, fixedallies
 modoptionsDefault['pathfinder'] = 'normal'
 modoptionsDefault['startmetal'] = '1000'
 modoptionsDefault['startenergy'] = '1000'
@@ -66,7 +72,6 @@ modoptionsDefault['disablemapdamage'] = '0'
 
 local modoptions = Spring.GetModOptions()
 local vcolor = valuegreycolor
-local changedModoptionCount = 0
 local changedModoptions = {}
 local unchangedModoptions = {}
 for key, value in pairs(modoptions) do
@@ -78,10 +83,10 @@ for key, value in pairs(modoptions) do
 end
 changelogFile = changelogFile .. titlecolor.."Mod options\n"
 for key, value in pairs(changedModoptions) do
-	changelogFile = changelogFile .. valuecolor..key.."    "..valuecolor..value.."\n"
+	changelogFile = changelogFile .. keycolor..key..separator..valuecolor..value.."\n"
 end
 for key, value in pairs(unchangedModoptions) do
-	changelogFile = changelogFile .. valuegreycolor..key.."    "..valuegreycolor..value.."\n"
+	changelogFile = changelogFile .. keycolor..key..separator..valuegreycolor..value.."\n"
 end
 
 
@@ -89,7 +94,7 @@ local bgMargin = 6
 
 local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
-local screenWidth = 520-bgMargin-bgMargin
+local screenWidth = 400-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
@@ -217,8 +222,7 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
-
-
+    
 function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarOffsetTop 		= 18	-- note: wont add the offset to the bottom, only to top
 	local scrollbarOffsetBottom 	= 12	-- note: wont add the offset to the top, only to bottom
@@ -286,9 +290,9 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			end
 			
 			local line = changelogLines[lineKey]
-			if string.find(line, '^/([a-zA-Z0-9]*)') then
-				local cmd = string.match(line, '^/([\+a-zA-Z0-9_-]*)')
-				local descr = string.sub(line, string.len(string.match(line, '^/[a-zA-Z0-9_-]*[ \t]*')))
+			if string.find(line, '::') then
+				local cmd = string.match(line, '^[ \+a-zA-Z0-9_-]*')		-- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
+				local descr = string.sub(line, string.len(string.match(line, '^[ \+a-zA-Z0-9_-]*::'))+1)
 				descr, numLines = font:WrapText(descr, (width - 250 - textRightOffset)*(loadedFontSize/fontSizeLine))
 				if (fontSizeTitle)*(j+numLines-1) > height then 
 					break;
@@ -303,12 +307,12 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			else
 				-- line
 				font:SetTextColor(fontColorLine)
-				line = "  " .. line
+				line = "" .. line
 				line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
 				if (fontSizeTitle)*(j+numLines-1) > height then 
 					break;
 				end
-				font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				font:Print(line, x+10, y-(fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
 
