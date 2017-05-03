@@ -293,7 +293,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			if string.find(line, '::') then
 				local cmd = string.match(line, '^[ \+a-zA-Z0-9_-]*')		-- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
 				local descr = string.sub(line, string.len(string.match(line, '^[ \+a-zA-Z0-9_-]*::'))+1)
-				descr, numLines = font:WrapText(descr, (width - 250 - textRightOffset)*(loadedFontSize/fontSizeLine))
+				descr, numLines = font:WrapText(descr, (width-scrollbarMargin-scrollbarWidth - 250 - textRightOffset)*(loadedFontSize/fontSizeLine))
 				if (fontSizeTitle)*(j+numLines-1) > height then 
 					break;
 				end
@@ -302,13 +302,13 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				font:Print(cmd, x+20, y-fontSizeTitle*j, fontSizeLine, "n")
 				
 				font:SetTextColor(fontColorLine)
-				font:Print(descr, x+230, y-fontSizeTitle*j, fontSizeLine, "n")
+				font:Print(descr, x+250, y-fontSizeTitle*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			else
 				-- line
 				font:SetTextColor(fontColorLine)
 				line = "" .. line
-				line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
+				line, numLines = font:WrapText(line, (width-scrollbarMargin-scrollbarWidth)*(loadedFontSize/fontSizeLine))
 				if (fontSizeTitle)*(j+numLines-1) > height then 
 					break;
 				end
