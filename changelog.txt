@@ -50,7 +50,8 @@ Sea reworked:
 
 --T2--
 - Sea T2 torpedo launcher is back
-- Armcrus plasma weapon changed to a Burst plasma weapon with slower projectile (Should be 3*2 plasma rounds once script gets fixed) -- Not balanced yet/!\
+- Armcrus rescripted: All weapons properly separated: 2 Plasma canons (double barrel) with parralel shots (unit_armcrus_wpn.lua + script + wpn defs) can only shoot same target-- 2 light lasers (front/rear) with halved rate of fire but can shoot both at once and both at different targets -- 1 depthcharge launcher. Max speed decreased, accel and brakerate dereased, turnrate decreased (195 according to formula). Costs increased and same build time (20500e-2500m-19700bt)-- model scaled *1.5
+----Note: The two barrels can somehow still go out of sync even though they should always be able to shoot at the same time-- If the delay between two shots excess 4 frames then the parralel shots effect wont apply. (avoid projectile flying in wrong direction when out of sync)
 - Armmship weapons changed to tracking rockets. Goal is to have a more dynamic gameplay with those. -- Not balanced yet /!\
 
 --Buildings--
