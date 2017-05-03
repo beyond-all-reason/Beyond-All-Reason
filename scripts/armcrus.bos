@@ -78,7 +78,7 @@ RockZ(Func_Var_1, Func_Var_2)
 	Static_Var_7 = get ABS(Static_Var_8);
 	while( Static_Var_7 > 91 )
 	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.016484>;
+		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.025>;
 		wait-for-turn base around z-axis;
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
@@ -190,12 +190,12 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-		turn aftturret to y-axis heading speed <300.000000>;
-		turn aftgun to x-axis <0.000000> - pitch speed <200.000000>;
-		wait-for-turn aftturret around y-axis;
-		wait-for-turn aftgun around x-axis;
-		start-script RestoreDeckLaser();
-		return (1);
+	turn aftturret to y-axis heading speed <300.000000>;
+	turn aftgun to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn aftturret around y-axis;
+	wait-for-turn aftgun around x-axis;
+	start-script RestoreDeckLaser();
+	return (1);
 }
 
 
@@ -203,48 +203,47 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
-		turn foreturret to y-axis heading speed <300.000000>;
-		turn foregun to x-axis <0.000000> - pitch speed <200.000000>;
-		wait-for-turn foreturret around y-axis;
-		wait-for-turn foregun around x-axis;
-		start-script RestoreDeckLaser();
-		return (1);
+	turn foreturret to y-axis heading speed <300.000000>;
+	turn foregun to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn foreturret around y-axis;
+	wait-for-turn foregun around x-axis;
+	start-script RestoreDeckLaser();
+	return (1);
 }
 
 FireWeapon3()
 {
-	
-		show aftflare;
-		sleep 150;
-		hide aftflare;
+	show aftflare;
+	sleep 150;
+	hide aftflare;
 }
 
 
 FireWeapon4()
-	{
-		show foreflare;
-		sleep 150;
-		hide foreflare;
-	}
+{
+	show foreflare;
+	sleep 150;
+	hide foreflare;
+}
 	
 AimFromWeapon3(piecenum)
 {
 	piecenum = aftgun;
 }
 AimFromWeapon4(piecenum)
-	{
-		piecenum = foregun;
-	}
+{
+	piecenum = foregun;
+}
 
 
 QueryWeapon3(piecenum)
-	{
-		piecenum = aftflare;
-	}
+{
+	piecenum = aftflare;
+}
 QueryWeapon4(piecenum)
-	{
-		piecenum = foreflare;
-	}
+{
+	piecenum = foreflare;
+}
 
 	
 AimWeapon5(heading, pitch)
@@ -296,40 +295,31 @@ AimWeapon2(heading, pitch)
 
 FireWeapon1()
 {
-	start-script RockZ(-7, aimDir);
-		show flare2;
-		move barrel2 to z-axis [-2.300000] now;
-		sleep 150;
-		hide flare2;
-		move barrel2 to z-axis [0.000000] speed [1.500000];
+	start-script RockZ(-8.5, aimDir);
+	emit-sfx 1024 + 0 from flare2;
+	move barrel2 to z-axis [-2.300000] now;
+	move barrel2 to z-axis [0.000000] speed [1.500000];
 }
 
 Shot1()
 {
-		show flare2;
-		move barrel2 to z-axis [-2.300000] now;
-		sleep 150;
-		hide flare2;
-		move barrel2 to z-axis [0.000000] speed [1.500000];
+	emit-sfx 1024 + 0 from flare2;
+	move barrel2 to z-axis [-2.300000] now;
+	move barrel2 to z-axis [0.000000] speed [1.500000];
 }
 
 Shot2()
 {
-		show flare1;
-		move barrel1 to z-axis [-2.300000] now;
-		sleep 150;
-		hide flare1;
-		move barrel1 to z-axis [0.000000] speed [1.500000];
+	emit-sfx 1024 + 0 from flare1;
+	move barrel1 to z-axis [-2.300000] now;
+	move barrel1 to z-axis [0.000000] speed [1.500000];
 }
 FireWeapon2()
-
-	{
-		show flare1;
-		move barrel1 to z-axis [-2.300000] now;
-		sleep 150;
-		hide flare1;
-		move barrel1 to z-axis [0.000000] speed [1.500000];
-	}
+{
+	emit-sfx 1024 + 0 from flare1;
+	move barrel1 to z-axis [-2.300000] now;
+	move barrel1 to z-axis [0.000000] speed [1.500000];
+}
 
 
 
