@@ -59,6 +59,18 @@ local options={
         section= 'ba_modes',
     },
     {
+        key    = 'mo_seaplatforms',
+        name   = 'Sea Platforms',
+        desc   = 'Enables or disables the sea platform in Consul/Freaker and Naval Engineers/Seaplanes buildlists',
+        type   = 'list',
+        def    = 'enabled',
+        section= 'ba_modes',
+		items={
+			{key="disabled", name="Disabled", desc=""},
+			{key="enabled", name="Enabled", desc="Enables the sea platform in Consul/Freaker and Naval Engineers/Seaplanes buildlists"},
+		}
+    },
+    {
       key    = "shareddynamicalliancevictory",
       name   = "Dynamic Ally Victory",
       desc   = "Ingame alliance should count for game over condition.",

@@ -58,6 +58,7 @@ Sea reworked:
 - All sea defenses buffed (no more "heavyunits" armor type for ships so all units do default damages unless specified not to)
 - OnHit Impulse on torpedo launchers (will soon be changed to the torpedo slow effect)
 - Bonus damages from plasma batteries to ALL ships
+- Added Sea Platform to Combat/naval engineers as well as t1.5 hovercrafts and seaplane cons.
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)

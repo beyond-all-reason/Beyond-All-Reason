@@ -80,6 +80,22 @@ unitDeaths = {
 			default = 100,
 		},
 	},
+
+	platformboom = {
+		weaponType		   = "Cannon",
+		AreaOfEffect = 48,
+		cameraShake = 180,
+		edgeeffectiveness = 1.0,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundstart = "xplosml3",
+		explosionspeed = 1,
+		explosiongenerator="custom:genericbuildingexplosion-small",
+		damage = {
+			default = 1500,
+			platform = 10000,
+		},
+	},
 	
 	metalmaker = {
 		weaponType		   = "Cannon",

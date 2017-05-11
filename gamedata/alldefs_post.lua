@@ -62,6 +62,42 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
+		if (modOptions.mo_seaplatforms == "enabled") then
+			Spring.Echo("Sea Platforms enabled")
+			
+				for id,unitDef in pairs(UnitDefs) do
+					if unitDef.name == "Platform" then
+						cubeID = id
+					end
+				end
+				for id,unitDef in pairs(UnitDefs) do
+
+					if unitDef.objectname == "CORMLS" then
+						unitDef["buildoptions"][19] = "armcube"
+					end
+					if unitDef.objectname == "ARMMLS" then
+						unitDef["buildoptions"][19] = "armcube"
+					end
+					if unitDef.objectname == "CORCSA" then
+						unitDef["buildoptions"][15] = "armcube"
+					end
+					if unitDef.objectname == "ARMCSA" then
+						unitDef["buildoptions"][15] = "armcube"
+					end
+					if unitDef.objectname == "CONSUL" then
+						unitDef["buildoptions"][23] = "armcube"
+					end
+					if unitDef.objectname == "CORFAST" then
+						unitDef["buildoptions"][23] = "armcube"
+					end
+					if unitDef.objectname == "CORCH" then
+						unitDef["buildoptions"][43] = "armcube"
+					end
+					if unitDef.objectname == "ARMCH" then
+						unitDef["buildoptions"][43] = "armcube"
+					end
+				end
+		end
 		
 		if (modOptions.unitscanreverse == "enabled") then
 			maxReverseVelocity = tonumber(modOptions.maxreversevelocity) or 0.75

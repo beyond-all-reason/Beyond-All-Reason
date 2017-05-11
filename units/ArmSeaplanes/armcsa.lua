@@ -43,7 +43,7 @@ return {
 		workertime = 110,
 		blocking = false,
 		buildoptions = {
-			[[armuwmex"]],
+			[[armuwmex]],
 			[[armap]],
 			[[armaap]],
 			[[armuwmmm]],
