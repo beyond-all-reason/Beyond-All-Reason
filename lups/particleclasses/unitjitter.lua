@@ -253,7 +253,9 @@ function UnitJitter:ReInitialize()
 end
 
 function UnitJitter:CreateParticle()
-  local name = UnitDefs[self.unitDefID].model.name
+  local name = UnitDefs[self.unitDefID].modelname
+    name = UnitDefs[self.unitDefID].model.name
+  end
   self.isS3o = ((name:lower():find("s3o") or name:lower():find("obj")) and true)
   self.teamColor = {spGetTeamColor(self.team)}
   self.firstGameFrame = thisGameFrame
