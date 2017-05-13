@@ -258,7 +258,10 @@ function UnitCloaker:ReInitialize()
 end
 
 function UnitCloaker:CreateParticle()
-  local name = UnitDefs[self.unitDefID].model.name
+  local name = UnitDefs[self.unitDefID].modelname
+  if name == nil then    -- engine < 104 compatibility
+    name = UnitDefs[self.unitDefID].model.name
+  end
   self.isS3o = ((name:lower():find("s3o") or name:lower():find("obj")) and true)
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
