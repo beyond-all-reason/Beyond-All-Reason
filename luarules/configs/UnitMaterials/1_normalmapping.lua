@@ -88,6 +88,11 @@ end
 for i=1,#UnitDefs do
   local udef = UnitDefs[i]
 
+  local modeltype = udef.modeltype
+  local modelpath = udef.modelpath
+  if modeltype == nil then    -- engine < 104 compatibility
+    modeltype = udef.model.type
+    modelpath = udef.model.path
   end
 
   if (udef.customParams.normaltex and VFS.FileExists(udef.customParams.normaltex)) then

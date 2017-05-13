@@ -67,6 +67,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		else
 			for _, featID in pairs(Spring.GetAllFeatures()) do
 				local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
+				if modelpath == nil then    -- engine < 104 compatibility
 					modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].model.path
 				end
 				local featureModel = modelpath:lower()
@@ -106,6 +107,9 @@ if (gadgetHandler:IsSyncedCode()) then
 	--also makes sure subs are underwater
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
+		local modeltype = UnitDefs[unitDefID].modeltype
+		if modeltype == nil then    -- engine < 104 compatibility
+			modeltype = UnitDefs[unitDefID].model.type
 		end
 		if (pieceCollisionVolume[UnitDefs[unitDefID].name]) then
 			local t = pieceCollisionVolume[UnitDefs[unitDefID].name]
@@ -173,6 +177,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
 		local modelpath = FeatureDefs[Spring.GetFeatureDefID(featureID)].modelpath
+		if modelpath == nil then    -- engine < 104 compatibility
 			modelpath = FeatureDefs[Spring.GetFeatureDefID(featureID)].model.path
 		end
 		local featureModel = modelpath:lower()
