@@ -1,6 +1,6 @@
 function Spring.Utilities.IsCurrentVersionNewerThan(rel, dev)
 	-- Argument example, <rel>.0.1-<dev>-g5072695
-	local thisVersion = Game.version
+	local thisVersion = (Game and Game.version) or (Engine and Engine.version) or "Engine version error"
 	local thisRel, thisDev
 	local i = 1
 	for word in thisVersion:gmatch("[^%-]+") do

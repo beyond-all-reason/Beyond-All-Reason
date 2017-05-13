@@ -8,12 +8,7 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local reverseCompat = (Game.version:find('91.0') == 1)
-
 local function IsFeatureInRange(unitID, featureID, range)
-	if reverseCompat then
-		return true
-	end
 	range = range + 100 -- fudge factor
     local x,y,z = Spring.GetFeaturePosition(featureID)
     local ux,uy,uz = Spring.GetUnitPosition(unitID)

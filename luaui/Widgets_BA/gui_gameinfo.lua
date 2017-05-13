@@ -26,7 +26,7 @@ local separator = "::"
 
 local changelogFile = ""
 changelogFile = changelogFile .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
-changelogFile = changelogFile .. keycolor.."Engine"..separator..valuegreycolor..Game.version.."\n"
+changelogFile = changelogFile .. keycolor.."Engine"..separator..valuegreycolor..((Game and Game.version) or (Engine and Engine.version) or "Engine version error").."\n"
 changelogFile = changelogFile .. "\n"
 
 -- map info
