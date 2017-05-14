@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 	name      = "Red Console", --version 4.1
 	desc      = "Requires Red UI Framework",
-	author    = "Regret + doo fix",
+	author    = "Regret",
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
@@ -10,12 +10,11 @@ function widget:GetInfo()
 	handler   = true, --can use widgetHandler:x()
 	}
 end
-
--- Doo on 04.27.17: Fixed issue where console would crash for everyone when spec with number name (i.e "23") would send a message starting with "> <"
-
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = (1 + (vsx*vsy / 4000000))
 
 local NeededFrameworkVersion = 8
-local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 1:1 size)
+local CanvasX,CanvasY = vsx,vsy --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 local SoundIncomingChat  = 'sounds/beep4.wav'
 local SoundIncomingChatVolume = 1.0
@@ -47,10 +46,10 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local Config = {
 	console = {
-		px = 375,py = 35, --default start position
-		sx = 516, --background size
+		px = CanvasX*0.31,py = CanvasY*0.048, --default start position
+		sx = CanvasX*0.4, --background size
 		
-		fontsize = 11.7,
+		fontsize = 12*widgetScale,
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 6,
@@ -58,11 +57,11 @@ local Config = {
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
-		margin = 7, --distance from background border
+		margin = 7*widgetScale, --distance from background border
 		
 		fadetime = 0.25, --fade effect time, in seconds
-		fadedistance = 100, --distance from cursor at which console shows up when empty
-		
+		fadedistance = 100*widgetScale, --distance from cursor at which console shows up when empty
+
 		filterduplicates = true, --group identical lines, f.e. ( 5x Nickname: blahblah)
 		
 		--note: transparency for text not supported yet
@@ -466,11 +465,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,3)
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
                 local i = sfind(ssub(line,4,slen(line)), ">")
-			if (i) then
                 name = ssub(line,4,i+2)
-			else
-		name = "unknown"
-			end
             end
 		end		
     end
@@ -747,12 +742,12 @@ local function updateconsole(g,cfg)
 		g.background.active = false
 		g.lines.active = false
 		g.vars._empty = true
-		g.background.sy = (cfg.minlines*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -cfg.margin
+		g.background.sy = (cfg.minlines*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -(cfg.margin/3.5)
 	else
 		g.background.active = nil --activate
 		g.lines.active = nil --activate
 		g.vars._empty = nil
-		g.background.sy = (count*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -cfg.margin
+		g.background.sy = (count*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -(cfg.margin/3.5)
 	end
 	
 	g.lines.caption = display
@@ -804,7 +799,7 @@ function widget:GetConfigData() --save config
 end
 function widget:SetConfigData(data) --load config
 	if (data.Config ~= nil) then
-		Config.console.px = data.Config.console.px
-		Config.console.py = data.Config.console.py
+		--Config.console.px = data.Config.console.px
+		--Config.console.py = data.Config.console.py
 	end
 end

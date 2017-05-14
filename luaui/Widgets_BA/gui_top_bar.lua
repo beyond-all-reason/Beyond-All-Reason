@@ -29,7 +29,7 @@ local comTexture						= LUAUI_DIRNAME.."Images/comIcon.png"
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
-local xPos = vsx*0.28
+local xPos = vsx*0.3
 local currentWind = 0
 
 local glTranslate				= gl.Translate
@@ -111,8 +111,8 @@ local myLastFrameNum = 0
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
-	widgetScale = (vsy / 734) * 0.775	-- using 734 because redui-console uses this value too
-	xPos = vsx*0.28
+	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
+	xPos = vsx*0.3
 	init()
 end
 
@@ -506,11 +506,11 @@ local function updateResbar(res)
 	
 	resbarDrawinfo[res].textCurrent = {short(r[1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage = {"\255\133\133\133"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textPull = {"\255\200\100\100"..short(r[3]), barArea[1]+(50*widgetScale), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
+	resbarDrawinfo[res].textPull = {"\255\200\100\100"..short(r[3]), barArea[1]+((barArea[3]-barArea[1])*0.2), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
 	resbarDrawinfo[res].textIncome = {"\255\100\200\100"..short(r[4]), barArea[1], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
-	
+
 	dlistResbar[res][1] = glCreateList( function()
-		
+
 		-- background
 		glColor(0,0,0,0.7)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
