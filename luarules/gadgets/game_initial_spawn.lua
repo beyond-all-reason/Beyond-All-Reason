@@ -231,7 +231,17 @@ end
 -- Startpoints
 ----------------------------------------------------------------
 
-function gadget:AllowStartPosition(playerID,teamID,readyState, x,y,z)
+if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
+	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+		return AllowStartPosition(playerID,teamID,readyState, x, y, z)
+	end
+else
+	function gadget:AllowStartPosition(x, y, z, playerID,readyState)
+		return AllowStartPosition(playerID,_,readyState, x, y, z)
+	end
+end
+
+function AllowStartPosition(playerID,teamID,readyState, x, y, z)
     -- readyState:
 	-- 0: player did not place startpoint, is unready 
     -- 1: game starting, player is ready
