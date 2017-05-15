@@ -464,6 +464,7 @@ local function processLine(line,g,cfg,newlinecolor)
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
                 local i = sfind(ssub(line,4,slen(line)), ">")
 				if (i) then
+					name = ssub(line,4,i+2)
 				else
 					name = "unknown"
 				end
