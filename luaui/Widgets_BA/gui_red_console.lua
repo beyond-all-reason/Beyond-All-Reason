@@ -14,8 +14,6 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 4000000))
 
 local NeededFrameworkVersion = 8
-local CanvasX,CanvasY = vsx,vsy --resolution in which the widget was made (for 1:1 size)
---1272,734 == 1280,768 windowed
 local SoundIncomingChat  = 'sounds/beep4.wav'
 local SoundIncomingChatVolume = 1.0
 
@@ -46,10 +44,10 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local Config = {
 	console = {
-		px = CanvasX*0.31,py = CanvasY*0.048, --default start position
-		sx = CanvasX*0.4, --background size
+		px = vsx*0.31,py = vsy*0.048, --default start position
+		sx = vsx*0.4, --background size
 		
-		fontsize = 12*widgetScale,
+		fontsize = 11.5*widgetScale,
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 6,
@@ -118,8 +116,8 @@ end
 
 local function AutoResizeObjects() --autoresize v2
 	if (LastAutoResizeX==nil) then
-		LastAutoResizeX = CanvasX
-		LastAutoResizeY = CanvasY
+		LastAutoResizeX = vsx
+		LastAutoResizeY = vsy
 	end
 	local lx,ly = LastAutoResizeX,LastAutoResizeY
 	local vsx,vsy = Screen.vsx,Screen.vsy
@@ -465,7 +463,10 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,3)
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
                 local i = sfind(ssub(line,4,slen(line)), ">")
-                name = ssub(line,4,i+2)
+				if (i) then
+				else
+					name = "unknown"
+				end
             end
 		end		
     end
@@ -791,9 +792,8 @@ end
 function widget:GetConfigData() --save config
 	if (PassedStartupCheck) then
 		local vsy = Screen.vsy
-		local unscale = CanvasY/vsy --needed due to autoresize, stores unresized variables
-		Config.console.px = console.background.px * unscale
-		Config.console.py = console.background.py * unscale
+		Config.console.px = console.background.px
+		Config.console.py = console.background.py
 		return {Config=Config}
 	end
 end
