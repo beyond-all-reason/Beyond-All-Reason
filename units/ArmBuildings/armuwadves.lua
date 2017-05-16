@@ -24,7 +24,7 @@ return {
 		idletime = 1800,
 		maxdamage = 10500,
 		maxslope = 20,
-		minwaterdepth = 20,
+		maxwaterdepth = 9999,
 		name = "Hardened Energy Storage",
 		objectname = "ARMUWADVES",
 		seismicsignature = 0,

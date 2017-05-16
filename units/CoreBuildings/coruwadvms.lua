@@ -23,7 +23,7 @@ return {
 		idletime = 1800,
 		maxdamage = 10050,
 		maxslope = 20,
-		minwaterdepth = 20,
+		maxwaterdepth = 9999,
 		metalstorage = 10000,
 		name = "Hardened Metal Storage",
 		objectname = "CORUWADVMS",
