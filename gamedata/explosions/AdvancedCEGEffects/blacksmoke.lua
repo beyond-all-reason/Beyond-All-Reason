@@ -9,7 +9,7 @@ return {
 	  underwater		 = false,
       properties = {
         airdrag            = 0.7,
-        --        colormap           = [[1 0.5 0 1.0	1 0.5 0 1.0		0.9 0.4 0 1.0	0.6 0.2 0 1.0	0.3 0.1 0 1.0	0 0 0 1.0	0 0 0 0.5	0 0 0 0.1]],
+                colormap           = [[1 0.5 0 1.0	1 0.5 0 1.0		0.9 0.4 0 1.0	0.6 0.2 0 1.0	0.3 0.1 0 1.0	0 0 0 1.0	0 0 0 0.5	0 0 0 0.1]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -39,7 +39,7 @@ return {
 	  underwater		 = true,
       properties = {
         airdrag            = 0.7,
-        --        colormap           = [[1 1 1 0.5	0.5 0.5 1 0.8	0 0 0 0.0]],
+                colormap           = [[1 1 1 0.5	0.5 0.5 1 0.8	0 0 0 0.0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,

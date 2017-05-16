@@ -169,7 +169,7 @@ return {
       count              = 1,
       ground             = true,
       underwater         = 1,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
                 heat               = 10,
@@ -211,7 +211,7 @@ return {
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
@@ -239,7 +239,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         airdrag            = 1,
