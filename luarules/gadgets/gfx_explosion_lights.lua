@@ -37,9 +37,15 @@ else
 	end
 	
   local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
-  	local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
-    if Script.LuaUI("GadgetWeaponExplosion")  and  (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
-      Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+    if ownerID ~= nil then
+  	    local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
+
+        if Script.LuaUI("GadgetWeaponExplosion")  and  (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
+          Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+        end
+    else
+        -- dont know when this happens and if we should show the explosion...
+        Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
     end
   end
 
