@@ -458,11 +458,11 @@ function widget:DrawWorld()
 		local light = lights[i]
 		local param = light.param
 		if param.gib == nil and param.type == "Cannon"then
-			size = param.glowradius * 0.3
+			size = param.glowradius * 0.28
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
-				local glowOpacity = 0.015 + (size/30000)
-				if glowOpacity > 0.03 then glowOpacity = 0.03 end
+				local glowOpacity = 0.013 + (size/32000)
+				if glowOpacity > 0.027 then glowOpacity = 0.027 end
 				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, glowOpacity)
 				gl.Translate(light.px, light.py, light.pz)
 				gl.Billboard(true)

@@ -29,17 +29,17 @@ local copyLightDefs = {
 		--["commander_blast"           ] = "commander_explosion",
 		["crblmssl"                  ] = "nuke_crblmssl_blast",
 		["nuclear_missile"           ] = "nuke_missile_blast",
-		
+
 		--Nukes
 		["corsilo_crblmssl"          ] = "nuke_crblmssl",
 		["armsilo_nuclear_missile"   ] = "nuke_missile",
-		
+
 		--Emp
 		["armemp_armemp_weapon"      ] = "emp_weapon",
 
 		--Tacnuke
 		["cortron_cortron_weapon"    ] = "tron_weapon",
-		
+
 		--Brthas
 		["corint_core_intimidator"   ] = "berthacannon",
 		["armbrtha_arm_berthacannon" ] = "berthacannon",
@@ -70,7 +70,7 @@ local dynLightDefs = {
 			},
 
 			-- explodeas/selfdestructas lights for various large units
-			["commander_explosion"] = { 
+			["commander_explosion"] = {
 				explosionLightDef = {
 					diffuseColor      = {1.0,                   1.0,                   1.0                  },
 					specularColor     = {1.0 * rgbSpecMults[1], 1.0 * rgbSpecMults[2], 1.0 * rgbSpecMults[3]},
@@ -143,7 +143,7 @@ local dynLightDefs = {
 					ttl             = 100000,
 					ignoreLOS       = false,
 				},
-				
+
 				explosionLightDef = {
 					diffuseColor      = {0.5,                  0.5,                   0.5                  },
 					specularColor     = {0.5 * rgbSpecMults[1], 0.5 * rgbSpecMults[2], 0.5 * rgbSpecMults[3]},
@@ -154,7 +154,7 @@ local dynLightDefs = {
 					altitudeOffset    = 250.0,
 				},
 			},
-		
+
 			-- Arm Stunner / Core Neutron (small nuke) projectiles
 			["emp_weapon"] = {
 				projectileLightDef = {
@@ -197,7 +197,7 @@ local dynLightDefs = {
 			},
 			-- Arm Bertha / Core Intimidator (main barrel) projectiles
 			-- NOTE:
-			--   No lol cannon here way to many lights needed 
+			--   No lol cannon here way to many lights needed
 			["berthacannon"] = {
 				projectileLightDef = {
 					diffuseColor    = {0.8,                   0.6,                   0.0                  },

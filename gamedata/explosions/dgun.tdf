@@ -45,5 +45,5 @@
 		water=1;
 		ground=1;
 		count=5;
-	}		
+	}
 }
