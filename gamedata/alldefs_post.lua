@@ -43,7 +43,7 @@ local vehAccelerationMultiplier = 1.75
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.05
 function UnitDef_Post(name, uDef)
-		
+
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 
