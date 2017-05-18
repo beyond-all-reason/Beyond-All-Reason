@@ -34,11 +34,11 @@ local vehUnits = {
 	-- t2
 	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', tawf114='', trem='',
 }
-local vehAdditionalTurnrate = 50
-local vehTurnrateMultiplier = 0
+local vehAdditionalTurnrate = 25
+local vehTurnrateMultiplier = 1.07
 
-local vehAdditionalAcceleration = 0.04
-local vehAccelerationMultiplier = 1.5
+local vehAdditionalAcceleration = 0.06
+local vehAccelerationMultiplier = 1.66
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.05
