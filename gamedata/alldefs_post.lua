@@ -67,9 +67,9 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- Set reverse velocity
-	if uDef.maxvelocity then
-		uDef.maxreversevelocity = uDef.maxvelocity * 0.45
-	end
+	--if uDef.maxvelocity then
+	--	uDef.maxreversevelocity = uDef.maxvelocity * 0.45
+	--end
 end
 
 
