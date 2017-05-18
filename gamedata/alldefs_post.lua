@@ -24,12 +24,50 @@ SaveDefsToCustomParams = false
 -------------------------
 
 -- process unitdef
+local vehUnits = {
+	-- t1
+	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', tawf013='',
+	-- t2
+	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', consul='',
+	-- t1
+	corcv='', corfav='', corgarp='', corgator='', corlevlr='', cormist='', cormlv='', cormuskrat='', corraid='', corwolv='',
+	-- t2
+	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', tawf114='', trem='',
+}
+local vehAdditionalTurnrate = 50
+local vehTurnrateMultiplier = 0
+
+local vehAdditionalAcceleration = 0.04
+local vehAccelerationMultiplier = 1.5
+
+local vehAdditionalVelocity = 0
+local vehVelocityMultiplier = 1
 function UnitDef_Post(name, uDef)
 		
 	-- Enable default Nanospray
 	uDef.shownanospray = true
-	
+
+	-- improve vehicle movement
+	if vehUnits[name] ~= nil then
+		if uDef.turnrate ~= nil then
+			uDef.turnrate = uDef.turnrate + vehAdditionalTurnrate * vehTurnrateMultiplier
+		end
+
+		if uDef.acceleration ~= nil then
+			uDef.acceleration = uDef.acceleration + vehAdditionalAcceleration * vehAccelerationMultiplier
+		end
+
+		if uDef.maxvelocity ~= nil then
+			uDef.maxvelocity = uDef.maxvelocity + vehAdditionalVelocity * vehVelocityMultiplier
+		end
+	end
+
+	-- Set reverse velocity
+	if uDef.maxvelocity then
+		uDef.maxreversevelocity = uDef.maxvelocity * 0.45
+	end
 end
+
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
@@ -52,6 +90,9 @@ function WeaponDef_Post(name, wDef)
 		end
 	end
 end
+
+
+
 
 
 --------------------------
@@ -97,16 +138,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 						unitDef["buildoptions"][43] = "armcube"
 					end
 				end
-		end
-		
-		if (modOptions.unitscanreverse == "enabled") then
-			maxReverseVelocity = tonumber(modOptions.maxreversevelocity) or 0.75
-			--Set reverse velocity automatically
-			for id,unitDef in pairs(UnitDefs) do
-				if unitDef.maxvelocity then
-					unitDef.maxreversevelocity = unitDef.maxvelocity * maxReverseVelocity
-				end
-			end
 		end
 		
 		if (modOptions.logicalbuildtime == "enabled") then
@@ -179,59 +210,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		elseif (modOptions.mo_transportenemy == "none") then
 			for name, ud in pairs(UnitDefs) do  
 				ud.transportbyenemy = false
-			end
-		end
-		
-		if (modOptions.nonlaggybuildplates == "enabled") then
-			for id,unitDef in pairs(UnitDefs) do
-				if unitDef.usebuildinggrounddecal == true then
-					unitDef.buildinggrounddecaltype = "groundplate.dds"
-				end
-			end
-		end
-		
-		if (modOptions.betterunitmovement == "enabled") then
-			Spring.Echo("[Advanced Unit Movement Modoption] Enabled")
-			additionalTurnrate = tonumber(modOptions.additionalturnrate) or 500
-			turnrateMultiplier = tonumber(modOptions.turnratemultiplier) or 2
-			additionalAcceleration = tonumber(modOptions.additionalacceleration) or 1.25
-			accelerationMultiplier = tonumber(modOptions.accelerationmultiplier) or 1
-			for id,unitDef in pairs(UnitDefs) do
-			
-			--Exclude all aircraft
-				--Spring.Echo(unitDef.turnrate)	
-				if unitDef.turnrate ~= nil and unitDef.canmove == true and unitDef.canfly ~= true then
-					unitDef.turnrate = unitDef.turnrate + additionalTurnrate * turnrateMultiplier
-				end
-				
-				if unitDef.acceleration == nil and unitDef.canmove == true and unitDef.canfly ~= true then
-					--Spring.Echo(unitDef.name)
-					unitDef.acceleration = 1
-				end
-				
-				if unitDef.acceleration ~= nil and unitDef.canmove == true and unitDef.canfly ~= true then
-					unitDef.acceleration = unitDef.acceleration + additionalAcceleration * accelerationMultiplier
-					--Spring.Echo(unitDef.name)
-					--Spring.Echo(unitDef.turnrate)
-					--Spring.Echo(unitDef.acceleration)
-				end
-				
-			--Target aircraft specifically
-				if unitDef.canfly == true then
-				
-				--unitDef.brakerate = 1
-				--unitDef.turnrate = unitDef.turnrate + 1000
-				--unitDef.collide = false
-					
-					if unitDef.hoverattack == true then
-						--unitDef.airhoverfactor = 0.001
-						--unitDef.airstrafe = false
-						--unitDef.maxacc	= 0.1
-					else
-						--unitDef.acceleration = unitDef.acceleration + 5
-						--unitDef.maxacc	= 0.3
-					end
-				end
 			end
 		end
 		

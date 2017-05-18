@@ -191,106 +191,6 @@ local options={
         max    = 220,
         step   = 1,
     },
-
-    {
-       key="ba_enhancements_agility",
-       name="Balanced Annihilation - Gameplay Enhancements: Unit Agility",
-       desc="Balanced Annihilation - Gameplay Enhancements: Unit Agility",
-       type="section",
-    },
-	
-    { 
-		key    = "betterunitmovement",
-		name   = "Advanced Unit Movement and Pathing",
-		desc   = "Adds some presets to units that allow for better pathing and more agile unit movement",		
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_agility",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Adds some presets to units that allow for better pathing and more agile movement"},
-		}
-    },
-	
-    {
-        key    = 'additionalturnrate',
-        name   = 'Added static turnrate amount',
-        desc   = 'Adds a static amount of turnrate to the existing turnrate of all ground based units (Not Aircraft)',
-        type   = 'number',
-        section= 'ba_enhancements_agility',
-        def    = 500,
-        min    = 1,
-        max    = 5000,
-        step   = 1,
-    },
-
-    {
-        key    = 'turnratemultiplier',
-        name   = 'Turnrate multiplier',
-        desc   = 'Adds a multiplier to the default and additional turnrate of all ground based units (Not Aircraft)',
-        type   = 'number',
-        section= 'ba_enhancements_agility',
-        def    = 2,
-        min    = 1,
-        max    = 10,
-        step   = 1,
-    },	
-
-    {
-        key    = 'additionalacceleration',
-        name   = 'Added static acceleration amount',
-        desc   = 'Adds a static amount of acceleration to the existing acceleration of all ground based units (Not Aircraft)',
-        type   = 'number',
-        section= 'ba_enhancements_agility',
-        def    = 500,
-        min    = 1,
-        max    = 5000,
-        step   = 1,
-    },
-
-    {
-        key    = 'accelerationmultiplier',
-        name   = 'Acceleration multiplier',
-        desc   = 'Adds a multiplier to the default and additional acceleration of all ground based units (Not Aircraft)',
-        type   = 'number',
-        section= 'ba_enhancements_agility',
-        def    = 1,
-        min    = 1,
-        max    = 10,
-        step   = 1,
-    },	
-	
-    {
-       key="ba_enhancements_reverse",
-       name="Balanced Annihilation - Gameplay Enhancements: Units Drive in Reverse",
-       desc="Balanced Annihilation - Gameplay Enhancements: Unit Drives in Reverse",
-       type="section",
-    },
-	
-    { 
-		key    = "unitscanreverse",
-		name   = "Allow units to drive backwards",
-		desc   = "Allows units to drive backwards at a percentage of their maximum speed",		
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_reverse",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Allows units to drive backwards at a percentage of their maximum speed"},
-		}
-    },
-	
-    {
-        key    = 'maxreversevelocity',
-        name   = 'Maximum Reverse Speed',
-        desc   = 'Sets the percentage of the unit maximum speed that it can maintain while driving in reverse,',
-        type   = 'number',
-        section= 'ba_enhancements_reverse',
-        def    = 0.51,
-        min    = 0.50,
-        max    = 0.75,
-        step   = 0.01,
-    },	
 	
     {
        key="ba_enhancements_morph",
@@ -396,19 +296,6 @@ local options={
 			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
 		}
   },
-	
-	--{
-	--	key    = "nonlaggybuildplates",
-	--	name   = "Non-Lagging Buildplates",
-	--	desc   = "Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance).",		
-	--	type="list",
-	--	def="disabled",
-	--	section= "ba_enhancements_misc",
-	--	items={
-	--		{key="disabled", name="Disabled", desc=""},
-	--		{key="enabled", name="Enabled", desc="Instead of using a different groundplate for each building, use one groundplate for all of them (results in much better performance)."},
-	--	}
-  --},	
 	
 --Forb's modoptions end here
 	
