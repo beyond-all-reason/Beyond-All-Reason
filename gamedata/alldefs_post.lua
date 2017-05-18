@@ -52,8 +52,9 @@ function UnitDef_Post(name, uDef)
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 
-	-- Improve vehicle movement
+	-- vehicles
 	if vehUnits[name] ~= nil then
+		-- Improve movement
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = uDef.turnrate + vehAdditionalTurnrate * vehTurnrateMultiplier
 		end
@@ -67,9 +68,10 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if uDef.turninplace == 0 then
-			uDef.turninplacespeedlimit = uDef.maxvelocity
+			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.8
 		end
 
+		-- Improve health
 		if uDef.maxdamage ~= nil then
 			uDef.maxdamage = uDef.maxdamage * vehMaxdamageMultiplier
 		end
