@@ -41,13 +41,13 @@ local vehAdditionalAcceleration = 0.04
 local vehAccelerationMultiplier = 1.5
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1
+local vehVelocityMultiplier = 1.05
 function UnitDef_Post(name, uDef)
 		
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 
-	-- improve vehicle movement
+	-- Improve vehicle movement
 	if vehUnits[name] ~= nil then
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = uDef.turnrate + vehAdditionalTurnrate * vehTurnrateMultiplier
