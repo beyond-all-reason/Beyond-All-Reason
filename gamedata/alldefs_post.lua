@@ -34,11 +34,11 @@ local vehUnits = {
 	-- t2
 	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', tawf114='', trem='',
 }
-local vehAdditionalTurnrate = 25
+local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.07
 
 local vehAdditionalAcceleration = 0.06
-local vehAccelerationMultiplier = 1.66
+local vehAccelerationMultiplier = 1.75
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.05
@@ -59,6 +59,10 @@ function UnitDef_Post(name, uDef)
 
 		if uDef.maxvelocity ~= nil then
 			uDef.maxvelocity = uDef.maxvelocity + vehAdditionalVelocity * vehVelocityMultiplier
+		end
+
+		if uDef.turninplace == 0 then
+			uDef.turninplacespeedlimit = uDef.maxvelocity
 		end
 	end
 
