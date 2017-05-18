@@ -24,6 +24,8 @@ SaveDefsToCustomParams = false
 -------------------------
 
 -- process unitdef
+local minimumbuilddistancerange = 155
+
 local vehUnits = {
 	-- t1
 	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', tawf013='',
@@ -64,6 +66,11 @@ function UnitDef_Post(name, uDef)
 		if uDef.turninplace == 0 then
 			uDef.turninplacespeedlimit = uDef.maxvelocity
 		end
+	end
+
+	--Set a minimum for builddistance
+	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
+		uDef.builddistance = minimumbuilddistancerange
 	end
 
 	-- Set reverse velocity
@@ -192,16 +199,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			--Spring.Echo("End Workertime Values----------------------------------------------------------------------------")
 			--Spring.Echo("\n")
 			--Spring.Echo("\n")
-		end
-		
-		if (modOptions.minimumbuilddistance == "enabled") then
-		--Set a minimum for builddistance
-			minimumbuilddistancerange = tonumber(modOptions.minimumbuilddistancerange) or 155
-			for id,unitDef in pairs(UnitDefs) do
-				if unitDef.builddistance ~= nil and unitDef.builddistance < minimumbuilddistancerange then
-					unitDef.builddistance = minimumbuilddistancerange
-				end
-			end
 		end
 
 		-- transporting enemy coms
