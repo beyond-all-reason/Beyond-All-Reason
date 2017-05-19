@@ -545,7 +545,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			icon.texture = "#"..cmd.id*-1
 			if (cmd.params[1]) then
 				icon.options = "o"
-				icon.caption = "      "..cmd.params[1].."  "
+				icon.caption = "     "..cmd.params[1].."  "
 			else
 				icon.caption = nil
 			end
@@ -562,7 +562,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			local s, e = string.find(cmd.tooltip, "Metal cost %d*")
 			local metalCost = string.sub(cmd.tooltip, s + 11, e)
 			local s, e = string.find(cmd.tooltip, "Energy cost %d*")
-		  local energyCost = string.sub(cmd.tooltip, s + 12, e)
+			local energyCost = string.sub(cmd.tooltip, s + 12, e)
 			--local metalColor = "\255\136\197\226"
 			--Spring.Echo('m'..metalCost..'e'..energyCost)
 			
@@ -596,10 +596,10 @@ local function UpdateGrid(g,cmds,ordertype)
 				else
 					-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 					local str = tostring(math.max(metalCost, energyCost))
-					local addedSpaces = "                  "			-- too bad 1 space isnt as wide as 1 number in the used font
+					local addedSpaces = "                 "			-- too bad 1 space isnt as wide as 1 number in the used font
 					local infoNewline = '\n'
 					if largePrice then
-						addedSpaces = "               "			-- too bad 1 space isnt as wide as 1 number in the used font
+						addedSpaces =   "                "			-- too bad 1 space isnt as wide as 1 number in the used font
 						infoNewline = ''
 						metalCost = '  '..metalCost
 						energyCost = '  '..energyCost
