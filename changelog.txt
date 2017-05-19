@@ -9,7 +9,7 @@ Important:
 Balance changes:
 - All Energy and metal prices have been rounded (because buildmenu shows prices)
 - Introduced a minimum (slightly larger) buildrange
-- Vehicle speed 5% increase + accelerate faster and slows less when turning
+- Vehicle speed 4% increase + accelerates faster and slows less when turning
 - Commander torso turnspeed doubled, and dgun reloadspeed reduced 10%
 - Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 - T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)

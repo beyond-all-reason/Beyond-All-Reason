@@ -351,17 +351,20 @@ local function updateComs(forceText)
 		glTexture(comTexture)
 		glTexRect(area[1]+((area[3]-area[1])/2)-sizeHalf, area[2]+((area[4]-area[2])/2)-sizeHalf, area[1]+((area[3]-area[1])/2)+sizeHalf, area[2]+((area[4]-area[2])/2)+sizeHalf)
 		glTexture(false)
-		
+
 		-- Text
 		if gameFrame > 0 or forceText then
+			Spring.Echo('asdasd')
 			local fontsize = (height/2.85)*widgetScale
 			local usedEnemyComs = enemyComs
-			if not spec and receiveCount then
+			if spec then
+				usedEnemyComs = enemyComs
+			elseif receiveCount then
 				usedEnemyComs = enemyComCount
 			else
-				usedEnemyComs = 2		-- dunno why though
+				usedEnemyComs = '?'		-- dunno why it was set as 2 here before
 			end
-			glText('\255\255\000\000'..enemyComs, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
 			fontSize = (height/2.15)*widgetScale
 			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
@@ -999,7 +1002,7 @@ function countComs()
 	comcountChanged = true
 	
 	if spec then
-		-- recount enemy ally team coms
+		-- recount enemy coms
 		enemyComs = 0
 		local allyTeamList = Spring.GetAllyTeamList()
 		for _,allyTeamID in ipairs(allyTeamList) do
