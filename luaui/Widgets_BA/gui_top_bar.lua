@@ -364,10 +364,10 @@ local function updateComs(forceText)
 			else
 				usedEnemyComs = '?'		-- dunno why it was set as 2 here before
 			end
-			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
 			fontSize = (height/2.15)*widgetScale
-			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc')
 		end
 	end)
 	comcountChanged = nil
@@ -408,9 +408,9 @@ local function updateWind()
 		
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
-			glTranslate(12*widgetScale, (height-(36*widgetScale))/2, 0) -- Spacing of icon
+			glTranslate(11*widgetScale, -((height*widgetScale)/4.4), 0) -- Spacing of icon
 			glPushMatrix() -- Blades
-				glTranslate(0, 9*widgetScale, 0)
+				glTranslate(1*widgetScale, 9*widgetScale, 0)
 				glTranslate(oorx, oory, 0)
 	end)
 	
@@ -432,10 +432,11 @@ local function updateWind()
 		glPopMatrix()
 		
 		-- min and max wind
-		local fontsize = (height/3.5)*widgetScale
-		glText("\255\133\133\133"..minWind, area[3]-(2.5*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
-		glText("\255\133\133\133"..maxWind, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
-		
+		local fontsize = (height/3.7)*widgetScale
+		glText("\255\130\130\130"..minWind, area[3]-(2.8*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
+		glText("\255\130\130\130"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+		glText("\255\130\130\130"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+
 	end)
 
 	if WG['tooltip'] ~= nil then
@@ -809,7 +810,7 @@ function widget:DrawScreen()
 		-- current wind
 		if gameFrame > 0 then
 			local fontSize = (height/2.66)*widgetScale
-			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
 		end
 	end
 	
