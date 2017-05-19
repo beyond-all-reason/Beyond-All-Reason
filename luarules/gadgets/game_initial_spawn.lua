@@ -231,15 +231,6 @@ end
 -- Startpoints
 ----------------------------------------------------------------
 
-if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
-	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-		return AllowStartPosition(x, y, z, playerID, readyState)
-	end
-else
-	function gadget:AllowStartPosition(x, y, z, playerID,readyState)
-		return AllowStartPosition(x, y, z, playerID, readyState)
-	end
-end
 
 function AllowStartPosition(x, y, z, playerID, readyState)
     -- readyState:
@@ -318,6 +309,16 @@ function AllowStartPosition(x, y, z, playerID, readyState)
 	end	
 	
 	return true
+end
+
+if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
+	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+		return AllowStartPosition(x, y, z, playerID, readyState)
+	end
+else
+	function gadget:AllowStartPosition(x, y, z, playerID,readyState)
+		return AllowStartPosition(x, y, z, playerID, readyState)
+	end
 end
 
 

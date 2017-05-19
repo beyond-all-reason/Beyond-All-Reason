@@ -108,17 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 
 
-	if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
-		function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-			return AllowStartPosition(playerID,readyState, x, y, z)
-		end
-	else
-		function gadget:AllowStartPosition(x, y, z, playerID,readyState)
-			return AllowStartPosition(playerID,readyState, x, y, z)
-		end
-	end
-
-	function AllowStartPosition(playerID,readyState, x, y, z)
+	function AllowStartPosition(playerID, x, y, z)
 		
 		--Spring.Echo('allowstart',x,z,playerID)
 		for otherplayerID, startPos in pairs(coopStartPoints) do
@@ -158,6 +148,16 @@ if gadgetHandler:IsSyncedCode() then
 		---Spring.Echo('allowstart true',x,z,playerID)
 		   
 	   return true
+	end
+
+	if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
+		function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+			return AllowStartPosition(playerID, x, y, z)
+		end
+	else
+		function gadget:AllowStartPosition(x, y, z, playerID)
+			return AllowStartPosition(playerID, x, y, z)
+		end
 	end
 	
 	function IsSteep(x,z)

@@ -47,6 +47,25 @@ local vehVelocityMultiplier = 1.05
 
 local vehMaxdamageMultiplier = 1.05
 
+
+local kbotUnits = {
+	-- t1
+	armck='', armflea='', armham='', armjeth='', armpw='', armrectr='', armrock='', armwar='',
+	-- t2
+	armaak='', armack='', armamph='', armaser='', armdecom='', armfark='', armfast='', armfboy='', armfido='', armmark='', armmav='', armscab='', armsnipe='', armspid='', armsptk='', armspy='', armvader='', armzues='',
+	-- t1
+	corak='', corck='', corcrash='', cornecro='', corstorm='', corthud='',
+	-- t2
+	commando='', coraak='', coramph='', corcan='', cordecom='', corfast='', corhrk='', cormort='', corpyro='', corroach='', corsktl='', corspec='', corspy='', corsumo='', cortermite='', corvoyr='',
+}
+local kbotAdditionalTurnrate = 0
+local kbotTurnrateMultiplier = 1
+
+local kbotAdditionalAcceleration = 0
+local kbotAccelerationMultiplier = 0.75
+local kbotBrakerateMultiplier = 0.75
+
+
 function UnitDef_Post(name, uDef)
 
 	-- Enable default Nanospray
@@ -54,21 +73,39 @@ function UnitDef_Post(name, uDef)
 
 	-- vehicles
 	if vehUnits[name] ~= nil then
-		-- Improve movement
 		if uDef.turnrate ~= nil then
-			uDef.turnrate = uDef.turnrate + vehAdditionalTurnrate * vehTurnrateMultiplier
+			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
 		end
 
 		if uDef.acceleration ~= nil then
-			uDef.acceleration = uDef.acceleration + vehAdditionalAcceleration * vehAccelerationMultiplier
+			uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
 		end
 
 		if uDef.maxvelocity ~= nil then
-			uDef.maxvelocity = uDef.maxvelocity + vehAdditionalVelocity * vehVelocityMultiplier
+			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
 		end
 
 		if uDef.turninplace == 0 then
-			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.84
+			uDef.turninplacespeedlimit = uDef.maxvelocity * 1
+		end
+	end
+
+	-- kbots
+	if kbotUnits[name] ~= nil then
+		if uDef.turnrate ~= nil then
+			uDef.turnrate = (uDef.turnrate + kbotAdditionalTurnrate) * kbotTurnrateMultiplier
+		end
+
+		if uDef.acceleration ~= nil then
+			uDef.acceleration = (uDef.acceleration + kbotAdditionalAcceleration) * kbotAccelerationMultiplier
+		end
+
+		if uDef.brakerate ~= nil then
+			uDef.brakerate = uDef.brakerate * kbotBrakerateMultiplier
+		end
+
+		if uDef.turninplace ~= 0 then
+			uDef.turninplaceanglelimit = uDef.turninplaceanglelimit * 0.75
 		end
 	end
 
@@ -76,11 +113,6 @@ function UnitDef_Post(name, uDef)
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
 	end
-
-	-- Set reverse velocity
-	--if uDef.maxvelocity then
-	--	uDef.maxreversevelocity = uDef.maxvelocity * 0.45
-	--end
 end
 
 
