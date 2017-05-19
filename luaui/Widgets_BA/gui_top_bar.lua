@@ -255,7 +255,9 @@ local function updateRejoin()
 		glText('\255\225\255\225Catching up', area[1]+((area[3]-area[1])/2), area[2]+barHeight*2+fontsize, fontsize, 'cor')
 		
 	end)
-	WG['tooltip'].AddTooltip('rejoin', area, "Displays the catchup progress")
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip('rejoin', area, "Displays the catchup progress")
+	end
 end
 
 
@@ -366,8 +368,10 @@ local function updateComs(forceText)
 		end
 	end)
 	comcountChanged = nil
-	
-	WG['tooltip'].AddTooltip('coms', area, "\255\215\255\215Commander Counter\n\255\240\240\240Displays the number of ally\nand enemy commanders")
+
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip('coms', area, "\255\215\255\215Commander Counter\n\255\240\240\240Displays the number of ally\nand enemy commanders")
+	end
 end
 
 
@@ -430,8 +434,10 @@ local function updateWind()
 		glText("\255\133\133\133"..maxWind, area[3]-(2.5*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 		
 	end)
-	
-	WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
+
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
+	end
 end
 
 
