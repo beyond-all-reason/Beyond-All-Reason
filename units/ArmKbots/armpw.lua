@@ -130,7 +130,7 @@ return {
 				range = 180,
 				reloadtime = 0.31,
 				rgbcolor = "1 0.95 0.4",
-				size = 1.75,
+				size = 2.4,
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "flashemg",

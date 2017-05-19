@@ -59,11 +59,17 @@ function gadget:RecvLuaMsg(msg, playerID)
     end
 end
 
-function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-    FindSubs(false)
-    return true
+if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
+    function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+        FindSubs(false)
+        return true
+    end
+else
+    function gadget:AllowStartPosition(x,y,z,playerID,readyState)
+        FindSubs(false)
+        return true
+    end
 end
-
 
 function gadget:Initialize()
     -- record a list of which playersIDs are players on which teamID
