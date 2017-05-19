@@ -37,13 +37,13 @@ local vehUnits = {
 	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', tawf114='', trem='',
 }
 local vehAdditionalTurnrate = 0
-local vehTurnrateMultiplier = 1.07
+local vehTurnrateMultiplier = 1.06
 
-local vehAdditionalAcceleration = 0.015
-local vehAccelerationMultiplier = 1.33
+local vehAdditionalAcceleration = 0.01
+local vehAccelerationMultiplier = 1.2
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1.05
+local vehVelocityMultiplier = 1.04
 
 local vehMaxdamageMultiplier = 1.05
 
@@ -86,7 +86,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if uDef.turninplace == 0 then
-			uDef.turninplacespeedlimit = uDef.maxvelocity * 1
+			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.82
 		end
 	end
 
