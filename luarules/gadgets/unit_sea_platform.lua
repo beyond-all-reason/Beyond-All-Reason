@@ -19,6 +19,7 @@ unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
 if unitName == "armcube" then
 --Spring.SetUnitNoDraw(unitID, true)
+Spring.SetUnitBlocking(unitID,false)
 Spring.SetUnitNoSelect(unitID, true)
 Spring.SetUnitNoMinimap(unitID, true)
 GroundHeight[unitID] = Spring.GetGroundHeight(x,z)

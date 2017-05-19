@@ -2,7 +2,7 @@ return {
 	armcube = {
 		acceleration = 0,
 		brakerate = 0,
-		blocking = false,
+		blocking = true,
 		buildangle = 32768,
 		buildcostenergy = 1500,
 		buildcostmetal = 250,
@@ -24,7 +24,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1500,
+		maxdamage = 4500,
 		maxslope = 200000,
 		minwaterdepth = 1,
 		name = "Platform",
@@ -35,7 +35,7 @@ return {
 		waterline = 0,
 		--script = "armcube.lua",
 		usebuildinggrounddecal = false,
-		yardmap = "yyyy",
+		yardmap = "oooo",
 		featuredefs = {
 			dead = {
 				blocking = true,

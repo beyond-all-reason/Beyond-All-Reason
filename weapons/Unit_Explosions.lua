@@ -83,7 +83,7 @@ unitDeaths = {
 
 	platformboom = {
 		weaponType		   = "Cannon",
-		AreaOfEffect = 48,
+		AreaOfEffect = 24,
 		cameraShake = 180,
 		edgeeffectiveness = 1.0,
 		impulseboost = impulseboost,
@@ -92,7 +92,7 @@ unitDeaths = {
 		explosionspeed = 1,
 		explosiongenerator="custom:genericbuildingexplosion-small",
 		damage = {
-			default = 1500,
+			default = 1000,
 			platform = 10000,
 		},
 	},
