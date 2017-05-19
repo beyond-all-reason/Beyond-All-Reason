@@ -39,8 +39,8 @@ local vehUnits = {
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.05
 
-local vehAdditionalAcceleration = 0.06
-local vehAccelerationMultiplier = 1.66
+local vehAdditionalAcceleration = 0.045
+local vehAccelerationMultiplier = 1.5
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.05
@@ -68,12 +68,7 @@ function UnitDef_Post(name, uDef)
 		end
 
 		if uDef.turninplace == 0 then
-			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.8
-		end
-
-		-- Improve health
-		if uDef.maxdamage ~= nil then
-			uDef.maxdamage = uDef.maxdamage * vehMaxdamageMultiplier
+			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.77
 		end
 	end
 
