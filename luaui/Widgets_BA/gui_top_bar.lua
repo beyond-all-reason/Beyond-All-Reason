@@ -354,7 +354,6 @@ local function updateComs(forceText)
 
 		-- Text
 		if gameFrame > 0 or forceText then
-			Spring.Echo('asdasd')
 			local fontsize = (height/2.85)*widgetScale
 			local usedEnemyComs = enemyComs
 			if spec then

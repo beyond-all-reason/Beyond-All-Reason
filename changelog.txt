@@ -98,7 +98,6 @@ Other:
 - Removed right column on options menu to allow a 3rd column of options
 - Bloomshader: prettier and more pronounced, offers 2 levels (cheap/expensive) via options widget
 - Pausescreen changed and darkens screen or decolorizes it when shaders enabled
-- Various random deathsounds introduced
 - Changelog widget: version shortcuts only show for every 10th version number
 - 10% darker GUI background elements
 - Spiced up 'Buildbar' and 'Selected Unit Buttons' widgets
