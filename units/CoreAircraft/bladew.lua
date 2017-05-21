@@ -36,7 +36,7 @@ return {
 		usesmoothmesh = 0,
 		blocking = false,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

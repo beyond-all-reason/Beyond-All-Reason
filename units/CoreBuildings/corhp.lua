@@ -49,7 +49,7 @@ return {
 			[7] = "corthovr",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

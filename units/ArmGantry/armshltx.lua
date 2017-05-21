@@ -47,7 +47,7 @@ return {
 			[5] = "armlun",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			armshlt_dead = {

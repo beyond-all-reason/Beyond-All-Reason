@@ -60,7 +60,7 @@ return {
 			[14] = "armatl",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armuwmme",
 		},
 		featuredefs = {

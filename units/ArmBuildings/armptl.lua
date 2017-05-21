@@ -29,7 +29,7 @@ return {
 		sightdistance = 300,
 		yardmap = "ooooooooo",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

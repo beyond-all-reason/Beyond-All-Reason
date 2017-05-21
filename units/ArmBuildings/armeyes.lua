@@ -32,7 +32,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dragonseyes_dead = {

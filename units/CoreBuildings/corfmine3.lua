@@ -39,7 +39,7 @@ return {
 		stealth = true,
 		waterline = 1,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

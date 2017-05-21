@@ -52,7 +52,7 @@ return {
 			[8] = "armflea",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

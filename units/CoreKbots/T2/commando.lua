@@ -56,7 +56,7 @@ return {
 			[7] = "corjamt",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

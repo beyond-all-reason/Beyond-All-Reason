@@ -34,7 +34,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

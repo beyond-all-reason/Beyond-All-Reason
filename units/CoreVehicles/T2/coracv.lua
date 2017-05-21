@@ -78,7 +78,7 @@ return {
 			[28] = "coravp",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "cormoho",
 		},
 		featuredefs = {

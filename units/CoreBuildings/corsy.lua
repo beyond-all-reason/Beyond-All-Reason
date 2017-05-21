@@ -48,7 +48,7 @@ return {
 			[9] = "correcl",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

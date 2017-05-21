@@ -49,7 +49,7 @@ return {
 			[9] = "armrecl",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

@@ -43,7 +43,7 @@ return {
 		workertime = 0,
 		yardmap = "ooooooooo",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {},
 		sfxtypes = { 

@@ -48,7 +48,7 @@ return {
 			[4] = "armcroc",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			armshlt_dead = {

@@ -38,7 +38,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooo ooooooo ooooooo ooooooo",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

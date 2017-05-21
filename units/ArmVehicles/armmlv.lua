@@ -62,7 +62,7 @@ return {
 			[4] = "armeyes",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

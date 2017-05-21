@@ -55,7 +55,7 @@ return {
 			[7] = "armaser",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

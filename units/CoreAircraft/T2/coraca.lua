@@ -73,7 +73,7 @@ return {
 			[28] = "corplat",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "cormoho",
 		},
 		sfxtypes = { 

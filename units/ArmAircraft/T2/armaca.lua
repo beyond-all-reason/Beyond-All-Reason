@@ -74,7 +74,7 @@ return {
 			[29] = "armplat",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armmoho",
 		},
 		sfxtypes = { 

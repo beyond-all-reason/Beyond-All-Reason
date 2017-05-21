@@ -57,7 +57,7 @@ return {
 			[12] = "armjam",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

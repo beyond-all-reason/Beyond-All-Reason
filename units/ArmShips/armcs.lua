@@ -66,7 +66,7 @@ return {
 			[20] = "armplat",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armuwmex",
 		},
 		featuredefs = {

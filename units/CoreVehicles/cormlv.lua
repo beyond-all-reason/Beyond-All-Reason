@@ -62,7 +62,7 @@ return {
 			[4] = "coreyes",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

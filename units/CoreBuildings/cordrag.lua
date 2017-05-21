@@ -36,7 +36,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			rockteeth = {

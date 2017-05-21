@@ -47,7 +47,7 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

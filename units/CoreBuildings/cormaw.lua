@@ -39,7 +39,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

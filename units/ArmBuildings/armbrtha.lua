@@ -32,7 +32,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooo",
 		customparams = {
-			death_sounds = "generic",
+			
 			canareaattack = 1,
 		},
 		featuredefs = {

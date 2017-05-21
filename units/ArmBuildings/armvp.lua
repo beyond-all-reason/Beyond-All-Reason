@@ -54,7 +54,7 @@ return {
 			[10] = "armsam",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

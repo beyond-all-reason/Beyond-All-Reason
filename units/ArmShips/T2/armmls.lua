@@ -62,7 +62,7 @@ return {
 			[18] = "armfmine3",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armuwmex",
 		},
 		featuredefs = {

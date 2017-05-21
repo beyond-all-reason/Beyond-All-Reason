@@ -59,7 +59,7 @@ return {
 			[[armason]],
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armuwmex",
 		},
 		sfxtypes = { 

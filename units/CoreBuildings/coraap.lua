@@ -50,7 +50,7 @@ return {
 			[8] = "corcrw",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

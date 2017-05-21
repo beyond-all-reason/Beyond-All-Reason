@@ -61,7 +61,7 @@ return {
 			[17] = "commando",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

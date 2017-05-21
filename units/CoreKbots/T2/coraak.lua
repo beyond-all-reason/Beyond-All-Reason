@@ -33,7 +33,7 @@ return {
 		turnrate = 912,
 		upright = true,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

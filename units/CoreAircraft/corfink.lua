@@ -34,7 +34,7 @@ return {
 		turnrate = 770,
 		blocking = false,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

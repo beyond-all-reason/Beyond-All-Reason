@@ -34,7 +34,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

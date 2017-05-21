@@ -55,7 +55,7 @@ return {
 			[10] = "cormist",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

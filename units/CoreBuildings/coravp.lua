@@ -58,7 +58,7 @@ return {
 			[14] = "corvrad",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

@@ -51,7 +51,7 @@ return {
 			[5] = "corparrow",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

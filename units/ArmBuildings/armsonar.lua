@@ -35,7 +35,7 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

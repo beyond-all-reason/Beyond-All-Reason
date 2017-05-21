@@ -42,7 +42,7 @@ return {
 			[6] = "corhunt",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

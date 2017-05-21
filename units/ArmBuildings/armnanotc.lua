@@ -42,7 +42,7 @@ return {
 		useBuildingGroundDecal = true,
 		workertime = 200,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

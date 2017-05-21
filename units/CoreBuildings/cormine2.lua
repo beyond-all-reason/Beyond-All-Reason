@@ -39,7 +39,7 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

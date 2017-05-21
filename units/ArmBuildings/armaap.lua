@@ -52,7 +52,7 @@ return {
 			[10] = "armcybr",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

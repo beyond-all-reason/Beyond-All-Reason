@@ -49,7 +49,7 @@ return {
 			[6] = "corcrash",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

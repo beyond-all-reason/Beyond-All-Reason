@@ -75,7 +75,7 @@ return {
 			[28] = "coralab",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "cormoho",
 		},
 		featuredefs = {

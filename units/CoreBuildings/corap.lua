@@ -51,7 +51,7 @@ return {
 			[6] = "bladew",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

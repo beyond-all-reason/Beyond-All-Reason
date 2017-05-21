@@ -50,7 +50,7 @@ return {
 			[6] = "corsok",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

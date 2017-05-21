@@ -27,7 +27,7 @@ return {
 		waterline = 24,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

@@ -48,7 +48,7 @@ return {
 			[6] = "armthovr",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

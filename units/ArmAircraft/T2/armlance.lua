@@ -32,7 +32,7 @@ return {
 		sightdistance = 455,
 		turnrate = 462,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

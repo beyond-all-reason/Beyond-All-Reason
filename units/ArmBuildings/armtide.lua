@@ -34,7 +34,7 @@ return {
 		waterline = 10,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

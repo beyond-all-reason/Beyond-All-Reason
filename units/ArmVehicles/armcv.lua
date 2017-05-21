@@ -81,7 +81,7 @@ return {
 			[30] = "armsy",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armmex",
 		},
 		featuredefs = {

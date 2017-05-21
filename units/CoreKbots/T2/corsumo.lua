@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 0.495,
 		turnrate = 320,
 		customparams = {
-			death_sounds = "generic",
+			
 			paralyzemultiplier = 0.5,
 		},
 		featuredefs = {

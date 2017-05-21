@@ -37,7 +37,7 @@ return {
 			}, 
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 	},
 }

@@ -43,7 +43,7 @@ return {
 		turnrate = 420,
 		blocking = false,
 		customparams = {
-			death_sounds = "generic",
+			
 			paralyzemultiplier = 0.025,
 		},
 		sfxtypes = { 

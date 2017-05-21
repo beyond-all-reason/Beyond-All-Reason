@@ -90,7 +90,7 @@ return {
 			[42] = "armptl",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armmex",
 		},
 		featuredefs = {

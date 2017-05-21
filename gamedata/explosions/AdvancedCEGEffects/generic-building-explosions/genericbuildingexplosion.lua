@@ -370,61 +370,61 @@ local sizes = {
       properties = {
         numparticles       = 14,
         particlelifespread = 8,
-        particlesize       = 1.5,
-        particlesizespread = 3.5,
+        particlesize       = 1.75,
+        particlesizespread = 3.75,
         particlespeedspread = 2,
 	  	}
 	  },
     fireglow = {
       properties = {
-        particlesize       = 13,
+        particlesize       = 14,
         particlelife       = 11,
       }
     },
     fireglow2 = {
       properties = {
-        particlesize       = 30,
+        particlesize       = 33,
         particlelife       = 14,
       }
     },
     sparks = {
       properties = {
 	    	numparticles = 20,
-        particlespeed      = 0.9,
-        particlespeedspread = 2.8,
+        particlespeed      = 1,
+        particlespeedspread = 2.9,
 	   	}
     },
     dirt = {
       properties = {
 	    	numparticles = 40,
         particlelifespread = 13,
-        particlespeed      = 2.5,
-        particlespeedspread = 3.4,
+        particlespeed      = 2.75,
+        particlespeedspread = 3.6,
 	   	}
     },
     dirt2 = {
       properties = {
 	    	numparticles = 20,
-        particlelifespread = 16,
-        particlespeed      = 2.5,
-        particlespeedspread = 4,
+        particlelifespread = 17,
+        particlespeed      = 2.66,
+        particlespeedspread = 4.3,
 	   	}
     },
     clouddust = {
       properties = {
         numparticles       = 2,
       	particlelifespread = 280,
-        particlesize       = 30,
-        particlesizespread = 50,
+        particlesize       = 33,
+        particlesizespread = 55,
       }
     },
     grounddust = {
       properties = {
         numparticles       = 25,
         particlelifespread = 65,
-        particlesize       = 3.6,
+        particlesize       = 3.8,
         particlesizespread = 2,
-        particlespeed      = 2.1,
+        particlespeed      = 2.25,
         particlespeedspread = 0.9,
 	   	}
     },
@@ -432,7 +432,7 @@ local sizes = {
       properties = {
                 heat               = 10,
         maxheat            = 30,
-        size               = 8.5,
+        size               = 8.8,
       },
     },
 	},

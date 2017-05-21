@@ -61,7 +61,7 @@ return {
 			[18] = "armmark",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

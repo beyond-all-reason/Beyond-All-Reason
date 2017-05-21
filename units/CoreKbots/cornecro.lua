@@ -44,7 +44,7 @@ return {
 		upright = true,
 		workertime = 200,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {
