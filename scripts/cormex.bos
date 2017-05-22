@@ -101,6 +101,7 @@ Create()
 	Static_Var_1 = 500;
 	Static_Var_2 = 80;
 	Static_Var_3 = 160;
+	move arms to y-axis [-1.75] now;
 	dont-shade arms;
 	dont-shade hand1;
 	dont-shade hand2;
