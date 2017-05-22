@@ -122,7 +122,7 @@ return {
 				model = "missile",
 				name = "GuidedMissiles",
 				noselfdamage = true,
-				range = 360,
+				range = 530,
 				reloadtime = 1.5,
 				smoketrail = false,
 				soundhit = "xplosml2",
