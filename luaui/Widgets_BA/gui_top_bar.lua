@@ -554,15 +554,22 @@ local function updateResbar(res)
 		
 	dlistResbar[res][2] = glCreateList( function()
 		-- Metalmaker Conversion slider
-		if showConversionSlider and res == 'energy' then 
-			local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
+		if showConversionSlider and res == 'energy' then
+            local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
+            if draggingConversionIndicator ~= nil and draggingConversionIndicatorValue ~= nil then
+                convValue = draggingConversionIndicatorValue/100
+            end
 			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 			glTexture(barbg)
 			glColor(0.85, 0.85, 0.55, 1)
 			glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
 		end
 		-- Share slider
-		shareIndicatorArea[res] = {barArea[1]+(r[6] * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(r[6] * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
+        local value = r[6]
+        if draggingShareIndicator~= nil and draggingShareIndicator == res and draggingShareIndicatorValue ~= nil then
+            value = draggingShareIndicatorValue
+        end
+		shareIndicatorArea[res] = {barArea[1]+(value * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(value * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 		glTexture(barbg)
 		glColor(0.8, 0, 0, 1)
 		glTexRect(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4])
@@ -671,9 +678,9 @@ end
 
 
 function widget:GameFrame(n)
-  windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
-	gameFrame = n
-	functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
+    windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
+    gameFrame = n
+    functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 end
 
 
@@ -864,13 +871,15 @@ local function adjustSliders(x, y)
 		if shareValue < 0 then shareValue = 0 end
 		if shareValue > 1 then shareValue = 1 end
 		Spring.SetShareLevel(draggingShareIndicator, shareValue)
+        draggingShareIndicatorValue = shareValue
 		updateResbar(draggingShareIndicator)
 	end
 	if showConversionSlider and draggingConversionIndicator and not spec then
-		local convValue = (x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100
+		local convValue = math.floor((x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100)
 		if convValue < 12 then convValue = 12 end
 		if convValue > 88 then convValue = 88 end
 		Spring.SendLuaRulesMsg(sformat(string.char(137)..'%i', convValue))
+        draggingConversionIndicatorValue = convValue
 		updateResbar('energy')
 	end
 end
@@ -957,7 +966,7 @@ end
 function widget:MouseRelease(x, y, button)
 	if draggingShareIndicator ~= nil then
 		adjustSliders(x, y)
-		draggingShareIndicator = nil
+        draggingShareIndicator = nil
 	end
 	if draggingConversionIndicator ~= nil then
 		adjustSliders(x, y)
