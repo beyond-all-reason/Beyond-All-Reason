@@ -79,6 +79,7 @@ return {
 			[28] = "armjamt",
 			[29] = "ajuno",
 			[30] = "armsy",
+			[31] = "armwinold",
 		},
 		customparams = {
 			

@@ -723,10 +723,13 @@ function widget:Update(dt)
 		countComs()
 	end
 	if not spec and receiveCount then	-- check if we have received a TeamRulesParam from the gadget part
-		enemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
-		if enemyComCount ~= prevEnemyComCount then
-			comcountChanged = true
-			prevEnemyComCount = enemyComCount
+		local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+		if type(newEnemyComCount) == 'number' then
+			enemyComCount = newEnemyComCount
+			if enemyComCount ~= prevEnemyComCount then
+				comcountChanged = true
+				prevEnemyComCount = enemyComCount
+			end
 		end
 	end
 	if comcountChanged then
