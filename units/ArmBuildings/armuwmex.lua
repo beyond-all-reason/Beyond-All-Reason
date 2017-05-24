@@ -16,6 +16,7 @@ return {
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "mediumBuildingexplosiongeneric",
+		extractsmetal = 0.001,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",
@@ -34,7 +35,6 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
-			
 			metal_extractor = 1,
 		},
 		featuredefs = {

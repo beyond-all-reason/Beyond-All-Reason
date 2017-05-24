@@ -21,6 +21,7 @@ return {
 		damagemodifier = 0.3,
 		description = "Armed Moho Metal Extractor",
 		explodeas = "hugeBuildingexplosiongeneric",
+		extractsmetal = 0.004,
 		footprintx = 5,
 		footprintz = 5,
 		icontype = "building",
@@ -40,7 +41,6 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			
 			metal_extractor = 4,
 		},
 		featuredefs = {

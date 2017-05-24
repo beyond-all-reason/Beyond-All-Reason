@@ -228,19 +228,6 @@ local options={
     --},
 
 	{
-		key    = "luamex_communism",
-		name   = "Communism for Metal Extractors",
-		desc   = "Causes resources obtained via Metal Extractors to be split evenly among all allies.",		
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_misc",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Causes resources obtained via Metal Extractors to be split evenly among all allies"},
-		}
-  },
-
-	{
 		key    = "firethroughfriendly",
 		name   = "Fire Through Friendly Units",
 		desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. Also fixes unit hitspheres. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",
