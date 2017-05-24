@@ -66,7 +66,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-                colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
         directional        = true,
         emitrot            = 9,
         emitrotspread      = 25,
@@ -93,7 +93,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-                colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+        colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 10,
@@ -120,7 +120,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-                colormap           = [[0.07 0.8 0.07 0.017  0.05 0.66 0.05 0.014   0.03 0.55 0.03 0.011   0.1 0.1 0.1 0.01]],
+        colormap           = [[0.07 0.8 0.07 0.017  0.05 0.66 0.05 0.014   0.03 0.55 0.03 0.011   0.1 0.1 0.1 0.01]],
         directional        = true,
         emitrot            = 10,
         emitrotspread      = 20,
@@ -147,7 +147,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 1,
-                colormap           = [[0.12 1.0 0.12 0.017  0.1 0.88 0.1 0.014   0.07 0.66 0.07 0.011   0.1 0.1 0.1 0.01]],
+        colormap           = [[0.12 1.0 0.12 0.017  0.1 0.88 0.1 0.014   0.07 0.66 0.07 0.011   0.1 0.1 0.1 0.01]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 16,
@@ -174,7 +174,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.88,
-                colormap           = [[0.04 0.04 0.04 0.055  0.066 0.066 0.066 0.08  0.055 0.055 0.055 0.06  0.03 0.03 0.03 0.033  0 0 0 0]],
+        colormap           = [[0.04 0.04 0.04 0.055  0.066 0.066 0.066 0.08  0.055 0.055 0.055 0.06  0.03 0.03 0.03 0.033  0 0 0 0]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 33,
@@ -201,7 +201,7 @@ return {
       unit               = false,
       properties = {
         airdrag            = 0.92,
-                colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
+        colormap           = [[0.1 0.1 0.1 0.13 	0 0 0 0.0]],
         directional        = false,
         emitrot            = 90,
         emitrotspread      = -2,

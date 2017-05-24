@@ -65,7 +65,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[1.0 0.0 0.0 0.04   0.8 0.2 0.2 0.01  0.4 0.2 0.2 0.01]],
+        colormap           = [[1.0 0.0 0.0 0.04   0.8 0.2 0.2 0.01  0.4 0.2 0.2 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -92,7 +92,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[0.8 0.2 0.2 0.01 0.0 0.0 0.0 0.01]],
+        colormap           = [[0.8 0.2 0.2 0.01 0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -209,7 +209,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[1.0 0.0 1.0 0.04   0.2 0.2 0.8 0.01  0.2 0.2 0.4 0.01]],
+        colormap           = [[1.0 0.0 1.0 0.04   0.2 0.2 0.8 0.01  0.2 0.2 0.4 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -236,7 +236,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[0.2 0.2 0.8 0.01 0.0 0.0 0.0 0.01]],
+        colormap           = [[0.2 0.2 0.8 0.01 0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -353,7 +353,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[1.0 0.0 1.0 0.04   0.8 0.2 0.8 0.01  0.4 0.2 0.4 0.01]],
+        colormap           = [[1.0 0.0 1.0 0.04   0.8 0.2 0.8 0.01  0.4 0.2 0.4 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -380,7 +380,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[0.8 0.2 0.8 0.01 0.0 0.0 0.0 0.01]],
+        colormap           = [[0.8 0.2 0.8 0.01 0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -497,7 +497,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[0.0 1.0 0.0 0.04   0.2 0.8 0.2 0.01  0.2 0.4 0.2 0.01]],
+        colormap           = [[0.0 1.0 0.0 0.04   0.2 0.8 0.2 0.01  0.2 0.4 0.2 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -524,7 +524,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.8,
-                colormap           = [[0.2 0.8 0.2 0.01 0.0 0.0 0.0 0.01]],
+        colormap           = [[0.2 0.8 0.2 0.01 0.0 0.0 0.0 0.01]],
         directional        = false,
         emitrot            = 45,
         emitrotspread      = 32,

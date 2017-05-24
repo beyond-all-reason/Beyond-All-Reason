@@ -10,7 +10,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.7,
-                colormap           = [[0.25 0.60 0.30 1.0	0 0 0 0.0]],
+        colormap           = [[0.25 0.60 0.30 1.0	0 0 0 0.0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 32,
@@ -40,7 +40,7 @@ return {
       ground             = true,
       properties = {
         airdrag            = 0.7,
-                colormap           = [[0.25 0.60 0.30 1.0	0 0 0 0.0]],
+        colormap           = [[0.25 0.60 0.30 1.0	0 0 0 0.0]],
         directional        = true,
         emitrot            = 0,
         emitrotspread      = 0,

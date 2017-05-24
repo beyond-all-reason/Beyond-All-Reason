@@ -20,10 +20,13 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local windDefs = {
-	[ UnitDefNames['armwin'].id ] = UnitDefs[UnitDefNames['armwin'].id].customParams.windgen,
-	[ UnitDefNames['corwin'].id ] = UnitDefs[UnitDefNames['corwin'].id].customParams.windgen,
-}
+-- searching for units with customparam: windgen
+local windDefs = {}
+for udefID, ud in pairs(UnitDefs) do
+	if ud.customParams ~= nil and ud.customParams.windgen ~= nil then
+		windDefs[udefID] = ud.customParams.windgen
+	end
+end
 
 local windmills = {}
 
@@ -42,7 +45,7 @@ local spAddUnitResource      = Spring.AddUnitResource
 -------------------------------------------------------------------------------------
 
 function gadget:GameFrame(n)
-	if (n % 30 < 0.1) then
+	if (n % 30 == 0) then
 		if (next(windmills)) then
 			local _, _, _, windStrength, _, _, _ = spGetWind()
 			local windEnergy = 0
