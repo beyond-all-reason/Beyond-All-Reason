@@ -3,11 +3,11 @@
 
 function widget:GetInfo()
 	return {
-		name      = "Projectile Lights",
+		name      = "Light Effects",
 		version   = 4,
-		desc      = "Collects projectiles and sends them to the deferred renderer.",
+		desc      = "Creates projectile, laser and explosion lights and sends them to the deferred renderer.",
 		author    = "Floris (original by beherith)",
-		date      = "March 2017",
+		date      = "May 2017",
 		license   = "GPL V2",
 		layer     = 0,
 		enabled   = true
@@ -22,8 +22,8 @@ local spGetVisibleProjectiles     = Spring.GetVisibleProjectiles
 local spGetProjectilePosition     = Spring.GetProjectilePosition
 local spGetProjectileType         = Spring.GetProjectileType
 local spGetProjectileDefID        = Spring.GetProjectileDefID
-local spGetPieceProjectileParams  = Spring.GetPieceProjectileParams 
-local spGetProjectileVelocity     = Spring.GetProjectileVelocity 
+local spGetPieceProjectileParams  = Spring.GetPieceProjectileParams
+local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -54,11 +54,11 @@ local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*
 --------------------------------------------------------------------------------
 
 local projectileLightTypes = {}
-	--[1] red
-	--[2] green
-	--[3] blue
-	--[4] radius
-	--[5] BEAMTYPE, true if BEAM
+--[1] red
+--[2] green
+--[3] blue
+--[4] radius
+--[5] BEAMTYPE, true if BEAM
 
 local explosionLightsCount = 0
 local explosionLights = {}
@@ -81,31 +81,31 @@ local function GetLightsFromUnitDefs()
 	local plighttable = {}
 	for weaponDefID = 1, #WeaponDefs do
 		--These projectiles should have lights:
-			--Cannon (projectile size: tempsize = 2.0f + std::min(wd.customParams.shield_damage * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
-			--Dgun
-			--MissileLauncher
-			--StarburstLauncher
-			--LaserCannon
-			--LightningCannon
-			--BeamLaser
-			--Flame
+		--Cannon (projectile size: tempsize = 2.0f + std::min(wd.customParams.shield_damage * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
+		--Dgun
+		--MissileLauncher
+		--StarburstLauncher
+		--LaserCannon
+		--LightningCannon
+		--BeamLaser
+		--Flame
 		--Shouldnt:
-			--AircraftBomb
-			--Shield
-			--TorpedoLauncher
-		
+		--AircraftBomb
+		--Shield
+		--TorpedoLauncher
+
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
-		
+
 		if customParams.light_skip == nil then
 			local skip = false
-			local lightMultiplier = 0.055
+			local lightMultiplier = 0.066
 			local bMult = 1.6		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 			local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 			local recalcRGB = false
-			
+
 			if (weaponDef.type == 'Cannon') then
 				if customParams.single_hit then
 					weaponData.beamOffset = 1
@@ -113,11 +113,11 @@ local function GetLightsFromUnitDefs()
 				else
 					weaponData.radius = 120 * weaponDef.size
 					if weaponDef.damageAreaOfEffect ~= nil  then
-						weaponData.radius = 120 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
+						weaponData.radius = 130 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
 					end
-					lightMultiplier = 0.018 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
-					if lightMultiplier > 0.07 then
-						lightMultiplier = 0.07
+					lightMultiplier = 0.02 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
+					if lightMultiplier > 0.085 then
+						lightMultiplier = 0.085
 					end
 					recalcRGB = true
 				end
@@ -150,12 +150,12 @@ local function GetLightsFromUnitDefs()
 					weaponData.fadeOffset = 0
 				end
 			end
-			
+
 			if customParams.light_multiplier ~= nil then
-				recalcRGB = true 
+				recalcRGB = true
 				lightMultiplier = lightMultiplier * tonumber(customParams.light_multiplier)
 			end
-			
+
 			-- For long lasers or projectiles
 			if customParams.light_beam_mult then
 				weaponData.beamOffset = 1
@@ -163,43 +163,43 @@ local function GetLightsFromUnitDefs()
 				weaponData.beamMult = tonumber(customParams.light_beam_mult)
 				weaponData.beamMultFrames = tonumber(customParams.light_beam_mult_frames)
 			end
-			
+
 			if customParams.light_fade_time and customParams.light_fade_offset then
 				weaponData.fadeTime = tonumber(customParams.light_fade_time)
 				weaponData.fadeOffset = tonumber(customParams.light_fade_offset)
 			end
-			
+
 			if customParams.light_radius_mult then
 				weaponData.radius = weaponData.radius * tonumber(customParams.light_radius_mult)
 			end
-			
+
 			if customParams.light_radius then
 				weaponData.radius = tonumber(customParams.light_radius)
 			end
-			
+
 			if customParams.light_ground_height then
 				weaponData.groundHeightLimit = tonumber(customParams.light_ground_height)
 			end
-			
+
 			if customParams.light_camera_height then
 				weaponData.cameraHeightLimit = tonumber(customParams.light_camera_height)
 			end
-			
+
 			if customParams.light_beam_start then
 				weaponData.beamStartOffset = tonumber(customParams.light_beam_start)
 			end
-			
+
 			if customParams.light_beam_offset then
 				weaponData.beamOffset = tonumber(customParams.light_beam_offset)
 			end
-			
+
 			if customParams.light_color then
 				local colorList = Split(customParams.light_color, " ")
 				r = colorList[1]
 				g = colorList[2]
 				b = colorList[3]*bMult
 			end
-			
+
 			if recalcRGB or globalLightMult ~= 1 or globalLightMultLaser ~= 1 then
 				local laserMult = 1
 				if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
@@ -209,23 +209,23 @@ local function GetLightsFromUnitDefs()
 				weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult * laserMult
 				weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult * laserMult
 			end
-			
-			
+
+
 			if (weaponDef.type == 'Cannon') then
 				weaponData.glowradius = weaponData.radius
 			end
-			
+
 			weaponData.radius = weaponData.radius * globalRadiusMult
 			if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
 				weaponData.radius = weaponData.radius * globalRadiusMultLaser
 			end
-			
+
 			if weaponData.radius > 0 and not customParams.fake_weapon and skip == false then
 				plighttable[weaponDefID] = weaponData
 			end
 		end
 	end
-	
+
 	return plighttable
 end
 
@@ -268,11 +268,11 @@ local function ProjectileLevelOfDetailCheck(param, proID, fps, height)
 			return false
 		end
 	end
-	
+
 	if param.beam then
 		return true
 	end
-	
+
 	if fps < 60 then
 		local fraction = fps/60
 		local ratio = 1/fraction
@@ -284,7 +284,7 @@ end
 local function GetBeamLights(lightParams, pID, x, y, z)
 	local deltax, deltay, deltaz = spGetProjectileVelocity(pID) -- for beam types, this returns the endpoint of the beam]
 	local timeToLive
-	
+
 	if lightParams.beamMult then
 		local mult = lightParams.beamMult
 		if lightParams.beamMultFrames then
@@ -296,12 +296,12 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 		end
 		deltax, deltay, deltaz = mult*deltax, mult*deltay, mult*deltaz
 	end
-	
+
 	if y + deltay < -800 then
 		-- The beam has fallen through the world
 		deltax, deltay, deltaz = InterpolateBeam(x, y, z, deltax, deltay, deltaz)
 	end
-	
+
 	if lightParams.beamOffset then
 		local m = lightParams.beamOffset
 		x, y, z = x - deltax*m, y - deltay*m, z - deltaz*m
@@ -309,44 +309,44 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 	if lightParams.beamStartOffset then
 		local m = lightParams.beamStartOffset
 		x, y, z = x + deltax*m, y + deltay*m, z + deltaz*m
-		deltax, deltay, deltaz = deltax*(1 - m), deltay*(1 - m), deltaz*(1 - m) 
+		deltax, deltay, deltaz = deltax*(1 - m), deltay*(1 - m), deltaz*(1 - m)
 	end
-	
+
 	local light = {
 		pID = pID,
-		px = x, py = y, pz = z, 
-		dx = deltax, dy = deltay, dz = deltaz, 
+		px = x, py = y, pz = z,
+		dx = deltax, dy = deltay, dz = deltaz,
 		param = (doOverride and overrideParam) or lightParams,
 		beam = true
 	}
-	
+
 	if lightParams.fadeTime then
 		timeToLive = timeToLive or Spring.GetProjectileTimeToLive(pID)
 		light.colMult = math.max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
 	else
 		light.colMult = 1
 	end
-	
+
 	return light
 end
 
 local function GetProjectileLight(lightParams, pID, x, y, z)
 	local light = {
 		pID = pID,
-		px = x, py = y, pz = z, 
+		px = x, py = y, pz = z,
 		param = (doOverride and overrideParam) or lightParams
 	}
 	-- Use the following to check heatray fadeout parameters.
 	--local timeToLive = Spring.GetProjectileTimeToLive(pID)
 	--Spring.MarkerAddPoint(x,y,z,timeToLive)
-	
+
 	if lightParams.fadeTime and lightParams.fadeOffset then
 		local timeToLive = Spring.GetProjectileTimeToLive(pID)
 		light.colMult = math.max(0, (timeToLive + lightParams.fadeOffset)/lightParams.fadeTime)
 	else
 		light.colMult = 1
 	end
-	
+
 	return light
 end
 
@@ -357,13 +357,13 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	if (not projectileFade) and projectileCount == 0 then
 		return beamLights, beamLightCount, pointLights, pointLightCount
 	end
-	
+
 	local fps = Spring.GetFPS()
 	local cameraHeight = math.floor(GetCameraHeight()*0.01)*100
 	--Spring.Echo("cameraHeight", cameraHeight, "fps", fps)
 	local projectilePresent = {}
 	local projectileDrawParams = projectileFade and {}
-	
+
 	for i = 1, projectileCount do
 		local pID = projectiles[i]
 		local x, y, z = spGetProjectilePosition(pID)
@@ -407,7 +407,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 			end
 		end
 	end
-	
+
 	local frame = Spring.GetGameFrame()
 	if projectileFade then
 		if previousProjectileDrawParams then
@@ -422,7 +422,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 				end
 			end
 		end
-		
+
 		local i = 1
 		while i <= #fadeProjectiles do
 			local strength = (fadeProjectileTimes[i] - frame)/FADE_TIME
@@ -444,10 +444,10 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 				i = i + 1
 			end
 		end
-		
+
 		previousProjectileDrawParams = projectileDrawParams
 	end
-	
+
 	-- add explosion lights
 	for i, params in pairs(explosionLights) do
 		local progress = 1-((frame-params.frame)/params.life)
@@ -459,7 +459,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 			pointLights[pointLightCount] = params
 		end
 	end
-	
+
 	return beamLights, beamLightCount, pointLights, pointLightCount
 end
 
@@ -469,18 +469,18 @@ for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	--local radius = Spring.GetUnitRadius(unitID)
 	--local mass = Spring.GetUnitMass(unitID)
-	
+
 	local params = {param={type='explosion'}}
 	params.param.r, params.param.g, params.param.b = 1, 0.85, 0.4
 	params.param.radius = 40 * (xsize + zsize)
 	params.life = 20 + (params.param.radius/100)
-	
+
 	params.orgMult = 0.13 + (params.param.radius/1800)
 	if params.orgMult > 0.5 then params.orgMult = 0.5 end
 	local worth = (unitDef.metalCost + (unitDef.energyCost/8)) / 3500
 	params.orgMult = params.orgMult + worth
 	if params.orgMult > 0.8 then params.orgMult = 0.8 end
-	
+
 	unitConf[udid] = params
 end
 
@@ -493,11 +493,11 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
 		params.life = unitConf[unitDefID].life
 		params.orgMult = unitConf[unitDefID].orgMult
 		params.param.radius = unitConf[unitDefID].param.radius
-		
+
 		params.frame = Spring.GetGameFrame()
 		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
 		params.py = params.py + (Spring.GetUnitHeight(unitID) * 1.2)
-		
+
 		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
@@ -507,15 +507,15 @@ end
 
 local weaponConf = {}
 for i=1, #WeaponDefs do
-  local params = {}
+	local params = {}
 	params.r, params.g, params.b = 1, 0.85, 0.45
 	params.radius = WeaponDefs[i].damageAreaOfEffect*4.5
 	params.orgMult = 0.66 + (params.radius/3000)
-  params.life = 14*(0.8+ params.radius/1500)
-  if WeaponDefs[i].type == 'DGun' then
-  	params.orgMult = params.orgMult * 0.7
-  	params.radius = params.radius * 1.2
-  end
+	params.life = 14*(0.8+ params.radius/1500)
+	if WeaponDefs[i].type == 'DGun' then
+		params.orgMult = params.orgMult * 0.7
+		params.radius = params.radius * 1.2
+	end
 	weaponConf[i] = params
 end
 
@@ -526,11 +526,11 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	params.life = weaponConf[weaponID].life
 	params.orgMult = weaponConf[weaponID].orgMult
 	params.param.radius = weaponConf[weaponID].radius
-	
+
 	params.frame = Spring.GetGameFrame()
 	params.px, params.py, params.pz = px, py, pz
 	params.py = params.py + 5 + (params.param.radius/35)
-	
+
 	--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 	explosionLightsCount = explosionLightsCount + 1
 	explosionLights[explosionLightsCount] = params

@@ -638,17 +638,17 @@ function applyOptionValue(i)
 			WG['enemyspotter'].setHighlight(options[i].value)
 		elseif id == 'smartselect_includebuildings' then
 			WG['smartselect'].setIncludeBuildings(options[i].value)
-		elseif id == 'projectilelights' then
+		elseif id == 'lighteffects' then
 			if value ~= 0 then
 				if widgetHandler.orderList["Deferred rendering"] ~= nil then
 					widgetHandler:EnableWidget("Deferred rendering")
 				end
-				widgetHandler:EnableWidget("Projectile Lights")
+				widgetHandler:EnableWidget("Light Effects")
 			else
 				if widgetHandler.orderList["Deferred rendering"] ~= nil then
 					widgetHandler:DisableWidget("Deferred rendering")
 				end
-				widgetHandler:DisableWidget("Projectile Lights")
+				widgetHandler:DisableWidget("Light Effects")
 			end
 		end
 		
@@ -1001,8 +1001,8 @@ function widget:Initialize()
 		{id="guishader", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="mapedgeextension", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnabled shaders for best result'},
 		{id="water", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
-		{id="projectilelights", name="Projectile lights", type="bool", value=widgetHandler.orderList["Projectile Lights"] ~= nil and (widgetHandler.orderList["Projectile Lights"] > 0), description='Projectiles are plasmaballs, rockets and lasers, this will light up the map below them'},
-		{id="lups", widget="LupsManager", name="Lups particle effects", type="bool", value=widgetHandler.orderList["LupsManager"] ~= nil and (widgetHandler.orderList["LupsManager"] > 0), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
+		{id="lighteffects", name="Light Effects", type="bool", value=widgetHandler.orderList["Light Effects"] ~= nil and (widgetHandler.orderList["Light Effects"] > 0), description='Adds lights to projectiles, lasers and explosions.\n\nShaders are required to be enabled.'},
+		{id="lups", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=widgetHandler.orderList["LupsManager"] ~= nil and (widgetHandler.orderList["LupsManager"] > 0), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		{id="xrayshader", widget="XrayShader", name="Unit xray shader", type="bool", value=widgetHandler.orderList["XrayShader"] ~= nil and (widgetHandler.orderList["XrayShader"] > 0), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="outline", widget="Outline", name="Unit Outline (tiny)", type="bool", value=widgetHandler.orderList["Outline"] ~= nil and (widgetHandler.orderList["Outline"] > 0), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
 		{id="disticon", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},

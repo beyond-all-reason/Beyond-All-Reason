@@ -720,8 +720,8 @@ function widget:Update(dt)
 		end
 		
 		-- wind
-    _, _, _, currentWind = spWind()
-    currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+		_, _, _, currentWind = spWind()
+		currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 	end
     
  	-- coms
