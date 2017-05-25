@@ -75,7 +75,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Light Defs
-
 local function GetLightsFromUnitDefs()
 	--Spring.Echo('GetLightsFromUnitDefs init')
 	local plighttable = {}
@@ -113,11 +112,11 @@ local function GetLightsFromUnitDefs()
 				else
 					weaponData.radius = 120 * weaponDef.size
 					if weaponDef.damageAreaOfEffect ~= nil  then
-						weaponData.radius = 130 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.012))
+						weaponData.radius = 120 * ((weaponDef.size*0.4) + (weaponDef.damageAreaOfEffect * 0.025))
 					end
 					lightMultiplier = 0.02 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
-					if lightMultiplier > 0.085 then
-						lightMultiplier = 0.085
+					if lightMultiplier > 0.08 then
+						lightMultiplier = 0.08
 					end
 					recalcRGB = true
 				end
@@ -228,6 +227,9 @@ local function GetLightsFromUnitDefs()
 
 	return plighttable
 end
+
+
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -464,57 +466,17 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 end
 
 
-local unitConf = {}
-for udid, unitDef in pairs(UnitDefs) do
-	local xsize, zsize = unitDef.xsize, unitDef.zsize
-	--local radius = Spring.GetUnitRadius(unitID)
-	--local mass = Spring.GetUnitMass(unitID)
-
-	local params = {param={type='explosion'}}
-	params.param.r, params.param.g, params.param.b = 1, 0.85, 0.4
-	params.param.radius = 40 * (xsize + zsize)
-	params.life = 20 + (params.param.radius/100)
-
-	params.orgMult = 0.13 + (params.param.radius/1800)
-	if params.orgMult > 0.5 then params.orgMult = 0.5 end
-	local worth = (unitDef.metalCost + (unitDef.energyCost/8)) / 3500
-	params.orgMult = params.orgMult + worth
-	if params.orgMult > 0.8 then params.orgMult = 0.8 end
-
-	unitConf[udid] = params
-end
-
-
-function widget:UnitDestroyed(unitID, unitDefID, teamID)
-	local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
-	if buildprogress == 1 then
-		local params = {param={type='explosion'}}
-		params.param.r, params.param.g, params.param.b = unitConf[unitDefID].param.r, unitConf[unitDefID].param.g, unitConf[unitDefID].param.b
-		params.life = unitConf[unitDefID].life
-		params.orgMult = unitConf[unitDefID].orgMult
-		params.param.radius = unitConf[unitDefID].param.radius
-
-		params.frame = Spring.GetGameFrame()
-		params.px, params.py, params.pz = Spring.GetUnitPosition(unitID)
-		params.py = params.py + (Spring.GetUnitHeight(unitID) * 1.2)
-
-		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
-		explosionLightsCount = explosionLightsCount + 1
-		explosionLights[explosionLightsCount] = params
-	end
-end
-
-
 local weaponConf = {}
 for i=1, #WeaponDefs do
 	local params = {}
 	params.r, params.g, params.b = 1, 0.85, 0.45
-	params.radius = WeaponDefs[i].damageAreaOfEffect*4.5
-	params.orgMult = 0.66 + (params.radius/3000)
-	params.life = 14*(0.8+ params.radius/1500)
+	params.radius = WeaponDefs[i].damageAreaOfEffect*5
+	params.orgMult = 0.66 + (params.radius/2400)
+	params.life = 14*(0.8+ params.radius/1200)
 	if WeaponDefs[i].type == 'DGun' then
-		params.orgMult = params.orgMult * 0.7
-		params.radius = params.radius * 1.2
+		params.radius = WeaponDefs[i].damageAreaOfEffect * 1.3
+		params.orgMult = 0.5 + (params.radius/2400)
+		params.life = 14*(0.8+ params.radius/1200)
 	end
 	weaponConf[i] = params
 end

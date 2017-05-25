@@ -237,7 +237,6 @@ unitDeaths = {
 		craterboost = 6,
 		cratermult = 3,
 		edgeeffectiveness = 0.25,
-		range = 380,
 		reloadtime = 3.5999999046326,
 		turret = 1,
 		damage = {
