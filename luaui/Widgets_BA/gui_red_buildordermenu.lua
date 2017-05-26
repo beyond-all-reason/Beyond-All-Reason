@@ -24,6 +24,8 @@ local buttonTexture		     = LUAUI_DIRNAME.."Images/button.dds"
 local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
 local barGlowEdgeTexture   = LUAUI_DIRNAME.."Images/barglow-edge.dds"
 
+local oldUnitpicsDir   = LUAUI_DIRNAME.."Images/oldunitpics/"
+
 local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
@@ -36,6 +38,7 @@ local drawPrice = true
 local drawTooltip = true
 local largePrice = true
 local shortcutsInfo = false
+local oldUnitpics = false
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
@@ -50,8 +53,8 @@ local Config = {
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.87,
-		iconhoverscale = 0.87,
+		iconscale = 0.88,
+		iconhoverscale = 0.88,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -542,7 +545,11 @@ local function UpdateGrid(g,cmds,ordertype)
 		}
 		
 		if (ordertype == 1) then --build orders
-			icon.texture = "#"..cmd.id*-1
+			if oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds', VFS.RAW_ONLY) then
+				icon.texture = oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
+			else
+				icon.texture = "#"..cmd.id*-1
+			end
 			if (cmd.params[1]) then
 				icon.options = "o"
 				icon.caption = "     "..cmd.params[1].."  "
@@ -808,7 +815,7 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon price:  disabled")
 		end
 	end
-	if (string.find(command, "iconprizesize") == 1  and  string.len(command) == 13) then 
+	if (string.find(command, "iconprizesize") == 1  and  string.len(command) == 13) then
 		largePrice = not largePrice
 		--AutoResizeObjects()
 		Spring.ForceLayoutUpdate()
@@ -816,6 +823,16 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon info:  large")
 		else
 			Spring.Echo("Build/order menu icon info:  small")
+		end
+	end
+	if (string.find(command, "olduniticons") == 1  and  string.len(command) == 12) then
+		oldUnitpics = not oldUnitpics
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if oldUnitpics then
+			Spring.Echo("Using old unit icons in buildmenu")
+		else
+			Spring.Echo("Not using old unit icons in buildmenu")
 		end
 	end
 	if (string.find(command, "iconinfokeys") == 1  and  string.len(command) == 12) then 
@@ -853,6 +870,9 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigUnitPriceLarge = function()
   	return largePrice
   end
+  WG['red_buildmenu'].getConfigOldUnitIcons = function()
+  	return oldUnitpics
+  end
   WG['red_buildmenu'].getConfigShortcutsInfo = function()
   	return shortcutsInfo
   end
@@ -864,6 +884,9 @@ function widget:Initialize()
   end
   WG['red_buildmenu'].setConfigUnitPriceLarge = function(value)
   	largePrice = value
+  end
+  WG['red_buildmenu'].setConfigOldUnitIcons = function(value)
+  	oldUnitpics = value
   end
   WG['red_buildmenu'].setConfigShortcutsInfo = function(value)
   	shortcutsInfo = value
@@ -895,7 +918,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, largePrice=largePrice, shortcutsInfo=shortcutsInfo}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -915,6 +938,9 @@ function widget:SetConfigData(data) --load config
 		end
 		if (data.largePrice ~= nil) then
 			largePrice = data.largePrice
+		end
+		if (data.oldUnitpics ~= nil) then
+			oldUnitpics = data.oldUnitpics
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo
