@@ -1,3 +1,8 @@
+-- disable as clipLine is very slow on headless
+if (Spring.GetConfigInt('Headless', 0) ~= 0) then
+   return false
+end
+
 function widget:GetInfo()
 	return {
 	name      = "Red Console", --version 4.1
