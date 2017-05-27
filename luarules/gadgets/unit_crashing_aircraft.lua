@@ -29,7 +29,7 @@ local crashing = {}
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true and not UnitDef.transportSize then
+		if UnitDef.canFly == true and UnitDef.transportSize == 0 then
 			crashable[UnitDef.id] = true
 		end
 	end
@@ -42,7 +42,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0,0
 	end 
 
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.5 and weaponDefID ~= COM_BLAST then
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.4 and weaponDefID ~= COM_BLAST then
 
 		-- make it crash
 		crashing[unitID] = true
