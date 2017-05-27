@@ -18,7 +18,9 @@ local random			= math.random
 local GetUnitHealth 	= Spring.GetUnitHealth
 local SetUnitCOBValue 	= Spring.SetUnitCOBValue
 local SetUnitNoSelect	= Spring.SetUnitNoSelect
+local SetUnitNoMinimap	= Spring.SetUnitNoMinimap
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
+local SetUnitWeaponState = Spring.SetUnitWeaponState
 
 local COB_CRASHING = COB.CRASHING
 local COM_BLAST = WeaponDefNames['commander_blast'].id 
@@ -29,26 +31,31 @@ local crashing = {}
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true and UnitDef.transportSize == 0 then
+		if UnitDef.canFly == true then
 			crashable[UnitDef.id] = true
 		end
 	end
-	crashable[UnitDefNames['armcybr'].id] = false -- remove atomic bomber from crashables because it can shoot during ceashing
+	crashable[UnitDefNames['armcybr'].id] = false
+	crashable[UnitDefNames['armpeep'].id] = false
+	crashable[UnitDefNames['corfink'].id] = false
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if paralyzer then return damage,1 end 
-	if crashing[unitID] then 
+	if paralyzer then return damage,1 end
+	if crashing[unitID] then
 		return 0,0
-	end 
+	end
 
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.4 and weaponDefID ~= COM_BLAST then
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.33 and weaponDefID ~= COM_BLAST then
 
 		-- make it crash
 		crashing[unitID] = true
 		SetUnitCOBValue(unitID, COB_CRASHING, 1)
 		SetUnitNoSelect(unitID,true)
-
+		SetUnitNoMinimap(unitID,true)
+		for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
+			SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
+		end
         -- remove sensors
         SetUnitSensorRadius(unitID, "los", 0)
         SetUnitSensorRadius(unitID, "airLos", 0)
