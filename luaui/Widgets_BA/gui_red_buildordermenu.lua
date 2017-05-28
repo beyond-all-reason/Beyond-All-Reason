@@ -545,7 +545,7 @@ local function UpdateGrid(g,cmds,ordertype)
 		}
 		
 		if (ordertype == 1) then --build orders
-			if oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds', VFS.RAW_ONLY) then
+			if oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds') then
 				icon.texture = oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
 			else
 				icon.texture = "#"..cmd.id*-1
