@@ -28,6 +28,10 @@ local COM_BLAST = WeaponDefNames['commander_blast'].id
 local crashable  = {}
 local crashing = {}
 
+local totalUnits = 0
+local totalUnitsTime = 0
+local percentage = 0.5
+
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
@@ -46,8 +50,16 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		return 0,0
 	end
 
-	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and random()<0.33 and weaponDefID ~= COM_BLAST then
-
+	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
+		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
+			totalUnitsTime = Spring.GetGameSeconds()
+			totalUnits = #Spring.GetAllUnits()
+			percentage = 0.6 * (1 - (totalUnits/4000))
+			if percentage < 0.15 then
+				percentage = 0.15
+			end
+		end
+		if random() < percentage then
 		-- make it crash
 		crashing[unitID] = true
 		SetUnitCOBValue(unitID, COB_CRASHING, 1)
@@ -64,6 +76,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 --        SetUnitSensorRadius(unitID, "seismic", 0)
 --        SetUnitSensorRadius(unitID, "radarJammer", 0)
 --        SetUnitSensorRadius(unitID, "sonarJammer", 0)
+		end
 	end
 	return damage,1
 end
