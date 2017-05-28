@@ -13,7 +13,7 @@ local impulsefactor = 0.123
 unitDeaths = {
 	
 	pyro = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 64,
 		camerashake = 64,
 		impulseboost = impulseboost,
@@ -27,7 +27,7 @@ unitDeaths = {
 	},
 	
 	pyroselfd = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 200,
 		camerashake = 200,
 		edgeeffectiveness = 0.5,
@@ -42,7 +42,7 @@ unitDeaths = {
 	},
 	
 	nanoboom = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 128,
 		camerashake = 128,
 		edgeeffectiveness = 0.75,
@@ -53,12 +53,12 @@ unitDeaths = {
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
 			default = 10,
-			nanos = 400,
+			nanos = 460,
 		},
 	},
 	
 	smallbuilderboom = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 64,
 		camerashake = 64,
 		impulseboost = impulseboost,
@@ -72,7 +72,7 @@ unitDeaths = {
 	},
 	
 	windboom = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 180,
 		cameraShake = 180,
 		edgeeffectiveness = 0.6,
@@ -87,7 +87,7 @@ unitDeaths = {
 	},
 
 	platformboom = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 24,
 		cameraShake = 180,
 		edgeeffectiveness = 1.0,
@@ -104,7 +104,7 @@ unitDeaths = {
 	},
 	
 	metalmaker = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 210,
 		camerashake = 210,
 		impulseboost = impulseboost,
@@ -118,7 +118,7 @@ unitDeaths = {
 	},
 	
 	advmetalmaker = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 320,
 		camerashake = 320,
 		impulseboost = impulseboost,
@@ -132,7 +132,7 @@ unitDeaths = {
 	},
 	
 	energystorage = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 400,
 		camerashake = 210,
 		impulseboost = impulseboost,
@@ -146,7 +146,7 @@ unitDeaths = {
 	},
 	
 	advenergystorage = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		areaofeffect = 480,
 		camerashake = 480,
 		impulseboost = impulseboost,
@@ -162,7 +162,7 @@ unitDeaths = {
 --NUKE EXPLOSIONS--
 
 	smallNukeExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = smallNukeExplosion,
 		cameraShake = smallNukeExplosion,
 		impulseboost = impulseboost,
@@ -176,7 +176,7 @@ unitDeaths = {
 	},
 
 	hugeNukeExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = hugeNukeExplosion,
 		cameraShake = hugeNukeExplosion,
 		impulseboost = impulseboost,
@@ -193,7 +193,7 @@ unitDeaths = {
 --NUKE EXPLOSIONS WITH DAMAGE--
 
 	smallNukeExplosionGenericDamage = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = smallNukeExplosionDamage,
 		cameraShake = smallNukeExplosionDamage,
 		impulseboost = impulseboost,
@@ -207,7 +207,7 @@ unitDeaths = {
 	},
 
 	hugeNukeExplosionGenericDamage = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = hugeNukeExplosionDamage,
 		cameraShake = hugeNukeExplosionDamage,
 		impulseboost = impulseboost,
@@ -223,7 +223,7 @@ unitDeaths = {
 	
 	commanderNukeExplosionGenericDamage = {
 		name = "Matter/AntimatterExplosion",
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = commanderNukeExplosionDamage,
 		cameraShake = commanderNukeExplosionDamage,
 		impulseboost = 3,
@@ -248,7 +248,7 @@ unitDeaths = {
 --BUILDING DEATHS--
 
 	tinyBuildingExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect =  60,
 		cameraShake = 0,
 		impulseboost = impulseboost,
@@ -262,7 +262,7 @@ unitDeaths = {
 	},
 
 	smallBuildingExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect =  180,
 		cameraShake = 180,
 		impulseboost = impulseboost,
@@ -276,7 +276,7 @@ unitDeaths = {
 	},
 
 	mediumBuildingExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect =  260,
 		cameraShake = 260,
 		impulseboost = impulseboost,
@@ -290,7 +290,7 @@ unitDeaths = {
 	},
 	
 	largeBuildingExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect =  340,
 		cameraShake = 340,
 		impulseboost = impulseboost,
@@ -305,7 +305,7 @@ unitDeaths = {
 	},
 
 	hugeBuildingExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 420,
 		cameraShake = 420,
 		impulseboost = impulseboost,
@@ -322,7 +322,7 @@ unitDeaths = {
 --UNIT DEATHS--
 
 	tinyExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 24,
 		cameraShake = 0,
 		impulseboost = impulseboost,
@@ -336,7 +336,7 @@ unitDeaths = {
 	},
 
 	smallExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 32,
 		cameraShake = 0,
 		impulseboost = impulseboost,
@@ -350,7 +350,7 @@ unitDeaths = {
 	},
 
 	mediumExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 48,
 		cameraShake = 48,
 		impulseboost = impulseboost,
@@ -364,7 +364,7 @@ unitDeaths = {
 	},
 	
 	largeExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 64,
 		cameraShake = 64,
 		impulseboost = impulseboost,
@@ -378,7 +378,7 @@ unitDeaths = {
 	},
 	
 	hugeExplosionGeneric = {
-		weaponType		   = "Cannon",
+		weaponType = "Cannon",
 		AreaOfEffect = 96,
 		cameraShake = 96,
 		impulseboost = impulseboost,
