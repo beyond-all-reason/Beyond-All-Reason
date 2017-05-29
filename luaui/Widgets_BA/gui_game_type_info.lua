@@ -29,6 +29,9 @@ end
 
 -- Automatically generated local definitions
 
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = (0.80 + (vsx*vsy / 6000000))
+
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
 local glRotate         = gl.Rotate
@@ -56,6 +59,7 @@ local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
+  widgetScale = (0.80 + (vsx*vsy / 6000000))
 end
 
 function widget:Initialize()
@@ -94,11 +98,11 @@ function widget:DrawScreen()
   local msg2 = colorStr .. message2
   local msg3 = "\255\255\0\0" .. message3
   glPushMatrix()
-  glTranslate((vsx * 0.5), (vsy * 0.22), 0) --has to be below where newbie info appears!
+  glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
-  glText(msg, 0, 0, 24, "oc")
-  glText(msg2, 0, -30, 14, "oc")
-  glText(msg3, 0, -50, 12, "oc")
+  glText(msg, 0, 0, 18*widgetScale, "oc")
+  glText(msg2, 0, -30*widgetScale, 12.5*widgetScale, "oc")
+  glText(msg3, 0, -50*widgetScale, 11*widgetScale, "oc")
   glPopMatrix()
 end
 
