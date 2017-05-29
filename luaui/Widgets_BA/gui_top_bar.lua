@@ -681,6 +681,10 @@ function widget:GameFrame(n)
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
     functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
+	if n == 1 then	-- dunno why its not properly updated at GameStart
+		countComs()
+		updateComs(true)
+	end
 end
 
 

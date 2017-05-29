@@ -11,6 +11,38 @@ function gadget:GetInfo()
   }
 end
 
+-- exclude air (to prevent aa missiles that reach ground from having lights)
+--local groundTypes = {
+--    default = true,
+--    commanders = true,
+--    crawlingbombs = true,
+--    platform = true,
+--    heavyunits = true,
+--    nanos = true,
+--    shields = true,
+--    scouts = true,
+--    corvettes = true,
+--    destroyers = true,
+--    cruisers = true,
+--    carriers = true,
+--    battleships = true,
+--    flagships = true
+--}
+--local skipAirWeapons = {}
+--local groundDamage = false
+--for weaponID, weaponDef in pairs(WeaponDefs) do
+--    groundDamage = false
+--    for type, damage in pairs(weaponDef.damages) do            -- weaponDef.damages doesnt contain what i expected
+--        Spring.Echo(type..'  '..damage)
+--        if groundTypes[type] ~= nil and damage > 0 then
+--            groundDamage = true
+--            break
+--        end
+--    end
+--    if groundDamage == false then
+--        skipAirWeapons[weaponID] = true
+--    end
+--end
 
 -------------------------------------------------------------------------------
 -- Synced
@@ -41,7 +73,9 @@ else
   	    local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
 
         if Script.LuaUI("GadgetWeaponExplosion")  and  (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
-          Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+            --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
+                Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+            --end
         end
     else
         -- dont know when this happens and if we should show the explosion...
