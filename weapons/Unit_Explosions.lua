@@ -158,6 +158,35 @@ unitDeaths = {
 			default = 2400,
 		},
 	},
+
+    geo = {
+        weaponType = "Cannon",
+        areaofeffect = 520,
+        camerashake = 210,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg4",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericbuildingexplosion-large",
+        damage = {
+            default = 1280,
+        },
+    },
+
+    advgeo = {
+        weaponType = "Cannon",
+        AreaOfEffect = 1280,
+        cameraShake = hugeNukeExplosion,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplonuk3",
+        soundstart = "largegun",
+        explosiongenerator="custom:nukedatbewm",
+        damage = {
+            commanders = 2500,
+            default = 9500,
+        },
+    },
 	
 --NUKE EXPLOSIONS--
 
