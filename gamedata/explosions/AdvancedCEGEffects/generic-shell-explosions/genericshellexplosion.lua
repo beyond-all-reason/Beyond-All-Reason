@@ -1172,20 +1172,34 @@ end
 
 -- add coloring
 local colors = {
-	air = {
-		--groundflash = false,
-		underwaterexplosionsparks = false,
-		kickedupwater = false,
-		dirt = false,
-		dirt2 = false,
-		grounddust = false,
-		centerflare = {ground=false, water=false},
-		clouddust = {ground=false, water=false},
-		explosion = {ground=false, water=false},
-		sparks = {ground=false, water=false},
-		outerflash = {ground=false, water=false},
-		centerflare = {ground=false, water=false},
-	},
+  air = {
+    --groundflash = false,
+    underwaterexplosionsparks = false,
+    kickedupwater = false,
+    dirt = false,
+    dirt2 = false,
+    grounddust = false,
+    centerflare = {ground=false, water=false},
+    clouddust = {ground=false, water=false},
+    explosion = {ground=false, water=false},
+    sparks = {ground=false, water=false},
+    outerflash = {ground=false, water=false},
+    centerflare = {ground=false, water=false},
+  },
+  aa = {
+    --groundflash = false,
+    underwaterexplosionsparks = false,
+    kickedupwater = false,
+    dirt = false,
+    dirt2 = false,
+    grounddust = false,
+    centerflare = {ground=false, water=false},
+    clouddust = {ground=false, water=false},
+    explosion = {ground=false, water=false, properties={colormap=[[0 0 0 0   1 0.9 0.8 0.09   0.9 0.5 0.55 0.066   0.66 0.28 0.35 0.033   0 0 0 0]]}},
+    sparks = {ground=false, water=false},
+    outerflash = {ground=false, water=false},
+    centerflare = {ground=false, water=false},
+  },
 }
 for color, effects in pairs(colors) do
 	for size, e in pairs(sizes) do

@@ -118,7 +118,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailaa",
-				explosiongenerator = "custom:genericshellexplosion-medium-air",
+				explosiongenerator = "custom:genericshellexplosion-medium-aa",
 				firestarter = 70,
 				flighttime = 1.75,
 				impulseboost = 0.123,

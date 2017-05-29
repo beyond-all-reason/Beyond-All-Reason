@@ -118,7 +118,7 @@ return {
 				edgeeffectiveness = 0.6,
 				energypershot = 1800,
 				cegTag = "missiletrailmedium",
-				explosiongenerator = "custom:genericshellexplosion-large-air",
+				explosiongenerator = "custom:genericshellexplosion-large-aa",
 				firestarter = 90,
 				flighttime = 2.5,
 				impulseboost = 0,

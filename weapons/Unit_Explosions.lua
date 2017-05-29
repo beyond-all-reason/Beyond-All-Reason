@@ -53,7 +53,7 @@ unitDeaths = {
 		explosiongenerator = "custom:genericbuildingexplosion-small",
 		damage = {
 			default = 10,
-			nanos = 460,
+			nanos = 480,
 		},
 	},
 	
