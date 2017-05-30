@@ -1,9 +1,9 @@
 return {
 	armmisc = {
-		acceleration = 0.1066,
+		acceleration = 2.75/30,
 		activatewhenbuilt = true,
 		airsightdistance = 800,
-		brakerate = 0.0035,
+		brakerate = 2.75/600,
 		buildangle = 16384,
 		buildcostenergy = 2000,
 		buildcostmetal = 225,
@@ -23,8 +23,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 600,
-		maxvelocity = 3.2,
+		maxdamage = 500,
+		maxvelocity = 2.75,
 		minwaterdepth = 12,
 		movementclass = "BOAT4",
 		name = "Coryphee",
