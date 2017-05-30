@@ -5,16 +5,28 @@
 
 piece  flare1, flare2, base, wake;
 
-static-var  gun_1;
+static-var  gun_1, restore_delay, aimDir;
 
 // Signal definitions
 #define SIG_MOVE			2
+#define SIG_AIM			4
 
 
 Create()
 {
 	gun_1 = flare1;
+	restore_delay = 3000;
 	return (0);
+
+	
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	turn base to y-axis <0.000000> speed <35.000000>;
+	turn base to x-axis <0.000000> speed <15.000000>;
 }
 
 StartMoving()
@@ -33,6 +45,19 @@ StopMoving()
 {
 	signal SIG_MOVE;
 	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn base to y-axis heading speed <35>;
+	turn base to x-axis <0.000000> - pitch speed <15>;
+	wait-for-turn base around y-axis;
+	wait-for-turn base around x-axis;
+	aimDir = heading;
+	start-script RestoreAfterDelay();
+	return (1);
 }
 
 FirePrimary()
