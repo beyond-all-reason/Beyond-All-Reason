@@ -92,7 +92,7 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-FireWeapon1()
+Shot1()
 {
 	Static_Var_2 = 1;
 	start-script Reload1();
