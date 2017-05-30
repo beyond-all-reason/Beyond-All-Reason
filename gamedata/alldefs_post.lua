@@ -43,7 +43,7 @@ local vehAdditionalAcceleration = 0.01
 local vehAccelerationMultiplier = 1.2
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1.04
+local vehVelocityMultiplier = 1.03
 
 local vehMaxdamageMultiplier = 1.05
 
