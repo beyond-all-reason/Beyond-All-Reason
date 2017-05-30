@@ -1,8 +1,8 @@
 return {
 	aseadragon = {
-		acceleration = 0.028,
+		acceleration = 1.00/150,
 		activatewhenbuilt = true,
-		brakerate = 0.063,
+		brakerate = 1.00/1500,
 		buildangle = 16384,
 		buildcostenergy = 260000,
 		buildcostmetal = 34000,
@@ -27,7 +27,7 @@ return {
 		idletime = 1800,
 		losemitheight = 52,
 		maxdamage = 71250,
-		maxvelocity = 2.3,
+		maxvelocity = 1.00,
 		metalstorage = 100,
 		minwaterdepth = 15,
 		movementclass = "DBOAT6",
@@ -39,9 +39,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongeneric",
 		sightdistance = 689,
-		turninplaceanglelimit = 140,
+		turninplaceanglelimit = 10,
 		turninplacespeedlimit = 1.518,
-		turnrate = 272,
+		turnrate = 80,
 		waterline = 13,
 		customparams = {
 			
@@ -164,7 +164,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.85,
-				explosiongenerator = "custom:genericshellexplosion-medium-aa",
+				explosiongenerator = "custom:genericshellexplosion-medium-air",
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
