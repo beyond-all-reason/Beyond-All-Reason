@@ -107,7 +107,7 @@ return {
 				proximitypriority = -1,
 				range = 660,
 				reloadtime = 4,
-				smoketrail = true,
+				smoketrail = false,
 				soundhit = "packohit",
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,

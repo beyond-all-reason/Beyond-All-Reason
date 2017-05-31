@@ -192,6 +192,7 @@ return {
 				},
 				customparams = {
 					light_multiplier = "2",		-- used by projectile lights widget
+					light_radius_mult = "0.6",		-- used by projectile lights widget
 				},
 			},
 			corkrog_rocket = {
