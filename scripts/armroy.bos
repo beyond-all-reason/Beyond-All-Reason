@@ -139,9 +139,9 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	set-signal-mask 0;
-	turn turret1 to y-axis <0.000000> speed <35.000000>;
-	turn sleeve1 to x-axis <0.000000> speed <15.000000>;
-	turn turret2 to y-axis <0.000000> speed <35.000000>;
+	turn turret1 to y-axis <0.000000> speed <20.000000>;
+	turn sleeve1 to x-axis <0.000000> speed <10.000000>;
+	turn turret2 to y-axis <0.000000> speed <30.000000>;
 	turn sleeve2 to x-axis <0.000000> speed <15.000000>;
 }
 
@@ -215,8 +215,8 @@ AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret1 to y-axis heading speed <50.000000>;
-	turn sleeve1 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret1 to y-axis heading speed <20.000000>;
+	turn sleeve1 to x-axis <0.000000> - pitch speed <10.000000>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn sleeve1 around x-axis;
 	aimDir = heading;
@@ -258,8 +258,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM;
-	turn turret2 to y-axis heading speed <50.000000>;
-	turn sleeve2 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret2 to y-axis heading speed <30.000000>;
+	turn sleeve2 to x-axis <0.000000> - pitch speed <15.000000>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn sleeve2 around x-axis;
 	aimDir = heading;
