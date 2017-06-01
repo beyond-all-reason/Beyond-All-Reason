@@ -31,17 +31,17 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	set-signal-mask 0;	
-	turn turret4 to y-axis <0.000000> speed <55.000000>;
-	turn sleeve4 to x-axis <0.000000> speed <15.000000>;
+	turn turret4 to y-axis <0.000000> speed <50.000000>;
+	turn sleeve4 to x-axis <0.000000> speed <25.000000>;
 	
-	turn turret5 to y-axis <0.000000> speed <55.000000>;
-	turn sleeve5 to x-axis <0.000000> speed <15.000000>;
+	turn turret5 to y-axis <0.000000> speed <50.000000>;
+	turn sleeve5 to x-axis <0.000000> speed <25.000000>;
 	
-	turn turret6 to y-axis <0.000000> speed <55.000000>;
-	turn sleeve6 to x-axis <0.000000> speed <15.000000>;
+	turn turret6 to y-axis <0.000000> speed <50.000000>;
+	turn sleeve6 to x-axis <0.000000> speed <25.000000>;
 	
-	turn turret7 to y-axis <0.000000> speed <55.000000>;
-	turn sleeve7 to x-axis <0.000000> speed <15.000000>;
+	turn turret7 to y-axis <0.000000> speed <50.000000>;
+	turn sleeve7 to x-axis <0.000000> speed <25.000000>;
 }
 
 RockOnWaves()
@@ -128,16 +128,16 @@ SetMaxReloadTime(Func_Var_1)
 RestorePrimary()
 {
 	sleep restore_delay;
-	turn turret1 to y-axis <0.000000> speed <55.000000>;
-	turn turret1 to x-axis <0.000000> speed <30.000000>;
+	turn turret1 to y-axis <0.000000> speed <15.000000>;
+	turn turret1 to x-axis <0.000000> speed <8.000000>;
 	bAiming = TRUE;
 }
 
 RestoreSecondary()
 {
 	sleep restore_delay;
-	turn turret2 to y-axis <0.000000> speed <55.000000>;
-	turn turret2 to x-axis <0.000000> speed <30.000000>;
+	turn turret2 to y-axis <0.000000> speed <15.000000>;
+	turn turret2 to x-axis <0.000000> speed <8.000000>;
 	Static_Var_2 = 1;
 }
 
@@ -181,8 +181,8 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn turret1 to y-axis heading speed <55.000000>;
-	turn turret1 to x-axis <0.000000> - pitch speed <30.000000>;
+	turn turret1 to y-axis heading speed <15.000000>;
+	turn turret1 to x-axis <0.000000> - pitch speed <8.000000>;
 	wait-for-turn turret1 around y-axis;
 	wait-for-turn turret1 around x-axis;
 	while( gun_2 )
@@ -201,8 +201,8 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn turret2 to y-axis heading speed <55.000000>;
-	turn turret2 to x-axis <0.000000> - pitch speed <30.000000>;
+	turn turret2 to y-axis heading speed <15.000000>;
+	turn turret2 to x-axis <0.000000> - pitch speed <8.000000>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn turret2 around x-axis;
 	while( gun_3 )
@@ -332,8 +332,8 @@ AimWeapon4(heading, pitch)
 {
 	signal SIG_AIM_4;
 	set-signal-mask SIG_AIM_4;
-	turn turret4 to y-axis heading speed <200.000000>;
-	turn sleeve4 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret4 to y-axis heading speed <50.000000>;
+	turn sleeve4 to x-axis <0.000000> - pitch speed <25.000000>;
 	wait-for-turn turret4 around y-axis;
 	wait-for-turn sleeve4 around x-axis;
 	aimDir = heading;
@@ -374,8 +374,8 @@ AimWeapon5(heading, pitch)
 {
 	signal SIG_AIM_5;
 	set-signal-mask SIG_AIM_5;
-	turn turret5 to y-axis heading speed <200.000000>;
-	turn sleeve5 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret5 to y-axis heading speed <50.000000>;
+	turn sleeve5 to x-axis <0.000000> - pitch speed <25.000000>;
 	wait-for-turn turret5 around y-axis;
 	wait-for-turn sleeve5 around x-axis;
 	aimDir = heading;
@@ -416,8 +416,8 @@ AimWeapon6(heading, pitch)
 {
 	signal SIG_AIM_6;
 	set-signal-mask SIG_AIM_6;
-	turn turret6 to y-axis heading speed <200.000000>;
-	turn sleeve6 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret6 to y-axis heading speed <50.000000>;
+	turn sleeve6 to x-axis <0.000000> - pitch speed <25.000000>;
 	wait-for-turn turret6 around y-axis;
 	wait-for-turn sleeve6 around x-axis;
 	aimDir = heading;
@@ -458,8 +458,8 @@ AimWeapon7(heading, pitch)
 {
 	signal SIG_AIM_7;
 	set-signal-mask SIG_AIM_7;
-	turn turret7 to y-axis heading speed <200.000000>;
-	turn sleeve7 to x-axis <0.000000> - pitch speed <40.000000>;
+	turn turret7 to y-axis heading speed <50.000000>;
+	turn sleeve7 to x-axis <0.000000> - pitch speed <25.000000>;
 	wait-for-turn turret7 around y-axis;
 	wait-for-turn sleeve7 around x-axis;
 	aimDir = heading;
