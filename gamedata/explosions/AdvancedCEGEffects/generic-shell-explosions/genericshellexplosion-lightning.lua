@@ -66,10 +66,10 @@ return {
     },
     groundflash = {
       air                = true,
-            flashalpha         = 0.17,
-      flashsize          = 90,
+      flashalpha         = 0.13,
+      flashsize          = 80,
       ground             = true,
-      ttl                = 50,
+      ttl                = 45,
       water              = true, 
 	  underwater         = true,
       color = {

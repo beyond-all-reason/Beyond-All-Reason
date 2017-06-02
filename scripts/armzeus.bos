@@ -589,6 +589,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide flash;
+	move flash to y-axis [4.5] now;
 	show backgun;
 	hide gun;
 	bMoving = FALSE;
@@ -660,9 +661,7 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
-	show flash;
-	sleep 100;
-	hide flash;
+
 }
 
 Killed(severity, corpsetype)
