@@ -31,17 +31,17 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	set-signal-mask 0;	
-	turn turret4 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve4 to x-axis <0.000000> speed <25.000000>;
+	turn turret4 to y-axis <0.000000> speed <100.000000>;
+	turn sleeve4 to x-axis <0.000000> speed <50.000000>;
 	
-	turn turret5 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve5 to x-axis <0.000000> speed <25.000000>;
+	turn turret5 to y-axis <0.000000> speed <100.000000>;
+	turn sleeve5 to x-axis <0.000000> speed <50.000000>;
 	
-	turn turret6 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve6 to x-axis <0.000000> speed <25.000000>;
+	turn turret6 to y-axis <0.000000> speed <100.000000>;
+	turn sleeve6 to x-axis <0.000000> speed <50.000000>;
 	
-	turn turret7 to y-axis <0.000000> speed <50.000000>;
-	turn sleeve7 to x-axis <0.000000> speed <25.000000>;
+	turn turret7 to y-axis <0.000000> speed <100.000000>;
+	turn sleeve7 to x-axis <0.000000> speed <50.000000>;
 }
 
 RockOnWaves()
