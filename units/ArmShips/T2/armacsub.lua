@@ -1,7 +1,7 @@
 return {
 	armacsub = {
-		acceleration = 0.038,
-		brakerate = 0.75,
+		acceleration = 2.3/45,
+		brakerate = 2.3/450,
 		buildcostenergy = 7650,
 		buildcostmetal = 850,
 		builddistance = 160,
