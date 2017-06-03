@@ -22,8 +22,8 @@ if (gadgetHandler:IsSyncedCode()) then
 ----------------------------------------------------------------
 
 local sparkWeapons = {
-    [WeaponDefNames.armzeus_lightning.id] = {ceg = "ZEUS_FLASH_SUB", forkdamage = 0.5, maxunits=2},
-    [WeaponDefNames.armclaw_dclaw.id] = {ceg = "CLAW_FLASH_SUB", forkdamage = 0.325, maxunits=2},
+    [WeaponDefNames.armzeus_lightning.id] = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5, maxunits=2},
+    [WeaponDefNames.armclaw_dclaw.id] = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.325, maxunits=2},
 }
 
 local immuneToSplash = {
