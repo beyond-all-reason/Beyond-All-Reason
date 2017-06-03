@@ -61,11 +61,12 @@ return {
 			[14] = "armsonar",
 			[15] = "armfrad",
 			[16] = "armfdrag",
-			[17] = "armtl",
+			[17] = "armgplat",
+			[18] = "armtl",
 --			[18] = "armatl",
-			[18] = "armfrt",
-			[19] = "armfhlt",
-			[20] = "armplat",
+			[19] = "armfrt",
+			[20] = "armfhlt",
+			[21] = "armplat",
 		},
 		customparams = {
 			

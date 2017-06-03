@@ -90,7 +90,7 @@ return {
 			[21] = "armsy",
 			[22] = "armsonar",
 			[23] = "armfdrag",
-			[24] = "armptl",
+			[24] = "armgplat",
 			[25] = "armfrt",
 			[26] = "armfrad",
 		},
