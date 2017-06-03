@@ -25,7 +25,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2000,
+		maxdamage = 1000,
 		maxvelocity = 2.76,
 		metalmake = 0.115,
 		minwaterdepth = 15,
@@ -42,6 +42,8 @@ return {
 		turnrate = 457,
 		waterline = 4,
 		workertime = 250,
+		repairtime = 125,
+		reclaimtime = 125,
 		buildoptions = {
 			[1] = "armeyes",
 			[2] = "armdl",
