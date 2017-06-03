@@ -187,6 +187,20 @@ unitDeaths = {
             default = 9500,
         },
     },
+
+    penetrator = {
+        weaponType = "Cannon",
+        areaofeffect = 400,
+        camerashake = 210,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericbuildingexplosion-large",
+        damage = {
+            default = 880,
+        },
+    },
 	
 --NUKE EXPLOSIONS--
 
@@ -366,7 +380,7 @@ unitDeaths = {
 
 	smallExplosionGeneric = {
 		weaponType = "Cannon",
-		AreaOfEffect = 32,
+		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -380,7 +394,7 @@ unitDeaths = {
 
 	mediumExplosionGeneric = {
 		weaponType = "Cannon",
-		AreaOfEffect = 48,
+		AreaOfEffect = 56,
 		cameraShake = 48,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -388,13 +402,13 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator="custom:genericunitexplosion-medium",
 		damage = {
-			default = 20,
+			default = 30,
 		},
 	},
 	
 	largeExplosionGeneric = {
 		weaponType = "Cannon",
-		AreaOfEffect = 64,
+		AreaOfEffect = 84,
 		cameraShake = 64,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -402,13 +416,13 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator="custom:genericunitexplosion-large",
 		damage = {
-			default = 40,
+			default = 70,
 		},
 	},
 	
 	hugeExplosionGeneric = {
 		weaponType = "Cannon",
-		AreaOfEffect = 96,
+		AreaOfEffect = 128,
 		cameraShake = 96,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -416,7 +430,7 @@ unitDeaths = {
 		soundstart = "largegun",
 		explosiongenerator="custom:genericunitexplosion-huge",
 		damage = {
-			default = 80,
+			default = 140,
 		},
 	},
 	
