@@ -1,8 +1,8 @@
 return {
 	armtship = {
-		acceleration = 0.4/90,
+		acceleration = 0.4*1.25/90,
 		autoheal = 5,
-		brakerate = 0.4/1200,
+		brakerate = 0.4*1.25/1200,
 		buildangle = 16384,
 		buildcostenergy = 5280,
 		buildcostmetal = 480,
@@ -22,8 +22,8 @@ return {
 		footprintz = 7,
 		icontype = "sea",
 		loadingradius = 250,
-		maxdamage = 18000,
-		maxvelocity = 0.4,
+		maxdamage = 9000,
+		maxvelocity = 0.4*1.25,
 		minwaterdepth = 0,
 		movementclass = "BOATCARRIER4X7",
 		name = "Hulk",

@@ -1,8 +1,8 @@
 return {
 	armaas = {
-		acceleration = 1.45/60,
+		acceleration = 1.45*1.25/60,
 		airsightdistance = 900,
-		brakerate = 1.45/1200,
+		brakerate = 1.45*1.25/1200,
 		buildangle = 16384,
 		buildcostenergy = 12000,
 		buildcostmetal = 1200,
@@ -24,8 +24,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 6500,
-		maxvelocity = 1.45,
+		maxdamage = 3250,
+		maxvelocity = 1.45*1.25,
 		minwaterdepth = 30,
 		movementclass = "BOATDESTROYER2X5",
 		name = "Archer",

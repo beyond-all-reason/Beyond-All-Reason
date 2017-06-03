@@ -1,8 +1,8 @@
 return {
 	armcarry = {
-		acceleration = 0.026,
+		acceleration = 0.6*1.25/90,
 		activatewhenbuilt = true,
-		brakerate = 0.072,
+		brakerate = 0.6*1.25/1200,
 		buildangle = 16384,
 		buildcostenergy = 22000,
 		buildcostmetal = 1700,
@@ -35,8 +35,8 @@ return {
 		isairbase = true,
 		losemitheight = 56,
 		mass = 10000,
-		maxdamage = 7640,
-		maxvelocity = 2.76,
+		maxdamage = 12000,
+		maxvelocity = 0.6*1.25,
 		metalstorage = 1500,
 		minwaterdepth = 15,
 		movementclass = "BOATCARRIER4X9",

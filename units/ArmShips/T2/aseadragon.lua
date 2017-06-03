@@ -1,8 +1,8 @@
 return {
 	aseadragon = {
-		acceleration = 1.00/150,
+		acceleration = 1.00*1.25/150,
 		activatewhenbuilt = true,
-		brakerate = 1.00/1500,
+		brakerate = 1.00*1.25/1500,
 		buildangle = 16384,
 		buildcostenergy = 442000,
 		buildcostmetal = 34000,
@@ -27,7 +27,7 @@ return {
 		idletime = 1800,
 		losemitheight = 52,
 		maxdamage = 71250,
-		maxvelocity = 1.00,
+		maxvelocity = 1.00*1.25,
 		metalstorage = 100,
 		minwaterdepth = 15,
 		movementclass = "BOATFLAGSHIP5X10",

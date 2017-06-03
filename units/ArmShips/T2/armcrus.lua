@@ -1,8 +1,8 @@
 return {
 	armcrus = {
-		acceleration = 0.93/60,
+		acceleration = 0.93*1.25/60,
 		activatewhenbuilt = true,
-		brakerate = 0.93/900,
+		brakerate = 0.93*1.25/900,
 		buildangle = 16384,
 		buildcostenergy = 44000,
 		buildcostmetal = 4000,
@@ -25,8 +25,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 30+24000,
-		maxvelocity = 0.93,
+		maxdamage = 12000,
+		maxvelocity = 0.93*1.25,
 		minwaterdepth = 30,
 		movementclass = "BOATCRUISER3X9",
 		name = "Conqueror",

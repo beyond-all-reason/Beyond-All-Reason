@@ -1,8 +1,8 @@
 return {
 	armrecl = {
-		acceleration = 0.14,
+		acceleration = 2.15*1.25/45,
 		autoheal = 2,
-		brakerate = 0.75,
+		brakerate = 2.15*1.25/450,
 		buildcostenergy = 3780,
 		buildcostmetal = 420,
 		builddistance = 140,
@@ -25,7 +25,7 @@ return {
 		idleautoheal = 3,
 		idletime = 300,
 		maxdamage = 670,
-		maxvelocity = 2.57,
+		maxvelocity = 2.15*1.25,
 		minwaterdepth = 15,
 		movementclass = "BOATSUBMARINE2X3",
 		name = "Grim Reaper",

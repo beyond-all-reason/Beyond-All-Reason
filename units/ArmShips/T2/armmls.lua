@@ -1,7 +1,7 @@
 return {
 	armmls = {
-		acceleration = 0.05,
-		brakerate = 0.21,
+		acceleration = 2.4/30,
+		brakerate = 2.4/600,
 		buildcostenergy = 3600,
 		buildcostmetal = 450,
 		builddistance = 135,
@@ -25,7 +25,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1314,
+		maxdamage = 1200,
 		maxvelocity = 2.4,
 		minwaterdepth = 15,
 		movementclass = "BOATCORVETTE2X4",

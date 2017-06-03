@@ -1,7 +1,7 @@
 return {
 	armbats = {
-		acceleration = 0.69/90,
-		brakerate = 0.69/1200,
+		acceleration = 0.79*1.25/90,
+		brakerate = 0.79*1.25/1200,
 		buildangle = 16384,
 		buildcostenergy = 96000,
 		buildcostmetal = 8000,
@@ -23,8 +23,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 50030,
-		maxvelocity = 0.69,
+		maxdamage = 25000,
+		maxvelocity = 0.79*1.25,
 		minwaterdepth = 15,
 		movementclass = "BOATBATTLESHIP5X8",
 		name = "Millennium",

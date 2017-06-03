@@ -1,9 +1,9 @@
 return {
 	armsub = {
-		acceleration = 2.03/45,
+		acceleration = 2.03*1.25/45,
 		activatewhenbuilt = true,
 		autoheal = 2,
-		brakerate = 2.03/450,
+		brakerate = 2.03*1.25/450,
 		buildcostenergy = 5600,
 		buildcostmetal = 700,
 		buildpic = "ARMSUB.DDS",
@@ -21,8 +21,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
-		maxdamage = 4000,
-		maxvelocity = 2.03,
+		maxdamage = 2000,
+		maxvelocity = 2.03*1.25,
 		maxreversevelocity = 1.015,
 		minwaterdepth = 20,
 		movementclass = "BOATSUBMARINE2X3",

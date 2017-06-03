@@ -1,8 +1,8 @@
 return {
 	armroy = {
-		acceleration = 1.55/60,
+		acceleration = 1.55*1.25/60,
 		activatewhenbuilt = true,
-		brakerate = 1.55/1200,
+		brakerate = 1.55*1.25/1200,
 		buildangle = 16384,
 		buildcostenergy = 20000,
 		buildcostmetal = 2000,
@@ -24,8 +24,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 8500,
-		maxvelocity = 1.55,
+		maxdamage = 4250,
+		maxvelocity = 1.55*1.25,
 		minwaterdepth = 12,
 		movementclass = "BOATDESTROYER3X6",
 		pushResistant = true,

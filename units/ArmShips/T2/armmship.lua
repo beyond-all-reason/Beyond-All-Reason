@@ -1,8 +1,8 @@
 return {
 	armmship = {
-		acceleration = 0.83/60,
+		acceleration = 0.83*1.25/60,
 		activatewhenbuilt = true,
-		brakerate = 0.83/900,
+		brakerate = 0.83*1.25/900,
 		buildcostenergy = 46000,
 		buildcostmetal = 4500,
 		buildpic = "ARMMSHIP.DDS",
@@ -23,8 +23,8 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 30+12000,
-		maxvelocity = 0.83,
+		maxdamage = 6000,
+		maxvelocity = 0.83*1.25,
 		minwaterdepth = 12,
 		movementclass = "BOATCRUISER4X10",
 		name = "Ranger",
