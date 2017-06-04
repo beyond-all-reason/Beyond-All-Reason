@@ -63,7 +63,8 @@ return {
 			armvtol_missile_a2a = {
 				areaofeffect = 48,
 				avoidfeature = false,
-		    canattackground = false,
+				burnblow = true,
+		    	canattackground = false,
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

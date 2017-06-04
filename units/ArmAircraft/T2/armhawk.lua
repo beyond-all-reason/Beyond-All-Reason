@@ -65,8 +65,9 @@ return {
 			armvtol_advmissile = {
 				areaofeffect = 8,
 				avoidfeature = false,
+				burnblow = true,
 				collidefriendly = false,
-		    canattackground = false,
+		    	canattackground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
