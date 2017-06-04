@@ -16,7 +16,7 @@ unitDef = {
   canMove             = true,
   canPatrol           = true,
   canstop             = [[1]],
-  category            = [[KBOT MOBILE NOWEAPON NOTAIR NOTSEA NOTSUB]],
+  category            = [[KBOT MOBILE NOWEAPON NOTAIR  NOTSUB]],
 --  corpse              = [[DEAD]],
   reclaimable         = false,
 	----------	
@@ -35,7 +35,7 @@ unitDef = {
   --crushStrength 	  = 25,
   moveState           = -1,
   noAutoFire          = false,
-  noChaseCategory     = [[MOBILE STATIC]],
+  noChaseCategory     = [[MOBILE ]],
   objectName          = [[critter_ant.s3o]], --
   --selfDestructAs      = [[MEDIUM_UNIT]],
   selfDestructCountdown = 0,
