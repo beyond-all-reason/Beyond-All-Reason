@@ -31,7 +31,7 @@ if proID and proOwnerID and weaponDefID then
 proOwner[proID] = proOwnerID
 if weaponDefID == bombID then
 atomicTarget[proID] = {}
-atomicFrame[proID] = Spring.GetGameFrame() + 30
+atomicFrame[proID] = Spring.GetGameFrame() + 15
 local targetTypeInt = Spring.GetProjectileTarget(proID)
 if targetTypeInt == string.byte('g') then 
 atomicTarget[proID].type = "ground" 
