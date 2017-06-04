@@ -9,7 +9,7 @@ return {
 		buildpic = "ASEADRAGON.DDS",
 		buildtime = 300000*1.3,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE FLAGSHIP",
+		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE CAPITALSHIP",
 		collisionvolumeoffsets = "0 -6 3",
 		collisionvolumescales = "71 71 162",
 		collisionvolumetype = "CylZ",

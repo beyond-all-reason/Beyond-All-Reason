@@ -158,7 +158,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "HOVER NOTSHIP LIGHTBOAT DESTROYER CRUISER CARRIER FLAGSHIP BATTLESHIP",
+				badtargetcategory = "HOVER NOTSHIP LIGHTBOAT CAPITALSHIP",
 				def = "ARMSMART_TORPEDO",
 				onlytargetcategory = "NOTHOVER",
 			},

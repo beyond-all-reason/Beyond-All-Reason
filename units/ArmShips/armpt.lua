@@ -163,7 +163,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "LIGHTAIRSCOUT CORVETTE SUBMARINE DESTROYER CRUISER CARRIER BATTLESHIP FLAGSHIP",
+				badtargetcategory = "LIGHTAIRSCOUT CORVETTE SUBMARINE CAPITALSHIP",
 				def = "ARMPT_KINE",
 				onlytargetcategory = "NOTSUB",
 			},
