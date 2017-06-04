@@ -1435,9 +1435,13 @@ end
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
-	small = {
-	
-	},
+    tiny = {
+
+    },
+
+    small = {
+
+    },
 	
 	medium = {
 	
@@ -1469,7 +1473,6 @@ local colors = {
     explosion = {ground=false, water=false},
     sparks = {ground=false, water=false},
     outerflash = {ground=false, water=false},
-    centerflare = {ground=false, water=false},
   },
   aa = {
     --groundflash = false,
@@ -1483,13 +1486,17 @@ local colors = {
     explosion = {ground=false, water=false, properties={colormap=[[0 0 0 0   1 0.9 0.8 0.09   0.9 0.5 0.55 0.066   0.66 0.28 0.35 0.033   0 0 0 0]]}},
     sparks = {ground=false, water=false},
     outerflash = {ground=false, water=false},
-    centerflare = {ground=false, water=false},
   },
 }
 for color, effects in pairs(colors) do
-	for size, e in pairs(sizes) do
-		definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
-	end
+  for size, e in pairs(sizes) do
+  	definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+    for pname, defs in pairs(effects) do
+      if defs == false then
+        definitions[root.."-"..size.."-"..color][pname] = nil
+      end
+    end
+  end
 end
 
 -- remove dust clouds for beams
