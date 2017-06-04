@@ -50,10 +50,10 @@ if (gadgetHandler:IsSyncedCode()) then
 				}
 	      Script.SetWatchWeapon(wd.id,true)
 		    wantedList[#wantedList + 1] = wd.id
-      elseif (wd.type == "DGun") then
-	    	hasShockwave[wd.id] = {DGun = true}
-        Script.SetWatchWeapon(wd.id,true)
-	    	wantedList[#wantedList + 1] = wd.id
+      --elseif (wd.type == "DGun") then
+	  --  	hasShockwave[wd.id] = {DGun = true}
+      --  Script.SetWatchWeapon(wd.id,true)
+	  --  	wantedList[#wantedList + 1] = wd.id
       end
     end
   end

@@ -123,7 +123,8 @@ local function GetLightsFromUnitDefs()
 			elseif (weaponDef.type == 'LaserCannon') then
 				weaponData.radius = 70 * weaponDef.size
 			elseif (weaponDef.type == 'DGun') then
-				weaponData.radius = 320
+				weaponData.radius = 440
+				lightMultiplier = 0.26
 			elseif (weaponDef.type == 'MissileLauncher') then
 				weaponData.radius = 125 * weaponDef.size
 				if weaponDef.damageAreaOfEffect ~= nil  then
@@ -469,14 +470,20 @@ end
 local weaponConf = {}
 for i=1, #WeaponDefs do
 	local params = {}
+	--local maxDamage = 0
+	--for armortype, value in pairs(WeaponDefs[i].damages) do
+	--	maxDamage = math.max(maxDamage, value)
+	--end
+	--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
 	params.r, params.g, params.b = 1, 0.85, 0.45
-	params.radius = WeaponDefs[i].damageAreaOfEffect*5
+	params.radius = (WeaponDefs[i].damageAreaOfEffect*5)
 	params.orgMult = 0.66 + (params.radius/2400)
 	params.life = 14*(0.8+ params.radius/1200)
 	if WeaponDefs[i].type == 'DGun' then
-		params.radius = WeaponDefs[i].damageAreaOfEffect * 1.3
-		params.orgMult = 0.5 + (params.radius/2400)
-		params.life = 14*(0.8+ params.radius/1200)
+		params.radius = 650
+		params.orgMult = 0.23
+		params.life = 1
+		params.r, params.g, params.b = 1, 0.6, 0.15
 	end
 	weaponConf[i] = params
 end
@@ -491,7 +498,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 
 	params.frame = Spring.GetGameFrame()
 	params.px, params.py, params.pz = px, py, pz
-	params.py = params.py + 5 + (params.param.radius/35)
+	params.py = params.py + 16 + (params.param.radius/35)
 
 	--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 	explosionLightsCount = explosionLightsCount + 1

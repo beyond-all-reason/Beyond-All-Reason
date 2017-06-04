@@ -1524,8 +1524,8 @@ definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = 
 definitions['expldgun'] = deepcopy(definitions[root.."-small"])
 definitions['expldgun'].groundflash = {
       air                = true,
-            flashalpha         = 0.2,
-      flashsize          = 12,
+      flashalpha         = 0.2,
+      flashsize          = 13.5,
       ground             = true,
       ttl                = 40,
       water              = true, 
@@ -1535,7 +1535,11 @@ definitions['expldgun'].groundflash = {
         [2]  = 0.15,
         [3]  = 0.05,
       },
-    }
+}
+definitions['expldgun'].sparks.properties.numparticles = 5
+definitions['expldgun'].dirt.properties.numparticles = 3
+definitions['expldgun'].dirt2.properties.numparticles = 2
+
 --definitions['expldgun'].groundflash2 = {
 --    class              = [[CSimpleGroundFlash]],
 --    properties = {
