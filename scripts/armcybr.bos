@@ -3,8 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, base, wing1, wing2, rearthrust, wingthrust1, wingthrust2,
-       thrust1, thrust2;
+piece  flare1, flare2, base, wing1, wing2, rearthrust, wingthrust1, wingthrust2, bomb1, bomb2, thrust1, thrust2;
 
 static-var  Static_Var_1, gun_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -144,7 +143,29 @@ Deactivate()
 
 FirePrimary()
 {
+	if( gun_1 )
+	{
+	hide bomb1;
+	}
+	else
+	{
+	hide bomb2;
+	}
+	
 	gun_1 = !gun_1;
+}
+
+AimPrimary()
+{
+	if( gun_1 )
+	{
+	show bomb1;
+	}
+	else
+	{
+	show bomb2;
+	}
+	
 }
 
 QueryPrimary(piecenum)
