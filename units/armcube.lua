@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaldecayspeed = 1,
 		buildinggrounddecalsizex = 3,
 		buildinggrounddecalsizey = 3,
-		category = "ALL NOTLAND SUB ",
+		category = "ALL NOTLAND SUBMARINE ",
 		corpse = "DEAD",
 		description = "Sea Foundations",
 		energystorage = 0,
