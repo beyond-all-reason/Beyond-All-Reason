@@ -65,7 +65,8 @@ return {
 			corvtol_advmissile = {
 				areaofeffect = 8,
 				avoidfeature = false,
-		    canattackground = false,
+				burnblow = true,
+		    	canattackground = false,
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

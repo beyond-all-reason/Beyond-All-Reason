@@ -68,7 +68,8 @@ return {
 			corsfig_weapon = {
 				areaofeffect = 48,
 				avoidfeature = false,
-		    canattackground = false,
+				burnblow = true,
+		    	canattackground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
