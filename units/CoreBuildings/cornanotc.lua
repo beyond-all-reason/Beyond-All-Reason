@@ -14,7 +14,7 @@ return {
 		buildpic = "CORNANOTC.DDS",
 		buildtime = 5312,
 		cantbetransported = false,
-		category = "ALL NOTSUB CONSTR NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 32 31",
 		collisionvolumetype = "CylY",
