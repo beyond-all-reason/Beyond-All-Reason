@@ -52,6 +52,14 @@ activatescr()
 		move Cover1 to x-axis [7.50000] speed [3.61969];
 		turn Cover2 to z-axis <-90.02198> speed <14.25275>;
 		turn Cover1 to z-axis <90.02198> speed <14.25275>;
+		wait-for-move Cover1 along x-axis;
+		wait-for-move Cover2 along x-axis;
+		wait-for-move Cover1 along z-axis;
+		wait-for-move Cover2 along z-axis;
+		move Dummy to y-axis [14.00000] speed [11.84639];
+		move launch to y-axis [-4.00000] speed [11.84639];
+		wait-for-move Dummy along y-axis;
+		wait-for-move launch along y-axis;
 		sleep 1036;
 	}
 	sleep 22;
@@ -62,6 +70,10 @@ deactivatescr()
 {
 	if( TRUE )
 	{
+		move Dummy to y-axis [0.00000] speed [11.84639];
+		move launch to y-axis [0.00000] speed [11.84639];
+		wait-for-move Dummy along y-axis;
+		wait-for-move launch along y-axis;
 		move Door1 to x-axis [7.25000] now;
 		move Door2 to x-axis [-7.25000] now;
 		move Frame1 to x-axis [14.50000] now;
@@ -196,7 +208,6 @@ Create()
 	dont-shade base;
 	dont-shade Door1;
 	dont-shade Door2;
-	dont-shade dummy;
 	dont-shade Frame1;
 	dont-shade Frame2;
 	dont-shade Frame3;
@@ -205,7 +216,6 @@ Create()
 	dont-shade Cover2;
 	dont-cache Door1;
 	dont-cache Door2;
-	dont-cache dummy;
 	dont-cache Frame1;
 	dont-cache Frame2;
 	dont-cache Frame3;

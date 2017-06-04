@@ -3,7 +3,7 @@ function gadget:GetInfo()
 		name = "ARMCYBR Weapon Behaviour",
 		desc = "Slightly alters the weapon's behaviour so it only starts tracking after delay",
 		author = "[Fx]Doo",
-		date = "25th of October 2016",
+		date = "04th of June 2017",
 		license = "Free",
 		layer = 0,
 		enabled = true
