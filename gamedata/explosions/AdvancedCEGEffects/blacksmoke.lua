@@ -26,7 +26,6 @@ return {
         sizemod            = 0.9,
         texture            = [[new_dirta]],
         useairlos          = false,
-		colorchange			= "stuffs",
       },
     },
 	
@@ -56,7 +55,6 @@ return {
         sizemod            = 0.9,
         texture            = [[randdots]],
         useairlos          = false,
-		colorchange			= "stuffs",
       },
     },
   },

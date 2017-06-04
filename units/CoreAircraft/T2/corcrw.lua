@@ -106,8 +106,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_radius_mult = "1.3",		-- used by projectile lights widget
-					light_multiplier = "1.1",		-- used by projectile lights widget
+					light_radius_mult = "1.2",		-- used by projectile lights widget
 				},
 			},
 			krowlaser2 = {
