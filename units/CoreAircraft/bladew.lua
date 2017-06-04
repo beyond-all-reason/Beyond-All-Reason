@@ -25,7 +25,7 @@ return {
 		maxvelocity = 9.35,
 		maxwaterdepth = 0,
 		name = "Bladewing",
-		nochasecategory = "COMMANDERS VTOL",
+		nochasecategory = "COMMANDER VTOL",
 		objectname = "BLADEW",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGeneric",
