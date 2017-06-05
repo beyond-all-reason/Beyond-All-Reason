@@ -40,6 +40,7 @@ return {
 		turnrate = 600,
 		waterline = 17,
 		workertime = 450,
+		repairtime = 225,
 		customparams = {
 			
 		},
