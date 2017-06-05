@@ -42,6 +42,7 @@ function gadget:Initialize()
 	crashable[UnitDefNames['armcybr'].id] = false
 	crashable[UnitDefNames['armpeep'].id] = false
 	crashable[UnitDefNames['corfink'].id] = false
+	crashable[UnitDefNames['critter_gull'].id] = false
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)

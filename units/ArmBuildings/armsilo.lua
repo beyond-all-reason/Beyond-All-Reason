@@ -121,7 +121,7 @@ return {
 				edgeeffectiveness = 0.3,
 				energypershot = 125000,
 				cegTag = "NUKETRAIL",
-				explosiongenerator = "custom:nukedatbewm",
+				explosiongenerator = "custom:armnuke",
 				firestarter = 0,
 				flighttime = 400,
 				impulseboost = 0.5,

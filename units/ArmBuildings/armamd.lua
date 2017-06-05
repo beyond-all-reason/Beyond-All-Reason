@@ -120,7 +120,7 @@ return {
 				cratermult = 0,
 				energypershot = 7500,
 				cegTag = "cruisemissiletrail",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				explosiongenerator = "custom:antinuke",
 				firestarter = 100,
 				flighttime = 120,
 				impulseboost = 0.123,

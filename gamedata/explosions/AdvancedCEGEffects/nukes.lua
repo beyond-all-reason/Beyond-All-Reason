@@ -1,7 +1,7 @@
 -- nukedatbewm
 
-return {
-  ["nukedatbewm"] = {
+local definitions = {
+  ["armnuke"] = {
     groundflash = {
       air                = true,
       ground             = true,
@@ -35,6 +35,7 @@ return {
         sizeGrowth = 22,
         pos = [[r-10 r10, 0, r-10 r10]],
         speed=[[0, 0, 0]],
+        useairlos = true,
       },
     },
 
@@ -64,6 +65,7 @@ return {
         particleSize=30,
         particleSizeSpread=6,
         directional=1,
+        useairlos = true,
       },
     },
 
@@ -93,6 +95,7 @@ return {
         particleSize=25,
         particleSizeSpread=6,
         directional=1,
+        useairlos = true,
       },
     },
 
@@ -121,6 +124,7 @@ return {
         sizegrowth         = 0,
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
+        useairlos          = true,
       },
     },
 
@@ -149,6 +153,7 @@ return {
         sizegrowth         = 0,
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
+        useairlos          = true,
       },
     },
 
@@ -176,8 +181,43 @@ return {
         sizegrowth         = -0.007,
         sizemod            = 1,
         texture            = [[gunshotglow]],
+        useairlos          = true,
       },
     },
-  }
+  },
 }
 
+function deepcopy(orig)
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    copy = {}
+    for orig_key, orig_value in next, orig, nil do
+      copy[deepcopy(orig_key)] = deepcopy(orig_value)
+    end
+    setmetatable(copy, deepcopy(getmetatable(orig)))
+  else -- number, string, boolean, etc
+    copy = orig
+  end
+  return copy
+end
+
+local size = 1.2
+definitions['cornuke'] = deepcopy(definitions['armnuke'])
+
+-- method below fails :(
+--definitions['cornuke'].innersmoke.properties.numparticles = math.floor(definitions['cornuke'].innersmoke.properties.numparticles * size)
+--definitions['cornuke'].innersmoke.properties.particlespeed = definitions['cornuke'].innersmoke.properties.particlespeed * size
+--definitions['cornuke'].innersmoke.properties.particlespeedspread = definitions['cornuke'].innersmoke.properties.particlespeedspread * size
+--definitions['cornuke'].outersmoke.properties.numparticles = math.floor(definitions['cornuke'].outersmoke.properties.numparticles * size)
+--definitions['cornuke'].outersmoke.properties.particlespeed = definitions['cornuke'].outersmoke.properties.particlespeed * size
+--definitions['cornuke'].outersmoke.properties.particlespeedspread = definitions['cornuke'].outersmoke.properties.particlespeedspread * size
+--definitions['cornuke'].dirt.properties.particlespeed = definitions['cornuke'].dirt.properties.particlespeed * size
+--definitions['cornuke'].dirt.properties.particlespeedspread = definitions['cornuke'].dirt.properties.particlespeedspread * size
+--definitions['cornuke'].dirtbig.properties.particlespeed = definitions['cornuke'].dirtbig.properties.particlespeed * size
+--definitions['cornuke'].dirtbig.properties.particlespeedspread = definitions['cornuke'].dirtbig.properties.particlespeedspread * size
+--definitions['cornuke'].sparks.properties.particlespeed = definitions['cornuke'].sparks.properties.particlespeed * size
+--definitions['cornuke'].sparks.properties.particlespeedspread = definitions['cornuke'].sparks.properties.particlespeedspread * size
+
+
+return definitions
