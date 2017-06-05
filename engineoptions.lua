@@ -38,7 +38,7 @@ local options =
     name   = 'Max units',
     desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
     type   = 'number',
-    def    = 800,
+    def    = 1500,
     min    = 1,
     max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
     step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
