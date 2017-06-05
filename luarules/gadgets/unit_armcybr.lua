@@ -36,9 +36,9 @@ local targetTypeInt = Spring.GetProjectileTarget(proID)
 if targetTypeInt == string.byte('g') then 
 atomicTarget[proID].type = "ground" 
 atomicTarget[proID].target = {}
-Spring.Echo(atomicTarget[proID].target)
+-- Spring.Echo(atomicTarget[proID].target)
 ttype, atomicTarget[proID].target = Spring.GetProjectileTarget(proID)--{x,y,z}
-Spring.Echo(atomicTarget[proID].target)
+-- Spring.Echo(atomicTarget[proID].target)
 end
 if targetTypeInt == string.byte('u') then 
 atomicTarget[proID].type = "unit" 
@@ -72,7 +72,7 @@ if (atomicTarget[proID].type) then
 --Spring.Echo("ground target")
 	if atomicTarget[proID].type == "ground" then
 	projTargetPosition[proID] = {}
-	Spring.Echo(atomicTarget[proID].target)
+	-- Spring.Echo(atomicTarget[proID].target)
 	projTargetPosition[proID] = atomicTarget[proID].target
 	--Spring.Echo("Valid target position")
 	end
@@ -121,7 +121,7 @@ if proOwner[proID] then
 			local targettype, target = Spring.GetProjectileTarget(proID)
 			--Spring.Echo(targettype)
 			--Spring.Echo(target)
-			Spring.Echo(projTargetPosition[proID])
+			-- Spring.Echo(projTargetPosition[proID])
 			if targettype == string.byte('g') then 
 			Spring.SetProjectileTarget(ID, projTargetPosition[proID][1], projTargetPosition[proID][2], projTargetPosition[proID][3])
 			else
