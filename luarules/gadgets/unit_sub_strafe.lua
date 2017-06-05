@@ -25,9 +25,9 @@ function gadget:Initialize()
 		if uDef.name == "tawf009" then
 			tawf009 = uDefID
 		end
-		-- if uDef.name == "corsub" then
-			-- corsub = uDefID
-		-- end
+		if uDef.name == "corsub" then
+			corsub = uDefID
+		end
 		-- if uDef.name == "corssub" then
 			-- corssub = uDefID
 		-- end
@@ -39,7 +39,7 @@ Submarines = {}
 if (gadgetHandler:IsSyncedCode()) then
 function gadget:UnitFinished(unitID)
 local DEFID = Spring.GetUnitDefID(unitID)
-if DEFID == armsub or DEFID == armsubk or DEFID == tawf009 then
+if DEFID == armsub or DEFID == armsubk or DEFID == tawf009 or DEFID == corsub then
 Submarines[unitID] = DEFID
 end
 end
@@ -67,6 +67,29 @@ ndwx = dwz/math.sqrt(dwx^2+dwz^2)
 ndwz = -dwx/math.sqrt(dwx^2+dwz^2)
 end
 
+if udid == corsub then
+ndwx = -dwz/math.sqrt(dwx^2+dwz^2)
+ndwz = dwx/math.sqrt(dwx^2+dwz^2)
+-- Spring.Echo(rx)
+-- Spring.SpawnCEG("ZEUS_FLASH", x, 100+y, z, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*100, 100+y, z+duz*100, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*100, 100+y, z+ndwz*100, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*90, 100+y, z+duz*90, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*90, 100+y, z+ndwz*90, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*80, 100+y, z+duz*80, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*80, 100+y, z+ndwz*80, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*70, 100+y, z+duz*70, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*70, 100+y, z+ndwz*70, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*60, 100+y, z+duz*60, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*60, 100+y, z+ndwz*60, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*50, 100+y, z+duz*50, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*50, 100+y, z+ndwz*50, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*40, 100+y, z+duz*40, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*40, 100+y, z+ndwz*40, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+dux*30, 100+y, z+duz*30, 0, 1, 0, 1, 1)
+-- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*30, 100+y, z+ndwz*30, 0, 1, 0, 1, 1)
+end
+
 if udid == tawf009 then
 ndwx = -dwx/math.sqrt(dwx^2+dwz^2)
 ndwz = -dwz/math.sqrt(dwx^2+dwz^2)
@@ -90,24 +113,6 @@ end
 if rx < 0 then 
 rx = 0.5 
 end
--- Spring.Echo(rx)
--- Spring.SpawnCEG("ZEUS_FLASH", x, 100+y, z, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*100, 100+y, z+duz*100, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*100, 100+y, z+ndwz*100, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*90, 100+y, z+duz*90, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*90, 100+y, z+ndwz*90, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*80, 100+y, z+duz*80, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*80, 100+y, z+ndwz*80, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*70, 100+y, z+duz*70, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*70, 100+y, z+ndwz*70, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*60, 100+y, z+duz*60, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*60, 100+y, z+ndwz*60, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*50, 100+y, z+duz*50, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*50, 100+y, z+ndwz*50, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*40, 100+y, z+duz*40, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*40, 100+y, z+ndwz*40, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+dux*30, 100+y, z+duz*30, 0, 1, 0, 1, 1)
--- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*30, 100+y, z+ndwz*30, 0, 1, 0, 1, 1)
 
 local maxAllowedVel = rx * maxVel / 30
 if vw and maxAllowedVel and vw > maxAllowedVel then 
