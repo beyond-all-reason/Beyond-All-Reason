@@ -90,7 +90,7 @@ return {
 			[21] = "corsy",
 			[22] = "corsonar",
 			[23] = "corfdrag",
-			[24] = "corptl",
+			[24] = "corgplat",
 			[25] = "corfrt",
 			[26] = "corfrad",
 		},
