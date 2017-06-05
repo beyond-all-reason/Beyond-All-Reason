@@ -16,7 +16,7 @@ end
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
-local losWithRadarEnabled = false;
+local cfgLosWithRadarEnabled = true;
 local colorProfile = "greyscale" -- "colored"
 local specDetected = false
 
@@ -50,12 +50,12 @@ local spSendCommands = Spring.SendCommands
 local spSetLosViewColors = Spring.SetLosViewColors
 
 function setLosWithRadars()
-    losWithRadarEnabled = true
+    cfgLosWithRadarEnabled = true
     withRadars()
 end
 
 function setLosWithoutRadars()
-    losWithRadarEnabled = false
+    cfgLosWithRadarEnabled = false
     withoutRadars()
 end
 
@@ -94,7 +94,7 @@ end
 
 function widget:GetConfigData()
     return {
-        losWithRadarEnabled = losWithRadarEnabled,
+        cfgLosWithRadarEnabled = cfgLosWithRadarEnabled,
         colorProfile = colorProfile
     }
 end
@@ -110,12 +110,12 @@ function setLosWithoutColors()
 end
 
 function toggleLOSRadars()
-    if specDetected and losWithRadarEnabled then
-        losWithRadarEnabled = false
+    if specDetected and cfgLosWithRadarEnabled then
+        cfgLosWithRadarEnabled = false
     end
     specDetected = false
 
-    if losWithRadarEnabled then
+    if cfgLosWithRadarEnabled then
         setLosWithoutRadars()
     else
         setLosWithRadars()
@@ -137,10 +137,10 @@ function widget:SetConfigData(data)
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; losradar')
 
-    if data.losWithRadarEnabled ~= nil then
-        losWithRadarEnabled = data.losWithRadarEnabled
+    if data.cfgLosWithRadarEnabled ~= nil then
+        cfgLosWithRadarEnabled = data.cfgLosWithRadarEnabled
     else
-        losWithRadarEnabled = false
+        cfgLosWithRadarEnabled = false
     end
 
     if data.colorProfile ~= nil then
@@ -149,10 +149,10 @@ function widget:SetConfigData(data)
         colorProfile = "greyscale"
     end
 
-    if losWithRadarEnabled == true then
-        setLosWithRadars()
+    if cfgLosWithRadarEnabled == true then
+        withRadars()
     else
-        setLosWithoutRadars()
+        withoutRadars()
     end
 end
 
