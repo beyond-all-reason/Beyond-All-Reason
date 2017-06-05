@@ -32,7 +32,7 @@ return {
 		objectname = "ARMMISC",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
-		sightdistance = 400,
+		sightdistance = 800,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.145,

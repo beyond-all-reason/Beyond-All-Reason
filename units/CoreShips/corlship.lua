@@ -33,7 +33,7 @@ return {
 		objectname = "CORLSHIP",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGeneric",
-		sightdistance = 500,
+		sightdistance = 600,
 		turninplace = 0,
 		turninplaceanglelimit = 16,
 		turninplacespeedlimit = 3.4914,

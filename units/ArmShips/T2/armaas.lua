@@ -33,7 +33,7 @@ return {
 		objectname = "ARMAAS",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGeneric",
-		sightdistance = 475,
+		sightdistance = 1200,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.9008,

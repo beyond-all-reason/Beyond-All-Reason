@@ -34,7 +34,7 @@ return {
 		objectname = "CORCS",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
-		sightdistance = 400,
+		sightdistance = 700,
 		terraformspeed = 1250,
 		turninplace = 0,
 		turninplaceanglelimit = 140,

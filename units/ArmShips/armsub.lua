@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGeneric",
 		sightdistance = 1000,
-		sonardistance = 750,
+		sonardistance = 500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.046,
 		turnrate = 298,

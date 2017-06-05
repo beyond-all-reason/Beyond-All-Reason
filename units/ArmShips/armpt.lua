@@ -33,7 +33,7 @@ return {
 		objectname = "ARMPT",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGeneric",
-		sightdistance = 500,
+		sightdistance = 600,
 		turninplace = 0,
 		turninplaceanglelimit = 20,
 		turninplacespeedlimit = 3.4914,

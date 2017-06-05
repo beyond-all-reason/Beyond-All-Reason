@@ -33,7 +33,7 @@ return {
 		objectname = "ARMMLS",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
-		sightdistance = 260,
+		sightdistance = 500,
 		terraformspeed = 2000,
 		turninplace = 0,
 		turninplaceanglelimit = 140,

@@ -32,7 +32,7 @@ return {
 		objectname = "ARMBATS",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongeneric",
-		sightdistance = 455,
+		sightdistance = 1500,
 		turninplaceanglelimit = 5,
 		turninplacespeedlimit = 1.9008,
 		turnrate = 40,

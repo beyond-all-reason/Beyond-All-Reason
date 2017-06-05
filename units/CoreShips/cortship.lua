@@ -33,7 +33,7 @@ return {
 		releaseheld = false,
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongeneric",
-		sightdistance = 550,
+		sightdistance = 750,
 		transportcapacity = 40,
 		transportsize = 4,
 		transportunloadmethod = 0,
