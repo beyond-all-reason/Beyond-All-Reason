@@ -137,6 +137,8 @@ return {
 				reloadtime = 0.7,
 				rgbcolor = "0.05 0.05 1",
 				size = 1,
+				thickness = 2.4,
+				coreThickness = 0.75,
 				soundhit = "xplosml3",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
