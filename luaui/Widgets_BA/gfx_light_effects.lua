@@ -490,19 +490,21 @@ end
 
 -- function called by explosion_lights gadget
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
-	local params = {param={type='explosion'}}
-	params.param.r, params.param.g, params.param.b = weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b
-	params.life = weaponConf[weaponID].life
-	params.orgMult = weaponConf[weaponID].orgMult
-	params.param.radius = weaponConf[weaponID].radius
+	if weaponConf[weaponID] ~= nil then
+		local params = {param={type='explosion'}}
+		params.param.r, params.param.g, params.param.b = weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b
+		params.life = weaponConf[weaponID].life
+		params.orgMult = weaponConf[weaponID].orgMult
+		params.param.radius = weaponConf[weaponID].radius
 
-	params.frame = Spring.GetGameFrame()
-	params.px, params.py, params.pz = px, py, pz
-	params.py = params.py + 16 + (params.param.radius/35)
+		params.frame = Spring.GetGameFrame()
+		params.px, params.py, params.pz = px, py, pz
+		params.py = params.py + 16 + (params.param.radius/35)
 
-	--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
-	explosionLightsCount = explosionLightsCount + 1
-	explosionLights[explosionLightsCount] = params
+		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
+		explosionLightsCount = explosionLightsCount + 1
+		explosionLights[explosionLightsCount] = params
+	end
 end
 
 --------------------------------------------------------------------------------
