@@ -43,10 +43,12 @@ return {
 			[3] = "armpship",
 			[4] = "decade",
 			[5] = "armmisc",
-			[6] = "armroy",
-			[7] = "armtship",
-			[8] = "armsub",
-			[9] = "armrecl",
+			[6] = "armsub",
+			[7] = "armrecl",
+			[8] = "armlroy",
+			[9] = "armroy",
+			[10] = "armtship",
+
 		},
 		customparams = {
 			

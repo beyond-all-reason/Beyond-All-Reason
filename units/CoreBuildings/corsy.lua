@@ -41,11 +41,12 @@ return {
 			[2] = "corpt",
 			[3] = "corlship",
 			[4] = "coresupp",
-			[5] = "cormisc",
-			[6] = "corroy",
-			[7] = "cortship",
-			[8] = "corsub",
-			[9] = "correcl",
+			[5] = "corartic",	
+			[6] = "cormisc",
+			[7] = "corsub",
+			[8] = "correcl",
+			[9] = "corroy",
+			[10] = "cortship",
 		},
 		customparams = {
 			

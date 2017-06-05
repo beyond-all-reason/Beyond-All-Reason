@@ -235,7 +235,7 @@ return {
 				noselfdamage = true,
 				range = 200,
 				reloadtime = 0.7,
-				rgbcolor = "1 1 0",
+				rgbcolor = "0 1 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
