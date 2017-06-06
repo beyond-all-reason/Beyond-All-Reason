@@ -31,7 +31,7 @@ return {
 		selfdestructas = "largeBuildingexplosiongeneric",
 		sightdistance = 700,
 		waterline = 1,
-		yardmap = "wwww",
+		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			
 		},
