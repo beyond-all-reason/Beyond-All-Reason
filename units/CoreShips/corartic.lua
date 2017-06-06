@@ -113,10 +113,10 @@ return {
 		},
 		weapondefs = {
 			artillery = {
-				areaofeffect = 256,
+				areaofeffect = 92,
 				accuracy = 2048,
 				avoidfeature = false,
-				craterareaofeffect = 0,
+				craterareaofeffect = 92,
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailcorroyspecial",
@@ -161,7 +161,7 @@ return {
 			[1] = {
 				def = "ARTILLERY",
 				maindir = "0 0 1",
-				maxdifangle = 160,
+				maxangledif = 160,
 				onlytargetcategory = "NOTSUB",
 			},
 		},
