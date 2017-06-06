@@ -10,7 +10,7 @@ return {
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 2400*0.5,
 		canmove = true,
-		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER LIGHBOAT SURFACE",
+		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER LIGHTBOAT SURFACE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "15 15 47",
 		collisionvolumetype = "CylZ",

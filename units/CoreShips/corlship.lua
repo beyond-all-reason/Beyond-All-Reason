@@ -9,7 +9,7 @@ return {
 		buildpic = "CORLSHIP.DDS",
 		buildtime = 2100*0.5,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE LIGHBOAT",
+		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE LIGHTBOAT",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "16 16 48",
 		collisionvolumetype = "CylZ",
@@ -164,7 +164,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "LIGHTAIRSCOUT LIGHBOAT CAPITALSHIP",
+				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT CAPITALSHIP",
 				def = "CORLSHIP_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
