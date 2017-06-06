@@ -19,10 +19,10 @@ Balance changes:
 - Vanguard does 20% more damage
 - Armmart and cormart (mobile T2 arty) do 15% more damage
 - Armvulc and corbuzz cost increased by 40%
+- Bertha and Intimidator weapons have 25% more Area-of-Effect
 - Decoy commanders have been given same lasers as regular commanders
 - Fixed viper overshooting (when aiming at radar dots)
 - Fixed flak doing ludicrous damage to ground units
-- Decoy commanders have been given underwater laser
 - Air transports don't have collision enabled anylonger, fixes the unload bug
 
 Wind:
