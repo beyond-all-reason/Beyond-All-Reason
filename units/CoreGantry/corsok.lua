@@ -165,7 +165,7 @@ return {
 				duration = 10,
 				edgeeffectiveness = 0.7,
 				energypershot = 1000,
-				explosiongenerator = "custom:genericshellexplosion-large-sparks-burn",
+				explosiongenerator = "custom:genericshellexplosion-large-sparks-burn-green",
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Disruptor Phaser",

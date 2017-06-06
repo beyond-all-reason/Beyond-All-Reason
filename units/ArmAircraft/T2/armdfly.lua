@@ -87,7 +87,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				duration = 0.01,
-				explosiongenerator = "custom:genericshellexplosion-medium-sparks-burn",
+				explosiongenerator = "custom:genericshellexplosion-medium-sparks-burn-blue",
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "Paralyzer",

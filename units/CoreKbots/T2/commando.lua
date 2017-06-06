@@ -101,7 +101,7 @@ return {
 				craterareaofeffect = 70,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn",
+				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn-red",
 				firestarter = 100,
 				gravityaffected = "true",
 				impulseboost = 0,
