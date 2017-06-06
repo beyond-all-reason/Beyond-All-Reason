@@ -217,7 +217,7 @@ return {
 				areaofeffect = 32,
 				avoidfeature = false,
 				burst = 8,
-				burstrate = 0.5,
+				burstrate = 0.25,
 				craterareaofeffect = 32,
 				craterboost = 0,
 				cratermult = 0,
