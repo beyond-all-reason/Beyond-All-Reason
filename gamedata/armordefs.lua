@@ -378,11 +378,13 @@ local armorDefs = {
 		"corsjam",
 		"armmisc",
 		"cormisc",
+		"corartic",
 
 		},
 
 	destroyers = {
 		"armroy",
+		"armlroy",
 		"corroy",
 		"corarch",
 		"armaas",

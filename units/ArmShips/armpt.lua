@@ -146,7 +146,7 @@ return {
 				stages = 20,
 				damage = {
 					bombers = 1,
-					default = 24,
+					default = 16,
 					fighters = 1,
 					subs = 1,
 					vtol = 1,
