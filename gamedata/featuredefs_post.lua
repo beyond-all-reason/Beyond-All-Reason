@@ -61,7 +61,7 @@ local function ProcessUnitDef(udName, ud)
   end
 
 --Make small map features and wrecks non-blocking  
-if Spring.GetModOptions().smallfeaturenoblock ~= "disabled" then
+if Spring.GetModOptions and Spring.GetModOptions().smallfeaturenoblock ~= "disabled" then
 	for id,featureDef in pairs(FeatureDefs) do
 		if featureDef.name ~= "rockteeth" and 
 		   featureDef.name ~= "rockteethx" then
