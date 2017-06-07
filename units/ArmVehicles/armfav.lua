@@ -124,7 +124,7 @@ return {
 				cratermult = 0,
 				duration = 0.02,
 				energypershot = 2,
-				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn-yellow",
+				explosiongenerator = "custom:laserhit-small-yellow",
 				firestarter = 50,
 				hardstop = true,
 				impactonly = 1,

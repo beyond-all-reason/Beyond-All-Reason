@@ -121,7 +121,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 50,
-				explosiongenerator = "custom:genericshellexplosion-large-sparks-burn-green",
+				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
 				impulseboost = 0,

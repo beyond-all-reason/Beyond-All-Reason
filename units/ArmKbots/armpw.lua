@@ -120,7 +120,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-small-sparks-burn",
+				explosiongenerator = "custom:laserhit-small",
 				firestarter = 100,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

@@ -3,7 +3,7 @@
 -- genericshellexplosion-large-sparks-burn
 
 local definitions = {
-  ["genericshellexplosion-small-sparks-burn"] = {
+  ["laserhit-small"] = {
     --groundflash = {
     --  air                = true,
     --      --  flashalpha         = 0.04,
@@ -72,13 +72,13 @@ local definitions = {
         emitrot            = 15,
         emitrotspread      = 60,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.4, 0]],
+        gravity            = [[0, -0.2, 0]],
         numparticles       = 2,
         particlelife       = 4,
         particlelifespread = 3,
-        particlesize       = 20,
-        particlesizespread = 30,
-        particlespeed      = 3,
+        particlesize       = 22,
+        particlesizespread = 33,
+        particlespeed      = 1,
         particlespeedspread = 4,
         pos                = [[0, 2, 0]],
         sizegrowth         = 2.6,
@@ -197,7 +197,7 @@ local definitions = {
     },
   },
 
-  ["genericshellexplosion-medium-sparks-burn"] = {
+  ["laserhit-medium"] = {
     --groundflash = {
     --  air                = true,
     --      --  flashalpha         = 0.048,
@@ -311,16 +311,16 @@ local definitions = {
         emitrot            = 15,
         emitrotspread      = 60,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.4, 0]],
+        gravity            = [[0, -0.2, 0]],
         numparticles       = 2,
         particlelife       = 6,
         particlelifespread = 4,
         particlesize       = 30,
-        particlesizespread = 50,
-        particlespeed      = 3,
-        particlespeedspread = 5,
+        particlesizespread = 45,
+        particlespeed      = 1,
+        particlespeedspread = 4.5,
         pos                = [[0, 2, 0]],
-        sizegrowth         = 2.6,
+        sizegrowth         = 2.9,
         sizemod            = 0.5,
         texture            = [[gunshotglow]],
         useairlos          = false,
@@ -397,11 +397,11 @@ local definitions = {
       water              = true,
       underwater         = true,
       properties = {
-        heat               = 10,
+        heat               = 11,
         heatfalloff        = 1.6,
         maxheat            = 20,
         pos                = [[r-2 r2, 2.5, r-2 r2]],
-        size               = 1.5,
+        size               = 1.8,
         sizegrowth         = 2.5,
         speed              = [[0, 0, 0]],
         texture            = [[flare]],
@@ -435,7 +435,7 @@ local definitions = {
     },
   },
 
-  ["genericshellexplosion-large-sparks-burn"] = {
+  ["laserhit-large"] = {
     --groundflash = {
     --  air                = true,
     --      --  flashalpha         = 0.048,
@@ -453,9 +453,9 @@ local definitions = {
     groundflash = {
       air                = true,
       flashalpha         = 0.4,
-      flashsize          = 6,
+      flashsize          = 4.2,
       ground             = true,
-      ttl                = 35,
+      ttl                = 33,
       water              = true,
       underwater         = true,
       color = {
@@ -549,16 +549,16 @@ local definitions = {
         emitrot            = 15,
         emitrotspread      = 60,
         emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.4, 0]],
+        gravity            = [[0, -0.2, 0]],
         numparticles       = 3,
         particlelife       = 6,
         particlelifespread = 4,
-        particlesize       = 36,
-        particlesizespread = 66,
-        particlespeed      = 4.5,
-        particlespeedspread = 6,
+        particlesize       = 40,
+        particlesizespread = 60,
+        particlespeed      = 1,
+        particlespeedspread = 5.5,
         pos                = [[0, 2, 0]],
-        sizegrowth         = 2.6,
+        sizegrowth         = 3.3,
         sizemod            = 0.5,
         texture            = [[gunshotglow]],
         useairlos          = false,
@@ -584,9 +584,9 @@ local definitions = {
         numparticles       = 1,
         particlelife       = 18,
         particlelifespread = 24,
-        particlesize       = 3.2,
-        particlesizespread = 1.6,
-        particlespeed      = 2,
+        particlesize       = 6,
+        particlesizespread = 3,
+        particlespeed      = 2.2,
         particlespeedspread = 0.7,
         pos                = [[0, 1, 0]],
         sizegrowth         = 3.5,
@@ -635,12 +635,12 @@ local definitions = {
       water              = true,
       underwater         = true,
       properties = {
-        heat               = 11,
+        heat               = 13,
         heatfalloff        = 1.6,
         maxheat            = 20,
         pos                = [[r-2 r2, 2.5, r-2 r2]],
-        size               = 2.2,
-        sizegrowth         = 2.5,
+        size               = 3,
+        sizegrowth         = 3,
         speed              = [[0, 0, 0]],
         texture            = [[flare]],
       },
@@ -734,9 +734,9 @@ local colors = {
 }
 
 local sizes = {
-  "genericshellexplosion-small-sparks-burn",
-  "genericshellexplosion-medium-sparks-burn",
-  "genericshellexplosion-large-sparks-burn",
+  "laserhit-small",
+  "laserhit-medium",
+  "laserhit-large",
 }
 for color, effects in pairs(colors) do
   for k, size in pairs(sizes) do
