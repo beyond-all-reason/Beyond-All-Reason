@@ -27,7 +27,7 @@ local Sounds = {
 			pitchmod = 0.05,
 		},
 		uwlasrfir1 = {
-			file = "sounds/uwlasfir1.wav",
+			file = "sounds/uwlasrfir1.wav",
 			pitch = 1,
 			pitchmod = 0.05,
 		},
