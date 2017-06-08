@@ -10,6 +10,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "armamex_aoplane.dds",
+		buildingMask = 0,
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
@@ -43,6 +44,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			cvBuildable = true,
 			metal_extractor = 1,
 		},
 		featuredefs = {

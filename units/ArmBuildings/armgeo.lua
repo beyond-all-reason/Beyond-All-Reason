@@ -37,7 +37,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oGGo oGGo oooo",
 		customparams = {
-			
+			cvBuildable = true,
 		},
 		featuredefs = {
 			dead = {

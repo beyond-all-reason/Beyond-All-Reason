@@ -13,11 +13,23 @@ end
 --[[
 -------------------
 Before implementing this gadget, read this!!!
-This gadget relies on three parts:
+This gadget relies on a few parts:
 • control point config file which is located in luarules/configs/controlpoints/ , and it must have a filename of cv_<mapname>.lua. So, in the case of a map named "Iammas Prime -" with a version of "v01", then the name of my file would be "cv_Iammas Prime - v01.lua".
 	PLEASE NOTE: If the map config file is not found and a capture mode is selected, the gadget will generate 7 points in a circle on the map automagically.
-• config placed in luarules/configs/ called cv_nonCapturingUnits.lua
-• config placed in luarules/configs/ called cv_buildableUnits.lua
+	
+• config placed in luarules/configs/ called cv_nonCapturingUnits.lua -- What units are barred form being able to capture control points?
+• config placed in luarules/configs/ called cv_buildableUnits.lua -- What units can be built inside control points?
+	*-----------------*
+	EXTREMELY IMPORTANT!
+		In the "Buildable units"'s unitdefs, you need to add a building mask of 0. By default the building mask is 1. The control points use a building mask of 2.
+		Use the unitdef tag:
+			buildingMask = 0,
+			
+		BEWARE! Spring 103.0 allows for a bit field that works like this... 0 over 1, never 1 over 0. Normal ground is 1. Units are defaulted to 1.
+		
+	THE MASK CAN BE DISABLED OR ENABLED BY CHANGING THE VALUE IN cv_modOptions.lua!!!
+	*-----------------*
+• config placed in luarules/configs/ called cv_modOptions.lua -- This controls options for when spring is launched and modoptions cannot be read
 • modoptions
 
 The control point config is structured like this (cv_Iammas Prime - v01.lua):
@@ -55,6 +67,8 @@ local nonCapturingUnits = {
 return nonCapturingUnits
 
 ////
+!!!!THIS IS NOW DEPRECATED IN LEIU OF BUILDINGMASK!!!! 
+The code has, however, been kept (commented out) in case other game developers end up having a use for it.
 
 The buildableUnits.lua config file is structured like this:
 These are units that are allowed to be built within control points.
@@ -271,11 +285,7 @@ That's all folks!!!
 ]]--
 
 nonCapturingUnits = VFS.Include"LuaRules/Configs/cv_nonCapturingUnits.lua"
-buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
-
---local pointMarker = FeatureDefNames.xelnotgawatchtower.id -- Feature marking a point- This doesn't do anything atm
-
-if Spring.GetModOptions().scoremode == "disabled" or Spring.GetModOptions().scoremode == nil then return false end
+--buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
 
 --Make controlvictory exit if chickens are present
 
@@ -301,26 +311,10 @@ if chickensEnabled == true then
 	return false
 end
 
-
-local captureRadius = tonumber(Spring.GetModOptions().captureradius) or 500 -- Radius around a point in which to capture it
-local captureTime = tonumber(Spring.GetModOptions().capturetime) or 30 -- Time to capture a point
-local captureBonus = tonumber(Spring.GetModOptions().capturebonus) * 0.01 or 5 -- speedup from adding more units
-local decapSpeed = tonumber(Spring.GetModOptions().decapspeed) or 3 -- speed multiplier for neutralizing an enemy point
-local dominationScore = tonumber(Spring.GetModOptions().dominationscore) or 1000
-local dominationScoreTime = tonumber(Spring.GetModOptions().dominationscoretime) or 30 -- Time needed holding all points to score in multi domination
-local usemapconfig = Spring.GetModOptions().usemapconfig or "disabled"
-local limitScore = tonumber(Spring.GetModOptions().limitscore) or 3500
-
--- These are together because they cover the same area (resourcing)
-local metalPerPoint = tonumber(Spring.GetModOptions().metalperpoint) or 0
-local energyPerPoint = tonumber(Spring.GetModOptions().energyperpoint) or 0
+VFS.Include("LuaRules/Configs/cv_modOptions.lua")
 
 local moveSpeed =.5
-
-local numberOfControlPoints = tonumber(Spring.GetModOptions().numberofcontrolpoints) or 7
-local startTime = tonumber(Spring.GetModOptions().starttime) or 0 -- The time when capturing can start
-local tugofWarModifier = tonumber(Spring.GetModOptions().tugofwarmodifier) or 2 -- Radius around a point in which to capture it
-
+local buildingMask = 2
 
 --Here we mitigate potential issues caused by wonky options settings
 
@@ -364,7 +358,7 @@ if scoreMode == 2 then scoreModeAsString = "Tug of War" end
 if scoreMode == 3 then scoreModeAsString = "Domination" end
 
 
-Spring.Echo("[ControlVictory] Control Victory Scoring Mode: " .. (Spring.GetModOptions().scoremode or "Countdown"))
+Spring.Echo("[ControlVictory] Control Victory Scoring Mode: " .. cvMode)
 
 local gaia = Spring.GetGaiaTeamID()
 local mapx, mapz = Game.mapSizeX, Game.mapSizeZ
@@ -649,6 +643,28 @@ if (gadgetHandler:IsSyncedCode()) then
 		_G.points = points
 		_G.score = score
 		_G.dom = dom
+		
+		
+		-- Set building masks for control points
+		if useBuildingMask == true then
+			for _, capturePoint in pairs(points) do
+				local r = captureRadius
+				local mask = buildingMask
+				local r2 = r * r
+				local step = Game.squareSize * 2
+				for z = 0, 2 * r, step do -- top to bottom diameter
+					local lineLength = math.sqrt(r2 - (r - z) ^ 2)
+					for x = -lineLength, lineLength, step do
+						local squareX, squareZ = (capturePoint.x + x)/step, (capturePoint.z + z - r)/step
+						if squareX > 0 and squareZ > 0 and squareX < Game.mapSizeX/step and squareZ < Game.mapSizeZ/step then
+							Spring.SetSquareBuildingMask(squareX, squareZ, mask)
+							--Spring.MarkerAddPoint((cx + x), 0, (cz + z - r))
+						end
+					end
+				end
+			end
+		end
+		
 	end
 	
 	
@@ -717,9 +733,16 @@ if (gadgetHandler:IsSyncedCode()) then
 						end
 					end
 				end
-				if owner and count > 0 then
-					capturePoint.aggressor = nil
-					capturePoint.capture = capturePoint.capture + (1 + captureBonus * (count - 1)) * decapSpeed
+				if owner then
+					if count > 0 then
+						capturePoint.aggressor = nil
+						capturePoint.capture = capturePoint.capture + (1 + captureBonus * (count - 1)) * decapSpeed
+					else
+						capturePoint.capture = capturePoint.capture - decapSpeed
+						if capturePoint.capture < 0 then
+							capturePoint.capture = 0
+						end
+					end
 				elseif aggressor then
 					--Spring.Echo("capturePoint.aggressor", capturePoint.aggressor)
 					if capturePoint.aggressor == aggressor then
@@ -820,26 +843,26 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 -- Allow units listed in the buildableUnits config to be built in control points
+-- This is deprecated in leiu of buildingMask
+	-- local allowedBuildableUnits = {}
+	-- for i = 1, #buildableUnits do
+		-- if UnitDefNames[buildableUnits[i]] then
+			-- allowedBuildableUnits[UnitDefNames[buildableUnits[i]].id] = true
+		-- end
+	-- end
 
-	local allowedBuildableUnits = {}
-	for i = 1, #buildableUnits do
-		if UnitDefNames[buildableUnits[i]] then
-			allowedBuildableUnits[UnitDefNames[buildableUnits[i]].id] = true
-		end
-	end
-
-	function gadget:AllowUnitCreation(unit, builder, team, x, y, z) -- TODO: fix for comshare
-		if allowedBuildableUnits[unit] then
-			return true
-		end
-		for _, p in pairs(points) do
-			if x and math.sqrt((x - p.x) * (x - p.x) + (z - p.z) * (z - p.z)) < captureRadius then
-				Spring.SendMessageToPlayer(team, "This unit is not allowed to be built in Control Points")
-				return false
-			end
-		end
-		return true
-	end
+	-- function gadget:AllowUnitCreation(unit, builder, team, x, y, z)
+		-- if allowedBuildableUnits[unit] then
+			-- return true
+		-- end
+		-- for _, p in pairs(points) do
+			-- if x and math.sqrt((x - p.x) * (x - p.x) + (z - p.z) * (z - p.z)) < captureRadius then
+				-- Spring.SendMessageToPlayer(team, "This unit is not allowed to be built in Control Points")
+				-- return false
+			-- end
+		-- end
+		-- return true
+	-- end
 
 else -- UNSYNCED
 	
@@ -1318,7 +1341,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 	
 	function drawScoreboard()
   	PushMatrix()
-			Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
+		Translate(-(vsx * (uiScale-1))/2, -(vsy * (uiScale-1))/2, 0)
 	  	Scale(uiScale,uiScale,1)
 		  local x = scoreboardX --rightwards
 		  local y = scoreboardY --upwards
@@ -1347,11 +1370,11 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 			font:End()
 			
-			local n = 1
-			local dominator				= SYNCED.dom.dominatorwa
+			local n					= 1
+			local dominator			= SYNCED.dom.dominatorwa
 			local dominationTime	= SYNCED.dom.dominationTime
-			local white						= string.char("255","255","255","255")	
-			local allyCounter			= 0
+			local white				= string.char("255","255","255","255")	
+			local allyCounter		= 0
 			
 			-- for all the scores with a team.
 			for allyTeamID, allyScore in spairs(SYNCED.score) do

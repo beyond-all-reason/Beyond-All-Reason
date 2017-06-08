@@ -10,6 +10,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "corexp_aoplane.dds",
+		buildingMask = 0,
 		buildpic = "COREXP.DDS",
 		buildtime = 2724,
 		category = "ALL NOTLAND NOTSUB ANTIEMG NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -40,6 +41,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			cvBuildable = true,
 			metal_extractor = 1,
 		},
 		featuredefs = {

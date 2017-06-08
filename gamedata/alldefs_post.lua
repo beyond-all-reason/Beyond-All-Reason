@@ -68,6 +68,16 @@ local kbotBrakerateMultiplier = 0.75
 
 function UnitDef_Post(name, uDef)
 
+	--------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------
+	-- Set building Mask 0 for all units that can be built in Control Victory points
+	--
+	if Spring.GetModOptions().scoremode ~= nil or Spring.GetModOptions().scoremode ~= "disabled" then
+		if uDef.customparams and uDef.customparams.cvbuildable == true then
+			uDef.buildingmask = 0
+		end
+	end
+
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 

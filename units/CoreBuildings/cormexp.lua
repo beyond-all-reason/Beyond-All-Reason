@@ -10,6 +10,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "cormoho_aoplane.dds",
+		buildingMask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -41,6 +42,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			cvBuildable = true,
 			metal_extractor = 4,
 		},
 		featuredefs = {

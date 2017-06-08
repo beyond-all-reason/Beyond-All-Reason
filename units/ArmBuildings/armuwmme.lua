@@ -10,6 +10,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "armuwmme_aoplane.dds",
+		buildingMask = 0,
 		buildpic = "ARMUWMME.DDS",
 		buildtime = 35370,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -36,6 +37,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			cvBuildable = true,
 			metal_extractor = 4,
 		},
 		featuredefs = {

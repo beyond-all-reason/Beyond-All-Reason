@@ -36,7 +36,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooo ooooooo oGGoooo oGGoooo ooooooo",
 		customparams = {
-			
+			cvBuildable = true,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

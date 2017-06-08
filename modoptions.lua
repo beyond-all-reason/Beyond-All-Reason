@@ -282,7 +282,7 @@ local options={
 		desc   = 'Total score amount available.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 2750,
+		def    = 3500,
 		min    = 500,
 		max    = 5000,
 		step   = 1,  -- quantization is aligned to the def value
@@ -322,7 +322,7 @@ local options={
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 500,
-		min    = 250,
+		min    = 100,
 		max    = 1000,
 		step   = 25,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
@@ -381,7 +381,7 @@ local options={
 		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 2,
+		def    = 0,
 		min    = 0,
 		max    = 20,
 		step   = 0.1,  -- quantization is aligned to the def value
@@ -435,17 +435,6 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	{
-        key    = 'comm_wreck_metal',
-        name   = 'Commander Wreck Metal',
-        desc   = 'Sets the amount of metal left by a destroyed Commander',
-        type   = 'number',
-        section= 'ba_enhancements_misc',
-        def    = 2500,
-        min    = 0,
-        max    = 5000,
-        step   = 1,
-    },	
 -- End Control Victory Options
 }
 return options
