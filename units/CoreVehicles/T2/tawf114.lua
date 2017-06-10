@@ -94,6 +94,9 @@ return {
 				"deathceg3",
 				"deathceg4",
 			},
+			explosiongenerators = {
+				[1] = "custom:rocketflare-large",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

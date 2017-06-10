@@ -68,6 +68,20 @@ Create()
 	hide flare2;
 	hide missile1;
 	hide missile2;
+
+
+	turn flare2 to z-axis <-64> now;
+	turn flare2 to x-axis <-85> now;
+	move flare2 to z-axis [-4.8] now;
+	move flare2 to x-axis [0.5] now;
+	move flare2 to y-axis [-8.5] now;
+
+	turn flare1 to z-axis <-60> now;
+	turn flare1 to x-axis <-85> now;
+	move flare1 to z-axis [-8] now;
+	move flare1 to x-axis [1] now;
+	move flare1 to y-axis [-6] now;
+
 	gun_1 = flare1;
 	restore_delay = 2400;
 	start-script SmokeUnit();
@@ -105,18 +119,20 @@ FirePrimary()
 	if( gun_1 == 1 )
 	{
 		sleep 20;
-		move missile1 to z-axis [-7.500000] now;
-		hide missile1;
-		show missile1;
-		move missile1 to z-axis [0.000000] speed [10.000000];
+		emit-sfx 1024 + 0 from flare2;
+		//move missile1 to z-axis [-7.500000] now;
+		//hide missile1;
+		//show missile1;
+		//move missile1 to z-axis [0.000000] speed [10.000000];
 	}
 	if( gun_1 == 0 )
 	{
 		sleep 20;
-		move missile2 to z-axis [-7.500000] now;
-		hide missile2;
-		show missile2;
-		move missile2 to z-axis [0.000000] speed [10.000000];
+		emit-sfx 1024 + 0 from flare1;
+		//move missile2 to z-axis [-7.500000] now;
+		//hide missile2;
+		//show missile2;
+		//move missile2 to z-axis [0.000000] speed [10.000000];
 	}
 	gun_1 = !gun_1;
 }
