@@ -147,11 +147,20 @@ function widget:Initialize()
 end
 
 function removeGuiShaderRects()
-	if (WG['guishader_api'] ~= nil) then
+	if WG['guishader_api'] ~= nil then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				WG['guishader_api'].RemoveRect('ecostats_'..aID)
+			end
+		end
+	end
+
+	if WG['tooltip'] ~= nil then
+		for _, data in pairs(allyData) do
+			local aID = data.aID
+			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
+				WG['tooltip'].RemoveTooltip('ecostats_'..allyID)
 			end
 		end
 	end
@@ -516,16 +525,24 @@ local function DrawMBar(tM,vOffset) -- where tM = team Metal = [0,1]
 	glColor(1,1,1)
 end
 
-
+local tooltipAreas = {}
 local function DrawBackground(posY, allyID)
 	local y1 = widgetPosY - posY + widgetHeight
 	local y2 = widgetPosY - posY + tH + widgetHeight
+	local area = {widgetPosX, y1, widgetPosX+widgetWidth, y2 }
+
 	glColor(0,0,0,0.66)
 	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
 	glColor(1,1,1,0.025)
 	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
+
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
+	end
+
+	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
+		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Shows total team energy/metal stock")
+		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
 	end
 	glColor(1,1,1,1)
 end
@@ -1349,18 +1366,6 @@ end
 function widget:MouseRelease(x,y,button)
 	if button == 2 or button == 3 then
 		pressedToMove = nil                                              -- ends move action
-	end
-end
-
-
-function widget:IsAbove(x, y)
-	return IsOnButton(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight)
-end
-
-function widget:GetTooltip(mx, my)
-	if IsOnButton(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY+widgetHeight) then
-		return string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
-			"This widget shows the total economy of each team.")
 	end
 end
 

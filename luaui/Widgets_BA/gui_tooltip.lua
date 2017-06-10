@@ -88,6 +88,11 @@ function init()
 			end
 		end
 	end
+	WG['tooltip'].RemoveTooltip = function(name)
+		if tooltips[name] ~= nil then
+			tooltips[name] = nil
+		end
+	end
 	WG['tooltip'].ShowTooltip = function(name, value)
 		if value ~= nil then
 			tooltips[name] = {value=tostring(value)}
@@ -132,10 +137,9 @@ function drawTooltip(name, x, y)
 		maxWidth = math.max(maxWidth, (gl.GetTextWidth(line)*fontSize), maxWidth)
 		maxHeight = maxHeight + lineHeight
 	end
-	
 	-- adjust position when needed
 	if posX+maxWidth+paddingW+paddingW > vsx then
-		posX = (posX - (posX - vsX)) - paddingW - paddingW
+		posX = posX - maxWidth - paddingW - paddingW - (xOffset*widgetScale)
 	end
 	if posX - paddingW < 0 then
 		posX = 0 + paddingW
