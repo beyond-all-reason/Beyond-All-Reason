@@ -110,7 +110,7 @@ local definitions = {
       water              = true,
       properties = {
         airdrag            = 0.5,
-        colormap           = [[0.3 0.27 0.1 0.22   1 0.96 0.6 0.3   1 0.77 0.1 0.13   0 0 0 0]],
+        colormap           = [[0.15 0.14 0.1 0.005   0 0 0 0]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -126,7 +126,7 @@ local definitions = {
         pos                = [[0, 2, 0]],
         sizegrowth         = 1.5,
         sizemod            = 1,
-        texture            = [[dirt]],
+        texture            = [[glow]],
         useairlos          = false,
       },
     },

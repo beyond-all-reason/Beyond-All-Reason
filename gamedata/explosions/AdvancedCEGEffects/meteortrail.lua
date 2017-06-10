@@ -10,9 +10,9 @@ return {
       ground             = true,
       water              = true,
       properties = {
-				alwaysVisible = 1,
+		alwaysVisible = 1,
         airdrag            = 0,
-        colormap           = [[0.15 0.13 0.11 0.12   0 0 0 0.01]],
+        colormap           = [[0.1 0.085 0.055 0.005   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -28,7 +28,7 @@ return {
         pos                = [[0.0, 0, 0.0]],
         sizegrowth         = -1.7,
         sizemod            = 1,
-        texture            = [[dirt]],
+        texture            = [[glow]],
         useairlos          = true,
       },
     },
@@ -39,8 +39,7 @@ return {
 			water = 1,
 			ground = 1,
 			count = 4,
-			properties = 
-			{
+			properties = {
 				airdrag = 0.8,
 				alwaysVisible = 1,
 				sizeGrowth = 0.07,
