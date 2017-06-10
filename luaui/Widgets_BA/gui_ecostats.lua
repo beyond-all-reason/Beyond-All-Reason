@@ -160,7 +160,10 @@ function removeGuiShaderRects()
 		for _, data in pairs(allyData) do
 			local aID = data.aID
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
-				WG['tooltip'].RemoveTooltip('ecostats_'..allyID)
+				if tooltipAreas['ecostats_'..aID] ~= nil then
+					WG['tooltip'].RemoveTooltip('ecostats_'..aID)
+					tooltipAreas['ecostats_'..aID] = nil
+				end
 			end
 		end
 	end
@@ -541,7 +544,7 @@ local function DrawBackground(posY, allyID)
 	end
 
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
-		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Shows total team energy/metal stock")
+		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Team metal/energy income")
 		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
 	end
 	glColor(1,1,1,1)
