@@ -229,7 +229,7 @@ function init()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+
 	shader = glCreateShader({
 		vertex = [[
 			uniform float time;
@@ -244,10 +244,10 @@ function init()
 
 				vec3 pos = scalePos - mod(camPos, scale);
 				pos.y -= time * 0.5 * (speed.x * (2.0 + gl_Vertex.w));
-				
+
 				pos.x += (sin(time*1.5)*3) + speed.y;
 				pos.z += (cos(time*1.5)*3) + speed.z;
-				
+
 				if (pos.x >= 1) {
 					pos.x -= 1;
 				}
@@ -260,7 +260,6 @@ function init()
 				if (pos.z < 0) {
 					pos.z += 1;
 				}
-				
 				pos = mod(pos, scale) - (scale * 0.5) + camPos;
 				
 				vec4 eyePos = gl_ModelViewMatrix * vec4(pos, 1.0);
@@ -434,15 +433,22 @@ function widget:DrawScreen()
 	end
 end
 
+local pausedTime = 0
+local lastFrametime = Spring.GetTimer()
 function widget:DrawWorld()
 	if not enabled then return end
-	
+
+	local _, _, isPaused = Spring.GetGameSpeed()
+	if isPaused then
+		pausedTime = pausedTime + Spring.DiffTimers(Spring.GetTimer(), lastFrametime)
+	end
+	lastFrametime = Spring.GetTimer()
 	if os.clock() - startOsClock > 0.5 then		-- delay to prevent no textures being shown
 		if shader ~= nil and particleLists[#particleTypes] ~= nil and particleLists[#particleTypes][particleStep] ~= nil then
 			glUseShader(shader)	
 			camX,camY,camZ = Spring.GetCameraPosition()
-			diffTime = Spring.DiffTimers(Spring.GetTimer(), startTimer)
-			
+			diffTime = Spring.DiffTimers(lastFrametime, startTimer) - pausedTime
+
 			glUniform(shaderTimeLoc,diffTime * 1)
 			glUniform(shaderCamPosLoc, camX, camY, camZ)
 			
@@ -456,9 +462,11 @@ function widget:DrawWorld()
 			local osClock = os.clock()
 			local timePassed = osClock - prevOsClock
 			prevOsClock = osClock
-			
-			offsetX = offsetX + ((windDirX * windMultiplier) * timePassed)
-			offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
+
+			if not isPaused then
+				offsetX = offsetX + ((windDirX * windMultiplier) * timePassed)
+				offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
+			end
 			
 			for particleType, pt in pairs(particleTypes) do
 				glTexture(snowTexFolder..pt.texture)
