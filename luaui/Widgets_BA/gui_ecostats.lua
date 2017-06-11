@@ -58,6 +58,7 @@ Button["player"] 					= {}
 Button["team"] 						= {}
 
 local Options						= {}
+local tooltipAreas					= {}
 
 local lastPlayerChange				= 0
 local aliveAllyTeams				= 0
@@ -528,7 +529,6 @@ local function DrawMBar(tM,vOffset) -- where tM = team Metal = [0,1]
 	glColor(1,1,1)
 end
 
-local tooltipAreas = {}
 local function DrawBackground(posY, allyID)
 	local y1 = widgetPosY - posY + widgetHeight
 	local y2 = widgetPosY - posY + tH + widgetHeight

@@ -157,55 +157,6 @@ local options={
         max    = 2,
         step   = 0.2,
     },
-
---Forb's modoptions start here
---Any modoptions in this block that are default enabled have been set that way at Floris' request
-	
-    {
-       key="ba_enhancements_morph",
-       name="Balanced Annihilation - Gameplay Enhancements: Morphing",
-       desc="Balanced Annihilation - Gameplay Enhancements: Morphing",
-       type="section",
-    },
-
-	{
-		key    = "mightymorphinpowerunits",
-		name   = "Allow Some lower tier units to morph into higher tier units",
-		desc   = "Adds an upgrade button to the orders menu of some tech 1 units to allow them to upgrade into higher tech units.",		
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_morph",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Adds an upgrade button to the orders menu of some tech 1 units to allow them to upgrade into higher tech units."},
-		}
-  },
-  
-	{
-		key    = 'morphpenalty',
-		name   = 'Morph Penalty',
-		desc   = 'Adds a percentage penalty to buildtime, metal and energy cost of units that are morphed.',
-		type   = 'number',
-		section= 'ba_enhancements_morph',
-		def    = 1.01,
-		min    = 1.00,
-		max    = 2.00,
-		step   = 0.01,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
-	
-	{
-		key    = 'requiredtechlevel',
-		name   = 'Require Tech Level for Morph',
-		desc   = 'Sets a minimum tech level required for morphing.',
-		type   = 'number',
-		section= 'ba_enhancements_morph',
-		def    = 1,
-		min    = 0,
-		max    = 2,
-		step   = 1,  -- quantization is aligned to the def value
-		-- (step <= 0) means that there is no quantization
-	},
 	
     {
        key="ba_enhancements_misc",
@@ -252,8 +203,6 @@ local options={
 			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
 		}
   },
-	
---Forb's modoptions end here
 	
 -- Control Victory Options	
 	{
