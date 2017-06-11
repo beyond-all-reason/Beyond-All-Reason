@@ -50,9 +50,9 @@ end
 
 if (gadgetHandler:IsSyncedCode()) then
 	
-  function gadget:Explosion(weaponID, px, py, pz, ownerID)
-	  	SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
-  end
+    function gadget:Explosion(weaponID, px, py, pz, ownerID)
+        SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
+    end
 	
 else
 	
@@ -60,37 +60,50 @@ else
 -- Unsynced
 -------------------------------------------------------------------------------
 	
-	local myAllyID = Spring.GetMyAllyTeamID()
-	
-	function gadget:PlayerChanged(playerID)
-		if (playerID == Spring.GetMyPlayerID()) then
-			myAllyID = Spring.GetMyAllyTeamID()
-		end
-	end
-	
-  local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
-    if Script.LuaUI("GadgetWeaponExplosion") then
-      if ownerID ~= nil then
-    	    local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
+    local myAllyID = Spring.GetMyAllyTeamID()
+    local widgetEnabled = true
+    local spGetLastUpdateSeconds = Spring.GetLastUpdateSeconds
+    local timeSinceLastCheck = 0
 
-          if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
-              --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
-                  Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
-              --end
-          end
-      else
-          -- dont know when this happens and if we should show the explosion...
-          Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
-      end
+    function gadget:PlayerChanged(playerID)
+        if (playerID == Spring.GetMyPlayerID()) then
+            myAllyID = Spring.GetMyAllyTeamID()
+        end
     end
-  end
+	
+    local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
+        if widgetEnabled then
+            if Script.LuaUI("GadgetWeaponExplosion") then
+                if ownerID ~= nil then
+                    local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
 
-  function gadget:Initialize()
-    gadgetHandler:AddSyncAction("explosion_light", SpawnExplosion)
-  end
+                    if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
+                        --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
+                      widgetEnabled = Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 
-  function gadget:Shutdown()
-    gadgetHandler.RemoveSyncAction("explosion_light")
-  end
+                        --end
+                    end
+                else
+                    -- dont know when this happens and if we should show the explosion...
+                    Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
+                end
+            end
+        end
+    end
 
+    function gadget:Initialize()
+        gadgetHandler:AddSyncAction("explosion_light", SpawnExplosion)
+    end
+
+    function gadget:Shutdown()
+        gadgetHandler.RemoveSyncAction("explosion_light")
+    end
+
+    function gadget:Update()
+        timeSinceLastCheck = timeSinceLastCheck + spGetLastUpdateSeconds()
+        if timeSinceLastCheck > 2.5 then
+            widgetEnabled = Script.LuaUI("GadgetWeaponExplosion")
+            timeSinceLastCheck = 0
+        end
+    end
 end

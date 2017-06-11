@@ -505,6 +505,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 	end
+	return true
 end
 
 --------------------------------------------------------------------------------
@@ -516,11 +517,4 @@ function widget:Initialize()
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()
 	end
-end
-
-
-local requestRate = 2
-function widget:Update(dt)
-
-
 end
