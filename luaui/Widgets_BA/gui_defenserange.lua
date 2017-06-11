@@ -439,6 +439,26 @@ local UnitDetected
 local GetColorByDps
 local CheckDrawTodo
 local DrawRanges
+
+
+
+
+local mapBaseHeight
+local h = {}
+for i=1,3 do
+	for i=1,3 do
+		h[#h+1]=Spring.GetGroundHeight(Game.mapSizeX*i/4,Game.mapSizeZ*i/4)
+	end
+end
+mapBaseHeight = 0
+for _,s in ipairs(h) do
+	mapBaseHeight = mapBaseHeight + s
+end
+mapBaseHeight = mapBaseHeight / #h
+local gy = math.max(0,mapBaseHeight)
+
+local darkOpacity = 0
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -475,8 +495,6 @@ end
 function widget:Initialize()
 	state["myPlayerID"] = spGetLocalTeamID()
 
-    widgetHandler:RegisterGlobal('SetOpacity_Defense_Range', SetOpacity)
-
 	DetectMod()
 
 	UpdateButtons()
@@ -489,10 +507,6 @@ function widget:Initialize()
 		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
 		UnitDetected(unitID, unitAllyTeam == myAllyTeam)
 	end
-end
-
-function widget:Shutdown()
-    widgetHandler:DeregisterGlobal('SetOpacity_Defense_Range', SetOpacity)
 end
 
 function widget:UnitCreated( unitID,  unitDefID,  unitTeam)	
@@ -889,19 +903,20 @@ function CheckSpecState()
 	return true
 end
 
-local darkOpacity = 0
-function SetOpacity(dark,light)
-    darkOpacity = dark
-end
-
 function widget:PlayerChanged()
 	spec = spGetSpectatingState()
 end
 
 function widget:Update()
+
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 
 	end
+
+	local cy = select(2,Spring.GetCameraPosition())
+	darkOpacity = math.max(0.1, 0.5 - (cy-gy-3000) * (1/10000))
+
+
 	local timef = spGetGameSeconds()
 	local time = floor(timef)
 

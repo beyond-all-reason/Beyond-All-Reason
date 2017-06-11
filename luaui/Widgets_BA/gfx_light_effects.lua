@@ -517,3 +517,10 @@ function widget:Initialize()
 		projectileLightTypes = GetLightsFromUnitDefs()
 	end
 end
+
+
+local requestRate = 2
+function widget:Update(dt)
+
+
+end
