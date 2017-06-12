@@ -98,7 +98,7 @@ local function GetLightsFromUnitDefs()
 
 		if customParams.light_skip == nil then
 			local skip = false
-			local lightMultiplier = 0.066
+			local lightMultiplier = 0.07
 			local bMult = 1.6		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
