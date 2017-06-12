@@ -61,9 +61,6 @@ else
 -------------------------------------------------------------------------------
 	
     local myAllyID = Spring.GetMyAllyTeamID()
-    local widgetEnabled = true
-    local spGetLastUpdateSeconds = Spring.GetLastUpdateSeconds
-    local timeSinceLastCheck = 0
 
     function gadget:PlayerChanged(playerID)
         if (playerID == Spring.GetMyPlayerID()) then
@@ -72,21 +69,18 @@ else
     end
 	
     local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
-        if widgetEnabled then
-            if Script.LuaUI("GadgetWeaponExplosion") then
-                if ownerID ~= nil then
-                    local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
+        if Script.LuaUI("GadgetWeaponExplosion") then
+            if ownerID ~= nil then
+                local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
 
-                    if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
-                        --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
-                      widgetEnabled = Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
-
-                        --end
-                    end
-                else
-                    -- dont know when this happens and if we should show the explosion...
-                    Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
+                if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
+                    --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
+                    Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+                    --end
                 end
+            else
+                -- dont know when this happens and if we should show the explosion...
+                Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID)
             end
         end
     end
@@ -97,13 +91,5 @@ else
 
     function gadget:Shutdown()
         gadgetHandler.RemoveSyncAction("explosion_light")
-    end
-
-    function gadget:Update()
-        timeSinceLastCheck = timeSinceLastCheck + spGetLastUpdateSeconds()
-        if timeSinceLastCheck > 2.5 then
-            widgetEnabled = Script.LuaUI("GadgetWeaponExplosion")
-            timeSinceLastCheck = 0
-        end
     end
 end

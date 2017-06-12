@@ -507,26 +507,28 @@ function gadget:PlayerChanged()
 end
 
 function gadget:DefaultCommand()
-   local mx, my = spGetMouseState()
-   local s, targetID = spTraceScreenRay(mx, my)
-   if s ~= strUnit then
-      return false
-   end
+   if not amISpec then
+      local mx, my = spGetMouseState()
+      local s, targetID = spTraceScreenRay(mx, my)
+      if s ~= strUnit then
+         return false
+      end
 
-   if not spAreTeamsAllied(myTeamID, spGetUnitTeam(targetID)) then
-      return false
-   end
+      if not spAreTeamsAllied(myTeamID, spGetUnitTeam(targetID)) then
+         return false
+      end
 
-   local targetDefID = spGetUnitDefID(targetID)
-   if not (UnitDefs[targetDefID].isAirBase or airbaseDefIDs[targetDefID]) then
-      return false
-   end
+      local targetDefID = spGetUnitDefID(targetID)
+      if not (UnitDefs[targetDefID].isAirBase or airbaseDefIDs[targetDefID]) then
+         return false
+      end
 
-   local sUnits = spGetSelectedUnits()
-   for i=1,#sUnits do
-      local unitID = sUnits[i]
-      if UnitDefs[spGetUnitDefID(unitID)].canFly then
-         return CMD_LAND_AT_SPECIFIC_AIRBASE
+      local sUnits = spGetSelectedUnits()
+      for i=1,#sUnits do
+         local unitID = sUnits[i]
+         if UnitDefs[spGetUnitDefID(unitID)].canFly then
+            return CMD_LAND_AT_SPECIFIC_AIRBASE
+         end
       end
    end
    return false

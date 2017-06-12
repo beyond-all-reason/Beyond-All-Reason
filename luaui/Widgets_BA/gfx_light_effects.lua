@@ -505,7 +505,6 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 	end
-	return true
 end
 
 --------------------------------------------------------------------------------
