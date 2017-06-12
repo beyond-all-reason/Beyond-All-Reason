@@ -24,6 +24,7 @@ Balance changes:
 - Fixed viper overshooting (when aiming at radar dots)
 - Fixed flak doing ludicrous damage to ground units
 - Air transports don't have collision enabled anylonger, fixes the unload bug
+- EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
 
 Wind:
 - Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
@@ -31,36 +32,25 @@ Wind:
 - Windspeed gained 50% (but due to price increases: generators wont be more effective)
 - Core and arm are the same now
 
-Sea reworked:
---T1--
-- Increased maxspeed for submarines/corvettes
-- Decreased maxspeed for destroyers/scouts/carriers
-- Turnrates updated (based on ship's length) = 720*40 / ship's length which makes around 600 for scouts, 500 for corvettes, 300 for destroyers...
-- Acceleration and brakerate values based on maxspeed and a factor that depends on the ship's chassis class. (i.e scouts will reach maxspeed in 1 second while destroyers will reach maxspeed in 2 seconds)
-- Added a Slow Effect on torpedo launchers and depthcharge launchers. The customParams "slowlength" and "slowstrength" will allow to finetune the slow effect. If no customParams are defined, a 0% slow of 30 frames will be applied.
-- Armsub torpedo applies a 30% slow for 30 frames, has increased aoe (128 vs 64), and deals more damages to other submarines (350) with a lower reload time.
-- Corsub main torpedo applies a 20 % slow, has increased aoe and deals more damages to other submarines (350) however, upon reaching a distance to its initial target (ground/feature/unit/projectile) < 100 elmos, it splits into 8 smaller torpedo which deal 1/10th only of the main torpedo damages and apply a 1% slow for 3 frames each. These smaller torpedos track their target.
-- Armroy HP decreased to 2250 HP. Range decreased to 650 and sonar/sightdistance decreased (350/400). Projectile speed increased. Metal, energy cost and build time decreased (850/5000/12000). Model size increased (1.25 factor) (decrease dodge chance and fits more with cost/power)
-- Corroy HP decreased to 2950, range decreased to 700 (vs 710) and sonar/sightdistance decreased (350/400). Plasma canon damages increased (450). Metal cost decreased (1050/6000/13000). Model size increased (1.25 factor) (decrease dodge chance and fits more with cost/power)
-- Armpt/corpt weapons changed to a rapid fire/low dps laser canon with bonus damages towards other scoutclass boats, AA weapon erased and airlos tag erased
-- Added Armpship (Plasma bombs boat, strong vs Cap ships and buildings) and corlship (strong vs boats and corvs)
-- Decade = Gun corvette, strong vs scouts/corvettes -- Decreased max hp, default damages and added bonus damages towards scouts/corvettes.
-- Coresupp = Paralyzer corvette -- decreased max hp, most effective against scouts/corvettes but also effective against lone cap ships.
-- Armcs/corcs = now belong to corvette class (corvetteclass-like movements speeds applied)
-- Armmisc/Cormisc (Light AA corvettes) added -- PackO/madsam weapons (1/3rd of firerate but two per ship). Replaces patrol's boats AA.
-- Tships speeds/accel/brake/turnrates updated.
-
---T2--
-- Sea T2 torpedo launcher is back
-- Armcrus rescripted: All weapons properly separated: 2 Plasma canons (double barrel) with parralel shots (unit_armcrus_wpn.lua + script + wpn defs) can only shoot same target-- 2 light lasers (front/rear) with halved rate of fire but can shoot both at once and both at different targets -- 1 depthcharge launcher. Max speed decreased, accel and brakerate dereased, turnrate decreased (195 according to formula). Costs increased and same build time (20500e-2500m-19700bt)-- model scaled *1.5
-----Note: The two barrels can somehow still go out of sync even though they should always be able to shoot at the same time-- If the delay between two shots excess 4 frames then the parralel shots effect wont apply. (avoid projectile flying in wrong direction when out of sync)
-- Armmship weapons changed to tracking rockets. Goal is to have a more dynamic gameplay with those. -- Not balanced yet /!\
-
---Buildings--
-- All sea defenses buffed (no more "heavyunits" armor type for ships so all units do default damages unless specified not to)
-- OnHit Impulse on torpedo launchers (will soon be changed to the torpedo slow effect)
-- Bonus damages from plasma batteries to ALL ships
-- Added Sea Platform to Combat/naval engineers as well as t1.5 hovercrafts and seaplane cons.
+Sea reworked: Doo
+-- Work In Prorgess
+Changelog date: 06/12/17
+The sea gameplay/mecanics are being completly reworked and it would be a pain to state all the changes because it is most likely that the gameplay will be completly different from what it used to be.
+For the moment, this work is still in progress, and it is likely that there are still a lot of huge design and balance issues. Please understand that apart from the models and some units that I decided to keep as they were, this is basically restarting from scratches, and it may take some time to adjust all the costs/movementspeed/HP/damages values/models until it reaches an enjoyable quality.
+Here i will state all the relevant unit stats and particularities, which might be very different from BA 9.54 and older.
+First, the global changes, concerning both ARM and CORE:
+-- Added "Sea Platform" available from t2 engineers (both sea and land), and t1.5 cons (seaplane/hover) -- Its cost, stats, model and behaviour upon death are still being worked on. This unit should be a foundation that allows ground units/buildings to be built on with an added mcost/ecost/buildtime per 2x2 footprint square of buildspace. Although it acts as a terraforming towards the engine, it's purpose is different as it should be a destroyable platform with a high chainreaction potential instead of a definitive groundheight alteration.
+-- Added "Gun Platform" available from com and t1 sea cons -- This gun platform offers a light defensive firepower against light tech 1 boats such as Attack Boats and Laser Pulse/Light Plasma Bombs Boats. Its firepower significantly decreases against tougher armor and will most likely be too weak to deal any serious damages to any corvette, destroyer or tech 2 ships.
+-- Separated all ships into different categories: 
+Scouts/Lightboats: High velocity but low turnrates; they are the main offensive units in early game. They can provide decent DPS (attack boats) or more specialised damages (Light plasma bombs versus capital ships and buildings and Laser Pulses versus corvettes). Their m cost is low (from 70 to 110 m per boat) and build time is very fast.
+Corvettes: They have a decent velocity as well as a decent turnrate which make them very mobile. They have a slightly tougher armor than light boats. They mostly have a supporting role as: Repairing (t1 con and t2 engineer), Anti-Air (Missile corvettes), Artillery (Core's ARTIC), Paralyzing (Core's Supporter), anti LightBoats (Arm's DECADE), and radar jamming (T2 Radar Jammer Corvette). Their cost range is from 200m to 450m
+Submarine: Along with the Destroyers, Submarines are the ONLY units that are able to shoot other submarines and underwater units. Their main weapons are torpedos which exist in two kinds: Slow velocity, tracking torpedos and higher velocity, non tracking torpedos. Their speed is around 2 elmos per frame (60 elmos per second) which is less than half a scout's speed, but they have the highest mobility because they can both strafe and move backwards (with a reduced speed). They must be micro'd for optimal efficiency. Their role depend on their torpedo type. Tracking torpedos should be used against other submarines when their non tracking torpedos would miss. But high velocity torpedos have higher damages which make them more efficient when it comes to taking down units with very low or inexistant mobility. Their mcost is always 700 Metal.
+Destroyer: They provide a constant and heavy firepower against lightboats/corvettes (Arm's Laser Destroyer), Submarines/CapitalShips (Destroyer), and aircrafts (T2 Anti Air destroyer) but with a high metal cost and a low mobility. Their armor is havy and they will take only very low damages from non specialized weapons such as torpedos, missiles, heavy plasma cannons, missiles or beam lasers. Their cost range is between 1.3k m to 2km.
+Carriers: They have a very low movespeed and a heavy armor. They will provide either transport spots (Transport ships) or antiNukes/Radars/AirRepairPads (Carrier).
+Cruisers: They have a very low mobility but good all round firepower aswell as heavy armor. Their most obvious weakness is the lack of torpedos and their high price ranging around 4k metal.
+Battleships and Flagships: They provide the highest DPS, range and armor with a heavy metal cost. They're basically enhanced cruisers.  
+-- Combomb: Due to the global HP buffs, sonar buffs and range buffs, combombing enemy units will be alot less efficient. It is still a valuable asset that can allow to take down some important units such as labs and destroyers when your enemy isn't careful enough. Do not expect to win a game in the first 3 minutes with a combomb though.
+(this is NOT an exhaustive list)
 
 (AA) missiles:
 - Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
@@ -70,6 +60,17 @@ Sea reworked:
 - Fighters have been given more range due to slower missile speed and missile turnrate 
 (old fighter missile range was too short to show missile exhaust effect properly)
 - Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
+
+Aircrafts:
+[[TESTING]]
+- Liche: The weapon behaviour has been changed:
+	0 start velocity and no accel for 15 frames (0.5seconds) (basically like a bomb drop)
+	40 accel after 0.5 seconds and tracks target
+The aiming script and behaviour has NOT been changed and the tracking effect does not increase its efficiency.
+-->Reason: Better weapon animation.
+	This will be reverted if it causes any significant balance change (because it is not meant to) so please report any odd/different behaviour to me (Doo) while we are still in test versions.
+	
+
 
 Mod options: (default disabled)
 - control victory options: shows info on startup and offers a better scoreboard window
@@ -119,10 +120,13 @@ Other:
 - Enemy spotter opacity and unit teamcolor highlight configurable via options widget
 - Arm Beamer updates its aim faster when firing
 - A few more turrets/barrels get a kickback when they fire
-- Fixed unit_stats dps values for beamlaser weapons (dps = damages/beamtime+reloadtime instead of dps = damages/reloadtime). Also changed the minimal reload time to 1/600 instead of 1/30, which caused some weapons with reload times < 0.03 to show wrong dps values.
-- Fixed unit_stats dps values for stockpiling weapons (had to apply a 1/30 factor)
-- Fixed unit_stats crashes when hovering enemy units
+- Fixed unit_stats dps values for beamlaser weapons (dps = damages/beamtime+reloadtime instead of dps = damages/reloadtime). Also changed the minimal reload time to 1/600 instead of 1/30, which caused some weapons with reload times < 0.03 to show wrong dps values. Doo
+- Fixed unit_stats dps values for stockpiling weapons (had to apply a 1/30 factor). Doo
+- Fixed unit_stats crashes when hovering enemy units. Doo
 - Replaced engine info screen (shortcut i) with our own screen
+- Changed and fixed some missile models (missile.3do, empmisl.3do) Doo
+- Krogoth model scaled down (10%) and bantha model scaled up (5%) without any weapon/cost/HP buff or nerf. Doo
+- Fixed some models flare pieces to properly spawn the weapon in the right place -- planning on checking every model i can. Doo
 
 
 9.45 -> 9.46
