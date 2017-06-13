@@ -65,7 +65,7 @@ return {
 			},
 		},
 		weapondefs = {
-					arm_pidrmis = {
+					arm_pidr = {
 				areaofeffect = 256,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -90,7 +90,7 @@ return {
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
 				soundstart = "bombdropxx",
-				startvelocity = 0,
+				startvelocity = 140,
 				targetable = 0,
 				tolerance = 16000,
 				tracks = false,
@@ -148,7 +148,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_PIDRBOMB",
+				def = "ARM_PIDR",
 				onlytargetcategory = "SURFACE",
 			},
 		},

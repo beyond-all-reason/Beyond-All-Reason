@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "04th of June 2017",
 		license = "Free",
 		layer = 0,
-		enabled = true
+		enabled = false
 	}
 end
 
@@ -98,9 +98,6 @@ if (atomicTarget[proID].type) then
 		end
 	end
 end
-
-local dx,dy,dz = math.abs(xp - projTargetPosition[proID][1]), math.abs(yp - projTargetPosition[proID][2]), math.abs (zp - projTargetPosition[proID][3])
-local distance = math.sqrt(dx^2 + dy ^2 + dz^2)
 if proOwner[proID] then
 	local vx, vy, vz = Spring.GetProjectileVelocity(proID)
 	-- Spring.Echo(xp)
