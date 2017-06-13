@@ -136,7 +136,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "packolau",
 				soundtrigger = true,
-				startvelocity = 400,
+				startvelocity = 600,
 				texture2 = "coresmoketrail",
 				tolerance = 9950,
 				tracks = true,
@@ -145,7 +145,7 @@ return {
 				weaponacceleration = 250,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 1250,
+				weaponvelocity = 1050,
 				damage = {
 					bombers = 115,
 					fighters = 115,

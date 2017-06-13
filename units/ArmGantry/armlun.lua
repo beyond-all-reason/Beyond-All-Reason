@@ -190,7 +190,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARMLUN_STARBURST",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
