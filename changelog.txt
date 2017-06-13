@@ -18,7 +18,7 @@ Balance changes:
 - Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 - Vanguard does 20% more damage
 - Armmart and cormart (mobile T2 arty) do 15% more damage
-- Morties are a bit less acurate (even more when moving)
+- Morties are 10% slower and are a bit less acurate (even more when moving)
 - Armvulc and corbuzz cost increased by 40%
 - Bertha and Intimidator weapons have 25% more Area-of-Effect
 - Decoy commanders have been given same lasers as regular commanders

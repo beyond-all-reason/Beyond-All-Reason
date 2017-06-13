@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 850,
 		maxslope = 14,
-		maxvelocity = 1.72,
+		maxvelocity = 1.55,
 		maxwaterdepth = 12,
 		movementclass = "KBOT2",
 		name = "Morty",
@@ -112,8 +112,8 @@ return {
 		},
 		weapondefs = {
 			core_mort = {
-				accuracy = 450,
-				movingaccuracy = 850,
+				accuracy = 350,
+				movingaccuracy = 600,
 				areaofeffect = 36,
 				avoidfeature = false,
 				avoidfriendly = true,
