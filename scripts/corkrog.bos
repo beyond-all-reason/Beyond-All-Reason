@@ -5,7 +5,7 @@
 
 piece  head, torso, hips, mpack, rgunflare, lgunflare, eyeflare, rmispoint,
        lmispoint, rleg, rthigh, lthigh, lleg, ltoes, lheel, rtoes,
-       rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2;
+       rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2, weapon1aimpoint;
 
 static-var  Static_Var_1, Static_Var_2, bMoving, Static_Var_4, Static_Var_5, foot, notrdyStomp,
             restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
@@ -835,7 +835,7 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = 1;
+	piecenum = eyeflare;
 }
 
 QueryWeapon2(piecenum)
@@ -905,7 +905,7 @@ FireWeapon1()
 
 AimFromWeapon1(piecenum)
 {
-	piecenum = torso;
+	piecenum = weapon1aimpoint;
 }
 
 QueryWeapon1(piecenum)
