@@ -31,7 +31,6 @@ Wind:
 - Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
 - Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
 - Windspeed gained 50% (but due to price increases: generators wont be more effective)
-- Core and arm are the same now
 
 Sea reworked: Doo
 -- Work In Prorgess
@@ -54,10 +53,8 @@ Battleships and Flagships: They provide the highest DPS, range and armor with a 
 (this is NOT an exhaustive list)
 
 (AA) missiles:
-- Missiles have slower startspeed, endspeed faster and sometimes range too (for aa)
-- All aa missile range increased a few % (because missiles travel slightly slower so catchup target slower too)
+- AA missile range increased a tiny bit, but Arm/core defender range increased 15%
 - T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
-- Arm/core defender range increased 15%
 - Fighters have been given more range due to slower missile speed and missile turnrate 
 (old fighter missile range was too short to show missile exhaust effect properly)
 - Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
