@@ -1999,7 +1999,7 @@ local colors = {
     kickedupwater = false,
     dirt = false,
     dirt2 = false,
-    -- = false,
+    --grounddust = false,
     centerflare = {air=false, ground=false, water=false, unit=true},
     clouddust = {air=false, ground=false, water=false, unit=true},
     explosion = {air=false, ground=false, water=false, unit=true},
@@ -2031,20 +2031,30 @@ for color, effects in pairs(colors) do
   end
 end
 
--- remove dust clouds for beams
+-- adjust for beam weapons
+local devideBy = 12
 for size, e in pairs(sizes) do
 	local defname = root.."-"..size.."-beam"
 	definitions[defname] = deepcopy(definitions[root.."-"..size])
 	definitions[defname].clouddust = nil
-	--definitions[defname].groundflash.flashalpha = definitions[defname].groundflash.flashalpha / 5
-	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / 5)
-	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / 5)
-	definitions[defname].explosion.properties.numparticles = math.ceil(definitions[defname].explosion.properties.numparticles / 5)
-	definitions[defname].dirt.properties.numparticles = math.ceil(definitions[defname].dirt.properties.numparticles / 5)
-	definitions[defname].dirt2.properties.numparticles = math.ceil(definitions[defname].dirt2.properties.numparticles / 5)
-	--definitions[defname].grounddust.properties.particlespeed = definitions[defname].grounddust.properties.particlespeed / 2
-	--definitions[defname].grounddust.properties.particlespeedspread = definitions[defname].grounddust.properties.particlespeedspread * 2
-	--definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
+	definitions[defname].groundflash.flashalpha = definitions[defname].groundflash.flashalpha / devideBy
+	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
+	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)
+	definitions[defname].explosion.properties.numparticles = [[0 r1.2]]
+    definitions[defname].sparks.properties.numparticles = [[0 r2.2]]
+    definitions[defname].dirt.properties.numparticles = [[0 r2.5]]
+    definitions[defname].dirt2.properties.numparticles = [[0 r2.5]]
+    if definitions[defname].innersmoke ~= nil then
+        definitions[defname].innersmoke.properties.numparticles = [[0 r1.7]]
+    end
+    if definitions[defname].outersmoke ~= nil then
+      definitions[defname].outersmoke.properties.numparticles = [[0 r1.3]]
+    end
+    --if definitions[defname].grounddust ~= nil then
+    --  definitions[defname].grounddust.properties.particlespeed = definitions[defname].grounddust.properties.particlespeed / 2
+    --  definitions[defname].grounddust.properties.particlespeedspread = definitions[defname].grounddust.properties.particlespeedspread * 2
+    --  definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
+    --end
 end
 
 
