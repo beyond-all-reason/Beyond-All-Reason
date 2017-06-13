@@ -212,10 +212,10 @@ return {
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
-			-- [2] = {
-				-- def = "ARMFIXED_GUN_HIGH",
-				-- onlytargetcategory = "SURFACE",
-			-- },
+			[2] = {
+				def = "ARMFIXED_GUN_HIGH",
+				onlytargetcategory = "SURFACE",
+			},
 		},
 	},
 }
