@@ -83,7 +83,7 @@ return {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.4 0.01   1.0 0.66 0.25 0.01   1.0 0.5 0.15 0.01   0.55 0.3 0.1 0.012   0 0 0 0   0 0 0 0]],
+        colormap           = [[1 0.66 0.28 0.01   1.0 0.6 0.2 0.01   1.0 0.5 0.1 0.01   0.55 0.3 0.07 0.012   0 0 0 0   0 0 0 0]],
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[none]],
