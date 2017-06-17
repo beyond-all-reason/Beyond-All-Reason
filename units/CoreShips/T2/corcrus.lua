@@ -257,10 +257,10 @@ return {
 				wobble = 200,
 				damage = {
 					bombers = 1,
-					default = 5000,
+					default = 500*0.6,
 					fighters = 1,
-					corvettes = 50000,
-					scouts = 25000,
+					corvettes = 25000,
+					scouts = 50000,
 					destroyers = 500*0.6,
 					cruisers = 500*0.6,
 					carriers = 500*0.6,
