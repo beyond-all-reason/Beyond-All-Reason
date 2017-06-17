@@ -153,7 +153,7 @@ return {
 					subs = 1,
 					vtol = 1,
 					scouts = 20,
-					corvettes = 30,
+					corvettes = 40,
 					destroyers = 6,
 					cruisers = 6,
 					carriers = 6,
