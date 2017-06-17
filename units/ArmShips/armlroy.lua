@@ -1,8 +1,8 @@
 return {
 	armlroy = {
-		acceleration = 1.61*1.25/60,
+		acceleration = 1.81*1.25/60,
 		activatewhenbuilt = true,
-		brakerate = 1.61*1.25/1200,
+		brakerate = 1.81*1.25/1200,
 		buildangle = 16384,
 		buildcostenergy = 14200,
 		buildcostmetal = 1300,
@@ -25,7 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 4000,
-		maxvelocity = 1.61*1.25,
+		maxvelocity = 1.81*1.25,
 		minwaterdepth = 12,
 		movementclass = "BOATDESTROYER3X6",
 		pushResistant = true,
@@ -139,7 +139,7 @@ return {
 				soundstart = "Lasrmas2",
 				soundtrigger = 1,
 				targetmoveerror = 0.2,
-				thickness = 3,
+				thickness = 1.5,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
