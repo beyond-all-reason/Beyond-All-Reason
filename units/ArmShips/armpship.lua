@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 550,
 		buildcostmetal = 110,
 		buildpic = "ARMPSHIP.DDS",
-		buildtime = 2400*0.5,
+		buildtime = 2400*0.8,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER LIGHTBOAT SURFACE",
 		collisionvolumeoffsets = "0 -4 0",
@@ -143,7 +143,7 @@ return {
 				weaponvelocity = 300,
 				damage = {
 					bombers = 5,
-					default = 52,
+					default = 62,
 					fighters = 41,
 					scouts = 81,
 					corvettes = 81,

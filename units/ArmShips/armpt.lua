@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 500,
 		buildcostmetal = 100,
 		buildpic = "ARMPT.DDS",
-		buildtime = 2100*0.5,
+		buildtime = 2100*0.8,
 		blocking = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE LIGHTBOAT",
