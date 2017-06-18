@@ -1,9 +1,9 @@
 return {
 	corlship = {
-		acceleration = 3.90/15,
-		airsightdistance = 800,
+		acceleration = 3.90*0.9/15,
+		airsightdistance = 0.8 *800,
 		autoheal = 1.5,
-		brakerate = 3.90/150,
+		brakerate = 3.90*0.9/150,
 		buildcostenergy = 500,
 		buildcostmetal = 100,
 		buildpic = "CORLSHIP.DDS",
@@ -25,7 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 300,
-		maxvelocity = 3.90,
+		maxvelocity = 3.90*0.9,
 		minwaterdepth = 6,
 		movementclass = "BOATLIGHTBOAT",
 		name = "Crammer",

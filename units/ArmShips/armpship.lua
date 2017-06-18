@@ -1,9 +1,9 @@
 return {
 	armpship = {
-		acceleration = 3.9/15,
-		airsightdistance = 500,
+		acceleration = 3.9*0.9/15,
+		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 3.9/150,
+		brakerate = 3.9*0.9/150,
 		blocking = true,
 		buildcostenergy = 550,
 		buildcostmetal = 110,
@@ -26,7 +26,7 @@ return {
 		idleautoheal = 2,
 		idletime = 900,
 		maxdamage = 300,
-		maxvelocity = 3.9,
+		maxvelocity = 3.9*0.9,
 		minwaterdepth = 6,
 		movementclass = "BOATLIGHTBOAT",
 		name = "Ellysaw",
