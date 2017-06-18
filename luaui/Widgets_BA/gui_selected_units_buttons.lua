@@ -83,7 +83,7 @@ local currentDef = nil
 
 local iconSizeX = 64
 local iconSizeY = 64
-local iconImgMult = 0.76
+local iconImgMult = 0.78
 
 local usedIconSizeX = iconSizeX
 local usedIconSizeY = iconSizeY
