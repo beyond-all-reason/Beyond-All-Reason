@@ -1,7 +1,7 @@
 return {
 	cormisc = {
 		acceleration = 2.75/30,
-		airsightdistance = 800,
+		airsightdistance = 0.8 *800,
 		activatewhenbuilt = true,
 		brakerate = 2.75/600,
 		buildangle = 16384,
@@ -33,7 +33,7 @@ return {
 		objectname = "CORMISC",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
-		sightdistance = 800,
+		sightdistance = 0.8 *800,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.145,
@@ -131,7 +131,7 @@ return {
 				model = "missile",
 				name = "AA2Missile",
 				noselfdamage = true,
-				range = 1110,
+				range = 0.8 * 1110,
 				reloadtime = 0.6375,
 				smoketrail = false,
 				soundhit = "packohit",
