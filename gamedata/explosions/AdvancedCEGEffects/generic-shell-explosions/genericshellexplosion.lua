@@ -2263,7 +2263,7 @@ for size, e in pairs(sizes) do
 	definitions[defname] = deepcopy(definitions[root.."-"..size])
     definitions[defname].clouddust = nil
     definitions[defname].groundflash_small.colormap    = [[1 0.7 0.3 0.05   0 0 0 0.01]]
-    definitions[defname].groundflash_large.colormap    = [[1 0.7 0.3 0.016   0 0 0 0.01]]
+    definitions[defname].groundflash_big.colormap    = [[1 0.7 0.3 0.016   0 0 0 0.01]]
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)
 	definitions[defname].explosion.properties.numparticles = [[0 r1.2]]
