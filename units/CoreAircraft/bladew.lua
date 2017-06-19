@@ -69,7 +69,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				avoidfriendly = false,
-				beamtime = 0.2,
+				beamtime = 0.15,
 				collidefriendly = false,
 				corethickness = 0.2,
 				craterareaofeffect = 0,
@@ -101,7 +101,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 400,
+					default = 550,
 				},
 				customparams = {
 					light_multiplier = "0.7",		-- used by projectile lights widget

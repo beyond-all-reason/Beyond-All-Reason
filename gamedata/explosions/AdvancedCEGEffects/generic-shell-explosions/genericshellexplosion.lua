@@ -15,6 +15,34 @@ local definitions = {
     --    [3]  = 0.3,
     --  },
     --},
+    groundflash_small = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.26   0 0 0 0.01]],
+        size               = 18,
+        sizegrowth         = -0.5,
+        ttl                = 12,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_big = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.08   0 0 0 0.01]],
+        size               = 36,
+        sizegrowth         = -0.5,
+        ttl                = 12,
+        texture            = [[groundflash]],
+      },
+    },
     groundflash = {
       air                = true,
       flashalpha         = 0.55,
@@ -401,32 +429,48 @@ local definitions = {
   },
 
   [root.."-small"] = {
-    --groundflash = {
-    --  air                = true,
-    --      --  flashalpha         = 0.2,
-    --  flashsize          = 67,
-    --  ground             = true,
-    --  ttl                = 13,
-    --  water              = true, 
-	  --underwater         = true,
-    --  color = {
-    --    [1]  = 1,
-    --    [2]  = 0.75,
-    --    [3]  = 0.3,
-    --  },
-    --},
-    groundflash = {
+    groundflash_small = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
       air                = true,
-            flashalpha         = 0.55,
-      flashsize          = 7,
       ground             = true,
-      ttl                = 25,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.15,
-        [3]  = 0.05,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.3   0 0 0 0.01]],
+        size               = 25,
+        sizegrowth         = -0.5,
+        ttl                = 14,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_big = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.1   0 0 0 0.01]],
+        size               = 50,
+        sizegrowth         = -0.5,
+        ttl                = 14,
+        texture            = [[groundflash]],
+      },
+    },
+    heatedgroundflash = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = false,
+      ground             = false,
+      unit               = false,
+      nounit             = true,
+      water              = false,
+      properties = {
+        colormap           = [[1 0.15 0.05 0.55   1 0.15 0.05 0.55   0 0 0 0.01]],
+        size               = 7,
+        sizegrowth         = 0,
+        ttl                = 20,
+        texture            = [[groundflash]],
       },
     },
     centerflare = {
@@ -821,32 +865,48 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    --groundflash = {
-    --  air                = true,
-    --      --  flashalpha         = 0.3,
-    --  flashsize          = 110,
-    --  ground             = true,
-    --  ttl                = 17,
-    --  water              = true, 
-	  --underwater         = true,
-    --  color = {
-    --    [1]  = 1,
-    --    [2]  = 0.75,
-    --    [3]  = 0.3,
-    --  },
-    --},
-    groundflash = {
+    groundflash_small = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
       air                = true,
-            flashalpha         = 0.65,
-      flashsize          = 12,
       ground             = true,
-      ttl                = 30,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.15,
-        [3]  = 0.05,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.34   0 0 0 0.01]],
+        size               = 35,
+        sizegrowth         = -1,
+        ttl                = 17,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_big = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
+        size               = 70,
+        sizegrowth         = -1,
+        ttl                = 17,
+        texture            = [[groundflash]],
+      },
+    },
+    heatedgroundflash = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = false,
+      ground             = false,
+      unit               = false,
+      nounit             = true,
+      water              = false,
+      properties = {
+        colormap           = [[1 0.15 0.05 0.6   1 0.15 0.05 0.6   0 0 0 0.01]],
+        size               = 12,
+        sizegrowth         = 0,
+        ttl                = 24,
+        texture            = [[groundflash]],
       },
     },
     kickedupwater = {
@@ -965,8 +1025,8 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
-	  underwater         = true,
+      water              = true,
+      underwater         = true,
       properties = {
         airdrag            = 0.96,
         colormap           = [[0.8 0.5 0.2 0.01   0.9 0.5 0.2 0.017   0 0 0 0]],
@@ -1223,32 +1283,48 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    --groundflash = {
-    --  air                = true,
-    --      --  flashalpha         = 0.35,
-    --  flashsize          = 200,
-    --  ground             = true,
-    --  ttl                = 22,
-    --  water              = true, 
-	  --underwater         = true,
-    --  color = {
-    --    [1]  = 1,
-    --    [2]  = 0.75,
-    --    [3]  = 0.3,
-    --  },
-    --},
-    groundflash = {
+    groundflash_small = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
       air                = true,
-            flashalpha         = 0.6,
-      flashsize          = 18,
       ground             = true,
-      ttl                = 35,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.15,
-        [3]  = 0.05,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.34   0 0 0 0.01]],
+        size               = 70,
+        sizegrowth         = -1.5,
+        ttl                = 22,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_big = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
+        size               = 140,
+        sizegrowth         = -1.5,
+        ttl                = 22,
+        texture            = [[groundflash]],
+      },
+    },
+    heatedgroundflash = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = false,
+      ground             = false,
+      unit               = false,
+      nounit             = true,
+      water              = false,
+      properties = {
+        colormap           = [[1 0.15 0.05 0.6   1 0.15 0.05 0.6   0 0 0 0.01]],
+        size               = 18,
+        sizegrowth         = 0,
+        ttl                = 28,
+        texture            = [[groundflash]],
       },
     },
     kickedupwater = {
@@ -1653,32 +1729,48 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    --groundflash = {
-    --  air                = true,
-    --      --  flashalpha         = 0.4,
-    --  flashsize          = 275,
-    --  ground             = true,
-    --  ttl                = 25,
-    --  water              = true, 
-	  --underwater         = true,
-    --  color = {
-    --    [1]  = 1,
-    --    [2]  = 0.75,
-    --    [3]  = 0.3,
-    --  },
-    --},
-    groundflash = {
+    groundflash_small = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
       air                = true,
-      flashalpha         = 0.65,
-      flashsize          = 23,
       ground             = true,
-      ttl                = 40,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.15,
-        [3]  = 0.05,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.34   0 0 0 0.01]],
+        size               = 110,
+        sizegrowth         = -2,
+        ttl                = 25,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_big = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
+        size               = 220,
+        sizegrowth         = -2,
+        ttl                = 25,
+        texture            = [[groundflash]],
+      },
+    },
+    heatedgroundflash = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = false,
+      ground             = false,
+      unit               = false,
+      nounit             = true,
+      water              = false,
+      properties = {
+        colormap           = [[1 0.15 0.05 0.65   1 0.15 0.05 0.65   0 0 0 0.01]],
+        size               = 23,
+        sizegrowth         = 0,
+        ttl                = 33,
+        texture            = [[groundflash]],
       },
     },
     kickedupwater = {
@@ -2125,7 +2217,8 @@ end
 -- add coloring
 local colors = {
   air = {
-    --groundflash = false,
+    groundflash_small = false,
+    groundflash_large = false,
     underwaterexplosionsparks = false,
     kickedupwater = false,
     dirt = false,
@@ -2138,7 +2231,8 @@ local colors = {
     outerflash = {air=false, ground=false, water=false, unit=true},
   },
   aa = {
-    --groundflash = false,
+    groundflash_small = false,
+    groundflash_large = false,
     underwaterexplosionsparks = false,
     kickedupwater = false,
     dirt = false,
@@ -2167,8 +2261,9 @@ local devideBy = 12
 for size, e in pairs(sizes) do
 	local defname = root.."-"..size.."-beam"
 	definitions[defname] = deepcopy(definitions[root.."-"..size])
-	definitions[defname].clouddust = nil
-	definitions[defname].groundflash.flashalpha = definitions[defname].groundflash.flashalpha / devideBy
+    definitions[defname].clouddust = nil
+    definitions[defname].groundflash_small.colormap    = [[1 0.7 0.3 0.05   0 0 0 0.01]]
+    definitions[defname].groundflash_large.colormap    = [[1 0.7 0.3 0.016   0 0 0 0.01]]
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)
 	definitions[defname].explosion.properties.numparticles = [[0 r1.2]]
@@ -2195,19 +2290,77 @@ definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = 
 
 
 definitions['expldgun'] = deepcopy(definitions[root.."-small"])
-definitions['expldgun'].groundflash = {
-      air                = true,
-      flashalpha         = 0.2,
-      flashsize          = 13.5,
-      ground             = true,
-      ttl                = 40,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.15,
-        [3]  = 0.05,
-      },
+definitions['expldgun'].groundflash_small = {
+  class              = [[CSimpleGroundFlash]],
+  count              = 1,
+  air                = true,
+  ground             = true,
+  water              = true,
+  properties = {
+    colormap           = [[1 0.66 0.25 0.07   0 0 0 0.01]],
+    size               = 20,
+    sizegrowth         = 1,
+    ttl                = 18,
+    texture            = [[groundflash]],
+  },
+}
+definitions['expldgun'].groundflash_large = {
+  class              = [[CSimpleGroundFlash]],
+  count              = 1,
+  air                = true,
+  ground             = true,
+  water              = true,
+  properties = {
+    colormap           = [[1 0.66 0.25 0.025   0 0 0 0.01]],
+    size               = 90,
+    sizegrowth         = 0,
+    ttl                = 18,
+    texture            = [[groundflash]],
+  },
+}
+definitions['expldgun'].heatedgroundflash = {
+  class              = [[CSimpleGroundFlash]],
+  count              = 1,
+  air                = false,
+  ground             = false,
+  unit               = false,
+  nounit             = true,
+  water              = false,
+  properties = {
+    colormap           = [[1 0.15 0.05 0.36   0 0 0 0.01]],
+    size               = 15,
+    sizegrowth         = 0,
+    ttl                = 50,
+    texture            = [[groundflash]],
+  },
+}
+definitions['expldgun'].lightdots = {
+  air                = true,
+  class              = [[CSimpleParticleSystem]],
+  count              = 1,
+  ground             = true,
+  underwater         = true,
+  water              = true,
+  properties = {
+    airdrag            = 0.7,
+    colormap           = [[1 0.75 0.55 0.016    0.6 0.3 0.1 0.12    0.2 0.1 0.05 0.07    0 0 0 0]],
+    directional        = false,
+    emitrot            = 80,
+    emitrotspread      = 5,
+    emitvector         = [[1, 1, 1]],
+    gravity            = [[0, -0.005, 0]],
+    numparticles       = 2,
+    particlelife       = 7,
+    particlelifespread = 4,
+    particlesize       = 5.7,
+    particlesizespread = 1,
+    particlespeed      = 0.2,
+    particlespeedspread = 0.6,
+    pos                = [[0, 30, 0]],
+    sizegrowth         = -0.01,
+    sizemod            = 1.0,
+    texture            = [[randomdots]],
+  },
 }
 definitions['expldgun'].sparks.properties.numparticles = 5
 definitions['expldgun'].dirt.properties.numparticles = 3

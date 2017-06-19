@@ -4,18 +4,20 @@
 
 local definitions = {
   ["plasmahit-small"] = {
-    groundflash = {
-      air                = true,
-      flashalpha         = 0.3,
-      flashsize          = 2,
-      ground             = true,
-      ttl                = 18,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.7,
-        [3]  = 0.05,
+    heatedgroundflash = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = false,
+      ground             = false,
+      unit               = false,
+      nounit             = true,
+      water              = false,
+      properties = {
+        colormap           = [[1 0.7 0.05 0.35   0 0 0 0.01]],
+        size               = 1.8,
+        sizegrowth         = 0,
+        ttl                = 18,
+        texture            = [[groundflash]],
       },
     },
     kickedupwater = {
@@ -151,18 +153,20 @@ local definitions = {
   },
 
   ["plasmahit-medium"] = {
-    groundflash = {
-      air                = true,
-      flashalpha         = 0.35,
-      flashsize          = 2.4,
-      ground             = true,
-      ttl                = 20,
-      water              = true, 
-	  underwater         = true,
-      color = {
-        [1]  = 1,
-        [2]  = 0.7,
-        [3]  = 0.05,
+    heatedgroundflash = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = false,
+      ground             = false,
+      unit               = false,
+      nounit             = true,
+      water              = false,
+      properties = {
+        colormap           = [[1 0.7 0.05 0.38   0 0 0 0.01]],
+        size               = 2.2,
+        sizegrowth         = 0,
+        ttl                = 20,
+        texture            = [[groundflash]],
       },
     },
     kickedupwater = {
