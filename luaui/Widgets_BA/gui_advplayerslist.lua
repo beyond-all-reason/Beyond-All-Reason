@@ -2469,7 +2469,8 @@ function DrawTip(mouseX, mouseY)
 		gl.EndText()
 	end
 	tipText = nil
-	
+
+	gl.Color(1,1,1,1)
 	gl.Scale(widgetScale,widgetScale,0)
 	gl.Translate(scaleDiffX,scaleDiffY,0)
 end

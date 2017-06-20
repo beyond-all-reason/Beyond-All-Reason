@@ -178,7 +178,7 @@ local cleanupGuishaderAreas = {}
 function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
-	
+
 	if (WG['guishader_api'] ~= nil) then
 		for name, _ in pairs(cleanupGuishaderAreas) do
 			WG['guishader_api'].RemoveRect(name)
