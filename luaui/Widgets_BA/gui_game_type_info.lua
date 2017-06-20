@@ -100,7 +100,7 @@ function widget:DrawScreen()
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
-  glText(msg, 0, 0, 18*widgetScale, "oc")
+  glText(msg, 0, 15*widgetScale, 18*widgetScale, "oc")
   glText(msg2, 0, -35*widgetScale, 12.5*widgetScale, "oc")
   glText(msg3, 0, -55*widgetScale, 11*widgetScale, "oc")
   glPopMatrix()

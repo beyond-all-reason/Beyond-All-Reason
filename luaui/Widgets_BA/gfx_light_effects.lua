@@ -477,7 +477,7 @@ for i=1, #WeaponDefs do
 	--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
 	params.r, params.g, params.b = 1, 0.8, 0.4
 	params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5)
-	params.orgMult = 0.25 + (params.radius/2000)
+	params.orgMult = 0.35 + (params.radius/2400)
 	params.life = 14*(0.8+ params.radius/1200)
 	if WeaponDefs[i].type == 'DGun' then
 		params.radius = 650

@@ -19,7 +19,7 @@ local definitions = {
         texture            = [[flare]],
       },
     },
-    groundflash_big = {
+    groundflash_large = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
       air                = true,
@@ -310,8 +310,8 @@ local definitions = {
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
         numparticles       = [[5 r2.5]],
-        particlelife       = 28,
-        particlelifespread = 0,
+        particlelife       = 24,
+        particlelifespread = 15,
         particlesize       = 2,
         particlesizespread = 3,
         particlespeed      = 3.3,
@@ -336,8 +336,8 @@ local definitions = {
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
         numparticles       = [[5 r2.5]],
-        particlelife       = 28,
-        particlelifespread = 0,
+        particlelife       = 24,
+        particlelifespread = 15,
         particlesize       = 2,
         particlesizespread = 3,
         particlespeed      = 3.3,
@@ -363,7 +363,7 @@ local definitions = {
         gravity            = [[0, -0.3, 0]],
         numparticles       = [[5 r2.5]],
         particlelife       = 28,
-        particlelifespread = 0,
+        particlelifespread = 12,
         particlesize       = 2,
         particlesizespread = 3,
         particlespeed      = 3.3,
@@ -490,7 +490,7 @@ local sizes = {
         sizegrowth         = 11,
       },
     },
-    groundflash_big = {
+    groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.24   0 0 0 0.01]],
         size               = 77,
@@ -637,7 +637,7 @@ local sizes = {
         sizegrowth         = 22,
       },
     },
-    groundflash_big = {
+    groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.32   0 0 0 0.01]],
         size               = 230,
@@ -781,7 +781,7 @@ local sizes = {
         sizegrowth         = 32,
       },
     },
-    groundflash_big = {
+    groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.35   0 0 0 0.01]],
         size               = 290,
@@ -925,7 +925,7 @@ local sizes = {
         sizegrowth         = 40,
       },
     },
-    groundflash_big = {
+    groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
         size               = 350,
@@ -1068,7 +1068,7 @@ end
 
 
 definitions['genericshellexplosion-meteor'] = deepcopy(definitions[root.."-huge"])
-definitions['genericshellexplosion-meteor'].groundflash_big.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].groundflash_large.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].heatedgroundflash.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].explosion.properties.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].centerflare.properties.alwaysvisible = true

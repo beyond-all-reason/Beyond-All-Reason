@@ -288,7 +288,7 @@ return {
   },
 
   ["burnblack"] = {
-    kickedupdirt = {
+    flame = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -301,13 +301,13 @@ return {
         emitrotspread      = 5,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0.1, 0]],
-        numparticles       = 40,
+        numparticles       = 33,
         particlelife       = 10,
         particlelifespread = 33,
-        particlesize       = 0.12,
+        particlesize       = 0.09,
         particlesizespread = 0.03,
-        particlespeed      = 0.6,
-        particlespeedspread = 1.2,
+        particlespeed      = 0.45,
+        particlespeedspread = 1.1,
         pos                = [[0, 1, 0]],
         sizegrowth         = 1.15,
         sizemod            = 1.0,

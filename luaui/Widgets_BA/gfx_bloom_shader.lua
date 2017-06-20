@@ -112,6 +112,7 @@ local combineShaderTexture1Loc = nil
 local combineShaderIllumLoc = nil
 local combineShaderFragLoc = nil
 
+local illumThreshold = 0.33
 local function SetIllumThreshold()
 	local ra, ga, ba = gl.GetSun("ambient")
 	local rd, gd, bd = gl.GetSun("diffuse")
@@ -219,6 +220,8 @@ end
 local initialized = false
 function widget:Initialize()
 
+  SetIllumThreshold()
+
   WG['bloom'] = {}
   WG['bloom'].getAdvBloom = function()
   	return drawHighlights
@@ -240,22 +243,20 @@ function widget:Initialize()
   		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
   	end
   end
-  
-	if (gl.CreateShader == nil) then
-	
-		RemoveMe("[BloomShader::Initialize] no shader support")
-		return
-	end
-	SetIllumThreshold()
-	
-	widget:ViewResize(widgetHandler:GetViewSizes())
-  
+
+  if (gl.CreateShader == nil) then
+    RemoveMe("[BloomShader::Initialize] no shader support")
+    return
+  end
+
+  widget:ViewResize(widgetHandler:GetViewSizes())
+
   darken = gl.CreateList(function()
-		gl.PushMatrix()
-		gl.Translate(0,0,0)
-		gl.Rotate(90,1,0,0)
-		gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
-		gl.PopMatrix()
+	gl.PushMatrix()
+	gl.Translate(0,0,0)
+	gl.Rotate(90,1,0,0)
+	gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
+	gl.PopMatrix()
   end)
     
 
