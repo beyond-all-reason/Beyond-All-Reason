@@ -239,8 +239,8 @@ local numberOfSpecs = 0
 local sideOneDefID = UnitDefNames.armcom.id
 local sideTwoDefID = UnitDefNames.corcom.id
 
-local teamSideOne = "arm"
-local teamSideTwo = "core"
+local teamSideOne = "core"
+local teamSideTwo = "arm"
 
 --Name for absent/resigned players
 local absentName = " --- "
@@ -835,7 +835,7 @@ function SetSidePics()
 			if startunit == sideOneDefID then 
 				teamSide = teamSideOne
 			end
-			if startunit == sideOneDefID then 
+			if startunit == sideTwoDefID then
 				teamSide = teamSideTwo
 			end
 		else
