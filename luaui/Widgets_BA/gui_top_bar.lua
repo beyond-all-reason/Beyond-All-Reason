@@ -81,9 +81,8 @@ local enemyComs				= 0 -- if we are counting ourselves because we are a spec
 local enemyComCount			= 0 -- if we are receiving a count from the gadget part (needs modoption on)
 local prevEnemyComCount		= 0
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
-local lastResbarValuesUpdate = 0
-local prevResE = {0,0,0,0,0,0}
-local prevResM = {0,0,0,0,0,0}
+local lastUpdateFrame = 0
+local currentUpdateFrame = 0
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -443,34 +442,38 @@ local function updateWind()
 	end
 end
 
-
 local function updateResbarValues(res)
 	
 	if dlistResbar[res][3] ~= nil then
 		glDeleteList(dlistResbar[res][3])
 	end
 	dlistResbar[res][3] = glCreateList( function()
-		local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
-		
+		local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
+	
 		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
 		local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5
-	
+
+		local cappedCurRes = r[1]	-- limit so when production dies the value wont be much larger than what you can store
+		if r[1] > r[2]*1.07 then
+			cappedCurRes = r[2]*1.07
+		end
+
 		-- Bar value
 		glColor(resbarDrawinfo[res].barColor)
 		glTexture(barbg)
-		glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
+		glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
 		
 		-- Bar value glow
 		glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.06)
 		glTexture(barGlowCenterTexture)
-		glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
+		glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
 		glTexture(barGlowEdgeTexture)
 		glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
-		glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((r[1]/r[2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((r[1]/r[2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
+		glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
 		
 		-- Text: current
 		glColor(1, 1, 1, 1)
-		glText(short(r[1]), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+		glText(short(cappedCurRes), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
 		-- Text: storage
 		glText("\255\133\133\133"..short(r[2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
 		-- Text: pull
@@ -685,44 +688,22 @@ function widget:GameFrame(n)
 		countComs()
 		updateComs(true)
 	end
+
+	-- not updating every gameframe because you can have lower fps than your gameframe
+	if lastUpdateFrame ~= currentUpdateFrame then
+		updateResbarValues('metal')
+		updateResbarValues('energy')
+	end
+	lastUpdateFrame = currentUpdateFrame
 end
 
-
 function widget:Update(dt)
-	
+	currentUpdateFrame = currentUpdateFrame + 1
+
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 		updateResbar('metal')
 		updateResbar('energy')
 	elseif (gameFrame ~= lastFrame) then
-		
-		-- resource bars
-		lastResbarValuesUpdate = lastResbarValuesUpdate + dt
-		if (lastResbarValuesUpdate > 0.05) then
-			local updateResbars = false
-			local resE = {spGetTeamResources(spGetMyTeamID(),'energy')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
-			local resM = {}
-			if resE[1] ~= prevResE[1] or resE[2] ~= prevResE[2] or resE[3] ~= prevResE[3] or resE[4] ~= prevResE[4] then
-				updateResbars = true
-			end
-			if not updateresbars then
-				resM = {spGetTeamResources(spGetMyTeamID(),'metal')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
-				if resM[1] ~= prevResM[1] or resM[2] ~= prevResM[2] or resM[3] ~= prevResM[3] or resM[4] ~= prevResM[4] then
-					updateResbars = true
-				end
-			end
-			if updateResbars then
-				if resM == nil then
-					resM = {spGetTeamResources(spGetMyTeamID(),'metal')} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
-				end
-				--Spring.Echo(gameFrame)
-				prevResE = resE
-				prevResM = resM
-				updateResbarValues('metal')
-				updateResbarValues('energy')
-				lastResbarValuesUpdate = 0
-			end
-		end
-		
 		-- wind
 		_, _, _, currentWind = spWind()
 		currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
