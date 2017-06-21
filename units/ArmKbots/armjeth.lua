@@ -36,7 +36,7 @@ return {
 		turnrate = 1118,
 		upright = true,
 		customparams = {
-			
+			description_long = "Jethro is a cheap mobile anti air (AA) Kbot, that can eaisily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can prevent bombing runs.",  
 		},
 		featuredefs = {
 			dead = {
