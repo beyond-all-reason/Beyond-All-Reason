@@ -40,7 +40,7 @@ return {
 		objectname = "CORSPY",
 		onoffable = true,
 		seismicsignature = 2,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "SPYBOMBX",
 		selfdestructcountdown = 1,
 		sightdistance = 550,
 		sonarstealth = true,

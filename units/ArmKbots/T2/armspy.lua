@@ -24,6 +24,7 @@ return {
 		description = "Radar-Invisible Spy Kbot",
 		energymake = 5,
 		energyuse = 5,
+		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
