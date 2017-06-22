@@ -61,7 +61,7 @@ local unitArray = {
   "cormh",
   "armroy",
   "corroy",
-  "armserp",
+  "tawf009",
   "corssub",
   
   "armmship",
@@ -96,14 +96,11 @@ local unitArray = {
   
   --shields/jammers/radars
   "armaser",
-  "arm_jammer",
-  "armsjam",
-  "coreter",
-  "core_spectre",
-  "corsjam",
+  "armjam",
+  "corspec",
   
   "armseer",
-  "arm_marky",
+  "armmark",
   "corvrad",
   "corvoyr",
   

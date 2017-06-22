@@ -192,7 +192,7 @@ local armorDefs = {
 		"corparrow",
 		"corseal",
 		"corintr",
-		"marauder",
+		"armmar",
 		"corshiva",
         "madsam",
 		"packo",

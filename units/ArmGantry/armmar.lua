@@ -1,10 +1,10 @@
 return {
-	marauder = {
+	armmar = {
 		acceleration = 0.22,
 		brakerate = 0.714,
 		buildcostenergy = 19000,
 		buildcostmetal = 1000,
-		buildpic = "MARAUDER.DDS",
+		buildpic = "ARMMAR.DDS",
 		buildtime = 26061,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -26,7 +26,7 @@ return {
 		movementclass = "ATANK3",
 		name = "Marauder",
 		nochasecategory = "VTOL",
-		objectname = "MARAUDER",
+		objectname = "ARMMAR",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 455,
@@ -55,7 +55,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 592,
-				object = "MARAUDER_DEAD",
+				object = "ARMMAR_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
