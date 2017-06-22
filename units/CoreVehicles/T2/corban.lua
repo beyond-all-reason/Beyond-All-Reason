@@ -1,10 +1,10 @@
 return {
-	tawf114 = {
+	corban = {
 		acceleration = 0.0209,
 		brakerate = 0.0594,
 		buildcostenergy = 20000,
 		buildcostmetal = 1000,
-		buildpic = "TAWF114.DDS",
+		buildpic = "CORBAN.DDS",
 		buildtime = 23129,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -30,7 +30,7 @@ return {
 		movementclass = "HTANK4",
 		name = "Banisher",
 		nochasecategory = "VTOL",
-		objectname = "TAWF114",
+		objectname = "CORBAN",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 546,
@@ -62,7 +62,7 @@ return {
 				height = 30,
 				hitdensity = 100,
 				metal = 510,
-				object = "TAWF114_DEAD",
+				object = "corban_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -120,7 +120,7 @@ return {
 			},
 		},
 		weapondefs = {
-			tawf_banisher = {
+			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
 				craterareaofeffect = 128,
@@ -133,16 +133,16 @@ return {
 				flighttime = 2.5,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "TAWF114a",
+				model = "corban_a",
 				name = "Banisher",
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 7.5,
 				smoketrail = false,
-				soundhit = "TAWF114b",
+				soundhit = "corban_b",
 				soundhitwet = "splsmed",
 				soundhitwetvolume = 0.5,
-				soundstart = "TAWF114a",
+				soundstart = "corban_a",
 				startvelocity = 100,
 				tolerance = 9000,
 				tracks = true,
@@ -163,7 +163,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "TAWF_BANISHER",
+				def = "BANISHER",
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "NOTSUB",

@@ -182,7 +182,7 @@ local armorDefs = {
 		"screamer",
 		"armbeamer",
 		"armart",
-		"tawf114",
+		"corban",
     	"armbeaver",
 		"armcroc",
 		"armpincer",

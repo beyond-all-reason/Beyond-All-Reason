@@ -81,7 +81,7 @@ local unitArray = {
   "armrock",
   "corstorm",
   
-  "tawf114",
+  "corban",
   "armmanni",
   "cormort",
   
