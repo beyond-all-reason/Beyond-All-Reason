@@ -48,7 +48,7 @@ return {
 			[5] = "corcrash",
 			[6] = "coraak",
 			[7] = "cordecom",
-			[8] = "intruder",
+			[8] = "corintr",
 			[9] = "corsub",
 			[10] = "correcl",
 		},

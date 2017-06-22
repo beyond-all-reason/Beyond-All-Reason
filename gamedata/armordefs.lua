@@ -191,7 +191,7 @@ local armorDefs = {
 		"cormuskrat",
 		"corparrow",
 		"corseal",
-		"intruder",
+		"corintr",
 		"marauder",
 		"shiva",
         "madsam",

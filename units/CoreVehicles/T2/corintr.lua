@@ -1,11 +1,11 @@
 return {
-	intruder = {
+	corintr = {
 		acceleration = 0.33,
 		brakerate = 0.495,
 		buildangle = 16384,
 		buildcostenergy = 16000,
 		buildcostmetal = 1400,
-		buildpic = "INTRUDER.DDS",
+		buildpic = "CORINTR.DDS",
 		buildtime = 14177,
 		canmove = true,
 		cantbetransported = true,
@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		name = "Intruder",
-		objectname = "INTRUDER",
+		objectname = "CORINTR",
 		releaseheld = true,
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongeneric",
@@ -67,7 +67,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 822,
-				object = "INTRUDER_DEAD",
+				object = "CORINTR_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
