@@ -184,7 +184,7 @@ local UnitEffects = {
  [UnitDefNames["armsehak"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=50, piece="thrust", onActive=true}},
   },
-  [UnitDefNames["armcybr"].id] = {
+  [UnitDefNames["armliche"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=60, piece="thrust1", onActive=true}},
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=60, piece="thrust2", onActive=true}},
   },
@@ -199,10 +199,10 @@ local UnitEffects = {
   [UnitDefNames["armsb"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=70, piece="emit1", onActive=true}},
   },
-  [UnitDefNames["corgripn"].id] = {
+  [UnitDefNames["armstil"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=60, piece="thrust", onActive=true}},
   },
-  [UnitDefNames["blade"].id] = {
+  [UnitDefNames["armblade"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=28, piece="thrust1", onActive=true}},
   },
  [UnitDefNames["armbrawl"].id] = {

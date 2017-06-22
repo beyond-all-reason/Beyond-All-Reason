@@ -35,11 +35,11 @@ local percentage = 0.5
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true then
+		if UnitDef.canFly == true and not UnitDef.transportSize then
 			crashable[UnitDef.id] = true
 		end
 	end
-	crashable[UnitDefNames['armcybr'].id] = false
+	crashable[UnitDefNames['armliche'].id] = false
 	crashable[UnitDefNames['armpeep'].id] = false
 	crashable[UnitDefNames['corfink'].id] = false
 	crashable[UnitDefNames['critter_gull'].id] = false

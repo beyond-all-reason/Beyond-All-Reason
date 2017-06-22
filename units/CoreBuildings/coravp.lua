@@ -47,11 +47,16 @@ return {
 			[3] = "correap",
 			[4] = "corparrow",
 			[5] = "corgol",
+<<<<<<< HEAD
 			[6] = "corbani",
 			[7] = "intruder",
+=======
+			[6] = "corban",
+			[7] = "corintr",
+>>>>>>> 2deb69a68efbcc8d2f2442c655a7146b97da8e2d
 			[8] = "cormart",
 			[9] = "corvroc",
-			[10] = "trem",
+			[10] = "cortrem",
 			[11] = "corsent",
 			[12] = "cormabm",
 			[13] = "coreter",

@@ -61,7 +61,7 @@ return {
 			[15] = "corck",
 			[16] = "corak",
 			[17] = "corcrash",
-			[18] = "commando",
+			[18] = "cormando",
 			[19] = "corpyro",
 			[20] = "coramph",
 			[21] = "corcs",
