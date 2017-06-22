@@ -47,7 +47,7 @@ return {
 			[3] = "correap",
 			[4] = "corparrow",
 			[5] = "corgol",
-			[6] = "tawf114",
+			[6] = "corbani",
 			[7] = "intruder",
 			[8] = "cormart",
 			[9] = "corvroc",

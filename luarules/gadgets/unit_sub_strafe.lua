@@ -22,8 +22,8 @@ function gadget:Initialize()
 		if uDef.name == "armsubk" then
 			armsubk = uDefID
 		end
-		if uDef.name == "tawf009" then
-			tawf009 = uDefID
+		if uDef.name == "armserp" then
+			armserp = uDefID
 		end
 		if uDef.name == "corsub" then
 			corsub = uDefID
@@ -39,7 +39,7 @@ Submarines = {}
 if (gadgetHandler:IsSyncedCode()) then
 function gadget:UnitFinished(unitID)
 local DEFID = Spring.GetUnitDefID(unitID)
-if DEFID == armsub or DEFID == armsubk or DEFID == tawf009 or DEFID == corsub then
+if DEFID == armsub or DEFID == armsubk or DEFID == armserp or DEFID == corsub then
 Submarines[unitID] = DEFID
 end
 end
@@ -90,7 +90,7 @@ ndwz = dwx/math.sqrt(dwx^2+dwz^2)
 -- Spring.SpawnCEG("ZEUS_FLASH", x+ndwx*30, 100+y, z+ndwz*30, 0, 1, 0, 1, 1)
 end
 
-if udid == tawf009 then
+if udid == armserp then
 ndwx = -dwx/math.sqrt(dwx^2+dwz^2)
 ndwz = -dwz/math.sqrt(dwx^2+dwz^2)
 end

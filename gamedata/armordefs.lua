@@ -182,7 +182,7 @@ local armorDefs = {
 		"screamer",
 		"armbeamer",
 		"armart",
-		"tawf114",
+		"corbani",
     	"armbeaver",
 		"armcroc",
 		"armpincer",
@@ -423,7 +423,7 @@ local armorDefs = {
 
 	heavysubmarines = {
         	"corssub",
-		"tawf009",
+		"armserp",
 		"armacsub",
         	"coracsub",
 		},
