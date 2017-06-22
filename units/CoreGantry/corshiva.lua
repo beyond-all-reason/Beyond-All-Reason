@@ -1,10 +1,10 @@
 return {
-	shiva = {
+	corshiva = {
 		acceleration = 0.06,
 		brakerate = 0.714,
 		buildcostenergy = 23000,
 		buildcostmetal = 1600,
-		buildpic = "SHIVA.DDS",
+		buildpic = "CORSHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -26,7 +26,7 @@ return {
 		movementclass = "HAKBOT4",
 		name = "Shiva",
 		nochasecategory = "VTOL",
-		objectname = "SHIVA",
+		objectname = "CORSHIVA",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGeneric",
 		sightdistance = 299,
@@ -54,7 +54,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 937,
-				object = "SHIVA_DEAD",
+				object = "CORSHIVA_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

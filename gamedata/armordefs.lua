@@ -193,7 +193,7 @@ local armorDefs = {
 		"corseal",
 		"corintr",
 		"marauder",
-		"shiva",
+		"corshiva",
         "madsam",
 		"packo",
         "armwar",
