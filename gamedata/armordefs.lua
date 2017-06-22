@@ -423,7 +423,7 @@ local armorDefs = {
 
 	heavysubmarines = {
         	"corssub",
-		"tawf009",
+		"armserp",
 		"armacsub",
         	"coracsub",
 		},

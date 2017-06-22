@@ -41,7 +41,7 @@ return {
 			[1] = "armacsub",
 			[2] = "armmls",
 			[3] = "armsubk",
-			[4] = "tawf009",
+			[4] = "armserp",
 			[5] = "armaas",
 			[6] = "armcrus",
 			[7] = "armbats",

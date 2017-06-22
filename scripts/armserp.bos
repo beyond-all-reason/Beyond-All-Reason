@@ -1,0 +1,101 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  tube1, tube2, base, wake, wake2;
+
+static-var  gun_1, aimDir, restore_delay;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_AIM			4
+
+
+Create()
+{
+	restore_delay = 3000;
+	gun_1 = tube1;
+	return (0);
+
+	
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	turn base to y-axis <0.000000> speed <35.000000>;
+	turn base to x-axis <0.000000> speed <15.000000>;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		emit-sfx 256 | 3 from wake;
+		emit-sfx 256 | 3 from wake2;
+		sleep 250;
+	}
+}
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn base to y-axis heading speed <35>;
+	turn base to x-axis <0.000000> - pitch speed <15>;
+	wait-for-turn base around y-axis;
+	wait-for-turn base around x-axis;
+	aimDir = heading;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+}
+
+FirePrimary()
+{
+	gun_1 = !gun_1;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = gun_1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type SHATTER | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type SHATTER | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type SHATTER | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode tube1 type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode tube2 type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	return corpsetype;
+}

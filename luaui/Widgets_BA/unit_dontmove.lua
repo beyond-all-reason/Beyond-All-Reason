@@ -61,7 +61,7 @@ local unitArray = {
   "cormh",
   "armroy",
   "corroy",
-  "tawf009",
+  "armserp",
   "corssub",
   
   "armmship",
