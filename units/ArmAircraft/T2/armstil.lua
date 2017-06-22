@@ -1,10 +1,10 @@
 return {
-	corgripn = {
+	armstil = {
 		acceleration = 0.16,
 		brakerate = 0.04,
 		buildcostenergy = 18000,
 		buildcostmetal = 180,
-		buildpic = "CORGRIPN.DDS",
+		buildpic = "ARMSTIL.DDS",
 		buildtime = 21522,
 		canfly = true,
 		canmove = true,
@@ -29,7 +29,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Stiletto",
 		nochasecategory = "VTOL",
-		objectname = "CORGRIPN",
+		objectname = "ARMSTIL",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 390,
@@ -68,7 +68,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corgripn_bomb = {
+			stiletto_bomb = {
 				areaofeffect = 240,
 				avoidfeature = false,
 				burst = 5,
@@ -106,7 +106,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORGRIPN_BOMB",
+				def = "STILETTO_BOMB",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

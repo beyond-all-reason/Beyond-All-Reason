@@ -199,7 +199,7 @@ local UnitEffects = {
   [UnitDefNames["armsb"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=70, piece="emit1", onActive=true}},
   },
-  [UnitDefNames["corgripn"].id] = {
+  [UnitDefNames["armstil"].id] = {
     {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=60, piece="thrust", onActive=true}},
   },
   [UnitDefNames["armblade"].id] = {

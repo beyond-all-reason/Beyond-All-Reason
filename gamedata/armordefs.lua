@@ -297,7 +297,7 @@ local armorDefs = {
 		"armlance",
 		"armpnix",
 		"armsb",
-		"corgripn",
+		"armstil",
 		"corhurc",
 		"corsb",
 		"cortitan",

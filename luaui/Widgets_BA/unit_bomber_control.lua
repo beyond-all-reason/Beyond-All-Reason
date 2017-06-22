@@ -12,7 +12,7 @@ end
 
 --fixed for 0.83 (by vbs)
 
-local bombers={armpnix=true, armcybr=true, corgripn=true, armthund=true, armsb=true, corhurc=true, corsb=true, corshad=true, cortitan=true}
+local bombers={armpnix=true, armcybr=true, armstil=true, armthund=true, armsb=true, corhurc=true, corsb=true, corshad=true, cortitan=true}
 local bomber_uds={}
 
 local GetUnitWeaponState   = Spring.GetUnitWeaponState

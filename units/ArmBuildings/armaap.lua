@@ -48,7 +48,7 @@ return {
 			[6] = "armawac",
 			[7] = "armdfly",
 			[8] = "armblade",
-			[9] = "corgripn",
+			[9] = "armstil",
 			[10] = "armcybr",
 		},
 		customparams = {
