@@ -1,10 +1,10 @@
 return {
-	nsaclash = {
+	corhal = {
 		acceleration = 0.072,
 		brakerate = 0.225,
 		buildcostenergy = 13000,
 		buildcostmetal = 640,
-		buildpic = "NSACLASH.DDS",
+		buildpic = "CORHAL.DDS",
 		buildtime = 12907,
 		canmove = true,
 		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE",
@@ -27,7 +27,7 @@ return {
 		movementclass = "HOVER3",
 		name = "Halberd",
 		nochasecategory = "VTOL",
-		objectname = "NSACLASH",
+		objectname = "CORHAL",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 349,
@@ -55,7 +55,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 390,
-				object = "NSACLASH_DEAD",
+				object = "CORHAL_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

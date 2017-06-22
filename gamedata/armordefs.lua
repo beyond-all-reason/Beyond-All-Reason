@@ -178,7 +178,7 @@ local armorDefs = {
 		"csubpen",
 		"hllt",
 		"mercury",
-		"nsaclash",
+		"corhal",
 		"screamer",
 		"armbeamer",
 		"armart",
