@@ -348,7 +348,7 @@ local armorDefs = {
 		"armkam",
 		"armsaber",
         "blade",
-		"bladew",
+		"corbw",
 		"corape",
 		"corcrw",
 		"corcut",

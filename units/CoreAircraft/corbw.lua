@@ -1,10 +1,10 @@
 return {
-	bladew = {
+	corbw = {
 		acceleration = 0.264,
 		brakerate = 0.55,
 		buildcostenergy = 1300,
 		buildcostmetal = 60,
-		buildpic = "BLADEW.DDS",
+		buildpic = "CORBW.DDS",
 		buildtime = 2073,
 		canfly = true,
 		canmove = true,
@@ -26,7 +26,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Bladewing",
 		nochasecategory = "COMMANDER VTOL",
-		objectname = "BLADEW",
+		objectname = "CORBW",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGeneric",
 		sightdistance = 364,
