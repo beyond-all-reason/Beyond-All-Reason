@@ -47,7 +47,7 @@ return {
 			[5] = "armhawk",
 			[6] = "armawac",
 			[7] = "armdfly",
-			[8] = "blade",
+			[8] = "armblade",
 			[9] = "corgripn",
 			[10] = "armcybr",
 		},

@@ -1,10 +1,10 @@
 return {
-	blade = {
+	armblade = {
 		acceleration = 0.6,
 		brakerate = 0.35,
 		buildcostenergy = 21000,
 		buildcostmetal = 1300,
-		buildpic = "BLADE.DDS",
+		buildpic = "ARMBLADE.DDS",
 		buildtime = 23964,
 		canfly = true,
 		canmove = true,
@@ -27,7 +27,7 @@ return {
 		maxwaterdepth = 0,
 		name = "Blade",
 		nochasecategory = "VTOL",
-		objectname = "BLADE",
+		objectname = "ARMBLADE",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGeneric",
 		sightdistance = 624,
