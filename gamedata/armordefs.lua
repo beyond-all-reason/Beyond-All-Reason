@@ -201,7 +201,7 @@ local armorDefs = {
 		"corlevlr",
 		"cormexp",
         "armspy",
-		"commando",
+		"cormando",
 		"corspy",
         "armdl",
 		"cordl",

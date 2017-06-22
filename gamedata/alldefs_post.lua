@@ -56,7 +56,7 @@ local kbotUnits = {
 	-- t1
 	corak='', corck='', corcrash='', cornecro='', corstorm='', corthud='',
 	-- t2
-	commando='', coraak='', coramph='', corcan='', cordecom='', corfast='', corhrk='', cormort='', corpyro='', corroach='', corsktl='', corspec='', corspy='', corsumo='', cortermite='', corvoyr='',
+	cormando='', coraak='', coramph='', corcan='', cordecom='', corfast='', corhrk='', cormort='', corpyro='', corroach='', corsktl='', corspec='', corspy='', corsumo='', cortermite='', corvoyr='',
 }
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1

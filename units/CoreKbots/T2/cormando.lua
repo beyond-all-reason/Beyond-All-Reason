@@ -1,5 +1,5 @@
 return {
-	commando = {
+	cormando = {
 		acceleration = 0.35,
 		activatewhenbuilt = true,
 		autoheal = 9,
@@ -9,7 +9,7 @@ return {
 		builddistance = 275,
 		builder = true,
 		shownanospray = false,
-		buildpic = "COMMANDO.DDS",
+		buildpic = "CORMANDO.DDS",
 		buildtime = 17131,
 		canassist = true,
 		canmove = true,
@@ -34,7 +34,7 @@ return {
 		movementclass = "AKBOT2",
 		name = "Commando",
 		nochasecategory = "VTOL",
-		objectname = "COMMANDO",
+		objectname = "CORMANDO",
 		radardistance = 900,
 		radardistancejam = 150,
 		seismicsignature = 4,
