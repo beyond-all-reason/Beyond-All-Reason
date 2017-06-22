@@ -1,12 +1,12 @@
 return {
-	aseadragon = {
+	armepoch = {
 		acceleration = 1.00*1.25/150,
 		activatewhenbuilt = true,
 		brakerate = 1.00*1.25/1500,
 		buildangle = 16384,
 		buildcostenergy = 442000,
 		buildcostmetal = 34000,
-		buildpic = "ASEADRAGON.DDS",
+		buildpic = "ARMEPOCH.DDS",
 		buildtime = 300000*1.3,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE CAPITALSHIP",
@@ -32,7 +32,7 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOATFLAGSHIP5X10",
 		name = "Epoch",
-		objectname = "ASEADRAGON",
+		objectname = "ARMEPOCH",
 		pushresistant = true,
 		radardistance = 0.8 *1800,
 		radaremitheight = 52,
@@ -64,7 +64,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 20879,
-				object = "ASEADRAGON_DEAD",
+				object = "ARMEPOCH_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

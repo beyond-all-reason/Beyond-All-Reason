@@ -46,7 +46,7 @@ return {
 			[6] = "armcrus",
 			[7] = "armbats",
 			[8] = "armmship",
-			[9] = "aseadragon",
+			[9] = "armepoch",
 			[10] = "armcarry",
 			[11] = "armsjam",
 		},

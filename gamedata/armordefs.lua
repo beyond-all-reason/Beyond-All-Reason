@@ -411,7 +411,7 @@ local armorDefs = {
 		},
 
 	flagships = {
-		"aseadragon",
+		"armepoch",
 		"corblackhy",
 		},
 	lightsubmarines = {

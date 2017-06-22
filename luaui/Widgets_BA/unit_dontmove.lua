@@ -70,7 +70,7 @@ local unitArray = {
   "corbats",
   "armbc",
   "zulu",
-  "aseadragon",
+  "armepoch",
   "corblackhy",
   
   "corcat",
