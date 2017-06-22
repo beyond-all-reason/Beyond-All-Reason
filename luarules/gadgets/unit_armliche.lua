@@ -1,6 +1,6 @@
 function gadget:GetInfo()
 	return {
-		name = "ARMCYBR Weapon Behaviour",
+		name = "ARM Liche Weapon Behaviour",
 		desc = "Slightly alters the weapon's behaviour so it only starts tracking after delay",
 		author = "[Fx]Doo",
 		date = "04th of June 2017",
@@ -17,8 +17,8 @@ function gadget:Initialize()
 newProjTarget = {}
 projTargetPosition = {}
 	for name, wDef in pairs(WeaponDefNames) do
-	if name == "armcybr_arm_pidrbomb" then bombID = wDef.id end
-	if name == "armcybr_arm_pidrmis" then misID = wDef.id end
+	if name == "armliche_arm_pidrbomb" then bombID = wDef.id end
+	if name == "armliche_arm_pidrmis" then misID = wDef.id end
 end
 --Spring.Echo(bombID)
 --Spring.Echo(misID)

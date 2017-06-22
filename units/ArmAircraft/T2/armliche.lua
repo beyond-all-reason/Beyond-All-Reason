@@ -1,10 +1,10 @@
 return {
-	armcybr = {
+	armliche = {
 		acceleration = 0.13,
 		brakerate = 0.05,
 		buildcostenergy = 43000,
 		buildcostmetal = 2250,
-		buildpic = "ARMCYBR.DDS",
+		buildpic = "ARMLICHE.DDS",
 		buildtime = 56000,
 		canfly = true,
 		canmove = true,
@@ -27,7 +27,7 @@ return {
 		name = "Liche",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "ARMCYBR",
+		objectname = "ARMLICHE",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongeneric",
 		sightdistance = 455,
@@ -65,7 +65,7 @@ return {
 			},
 		},
 		weapondefs = {
-					arm_pidr = {
+			arm_pidr = {
 				areaofeffect = 256,
 				avoidfeature = false,
 				avoidfriendly = false,

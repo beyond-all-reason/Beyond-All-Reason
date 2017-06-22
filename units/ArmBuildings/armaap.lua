@@ -49,7 +49,7 @@ return {
 			[7] = "armdfly",
 			[8] = "armblade",
 			[9] = "armstil",
-			[10] = "armcybr",
+			[10] = "armliche",
 		},
 		customparams = {
 			

@@ -293,7 +293,7 @@ local armorDefs = {
 	bombers = {
 		"armthund",
 		"corshad",
-        "armcybr",
+        "armliche",
 		"armlance",
 		"armpnix",
 		"armsb",
