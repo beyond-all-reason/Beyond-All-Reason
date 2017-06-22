@@ -1,10 +1,10 @@
 return {
-	armorco = {
+	orcone = {
 		acceleration = 0.108,
 		brakerate = 0.714,
 		buildcostenergy = 630000,
 		buildcostmetal = 38000,
-		buildpic = "ARMORCO.DDS",
+		buildpic = "ORCONE.DDS",
 		buildtime = 500000,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -29,7 +29,7 @@ return {
 		movementclass = "VKBOT5",
 		name = "Orcone",
 		nochasecategory = "VTOL",
-		objectname = "ARMORCO",
+		objectname = "ORCONE",
 		radardistance = 0,
 		seismicsignature = 100,
 		selfdestructas = "smallNukeExplosionGeneric",
@@ -58,7 +58,7 @@ return {
 				height = 60,
 				hitdensity = 150,
 				metal = 16645.19922,
-				object = "Armorco_dead",
+				object = "orcone_dead",
 				reclaimable = true,
 				world = "All Worlds",
 			},
