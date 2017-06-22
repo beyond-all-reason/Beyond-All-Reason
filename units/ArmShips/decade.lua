@@ -1,12 +1,12 @@
 return {
-	decade = {
+	armdecade = {
 		acceleration = 2.90/3,
 		activatewhenbuilt = true,
 		brakerate = 2.90/6000,
 		buildangle = 16384,
 		buildcostenergy = 1600,
 		buildcostmetal = 200,
-		buildpic = "DECADE.DDS",
+		buildpic = "ARMDECADE.DDS",
 		buildtime = 4500*0.8,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE CORVETTE",
@@ -28,7 +28,7 @@ return {
 		movementclass = "BOATCORVETTE1X3",
 		name = "Decade",
 		nochasecategory = "UNDERWATER VTOL",
-		objectname = "DECADE",
+		objectname = "ARMDECADE",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 0.8 *800,
@@ -57,7 +57,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 100,
-				object = "DECADE_DEAD",
+				object = "ARMDECADE_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -374,7 +374,7 @@ local armorDefs = {
 		"corcs",
 		"coresupp",
 		"cormls",
-		"decade",
+		"armdecade",
 		"corsjam",
 		"armmisc",
 		"cormisc",

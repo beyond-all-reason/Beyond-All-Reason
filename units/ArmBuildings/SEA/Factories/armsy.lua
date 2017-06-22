@@ -41,7 +41,7 @@ return {
 			[1] = "armcs",
 			[2] = "armpt",
 			[3] = "armpship",
-			[4] = "decade",
+			[4] = "armdecade",
 			[5] = "armmisc",
 			[6] = "armsub",
 			[7] = "armrecl",
