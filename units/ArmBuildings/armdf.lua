@@ -34,7 +34,7 @@ return {
 		selfdestructas = "mediumBuildingexplosiongeneric",
 		sightdistance = 210,
 		usebuildinggrounddecal = true,
-		yardmap = "oooooooooooooooooooo",
+		yardmap = "ooooooo ooooooo ooooooo ooooooo",
 		customparams = {
 			
 		},

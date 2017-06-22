@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.60000002384186,
-		explosiongenerator = "custom:genericunitexplosion-medium",
+		explosiongenerator = "custom:genericunitexplosion-medium-dirty",
 		impulseboost = 0,
 		name = "MediumMine",
 		range = 480,
