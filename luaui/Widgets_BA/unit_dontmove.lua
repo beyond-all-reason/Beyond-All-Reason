@@ -73,7 +73,7 @@ local unitArray = {
   "aseadragon",
   "corblackhy",
   
-  "armraven",
+  "corcat",
   "armshock",
   
   --skirmishers/fire support

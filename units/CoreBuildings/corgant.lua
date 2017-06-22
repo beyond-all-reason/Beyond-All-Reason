@@ -46,7 +46,7 @@ return {
 			[2] = "corkarg",
 			[3] = "gorg",
 			[4] = "shiva",
-			[5] = "armraven",
+			[5] = "corcat",
 			[6] = "corsok",
 		},
 		customparams = {
