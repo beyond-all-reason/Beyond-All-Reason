@@ -43,7 +43,7 @@ local CMD_REMOVE = CMD.REMOVE
 --------------------------------------------------------------------------------
 local AirTrans = {
   [UnitDefNames["corvalk"].id] = true,
-  [UnitDefNames["armsl"].id] = true,
+  [UnitDefNames["corseah"].id] = true,
   [UnitDefNames["armatlas"].id] = true,
   [UnitDefNames["armdfly"].id] = true,
 }

@@ -332,7 +332,7 @@ local armorDefs = {
 		"armdfly",
 		"armpeep",
 		"armseap",
-		"armsl",
+		"corseah",
 		"coraca",
 		"corca",
 		"corcsa",

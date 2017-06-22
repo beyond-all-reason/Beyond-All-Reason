@@ -1,10 +1,10 @@
 return {
-	armsl = {
+	corseah = {
 		acceleration = 0.15,
 		brakerate = 0.5,
 		buildcostenergy = 6500,
 		buildcostmetal = 350,
-		buildpic = "ARMSL.DDS",
+		buildpic = "CORSEAH.DDS",
 		buildtime = 15289,
 		canfly = true,
 		canmove = true,
@@ -28,7 +28,7 @@ return {
 		maxvelocity = 7,
 		maxwaterdepth = 0,
 		name = "Seahook",
-		objectname = "ARMSL",
+		objectname = "CORSEAH",
 		releaseheld = true,
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGeneric",
