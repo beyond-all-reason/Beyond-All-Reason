@@ -34,7 +34,7 @@ local vehUnits = {
 	-- t1
 	corcv='', corfav='', corgarp='', corgator='', corlevlr='', cormist='', cormlv='', cormuskrat='', corraid='', corwolv='',
 	-- t2
-	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', corban='', trem='',
+	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', corban='', cortrem='',
 }
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.06

@@ -53,7 +53,7 @@ local unitArray = {
   "armmerl",
   "cormart",
   "corvroc",
-  "trem",
+  "cortrem",
   "armsnipe",
   "corhrk",
   

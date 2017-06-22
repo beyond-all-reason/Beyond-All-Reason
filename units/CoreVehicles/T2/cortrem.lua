@@ -1,10 +1,10 @@
 return {
-	trem = {
+	cortrem = {
 		acceleration = 0.0528,
 		brakerate = 0.33,
 		buildcostenergy = 48000,
 		buildcostmetal = 2000,
-		buildpic = "TREM.DDS",
+		buildpic = "CORTREM.DDS",
 		buildtime = 31100,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -29,7 +29,7 @@ return {
 		movementclass = "HTANK4",
 		name = "Tremor",
 		nochasecategory = "VTOL",
-		objectname = "TREM",
+		objectname = "CORTREM",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongeneric",
 		sightdistance = 351,
@@ -61,7 +61,7 @@ return {
 				height = 8,
 				hitdensity = 100,
 				metal = 1118,
-				object = "TREM_DEAD",
+				object = "CORTREM_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -119,7 +119,7 @@ return {
 			},
 		},
 		weapondefs = {
-			trem1 = {
+			tremor = {
 				accuracy = 1400,
 				areaofeffect = 160,
 				avoidfeature = false,
@@ -154,7 +154,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "TREM1",
+				def = "TREMOR",
 				maindir = "0 0 1",
 				maxangledif = 270,
 				onlytargetcategory = "SURFACE",

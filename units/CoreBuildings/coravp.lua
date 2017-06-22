@@ -51,7 +51,7 @@ return {
 			[7] = "intruder",
 			[8] = "cormart",
 			[9] = "corvroc",
-			[10] = "trem",
+			[10] = "cortrem",
 			[11] = "corsent",
 			[12] = "cormabm",
 			[13] = "coreter",

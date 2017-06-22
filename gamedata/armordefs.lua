@@ -263,7 +263,7 @@ local armorDefs = {
 		"corgol",
 		"corsilo",
 		"corsumo",
-		"trem",
+		"cortrem",
         "armbanth",
 		"armraven",
 		"armraz",
