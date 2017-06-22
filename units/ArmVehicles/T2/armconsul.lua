@@ -1,5 +1,5 @@
 return {
-	consul = {
+	armconsul = {
 		acceleration = 0.165,
 		brakerate = 0.825,
 		buildcostenergy = 4300,
@@ -7,7 +7,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		shownanospray = false,
-		buildpic = "CONSUL.DDS",
+		buildpic = "ARMCONSUL.DDS",
 		buildtime = 6793,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -33,7 +33,7 @@ return {
 		metalstorage = 100,
 		movementclass = "TANK3",
 		name = "Consul",
-		objectname = "CONSUL",
+		objectname = "ARMCONSUL",
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongeneric",
 		sightdistance = 500,
@@ -92,7 +92,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 153,
-				object = "CONSUL_DEAD",
+				object = "ARMCONSUL_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

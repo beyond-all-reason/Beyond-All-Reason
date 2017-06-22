@@ -101,7 +101,7 @@ local armorDefs = {
 		"asubpen",
 		"cjuno",
 		"cmgeo",
-		"consul",
+		"armconsul",
 		"coraak",
 		"corack",
 		"coracv",
