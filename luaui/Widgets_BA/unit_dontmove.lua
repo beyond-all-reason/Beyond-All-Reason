@@ -45,7 +45,7 @@ local unitArray = {
   "corarch",
   
   --arty
-  "tawf013",
+  "armart",
   "armham",
   "corwolv",
   

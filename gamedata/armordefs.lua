@@ -181,7 +181,7 @@ local armorDefs = {
 		"nsaclash",
 		"screamer",
 		"armbeamer",
-		"tawf013",
+		"armart",
 		"tawf114",
     	"armbeaver",
 		"armcroc",

@@ -1,10 +1,10 @@
 return {
-	tawf013 = {
+	armart = {
 		acceleration = 0.0154,
 		brakerate = 0.0462,
 		buildcostenergy = 2100,
 		buildcostmetal = 135,
-		buildpic = "TAWF013.DDS",
+		buildpic = "armart.DDS",
 		buildtime = 2998,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -29,7 +29,7 @@ return {
 		movementclass = "TANK3",
 		name = "Shellshocker",
 		nochasecategory = "VTOL",
-		objectname = "TAWF013",
+		objectname = "armart",
 		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongeneric",
@@ -63,7 +63,7 @@ return {
 				height = 24,
 				hitdensity = 100,
 				metal = 92,
-				object = "TAWF013_DEAD",
+				object = "armart_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

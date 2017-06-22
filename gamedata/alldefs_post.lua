@@ -28,7 +28,7 @@ local minimumbuilddistancerange = 155
 
 local vehUnits = {
 	-- t1
-	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', tawf013='',
+	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
 	-- t2
 	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', consul='',
 	-- t1
