@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.69999998807907,
-		explosiongenerator = "custom:genericunitexplosion-large",
+		explosiongenerator = "custom:genericunitexplosion-large-dirty",
 		impulseboost = 0,
 		name = "HeavyMine",
 		range = 480,
