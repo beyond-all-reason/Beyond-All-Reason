@@ -1,10 +1,10 @@
 return {
-	gorg = {
+	corjugg = {
 		acceleration = 0.048,
 		brakerate = 0.375,
 		buildcostenergy = 510000,
 		buildcostmetal = 20000,
-		buildpic = "GORG.DDS",
+		buildpic = "CORJUGG.DDS",
 		buildtime = 629630,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -28,7 +28,7 @@ return {
 		movementclass = "HKBOT5",
 		name = "Juggernaut",
 		nochasecategory = "VTOL",
-		objectname = "GORG",
+		objectname = "CORJUGG",
 		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "smallNukeExplosionGeneric",
@@ -57,7 +57,7 @@ return {
 				height = 8,
 				hitdensity = 100,
 				metal = 13959,
-				object = "GORG_DEAD",
+				object = "CORJUGG_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			gorg_bottom = {
+			juggernaut_bottom = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.08,
@@ -149,7 +149,7 @@ return {
 					subs = 3,
 				},
 			},
-			gorg_top = {
+			juggernaut_top = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.15,
@@ -220,20 +220,20 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "GORG_BOTTOM",
+				def = "JUGGERNAUT_BOTTOM",
 				maindir = "1 0 4",
 				maxangledif = 90,
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
-				def = "GORG_BOTTOM",
+				def = "JUGGERNAUT_BOTTOM",
 				maindir = "-1 0 4",
 				maxangledif = 90,
 				onlytargetcategory = "SURFACE",
 			},
 			[4] = {
 				badtargetcategory = "VTOL",
-				def = "GORG_TOP",
+				def = "JUGGERNAUT_TOP",
 				maindir = "0 1 0",
 				maxangledif = 270,
 				onlytargetcategory = "NOTSUB",

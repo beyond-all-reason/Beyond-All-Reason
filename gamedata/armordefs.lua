@@ -278,7 +278,7 @@ local armorDefs = {
 		"cordoom",
         "armorco",
 		"corkrog",
-		"gorg",
+		"corjugg",
         "armtl",
 		"cortl",
         "armatl",

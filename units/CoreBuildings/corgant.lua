@@ -44,7 +44,7 @@ return {
 		buildoptions = {
 			[1] = "corkrog",
 			[2] = "corkarg",
-			[3] = "gorg",
+			[3] = "corjugg",
 			[4] = "shiva",
 			[5] = "corcat",
 			[6] = "corsok",
