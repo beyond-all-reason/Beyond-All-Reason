@@ -350,14 +350,14 @@ local sortAscending = false
 
 local numColums = #header
 
--- buggy so disabled this
---function widget:SetConfigData(data)
---	guiData = data.guiData or guiData
---	sortVar = data.sortVar or sortVar
---	sortAscending = data.sortAscending or sortAscending
---	local vsx,vsy = widgetHandler:GetViewSizes()
---	widget:ViewResize(vsx,vsy)
---end
+
+function widget:SetConfigData(data)
+	--guiData = data.guiData or guiData -- buggy positioning, so disabled this
+	sortVar = data.sortVar or sortVar
+	sortAscending = data.sortAscending or sortAscending
+	--local vsx,vsy = widgetHandler:GetViewSizes()
+	--widget:ViewResize(vsx,vsy)
+end
 
 function widget:GetConfigData(data)
 	return{
@@ -834,16 +834,3 @@ function ReGenerateTextDisplayList()
 		end
 	glEndText()
 end
-
-
-
---function widget:GetTooltip(mx, my)
---	if widget:IsAbove(mx,my) then
---		local text =  string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n")
---		if gameStarted == nil then
---			text = string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
---				"...will be clickable after game start.")
---		end
---		return text
---	end
---end
