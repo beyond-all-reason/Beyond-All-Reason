@@ -1,0 +1,234 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, body, rbay, lbay, gunturret, gun, firep, turret,
+       pitch, beam, turret2, beam2, link, wake1, wake2;
+
+static-var  unitviewer, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
+
+// Signal definitions
+#define SIG_MOVE			4
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Create()
+{
+	unitviewer = FALSE;
+	hide firep;
+	set ARMORED to 1;
+	start-script SmokeUnit();
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+BoomCalc(posxz, posy)
+{
+	var Func_Var_3, Func_Var_4, Func_Var_5;
+	Func_Var_3 = get PIECE_XZ(turret) - posxz;
+	Func_Var_4 = posy - get PIECE_Y(turret);
+	Func_Var_5 = get XZ_HYPOT(Func_Var_3);
+	Static_Var_2 = get HYPOT(Func_Var_5,Func_Var_4);
+	Static_Var_3 = get XZ_ATAN(Func_Var_3);
+	Static_Var_4 = get ATAN(Func_Var_4,Func_Var_5);
+	Static_Var_5 = Static_Var_2 > [420.000000];
+}
+
+BoomExtend()
+{
+	signal 2;
+	move beam to z-axis Static_Var_2 now;
+	turn turret to y-axis Static_Var_3 now;
+	turn pitch to x-axis <0.000000> - Static_Var_4 now;
+	turn beam to x-axis Static_Var_4 now;
+	turn turret2 to y-axis <0.000000> now;
+	turn beam2 to x-axis <0.000000> now;
+	move beam2 to z-axis [0.000000] now;
+	move link to y-axis [0.000000] now;
+	wait-for-move beam along z-axis;
+	wait-for-turn turret around y-axis;
+	wait-for-turn pitch around x-axis;
+	wait-for-turn beam around x-axis;
+	wait-for-move beam2 along z-axis;
+	wait-for-move link along y-axis;
+	wait-for-turn beam2 around x-axis;
+	wait-for-turn turret2 around y-axis;
+}
+
+BoomReset()
+{
+	signal 2;
+	set-signal-mask 2;
+	sleep 100;
+	move beam to z-axis [0.000000] now;
+	turn turret to y-axis <0.000000> now;
+	turn pitch to x-axis <0.000000> now;
+	turn beam to x-axis <0.000000> now;
+	turn turret2 to y-axis <0.000000> now;
+	turn beam2 to x-axis <0.000000> now;
+	move beam2 to z-axis [0.000000] now;
+	move link to y-axis [0.000000] now;
+	wait-for-move beam along z-axis;
+	wait-for-turn turret around y-axis;
+	wait-for-turn pitch around x-axis;
+	wait-for-turn beam around x-axis;
+	wait-for-move beam2 along z-axis;
+	wait-for-move link along y-axis;
+	wait-for-turn beam2 around x-axis;
+	wait-for-turn turret2 around y-axis;
+}
+
+AreaUnload(Func_Var_1, Func_Var_2, Func_Var_3)
+{
+	attach-unit Func_Var_1 to link;
+	while( get UNIT_XZ(Func_Var_1) != get PIECE_XZ(link) )
+	{
+		sleep 100;
+	}
+	drop-unit Func_Var_1;
+	move beam2 to z-axis Rand( [0.000000], Func_Var_2 ) now;
+	turn turret2 to y-axis Rand( <0.000000>, <360.000000> ) now;
+	wait-for-move beam2 along z-axis;
+	wait-for-turn turret2 around y-axis;
+	sleep 100;
+	Func_Var_3 = 0;
+	while( get UNIT_XZ(Func_Var_1) == get PIECE_XZ(link) AND get UNIT_Y(Func_Var_1) == get PIECE_Y(link) AND Func_Var_3 < 20 )
+	{
+		++Func_Var_3;
+		attach-unit Func_Var_1 to link;
+		drop-unit Func_Var_1;
+		move beam2 to z-axis Rand( [0.000000], Func_Var_2 ) now;
+		turn turret2 to y-axis Rand( <0.000000>, <360.000000> ) now;
+		wait-for-move beam2 along z-axis;
+		wait-for-turn turret2 around y-axis;
+		sleep 100;
+	}
+	if( get UNIT_XZ(Func_Var_1) == get PIECE_XZ(link) AND get UNIT_Y(Func_Var_1) == get PIECE_Y(link) )
+	{
+		attach-unit Func_Var_1 to 0 - 1;
+		return (0);
+	}
+	call-script BoomCalc(get UNIT_XZ(Func_Var_1),get UNIT_Y(Func_Var_1));
+	call-script BoomExtend();
+}
+
+TransportPickup(unitid)
+{
+	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
+	if( Static_Var_5 )
+	{
+		return (1);
+	}
+	if( get UNKNOWN_UNIT_VALUE(74)(unitid) == get UNKNOWN_UNIT_VALUE(74)(get UNKNOWN_UNIT_VALUE(71)) )
+	{
+		set BUSY to 1;
+		call-script BoomExtend();
+		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
+		attach-unit unitid to link;
+		attach-unit unitid to 0 - 1;
+		call-script BoomReset();
+		set BUSY to 0;
+	}
+}
+
+TransportDrop(unitid, position)
+{
+	call-script BoomCalc(position,get GROUND_HEIGHT(position));
+	if( Static_Var_5 )
+	{
+		return (1);
+	}
+	set BUSY to 1;
+	call-script BoomExtend();
+	call-script AreaUnload(unitid,[210.000000]);
+	start-script BoomReset();
+	sleep 1000;
+	set BUSY to 0;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type SHATTER | NOHEATCLOUD;
+		explode body type SHATTER | BITMAP1 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode body type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode rbay type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode lbay type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode gunturret type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode gun type SHATTER | BITMAP4 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode rbay type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode lbay type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode gunturret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode gun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | SHATTER | BITMAP2 | NOHEATCLOUD;
+	explode rbay type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode lbay type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode gunturret type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode gun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	return corpsetype;
+}

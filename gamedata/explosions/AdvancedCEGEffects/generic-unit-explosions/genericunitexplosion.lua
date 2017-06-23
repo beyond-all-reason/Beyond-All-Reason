@@ -2030,8 +2030,8 @@ local sizes = {
 --	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
 --end
 
-
-local types = {
+-- add coloring
+local colors = {
   white = {
     --groundflash = {
     --	color = {1,1,1},
@@ -2041,16 +2041,16 @@ local types = {
 
   }
 }
-for type, effects in pairs(types) do
+for color, effects in pairs(colors) do
   for size, e in pairs(sizes) do
-    definitions[root.."-"..size.."-"..type] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
-    if type == 'dirty' then
-      definitions[root.."-"..size.."-"..type].innersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].innersmoke.properties.numparticles * 2)
-      definitions[root.."-"..size.."-"..type].outersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].outersmoke.properties.numparticles * 2)
-      definitions[root.."-"..size.."-"..type].clouddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].clouddust.properties.numparticles * 3.2)
-      definitions[root.."-"..size.."-"..type].grounddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].grounddust.properties.numparticles * 1.6)
-      definitions[root.."-"..size.."-"..type].dirt.properties.numparticles = definitions[root.."-"..size.."-"..type].dirt.properties.numparticles * 3
-      definitions[root.."-"..size.."-"..type].dirt2.properties.numparticles = definitions[root.."-"..size.."-"..type].dirt2.properties.numparticles * 3
+    definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+    if color == 'dirty' then
+      definitions[root.."-"..size.."-"..color].innersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].innersmoke.properties.numparticles * 2)
+      definitions[root.."-"..size.."-"..color].outersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].outersmoke.properties.numparticles * 2)
+      definitions[root.."-"..size.."-"..color].clouddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].clouddust.properties.numparticles * 3.2)
+      definitions[root.."-"..size.."-"..color].grounddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].grounddust.properties.numparticles * 1.6)
+      definitions[root.."-"..size.."-"..color].dirt.properties.numparticles = definitions[root.."-"..size.."-"..color].dirt.properties.numparticles * 3
+      definitions[root.."-"..size.."-"..color].dirt2.properties.numparticles = definitions[root.."-"..size.."-"..color].dirt2.properties.numparticles * 3
     end
   end
 end

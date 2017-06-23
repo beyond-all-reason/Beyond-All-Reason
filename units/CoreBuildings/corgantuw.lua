@@ -45,7 +45,7 @@ return {
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
 			[1] = "corkrog",
-			[2] = "corshiva",
+			[2] = "shiva",
 			[3] = "corsok",
 			[4] = "corseal",
 			[5] = "corparrow",

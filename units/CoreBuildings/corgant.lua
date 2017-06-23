@@ -44,9 +44,9 @@ return {
 		buildoptions = {
 			[1] = "corkrog",
 			[2] = "corkarg",
-			[3] = "corjugg",
-			[4] = "corshiva",
-			[5] = "corcat",
+			[3] = "gorg",
+			[4] = "shiva",
+			[5] = "armraven",
 			[6] = "corsok",
 		},
 		customparams = {

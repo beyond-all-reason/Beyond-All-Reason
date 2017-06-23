@@ -5,11 +5,7 @@ return {
 		brakerate = 1.92/450,
 		buildcostenergy = 18000,
 		buildcostmetal = 2000,
-<<<<<<< HEAD:units/ArmShips/T2/armserp.lua
 		buildpic = "armserp.DDS",
-=======
-		buildpic = "ARMSERP.DDS",
->>>>>>> 2deb69a68efbcc8d2f2442c655a7146b97da8e2d:units/ArmShips/T2/armserp.lua
 		buildtime = 21000*0.9,
 		canmove = true,
 		category = "UNDERWATER ALL WEAPON NOTAIR NOTHOVER SUBMARINE",
@@ -33,11 +29,7 @@ return {
 		movementclass = "BOATSUBMARINE3X3",
 		name = "Serpent",
 		nochasecategory = "VTOL",
-<<<<<<< HEAD:units/ArmShips/T2/armserp.lua
 		objectname = "armserp",
-=======
-		objectname = "ARMSERP",
->>>>>>> 2deb69a68efbcc8d2f2442c655a7146b97da8e2d:units/ArmShips/T2/armserp.lua
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 0.8 *1000,
@@ -67,11 +59,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 1000,
-<<<<<<< HEAD:units/ArmShips/T2/armserp.lua
 				object = "armserp_DEAD",
-=======
-				object = "ARMSERP_DEAD",
->>>>>>> 2deb69a68efbcc8d2f2442c655a7146b97da8e2d:units/ArmShips/T2/armserp.lua
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -126,11 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-<<<<<<< HEAD:units/ArmShips/T2/armserp.lua
 			armserp_weapon = {
-=======
-			serpent_weapon = {
->>>>>>> 2deb69a68efbcc8d2f2442c655a7146b97da8e2d:units/ArmShips/T2/armserp.lua
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -177,11 +161,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP LIGHTBOAT CAPITALSHIP",
-<<<<<<< HEAD:units/ArmShips/T2/armserp.lua
 				def = "armserp_WEAPON",
-=======
-				def = "SERPENT_WEAPON",
->>>>>>> 2deb69a68efbcc8d2f2442c655a7146b97da8e2d:units/ArmShips/T2/armserp.lua
 				onlytargetcategory = "NOTHOVER",
 			},
 		},

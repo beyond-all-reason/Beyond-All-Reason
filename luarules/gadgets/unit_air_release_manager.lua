@@ -14,7 +14,7 @@ if (not gadgetHandler:IsSyncedCode()) then
   return
 end
 
-local COMMANDO = UnitDefNames["cormando"].id
+local COMMANDO = UnitDefNames["commando"].id
 
 local fC = 0
 local fallingUnits = {}

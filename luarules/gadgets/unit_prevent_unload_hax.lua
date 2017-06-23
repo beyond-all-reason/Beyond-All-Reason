@@ -14,7 +14,7 @@ if (not gadgetHandler:IsSyncedCode()) then return end
 
 local frameMargin = 10
 
-local COMMANDO = UnitDefNames["cormando"].id
+local COMMANDO = UnitDefNames["commando"].id
 
 local SpSetUnitVelocity = Spring.SetUnitVelocity
 local SpGetUnitVelocity = Spring.GetUnitVelocity
