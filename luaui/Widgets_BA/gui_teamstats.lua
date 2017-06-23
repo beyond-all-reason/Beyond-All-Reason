@@ -18,12 +18,12 @@ local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
 local highLightColour = {1,1,1,0.7}
-local sortHighLightColour = {0.84,1,0.84,1}
-local sortHighLightColourDesc = {1,0.8,0.8,1}
-local activeSortColour = {0.22,0.73,0.22,0.9}
-local activeSortColourDesc = {1,0.5,0.5,0.9}
-local oddLineColour = {0.22,0.22,0.22,0.35}
-local evenLineColour = {0.75,0.75,0.75,0.35}
+local sortHighLightColour = {1,0.87,0.87,1}
+local sortHighLightColourDesc = {0.9,1,0.9,1}
+local activeSortColour = {1,0.62,0.62,1}
+local activeSortColourDesc = {0.66,1,0.66,1}
+local oddLineColour = {0.23,0.23,0.23,0.4}
+local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
 local header = {
@@ -43,13 +43,13 @@ local header = {
 --	"metalUsed",
 	"metalProduced",
 	"metalExcess",
-	"metalReceived",
-	"metalSent",
+--	"metalReceived",
+--	"metalSent",
 --	"energyUsed",
 	"energyProduced",
 	"energyExcess",
-	"energyReceived",
-	"energySent",
+--	"energyReceived",
+--	"energySent",
 --	"resourcesUsed",
 --	"resourcesProduced",
 --	"resourcesExcess",
@@ -57,18 +57,49 @@ local header = {
 --	"resourcesSent",
 }
 
+local headerRemap = {
+	frame = {" ","Player"},
+	metalUsed = {"Metal","Used"},
+	metalProduced = {"Metal","Produced"},
+	metalExcess = {"Metal","Excess"},
+	metalReceived = {"Metal","Received"},
+	metalSent = {"Metal","Sent"},
+	energyUsed = {"Energy","Used"},
+	energyProduced = {"Energy","Produced"},
+	energyExcess = {"Energy","Excess"},
+	energyReceived = {"Energy","Received"},
+	energySent = {"Energy","Sent"},
+	damageDealt = {"Damage","Dealt"},
+	damageReceived = {"Damage","Received"},
+	damageEfficiency = {"Damage","Efficiency"},
+	unitsProduced = {"Units","Produced"},
+	unitsDied = {"Units","Died"},
+	unitsReceived = {"Units","Received"},
+	unitsSent = {"Units","Sent"},
+	unitsCaptured = {"Units","Captured"},
+	unitsOutCaptured = {"Units","OutCaptured"},
+	unitsKilled = {"Units","Killed"},
+	resourcesUsed = {"Resources","Used"},
+	resourcesProduced = {"Resources","Produced"},
+	resourcesExcess = {"Resources","Excess"},
+	resourcesReceived = {"Resources","Received"},
+	resourcesSent = {"Resources","Sent"},
+	killEfficiency = {"Killing","Efficiency"},
+	aggressionLevel = {"Aggression","Level"},
+}
+
 local guiData = {
 	mainPanel = {
 		relSizes = {
 			x = {
-				min = 0.25,
-				max = 0.925,
-				length = 0.655,
+				min = 0.28,
+				max = 0.795,
+				length = 0.49,
 			},
 			y = {
-				min = 0.18,
+				min = 0.2,
 				max = 0.8,
-				length = 0.62,
+				length = 0.6,
 			},
 		},
 		draggingBorderSize = 7,
@@ -308,36 +339,7 @@ local textDisplayList
 local backgroundDisplayList
 local teamControllers = {}
 local mousex,mousey = 0,0
-local headerRemap = {
-	frame = {"Player","Name"},
-	metalUsed = {"Metal","Used"},
-	metalProduced = {"Metal","Produced"},
-	metalExcess = {"Metal","Excess"},
-	metalReceived = {"Metal","Received"},
-	metalSent = {"Metal","Sent"},
-	energyUsed = {"Energy","Used"},
-	energyProduced = {"Energy","Produced"},
-	energyExcess = {"Energy","Excess"},
-	energyReceived = {"Energy","Received"},
-	energySent = {"Energy","Sent"},
-	damageDealt = {"Damage","Dealt"},
-	damageReceived = {"Damage","Received"},
-	damageEfficiency = {"Damage","Efficiency"},
-	unitsProduced = {"Units","Produced"},
-	unitsDied = {"Units","Died"},
-	unitsReceived = {"Units","Received"},
-	unitsSent = {"Units","Sent"},
-	unitsCaptured = {"Units","Captured"},
-	unitsOutCaptured = {"Units","OutCaptured"},
-	unitsKilled = {"Units","Killed"},
-	resourcesUsed = {"Resources","Used"},
-	resourcesProduced = {"Resources","Produced"},
-	resourcesExcess = {"Resources","Excess"},
-	resourcesReceived = {"Resources","Received"},
-	resourcesSent = {"Resources","Sent"},
-	killEfficiency = {"Killing","Efficiency"},
-	aggressionLevel = {"Aggression","Level"},
-}
+
 for _, data in pairs(headerRemap) do
 	maxColumnTextSize = max(glGetTextWidth(data[1]),maxColumnTextSize)
 	maxColumnTextSize = max(glGetTextWidth(data[2]),maxColumnTextSize)
@@ -506,7 +508,7 @@ function widget:GameFrame(n,forceupdate)
 		if teamInsertCount ~= 1 then
 			sort(allyVec,compareTeams)
 			if teamInsertCount > 2 then
-				allyTotal.frame = " total "
+				allyTotal.frame = "      "
 				allyTotal.time = nil
 				if allyTotal.damageReceived ~= 0 then
 					allyTotal.damageEfficiency = (allyTotal.damageDealt/allyTotal.damageReceived)*100
@@ -603,36 +605,11 @@ function getLineAndColumn(x,y)
 end
 
 
-
---function widget:TweakMousePress(x, y, button)
---	if button == 2  or button == 3 then
---		local ok
---		ok, guiData = tweakMousePress({x=x,y=y},guiData)
---		return ok
---	else
---		return false
---	end
---end
-
 function updateFontSize()
 	columnSize = guiData.mainPanel.absSizes.x.length / numColums
 	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
 	fontSize = 10*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
-
---function widget:TweakMouseMove(x, y, dx, dy, button)
---	_, guiData = tweakMouseMove({x=dx,y=dy}, guiData)
---	updateFontSize()
---	glDeleteList(textDisplayList)
---	textDisplayList = glCreateList(ReGenerateTextDisplayList)
---	glDeleteList(backgroundDisplayList)
---	backgroundDisplayList = glCreateList(ReGenerateBackgroundDisplayList)
---end
---
---function widget:TweakMouseRelease(mx,my,button)
---	guiData = tweakMouseRelease(guiData)
---	calcAbsSizes()
---end
 
 function widget:MouseMove(mx,my,dx,dy)
 	local boxType = widget:IsAbove(mx,my)
@@ -749,9 +726,9 @@ function DrawBackground()
 
 	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
 
-	gl.Color(0,0,0,0.7)
+	gl.Color(0,0,0,0.75)
 	local padding = 5*widgetScale
-	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,9*widgetScale)
+	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(x1-padding,y1-padding,x2+padding,y2+padding,'teamstats_window')
 	end
@@ -781,7 +758,7 @@ function ReGenerateBackgroundDisplayList()
 		end
 		glColor(colour)
 		if lineCount > 2 then
-			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
+			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3.5*widgetScale)
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
@@ -792,7 +769,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc)
 		end
-		RectRound(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max,3*widgetScale)
+		RectRound(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -801,7 +778,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc)
 			end
-			RectRound(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max,3*widgetScale)
+			RectRound(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
 			break
 		end
 	end
@@ -842,7 +819,7 @@ function ReGenerateTextDisplayList()
 						value = value .. "%"
 					end
 					local color = ''
-					if teamData.frame == " total "  then
+					if teamData.frame == "      "  then
 						color = '\255\255\220\130'
 					elseif lineCount % 2 == 1 then
 						color = '\255\200\200\200'
