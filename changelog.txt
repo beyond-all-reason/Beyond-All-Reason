@@ -27,6 +27,7 @@ Balance changes:
 - Fixed flak doing ludicrous damage to ground units
 - Air transports don't have collision enabled anylonger, fixes the unload bug
 - EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
+- Pathing improvement: units wont get stuck in cliffs any longer
 
 Wind:
 - Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
@@ -70,7 +71,6 @@ The aiming script and behaviour has NOT been changed and the tracking effect doe
 	This will be reverted if it causes any significant balance change (because it is not meant to) so please report any odd/different behaviour to me (Doo) while we are still in test versions.
 	
 
-
 Mod options: (default disabled)
 - control victory options: shows info on startup and offers a better scoreboard window
 - Added modoption for fixed hitspheres (requires firethroughfriendly enabled)
@@ -79,42 +79,40 @@ Currently hitboxes are smaller than desired, this was done so that units can som
 Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
 
 Other:
-- Lots of new particle effects!
-- Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options widget)
-- Added 'mex' button (area drag) for units that can build metal extractors, area drag will cap all metal extraction points
+- All new particle/lighting effects!
+- Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options)
 - Added luamex (lua metal extractor points) functionality for mappers
-- Widgets: Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into new 'Top Bar' widget
-- Added Tooltip widget (other widgets use this to show tooltips at location of the mouse)
-- New uniticons with transparant background
+- Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
+- Added Tooltip widget, shows tooltips at mouse cursor location
+- New uniticons with transparant background, old ones are availible via Options
 - Buildmenu: shows metal/energy cost and tooltip on hover
 - Buildmenu: could show shortcuts when enabled via Options widget
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X
 - Keybinds, commands, changelog, options windows hide with Escape key
+- Teamstats widget renamed, simplified, spiced up and has a fixed position (this fixes bugs aswell)
 - Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
-- Projectile/explosions/laserbeams have real lighting. option toggable via options widget
-- Added outline widget (default disabled)
-- Unit textures reprocessed with bigger color range (less grainy)
-- More units have a shatter effect on death
+- Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
+- Added outline widget, toggable via Options (default disabled)
+- Unit textures reprocessed with bigger color range and less grain
+- More units have been given a shatter effect on death
 - Options: fixed that not all settings remembered their value
 - Removed right column on options menu to allow a 3rd column of options
-- Bloomshader: prettier and more pronounced, offers 2 levels (cheap/expensive) via options widget
+- Bloomshader: prettier and more pronounced, offers 2 levels (modest/heavier) via Options
 - Pausescreen changed and darkens screen or decolorizes it when shaders enabled
 - Changelog widget: version shortcuts only show for every 10th version number
-- 10% darker GUI background elements
+- GUI background 10% darker
 - Spiced up 'Buildbar' and 'Selected Unit Buttons' widgets
-- Restyled prestart faction change widget and also scales with resolution
+- Restyled prestart faction change widget (also scales with resolution)
 - Removed 'Allies' label from advplayerslist
 - Unit info widget removed
-- RedUI Resource bars have a metal / energy icon
-- Removed all old loadscreens, added some new ones
+- Removed all old loadscreens, added new ones
 - Commands FX widget: improved performance
 - Ally Cursors widget: improved performance
-- Wind Speed widget: improved performance
 - Fixed commander nametags occasionally showing spectator name
 - Spiced up the loadscreen progress bar
 - Fixed cursor size changing after alt-tabbed to desktop and back
-- Fixed glitchy healthbars-shader on intel gfx and very old cards
-- Darken map widget can now darken features (trees/wreckages) but is costly to do so (via options widget)
+- Fixed glitchy/spiky healthbars-shader on intel gfx and very old cards
+- Darken map widget can optionally darken features aswell (trees/wreckages)
 - Added "Include buildings in area selections" option via option widget (from Smart Select widget)
 - Enemy spotter opacity and unit teamcolor highlight configurable via options widget
 - Arm Beamer updates its aim faster when firing
@@ -126,6 +124,9 @@ Other:
 - Changed and fixed some missile models (missile.3do, empmisl.3do) Doo
 - Krogoth model scaled down (10%) and bantha model scaled up (5%) without any weapon/cost/HP buff or nerf. Doo
 - Fixed some models flare pieces to properly spawn the weapon in the right place -- planning on checking every model i can. Doo
+- Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
+- Added additional extensive unit description (by PtaQ)
+- Increased default player unit limit to 1500
 
 
 9.45 -> 9.46
