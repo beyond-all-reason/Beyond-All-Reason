@@ -415,6 +415,9 @@ function widget:Initialize()
 		else
 			guiData.mainPanel.visible = not guiData.mainPanel.visible
 		end
+		if guiData.mainPanel.visible then
+			widget:GameFrame(GetGameFrame(),true)
+		end
 	end
 end
 
