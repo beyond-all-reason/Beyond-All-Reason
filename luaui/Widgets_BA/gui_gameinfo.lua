@@ -541,6 +541,9 @@ local function hideWindows()
 	if (WG['commands'] ~= nil) then
 		WG['commands'].toggle(false)
 	end
+	if (WG['teamstats'] ~= nil) then
+		WG['teamstats'].toggle(false)
+	end
 end
 
 function toggle()

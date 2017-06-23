@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author	= "Floris",
 		date		= "Feb, 2017",
 		license	= "GNU GPL, v2 or later",
-		layer		= 0,
+        layer     = -99999,
 		enabled   = true, --enabled by default
 		handler   = false, --can use widgetHandler:x()
 	}
@@ -267,8 +267,14 @@ local function updateButtons()
 	local area = buttonsArea
 	
 	local totalWidth = area[3] - area[1]
-	local text = '    Commands    Keybinds    Changelog    Options    Quit    '
-	
+
+	local text = '    '
+    if (WG['teamstats'] ~= nil) then text = text..'Stats    ' end
+    if (WG['commands'] ~= nil) then text = text..'Cmd    ' end
+    if (WG['keybinds'] ~= nil) then text = text..'Keys    ' end
+    if (WG['changelog'] ~= nil) then text = text..'Changes    ' end
+    if (WG['options'] ~= nil) then text = text..'Options    ' end
+    text = text..'Quit    '
 	local fontsize = totalWidth / glGetTextWidth(text)
 	
 	if dlistButtons1 ~= nil then
@@ -292,24 +298,42 @@ local function updateButtons()
 			
 			local margin = height*widgetScale / 11
 			local offset = margin
-			local width = glGetTextWidth('   Commands  ') * fontsize
-			buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
-			
-			offset = offset+width
-			width = glGetTextWidth('  Keybinds  ') * fontsize
-			buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
-			
-			offset = offset+width
-			width = glGetTextWidth('  Changelog  ') * fontsize
-			buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
-			
-			offset = offset+width
-			width = glGetTextWidth('  Options  ') * fontsize
-			buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
-			
-			offset = offset+width
-			width = glGetTextWidth('  Quit    ') * fontsize
-			buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			local width = 0
+            local buttons = 0
+
+            if (WG['teamstats'] ~= nil) then
+                buttons = buttons + 1
+                if buttons > 1 then offset = offset+width end
+                width = glGetTextWidth('   Stats  ') * fontsize
+                buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
+            end
+            if (WG['commands'] ~= nil) then
+                buttons = buttons + 1
+                if buttons > 1 then offset = offset+width end
+                width = glGetTextWidth('  Cmd  ') * fontsize
+                buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+			end
+            if (WG['keybinds'] ~= nil) then
+                buttons = buttons + 1
+                if buttons > 1 then offset = offset+width end
+                width = glGetTextWidth('  Keys  ') * fontsize
+                buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+            end
+            if (WG['changelog'] ~= nil) then
+                button = buttons + 1
+                if buttons > 1 then offset = offset+width end
+                width = glGetTextWidth('  Changes  ') * fontsize
+                buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+            end
+            if (WG['options'] ~= nil) then
+                buttons = buttons + 1
+                if buttons > 1 then offset = offset+width end
+                width = glGetTextWidth('  Options  ') * fontsize
+                buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
+            end
+            offset = offset+width
+            width = glGetTextWidth('  Quit    ') * fontsize
+            buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 		end
 	end)
 	
@@ -922,6 +946,9 @@ local function hideWindows()
 	if (WG['gameinfo'] ~= nil) then
 		WG['gameinfo'].toggle(false)
 	end
+    if (WG['teamstats'] ~= nil) then
+        WG['teamstats'].toggle(false)
+    end
 end
 
 local function applyButtonAction(button)
@@ -943,11 +970,16 @@ local function applyButtonAction(button)
 		if (WG['keybinds'] ~= nil) then
 			WG['keybinds'].toggle()
 		end
-	elseif button == 'commands' then
-		hideWindows()
-		if (WG['commands'] ~= nil) then
-			WG['commands'].toggle()
-		end
+    elseif button == 'commands' then
+        hideWindows()
+        if (WG['commands'] ~= nil) then
+            WG['commands'].toggle()
+        end
+    elseif button == 'stats' then
+        hideWindows()
+        if (WG['teamstats'] ~= nil) then
+            WG['teamstats'].toggle()
+        end
 	end
 end
 

@@ -1,25 +1,31 @@
 function widget:GetInfo()
 	return {
-		name      = "Team stats",
+		name      = "TeamStats",
 		desc      = "Shows game stats.",
 		author    = "",
 		version   = "",
 		date      = "",
 		license   = "",
-		layer     = -10,
-		enabled   = false,
+		layer     = -99990,
+		enabled   = true,
 	}
 end
 
 local bgcorner	= LUAUI_DIRNAME.."Images/bgcorner.png"
 
-local fontSize = 12
+local fontSize = 22		-- is caclulated somewhere else anyway
+local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
-local highLightColour = {0.5,0.8,0.5,0.66}
-local activeSortColour = {0.7,0.7,1,0.95}
-local oddLineColour = {0.22,0.22,0.22,0.33}
-local evenLineColour = {0.7,0.7,0.7,0.33}
+local highLightColour = {1,1,1,0.7}
+local sortHighLightColour = {0.84,1,0.84,1}
+local sortHighLightColourDesc = {1,0.8,0.8,1}
+local activeSortColour = {0.22,0.73,0.22,0.9}
+local activeSortColourDesc = {1,0.5,0.5,0.9}
+local oddLineColour = {0.22,0.22,0.22,0.35}
+local evenLineColour = {0.75,0.75,0.75,0.35}
+local sortLineColour = {0.82,0.82,0.82,0.85}
+
 local header = {
 	"frame",
 	"damageDealt",
@@ -34,21 +40,40 @@ local header = {
 	"damageEfficiency",
 --	"killEfficiency",
 	"aggressionLevel",
-	"metalUsed",
+--	"metalUsed",
 	"metalProduced",
---	"metalExcess",
+	"metalExcess",
 	"metalReceived",
 	"metalSent",
-	"energyUsed",
+--	"energyUsed",
 	"energyProduced",
---	"energyExcess",
+	"energyExcess",
 	"energyReceived",
 	"energySent",
-	--"resourcesUsed",
-	--"resourcesProduced",
-	--"resourcesExcess",
-	--"resourcesReceived",
-	--"resourcesSent",
+--	"resourcesUsed",
+--	"resourcesProduced",
+--	"resourcesExcess",
+--	"resourcesReceived",
+--	"resourcesSent",
+}
+
+local guiData = {
+	mainPanel = {
+		relSizes = {
+			x = {
+				min = 0.25,
+				max = 0.925,
+				length = 0.655,
+			},
+			y = {
+				min = 0.18,
+				max = 0.8,
+				length = 0.62,
+			},
+		},
+		draggingBorderSize = 7,
+		visible = false,
+	},
 }
 
 local glRect	= gl.Rect
@@ -273,40 +298,6 @@ function tweakMouseMove(mouseDelta, guiData)
 	return changed,guiData
 end
 
-local guiData = {
-	smallBox = {
-		relSizes = {
-			x = {
-				min = 0.96,
-				max = 1,
-				length = 0.04,
-			},
-			y = {
-				min = 0.7,
-				max = 0.74,
-				length = 0.04,
-			},
-		},
-		draggingBorderSize = 7,
-		visible = true,
-	},
-	mainPanel = {
-		relSizes = {
-			x = {
-				min = 0.05,
-				max = 0.95,
-				length = 0.86,
-			},
-			y = {
-				min = 0.2,
-				max = 0.8,
-				length = 0.6,
-			},
-		},
-		draggingBorderSize = 7,
-		visible = false,
-	},
-}
 local teamData={}
 local maxColumnTextSize = 0
 local columnSize = 0
@@ -355,17 +346,16 @@ end
 local sortVar = "damageDealt"
 local sortAscending = false
 
-local numColums = #header +1
+local numColums = #header
 
-
-function widget:SetConfigData(data)
-	guiData = data.guiData or guiData
-	forceWithinScreen()
-	sortVar = data.sortVar or sortVar
-	sortAscending = data.sortAscending or sortAscending
-	local vsx,vsy = widgetHandler:GetViewSizes()
-	widget:ViewResize(vsx,vsy)
-end
+-- buggy so disabled this
+--function widget:SetConfigData(data)
+--	guiData = data.guiData or guiData
+--	sortVar = data.sortVar or sortVar
+--	sortAscending = data.sortAscending or sortAscending
+--	local vsx,vsy = widgetHandler:GetViewSizes()
+--	widget:ViewResize(vsx,vsy)
+--end
 
 function widget:GetConfigData(data)
 	return{
@@ -376,42 +366,10 @@ function widget:GetConfigData(data)
 end
 
 
-function forceWithinScreen()
-	if guiData.smallBox.relSizes.x.min < 0 then
-		guiData.smallBox.relSizes.x.min = 0
-		guiData.smallBox.relSizes.x.max = guiData.smallBox.relSizes.x.length
-	end
-	if guiData.smallBox.relSizes.y.min < 0 then
-		guiData.smallBox.relSizes.y.min = 0
-		guiData.smallBox.relSizes.y.max = guiData.smallBox.relSizes.y.length
-	end
-	if guiData.smallBox.relSizes.x.max > 1 then
-		guiData.smallBox.relSizes.x.max = 1
-		guiData.smallBox.relSizes.x.min = 1 - guiData.smallBox.relSizes.x.length
-	end
-	if guiData.smallBox.relSizes.y.max > 1 then
-		guiData.smallBox.relSizes.y.max = 1
-		guiData.smallBox.relSizes.y.min = 1 - guiData.smallBox.relSizes.y.length
-	end
-end
-
-
 function calcAbsSizes()
-	--forceWithinScreen()
-	
+
 	local vsx,vsy = gl.GetViewSizes()
-	guiData.smallBox.absSizes = {
-		x = {
-			min = (guiData.smallBox.relSizes.x.min * vsx),
-			max = (guiData.smallBox.relSizes.x.max * vsx),
-			length = (guiData.smallBox.relSizes.x.length * vsx),
-		},
-		y = {
-			min = (guiData.smallBox.relSizes.y.min * vsy),
-			max = (guiData.smallBox.relSizes.y.max * vsy),
-			length = (guiData.smallBox.relSizes.y.length * vsy),
-		}
-	}
+
 	guiData.mainPanel.absSizes = {
 		x = {
 			min = (guiData.mainPanel.relSizes.x.min * vsx),
@@ -428,10 +386,9 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
-	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
+	widgetScale = (0.75 + (vsx*vsy / 7500000)) -- only used for minor stuff
 	calcAbsSizes()
 	updateFontSize()
-	createButtonList()
 end
 
 function widget:Initialize()
@@ -442,24 +399,21 @@ function widget:Initialize()
 	if paused then
 		widget:GameFrame(GetGameFrame(),true)
 	end
-	createButtonList()
-end
 
-function createButtonList()
-	if buttonDrawList ~= nil then
-		gl.DeleteList(buttonDrawList)
+	WG['teamstats'] = {}
+	WG['teamstats'].toggle = function(state)
+		if state ~= nil then
+			guiData.mainPanel.visible = state
+		else
+			guiData.mainPanel.visible = not guiData.mainPanel.visible
+		end
 	end
-	buttonDrawList = gl.CreateList(DrawButton)
 end
 
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	if buttonDrawList ~= nil then
-		gl.DeleteList(buttonDrawList)
-	end
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('teamstats_button')
 		WG['guishader_api'].RemoveRect('teamstats_window')
 	end
 end
@@ -485,10 +439,9 @@ function widget:PlayerChanged()
 end
 
 function widget:GameFrame(n,forceupdate)
-	if n > 0 then 
+	if n > 0 then
 		gameStarted = true
 	end
-	guiData.smallBox.visible = n ~= 0
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
 	end
@@ -522,7 +475,7 @@ function widget:GameFrame(n,forceupdate)
 					else
 						teamControllers[teamID] = playerName
 					end
-					if isDead or spectator then
+					if isDead then
 						playerName = playerName .. " (dead)"
 					elseif not isActive then
 						playerName = playerName .. " (gone)"
@@ -553,7 +506,7 @@ function widget:GameFrame(n,forceupdate)
 		if teamInsertCount ~= 1 then
 			sort(allyVec,compareTeams)
 			if teamInsertCount > 2 then
-				allyTotal.frame = "Total sum"
+				allyTotal.frame = " total "
 				allyTotal.time = nil
 				if allyTotal.damageReceived ~= 0 then
 					allyTotal.damageEfficiency = (allyTotal.damageDealt/allyTotal.damageReceived)*100
@@ -614,23 +567,15 @@ function widget:MouseRelease(mx,my,button)
 end
 
 function mouseEvent(mx,my,button,release)
-	if gameStarted == nil then return end
-	
 	local boxType = widget:IsAbove(mx,my)
 	if not boxType and guiData.mainPanel.visible then
-	  if release then
+	  	if release then
 			guiData.mainPanel.visible = false
 			return false
 		end
 		return true
 	end
-	if boxType == "smallBox" then
-		if release then
-			guiData.mainPanel.visible = not guiData.mainPanel.visible
-			widget:GameFrame(GetGameFrame(),true)
-		end
-		return true
-	elseif boxType == "mainPanel" then
+	if boxType == "mainPanel" then
 		if release then
 			local line, column = getLineAndColumn(mx,my)
 			if line <= 3 then -- header
@@ -640,6 +585,7 @@ function mouseEvent(mx,my,button,release)
 						sortAscending = not sortAscending
 					end
 					sortVar = newSort
+					widget:GameFrame(GetGameFrame(),true)
 				end
 			end
 		end
@@ -658,39 +604,35 @@ end
 
 
 
-function widget:TweakMousePress(x, y, button)
-	if button == 2  or button == 3 then
-		local ok
-		ok, guiData = tweakMousePress({x=x,y=y},guiData)
-		createButtonList()
-		return ok
-	else
-		return false
-	end
-end
+--function widget:TweakMousePress(x, y, button)
+--	if button == 2  or button == 3 then
+--		local ok
+--		ok, guiData = tweakMousePress({x=x,y=y},guiData)
+--		return ok
+--	else
+--		return false
+--	end
+--end
 
 function updateFontSize()
 	columnSize = guiData.mainPanel.absSizes.x.length / numColums
 	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
-	fontSize = floor(fakeColumnSize/maxColumnTextSize)
+	fontSize = 10*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
 
-function widget:TweakMouseMove(x, y, dx, dy, button)
-	_, guiData = tweakMouseMove({x=dx,y=dy}, guiData)
-	updateFontSize()
-	glDeleteList(textDisplayList)
-	textDisplayList = glCreateList(ReGenerateTextDisplayList)
-	glDeleteList(backgroundDisplayList)
-	backgroundDisplayList = glCreateList(ReGenerateBackgroundDisplayList)
-	createButtonList()
-end
-
-function widget:TweakMouseRelease(mx,my,button)
-	guiData = tweakMouseRelease(guiData)
-	forceWithinScreen()
-	calcAbsSizes()
-	createButtonList()
-end
+--function widget:TweakMouseMove(x, y, dx, dy, button)
+--	_, guiData = tweakMouseMove({x=dx,y=dy}, guiData)
+--	updateFontSize()
+--	glDeleteList(textDisplayList)
+--	textDisplayList = glCreateList(ReGenerateTextDisplayList)
+--	glDeleteList(backgroundDisplayList)
+--	backgroundDisplayList = glCreateList(ReGenerateBackgroundDisplayList)
+--end
+--
+--function widget:TweakMouseRelease(mx,my,button)
+--	guiData = tweakMouseRelease(guiData)
+--	calcAbsSizes()
+--end
 
 function widget:MouseMove(mx,my,dx,dy)
 	local boxType = widget:IsAbove(mx,my)
@@ -720,7 +662,6 @@ function widget:DrawScreen()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('teamstats_window')
 	end
-	gl.CallList(buttonDrawList)
 	DrawBackground()
 	DrawAllStats()
 end
@@ -731,17 +672,17 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
+
 	local offset = 0.07		-- texture offset, because else gaps could show
 	local o = offset
 	-- top left
@@ -788,38 +729,10 @@ end
 
 function RectRound(px,py,sx,sy,cs)
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
+
 	gl.Texture(bgcorner)
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
 	gl.Texture(false)
-end
-
-
-function DrawButton()
-	if not guiData.smallBox.visible then
-		return
-	end
-	local boxAbsData = guiData.smallBox.absSizes
-	local tempFontSize = 14
-	--[[if widgetHandler:InTweakMode() then
-		rectBoxWithBorder(guiData.smallBox,{0,0,0,0.7})
-	else
-		rectBox(guiData.smallBox,{0,0,0,0.5})
-	end]]--
-	local x1,y1,x2,y2 = guiData.smallBox.absSizes.x.min, guiData.smallBox.absSizes.y.min, guiData.smallBox.absSizes.x.max, guiData.smallBox.absSizes.y.max
-	
-	gl.Color(0,0,0,0.66)
-	RectRound(x1,y1,x2,y2,5*widgetScale)
-	
-	local borderPadding = 3.5
-	gl.Color(1,1,1,0.025)
-	RectRound(x1+borderPadding,y1+borderPadding,x2-borderPadding,y2-borderPadding,6)
-	
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(x1,y1,x2,y2,'teamstats_button')
-	end
-	
-	glText(colorToChar({1,1,1}) .. "Team Stats",boxAbsData.x.min+boxAbsData.x.length/2, boxAbsData.y.max-boxAbsData.y.length/2, tempFontSize, "ovc")
 end
 
 function DrawBackground()
@@ -827,18 +740,18 @@ function DrawBackground()
 		return
 	end
 	if widgetHandler:InTweakMode() then
-		rectBoxWithBorder(guiData.mainPanel,{0,0,0,0.4})
+		--rectBoxWithBorder(guiData.mainPanel,{0,0,0,0.4})
 	else
 		if backgroundDisplayList then
 			glCallList(backgroundDisplayList)
 		end
 	end
-	
+
 	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
-	
+
 	gl.Color(0,0,0,0.7)
-	local padding = 5
-	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,7)
+	local padding = 5*widgetScale
+	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,9*widgetScale)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(x1-padding,y1-padding,x2+padding,y2+padding,'teamstats_window')
 	end
@@ -857,25 +770,40 @@ function ReGenerateBackgroundDisplayList()
 	local boxSizes = guiData.mainPanel.absSizes
 	for lineCount=1,prevNumLines do
 		local colour = evenLineColour
+		if lineCount == 1 or  lineCount == 2 then
+			colour = sortLineColour
+		end
 		if lineCount > 2 and (lineCount+1)%2 == 0 then
 			colour = oddLineColour
 		end
-		if lineCount == selectedLine and selectedLine > 2 then
+		if lineCount == selectedLine and selectedLine > 3 then
 			colour = highLightColour
 		end
 		glColor(colour)
-		glRect(boxSizes.x.min,boxSizes.y.max -(lineCount-1)*fontSize,boxSizes.x.max, boxSizes.y.max -lineCount*fontSize)
+		if lineCount > 2 then
+			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
+		elseif lineCount == 1 then
+			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
+		end
+	end
+	if selectedLine and selectedLine < 3 and selectedColumn and selectedColumn > 0 and selectedColumn <= numColums then
+		if sortAscending then
+			glColor(sortHighLightColour)
+		else
+			glColor(sortHighLightColourDesc)
+		end
+		RectRound(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max,3*widgetScale)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
-			glColor(activeSortColour)
-			glRect(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max -2*fontSize)
+			if sortAscending then
+				glColor(activeSortColour)
+			else
+				glColor(activeSortColourDesc)
+			end
+			RectRound(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max,3*widgetScale)
 			break
 		end
-	end
-	if selectedLine and selectedLine < 3 and selectedColumn and selectedColumn > 0 and selectedColumn < numColums then
-		glColor(highLightColour)
-		glRect(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max -2*fontSize)
 	end
 end
 
@@ -888,10 +816,11 @@ function ReGenerateTextDisplayList()
 	glBeginText()
 		--print the header
 		local colCount = 0
+		local heightCorrection = fontSize*((1-fontSizePercentage)/2)
 
 		for _, headerName in ipairs(header) do
-			glText(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize-lineCount*fontSize, fontSize, "dco")
-			glText(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize-(lineCount+1)*fontSize, fontSize, "dc")
+			glText(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+			glText(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*fontSize, (fontSize*fontSizePercentage), "dc")
 			colCount = colCount + 1
 		end
 		lineCount = lineCount + 3
@@ -912,7 +841,14 @@ function ReGenerateTextDisplayList()
 					if varName == "damageEfficiency" or varName == "killEfficiency" then
 						value = value .. "%"
 					end
-					glText(value, baseXSize + columnSize*colCount, baseYSize-lineCount*fontSize, fontSize, "dco")
+					local color = ''
+					if teamData.frame == " total "  then
+						color = '\255\255\220\130'
+					elseif lineCount % 2 == 1 then
+						color = '\255\200\200\200'
+					end
+					glText(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage) , "dco")
+
 					colCount = colCount + 1
 				end
 				lineCount = lineCount + 1
@@ -924,13 +860,13 @@ end
 
 
 
-function widget:GetTooltip(mx, my)
-	if widget:IsAbove(mx,my) then
-		local text =  string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n")
-		if gameStarted == nil then
-			text = string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
-				"...will be clickable after game start.")
-		end
-		return text
-	end
-end
+--function widget:GetTooltip(mx, my)
+--	if widget:IsAbove(mx,my) then
+--		local text =  string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n")
+--		if gameStarted == nil then
+--			text = string.format("In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this display.\n\n"..
+--				"...will be clickable after game start.")
+--		end
+--		return text
+--	end
+--end
