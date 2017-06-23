@@ -37,15 +37,13 @@ local vehUnits = {
 	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', corintr='', corban='', cortrem='',
 }
 local vehAdditionalTurnrate = 0
-local vehTurnrateMultiplier = 1.06
+local vehTurnrateMultiplier = 1.045
 
 local vehAdditionalAcceleration = 0.01
-local vehAccelerationMultiplier = 1.2
+local vehAccelerationMultiplier = 1.17
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1.03
-
-local vehMaxdamageMultiplier = 1.05
+local vehVelocityMultiplier = 1.02
 
 
 local kbotUnits = {
