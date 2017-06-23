@@ -45,7 +45,7 @@ return {
 			[3] = "corsnap",
 			[4] = "corah",
 			[5] = "cormh",
-			[6] = "nsaclash",
+			[6] = "corhal",
 			[7] = "corthovr",
 		},
 		customparams = {

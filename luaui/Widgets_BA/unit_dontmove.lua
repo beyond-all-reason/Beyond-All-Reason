@@ -53,7 +53,7 @@ local unitArray = {
   "armmerl",
   "cormart",
   "corvroc",
-  "trem",
+  "cortrem",
   "armsnipe",
   "corhrk",
   
@@ -70,18 +70,18 @@ local unitArray = {
   "corbats",
   "armbc",
   "zulu",
-  "aseadragon",
+  "armepoch",
   "corblackhy",
   
-  "armraven",
+  "corcat",
   "armshock",
   
   --skirmishers/fire support
   "armjanus",
   "armrock",
   "corstorm",
-  
-  "corbani",
+
+  "corban",
   "armmanni",
   "cormort",
   
@@ -96,14 +96,11 @@ local unitArray = {
   
   --shields/jammers/radars
   "armaser",
-  "arm_jammer",
-  "armsjam",
-  "coreter",
-  "core_spectre",
-  "corsjam",
+  "armjam",
+  "corspec",
   
   "armseer",
-  "arm_marky",
+  "armmark",
   "corvrad",
   "corvoyr",
   

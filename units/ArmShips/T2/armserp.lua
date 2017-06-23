@@ -5,7 +5,7 @@ return {
 		brakerate = 1.92/450,
 		buildcostenergy = 18000,
 		buildcostmetal = 2000,
-		buildpic = "armserp.DDS",
+		buildpic = "ARMSERP.DDS",
 		buildtime = 21000*0.9,
 		canmove = true,
 		category = "UNDERWATER ALL WEAPON NOTAIR NOTHOVER SUBMARINE",
@@ -29,7 +29,7 @@ return {
 		movementclass = "BOATSUBMARINE3X3",
 		name = "Serpent",
 		nochasecategory = "VTOL",
-		objectname = "armserp",
+		objectname = "ARMSERP",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 0.8 *1000,
@@ -59,7 +59,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 1000,
-				object = "armserp_DEAD",
+				object = "ARMSERP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armserp_weapon = {
+			serpent_weapon = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -161,7 +161,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP LIGHTBOAT CAPITALSHIP",
-				def = "armserp_WEAPON",
+				def = "SERPENT_WEAPON",
 				onlytargetcategory = "NOTHOVER",
 			},
 		},

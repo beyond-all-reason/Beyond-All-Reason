@@ -30,11 +30,11 @@ local vehUnits = {
 	-- t1
 	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
 	-- t2
-	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', consul='',
+	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', armconsul='',
 	-- t1
 	corcv='', corfav='', corgarp='', corgator='', corlevlr='', cormist='', cormlv='', cormuskrat='', corraid='', corwolv='',
 	-- t2
-	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', intruder='', corbani='', trem='',
+	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', corintr='', corban='', cortrem='',
 }
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.06
@@ -56,7 +56,7 @@ local kbotUnits = {
 	-- t1
 	corak='', corck='', corcrash='', cornecro='', corstorm='', corthud='',
 	-- t2
-	commando='', coraak='', coramph='', corcan='', cordecom='', corfast='', corhrk='', cormort='', corpyro='', corroach='', corsktl='', corspec='', corspy='', corsumo='', cortermite='', corvoyr='',
+	cormando='', coraak='', coramph='', corcan='', cordecom='', corfast='', corhrk='', cormort='', corpyro='', corroach='', corsktl='', corspec='', corspy='', corsumo='', cortermite='', corvoyr='',
 }
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1
@@ -182,7 +182,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 					if unitDef.objectname == "ARMCSA" then
 						unitDef["buildoptions"][15] = "armcube"
 					end
-					if unitDef.objectname == "CONSUL" then
+					if unitDef.objectname == "ARMCONSUL" then
 						unitDef["buildoptions"][23] = "armcube"
 					end
 					if unitDef.objectname == "CORFAST" then
