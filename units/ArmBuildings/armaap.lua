@@ -47,9 +47,9 @@ return {
 			[5] = "armhawk",
 			[6] = "armawac",
 			[7] = "armdfly",
-			[8] = "armblade",
-			[9] = "armstil",
-			[10] = "armliche",
+			[8] = "blade",
+			[9] = "corgripn",
+			[10] = "armcybr",
 		},
 		customparams = {
 			

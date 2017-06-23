@@ -120,7 +120,7 @@ return {
 				cegTag = "missiletrailmedium",
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
-				flighttime = 1.2,
+				flighttime = 1.4,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile",

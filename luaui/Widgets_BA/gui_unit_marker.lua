@@ -26,50 +26,50 @@ unitList["BA"] = {
 --[UnitDefNames["armcom"].id] = true,
 --[UnitDefNames["corcom"].id] = true,
 
-[UnitDefNames["armamd"].id] = {["en"]="Anti-Nuke", ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nuclï¿½aire" },
-[UnitDefNames["corfmd"].id] = {["en"]="Anti-Nuke" , ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nuclï¿½aire" },
+[UnitDefNames["armamd"].id] = {["en"]="Anti-Nuke", ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nucléaire" },
+[UnitDefNames["corfmd"].id] = {["en"]="Anti-Nuke" , ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nucléaire" },
 
-[UnitDefNames["cormabm"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nuclï¿½aire" },
-[UnitDefNames["armscab"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nuclï¿½aire" },
+[UnitDefNames["cormabm"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nucléaire" },
+[UnitDefNames["armscab"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nucléaire" },
 
-[UnitDefNames["armsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nuclï¿½aire" },
-[UnitDefNames["corsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nuclï¿½aire" },
+[UnitDefNames["armsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nucléaire" },
+[UnitDefNames["corsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nucléaire" },
 
 --[UnitDefNames["armfus"].id] = 	{["en"]="Fusion", ["de"]="Fusion", ["fr"]="Fusion" },
 --[UnitDefNames["corfus"].id] = 	{["en"]="Fusion", ["de"]="Fusion", ["fr"]="Fusion" },
---[UnitDefNames["armckfus"].id] = {["en"]="Cloakable Fusion", 	["de"]="Unsichtbar Fusion", ["fr"]="Camouflï¿½e Fusion" },
+--[UnitDefNames["armckfus"].id] = {["en"]="Cloakable Fusion", 	["de"]="Unsichtbar Fusion", ["fr"]="Camouflée Fusion" },
 
---[UnitDefNames["aafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Supï¿½rieur Fusion" },
---[UnitDefNames["cafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Supï¿½rieur Fusion" },
+--[UnitDefNames["aafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Supérieur Fusion" },
+--[UnitDefNames["cafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Supérieur Fusion" },
 
---[UnitDefNames["amgeo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Gï¿½o" },
---[UnitDefNames["cmgeo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Gï¿½o" },
+--[UnitDefNames["amgeo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Géo" },
+--[UnitDefNames["cmgeo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Géo" },
 
---[UnitDefNames["armbrtha"].id] = {["en"]="LRPC", ["de"]="Groï¿½e Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Portï¿½e" },
---[UnitDefNames["corint"].id] = 	{["en"]="LRPC", ["de"]="Groï¿½e Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Portï¿½e" },
+--[UnitDefNames["armbrtha"].id] = {["en"]="LRPC", ["de"]="Große Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Portée" },
+--[UnitDefNames["corint"].id] = 	{["en"]="LRPC", ["de"]="Große Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Portée" },
 
 [UnitDefNames["armemp"].id] = 	{["en"]="EMP Silo", ["de"]="EMP-Raketensilo", ["fr"]="EMP Silo" },
-[UnitDefNames["cortron"].id] = 	{["en"]="Tactical Nuke Silo", ["de"]="Taktische Atom-Raketensilo", ["fr"]="l'Arme Tactiques Nuclï¿½aire" },
+[UnitDefNames["cortron"].id] = 	{["en"]="Tactical Nuke Silo", ["de"]="Taktische Atom-Raketensilo", ["fr"]="l'Arme Tactiques Nucléaire" },
 
-[UnitDefNames["armvulc"].id] = 	{["en"]="Vulcan", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir ï¿½levï¿½ Plasma Canon" },
-[UnitDefNames["corbuzz"].id] = 	{["en"]="Buzzsaw", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir ï¿½levï¿½ Plasma Canon" },
+[UnitDefNames["armvulc"].id] = 	{["en"]="Vulcan", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir Élevé Plasma Canon" },
+[UnitDefNames["corbuzz"].id] = 	{["en"]="Buzzsaw", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir Élevé Plasma Canon" },
 
---[UnitDefNames["armshltx"].id] = {["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Expï¿½rimentale" },
---[UnitDefNames["corgant"].id] = 	{["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Expï¿½rimentale" },
+--[UnitDefNames["armshltx"].id] = {["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Expérimentale" },
+--[UnitDefNames["corgant"].id] = 	{["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Expérimentale" },
 
 --[UnitDefNames["corkrog"].id] = 	{["en"]="Krogoth", ["de"]="Krogoth", ["fr"]="Krogoth" },
 --[UnitDefNames["armbanth"].id] = 	{["en"]="Bantha", ["de"]="Bantha", ["fr"]="Bantha" },
 
---[UnitDefNames["corshroud"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstï¿½rsender", ["fr"]="" },
---[UnitDefNames["armveil"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstï¿½rsender", ["fr"]="" },
---[UnitDefNames["armjamt"].id] = 	{["en"]="Cloakable Jammer", ["de"]="Unsichtbar Radarstï¿½rsender", ["fr"]="" },
---[UnitDefNames["coreter"].id] = 	{["en"]="Jammer", ["de"]="Radarstï¿½rsender", ["fr"]="" },
+--[UnitDefNames["corshroud"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstörsender", ["fr"]="" },
+--[UnitDefNames["armveil"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstörsender", ["fr"]="" },
+--[UnitDefNames["armjamt"].id] = 	{["en"]="Cloakable Jammer", ["de"]="Unsichtbar Radarstörsender", ["fr"]="" },
+--[UnitDefNames["coreter"].id] = 	{["en"]="Jammer", ["de"]="Radarstörsender", ["fr"]="" },
 
 --[UnitDefNames["corspy"].id] = 	{["en"]="Spy", ["de"]="Spion", ["fr"]="" },
 --[UnitDefNames["armspy"].id] = 	{["en"]="Spy", ["de"]="Spion", ["fr"]="" },
 
 --[UnitDefNames["corblackhy"].id]={["en"]="Black Hydra", ["de"]="Flaggschiff", ["fr"]="" },
---[UnitDefNames["armepoch"].id]={["en"]="Epoch", ["de"]="Flaggschiff", ["fr"]="" }
+--[UnitDefNames["aseadragon"].id]={["en"]="Epoch", ["de"]="Flaggschiff", ["fr"]="" }
 }
 
 --END OF MARKER LIST---------------------------------------

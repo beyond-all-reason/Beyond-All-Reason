@@ -107,9 +107,6 @@ local myLastFrameNum = 0
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
@@ -496,6 +493,7 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][1])
 		glDeleteList(dlistResbar[res][2])
 	end
+	
 	local barHeight = (height*widgetScale/10)
 	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	local barLeftPadding = 2 * widgetScale
@@ -505,11 +503,6 @@ local function updateResbar(res)
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 4
-
-	if resbarHover ~= nil and resbarHover == res then
-		sliderHeightAdd = barHeight/1.3
-		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
-	end
 
 	if res == 'metal' then
 		resbarDrawinfo[res].barColor = {1,1,1,1}
@@ -705,31 +698,6 @@ function widget:GameFrame(n)
 end
 
 function widget:Update(dt)
-	local mx,my = spGetMouseState()
-
-	if not spec then
-		if isInBox(mx, my, resbarArea['energy']) then
-			if resbarHover == nil then
-				resbarHover = 'energy'
-				updateResbar('energy')
-			end
-		elseif resbarHover ~= nil and resbarHover == 'energy' then
-			resbarHover = nil
-			updateResbar('energy')
-		end
-		if isInBox(mx, my, resbarArea['metal']) then
-			if resbarHover == nil then
-				resbarHover = 'metal'
-				updateResbar('metal')
-			end
-		elseif resbarHover ~= nil and resbarHover == 'metal' then
-			resbarHover = nil
-			updateResbar('metal')
-		end
-	else
-		resbarHover = nil
-	end
-
 	currentUpdateFrame = currentUpdateFrame + 1
 
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed

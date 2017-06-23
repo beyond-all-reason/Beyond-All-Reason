@@ -33,7 +33,7 @@ PWN_UNITS[UnitDefNames["corfav"].id] = true
 PWN_UNITS[UnitDefNames["corak"].id] = true
 PWN_UNITS[UnitDefNames["corpt"].id] = true
 PWN_UNITS[UnitDefNames["armpt"].id] = true
-PWN_UNITS[UnitDefNames["armdecade"].id] = true
+PWN_UNITS[UnitDefNames["decade"].id] = true
 PWN_UNITS[UnitDefNames["coresupp"].id] = true
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 

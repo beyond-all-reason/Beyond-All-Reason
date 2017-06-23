@@ -40,7 +40,7 @@ local glPushMatrix			= gl.PushMatrix
 local glPopMatrix			= gl.PopMatrix
 local glTranslate			= gl.Translate
 
-local coreCommando = UnitDefNames["cormando"]
+local coreCommando = UnitDefNames["commando"]
 
 local passiveLabs = false;
 local passiveNanos = true;

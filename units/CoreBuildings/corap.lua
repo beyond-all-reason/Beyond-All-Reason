@@ -48,7 +48,7 @@ return {
 			[3] = "corveng",
 			[4] = "corshad",
 			[5] = "corvalk",
-			[6] = "corbw",
+			[6] = "bladew",
 		},
 		customparams = {
 			
