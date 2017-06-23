@@ -245,8 +245,14 @@ function colorToChar(colorarray)
 end
 
 function getColourOutline(colour)
-	local luminance  = colour[1] * 0.299 + colour[2] * 0.587 + colour[3] * 0.114
-	return luminance > 0.25 and "o" or "O"
+	--local luminance  = colour[1] * 0.299 + colour[2] * 0.587 + colour[3] * 0.114
+	--return luminance > 0.25 and "o" or "O"
+
+	if (colour[1] + colour[2]*1.2 + colour[3]*0.4) < 0.8 then
+		return "o"
+	else
+		return "O"
+	end
 end
 
 function viewResize(scalingVec,guiData)
@@ -472,15 +478,17 @@ function widget:GameFrame(n,forceupdate)
 					local teamColor = {GetTeamColor(teamID)}
 					local _,leader,isDead = GetTeamInfo(teamID)
 					local playerName,isActive = GetPlayerInfo(leader)
-					if not playerName then
-						playerName = teamControllers[teamID] or "gone"
-					else
-						teamControllers[teamID] = playerName
-					end
-					if isDead then
-						playerName = playerName .. " (dead)"
-					elseif not isActive then
-						playerName = playerName .. " (gone)"
+					if gameStarted ~= nil then
+						if not playerName then
+							playerName = teamControllers[teamID] or "gone"
+						else
+							teamControllers[teamID] = playerName
+						end
+						if isDead then
+							playerName = playerName .. " (dead)"
+						elseif not isActive then
+							playerName = playerName .. " (gone)"
+						end
 					end
 					if history.damageReceived ~= 0 then
 						history.damageEfficiency = (history.damageDealt/history.damageReceived)*100
@@ -498,7 +506,8 @@ function widget:GameFrame(n,forceupdate)
 					else
 						history.killEfficiency = huge
 					end
-					history.frame = colorToChar(teamColor) .. playerName
+					history.frame = colorToChar(teamColor) .. playerName..'    '
+
 					allyVec[teamInsertCount] = history
 					totalNumLines = totalNumLines + 1
 					teamInsertCount = teamInsertCount + 1
@@ -754,7 +763,7 @@ function ReGenerateBackgroundDisplayList()
 			colour = oddLineColour
 		end
 		if lineCount == selectedLine and selectedLine > 3 then
-			colour = highLightColour
+			--colour = highLightColour
 		end
 		glColor(colour)
 		if lineCount > 2 then
@@ -824,8 +833,7 @@ function ReGenerateTextDisplayList()
 					elseif lineCount % 2 == 1 then
 						color = '\255\200\200\200'
 					end
-					glText(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage) , "dco")
-
+					glText(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
 					colCount = colCount + 1
 				end
 				lineCount = lineCount + 1
