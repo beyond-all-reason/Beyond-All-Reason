@@ -169,10 +169,10 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				for id,unitDef in pairs(UnitDefs) do
 
 					if unitDef.objectname == "CORMLS" then
-						unitDef["buildoptions"][20] = "armcube"
+						unitDef["buildoptions"][21] = "armcube"
 					end
 					if unitDef.objectname == "ARMMLS" then
-						unitDef["buildoptions"][20] = "armcube"
+						unitDef["buildoptions"][21] = "armcube"
 					end
 					if unitDef.objectname == "CORCSA" then
 						unitDef["buildoptions"][15] = "armcube"
@@ -187,10 +187,10 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 						unitDef["buildoptions"][23] = "armcube"
 					end
 					if unitDef.objectname == "CORCH" then
-						unitDef["buildoptions"][43] = "armcube"
+						unitDef["buildoptions"][44] = "armcube"
 					end
 					if unitDef.objectname == "ARMCH" then
-						unitDef["buildoptions"][43] = "armcube"
+						unitDef["buildoptions"][44] = "armcube"
 					end
 				end
 		end

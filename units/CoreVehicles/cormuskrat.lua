@@ -86,9 +86,10 @@ return {
 			[37] = "corsonar",
 			[38] = "corfdrag",
 			[39] = "corfrad",
-			[40] = "corfhlt",
-			[41] = "corfrt",
-			[42] = "corptl",
+			[40] = "corgplat",
+			[41] = "corfhlt",
+			[42] = "corfrt",
+			[43] = "corptl",
 		},
 		customparams = {
 			
