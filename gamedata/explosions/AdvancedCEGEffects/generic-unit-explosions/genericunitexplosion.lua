@@ -142,7 +142,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=10,
         particleLifeSpread=28,
-        numParticles=2,
+        numparticles=2,
         particleSpeed=1.4,
         particleSpeedSpread=3,
         particleSize=11,
@@ -170,7 +170,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=5,
         particleLifeSpread=20,
-        numParticles=1,
+        numparticles=1,
         particleSpeed=1.8,
         particleSpeedSpread=3.5,
         particleSize=30,
@@ -537,7 +537,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=13,
         particleLifeSpread=36,
-        numParticles=3,
+        numparticles=3,
         particleSpeed=1.8,
         particleSpeedSpread=4.4,
         particleSize=11,
@@ -565,7 +565,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=6,
         particleLifeSpread=24,
-        numParticles=2,
+        numparticles=2,
         particleSpeed=2.3,
         particleSpeedSpread=5,
         particleSize=30,
@@ -931,7 +931,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=18,
         particleLifeSpread=45,
-        numParticles=4,
+        numparticles=4,
         particleSpeed=2.2,
         particleSpeedSpread=6,
         particleSize=13,
@@ -959,7 +959,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=9,
         particleLifeSpread=32,
-        numParticles=3,
+        numparticles=3,
         particleSpeed=3.3,
         particleSpeedSpread=6.7,
         particleSize=34,
@@ -1325,7 +1325,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=22,
         particleLifeSpread=55,
-        numParticles=5,
+        numparticles=5,
         particleSpeed=2.5,
         particleSpeedSpread=8,
         particleSize=15,
@@ -1353,7 +1353,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=11,
         particleLifeSpread=40,
-        numParticles=4,
+        numparticles=4,
         particleSpeed=4,
         particleSpeedSpread=9.5,
         particleSize=37,
@@ -1719,7 +1719,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=27,
         particleLifeSpread=60,
-        numParticles=6,
+        numparticles=6,
         particleSpeed=2.7,
         particleSpeedSpread=10.5,
         particleSize=18,
@@ -1747,7 +1747,7 @@ local definitions = {
         Texture=[[graysmoke]],
         particleLife=15,
         particleLifeSpread=45,
-        numParticles=5,
+        numparticles=5,
         particleSpeed=4.5,
         particleSpeedSpread=13,
         particleSize=40,
@@ -2041,16 +2041,16 @@ local types = {
 
   }
 }
-for type, effects in pairs(types) do
+for t, effects in pairs(types) do
   for size, e in pairs(sizes) do
-    definitions[root.."-"..size.."-"..type] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
-    if type == 'dirty' then
-      definitions[root.."-"..size.."-"..type].innersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].innersmoke.properties.numparticles * 2)
-      definitions[root.."-"..size.."-"..type].outersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].outersmoke.properties.numparticles * 2)
-      definitions[root.."-"..size.."-"..type].clouddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].clouddust.properties.numparticles * 3.2)
-      definitions[root.."-"..size.."-"..type].grounddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..type].grounddust.properties.numparticles * 1.6)
-      definitions[root.."-"..size.."-"..type].dirt.properties.numparticles = definitions[root.."-"..size.."-"..type].dirt.properties.numparticles * 3
-      definitions[root.."-"..size.."-"..type].dirt2.properties.numparticles = definitions[root.."-"..size.."-"..type].dirt2.properties.numparticles * 3
+    definitions[root.."-"..size.."-"..t] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+    if t == 'dirty' then
+      definitions[root.."-"..size.."-"..t].innersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..t].innersmoke.properties.numparticles * 2)
+      definitions[root.."-"..size.."-"..t].outersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..t].outersmoke.properties.numparticles * 2)
+      definitions[root.."-"..size.."-"..t].clouddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..t].clouddust.properties.numparticles * 3.2)
+      definitions[root.."-"..size.."-"..t].grounddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..t].grounddust.properties.numparticles * 1.6)
+      definitions[root.."-"..size.."-"..t].dirt.properties.numparticles = definitions[root.."-"..size.."-"..t].dirt.properties.numparticles * 3
+      definitions[root.."-"..size.."-"..t].dirt2.properties.numparticles = definitions[root.."-"..size.."-"..t].dirt2.properties.numparticles * 3
     end
   end
 end

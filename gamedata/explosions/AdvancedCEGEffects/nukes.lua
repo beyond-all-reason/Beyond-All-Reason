@@ -59,9 +59,9 @@ local definitions = {
         airdrag=0.66,
         particleLife=20,
         particleLifeSpread=150,
-        numParticles=35,
-        particleSpeed=2,
-        particleSpeedSpread=75,
+        numparticles=55,
+        particlespeed=2,
+        particlespeedspread=75,
         particleSize=30,
         particleSizeSpread=6,
         directional=1,
@@ -89,9 +89,9 @@ local definitions = {
         airdrag=0.77,
         particleLife=10,
         particleLifeSpread=110,
-        numParticles=130,
-        particleSpeed=15,
-        particleSpeedSpread=40,
+        numparticles=155,
+        particlespeed=15,
+        particlespeedspread=40,
         particleSize=25,
         particleSizeSpread=6,
         directional=1,
@@ -204,22 +204,21 @@ function deepcopy(orig)
   return copy
 end
 
-local size = 1.2
+local size = 1.25
 definitions['cornuke'] = deepcopy(definitions['armnuke'])
 
--- method below fails :(
---definitions['cornuke'].innersmoke.properties.numparticles = math.floor(definitions['cornuke'].innersmoke.properties.numparticles * size)
---definitions['cornuke'].innersmoke.properties.particlespeed = definitions['cornuke'].innersmoke.properties.particlespeed * size
---definitions['cornuke'].innersmoke.properties.particlespeedspread = definitions['cornuke'].innersmoke.properties.particlespeedspread * size
---definitions['cornuke'].outersmoke.properties.numparticles = math.floor(definitions['cornuke'].outersmoke.properties.numparticles * size)
---definitions['cornuke'].outersmoke.properties.particlespeed = definitions['cornuke'].outersmoke.properties.particlespeed * size
---definitions['cornuke'].outersmoke.properties.particlespeedspread = definitions['cornuke'].outersmoke.properties.particlespeedspread * size
---definitions['cornuke'].dirt.properties.particlespeed = definitions['cornuke'].dirt.properties.particlespeed * size
---definitions['cornuke'].dirt.properties.particlespeedspread = definitions['cornuke'].dirt.properties.particlespeedspread * size
---definitions['cornuke'].dirtbig.properties.particlespeed = definitions['cornuke'].dirtbig.properties.particlespeed * size
---definitions['cornuke'].dirtbig.properties.particlespeedspread = definitions['cornuke'].dirtbig.properties.particlespeedspread * size
---definitions['cornuke'].sparks.properties.particlespeed = definitions['cornuke'].sparks.properties.particlespeed * size
---definitions['cornuke'].sparks.properties.particlespeedspread = definitions['cornuke'].sparks.properties.particlespeedspread * size
+definitions['cornuke'].innersmoke.properties.numparticles = math.floor(definitions['cornuke'].innersmoke.properties.numparticles * size)
+definitions['cornuke'].innersmoke.properties.particlespeed = definitions['cornuke'].innersmoke.properties.particlespeed * size
+definitions['cornuke'].innersmoke.properties.particlespeedspread = definitions['cornuke'].innersmoke.properties.particlespeedspread * size
+definitions['cornuke'].outersmoke.properties.numparticles = math.floor(definitions['cornuke'].outersmoke.properties.numparticles * size)
+definitions['cornuke'].outersmoke.properties.particlespeed = definitions['cornuke'].outersmoke.properties.particlespeed * size
+definitions['cornuke'].outersmoke.properties.particlespeedspread = definitions['cornuke'].outersmoke.properties.particlespeedspread * size
+definitions['cornuke'].dirt.properties.particlespeed = definitions['cornuke'].dirt.properties.particlespeed * size
+definitions['cornuke'].dirt.properties.particlespeedspread = definitions['cornuke'].dirt.properties.particlespeedspread * size
+definitions['cornuke'].dirtbig.properties.particlespeed = definitions['cornuke'].dirtbig.properties.particlespeed * size
+definitions['cornuke'].dirtbig.properties.particlespeedspread = definitions['cornuke'].dirtbig.properties.particlespeedspread * size
+definitions['cornuke'].sparks.properties.particlespeed = definitions['cornuke'].sparks.properties.particlespeed * size
+definitions['cornuke'].sparks.properties.particlespeedspread = definitions['cornuke'].sparks.properties.particlespeedspread * size
 
 
 return definitions
