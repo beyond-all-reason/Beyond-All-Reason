@@ -22,6 +22,7 @@ if unitName == "armcube" then
 Spring.SetUnitBlocking(unitID,false)
 Spring.SetUnitNoSelect(unitID, true)
 Spring.SetUnitNoMinimap(unitID, true)
+Spring.SetUnitAlwaysVisible(unitID, true)
 GroundHeight[unitID] = Spring.GetGroundHeight(x,z)
 Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight[unitID])
 Spring.SetUnitMidAndAimPos(unitID, x, GroundHeight[unitID]/2, z, x, 4, z, false)
