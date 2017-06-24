@@ -64,6 +64,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
+		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+			return
+		end
+
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
 		local authorized = true
 		for _,name in ipairs(authorizedPlayers) do
@@ -74,10 +78,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if authorized == nil or not spec then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
-			return
-		end
-
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
 			return
 		end
 		local params = explode(':', msg)
