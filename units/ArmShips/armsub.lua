@@ -124,7 +124,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "torpedo",
+				model = "lowveltorpedo",
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
 				range = 0.8 * 900,

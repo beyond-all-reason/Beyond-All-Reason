@@ -172,7 +172,7 @@ return {
 				flighttime = 12,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "torpedo",
+				model = "lowveltorpedo",
 				name = "Torpedo",
 				noselfdamage = true,
 				predictboost = 0.7,
