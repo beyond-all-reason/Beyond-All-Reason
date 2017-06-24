@@ -192,6 +192,18 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 					if unitDef.objectname == "ARMCH" then
 						unitDef["buildoptions"][44] = "armcube"
 					end
+					if unitDef.objectname == "CORCK" then
+						unitDef["buildoptions"][31] = "armcube"
+					end
+					if unitDef.objectname == "ARMCK" then
+						unitDef["buildoptions"][31] = "armcube"
+					end
+					if unitDef.objectname == "CORCV" then
+						unitDef["buildoptions"][31] = "armcube"
+					end
+					if unitDef.objectname == "ARMCV" then
+						unitDef["buildoptions"][31] = "armcube"
+					end
 				end
 		end
 		
