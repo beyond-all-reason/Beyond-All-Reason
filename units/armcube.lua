@@ -21,7 +21,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "48 316 48",
 		collisionvolumetype = "Box",
-		icontype = "building",
+		icontype = "seaplatform",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 4500,

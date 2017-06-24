@@ -22,6 +22,11 @@ local icontypes = {
     size=2,
   },
   
+   seaplatform = {
+    bitmap="icons/platform.tga",
+    size=1,
+  },
+  
   corcommander = {
     bitmap="icons/corcom.tga",
     size=2,
