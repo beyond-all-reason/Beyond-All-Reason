@@ -421,6 +421,13 @@ function widget:Initialize()
 	end
 end
 
+
+function widget:KeyPress(key)
+	if key == 27 then	-- ESC
+		guiData.mainPanel.visible = false
+	end
+end
+
 function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
