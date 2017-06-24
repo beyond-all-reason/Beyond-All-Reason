@@ -190,11 +190,11 @@ local options={
 			{key="enabled", name="Enabled", desc="Causes weapons not to collide with nor avoid friendly units, resulting in very TA style gameplay and promotes unit/group micro."},
 		}
   },
-	
+
 	{
 		key    = "smallfeaturenoblock",
 		name   = "Set small features to non-blocking status",
-		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",		
+		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",
 		type="list",
 		def="enabled",
 		section= "ba_enhancements_misc",

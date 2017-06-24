@@ -28,7 +28,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
 
-	local authorizedPlayers  = {'UnnamedPlayer', '[teh]Flow', 'FlowerPower'}
+	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower'}
 
 	function explode(div,str) -- credit: http://richard.warburton.it
 		if (div=='') then return false end
@@ -42,13 +42,15 @@ if gadgetHandler:IsSyncedCode() then
 		return arr
 	end
 
-	function giveunits(amount, unitName, teamID, x, z)
+	function giveunits(amount, unitName, teamID, x, z, playerID)
 		local unitDefID
 		for udid, unitDef in pairs(UnitDefs) do
 			if unitDef.name == unitName then  unitDefID = udid break end
 		end
 		if unitDefID == nil then
-			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
+			if playerID ~= nil then
+				Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
+			end
 		else
 			local succesfullyCreated = 0
 			for i=1, amount do
@@ -69,19 +71,23 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
-		local authorized = true
+		local authorized = false
 		for _,name in ipairs(authorizedPlayers) do
 			if playername == name then
 				authorized = true
 				break
 			end
 		end
+		if playername == "UnnamedPlayer" then
+			authorized = true
+			spec = true
+		end
 		if authorized == nil or not spec then
 			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
 		end
 		local params = explode(':', msg)
-		giveunits(params[2], params[3], params[4], params[5], params[6])
+		giveunits(params[2], params[3], params[4], params[5], params[6], playerID)
 		return true
 	end
 
@@ -102,7 +108,7 @@ else	-- UNSYNCED
 		if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and pos[1] > 0 and pos[3] > 0 and words[1] ~= nil and words[1] ~= nil and words[1] ~= nil then
 			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..words[3]..':'..pos[1]..':'..pos[3])
 		else
-			Spring.SendMessageToPlayer(playerID, "failed to give units, check syntax...")
+			Spring.SendMessageToPlayer(playerID, "failed to give, check syntax or cursor position")
 		end
 	end
 end

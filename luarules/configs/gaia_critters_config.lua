@@ -514,6 +514,10 @@ l},
   { spawnBox = {x1=50, z1=50, x2=9200, z2=6100}, unitNames = {["critter_ant"]=rnd(7,14)} },
 },
 
+["Trefoil_v2"] = {
+  { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_goldfish"]=rnd(30,45)} },
+},
+
 ["Tropical"] = {
   { spawnCircle = {x=1550, z=4650, r=400}, unitNames = {["critter_goldfish"]=rnd(0,2)} },
   { spawnCircle = {x=1000, z=5300, r=800}, unitNames = {["critter_goldfish"]=rnd(0,2)} },
