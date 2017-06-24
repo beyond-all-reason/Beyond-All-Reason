@@ -17,7 +17,7 @@ return {
 		collisionvolumescales = "21 32 21",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Stealthy Rez Kbot",
+		description = "Stealthy Rez/Repair/Reclaim Kbot",
 		energymake = 1.75,
 		energyuse = 1.75,
 		explodeas = "smallbuilderboom",
