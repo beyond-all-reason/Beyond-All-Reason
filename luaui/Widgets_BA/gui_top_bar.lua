@@ -720,7 +720,7 @@ function widget:GameFrame(n)
 		updateComs(true)
 	end
 
-	-- not updating every gameframe because you can have lower fps than your gameframe
+	-- not updating every gameframe because you can have lower fps than your gameframe rate
 	if lastUpdateFrame ~= currentUpdateFrame then
 		updateResbarValues('metal')
 		updateResbarValues('energy')
@@ -764,7 +764,7 @@ function widget:Update(dt)
 		_, _, _, currentWind = spWind()
 		currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 	end
-    
+
  	-- coms
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 		checkStatus()
