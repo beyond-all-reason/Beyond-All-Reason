@@ -3,7 +3,7 @@ return {
 		acceleration = 2.75/30,
 		activatewhenbuilt = true,
 		airsightdistance = 0.8 *800,
-		brakerate = 2.75/600,
+		brakerate = 2.75/60,
 		buildangle = 16384,
 		buildcostenergy = 2000,
 		buildcostmetal = 225,

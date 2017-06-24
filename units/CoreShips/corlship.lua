@@ -3,7 +3,7 @@ return {
 		acceleration = 3.90*0.9/15,
 		airsightdistance = 0.8 *800,
 		autoheal = 1.5,
-		brakerate = 3.90*0.9/150,
+		brakerate = 3.90*0.9/15,
 		buildcostenergy = 500,
 		buildcostmetal = 100,
 		buildpic = "CORLSHIP.DDS",

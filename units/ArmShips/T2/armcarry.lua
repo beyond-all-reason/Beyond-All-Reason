@@ -2,7 +2,7 @@ return {
 	armcarry = {
 		acceleration = 0.6*1.25/90,
 		activatewhenbuilt = true,
-		brakerate = 0.6*1.25/1200,
+		brakerate = 0.6*1.25/120,
 		buildangle = 16384,
 		buildcostenergy = 22000,
 		buildcostmetal = 1700,

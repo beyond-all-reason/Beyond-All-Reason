@@ -2,7 +2,7 @@ return {
 	armtship = {
 		acceleration = 0.4*1.25/90,
 		autoheal = 5,
-		brakerate = 0.4*1.25/1200,
+		brakerate = 0.4*1.25/120,
 		buildangle = 16384,
 		buildcostenergy = 5280,
 		buildcostmetal = 480,

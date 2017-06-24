@@ -35,7 +35,7 @@ return {
 		selfdestructas = "mediumexplosiongeneric",
 		sightdistance = 500,
 		terraformspeed = 2000,
-		turninplace = 0,
+		turninplace = true,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.584,
 		turnrate = 520,

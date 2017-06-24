@@ -3,7 +3,7 @@ return {
 		acceleration = 3.9*0.9/15,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 3.9*0.9/150,
+		brakerate = 3.9*0.9/15,
 		blocking = true,
 		buildcostenergy = 550,
 		buildcostmetal = 110,

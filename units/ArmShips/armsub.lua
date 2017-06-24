@@ -3,7 +3,7 @@ return {
 		acceleration = 2.03*1.25/45,
 		activatewhenbuilt = true,
 		autoheal = 2,
-		brakerate = 2.03*1.25/450,
+		brakerate = 2.03*1.25/45,
 		buildcostenergy = 5600,
 		buildcostmetal = 700,
 		buildpic = "ARMSUB.DDS",

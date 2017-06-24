@@ -2,7 +2,7 @@ return {
 	armepoch = {
 		acceleration = 1.00*1.25/150,
 		activatewhenbuilt = true,
-		brakerate = 1.00*1.25/1500,
+		brakerate = 1.00*1.25/150,
 		buildangle = 16384,
 		buildcostenergy = 442000,
 		buildcostmetal = 34000,

@@ -2,7 +2,7 @@ return {
 	corcrus = {
 		acceleration = 0.93*1.25/60,
 		activatewhenbuilt = true,
-		brakerate = 0.93*1.25/900,
+		brakerate = 0.93*1.25/90,
 		buildangle = 16384,
 		buildcostenergy = 48000,
 		buildcostmetal = 4000,

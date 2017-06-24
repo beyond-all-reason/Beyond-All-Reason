@@ -2,7 +2,7 @@ return {
 	armserp = {
 		acceleration = 1.92/45,
 		activatewhenbuilt = true,
-		brakerate = 1.92/450,
+		brakerate = 1.92/45,
 		buildcostenergy = 18000,
 		buildcostmetal = 2000,
 		buildpic = "ARMSERP.DDS",

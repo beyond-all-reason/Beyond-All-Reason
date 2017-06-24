@@ -2,7 +2,7 @@ return {
 	armrecl = {
 		acceleration = 2.15*1.25/45,
 		autoheal = 2,
-		brakerate = 2.15*1.25/450,
+		brakerate = 2.15*1.25/45,
 		buildcostenergy = 3780,
 		buildcostmetal = 420,
 		builddistance = 140,

@@ -1,8 +1,8 @@
 return {
 	coresupp = {
-		acceleration = 2.90/3,
+		acceleration = 2.90/30,
 		activatewhenbuilt = true,
-		brakerate = 2.90/6000,
+		brakerate = 2.90/60,
 		buildangle = 16384,
 		buildcostenergy = 1920,
 		buildcostmetal = 240,

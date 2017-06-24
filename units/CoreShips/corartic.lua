@@ -1,8 +1,8 @@
 return {
 	corartic = {
-		acceleration = 2.25/3,
+		acceleration = 2.25/30,
 		activatewhenbuilt = true,
-		brakerate = 2.25/6000,
+		brakerate = 2.25/60,
 		buildangle = 16384,
 		buildcostenergy = 3840,
 		buildcostmetal = 480,

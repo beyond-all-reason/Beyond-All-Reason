@@ -2,7 +2,7 @@ return {
 	armpt = {
 		acceleration = 4.88*0.9/15,
 		autoheal = 1.5,
-		brakerate = 4.88*0.9/150,
+		brakerate = 4.88*0.9/15,
 		buildcostenergy = 500,
 		buildcostmetal = 100,
 		buildpic = "ARMPT.DDS",

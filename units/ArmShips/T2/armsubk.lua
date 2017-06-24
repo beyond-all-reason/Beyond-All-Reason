@@ -2,7 +2,7 @@ return {
 	armsubk = {
 		acceleration = 2.17*1.25/45,
 		activatewhenbuilt = true,
-		brakerate = 2.17*1.25/450,
+		brakerate = 2.17*1.25/45,
 		buildcostenergy = 6300,
 		buildcostmetal = 700,
 		buildpic = "ARMSUBK.DDS",

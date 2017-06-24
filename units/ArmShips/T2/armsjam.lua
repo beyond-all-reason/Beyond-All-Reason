@@ -2,7 +2,7 @@ return {
 	armsjam = {
 		acceleration = 3.1/30,
 		activatewhenbuilt = true,
-		brakerate = 3.1/600,
+		brakerate = 3.1/60,
 		buildcostenergy = 1120,
 		buildcostmetal = 140,
 		buildpic = "ARMSJAM.DDS",

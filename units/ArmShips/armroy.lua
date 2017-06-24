@@ -2,7 +2,7 @@ return {
 	armroy = {
 		acceleration = 1.55*1.25/60,
 		activatewhenbuilt = true,
-		brakerate = 1.55*1.25/1200,
+		brakerate = 1.55*1.25/120,
 		buildangle = 16384,
 		buildcostenergy = 20000*0.9,
 		buildcostmetal = 2000*0.9,

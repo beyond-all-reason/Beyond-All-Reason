@@ -2,7 +2,7 @@ return {
 	corarch = {
 		acceleration = 1.45*1.25/60,
 		airsightdistance = 0.8 *900,
-		brakerate = 1.45*1.25/1200,
+		brakerate = 1.45*1.25/120,
 		buildangle = 16384,
 		buildcostenergy = 12000,
 		buildcostmetal = 1200,
