@@ -3,18 +3,21 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  tube1, tube2, base, wake;
+piece  tube1, tube2, base, wake, turret, sleeve, barrel, flare;
 
-static-var  gun_1, restore_delay, aimDir;
+static-var  gun_1, restore_delay, aimDir, baseDir, basePitch;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_MOVE			4
+#define SIG_AIM_2			4
+#define SIG_MOVE			8
 
 
 Create()
 {
 	gun_1 = tube1;
+	restore_delay = 3000;
+	hide flare;
 }
 
 StartMoving()
@@ -34,6 +37,8 @@ RestoreAfterDelay()
 	set-signal-mask 0;
 	turn base to y-axis <0.000000> speed <35.000000>;
 	turn base to x-axis <0.000000> speed <15.000000>;
+	turn turret to y-axis <0.000000> speed <35.000000>;
+	turn sleeve to x-axis <0.000000> speed <15.000000>;
 }
 AimPrimary(heading, pitch)
 {
@@ -48,6 +53,13 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	return (1);
+}
+
 StopMoving()
 {
 	signal SIG_MOVE;
@@ -58,9 +70,21 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
+FireSecondary()
+{
+	move barrel to z-axis [-2] now;
+	move barrel to z-axis [0] speed [1];
+	wait-for-move barrel along z-axis;
+}
+
 QueryPrimary(piecenum)
 {
 	piecenum = gun_1;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = turret;
 }
 
 SweetSpot(piecenum)
