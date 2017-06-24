@@ -1,7 +1,7 @@
 
 function gadget:GetInfo()
 	return {
-		name	= 'Unit ggive command',
+		name    = "Give cmd for devs",
 		desc	= '',
 		author	= 'Floris',
 		date	= 'June 2017',
@@ -11,17 +11,20 @@ function gadget:GetInfo()
 	}
 end
 
--- Modoption (not implemented yet)
---if (tonumber((Spring.GetModOptions() or {}).mo_devcheat) or 0) == 0 then
---	return false
---end
+
+
+-- useage: /luarules give 1 armcom 0
 
 local cmdname = 'give'
 
 
+-- Modoption (maybe implement later)
+--if (tonumber((Spring.GetModOptions() or {}).mo_devgive) or 0) == 0 then
+--	return false
+--end
+
 local PACKET_HEADER = "$g$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
-
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -44,9 +47,18 @@ if gadgetHandler:IsSyncedCode() then
 		for udid, unitDef in pairs(UnitDefs) do
 			if unitDef.name == unitName then  unitDefID = udid break end
 		end
-		if unitDefID ~= nil then
+		if unitDefID == nil then
+			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
+		else
+			local succesfullyCreated = 0
 			for i=1, amount do
 				local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
+				if unitID ~= nil then
+					succesfullyCreated = succesfullyCreated + 1
+				end
+			end
+			if succesfullyCreated > 0 then
+				Spring.SendMessageToTeam(teamID, "You have been given: "..amount.." "..unitName)
 			end
 		end
 	end
@@ -61,7 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if authorized == nil or not spec then
-		--if authorized == nil then
+			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
 			return
 		end
 
@@ -87,7 +99,7 @@ else	-- UNSYNCED
 	function RequestGive(cmd, line, words, playerID)
 		local mx,my = Spring.GetMouseState()
 		local _,pos = Spring.TraceScreenRay(mx,my)
-		if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and words[1] ~= nil and words[1] ~= nil and words[1] ~= nil then
+		if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and pos[1] > 0 and pos[3] > 0 and words[1] ~= nil and words[1] ~= nil and words[1] ~= nil then
 			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..words[3]..':'..pos[1]..':'..pos[3])
 		else
 			Spring.SendMessageToPlayer(playerID, "failed to give units, check syntax...")
