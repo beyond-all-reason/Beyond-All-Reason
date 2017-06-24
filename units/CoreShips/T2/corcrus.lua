@@ -150,7 +150,7 @@ return {
 				weaponvelocity = 750,
 				damage = {
 					bombers = 1,
-					default = 500*0.30*2,
+					default = 10*0.30*2,
 					fighters = 1,
 					subs = 1,
 					vtol = 1,
@@ -199,7 +199,7 @@ return {
 				stages = 5,
 				damage = {
 					bombers = 1,
-					default = 500*0.45,
+					default = 10*0.45,
 					fighters = 1,
 					subs = 1,
 					vtol = 1,
@@ -226,7 +226,7 @@ return {
 				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
-				flighttime = 8,
+				flighttime = 3,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				metalpershot = 0,
@@ -366,7 +366,7 @@ return {
 			},
 			[8] = {
 				def = "MISSILE",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "NOTAIR",
 			},
 		},
 	},
