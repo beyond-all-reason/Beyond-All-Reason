@@ -28,10 +28,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGeneric",
 		sightdistance = 0.8 *1200,
-		turninplace = 0,
+		turninplace = true,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.9008,
-		turnrate = 416,
+		turnrate = 320,
 		
 		
 		buildpic = "CORARCH.DDS",

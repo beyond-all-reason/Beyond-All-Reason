@@ -36,10 +36,10 @@ return {
 		selfdestructas = "largeexplosiongeneric",
 		sightdistance = 0.8 *1400,
 		sonardistance = 0.8 *700,
-		turninplace = 0,
+		turninplace = true,
 		turninplaceanglelimit = 10,
 		turninplacespeedlimit = 1.9008,
-		turnrate = 85,
+		turnrate = 240,
 		waterline = 5,
 		customparams = {
 			

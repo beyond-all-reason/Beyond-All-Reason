@@ -34,10 +34,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongeneric",
 		sightdistance = 318.5,
-		turninplace = 0,
+		turninplace = true,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.32,
-		turnrate = 250,
+		turnrate = 240,
 		waterline = 5,
 		customparams = {
 			

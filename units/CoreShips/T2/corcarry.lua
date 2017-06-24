@@ -46,7 +46,7 @@ return {
 		terraformspeed = 5000,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.8216,
-		turnrate = 210,
+		turnrate = 120,
 		workertime = 1000,
 		
 		buildpic = "CORCARRY.DDS",
