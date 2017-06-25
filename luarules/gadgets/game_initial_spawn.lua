@@ -666,7 +666,8 @@ function gadget:GameSetup(state,ready,playerStates)
 	-- set my readyState to true if i am a newbie, or if ffa 
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie or ffaMode then
+		if amNewbie then
+		--if amNewbie or ffaMode then
 			readied = true
 			return true, true 
 		end
