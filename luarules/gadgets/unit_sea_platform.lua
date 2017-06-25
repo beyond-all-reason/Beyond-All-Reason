@@ -37,9 +37,9 @@ local i = -200
 	for k = 15,63 do
 
 		i = Spring.GetGroundHeight(x+l, z - k)
-			if i >= 0 and i < 1 then
-				Spring.LevelHeightMap(x+l, z, x+l, z-k,1)
-										Spring.Echo(i)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x-15, z, x+16, z-k,1)
+										-- Spring.Echo(i)
 				end
 		end	
 	end
@@ -48,33 +48,33 @@ local i = -200
 -- Check southern
 local i = -200
 	for l = -15,16 do
-	for k = -15,-63 do
+	for k = -64,-16 do
 		i = Spring.GetGroundHeight(x+l, z - k)
 
-			if i >= 0 and i < 1 then
-			Spring.Echo(x+l)
-			Spring.Echo(z-k)
-				Spring.LevelHeightMap(x+l, z, x+l, z-k,1)
+			if i > 1 and i < 3 then
+			-- Spring.Echo(x+l)
+			-- Spring.Echo(z-k)
+				Spring.LevelHeightMap(x-15, z, x+16, z-k,1)
 				end
 		end
 	end
 -- Check eastern
 local i = -200
-	for l = -15,16 do
-	for k = -15,-63 do
+	for l = -16,15 do
+	for k = -64,-16 do
 		i = Spring.GetGroundHeight(x-k, z + l)
-			if i >= 0 and i < 1 then
-				Spring.LevelHeightMap(x, z+l, x-k, z+l,1)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x, z-15, x-k, z+16,1)
 				end
 		end
 	end
 -- Check western
 local i = -200
-	for l = -15,16 do
+	for l = -16,15 do
 	for k = 15,63 do
 		i = Spring.GetGroundHeight(x-k, z + l)
-			if i >= 0 and i < 1 then
-				Spring.LevelHeightMap(x, z+l, x-k, z+l,1)
+			if i >1  and i < 3 then
+				Spring.LevelHeightMap(x, z-15, x-k, z+16,1)
 				end
 		end
 	end
