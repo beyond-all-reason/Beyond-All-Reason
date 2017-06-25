@@ -88,7 +88,7 @@ unitDeaths = {
 
 	platformboom = {
 		weaponType = "Cannon",
-		AreaOfEffect = 24,
+		AreaOfEffect = 40,
 		cameraShake = 180,
 		edgeeffectiveness = 1.0,
 		impulseboost = impulseboost,
