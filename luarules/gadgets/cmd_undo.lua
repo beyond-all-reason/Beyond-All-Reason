@@ -26,6 +26,22 @@ if gadgetHandler:IsSyncedCode() then
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
 
+	local startPlayers = {}
+	function checkStartPlayers()
+		for _,playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
+			local playername,_,spec,teamID = Spring.GetPlayerInfo(playerID)
+			if not spec then
+				startPlayers[playername] = true
+			end
+		end
+	end
+	function gadget:Initialize()
+		checkStartPlayers()
+	end
+	function gadget:GameStart()
+		checkStartPlayers()
+	end
+
 	function explode(div,str) -- credit: http://richard.warburton.it
 		if (div=='') then return false end
 		local pos,arr = 0,{}
@@ -78,9 +94,17 @@ if gadgetHandler:IsSyncedCode() then
 				break
 			end
 		end
-		if authorized == nil or not spec then
-			if playername ~= "UnnamedPlayer" then
-				Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
+		if playername ~= "UnnamedPlayer" then
+			if authorized == nil then
+				Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
+				return
+			end
+			if not spec then
+				Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
+				return
+			end
+			if startPlayers[playername] ~= nil then
+				Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
 				return
 			end
 		end
