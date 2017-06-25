@@ -3,7 +3,7 @@ function gadget:GetInfo()
 		name = "SeaPlatforms",
 		desc = "Handles Sea Platforms behaviours",
 		author = "[Fx]Doo",
-		date = "25th of October 2032",
+		date = "25 of June 2017",
 		license = "Free",
 		layer = 0,
 		enabled = true
@@ -34,7 +34,7 @@ Spring.LevelHeightMap(x-31,z-31,x+32,z+32, 1)
 local i = -200
 	for l = -31,32 do
 
-	for k = 31,79 do
+	for k = 31,95 do
 
 		i = Spring.GetGroundHeight(x+l, z - k)
 			if i > 1 and i < 3 then
@@ -48,7 +48,7 @@ local i = -200
 -- Check southern
 local i = -200
 	for l = -31,32 do
-	for k = -80,-32 do
+	for k = -96,-32 do
 		i = Spring.GetGroundHeight(x+l, z - k)
 
 			if i > 1 and i < 3 then
@@ -61,7 +61,7 @@ local i = -200
 -- Check eastern
 local i = -200
 	for l = -32,31 do
-	for k = -80,-32 do
+	for k = -96,-32 do
 		i = Spring.GetGroundHeight(x-k, z + l)
 			if i > 1 and i < 3 then
 				Spring.LevelHeightMap(x, z-31, x-k, z+32,1)
@@ -71,7 +71,7 @@ local i = -200
 -- Check western
 local i = -200
 	for l = -32,31 do
-	for k = 31,79 do
+	for k = 31,95 do
 		i = Spring.GetGroundHeight(x-k, z + l)
 			if i >1  and i < 3 then
 				Spring.LevelHeightMap(x, z-31, x-k, z+32,1)
