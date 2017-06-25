@@ -38,6 +38,9 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 		checkStartPlayers()
 	end
+	function gadget:PlayerChanged(playerID)
+		checkStartPlayers()
+	end
 
 	function explode(div,str) -- credit: http://richard.warburton.it
 		if (div=='') then return false end

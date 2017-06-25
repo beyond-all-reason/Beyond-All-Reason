@@ -41,10 +41,13 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 		checkStartPlayers()
 	end
+	function gadget:PlayerChanged(playerID)
+		checkStartPlayers()
+	end
 
 	function gadget:GameFrame(gameFrame)
 		-- cleanup periodically
-		if gameFrame % 600 == 1 then
+		if gameFrame % 901 == 1 then
 			local oldestGameFrame = gameFrame - rememberGameframes
 			for teamID, units in pairs(teamSelfdUnits) do
 				local cleanedUnits = {}
