@@ -15,7 +15,7 @@ end
 
 local cmdname = 'undo'
 
-
+local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local PACKET_HEADER = "$u$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
@@ -42,6 +42,23 @@ if gadgetHandler:IsSyncedCode() then
 		checkStartPlayers()
 	end
 
+	function gadget:GameFrame(gameFrame)
+		-- cleanup periodically
+		if gameFrame % 600 == 1 then
+			local oldestGameFrame = gameFrame - rememberGameframes
+			for teamID, units in pairs(teamSelfdUnits) do
+				local cleanedUnits = {}
+				for oldUnitID, params in pairs(units) do
+					if params[1] > oldestGameFrame then
+						cleanedUnits[oldUnitID] = params
+					end
+				end
+				teamSelfdUnits[teamID] = cleanedUnits
+			end
+
+		end
+	end
+
 	function explode(div,str) -- credit: http://richard.warburton.it
 		if (div=='') then return false end
 		local pos,arr = 0,{}
@@ -54,9 +71,9 @@ if gadgetHandler:IsSyncedCode() then
 		return arr
 	end
 
-	function restoreUnits(teamID, seconds)
+	function restoreUnits(teamID, seconds, playerID)
 		if teamSelfdUnits[teamID] == nil then
-			Spring.Echo('There is no self destructed unit history for team '..teamID)
+			Spring.SendMessageToPlayer(PlayerID, 'There is no self destruct unit history for team '..teamID)
 			return
 		end
 		local oldestGameFrame = Spring.GetGameFrame() - (seconds * 30)
@@ -75,10 +92,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		teamSelfdUnits[teamID] = leftovers
-
-		if numRestoredUnits > 0 then
-			Spring.Echo('Restored: '..numRestoredUnits..' units')
-		end
+		Spring.SendMessageToPlayer(playerID, 'Restored: '..numRestoredUnits..' units')
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
@@ -109,7 +123,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		local params = explode(':', msg)
-		restoreUnits(tonumber(params[2]), tonumber(params[3]))
+		restoreUnits(tonumber(params[2]), tonumber(params[3]), playerID)
 		return true
 	end
 
@@ -117,7 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- log selfd's
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 
-		if selfdCmdUnits[unitID] ~= nil and attackerID == nil then -- selfd/reclaimed
+		if attackerID == nil and selfdCmdUnits[unitID] then -- attackerID == nil -> selfd/reclaim
 			if teamSelfdUnits[teamID] == nil then
 				teamSelfdUnits[teamID] = {}
 			end
