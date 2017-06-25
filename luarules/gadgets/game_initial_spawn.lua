@@ -643,8 +643,7 @@ function gadget:GameSetup(state,ready,playerStates)
 	end
 	
 	-- if we can't choose startpositions, no need for ready button etc
-	--if Game.startPosType ~= 2 or ffaMode then
-	if Game.startPosType ~= 2 then
+	if Game.startPosType ~= 2 or ffaMode then
 		return true,true
 	end
 	
@@ -667,8 +666,7 @@ function gadget:GameSetup(state,ready,playerStates)
 	-- set my readyState to true if i am a newbie, or if ffa 
 	if not readied or not ready then 
 		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie then
-		--if amNewbie or ffaMode then
+		if amNewbie or ffaMode then
 			readied = true
 			return true, true 
 		end
