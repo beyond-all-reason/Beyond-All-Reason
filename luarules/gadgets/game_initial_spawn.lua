@@ -643,7 +643,8 @@ function gadget:GameSetup(state,ready,playerStates)
 	end
 	
 	-- if we can't choose startpositions, no need for ready button etc
-	if Game.startPosType ~= 2 or ffaMode then
+	--if Game.startPosType ~= 2 or ffaMode then
+	if Game.startPosType ~= 2 then
 		return true,true
 	end
 	
