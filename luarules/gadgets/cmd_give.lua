@@ -1,27 +1,20 @@
 
 function gadget:GetInfo()
 	return {
-		name    = "Give cmd for devs",
-		desc	= '',
+		name    = "Give Command",
+		desc	= 'Give units (only availible to a select few playernames)',
 		author	= 'Floris',
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
-		layer	= 1, --should run after game_initial_spawn
+		layer	= 1,
 		enabled	= true
 	}
 end
 
-
-
--- useage: /luarules give 1 armcom 0
+-- usage: /luarules give 1 armcom 0
 
 local cmdname = 'give'
 
-
--- Modoption (maybe implement later)
---if (tonumber((Spring.GetModOptions() or {}).mo_devgive) or 0) == 0 then
---	return false
---end
 
 local PACKET_HEADER = "$g$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
@@ -78,13 +71,11 @@ if gadgetHandler:IsSyncedCode() then
 				break
 			end
 		end
-		if playername == "UnnamedPlayer" then
-			authorized = true
-			spec = true
-		end
 		if authorized == nil or not spec then
-			Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
-			return
+			if playername ~= "UnnamedPlayer" then
+				Spring.SendMessageToPlayer(playerID, "You are not authorized to give units")
+				return
+			end
 		end
 		local params = explode(':', msg)
 		giveunits(params[2], params[3], params[4], params[5], params[6], playerID)
@@ -105,7 +96,8 @@ else	-- UNSYNCED
 	function RequestGive(cmd, line, words, playerID)
 		local mx,my = Spring.GetMouseState()
 		local _,pos = Spring.TraceScreenRay(mx,my)
-		if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and pos[1] > 0 and pos[3] > 0 and words[1] ~= nil and words[1] ~= nil and words[1] ~= nil then
+
+		if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and pos[1] > 0 and pos[3] > 0 and words[1] ~= nil and words[2] ~= nil and words[3] ~= nil then
 			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..words[3]..':'..pos[1]..':'..pos[3])
 		else
 			Spring.SendMessageToPlayer(playerID, "failed to give, check syntax or cursor position")
