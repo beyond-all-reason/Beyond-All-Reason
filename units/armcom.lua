@@ -92,6 +92,7 @@ return {
 			[24] = "armtl",
 			[25] = "armfrt",
 			[26] = "armfrad",
+			[27] = "armcube",
 		},
 		customparams = {
 			--death_sounds = "commander",

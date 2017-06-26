@@ -57,6 +57,7 @@ return {
 			[[armfflak]],
 			[[armatl]],
 			[[armason]],
+			[[armcube]],
 		},
 		customparams = {
 			

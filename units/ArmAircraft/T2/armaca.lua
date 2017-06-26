@@ -72,6 +72,7 @@ return {
 			[27] = "armap",
 			[28] = "armaap",
 			[29] = "armplat",
+			[30] = "armcube",
 		},
 		customparams = {
 			

@@ -73,6 +73,7 @@ return {
 			[26] = "corbuzz",
 			[27] = "corlab",
 			[28] = "coralab",
+			[29] = "armcube",
 		},
 		customparams = {
 			

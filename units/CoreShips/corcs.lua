@@ -67,6 +67,8 @@ return {
 			[20] = "corfrt",
 			[21] = "corfhlt",
 			[22] = "corplat",
+			[23] = "armcube",
+			[24] = "armcube",
 		},
 		customparams = {
 			

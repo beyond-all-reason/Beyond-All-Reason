@@ -66,6 +66,7 @@ return {
 			[20] = "coramph",
 			[21] = "corcs",
 			[22] = "corroy",
+			[23] = "armcube",
 		},
 		customparams = {
 			

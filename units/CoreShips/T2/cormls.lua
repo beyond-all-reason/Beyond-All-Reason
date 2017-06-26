@@ -62,6 +62,7 @@ return {
 			[18] = "corsub",
 			[19] = "coramph",
 			[20] = "corfmine3",
+			[21] = "armcube",
 		},
 		customparams = {
 			

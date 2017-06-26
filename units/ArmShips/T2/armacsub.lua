@@ -58,6 +58,7 @@ return {
 			[12] = "armason",
 			[13] = "armfflak",
 			[14] = "armatl",
+			[15] = "armcube",
 		},
 		customparams = {
 			

@@ -70,6 +70,7 @@ return {
 			[20] = "armmav",
 			[21] = "armcs",
 			[22] = "armroy",
+			[23] = "armcube",
 		},
 		customparams = {
 			
