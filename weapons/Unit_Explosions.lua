@@ -332,6 +332,33 @@ unitDeaths = {
     },
 
 
+    decoycommander = {
+        weaponType = "Cannon",
+        AreaOfEffect = 48,
+        cameraShake = 48,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed2",
+        soundstart = "largegun",
+        explosiongenerator="custom:decoycommander",
+        damage = {
+            default = 18,
+        },
+    },
+    decoycommanderSelfd = {
+        weaponType = "Cannon",
+        AreaOfEffect = 96,
+        cameraShake = 96,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed2",
+        soundstart = "largegun",
+        explosiongenerator="custom:decoycommander-selfd",
+        damage = {
+            default = 280,
+        },
+    },
+
     fusionExplosion = {
         weaponType = "Cannon",
         AreaOfEffect = 480,

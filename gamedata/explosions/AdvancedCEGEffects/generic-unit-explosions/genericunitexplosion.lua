@@ -2453,4 +2453,118 @@ for t, effects in pairs(types) do
   end
 end
 
+definitions['decoycommander'] = deepcopy(definitions[root.."-small"])
+definitions['decoycommander'].confetti = {
+    class              = [[CSimpleParticleSystem]],
+    count              = 1,
+    ground             = true,
+    unit               = false,
+    properties = {
+        airdrag            = 0.95,
+        colormap           = [[1 0 0 0.01  0 1 0 0.01 0.1  1 0 0 0.01 0.1  0 1 0.5 0.01  1 0 0.01  0 1 0 0.01  1 1 0 0.01  1 0 0.01   1 0.6 0.01  0 1 0 0.01 0.1   0.1 0.7 0.01   0.6 0.3 0.6 0.01   0.6 0.6 0.6 0.01   0 0 0 0.01  ]],
+        directional        = true,
+        emitrot            = 17,
+        emitrotspread      = 22,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.12, 0]],
+        numparticles       = 20,
+        particlelife       = 20,
+        particlelifespread = 100,
+        particlesize       = 0.7,
+        particlesizespread = 1,
+        particlespeed      = 2,
+        particlespeedspread = 3.65,
+        pos                = [[0, 6, 0]],
+        sizegrowth         = -0.008,
+        sizemod            = 1,
+        texture            = [[dot]],
+        useairlos          = false,
+    },
+}
+definitions['decoycommander'].glitter = {
+    class              = [[CSimpleParticleSystem]],
+    count              = 1,
+    ground             = true,
+    unit               = false,
+    properties = {
+        airdrag            = 0.95,
+        colormap           = [[0 0 0 0.01   1 1 1 0.01   0 0 0 0.01  0 0 0 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01  0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01    0 0 0 0.01   0 0 0 0.01  1 1 1 0.01   0 0 0 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01    0 0 0 0.01    0 0 0 0.01    0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01  0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   ]],
+        directional        = true,
+        emitrot            = 14,
+        emitrotspread      = 20,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.11, 0]],
+        numparticles       = 20,
+        particlelife       = 30,
+        particlelifespread = 150,
+        particlesize       = 0.7,
+        particlesizespread = 0.6,
+        particlespeed      = 2.5,
+        particlespeedspread = 4,
+        pos                = [[0, 6, 0]],
+        sizegrowth         = -0.008,
+        sizemod            = 1,
+        texture            = [[dot]],
+        useairlos          = false,
+    },
+}
+
+definitions['decoycommander-selfd'] = deepcopy(definitions[root.."-medium"])
+definitions['decoycommander-selfd'].confetti = {
+    class              = [[CSimpleParticleSystem]],
+    count              = 1,
+    ground             = true,
+    unit               = false,
+    properties = {
+        airdrag            = 0.95,
+        colormap           = [[1 0 0 0.01  0 1 0 0.01 0.1  1 0 0 0.01 0.1  0 1 0.5 0.01  1 0 0.01  0 1 0 0.01  1 1 0 0.01  1 0 0.01   1 0.6 0.01  0 1 0 0.01 0.1   0.1 0.7 0.01   0.6 0.3 0.6 0.01   0.6 0.6 0.6 0.01   0 0 0 0.01  ]],
+        directional        = true,
+        emitrot            = 17,
+        emitrotspread      = 22,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.12, 0]],
+        numparticles       = 50,
+        particlelife       = 25,
+        particlelifespread = 110,
+        particlesize       = 0.7,
+        particlesizespread = 1,
+        particlespeed      = 2.5,
+        particlespeedspread = 5.4,
+        pos                = [[0, 6, 0]],
+        sizegrowth         = -0.008,
+        sizemod            = 1,
+        texture            = [[dot]],
+        useairlos          = false,
+    },
+}
+definitions['decoycommander-selfd'].glitter = {
+    class              = [[CSimpleParticleSystem]],
+    count              = 1,
+    ground             = true,
+    unit               = false,
+    properties = {
+        airdrag            = 0.95,
+        colormap           = [[0 0 0 0.01   1 1 1 0.01   0 0 0 0.01  0 0 0 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01  0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01    0 0 0 0.01   0 0 0 0.01  1 1 1 0.01   0 0 0 0.01   0 0 0 0.01   0 0 0 0.01   1 1 1 0.01    0 0 0 0.01    0 0 0 0.01    0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01  0 0 0 0.01   0 0 0 0.01   1 1 1 0.01   0 0 0 0.01   ]],
+        directional        = true,
+        emitrot            = 14,
+        emitrotspread      = 20,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.11, 0]],
+        numparticles       = 50,
+        particlelife       = 40,
+        particlelifespread = 160,
+        particlesize       = 0.7,
+        particlesizespread = 0.6,
+        particlespeed      = 3.6,
+        particlespeedspread = 5.8,
+        pos                = [[0, 6, 0]],
+        sizegrowth         = -0.008,
+        sizemod            = 1,
+        texture            = [[dot]],
+        useairlos          = false,
+    },
+}
+
+
+
 return definitions

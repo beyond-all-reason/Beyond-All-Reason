@@ -76,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function restoreUnits(teamID, seconds, playerID)
 		if teamSelfdUnits[teamID] == nil then
-			Spring.SendMessageToPlayer(PlayerID, 'There is no self destruct unit history for team '..teamID)
+			Spring.SendMessageToPlayer(playerID, 'There is no self destruct unit history for team '..teamID)
 			return
 		end
 		local oldestGameFrame = Spring.GetGameFrame() - (seconds * 30)
@@ -132,6 +132,8 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	-- log selfd's
+	local armcomDefID = UnitDefNames.armcom.id
+	local corcomDefID = UnitDefNames.corcom.id
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 
 		if attackerID == nil and selfdCmdUnits[unitID] then -- attackerID == nil -> selfd/reclaim
@@ -142,7 +144,11 @@ if gadgetHandler:IsSyncedCode() then
 			local health = Spring.GetUnitHealth(unitID)
 			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
 			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
-			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz}
+			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
+			-- armcom and corcom leave wreckage behind
+			if unitDefID == armcomDefID or unitDefID == corcomDefID then
+
+			end
 		end
 	end
 
