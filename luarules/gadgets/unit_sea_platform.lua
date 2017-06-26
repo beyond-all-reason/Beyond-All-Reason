@@ -43,6 +43,34 @@ local i = -200
 				end
 		end	
 	end
+
+--CHECK NORTHWEST GroundHeight
+local i = -200
+	for l = -79,-31 do
+
+	for k = 31,95 do
+
+		i = Spring.GetGroundHeight(x+l, z - k)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x-79, z-31, x-31, z-k,1)
+										-- Spring.Echo(i)
+				end
+		end	
+	end
+
+--CHECK NORTHEAST GroundHeight
+local i = -200
+	for l = 32,80 do
+
+	for k = 31,95 do
+
+		i = Spring.GetGroundHeight(x+l, z - k)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x+32, z-31, x+80, z-k,1)
+										-- Spring.Echo(i)
+				end
+		end	
+	end
 	
 	
 -- Check southern
@@ -58,6 +86,34 @@ local i = -200
 				end
 		end
 	end
+	
+-- Check southwest
+local i = -200
+	for l = -79,-31 do
+	for k = -96,-32 do
+		i = Spring.GetGroundHeight(x+l, z - k)
+
+			if i > 1 and i < 3 then
+			-- Spring.Echo(x+l)
+			-- Spring.Echo(z-k)
+				Spring.LevelHeightMap(x-79, z+32, x-31, z-k,1)
+				end
+		end
+	end
+-- Check southeast	
+local i = -200
+	for l = 32,80 do
+	for k = -96,-32 do
+		i = Spring.GetGroundHeight(x+l, z - k)
+
+			if i > 1 and i < 3 then
+			-- Spring.Echo(x+l)
+			-- Spring.Echo(z-k)
+				Spring.LevelHeightMap(x+32, z+32, x+80, z-k,1)
+				end
+		end
+	end
+	
 -- Check eastern
 local i = -200
 	for l = -32,31 do
