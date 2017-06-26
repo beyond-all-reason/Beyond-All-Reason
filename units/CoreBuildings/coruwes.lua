@@ -27,7 +27,7 @@ return {
 		name = "Underwater Energy Storage",
 		objectname = "CORUWES",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

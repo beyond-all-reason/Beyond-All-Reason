@@ -31,7 +31,7 @@ return {
 		objectname = "CORSEAH",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "hugeExplosionGeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 260,
 		transportcapacity = 30,
 		transportsize = 15,

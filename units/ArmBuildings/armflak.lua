@@ -31,7 +31,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMFLAK",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",

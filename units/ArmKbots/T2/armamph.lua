@@ -29,7 +29,7 @@ return {
 		nochasecategory = "ANTILASER",
 		objectname = "ARMAMPH",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 377,
 		turninplace = 0,
 		turninplaceanglelimit = 140,

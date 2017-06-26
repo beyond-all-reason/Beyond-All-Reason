@@ -30,7 +30,7 @@ return {
 		name = "Underwater Fusion Plant",
 		objectname = "CORUWFUS",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",

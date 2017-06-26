@@ -33,7 +33,7 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOATCORVETTE2X4",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
 		terraformspeed = 2000,
 		turninplace = true,

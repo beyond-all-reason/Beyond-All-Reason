@@ -34,7 +34,7 @@ return {
 		name = "Construction Aircraft",
 		objectname = "ARMCA",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 390,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,

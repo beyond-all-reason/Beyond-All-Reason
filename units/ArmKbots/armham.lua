@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMHAM",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 380,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0164,

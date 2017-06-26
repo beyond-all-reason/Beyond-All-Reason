@@ -31,7 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORTREM",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 351,
 		trackoffset = -8,
 		trackstrength = 8,

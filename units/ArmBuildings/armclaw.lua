@@ -32,7 +32,7 @@ return {
 		objectname = "ARMCLAW",
 		radardistancejam = 8,
 		seismicsignature = 0,
-		selfdestructas = "tinyBuildingexplosiongeneric",
+		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 440,
 		stealth = true,
 		turnrate = 0,

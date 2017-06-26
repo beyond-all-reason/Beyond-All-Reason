@@ -35,7 +35,7 @@ return {
 		objectname = "corfgate",
 		onoffable = 1,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		side = "CORE",
 		sightdistance = 600,
 		smoothanim = 1,

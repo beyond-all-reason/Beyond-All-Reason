@@ -36,7 +36,7 @@ return {
 		objectname = "CORASP",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 357.5,
 		terraformspeed = 5000,
 		usebuildinggrounddecal = true,

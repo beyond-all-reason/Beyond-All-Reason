@@ -31,7 +31,7 @@ return {
 		objectname = "CORSUMO",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 510,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.495,

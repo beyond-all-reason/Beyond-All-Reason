@@ -32,7 +32,7 @@ return {
 		objectname = "ARMUWMME",
 		onoffable = false,
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 182,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",

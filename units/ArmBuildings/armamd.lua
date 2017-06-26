@@ -32,7 +32,7 @@ return {
 		objectname = "ARMAMD",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 201,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

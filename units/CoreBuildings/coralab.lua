@@ -35,7 +35,7 @@ return {
 		objectname = "CORALAB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 288.60001,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,

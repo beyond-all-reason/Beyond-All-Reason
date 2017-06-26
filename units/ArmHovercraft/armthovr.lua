@@ -32,7 +32,7 @@ return {
 		objectname = "ARMTHOVR",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "hugeExplosionGeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 325,
 		transportcapacity = 20,
 		transportsize = 3,

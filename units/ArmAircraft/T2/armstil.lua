@@ -31,7 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSTIL",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,
 		stealth = true,
 		turnrate = 396,

@@ -31,7 +31,7 @@ return {
 		name = "Metal Storage",
 		objectname = "ARMMSTOR",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingExplosionGeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

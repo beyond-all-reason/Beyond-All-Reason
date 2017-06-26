@@ -31,7 +31,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMYORK",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,
 		trackoffset = 6,
 		trackstrength = 5,

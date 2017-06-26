@@ -28,7 +28,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORTITAN",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 450,
 		blocking = false,

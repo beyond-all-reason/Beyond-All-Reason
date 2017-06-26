@@ -34,7 +34,7 @@ return {
 		name = "Construction Kbot",
 		objectname = "ARMCK",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 305,
 		terraformspeed = 450,
 		turninplace = 1,

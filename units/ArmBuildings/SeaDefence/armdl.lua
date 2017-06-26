@@ -32,7 +32,7 @@ return {
 		name = "Anemone",
 		objectname = "ARMDL",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 617,
 		sonardistance = 515,
 		usebuildinggrounddecal = true,

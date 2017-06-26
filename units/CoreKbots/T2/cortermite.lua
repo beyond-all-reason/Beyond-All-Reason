@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORTERMITE",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 380,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0626,

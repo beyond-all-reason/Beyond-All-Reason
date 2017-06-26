@@ -30,7 +30,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORAH",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 509,
 		sonardistance = 350,
 		turninplace = 0,

@@ -27,7 +27,7 @@ return {
 		name = "Chainsaw",
 		objectname = "ARMCIR",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingExplosionGeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 350,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

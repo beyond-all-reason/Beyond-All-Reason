@@ -32,7 +32,7 @@ return {
 		objectname = "CORFMD",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 195,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

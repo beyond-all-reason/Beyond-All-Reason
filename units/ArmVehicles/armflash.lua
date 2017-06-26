@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFLASH",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 299,
 		trackoffset = 5,
 		trackstrength = 4,

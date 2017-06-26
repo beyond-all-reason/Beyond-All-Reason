@@ -26,7 +26,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORAAK",
 		seismicsignature = 1,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 390,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.759,

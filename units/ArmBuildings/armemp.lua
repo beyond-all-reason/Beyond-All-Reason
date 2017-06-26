@@ -29,7 +29,7 @@ return {
 		name = "Detonator",
 		objectname = "ARMEMP",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

@@ -31,7 +31,7 @@ return {
 		onoffable = true,
 		activateWhenBuilt = true,
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 400,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.518,

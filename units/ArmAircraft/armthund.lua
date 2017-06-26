@@ -29,7 +29,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMTHUND",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 195,
 		turnrate = 829,
 		customparams = {

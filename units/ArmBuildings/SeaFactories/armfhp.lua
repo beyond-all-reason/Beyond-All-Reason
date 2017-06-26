@@ -28,7 +28,7 @@ return {
 		objectname = "ARMFHP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1000,
 		waterline = 4,

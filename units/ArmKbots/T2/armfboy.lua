@@ -31,7 +31,7 @@ return {
 		objectname = "ARMFBOY",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 510,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.66,

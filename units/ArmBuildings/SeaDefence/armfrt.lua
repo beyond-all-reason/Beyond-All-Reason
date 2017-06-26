@@ -28,7 +28,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMFRT",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 468,
 		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",

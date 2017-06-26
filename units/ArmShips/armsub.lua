@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSUB",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 0.8 *1000,
 		sonardistance = 0.8 *500,
 		turninplaceanglelimit = 140,

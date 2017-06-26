@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSTORM",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 344.5,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.089,

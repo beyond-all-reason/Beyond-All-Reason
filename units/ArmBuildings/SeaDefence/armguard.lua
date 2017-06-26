@@ -31,7 +31,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMGUARD",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingExplosionGeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

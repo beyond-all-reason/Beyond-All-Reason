@@ -29,7 +29,7 @@ return {
 		minwaterdepth = 25,
 		name = "Underwater Fusion Plant",
 		objectname = "ARMUWFUS",
-		selfdestructas = "hugeBuildingExplosionGeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 143,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooo",

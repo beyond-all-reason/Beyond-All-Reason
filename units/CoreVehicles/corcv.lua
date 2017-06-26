@@ -36,7 +36,7 @@ return {
 		objectname = "CORCV",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 260,
 		terraformspeed = 450,
 		trackoffset = 3,

@@ -31,7 +31,7 @@ return {
 		name = "Death Cavalry",
 		objectname = "CORRECL",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
 		sonardistance = 200,
 		terraformspeed = 2250,

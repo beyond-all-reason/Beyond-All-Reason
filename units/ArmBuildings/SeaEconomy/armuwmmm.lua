@@ -31,7 +31,7 @@ return {
 		name = "Floating Moho Energy Converter",
 		objectname = "ARMUWMMM",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 156,
 		usebuildinggrounddecal = true,
 		waterline = 5,

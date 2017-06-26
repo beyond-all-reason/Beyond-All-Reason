@@ -34,7 +34,7 @@ return {
 		name = "Muskrat",
 		objectname = "CORMUSKRAT",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 260,
 		terraformspeed = 400,
 		trackoffset = 8,

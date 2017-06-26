@@ -33,7 +33,7 @@ return {
 		name = "Advanced Aircraft Plant",
 		objectname = "CORAAP",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 305.5,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,

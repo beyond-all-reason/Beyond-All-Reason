@@ -26,7 +26,7 @@ return {
 		movementclass = "BOATDESTROYER2X5",
 		nochasecategory = "ALL",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 0.8 *1200,
 		turninplace = true,
 		turninplaceanglelimit = 140,

@@ -36,7 +36,7 @@ return {
 		objectname = "ARMACV",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 289.89999,
 		terraformspeed = 1250,
 		trackstrength = 6,

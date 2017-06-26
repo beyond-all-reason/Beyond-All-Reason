@@ -28,7 +28,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMZEUS",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 331.5,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0428,

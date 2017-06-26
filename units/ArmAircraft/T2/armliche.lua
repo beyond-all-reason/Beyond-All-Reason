@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMLICHE",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 535,
 		blocking = false,

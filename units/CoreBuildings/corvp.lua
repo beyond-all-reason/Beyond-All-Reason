@@ -36,7 +36,7 @@ return {
 		objectname = "CORVP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 279,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,

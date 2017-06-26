@@ -32,7 +32,7 @@ return {
 		objectname = "CORTHOVR",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 325,
 		transportcapacity = 20,
 		transportsize = 3,

@@ -27,7 +27,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "krogtaar",
 		radardistance = 0,
-		selfdestructas = "hugeExplosionGeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		selfdestructcountdown = 10,
 		sightdistance = 390,
 		turninplaceanglelimit = 140,

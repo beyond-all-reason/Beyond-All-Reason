@@ -35,7 +35,7 @@ return {
 		objectname = "armfgate",
 		onoffable = 1,
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingexplosiongeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		side = "ARM",
 		sightdistance = 600,
 		smoothanim = 1,

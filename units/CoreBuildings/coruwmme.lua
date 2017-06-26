@@ -32,7 +32,7 @@ return {
 		objectname = "CORUWMME",
 		onoffable = false,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",

@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMLATNK",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 390,
 		trackoffset = 6,
 		trackstrength = 5,

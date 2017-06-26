@@ -31,7 +31,7 @@ return {
 		name = "Prude",
 		objectname = "ARMGMM",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",

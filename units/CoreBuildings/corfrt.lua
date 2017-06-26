@@ -27,7 +27,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORFRT",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 468,
 		waterline = 4,
 		yardmap = "wwwwwwwwwwwwwwww",

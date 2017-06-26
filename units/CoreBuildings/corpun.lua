@@ -31,7 +31,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORPUN",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

@@ -33,7 +33,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMCRUS",
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 0.8 *1400,
 		sonardistance = 0.8 *700,
 		turninplace = true,

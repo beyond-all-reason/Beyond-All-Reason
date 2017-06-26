@@ -28,7 +28,7 @@ return {
 		objectname = "CORFHP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
 		waterline = 4,

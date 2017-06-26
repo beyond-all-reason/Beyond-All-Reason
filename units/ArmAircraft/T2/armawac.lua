@@ -28,7 +28,7 @@ return {
 		objectname = "ARMAWAC",
 		radardistance = 2500,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1275,
 		sonardistance = 1200,
 		turnrate = 392,

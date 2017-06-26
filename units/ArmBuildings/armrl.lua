@@ -30,7 +30,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMRL",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingExplosionGeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

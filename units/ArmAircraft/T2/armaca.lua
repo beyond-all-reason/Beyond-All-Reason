@@ -35,7 +35,7 @@ return {
 		objectname = "ARMACA",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,

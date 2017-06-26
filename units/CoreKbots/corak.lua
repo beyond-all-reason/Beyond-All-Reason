@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORAK",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.848,

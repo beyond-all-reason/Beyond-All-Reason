@@ -28,7 +28,7 @@ return {
 		objectname = "CORTIDE",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 130,
 		tidalgenerator = 1,
 		waterline = 13,

@@ -28,7 +28,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORFHLT",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 612,
 		waterline = 3,
 		yardmap = "wwwwwwwww",

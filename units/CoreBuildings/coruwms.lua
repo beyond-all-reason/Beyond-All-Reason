@@ -27,7 +27,7 @@ return {
 		name = "Underwater Metal Storage",
 		objectname = "CORUWMS",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

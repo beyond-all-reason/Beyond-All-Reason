@@ -33,7 +33,7 @@ return {
 		objectname = "CORHP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,

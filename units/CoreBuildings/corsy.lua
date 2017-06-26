@@ -30,7 +30,7 @@ return {
 		name = "Shipyard",
 		objectname = "CORSY",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 340,
 		terraformspeed = 500,
 		waterline = 33,

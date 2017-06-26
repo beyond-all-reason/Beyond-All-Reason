@@ -31,7 +31,7 @@ return {
 		objectname = "CORASY",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 301.60001,
 		terraformspeed = 1000,
 		waterline = 32,

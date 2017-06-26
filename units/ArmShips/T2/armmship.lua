@@ -32,7 +32,7 @@ return {
 		objectname = "ARMMSHIP",
 		radardistance = 0.8 *1400,
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 0.8 *700,
 		turninplace = true,
 		turninplaceanglelimit = 10,

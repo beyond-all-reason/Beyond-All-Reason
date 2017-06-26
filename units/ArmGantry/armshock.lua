@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSHOCK",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 625,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.726,

@@ -30,7 +30,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORTOAST",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingExplosionGeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 416,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,

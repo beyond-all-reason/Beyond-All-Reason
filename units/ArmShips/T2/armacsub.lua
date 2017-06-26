@@ -35,7 +35,7 @@ return {
 		objectname = "ARMACSUB",
 		sonardistance = 350,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 700,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,

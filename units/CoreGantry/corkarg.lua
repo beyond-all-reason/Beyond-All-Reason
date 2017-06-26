@@ -28,7 +28,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORKARG",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 455,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.99,

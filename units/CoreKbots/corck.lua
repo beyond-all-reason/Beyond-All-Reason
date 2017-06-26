@@ -34,7 +34,7 @@ return {
 		name = "Construction Kbot",
 		objectname = "CORCK",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 299,
 		terraformspeed = 450,
 		turninplace = 1,

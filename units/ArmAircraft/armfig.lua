@@ -25,7 +25,7 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "ARMFIG",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 210,
 		turnrate = 891,
 		blocking = false,

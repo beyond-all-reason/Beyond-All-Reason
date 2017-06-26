@@ -27,7 +27,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMAAK",
 		seismicsignature = 1,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 400,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0428,

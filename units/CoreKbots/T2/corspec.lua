@@ -33,7 +33,7 @@ return {
 		onoffable = true,
 		radardistance = 0,
 		radardistancejam = 450,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 250,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.858,

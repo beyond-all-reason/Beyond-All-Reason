@@ -29,7 +29,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSHAD",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 169,
 		turnrate = 807,
 		blocking = false,

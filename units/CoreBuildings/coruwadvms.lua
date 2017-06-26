@@ -28,7 +28,7 @@ return {
 		name = "Hardened Metal Storage",
 		objectname = "CORUWADVMS",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 182,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

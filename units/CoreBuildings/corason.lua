@@ -34,7 +34,7 @@ return {
 		objectname = "CORASON",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 210,
 		sonardistance = 2400,
 		usebuildinggrounddecal = true,

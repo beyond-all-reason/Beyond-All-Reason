@@ -31,7 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMBATS",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 0.8 *1500,
 		turninplaceanglelimit = 5,
 		turninplacespeedlimit = 1.9008,

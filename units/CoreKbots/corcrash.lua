@@ -29,7 +29,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORCRASH",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 379.60001,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.17678,

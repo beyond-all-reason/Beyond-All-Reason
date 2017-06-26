@@ -35,7 +35,7 @@ return {
 		objectname = "ARMVP",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,

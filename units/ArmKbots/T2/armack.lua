@@ -35,7 +35,7 @@ return {
 		objectname = "ARMACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 323.70001,
 		terraformspeed = 900,
 		turninplace = 1,

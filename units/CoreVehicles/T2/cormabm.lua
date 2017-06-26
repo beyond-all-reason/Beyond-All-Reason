@@ -33,7 +33,7 @@ return {
 		objectname = "CORMABM",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 450,
 		trackoffset = 6,
 		trackstrength = 5,

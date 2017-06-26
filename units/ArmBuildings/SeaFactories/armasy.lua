@@ -31,7 +31,7 @@ return {
 		objectname = "ARMASY",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 299,
 		terraformspeed = 1000,
 		waterline = 26,

@@ -35,7 +35,7 @@ return {
 		objectname = "ARMSHLTX",
 		script = "armshltx.cob",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingexplosiongeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,

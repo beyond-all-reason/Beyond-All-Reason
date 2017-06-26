@@ -34,7 +34,7 @@ return {
 		onoffable = true,
 		radardistance = 0,
 		radardistancejam = 450,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 300,
 		trackoffset = 8,
 		trackstrength = 10,

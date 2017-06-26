@@ -31,7 +31,7 @@ return {
 		name = "SAM",
 		objectname = "MADSAM",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

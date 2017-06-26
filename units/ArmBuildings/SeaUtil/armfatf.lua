@@ -29,7 +29,7 @@ return {
 		objectname = "ARMFATF",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",

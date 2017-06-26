@@ -29,7 +29,7 @@
 		nochasecategory = "VTOL",
 		objectname = "ARMROCK",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 338,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.1484,

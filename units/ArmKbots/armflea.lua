@@ -1,4 +1,4 @@
-return {
+﻿return {
 	armflea = {
 		acceleration = 0.5,
 		brakerate = 1.5,
@@ -15,7 +15,7 @@ return {
 		description = "Fast Scout Kbot",
 		energymake = 0.4,
 		energyuse = 0.4,
-		explodeas = "tinyexplosiongeneric",
+		explodeas = "tinyExplosionGeneric",
 		footprintx = 1,
 		footprintz = 1,
 		idleautoheal = 5,
@@ -30,13 +30,13 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFLEA",
 		seismicsignature = 0,
-		selfdestructas = "tinyexplosiongeneric",
+		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 550,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.904,
 		turnrate = 1672,
 		customparams = {
-			description_long = "Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! In T2 warfare fleas come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery. ",
+			--description_long = "Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! In T2 warfare fleas come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery. ",
 		},
 		featuredefs = {
 			dead = {

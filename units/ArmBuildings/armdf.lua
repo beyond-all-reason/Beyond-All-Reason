@@ -31,7 +31,7 @@ return {
 		name = "Fusion Reactor",
 		objectname = "ARMFUS",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 210,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooo ooooooo ooooooo ooooooo",

@@ -32,7 +32,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMAAS",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 0.8 *1200,
 		turninplace = true,
 		turninplaceanglelimit = 140,

@@ -35,7 +35,7 @@ return {
 		name = "Consul",
 		objectname = "ARMCONSUL",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 500,
 		terraformspeed = 750,
 		trackoffset = 6,

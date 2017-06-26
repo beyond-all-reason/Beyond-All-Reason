@@ -35,7 +35,7 @@ return {
 		objectname = "CORCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 338,
 		terraformspeed = 550,
 		turninplace = 1,

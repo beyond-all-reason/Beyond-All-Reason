@@ -35,7 +35,7 @@ return {
 		objectname = "ARMCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 351,
 		terraformspeed = 550,
 		turninplace = 1,

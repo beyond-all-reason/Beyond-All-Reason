@@ -34,7 +34,7 @@ return {
 		name = "Amphibious Complex",
 		objectname = "ASUBPEN",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 234,
 		terraformspeed = 750,
 		usebuildinggrounddecal = true,

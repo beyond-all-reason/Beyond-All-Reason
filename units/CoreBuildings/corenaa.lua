@@ -27,7 +27,7 @@ return {
 		name = "Cobra - NS",
 		objectname = "CORENAA",
 		seismicsignature = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 550,
 		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",

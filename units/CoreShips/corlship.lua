@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "CORLSHIP",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 0.8 *600,
 		turninplace = true,
 		turninplaceanglelimit = 16,

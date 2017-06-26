@@ -47,7 +47,7 @@ return {
 		radardistance = 50,
 		reclaimable = false,
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		showplayername = true,
 		sightdistance = 377,
 		terraformspeed = 750,

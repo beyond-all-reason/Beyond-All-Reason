@@ -28,7 +28,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSHIVA",
 		seismicsignature = 0,
-		selfdestructas = "hugeExplosionGeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 299,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0626,

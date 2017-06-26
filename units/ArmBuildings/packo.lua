@@ -31,7 +31,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "PACKO",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

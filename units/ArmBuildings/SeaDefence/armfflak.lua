@@ -25,7 +25,7 @@ return {
 		name = "Flakker NS",
 		objectname = "ARMFFLAK",
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 550,
 		waterline = 0.3,
 		yardmap = "wwwwwwwww",

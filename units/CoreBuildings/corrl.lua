@@ -30,7 +30,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORRL",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

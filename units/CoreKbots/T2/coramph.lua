@@ -31,7 +31,7 @@ return {
 		radardistance = 300,
 		script = "coramph.lua",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
 		sonardistance = 300,
 		sonarstealth = false,

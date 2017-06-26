@@ -29,7 +29,7 @@ return {
 		objectname = "CORVALK",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 260,
 		transportcapacity = 1,
 		transportmass = 5000,

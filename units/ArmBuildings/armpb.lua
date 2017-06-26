@@ -30,7 +30,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMPB",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 598,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

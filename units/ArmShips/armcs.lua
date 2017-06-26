@@ -33,7 +33,7 @@ return {
 		name = "Construction Corvette",
 		objectname = "ARMCS",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 700,
 		terraformspeed = 1250,
 		turninplace = true,
