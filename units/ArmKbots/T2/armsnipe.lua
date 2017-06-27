@@ -38,7 +38,7 @@ return {
 		turnrate = 1338,
 		upright = true,
 		customparams = {
-			
+			light_skip = true,
 		},
 		featuredefs = {
 			dead = {
