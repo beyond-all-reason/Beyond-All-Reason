@@ -144,6 +144,7 @@ unitDeaths = {
         soundstart = "largegun",
         explosiongenerator = "custom:genericbuildingexplosion-large",
         damage = {
+            commanders = 900,
             default = 1100,
         },
     },
@@ -157,6 +158,7 @@ unitDeaths = {
         soundstart = "largegun",
         explosiongenerator = "custom:genericbuildingexplosion-huge",
         damage = {
+            commanders = 1400,
             default = 2400,
         },
     },
@@ -234,7 +236,36 @@ unitDeaths = {
     advgeo = {
         weaponType = "Cannon",
         AreaOfEffect = 1280,
-        cameraShake = 750,
+        cameraShake = 1280,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplonuk3",
+        soundstart = "largegun",
+        explosiongenerator="custom:nukedatbewm",
+        damage = {
+            commanders = 2500,
+            default = 9500,
+        },
+    },
+
+    nukeBuilding = {
+        weaponType = "Cannon",
+        AreaOfEffect = 480,
+        cameraShake = 480,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplonuk3",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericbuildingexplosion-huge",
+        damage = {
+            commanders = 1400,
+            default = 2400,
+        },
+    },
+    nukeBuildingSelfd = {
+        weaponType = "Cannon",
+        AreaOfEffect = 1280,
+        cameraShake = 1280,
         impulseboost = impulseboost,
         impulsefactor = impulsefactor,
         soundhit = "xplonuk3",
