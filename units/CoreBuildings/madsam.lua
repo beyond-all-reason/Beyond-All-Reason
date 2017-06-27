@@ -136,7 +136,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "packolau",
 				soundtrigger = true,
-				startvelocity = 600,
+				startvelocity = 540,
 				texture2 = "coresmoketrail",
 				tolerance = 9950,
 				tracks = true,
