@@ -145,6 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
 			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
 			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
+
 			-- armcom and corcom leave wreckage behind
 			if unitDefID == armcomDefID or unitDefID == corcomDefID then
 

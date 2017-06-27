@@ -105,7 +105,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		local params = explode(':', msg)
-		giveunits(params[2], params[3], params[4], params[5], params[6], playerID)
+		giveunits(tonumber(params[2]), params[3], tonumber(params[4]), tonumber(params[5]), tonumber(params[6]), playerID)
 		return true
 	end
 
