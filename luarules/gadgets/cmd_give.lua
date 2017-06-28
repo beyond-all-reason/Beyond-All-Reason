@@ -67,7 +67,6 @@ if gadgetHandler:IsSyncedCode() then
 				local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
 				if unitID ~= nil then
 					succesfullyCreated = succesfullyCreated + 1
-					Spring.SendMessageToPlayer(playerID, "Gave team "..teamID.." a "..unitName.."  (unitID:"..unitID..")")
 				end
 			end
 			if succesfullyCreated > 0 then
