@@ -41,7 +41,7 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 240,
 		unloadspread = 1,
-		waterline = 33,
+		waterline = 11,
 		customparams = {
 			death_sounds = "generic",
 		},
