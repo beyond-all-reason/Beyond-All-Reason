@@ -28,7 +28,7 @@ Balance changes:
 - Air transports don't have collision enabled anylonger, fixes the unload bug
 - EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
 - Pathing improvement: units wont get stuck in cliffs any longer
-- Decoy commanders 8% cheaper + added Radar, LLT and AA as buildoptions
+- Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
 
 Wind:
 - Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way

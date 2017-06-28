@@ -55,7 +55,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 1148,
 		upright = true,
-		workertime = 150,
+		workertime = 300,
 		buildoptions = {
 			[1] = "armmine1",
 			[2] = "armmine2",

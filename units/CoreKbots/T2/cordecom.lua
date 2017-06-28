@@ -55,7 +55,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 1133,
 		upright = true,
-		workertime = 150,
+		workertime = 300,
 		buildoptions = {
 			[1] = "cormine1",
 			[2] = "cormine2",
