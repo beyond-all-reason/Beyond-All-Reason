@@ -1,9 +1,9 @@
 return {
 	armpship6 = {
-		acceleration = 2.80/95,
+		acceleration = 2.80/155,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 2.80/27.5,
+		brakerate = 2.80/25,
 		blocking = true,
 		buildcostenergy = 2500,
 		buildcostmetal = 550,
