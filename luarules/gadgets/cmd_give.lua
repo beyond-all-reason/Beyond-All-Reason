@@ -63,12 +63,13 @@ if gadgetHandler:IsSyncedCode() then
 			Spring.SendMessageToPlayer(playerID, "Unitname '"..unitName.."' isnt valid")
 		else
 			local succesfullyCreated = 0
-			--for i=1, amount do
+			for i=1, amount do
 				local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
 				if unitID ~= nil then
 					succesfullyCreated = succesfullyCreated + 1
+					Spring.SendMessageToPlayer(playerID, "Gave team "..teamID.." a "..unitName)
 				end
-			--end
+			end
 			if succesfullyCreated > 0 then
 				Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
 				Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)
