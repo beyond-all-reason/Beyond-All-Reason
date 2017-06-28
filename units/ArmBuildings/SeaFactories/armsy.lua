@@ -40,14 +40,12 @@ return {
 		buildoptions = {
 			[1] = "armcs",
 			[2] = "armpt",
-			[3] = "armpship",
-			[4] = "armdecade",
-			[5] = "armmisc",
-			[6] = "armsub",
-			[7] = "armrecl",
-			[8] = "armlroy",
-			[9] = "armroy",
-			[10] = "armtship",
+			[4] = "armpship",
+			[3] = "armdecade",
+			[5] = "armsub",
+			[6] = "armrecl",
+			[7] = "armroy",
+			[8] = "armtship",
 
 		},
 		customparams = {
