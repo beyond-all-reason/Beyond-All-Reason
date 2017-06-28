@@ -33,7 +33,7 @@ return {
 		onoffable = true,
 		radardistancejam = 980,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 390,
 		turninplace = 0,
 		turninplaceanglelimit = 180,

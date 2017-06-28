@@ -34,7 +34,7 @@ return {
 		objectname = "ARMCS",
 		repairtime = 125,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 400,
 		terraformspeed = 1250,
 		turninplace = 0,

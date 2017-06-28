@@ -30,7 +30,7 @@ return {
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "ARMDECADE",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 429,
 		turninplace = 0,
 		turninplaceanglelimit = 140,

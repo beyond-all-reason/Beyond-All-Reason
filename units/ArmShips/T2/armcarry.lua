@@ -25,7 +25,7 @@ return {
 		energypershot = 7500,
 		energystorage = 1500,
 		energyuse = 25,
-		explodeas = "hugeexplosiongeneric",
+		explodeas = "hugeexplosiongenericSelfd",
 		floater = true,
 		footprintx = 4,
 		footprintz = 8,

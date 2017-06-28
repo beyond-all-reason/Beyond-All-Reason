@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMSERP",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 468,
 		sonardistance = 550,
 		turninplaceanglelimit = 180,

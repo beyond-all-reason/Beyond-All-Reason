@@ -32,7 +32,7 @@ return {
 		name = "Valiant",
 		objectname = "ARMMLS",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 260,
 		terraformspeed = 2000,
 		turninplace = 0,

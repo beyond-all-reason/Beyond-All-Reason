@@ -31,7 +31,7 @@ return {
 		name = "Grim Reaper",
 		objectname = "ARMRECL",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallexplosiongenericSelfd",
 		sightdistance = 430,
 		sonardistance = 270,
 		terraformspeed = 2250,
