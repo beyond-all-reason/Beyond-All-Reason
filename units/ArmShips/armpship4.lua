@@ -1,6 +1,6 @@
 return {
 	armpship4 = {
-		acceleration = 2.80/135,
+		acceleration = 2.80/300,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
 		brakerate = 2.80/25,

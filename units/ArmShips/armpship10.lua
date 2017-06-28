@@ -1,6 +1,6 @@
 return {
 	armpship10 = {
-		acceleration = 2.80/180,
+		acceleration = 2.80/210,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
 		brakerate = 2.80/25,
@@ -36,7 +36,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 0.8 *600,
 		turninplace = true,
-		turninplaceanglelimit = 180,
+		turninplaceanglelimit = 160,
 		turninplacespeedlimit = 1.80,
 		turnrate = 1.5*180,
 		waterline = 3,
