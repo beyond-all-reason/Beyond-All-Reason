@@ -71,6 +71,10 @@ return {
 			[12] = "armuwes",
 			[13] = "armuwmex",
 			[14] = "armfmkr",
+			[15] = "armllt",
+			[16] = "armrl",
+			[17] = "armrad",
+			[18] = "armcube",
 		},
 		customparams = {
 			

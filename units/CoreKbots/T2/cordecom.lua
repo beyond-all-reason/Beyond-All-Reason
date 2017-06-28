@@ -71,6 +71,10 @@ return {
 			[12] = "coruwes",
 			[13] = "coruwmex",
 			[14] = "corfmkr",
+			[15] = "corllt",
+			[16] = "corrl",
+			[17] = "corrad",
+			[18] = "armcube",
 		},
 		customparams = {
 			
