@@ -1,9 +1,9 @@
 return {
 	armpship2 = {
-		acceleration = 2.80/45,
+		acceleration = 2.80/50,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 2.80/45,
+		brakerate = 2.80/50,
 		blocking = true,
 		buildcostenergy = 2500,
 		buildcostmetal = 550,
@@ -37,8 +37,8 @@ return {
 		sightdistance = 0.8 *600,
 		turninplace = false,
 		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 180,
+		turninplacespeedlimit = 1.80,
+		turnrate = 1.5*180,
 		waterline = 3,
 		customparams = {
 			

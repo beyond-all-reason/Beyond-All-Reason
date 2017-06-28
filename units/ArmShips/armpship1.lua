@@ -37,7 +37,7 @@ return {
 		sightdistance = 0.8 *600,
 		turninplace = false,
 		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
+		turninplacespeedlimit = 1.80,
 		turnrate = 1.5*180,
 		waterline = 3,
 		customparams = {
