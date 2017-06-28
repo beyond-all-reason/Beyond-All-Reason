@@ -52,7 +52,7 @@ return {
 		terraformspeed = 5000,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 2.80,
-		turnrate = 120,
+		turnrate = 1.5*120,
 		waterline = 7,
 		workertime = 1000,
 		customparams = {
@@ -158,7 +158,7 @@ return {
 				stockpiletime = 90,
 				tolerance = 4000,
 				tracks = true,
-				turnrate = 130000,
+				turnrate = 1.5*130000,
 				weaponacceleration = 150,
 				weapontimer = 5,
 				weapontype = "StarburstLauncher",

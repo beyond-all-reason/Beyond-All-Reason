@@ -34,7 +34,7 @@ return {
 		sonardistance = 475,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 1.584,
-		turnrate = 520,
+		turnrate = 1.5*520,
 		upright = true,
 		waterline = 30,
 		customparams = {
@@ -134,7 +134,7 @@ return {
 				soundstart = "torpedo1",
 				startvelocity = 100,
 				tolerance = 12000,
-				turnrate = 12000,
+				turnrate = 1.5*12000,
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 15,

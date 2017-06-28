@@ -35,7 +35,7 @@ return {
 		sonardistance = 525,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 3.20,
-		turnrate = 240,
+		turnrate = 1.5*240,
 		upright = true,
 		waterline = 30,
 		customparams = {
@@ -133,7 +133,7 @@ return {
 				startvelocity = 120,
 				tolerance = 18000,
 				tracks = true,
-				turnrate = 12000,
+				turnrate = 1.5*12000,
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 20,

@@ -38,7 +38,7 @@ return {
 		turninplace = false,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 2.40,
-		turnrate = 180,
+		turnrate = 1.5*180,
 		waterline = 3,
 		customparams = {
 			

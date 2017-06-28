@@ -40,7 +40,7 @@ return {
 		terraformspeed = 1500,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 2.40,
-		turnrate = 520,
+		turnrate = 1.5*520,
 		waterline = 35,
 		workertime = 300,
 		buildoptions = {

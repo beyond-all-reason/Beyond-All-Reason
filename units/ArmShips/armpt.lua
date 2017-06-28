@@ -37,7 +37,7 @@ return {
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.4914,
-		turnrate = 640,
+		turnrate = 1.5*640,
 		waterline = 3,
 		customparams = {
 			death_sounds = "generic",
@@ -179,7 +179,7 @@ return {
 				texture2 = "armsmoketrail",
 				tolerance = 9000,
 				tracks = true,
-				turnrate = 63000,
+				turnrate = 1.5*63000,
 				turret = true,
 				weaponacceleration = 250,
 				weapontimer = 5,

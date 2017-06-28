@@ -41,7 +41,7 @@ return {
 		sightdistance = 689,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 2.40,
-		turnrate = 320,
+		turnrate = 1.5*320,
 		waterline = 13,
 		customparams = {
 			death_sounds = "generic",

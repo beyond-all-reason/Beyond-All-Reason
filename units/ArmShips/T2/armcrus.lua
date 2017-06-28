@@ -38,7 +38,7 @@ return {
 		turninplace = 0,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 2.80,
-		turnrate = 180,
+		turnrate = 1.5*180,
 		waterline = 5,
 		customparams = {
 			death_sounds = "generic",
@@ -178,7 +178,7 @@ return {
 				startvelocity = 110,
 				tolerance = 32767,
 				tracks = true,
-				turnrate = 9800,
+				turnrate = 1.5*9800,
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 15,
