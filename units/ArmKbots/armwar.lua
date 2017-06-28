@@ -36,8 +36,7 @@ return {
 		turnrate = 770,
 		upright = true,
 		customparams = {
-			description_long = "A Rocko is a light rocket Kbot used mainly to push the frontline towards opponent’s base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Rockos can force him to retreat. In bigger numbers and with repairing support of resurrection Kbots they are able to take down more advanced defensive structures. Very ineffective against mobile units, look out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing Light Laser Turrets.",  
-		},
+			description_long = "The Warrior is a durable Kbot armed with a rapid firing double laser. It has a relatively high HP for T1 and can easily take down multiple light assault units, like A.K.'s, Peewees etc. Often referred to as "mobile LLT". Their range is enough to overshoot Commanders, so with a little micro it may be used to force them to retreat. Always combine with resurrection Kbots for healing and resurrecting fallen units",		},
 		featuredefs = {
 			dead = {
 				blocking = true,
