@@ -30,7 +30,7 @@ return {
 		name = "Screamer",
 		objectname = "SCREAMER",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 600,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

@@ -28,7 +28,7 @@ return {
 		nochasecategory = "COMMANDER VTOL",
 		objectname = "CORBW",
 		seismicsignature = 0,
-		selfdestructas = "tinyExplosionGeneric",
+		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 364,
 		turninplaceanglelimit = 360,
 		turnrate = 1144,

@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORROY",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 0.8 *1300,
 		sonardistance = 0.8 *650,
 		turninplaceanglelimit = 11,

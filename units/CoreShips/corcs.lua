@@ -33,7 +33,7 @@ return {
 		name = "Construction Corvette",
 		objectname = "CORCS",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 700,
 		terraformspeed = 1250,
 		turninplace = true,
@@ -67,6 +67,8 @@ return {
 			[20] = "corfrt",
 			[21] = "corfhlt",
 			[22] = "corplat",
+			[23] = "armcube",
+			[24] = "armcube",
 		},
 		customparams = {
 			

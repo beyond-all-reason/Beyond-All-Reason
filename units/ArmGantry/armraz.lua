@@ -27,7 +27,7 @@ return {
 		name = "Razorback",
 		objectname = "ARMRAZ",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 450,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.518,

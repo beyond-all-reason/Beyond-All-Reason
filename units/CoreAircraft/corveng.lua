@@ -25,7 +25,7 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORVENG",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 210,
 		turnrate = 839,
 		blocking = false,

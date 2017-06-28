@@ -19,7 +19,7 @@ return {
 		energymake = 15,
 		energystorage = 100,
 		energyuse = 15,
-		explodeas = "smallbuilderboom",
+		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -34,7 +34,7 @@ return {
 		name = "Freaker",
 		objectname = "CORFAST",
 		seismicsignature = 0,
-		selfdestructas = "smallbuilderboom",
+		selfdestructas = "smallbuilderSelfd",
 		sightdistance = 520,
 		terraformspeed = 750,
 		turninplace = 1,
@@ -66,6 +66,7 @@ return {
 			[20] = "coramph",
 			[21] = "corcs",
 			[22] = "corroy",
+			[23] = "armcube",
 		},
 		customparams = {
 			

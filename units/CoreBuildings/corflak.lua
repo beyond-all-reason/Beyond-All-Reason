@@ -31,7 +31,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORFLAK",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",

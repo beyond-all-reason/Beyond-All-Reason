@@ -36,7 +36,7 @@ return {
 		objectname = "CORCV",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 260,
 		terraformspeed = 450,
 		trackoffset = 3,
@@ -79,6 +79,7 @@ return {
 			[28] = "corjamt",
 			[29] = "cjuno",
 			[30] = "corsy",
+			[31] = "armcube",
 		},
 		customparams = {
 			

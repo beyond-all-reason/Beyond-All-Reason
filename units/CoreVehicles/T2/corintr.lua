@@ -33,7 +33,7 @@ return {
 		objectname = "CORINTR",
 		releaseheld = true,
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 292,
 		trackoffset = -14,
 		trackstrength = 10,

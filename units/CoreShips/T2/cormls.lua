@@ -33,7 +33,7 @@ return {
 		minwaterdepth = 15,
 		movementclass = "BOATCORVETTE2X4",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
 		terraformspeed = 2000,
 		turninplace = true,
@@ -62,6 +62,7 @@ return {
 			[18] = "corsub",
 			[19] = "coramph",
 			[20] = "corfmine3",
+			[21] = "armcube",
 		},
 		customparams = {
 			

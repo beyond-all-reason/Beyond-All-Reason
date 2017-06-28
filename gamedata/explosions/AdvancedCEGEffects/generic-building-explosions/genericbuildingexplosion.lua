@@ -37,9 +37,8 @@ local definitions = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
       air                = false,
-      ground             = false,
+      ground             = true,
       unit               = false,
-      nounit             = true,
       water              = false,
       properties = {
         colormap           = [[1 0.15 0.05 0.4   1 0.15 0.05 0.3   0 0 0 0.01]],
@@ -314,8 +313,8 @@ local definitions = {
         particlelifespread = 15,
         particlesize       = 2,
         particlesizespread = 3,
-        particlespeed      = 3.3,
-        particlespeedspread = 7,
+        particlespeed      = 2.8,
+        particlespeedspread = 6.5,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0,
         sizemod            = 1,
@@ -340,8 +339,8 @@ local definitions = {
         particlelifespread = 15,
         particlesize       = 2,
         particlesizespread = 3,
-        particlespeed      = 3.3,
-        particlespeedspread = 7,
+        particlespeed      = 2.8,
+        particlespeedspread = 6.5,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0,
         sizemod            = 1,
@@ -366,8 +365,8 @@ local definitions = {
         particlelifespread = 12,
         particlesize       = 2,
         particlesizespread = 3,
-        particlespeed      = 3.3,
-        particlespeedspread = 7,
+        particlespeed      = 2.8,
+        particlespeedspread = 6.5,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0,
         sizemod            = 1,
@@ -652,7 +651,7 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 60,
+        numparticles       = 36,
         particlelifespread = 11,
         particlesize       = 3.3,
         particlesizespread = 10,
@@ -723,8 +722,8 @@ local sizes = {
         particlelife       = 40,
         particlesize       = 2.3,
         particlesizespread = 3,
-        particlespeed      = 5,
-        particlespeedspread = 10,
+        particlespeed      = 4,
+        particlespeedspread = 8,
       },
     },
     shard2 = {
@@ -796,7 +795,7 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 80,
+        numparticles       = 44,
         particlelifespread = 13,
         particlesize       = 4,
         particlesizespread = 13,
@@ -868,7 +867,7 @@ local sizes = {
         particlesize       = 2.5,
         particlesizespread = 4.5,
         particlespeed      = 5.5,
-        particlespeedspread = 11,
+        particlespeedspread = 10.5,
       },
     },
     shard2 = {
@@ -877,8 +876,8 @@ local sizes = {
         particlelife       = 50,
         particlesize       = 2.5,
         particlesizespread = 4.5,
-        particlespeed      = 5.5,
-        particlespeedspread = 11,
+        particlespeed      = 5,
+        particlespeedspread = 10.5,
       },
     },
     shard3 = {
@@ -887,8 +886,8 @@ local sizes = {
         particlelife       = 50,
         particlesize       = 2.5,
         particlesizespread = 4.5,
-        particlespeed      = 5.5,
-        particlespeedspread = 11,
+        particlespeed      = 5,
+        particlespeedspread = 10.5,
       },
     },
     clouddust = {
@@ -917,7 +916,7 @@ local sizes = {
       },
     },
   },
-	
+
   huge = {
     centerflare = {
       properties = {
@@ -940,13 +939,13 @@ local sizes = {
     },
     explosion = {
       properties = {
-        numparticles       = 90,
+        numparticles       = 50,
         particlelifespread = 15,
         particlesize       = 6,
         particlesizespread = 18,
         particlespeedspread = 8.5,
-	  }
-	},
+      }
+    },
     fireglow = {
       properties = {
         particlesize       = 75,
@@ -983,27 +982,27 @@ local sizes = {
     },
     sparks = {
       properties = {
-	    numparticles = 50,
-	    sizemod = 0.84,
+        numparticles = 50,
+        sizemod = 0.84,
         particlespeed      = 3.2,
         particlespeedspread = 7.4,
-	  }
+      }
     },
     dirt = {
       properties = {
-	    numparticles = 36,
+        numparticles = 36,
         particlelifespread = 55,
         particlespeed      = 6,
         particlespeedspread = 7.5,
-	  }
+      }
     },
     dirt2 = {
       properties = {
-	    numparticles = 18,
+        numparticles = 18,
         particlelifespread = 60,
         particlespeed      = 6.5,
         particlespeedspread = 10,
-	  }
+      }
     },
     shard1 = {
       properties = {
@@ -1011,8 +1010,8 @@ local sizes = {
         particlelife       = 55,
         particlesize       = 3,
         particlesizespread = 5,
-        particlespeed      = 7.5,
-        particlespeedspread = 14,
+        particlespeed      = 6.5,
+        particlespeedspread = 13,
       },
     },
     shard2 = {
@@ -1021,8 +1020,8 @@ local sizes = {
         particlelife       = 55,
         particlesize       = 3,
         particlesizespread = 5,
-        particlespeed      = 7.5,
-        particlespeedspread = 14,
+        particlespeed      = 6.5,
+        particlespeedspread = 13,
       },
     },
     shard3 = {
@@ -1031,14 +1030,14 @@ local sizes = {
         particlelife       = 55,
         particlesize       = 3,
         particlesizespread = 5,
-        particlespeed      = 7.5,
-        particlespeedspread = 14,
+        particlespeed      = 6.5,
+        particlespeedspread = 13,
       },
     },
     clouddust = {
       properties = {
         numparticles       = 10,
-      	particlelifespread = 500,
+        particlelifespread = 500,
         particlesize       = 100,
         particlesizespread = 100,
       }
@@ -1051,13 +1050,157 @@ local sizes = {
         particlesizespread = 5,
         particlespeed      = 9,
         particlespeedspread = 4,
-	  }
+      }
     },
     outerflash = {
       properties = {
         heat               = 20,
         maxheat            = 60,
         size               = 36,
+      },
+    },
+  },
+
+  gigantic = {
+    centerflare = {
+      properties = {
+        size               = 5.5,
+        sizegrowth         = 40,
+      },
+    },
+    groundflash_large = {
+      properties = {
+        colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
+        size               = 430,
+        ttl                = 33,
+      },
+    },
+    heatedgroundflash = {
+      properties = {
+        size = 45,
+        ttl = 53,
+      },
+    },
+    explosion = {
+      properties = {
+        numparticles       = 60,
+        particlelifespread = 17,
+        particlesize       = 7.5,
+        particlesizespread = 22,
+        particlespeedspread = 10.5,
+      }
+    },
+    fireglow = {
+      properties = {
+        particlesize       = 88,
+        particlelife       = 21,
+      }
+    },
+    fireglow2 = {
+      properties = {
+        particlesize       = 185,
+        particlelife       = 23,
+      }
+    },
+    innersmoke = {
+      properties = {
+        particleLife = 36,
+        particleLifeSpread = 100,
+        numParticles = 7,
+        particleSpeed = 3.2,
+        particleSpeedSpread = 16,
+        particleSize = 36,
+        particleSizeSpread = 44,
+      },
+    },
+    outersmoke = {
+      properties = {
+        particleLife = 23,
+        particleLifeSpread = 85,
+        numParticles = 5,
+        particleSpeed = 3.4,
+        particleSpeedSpread = 19,
+        particleSize = 65,
+        particleSizeSpread = 50,
+      },
+    },
+    sparks = {
+      properties = {
+        numparticles = 55,
+        sizemod = 0.85,
+        particlespeed      = 3.6,
+        particlespeedspread = 10.5,
+      }
+    },
+    dirt = {
+      properties = {
+        numparticles = 40,
+        particlelifespread = 60,
+        particlespeed      = 8,
+        particlespeedspread = 10.5,
+      }
+    },
+    dirt2 = {
+      properties = {
+        numparticles = 22,
+        particlelifespread = 65,
+        particlespeed      = 8.5,
+        particlespeedspread = 14,
+      }
+    },
+    shard1 = {
+      properties = {
+        numparticles       = [[11 r4.5]],
+        particlelife       = 55,
+        particlesize       = 3.4,
+        particlesizespread = 6,
+        particlespeed      = 8,
+        particlespeedspread = 15.5,
+      },
+    },
+    shard2 = {
+      properties = {
+        numparticles       = [[11 r4.5]],
+        particlelife       = 55,
+        particlesize       = 3.4,
+        particlesizespread = 6,
+        particlespeed      = 8,
+        particlespeedspread = 15.5,
+      },
+    },
+    shard3 = {
+      properties = {
+        numparticles       = [[11 r4.5]],
+        particlelife       = 55,
+        particlesize       = 3.4,
+        particlesizespread = 6,
+        particlespeed      = 8,
+        particlespeedspread = 15.5,
+      },
+    },
+    clouddust = {
+      properties = {
+        numparticles       = 12,
+        particlelifespread = 500,
+        particlesize       = 120,
+        particlesizespread = 120,
+      }
+    },
+    grounddust = {
+      properties = {
+        numparticles       = 150,
+        particlelifespread = 130,
+        particlesize       = 12,
+        particlesizespread = 6,
+        particlespeed      = 13,
+        particlespeedspread = 5.5,
+      }
+    },
+    outerflash = {
+      properties = {
+        heat               = 20,
+        maxheat            = 60,
+        size               = 45,
       },
     },
   },

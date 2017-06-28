@@ -34,7 +34,7 @@ return {
 		releaseheld = true,
 		--script = "armdfly_lus.lua",
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 318,
 		stealth = true,
 		transportcapacity = 30,

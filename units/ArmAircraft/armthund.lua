@@ -29,7 +29,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMTHUND",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 195,
 		turnrate = 829,
 		customparams = {
@@ -76,7 +76,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				explosiongenerator = "custom:genericshellexplosion-medium-dirty",
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 0.5,

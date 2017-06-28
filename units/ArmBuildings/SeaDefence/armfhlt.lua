@@ -28,7 +28,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "ARMFHLT",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 624,
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",

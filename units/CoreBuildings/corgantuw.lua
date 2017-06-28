@@ -36,7 +36,7 @@ return {
 		radardistance = 50,
 		script = "corgant.cob",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingexplosiongeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,

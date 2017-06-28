@@ -28,7 +28,7 @@ return {
 		name = "Hardened Metal Storage",
 		objectname = "ARMUWADVMS",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 195,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

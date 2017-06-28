@@ -34,7 +34,7 @@ return {
 		objectname = "CORMEX",
 		onoffable = false,
 		seismicsignature = 0,
-		selfdestructas = "tinyBuildingexplosiongeneric",
+		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
 		usebuildinggrounddecal = true,

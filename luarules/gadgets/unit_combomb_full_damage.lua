@@ -19,7 +19,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local COM_BLAST = WeaponDefNames['commander_blast'].id 
+local COM_BLAST = WeaponDefNames['commanderExplosion'].id 
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam) --we use UnitPreDamaged so as we get in before unit_transportfix has its effect
 

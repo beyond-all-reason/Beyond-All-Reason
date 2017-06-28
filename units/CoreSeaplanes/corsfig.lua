@@ -26,7 +26,7 @@ return {
 		nochasecategory = "NOTAIR",
 		objectname = "CORSFIG",
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 230,
 		turnrate = 1547,
 		blocking = false,

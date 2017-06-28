@@ -35,7 +35,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSOK",
 		radardistance = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		side = "CORE",
 		sightdistance = 650,
 		sonardistance = 700,

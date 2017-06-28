@@ -35,7 +35,7 @@ return {
 		name = "Construction Seaplane",
 		objectname = "CORCSA",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 351,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
@@ -57,6 +57,7 @@ return {
 			[[corenaa]],
 			[[coratl]],
 			[[corason]],
+			[[armcube]],
 		},
 		customparams = {
 			

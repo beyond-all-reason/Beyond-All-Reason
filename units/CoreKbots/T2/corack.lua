@@ -35,7 +35,7 @@ return {
 		objectname = "CORACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 318.5,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -73,6 +73,7 @@ return {
 			[26] = "corbuzz",
 			[27] = "corlab",
 			[28] = "coralab",
+			[29] = "armcube",
 		},
 		customparams = {
 			

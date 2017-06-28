@@ -35,7 +35,7 @@ return {
 		objectname = "ARMCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 351,
 		terraformspeed = 550,
 		turninplace = 1,
@@ -87,6 +87,7 @@ return {
 			[41] = "armfhlt",
 			[42] = "armfrt",
 			[43] = "armtl",
+			[44] = "armcube",
 		},
 		customparams = {
 			

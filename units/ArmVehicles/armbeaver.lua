@@ -35,7 +35,7 @@ return {
 		name = "Beaver",
 		objectname = "ARMBEAVER",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 266,
 		terraformspeed = 400,
 		trackstrength = 5,

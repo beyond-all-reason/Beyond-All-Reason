@@ -32,7 +32,7 @@ return {
 		onoffable = true,
 		radardistancejam = 500,
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingexplosiongeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {

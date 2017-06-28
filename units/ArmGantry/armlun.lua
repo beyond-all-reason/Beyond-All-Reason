@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMLUN",
 		radardistance = 0,
-		selfdestructas = "largeexplosiongeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 620,
 		sonardistance = 550,
 		turninplace = 0,

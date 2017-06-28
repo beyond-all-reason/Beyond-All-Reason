@@ -26,7 +26,7 @@ return {
 		name = "Big Bertha",
 		objectname = "ARMBRTHA",
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingExplosionGeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,

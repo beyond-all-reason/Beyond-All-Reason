@@ -30,7 +30,7 @@ return {
 		name = "HLLT",
 		objectname = "HLLT",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingexplosiongeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 475,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",

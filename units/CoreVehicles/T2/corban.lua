@@ -32,7 +32,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORBAN",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 546,
 		trackoffset = 8,
 		trackstrength = 10,

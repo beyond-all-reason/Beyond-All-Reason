@@ -35,7 +35,7 @@ return {
 		objectname = "CORACSUB",
 		radardistance = 350,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 700,
 		terraformspeed = 1500,
 		turninplaceanglelimit = 140,
@@ -58,6 +58,7 @@ return {
 			[12] = "corason",
 			[13] = "corenaa",
 			[14] = "coratl",
+			[15] = "armcube",
 		},
 		customparams = {
 			

@@ -35,7 +35,7 @@ return {
 		objectname = "ARMACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 323.70001,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -74,6 +74,7 @@ return {
 			[27] = "armdf",
 			[28] = "armlab",
 			[29] = "armalab",
+			[30] = "armcube",
 		},
 		customparams = {
 			

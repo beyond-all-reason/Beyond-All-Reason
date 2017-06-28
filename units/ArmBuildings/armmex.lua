@@ -34,7 +34,7 @@ return {
 		objectname = "ARMMEX",
 		onoffable = false,
 		seismicsignature = 0,
-		selfdestructas = "tinyBuildingExplosionGeneric",
+		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
 		usebuildinggrounddecal = true,

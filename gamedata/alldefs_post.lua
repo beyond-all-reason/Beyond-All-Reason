@@ -37,10 +37,10 @@ local vehUnits = {
 	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', corintr='', corban='', cortrem='',
 }
 local vehAdditionalTurnrate = 0
-local vehTurnrateMultiplier = 1.045
+local vehTurnrateMultiplier = 1.02
 
 local vehAdditionalAcceleration = 0.01
-local vehAccelerationMultiplier = 1.17
+local vehAccelerationMultiplier = 1.13
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.02
@@ -127,7 +127,15 @@ end
 -- process weapondef
 function WeaponDef_Post(name, wDef)
   wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
-  
+
+  -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
+	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
+		wDef["damage"].hvyboats = wDef["damage"].heavyunits 
+	elseif not wDef["damage"].heavyunits then 
+		wDef["damage"].hvyboats = wDef["damage"].default
+	end
+  -- end of artificial ArmorDefs tree
+ 
 	if wDef.weapontype == "Cannon" then
 		if wDef.stages == nil then
 			wDef.stages = 9
@@ -158,54 +166,54 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
-		if (modOptions.mo_seaplatforms == "enabled") then
-			Spring.Echo("Sea Platforms enabled")
+		-- if (modOptions.mo_seaplatforms == "enabled") then
+			-- Spring.Echo("Sea Platforms enabled")
 			
-				for id,unitDef in pairs(UnitDefs) do
-					if unitDef.name == "Platform" then
-						cubeID = id
-					end
-				end
-				for id,unitDef in pairs(UnitDefs) do
+				-- for id,unitDef in pairs(UnitDefs) do
+					-- if unitDef.name == "Platform" then
+						-- cubeID = id
+					-- end
+				-- end
+				-- for id,unitDef in pairs(UnitDefs) do
 
-					if unitDef.objectname == "CORMLS" then
-						unitDef["buildoptions"][21] = "armcube"
-					end
-					if unitDef.objectname == "ARMMLS" then
-						unitDef["buildoptions"][21] = "armcube"
-					end
-					if unitDef.objectname == "CORCSA" then
-						unitDef["buildoptions"][15] = "armcube"
-					end
-					if unitDef.objectname == "ARMCSA" then
-						unitDef["buildoptions"][15] = "armcube"
-					end
-					if unitDef.objectname == "ARMCONSUL" then
-						unitDef["buildoptions"][23] = "armcube"
-					end
-					if unitDef.objectname == "CORFAST" then
-						unitDef["buildoptions"][23] = "armcube"
-					end
-					if unitDef.objectname == "CORCH" then
-						unitDef["buildoptions"][44] = "armcube"
-					end
-					if unitDef.objectname == "ARMCH" then
-						unitDef["buildoptions"][44] = "armcube"
-					end
-					if unitDef.objectname == "CORCK" then
-						unitDef["buildoptions"][31] = "armcube"
-					end
-					if unitDef.objectname == "ARMCK" then
-						unitDef["buildoptions"][31] = "armcube"
-					end
-					if unitDef.objectname == "CORCV" then
-						unitDef["buildoptions"][31] = "armcube"
-					end
-					if unitDef.objectname == "ARMCV" then
-						unitDef["buildoptions"][31] = "armcube"
-					end
-				end
-		end
+					-- if unitDef.objectname == "CORMLS" then
+						-- unitDef["buildoptions"][21] = "armcube"
+					-- end
+					-- if unitDef.objectname == "ARMMLS" then
+						-- unitDef["buildoptions"][21] = "armcube"
+					-- end
+					-- if unitDef.objectname == "CORCSA" then
+						-- unitDef["buildoptions"][15] = "armcube"
+					-- end
+					-- if unitDef.objectname == "ARMCSA" then
+						-- unitDef["buildoptions"][15] = "armcube"
+					-- end
+					-- if unitDef.objectname == "ARMCONSUL" then
+						-- unitDef["buildoptions"][23] = "armcube"
+					-- end
+					-- if unitDef.objectname == "CORFAST" then
+						-- unitDef["buildoptions"][23] = "armcube"
+					-- end
+					-- if unitDef.objectname == "CORCH" then
+						-- unitDef["buildoptions"][44] = "armcube"
+					-- end
+					-- if unitDef.objectname == "ARMCH" then
+						-- unitDef["buildoptions"][44] = "armcube"
+					-- end
+					-- if unitDef.objectname == "CORCK" then
+						-- unitDef["buildoptions"][31] = "armcube"
+					-- end
+					-- if unitDef.objectname == "ARMCK" then
+						-- unitDef["buildoptions"][31] = "armcube"
+					-- end
+					-- if unitDef.objectname == "CORCV" then
+						-- unitDef["buildoptions"][31] = "armcube"
+					-- end
+					-- if unitDef.objectname == "ARMCV" then
+						-- unitDef["buildoptions"][31] = "armcube"
+					-- end
+				-- end
+		-- end
 		
 		if (modOptions.logicalbuildtime == "enabled") then
 			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")

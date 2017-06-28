@@ -30,7 +30,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFLEA",
 		seismicsignature = 0,
-		selfdestructas = "tinyexplosiongeneric",
+		selfdestructas = "tinyexplosiongenericSelfd",
 		sightdistance = 550,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.904,

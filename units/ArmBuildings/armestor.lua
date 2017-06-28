@@ -31,7 +31,7 @@ return {
 		name = "Karate Energy Storage",
 		objectname = "ARMESTOR",
 		seismicsignature = 0,
-		selfdestructas = "energystorage",
+		selfdestructas = "energystorageSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

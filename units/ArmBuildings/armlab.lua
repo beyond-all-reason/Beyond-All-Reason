@@ -35,7 +35,7 @@ return {
 		objectname = "ARMLAB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 290,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,

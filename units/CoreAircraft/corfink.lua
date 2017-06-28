@@ -28,7 +28,7 @@ return {
 		objectname = "CORFINK",
 		radardistance = 1120,
 		seismicsignature = 0,
-		selfdestructas = "tinyExplosionGeneric",
+		selfdestructas = "tinyExplosionGenericSelfd",
 		selfdestructcountdown = 1,
 		sightdistance = 835,
 		turnrate = 770,

@@ -359,15 +359,11 @@ local armorDefs = {
 		--"armfgate", Not currently used by BA
 		--"corfgate", Not currently used by BA
 	},
-	scouts = {
+	lboats = {
 		"corpt",
 		"armpt",
 		"armpship",
-		"corlship",
-		},
-
-	corvettes = {
-
+		"corpship",
 		"armcs",
 		"armmls",
 		"armsjam",
@@ -376,56 +372,36 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"armmisc",
-		"cormisc",
-		"corartic",
-
 		},
 
-	destroyers = {
+	hvyboats = {
 		"armroy",
-		"armlroy",
 		"corroy",
 		"corarch",
 		"armaas",
-		},
-
-	cruisers = {
-
 		"armcrus",
 		"armmship",
 		"corcrus",
 		"cormship",
-		},
-
-	carriers = {
 		"armcarry",
 		"corcarry",
 		"armtship",
 		"cortship",
-		},
-		
-	battleships = {
 		"armbats",
 		"corbats",
-		},
-
-	flagships = {
 		"armepoch",
 		"corblackhy",
 		},
-	lightsubmarines = {
+		
+	subs = {
 		"armsub",
 		"corsub",
-        	"armsubk",
+        "armsubk",
 		"corshark",
-		},
-
-	heavysubmarines = {
-        	"corssub",
+        "corssub",
 		"armserp",
 		"armacsub",
-        	"coracsub",
+        "coracsub",
 		},
 }
 

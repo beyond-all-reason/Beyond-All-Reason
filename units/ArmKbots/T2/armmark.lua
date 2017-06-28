@@ -31,7 +31,7 @@ return {
 		objectname = "ARMMARK",
 		onoffable = true,
 		radardistance = 2200,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 900,
 		sonardistance = 0,
 		turninplaceanglelimit = 140,

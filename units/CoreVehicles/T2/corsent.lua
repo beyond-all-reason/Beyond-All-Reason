@@ -31,7 +31,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "CORSENT",
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 338,
 		trackoffset = 6,
 		trackstrength = 5,

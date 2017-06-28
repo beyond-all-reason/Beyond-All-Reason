@@ -20,7 +20,7 @@ return {
 		energymake = 12,
 		energystorage = 25,
 		energyuse = 12,
-		explodeas = "smallbuilderboom",
+		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -36,7 +36,7 @@ return {
 		objectname = "ARMFARK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallbuilderboom",
+		selfdestructas = "smallbuilderSelfd",
 		sightdistance = 377,
 		terraformspeed = 600,
 		turninplace = 1,
@@ -53,6 +53,7 @@ return {
 			[5] = "armeyes",
 			[6] = "armmark",
 			[7] = "armaser",
+			[8] = "armcube",
 		},
 		customparams = {
 			

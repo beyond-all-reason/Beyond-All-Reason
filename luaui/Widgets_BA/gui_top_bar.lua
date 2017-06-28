@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local height = 38
+local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
 local bladeSpeedMultiplier = 0.22
@@ -29,7 +30,7 @@ local comTexture						= LUAUI_DIRNAME.."Images/comIcon.png"
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
-local xPos = vsx*0.3
+local xPos = vsx*relXpos
 local currentWind = 0
 
 local glTranslate				= gl.Translate
@@ -114,7 +115,7 @@ end
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
-	xPos = vsx*0.3
+	xPos = vsx*relXpos
 	init()
 end
 
@@ -470,44 +471,54 @@ local function updateWind()
 end
 
 local function updateResbarValues(res)
-	
-	if dlistResbar[res][3] ~= nil then
-		glDeleteList(dlistResbar[res][3])
-	end
-	dlistResbar[res][3] = glCreateList( function()
-		local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
-	
-		local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-		local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5
 
-		local cappedCurRes = r[1]	-- limit so when production dies the value wont be much larger than what you can store
-		if r[1] > r[2]*1.07 then
-			cappedCurRes = r[2]*1.07
-		end
+    if dlistResbar[res][3] ~= nil then
+        glDeleteList(dlistResbar[res][3])
+    end
+    dlistResbar[res][3] = glCreateList( function()
+        local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
 
-		-- Bar value
-		glColor(resbarDrawinfo[res].barColor)
-		glTexture(barbg)
-		glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
-		
-		-- Bar value glow
-		glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.06)
-		glTexture(barGlowCenterTexture)
-		glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
-		glTexture(barGlowEdgeTexture)
-		glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
-		glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
-		
-		-- Text: current
-		glColor(1, 1, 1, 1)
-		glText(short(cappedCurRes), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-		-- Text: storage
-		glText("\255\133\133\133"..short(r[2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
-		-- Text: pull
-		glText("\255\200\100\100"..short(r[3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
-		-- Text: income
-		glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
-	end)
+        local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
+        local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5
+
+        local cappedCurRes = r[1]	-- limit so when production dies the value wont be much larger than what you can store
+        if r[1] > r[2]*1.07 then
+            cappedCurRes = r[2]*1.07
+        end
+
+        -- Bar value
+        glColor(resbarDrawinfo[res].barColor)
+        glTexture(barbg)
+        glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
+
+        -- Bar value glow
+        glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.06)
+        glTexture(barGlowCenterTexture)
+        glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
+        glTexture(barGlowEdgeTexture)
+        glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
+        glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
+
+        -- Text: current
+        glColor(1, 1, 1, 1)
+        glText(short(cappedCurRes), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+   end)
+end
+
+local function updateResbarText(res)
+
+    if dlistResbar[res][4] ~= nil then
+        glDeleteList(dlistResbar[res][4])
+    end
+    dlistResbar[res][4] = glCreateList( function()
+        local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
+        -- Text: storage
+        glText("\255\133\133\133"..short(r[2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+        -- Text: pull
+        glText("\255\200\100\100"..short(r[3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+        -- Text: income
+        glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+    end)
 end
 
 
@@ -622,6 +633,7 @@ local function updateResbar(res)
 	end
 	
 	updateResbarValues(res)
+    updateResbarText(res)
 end
 
 
@@ -724,7 +736,11 @@ function widget:GameFrame(n)
 	if lastUpdateFrame ~= currentUpdateFrame then
 		updateResbarValues('metal')
 		updateResbarValues('energy')
-	end
+    end
+    if n % 30 == 1 then
+        updateResbarText('metal')
+        updateResbarText('energy')
+    end
 	lastUpdateFrame = currentUpdateFrame
 end
 
@@ -841,15 +857,17 @@ function widget:DrawScreen()
 		glCallList(dlistBackground)
 	end
 	
-	if dlistResbar['metal'][1] then
+	if dlistResbar['metal'][1] and dlistResbar['metal'][2] and dlistResbar['metal'][3] and dlistResbar['metal'][4] then
 		glCallList(dlistResbar['metal'][1])
-		glCallList(dlistResbar['metal'][3])
+        glCallList(dlistResbar['metal'][3])
+        glCallList(dlistResbar['metal'][4])
 		glCallList(dlistResbar['metal'][2])
 	end
-	
-	if dlistResbar['energy'][1] then
+
+	if dlistResbar['energy'][1] and dlistResbar['energy'][2] and dlistResbar['energy'][3] and dlistResbar['energy'][4] then
 		glCallList(dlistResbar['energy'][1])
-		glCallList(dlistResbar['energy'][3])
+        glCallList(dlistResbar['energy'][3])
+        glCallList(dlistResbar['energy'][4])
 		glCallList(dlistResbar['energy'][2])
 	end
 	
@@ -1234,10 +1252,14 @@ function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	if dlistBackground ~= nil then
 		glDeleteList(dlistBackground)
-		glDeleteList(dlistResbar['metal'][1])
-		glDeleteList(dlistResbar['metal'][2])
-		glDeleteList(dlistResbar['energy'][1])
-		glDeleteList(dlistResbar['energy'][2])
+        glDeleteList(dlistResbar['metal'][1])
+        glDeleteList(dlistResbar['metal'][2])
+        glDeleteList(dlistResbar['metal'][3])
+        glDeleteList(dlistResbar['metal'][4])
+        glDeleteList(dlistResbar['energy'][1])
+        glDeleteList(dlistResbar['energy'][2])
+        glDeleteList(dlistResbar['energy'][3])
+        glDeleteList(dlistResbar['energy'][4])
 		glDeleteList(dlistWind1)
 		glDeleteList(dlistWind2)
 		glDeleteList(dlistComs1)

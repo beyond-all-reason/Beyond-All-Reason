@@ -30,7 +30,7 @@ return {
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "ARMMART",
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 286,
 		trackoffset = -8,
 		trackstrength = 8,

@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.34999999403954,
-		explosiongenerator = "custom:genericunitexplosion-small-white",
+		explosiongenerator = "custom:genericunitexplosion-small-dirty",
 		impulseboost = 0,
 		impulsefactor = 0,
 		name = "WimpyCrawlingBomb",

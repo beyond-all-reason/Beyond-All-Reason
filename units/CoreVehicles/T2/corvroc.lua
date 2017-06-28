@@ -30,7 +30,7 @@ return {
 		nochasecategory = "MOBILE VTOL",
 		objectname = "CORVROC",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGeneric",
+		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 221,
 		stealth = true,
 		trackstrength = 8,

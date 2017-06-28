@@ -33,7 +33,7 @@ return {
 		radardistance = 2100,
 		radaremitheight = 52,
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 760,
 		waterline = 1,
 		yardmap = "wwwwwwwww",

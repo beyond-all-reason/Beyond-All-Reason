@@ -35,7 +35,7 @@ return {
 		radardistance = 500,
 		radaremitheight = 72,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 292,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,

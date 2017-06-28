@@ -29,7 +29,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMJETH",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 377,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.2375,

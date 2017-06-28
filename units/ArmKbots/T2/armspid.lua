@@ -30,7 +30,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMSPID",
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 550,
 		stealth = true,
 		turninplaceanglelimit = 140,

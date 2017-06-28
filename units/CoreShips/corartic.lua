@@ -31,7 +31,7 @@ return {
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "CORARTIC",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 0.8 *800,
 		turninplace = true,
 		turninplaceanglelimit = 10,

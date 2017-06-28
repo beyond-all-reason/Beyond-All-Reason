@@ -32,7 +32,7 @@ return {
 		objectname = "CORMAW",
 		radardistancejam = 8,
 		seismicsignature = 0,
-		selfdestructas = "tinyBuildingexplosiongeneric",
+		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 422,
 		stealth = true,
 		turnrate = 0,

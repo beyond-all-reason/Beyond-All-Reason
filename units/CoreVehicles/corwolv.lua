@@ -32,7 +32,7 @@ return {
 		objectname = "CORWOLV",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 299,
 		trackoffset = 6,
 		trackstrength = 5,

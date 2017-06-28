@@ -27,7 +27,7 @@ return {
 		objectname = "ARMPLAT",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
 		terraformspeed = 1000,
 		waterline = 53,

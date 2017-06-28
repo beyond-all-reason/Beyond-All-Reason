@@ -25,7 +25,7 @@ return {
 		name = "Urchin",
 		objectname = "CORTL",
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 455,
 		waterline = 13,
 		yardmap = "wwwwwwwww",

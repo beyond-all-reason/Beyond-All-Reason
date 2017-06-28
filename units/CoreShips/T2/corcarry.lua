@@ -40,7 +40,7 @@ return {
 		radardistance = 0.8 *3000,
 		radaremitheight = 56,
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 0.8 *1500,
 		sonardistance = 0.8 *760,
 		terraformspeed = 5000,

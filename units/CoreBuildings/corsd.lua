@@ -32,7 +32,7 @@ return {
 		onoffable = true,
 		seismicdistance = 2000,
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 225,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

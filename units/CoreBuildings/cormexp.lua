@@ -37,7 +37,7 @@ return {
 		objectname = "CORMEXP",
 		onoffable = false,
 		seismicsignature = 0,
-		selfdestructas = "hugeBuildingexplosiongeneric",
+		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 676,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",

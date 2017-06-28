@@ -29,7 +29,7 @@ return {
 		name = "Energy Converter",
 		objectname = "CORMAKR",
 		seismicsignature = 0,
-		selfdestructas = "metalmaker",
+		selfdestructas = "metalmakerSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo",

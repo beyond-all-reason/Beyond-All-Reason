@@ -35,7 +35,7 @@ return {
 		objectname = "CORCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 338,
 		terraformspeed = 550,
 		turninplace = 1,
@@ -87,6 +87,7 @@ return {
 			[41] = "corfhlt",
 			[42] = "corfrt",
 			[43] = "cortl",
+			[44] = "armcube",
 		},
 		customparams = {
 			

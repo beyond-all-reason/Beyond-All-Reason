@@ -28,7 +28,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "CORVIPE",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingexplosiongeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 546,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,

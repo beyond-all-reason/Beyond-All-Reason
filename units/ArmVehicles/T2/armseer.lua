@@ -33,7 +33,7 @@ return {
 		onoffable = true,
 		radardistance = 2300,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 900,
 		trackoffset = 5,
 		trackstrength = 5,

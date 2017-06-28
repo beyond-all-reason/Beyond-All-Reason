@@ -32,7 +32,7 @@ return {
 		pushresistant = true,
 		releaseheld = false,
 		seismicsignature = 0,
-		selfdestructas = "hugeexplosiongeneric",
+		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 750,
 		transportcapacity = 40,
 		transportsize = 4,

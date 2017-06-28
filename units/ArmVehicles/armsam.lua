@@ -30,7 +30,7 @@ return {
 		name = "Samson",
 		objectname = "ARMSAM",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 620,
 		trackoffset = -6,
 		trackstrength = 5,

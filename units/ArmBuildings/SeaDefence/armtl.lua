@@ -24,7 +24,7 @@ return {
 		name = "Harpoon",
 		objectname = "ARMTL",
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
 		waterline = 13,
 		yardmap = "wwwwwwwww",

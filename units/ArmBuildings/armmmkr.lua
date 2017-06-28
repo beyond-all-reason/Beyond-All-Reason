@@ -27,7 +27,7 @@ return {
 		name = "Moho Energy Converter",
 		objectname = "ARMMMKR",
 		seismicsignature = 0,
-		selfdestructas = "advmetalmaker",
+		selfdestructas = "advmetalmakerSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",

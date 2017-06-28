@@ -33,7 +33,7 @@ return {
 		name = "Advanced Solar Collector",
 		objectname = "ARMADVSOL",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 260,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oooo yooy yooy",

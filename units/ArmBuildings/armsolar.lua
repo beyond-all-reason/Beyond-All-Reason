@@ -33,7 +33,7 @@ return {
 		objectname = "ARMSOLAR",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingexplosiongeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "yyoyy yoooy ooooo yoooy yyoyy",

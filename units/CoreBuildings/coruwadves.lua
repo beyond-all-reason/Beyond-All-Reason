@@ -28,7 +28,7 @@ return {
 		name = "Hardened Energy Storage",
 		objectname = "CORUWADVES",
 		seismicsignature = 0,
-		selfdestructas = "advenergystorage",
+		selfdestructas = "advenergystorageSelfd",
 		sightdistance = 192,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",

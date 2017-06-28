@@ -30,7 +30,7 @@ return {
 		name = "Slasher",
 		objectname = "CORMIST",
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 620,
 		trackoffset = -6,
 		trackstrength = 5,

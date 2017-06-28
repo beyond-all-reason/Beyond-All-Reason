@@ -28,7 +28,7 @@ return {
 		name = "Arm Juno",
 		objectname = "AJUNO",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingexplosiongeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 494,
 		stealth = true,
 		usebuildinggrounddecal = true,

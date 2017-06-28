@@ -34,7 +34,7 @@ return {
 		radardistance = 2100,
 		radaremitheight = 66,
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingexplosiongeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 680,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,

@@ -30,7 +30,7 @@ return {
 		objectname = "CORSONAR",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingexplosiongeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 485,
 		sonardistance = 1200,
 		yardmap = "oooo",

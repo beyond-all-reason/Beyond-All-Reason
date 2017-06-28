@@ -3,7 +3,7 @@ function gadget:GetInfo()
 		name = "SeaPlatforms",
 		desc = "Handles Sea Platforms behaviours",
 		author = "[Fx]Doo",
-		date = "25th of October 2016",
+		date = "25 of June 2017",
 		license = "Free",
 		layer = 0,
 		enabled = true
@@ -18,6 +18,7 @@ unitDefID = Spring.GetUnitDefID(unitID)
 unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
 if unitName == "armcube" then
+-- Spring.Echo("go")
 --Spring.SetUnitNoDraw(unitID, true)
 Spring.SetUnitBlocking(unitID,false)
 Spring.SetUnitNoSelect(unitID, true)
@@ -27,46 +28,109 @@ GroundHeight[unitID] = Spring.GetGroundHeight(x,z)
 Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight[unitID])
 Spring.SetUnitMidAndAimPos(unitID, x, GroundHeight[unitID]/2, z, x, 4, z, false)
 Spring.SetUnitRadiusAndHeight(unitID, 24, -GroundHeight[unitID])
-Spring.SetUnitCollisionVolumeData(unitID, 48, -GroundHeight[unitID], 48, 0,0,0,2,1,0)
-Spring.LevelHeightMap(x-15,z-15,x+16,z+16, 1)
+Spring.SetUnitCollisionVolumeData(unitID, 96, -GroundHeight[unitID], 96, 0,0,0,2,1,0)
+Spring.LevelHeightMap(x-31,z-31,x+32,z+32, 1)
 --CHECK NORTHERN GroundHeight
 local i = -200
-	for l = -15,16 do
-	for k = 15,47 do
+	for l = -31,32 do
+
+	for k = 31,95 do
+
 		i = Spring.GetGroundHeight(x+l, z - k)
-			if i >= 2 and i <= 5 then
-				Spring.LevelHeightMap(x+l, z, x+l, z-k,1)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x-31, z, x+32, z-k,1)
+										-- Spring.Echo(i)
+				end
+		end	
+	end
+
+--CHECK NORTHWEST GroundHeight
+local i = -200
+	for l = -79,-31 do
+
+	for k = 31,95 do
+
+		i = Spring.GetGroundHeight(x+l, z - k)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x-79, z-31, x-31, z-k,1)
+										-- Spring.Echo(i)
+				end
+		end	
+	end
+
+--CHECK NORTHEAST GroundHeight
+local i = -200
+	for l = 32,80 do
+
+	for k = 31,95 do
+
+		i = Spring.GetGroundHeight(x+l, z - k)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x+32, z-31, x+80, z-k,1)
+										-- Spring.Echo(i)
+				end
+		end	
+	end
+	
+	
+-- Check southern
+local i = -200
+	for l = -31,32 do
+	for k = -96,-32 do
+		i = Spring.GetGroundHeight(x+l, z - k)
+
+			if i > 1 and i < 3 then
+			-- Spring.Echo(x+l)
+			-- Spring.Echo(z-k)
+				Spring.LevelHeightMap(x-31, z, x+32, z-k,1)
 				end
 		end
 	end
 	
--- Check southern
+-- Check southwest
 local i = -200
-	for l = -15,16 do
-	for k = -15,-47 do
+	for l = -79,-31 do
+	for k = -96,-32 do
 		i = Spring.GetGroundHeight(x+l, z - k)
-			if i >= 2 and i <= 5 then
-				Spring.LevelHeightMap(x+l, z, x+l, z-k,1)
+
+			if i > 1 and i < 3 then
+			-- Spring.Echo(x+l)
+			-- Spring.Echo(z-k)
+				Spring.LevelHeightMap(x-79, z+32, x-31, z-k,1)
 				end
 		end
 	end
+-- Check southeast	
+local i = -200
+	for l = 32,80 do
+	for k = -96,-32 do
+		i = Spring.GetGroundHeight(x+l, z - k)
+
+			if i > 1 and i < 3 then
+			-- Spring.Echo(x+l)
+			-- Spring.Echo(z-k)
+				Spring.LevelHeightMap(x+32, z+32, x+80, z-k,1)
+				end
+		end
+	end
+	
 -- Check eastern
 local i = -200
-	for l = -15,16 do
-	for k = -15,-47 do
+	for l = -32,31 do
+	for k = -96,-32 do
 		i = Spring.GetGroundHeight(x-k, z + l)
-			if i >= 2 and i <= 5 then
-				Spring.LevelHeightMap(x-k, z+l, x-k, z+l,1)
+			if i > 1 and i < 3 then
+				Spring.LevelHeightMap(x, z-31, x-k, z+32,1)
 				end
 		end
 	end
 -- Check western
 local i = -200
-	for l = -15,16 do
-	for k = 15,47 do
+	for l = -32,31 do
+	for k = 31,95 do
 		i = Spring.GetGroundHeight(x-k, z + l)
-			if i >= 2 and i <= 5 then
-				Spring.LevelHeightMap(x-k, z+l, x-k, z+l,1)
+			if i >1  and i < 3 then
+				Spring.LevelHeightMap(x, z-31, x-k, z+32,1)
 				end
 		end
 	end
@@ -82,7 +146,7 @@ unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
 if unitName == "armcube" then
 if (GroundHeight[unitID]) then
-Spring.LevelHeightMap(x-15,z-15,x+16,z+16, GroundHeight[unitID])
+Spring.LevelHeightMap(x-31,z-31,x+32,z+32, GroundHeight[unitID])
 end
 end
 end

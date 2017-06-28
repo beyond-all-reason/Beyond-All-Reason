@@ -35,7 +35,7 @@ return {
 		objectname = "CORCA",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 351,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
@@ -74,6 +74,7 @@ return {
 			[29] = "corjamt",
 			[30] = "cjuno",
 			[31] = "corsy",
+			[32] = "armcube",
 		},
 		customparams = {
 			

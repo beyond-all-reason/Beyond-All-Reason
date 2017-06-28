@@ -32,7 +32,7 @@ return {
 		name = "Jellyfish",
 		objectname = "CORDL",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGeneric",
+		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 611,
 		sonardistance = 525,
 		usebuildinggrounddecal = true,

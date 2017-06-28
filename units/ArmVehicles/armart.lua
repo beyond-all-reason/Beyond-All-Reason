@@ -32,7 +32,7 @@ return {
 		objectname = "armart",
 		pushresistant = true,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 364,
 		trackoffset = 6,
 		trackstrength = 5,

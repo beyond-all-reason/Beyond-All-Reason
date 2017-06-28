@@ -32,7 +32,7 @@ return {
 		objectname = "ARMASON",
 		onoffable = true,
 		seismicsignature = 0,
-		selfdestructas = "mediumBuildingexplosiongeneric",
+		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 215,
 		sonardistance = 2400,
 		usebuildinggrounddecal = true,

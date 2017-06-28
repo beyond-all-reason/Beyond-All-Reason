@@ -5,28 +5,14 @@
 
 piece  tube1, tube2, base, wake, wake2;
 
-static-var  gun_1, aimDir, restore_delay;
+static-var  gun_1;
 
 // Signal definitions
 #define SIG_MOVE			2
-#define SIG_AIM			4
-
 
 Create()
 {
-	restore_delay = 3000;
 	gun_1 = tube1;
-	return (0);
-
-	
-}
-
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	set-signal-mask 0;
-	turn base to y-axis <0.000000> speed <35.000000>;
-	turn base to x-axis <0.000000> speed <15.000000>;
 }
 
 StartMoving()
@@ -39,18 +25,6 @@ StartMoving()
 		emit-sfx 256 | 3 from wake2;
 		sleep 250;
 	}
-}
-AimPrimary(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn base to y-axis heading speed <35>;
-	turn base to x-axis <0.000000> - pitch speed <15>;
-	wait-for-turn base around y-axis;
-	wait-for-turn base around x-axis;
-	aimDir = heading;
-	start-script RestoreAfterDelay();
-	return (1);
 }
 
 StopMoving()
@@ -71,6 +45,11 @@ QueryPrimary(piecenum)
 SweetSpot(piecenum)
 {
 	piecenum = base;
+}
+
+AimPrimary(heading,pitch)
+{
+	return (1);
 }
 
 Killed(severity, corpsetype)

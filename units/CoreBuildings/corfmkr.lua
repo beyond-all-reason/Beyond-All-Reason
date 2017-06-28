@@ -22,7 +22,7 @@ return {
 		name = "Floating Energy Converter",
 		objectname = "CORFMKR",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		waterline = 24,
 		yardmap = "wwwwwwwww",

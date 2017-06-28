@@ -42,7 +42,7 @@ return {
 		objectname = "CORMLV",
 		radardistancejam = 64,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 188,
 		stealth = true,
 		terraformspeed = 120,

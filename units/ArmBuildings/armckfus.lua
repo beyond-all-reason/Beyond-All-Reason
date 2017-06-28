@@ -16,7 +16,7 @@ return {
 		description = "Produces Energy / Storage",
 		energymake = 1050,
 		energystorage = 2500,
-		explodeas = "smallNukeExplosionGeneric",
+		explodeas = "fusionExplosion",
 		footprintx = 5,
 		footprintz = 4,
 		icontype = "building",
@@ -30,7 +30,7 @@ return {
 		name = "Cloakable Fusion Reactor",
 		objectname = "ARMCKFUS",
 		seismicsignature = 0,
-		selfdestructas = "smallNukeExplosionGeneric",
+		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 273,
 		yardmap = "oooooooooooooooooooo",
 		customparams = {

@@ -42,7 +42,7 @@ return {
 		objectname = "ARMMLV",
 		radardistancejam = 64,
 		seismicsignature = 0,
-		selfdestructas = "smallexplosiongeneric",
+		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 201,
 		stealth = true,
 		terraformspeed = 120,

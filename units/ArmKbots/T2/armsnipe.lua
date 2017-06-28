@@ -31,14 +31,14 @@ return {
 		name = "Sharpshooter",
 		nochasecategory = "VTOL",
 		objectname = "ARMSNIPE",
-		selfdestructas = "mediumexplosiongeneric",
+		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 0.7788,
 		turnrate = 1338,
 		upright = true,
 		customparams = {
-			
+			light_skip = true,
 		},
 		featuredefs = {
 			dead = {

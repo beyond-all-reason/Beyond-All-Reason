@@ -30,7 +30,7 @@ return {
 		name = "Mercury",
 		objectname = "MERCURY",
 		seismicsignature = 0,
-		selfdestructas = "largeBuildingExplosionGeneric",
+		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 600,
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
