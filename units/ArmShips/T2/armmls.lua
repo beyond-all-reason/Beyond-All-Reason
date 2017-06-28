@@ -51,8 +51,8 @@ return {
 			[7] = "asubpen",
 			[8] = "armcs",
 			[9] = "armtl",
-			[10] = "armfhlt"
-			[11] = "armgplat"
+			[10] = "armfhlt",
+			[11] = "armgplat",
 			[12] = "armfrt",
 			[13] = "armeyes",
 			[14] = "armpt",
