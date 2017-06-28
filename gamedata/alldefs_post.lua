@@ -127,7 +127,15 @@ end
 -- process weapondef
 function WeaponDef_Post(name, wDef)
   wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
-  
+
+  -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
+	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
+		wDef["damage"].hvyboats = wDef["damage"].heavyunits 
+	elseif not wDef["damage"].heavyunits then 
+		wDef["damage"].hvyboats = wDef["damage"].default
+	end
+  -- end of artificial ArmorDefs tree
+ 
 	if wDef.weapontype == "Cannon" then
 		if wDef.stages == nil then
 			wDef.stages = 9
