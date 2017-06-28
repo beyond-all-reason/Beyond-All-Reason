@@ -1,9 +1,9 @@
 return {
 	armpship2 = {
-		acceleration = 2.80/50,
+		acceleration = 2.80/95,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 2.80/50,
+		brakerate = 2.80/17.5,
 		blocking = true,
 		buildcostenergy = 2500,
 		buildcostmetal = 550,
@@ -35,7 +35,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 0.8 *600,
-		turninplace = false,
+		turninplace = true,
 		turninplaceanglelimit = 180,
 		turninplacespeedlimit = 1.80,
 		turnrate = 1.5*180,
