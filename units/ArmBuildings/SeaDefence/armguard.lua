@@ -148,6 +148,7 @@ return {
 					hvyboats = 400,
 					vtol = 90,
 				},
+			},
 				
 				
 			armfixed_gun_high = {
