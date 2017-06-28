@@ -55,7 +55,7 @@ return {
 			[11] = "armfrt",
 			[12] = "armeyes",
 			[13] = "armpt",
-			[14] = "decade",
+			[14] = "armdecade",
 			[15] = "armroy",
 			[16] = "armsub",
 			[17] = "armamph",
