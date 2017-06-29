@@ -1,8 +1,6 @@
 return {
 	corroy = {
-		acceleration = 0.05,
 		activatewhenbuilt = true,
-		brakerate = 0.3,
 		buildangle = 16384,
 		buildcostenergy = 6000,
 		buildcostmetal = 1100,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 3360,
-		maxvelocity = 2.737,
 		minwaterdepth = 12,
 		movementclass = "BOAT43X5",
 		name = "Enforcer",
@@ -35,10 +32,16 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 490,
 		sonardistance = 400,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.80642,
-		turnrate = 193,
 		waterline = 3.5,
+		--move
+		acceleration = 1.80/150,
+		brakerate = 1.80/35,
+		turninplace = true,
+		maxvelocity = 1.80,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*1.80,
+		turnrate = 240,
+		--end move
 		customparams = {
 
 		},

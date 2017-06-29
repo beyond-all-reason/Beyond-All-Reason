@@ -1,8 +1,6 @@
 return {
 	armrecl = {
-		acceleration = 2.40/30,
 		autoheal = 2,
-		brakerate = 2.40/30,
 		buildcostenergy = 4400,
 		buildcostmetal = 420,
 		builddistance = 140,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 3,
 		idletime = 300,
 		maxdamage = 670,
-		maxvelocity = 2.40,
 		minwaterdepth = 15,
 		movementclass = "UBOAT32X4",
 		name = "Grim Reaper",
@@ -35,11 +32,20 @@ return {
 		sightdistance = 430,
 		sonardistance = 270,
 		terraformspeed = 2250,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.6962,
-		turnrate = 1.5*600,
+
 		waterline = 17,
 		workertime = 450,
+		
+		--move
+		acceleration = 2.00/30,
+		brakerate = 2.00/30,
+		maxvelocity = 2.00,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.00,
+		turnrate = 450,
+		--end move
+		
 		customparams = {
 			
 		},

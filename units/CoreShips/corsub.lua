@@ -1,9 +1,7 @@
 return {
 	corsub = {
-		acceleration = 0.027,
 		activatewhenbuilt = true,
 		autoheal = 2,
-		brakerate = 0.075,
 		buildcostenergy = 4200,
 		buildcostmetal = 720,
 		buildpic = "CORSUB.DDS",
@@ -22,7 +20,6 @@ return {
 		idleautoheal = 8,
 		idletime = 900,
 		maxdamage = 835,
-		maxvelocity = 2.3,
 		minwaterdepth = 15,
 		movementclass = "UBOAT32X3",
 		name = "Snake",
@@ -32,11 +29,17 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
 		sonardistance = 475,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.518,
-		turnrate = 500,
 		upright = true,
 		waterline = 30,
+		--move
+		brakerate =  2.00/120,
+		acceleration = 2.00/20,
+		maxvelocity = 2.00,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.00,
+		turnrate = 450,	
+		--end move	
 		customparams = {
 
 		},

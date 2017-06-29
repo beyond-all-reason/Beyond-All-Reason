@@ -1,9 +1,7 @@
 return {
 	corpship = {
-		acceleration = 1.8/15,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 1.8/15,
 		blocking = true,
 		buildcostenergy = 550,
 		buildcostmetal = 110,
@@ -26,7 +24,6 @@ return {
 		idleautoheal = 2,
 		idletime = 900,
 		maxdamage = 1500,
-		maxvelocity = 2.80,
 		minwaterdepth = 6,
 		movementclass = "BOAT41X3",
 		name = "Era",
@@ -35,11 +32,17 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 0.8 *600,
-		turninplace = false,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
 		turnrate = 120,
 		waterline = 3,
+		--move
+		acceleration = 2.24/90,
+		brakerate = 2.24/25,
+		maxvelocity = 2.24,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.24,
+		turnrate = 270,
+		--end move
 		customparams = {
 			
 		},

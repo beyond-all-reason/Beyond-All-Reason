@@ -1,9 +1,7 @@
 return {
 	armpt = {
-		acceleration = 5.20/20,
 		airsightdistance = 800,
 		autoheal = 1.5,
-		brakerate = 5.20/20,
 		buildcostenergy = 1100,
 		buildcostmetal = 100,
 		buildpic = "ARMPT.DDS",
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 345,
-		maxvelocity = 5.29,
 		minwaterdepth = 6,
 		movementclass = "BOAT41X3",
 		name = "Skeeter",
@@ -34,11 +31,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 650,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 3.4914,
-		turnrate = 1.5*640,
 		waterline = 3,
+		--move
+		acceleration = 4.80/60,
+		brakerate = 4.80/15,
+		maxvelocity = 4.80,
+		turninplace = true,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*4.80,
+		turnrate = 360,
+		--end move
 		customparams = {
 			
 		},

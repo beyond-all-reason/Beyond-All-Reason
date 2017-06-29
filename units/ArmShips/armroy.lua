@@ -1,8 +1,6 @@
 return {
 	armroy = {
-		acceleration = 2.40/30,
 		activatewhenbuilt = true,
-		brakerate = 2.40/30,
 		buildangle = 16384,
 		buildcostenergy = 6000,
 		buildcostmetal = 1050,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 3090,
-		maxvelocity = 2.40,
 		minwaterdepth = 12,
 		movementclass = "BOAT43X5",
 		name = "Crusader",
@@ -35,10 +32,16 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 490,
 		sonardistance = 400,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*320,
 		waterline = 4.5,
+		--move
+		acceleration = 1.80/150,
+		brakerate = 1.80/35,
+		turninplace = true,
+		maxvelocity = 1.80,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*1.80,
+		turnrate = 240,
+		--end move
 		customparams = {
 			
 		},

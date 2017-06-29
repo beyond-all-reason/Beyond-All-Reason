@@ -1,9 +1,7 @@
 return {
 	armsub = {
-		acceleration = 2.40/30,
 		activatewhenbuilt = true,
 		autoheal = 2,
-		brakerate = 2.40/30,
 		buildcostenergy = 4000,
 		buildcostmetal = 700,
 		buildpic = "ARMSUB.DDS",
@@ -22,7 +20,6 @@ return {
 		idleautoheal = 8,
 		idletime = 900,
 		maxdamage = 835,
-		maxvelocity = 2.40,
 		minwaterdepth = 15,
 		movementclass = "UBOAT32X4",
 		name = "Lurker",
@@ -32,11 +29,17 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
 		sonardistance = 475,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 1.584,
-		turnrate = 1.5*520,
 		upright = true,
 		waterline = 30,
+		--move
+		brakerate =  2.00/120,
+		acceleration = 2.00/20,
+		maxvelocity = 2.00,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.00,
+		turnrate = 450,	
+		--end move
 		customparams = {
 			
 		},

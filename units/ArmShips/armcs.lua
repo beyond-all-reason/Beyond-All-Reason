@@ -2,8 +2,7 @@ return {
 	armcs = {
 		buildcostenergy = 2300,
 		buildcostmetal = 300,
-		acceleration = 2.40/30,
-		brakerate = 2.40/30,
+
 		builddistance = 200,
 		builder = true,
 		shownanospray = false,
@@ -26,7 +25,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1105,
-		maxvelocity = 2.40,
 		metalmake = 0.115,
 		minwaterdepth = 15,
 		movementclass = "BOAT4",
@@ -37,12 +35,17 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 400,
 		terraformspeed = 1250,
-		turninplace = 0,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 1.50282,
-		turnrate = 1.5*520,
 		waterline = 4,
-		workertime = 250,
+		workertime = 250
+		--move
+		acceleration = 2.20/90,
+		brakerate = 2.20/25,
+		maxvelocity = 2.20,	
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.20,
+		turnrate = 550,
+		--end move
 		buildoptions = {
 			[1] = "armeyes",
 			[2] = "armdl",

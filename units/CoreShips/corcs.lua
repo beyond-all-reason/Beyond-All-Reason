@@ -1,7 +1,5 @@
 return {
 	corcs = {
-		acceleration = 0.1,
-		brakerate = 0.3,
 		buildcostenergy = 2400,
 		buildcostmetal = 300,
 		builddistance = 200,
@@ -26,7 +24,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1150,
-		maxvelocity = 2.07,
 		metalmake = 0.115,
 		minwaterdepth = 15,
 		movementclass = "BOAT42X4",
@@ -36,12 +33,17 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1250,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.3662,
-		turnrate = 595,
 		waterline = 3,
 		workertime = 250,
+		--move
+		acceleration = 2.20/90,
+		brakerate = 2.20/25,
+		maxvelocity = 2.20,	
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.20,
+		turnrate = 550,
+		--end move
 		buildoptions = {
 			[1] = "coreyes",
 			[2] = "cordl",

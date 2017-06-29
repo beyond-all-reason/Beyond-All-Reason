@@ -1,8 +1,6 @@
 return {
 	armtship = {
-		acceleration = 2.80/45,
 		autoheal = 5,
-		brakerate =  2.80/45,
 		buildangle = 16384,
 		buildcostenergy = 6400,
 		buildcostmetal = 800,
@@ -23,7 +21,6 @@ return {
 		icontype = "sea",
 		loadingradius = 250,
 		maxdamage = 11010,
-		maxvelocity = 2.80,
 		minwaterdepth = 0,
 		movementclass = "DBOAT64X8",
 		name = "Hulk",
@@ -37,11 +34,17 @@ return {
 		transportcapacity = 40,
 		transportsize = 4,
 		transportunloadmethod = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 2.2044,
-		turnrate = 1.5*240,
 		unloadspread = 1,
 		waterline = 11,
+		--move
+		brakerate =  2.00/40,
+		acceleration = 2.00/240,
+		maxvelocity = 2.00,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.00,
+		turnrate = 240,	
+		--end move
 		customparams = {
 			
 		},

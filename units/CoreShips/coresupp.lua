@@ -1,8 +1,6 @@
 return {
 	coresupp = {
-		acceleration = 0.072,
 		activatewhenbuilt = true,
-		brakerate = 0.057,
 		buildangle = 16384,
 		buildcostenergy = 2500,
 		buildcostmetal = 310,
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1700,
-		maxvelocity = 3.2,
 		minwaterdepth = 12,
 		movementclass = "BOAT42X4",
 		name = "Supporter",
@@ -33,11 +30,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 429,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 2.112,
-		turnrate = 528,
 		waterline = 3,
+		--move
+		acceleration = 2.40/60,
+		brakerate = 2.40/15,
+		maxvelocity = 2.40,		
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*1.40,
+		turnrate = 730,
+		--end move
 		customparams = {
 
 		},

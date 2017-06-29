@@ -1,9 +1,7 @@
 return {
 	corpt = {
-		acceleration = 0.096,
 		airsightdistance = 800,
 		autoheal = 1.5,
-		brakerate = 0.075,
 		buildcostenergy = 1000,
 		buildcostmetal = 100,
 		buildpic = "CORPT.DDS",
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 345,
-		maxvelocity = 5.06,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Searcher",
@@ -34,11 +31,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 585,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 3.3396,
-		turnrate = 622,
 		waterline = 1.5,
+		--move
+		acceleration = 4.80/60,
+		brakerate = 4.80/15,
+		maxvelocity = 4.80,
+		turninplace = true,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*4.80,
+		turnrate = 360,
+		--end move
 		customparams = {
 
 		},

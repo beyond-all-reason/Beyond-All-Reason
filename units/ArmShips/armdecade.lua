@@ -1,8 +1,6 @@
 return {
 	armdecade = {
-		acceleration = 3.20/30,
 		activatewhenbuilt = true,
-		brakerate = 3.20/30,
 		buildangle = 16384,
 		buildcostenergy = 2600,
 		buildcostmetal = 320,
@@ -23,7 +21,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1900,
-		maxvelocity = 3.20,
 		minwaterdepth = 12,
 		movementclass = "BOAT42X4",
 		name = "Decade",
@@ -32,11 +29,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 429,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 2.145,
-		turnrate = 1.5*520,
-		waterline = 3,
+		waterline = 3
+		--move
+		acceleration = 2.40/60,
+		brakerate = 2.40/15,
+		maxvelocity = 2.40,		
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*1.40,
+		turnrate = 730,
+		--end move
 		customparams = {
 			
 		},

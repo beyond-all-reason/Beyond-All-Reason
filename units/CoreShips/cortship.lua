@@ -1,8 +1,6 @@
 return {
 	cortship = {
-		acceleration = 0.09,
 		autoheal = 5,
-		brakerate = 0.255,
 		buildangle = 16384,
 		buildcostenergy = 6800,
 		buildcostmetal = 750,
@@ -23,7 +21,6 @@ return {
 		icontype = "sea",
 		loadingradius = 250,
 		maxdamage = 11420,
-		maxvelocity = 3.22,
 		minwaterdepth = 0,
 		movementclass = "DBOAT64X8",
 		name = "Envoy",
@@ -37,11 +34,17 @@ return {
 		transportcapacity = 40,
 		transportsize = 4,
 		transportunloadmethod = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 2.1252,
-		turnrate = 410,
 		unloadspread = 1,
 		waterline = 1,
+		--move
+		brakerate =  2.00/40,
+		acceleration = 2.00/240,
+		maxvelocity = 2.00,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.00,
+		turnrate = 240,	
+		--end move
 		customparams = {
 
 		},
