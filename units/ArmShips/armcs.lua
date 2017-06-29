@@ -43,7 +43,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.20,
-		turnrate = 550,
+		turnrate = 270,
 		--end move
 		buildoptions = {
 			[1] = "armeyes",
