@@ -44,7 +44,7 @@ return {
 		turnrate = 1.5*320,
 		waterline = 13,
 		customparams = {
-			death_sounds = "generic",
+			
 			paralyzemultiplier = 0,
 		},
 		featuredefs = {

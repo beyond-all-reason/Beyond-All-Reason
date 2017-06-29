@@ -43,7 +43,7 @@ return {
 		unloadspread = 1,
 		waterline = 11,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

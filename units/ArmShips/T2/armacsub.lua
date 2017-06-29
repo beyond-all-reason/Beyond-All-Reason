@@ -61,7 +61,7 @@ return {
 			[15] = "armcube",
 		},
 		customparams = {
-			death_sounds = "generic",
+			
 			area_mex_def = "armuwmme",
 		},
 		featuredefs = {

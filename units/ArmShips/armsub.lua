@@ -38,7 +38,7 @@ return {
 		upright = true,
 		waterline = 30,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		featuredefs = {
 			dead = {

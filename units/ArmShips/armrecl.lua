@@ -41,7 +41,7 @@ return {
 		waterline = 17,
 		workertime = 450,
 		customparams = {
-			death_sounds = "generic",
+			
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
