@@ -20,7 +20,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1100,
+		maxdamage = 780,
 		minwaterdepth = 12,
 		movementclass = "BOAT42X4",
 		name = "Decade",
@@ -31,7 +31,7 @@ return {
 		sightdistance = 429,
 		waterline = 3,
 		--move
-		acceleration = 3.00/45,
+		acceleration = 3.00/60,
 		brakerate = 3.00/15,
 		maxvelocity = 3.00,		
 		turninplace = true,

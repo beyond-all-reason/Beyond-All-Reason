@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1000,
+		maxdamage = 700,
 		minwaterdepth = 12,
 		movementclass = "BOAT42X4",
 		name = "Supporter",
@@ -32,7 +32,7 @@ return {
 		sightdistance = 429,
 		waterline = 3,
 		--move
-		acceleration = 3.00/45,
+		acceleration = 3.00/60,
 		brakerate = 3.00/15,
 		maxvelocity = 3.00,		
 		turninplace = true,
