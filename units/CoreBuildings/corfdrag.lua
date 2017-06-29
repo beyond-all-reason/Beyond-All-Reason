@@ -11,7 +11,7 @@ return {
 		canattack = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -28 0",
+		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "37 70 37",
 		collisionvolumetype = "box",
 		crushresistance = 250,
@@ -29,7 +29,7 @@ return {
 		seismicsignature = 0,
 		sightdistance = 1,
 		waterline = 3,
-		yardmap = "wwww",
+		yardmap = "oooo",
 			sfxtypes = { 
 			pieceExplosionGenerators = { 
 			
