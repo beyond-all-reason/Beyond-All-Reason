@@ -138,11 +138,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 286,
 				damage = {
-					bombers = 21,
-					default = 104,
-					fighters = 21,
-					subs = 5,
-					vtol = 21,
+					bombers = 21*1.5,
+					default = 104*1.5,
+					fighters = 21*1.5,
+					subs = 5*1.5,
+					vtol = 21*1.5,
 				},
 			},
 		},
@@ -153,11 +153,6 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT SUBMARINE CORVETTE",
-				def = "LIGHTPLASMA",
-				onlytargetcategory = "NOTSUB",
-			},
-			[3] = {
 				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT SUBMARINE CORVETTE",
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "NOTSUB",

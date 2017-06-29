@@ -3,14 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ground, wake1, wake2, turret1, sleeve1, barrel11, flare11, barrel12, flare12, turret2, sleeve2, barrel21, flare21, barrel22, flare22, turret3, sleeve3, barrel31, flare31, barrel32, flare32;
+piece  base, ground, wake1, wake2, turret1, sleeve1, barrel11, flare11, barrel12, flare12, turret2, sleeve2, barrel21, flare21, barrel22, flare22;
 		
-static-var  gun_1, gun_2, gun_3, restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
+static-var  gun_1, gun_2, restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
-#define SIG_AIM_3			8
 #define SIG_MOVE			4096
 
 
@@ -117,11 +116,8 @@ Create()
 	hide flare12;
 	hide flare21;
 	hide flare22;
-	hide flare31;
-	hide flare32;
 	gun_1 = flare11;
 	gun_2 = flare21;
-	gun_3 = flare31;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }
@@ -140,9 +136,6 @@ RestoreAfterDelay()
 	
 	turn turret2 to y-axis <0.000000> speed <120.000000>;
 	turn sleeve2 to x-axis <0.000000> speed <60.000000>;
-	
-	turn turret3 to y-axis <0.000000> speed <120.000000>;
-	turn sleeve3 to x-axis <0.000000> speed <60.000000>;
 }
 
 waveSplash()
@@ -267,47 +260,6 @@ QueryWeapon2(piecenum)
 	piecenum = flare21 + gun_2;
 }
 
-AimWeapon3(heading, pitch)
-{
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
-	turn turret3 to y-axis heading speed <120.000000>;
-	turn sleeve3 to x-axis <0.000000> - pitch speed <60.000000>;
-	wait-for-turn turret3 around y-axis;
-	wait-for-turn sleeve3 around x-axis;
-	aimDir = heading;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon3()
-{
-	if( gun_3 )
-	{
-		move barrel32 to z-axis [-2.000000] speed [500.000000];
-		wait-for-move barrel32 along z-axis;
-		move barrel32 to z-axis [0.000000] speed [3.000000];
-		emit-sfx 1024 + 0 from flare32;
-	}
-	else
-	{
-		move barrel31 to z-axis [-2.000000] speed [500.000000];
-		wait-for-move barrel31 along z-axis;
-		move barrel31 to z-axis [0.000000] speed [3.000000];
-		emit-sfx 1024 + 0 from flare31;
-	}
-	gun_3 = !gun_3;
-}
-
-AimFromWeapon3(piecenum)
-{
-	piecenum = turret3;
-}
-
-QueryWeapon3(piecenum)
-{
-	piecenum = flare31 + gun_3;
-}
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -323,7 +275,6 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | BITMAP3;
 		explode turret1 type BITMAPONLY | BITMAP1;
 		explode turret2 type BITMAPONLY | BITMAP2;
-		explode turret3 type BITMAPONLY | BITMAP1;
 		explode wake1 type BITMAPONLY | BITMAP2;
 		explode wake2 type BITMAPONLY | BITMAP3;
 		return (corpsetype);
@@ -335,7 +286,6 @@ Killed(severity, corpsetype)
 		explode barrel12 type FALL | EXPLODE_ON_HIT | BITMAP1;
 		explode base type BITMAPONLY | BITMAP3;
 		explode turret2 type SHATTER | EXPLODE_ON_HIT | BITMAP1;
-		explode turret3 type SHATTER | EXPLODE_ON_HIT | BITMAP2;
 		explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP2;
 		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP3;
 		return (corpsetype);
