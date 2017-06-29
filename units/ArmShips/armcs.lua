@@ -2,7 +2,6 @@ return {
 	armcs = {
 		buildcostenergy = 2300,
 		buildcostmetal = 300,
-
 		builddistance = 200,
 		builder = true,
 		shownanospray = false,
@@ -36,7 +35,7 @@ return {
 		sightdistance = 400,
 		terraformspeed = 1250,
 		waterline = 4,
-		workertime = 250
+		workertime = 250,
 		--move
 		acceleration = 2.20/90,
 		brakerate = 2.20/25,
