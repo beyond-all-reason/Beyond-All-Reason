@@ -17,15 +17,15 @@ return {
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "mediumExplosionGeneric",
-		footprintx = 3,
-		footprintz = 3,
+		footprintx = 2,
+		footprintz = 4,
 		icontype = "sea",
 		idleautoheal = 10,
 		idletime = 900,
 		maxdamage = 835,
 		maxvelocity = 3.04,
 		minwaterdepth = 20,
-		movementclass = "UBOAT3",
+		movementclass = "UBOAT32X4",
 		name = "Shark",
 		nochasecategory = "VTOL",
 		objectname = "CORSHARK",
@@ -39,7 +39,7 @@ return {
 		upright = true,
 		waterline = 30,
 		customparams = {
-			
+
 		},
 		featuredefs = {
 			dead = {

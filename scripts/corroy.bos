@@ -3,17 +3,16 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flarea1, flarea2, flareb, base, turret, sleeves, wake1, wake2, barrel1, barrel2, ground, flarec, flared, flaree , flaref, flareg, barrelc, barreld, barrele, barrelf, barrelg, dummyweap, dummyflare ;
+piece  flarea1, flarea2, flareb, base, turret, sleeves, wake1, wake2,
+       barrel1, barrel2, ground;
 
-static-var  gun_1, gun_3, restore_delay, aimDir, Static_Var_4, Static_Var_5, oldHead;
+static-var  gun_1, restore_delay, aimDir, Static_Var_4, Static_Var_5, oldHead;
 
 // Signal definitions
 #define SIG_AIM			2
 #define SIG_AIM2		4
-#define SIG_AIM_3		8
-#define SIG_AIM_4		16
-#define SIG_MOVE		32
-#define SIG_ROCK		64
+#define SIG_MOVE		8
+#define SIG_ROCK		16
 
 
 ProjXPW(Func_Var_1, Func_Var_2)
@@ -120,10 +119,7 @@ Create()
 	hide flareb;
 	move flarea1 to z-axis [0.5] now;
 	move flarea2 to z-axis [0.5] now;
-	hide dummyflare;
-	hide dummyweap;
 	gun_1 = 0;
-	gun_3 = 1;
 	Static_Var_5 = 0;
 	restore_delay = 3000;
 	start-script SmokeUnit();
@@ -139,7 +135,6 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <35.000000>;
 	turn sleeves to x-axis <0.000000> speed <20.000000>;
-	gun_3 = 1;
 }
 
 waveSplash()
@@ -176,10 +171,10 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.32];
 }
 
-AimWeapon2(heading, pitch)
+AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM2;
-	set-signal-mask SIG_AIM2;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <70.000000>;
 	turn sleeves to x-axis <0.000000> - pitch speed <40.000000>;
 	wait-for-turn turret around y-axis;
@@ -189,43 +184,15 @@ AimWeapon2(heading, pitch)
 	return (1);
 }
 
-AimWeapon4(heading, pitch)
+AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
-	return (1);
-}
-
-AimWeapon1(heading, pitch)
-{
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	return (0);
-}
-
-Shot1()
-{
-
-}
-
-Shot4()
-{
-	gun_3 = gun_3 + 1;
-	if ( gun_3 == 6 )
-	{
-	gun_3 = 1;
-	}
-}
-
-AimWeapon3(heading, pitch)
-{
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIG_AIM2;
+	set-signal-mask SIG_AIM2;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireWeapon2()
+FireWeapon1()
 {
 	start-script RockZ(-9,aimDir);
 	if( gun_1 )
@@ -245,69 +212,31 @@ FireWeapon2()
 	gun_1 = !gun_1;
 }
 
-FireWeapon3()
+FireWeapon2()
 {
 	show flareb;
 	sleep 150;
 	hide flareb;
 }
 
-AimFromWeapon2(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryWeapon2(piecenum)
+QueryWeapon1(piecenum)
 {
 	piecenum = gun_1;
 }
-AimFromWeapon1(piecenum)
+
+AimFromWeapon2(piecenum)
 {
-	piecenum = dummyweap;
+	piecenum = base;
 }
 
-AimFromWeapon4(piecenum)
+QueryWeapon2(piecenum)
 {
-
-	piecenum = barrelc;
-}
-
-QueryWeapon1(piecenum)
-{
-	piecenum = dummyflare;
-}
-QueryWeapon4(piecenum)
-{
-	if( gun_3 == 1 )
-	{
-	piecenum = flarec;	
-	}
-		if( gun_3 == 2 )
-	{
-	piecenum = flared;	
-	}
-		if( gun_3 == 3 )
-	{
-	piecenum = flaree;
-	}
-		if( gun_3 == 4 )
-	{
-	piecenum = flaref;
-	}
-		if( gun_3 == 5 )
-	{
-	piecenum = flareg;
-	}
-}
-
-AimFromWeapon3(piecenum)
-{
-	piecenum = flareb;
-}
-
-QueryWeapon3(piecenum)
-{
-	piecenum = flareb;
+	piecenum = base;
 }
 
 SweetSpot(piecenum)

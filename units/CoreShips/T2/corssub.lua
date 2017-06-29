@@ -18,19 +18,19 @@ return {
 		energyuse = 15,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
-		footprintz = 3,
+		footprintz = 4,
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 900,
 		maxdamage = 2320,
 		maxvelocity = 2.59,
 		minwaterdepth = 20,
-		movementclass = "UBOAT3",
+		movementclass = "UBOAT33X4",
 		name = "Leviathan",
 		nochasecategory = "VTOL",
 		objectname = "CORSSUB",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGenericSelfd",
+		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 520,
 		sonardistance = 550,
 		turninplaceanglelimit = 140,
@@ -39,7 +39,7 @@ return {
 		upright = true,
 		waterline = 30,
 		customparams = {
-			
+
 		},
 		featuredefs = {
 			dead = {

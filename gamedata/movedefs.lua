@@ -95,6 +95,13 @@ local moveDatas = {
 		footprintz = 7,
 		minwaterdepth = 10,
 	},
+	
+	BOAT53X8 = {
+		crushstrength = 16,
+		footprintx = 3,
+		footprintz = 8,
+		minwaterdepth = 10,
+	},
 	--[[ 
 	DBOAT3 = {
 		crushstrength = 30,
@@ -132,11 +139,24 @@ local moveDatas = {
 		footprintz = 8,
 		minwaterdepth = 15,
 	},
+	DBOAT64X9 = {
+		crushstrength = 252,
+		footprintx = 4,
+		footprintz = 9,
+		minwaterdepth = 15,
+	},
 	
 	DBOAT65X9 = {
 		crushstrength = 252,
 		footprintx = 5,
 		footprintz = 9,
+		minwaterdepth = 15,
+	},
+
+	DBOAT65X10 = {
+		crushstrength = 252,
+		footprintx = 5,
+		footprintz = 10,
 		minwaterdepth = 15,
 	},
 	
@@ -377,6 +397,14 @@ local moveDatas = {
 		subMarine = 1,
 	},
 	
+	UBOAT32X3 = {
+		footprintx = 2,
+		footprintz = 3,
+		minwaterdepth = 15,
+		crushstrength = 5,
+		subMarine = 1,
+	},
+	
 	UBOAT33X5 = {
 		footprintx = 3,
 		footprintz = 5,
@@ -392,9 +420,16 @@ local moveDatas = {
 		crushstrength = 5,
 		subMarine = 1,
 	},
-	UBOAT32X5 = {
+	UBOAT33X4 = {
 		footprintx = 3,
-		footprintz = 3,
+		footprintz = 4,
+		minwaterdepth = 15,
+		crushstrength = 5,
+		subMarine = 1,
+	},
+	UBOAT32X5 = {
+		footprintx = 2,
+		footprintz = 5,
 		minwaterdepth = 15,
 		crushstrength = 5,
 		subMarine = 1,
