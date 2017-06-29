@@ -20,16 +20,17 @@ x,y,z = Spring.GetUnitPosition(unitID)
 if unitName == "armcube" then
 -- Spring.Echo("go")
 --Spring.SetUnitNoDraw(unitID, true)
-Spring.SetUnitBlocking(unitID,false)
+
 Spring.SetUnitNoSelect(unitID, true)
 Spring.SetUnitNoMinimap(unitID, true)
 Spring.SetUnitAlwaysVisible(unitID, true)
 GroundHeight[unitID] = Spring.GetGroundHeight(x,z)
 Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight[unitID])
-Spring.SetUnitMidAndAimPos(unitID, x, GroundHeight[unitID]/2, z, x, 4, z, false)
-Spring.SetUnitRadiusAndHeight(unitID, 24, -GroundHeight[unitID])
+Spring.SetUnitMidAndAimPos(unitID, x, GroundHeight[unitID]/2, z+0, x, 4, z, false)
+Spring.SetUnitRadiusAndHeight(unitID, 48, -GroundHeight[unitID])
 Spring.SetUnitCollisionVolumeData(unitID, 96, -GroundHeight[unitID], 96, 0,0,0,2,1,0)
 Spring.LevelHeightMap(x-31,z-31,x+32,z+32, 1)
+Spring.SetUnitBlocking(unitID,false, false, true, false, false, true, true)
 --CHECK NORTHERN GroundHeight
 local i = -200
 	for l = -31,32 do
