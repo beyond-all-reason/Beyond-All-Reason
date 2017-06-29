@@ -54,7 +54,7 @@ return {
 		radaremitheight = 40,
 		reclaimable = false,
 		seismicsignature = 0,
-		selfdestructas = "commanderExplosion",
+		selfdestructas = "commanderexplosion",
 		selfdestructcountdown = 5,
 		showplayername = true,
 		sightdistance = 450,

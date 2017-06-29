@@ -23,7 +23,7 @@ local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 local SetUnitWeaponState = Spring.SetUnitWeaponState
 
 local COB_CRASHING = COB.CRASHING
-local COM_BLAST = WeaponDefNames['commanderExplosion'].id 
+local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local crashable  = {}
 local crashing = {}
