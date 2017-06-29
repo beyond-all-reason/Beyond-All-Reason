@@ -75,7 +75,7 @@ RockZ(Func_Var_1, Func_Var_2)
 	Static_Var_7 = get ABS(Static_Var_8);
 	while( Static_Var_7 > 91 )
 	{
-		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.025>;
+		turn base to z-axis Static_Var_8 speed Static_Var_7 * <0.0125>;
 		wait-for-turn base around z-axis;
 		Static_Var_8 = Static_Var_8 * -1 / 2;
 		Static_Var_7 = get ABS(Static_Var_8);
