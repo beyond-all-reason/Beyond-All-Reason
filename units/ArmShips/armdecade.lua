@@ -31,13 +31,13 @@ return {
 		sightdistance = 429,
 		waterline = 3,
 		--move
-		acceleration = 2.70/45,
-		brakerate = 2.70/15,
-		maxvelocity = 2.70,		
+		acceleration = 3.00/45,
+		brakerate = 3.00/15,
+		maxvelocity = 3.00,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.70,
-		turnrate = 730*0.7,
+		turninplacespeedlimit = 0.64*3.00,
+		turnrate = 730*0.65,
 		--end move
 		customparams = {
 			
