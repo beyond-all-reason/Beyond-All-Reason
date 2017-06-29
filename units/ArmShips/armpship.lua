@@ -1,9 +1,9 @@
 return {
 	armpship = {
-		acceleration = 2.80/45,
+		acceleration = 2.24/210,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
-		brakerate = 2.80/45,
+		brakerate = 2.24/25,
 		blocking = true,
 		buildcostenergy = 2500,
 		buildcostmetal = 550,
@@ -26,7 +26,7 @@ return {
 		idleautoheal = 2,
 		idletime = 900,
 		maxdamage = 1500,
-		maxvelocity = 2.80,
+		maxvelocity = 2.24,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X6",
 		name = "Ellysaw",
@@ -35,9 +35,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 0.8 *600,
-		turninplace = false,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 1.44,
 		turnrate = 1.5*180,
 		waterline = 3,
 		customparams = {
