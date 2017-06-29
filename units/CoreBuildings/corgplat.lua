@@ -88,7 +88,7 @@ return {
 		},
 		weapondefs = {
 			corgplat = {
-				accuracy = 8,
+				accuracy = 4,
 				areaofeffect = 16,
 				avoidfeature = false,
 				sizedecay = 0.1,
@@ -123,18 +123,12 @@ return {
 				nogap = false,
 				stages = 20,
 				damage = {
-					bombers = 1*2.5*0.5,
-					default = 67*2.5*0.5,
-					fighters = 13*2.5*0.5,
-					subs = 1*2.5*0.5,
-					vtol = 1*2.5*0.5,
-					scouts = 134*2.5*0.5,
-					corvettes = 67*2.5*0.5,
-					destroyers = 13*2.5*0.5,
-					cruisers = 13*2.5*0.5,
-					carriers = 13*2.5*0.5,
-					flagships = 13*2.5*0.5,
-					battleships = 13*2.5*0.5,
+					bombers = 1*2.1,
+					default = 67*2.1,
+					fighters = 13*2.1,
+					subs = 1*2.1,
+					vtol = 1*2.1,
+
 				},
 			},
 		},

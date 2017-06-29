@@ -90,9 +90,10 @@ return {
 			[22] = "armsonar",
 			[23] = "armfdrag",
 			[24] = "armtl",
-			[25] = "armfrt",
-			[26] = "armfrad",
-			[27] = "armcube",
+			[25] = "armgplat",
+			[26] = "armfrt",
+			[27] = "armfrad",
+			[28] = "armcube",
 		},
 		customparams = {
 			--death_sounds = "commander",
@@ -304,10 +305,10 @@ return {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[2] = {
-				badtargetcategory = "VTOL",
-				def = "ARMCOMSEALASER",
-			},
+			-- [2] = {
+				-- badtargetcategory = "VTOL",
+				-- def = "ARMCOMSEALASER",
+			-- },
 			[3] = {
 				def = "ARM_DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",

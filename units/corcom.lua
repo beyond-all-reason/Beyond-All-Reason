@@ -90,9 +90,10 @@ return {
 			[22] = "corsonar",
 			[23] = "corfdrag",
 			[24] = "cortl",
-			[25] = "corfrt",
-			[26] = "corfrad",
-			[27] = "armcube",
+			[25] = "corgplat",
+			[26] = "corfrt",
+			[27] = "corfrad",
+			[28] = "armcube",
 		},
 		customparams = {
 			--death_sounds = "commander",
@@ -307,10 +308,10 @@ return {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[2] = {
-				badtargetcategory = "VTOL",
-				def = "ARMCOMSEALASER",
-			},
+			-- [2] = {
+				-- badtargetcategory = "VTOL",
+				-- def = "ARMCOMSEALASER",
+			-- },
 			[3] = {
 				def = "ARM_DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
