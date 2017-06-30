@@ -77,6 +77,9 @@ local windArea = {}
 local comsArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
+
+local showOverflowTooltip = {}
+
 local allyComs				= 0
 local enemyComs				= 0 -- if we are counting ourselves because we are a spec
 local enemyComCount			= 0 -- if we are receiving a count from the gadget part (needs modoption on)
@@ -484,9 +487,9 @@ local function updateResbarValues(res)
         local cappedCurRes = r[1]	-- limit so when production dies the value wont be much larger than what you can store
         if r[1] > r[2]*1.07 then
             cappedCurRes = r[2]*1.07
-        end
+		end
 
-        -- Bar value
+		-- Bar value
         glColor(resbarDrawinfo[res].barColor)
         glTexture(barbg)
         glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
@@ -518,7 +521,28 @@ local function updateResbarText(res)
         glText("\255\200\100\100"..short(r[3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
         -- Text: income
         glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
-    end)
+
+		if r[1] >= r[2] then
+			if showOverflowTooltip[res] == nil then
+				showOverflowTooltip[res] = os.clock() + 1.5
+			end
+			if showOverflowTooltip[res] < os.clock() then
+				local bgpadding = 2*widgetScale
+				local text = 'Overflowing'
+				local textWidth = (bgpadding*2) + 16 + (glGetTextWidth(text) * 11) * widgetScale
+
+				-- background
+				glColor(0.33,0,0,0.7)
+				RectRound(resbarArea[res][3]-textWidth, resbarArea[res][2]-16.5*widgetScale, resbarArea[res][3], resbarArea[res][2], 5.5*widgetScale)
+				glColor(1,0.4,0.4,0.4)
+				RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][2]-16.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][2]-bgpadding, 5.5*widgetScale)
+
+				glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][2]-11.5*widgetScale, 11*widgetScale, 'or')
+			end
+		else
+			showOverflowTooltip[res] = nil
+		end
+	end)
 end
 
 
@@ -722,7 +746,6 @@ function checkStatus()
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
-
 function widget:GameFrame(n)
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
@@ -851,26 +874,38 @@ function widget:Update(dt)
 	end
 end
 
-
 function widget:DrawScreen()
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
-	
-	if dlistResbar['metal'][1] and dlistResbar['metal'][2] and dlistResbar['metal'][3] and dlistResbar['metal'][4] then
-		glCallList(dlistResbar['metal'][1])
-        glCallList(dlistResbar['metal'][3])
-        glCallList(dlistResbar['metal'][4])
-		glCallList(dlistResbar['metal'][2])
+	local now = os.clock()
+
+	local res = 'metal'
+	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] and dlistResbar[res][4] then
+		glCallList(dlistResbar[res][1])
+        glCallList(dlistResbar[res][3])
+        glCallList(dlistResbar[res][4])
+		glCallList(dlistResbar[res][2])
+		--if showOverflowTooltip[res] ~= nil and showOverflowTooltip[res] < now then
+		--	local text = 'Overflowing'
+		--	local textWidth = (8*2.66) + (glGetTextWidth(text) * 13) * widgetScale
+		--	WG['tooltip'].ShowTooltip(res..'_overflow_warning', text, resbarDrawinfo[res].barTexRect[3]+(8*widgetScale)-textWidth, resbarDrawinfo[res].barTexRect[4]-(24*widgetScale))
+		--end
+	end
+	res = 'energy'
+	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] and dlistResbar[res][4] then
+		glCallList(dlistResbar[res][1])
+        glCallList(dlistResbar[res][3])
+        glCallList(dlistResbar[res][4])
+		glCallList(dlistResbar[res][2])
+		--if showOverflowTooltip[res] ~= nil and showOverflowTooltip[res] < now then
+		--	local text = 'Overflowing'
+		--	local textWidth = (8*2.66) + (glGetTextWidth(text) * 13) * widgetScale
+		--	WG['tooltip'].ShowTooltip(res..'_overflow_warning', text, resbarDrawinfo[res].barTexRect[3]+(8*widgetScale)-textWidth, resbarDrawinfo[res].barTexRect[4]-(24*widgetScale))
+		--end
 	end
 
-	if dlistResbar['energy'][1] and dlistResbar['energy'][2] and dlistResbar['energy'][3] and dlistResbar['energy'][4] then
-		glCallList(dlistResbar['energy'][1])
-        glCallList(dlistResbar['energy'][3])
-        glCallList(dlistResbar['energy'][4])
-		glCallList(dlistResbar['energy'][2])
-	end
-	
+
 	if dlistWind1 then
 		glCallList(dlistWind1)
 		glRotate(windRotation, 0, 0, 1)
