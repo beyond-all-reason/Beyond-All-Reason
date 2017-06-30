@@ -451,7 +451,7 @@ unitDeaths = {
 
 --NUKE EXPLOSIONS WITH DAMAGE--
 
-    commanderExplosion = {
+    commanderexplosion = {
 		name = "Matter/AntimatterExplosion",
 		weaponType = "Cannon",
 		AreaOfEffect = 720,
