@@ -283,8 +283,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-
-FireShell()
+FirePrimary()
 {
 	start-script RockZ(-5, aimDir);
 	if( gun_1 )
@@ -299,15 +298,6 @@ FireShell()
 		move barrel1 to z-axis [-2.300000] now;
 		move barrel1 to z-axis [0.000000] speed [2.500000];
 	}
-}
-
-FirePrimary()
-{
-	start-script FireShell();
-	sleep 460;
-	start-script FireShell();
-	sleep 460;
-	start-script FireShell();
 }
 
 AimFromPrimary(piecenum)
