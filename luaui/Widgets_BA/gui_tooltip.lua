@@ -12,6 +12,23 @@ function widget:GetInfo()
 end
 
 ------------------------------------------------------------------------------------
+-- Info
+------------------------------------------------------------------------------------
+--[[
+
+-- Availible API functions:
+WG['tooltip'].AddTooltip(name, area, value, delay, x, y)  -- area: {x1,y1,x2,y2}   value: 'text'   delay(optional): #seconds   x/y(optional): display coordinates
+WG['tooltip'].RemoveTooltip(name)
+
+WG['tooltip'].ShowTooltip(name, value, x, y)    -- x/y (optional): display coordinates
+
+You can use 'AddTooltip' to add a screen area that will display a tooltip when you hover over it
+
+Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique, and not one you desined in 'AddTooltip'
+(the name will be deleted after use)
+
+]]--
+------------------------------------------------------------------------------------
 -- Config
 ------------------------------------------------------------------------------------
 
@@ -43,7 +60,6 @@ local tooltips = {}
 -- Functions
 ------------------------------------------------------------------------------------
 
-
 function RectRound(px,py,sx,sy,cs)
 	
 	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.floor(sx),math.floor(sy),math.floor(cs)
@@ -60,44 +76,47 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
-------------------------------------------------------------------------------------
--- Code
-------------------------------------------------------------------------------------
-
 function widget:Initialize()
 	init()
 end
 
 function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('tooltip')
+        for name, tooltip in pairs(tooltips) do
+		    WG['guishader_api'].RemoveRect('tooltip_'..name)
+        end
 	end
 end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (0.60 + (vsx*vsy / 5000000))
-	
-	WG['tooltip'] = {}
-	WG['tooltip'].AddTooltip = function(name, area, value, delay)
-		if value ~= nil or tooltips[name] ~= nil and tooltips[name].value ~= nil then
-			if delay == nil then delay = defaultDelay end
-			tooltips[name] = {area=area, delay=delay}
-			if value ~= nil then
-				tooltips[name].value = tostring(value)
-			end
-		end
-	end
-	WG['tooltip'].RemoveTooltip = function(name)
-		if tooltips[name] ~= nil then
-			tooltips[name] = nil
-		end
-	end
-	WG['tooltip'].ShowTooltip = function(name, value)
-		if value ~= nil then
-			tooltips[name] = {value=tostring(value)}
-		end
-	end
+
+    if WG['tooltip'] == nil then
+        WG['tooltip'] = {}
+        WG['tooltip'].AddTooltip = function(name, area, value, delay)
+            if value ~= nil or tooltips[name] ~= nil and tooltips[name].value ~= nil then
+                if delay == nil then delay = defaultDelay end
+                tooltips[name] = {area=area, delay=delay}
+                if value ~= nil then
+                    tooltips[name].value = tostring(value)
+                end
+            end
+        end
+        WG['tooltip'].RemoveTooltip = function(name)
+            if tooltips[name] ~= nil then
+                tooltips[name] = nil
+            end
+        end
+        WG['tooltip'].ShowTooltip = function(name, value, x, y)
+            if value ~= nil then
+                tooltips[name] = {value=tostring(value) }
+                if x ~= nil and y ~= nil then
+                    tooltips[name].pos = {x,y}
+                end
+            end
+        end
+    end
 end
 
 
@@ -120,11 +139,11 @@ end
 
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
-  
+
 	local paddingH = 7 *widgetScale
 	local paddingW = paddingH * 1.33
-	local posX = x + (xOffset*widgetScale) + paddingW
-	local posY = y + (yOffset*widgetScale) + paddingH
+	local posX = x + paddingW
+	local posY = y + paddingH
 	
 	local fontSize = usedFontSize*widgetScale
 	local maxWidth = 0
@@ -188,14 +207,22 @@ function widget:DrawScreen()
 	for name, tooltip in pairs(tooltips) do
 		if tooltip.area == nil or IsOnRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4]) then
 			if tooltip.area == nil then
-				drawTooltip(name, x, y)
+                if tooltip.pos ~= nil then
+				    drawTooltip(name, tooltip.pos[1], tooltip.pos[2])
+                else
+                    drawTooltip(name, x + (xOffset*widgetScale), y + (yOffset*widgetScale))
+                end
 				tooltips[name] = nil
 				cleanupGuishaderAreas['tooltip_'..name] = true
 			else
 				if tooltip.displayTime == nil then
 					tooltip.displayTime = now + tooltip.delay
 				elseif tooltip.displayTime <= now then
-					drawTooltip(name, x, y)
+                    if tooltip.pos ~= nil then
+                        drawTooltip(name, tooltip.pos[1], tooltip.pos[2])
+                    else
+                        drawTooltip(name, x + (xOffset*widgetScale), y + (yOffset*widgetScale))
+                    end
 				end
 			end
 		else
