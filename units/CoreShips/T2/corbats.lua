@@ -1,7 +1,5 @@
 return {
 	corbats = {
-		acceleration = 0.03,
-		brakerate = 0.075,
 		buildangle = 16000,
 		buildcostenergy = 23000,
 		buildcostmetal = 5760,
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 16685,
-		maxvelocity = 2.64,
 		minwaterdepth = 15,
 		movementclass = "DBOAT64X9",
 		name = "Warlord",
@@ -33,10 +30,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 455,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.7424,
-		turnrate = 306,
 		waterline = 12,
+		--move
+		acceleration = 2.10/210,
+		brakerate = 2.10/25,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 220,
+		--end move
 		customparams = {
 
 		},

@@ -1,7 +1,5 @@
 return {
 	armbats = {
-		acceleration = 2.8/60,
-		brakerate = 2.8/60,
 		buildangle = 16384,
 		buildcostenergy = 22000,
 		buildcostmetal = 5500,
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 15810,
-		maxvelocity = 2.80,
 		minwaterdepth = 15,
 		movementclass = "DBOAT63X7",
 		name = "Millennium",
@@ -33,10 +30,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
 		sightdistance = 455,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.80,
-		turnrate = 1.5*120,
 		waterline = 12,
+		--move
+		acceleration = 2.10/210,
+		brakerate = 2.10/25,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 220,
+		--end move
 		customparams = {
 			
 		},

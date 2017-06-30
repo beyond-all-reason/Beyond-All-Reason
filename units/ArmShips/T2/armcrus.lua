@@ -1,8 +1,6 @@
 return {
 	armcrus = {
-		acceleration = 2.80/45,
 		activatewhenbuilt = true,
-		brakerate = 2.80/45,
 		buildangle = 16384,
 		buildcostenergy = 15000,
 		buildcostmetal = 1800,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 4506,
-		maxvelocity = 2.80,
 		minwaterdepth = 30,
 		movementclass = "BOAT53X7",
 		name = "Conqueror",
@@ -35,11 +32,16 @@ return {
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 572,
 		sonardistance = 375,
-		turninplace = 0,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.80,
-		turnrate = 1.5*180,
 		waterline = 5,
+				--move
+		acceleration = 2.40/210,
+		brakerate = 2.40/25,
+		maxvelocity = 2.40,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.40,
+		turnrate = 240,
+		--end move
 		customparams = {
 			
 		},

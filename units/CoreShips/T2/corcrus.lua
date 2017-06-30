@@ -1,8 +1,6 @@
 return {
 	corcrus = {
-		acceleration = 0.042,
 		activatewhenbuilt = true,
-		brakerate = 0.186,
 		buildangle = 16384,
 		buildcostenergy = 14000,
 		buildcostmetal = 1900,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 4649,
-		maxvelocity = 2.64,
 		minwaterdepth = 30,
 		movementclass = "BOAT53X8",
 		name = "Executioner",
@@ -35,10 +32,15 @@ return {
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 533,
 		sonardistance = 375,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.7424,
-		turnrate = 448,
+		--move
+		acceleration = 2.40/210,
+		brakerate = 2.40/25,
+		maxvelocity = 2.40,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.40,
+		turnrate = 240,
+		--end move
 		waterline = 5.5,
 		customparams = {
 
