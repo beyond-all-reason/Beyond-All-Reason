@@ -32,8 +32,8 @@ return {
 		upright = true,
 		waterline = 30,
 		--move
-		brakerate =  2.40/120,
-		acceleration = 2.40/20,
+		brakerate =  2.40/20,
+		acceleration = 2.40/120,
 		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -135,7 +135,7 @@ return {
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
-				startvelocity = 100,
+				startvelocity = 150,
 				tolerance = 12000,
 				turnrate = 12000,
 				turret = false,
@@ -143,7 +143,7 @@ return {
 				weaponacceleration = 15,
 				weapontimer = 3.25,
 				weapontype = "TorpedoLauncher",
-				weaponvelocity = 160,
+				weaponvelocity = 240,
 				damage = {
 					commanders = 400,
 					default = 433,
