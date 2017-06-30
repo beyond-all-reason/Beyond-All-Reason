@@ -522,6 +522,7 @@ local function updateResbarText(res)
         -- Text: income
         glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
+        -- display overflow notification
 		if r[1] >= r[2] then
 			if showOverflowTooltip[res] == nil then
 				showOverflowTooltip[res] = os.clock() + 1.5
@@ -532,12 +533,12 @@ local function updateResbarText(res)
 				local textWidth = (bgpadding*2) + 16 + (glGetTextWidth(text) * 11) * widgetScale
 
 				-- background
-				glColor(0.33,0,0,0.7)
-				RectRound(resbarArea[res][3]-textWidth, resbarArea[res][2]-16.5*widgetScale, resbarArea[res][3], resbarArea[res][2], 5.5*widgetScale)
-				glColor(1,0.4,0.4,0.4)
-				RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][2]-16.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][2]-bgpadding, 5.5*widgetScale)
+				glColor(0.3,0,0,0.7)
+                RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-16.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
+                glColor(1,0.3,0.3,0.33)
+				RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-16.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 3*widgetScale)
 
-				glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][2]-11.5*widgetScale, 11*widgetScale, 'or')
+				glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-11.5*widgetScale, 11*widgetScale, 'or')
 			end
 		else
 			showOverflowTooltip[res] = nil
