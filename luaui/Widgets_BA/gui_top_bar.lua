@@ -469,7 +469,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\nalso minimum ("..minWind..") and maximum ("..maxWind..")")
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 7 (arm) or 8 (core)")
 	end
 end
 
@@ -523,22 +523,22 @@ local function updateResbarText(res)
         glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
         -- display overflow notification
-		if r[1] >= r[2] then
+		if r[1] >= r[2] and Spring.GetGameFrame() > 90 then
 			if showOverflowTooltip[res] == nil then
 				showOverflowTooltip[res] = os.clock() + 1.5
 			end
 			if showOverflowTooltip[res] < os.clock() then
 				local bgpadding = 2*widgetScale
 				local text = 'Overflowing'
-				local textWidth = (bgpadding*2) + 16 + (glGetTextWidth(text) * 11) * widgetScale
+				local textWidth = (bgpadding*2) + 15 + (glGetTextWidth(text) * 10) * widgetScale
 
 				-- background
-				glColor(0.3,0,0,0.7)
-                RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-16.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
-                glColor(1,0.3,0.3,0.33)
-				RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-16.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 3*widgetScale)
+				glColor(0.3,0,0,0.55)
+                RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
+                glColor(1,0.3,0.3,0.2)
+				RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 3*widgetScale)
 
-				glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-11.5*widgetScale, 11*widgetScale, 'or')
+				glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-10.5*widgetScale, 10*widgetScale, 'or')
 			end
 		else
 			showOverflowTooltip[res] = nil
@@ -567,7 +567,7 @@ local function updateResbar(res)
 	local glowSize = barHeight * 4
 
 	if resbarHover ~= nil and resbarHover == res then
-		sliderHeightAdd = barHeight/1.3
+		sliderHeightAdd = barHeight/1.15
 		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	end
 
@@ -631,8 +631,16 @@ local function updateResbar(res)
             end
 			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 			glTexture(barbg)
-			glColor(0.85, 0.85, 0.55, 1)
-			glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
+			if resbarHover ~= nil and resbarHover == res then
+				local padding = shareSliderWidth/8
+				glColor(0.8, 0.8, 0.5, 1)
+				RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],2.5*widgetScale)
+				glColor(0.7, 0.7, 0.47, 1)
+				RectRound(conversionIndicatorArea[1]+padding, conversionIndicatorArea[2]+padding, conversionIndicatorArea[3]-padding, conversionIndicatorArea[4]-padding,2.5*widgetScale)
+			else
+				glColor(0.85, 0.85, 0.55, 1)
+				glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
+			end
 		end
 		-- Share slider
         local value = r[6]
@@ -641,8 +649,16 @@ local function updateResbar(res)
         end
 		shareIndicatorArea[res] = {barArea[1]+(value * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(value * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 		glTexture(barbg)
-		glColor(0.8, 0, 0, 1)
-		glTexRect(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4])
+		if resbarHover ~= nil and resbarHover == res then
+			local padding = shareSliderWidth/8
+			glColor(0.66, 0, 0, 1)
+			RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4],2.5*widgetScale)
+			glColor(0.6, 0, 0, 1)
+			RectRound(shareIndicatorArea[res][1]+padding, shareIndicatorArea[res][2]+padding, shareIndicatorArea[res][3]-padding, shareIndicatorArea[res][4]-padding,2.5*widgetScale)
+		else
+			glColor(0.8, 0, 0, 1)
+			glTexRect(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4])
+		end
 		glTexture(false)
 	end)
 	
