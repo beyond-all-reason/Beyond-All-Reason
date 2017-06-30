@@ -30,15 +30,15 @@ return {
 		sightdistance = 400,
 		sonardistance = 475,
 		upright = true,
-		waterline = 30,
+		waterline = 10,
 		--move
-		brakerate =  2.20/120,
-		acceleration = 2.20/20,
-		maxvelocity = 2.20,
+		brakerate =  2.40/120,
+		acceleration = 2.40/20,
+		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.20,
-		turnrate = 405,	
+		turninplacespeedlimit = 0.64*2.40,
+		turnrate = 320,	
 		--end move
 		customparams = {
 			
@@ -145,9 +145,9 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
 				damage = {
-					commanders = 600,
-					default = 650,
-					subs = 150,
+					commanders = 400,
+					default = 433,
+					subs = 100,
 				},
 			},
 		},
@@ -156,7 +156,7 @@ return {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "ARM_TORPEDO",
 				maindir = "0 0 1",
-				maxangledif = 110,
+				maxangledif = 70,
 				onlytargetcategory = "NOTHOVER",
 			},
 		},
