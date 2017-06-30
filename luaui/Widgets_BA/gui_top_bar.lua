@@ -523,7 +523,7 @@ local function updateResbarText(res)
         glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
         -- display overflow notification
-		if r[1] >= r[2] and Spring.GetGameFrame() > 90 then
+		if not spec and r[1] >= r[2] and Spring.GetGameFrame() > 90 then
 			if showOverflowTooltip[res] == nil then
 				showOverflowTooltip[res] = os.clock() + 1.5
 			end
