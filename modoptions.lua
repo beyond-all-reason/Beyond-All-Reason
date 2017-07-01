@@ -206,7 +206,7 @@ local options={
 
     {
         key    = "windheightbonus",
-        name   = "Wind Generator Height Energy Bonus",
+        name   = "Wind Height Bonus",
         desc   = "Wind generators placed heigher on the map, will generate extra energy",
         type="list",
         def="disabled",
