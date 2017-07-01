@@ -8,7 +8,8 @@ piece  flare1, flare2, base, tail;
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIG_AIM				2
+#define SIG_MOVE			4
 
 
 Create()
@@ -34,6 +35,11 @@ StopMoving()
 	signal SIG_MOVE;
 	return (0);
 }
+AimPrimary()
+{
+	signal SIG_AIM;
+	return (1);
+}
 
 FirePrimary()
 {
@@ -45,6 +51,11 @@ QueryPrimary(piecenum)
 {
 	piecenum = gun_1;
 	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
 }
 
 SweetSpot(piecenum)
