@@ -17,7 +17,6 @@ SURF = {}
 function gadget:UnitFinished(unitID)
 unitDefID = Spring.GetUnitDefID(unitID)
 unitName = UnitDefs[unitDefID].name
-
 if unitName == "armsub" then
 UW[unitID] = true
 end
@@ -29,6 +28,7 @@ end
 function gadget:GameFrame(f)
 for unitID, under in pairs(UW) do
 if not Spring.GetUnitIsActive(unitID) == true then
+
 local x,y,z = Spring.GetUnitPosition(unitID)
 local rx, ry, rz = Spring.GetUnitRotation(unitID)
 local team = Spring.GetUnitTeam(unitID)
@@ -42,6 +42,8 @@ Spring.SetUnitRotation(newID, rx,ry,rz)
 Spring.SetUnitHealth(newID, health, captureProgress, paralyzeDamage, buildProgress)
 Spring.SetUnitExperience(newID, expert)
 Spring.SetUnitVelocity(newID, vx, vy, vz)
+Spring.AddUnitDamage(newID, 835*1.05, 835*1.05, -1, -2)
+Spring.Echo("added damages")
 SURF[newID] = true
 end
 end
@@ -60,12 +62,17 @@ Spring.SetUnitRotation(newID, rx,ry,rz)
 Spring.SetUnitHealth(newID, health, captureProgress, paralyzeDamage, buildProgress)
 Spring.SetUnitExperience(newID, expert)
 Spring.SetUnitVelocity(newID, vx, vy, vz)
+Spring.AddUnitDamage(newID, 835*1.05, 835*1.05, -1, -2)
+Spring.Echo("added damages")
 UW[newID] = true
 end
 end
 end
 
-
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+Spring.Echo(damage)
+Spring.Echo(paralyzer)
+end
 
 function gadget:UnitDestroyed(unitID)
 if UW[unitID] then
