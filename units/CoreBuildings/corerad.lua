@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "corerad_aoplane.dds",
 		buildpic = "CORERAD.DDS",
 		buildtime = 13000,
+		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Bomb-Resistant Medium-Range Missile Battery",

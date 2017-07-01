@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "aafus_aoplane.dds",
 		buildpic = "AAFUS.DDS",
 		buildtime = 312498,
+        canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "110 71 67",

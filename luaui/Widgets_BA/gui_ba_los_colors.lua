@@ -16,7 +16,7 @@ end
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
-local cfgLosWithRadarEnabled = true;
+local cfgLosWithRadarEnabled = true
 local colorProfile = "greyscale" -- "colored"
 local specDetected = false
 

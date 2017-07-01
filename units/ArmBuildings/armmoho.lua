@@ -13,6 +13,7 @@ return {
 		buildingMask = 0,
 		buildpic = "ARMMOHO.DDS",
 		buildtime = 14938,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "70 46 70",

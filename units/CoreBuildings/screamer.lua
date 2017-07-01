@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "screamer_aoplane.dds",
 		buildpic = "SCREAMER.DDS",
 		buildtime = 28000,
+		canrepeat = false,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 57 63",

@@ -13,6 +13,7 @@ return {
 		buildingMask = 0,
 		buildpic = "CORUWMEX.DDS",
 		buildtime = 1887,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Extracts Metal",

@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "armcir_aoplane.dds",
 		buildpic = "ARMCIR.DDS",
 		buildtime = 12004,
+		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Bomb-Resistant Medium-Range Missile Battery",

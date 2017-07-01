@@ -37,7 +37,6 @@ local windmills = {}
 
 local spGetWind              = Spring.GetWind
 local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitPosition      = Spring.GetUnitPosition
 local spGetUnitIsStunned     = Spring.GetUnitIsStunned
 local spAddUnitResource      = Spring.AddUnitResource
 

@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 600,
 		buildpic = "CORFHLT.DDS",
 		buildtime = 11386,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 0",
 		collisionvolumescales = "46 70 46",

@@ -10,6 +10,7 @@ return {
 		builder = 0,
 		buildpic = "ARMFGATE.DDS",
 		buildtime = 59060,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
 		collisionvolumeoffsets = "0 -30 0",
 		collisionvolumescales = "53 65 53",

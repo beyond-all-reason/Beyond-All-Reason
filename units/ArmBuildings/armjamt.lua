@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 240,
 		buildpic = "ARMJAMT.DDS",
 		buildtime = 9955,
+		canrepeat = false,
 		canattack = false,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
 		cloakcost = 25,

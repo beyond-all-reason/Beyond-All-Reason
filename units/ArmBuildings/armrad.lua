@@ -13,6 +13,7 @@ return {
 		buildpic = "ARMRAD.DDS",
 		buildtime = 1137,
 		canattack = false,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Early Warning System",

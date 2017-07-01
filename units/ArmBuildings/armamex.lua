@@ -13,6 +13,7 @@ return {
 		buildingMask = 0,
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
+        canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		cloakcost = 12,
 		collisionvolumeoffsets = "0 0 0",

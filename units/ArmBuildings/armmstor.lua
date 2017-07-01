@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "armmstor_aoplane.dds",
 		buildpic = "ARMMSTOR.DDS",
 		buildtime = 2925,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 31 63",

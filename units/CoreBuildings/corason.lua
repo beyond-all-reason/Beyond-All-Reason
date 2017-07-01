@@ -13,6 +13,7 @@ return {
 		buildpic = "CORASON.DDS",
 		buildtime = 6096,
 		canattack = false,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "45 28 45",

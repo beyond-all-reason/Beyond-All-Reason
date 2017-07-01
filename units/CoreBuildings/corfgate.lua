@@ -10,6 +10,7 @@ return {
 		builder = 0,
 		buildpic = "CORFGATE.DDS",
 		buildtime = 59060,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR",
 		collisionvolumeoffsets = "0 -25 0",
 		collisionvolumescales = "60 70 60",

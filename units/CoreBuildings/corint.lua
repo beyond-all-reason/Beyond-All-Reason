@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "corint_aoplane.dds",
 		buildpic = "CORINT.DDS",
 		buildtime = 93237,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Long Range Plasma Cannon",

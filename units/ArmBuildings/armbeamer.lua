@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "armbeamer_aoplane.dds",
 		buildpic = "armbeamer.DDS",
 		buildtime = 5324,
+        canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 85 33",

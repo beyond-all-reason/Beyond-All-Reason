@@ -13,6 +13,7 @@ return {
 		buildpic = "ARMVEIL.DDS",
 		buildtime = 9080,
 		canattack = false,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Long-Range Jamming Tower",

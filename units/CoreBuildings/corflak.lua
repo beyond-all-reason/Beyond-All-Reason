@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "corflak_aoplane.dds",
 		buildpic = "CORFLAK.DDS",
 		buildtime = 20112,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "28 34 28",

@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "cmgeo_aoplane.dds",
 		buildpic = "CMGEO.DDS",
 		buildtime = 32078,
+		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "3 -5 0",
 		collisionvolumescales = "92 43 71",

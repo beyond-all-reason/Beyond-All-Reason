@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "mercury_aoplane.dds",
 		buildpic = "MERCURY.DDS",
 		buildtime = 28000,
+        canrepeat = false,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-1 -1 0",
 		collisionvolumescales = "60 68 60",

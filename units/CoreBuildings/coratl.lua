@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 1050,
 		buildpic = "CORATL.DDS",
 		buildtime = 10875,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE",
 		corpse = "DEAD",
 		description = "Advanced Torpedo Launcher",

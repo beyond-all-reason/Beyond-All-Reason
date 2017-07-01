@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "armtarg_aoplane.dds",
 		buildpic = "ARMTARG.DDS",
 		buildtime = 8707,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Enhanced Radar Targeting, more facilities enhance accuracy",

@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 1,
 		buildpic = "ARMFMKR.DDS",
 		buildtime = 2958,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		description = "Converts up to 70 energy into 1.1 metal per second",
 		explodeas = "largeBuildingExplosionGeneric",

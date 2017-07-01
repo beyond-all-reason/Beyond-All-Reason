@@ -9,6 +9,7 @@ return {
 		buildcostmetal = 1,
 		builder = false,
 		buildtime = 1,
+		canrepeat = false,
 		category = "NOTAIR NOTSUB NOTSHIP NOTHOVER ALL SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",

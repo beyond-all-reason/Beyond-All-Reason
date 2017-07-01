@@ -13,6 +13,7 @@ return {
 		buildingMask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		canattack = true,
 		collisionvolumeoffsets = "0 -3 0",

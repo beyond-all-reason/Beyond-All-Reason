@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "armuwes_aoplane.dds",
 		buildpic = "ARMUWES.DDS",
 		buildtime = 7085,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (6000)",

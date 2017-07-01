@@ -8,6 +8,7 @@ return {
 		buildcostmetal = 30,
 		buildpic = "ARMEYES.DDS",
 		buildtime = 750,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 10,
 		corpse = "DRAGONSEYES_DEAD",

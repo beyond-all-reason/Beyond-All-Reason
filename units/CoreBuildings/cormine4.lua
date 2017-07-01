@@ -10,6 +10,7 @@ return {
 		canattack = false,
 		canguard = false,
 		canpatrol = false,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON MINE KAMIKAZE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 1,
 		collide = false,

@@ -37,7 +37,7 @@ local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
-local show = false 
+local show = false
 local gameStarted = false
 
 function ToggleHelp(_,playerID) -- RecvLuaMsg is synced only

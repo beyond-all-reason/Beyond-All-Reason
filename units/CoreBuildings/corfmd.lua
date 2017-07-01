@@ -12,6 +12,7 @@ return {
 		buildpic = "CORFMD.DDS",
 		buildtime = 60000,
 		canattack = false,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -19 0",
 		collisionvolumescales = "48 78 48",

@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "amgeo_aoplane.dds",
 		buildpic = "AMGEO.DDS",
 		buildtime = 33152,
+		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-2 -2 6",
 		collisionvolumescales = "69 69 107",

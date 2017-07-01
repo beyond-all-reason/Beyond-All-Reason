@@ -13,6 +13,7 @@ return {
 		buildingMask = 0,
 		buildpic = "ARMUWMME.DDS",
 		buildtime = 35370,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",

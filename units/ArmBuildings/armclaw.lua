@@ -10,6 +10,7 @@ return {
 		buildinggrounddecaltype = "armclaw_aoplane.dds",
 		buildpic = "ARMCLAW.DDS",
 		buildtime = 4638,
+        canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,

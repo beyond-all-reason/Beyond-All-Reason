@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "madsam_aoplane.dds",
 		buildpic = "MADSAM.DDS",
 		buildtime = 5237,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-1 5 -2",
 		collisionvolumescales = "45 54 45",

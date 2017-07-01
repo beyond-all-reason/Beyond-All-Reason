@@ -10,6 +10,7 @@ return {
 		buildinggrounddecaltype = "cormaw_aoplane.dds",
 		buildpic = "CORMAW.DDS",
 		buildtime = 4419,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,

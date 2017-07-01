@@ -12,6 +12,7 @@ return {
 		buildinggrounddecaltype = "armadvsol_aoplane.dds",
 		buildpic = "ARMADVSOL.DDS",
 		buildtime = 7945,
+		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "49 11 49",

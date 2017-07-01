@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "armrl_aoplane.dds",
 		buildpic = "ARMRL.DDS",
 		buildtime = 1800,
+		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "36 57 36",

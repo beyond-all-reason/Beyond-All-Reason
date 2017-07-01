@@ -11,6 +11,7 @@ return {
 		buildinggrounddecaltype = "corwin_aoplane.dds",
 		buildpic = "CORWIN.DDS",
 		buildtime = 2450,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "40 89 40",

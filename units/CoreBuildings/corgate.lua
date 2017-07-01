@@ -13,6 +13,7 @@ return {
 		buildpic = "CORGATE.DDS",
 		buildtime = 55000,
 		canattack = false,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 1",
 		collisionvolumescales = "57 38 57",

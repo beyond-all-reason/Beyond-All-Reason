@@ -13,6 +13,7 @@ return {
 		buildingMask = 0,
 		buildpic = "CORUWMME.DDS",
 		buildtime = 34783,
+		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.35,

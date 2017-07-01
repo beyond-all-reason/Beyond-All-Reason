@@ -469,7 +469,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 7 (arm) or 8 (core)")
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 8 (arm) or 9 (core)")
 	end
 end
 
