@@ -178,31 +178,44 @@ local options={
 		--}
     --},
 
-	{
-		key    = "firethroughfriendly",
-		name   = "Fire Through Friendly Units",
-		desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. Also fixes unit hitspheres. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",
-		type="list",
-		def="disabled",
-		section= "ba_enhancements_misc",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Causes weapons not to collide with nor avoid friendly units, resulting in very TA style gameplay and promotes unit/group micro."},
-		}
-  },
+    {
+        key    = "firethroughfriendly",
+        name   = "Fire Through Friendly Units",
+        desc   = "Causes weapons not to collide with nor avoid friendly units resulting in very TA style gameplay. Also fixes unit hitspheres. *Note* Balanced Annihilation is one of very few games that cause friendly units to block fire.",
+        type="list",
+        def="disabled",
+        section= "ba_enhancements_misc",
+        items={
+            {key="disabled", name="Disabled", desc=""},
+            {key="enabled", name="Enabled", desc="Causes weapons not to collide with nor avoid friendly units, resulting in very TA style gameplay and promotes unit/group micro."},
+        }
+    },
 
-	{
-		key    = "smallfeaturenoblock",
-		name   = "Set small features to non-blocking status",
-		desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",
-		type="list",
-		def="enabled",
-		section= "ba_enhancements_misc",
-		items={
-			{key="disabled", name="Disabled", desc=""},
-			{key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
-		}
-  },
+    {
+        key    = "smallfeaturenoblock",
+        name   = "Set small features to non-blocking status",
+        desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",
+        type="list",
+        def="enabled",
+        section= "ba_enhancements_misc",
+        items={
+            {key="disabled", name="Disabled", desc=""},
+            {key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
+        }
+    },
+
+    {
+        key    = "windheightbonus",
+        name   = "Wind Generator Height Energy Bonus",
+        desc   = "Wind generators placed heigher on the map, will generate extra energy",
+        type="list",
+        def="disabled",
+        section= "ba_enhancements_misc",
+        items={
+            {key="disabled", name="Disabled", desc=""},
+            {key="enabled", name="Enabled", desc="Wind generators placed heigher on the map, will generate extra energy"},
+        }
+    },
 	
 -- Control Victory Options	
 	{

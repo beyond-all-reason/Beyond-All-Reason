@@ -966,6 +966,7 @@ function widget:Shutdown()
 		Spring.ForceLayoutUpdate()
 	end
 end
+
 local function GetCommands()
 	local hiddencmds = {
 		[76] = true, --load units clone
@@ -1018,6 +1019,7 @@ local function GetCommands()
 	
 	return buildcmds,othercmds
 end
+
 local hijackattempts = 0
 local layoutping = 54352 --random number
 local function hijacklayout()
