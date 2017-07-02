@@ -137,6 +137,7 @@ Other:
 - Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
 - Added additional extensive unit description (by PtaQ)
 - Increased default player unit limit to 1500
+- Removed useless repeat/stop/wait orders from a lot of buildings
 
 
 9.45 -> 9.46

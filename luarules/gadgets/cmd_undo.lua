@@ -15,9 +15,18 @@ end
 
 local cmdname = 'undo'
 
+local armcomDefID = UnitDefNames.armcom.id
+local corcomDefID = UnitDefNames.corcom.id
+
+local armcomFeatureDefID = FeatureDefNames['armcom_dead'].id
+local corcomFeatureDefID = FeatureDefNames['corcom_dead'].id
+
 local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local PACKET_HEADER = "$u$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
+
+--Spring.GetGroundHeight(x,z)
+--Spring.LevelHeightMap(x,z,x+1,z+1, height)
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -84,6 +93,19 @@ if gadgetHandler:IsSyncedCode() then
 		local leftovers = {}
 		for oldUnitID, params in pairs(teamSelfdUnits[teamID]) do
 			if params[1] > oldestGameFrame then
+
+				-- destroy armcom/corcom wreckage if detected
+				if params[2] == armcomDefID or params[2] == corcomDefID then
+					local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),1)
+					for i, featureID in pairs(features) do
+						local featureDefID = Spring.GetFeatureDefID(featureID)
+						if featureDefID == armcomFeatureDefID or featureDefID == corcomFeatureDefID then
+							Spring.DestroyFeature(featureID)
+							break
+						end
+					end
+				end
+				-- add unit
 				local unitID = Spring.CreateUnit(params[2], params[4], Spring.GetGroundHeight(params[4], params[6]), params[6], params[7], teamID)
 				if unitID ~= nil then
 					Spring.SetUnitHealth(unitID, params[3])
@@ -132,8 +154,6 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	-- log selfd's
-	local armcomDefID = UnitDefNames.armcom.id
-	local corcomDefID = UnitDefNames.corcom.id
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 
 		if attackerID == nil and selfdCmdUnits[unitID] then -- attackerID == nil -> selfd/reclaim
@@ -145,11 +165,6 @@ if gadgetHandler:IsSyncedCode() then
 			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
 			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
 			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
-
-			-- armcom and corcom leave wreckage behind
-			if unitDefID == armcomDefID or unitDefID == corcomDefID then
-
-			end
 		end
 	end
 
@@ -194,11 +209,8 @@ else	-- UNSYNCED
 	end
 
 	function Undo(cmd, line, words, playerID)
-
 		if words[1] ~= nil and words[2] ~= nil then
 			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2])
-
-			--Spring.SendMessageToPlayer(playerID, "Invalid team")
 		end
 	end
 end
