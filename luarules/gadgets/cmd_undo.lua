@@ -19,9 +19,6 @@ local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local PACKET_HEADER = "$u$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
---Spring.GetGroundHeight(x,z)
---Spring.LevelHeightMap(x,z,x+1,z+1, height)
-
 if gadgetHandler:IsSyncedCode() then
 
 	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower'}
@@ -108,6 +105,8 @@ if gadgetHandler:IsSyncedCode() then
 					Spring.SetUnitHealth(unitID, params[3])
 					Spring.SetUnitDirection(unitID, params[8], params[9], params[10])
 					numRestoredUnits = numRestoredUnits + 1
+				else
+					leftovers[oldUnitID] = params
 				end
 			else
 				leftovers[oldUnitID] = params
@@ -163,7 +162,7 @@ if gadgetHandler:IsSyncedCode() then
 			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
 			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
 
-			-- store ground height
+			-- log ground height
 			--area=getareaofeffect?
 			--for do
 			--	Spring.GetGroundHeight(x,z)

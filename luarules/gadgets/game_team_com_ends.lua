@@ -64,7 +64,7 @@ function gadget:GameFrame(t)
 				for _,team in ipairs(GetTeamList(at)) do
 					for _,unitID in ipairs(GetTeamUnits(team)) do
 						local x,y,z = GetUnitPosition(unitID)
-						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 250), 250)
+						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 350), 350)
 						if (destroyUnitQueue[unitID] == nil) then
 							destroyUnitQueue[unitID] = { 
 									time = t + deathTime + math.random(0,5), 
@@ -94,7 +94,7 @@ function gadget:GameFrame(t)
 				destroyUnitQueue[unitID] = nil
 			end
 		end
-		deathTimeBoost = math.min(deathTimeBoost * 1.125, 250)
+		deathTimeBoost = math.min(deathTimeBoost * 1.35, 350)
 	end
 	
 end
