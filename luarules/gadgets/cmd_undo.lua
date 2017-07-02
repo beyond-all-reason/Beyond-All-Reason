@@ -15,12 +15,6 @@ end
 
 local cmdname = 'undo'
 
-local armcomDefID = UnitDefNames.armcom.id
-local corcomDefID = UnitDefNames.corcom.id
-
-local armcomFeatureDefID = FeatureDefNames['armcom_dead'].id
-local corcomFeatureDefID = FeatureDefNames['corcom_dead'].id
-
 local rememberGameframes = 9000 -- 9000 -> 5 minutes
 local PACKET_HEADER = "$u$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
@@ -93,16 +87,14 @@ if gadgetHandler:IsSyncedCode() then
 		local leftovers = {}
 		for oldUnitID, params in pairs(teamSelfdUnits[teamID]) do
 			if params[1] > oldestGameFrame then
-
-				-- destroy armcom/corcom wreckage if detected
-				if params[2] == armcomDefID or params[2] == corcomDefID then
-					local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),1)
-					for i, featureID in pairs(features) do
-						local featureDefID = Spring.GetFeatureDefID(featureID)
-						if featureDefID == armcomFeatureDefID or featureDefID == corcomFeatureDefID then
-							Spring.DestroyFeature(featureID)
-							break
-						end
+				-- destroy old unit wreckage if any
+				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),1)
+				for i, featureID in pairs(features) do
+					local featureDefID = Spring.GetFeatureDefID(featureID)
+					local wreckageID = FeatureDefNames[UnitDefs[params[2]].wreckName].id
+					if wreckageID ~= nil and featureDefID == wreckageID then
+						Spring.DestroyFeature(featureID)
+						break
 					end
 				end
 				-- add unit
