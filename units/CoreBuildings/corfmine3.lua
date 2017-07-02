@@ -40,7 +40,7 @@ return {
 		stealth = true,
 		waterline = 1,
 		customparams = {
-			
+			removewait = true,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

@@ -41,7 +41,8 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooo",
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dead = {

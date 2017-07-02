@@ -33,7 +33,7 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
-			
+			removewait = true,
 		},
 		featuredefs = {
 			dead = {

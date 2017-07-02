@@ -38,6 +38,8 @@ return {
 		yardmap = "ooooo ooooo ooooo ooooo ooooo oGGGo oGGGo ooooo",
 		customparams = {
 			cvBuildable = true,
+			removewait = true,
+			removestop = true,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

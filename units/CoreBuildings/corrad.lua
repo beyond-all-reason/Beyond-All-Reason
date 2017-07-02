@@ -43,7 +43,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dead = {

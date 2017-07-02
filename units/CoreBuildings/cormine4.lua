@@ -40,7 +40,7 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
-			
+			removewait = true,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

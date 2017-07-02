@@ -44,6 +44,7 @@ return {
 		customparams = {
 			cvBuildable = true,
 			metal_extractor = 1,
+			removewait = true,
 		},
 		featuredefs = {
 			dead = {

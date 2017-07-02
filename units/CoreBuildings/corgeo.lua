@@ -39,6 +39,8 @@ return {
 		yardmap = "oooo oGGo oGGo oooo",
 		customparams = {
 			cvBuildable = true,
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dead = {

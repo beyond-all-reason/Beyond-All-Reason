@@ -40,7 +40,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
-			
+			removewait = true,
 		},
 		featuredefs = {
 			dead = {

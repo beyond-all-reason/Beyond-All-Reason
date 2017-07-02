@@ -30,7 +30,7 @@ return {
 		sightdistance = 300,
 		yardmap = "ooooooooo",
 		customparams = {
-			
+			removewait = true,
 		},
 		featuredefs = {
 			dead = {

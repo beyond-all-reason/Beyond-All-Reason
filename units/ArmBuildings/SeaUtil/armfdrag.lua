@@ -38,7 +38,8 @@ return {
 			}, 
 		},
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 	},
 }

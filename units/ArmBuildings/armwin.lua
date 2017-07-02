@@ -38,6 +38,8 @@ return {
 		yardmap = "yooy oooo oooo yooy",
 		customparams = {
 			windgen = 0.5,		-- UPDATE WIND DISPLAY WIDGET IF YOU CHANGE... extra wind energy multiplier (0.5 = 50% on top of currentwind)
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dead = {

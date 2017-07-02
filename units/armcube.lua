@@ -38,6 +38,10 @@ return {
 		--script = "armcube.lua",
 		usebuildinggrounddecal = false,
 		yardmap = "oooooooooooooooo",
+		customparams = {
+			removewait = true,
+			removestop = true,
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,

@@ -44,7 +44,8 @@ return {
 		workertime = 0,
 		yardmap = "ooooooooo",
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {},
 		sfxtypes = { 

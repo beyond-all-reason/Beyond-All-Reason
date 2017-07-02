@@ -48,7 +48,8 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dead = {

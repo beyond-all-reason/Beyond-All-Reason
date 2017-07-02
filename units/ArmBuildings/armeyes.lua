@@ -33,7 +33,8 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dragonseyes_dead = {

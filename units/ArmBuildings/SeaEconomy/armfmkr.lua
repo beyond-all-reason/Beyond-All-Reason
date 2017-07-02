@@ -28,7 +28,8 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

@@ -36,7 +36,8 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
-			
+			removewait = true,
+			removestop = true,
 		},
 		featuredefs = {
 			dead = {
