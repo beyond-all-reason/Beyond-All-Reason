@@ -77,7 +77,7 @@ if gadgetHandler:IsSyncedCode() then
 		return arr
 	end
 
-	function restoreUnits(teamID, seconds, playerID)
+	function restoreUnits(teamID, seconds, toTeamID, playerID)
 		if teamSelfdUnits[teamID] == nil then
 			Spring.SendMessageToPlayer(playerID, 'There is no self destruct unit history for team '..teamID)
 			return
@@ -90,15 +90,20 @@ if gadgetHandler:IsSyncedCode() then
 				-- destroy old unit wreckage if any
 				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),1)
 				for i, featureID in pairs(features) do
-					local featureDefID = Spring.GetFeatureDefID(featureID)
 					local wreckageID = FeatureDefNames[UnitDefs[params[2]].wreckName].id
-					if wreckageID ~= nil and featureDefID == wreckageID then
+					if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
 						Spring.DestroyFeature(featureID)
 						break
 					end
 				end
+
+				-- restore ground
+				--for do
+				--	Spring.LevelHeightMap(x,z,x+1,z+1, height)
+				--end
+
 				-- add unit
-				local unitID = Spring.CreateUnit(params[2], params[4], Spring.GetGroundHeight(params[4], params[6]), params[6], params[7], teamID)
+				local unitID = Spring.CreateUnit(params[2], params[4], Spring.GetGroundHeight(params[4], params[6]), params[6], params[7], toTeamID)
 				if unitID ~= nil then
 					Spring.SetUnitHealth(unitID, params[3])
 					Spring.SetUnitDirection(unitID, params[8], params[9], params[10])
@@ -140,7 +145,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		local params = explode(':', msg)
-		restoreUnits(tonumber(params[2]), tonumber(params[3]), playerID)
+		restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
 		return true
 	end
 
@@ -157,6 +162,12 @@ if gadgetHandler:IsSyncedCode() then
 			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
 			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
 			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
+
+			-- store ground height
+			--area=getareaofeffect?
+			--for do
+			--	Spring.GetGroundHeight(x,z)
+			--end
 		end
 	end
 
@@ -202,7 +213,11 @@ else	-- UNSYNCED
 
 	function Undo(cmd, line, words, playerID)
 		if words[1] ~= nil and words[2] ~= nil then
-			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2])
+			targetTeamID = words[1]
+			if words[3] ~= nil then
+				targetTeamID = words[3]
+			end
+			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..targetTeamID)
 		end
 	end
 end
