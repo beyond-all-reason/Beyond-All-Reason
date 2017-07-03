@@ -45,6 +45,7 @@ if gadgetHandler:IsSyncedCode() then
 		checkStartPlayers()
 	end
 
+local sceduledRestoreHeightmap = {}
 	function gadget:GameFrame(gameFrame)
 		-- cleanup periodically
 		if gameFrame % 901 == 1 then
@@ -59,6 +60,12 @@ if gadgetHandler:IsSyncedCode() then
 				teamSelfdUnits[teamID] = cleanedUnits
 			end
 
+		end
+		if sceduledRestoreHeightmap[gameFrame] ~= nil then
+			for i, params in pairs(sceduledRestoreHeightmap[gameFrame]) do
+				Spring.RevertHeightMap(params[1], params[2], params[3], params[4], 1)
+			end
+			sceduledRestoreHeightmap[gameFrame] = nil
 		end
 	end
 
@@ -94,10 +101,16 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 
-				-- restore ground
-				--for do
-				--	Spring.LevelHeightMap(x,z,x+1,z+1, height)
-				--end
+				-- delay ground height restoration cause otherwise it doesnt work properly
+				if sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] == nil then
+					sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] = {}
+				end
+				if UnitDefs[params[2]].selfDExplosion ~= nil then
+					local radius = WeaponDefs[WeaponDefNames[UnitDefs[params[2]].selfDExplosion].id].damageAreaOfEffect
+					if radius ~= nil then
+						table.insert(sceduledRestoreHeightmap[Spring.GetGameFrame() + 15], {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius})
+					end
+				end
 
 				-- add unit
 				local unitID = Spring.CreateUnit(params[2], params[4], Spring.GetGroundHeight(params[4], params[6]), params[6], params[7], toTeamID)
@@ -161,12 +174,6 @@ if gadgetHandler:IsSyncedCode() then
 			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
 			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
 			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
-
-			-- log ground height
-			--area=getareaofeffect?
-			--for do
-			--	Spring.GetGroundHeight(x,z)
-			--end
 		end
 	end
 
