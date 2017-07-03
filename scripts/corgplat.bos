@@ -78,15 +78,15 @@ Shot1()
 {
 	if( gun_1 )
 	{
-		move barrel2 to z-axis [-2.000000] now;
-		move barrel2 to z-axis [0.000000] speed [3.000000];
-		emit-sfx 1024 + 0 from flare2;
-	}
-	else
-	{
 		move barrel1 to z-axis [-2.000000] now;
 		move barrel1 to z-axis [0.000000] speed [3.000000];
 		emit-sfx 1024 + 0 from flare1;
+	}
+	else
+	{
+		move barrel2 to z-axis [-2.000000] now;
+		move barrel2 to z-axis [0.000000] speed [3.000000];
+		emit-sfx 1024 + 0 from flare2;
 	}
 	gun_1 = !gun_1;
 }
