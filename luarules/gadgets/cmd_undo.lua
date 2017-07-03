@@ -25,6 +25,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
+	local lastSelfdTeamID = 0
+	local sceduledRestoreHeightmap = {}
 
 	local startPlayers = {}
 	function checkStartPlayers()
@@ -45,7 +47,6 @@ if gadgetHandler:IsSyncedCode() then
 		checkStartPlayers()
 	end
 
-local sceduledRestoreHeightmap = {}
 	function gadget:GameFrame(gameFrame)
 		-- cleanup periodically
 		if gameFrame % 901 == 1 then
@@ -91,24 +92,14 @@ local sceduledRestoreHeightmap = {}
 		local leftovers = {}
 		for oldUnitID, params in pairs(teamSelfdUnits[teamID]) do
 			if params[1] > oldestGameFrame then
+
 				-- destroy old unit wreckage if any
-				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),1)
+				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),50)	-- radius larger than 1 cause wreckage can fly off a bit
 				for i, featureID in pairs(features) do
 					local wreckageID = FeatureDefNames[UnitDefs[params[2]].wreckName].id
 					if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
-						Spring.DestroyFeature(featureID)
+						Spring.DestroyFeature(featureID, false)
 						break
-					end
-				end
-
-				-- delay ground height restoration cause otherwise it doesnt work properly
-				if sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] == nil then
-					sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] = {}
-				end
-				if UnitDefs[params[2]].selfDExplosion ~= nil then
-					local radius = WeaponDefs[WeaponDefNames[UnitDefs[params[2]].selfDExplosion].id].damageAreaOfEffect
-					if radius ~= nil then
-						table.insert(sceduledRestoreHeightmap[Spring.GetGameFrame() + 15], {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius})
 					end
 				end
 
@@ -120,6 +111,17 @@ local sceduledRestoreHeightmap = {}
 					numRestoredUnits = numRestoredUnits + 1
 				else
 					leftovers[oldUnitID] = params
+				end
+
+				-- delay ground height restoration cause otherwise it just doesnt work properly
+				if sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] == nil then
+					sceduledRestoreHeightmap[Spring.GetGameFrame() + 15] = {}
+				end
+				if UnitDefs[params[2]].selfDExplosion ~= nil then
+					local radius = WeaponDefs[WeaponDefNames[UnitDefs[params[2]].selfDExplosion].id].damageAreaOfEffect
+					if radius ~= nil then
+						table.insert(sceduledRestoreHeightmap[Spring.GetGameFrame() + 15], {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius})
+					end
 				end
 			else
 				leftovers[oldUnitID] = params
@@ -164,16 +166,22 @@ local sceduledRestoreHeightmap = {}
 
 	-- log selfd's
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-
-		if attackerID == nil and selfdCmdUnits[unitID] then -- attackerID == nil -> selfd/reclaim
+		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID])  then -- attackerID == nil -> selfd/reclaim
+			local ux,uy,uz = Spring.GetUnitPosition(unitID)
+			local health, maxHealth = Spring.GetUnitHealth(unitID)
+			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
+			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
+			if attackerID ~= nil then
+				selfdCmdUnits[unitID] = Spring.GetGameFrame() - Spring.GetUnitSelfDTime(unitID)
+				teamID = lastSelfdTeamID
+				health = maxHealth	-- health only applicable to actual selfd units
+			else
+				lastSelfdTeamID = teamID
+			end
 			if teamSelfdUnits[teamID] == nil then
 				teamSelfdUnits[teamID] = {}
 			end
-			local ux,uy,uz = Spring.GetUnitPosition(unitID)
-			local health = Spring.GetUnitHealth(unitID)
-			local buildFacing =  Spring.GetUnitBuildFacing(unitID)
-			local dx, dy, dz =  Spring.GetUnitDirection(unitID)
-			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz }
+			teamSelfdUnits[teamID][unitID] = {Spring.GetGameFrame(), unitDefID, health, ux, uy, uz, buildFacing, dx, dy, dz}
 		end
 	end
 
