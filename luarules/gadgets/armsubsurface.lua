@@ -17,7 +17,7 @@ if (gadgetHandler:IsSyncedCode()) then
     function gadget:UnitFinished(unitID) -- add UW[unitID] and SURF[unitID] upon creation
         unitDefID = Spring.GetUnitDefID(unitID)
         unitName = UnitDefs[unitDefID].name
-        if unitName == "armsub" then
+        if unitName == "armsubexp" then
             UW[unitID] = true
         end
         if unitName == "armsubsurface" then
@@ -60,7 +60,7 @@ if (gadgetHandler:IsSyncedCode()) then
                 local vx, vy, vz = Spring.GetUnitVelocity(unitID)
                 Spring.DestroyUnit(unitID, false, true)-- destroy it
                 SURF[unitID] = nil-- clear UW[unitID] entry
-                newID = Spring.CreateUnit("armsub", x,y,z, "n", team)--Create newID (surface)
+                newID = Spring.CreateUnit("armsubexp", x,y,z, "n", team)--Create newID (surface)
                 -- Reapply stats
                 Spring.SetUnitRotation(newID, rx,ry,rz)
                 Spring.SetUnitHealth(newID, health, captureProgress, paralyzeDamage, buildProgress)

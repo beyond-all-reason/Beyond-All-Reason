@@ -8,8 +8,7 @@ piece  flare1, flare2, base, tail;
 static-var  gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_MOVE			4
+#define SIG_MOVE			2
 
 
 Create()
@@ -35,11 +34,6 @@ StopMoving()
 	signal SIG_MOVE;
 	return (0);
 }
-AimPrimary()
-{
-	signal SIG_AIM;
-	return (1);
-}
 
 FirePrimary()
 {
@@ -53,11 +47,6 @@ QueryPrimary(piecenum)
 	return (0);
 }
 
-AimFromPrimary(piecenum)
-{
-	piecenum = base;
-}
-
 SweetSpot(piecenum)
 {
 	piecenum = base;
@@ -69,22 +58,34 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode tail type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode tail type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+		explode flare1 type BITMAPONLY | BITMAP2;
+		explode flare2 type BITMAPONLY | BITMAP3;
+		explode tail type BITMAPONLY | BITMAP4;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1;
+	explode flare1 type BITMAPONLY | BITMAP2;
+	explode flare2 type BITMAPONLY | BITMAP3;
+	explode tail type BITMAPONLY | BITMAP4;
 	return (corpsetype);
 }

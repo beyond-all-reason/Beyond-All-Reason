@@ -1,11 +1,13 @@
 return {
-	armsub = {
+	armsubexp = {
+		activatewhenbuilt = true,
 		autoheal = 2,
 		buildcostenergy = 4000,
 		buildcostmetal = 700,
 		buildpic = "ARMSUB.DDS",
 		buildtime = 10983,
 		canmove = true,
+		onoffable = true,
 		category = "UNDERWATER ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "35 17 50",
@@ -23,7 +25,7 @@ return {
 		movementclass = "UBOAT32X4",
 		name = "Lurker",
 		nochasecategory = "VTOL",
-		objectname = "ARMSUB",
+		objectname = "ARMSUBEXP",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 400,
