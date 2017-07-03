@@ -137,7 +137,6 @@ return {
 				startvelocity = 150,
 				tolerance = 12000,
 				turnrate = 1.5*12000,
-				turret = true,
 				waterweapon = true,
 				weaponacceleration = 15,
 				weapontimer = 3.25,
@@ -154,8 +153,8 @@ return {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "ARM_TORPEDO",
-				maindir = "0 -1 1",
-				maxangledif = 100,
+				maindir = "0 0 1",
+				maxangledif = 110,
 				onlytargetcategory = "NOTHOVER",
 			},
 		},
