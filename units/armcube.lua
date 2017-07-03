@@ -26,7 +26,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		levelground = false,
-		maxdamage = 4500*1.25,
+		maxdamage = 4500,
 		maxslope = 89,
 		minwaterdepth = 0,
 		name = "Platform",
