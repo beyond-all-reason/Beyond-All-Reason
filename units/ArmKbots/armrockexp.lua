@@ -1,6 +1,6 @@
 	return {
 	armrockexp = {
-		acceleration = 0.12,
+		acceleration = 0.12*0.5,
 		brakerate = 0.564,
 		buildcostenergy = 1050,
 		buildcostmetal = 120,

@@ -1,6 +1,6 @@
 return {
 	corakexp = {
-		acceleration = 0.384,
+		acceleration = 0.384*0.5,
 		brakerate = 0.75,
 		buildcostenergy = 900,
 		buildcostmetal = 35,
