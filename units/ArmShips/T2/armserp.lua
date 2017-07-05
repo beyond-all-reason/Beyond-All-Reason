@@ -1,8 +1,6 @@
 return {
 	armserp = {
-		acceleration = 2.40/30,
 		activatewhenbuilt = true,
-		brakerate = 2.40/30,
 		buildcostenergy = 12000,
 		buildcostmetal = 1800,
 		buildpic = "ARMSERP.DDS",
@@ -23,7 +21,6 @@ return {
 		idleautoheal = 15,
 		idletime = 900,
 		maxdamage = 2190,
-		maxvelocity = 2.40,
 		minwaterdepth = 20,
 		movementclass = "UBOAT33X3",
 		name = "Serpent",
@@ -33,11 +30,17 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 468,
 		sonardistance = 550,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*520,
 		upright = true,
 		waterline = 30,
+				--move
+		brakerate =  2.10/20,
+		acceleration = 2.10/120,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 240,	
+		--end move
 		customparams = {
 			
 		},

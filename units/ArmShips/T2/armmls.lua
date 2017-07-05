@@ -1,7 +1,5 @@
 return {
 	armmls = {
-		acceleration = 2.40/30,
-		brakerate = 2.40/30,
 		buildcostenergy = 4000,
 		buildcostmetal = 230,
 		builddistance = 135,
@@ -26,7 +24,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1314,
-		maxvelocity = 2.40,
 		minwaterdepth = 15,
 		movementclass = "BOAT43X4",
 		name = "Valiant",
@@ -35,12 +32,17 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 260,
 		terraformspeed = 2000,
-		turninplace = 0,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*520,
 		waterline = 2,
 		workertime = 400,
+		--move
+		acceleration = 2.20/90,
+		brakerate = 2.20/25,
+		maxvelocity = 2.20,	
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.20,
+		turnrate = 270,
+		--end move
 		buildoptions = {
 			[1] = "armtide",
 			[2] = "armuwmex",

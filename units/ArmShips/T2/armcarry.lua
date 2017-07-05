@@ -1,8 +1,6 @@
 return {
 	armcarry = {
-		acceleration = 2.8/60,
 		activatewhenbuilt = true,
-		brakerate = 2.8/60,
 		buildangle = 16384,
 		buildcostenergy = 22000,
 		buildcostmetal = 1700,
@@ -36,7 +34,6 @@ return {
 		losemitheight = 56,
 		mass = 10000,
 		maxdamage = 7640,
-		maxvelocity = 2.80,
 		metalstorage = 1500,
 		minwaterdepth = 15,
 		movementclass = "DBOAT64X8",
@@ -50,11 +47,17 @@ return {
 		sightdistance = 1105,
 		sonardistance = 760,
 		terraformspeed = 5000,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.80,
-		turnrate = 1.5*120,
 		waterline = 7,
 		workertime = 1000,
+		--move
+		acceleration = 2.10/270,
+		brakerate = 2.10/35,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 120,
+		--end move
 		customparams = {
 			
 		},

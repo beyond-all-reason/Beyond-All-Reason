@@ -1,8 +1,6 @@
 return {
 	corarch = {
-		acceleration = 0.042,
 		airsightdistance = 900,
-		brakerate = 0.186,
 		buildangle = 16384,
 		buildcostenergy = 8500,
 		buildcostmetal = 650,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 2450,
-		maxvelocity = 2.64,
 		minwaterdepth = 30,
 		movementclass = "BOAT43X5",
 		name = "Shredder",
@@ -34,10 +31,15 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 465,
-		turninplace = 0,
+				--move
+		acceleration = 2.20/120,
+		brakerate = 2.20/35,
+		turninplace = true,
+		maxvelocity = 2.10,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.7424,
-		turnrate = 400,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 270,
+		--end move
 		waterline = 4,
 		customparams = {
 

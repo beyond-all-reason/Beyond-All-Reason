@@ -1,8 +1,6 @@
 return {
 	armmship = {
-		acceleration = 2.40/30,
 		activatewhenbuilt = true,
-		brakerate = 2.40/30,
 		buildcostenergy = 18000,
 		buildcostmetal = 2800,
 		buildpic = "ARMMSHIP.DDS",
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 2200,
-		maxvelocity = 2.40,
 		minwaterdepth = 12,
 		movementclass = "BOAT54X6",
 		name = "Ranger",
@@ -34,11 +31,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 318.5,
-		turninplace = 0,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*320,
 		waterline = 5,
+		--move
+		acceleration = 2.10/120,
+		brakerate = 2.10/35,
+		turninplace = true,
+		maxvelocity = 2.10,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 200,
+		--end move
 		customparams = {
 			
 		},

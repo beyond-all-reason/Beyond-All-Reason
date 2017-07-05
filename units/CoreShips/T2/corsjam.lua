@@ -1,8 +1,6 @@
 return {
 	corsjam = {
-		acceleration = 0.096,
 		activatewhenbuilt = true,
-		brakerate = 0.066,
 		buildcostenergy = 2300,
 		buildcostmetal = 150,
 		buildpic = "CORSJAM.DDS",
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 570,
-		maxvelocity = 2.88,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Phantom",
@@ -35,10 +32,15 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 403,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.9008,
-		turnrate = 512,
+				--move
+		acceleration = 2.20/90,
+		brakerate = 2.20/25,
+		maxvelocity = 2.20,	
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.20,
+		turnrate = 270,
+		--end move
 		waterline = 2,
 		customparams = {
 

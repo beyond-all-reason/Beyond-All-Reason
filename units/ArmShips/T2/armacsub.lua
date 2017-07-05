@@ -1,7 +1,5 @@
 return {
 	armacsub = {
-		acceleration = 2.4/30,
-		brakerate = 2.4/30,
 		buildcostenergy = 11500,
 		buildcostmetal = 850,
 		builddistance = 160,
@@ -26,7 +24,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 360,
-		maxvelocity = 2.4,
 		metalmake = 0.3,
 		metalstorage = 150,
 		minwaterdepth = 20,
@@ -38,11 +35,17 @@ return {
 		selfdestructas = "smallexplosiongenericSelfd",
 		sightdistance = 156,
 		terraformspeed = 1500,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*520,
 		waterline = 35,
 		workertime = 300,
+				--move
+		brakerate =  2.40/20,
+		acceleration = 2.40/120,
+		maxvelocity = 2.40,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.40,
+		turnrate = 320,	
+		--end move
 		buildoptions = {
 			[1] = "armuwadves",
 			[2] = "armuwadvms",

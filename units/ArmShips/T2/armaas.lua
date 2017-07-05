@@ -1,8 +1,6 @@
 return {
 	armaas = {
-		acceleration = 2.40/30,
 		airsightdistance = 900,
-		brakerate = 2.40/30,
 		buildangle = 16384,
 		buildcostenergy = 7500,
 		buildcostmetal = 700,
@@ -25,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 2360,
-		maxvelocity = 2.40,
 		minwaterdepth = 30,
 		movementclass = "BOAT43X5",
 		name = "Archer",
@@ -34,11 +31,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 475,
-		turninplace = 0,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*320,
 		waterline = 4,
+				--move
+		acceleration = 2.20/120,
+		brakerate = 2.20/35,
+		turninplace = true,
+		maxvelocity = 2.10,
+		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 270,
+		--end move
 		customparams = {
 			
 		},

@@ -1,8 +1,6 @@
 return {
 	corssub = {
-		acceleration = 0.028,
 		activatewhenbuilt = true,
-		brakerate = 0.564,
 		buildcostenergy = 12000,
 		buildcostmetal = 1900,
 		buildpic = "CORSSUB.DDS",
@@ -23,7 +21,6 @@ return {
 		idleautoheal = 15,
 		idletime = 900,
 		maxdamage = 2320,
-		maxvelocity = 2.59,
 		minwaterdepth = 20,
 		movementclass = "UBOAT33X4",
 		name = "Leviathan",
@@ -33,11 +30,17 @@ return {
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 520,
 		sonardistance = 550,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.7094,
-		turnrate = 395,
 		upright = true,
 		waterline = 30,
+				--move
+		brakerate =  2.10/20,
+		acceleration = 2.10/120,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 240,	
+		--end move		
 		customparams = {
 
 		},

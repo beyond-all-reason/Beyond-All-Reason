@@ -1,8 +1,6 @@
 return {
 	armepoch = {
-		acceleration = 2.40/75,
 		activatewhenbuilt = true,
-		brakerate = 2.40/75,
 		buildangle = 16384,
 		buildcostenergy = 260000,
 		buildcostmetal = 34000,
@@ -27,7 +25,6 @@ return {
 		idletime = 1800,
 		losemitheight = 52,
 		maxdamage = 71250,
-		maxvelocity = 2.40,
 		metalstorage = 100,
 		minwaterdepth = 15,
 		movementclass = "DBOAT65X9",
@@ -39,10 +36,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "flagshipExplosionSelfd",
 		sightdistance = 689,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 2.40,
-		turnrate = 1.5*320,
 		waterline = 13,
+		--move
+		acceleration = 2.10/270,
+		brakerate = 2.10/35,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 90,
+		--end move
 		customparams = {
 			
 			paralyzemultiplier = 0,

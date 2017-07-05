@@ -1,8 +1,6 @@
 return {
 	corshark = {
-		acceleration = 0.048,
 		activatewhenbuilt = true,
-		brakerate = 0.75,
 		buildcostenergy = 10000,
 		buildcostmetal = 1000,
 		buildpic = "CORSHARK.DDS",
@@ -23,7 +21,6 @@ return {
 		idleautoheal = 10,
 		idletime = 900,
 		maxdamage = 835,
-		maxvelocity = 3.04,
 		minwaterdepth = 20,
 		movementclass = "UBOAT32X4",
 		name = "Shark",
@@ -33,9 +30,15 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,
 		sonardistance = 525,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 2.0064,
-		turnrate = 289,
+		--move
+		brakerate =  2.90/20,
+		acceleration = 2.90/210,
+		maxvelocity = 2.90,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.90,
+		turnrate = 120,	
+		--end move
 		upright = true,
 		waterline = 30,
 		customparams = {

@@ -1,8 +1,6 @@
 return {
 	corblackhy = {
-		acceleration = 0.026,
 		activatewhenbuilt = true,
-		brakerate = 0.057,
 		buildangle = 16384,
 		buildcostenergy = 270000,
 		buildcostmetal = 37000,
@@ -27,7 +25,6 @@ return {
 		idletime = 1800,
 		losemitheight = 64,
 		maxdamage = 77500,
-		maxvelocity = 1.96,
 		metalstorage = 100,
 		minwaterdepth = 15,
 		movementclass = "DBOAT65X10",
@@ -39,9 +36,15 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.2936,
-		turnrate = 260,
+		--move
+		acceleration = 2.10/270,
+		brakerate = 2.10/35,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 90,
+		--end move
 		waterline = 10,
 		customparams = {
 

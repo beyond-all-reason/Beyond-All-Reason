@@ -1,8 +1,6 @@
 return {
 	corcarry = {
-		acceleration = 0.025,
 		activatewhenbuilt = true,
-		brakerate = 0.069,
 		buildangle = 16384,
 		buildcostenergy = 22000,
 		buildcostmetal = 1700,
@@ -35,7 +33,6 @@ return {
 		losemitheight = 50,
 		mass = 10000,
 		maxdamage = 7950,
-		maxvelocity = 2.64,
 		metalstorage = 1500,
 		minwaterdepth = 15,
 		movementclass = "DBOAT65X9",
@@ -49,9 +46,15 @@ return {
 		sightdistance = 1040,
 		sonardistance = 740,
 		terraformspeed = 5000,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.7424,
-		turnrate = 210,
+		--move
+		acceleration = 2.10/270,
+		brakerate = 2.10/35,
+		maxvelocity = 2.10,
+		turninplace = true,
+		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 120,
+		--end move
 		waterline = 6,
 		workertime = 1000,
 		customparams = {

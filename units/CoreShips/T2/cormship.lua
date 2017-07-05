@@ -1,8 +1,6 @@
 return {
 	cormship = {
-		acceleration = 0.022,
 		activatewhenbuilt = true,
-		brakerate = 0.086,
 		buildcostenergy = 17000,
 		buildcostmetal = 3000,
 		buildpic = "CORMSHIP.DDS",
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 2250,
-		maxvelocity = 2,
 		minwaterdepth = 12,
 		movementclass = "BOAT53X7",
 		name = "Messenger",
@@ -34,10 +31,15 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 318.5,
-		turninplace = 0,
+		--move
+		acceleration = 2.10/120,
+		brakerate = 2.10/35,
+		turninplace = true,
+		maxvelocity = 2.10,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.32,
-		turnrate = 250,
+		turninplacespeedlimit = 0.64*2.10,
+		turnrate = 200,
+		--end move
 		waterline = 5,
 		customparams = {
 

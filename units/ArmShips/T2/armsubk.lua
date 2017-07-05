@@ -1,8 +1,6 @@
 return {
 	armsubk = {
-		acceleration = 3.20/60,
 		activatewhenbuilt = true,
-		brakerate = 3.20/60,
 		buildcostenergy = 10000,
 		buildcostmetal = 1120,
 		buildpic = "ARMSUBK.DDS",
@@ -23,7 +21,6 @@ return {
 		idleautoheal = 10,
 		idletime = 900,
 		maxdamage = 895,
-		maxvelocity = 3.20,
 		minwaterdepth = 20,
 		movementclass = "UBOAT33X5",
 		name = "Piranha",
@@ -33,9 +30,15 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,
 		sonardistance = 525,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 3.20,
-		turnrate = 1.5*240,
+		--move
+		brakerate =  2.90/20,
+		acceleration = 2.90/210,
+		maxvelocity = 2.90,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.90,
+		turnrate = 120,	
+		--end move
 		upright = true,
 		waterline = 30,
 		customparams = {

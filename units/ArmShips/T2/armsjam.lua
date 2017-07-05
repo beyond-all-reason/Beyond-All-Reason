@@ -1,8 +1,6 @@
 return {
 	armsjam = {
-		acceleration = 3.20/30,
 		activatewhenbuilt = true,
-		brakerate = 3.20/30,
 		buildcostenergy = 2000,
 		buildcostmetal = 140,
 		buildpic = "ARMSJAM.DDS",
@@ -24,7 +22,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 510,
-		maxvelocity = 3.20,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Escort",
@@ -35,11 +32,16 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 390,
-		turninplace = 0,
-		turninplaceanglelimit = 180,
-		turninplacespeedlimit = 3.20,
-		turnrate = 1.5*520,
 		waterline = 3,
+				--move
+		acceleration = 2.20/90,
+		brakerate = 2.20/25,
+		maxvelocity = 2.20,	
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.20,
+		turnrate = 270,
+		--end move
 		customparams = {
 			
 		},

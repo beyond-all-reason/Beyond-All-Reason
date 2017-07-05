@@ -1,14 +1,12 @@
 return {
 	coracsub = {
-		acceleration = 0.035,
-		brakerate = 0.636,
 		buildcostenergy = 11500,
 		buildcostmetal = 840,
 		builddistance = 160,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORACSUB.DDS",
-		buildtime = 24205,
+		buildtime = 0.8*24205,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE NOTLAND NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
@@ -26,7 +24,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 370,
-		maxvelocity = 2.07,
 		metalmake = 0.3,
 		metalstorage = 150,
 		minwaterdepth = 20,
@@ -38,9 +35,15 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 156,
 		terraformspeed = 1500,
-		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 1.3662,
-		turnrate = 364,
+				--move
+		brakerate =  2.40/20,
+		acceleration = 2.40/120,
+		maxvelocity = 2.40,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.40,
+		turnrate = 320,	
+		--end move
 		waterline = 30,
 		workertime = 300,
 		buildoptions = {
