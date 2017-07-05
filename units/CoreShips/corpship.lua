@@ -130,7 +130,7 @@ return {
 				impulsefactor = 0.123,
 				name = "LightCannon",
 				noselfdamage = true,
-				range = 425,
+				range = 475,
 				reloadtime = 0.875*3,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
@@ -138,7 +138,7 @@ return {
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 225,
+				weaponvelocity = 225*1.5,
 				damage = {
 					bombers = 18*1.5,
 					default = 97*1.5,
