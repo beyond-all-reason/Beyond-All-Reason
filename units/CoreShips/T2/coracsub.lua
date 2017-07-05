@@ -42,7 +42,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.40,
-		turnrate = 320,	
+		turnrate = 270,	
 		--end move
 		waterline = 30,
 		workertime = 300,

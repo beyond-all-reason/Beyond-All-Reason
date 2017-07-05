@@ -39,12 +39,12 @@ return {
 		workertime = 300,
 				--move
 		brakerate =  2.40/20,
-		acceleration = 2.40/120,
+		acceleration = 2.40/90,
 		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.40,
-		turnrate = 320,	
+		turnrate = 270,	
 		--end move
 		buildoptions = {
 			[1] = "armuwadves",
