@@ -33,12 +33,12 @@ return {
 		sightdistance = 533,
 		sonardistance = 375,
 		--move
-		acceleration = 2.40/150,
-		brakerate = 2.40/25,
-		maxvelocity = 2.40,
+		acceleration = 2.60/150,
+		brakerate = 2.60/25,
+		maxvelocity = 2.60,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.40,
+		turninplacespeedlimit = 0.64*2.60,
 		turnrate = 180,
 		--end move
 		waterline = 5.5,
