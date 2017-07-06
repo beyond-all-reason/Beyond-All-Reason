@@ -164,7 +164,7 @@ function checkSpecView()
 	--check if we became a spec
     local _,_,spec,_ = spGetPlayerInfo(spGetMyPlayerID())
     if spec ~= amSpec then
-        amSpec = spec 
+        amSpec = spec
 		checkComs()
     end
 end
@@ -174,7 +174,7 @@ function checkComs()
 	for k,_ in pairs(comCenters) do
 		comCenters[k] = nil
 	end
-	
+
     local visibleUnits = spGetAllUnits()
     if visibleUnits ~= nil then
         for _, unitID in ipairs(visibleUnits) do
@@ -187,8 +187,8 @@ function checkComs()
 end
 
 
--- draw -- 
- 
+-- draw --
+
 -- map out what to draw
 function widget:GameFrame(n)
 	-- check if we are in spec full view
@@ -197,18 +197,18 @@ function widget:GameFrame(n)
 		checkComs()
 		inSpecFullView = specFullView
     end
-    
+
 	-- check com movement
 	for unitID in pairs(comCenters) do
 		local x,y,z = spGetUnitPosition(unitID)
 		if x then
 			local osClock = os.clock()
-			local yg = spGetGroundHeight(x,z) 
+			local yg = spGetGroundHeight(x,z)
 			local draw = true
 			local opacityMultiplier = 1
 			oldOpacityMultiplier = opacityMultiplier
 			-- check if com is off the ground
-			if y-yg>10 then 
+			if y-yg>10 then
 				draw = false
 			-- check if is in view
 			elseif not spIsSphereInView(x,y,z,blastRadius) then
@@ -218,7 +218,7 @@ function widget:GameFrame(n)
 				local nearestEnemyUnitID = spGetUnitNearestEnemy(unitID,showOnEnemyDistance+fadeInDistance)
 				if nearestEnemyUnitID then
 					local ex,ey,ez = spGetUnitPosition(nearestEnemyUnitID)
-					local distance = diag(x-ex, y-ey, z-ez) 
+					local distance = diag(x-ex, y-ey, z-ez)
 					if distance < blastRadius + showOnEnemyDistance then
 						draw = true
 						opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
@@ -234,14 +234,14 @@ function widget:GameFrame(n)
 					oldOpacityMultiplier = opacityMultiplier
 					draw = false
 				end
-				
+
 				-- smooth out sudden changes of enemy unit distance
 				if comCenters[unitID] and comCenters[unitID][4] and comCenters[unitID][7] and opacityMultiplier ~= comCenters[unitID][7] and comCenters[unitID][6] and (osClock - comCenters[unitID][6]) < smoothoutTime then
 					draw = true
-					
+
 					local opacityDifference = comCenters[unitID][7] - opacityMultiplier
 					local opacityAddition = (1 - ((osClock - comCenters[unitID][6]) / smoothoutTime)) * opacityDifference
-					
+
 					opacityMultiplier = oldOpacityMultiplier + opacityAddition
 					if opacityMultiplier > 1 then
 						opacityMultiplier = 1
@@ -253,10 +253,10 @@ function widget:GameFrame(n)
 					osClock = comCenters[unitID][6]					-- keep old
 				end
 			end
-			
+
 			comCenters[unitID] = {x,y,z,draw,opacityMultiplier,osClock,oldOpacityMultiplier}
 		else
-			--couldn't get position, check if its still a unit 
+			--couldn't get position, check if its still a unit
 			if not spValidUnitID(unitID) then
 				removeCom(unitID)
 			end
@@ -272,7 +272,7 @@ function drawBlast(x,y,z,range)
 	local maxCount = 10
 	for i = 1, numDivs do
 		local radians = 2.0 * PI * i / numDivs
-								
+
 		local sinR = sin( radians )
 		local cosR = cos( radians )
 
@@ -301,14 +301,14 @@ end
 -- draw circles
 function widget:DrawWorldPreUnit()
     if spIsGUIHidden() then return end
-  
+
 	local camX, camY, camZ = spGetCameraPosition()
 	glDepthTest(true)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	for unitID,center in pairs(comCenters) do
 		if center[4] then
-			local camDistance = diag(camX-center[1], camY-center[2], camZ-center[3]) 
-			
+			local camDistance = diag(camX-center[1], camY-center[2], camZ-center[3])
+
 			local lineWidthMinus = (camDistance/2000)
 			if lineWidthMinus > 2 then
 				lineWidthMinus = 2
@@ -324,16 +324,16 @@ function widget:DrawWorldPreUnit()
 				lineOpacityMultiplier = lineOpacityMultiplier * center[5]
 			end
 			if lineOpacityMultiplier > 0.05 then
-				
+
 				local usedCircleDivs = math.floor(circleDivs*lineOpacityMultiplier)
 				if usedCircleDivs < 48 then
 					usedCircleDivs = 48
 				end
-				
+
 				glLineWidth(2.5-lineWidthMinus)
 				glColor(1, 0.8, 0, .24*lineOpacityMultiplier*opacityMultiplier)
 				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange )
-				
+
 				glLineWidth(2.7-lineWidthMinus)
 				glColor(1, 0, 0, .41*lineOpacityMultiplier*opacityMultiplier)
 				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius )
@@ -355,7 +355,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "comranges_nearbyenemy") == 1  and  string.len(command) == 21) then 
+    if (string.find(command, "comranges_nearbyenemy") == 1  and  string.len(command) == 21) then
 		hideOnDistantEnemy = not hideOnDistantEnemy
 		if hideOnDistantEnemy then
 			Spring.Echo("Comblast & Dgun Range:  Hides ranges when enemy isnt near")

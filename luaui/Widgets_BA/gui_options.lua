@@ -305,7 +305,7 @@ function checkWidgets()
 	end
 	-- redui buildmenu
 	if WG['red_buildmenu'] ~= nil then
-		table.insert(options, {id="buildmenuoldicons", name="Buildmenu old unit icons", type="bool", value=WG['red_buildmenu'].getConfigOldUnitIcons(), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'})
+		--table.insert(options, {id="buildmenuoldicons", name="Buildmenu old unit icons", type="bool", value=WG['red_buildmenu'].getConfigOldUnitIcons(), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'})
 		table.insert(options, {id="buildmenushortcuts", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'})
 		table.insert(options, {id="buildmenuprices", name="Buildmenu prices", type="bool", value=WG['red_buildmenu'].getConfigUnitPrice(), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'})
 		table.insert(options, {id="buildmenutooltip", name="Buildmenu tooltip", type="bool", value=WG['red_buildmenu'].getConfigUnitTooltip(), description='Enables unit tooltip when hovering over unit in buildmenu'})

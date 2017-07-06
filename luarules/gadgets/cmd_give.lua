@@ -121,8 +121,12 @@ else	-- UNSYNCED
 
 	function RequestGive(cmd, line, words, playerID)
 		local mx,my = Spring.GetMouseState()
-		local _,pos = Spring.TraceScreenRay(mx,my)
-
+		local targettype,pos = Spring.TraceScreenRay(mx,my)
+		if targettype == 'unit' then
+			pos = {Spring.GetUnitPosition(pos)}
+		elseif targettype == 'feature' then
+			pos = {Spring.GetFeaturePosition(pos)}
+		end
 		if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and pos[1] > 0 and pos[3] > 0 and words[1] ~= nil and words[2] ~= nil and words[3] ~= nil then
 			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..words[3]..':'..pos[1]..':'..pos[3])
 		else

@@ -321,11 +321,11 @@ local function CreateGrid(r)
 		
 		mouseover=function(mx,my,self)
 			self.iconscale=(iconScaling and self.iconhoverscale or 1)
-			if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
-				mouseoverhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
-			else
+			--if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+			--	mouseoverhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+			--else
 				mouseoverhighlight.iconscale = self.iconscale
-			end
+			--end
 			mouseoverhighlight.px = self.px
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
@@ -544,7 +544,7 @@ local function UpdateGrid(g,cmds,ordertype)
 			end},
 		}
 		
-		if (ordertype == 1) then --build orders
+		if (ordertype == 1) then --build icons
 			if oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds') then
 				icon.texture = oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
 			else
@@ -940,7 +940,7 @@ function widget:SetConfigData(data) --load config
 			largePrice = data.largePrice
 		end
 		if (data.oldUnitpics ~= nil) then
-			oldUnitpics = data.oldUnitpics
+			--oldUnitpics = data.oldUnitpics
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo

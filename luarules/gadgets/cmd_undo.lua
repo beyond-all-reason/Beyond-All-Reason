@@ -1,8 +1,8 @@
 
 function gadget:GetInfo()
 	return {
-		name    = "Undo Self Destructions",
-		desc	= 'Restore selfdestructed units (only availible to a select few playernames)',
+		name    = "Undo Self Destruction Havoc",
+		desc	= 'Restore selfdestructed units and the ones those killed (only availible to a select few playernames)',
 		author	= 'Floris',
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
@@ -11,7 +11,10 @@ function gadget:GetInfo()
 	}
 end
 
--- usage: /luarules undo #teamid #maxSecondsAgo
+-- usage: /luarules undo #teamid #maxSecondsAgo (#receivingteamid)
+
+-- only works when being spectator and you werent a player before
+-- only availible to a select few playernames.... (listed in var: authorizedPlayers)
 
 local cmdname = 'undo'
 
@@ -60,8 +63,16 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				teamSelfdUnits[teamID] = cleanedUnits
 			end
-
+			cleanedUnits = {}
+			local curGameframe = Spring.GetGameFrame()
+			for unitID, gameframe in pairs(selfdCmdUnits) do
+				if gameframe > curGameframe - 30 then
+					cleanedUnits[unitID] = gameframe
+				end
+			end
+			selfdCmdUnits = cleanedUnits
 		end
+		-- apply sceduled heightmap restoration
 		if sceduledRestoreHeightmap[gameFrame] ~= nil then
 			for i, params in pairs(sceduledRestoreHeightmap[gameFrame]) do
 				Spring.RevertHeightMap(params[1], params[2], params[3], params[4], 1)
@@ -94,7 +105,7 @@ if gadgetHandler:IsSyncedCode() then
 			if params[1] > oldestGameFrame then
 
 				-- destroy old unit wreckage if any
-				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),50)	-- radius larger than 1 cause wreckage can fly off a bit
+				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),70)	-- using radius larger than 1 cause wreckage can fly off a bit
 				for i, featureID in pairs(features) do
 					local wreckageID = FeatureDefNames[UnitDefs[params[2]].wreckName].id
 					if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
@@ -164,7 +175,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-	-- log selfd's
+	-- log selfd units and all the deaths they caused
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		if (attackerID == nil and selfdCmdUnits[unitID]) or (attackerID ~= nil and selfdCmdUnits[attackerID])  then -- attackerID == nil -> selfd/reclaim
 			local ux,uy,uz = Spring.GetUnitPosition(unitID)
