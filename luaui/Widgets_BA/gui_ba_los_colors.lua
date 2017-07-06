@@ -16,11 +16,11 @@ end
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
-local cfgLosWithRadarEnabled = true
+local losWithRadarEnabled = false;
 local colorProfile = "greyscale" -- "colored"
 local specDetected = false
 
-local always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
+local always, LOS, radar, jam, radar2
 
 local losColorsWithRadarsGray = {
     fog =    {0.10, 0.10, 0.10},
@@ -50,12 +50,12 @@ local spSendCommands = Spring.SendCommands
 local spSetLosViewColors = Spring.SetLosViewColors
 
 function setLosWithRadars()
-    cfgLosWithRadarEnabled = true
+    losWithRadarEnabled = true
     withRadars()
 end
 
 function setLosWithoutRadars()
-    cfgLosWithRadarEnabled = false
+    losWithRadarEnabled = false
     withoutRadars()
 end
 
@@ -94,7 +94,7 @@ end
 
 function widget:GetConfigData()
     return {
-        cfgLosWithRadarEnabled = cfgLosWithRadarEnabled,
+        losWithRadarEnabled = losWithRadarEnabled,
         colorProfile = colorProfile
     }
 end
@@ -110,12 +110,12 @@ function setLosWithoutColors()
 end
 
 function toggleLOSRadars()
-    if specDetected and cfgLosWithRadarEnabled then
-        cfgLosWithRadarEnabled = false
+    if specDetected and losWithRadarEnabled then
+        losWithRadarEnabled = false
     end
     specDetected = false
 
-    if cfgLosWithRadarEnabled then
+    if losWithRadarEnabled then
         setLosWithoutRadars()
     else
         setLosWithRadars()
@@ -137,10 +137,12 @@ function widget:SetConfigData(data)
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; losradar')
 
-    if data.cfgLosWithRadarEnabled ~= nil then
-        cfgLosWithRadarEnabled = data.cfgLosWithRadarEnabled
+    always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
+
+    if data.losWithRadarEnabled ~= nil then
+        losWithRadarEnabled = data.losWithRadarEnabled
     else
-        cfgLosWithRadarEnabled = false
+        losWithRadarEnabled = false
     end
 
     if data.colorProfile ~= nil then
@@ -149,10 +151,10 @@ function widget:SetConfigData(data)
         colorProfile = "greyscale"
     end
 
-    if cfgLosWithRadarEnabled == true then
-        withRadars()
+    if losWithRadarEnabled == true then
+        setLosWithRadars()
     else
-        withoutRadars()
+        setLosWithoutRadars()
     end
 end
 

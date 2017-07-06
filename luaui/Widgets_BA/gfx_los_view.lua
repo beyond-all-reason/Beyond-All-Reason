@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local myPlayerID = Spring.GetMyPlayerID()
-local lastMapDrawMode = 'los'
+local lastMapDrawMode = Spring.GetMapDrawMode()
 
 function TurnOnLOS()
     if Spring.GetMapDrawMode()~="los" then
