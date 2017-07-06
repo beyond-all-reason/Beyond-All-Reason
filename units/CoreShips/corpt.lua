@@ -2,10 +2,10 @@ return {
 	corpt = {
 		airsightdistance = 800,
 		autoheal = 1.5,
-		buildcostenergy = 1000,
-		buildcostmetal = 100,
+		buildcostenergy = 800,
+		buildcostmetal = 80,
 		buildpic = "CORPT.DDS",
-		buildtime = 1877,
+		buildtime = 1500,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",
