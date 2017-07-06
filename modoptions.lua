@@ -204,18 +204,18 @@ local options={
         }
     },
 
-    {
-        key    = "windheightbonus",
-        name   = "Wind Height Bonus",
-        desc   = "Wind generators placed heigher on the map, will generate extra energy",
-        type="list",
-        def="disabled",
-        section= "ba_enhancements_misc",
-        items={
-            {key="disabled", name="Disabled", desc=""},
-            {key="enabled", name="Enabled", desc="Wind generators placed heigher on the map, will generate extra energy"},
-        }
-    },
+    --{
+    --    key    = "windheightbonus",
+    --    name   = "Wind Height Bonus",
+    --    desc   = "Wind generators placed heigher on the map, will generate extra energy",
+    --    type="list",
+    --    def="disabled",
+    --    section= "ba_enhancements_misc",
+    --    items={
+    --        {key="disabled", name="Disabled", desc=""},
+    --        {key="enabled", name="Enabled", desc="Wind generators placed heigher on the map, will generate extra energy"},
+    --    }
+    --},
 	
 -- Control Victory Options	
 	{
