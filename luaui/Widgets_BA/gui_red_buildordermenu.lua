@@ -292,11 +292,12 @@ local function CreateGrid(r)
 		mouseheld={
 			{1,function(mx,my,self)
 				self.iconscale=(iconScaling and self.iconhoverscale or 1)
-				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
-					heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
-				else
-					heldhighlight.iconscale = self.iconscale
-				end
+				--if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+				--	heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+				--else
+				--	heldhighlight.iconscale = self.iconscale
+				--end
+				heldhighlight.iconscale = self.iconscale
 				heldhighlight.px = self.px
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
@@ -359,7 +360,8 @@ local function CreateGrid(r)
 		onupdate=function(self)
 			local _,_,_,curcmdname = sGetActiveCommand()
 			self.iconscale= (iconScaling and self.iconnormalscale or 1)
-			selecthighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+			--selecthighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+			selecthighlight.iconscale = (iconScaling and self.iconhoverscale or 1)
 			if (curcmdname ~= nil) then
 				if (self.cmdname == curcmdname) then
 					selecthighlight.px = self.px
