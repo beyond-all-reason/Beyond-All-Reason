@@ -403,9 +403,11 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
   -- draw icon
 	local imgRect = {rect[1]+hoverPadding, rect[2]-hoverPadding, rect[3]-hoverPadding, rect[4]+hoverPadding}
   if iconResize then
-	  local yPad = (iconSizeY*(1-iconImgMult)) / 2
-	  local xPad = (iconSizeX*(1-iconImgMult)) / 2
-	  imgRect = {imgRect[1]+xPad, imgRect[2]-yPad, imgRect[3]-xPad, imgRect[4]+yPad}
+    --local yPad = (iconSizeY*(1-iconImgMult)) / 2  -- used with transparant uniticons
+    --local xPad = (iconSizeX*(1-iconImgMult)) / 2  -- used with transparant uniticons
+    local yPad = (iconSizeY*(1-iconImgMult)) / 3.3
+    local xPad = (iconSizeX*(1-iconImgMult)) / 3.3
+    imgRect = {imgRect[1]+xPad, imgRect[2]-yPad, imgRect[3]-xPad, imgRect[4]+yPad}
   	DrawTexRect(imgRect, '#'..unitDefID,iconAlpha)
 	else
   	DrawTexRect(imgRect, '#'..unitDefID,iconAlpha)

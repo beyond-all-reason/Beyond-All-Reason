@@ -94,7 +94,6 @@ Other:
 - Added luamex (lua metal extractor points) functionality for mappers
 - Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
 - Added Tooltip widget, shows tooltips at mouse cursor location
-- New uniticons with transparant background, old ones are availible via Options
 - Buildmenu: shows metal/energy cost and tooltip on hover
 - Buildmenu: could show shortcuts when enabled via Options widget
 - Buildspacing shortcuts B and N are now ALT+Z and ALT+X

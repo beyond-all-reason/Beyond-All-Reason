@@ -53,8 +53,8 @@ local Config = {
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.88,
-		iconhoverscale = 0.88,
+		iconscale = 0.89,
+		iconhoverscale = 0.89,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -589,12 +589,12 @@ local function UpdateGrid(g,cmds,ordertype)
 						if building == 0 then
 							captionColor = skyblue
 						end
-						shotcutCaption = captionColor..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
+						shotcutCaption = captionColor.."  "..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
 					elseif i <= 30 then
 						if building == 1 then
 							captionColor = skyblue
 						end
-						shotcutCaption = captionColor..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
+						shotcutCaption = captionColor.."  "..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
 					end
 				end
 				

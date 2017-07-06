@@ -83,7 +83,7 @@ local currentDef = nil
 
 local iconSizeX = 64
 local iconSizeY = 64
-local iconImgMult = 0.78
+local iconImgMult = 0.85
 
 local usedIconSizeX = iconSizeX
 local usedIconSizeY = iconSizeY
@@ -250,7 +250,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 		color = {1, 1, 1, 0.75}
 	end
 	if iconPos == mouseIcon then
-		usedIconImgMult = iconImgMult*1.12
+		usedIconImgMult = iconImgMult*1.08
 		color = {1, 1, 1, 1}
 		ypad2 = 0
 	end
