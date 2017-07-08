@@ -162,8 +162,8 @@ function colourNames(teamID)
 end
 
 local function createList()
-	if drawlist[1] ~= nil then
-		glDeleteList(drawlist[1])
+	for i=1,#drawlist do
+		glDeleteList(drawlist[i])
 	end
 	if (WG['guishader_api'] ~= nil) then
 		--WG['guishader_api'].InsertRect(left, bottom, right, top, 'lockcamerainfo')
@@ -205,6 +205,10 @@ local function createList()
 				glText(name, right-textWidth, bottom+(7.5*widgetScale), fontSize, 'rn')
 			end
 		end
+	end)
+	drawlist[2] = glCreateList( function()
+		glColor(1, 1, 1, 0.1)
+		RectRound(cancelButton[1], cancelButton[2], cancelButton[3], cancelButton[4], 5.5*widgetScale)
 	end)
 end
 
@@ -283,5 +287,9 @@ function widget:DrawScreen()
 		glPushMatrix()
 		glCallList(drawlist[1])
 		glPopMatrix()
+		mx,my,mb = Spring.GetMouseState()
+		if cancelButton ~= nil and lockPlayerID ~= nil and isInBox(mx, my, cancelButton) then
+			glCallList(drawlist[2])
+		end
 	end
 end
