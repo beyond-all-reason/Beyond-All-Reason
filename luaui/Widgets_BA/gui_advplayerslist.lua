@@ -794,6 +794,9 @@ function widget:Initialize()
             lockPlayerID = lockPlayerID
         else
             lockPlayerID = nil
+            if myLastCameraState ~= nil then
+                SetCameraState(myLastCameraState, transitionTime)
+            end
         end
     end
 end
