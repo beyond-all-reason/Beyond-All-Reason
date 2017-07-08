@@ -239,8 +239,8 @@ local numberOfSpecs = 0
 local sideOneDefID = UnitDefNames.armcom.id
 local sideTwoDefID = UnitDefNames.corcom.id
 
-local teamSideOne = "core"
-local teamSideTwo = "arm"
+local teamSideOne = "arm"
+local teamSideTwo = "core"
 
 --Name for absent/resigned players
 local absentName = " --- "
@@ -786,9 +786,16 @@ function widget:Initialize()
 		
 		return {top,left,bottom,right,widgetScale}
 	end
-	WG['advplayerlist_api'].GetLockPlayerID = function()
-		return lockPlayerID
-	end
+    WG['advplayerlist_api'].GetLockPlayerID = function()
+        return lockPlayerID
+    end
+    WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
+        if playerID ~= nil then
+            lockPlayerID = lockPlayerID
+        else
+            lockPlayerID = nil
+        end
+    end
 end
 
 function widget:GameStart()
@@ -835,7 +842,7 @@ function SetSidePics()
 			if startunit == sideOneDefID then 
 				teamSide = teamSideOne
 			end
-			if startunit == sideTwoDefID then
+			if startunit == sideOneDefID then 
 				teamSide = teamSideTwo
 			end
 		else
