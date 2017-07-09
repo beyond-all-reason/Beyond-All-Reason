@@ -196,19 +196,28 @@ local function createList()
 			local nameColourR,nameColourG,nameColourB,_ = Spring.GetTeamColor(teamID)
 			--glText('\255\222\222\222viewing   ', right-textWidth-nameWidth, bottom+(7.5*widgetScale), fontSize*0.7, 'or')
 			if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-				glText(colourNames(teamID)..name, right-textWidth, bottom+(7.5*widgetScale), fontSize, 'or')
+				glText(colourNames(teamID)..name, right-textWidth, bottom+(8*widgetScale), fontSize, 'or')
 			else
 				glColor(0,0,0,0.6)
-				glText(name, right-textWidth-(0.7*widgetScale), bottom+(6.5*widgetScale), fontSize, 'rn')
-				glText(name, right-textWidth+(0.7*widgetScale), bottom+(6.5*widgetScale), fontSize, 'rn')
+				glText(name, right-textWidth-(0.7*widgetScale), bottom+(7*widgetScale), fontSize, 'rn')
+				glText(name, right-textWidth+(0.7*widgetScale), bottom+(7*widgetScale), fontSize, 'rn')
 				glColor(nameColourR,nameColourG,nameColourB,1)
-				glText(name, right-textWidth, bottom+(7.5*widgetScale), fontSize, 'rn')
+				glText(name, right-textWidth, bottom+(8*widgetScale), fontSize, 'rn')
 			end
 		end
 	end)
 	drawlist[2] = glCreateList( function()
-		glColor(1, 1, 1, 0.1)
+		glColor(1, 0.2, 0.2, 0.4)
 		RectRound(cancelButton[1], cancelButton[2], cancelButton[3], cancelButton[4], 5.5*widgetScale)
+
+		local borderPadding = 2.75*widgetScale
+		glColor(0,0,0,0.14)
+		RectRound(cancelButton[1]+borderPadding, cancelButton[2]+borderPadding, cancelButton[3]-borderPadding, cancelButton[4]-borderPadding, 4.4*widgetScale)
+
+		local text = '   cancel   '
+		local fontSize = (widgetHeight*widgetScale) * 0.5
+		local textWidth = gl.GetTextWidth(text) * fontSize
+		glText('\255\255\222\222'..text, cancelButton[3]-(textWidth/2), cancelButton[2]+(8*widgetScale), fontSize, 'oc')
 	end)
 end
 

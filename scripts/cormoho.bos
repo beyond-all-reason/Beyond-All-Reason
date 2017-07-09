@@ -37,63 +37,29 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 activatescr()
 {
-	if( TRUE )
-	{
-		move stands to y-axis [0.000000] now;
-		move stands to y-axis [25.875000] speed [32.500000];
-		sleep 772;
-	}
-	if( TRUE )
-	{
-		sleep 198;
-	}
-	if( TRUE )
-	{
-		turn shell to x-axis <-180.038462> speed <261.000000>;
-		sleep 688;
-	}
+    move stands to y-axis [0.000000] now;
+    move stands to y-axis [7.5] speed [32.500000];
+    sleep 772;
+    sleep 198;
+    turn shell to x-axis <-180.038462> speed <261.000000>;
+    sleep 688;
 	set ARMORED to 0;
-	if( TRUE )
-	{
-		sleep 201;
-	}
-	if( TRUE )
-	{
-		move stands to y-axis [0.000000] speed [27.500000];
-		sleep 911;
-	}
-	sleep 34;
+    sleep 201;
+    move stands to y-axis [0.000000] speed [27.500000];
 }
 
 deactivatescr()
 {
-	if( TRUE )
-	{
-		move stands to y-axis [0.000000] now;
-		move stands to y-axis [25.875000] speed [32.500000];
-		turn shell to x-axis <-180.038462> now;
-		sleep 768;
-	}
-	if( TRUE )
-	{
-		sleep 199;
-	}
-	if( TRUE )
-	{
-		turn shell to x-axis <0.000000> speed <261.000000>;
-		sleep 689;
-	}
-	if( TRUE )
-	{
-		sleep 201;
-	}
-	if( TRUE )
-	{
-		move stands to y-axis [0.000000] speed [27.500000];
-		set ARMORED to 1;
-		sleep 911;
-	}
-	sleep 33;
+    move stands to y-axis [0.000000] now;
+    move stands to y-axis [7.5] speed [32.500000];
+    turn shell to x-axis <-180.038462> now;
+    sleep 768;
+    sleep 199;
+    turn shell to x-axis <0.000000> speed <261.000000>;
+    sleep 689;
+    sleep 201;
+    move stands to y-axis [0.000000] speed [27.500000];
+    set ARMORED to 1;
 }
 
 fixedGo()

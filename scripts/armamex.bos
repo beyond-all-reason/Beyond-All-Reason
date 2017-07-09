@@ -40,12 +40,12 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 fixGo()
 {
 	set ARMORED to 0;
-	move rod to y-axis [7.500000] speed [62.500000];
-	move edges to y-axis [-7.500000] speed [62.500000];
-	move panel1 to y-axis [12.500000] speed [25.000000];
-	move panel2 to y-axis [12.500000] speed [25.000000];
-	move panel3 to y-axis [12.500000] speed [25.000000];
-	move panel4 to y-axis [12.500000] speed [25.000000];
+	move rod to y-axis [3.50000] speed [62.500000];
+	move edges to y-axis [-3.500000] speed [62.500000];
+	move panel1 to y-axis [4.7500000] speed [25.000000];
+	move panel2 to y-axis [4.7500000] speed [25.000000];
+	move panel3 to y-axis [4.7500000] speed [25.000000];
+	move panel4 to y-axis [4.7500000] speed [25.000000];
 	turn panel1 to x-axis <-90.021978> speed <40.000000>;
 	turn panel2 to x-axis <90.021978> speed <40.000000>;
 	turn panel3 to z-axis <90.021978> speed <40.000000>;
