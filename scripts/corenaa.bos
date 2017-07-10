@@ -49,8 +49,8 @@ RockUnit(anglex, anglez)
 	turn base to z-axis <0.00000> - anglez speed <12.00000>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
-	turn base to x-axis anglex / <0.00549> speed <9.00000>;
-	turn base to z-axis anglez / <0.00549> speed <9.00000>;
+	turn base to x-axis anglex * <180.0> speed <9.00000>;
+	turn base to z-axis anglez * <180.0> speed <9.00000>;
 	wait-for-turn base around z-axis;
 	wait-for-turn base around x-axis;
 	turn base to x-axis <0.00000> speed <3.00000>;
