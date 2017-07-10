@@ -801,20 +801,21 @@ function widget:Initialize()
     end
 end
 
-function widget:GameStart()
-	
-	mySpecStatus,_,_ = Spring.GetSpectatingState()
-	if mySpecStatus then 
-		specListShow = true
-	else
-		specListShow = false
+function widget:GameFrame(gameframe)
+	if gameframe == 1 then
+		mySpecStatus,_,_ = Spring.GetSpectatingState()
+		if mySpecStatus then
+			specListShow = true
+		else
+			specListShow = false
+		end
+
+		gameStarted = true
+		SetSidePics()
+		InitializePlayers()
+		SetOriginalColourNames()
+		SortList()
 	end
-	
-	gameStarted = true
-	SetSidePics()
-	InitializePlayers()
-	SetOriginalColourNames()
-	SortList()
 end
 
 

@@ -413,6 +413,11 @@ end
 
 function widget:GameFrame(n)
 	gameFrame = n
+    if n == 1 then
+        enabled = true
+        setUpTeam()
+        updateStatics()
+    end
 end
 
 function widget:Update()
@@ -481,12 +486,6 @@ function widget:Update()
     end
   end
   doUpdate = false
-end
-
-function widget:GameStart()
-  enabled = true
-  setUpTeam()
-  updateStatics()
 end
 
 

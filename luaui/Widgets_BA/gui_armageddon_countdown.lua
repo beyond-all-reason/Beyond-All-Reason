@@ -24,8 +24,10 @@ end
 ----------------------------------------------------------------
 
 local gameStarterd = false
-function widget:GameStart()
-    gameStarted = true
+function widget:GameFrame(n)
+    if n == 1 then
+        gameStarted = true
+    end
 end
 
 function widget:DrawScreen()

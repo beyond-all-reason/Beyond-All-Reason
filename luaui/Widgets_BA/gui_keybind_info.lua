@@ -68,12 +68,6 @@ function widget:ViewResize()
 end
 
 local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-local gameStarted = (Spring.GetGameFrame()>0)
-function widget:GameStart()
-    gameStarted = true
-end
-
 local showOnceMore = false
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
@@ -229,7 +223,6 @@ end
 
 function widget:DrawScreen()
   if spIsGUIHidden() then return end
-  if amNewbie and not gameStarted then return end
   
   -- draw the help
   if not keybinds then
@@ -287,7 +280,6 @@ end
 
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
-  if amNewbie and not gameStarted then return end
   
   if show then 
 		-- on window

@@ -1173,10 +1173,6 @@ function widget:PlayerChanged(playerID)
 	makeStandardList()
 end
 
-function widget:GameStart()
-	gamestarted = true
-end
-
 function widget:GameOver()
 	gameover = true
 	UpdateAllTeams()

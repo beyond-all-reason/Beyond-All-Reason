@@ -32,6 +32,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
+local gameStarted = false
 
 local glTranslate				= gl.Translate
 local glColor						= gl.Color
@@ -742,21 +743,6 @@ function init()
 	end
 end
 
-
-function widget:GameStart()
-	checkStatus()
-	countComs()
-	updateComs(true)
-	
-	-- code for rejoin
-	local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
-	local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
-	local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
-	Spring.SendLuaUIMsg(timestampMsg) --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-	myTimestamp = systemSecond
-end
-
-
 function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
@@ -764,6 +750,20 @@ function checkStatus()
 end
 
 function widget:GameFrame(n)
+	if n > 0 and not gameStarted then
+		gameStarted = true
+		checkStatus()
+		countComs()
+		updateComs(true)
+
+		-- code for rejoin
+		local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
+		local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
+		local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
+		Spring.SendLuaUIMsg(timestampMsg) --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
+		myTimestamp = systemSecond
+	end
+
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
     functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)

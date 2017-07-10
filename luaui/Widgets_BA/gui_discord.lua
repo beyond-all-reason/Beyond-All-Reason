@@ -105,8 +105,10 @@ function widget:Shutdown()
 	end
 end
 
-function widget:GameStart()
-	widgetHandler:RemoveWidget(self)
+function widget:GameFrame(n)
+	if n > 0 then
+		widgetHandler:RemoveWidget(self)
+	end
 end
 
 function widget:DrawScreen()

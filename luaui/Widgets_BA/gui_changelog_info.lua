@@ -79,11 +79,6 @@ function widget:ViewResize()
 end
 
 local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-local gameStarted = (Spring.GetGameFrame()>0)
-function widget:GameStart()
-    gameStarted = true
-end
 
 local showOnceMore = false		-- used because of GUI shader delay
 
@@ -372,7 +367,6 @@ end
 
 function widget:DrawScreen()
   if spIsGUIHidden() then return end
-  if amNewbie and not gameStarted then return end
   
   -- draw the help
   if not changelogList then
@@ -515,8 +509,7 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if spIsGUIHidden() then return false end
-  if amNewbie and not gameStarted then return end
+  if spIsGUIHidden() then return end
   
   if show then 
 		-- on window

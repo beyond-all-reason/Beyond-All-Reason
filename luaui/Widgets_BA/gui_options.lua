@@ -71,7 +71,6 @@ local resolutionX, resolutionY = Spring.GetScreenGeometry()
 
 local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-local gameStarted = (Spring.GetGameFrame()>0)
 
 local options = {}
 local optionButtons = {}
@@ -93,10 +92,6 @@ function widget:ViewResize()
   windowList = gl.CreateList(DrawWindow)
   if presetsList then gl.DeleteList(presetsList) end
   presetsList = gl.CreateList(DrawPresets)
-end
-
-function widget:GameStart()
-	gameStarted = true
 end
 
 local showOnceMore = false		-- used because of GUI shader delay
@@ -459,7 +454,6 @@ end
 function widget:DrawScreen()
 
   if spIsGUIHidden() then return end
-  if amNewbie and not gameStarted then return end
   
   -- draw the window
   if not windowList then

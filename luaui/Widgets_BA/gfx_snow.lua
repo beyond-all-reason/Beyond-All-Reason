@@ -358,6 +358,13 @@ end
 
 local widgetDisabledSnow = false
 function widget:GameFrame(gameFrame)
+	if gameFrame == 1 then
+		gameStarted = true
+		if drawinfolist ~= nil then
+			gl.DeleteList(drawinfolist)
+		end
+	end
+
 	if not enabled and not widgetDisabledSnow then return end
 	
 	if gameFrameCountdown <= 0 then
@@ -394,13 +401,6 @@ function widget:GameFrame(gameFrame)
 		end
 	else
 		gameFrameCountdown = gameFrameCountdown - 1
-	end
-end
-
-function widget:GameStart()
-	gameStarted = true
-	if drawinfolist ~= nil then
-		gl.DeleteList(drawinfolist)
 	end
 end
 
