@@ -801,8 +801,8 @@ function widget:Initialize()
     end
 end
 
-function widget:GameFrame(gameframe)
-	if gameframe == 1 then
+function widget:GameFrame(n)
+	if n > 0 and not gameStarted then
 		mySpecStatus,_,_ = Spring.GetSpectatingState()
 		if mySpecStatus then
 			specListShow = true
@@ -1391,16 +1391,16 @@ function widget:DrawScreen()
 	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
 	gl.Scale(widgetScale,widgetScale,0)
 	gl.Translate(scaleDiffX,scaleDiffY,0)
-	
+
 	
 	-- update lists frequently if there is mouse interaction
 	local NeedUpdate = false 
 	local mouseX,mouseY = Spring_GetMouseState()
 	if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
 		local DrawFrame = Spring_GetDrawFrame()
-		local GameFrame = Spring_GetGameFrame()
-		if PrevGameFrame == nil then PrevGameFrame = GameFrame end
-		if (DrawFrame%5==0) or (GameFrame>PrevGameFrame+1) then
+		local CurGameFrame = Spring_GetGameFrame()
+		if PrevGameFrame == nil then PrevGameFrame = CurGameFrame end
+		if (DrawFrame%5==0) or (CurGameFrame>PrevGameFrame+1) then
 			--Echo(DrawFrame)
 			NeedUpdate = true
 		end
@@ -1409,7 +1409,7 @@ function widget:DrawScreen()
 	if NeedUpdate then
 		--Spring.Echo("DS APL update")
 		CreateLists()
-		PrevGameFrame = GameFrame
+		PrevGameFrame = CurGameFrame
 	end
 	
 	-- draws the background
