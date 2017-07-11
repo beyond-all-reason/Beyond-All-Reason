@@ -137,12 +137,12 @@ BoomExtend()
 	start-script StartDoorOpen();
 	turn tower to y-axis Static_Var_3 speed <200.>;
 	wait-for-turn tower around y-axis;
-	move boom1 to z-axis Static_Var_2 / [0.] speed [60.];
-	move boom2 to z-axis Static_Var_2 / [0.] speed [60.];
-	move boom3 to z-axis Static_Var_2 / [0.] speed [60.];
-	move boom4 to z-axis Static_Var_2 / [0.] speed [60.];
-	move boom5 to z-axis Static_Var_2 / [0.] speed [60.];
-	move boom6 to z-axis Static_Var_2 / [0.] speed [60.];
+	move boom1 to z-axis Static_Var_2 / [0.000043] speed [60.];
+	move boom2 to z-axis Static_Var_2 / [0.000043] speed [60.];
+	move boom3 to z-axis Static_Var_2 / [0.000043] speed [60.];
+	move boom4 to z-axis Static_Var_2 / [0.000043] speed [60.];
+	move boom5 to z-axis Static_Var_2 / [0.000043] speed [60.];
+	move boom6 to z-axis Static_Var_2 / [0.000043] speed [60.];
 	wait-for-move boom1 along z-axis;
 	wait-for-move boom2 along z-axis;
 	wait-for-move boom3 along z-axis;
