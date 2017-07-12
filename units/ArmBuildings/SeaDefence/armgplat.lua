@@ -124,6 +124,7 @@ return {
 				damage = {
 					bombers = 1*1,
 					default = 67*1,
+					heavyunits = 67*0.7,
 					fighters = 13*1,
 					subs = 1*1,
 					vtol = 1*1,
