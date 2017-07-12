@@ -298,8 +298,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 125,
-					subs = 75,
+					default = 125*0.5,
+					subs = 75*0.25,
 				},
 			},
 		},
@@ -308,10 +308,10 @@ return {
 				def = "ARMCOMLASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [2] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "ARMCOMSEALASER",
-			-- },
+			[2] = {
+				badtargetcategory = "VTOL",
+				def = "ARMCOMSEALASER",
+			},
 			[3] = {
 				def = "ARM_DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
