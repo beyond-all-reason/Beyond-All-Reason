@@ -1,13 +1,13 @@
 return {
 	armrecl = {
 		autoheal = 2,
-		buildcostenergy = 4400,
-		buildcostmetal = 420,
+		buildcostenergy = 0.8*4400,
+		buildcostmetal = 0.8*420,
 		builddistance = 140,
 		builder = true,
 		shownanospray = false,
 		buildpic = "ARMRECL.DDS",
-		buildtime = 7407,
+		buildtime = 0.8*7407,
 		canassist = false,
 		canmove = true,
 		canresurrect = true,

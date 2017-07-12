@@ -1,13 +1,13 @@
 return {
 	correcl = {
 		autoheal = 2,
-		buildcostenergy = 4200,
-		buildcostmetal = 420,
+		buildcostenergy = 0.8*4200,
+		buildcostmetal = 0.8*420,
 		builddistance = 140,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORRECL.DDS",
-		buildtime = 7596,
+		buildtime = 0.8*7596,
 		canassist = false,
 		canmove = true,
 		canresurrect = true,
