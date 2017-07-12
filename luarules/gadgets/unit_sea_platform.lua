@@ -31,6 +31,7 @@ Spring.SetUnitRadiusAndHeight(unitID, 48, -GroundHeight[unitID])
 Spring.SetUnitCollisionVolumeData(unitID, 96, -GroundHeight[unitID], 96, 0,0,0,2,1,0)
 Spring.LevelHeightMap(x-31,z-31,x+32,z+32, 1)
 Spring.SetUnitBlocking(unitID,false, false, true, false, false, true, true)
+Spring.SetUnitCosts(unitID, {buildTime = 10000})
 --CHECK NORTHERN GroundHeight
 local i = -200
 	for l = -31,32 do
