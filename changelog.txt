@@ -37,15 +37,17 @@ Wind:
 
 Sea reworked: Doo
 -- Work In Prorgess
-Changelog date: 06/30/17
+Changelog date: 07/12/17
 IMPORTANT BALANCE CHANGES:
+- Increased T1 shipyards costs +40% and decreased T1 and T2 ships costs 20%.
+- Increased Patrol Boats reloadtime (100%), decreased hp 345->275, costs -20% (BEFORE the global costs decrease)
 - Added GUN PLATFORM to both factions for 160m/1600e. Available in T1 ship con, t2 engineer and Commander buildmenus.
-- Added SEA PLATFORM to both factions for 25m/200e. Available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
-- Added Plasma Frigates to both factions for 550m/2500e arm, 600m/2700e core. Available in T1 Shipyard.
+- Added SEA PLATFORM to both factions for 50m/400e. Available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
+- Added Plasma Frigates to both factions for 440m/2000e arm, 480m/2160e core. Available in T1 Shipyard.
 		These units stats will be posted separately on our Discord channel when they will be definite for the upcoming version.
 - Nerfed construction ship buildpower 50%
 - Added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships.
-- Reduced corvette costs for both faction (arm 55%, core 57%) and HP (arm 1900=>780, core 1800=>700)
+- Reduced corvette costs for both faction (arm 55%, core 57%) and HP (arm 1900=>780, core 1800=>700) (BEFORE the global costs decrease)
 - Guardian, punisher, ambusher and toaster now have increased damages against ships. This was an original feature of Absolute Annihilation, that had been kept in the firsts BA version and had been removed at some point, leaving the guardian/punisher as a hardly useful unit.
 	They were also given bonus damages towards commanders (which were already existant on their high trajectory mode, but inexistant on their low traj mode.
 	The total bonus damages are: T1 and T2: lowtraj +300 vs comms and light ships, +150 vs heavyships, Hightraj +400 vs comms and light ships, +200 vs heavy ships.
