@@ -78,7 +78,7 @@ return {
 				firestarter = 70,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "missile",
+				model = "missile_medium_fast",
 				name = "RiotRocket",
 				noselfdamage = true,
 				flighttime = 2,
