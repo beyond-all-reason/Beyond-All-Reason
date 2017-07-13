@@ -1,3 +1,9 @@
+local modOptions = Spring.GetModOptions()
+local wreck_metal = 2500
+if (modOptions) then 
+	wreck_metal = modOptions.comm_wreck_metal or 2500
+end
+
 return {
 	corcom = {
 		acceleration = 0.18,
@@ -89,7 +95,7 @@ return {
 			[26] = "corfrad",
 		},
 		customparams = {
-			death_sounds = "commander",
+			--death_sounds = "commander",
 			iscommander = true,
 			paralyzemultiplier = 0.025,
 			area_mex_def = "cormex",
@@ -110,7 +116,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				hitdensity = 100,
-				metal = 2500,
+				metal = wreck_metal,
 				object = "CORCOM_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",

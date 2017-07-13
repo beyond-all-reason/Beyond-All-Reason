@@ -171,7 +171,7 @@ function DrawButton()
 		{v = {1, 0, 0}},
 	}
 	glShape(GL_LINE_STRIP, vertices)
-    glText("Commands", textMargin, textMargin, textSize, "no")
+    glText("[ Commands ]", textMargin, textMargin, textSize, "no")
 end
 
 
@@ -495,7 +495,7 @@ function mouseEvent(x, y, button, release)
 	    else
 			tx = (x - posX*vsx)/(17*widgetScale)
 			ty = (y - posY*vsy)/(17*widgetScale)
-			if tx < 0 or tx > 4.5 or ty < 0 or ty > 1.05 then return false end
+			if tx < 0 or tx > 5.5 or ty < 0 or ty > 1.05 then return false end
 			if release then
 				showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
 				show = not show
