@@ -60,6 +60,9 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmd
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	if (Spring.GetUnitTeam(unitID) ~= teamID) then
+		return false
+	end
 
 	local case = ((cmdID == CMD_RAW_MOVE) and 1) or ((cmdID==CMD.INSERT and cmdParams[2] == CMD_RAW_MOVE) and 2) or 3
     if case < 3  then --NOTE: cmdParams[2] is the real cmdID for CMD.INSERT
