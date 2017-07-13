@@ -48,7 +48,7 @@ return {
         size               = 1,
         sizegrowth         = 7,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     electricstorm = {
@@ -171,7 +171,7 @@ return {
         size               = 1,
         sizegrowth         = 4,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     electricstorm = {
@@ -294,7 +294,7 @@ return {
         size               = 1,
         sizegrowth         = 12,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     electricstorm = {
@@ -418,7 +418,7 @@ return {
         size               = 1,
         sizegrowth         = 7,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     electricstorm = {
@@ -512,7 +512,7 @@ return {
         size               = 1,
         sizegrowth         = 4,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash = {

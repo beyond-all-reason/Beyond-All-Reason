@@ -16,7 +16,7 @@ local definitions = {
         size               = 0.5,
         sizegrowth         = 3,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {
@@ -410,7 +410,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 5,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {
@@ -803,7 +803,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 8,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {
@@ -1196,7 +1196,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 8,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {
@@ -1589,7 +1589,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 12,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {
@@ -1982,7 +1982,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 16,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {

@@ -16,7 +16,7 @@ local definitions = {
         size               = 2,
         sizegrowth         = 16,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {

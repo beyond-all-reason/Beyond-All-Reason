@@ -78,7 +78,7 @@ return {
         size               = 2,
         sizegrowth         = 14,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     smokeblack = {
@@ -192,7 +192,7 @@ return {
         size               = 5,
         sizegrowth         = 28,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     smokeblack = {
@@ -306,7 +306,7 @@ return {
         size               = 1,
         sizegrowth         = 7,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     smokeblack = {

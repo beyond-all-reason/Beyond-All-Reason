@@ -44,7 +44,7 @@ return {
         size               = 10,
         sizegrowth         = -0.5,
         speed              = [[0, 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     searingflame2 = {

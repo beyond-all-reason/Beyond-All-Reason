@@ -73,7 +73,7 @@ local definitions = {
         size               = 1.5,
         sizegrowth         = 4,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     explosion = {
@@ -516,7 +516,7 @@ local definitions = {
         size               = 2,
         sizegrowth         = 6,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     explosion = {
@@ -918,7 +918,7 @@ local definitions = {
         size               = 1.5,
         sizegrowth         = 6.5,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_small = {
@@ -1335,7 +1335,7 @@ local definitions = {
         size               = 3,
         sizegrowth         = 12,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_small = {
@@ -1780,7 +1780,7 @@ local definitions = {
         size               = 1.8,
         sizegrowth         = 14,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_small = {

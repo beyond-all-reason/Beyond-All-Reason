@@ -17,7 +17,7 @@ return {
         size               = 5.5,
         sizegrowth         = 40,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     groundflash_large = {

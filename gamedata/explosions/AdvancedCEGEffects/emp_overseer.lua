@@ -34,7 +34,7 @@ return {
         size               = 9,
         sizegrowth         = 75,
         speed              = [[0, 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     electricarcs1 = {
@@ -146,7 +146,7 @@ return {
         size               = 9,
         sizegrowth         = 75,
         speed              = [[0, 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     electricarcs1 = {

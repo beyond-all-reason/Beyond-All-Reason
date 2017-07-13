@@ -38,7 +38,7 @@ return {
         size               = 35,
         sizegrowth         = -1,
         speed              = [[0, 0, 0]],
-        texture            = [[flare]],
+        texture            = [[flareorg]],
       },
     },
     smoke = {
