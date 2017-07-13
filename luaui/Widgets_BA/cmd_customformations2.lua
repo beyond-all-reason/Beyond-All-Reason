@@ -528,7 +528,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 end
 function widget:MouseRelease(mx, my, mButton)
 	
-	Spring.Echo("release")
+	-- Spring.Echo("release")
 
 	-- It is possible for MouseRelease to fire after MouseRelease
 	if #fNodes == 0 then
@@ -550,7 +550,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Override checking
 	if overriddenCmd then
-		Spring.Echo("overriding")
+		-- Spring.Echo("overriding")
 	
 		local targetID
 		local targType, targID = spTraceScreenRay(mx, my, false, inMinimap)
@@ -573,7 +573,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Using path? If so then we do nothing
 	if draggingPath then
-		Spring.Echo("using path")
+		-- Spring.Echo("using path")
 		draggingPath = false
 		
 	-- Using formation? If so then it's time to calculate and issue orders.
@@ -612,7 +612,7 @@ function widget:MouseRelease(mx, my, mButton)
 				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
 			elseif usingCmd == CMD_MOVE or usingCmd == CMD_RAW_MOVE then 
 				VFS.Include("LuaRules/Configs/customcmds.h.lua")
-				Spring.Echo("Issuing move order: " .. usingCmd)
+				-- Spring.Echo("Issuing move order: " .. usingCmd)
 				local selUnits = spGetSelectedUnits()
 				local uSpeed = UnitDefs[spGetUnitDefID(selUnits[1])].speed
 				--spGiveOrderToUnit(selUnits[1],
