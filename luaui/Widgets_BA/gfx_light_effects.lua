@@ -96,8 +96,11 @@ local function GetLightsFromUnitDefs()
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
 
+		local skip = false
 		if customParams.light_skip == nil then
-			local skip = false
+			skip = true
+		end
+		if not skip then
 			local lightMultiplier = 0.07
 			local bMult = 1.6		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
@@ -209,7 +212,6 @@ local function GetLightsFromUnitDefs()
 				weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult * laserMult
 				weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult * laserMult
 			end
-
 
 			if (weaponDef.type == 'Cannon') then
 				weaponData.glowradius = weaponData.radius
