@@ -37,9 +37,6 @@ return {
 		turninplacespeedlimit = 0.7788,
 		turnrate = 1338,
 		upright = true,
-		customparams = {
-			light_skip = true,
-		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -158,6 +155,9 @@ return {
 					commanders = 1025,
 					default = 2500,
 				},
+				customparams = {
+					light_skip = true,
+				},
 			},
 
 			old_armsnipe_weapon = { -- do not use this... seriously, this is fail.
@@ -195,6 +195,9 @@ return {
 						commanders = 1025,
 						default = 2500,
 						subs = 5,
+					},
+					customparams = {
+						light_skip = true,
 					},
 				},
 			},
