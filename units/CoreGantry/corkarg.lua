@@ -202,7 +202,7 @@ return {
 				weaponacceleration = 250,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 650,
+				weaponvelocity = 600,
 				damage = {
 					bombers = 150,
 					default = 120,

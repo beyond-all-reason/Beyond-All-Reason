@@ -43,10 +43,10 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
-local globalLightMult = 1.15
-local globalRadiusMult = 1.15
-local globalLightMultLaser = 1.1
-local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
+local globalLightMult = 1.18
+local globalRadiusMult = 1.18
+local globalLightMultLaser = 1.18
+local globalRadiusMultLaser = 1.05	-- gets applied on top op globalRadiusMult
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -98,7 +98,7 @@ local function GetLightsFromUnitDefs()
 
 		if customParams.light_skip == nil then
 			local skip = false
-			local lightMultiplier = 0.07
+			local lightMultiplier = 0.08
 			local bMult = 1.6		-- because blue appears to be very faint
 			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
