@@ -994,8 +994,8 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
+		currentSpeed = 1.75 * (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<35) currentSpeed=35;
 		sleep 142;
 	}
 }
