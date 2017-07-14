@@ -35,12 +35,12 @@ return {
 		waterline = 17,
 		workertime = 450,
 		--move
-		acceleration = 2.00/30,
-		brakerate = 2.00/30,
-		maxvelocity = 2.00,
+		acceleration = 2.03/30,
+		brakerate = 2.03/30,
+		maxvelocity = 2.03,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.00,
+		turninplacespeedlimit = 0.64*2.03,
 		turnrate = 350,
 		--end move
 		customparams = {

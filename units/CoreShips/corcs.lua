@@ -36,13 +36,13 @@ return {
 		waterline = 3,
 		workertime = 125,
 		--move
-		acceleration = 2.20/90,
-		brakerate = 2.20/25,
-		maxvelocity = 2.20,	
+		acceleration = 2.00/90,
+		brakerate = 2.00/25,
+		maxvelocity = 2.00,	
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.20,
-		turnrate = 270,
+		turninplacespeedlimit = 0.64*2.00,
+		turnrate = 261,
 		--end move
 		buildoptions = {
 			[1] = "coreyes",
