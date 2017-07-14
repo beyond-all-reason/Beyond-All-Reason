@@ -72,126 +72,126 @@ StartMoving()
 	{
 		if( !Static_Var_13 )
 		{
-			turn rupleg to x-axis <-40.000000> speed <52.500000>;
-			turn rlowleg to x-axis <0.000000> speed <26.247253>;
+			turn rupleg to x-axis <-40.000000> speed 2 * <52.500000>;
+			turn rlowleg to x-axis <0.000000> speed 2 * <26.247253>;
 		}
-		turn rfoot to x-axis <10.000000> speed <30.000000>;
-		turn lupleg to x-axis <30.000000> speed <22.500000>;
-		turn lbtoe1 to x-axis <-10.000000> speed <8.000000>;
-		turn lbtoe2 to x-axis <-7.000000> speed <5.593407>;
+		turn rfoot to x-axis <10.000000> speed 2 * <30.000000>;
+		turn lupleg to x-axis <30.000000> speed 2 * <22.500000>;
+		turn lbtoe1 to x-axis <-10.000000> speed 2 * <8.000000>;
+		turn lbtoe2 to x-axis <-7.000000> speed 2 * <5.593407>;
 		if( Static_Var_13 )
 		{
-			turn rupleg to x-axis <-40.000000> speed <27.500000>;
-			turn llowleg to x-axis <20.000000> speed <15.000000>;
+			turn rupleg to x-axis <-40.000000> speed 2 * <27.500000>;
+			turn llowleg to x-axis <20.000000> speed 2 * <15.000000>;
 			Static_Var_13 = 0;
 		}
 		if( !Static_Var_13 )
 		{
 			if( !bAiming )
 			{
-				move torso to y-axis [3.750000] speed [6.250000];
-				turn torso to z-axis <2.500000> speed <1.000000>;
-				turn torso to y-axis <6.000000> speed <10.000000>;
-				turn stick to y-axis <7.500000> speed <11.000000>;
-				turn larm to x-axis <-22.000000> speed <14.000000>;
-				turn rarm to x-axis <18.000000> speed <14.000000>;
-				move stick to y-axis [6.250000] speed [2.500000];
-				move torso to x-axis [0.500000] speed [0.250000];
-				turn lcannon to y-axis <4.000000> speed <2.500000>;
-				turn rcannon to y-axis <-4.000000> speed <2.500000>;
-				move lshoulder to y-axis [1.250000] speed [2.500000];
-				move rshoulder to y-axis [-0.625000] speed [1.250000];
-				move launcher to y-axis [1.000000] speed [2.250000];
+				move torso to y-axis[1.8250000] speed 2 * [6.250000];
+				turn torso to z-axis <2.500000> speed 2 * <1.000000>;
+				turn torso to y-axis <6.000000> speed 2 * <10.000000>;
+				turn stick to y-axis <7.500000> speed 4 * <11.000000>;
+				turn larm to x-axis <-22.000000> speed 2 * <14.000000>;
+				turn rarm to x-axis <18.000000> speed 2 * <14.000000>;
+				move stick to y-axis [3.1250000] speed 4 * [2.500000];
+				move torso to x-axis [0.2500000] speed 2 * [0.250000];
+				turn lcannon to y-axis <4.000000> speed 2 * <2.500000>;
+				turn rcannon to y-axis <-4.000000> speed 2 * <2.500000>;
+				move lshoulder to y-axis [1.250000] speed 2 * [2.500000];
+				move rshoulder to y-axis [-0.625000] speed 2 * [1.250000];
+				move launcher to y-axis [1.000000] speed 2 * [2.250000];
 			}
 		}
-		turn llowleg to x-axis <20.000000> speed <22.500000>;
-		turn lftoe to x-axis <-20.000000> speed <15.000000>;
-		turn lrightoe to x-axis <-15.000000> speed <11.247253>;
-		turn lleftoe to x-axis <-15.000000> speed <11.247253>;
-		turn lrightoe to y-axis <15.000000> speed <11.000000>;
-		turn lleftoe to y-axis <-15.000000> speed <11.000000>;
-		turn lfoot to x-axis <-30.000000> speed <22.500000>;
-		sleep 1250;
+		turn llowleg to x-axis <20.000000> speed 2 * <22.500000>;
+		turn lftoe to x-axis <-20.000000> speed 2 * <15.000000>;
+		turn lrightoe to x-axis <-15.000000> speed 2 * <11.247253>;
+		turn lleftoe to x-axis <-15.000000> speed 2 * <11.247253>;
+		turn lrightoe to y-axis <15.000000> speed 2 * <11.000000>;
+		turn lleftoe to y-axis <-15.000000> speed 2 * <11.000000>;
+		turn lfoot to x-axis <-30.000000> speed 2 * <22.500000>;
+		sleep 675;
 		if( !bAiming )
 		{
-			move torso to y-axis [0.000000] speed [2.500000];
-			move stick to y-axis [3.750000] speed [2.000000];
-			move lshoulder to y-axis [0.000000] speed [1.125000];
-			move rshoulder to y-axis [0.000000] speed [0.549957];
-			move launcher to y-axis [0.000000] speed [1.250000];
+			move torso to y-axis[0.000000] speed 2 * [2.500000];
+			move stick to y-axis [1.8250000] speed 4 * [2.000000];
+			move lshoulder to y-axis [0.000000] speed 2 * [1.125000];
+			move rshoulder to y-axis [0.000000] speed 2 * [0.549957];
+			move launcher to y-axis [0.000000] speed 2 * [1.250000];
 		}
-		turn rupleg to x-axis <0.000000> speed <68.000000>;
-		turn rlowleg to x-axis <-10.000000> speed <17.000000>;
-		turn rfoot to x-axis <0.000000> speed <51.093407>;
-		turn rftoe to x-axis <0.000000> speed <91.000000>;
-		turn rleftoe to x-axis <0.000000> speed <82.000000>;
-		turn rrightoe to x-axis <0.000000> speed <82.000000>;
-		turn rbtoe1 to x-axis <0.000000> speed <60.000000>;
-		turn rbtoe2 to x-axis <0.000000> speed <40.000000>;
-		turn llowleg to x-axis <35.000000> speed <24.890110>;
-		turn lftoe to x-axis <50.000000> speed <110.000000>;
-		turn lrightoe to x-axis <45.000000> speed <100.000000>;
-		turn lleftoe to x-axis <45.000000> speed <100.000000>;
-		turn lrightoe to y-axis <0.000000> speed <23.000000>;
-		turn lleftoe to y-axis <0.000000> speed <23.000000>;
-		turn lfoot to x-axis <20.000000> speed <40.000000>;
-		turn lbtoe1 to x-axis <-30.000000> speed <45.000000>;
-		turn lbtoe2 to x-axis <-20.000000> speed <30.000000>;
-		sleep 550;
+		turn rupleg to x-axis <0.000000> speed 2 * <68.000000>;
+		turn rlowleg to x-axis <-10.000000> speed 2 * <17.000000>;
+		turn rfoot to x-axis <0.000000> speed 2 * <51.093407>;
+		turn rftoe to x-axis <0.000000> speed 2 * <91.000000>;
+		turn rleftoe to x-axis <0.000000> speed 2 * <82.000000>;
+		turn rrightoe to x-axis <0.000000> speed 2 * <82.000000>;
+		turn rbtoe1 to x-axis <0.000000> speed 2 * <60.000000>;
+		turn rbtoe2 to x-axis <0.000000> speed 2 * <40.000000>;
+		turn llowleg to x-axis <35.000000> speed 2 * <24.890110>;
+		turn lftoe to x-axis <50.000000> speed 2 * <110.000000>;
+		turn lrightoe to x-axis <45.000000> speed 2 * <100.000000>;
+		turn lleftoe to x-axis <45.000000> speed 2 * <100.000000>;
+		turn lrightoe to y-axis <0.000000> speed 2 * <23.000000>;
+		turn lleftoe to y-axis <0.000000> speed 2 * <23.000000>;
+		turn lfoot to x-axis <20.000000> speed 2 * <40.000000>;
+		turn lbtoe1 to x-axis <-30.000000> speed 2 * <45.000000>;
+		turn lbtoe2 to x-axis <-20.000000> speed 2 * <30.000000>;
+		sleep 275;
 		if( !bAiming )
 		{
-			move torso to y-axis [3.750000] speed [6.250000];
-			turn torso to z-axis <-2.500000> speed <1.000000>;
-			turn torso to y-axis <-6.000000> speed <10.000000>;
-			turn stick to y-axis <-7.500000> speed <11.000000>;
-			turn larm to x-axis <18.000000> speed <14.000000>;
-			turn rarm to x-axis <-22.000000> speed <14.000000>;
-			move stick to y-axis [7.000000] speed [2.500000];
-			move torso to x-axis [-0.500000] speed [0.250000];
-			turn lcannon to y-axis <-4.000000> speed <2.500000>;
-			turn rcannon to y-axis <4.000000> speed <2.500000>;
-			move lshoulder to y-axis [1.250000] speed [2.500000];
-			move rshoulder to y-axis [-0.625000] speed [1.250000];
+			move torso to y-axis[1.8250000] speed 2 * [6.250000];
+			turn torso to z-axis <-2.500000> speed 2 * <1.000000>;
+			turn torso to y-axis <-6.000000> speed 2 * <10.000000>;
+			turn stick to y-axis <-7.500000> speed 4 * <11.000000>;
+			turn larm to x-axis <18.000000> speed 2 * <14.000000>;
+			turn rarm to x-axis <-22.000000> speed 2 * <14.000000>;
+			move stick to y-axis [3.500000] speed 4 * [2.500000];
+			move torso to x-axis [-0.2500000] speed 2 * [0.250000];
+			turn lcannon to y-axis <-4.000000> speed 2 * <2.500000>;
+			turn rcannon to y-axis <4.000000> speed 2 * <2.500000>;
+			move lshoulder to y-axis [1.250000] speed 2 * [2.500000];
+			move rshoulder to y-axis [-0.625000] speed 2 * [1.250000];
 		}
-		turn rupleg to x-axis <30.000000> speed <22.500000>;
-		turn rlowleg to x-axis <20.000000> speed <22.500000>;
-		turn rftoe to x-axis <-20.000000> speed <15.000000>;
-		turn rrightoe to x-axis <-15.000000> speed <11.247253>;
-		turn rleftoe to x-axis <-15.000000> speed <11.247253>;
-		turn rrightoe to y-axis <15.000000> speed <11.000000>;
-		turn rleftoe to y-axis <-15.000000> speed <11.000000>;
-		turn rfoot to x-axis <-30.000000> speed <22.500000>;
-		turn rbtoe1 to x-axis <-10.000000> speed <8.000000>;
-		turn rbtoe2 to x-axis <-7.000000> speed <5.593407>;
-		turn lupleg to x-axis <-40.000000> speed <52.500000>;
-		turn llowleg to x-axis <0.000000> speed <26.247253>;
-		turn lfoot to x-axis <10.000000> speed <30.000000>;
-		sleep 1250;
+		turn rupleg to x-axis <30.000000> speed 2 * <22.500000>;
+		turn rlowleg to x-axis <20.000000> speed 2 * <22.500000>;
+		turn rftoe to x-axis <-20.000000> speed 2 * <15.000000>;
+		turn rrightoe to x-axis <-15.000000> speed 2 * <11.247253>;
+		turn rleftoe to x-axis <-15.000000> speed 2 * <11.247253>;
+		turn rrightoe to y-axis <15.000000> speed 2 * <11.000000>;
+		turn rleftoe to y-axis <-15.000000> speed 2 * <11.000000>;
+		turn rfoot to x-axis <-30.000000> speed 2 * <22.500000>;
+		turn rbtoe1 to x-axis <-10.000000> speed 2 * <8.000000>;
+		turn rbtoe2 to x-axis <-7.000000> speed 2 * <5.593407>;
+		turn lupleg to x-axis <-40.000000> speed 2 * <52.500000>;
+		turn llowleg to x-axis <0.000000> speed 2 * <26.247253>;
+		turn lfoot to x-axis <10.000000> speed 2 * <30.000000>;
+		sleep 675;
 		if( !bAiming )
 		{
-			move torso to y-axis [0.000000] speed [2.500000];
-			move stick to y-axis [3.750000] speed [2.000000];
-			move lshoulder to y-axis [0.000000] speed [1.125000];
-			move rshoulder to y-axis [0.000000] speed [0.549957];
+			move torso to y-axis[0.000000] speed 2 * [2.500000];
+			move stick to y-axis [1.8250000] speed 4 * [2.000000];
+			move lshoulder to y-axis [0.000000] speed 2 * [1.125000];
+			move rshoulder to y-axis [0.000000] speed 2 * [0.549957];
 		}
-		turn lupleg to x-axis <0.000000> speed <68.000000>;
-		turn llowleg to x-axis <-10.000000> speed <17.000000>;
-		turn lftoe to x-axis <0.000000> speed <82.000000>;
-		turn lfoot to x-axis <0.000000> speed <51.093407>;
-		turn lleftoe to x-axis <0.000000> speed <91.000000>;
-		turn lrightoe to x-axis <0.000000> speed <91.000000>;
-		turn lbtoe1 to x-axis <0.000000> speed <60.000000>;
-		turn lbtoe2 to x-axis <0.000000> speed <40.000000>;
-		turn rlowleg to x-axis <35.000000> speed <24.890110>;
-		turn rftoe to x-axis <50.000000> speed <110.000000>;
-		turn rrightoe to x-axis <45.000000> speed <100.000000>;
-		turn rleftoe to x-axis <45.000000> speed <100.000000>;
-		turn rrightoe to y-axis <0.000000> speed <23.000000>;
-		turn rleftoe to y-axis <0.000000> speed <23.000000>;
-		turn rfoot to x-axis <20.000000> speed <40.000000>;
-		turn rbtoe1 to x-axis <-30.000000> speed <45.000000>;
-		turn rbtoe2 to x-axis <-20.000000> speed <30.000000>;
-		sleep 550;
+		turn lupleg to x-axis <0.000000> speed 2 * <68.000000>;
+		turn llowleg to x-axis <-10.000000> speed 2 * <17.000000>;
+		turn lftoe to x-axis <0.000000> speed 2 * <82.000000>;
+		turn lfoot to x-axis <0.000000> speed 2 * <51.093407>;
+		turn lleftoe to x-axis <0.000000> speed 2 * <91.000000>;
+		turn lrightoe to x-axis <0.000000> speed 2 * <91.000000>;
+		turn lbtoe1 to x-axis <0.000000> speed 2 * <60.000000>;
+		turn lbtoe2 to x-axis <0.000000> speed 2 * <40.000000>;
+		turn rlowleg to x-axis <35.000000> speed 2 * <24.890110>;
+		turn rftoe to x-axis <50.000000> speed 2 * <110.000000>;
+		turn rrightoe to x-axis <45.000000> speed 2 * <100.000000>;
+		turn rleftoe to x-axis <45.000000> speed 2 * <100.000000>;
+		turn rrightoe to y-axis <0.000000> speed 2 * <23.000000>;
+		turn rleftoe to y-axis <0.000000> speed 2 * <23.000000>;
+		turn rfoot to x-axis <20.000000> speed 2 * <40.000000>;
+		turn rbtoe1 to x-axis <-30.000000> speed 2 * <45.000000>;
+		turn rbtoe2 to x-axis <-20.000000> speed 2 * <30.000000>;
+		sleep 275;
 	}
 	return (0);
 }
@@ -203,52 +203,52 @@ StopMoving()
 	Static_Var_13 = 1;
 	if( !bAiming )
 	{
-		turn torso to y-axis <0.000000> speed <40.000000>;
+		turn torso to y-axis <0.000000> speed 2 * <40.000000>;
 	}
 	if( !Static_Var_4 )
 	{
-		turn larm to x-axis <0.000000> speed <50.000000>;
-		turn rarm to x-axis <0.000000> speed <50.000000>;
-		turn lcannon to y-axis <0.000000> speed <20.000000>;
-		turn rcannon to y-axis <0.000000> speed <20.000000>;
+		turn larm to x-axis <0.000000> speed 2 * <50.000000>;
+		turn rarm to x-axis <0.000000> speed 2 * <50.000000>;
+		turn lcannon to y-axis <0.000000> speed 2 * <20.000000>;
+		turn rcannon to y-axis <0.000000> speed 2 * <20.000000>;
 	}
 	if( !Static_Var_5 )
 	{
-		turn stick to y-axis <0.000000> speed <20.000000>;
-		move stick to y-axis [0.000000] speed [2.500000];
+		turn stick to y-axis <0.000000> speed 4 * <20.000000>;
+		move stick to y-axis [0.000000] speed 4 * [2.500000];
 	}
 	if( Static_Var_5 )
 	{
 		if( !Static_Var_12 )
 		{
-			move stick to y-axis [0.000000] speed [2.500000];
+			move stick to y-axis [0.000000] speed 4 * [2.500000];
 		}
 	}
-	turn lupleg to x-axis <0.000000> speed <100.000000>;
-	turn llowleg to x-axis <0.000000> speed <100.000000>;
-	turn lfoot to x-axis <0.000000> speed <90.000000>;
-	turn lbtoe1 to x-axis <0.000000> speed <90.000000>;
-	turn lbtoe2 to x-axis <0.000000> speed <80.000000>;
-	turn lftoe to x-axis <0.000000> speed <60.000000>;
-	turn lleftoe to x-axis <0.000000> speed <60.000000>;
-	turn lrightoe to x-axis <0.000000> speed <60.000000>;
-	turn lleftoe to y-axis <0.000000> speed <45.000000>;
-	turn lrightoe to y-axis <0.000000> speed <45.000000>;
-	turn rupleg to x-axis <0.000000> speed <100.000000>;
-	turn rlowleg to x-axis <0.000000> speed <100.000000>;
-	turn rfoot to x-axis <0.000000> speed <90.000000>;
-	turn rftoe to x-axis <0.000000> speed <60.000000>;
-	turn rleftoe to x-axis <0.000000> speed <60.000000>;
-	turn rrightoe to x-axis <0.000000> speed <60.000000>;
-	turn rleftoe to y-axis <0.000000> speed <45.000000>;
-	turn rrightoe to y-axis <0.000000> speed <45.000000>;
-	turn rbtoe1 to x-axis <0.000000> speed <90.000000>;
-	turn rbtoe2 to x-axis <0.000000> speed <80.000000>;
-	turn torso to z-axis <0.000000> speed <8.000000>;
-	move torso to y-axis [0.000000] speed [10.000000];
-	move torso to x-axis [0.000000] speed [3.000000];
-	move lshoulder to y-axis [0.000000] speed [7.500000];
-	move rshoulder to y-axis [0.000000] speed [7.500000];
+	turn lupleg to x-axis <0.000000> speed 2 * <100.000000>;
+	turn llowleg to x-axis <0.000000> speed 2 * <100.000000>;
+	turn lfoot to x-axis <0.000000> speed 2 * <90.000000>;
+	turn lbtoe1 to x-axis <0.000000> speed 2 * <90.000000>;
+	turn lbtoe2 to x-axis <0.000000> speed 2 * <80.000000>;
+	turn lftoe to x-axis <0.000000> speed 2 * <60.000000>;
+	turn lleftoe to x-axis <0.000000> speed 2 * <60.000000>;
+	turn lrightoe to x-axis <0.000000> speed 2 * <60.000000>;
+	turn lleftoe to y-axis <0.000000> speed 2 * <45.000000>;
+	turn lrightoe to y-axis <0.000000> speed 2 * <45.000000>;
+	turn rupleg to x-axis <0.000000> speed 2 * <100.000000>;
+	turn rlowleg to x-axis <0.000000> speed 2 * <100.000000>;
+	turn rfoot to x-axis <0.000000> speed 2 * <90.000000>;
+	turn rftoe to x-axis <0.000000> speed 2 * <60.000000>;
+	turn rleftoe to x-axis <0.000000> speed 2 * <60.000000>;
+	turn rrightoe to x-axis <0.000000> speed 2 * <60.000000>;
+	turn rleftoe to y-axis <0.000000> speed 2 * <45.000000>;
+	turn rrightoe to y-axis <0.000000> speed 2 * <45.000000>;
+	turn rbtoe1 to x-axis <0.000000> speed 2 * <90.000000>;
+	turn rbtoe2 to x-axis <0.000000> speed 2 * <80.000000>;
+	turn torso to z-axis <0.000000> speed 2 * <8.000000>;
+	move torso to y-axis[0.000000] speed 2 * [10.000000];
+	move torso to x-axis [0.000000] speed 2 * [3.000000];
+	move lshoulder to y-axis [0.000000] speed 2 * [7.500000];
+	move rshoulder to y-axis [0.000000] speed 2 * [7.500000];
 	return (0);
 }
 
@@ -282,10 +282,10 @@ RestoreSecondary()
 {
 	set-signal-mask SIG_AIM_2;
 	sleep 6500;
-	turn plasmasprayer to y-axis <0.000000> speed <80.000000>;
+	turn plasmasprayer to y-axis <0.000000> speed 2 * <80.000000>;
 	wait-for-turn plasmasprayer around y-axis;
 	Static_Var_8 = 0;
-	move stick to y-axis [0.000000] speed [2.500000];
+	move stick to y-axis [0.000000] speed 2 * [2.500000];
 	wait-for-move stick along y-axis;
 	Static_Var_5 = 0;
 	if( bAiming == 1 )
