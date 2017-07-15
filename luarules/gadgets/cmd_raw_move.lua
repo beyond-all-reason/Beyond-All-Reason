@@ -266,11 +266,7 @@ local function HandleRawMove(unitID, unitDefID, cmdParams)
 		rawMoveUnit[unitID] = {}
 	end
 	local unitData = rawMoveUnit[unitID]
-	if unitData.doingRawMove then
-		Spring.Echo("Doing raw")
-	else
-		Spring.Echo("Not doing raw")
-	end
+
 	if not (unitData.cx == cmdParams[1] and unitData.cz == cmdParams[3]) then
 		ResetUnitData(unitData)
 	end
@@ -462,11 +458,9 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 			cmdID = cmdParams[2]
 		end
 		if cmdID == CMD_RAW_MOVE then
-			Spring.Echo("DISALLOWED")
 			return false
 		end
 	end
-	Spring.Echo("ALLOWED")
 	return true
 end
 
