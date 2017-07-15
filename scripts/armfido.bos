@@ -238,9 +238,6 @@ Create()
 {
 	hide flash;
 	dont-cache flash;
-	turn flash to x-axis <170> now;
-	move flash to z-axis [6.75] now;
-	move flash to y-axis [1.5] now;
 	restore_delay = 3000;
 	Static_Var_2 = 0;
 	gun_2 = gauss;
