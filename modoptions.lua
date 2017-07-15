@@ -385,7 +385,7 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-		{
+	{
 		key    = 'dominationscore',
 		name   = 'Score awarded for Domination',
 		desc   = 'The amount of score awarded when you have scored a domination.',
@@ -397,6 +397,17 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
+	{
+        key    = 'comm_wreck_metal',
+        name   = 'Commander Wreck Metal',
+        desc   = 'Sets the amount of metal left by a destroyed Commander',
+        type   = 'number',
+        section= 'ba_enhancements_misc',
+        def    = 2500,
+        min    = 0,
+        max    = 5000,
+        step   = 1,
+    },	
 -- End Control Victory Options
 }
 return options
