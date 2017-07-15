@@ -317,7 +317,7 @@ local moveSpeed =.5
 local buildingMask = 2
 
 --Here we mitigate potential issues caused by wonky options settings
-
+local captureRadius = Spring.GetModOptions().captureradius
 if numberOfControlPoints == 13 then
 	limitScore = limitScore * 2
 	captureRadius = captureRadius * 0.83
