@@ -198,6 +198,7 @@ return {
 				waterweapon = true, --dgun can pass trough water
 				firesubmersed = false, -- but not _fire_ underwater
 				energypershot = 500,
+                cegTag = "dgunprojectile",
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				impulseboost = 0,
