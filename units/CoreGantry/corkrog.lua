@@ -250,7 +250,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = 5,
 				range = 55,
-				camerashake = 500,
+				camerashake = 1500,
 				reloadtime = 0.2,
 				rgbcolor = "0 0 0",
 				soundhitwet = "splssml",
@@ -263,7 +263,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
 				damage = {
-					default = 2000,
+					default = 150,
 				},
 				customparams = {
 					light_skip = true,		-- used by projectile lights widget

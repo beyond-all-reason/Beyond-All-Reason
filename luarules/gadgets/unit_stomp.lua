@@ -27,17 +27,17 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.AreTeamsAllied(unitTeam, attackerTeam) == false then
 
 			if StompedUnits[unitDefID] then	
-				return 2000
+				return 2000, 0
 			else
-				return 0
+				return 0, 0
 			end
 		else
-			return 0
+			return 0, 0
 		end
 		end		
     end
 	if WeaponDefs[weaponDefID].name == "corkarg_kargkick" then 
-		return 0
+		return 0, 0
     end
 	end
 	return damage, nil
