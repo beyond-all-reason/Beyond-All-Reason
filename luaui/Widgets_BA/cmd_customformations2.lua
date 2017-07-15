@@ -72,9 +72,9 @@ local requiresAlt = {
 -- If the mouse remains on the same target for both Press/Release then the formation is ignored and original command is issued.
 -- Normal logic will follow after override, i.e. must be a formationCmd to get formation, alt must be held if requiresAlt, etc.
 local overrideCmds = {
-	[CMD.GUARD] = CMD.MOVE,
-	[CMD.ATTACK] = CMD.MOVE, 
-	[CMD_SETTARGET] = CMD.MOVE
+	[CMD.GUARD] = CMD_RAW_MOVE,
+	[CMD.ATTACK] = CMD_RAW_MOVE, 
+	[CMD_SETTARGET] = CMD_RAW_MOVE
 }
 
 -- What commands can be issued at a position or unit/feature ID (Only used by GetUnitPosition)
@@ -82,7 +82,7 @@ local positionCmds = {
 	[CMD.MOVE]=true,		[CMD.ATTACK]=true,		[CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
 	[CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.MANUALFIRE]=true,	
 	[CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-	[CMD_SETTARGET] = true -- set target
+	[CMD_SETTARGET] = true, [CMD_RAW_MOVE] = true, -- set target
 }
 
 
@@ -179,7 +179,7 @@ local huge = math.huge
 local pi2 = 2*math.pi
 
 local CMD_INSERT = CMD.INSERT
-local CMD_MOVE = CMD.MOVE
+local CMD_MOVE = CMD_RAW_MOVE
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNLOADUNIT = CMD.UNLOAD_UNIT
 local CMD_UNLOADUNITS = CMD.UNLOAD_UNITS
@@ -373,7 +373,6 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
 	end
-	
 	spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOpts)
@@ -453,10 +452,10 @@ function widget:MousePress(mx, my, mButton)
 		return false
 	end
 
-	-- Set move cmd to raw move if appropriate
+	--[[-- Set move cmd to raw move if appropriate
 	if usingCmd == CMD_MOVE then
 		usingCmd = CMD_RAW_MOVE
-	end
+	end--]]
 	
 	-- Get clicked position
 	local _, pos = spTraceScreenRay(mx, my, true, inMinimap)
@@ -467,7 +466,6 @@ function widget:MousePress(mx, my, mButton)
 	
 	-- Is this line a path candidate (We don't do a path off an overriden command)
 	pathCandidate = (not overriddenCmd) and (spGetSelectedUnitsCount()==1 or (alt and not requiresAlt[usingCmd]))
-	
 	-- We handled the mouse press
 	return true
 end
@@ -501,9 +499,11 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		
 		-- If the line is a path, start the units moving to this node
 		if pathCandidate then
-			
 			local alt, ctrl, meta, shift = GetModKeys()
 			local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
+			if usingCmd == CMD_RAW_MOVE then
+				usingCmd = CMD.MOVE
+			end
 			GiveNotifyingOrder(usingCmd, pos, cmdOpts)
 			lastPathPos = pos
 			
@@ -518,6 +518,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				
 				local alt, ctrl, meta, shift = GetModKeys()
 				local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB) -- using alt uses springs box formation, so we set it off always
+				if usingCmd == CMD_RAW_MOVE then
+					usingCmd = CMD.MOVE
+				end
 				GiveNotifyingOrder(usingCmd, pos, cmdOpts)
 				lastPathPos = pos
 			end
@@ -610,7 +613,7 @@ function widget:MouseRelease(mx, my, mButton)
 			if targetID then
 				-- Give order (i.e. pass the command to the engine to use as normal)
 				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
-			elseif usingCmd == CMD_MOVE or usingCmd == CMD_RAW_MOVE then 
+			elseif usingCmd == CMD_MOVE then 
 				VFS.Include("LuaRules/Configs/customcmds.h.lua")
 				-- Spring.Echo("Issuing move order: " .. usingCmd)
 				local selUnits = spGetSelectedUnits()
