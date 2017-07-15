@@ -65,7 +65,7 @@ local formationCmds = {
 
 -- What commands require alt to be held 
 local requiresAlt = {
-	[CMD_RAW_MOVE] = true,
+
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
@@ -454,7 +454,7 @@ function widget:MousePress(mx, my, mButton)
 	end
 
 	-- Set move cmd to raw move if appropriate
-	if alt and usingCmd == CMD_MOVE then
+	if usingCmd == CMD_MOVE then
 		usingCmd = CMD_RAW_MOVE
 	end
 	
