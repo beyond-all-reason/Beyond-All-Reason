@@ -23,7 +23,6 @@ local StompedUnits = {
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if WeaponDefs[weaponDefID] then
 	if WeaponDefs[weaponDefID].name == "corkrog_krogkick" then 
-	Spring.Echo("ok")
 		if (unitTeam) and (attackerTeam) then
 		if Spring.AreTeamsAllied(unitTeam, attackerTeam) == false then
 
