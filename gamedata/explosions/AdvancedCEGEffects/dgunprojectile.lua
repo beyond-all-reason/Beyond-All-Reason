@@ -1,0 +1,46 @@
+
+return {
+    ["dgunprojectile"] = {
+        groundflash_large = {
+            class              = [[CSimpleGroundFlash]],
+            count              = 1,
+            air                = true,
+            ground             = true,
+            water              = true,
+            properties = {
+                colormap           = [[1 0.7 0.3 0.04   0 0 0 0.01]],
+                size               = 50,
+                sizegrowth         = -0.5,
+                ttl                = 14,
+                texture            = [[groundflash]],
+            },
+        },
+        ball = {
+            air                = true,
+            class              = [[CSimpleParticleSystem]],
+            count              = 1,
+            ground             = true,
+            properties = {
+                airdrag            = 0.4,
+                colormap           = [[0.12 0.11 0.09 0.01   0 0 0 0.01]],
+                directional        = true,
+                emitrot            = 45,
+                emitrotspread      = 32,
+                emitvector         = [[0, 1, 0]],
+                gravity            = [[0, -0.05, 0]],
+                numparticles       = 10,
+                particlelife       = 4,
+                particlelifespread = 1,
+                particlesize       = 13,
+                particlesizespread = 2,
+                particlespeed      = 0.5,
+                particlespeedspread = 2.5,
+                pos                = [[0, 2, 0]],
+                sizegrowth         = -0.05,
+                sizemod            = 1.0,
+                texture            = [[flareorg]],
+                useairlos          = false,
+            },
+        },
+    },
+}
