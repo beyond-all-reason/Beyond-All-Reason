@@ -1,7 +1,7 @@
 function gadget:GetInfo()
   return {
-    name      = "KrogSteps Damages",
-    desc      = "Controls damages done by Krog's footsteps",
+    name      = "Experimental Bots Steps Damages",
+    desc      = "Controls damages done by exp units footsteps",
     author    = "Doo",
     date      = "July 2017",
     license   = "Whatever you want, lua will make it",
@@ -35,6 +35,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			return 0
 		end
 		end		
+    end
+	if WeaponDefs[weaponDefID].name == "corkarg_kargkick" then 
+		return 0
     end
 	end
 	return damage, nil

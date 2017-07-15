@@ -210,6 +210,42 @@ return {
 					vtol = 150,
 				},
 			},
+			kargkick = {
+				areaofeffect = 32,
+				avoidfeature = false,
+				collidefriendly = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				cylindertargeting = 1,
+				edgeeffectiveness = 0,
+				explosiongenerator = "custom:genericshellexplosion-crusherkrog",
+				firestarter = 40,
+				impulseboost = 1.5,
+				impulsefactor = 1.5,
+				name = "KargCrush",
+				noselfdamage = true,
+				proximitypriority = 5,
+				range = 55,
+				camerashake = 500,
+				reloadtime = 0.2,
+				rgbcolor = "0 0 0",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
+				soundstart = "xplosml2",
+				thickness = 0,
+				tolerance = 9000,
+				turnrate = 50000,
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 1650,
+				damage = {
+					default = 1,
+				},
+				customparams = {
+					light_skip = true,		-- used by projectile lights widget
+				},
+			},
 		},
 		weapons = {
 			[1] = {
@@ -224,6 +260,10 @@ return {
 			},
 			[3] = {
 				def = "KARG_HEAD",
+				onlytargetcategory = "VTOL",
+			},
+			[4] = {
+				def = "KARGKICK",
 				onlytargetcategory = "VTOL",
 			},
 		},
