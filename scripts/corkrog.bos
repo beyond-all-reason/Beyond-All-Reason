@@ -5,7 +5,7 @@
 
 piece  head, torso, hips, mpack, rgunflare, lgunflare, eyeflare, rmispoint,
        lmispoint, rleg, rthigh, lthigh, lleg, ltoes, lheel, rtoes,
-       rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2, weapon1aimpoint;
+       rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2, weapon1aimpoint, rstomp, lstomp;
 
 static-var  Static_Var_1, Static_Var_2, bMoving, Static_Var_4, Static_Var_5, foot, notrdyStomp,
             restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
@@ -40,6 +40,7 @@ walk()
 		turn rarm to x-axis <-16.000000> speed <4.000000>;
 		turn larm to x-axis <-22.000000> speed <40.000000>;
 		foot=TRUE;
+
 		notrdyStomp=0;
 		sleep 212;
 	}
@@ -104,7 +105,9 @@ walk()
 		turn ruparm to x-axis <-27.000000> speed <13.000000>;
 		turn rarm to x-axis <-43.000000> speed <129.000000>;
 		turn larm to x-axis <-42.000000> speed <18.000000>;
+
 		sleep 188;
+
 		notrdyStomp=1;
 	}
 	if( bMoving )
@@ -127,6 +130,7 @@ walk()
 		turn rarm to x-axis <-6.000000> speed <198.000000>;
 		turn larm to x-axis <-15.000000> speed <147.000000>;
 		sleep 186;
+						emit-sfx 2052 from lstomp;
 	}
 	if( bMoving )
 	{
@@ -210,6 +214,7 @@ walk()
 		turn rarm to x-axis <-37.000000> speed <13.000000>;
 		turn larm to x-axis <-22.000000> speed <41.000000>;
 		foot=FALSE;
+
 		notrdyStomp=0;
 		sleep 182;
 	}
@@ -275,6 +280,7 @@ walk()
 		turn ruparm to x-axis <37.000000> speed <5.000000>;
 		turn rarm to x-axis <-46.000000> speed <3.000000>;
 		turn larm to x-axis <-24.000000> speed <7.000000>;
+
 		sleep 189;
 		notrdyStomp=1;
 	}
@@ -297,6 +303,8 @@ walk()
 		turn rarm to x-axis <-13.000000> speed <259.000000>;
 		turn larm to x-axis <-3.000000> speed <157.000000>;
 		sleep 129;
+						emit-sfx 2052 from rstomp;
+
 	}
 	if( bMoving )
 	{
@@ -427,6 +435,8 @@ walklegs()
 		turn rtoes to x-axis <-10.000000> speed <86.000000>;
 		turn rheel to x-axis <-32.000000> speed <59.000000>;
 		sleep 186;
+		emit-sfx 2052 from lstomp;
+
 	}
 	if( bMoving )
 	{
@@ -549,6 +559,7 @@ walklegs()
 		turn rtoes to x-axis <11.000000> speed <62.000000>;
 		turn rheel to x-axis <11.000000> speed <44.000000>;
 		sleep 129;
+		emit-sfx 2052 from rstomp;
 	}
 	if( bMoving )
 	{
@@ -923,7 +934,7 @@ AimWeapon4(heading, pitch)
 	signal SIG_FOOTSTOMP_L;
 	set-signal-mask SIG_FOOTSTOMP_L;
 	while(notrdyStomp OR !foot) sleep 65;
-	return (1);
+	return (0);
 }
 
 AimFromWeapon4(piecenum)
@@ -941,7 +952,7 @@ AimWeapon5(heading, pitch)
 	signal SIG_FOOTSTOMP_R;
 	set-signal-mask SIG_FOOTSTOMP_R;
 	while(notrdyStomp OR foot) sleep 65;
-	return (1);
+	return (0);
 }
 
 AimFromWeapon5(piecenum)
