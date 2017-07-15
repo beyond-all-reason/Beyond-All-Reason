@@ -353,9 +353,9 @@ FirePrimary()
 {
 	gun_2 = turret;
 	emit-sfx 1024 + 0 from flash;
-	move gauss to z-axis [-0.75000] speed [7.00000];
+	move gauss to z-axis [-3.0] now;
 	sleep 150;
-	move gauss to z-axis [0.000000] speed [1.500000];
+	move gauss to z-axis [0.000000] speed [3.00000];
 	start-script Reload();
 }
 
@@ -363,9 +363,9 @@ FireSecondary()
 {
 	gun_2 = turret;
 	emit-sfx 1024 + 0 from flash;
-	move gauss to z-axis [-0.75000] speed [7.00000];
+	move gauss to z-axis [-3.0] now;
 	sleep 150;
-	move gauss to z-axis [0.000000] speed [1.500000];
+	move gauss to z-axis [0.000000] speed [3.00000];
 	start-script Reload();
 }
 
