@@ -21,8 +21,6 @@ local StompedUnits = {
 }
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	-- debris damage occurs when weaponDefID == -1
-	-- in this case attackerID and attackerDefID are nil
 	if WeaponDefs[weaponDefID] then
 	if WeaponDefs[weaponDefID].name == "corkrog_krogkick" then 
 	Spring.Echo("ok")
