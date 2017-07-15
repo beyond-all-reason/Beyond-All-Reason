@@ -317,7 +317,6 @@ local moveSpeed =.5
 local buildingMask = 2
 
 --Here we mitigate potential issues caused by wonky options settings
-local captureRadius = Spring.GetModOptions().captureradius
 if numberOfControlPoints == 13 then
 	limitScore = limitScore * 2
 	captureRadius = captureRadius * 0.83
@@ -1446,6 +1445,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 	  end
 	  
 		local frame = Spring.GetGameFrame()
+		Spring.Echo(frame)
 		if frame / 1800 > startTime then
 		  if scoreboardList == nil or frame%15==0 then
 		  	if scoreboardList ~= nil then
