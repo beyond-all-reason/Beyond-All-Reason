@@ -173,9 +173,9 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = 2 * (get CURRENT_SPEED)*100/moveSpeed;
+		currentSpeed = (1) * (get CURRENT_SPEED)*100/moveSpeed;
 		if (currentSpeed<40) currentSpeed=40;
-		animSpeed = 11000 / currentSpeed;
+		animSpeed = (11000) / (2.2 * currentSpeed);
 		sleep 142;
 	}
 }
