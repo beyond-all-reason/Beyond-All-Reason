@@ -2390,10 +2390,10 @@ definitions['expldgun'].heatedgroundflash = {
   unit               = false,
   water              = false,
   properties = {
-    colormap           = [[1 0.15 0.05 0.37   0 0 0 0.01]],
-    size               = 15,
+    colormap           = [[1 0.15 0.05 0.38   0 0 0 0.01]],
+    size               = 16,
     sizegrowth         = 0,
-    ttl                = 50,
+    ttl                = 55,
     texture            = [[groundflash]],
   },
 }
@@ -2439,9 +2439,10 @@ definitions['expldgun'].dirt2.properties.numparticles = 2
 --    }
 --}
 
-definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2
-definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.5
+definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2.2
+definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.8
 definitions['expldgun'].explosion.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
+definitions['expldgun'].explosion.properties.particlespeedspread   = definitions['expldgun'].explosion.properties.particlespeedspread*0.85
 definitions['expldgun'].sparks.properties.particlelife            = definitions['expldgun'].sparks.properties.particlelife*1.3
 definitions['expldgun'].sparks.properties.particlespeed           = definitions['expldgun'].sparks.properties.particlespeed*1.3
 definitions['expldgun'].sparks.properties.particlespeedspread     = definitions['expldgun'].sparks.properties.particlespeedspread*1.8
