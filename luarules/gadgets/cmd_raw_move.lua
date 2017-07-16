@@ -256,7 +256,7 @@ local function StopRawMoveUnit(unitID, stopNonRaw)
 	--Spring.Echo("StopRawMoveUnit", math.random())
 end
 
-local function HandleRawMove(unitID, unitDefID, cmdParams)
+local function HandleRawMove(unitID, unitDefID, cmdParams, forceRaw)
 	if spMoveCtrlGetTag(unitID) then
 		return true, false
 	end
@@ -331,7 +331,7 @@ local function HandleRawMove(unitID, unitDefID, cmdParams)
 	end
 	unitData.stuckCheckTimer = unitData.stuckCheckTimer - timerIncrement
 	
-	if unitData.stuckCheckTimer <= 0 then
+	if unitData.stuckCheckTimer <= 0 and not forceRaw  then
 		local oldX, oldZ = unitData.ux, unitData.uz
 		local travelled = math.abs(oldX - x) + math.abs(oldZ - z)
 		unitData.ux, unitData.uz = x, z
@@ -383,7 +383,7 @@ local function HandleRawMove(unitID, unitDefID, cmdParams)
 			end
 		end
 		if (not unitData.commandHandled) or unitData.doingRawMove ~= freePath then
-			Spring.SetUnitMoveGoal(unitID, cmdParams[1], cmdParams[2], cmdParams[3], goalDist[unitDefID] or 16, nil, freePath)
+			Spring.SetUnitMoveGoal(unitID, cmdParams[1], cmdParams[2], cmdParams[3], goalDist[unitDefID] or 16, nil, freePath or forceRaw)
 			unitData.nextTestTime = math.floor(math.random()*2) + turnPeriods[unitDefID]
 			unitData.possiblyTurning = true
 		elseif unitData.possiblyTurning then
@@ -411,7 +411,7 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmd
 	if not (cmdID == CMD_RAW_MOVE or cmdID == CMD_RAW_BUILD) then
 		return false
 	end
-	local cmdUsed, cmdRemove = HandleRawMove(unitID, unitDefID, cmdParams)
+	local cmdUsed, cmdRemove = HandleRawMove(unitID, unitDefID, cmdParams, cmdOptions.alt)
 	return cmdUsed, cmdRemove
 end
 
