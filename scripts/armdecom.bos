@@ -404,7 +404,7 @@ MotionControl(moving, aiming, justmoved)
 				turn lleg to x-axis <0.000000> speed <200.000000>;
 				if( !aiming )
 				{
-					turn torso to x-axis <0.000000> speed <150.000000>;
+					turn torso to x-axis <0.000000> speed <110.000000>;
 				}
 				justmoved = FALSE;
 			}
@@ -461,7 +461,7 @@ QueryNanoPiece(piecenum)
 
 RestorePosition()
 {
-	turn torso to y-axis <0.000000> speed <450.000000>;
+	turn torso to y-axis <0.000000> speed <110.000000>;
 	turn ruparm to x-axis <0.000000> speed <45.000000>;
 	turn luparm to x-axis <0.000000> speed <45.000000>;
 	wait-for-turn torso around y-axis;
@@ -476,7 +476,7 @@ ResumeBuilding()
 	sleep 400;
 	if ((building) AND (NOT justfired))
 	{
-		turn torso to y-axis buildy speed <450.000000>;
+		turn torso to y-axis buildy speed <170.000000>;
 		turn luparm to x-axis <-30.000000> - buildx speed <45.000000>;
 	}
 }
@@ -500,7 +500,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <450.000000>;
+	turn torso to y-axis heading speed <400.000000>;
 	turn luparm to x-axis <-45.000000> - pitch speed <250.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
@@ -549,7 +549,7 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <450.000000>;
+	turn torso to y-axis heading speed <400.000000>;
 	turn luparm to x-axis <-70.000000> - pitch speed <250.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn luparm around x-axis;
@@ -588,7 +588,7 @@ AimTertiary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	Static_Var_4 = 1;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <450.000000>;
+	turn torso to y-axis heading speed <400.000000>;
 	turn ruparm to x-axis <-24.000000> - pitch speed <90.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn ruparm around x-axis;
@@ -607,7 +607,7 @@ StartBuilding(Func_Var_1, Func_Var_2)
 	Static_Var_4 = 0;
 	bAiming = TRUE;
 	building = TRUE;
-	turn torso to y-axis Func_Var_1 speed <450.000000>;
+	turn torso to y-axis Func_Var_1 speed <400.000000>;
 	turn luparm to x-axis <-30.000000> - Func_Var_2 speed <90.000000>;
 	buildy = Func_Var_1;
 	buildx = Func_Var_2;
