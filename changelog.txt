@@ -29,6 +29,7 @@ Balance changes:
 • EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
 • Pathing improvement: units wont get stuck in cliffs any longer
 • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
+• Readded KrogStomp (vs ground scouts + pws aks only) aswell as a GFX/SFX + camerashake on footsteps.
 
 Wind:
 • Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
@@ -140,6 +141,7 @@ Other:
 • Added additional extensive unit description (by PtaQ)
 • Increased default player unit limit to 1500
 • Removed useless repeat/stop/wait orders from a lot of buildings
+• Added GFX + SFX on karg footsteps (no damages) and fixed its script and model a bit.
 
 
 9.45 -> 9.46
