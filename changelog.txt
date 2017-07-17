@@ -66,7 +66,8 @@ If you wan to make a full 180° turn with a brake, directly queue the 180° turn
 If you don't want it to brake, split the turn into two moveorders < 140degrees each.
 This value has been set to 90 for construction ships, 110 for pships, 140 for scouts.
 These values might be subject to change to enhance the players' experience and avoid unwanted brakes in a middle of an intense battle.
-• BrakeRates: They are calculated with the same formula as the acceleration: BrakeRate(elmos/f²) = MaxVelocity(elmos/frame)/(30(frame/s)*TimeToStop(s)
+• BrakeRates: They are calculated with the same formula as the acceleration:
+	BrakeRate(elmos/f²) = MaxVelocity(elmos/frame)/(30(frame/s)*TimeToStop(s)
 	As of now, the TimeToStop times are clamped between 0.5 and 1.33 seconds.
 
 MODELS AND ANIMATIONS:
