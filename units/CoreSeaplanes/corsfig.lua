@@ -104,7 +104,7 @@ return {
 					vtol = 200,
 				},
 				customparams = {
-					light_skip = true,		-- used by projectile lights widget
+					light_skip = true,		-- used by light_effects widget
 				},
 			},
 			corsfig_weapon_a2g = {

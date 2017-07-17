@@ -95,7 +95,6 @@ local function GetLightsFromUnitDefs()
 
 		local weaponDef = WeaponDefs[weaponDefID]
 		local customParams = weaponDef.customParams or {}
-
 		if customParams.light_skip == nil then
 			local skip = false
 			local lightMultiplier = 0.08
@@ -469,23 +468,26 @@ end
 
 local weaponConf = {}
 for i=1, #WeaponDefs do
-	local params = {}
-	--local maxDamage = 0
-	--for armortype, value in pairs(WeaponDefs[i].damages) do
-	--	maxDamage = math.max(maxDamage, value)
-	--end
-	--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
-	params.r, params.g, params.b = 1, 0.8, 0.4
-	params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5)
-	params.orgMult = 0.35 + (params.radius/2400)
-	params.life = 14*(0.8+ params.radius/1200)
-	if WeaponDefs[i].type == 'DGun' then
-		params.radius = 650
-		params.orgMult = 0.18
-		params.life = 1
-		params.r, params.g, params.b = 1, 0.6, 0.15
+	local customParams = WeaponDefs[i].customParams or {}
+	if customParams.expl_light_skip == nil then
+		local params = {}
+		--local maxDamage = 0
+		--for armortype, value in pairs(WeaponDefs[i].damages) do
+		--	maxDamage = math.max(maxDamage, value)
+		--end
+		--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
+		params.r, params.g, params.b = 1, 0.8, 0.4
+		params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5)
+		params.orgMult = 0.35 + (params.radius/2400)
+		params.life = 14*(0.8+ params.radius/1200)
+		if WeaponDefs[i].type == 'DGun' then
+			params.radius = 650
+			params.orgMult = 0.18
+			params.life = 1
+			params.r, params.g, params.b = 1, 0.6, 0.15
+		end
+		weaponConf[i] = params
 	end
-	weaponConf[i] = params
 end
 
 -- function called by explosion_lights gadget
