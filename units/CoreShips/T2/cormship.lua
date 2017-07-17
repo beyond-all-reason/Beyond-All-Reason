@@ -32,12 +32,12 @@ return {
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 318.5,
 		--move
-		acceleration = 2.10/120,
-		brakerate = 2.10/35,
+		acceleration = 2.048/120,
+		brakerate = 2.048/35,
 		turninplace = true,
-		maxvelocity = 2.10,
+		maxvelocity = 2.048,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*2.10,
+		turninplacespeedlimit = 0.64*2.048,
 		turnrate = 200,
 		--end move
 		waterline = 5,

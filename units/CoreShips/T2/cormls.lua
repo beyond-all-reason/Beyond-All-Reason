@@ -33,13 +33,13 @@ return {
 		sightdistance = 260,
 		terraformspeed = 2000,
 		--move
-		acceleration = 2.20/90,
-		brakerate = 2.20/25,
-		maxvelocity = 2.20,	
+		acceleration = 1.925/90,
+		brakerate = 1.925/25,
+		maxvelocity = 1.925,	
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.20,
-		turnrate = 270,
+		turninplacespeedlimit = 0.64*1.925,
+		turnrate = 262,
 		--end move
 		waterline = 3,
 		workertime = 400,

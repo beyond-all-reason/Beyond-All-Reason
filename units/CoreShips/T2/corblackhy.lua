@@ -37,13 +37,13 @@ return {
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
 		--move
-		acceleration = 2.10/270,
-		brakerate = 2.10/35,
-		maxvelocity = 2.10,
+		acceleration = 1.789/270,
+		brakerate = 1.789/35,
+		maxvelocity = 1.789,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.10,
-		turnrate = 90,
+		turninplacespeedlimit = 0.64*1.789,
+		turnrate = 86,
 		--end move
 		waterline = 10,
 		customparams = {
