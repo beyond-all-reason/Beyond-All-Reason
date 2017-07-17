@@ -149,7 +149,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.03",		-- used by projectile lights widget
+					light_multiplier = "0.03",		-- used by light_effects widget
 				},
 			},
 			corkrog_laser = {
@@ -191,8 +191,8 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "2",		-- used by projectile lights widget
-					light_radius_mult = "0.6",		-- used by projectile lights widget
+					light_multiplier = "2",		-- used by light_effects widget
+					light_radius_mult = "0.6",		-- used by light_effects widget
 				},
 			},
 			corkrog_rocket = {
@@ -266,7 +266,7 @@ return {
 					default = 150,
 				},
 				customparams = {
-					light_skip = true,		-- used by projectile lights widget
+					expl_light_skip = true,		-- used by light_effects widget
 				},
 			},
 		},

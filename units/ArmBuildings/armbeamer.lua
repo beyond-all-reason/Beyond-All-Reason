@@ -152,7 +152,7 @@ return {
 					vtol = 1,
 				},
 				customparams = {
-					light_radius_mult = "1.1",		-- used by projectile lights widget
+					light_radius_mult = "1.1",		-- used by light_effects widget
 				},
 			},
 		},

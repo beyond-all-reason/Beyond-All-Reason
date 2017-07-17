@@ -104,7 +104,7 @@ return {
 					default = 550,
 				},
 				customparams = {
-					light_multiplier = "0.7",		-- used by projectile lights widget
+					light_multiplier = "0.7",		-- used by light_effects widget
 				},
 			},
 		},

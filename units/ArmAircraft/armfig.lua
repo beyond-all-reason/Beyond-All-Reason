@@ -99,7 +99,7 @@ return {
 					vtol = 125,
 				},
 				customparams = {
-					light_skip = true,		-- used by projectile lights widget
+					light_skip = true,		-- used by light_effects widget
 				},
 			},
 			armvtol_missile_a2g = {

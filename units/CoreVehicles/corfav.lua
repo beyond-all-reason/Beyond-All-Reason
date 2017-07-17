@@ -155,7 +155,7 @@ return {
 					vtol = 2,
 				},
 				customparams = {
-					light_multiplier = "0.45",		-- used by projectile lights widget
+					light_multiplier = "0.45",		-- used by light_effects widget
 				},
 			},
 		},

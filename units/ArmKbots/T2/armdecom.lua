@@ -233,7 +233,7 @@ return {
 					default = 20,
 				},
 				customparams = {
-					light_radius = "55",		-- used by projectile lights widget
+					light_radius = "55",		-- used by light_effects widget
 				},
 			},
 		},

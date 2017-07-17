@@ -243,7 +243,7 @@ return {
 					default = 1,
 				},
 				customparams = {
-					light_skip = true,		-- used by projectile lights widget
+					light_skip = true,		-- used by light_effects widget
 				},
 			},
 		},
