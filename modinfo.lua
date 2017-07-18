@@ -7,4 +7,5 @@ return {
   game='Balanced Annihilation',
   shortGame='BA',
   modtype=1,
+  engine = "103.0.1-1222-g37dc534 develop",
 }
