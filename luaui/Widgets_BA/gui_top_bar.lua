@@ -280,7 +280,11 @@ local function updateButtons()
     if (WG['changelog'] ~= nil) then text = text..'Changes    ' end
     if (WG['options'] ~= nil) then text = text..'Options    ' end
     text = text..'Quit    '
+
 	local fontsize = totalWidth / glGetTextWidth(text)
+	if fontsize > (height*widgetScale)/3 then
+		fontsize = (height*widgetScale)/3
+	end
 	
 	if dlistButtons1 ~= nil then
 		glDeleteList(dlistButtons1)
