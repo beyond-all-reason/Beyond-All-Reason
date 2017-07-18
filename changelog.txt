@@ -8,6 +8,7 @@ Important:
 • Lots of things changed, please grant us some time to adjust
 
 Balance changes:
+• Raw unit movement implemented
 • All Energy and metal prices have been rounded (because buildmenu shows prices)
 • Introduced a minimum (slightly larger) buildrange
 • Vehicles accelerate faster and slows less when turning + 2% speed increase
@@ -21,7 +22,7 @@ Balance changes:
 • Armmart and cormart (mobile T2 arty) do 15% more damage
 • Morties are 10% slower and are a bit less acurate (even more when moving)
 • Armvulc and corbuzz cost increased by 40%
-• Bertha and Intimidator weapons have 25% more Area• of• Effect
+• Bertha and Intimidator weapons have 25% more Area of Effect
 • Decoy commanders have been given same lasers as regular commanders
 • Fixed viper overshooting (when aiming at radar dots)
 • Fixed flak doing ludicrous damage to ground units
@@ -37,11 +38,11 @@ Wind:
 • Windspeed gained 50% (but due to price increases: generators wont be more effective)
 
 Sea reworked: Doo
-• • Work In Prorgess
+• Work In Prorgess
 Changelog date: 07/12/17
 IMPORTANT BALANCE CHANGES:
 • Increased T1 shipyards costs +40% and decreased T1 and T2 ships costs 20%.
-• Increased Patrol Boats reloadtime (100%), decreased hp 345->275, costs • 20% (BEFORE the global costs decrease)
+• Increased Patrol Boats reloadtime (100%), decreased hp 345->275, costs 20% (BEFORE the global costs decrease)
 • Added GUN PLATFORM to both factions for 160m/1600e. Available in T1 ship con, t2 engineer and Commander buildmenus.
 • Added SEA PLATFORM to both factions for 50m/400e. Available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
 • Added Plasma Frigates to both factions for 440m/2000e arm, 480m/2160e core. Available in T1 Shipyard.
@@ -59,7 +60,7 @@ MOVEMENT AND UNIT BEHAVIOUR RELATED (nothing is definite for now so i'll just st
 	In the end, once all the MaxVelocity will be balanced, i'll just have to balance the "TimeToReachMaxSpeed" appropriately. As of now, accelerations for ships are clamped between 2 second and 8 seconds.
 • MaxVelocities are being reworked: Globaly, they are being decreased for most ships although some of them might have gained a bit of maxspeed in the end.
 • TurnRates were, overall, a bit too high and didnt really fit with the unit's corresponding model. They are being reworked for a more realistic behaviour. We are trying to keep it as enjoyable as possible though, and trying to avoid boring collisions against ground.
-• TurnInPlaces: As of now, ALL ships will be able to perform a turn• in• place. This might sound tricky and unrealistic. In reality, they never will turn in place because they will always start accelerating while turning. Also, due to finetuning the TurnInPlaceAngleLimit, we are trying to avoid as much as possible the weird behaviours where a ship brakes in the middle of a fight to turn.
+• TurnInPlaces: As of now, ALL ships will be able to perform a turn-in-place. This might sound tricky and unrealistic. In reality, they never will turn in place because they will always start accelerating while turning. Also, due to finetuning the TurnInPlaceAngleLimit, we are trying to avoid as much as possible the weird behaviours where a ship brakes in the middle of a fight to turn.
 The turninplaceanglelimits have been set between 90 and 140 degrees, depending on the usage made of a unit. 
 A destroyer, for exemple, shouldn't brake when firing and trying to perform a 180° to avoid shots. We have set the turninplaceanglelimit to 140 degrees, which is the BA7.20 value from back when it still could perform turninplaces
 This function allows all move commands that are under 140 degrees not to trigger any braking. 
@@ -72,7 +73,7 @@ These values might be subject to change to enhance the players' experience and a
 	As of now, the TimeToStop times are clamped between 0.5 and 1.33 seconds.
 
 MODELS AND ANIMATIONS:
-• Battleships and Cruisers model have had their Z• axis scaled up a bit (about a 1.4 factor) to give their model a proper ship• like impression.
+• Battleships and Cruisers model have had their Z-axis scaled up a bit (about a 1.4 factor) to give their model a proper ship-like impression.
 	The balance change caused by this new model isn't inexistant. It is kept to a minimal, but the turret placements being slightly different can cause some small changes to their effective range. (IE tower further behind = needs to get a little closer to its target).
 
 
@@ -123,8 +124,8 @@ Other:
 • Ally Cursors widget: improved performance
 • Fixed commander nametags occasionally showing spectator name
 • Spiced up the loadscreen progress bar
-• Fixed cursor size changing after alt• tabbed to desktop and back
-• Fixed glitchy/spiky healthbars• shader on intel gfx and very old cards
+• Fixed cursor size changing after alt tabbed to desktop and back
+• Fixed glitchy/spiky healthbars shader on intel gfx and very old cards
 • Darken map widget can optionally darken features aswell (trees/wreckages)
 • Added "Include buildings in area selections" option via option widget (from Smart Select widget)
 • Enemy spotter opacity and unit teamcolor highlight configurable via options widget
@@ -136,7 +137,7 @@ Other:
 • Replaced engine info screen (shortcut i) with our own screen
 • Changed and fixed some missile models (missile.3do, empmisl.3do) Doo
 • Krogoth model scaled down (10%) and bantha model scaled up (5%) without any weapon/cost/HP buff or nerf. Doo
-• Fixed some models flare pieces to properly spawn the weapon in the right place • • planning on checking every model i can. Doo
+• Fixed some models flare pieces to properly spawn the weapon in the right place planning on checking every model i can. Doo
 • Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
 • Added additional extensive unit description (by PtaQ)
 • Increased default player unit limit to 1500
@@ -149,7 +150,7 @@ Other:
 
 • Ready/substitute button smaller
 • Options: fixed options + added toggles for bloom, UI blur, xrayshader, snow, darken map, command fx
-• Options: combined fps/clock/gamespeed, removed advsky toggle, treeview slider, high• res los toggle
+• Options: combined fps/clock/gamespeed, removed advsky toggle, treeview slider, highres los toggle
 • Options: shadows has toggle when shadow quality manager widget is active, else it has a slider
 • Options: allows inverse scrollspeed
 • Flash tank: stripped burst fire (per turret), now its continuesly firing (no balance change)
@@ -283,7 +284,7 @@ Balance changes:
 Other:
 • Added BAR's cursorset, change to old one with /cursor
 • Anti Ranges: an emp'd anti range ring will be blinking
-• Ally cursors: idle spec cursors fade away ex• players (specs) no longer have colored cursor
+• Ally cursors: idle spec cursors fade away ex-players (specs) no longer have colored cursor
 • Removed SmoothScroll widget
 • More death messages
 • Comgate effect reimplemented as optional widget
@@ -358,15 +359,15 @@ Other:
 
 FFA
 • Alliances break when one attacks an allied player (both ways)
-• Alliances break when you target an ally within a weapon's area• of• effect
+• Alliances break when you target an ally within a weapon's area-of-effect
 
 
 9.27 -> 9.28
 16/01/2016
 
 Balance changes:
-• Gremlin (Stealth Tank) • harder to EMP
-• Annihilator, Doomsday Machine • damage reduced by 10% (all weapons)
+• Gremlin (Stealth Tank) harder to EMP
+• Annihilator, Doomsday Machine damage reduced by 10% (all weapons)
 • Re• implement Sniper weapon using "cannon" (was "riffle"). Snipers will not kill each other anymore
 
 Others:
@@ -411,7 +412,7 @@ Others:
 9.21 -> 9.23
 05/12/2015
 
-• Ally selected units: disco/large dots bugfix + movable options GUI + auto• scale GUI according to resolution
+• Ally selected units: disco/large dots bugfix + movable options GUI + auto-scale GUI according to resolution
 • Bet Frontend: removed dead mouseclick area when being player + unit bet list sorted by time + keeps working on pause
 • Ally resourcebars: slightly larger again on small resolutions
 • Added widget: "Bloom shader highlight"
@@ -436,15 +437,15 @@ Balance changes:
 • Core Underwater Moho Mine cost 10% less metal
 • "Advanced Construction Sub" metal cost reduced by 20%
 • "Seaplane Platform" metal cost reduced by 20%
-• Pincer (ARM Light Amphibious Tank) • harder to EMP + moves faster
-• Garpike (CORE Light Amphibious Tank) • harder to EMP + moves faster
+• Pincer (ARM Light Amphibious Tank) harder to EMP + moves faster
+• Garpike (CORE Light Amphibious Tank) harder to EMP + moves faster
 • Cloakable Fusion Reactor produces 50 more energy
 
 Others:
 • Advplayerlist: doubleclick playername: will mirror the player's selection too!
 • Ally selected units: shows for spectators too.
 • GUIshader: slightly intenser blur
-• redUI Minimap fix: fixes engine minimap being larger than redUI• minimap background/buttons container
+• redUI Minimap fix: fixes engine minimap being larger than redUI minimap background/buttons container
 
 
 9.16 -> 9.18
@@ -490,7 +491,7 @@ Others:
 • Added beta version of "Bet Frontend" (default off) see commands widget for all its commands
 • Added "Bloom Shader" widget (default off)
 • GUI elements have been given a faint border
-• Map• info widget notes map size aswell
+• Map-info widget notes map size aswell
 • Fixed halos for enemy units
 • Renamed "HighlightSelectedUnits widget: added spaces (widget will be enabled again if you had it disabled)
 
@@ -535,7 +536,7 @@ Balance changes:
 Others:
 • redUI tooltip: added "/unitcounter". See total units on map (note: as player its just your teams total units)
 • Advplayerlist: added "/cputext". Shows cpu usage in % instead of the icon
-• Added new widget "gui_transport_weight_limit" • when pressing Load command, it highlights units the transport can lift
+• Added new widget "gui_transport_weight_limit" when pressing Load command, it highlights units the transport can lift
 • Map Edge Extension widget enabled by default
 
 
@@ -543,7 +544,7 @@ Others:
 16/10/2015
 
 Balance changes:
-• EMP'd will drain some energy (t1 storage • 60E, t2 storage • 400E)
+• EMP'd will drain some energy (t1 storage 60E, t2 storage 400E)
 • EMP'd metal storage will not store + will waste stored metal if you had more then you can hold without emped storage
 • Improved "passive builders" gadget: solars will be build even you have no energy
 • Enemy unit napping (except commanders) is enabled by default (you can disable in host settings)
@@ -580,7 +581,7 @@ Others:
 Balance changes:
 • Increased range of arm emp spider (220 -> 280)
 • T2 spiders (Termite, Recluse, Spider) are more EMP resistant
-• Removed rockets wobbling for ARM "All• Terrain Rocket Spider"(Recluse) and added 1 more rocket (3 -> 4)
+• Removed rockets wobbling for ARM "All Terrain Rocket Spider"(Recluse) and added 1 more rocket (3 -> 4)
 
 Others:
 • Added new widget "vignette" (darker at screen edges)
@@ -659,9 +660,9 @@ Others:
 07/08/2015
 
 Balance changes:
-• Area• of• effect for "Dominator • Heavy Rocket Kbot" increased, but edge• effectiveness was decreased a little
+• Area• of• effect for "Dominator Heavy Rocket Kbot" increased, but edge-effectiveness was decreased a little
 • Max paralysis time of mobile units was increased to 20 seconds
-• HP was increased for "Spider • All• Terrain EMP Spider"
+• HP was increased for "Spider All Terrain EMP Spider"
 • Increased metal cost of t1 air scouts
 
 Others:
@@ -680,8 +681,8 @@ Bugfixes:
 • rounded corners: fixed small gaps
 • Metalmakers work again (reverted EMP 'fix').
 • Changelog widget able to load changelog.txt.
-• Buildbar now remembers its icon• size. (press F11, hover over it + scroll to change iconsize)
-• mapmarks• fx flicking issue
+• Buildbar now remembers its icon size. (press F11, hover over it + scroll to change iconsize)
+• mapmarks-fx flicking issue
 • attack AOE: Dgun path display is corrected with an offset
 
 
@@ -736,7 +737,7 @@ Configurable widgets
 • Added snow widget. Addes snow to maps using a snowy name. (toggles with /snow, and remembers setting per map)
 • Added Smart Select widget. Selects units as you drag over them. (keys: SHIFT: all, CTRL: invert, Z: same type, SPACE: new idle units)
 • LOS colors greyscaled + use ';'  key to toggle between los / los+radar
-• LOS view is enabled by default. If you dont like it • just disable widget "LOS View"(gfx_los_view.lua)
+• LOS view is enabled by default. If you dont like it just disable widget "LOS View"(gfx_los_view.lua)
 
 Others
 • Rezzed units will get a small halo above them.
@@ -744,7 +745,7 @@ Others
 • Commands FX, lines are now textures with V shaped arrows + glow at endpoint diminishes over time.
 • Added Shadow quality manager: sets shadow quality max at start and lowers as average fps gets lower. (this widget wont enable shadows)
 • BuildETA is slightly smaller.
-• Units with self• d command show wit ha skull icon and countdown time.
+• Units with selfD command show wit ha skull icon and countdown time.
 • Units that were given to you will show a 'new' icon. It fades out gradually, unless they are out of sight, then the fadeout process starts over.
 • Smooth camera widget is slightly faster in moving camera.
 • Projectile lights are less bright now.
@@ -754,17 +755,17 @@ Others
 • Added anti ranges widget. Fades when zoomed in. Purple: anti being build. Red: building complete, 0 in stock. Orange: 1 in stock. Yellow: more than 2 in stock.
 • Commander name tags: different name style. when zoomout stays large.
 • Map Startbox: fixed jagged edges + Commander name tags styled names.
-• Added mapmarks widget: draws growing circle at newly placed mapmarks. Erasing also shows a little ground• glow feedback.
+• Added mapmarks widget: draws growing circle at newly placed mapmarks. Erasing also shows a little ground glow feedback.
 
 GUI
 • Rounded borders for all backgrounds.
 • Uniticons were streched out a lot everywhere, now reduced that to nearly squared.
-• All uniticons are re• processed with a small bevel and rounded corners.
+• All uniticons are reprocessed with a small bevel and rounded corners.
 • Added GUI shader: blurs background of various GUI elements. (disable widget to remove the blur, change its style with /guishader)
 • Red UI completely restyled.
 • Red UI build/order menu: only shows paginator when it is required, uses space to draw extra row of icons.
 • Red UI fix: not able to move elements. in f5 (hidden gui mode)
-• Red UI Energy/metal resource bars got a gradient applied. Also did this for order• menu toggle button 'leds'.
+• Red UI Energy/metal resource bars got a gradient applied. Also did this for order-menu toggle button 'leds'.
 • Selected units bar restyled.
 • Volume OSD has half as much bars and is restyled a bit.
 • Added wind strength display. Shows average windspeed in bottom right.
@@ -773,8 +774,8 @@ GUI
 • Added catchup (reconnect) status bar.
 • Simplified energy conversion slider. Made slider draggable over the whole display.
 • Console displays recent messages a lot longer (30sec). Console shows 6 lines but when pressed ctrl it will show 10.
-• Ally resource bars got restyled. Also uses same player• order as the advplayerlist. Auto• scales with resolution.
-• Advanced playerlist restyled. Doubleclick for camera tracking. Country flags! See if spectators using camera or move mouse. Improved res• slider bar responsiveness. Click to hide spectators Scale buttons + auto• scales with resolution.
+• Ally resource bars got restyled. Also uses same player order as the advplayerlist. Auto scales with resolution.
+• Advanced playerlist restyled. Doubleclick for camera tracking. Country flags! See if spectators using camera or move mouse. Improved res-slider bar responsiveness. Click to hide spectators Scale buttons + auto-scales with resolution.
 • Added mapinfo at bottom left of the map, displaying mapname, author and description
 • Initial queue: same style as new RedUI buildorder menu.
 • Restyle keybind info display. The button will slide to the leftside at gamestart.
@@ -798,11 +799,11 @@ Removed:
 • More death messages
 • Fixed lagging players sometimes not being takeable
 • Fixed toaster sometimes not being resurrectable
-• Fixed anti• nukes shooting at nukes that fly overhead
+• Fixed anti nukes shooting at nukes that fly overhead
 • Fixed Mavericks fight command at increased range
-• Anti• nuke missiles fly faster
+• Anti nuke missiles fly faster
 • Increased Corvette health 1650 -> 1900
-• Max paralysis time of mobile units is 15 seconds, except for mobile anti• nukes
+• Max paralysis time of mobile units is 15 seconds, except for mobile anti nukes
 
 
 8.16 -> 8.17
@@ -870,7 +871,7 @@ Removed:
 15/02/2015
 
 • Ctrl+click on name in AdvPlList toggles ignoreplayer on/off
-• Fixed Liche auto• firing 
+• Fixed Liche auto-firing
 • Fixed ghosted features
 
 
@@ -878,7 +879,7 @@ Removed:
 08/02/2015
 
 • Widget Selector remembers scroll position, has more useful options
-• Widget Selector has +/• buttons to increase/decrease size
+• Widget Selector has +/- buttons to increase/decrease size
 • Widget Selector puts Widget Profiler at the top
 • Stop commands also stop self destruction
 • LuaUI recieves FeatureCreated/FeatureDestroyed callins for all features
@@ -899,7 +900,7 @@ Removed:
 18/01/2015
 
 • Fixed spiders slipping while climbing steep cliffs
-• Fixed start screen being non• random
+• Fixed start screen being non random
 • Fixed startpos sometimes being after reconnect
 • Fixed carriers drifting when landed on
 • Added Commands FX widget (thanks Floris!)
@@ -996,7 +997,7 @@ Removed:
  • Seaplane Bombers/Gunships are more like (normal air) T2 Bombers/Gunships
  • Core Seaplane Bomber drops "dambuster" bouncing bombs, Arm drops "normal" firebombs
  • Arm Seaplane Gunship fires lightning, Core fires plasma
- • T2 Torp Launchers removed -> converted to Anti• Air Torpedos, buildable only by T1 Sea Cons
+ • T2 Torp Launchers removed -> converted to Anti Air Torpedos, buildable only by T1 Sea Cons
  • T2 Sea Labs are slighty cheaper, T2 Sub Cons are more expensive
  • T2 Missile Ships are very long range/very slow reload (Core paralyses, Arm damages)
  • T2 Sea Fusion and Metal Makers are more expensive
@@ -1030,7 +1031,7 @@ Removed:
 • Fixed FFA mode not removing afk players
 • Fixed ready button sometimes reappearing
 • Fixed Attack/Move notifications showing for specs 
-• Fixed mobile Anti• Nukes not reaching the edge of their range
+• Fixed mobile Anti Nukes not reaching the edge of their range
 • Reduced Bantha selfd & death explosions
 • Reduced Tac Nuke range 
 
@@ -1060,11 +1061,11 @@ Removed:
    -> To give a area command: select command, left click and drag
    -> To area attack (bombers etc only): press a, press alt, left click and drag
 • Fixed Arm Medium Mine not exploding
-• Fixed Anti• nuke not reaching the edge of their range
+• Fixed Anti nuke not reaching the edge of their range
 • Reduced Leveller damage per shot
 • Reduced EMP launcher stockpiletime (65s) and paralysertime (35s), slightly increased area of effect
 • Increased freaker death explosion, reduced workertime and handling
-• Anti• air will preferentially not target Fink and Peeper 
+• Anti air will preferentially not target Fink and Peeper
 
 
 7.93 -> 7.94
@@ -1096,7 +1097,7 @@ Removed:
 • Fixed aircraft always crashing on death
 • Fixed FFA mode not recognizing when a team has resigned
 • Fixed Red Console using wrong colour after line break
-• Fixed non• amphib land units moving too slowly in shallow water
+• Fixed non amphib land units moving too slowly in shallow water
 • Reduced Zeus target move error 
 • Increased T2 Bomber E costs and buildtimes
 • Increased Sniper costs and buildtime
@@ -1111,18 +1112,18 @@ Removed:
 • Added basic 'how to play' info into Newbie Placer
 • Initial Queue switches whole queue on faction change
 • Fixed AdvPlList faction change display before gamestart
-• Fixed AI choose• before• game start positions
+• Fixed AI choose before game start positions
 • Fixed crash caused by lua mem excess
 • Fixed mex upgrader nil error 
 • Fixed some subs being visible on radar
 • Fixed spawn for asteroid maps
 • Fixed some heaps being rezzable
 • Fixed heap reclaiming
-• Fixed transportees in non• air transports showing radar/sonar blips
+• Fixed transportees in non air transports showing radar/sonar blips
 • Fixed ambusher not closing 
 • Warcow is only awarded within the winning team
 • T1 artillery is push resistant
-• T1 jammers can only be built on flat• ish ground
+• T1 jammers can only be built on flat ish ground
 • Reduced shield power, increased regen speed, removed E drain on repulse
 • Increased buildtime of T1 subs, slightly reduced handling
 • Minor updates for Spring 96.0
@@ -1184,7 +1185,7 @@ Removed:
 • Death messages show in white
 • Hid superfluous connection/quit messages in Red Console
 • Fixed not being able to toggle specs in AdvPlList
-• Hotfix for non• waterweapons trying to shoot underwater in 95.0
+• Hotfix for non waterweapons trying to shoot underwater in 95.0
 • Fixed battlesubs ignoring orders while attacking
 • Fixed rez subs often not being hit
 • Torpedos won't fire at floating mines
@@ -1248,8 +1249,8 @@ Removed:
 7.80 -> 7.81
 18/08/2013
 
-• Fixed lua error when Pop• up Torpedo Launcher died on sea floor
-• Fixed units dying when Pop• up Torps rose
+• Fixed lua error when Pop up Torpedo Launcher died on sea floor
+• Fixed units dying when Pop up Torps rose
 • Hid specs after quit in AdvPlayerList
 • Fixed 'normal quits' caused by Awards gadgets
 • Fixed awards being given to spectators ;)
@@ -1262,7 +1263,7 @@ Removed:
 
 • Fixed specs not being white in Lock Camera and Ally Cursorss
 • Fixed not being able to resign when had 0 units left
-• Prevent spam of "i took" messages from over• enthusiastic takers & fixed text
+• Prevent spam of "i took" messages from over enthusiastic takers & fixed text
 • Reduce "i took" to a single line and use rounded numbers 
 • Require players to use a few resources before getting the efficiency award
 • Fixed some other rare lua errors
@@ -1302,17 +1303,17 @@ Removed:
 • Set Target can now be used with Customformations
 • Fixed faction changing in coops
 • Workaround for luaui crash on empty BA.lua
-• In team com• ends, when game ends, units are destroyed in a wave of death, outwards from last com
+• In team com ends, when game ends, units are destroyed in a wave of death, outwards from last com
 • Fixed ambiguities in context build with radar, sonar & dragons eyes.
 • AdvPlayerList gives a chat notification when m/e are shared to allies
 • T1 Ships Revamp! (see below)
-• Added map icon for anti• air & gave scouts a smaller map icon
+• Added map icon for anti air & gave scouts a smaller map icon
 • Fixed icon size when units are in ground/sea transports
 • Fixed Startpoint Guesser sometimes not recognizing genuine startpoints
 • Fixed passenger explosions on hover transport death
 • Reduced Can maxspeed 1.35->1.25
 • Reduced Mercury/Screamer buildcost by about 10%
-• Commando only auto• builds mines when movestate is roam
+• Commando only auto builds mines when movestate is roam
 • Added draw/point spam blocker widget (default disabled)
 • Made Specific Unit Reclaimer work with all types of constructor
 
@@ -1325,7 +1326,7 @@ T1 Ships Revamp
 • Commanders now have an underwater weapon, a short range laser which fires when they are not building/repairing (dps similar to the existing red laser)
 • Commanders can now build Floating Radar Towers
 
-• T1 Torpedo launchers built by Commanders and Amphibious vehicles are now initially created on the sea floor and pop• up once when complete.
+• T1 Torpedo launchers built by Commanders and Amphibious vehicles are now initially created on the sea floor and pop up once when complete.
 • Arm T1 Torpedo launcher reload time reduced (1.9->1.7), AoE increased a little (16->48 with 40% edgeeffectiveness)
 • Core T1 Torpedo launcher reload time reduced (1.9->1.7), AoE increased a little (16->48 with 40% edgeeffectiveness)
 • Both T1 Torpedo launcher turret turn speeds increased a little
@@ -1348,18 +1349,18 @@ T1 Ships Revamp
 • Both Floating HTLs Energymake added (+5)
 • Both Floating HLTs Buildtime reduced 5%
 
-• Arm T1 Floating Anti• air Tower Metalcost increased (71->85), Health increased (252->340)
-• Arm T1 Floating Anti• air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
+• Arm T1 Floating Anti air Tower Metalcost increased (71->85), Health increased (252->340)
+• Arm T1 Floating Anti air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
 
-• Core T1 Floaring Anti• air Tower Metalcost increased (72->86), Health increased (290->355)
-• Core T1 Floating Anti• air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
+• Core T1 Floaring Anti air Tower Metalcost increased (72->86), Health increased (290->355)
+• Core T1 Floating Anti air Tower Weapon reload time reduced (1.7->1.2), damage increased (113->125)
 
 • Both T2 Ressurection subs moved to T1, costs reduced a little, movement enhanced (Ressurection Workertime 450, Repair Workertime 250)
 
 • Both T1 Construction ships Repair Workertime reduced (250->125), Build Workertime still 250.
 • Both T1 Construction ships acceleration increased.
 
-• Both T1 Construction ships added Dragons Teeth & Pop Up turrets (Arm Claw for Arm, Dragons Maw for Core) for anti• swarm coastal defense
+• Both T1 Construction ships added Dragons Teeth & Pop Up turrets (Arm Claw for Arm, Dragons Maw for Core) for anti-swarm coastal defense
 • Arm Dragons Claw & Core Dragons Maw maxslope increased (10->18)
 
 • Core T1 Scoutboat footprint reduced, renamed 'Patrol Boat', health increased (228->345), autoheal added (1.5)
@@ -1408,7 +1409,7 @@ T1 Ships Revamp
 • Nicer visuals for CustomFormations2 (thanks PixelOfDeath!)
 • Added "Set Target" command: 'Sets a top priority attack target, to be used if within range (not removed by move commands)' with keybind to y, cancel target bind to j
 • Made AdvPlayerList more compact 
-• Fixed incorrect faction showing in AdvPlayerList after choosing faction in• game
+• Fixed incorrect faction showing in AdvPlayerList after choosing faction ingame
 • Fixed lua error on com explosion
 • AdvUnitMarker now only marks nukes/antinukes/tacnuke/empsilos/buzz/vulc
 • Specific unit reclaimer won't act unless alt is pressed 
@@ -1451,12 +1452,12 @@ T1 Ships Revamp
 • Added blackened crosshair cursor to show when an attack command will fail 
 • Added collision volumes for almost all units 
 • Replaced unit_marker widget with Adv_Unit_Marker 
-• Replaced snd_volume widget with snd_volume_osd (-> use • /+ keys to change volume ingame)
+• Replaced snd_volume widget with snd_volume_osd (-> use -/+ keys to change volume ingame)
 • Made enemy_spotter widget look much nicer and handle multiple enemies 
 • Made z,x,c,v 'keybinds' work with initial_queue widget
 • Fixed t1 veh/sea cons lacking buildrange for t2 labs
 • Fixed bad maxwaterdepth making some sea unit unbuildable in 92.0+
-• Fixed un• killable paralysed aircraft 
+• Fixed unkillable paralysed aircraft
 • Fixed mines blocking units in 92.0+
 • Fixed coop mode
 • Fixed liche 
@@ -1468,7 +1469,7 @@ T1 Ships Revamp
 • Increased Panther energy cost 4200->6000
 • Removed 50% EMP damage reduction recieved by Bantha
 • Vanguard health decreased 12k->9k, reload time increased 6->8
-• Mercury & Screamer changed substantially, hopefully they are good anti• air• swarm defence now
+• Mercury & Screamer changed substantially, hopefully they are good anti air swarm defence now
 • Vulcan & Buzzsaw will now fire at/over/into hills
 
 
@@ -1481,7 +1482,7 @@ T1 Ships Revamp
 • Fixed nuke bombers refusing to fire at ground
 • Fixed aircraft getting stuck on air repair pads
 • Fixed reclaiming crashing aircraft giving lots of resources
-• Fixed killing crashing aircraft givings • 1 XP
+• Fixed killing crashing aircraft givings -1 XP
 • Fixed units getting stuck in labs
 • Fixed passive builders not detecting stall condition correctly
 • Reclaim command can now be waited
@@ -1505,7 +1506,7 @@ T1 Ships Revamp
 • Give corsktl a larger hitsphere so unit self explodes correctly 
 • Add modified xta Splashgadget with custom cegs 
 • Add fixed weaponDefs_post.lua and water hit splash sounds 
-• Armsniper weapontype changed to Rifle. Should fix snipers shooting � 
+• Armsniper weapontype changed to Rifle. Should fix snipers shooting ... 
 • Torps no longer fire at Pelicans 
 • Juno now kills jeffy, flea and weasel. Juno metalpershot cost added, 250M per shot
 • Add Kloots dynamic lighting gadget and custom config (more bling) 
@@ -1526,7 +1527,7 @@ T1 Ships Revamp
 • Xray widgets removed 
 • Guardian and punisher 15% less metal costs 
 • Arm cloakable fus cloak cost reduced to 100 (from 200) auto cloaks when built
-• Added mute support to red console Syntax: /mute <PlayerName?> /unmute � 
+• Added mute support to red console Syntax: /mute <PlayerName?> /unmute ... 
 • Merl AOE increased (100->150) Diplomat AOE increased (90->150)
 • From BrainDamage: take command for idle players 
 • Added 'Prevent Excessive Share' gadget, fixes lost resources on take bug
@@ -1542,7 +1543,7 @@ T1 Ships Revamp
 • Set collisionvolumetest true for all unit's 
 • Fixed comm reduced airblast
 • Nano towers are now transportable, in t1 transports too. 
-• Fix units receiving damage on not• so• nice unloads from transports. 
+• Fix units receiving damage on not so nice unloads from transports.
 • Vanguard nerf: hp 15k->12k, weaponvelocity 610->500, predicboost 0.75->0.25
 • Plenty of widget and gadget fixes, optimizations for MT.
 
@@ -1605,13 +1606,13 @@ T1 Ships Revamp
 29/11/2011
 
 • Better handling for most units with turninplace
-• Fix t1 destroyer bad handling (by reverting to old behaivour, a combo of �
+• Fix t1 destroyer bad handling (by reverting to old behaivour, a combo of ...
 • Torpedoes no longer hit hovers
 • Fix the Dominator hack
 • Added ability for maps to override engine start positions. Thanks zwzsg
-• Add Updated air release gadget and new airlab fix gadget , and cmd_lstpos �
+• Add Updated air release gadget and new airlab fix gadget , and cmd_lstpos ...
 • Fix problem with armbrtha hitsphere
-• Updated Dynamic Collision Volume gadget to support dynamic per piece �
+• Updated Dynamic Collision Volume gadget to support dynamic per piece ...
 • Update mex snap Widget
 • Viper and Pitbull script fix (thanks KingRaptor and Juzza)
 
@@ -1649,7 +1650,7 @@ T1 Ships Revamp
 • Sea pathing improved by reducing footprint of smaller boats (only minimal unit overlap) and removing turninplace for smaller boats 
 • Dragon Eyes can now float on water
 • Added amphibious to description of units lacking them
-• Arm & Core Cruiser close• range deck lasers damage per shot increased (60->110)
+• Arm & Core Cruiser close range deck lasers damage per shot increased (60->110)
 
 • Arm & Core T1 Missile trucks dps vs air increased 20%
 • Arm & Core T1 Missile trucks airsightdistance 800 added
@@ -1709,7 +1710,7 @@ T1 Ships Revamp
 • Arm Vulcan death explosion made much larger
 • Arm EMP Silo range increased (4000->4500)
 
-• Increased plasma deflector coverage (400• 500)
+• Increased plasma deflector coverage (400->500)
 • Increased plasma deflector max power (7500->12500)
 • Decreased plasma deflector charge speed (150->100)
 • Added some initial charge to plasma deflector once built (2000)
@@ -1722,8 +1723,8 @@ T1 Ships Revamp
 
 • Juno energy per shot reduced (16000->12000), new unit effects added
 
-• Arm & Core Stationary Anti• Nukes energycost increased (28000->40000) (was ~60k prior to BA 7.4)
-• Arm & Core Stationary Anti• Nukes buildtime increased (28000->60000) (was ~95k prior to BA 7.4)
+• Arm & Core Stationary Anti Nukes energycost increased (28000->40000) (was ~60k prior to BA 7.4)
+• Arm & Core Stationary Anti Nukes buildtime increased (28000->60000) (was ~95k prior to BA 7.4)
 • Arm & Core (Ground Based) Mobile Anti Nukes costs reduced ~20%
 • Arm & Core (Ground Based) Mobile Anti Nukes coverage reduced (2000->1600)
   
@@ -1746,7 +1747,7 @@ T1 Ships Revamp
 • Idle autoheal reverted.
 • Antinuke now stockpiles again (build cost reduction remains in place).
 • Fighter HP upped from 50->125.
-• T2 bombers now line• bomb again but with less saturation (more like an improved t1 bomber)
+• T2 bombers now line-bomb again but with less saturation (more like an improved t1 bomber)
 • T2 bombers no longer drop their bombs ahead of their target, but drop them vertically as they fly over it.
 • EMP bomber has been modified to similar rules to the above and reintroduced.
 • Arm Blade HP increased (1800->2675), weapon effect changed (bit more burst damage with longer reload).
@@ -1757,7 +1758,7 @@ T1 Ships Revamp
 • Arm Gremlin acceleration increased.
 • Arm Maverick now aims faster and unholsters guns more swiftly.
 • Arm Recluse missile accuracy increased.
-• Arm Spider LOS range increased (360• 550) • use them as scouts for Recluses
+• Arm Spider LOS range increased (360->550) use them as scouts for Recluses
 • Core Termite metal/energy costs decreased 10%, weapon now fires faster for less damage (same dps).
 • LRPCs now gain a bit less range from height (heightmodboost 20->10)
 • Energy converter conversion should now better match 7.31 metal makers
@@ -1772,10 +1773,10 @@ T1 Ships Revamp
 No real changelog present, but instead: the changes in repository listed below.
 
     Readded commando after change 144.
-    Intimidator and Big Bertha gains more range from heights: �
+    Intimidator and Big Bertha gains more range from heights: ...
     Improved Krogoth heatray effect / sound.
-    Fixed gadgets which were removed in commit 65 • Torpedo bombers can no �
-    Replaced take reminder widget with a far more efficient version. Probably �
+    Fixed gadgets which were removed in commit 65 Torpedo bombers can no ...
+    Replaced take reminder widget with a far more efficient version. Probably ...
     Reimplemented coop mode. Probably works.
     Removed wobble from weapons that shouldn't have it
     Made Catapult spread more even and circular
@@ -1783,8 +1784,8 @@ No real changelog present, but instead: the changes in repository listed below.
     Berthas eject shell casing
     Increased size of brawler LUPS effect to make them noticable
     Add lups effect for armbrawl and corape and experimental effect for bladew
-    Removed damage entries against removed armor classes Renamed some armor �
-    Removed antibomber armorclass, boosted HP on Eradicator/Chainsaw to �
+    Removed damage entries against removed armor classes Renamed some armor ...
+    Removed antibomber armorclass, boosted HP on Eradicator/Chainsaw to ...
     Moved juno damage handling to a gadget (and removed the radar armorclass)
     Armordef fixes/ship class merge
     Add floating t2 flak's and adv torp launcher's to defensive range widget
@@ -1792,7 +1793,7 @@ No real changelog present, but instead: the changes in repository listed below.
     Add custom collision volumes for ajuno and cjuno
     Reverted [86], stumpy and raider turret turn rate reverted to 90.
     Karganeth model optimized, weaponvelocity reduced by 50%
-    Add extra files i missed on chnage [113] Beautified cafus model and �
+    Add extra files i missed on chnage [113] Beautified cafus model and ...
     Beautified cafus model and removed unused piece 5 > 4
     Removed Commando pending a scripting fix
     Update lups_shockwaves.lua to reflect changes to weapondefname changes
@@ -1801,23 +1802,23 @@ No real changelog present, but instead: the changes in repository listed below.
     Heavy optimization of t1 scout planes and t1 and t2 fighters
     Updated metalspot finder
     Reduced EMP launcher range to that of berthas (6000->4000)
-    Precision bombers now quickly drop 5 bombs (to fix targeting of moving �
+    Precision bombers now quickly drop 5 bombs (to fix targeting of moving ...
     Krogoth can kick small units only in sync with leg movement
     Antinukes no longer stockpile
     Reduced bertha/intimidator range 6200,6600 -> 4000
     Made antinuke energycost/buildtime ratios closer to normal T2 ratios
-    Hurricane + Phoenix -> Precision bombers (Same single• target damage, �
+    Hurricane + Phoenix -> Precision bombers (Same single target damage, ...
     Lowered plane cruise altitudes
     Fixed napalm effects
     Fixed preventdraw gadget
     Reduced HLT HP 30%
     Removed arm EMP bomber
     Reduced fighter HP to 50
-    Faction change UI now middle• mouse draggable
+    Faction change UI now middle mouse draggable
     Fixed division by zero errors in 2 COBs, my fault
     Added helpful widgets to mod
-    Implemented widget blacklisting for likely metal maker widgets (Regex: �
-    Customized collision volumes Dragon Teeth and common large wrecks �
+    Implemented widget blacklisting for likely metal maker widgets (Regex: ...
+    Customized collision volumes Dragon Teeth and common large wrecks ...
     Updated various widgets
     Removed energy drain from underwater T1 mexes
     Increased turret turn speed for Stumpys and Raiders 90->145 deg/s
@@ -1829,52 +1830,52 @@ No real changelog present, but instead: the changes in repository listed below.
     Removed storage from commanders, added base storage for teams.
     Added ingame faction change. Coop mode removed (potentially temporarily)
     Beautified and/or optimized several Kbot animations.
-    Better on/off animation for ARM M Makers (even though it's not used �
-    Custom collision volumes for LRPCs, T3 Labs, Moho Geos, ARM Fusion and �
+    Better on/off animation for ARM M Makers (even though it's not used ...
+    Custom collision volumes for LRPCs, T3 Labs, Moho Geos, ARM Fusion and ...
     Integrates chili also added some other essential widgets
     Removed energy drain from T1 mexes.
-    Rewrote passive builders, more efficient, more accurate. Also applies to �
+    Rewrote passive builders, more efficient, more accurate. Also applies to ...
     Added mass limits to T1 transports to make fatboy/sumo untransportable
-    Fixed out• of• map destoy gadget
+    Fixed out-of-map destoy gadget
     DGun now able to target units (Doesn't aim ahead)
-    Normalized idle autoheal. 1%/second after 30 seconds. Moved terraform from �
+    Normalized idle autoheal. 1%/second after 30 seconds. Moved terraform from ...
     Some minor cleanup for a few wrecks
     Sumos can be napped when moving
-    Cleaned up lots of models using 3DO Builder's "Clean up model" �
-    Moved gunships to vtol armorclass, increased gunship HP +25% to counteract �
-    Added 3 second flight times for guided anti• air missiles (higher than the �
+    Cleaned up lots of models using 3DO Builder's "Clean up model" ...
+    Moved gunships to vtol armorclass, increased gunship HP +25% to counteract ...
+    Added 3 second flight times for guided anti air missiles (higher than the ...
     Changed vulcan script so that it will constantly spin when firing
     Increased all unit terraform speed 5x
-    Better collision volumes for LLTs, HLTs, Missile Towers, Shields, HLLT, �
+    Better collision volumes for LLTs, HLTs, Missile Towers, Shields, HLLT, ...
     Custom collision volumes for T3 units (except Bantha)
     Better collision volumes for Toaster, Shiva and Sub Pens
-    Beautified animation for CORE T1 & T2 ships. Customized collision volumes �
+    Beautified animation for CORE T1 & T2 ships. Customized collision volumes ...
     Made the flamethrower sound a bit more ear friendly
     Made ocean look bluer
     Made commanders untransportable by enemy
-    Beautified animation for ARM T2 ships. Customized collision volumes as �
+    Beautified animation for ARM T2 ships. Customized collision volumes as ...
     Fixed starting resources always being 1000 regardless of setting.
-    Set smoothanim = false for all non• Kbots, negligible performance �
-    Metal Makers replaced by gadget• controlled Energy Converters.
+    Set smoothanim = false for all non Kbots, negligible performance ...
+    Metal Makers replaced by gadget controlled Energy Converters.
     Some hax for a better dynamic collision volume for Pit Bull and Viper
     Missed the core Commander script, last commit had core A.K. instead.
     Optimized and improved animation of Commanders.
-    Optimized PeeWee? 19 -> 15 pieces, improved animation (sync with unit �
+    Optimized PeeWee? 19 -> 15 pieces, improved animation (sync with unit ...
     bladewing optimization, 5->2 pieces
     Updated Custom Formations 2 to v3.3 (From v3.2)
-    Some more optimizations, improved walking animation, now in sync with �
+    Some more optimizations, improved walking animation, now in sync with ...
     small speedup for unitMarker widget
-    Fixed some targeting bugs and added new dynamic collision volumes to some �
+    Fixed some targeting bugs and added new dynamic collision volumes to some ...
     Make targeting of units behind wrecks and DTs better.
     Part of waterline fix.
     Custom collision volumes for all factories.
-    Fixed waterline tag for all ships, subs and some floating �
+    Fixed waterline tag for all ships, subs and some floating ...
     Updated LUPS with GFX card detection for NVidia Quadro series.
     Replaced wake particles with nicer ones from CA/ZK
-    Optimized all PNG images with OptiPNG for smaller file size, no quality �
+    Optimized all PNG images with OptiPNG for smaller file size, no quality ...
     Core vamp optimized 9->4 pieces
     Core AK optimized, 27->12 pieces
-
+    
 
 7.30 -> 7.31
 27/03/2011
@@ -1883,7 +1884,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Reverted hitsphere gadget removal to fix large hitspheres.
 • Tweaked dynamic collision volumes to allow targetting.
 • Fixed fido primary weapon range.
-• Added anti out• of• map aircraft gadget.
+• Added anti out-of-map aircraft gadget.
 
 
 7.20 -> 7.30
@@ -1996,7 +1997,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Arm Advanced Construction Aircraft workertime increased (80->120).
 • Core Krow flying energy cost removed, cruise altitude raised (60->80).
 • Core Krow frontal laser damage increased (170->250).
-• Arm Dragonfly weapon paralyzer damage decreased (64000->15000), reload time reduced (10• 8).
+• Arm Dragonfly weapon paralyzer damage decreased (64000->15000), reload time reduced (10->8).
 • Arm Dragonfly weapon paralyzetime reduced (20->15).
 • Arm Liche bomb no longer instantly kills commanders with impulse.
 • Arm Liche bomb special damage vs commanders raised (1550->2300)
@@ -2081,7 +2082,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Core Hurricane reload time increased (5->9).
 • Core Shadow reload time increased (5->9).
 
-• All Flak DPS vs non• gunships increased 20• 25%.
+• All Flak DPS vs non gunships increased 20->25%.
 • Stationary Flak turrets (inc Naval Flak) accuracy increased somewhat.
 
 • New Core Commando added to Core Advanced Kbot Lab (experimental).
@@ -2152,7 +2153,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Fixed Arm and Core seaplane bomber effects.
 • Arm Thunder bomb damage increased approx 10%.
 • Core Shadow bomb damage increased approx 10%.
-• T1 air transports may now release damaged units when destroyed provided they're close to the ground (mid• unload only).
+• T1 air transports may now release damaged units when destroyed provided they're close to the ground (mid unload only).
 
 • Arm FatBoy weapon given minor impulse effect.
 
@@ -2270,12 +2271,12 @@ No real changelog present, but instead: the changes in repository listed below.
 • Arm Pack0 airSightDistance tag added (700), sightDistance reduced (520->375).
 • Arm Chainsaw airSightDistance tag added (1000), sightDistance reduced (700->350).
 • Arm screamer airSightDistance tag added (1200), sightDistance reduced (700->350).
-• Arm screamer AOE increased (240• 300), edgeeffectiveness reduced (0.25->0).
+• Arm screamer AOE increased (240->300), edgeeffectiveness reduced (0.25->0).
 • Core Pulverizer airSightDistance tag added (700).
 • Core SAM airSightDistance tag added (700), sightDistance reduced (520->375).
 • Core Eradicator airSightDistance tag added (1000), sightDistance reduced (700->350).
 • Core Mercury airSightDistance tag added (1200), sightDistance reduced (700->350).
-• Core Mercuty AOE increased (240• 300), edgeeffectiveness reduced (0.25->0).
+• Core Mercuty AOE increased (240->300), edgeeffectiveness reduced (0.25->0).
 
 • Arm Archer airSightDistance tag added (900), radar removed.
 • Arm Skeeter airSightDistance tag added (800).
@@ -2285,7 +2286,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Arm Sentry airSightDistance tag added (750).
 • Core Shredder airSightDistance tag added (900), radar removed.
 • Core Slinger airSightDistance tag added (800).
-• Core Cobra • NS airSightDistance tag added (800).
+• Core Cobra NS airSightDistance tag added (800).
 • Core Cobra airSightDistance tag added (800).
 • Core Stinger airSightDistance tag added (750).
 • Core Searcher airSightDistance tag added (800).
@@ -2325,7 +2326,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Arm Twilight metal extraction raised to equal mex, metalcost (159->190), minCloakDistance (48->66), energyUse(5->3), cloakCost(10->12).
 
 • Core Wolverine AOE increased (88->113).
-• Arm Shellshocker AOE increased (80• 105).
+• Arm Shellshocker AOE increased (80->105).
 
 • Arm Dragon's Claw HP increased (900->1200), closed damage reduction reduced 5%.
 • Core Dragon's Maw HP increased (1100->1450), closed damage reduction reduced 5%.
@@ -2346,7 +2347,7 @@ No real changelog present, but instead: the changes in repository listed below.
 
 • Fixed enemy dragons teeth showing up outside LOS.
 • Fixed some missing sounds.
-• Fixed warning and point sounds being played non• globally.
+• Fixed warning and point sounds being played non globally.
 
 • Added mod option "Commander Ends No Draw", makes last com alive immune to comblast and disqualifies players who dgun the last com with their last com. (default on)
 • Added mod option "Show Enemy Wrecks", disable and you only gain instant LOS on your own wrecks. (default on)
@@ -2498,7 +2499,7 @@ No real changelog present, but instead: the changes in repository listed below.
 
 • Added Coop mode + Mod option to enable.
 • Added Alchemist's King of the Hill mode + Mod option to enable.
-• Re• added No Wrecks mode.
+• Re added No Wrecks mode.
 
 • Added the new LuaUI code which saves a seperate widget config for BA (will allow you to have a config for each mod, some settings may reset on first load.)
 
@@ -2529,7 +2530,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Added jK's blobshadow widget (default off).
 • Added trepan's minimap events widget (default off).
 • Replaced Highlight unit widget with new Xray Highlight widget (default on).
-• Updated Attack AOE widget updated, added a BA specific fix that makes the D• gun indicator much more accurate.
+• Updated Attack AOE widget updated, added a BA specific fix that makes the Dgun indicator much more accurate.
 • Updated Advanced Players List widget.
 • Updated Defense Range widget.
 • Updated Buildbar widget.
@@ -2537,7 +2538,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Tweaked FPS Manager widget (now default off).
 
 • Added new Prevent Range Hax gadget (prevents units from overshooting outside of FPS mode).
-• Added quantum's No Self• D gadget (stops the self d countdown on a shared unit).
+• Added quantum's No SelfD gadget (stops the self d countdown on a shared unit).
 • Added Commander gate modoption/gadget (commanders visually teleport in at gamestart) (default off).
 
 • Several weapon effects improved graphically.
@@ -2690,7 +2691,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Transport hovercraft radar blob size fixed, arm script fixed.
 • Core Poison Arrow turret turns a bit faster.
 • Arm & Core Torpedo seaplanes damage raised 20%.
-• Core Leviathan & Arm Serpant aiming vs close• up ships improved a bit.
+• Core Leviathan & Arm Serpant aiming vs closeup ships improved a bit.
 
 • Core Gimp script fixed (can fire if built underwater), must now aim turret to shoot torpedo.
 • Core Gimp reload time increased, accuracy decreased, buildtime increased 25%.
@@ -2708,7 +2709,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Juno now hits some mobile jammers it didn't used to hit.
 • Plasma Deflectors buildtime and energy cost reduced by 25%.
 • Plasma Deflectors charge cost raised (100->600).
-• Plasma Deflectors no longer totally immune to lower ROF non• heavy plasma weapons.
+• Plasma Deflectors no longer totally immune to lower ROF non heavy plasma weapons.
 
 • Core Catapult rockets now reach their max range more often.
 • Core Shiva walk script fixed.
@@ -2744,7 +2745,7 @@ No real changelog present, but instead: the changes in repository listed below.
 
 • Beamer turret rotation speed increased, targetmoveerror reduced slightly
 • Double LLT tweaked so each laser can find different targets
-• Double LLT now slightly more energy efficient than two llts (• 60 vs • 80 drain on constant fire)
+• Double LLT now slightly more energy efficient than two llts (60 vs 80 drain on constant fire)
 • Dragons claw, Dragons maw no longer attempt to attack aircraft
 • Added 'DragonsDisguise' gadget, this can stop units from noticing dragons claws/dragons maws until they've popped up
 
@@ -2755,7 +2756,7 @@ No real changelog present, but instead: the changes in repository listed below.
 
 • Raised burst DPS on SAM, packo slightly
 • Chainsaw & Eradicator now deal good burst damage at range rather than low damage over time.
-• Screamer/Mercury now have a fire delay button, you can specify per turret how many seconds to wait before firing once an enemy is spotted (0• 5)
+• Screamer/Mercury now have a fire delay button, you can specify per turret how many seconds to wait before firing once an enemy is spotted (0-5)
 
 • Reduced the chain explode factor on the lighter tech 3 mech deaths
 • Kargs and Razorbacks can now target features (ie, can eventually shoot through corpses & dragons teeth)
@@ -2766,7 +2767,7 @@ No real changelog present, but instead: the changes in repository listed below.
 • Bantha hand cannon dps increased
 • Increased buildtime on Bantha, Juggernaut, Krogoth
 • Increased workertime on gantries slightly
-• Reduced the energypershot on Vulcan & Buzzsaw (constant fire: vulcan • 18k, Buzzsaw • 21k)
+• Reduced the energypershot on Vulcan & Buzzsaw (constant fire: vulcan 18k, Buzzsaw 21k)
 • Bantha is now amphibious
 
 
@@ -2791,7 +2792,7 @@ Fixed MexupgradeGadget
 21/09/2008
 
 Renamed end game modes so its more clear what mode does what
-Kill all enemy Commanders is now default end• game option
+Kill all enemy Commanders is now default endgame option
 Added a widget to show which mode is used at the start of a game
 Added Widget to display which endmode is active
 Fixed firepoints for HLT,HLLT,Pitbull,Flagships,Battleships,Cruisers,Destroyers
@@ -2799,13 +2800,13 @@ Units which are being transported by a Intruder, wont die when a intruder dies.
 Fixed yardmap of Core Adv kbot factory.
 Mexes can be made it shallow waters now, UwMex mindepth changed to 15 (this change also affects mohomexes)
 Nerfed Dragons Claw anti air capability
-Removed the non• working anti• air gun of the phoenix
+Removed the non working anti air gun of the phoenix
 Increased DPS of Warlord, increased laser range a bit too
 Increased DPS of the main weapon of the blackhydra
 Reduced Arm Saber costs
 Increased range of Dominator and Morty
 Made zipper EMG, truely look like EMG and increased DPS
-Nerfed Scouts/flea anti• air capability
+Nerfed Scouts/flea anti air capability
 Commando removed
 Lowered cruise alt of T2 transports
 Increased wezel LOS a bit
@@ -2833,7 +2834,7 @@ Croc and Triton leave a wreck now
 ARM and CORE adv. Torp. Launcher have the same minimum depth now
 removed the annoying cannot reach destination sound
 Added Commander name tags widget, Thanks Evil4Zerggin and CarRepairer.
-Added FPS• manager widget, Thanks quantum
+Added FPS manager widget, Thanks quantum
 Made Crusaders more expensive
 Reduced Gunship chain reaction
 Fixed the reloading of the Core Catapult
@@ -2841,7 +2842,7 @@ Removed the unused turret of the Arm Razorback.
 Added Take remind widget written by Evil4Zerggin
 Added Commends and highlight widget written by trepan
 Updated quite some widgets, by comparing them to CA versions, Thanks CA Team!!
-Added a set of new game• ends rules, in mod options, made by KDR_11k:
+Added a set of new game ends rules, in mod options, made by KDR_11k:
 
  Make sure you put the game on: Game continues if commander dies.
  Then pick one of the mod options:
@@ -2854,7 +2855,7 @@ Added a set of new game• ends rules, in mod options, made by KDR_11k:
 
  •  Commander Control: In addition to the above a player without a com is unable to give
  	  orders to his units, all he can do is share them to an ally (sharing to enemies and
-	  self• d are disabled). An ally can take his units by using the ".luarules take" command.
+	  selfD are disabled). An ally can take his units by using the ".luarules take" command.
 	  It was unfortunately not possible to merge this into the regular .take. 
 
 
@@ -2863,8 +2864,8 @@ Added a set of new game• ends rules, in mod options, made by KDR_11k:
 
 Fixed Error messages from the luashockwave gadget?
 Fixed Amphid Speeds
-Fixed Anti• nuke type
-Reduced Seaplane• fighters LoS
+Fixed Anti nuke type
+Reduced Seaplane fighters LoS
 
 
 6.1 -> 6.2
@@ -2873,15 +2874,15 @@ Reduced Seaplane• fighters LoS
 Fixed directcontrol gadget.
 Fixed Layout gadget to not crash on /luaui reload, thanks eriatarka
 Reduced Los of fighters to their weapon range, did not do sea planes yet
-Added collide=0 to the brawler (forgot it last release :• ) )
+Added collide=0 to the brawler (forgot it last release :-) )
 Removed Lups exhaust from the gunships, it looks bad, i realise now :)
 Made the minesweeper weapon behave more elegant.
 Added fixed scripts from krogothe86
 Made Minwaterdepth of all big ships the same
 Added luashockwave, Thanks jK!!
 Mobile antinukes will no longer chase enemies
-Altered the BA• Layout to 10 rows so it works better on 1024x768
-Made Anti• nukes faster.
+Altered the BA Layout to 10 rows so it works better on 1024x768
+Made Anti nukes faster.
 Fixed Seismic rings.
 Amphids are as fast underwater as they are on land
 
@@ -2902,7 +2903,7 @@ Added ARM.bmp and CORE.bmp to sidepics for support with other lobby's
 Intimidator shots cost the same as Bertha Shots now.
 Fixed Nuclear Missles / Starburst Missles.
 You can no longer FPS Vipers, Tactical nuke Launchers.
-Added AreaAttack to Arty• veh, Bertha/Timmy
+Added AreaAttack to Arty veh, Bertha/Timmy
 Radar/Jammer units will no longer "attack"
 Added a Layout for the Gui , a widget by lurker, many thanks!
 
@@ -2912,7 +2913,7 @@ Added a Layout for the Gui , a widget by lurker, many thanks!
 
 Updated defenserange widget by verybadsoldier
 Updated LUPS
-Updated HP• bars widget by jK
+Updated HP bars widget by jK
 Fixed Arm HoverConstructer script, Thanks Krogoth86
 Decoy Commanders wear Santa Hats too now(when its christmastime)
 Increased LOS of Radar Veh/kBots
@@ -2984,7 +2985,7 @@ Sharks/Piranha's are Sub Killers now
 Cruisers costs Increased, Depthcharge Nerfed
 Flagship Range Increased.
 Naval Assister worker time Increased
-Reduced Costs of Anti• Air ships
+Reduced Costs of Anti Air ships
 Seaplanes got more like T1.5 stats now and can submerge.
 
 
@@ -3026,7 +3027,7 @@ Fixed the wreckagefile
 
 Arm Spy can no longer be build from the Amphid lab.
 Really fixed the Arm Seer corpse metal ammount :P
-Removed the radar turn off on E• stall lua• rule.
+Removed the radar turn off on E-stall lua-rule.
 Increased Buzzsaw/Vulcan energycosts to fire, you need redicoulous ammounts of E now :)
 Floating targetting facility's costs divided by 4, so they are in line with the landbased ones.
 Arm Solar Hitsphere decreased to Core Solar size
@@ -3057,11 +3058,11 @@ Juno's Missle Now also destroys minefields
 Increased Ground damage of Avengers and Freedomfighters
 Increased Sonar Range of Destroyers a bit
 Triton costs reduced
-EMP• bombs damage reduced, to fix the screenshaking if you use the screenshaking widget
+EMP bombs damage reduced, to fix the screenshaking if you use the screenshaking widget
 Added some gfx to some units, took from XTA and modified them a bit to fit BA, thanks Noruas and Gizmo!
 Improved Vulcan/Buzzsaw's accuracy, but it takes a shitload of E now :)
 Fixed bladewing patrols, thanks to Saktoth
-Jammers/Radars now disable when you E• Stall, lua script by licho
+Jammers/Radars now disable when you E-Stall, lua script by licho
 Made Juno's weapon go less high
 Dragon Eyes can no longer be build in the water
 Spies are no longer amphib
@@ -3097,7 +3098,7 @@ Warrior dps increased
 Cor goliath costs increased
 Samson/Slasher LoS increased
 Panther is more accurate now while moving
-V• launch missles don't go as high anymore
+V-launch missles don't go as high anymore
 
 
 5.2 -> 5.3
@@ -3121,7 +3122,7 @@ Made some buildpics a bit brighter (Thanks Trademark)
 4.7 -> 5.1
 
 Flash slowed down a little
-Energy structures revised, each step is now like a 30 % efficency gain Solar • -> adv Solar • -> Fusion • -> Adv Fusion. The underwater fusions have the same efficency as a regular fusion. The cloaked fusion is about 20% more effective then adv solars.
+Energy structures revised, each step is now like a 30 % efficency gain Solar -> adv Solar -> Fusion -> Adv Fusion. The underwater fusions have the same efficency as a regular fusion. The cloaked fusion is about 20% more effective then adv solars.
 Snipers are no longer stealth
 ARM mohomines lost their cloaking ability.
 Fixed Seaplane torpedo planes, they will fire on ships now, they lost their anti air missle in the progress though.
@@ -3131,7 +3132,7 @@ Reverted Arm Dragon Teeth model.
 DragonTeeth have a higher slope tolerance now.
 leveler reload time decreased slightly
 janus damage increased
-Commander Self• D time reduced to 5 seconds.
+Commander SelfD time reduced to 5 seconds.
 beamers damage improved 
 claws/maws damage improved
 claws accuracy improved
@@ -3295,7 +3296,7 @@ LRMT reloadtime increased
 Increased Acceleration and turning of Luger/Pillager
 Thud/Hammer now have LoS till the end of their range
 Increased Solar Buildtime 
-Halved JellyFish E• costs
+Halved JellyFish E-costs
 Tidal E costs Halfed
 Reduced Torpedo Launcher E Costs by 30 %
 (Adv.) Sonar range Doubled
@@ -3318,7 +3319,7 @@ Punisher now has the correct icontype
 Mohometalmakers rebalanced
 Floating metalmakers rebalanced
 Added Level2 AA bots back in
-Added a D• gun effect borrowed from XTA8.1
+Added a Dgun effect borrowed from XTA8.1
 Increased Advanced radar ranges slightly
 Increased Floating radar ranges slightly
 Matched radar ranges to dummy range
