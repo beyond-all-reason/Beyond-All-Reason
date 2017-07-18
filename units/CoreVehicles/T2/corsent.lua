@@ -160,6 +160,7 @@ return {
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "FlakCannon",
+				size = 4.5,
 				noselfdamage = true,
 				range = 775,
 				reloadtime = 0.75,

@@ -199,6 +199,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				name = "FlakCannon",
+				size = 4.5,
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 0.75,
