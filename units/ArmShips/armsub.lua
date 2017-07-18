@@ -1,5 +1,6 @@
 return {
 	armsub = {
+		activatewhenbuilt = true,
 		autoheal = 2,
 		buildcostenergy = 0.8*4000,
 		buildcostmetal = 0.8*700,
