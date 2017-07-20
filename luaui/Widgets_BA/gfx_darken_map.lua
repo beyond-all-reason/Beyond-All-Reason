@@ -53,7 +53,7 @@ function widget:Initialize()
   	return darkenFeatures
   end
   WG['darkenmap'].setDarkenFeatures = function(value)
-  	darkenFeatures =  tonumber(value)
+  	darkenFeatures = value
   end
   
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
@@ -113,7 +113,7 @@ function widget:DrawWorld()
 			gl.Color(0,0,0,darknessvalue)
 			for i, featureID in pairs(features) do
 				gl.Texture('%-'..spGetFeatureDefID(featureID)..':1')
-			  gl.Feature(featureID, true)
+				gl.Feature(featureID, true)
 			end
 			gl.PolygonOffset(false)
 			gl.DepthTest(false)
@@ -126,7 +126,7 @@ end
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.maps	= maps
-    savedTable.darkenFeatures	= darkenFeatures
+    savedTable.darkenFeatures = darkenFeatures
     return savedTable
 end
 
