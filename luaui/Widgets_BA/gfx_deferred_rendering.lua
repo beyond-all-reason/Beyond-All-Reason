@@ -485,7 +485,7 @@ function widget:DrawScreenEffects()
 	
 	--glBlending(GL.DST_COLOR, GL.ONE) -- Set add blending mode
 	glBlending(GL.SRC_ALPHA, GL.ONE)
-	
+
 	if beamLightCount > 0 then
 		DrawLightType(beamLights, beamLightCount, 1)
 	end
