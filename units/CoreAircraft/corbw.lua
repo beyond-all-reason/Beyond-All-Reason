@@ -88,7 +88,7 @@ return {
 				paralyzetime = 7,
 				range = 220,
 				reloadtime = 1.2,
-				rgbcolor = "1 1 1",
+				rgbcolor = "0.7 0.7 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
