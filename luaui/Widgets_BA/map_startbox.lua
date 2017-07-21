@@ -515,7 +515,7 @@ function widget:DrawInMiniMap(sx, sz)
   end
 
   gl.PushAttrib(GL_HINT_BIT)
-  gl.Smoothing(true) --enable point smoothing
+  --gl.Smoothing(true) --enable point smoothing
 
   -- show the team start positions
   for _, teamID in ipairs(Spring.GetTeamList()) do
