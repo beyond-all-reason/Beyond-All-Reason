@@ -26,6 +26,9 @@ local currentMapname = Game.mapName:lower()
 local maps = {}
 local gaia = Spring.GetGaiaTeamID()
 
+local camX, camY, camZ = Spring.GetCameraPosition()
+local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+
 function widget:Initialize()
   WG['darkenmap'] = {}
   WG['darkenmap'].getMapDarkness = function()

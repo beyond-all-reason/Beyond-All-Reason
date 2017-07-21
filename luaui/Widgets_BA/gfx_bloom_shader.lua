@@ -28,10 +28,8 @@ local drawWorldAlpha = 0
 local drawWorldPreUnitAlpha = 0
 local usedBasicAlpha = basicAlpha
 
-local mapMargin = 20000
-
-local msx = Game.mapSizeX
-local msz = Game.mapSizeZ
+local camX, camY, camZ = Spring.GetCameraPosition()
+local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
 
 -- shader and texture handles
 local blurShaderH71 = nil
@@ -198,19 +196,30 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+function widget:Update(dt)
+	if initialized == false then return end
+	camX, camY, camZ = Spring.GetCameraPosition()
+	camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+end
 
 function widget:DrawWorldPreUnit()
-	if initialized == false then return end
+	if initialized == false or drawWorldPreUnitAlpha <= 0.05 then return end
+	gl.PushMatrix()
 	gl.Color(0,0,0,drawWorldPreUnitAlpha)
-	gl.CallList(darken)
-	gl.Color(1,1,1,1)
+	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
+	gl.Billboard()
+	gl.Rect(-500, -500, 500, 500)
+	gl.PopMatrix()
 end
 
 function widget:DrawWorld()
-	if initialized == false then return end
+	if initialized == false or drawWorldAlpha <= 0.05 then return end
+	gl.PushMatrix()
 	gl.Color(0,0,0,drawWorldAlpha)
-	gl.CallList(darken)
-	gl.Color(1,1,1,1)
+	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
+	gl.Billboard()
+	gl.Rect(-500, -500, 500, 500)
+	gl.PopMatrix()
 end
 
 
@@ -250,14 +259,6 @@ function widget:Initialize()
   end
 
   widget:ViewResize(widgetHandler:GetViewSizes())
-
-  darken = gl.CreateList(function()
-	gl.PushMatrix()
-	gl.Translate(0,0,0)
-	gl.Rotate(90,1,0,0)
-	gl.Rect(-mapMargin, -mapMargin, msx+mapMargin, msz+mapMargin)
-	gl.PopMatrix()
-  end)
     
 
 	combineShader = gl.CreateShader({
@@ -422,7 +423,6 @@ function widget:Shutdown()
 			gl.DeleteShader(blurShaderH71 or 0)
 			gl.DeleteShader(blurShaderV71 or 0)
 			gl.DeleteShader(combineShader or 0)
-			gl.DeleteList(darken)
 		end
 	end
 end
