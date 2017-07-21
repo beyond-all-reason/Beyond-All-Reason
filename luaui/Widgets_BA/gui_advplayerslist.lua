@@ -846,7 +846,7 @@ function SetSidePics()
 			if startunit == sideOneDefID then 
 				teamSide = teamSideOne
 			end
-			if startunit == sideOneDefID then 
+			if startunit == sideTwoDefID then
 				teamSide = teamSideTwo
 			end
 		else
