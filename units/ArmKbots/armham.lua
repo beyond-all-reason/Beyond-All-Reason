@@ -135,7 +135,7 @@ return {
 				soundstart = "cannon1",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 286,
+				weaponvelocity = 243,
 				damage = {
 					bombers = 21,
 					default = 104,

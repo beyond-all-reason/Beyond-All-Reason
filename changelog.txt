@@ -16,6 +16,7 @@ Balance changes:
 • Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
 • T1 kbot/veh/air lab got 50% additional buildspeed
+• Thud/Hammer (plasma kbots) reduced projectile speed: 15%
 • Commanders produce 60% additional energy
 • Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 • Vanguard does 20% more damage
