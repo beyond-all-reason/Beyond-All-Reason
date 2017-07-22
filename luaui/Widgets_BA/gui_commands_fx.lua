@@ -171,7 +171,7 @@ local CONFIG = {
     [BUILD] = {
         sizeMult = 1,
 		endSize = 0.2,
-        colour = {0.00, 1.00 ,0.00 ,0.25},    
+        colour = {0.00, 1.00 ,0.00 ,0.25},
     }
 }
 
