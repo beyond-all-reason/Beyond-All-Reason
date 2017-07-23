@@ -400,13 +400,24 @@ local options={
 	{
         key    = 'comm_wreck_metal',
         name   = 'Commander Wreck Metal',
-        desc   = 'Sets the amount of metal left by a destroyed Commander',
+        desc   = 'Sets the amount of metal left by a destroyed Commander.',
         type   = 'number',
         section= 'ba_enhancements_misc',
         def    = 2500,
         min    = 0,
         max    = 5000,
         step   = 1,
+    },	
+    {
+        key    = 'mm_diminish_factor',
+        name   = 'Diminishing return rate of metal makers',
+        desc   = 'The strength of diminishing returns from metal makers. 0 = off, 1 = very strong diminish effect.',
+        type   = 'number',
+        section= 'ba_enhancements_misc',
+        def    = 0,
+        min    = 0,
+        max    = 1,
+        step   = 0.05,
     },	
 -- End Control Victory Options
 }
