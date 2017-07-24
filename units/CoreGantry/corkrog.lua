@@ -269,6 +269,7 @@ return {
 				},
 				customparams = {
 					expl_light_skip = true,		-- used by light_effects widget
+					lups_noshockwave = true,
 				},
 			},
 		},
