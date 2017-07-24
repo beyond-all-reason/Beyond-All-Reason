@@ -13,24 +13,24 @@ Balance changes:
 • Introduced a minimum (slightly larger) buildrange
 • Vehicles accelerate faster and slows less when turning + 2% speed increase
 • Commander torso turnspeed increased 33% + dgun reloadspeed reduced 10%
+• Commanders produce 40% additional energy (25->35)
+• Decoy commanders have been given same lasers as regular commanders
+• Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
 • Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
 • T1 kbot/veh/air lab got 50% additional buildspeed
 • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
-• Commanders produce 60% additional energy
 • Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
-• Vanguard does 20% more damage
 • Armmart and cormart (mobile T2 arty) do 15% more damage
 • Morties are 10% slower and are a bit less acurate (even more when moving)
+• Vanguard does 20% more damage
 • Armvulc and corbuzz cost increased by 40%
 • Bertha and Intimidator weapons have 25% more Area of Effect
-• Decoy commanders have been given same lasers as regular commanders
 • Fixed viper overshooting (when aiming at radar dots)
 • Fixed flak doing ludicrous damage to ground units
 • Air transports don't have collision enabled anylonger, fixes the unload bug
 • EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
 • Pathing improvement: units wont get stuck in cliffs any longer
-• Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
 • Readded KrogStomp (vs ground scouts + pws aks only) aswell as a GFX/SFX + camerashake on footsteps.
 • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell)
 
