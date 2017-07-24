@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 670,
 		maxslope = 14,
-		maxvelocity = 1.65,
+		maxvelocity = 1.59,
 		maxwaterdepth = 21,
 		movementclass = "KBOT2",
 		name = "Storm",
