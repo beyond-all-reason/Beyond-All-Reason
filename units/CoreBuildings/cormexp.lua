@@ -22,6 +22,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.3,
 		description = "Armed Moho Metal Extractor",
+		energyuse = 20,
 		explodeas = "hugeBuildingexplosiongeneric",
 		extractsmetal = 0.004,
 		footprintx = 5,

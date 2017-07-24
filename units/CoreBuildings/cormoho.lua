@@ -20,6 +20,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",
+		energyuse = 20,
 		explodeas = "largeBuildingexplosiongeneric",
 		extractsmetal = 0.004,
 		footprintx = 5,

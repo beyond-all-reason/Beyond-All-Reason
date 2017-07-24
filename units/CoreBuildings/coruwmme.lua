@@ -18,6 +18,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.35,
 		description = "Advanced Metal Extractor / Storage",
+		energyuse = 20,
 		explodeas = "mediumBuildingexplosiongeneric",
 		extractsmetal = 0.004,
 		footprintx = 5,
