@@ -41,7 +41,7 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 24,
-		turninplace = 1,
+		turninplace = true,
 		turninplaceanglelimit = 60,
 		turninplacespeedlimit = 0.9504,
 		turnrate = 300,
