@@ -1,5 +1,5 @@
 return {
-	mercury = {
+	armmercury = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		airsightdistance = 2400,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "mercury_aoplane.dds",
-		buildpic = "MERCURY.DDS",
+		buildinggrounddecaltype = "armmercury_aoplane.dds",
+		buildpic = "ARMMERCURY.DDS",
 		buildtime = 28000,
         canrepeat = false,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
@@ -29,7 +29,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 0,
 		name = "Mercury",
-		objectname = "MERCURY",
+		objectname = "ARMMERCURY",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 600,
@@ -55,7 +55,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 1022,
-				object = "MERCURY_DEAD",
+				object = "armMERCURY_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -153,6 +153,9 @@ return {
 					fighters = 750,
 					bombers = 750,
 					vtol = 750,
+				},
+				customparams = {
+					light_radius_mult = 0.75,
 				},
 			},
 		},

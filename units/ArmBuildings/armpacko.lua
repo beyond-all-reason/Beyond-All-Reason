@@ -1,5 +1,5 @@
 return {
-	packo = {
+	armpacko = {
 		acceleration = 0,
 		airsightdistance = 850,
 		brakerate = 0,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "packo_aoplane.dds",
-		buildpic = "PACKO.DDS",
+		buildinggrounddecaltype = "armpacko_aoplane.dds",
+		buildpic = "ARMPACKO.DDS",
 		buildtime = 5810,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -30,7 +30,7 @@ return {
 		mincloakdistance = 72,
 		name = "Pack0",
 		nochasecategory = "ALL",
-		objectname = "PACKO",
+		objectname = "ARMPACKO",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
@@ -56,7 +56,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 275,
-				object = "PACKO_DEAD",
+				object = "ARMPACKO_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

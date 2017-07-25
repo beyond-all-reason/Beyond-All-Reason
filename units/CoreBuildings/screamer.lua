@@ -154,6 +154,9 @@ return {
 					fighters = 750,
 					vtol = 750,
 				},
+				customparams = {
+					light_radius_mult = 0.75,
+				},
 			},
 		},
 		weapons = {

@@ -50,7 +50,7 @@ return {
 			[4] = "armsonar",
 			[5] = "armsy",
 			[6] = "armfhp",
-			[7] = "asubpen",
+			[7] = "armamsub",
 			[8] = "armcs",
 			[9] = "armtl",
 			[10] = "armfhlt",

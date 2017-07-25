@@ -77,7 +77,7 @@ local UnitEffects = {
     {class='ShieldSphere',options=junoShieldSphere},
     {class='GroundFlash',options=groundFlashJuno},
   },
-  [UnitDefNames["ajuno"].id] = {
+  [UnitDefNames["armjuno"].id] = {
     {class='ShieldSphere',options=junoShieldSphere},
     {class='GroundFlash',options=groundFlashJuno},
   },
@@ -94,7 +94,7 @@ local UnitEffects = {
     {class='ShieldJitter',options={life=math.huge, pos={0,50,-5}, size=23, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashGreen},
   },
-  [UnitDefNames["aafus"].id] = {
+  [UnitDefNames["armafus"].id] = {
     {class='SimpleParticles2', options=MergeTable({pos={-38,70,-10}, delay=10, lifeSpread=300},sparks)},
     {class='SimpleParticles2', options=MergeTable({pos={21,70,-10}, delay=60, lifeSpread=300},sparks)},
     {class='ShieldJitter',options={layer=-16, life=math.huge, pos={-31,55,-10}, size=12, precision=22, repeatEffect=true}},

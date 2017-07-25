@@ -1,5 +1,5 @@
 return {
-	aafus = {
+	armafus = {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 4096,
@@ -8,8 +8,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "aafus_aoplane.dds",
-		buildpic = "AAFUS.DDS",
+		buildinggrounddecaltype = "armafus_aoplane.dds",
+		buildpic = "ARMAFUS.DDS",
 		buildtime = 312498,
         canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
@@ -31,7 +31,7 @@ return {
 		maxslope = 13,
 		maxwaterdepth = 0,
 		name = "Advanced Fusion Reactor",
-		objectname = "AAFUS",
+		objectname = "ARMAFUS",
 		seismicsignature = 0,
 		selfdestructas = "advancedFusionExplosionSelfd",
 		sightdistance = 273,
@@ -58,7 +58,7 @@ return {
 				height = 40,
 				hitdensity = 100,
 				metal = 6441,
-				object = "AAFUS_DEAD",
+				object = "ARMAFUS_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

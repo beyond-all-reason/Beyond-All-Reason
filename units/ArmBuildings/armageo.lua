@@ -1,5 +1,5 @@
 return {
-	amgeo = {
+	armageo = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
-		buildinggrounddecaltype = "amgeo_aoplane.dds",
-		buildpic = "AMGEO.DDS",
+		buildinggrounddecaltype = "armageo_aoplane.dds",
+		buildpic = "ARMAGEO.DDS",
 		buildtime = 33152,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
@@ -30,7 +30,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		name = "Moho Geothermal Powerplant",
-		objectname = "AMGEO",
+		objectname = "ARMAGEO",
 		seismicsignature = 0,
 		selfdestructas = "advgeo",
 		sightdistance = 273,

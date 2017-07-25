@@ -95,7 +95,7 @@ function gadget:Initialize()
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.name=="armfig") or (ud.name=="corveng") or (ud.name=="armhawk") or (ud.name=="corvamp") then
         Spring.SetUnitDefIcon(udid, "tri-up_fighter.user") 
-      elseif (ud.name=="cafus") or (ud.name=="aafus") then
+      elseif (ud.name=="cafus") or (ud.name=="armafus") then
         Spring.SetUnitDefIcon(udid, "e3.user")
       elseif (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then
         Spring.SetUnitDefIcon(udid, "e2.user")
@@ -115,7 +115,7 @@ function gadget:Initialize()
         else
           Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
         end
-      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="mercury" or ud.name=="screamer") then
+      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="screamer") then
       	-- nuke / antinuke ( stockpile weapon, but not mercury/screamer )
       	Spring.SetUnitDefIcon(udid, "nuke.user")
       elseif (ud.canFly) then

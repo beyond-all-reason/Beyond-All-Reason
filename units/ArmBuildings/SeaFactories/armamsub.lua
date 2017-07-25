@@ -1,5 +1,5 @@
 return {
-	asubpen = {
+	armamsub = {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 5500,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
-		buildinggrounddecaltype = "asubpen_aoplane.dds",
-		buildpic = "ASUBPEN.DDS",
+		buildinggrounddecaltype = "armamsub_aoplane.dds",
+		buildpic = "ARMAMSUB.DDS",
 		buildtime = 11112,
 		canmove = true,
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
@@ -32,7 +32,7 @@ return {
 		metalstorage = 150,
 		minwaterdepth = 25,
 		name = "Amphibious Complex",
-		objectname = "ASUBPEN",
+		objectname = "ARMAMSUB",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 234,
@@ -69,7 +69,7 @@ return {
 				height = 5,
 				hitdensity = 100,
 				metal = 559,
-				object = "ASUBPEN_DEAD",
+				object = "ARMAMSUB_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

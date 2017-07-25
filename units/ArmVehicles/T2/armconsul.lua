@@ -60,7 +60,7 @@ return {
 			[10] = "armdl",
 			[11] = "armbeamer",
 			[12] = "armamb",
-			[13] = "packo",
+			[13] = "armpacko",
 			[14] = "armflak",
 			[15] = "armcv",
 			[16] = "armpw",

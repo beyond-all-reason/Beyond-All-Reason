@@ -14,7 +14,7 @@ end
 -- SYNCED --
 if (gadgetHandler:IsSyncedCode()) then
  
-local mercDefID = UnitDefNames.mercury.id
+local mercDefID = UnitDefNames.armmercury.id
 local scrDefID = UnitDefNames.screamer.id
 
 local pilelimit = 5

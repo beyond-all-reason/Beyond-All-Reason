@@ -1,5 +1,5 @@
 return {
-	ajuno = {
+	armjuno = {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 17000,
@@ -7,8 +7,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "ajuno_aoplane.dds",
-		buildpic = "AJUNO.DDS",
+		buildinggrounddecaltype = "armjuno_aoplane.dds",
+		buildpic = "ARMJUNO.DDS",
 		buildtime = 21833,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 0",
@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Arm Juno",
-		objectname = "AJUNO",
+		objectname = "ARMJUNO",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 494,
@@ -53,7 +53,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 352,
-				object = "AJUNO_DEAD",
+				object = "ARMJUNO_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
