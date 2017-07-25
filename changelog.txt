@@ -22,7 +22,7 @@ Balance changes:
 • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
 • Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
 • Armmart and cormart (mobile T2 arty) do 15% more damage
-• Morties are 10% slower and are a bit less acurate (even more when moving)
+• Morties are 5% slower and are a bit less acurate (even more when moving)
 • Vanguard does 20% more damage
 • Armvulc and corbuzz cost increased by 40%
 • Bertha and Intimidator weapons have 25% more Area of Effect
