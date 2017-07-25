@@ -44,7 +44,7 @@ return {
 		blocking = false,
 		buildoptions = {
 			[1] = "corfus",
-			[2] = "cmgeo",
+			[2] = "corageo",
 			[3] = "corbhmth",
 			[4] = "cormoho",
 			[5] = "cormexp",
@@ -62,7 +62,7 @@ return {
 			[17] = "corvipe",
 			[18] = "cordoom",
 			[19] = "corflak",
-			[20] = "screamer",
+			[20] = "corscreamer",
 			[21] = "cortron",
 			[22] = "corfmd",
 			[23] = "corsilo",
@@ -71,7 +71,7 @@ return {
 			[26] = "corap",
 			[27] = "coraap",
 			[28] = "corplat",
-			[29] = "armcube",
+			[29] = "seaplatform",
 		},
 		customparams = {
 			

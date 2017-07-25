@@ -1,5 +1,5 @@
 return {
-	cmgeo = {
+	corageo = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "cmgeo_aoplane.dds",
-		buildpic = "CMGEO.DDS",
+		buildinggrounddecaltype = "corageo_aoplane.dds",
+		buildpic = "CORAGEO.DDS",
 		buildtime = 32078,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
@@ -30,7 +30,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 0,
 		name = "Moho Geothermal Powerplant",
-		objectname = "CMGEO",
+		objectname = "CORAGEO",
 		seismicsignature = 0,
 		selfdestructas = "advgeo",
 		sightdistance = 273,

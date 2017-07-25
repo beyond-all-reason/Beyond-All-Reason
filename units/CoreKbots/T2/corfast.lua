@@ -54,9 +54,9 @@ return {
 			[8] = "corarad",
 			[9] = "cormine2",
 			[10] = "cordl",
-			[11] = "hllt",
+			[11] = "corhllt",
 			[12] = "cortoast",
-			[13] = "madsam",
+			[13] = "cormadsam",
 			[14] = "corflak",
 			[15] = "corck",
 			[16] = "corak",
@@ -66,7 +66,7 @@ return {
 			[20] = "coramph",
 			[21] = "corcs",
 			[22] = "corroy",
-			[23] = "armcube",
+			[23] = "seaplatform",
 		},
 		customparams = {
 			

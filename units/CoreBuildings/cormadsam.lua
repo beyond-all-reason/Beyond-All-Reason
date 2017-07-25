@@ -1,5 +1,5 @@
 return {
-	madsam = {
+	cormadsam = {
 		acceleration = 0,
 		airsightdistance = 850,
 		brakerate = 0,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "madsam_aoplane.dds",
-		buildpic = "MADSAM.DDS",
+		buildinggrounddecaltype = "cormadsam_aoplane.dds",
+		buildpic = "CORMADSAM.DDS",
 		buildtime = 5237,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -30,7 +30,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "SAM",
-		objectname = "MADSAM",
+		objectname = "CORMADSAM",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 375,
@@ -56,7 +56,7 @@ return {
 				height = 10,
 				hitdensity = 100,
 				metal = 257,
-				object = "MADSAM_DEAD",
+				object = "CORMADSAM_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",

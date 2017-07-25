@@ -61,7 +61,7 @@ return {
 			[14] = "corvp",
 			[15] = "corap",
 			[16] = "corfhp",
-			[17] = "csubpen",
+			[17] = "coramsub",
 			[18] = "cornanotc",
 			[19] = "corsonar",
 			[20] = "corfrad",
@@ -71,7 +71,7 @@ return {
 			[24] = "corfrt",
 			[25] = "corfhlt",
 			[26] = "corplat",
-			[27] = "armcube",
+			[27] = "seaplatform",
 		},
 		customparams = {
 

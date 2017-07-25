@@ -1,5 +1,5 @@
 return {
-	csubpen = {
+	coramsub = {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 5600,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
-		buildinggrounddecaltype = "csubpen_aoplane.dds",
-		buildpic = "CSUBPEN.DDS",
+		buildinggrounddecaltype = "coramsub_aoplane.dds",
+		buildpic = "CORAMSUB.DDS",
 		buildtime = 11402,
 		canmove = true,
 		category = "ALL PLANT NOWEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -32,7 +32,7 @@ return {
 		metalstorage = 160,
 		minwaterdepth = 25,
 		name = "Amphibious Complex",
-		objectname = "CSUBPEN",
+		objectname = "CORAMSUB",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
@@ -71,7 +71,7 @@ return {
 				height = 5,
 				hitdensity = 100,
 				metal = 596,
-				object = "CSUBPEN_DEAD",
+				object = "CORAMSUB_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

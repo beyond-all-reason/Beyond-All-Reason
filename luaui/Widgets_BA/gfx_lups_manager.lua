@@ -73,7 +73,7 @@ end
 
 local UnitEffects = {
 
-  [UnitDefNames["cjuno"].id] = {
+  [UnitDefNames["corjuno"].id] = {
     {class='ShieldSphere',options=junoShieldSphere},
     {class='GroundFlash',options=groundFlashJuno},
   },
@@ -82,9 +82,9 @@ local UnitEffects = {
     {class='GroundFlash',options=groundFlashJuno},
   },
   --// FUSIONS //--------------------------
-  [UnitDefNames["cafus"].id] = {
-    --{class='Bursts',options=cafusBursts},
-    {class='ShieldSphere',options=cafusShieldSphere},
+  [UnitDefNames["corafus"].id] = {
+    --{class='Bursts',options=corafusBursts},
+    {class='ShieldSphere',options=corafusShieldSphere},
     {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,58.9,-4.5}, size=24.5, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashBlue},
   },

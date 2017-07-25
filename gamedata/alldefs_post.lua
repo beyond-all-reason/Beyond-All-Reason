@@ -177,40 +177,40 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				-- for id,unitDef in pairs(UnitDefs) do
 
 					-- if unitDef.objectname == "CORMLS" then
-						-- unitDef["buildoptions"][21] = "armcube"
+						-- unitDef["buildoptions"][21] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMMLS" then
-						-- unitDef["buildoptions"][21] = "armcube"
+						-- unitDef["buildoptions"][21] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCSA" then
-						-- unitDef["buildoptions"][15] = "armcube"
+						-- unitDef["buildoptions"][15] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCSA" then
-						-- unitDef["buildoptions"][15] = "armcube"
+						-- unitDef["buildoptions"][15] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCONSUL" then
-						-- unitDef["buildoptions"][23] = "armcube"
+						-- unitDef["buildoptions"][23] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORFAST" then
-						-- unitDef["buildoptions"][23] = "armcube"
+						-- unitDef["buildoptions"][23] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCH" then
-						-- unitDef["buildoptions"][44] = "armcube"
+						-- unitDef["buildoptions"][44] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCH" then
-						-- unitDef["buildoptions"][44] = "armcube"
+						-- unitDef["buildoptions"][44] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCK" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCK" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCV" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCV" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 				-- end
 		-- end

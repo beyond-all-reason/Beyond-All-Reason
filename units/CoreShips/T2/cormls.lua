@@ -50,7 +50,7 @@ return {
 			[4] = "corsonar",
 			[5] = "corsy",
 			[6] = "corfhp",
-			[7] = "csubpen",
+			[7] = "coramsub",
 			[8] = "corcs",
 			[9] = "cortl",
 			[10] = "corfhlt",
@@ -63,7 +63,7 @@ return {
 			[17] = "corsub",
 			[18] = "coramph",
 			[19] = "corfmine3",
-			[20] = "armcube",
+			[20] = "seaplatform",
 		},
 		customparams = {
 

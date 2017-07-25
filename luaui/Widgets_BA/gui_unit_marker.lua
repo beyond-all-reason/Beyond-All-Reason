@@ -40,10 +40,10 @@ unitList["BA"] = {
 --[UnitDefNames["armckfus"].id] = {["en"]="Cloakable Fusion", 	["de"]="Unsichtbar Fusion", ["fr"]="Camoufl�e Fusion" },
 
 --[UnitDefNames["armafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Sup�rieur Fusion" },
---[UnitDefNames["cafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Sup�rieur Fusion" },
+--[UnitDefNames["corafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Sup�rieur Fusion" },
 
 --[UnitDefNames["armageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho G�o" },
---[UnitDefNames["cmgeo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho G�o" },
+--[UnitDefNames["corageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho G�o" },
 
 --[UnitDefNames["armbrtha"].id] = {["en"]="LRPC", ["de"]="Gro�e Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Port�e" },
 --[UnitDefNames["corint"].id] = 	{["en"]="LRPC", ["de"]="Gro�e Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Port�e" },

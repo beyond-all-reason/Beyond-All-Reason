@@ -1,0 +1,161 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, body, turret1, flare1, turret2, flare2;
+
+static-var  restore_delay, unitviewer;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Create()
+{
+	unitviewer = FALSE;
+	restore_delay = 2000;
+	hide flare1;
+	hide flare2;
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flare1;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = turret1;
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret1 to y-axis heading speed <400.000000>;
+	turn turret1 to x-axis <0.000000> - pitch speed <400.000000>;
+	wait-for-turn turret1 around y-axis;
+	return (1);
+}
+
+FireSecondary()
+{
+	show flare1;
+	sleep 140;
+	hide flare1;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare2;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret2;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn turret2 to y-axis heading speed <300.000000>;
+	turn turret2 to x-axis <0.000000> - pitch speed <300.000000>;
+	wait-for-turn turret2 around y-axis;
+	return (1);
+}
+
+FirePrimary()
+{
+	emit-sfx 1024 + 0 from flare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		explode base type SHATTER | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode body type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode turret1 type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode flare1 type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode turret2 type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode flare2 type SHATTER | BITMAP4 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode turret1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode turret2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode turret1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode turret2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode flare2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	return corpsetype;
+}

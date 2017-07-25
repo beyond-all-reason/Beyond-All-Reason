@@ -1,5 +1,5 @@
 return {
-	cafus = {
+	corafus = {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 4096,
@@ -8,8 +8,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "cafus_aoplane.dds",
-		buildpic = "CAFUS.DDS",
+		buildinggrounddecaltype = "corafus_aoplane.dds",
+		buildpic = "CORAFUS.DDS",
 		buildtime = 329243,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON SPECIAL NOTAIR NOTHOVER SURFACE",
@@ -31,7 +31,7 @@ return {
 		maxslope = 13,
 		maxwaterdepth = 0,
 		name = "Advanced Fusion Reactor",
-		objectname = "CAFUS",
+		objectname = "CORAFUS",
 		seismicsignature = 0,
 		selfdestructas = "advancedFusionExplosionSelfd",
 		sightdistance = 273,
@@ -58,7 +58,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 6440,
-				object = "CAFUS_DEAD",
+				object = "CORAFUS_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

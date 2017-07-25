@@ -49,7 +49,7 @@ local unitArray = {
   "corhp",
   "corfhp",
   "corgant",
-  "csubpen",
+  "coramsub",
   "corcom",
 }
 ----------------------------------------------

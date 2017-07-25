@@ -30,7 +30,7 @@ local SpGetSelectedUnits = Spring.GetSelectedUnits
 local am_geo = UnitDefNames.armageo.id
 local arm_geo = UnitDefNames.armgeo.id
 local arm_gmm = UnitDefNames.armgmm.id
-local cm_geo = UnitDefNames.cmgeo.id
+local cm_geo = UnitDefNames.corageo.id
 local corbhmth_geo = UnitDefNames.corbhmth.id
 local cor_geo = UnitDefNames.corgeo.id
 

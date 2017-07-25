@@ -1,5 +1,5 @@
 return {
-	cjuno = {
+	corjuno = {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 16000,
@@ -7,8 +7,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "cjuno_aoplane.dds",
-		buildpic = "CJUNO.DDS",
+		buildinggrounddecaltype = "corjuno_aoplane.dds",
+		buildpic = "CORJUNO.DDS",
 		buildtime = 27681,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 0",
@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Core Juno",
-		objectname = "CJUNO",
+		objectname = "CORJUNO",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 494,
@@ -53,7 +53,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 388,
-				object = "CJUNO_DEAD",
+				object = "CORJUNO_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

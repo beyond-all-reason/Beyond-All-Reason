@@ -63,7 +63,7 @@ return {
 			[17] = "armsub",
 			[18] = "armamph",
 			[19] = "armfmine3",
-			[20] = "armcube",
+			[20] = "seaplatform",
 		},
 		customparams = {
 			

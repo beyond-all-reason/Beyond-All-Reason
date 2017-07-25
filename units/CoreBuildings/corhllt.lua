@@ -1,5 +1,5 @@
 return {
-	hllt = {
+	corhllt = {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32768,
@@ -8,8 +8,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "hllt_aoplane.dds",
-		buildpic = "HLLT.DDS",
+		buildinggrounddecaltype = "corhllt_aoplane.dds",
+		buildpic = "CORHLLT.DDS",
 		buildtime = 5448,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -29,7 +29,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "HLLT",
-		objectname = "HLLT",
+		objectname = "CORHLLT",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 475,
@@ -55,7 +55,7 @@ return {
 				height = 6.5,
 				hitdensity = 100,
 				metal = 120,
-				object = "HLLT_DEAD",
+				object = "CORHLLT_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

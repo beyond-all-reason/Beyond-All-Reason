@@ -40,7 +40,7 @@ local econUnitDefIDs = { --better to hardcode these since its complicated to pic
 	UnitDefNames.corfus.id,
 	UnitDefNames.armfus.id,
 	UnitDefNames.armafus.id,
-	UnitDefNames.cafus.id,
+	UnitDefNames.corafus.id,
 	--sea t2
 	UnitDefNames.armuwfus.id,
 	UnitDefNames.coruwfus.id,

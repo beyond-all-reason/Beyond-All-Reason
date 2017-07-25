@@ -74,7 +74,7 @@ return {
 			[15] = "corllt",
 			[16] = "corrl",
 			[17] = "corrad",
-			[18] = "armcube",
+			[18] = "seaplatform",
 		},
 		customparams = {
 			

@@ -78,7 +78,7 @@ local Mmin = math.min
 
 local junoWeapons = {
     [WeaponDefNames.armjuno_juno_pulse.id] = true,
-    [WeaponDefNames.cjuno_juno_pulse.id] = true,
+    [WeaponDefNames.corjuno_juno_pulse.id] = true,
 }
 
 function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
@@ -100,7 +100,7 @@ local counter = 1 --index each explosion of juno missile with this counter
 
 function gadget:Initialize()
 	Script.SetWatchWeapon(WeaponDefNames.armjuno_juno_pulse.id, true)
-	Script.SetWatchWeapon(WeaponDefNames.cjuno_juno_pulse.id, true)
+	Script.SetWatchWeapon(WeaponDefNames.corjuno_juno_pulse.id, true)
 end
 
 

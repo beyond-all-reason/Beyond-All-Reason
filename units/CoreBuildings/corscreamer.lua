@@ -1,5 +1,5 @@
 return {
-	screamer = {
+	corscreamer = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		airsightdistance = 2400,
@@ -9,8 +9,8 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "screamer_aoplane.dds",
-		buildpic = "SCREAMER.DDS",
+		buildinggrounddecaltype = "corscreamer_aoplane.dds",
+		buildpic = "CORSCREAMER.DDS",
 		buildtime = 28000,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
@@ -29,7 +29,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 0,
 		name = "Screamer",
-		objectname = "SCREAMER",
+		objectname = "CORSCREAMER",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 600,
@@ -55,7 +55,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 1145,
-				object = "SCREAMER_DEAD",
+				object = "CORSCREAMER_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

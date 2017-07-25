@@ -49,8 +49,8 @@ return {
 		workertime = 250,
 		buildoptions = {
 			[1] = "corfus",
-			[2] = "cafus",
-			[3] = "cmgeo",
+			[2] = "corafus",
+			[3] = "corageo",
 			[4] = "corbhmth",
 			[5] = "cormoho",
 			[6] = "cormexp",
@@ -68,7 +68,7 @@ return {
 			[18] = "corvipe",
 			[19] = "cordoom",
 			[20] = "corflak",
-			[21] = "screamer",
+			[21] = "corscreamer",
 			[22] = "cortron",
 			[23] = "corfmd",
 			[24] = "corsilo",
@@ -76,7 +76,7 @@ return {
 			[26] = "corbuzz",
 			[27] = "corvp",
 			[28] = "coravp",
-			[29] = "armcube",
+			[29] = "seaplatform",
 		},
 		customparams = {
 			

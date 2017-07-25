@@ -1,12 +1,12 @@
 return {
-	armcube = {
+	seaplatform = {
 		acceleration = 0,
 		brakerate = 0,
 		blocking = true,
 		buildangle = 32768,
 		buildcostenergy = 750*0.4,
 		buildcostmetal = 125*0.4,
-		buildpic = "ARMCUBE.DDS",
+		buildpic = "seaplatform.DDS",
 		buildtime = 2500*0.4,
 		buildinggrounddecaldecayspeed = 1,
 		buildinggrounddecalsizex = 3,
@@ -30,12 +30,12 @@ return {
 		maxslope = 89,
 		minwaterdepth = 0,
 		name = "Platform",
-		objectname = "ARMCUBE.3DO",
+		objectname = "seaplatform.3DO",
 		seismicsignature = 0,
 		selfdestructas = "platformboom",
 		sightdistance = 0,
 		waterline = 0,
-		--script = "armcube.lua",
+		--script = "seaplatform.lua",
 		usebuildinggrounddecal = false,
 		yardmap = "oooooooooooooooo",
 		customparams = {
