@@ -17,6 +17,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local CMD_RAW_MOVE = 39812
 local CMD_ATTACK = CMD.ATTACK --icon unit or map
 local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
 local CMD_FIGHT = CMD.FIGHT -- icon map
@@ -115,11 +116,16 @@ local CONFIG = {
 		endSize = 0.28,
         colour = {1.00, 0.00, 0.00, 0.30},
     },
-    [CMD_MOVE] = {
-        sizeMult = 1, 
+	[CMD_MOVE] = {
+		sizeMult = 1,
 		endSize = 0.2,
-        colour = {0.00, 1.00, 0.00, 0.25},
-    },
+		colour = {0.00, 1.00, 0.00, 0.25},
+	},
+	[CMD_RAW_MOVE] = {
+		sizeMult = 1,
+		endSize = 0.2,
+		colour = {0.00, 1.00, 0.00, 0.25},
+	},
     [CMD_PATROL] = {
         sizeMult = 1,
 		endSize = 0.2,
@@ -165,7 +171,7 @@ local CONFIG = {
     [BUILD] = {
         sizeMult = 1,
 		endSize = 0.2,
-        colour = {0.00, 1.00 ,0.00 ,0.25},    
+        colour = {0.00, 1.00 ,0.00 ,0.25},
     }
 }
 
@@ -423,7 +429,7 @@ function RemovePreviousCommand(unitID)
 end
 
 function addUnitCommand(unitID, unitDefID, cmdID)
-	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
+  -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
   if string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then return end
   if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
     maxCommand = maxCommand + 1
@@ -433,12 +439,12 @@ end
 
 local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
-		if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
+	if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
     	addUnitCommand(unitID, unitDefID, cmdID)
     	newUnitCommands[unitID] = true
     else
-			newUnitCommands[unitID] = {unitDefID, cmdID}
-		end
+		newUnitCommands[unitID] = {unitDefID, cmdID}
+	end
 end
 
 function ExtractTargetLocation(a,b,c,d,cmdID)
@@ -465,21 +471,21 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
 end
 
 function getCommandsQueue(unitID)
-		local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
-	  local our_q = {}
-	  for _,cmd in ipairs(q) do
-	      if CONFIG[cmd.id] or cmd.id < 0 then
-	          if cmd.id < 0 then
-	              cmd.buildingID = -cmd.id;
-	              cmd.id = BUILD
-	              if not cmd.params[4] then
-	                  cmd.params[4] = 0 --sometimes the facing param is missing (wtf)
-	              end
-	          end
-	          our_q[#our_q+1] = cmd
-	      end
+	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local our_q = {}
+	for _,cmd in ipairs(q) do
+	  if CONFIG[cmd.id] or cmd.id < 0 then
+		  if cmd.id < 0 then
+			  cmd.buildingID = -cmd.id;
+			  cmd.id = BUILD
+			  if not cmd.params[4] then
+				  cmd.params[4] = 0 --sometimes the facing param is missing (wtf)
+			  end
+		  end
+		  our_q[#our_q+1] = cmd
 	  end
-	  return our_q
+	end
+	return our_q
 end
 
 
@@ -536,7 +542,7 @@ function widget:GameFrame(gameFrame)
     
 	    RemovePreviousCommand(v.unitID)
 	    unitCommand[v.unitID] = i
-			
+
 	    -- get pruned command queue
 	    local our_q = getCommandsQueue(v.unitID)
 	    local qsize = #our_q

@@ -17,7 +17,7 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Advanced Metal Extractor / Storage",
-		energyuse = 25,
+		energyuse = 20,
 		explodeas = "hugeBuildingExplosionGeneric",
 		extractsmetal = 0.004,
 		footprintx = 5,

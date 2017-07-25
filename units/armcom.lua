@@ -29,7 +29,7 @@ return {
 		commander = true,
 		corpse = "DEAD",
 		description = "Commander",
-		energymake = 40,
+		energymake = 35,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,

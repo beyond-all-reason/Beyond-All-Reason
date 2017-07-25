@@ -37,42 +37,48 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 end
 
-
+local damagedFeatures = {}
 function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
-	if (fx ~= nil) then
-		local x,y,z = fx,fy,fz
-		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
-		if me ~= nil and me > 0 then
-			local fdef = FeatureDefs[featureDefID]
-			local numFx = math.floor(me/200)
-			local posMultiplier = 0.5
-			Spring.SpawnCEG("energyshards1", x, y, z)
-			for i=1, numFx, 1 do
-				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = fy + (random() * fdef.model.maxy*posMultiplier)
-				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+	if damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15 then
+		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
+		if (fx ~= nil) then
+			local x,y,z = fx,fy,fz
+			local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+			if me ~= nil and me > 0 then
+				local fdef = FeatureDefs[featureDefID]
+				local numFx = math.floor(me/200)
+				local posMultiplier = 0.5
+				Spring.SpawnCEG("energyshards1", x, y, z)
+				for i=1, numFx, 1 do
+					x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+					z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+					y = fy + (random() * fdef.model.maxy*posMultiplier)
+					Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
+				end
+				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
-			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
-		end
-		if mm ~= nil and mm > 0 then
-			local fdef = FeatureDefs[featureDefID]
-			local numFx = math.floor(mm/75)
-			local posMultiplier = 0.5
-			Spring.SpawnCEG("metalshards1", x, y, z)
-			for i=1, numFx, 1 do
-				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = fy + (random() * fdef.model.maxy*posMultiplier)
-				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+			if mm ~= nil and mm > 0 then
+				local fdef = FeatureDefs[featureDefID]
+				local numFx = math.floor(mm/75)
+				local posMultiplier = 0.5
+				Spring.SpawnCEG("metalshards1", x, y, z)
+				for i=1, numFx, 1 do
+					x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
+					z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
+					y = fy + (random() * fdef.model.maxy*posMultiplier)
+					Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
+				end
+				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
-			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 		end
+		damagedFeatures[featureID] = Spring.GetGameFrame()
 	end
 end
 
 function gadget:FeatureDestroyed(featureID, allyteam)
+	if damagedFeatures[featureID] ~= nil then
+		damagedFeatures[featureID] = nil
+	end
 	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 	if (fx ~= nil) then
 		local x,y,z = fx,fy,fz
