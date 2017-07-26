@@ -34,12 +34,16 @@ function widget:Initialize()
 	end
 end
 
-function widget:GameStart()
-	myPlayerID = Spring.GetMyPlayerID()
-	if Spring.GetSpectatingState() then
-		TurnOffLOS()
-	else
-		TurnOnLOS()
+local gamestarted = false
+function widget:GameFrame(frame)	-- somehow widget:GameStart() didnt work
+	if frame == 1 and not gamestarted then
+		gamestarted = true
+		myPlayerID = Spring.GetMyPlayerID()
+		if Spring.GetSpectatingState() then
+			TurnOffLOS()
+		else
+			TurnOnLOS()
+		end
 	end
 end
 
