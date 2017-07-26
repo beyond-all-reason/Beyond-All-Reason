@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "25 of June 2017",
 		license = "Free",
 		layer = 0,
-		enabled = true
+		enabled = false
 	}
 end
 
