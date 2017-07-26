@@ -24,6 +24,7 @@ return {
 		maxdamage = 2500,
 		maxslope = 12,
 		maxvelocity = 1.52,
+		maxreversevelocity = 1.52*0.75,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Penetrator",
