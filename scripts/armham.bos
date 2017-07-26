@@ -8,10 +8,11 @@ piece  pelvis, lfirept, rfirept, lcannon, rcannon, locase, lthigh, rthigh,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed;
+            moveSpeed, currentSpeed, isAiming1, isAiming2;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_AIM_2			4
 
 
 walk()
@@ -500,8 +501,8 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
+		currentSpeed = 2 * (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<40) currentSpeed=40;
 		sleep 142;
 	}
 }
@@ -552,6 +553,8 @@ Create()
 	move lfirept to z-axis [2.5] now;
 	dont-shade locase;
 	dont-shade lcannon;
+	isAiming1 = 0;
+	isAiming2 = 0;
 	dont-shade rcannon;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
@@ -582,6 +585,8 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	isAiming1 = 0;
+	isAiming2 = 0;
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
@@ -591,6 +596,9 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
+	if (isAiming2 == 0)
+	{
+	isAiming1 = 1;
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -604,6 +612,11 @@ AimPrimary(heading, pitch)
 	wait-for-turn canbase around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+	}
+	else
+	{
+	return (0);
+	}
 }
 
 AimFromPrimary(piecenum)
@@ -633,6 +646,64 @@ FirePrimary()
 		move lcannon to z-axis [0.000000] speed [4.000000];
 	}
 	gun_1 = !gun_1;
+	isAiming1 = 0;
+}
+
+AimSecondary(heading, pitch)
+{
+	if (isAiming1 == 0)
+	{
+	isAiming2 = 1;
+	start-script RequestState(0);
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	while( !Static_Var_4 )
+	{
+		sleep 30;
+	}
+	turn torso to y-axis heading speed <128.000000>;
+	turn canbase to x-axis <0.000000> - pitch speed <65.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn canbase around x-axis;
+	start-script RestoreAfterDelay();
+	isAiming2 = 1;
+	return (1);
+	}
+	else
+	{
+	return (0);
+	}
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = pelvis;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = lfirept + gun_1;
+}
+
+FireSecondary()
+{
+	if( gun_1 )
+	{
+		emit-sfx 1024 + 0 from rfirept;
+		move rcannon to z-axis [-2.000000] speed [25.000000];
+		sleep 150;
+		move rcannon to z-axis [0.000000] speed [4.000000];
+	}
+	else
+	{
+		emit-sfx 1024 + 0 from lfirept;
+		move lcannon to z-axis [-2.000000] speed [25.000000];
+		sleep 150;
+		move lcannon to z-axis [0.000000] speed [4.000000];
+	}
+	isAiming2 = 0;
+	gun_1 = !gun_1;
+
 }
 
 Killed(severity, corpsetype)
