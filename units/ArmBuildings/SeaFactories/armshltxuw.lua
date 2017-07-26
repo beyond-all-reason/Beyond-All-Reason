@@ -44,8 +44,8 @@ return {
 		buildoptions = {
 			[1] = "armbanth",
 			[2] = "armmar",
-			[3] = "armlun",
-			[4] = "armcroc",
+			-- [3] = "armlun",
+			[3] = "armcroc",
 		},
 		customparams = {
 			

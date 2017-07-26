@@ -44,7 +44,7 @@ return {
 			[2] = "armraz",
 			[3] = "armmar",
 			[4] = "armshock",
-			[5] = "armlun",
+			-- [5] = "armlun",
 		},
 		customparams = {
 			
