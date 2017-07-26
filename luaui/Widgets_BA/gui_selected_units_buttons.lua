@@ -67,7 +67,7 @@ include("colors.h.lua")
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
@@ -133,39 +133,41 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   
   if picList then
     gl.DeleteList(picList)
-		picList = gl.CreateList(DrawPicList)
+	picList = gl.CreateList(DrawPicList)
   end
 end
 
 local prevMouseIcon
+local justCreatedList = false
 function widget:DrawScreen()
 	enabled = false
 	if (not spIsGUIHidden()) then
 	  if picList then
-		  local unitCounts = spGetSelectedUnitsCounts()
-		  local icon = -1
-		  for udid,count in pairs(unitCounts) do
-			icon = icon + 1
-		  end
-		  if icon > 0 then
-				enabled = true
-				-- draw the highlights
-				local x,y,lb,mb,rb = spGetMouseState()
-				mouseIcon = MouseOverIcon(x, y)
-				if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
-				  if (lb or mb or rb) then
-						DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
-				  else
-						--DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
-				  end
-			  end
-			  if mouseIcon ~= prevMouseIcon then
-			    gl.DeleteList(picList)
-					picList = gl.CreateList(DrawPicList)
-					prevMouseIcon = mouseIcon
-				end
-				gl.CallList(picList)
-			end
+        local unitCounts = spGetSelectedUnitsCounts()
+        local icon = -1
+        for udid,count in pairs(unitCounts) do
+        icon = icon + 1
+        end
+        if icon > 0 then
+        enabled = true
+        -- draw the highlights
+        local x,y,lb,mb,rb = spGetMouseState()
+        mouseIcon = MouseOverIcon(x, y)
+        if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
+          if (lb or mb or rb) then
+            DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
+          else
+            --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
+          end
+        end
+        if mouseIcon ~= prevMouseIcon and justCreatedList == false then     -- justCreatedList check is needed: white icon texture error occurs when you run the createlist twice
+          gl.DeleteList(picList)
+          picList = gl.CreateList(DrawPicList)
+          prevMouseIcon = mouseIcon
+        end
+        justCreatedList = false
+        gl.CallList(picList)
+        end
 	  end    
 	end
 	updateGuishader()
@@ -175,11 +177,12 @@ function widget:CommandsChanged()
   if picList then
     gl.DeleteList(picList)
   end
-  picList = gl.CreateList(DrawPicList) 
+  picList = gl.CreateList(DrawPicList)
+  justCreatedList = true
 end
 
 function widget:Initialize()
-  picList = gl.CreateList(DrawPicList) 
+  picList = gl.CreateList(DrawPicList)
 end
 
 function widget:Shutdown()
@@ -266,8 +269,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local xmid = (xmin + xmax) * 0.5
   local ymid = (ymin + ymax) * 0.5
 
-  local ud = UnitDefs[unitDefID] 
-
+  local ud = UnitDefs[unitDefID]
   glColor(color)
   glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
