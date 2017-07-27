@@ -11,7 +11,6 @@ Balance changes:
 • Raw unit movement implemented
 • All Energy and metal prices have been rounded (because buildmenu shows prices)
 • Introduced a minimum (slightly larger) buildrange
-• Vehicles accelerate faster and slows less when turning + 2% speed increase
 • Commander torso turnspeed increased 33% + dgun reloadspeed reduced 10%
 • Commanders produce 40% additional energy (25->35)
 • Decoy commanders have been given same lasers as regular commanders
@@ -32,7 +31,14 @@ Balance changes:
 • EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
 • Pathing improvement: units wont get stuck in cliffs any longer
 • Readded KrogStomp (vs ground scouts + pws aks only) aswell as a GFX/SFX + camerashake on footsteps.
-• T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell)
+• T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
+• Vehicles can move in reverse at 40% of maxspeed for all and 60% for artilleries/banishers/penetrators.
+• Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
+• T1 transport aircrafts finally fixed.
+• Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
+• All vehicles with tracks can perform turninplace. The angle limit is set to 110, 60 for cons. Jeffies/Samsons and other wheeled vehicles cannot perform it.
+
+
 
 Wind:
 • Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
