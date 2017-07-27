@@ -18,9 +18,13 @@ return {
 		footprintx = 2,
 		footprintz = 3,
 		hoverattack = true,
+		airStrafe = false,
+		airhoverfactor = 0,
+		bankingAllowed = false,
 		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
+		loadingradius = 300,
 		maxdamage = 250,
 		maxslope = 10,
 		maxvelocity = 6.6,
@@ -36,6 +40,7 @@ return {
 		transportsize = 3,
 		turninplaceanglelimit = 360,
 		turnrate = 550,
+		verticalSpeed = 5.0,
 		blocking = false,
 		customparams = {
 			
