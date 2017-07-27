@@ -42,13 +42,15 @@ function gadget:RecvLuaMsg(msg, playerID)
     if msg=='\144' then
         -- do the same eligibility check as in unsynced
         local customtable = select(10,Spring.GetPlayerInfo(playerID))
-        local tsMu = customtable.skill 
-        local tsSigma = customtable.skilluncertainty
-        ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
-        tsSigma = tonumber(tsSigma)
-        local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID]) 
-        if eligible then
-            substitutes[playerID] = ts
+        if type(customtable) == 'table' then
+            local tsMu = customtable.skill
+            local tsSigma = customtable.skilluncertainty
+            ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
+            tsSigma = tonumber(tsSigma)
+            local eligible = tsMu and tsSigma and (tsSigma<=2) and (not string.find(tsMu, ")")) and (not players[playerID])
+            if eligible then
+                substitutes[playerID] = ts
+            end
         end
         --Spring.Echo("received", playerID, eligible, ts)
     end

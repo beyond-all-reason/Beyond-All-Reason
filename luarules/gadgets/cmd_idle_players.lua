@@ -252,7 +252,7 @@ else
             end
         end
         for _,playerID in ipairs(GetPlayerList()) do -- update player infos
-            local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
+            local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
             playerInfoTableEntry.connected = active
             playerInfoTableEntry.player = not spectator
@@ -264,9 +264,9 @@ else
             playerInfoTableEntry.pingOK = ping < pingTreshold
             if not spectator then
                 if oldPingOk and not playerInfoTableEntry.pingOK then
-                    Echo("Player " .. GetPlayerInfo(playerID) .. " is lagging behind")
+                    Echo("Player " .. name .. " is lagging behind")
                 elseif oldPingOk == false and playerInfoTableEntry.pingOK and playerInfoTableEntry.connected then
-                    Echo("Player " .. GetPlayerInfo(playerID) .. " has finished resuming")
+                    Echo("Player " .. name .. " has finished resuming")
                 end
             end
             if playerInfoTableEntry.present == nil then
@@ -326,13 +326,13 @@ else
         local previousPresent = playerInfoTableEntry.present
         playerInfoTableEntry.present = afk == 0
         playerInfoTable[playerID] = playerInfoTableEntry
-        local _,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
+        local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
         if not spectator then
             if currentGameFrame > minTimeToTake*gameSpeed then
                 if previousPresent and not playerInfoTableEntry.present then
-                    SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " went AFK")
+                    SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " went AFK")
                 elseif not previousPresent and playerInfoTableEntry.present then
-                    SendMessageToAllyTeam(allyTeamID,"Player " .. GetPlayerInfo(playerID) .. " came back")
+                    SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " came back")
                 end
             end
         end
