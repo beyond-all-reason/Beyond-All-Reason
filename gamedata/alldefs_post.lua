@@ -39,11 +39,11 @@ local vehUnits = {
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.015
 
-local vehAdditionalAcceleration = 0.01
-local vehAccelerationMultiplier = 1.1
+local vehAdditionalAcceleration = 0.00
+local vehAccelerationMultiplier = 1.0
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1.015
+local vehVelocityMultiplier = 1.00
 local vehRSpeedFactor = 0.40
 
 

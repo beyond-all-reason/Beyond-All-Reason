@@ -16,7 +16,7 @@ reverseUnit = {}
 	function gadget:UnitCreated(unitID)
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		if not (UnitDefs[unitDefID].rSpeed == nil or UnitDefs[unitDefID].rSpeed == 0) then
-			Spring.Echo("Setting for "..unitID)
+			-- Spring.Echo("Setting for "..unitID)
 			reverseUnit[unitID] = true
 				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 300)
