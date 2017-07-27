@@ -44,6 +44,7 @@ local vehAccelerationMultiplier = 1.1
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.015
+local vehRSpeedFactor = 0.40
 
 
 local kbotUnits = {
@@ -84,7 +85,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
 		end
-
+		
 		if uDef.acceleration ~= nil then
 			uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
 		end
@@ -96,6 +97,11 @@ function UnitDef_Post(name, uDef)
 		if uDef.turninplace == 0 then
 			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.82
 		end
+		
+		if uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0 then
+			uDef.maxreversevelocity = (uDef.maxvelocity) * vehRSpeedFactor
+		end
+		
 	end
 
 	-- kbots

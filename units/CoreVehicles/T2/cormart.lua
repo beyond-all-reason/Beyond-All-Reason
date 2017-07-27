@@ -24,7 +24,7 @@ return {
 		maxdamage = 560,
 		maxslope = 12,
 		maxvelocity = 1.95,
-		maxreversevelocity = 1.95*0.75,
+		maxreversevelocity = 1.95*0.60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Pillager",

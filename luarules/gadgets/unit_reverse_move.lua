@@ -14,12 +14,17 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 reverseUnit = {}
 	function gadget:UnitCreated(unitID)
-		unitDefID = Spring.GetUnitDefID(unitID)
+		local unitDefID = Spring.GetUnitDefID(unitID)
 		if not (UnitDefs[unitDefID].rSpeed == nil or UnitDefs[unitDefID].rSpeed == 0) then
 			Spring.Echo("Setting for "..unitID)
 			reverseUnit[unitID] = true
-			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 512)
-			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 140)
+				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 300)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 140)
+				else
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 180)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 160)
+				end
 		end
 	end
 	
@@ -33,14 +38,23 @@ reverseUnit = {}
 	-- Spring.Echo("XXX")
 		for unitID, canReverse in pairs(reverseUnit) do
 		a, b, c, d, e = Spring.GetUnitWeaponTarget(unitID, 1)
+		local unitDefID = Spring.GetUnitDefID(unitID)
 				if a ~= 0 then
-					-- Spring.Echo(unitID.." is targetting")
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 150000)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 90)
+					if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 5000000)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 90)
+					else
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 5000000)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 120)
+					end
 				else
-					-- Spring.Echo(unitID.." stopped targetting")
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 512)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 140)
+					if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 300)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 140)
+					else
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 180)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 160)
+					end
 				end
 		end
 	end
