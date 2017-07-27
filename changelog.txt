@@ -37,7 +37,8 @@ Balance changes:
 • T1 transport aircrafts finally fixed.
 • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
 • All vehicles with tracks can perform turninplace. The angle limit is set to 110, 60 for cons. Jeffies/Samsons and other wheeled vehicles cannot perform it.
-
+• Removed T3 Hovercrafts (maybe they will come back when balanced and fixed the weird lab).
+• Commander's uwlaser nerfed 50% default and 75% vs subs
 
 
 Wind:

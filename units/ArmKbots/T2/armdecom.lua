@@ -197,8 +197,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 125,
-					subs = 75,
+					default = 125*0.5,
+					subs = 75*0.25,
 				},
 			},
 			decoy_disintegrator = {
