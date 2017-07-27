@@ -39,8 +39,8 @@ reverseUnit = {}
 		for unitID, canReverse in pairs(reverseUnit) do
 		a, b, c, d, e = Spring.GetUnitWeaponTarget(unitID, 1)
 		local unitDefID = Spring.GetUnitDefID(unitID)
-				if a ~= 0 then
-					if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then
+				if a ~= 0 and not (UnitDefs[unitDefID].isBuilder == true) then
+					if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 and then
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 5000000)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 90)
 					else
