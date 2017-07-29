@@ -28,7 +28,7 @@ local minimumbuilddistancerange = 155
 
 local vehUnits = {
 	-- t1
-	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
+	armbeaver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
 	-- t2
 	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', armconsul='',
 	-- t1
@@ -98,7 +98,7 @@ function UnitDef_Post(name, uDef)
 			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.82
 		end
 		
-		if uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0 then
+		if (uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0) and not (name == "armcv" or name == "armacv" or name == "armconsul" or name == "armbeaver" or name == "corcv" or name == "coracv" or name == "cormuskrat") then
 			uDef.maxreversevelocity = (uDef.maxvelocity) * vehRSpeedFactor
 		end
 		
