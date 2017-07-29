@@ -6,12 +6,28 @@
 piece  torso, gun, rfirept, lfirept, rgun, lgun, pelvis, rleg,
        rfoot, lleg, lfoot, lthigh, rthigh, ground;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, isAiming1, isAiming2;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, gun_2, Aim1, Aim2, restore;
 
 // Signal definitions
 #define SIG_AIM				4
 #define SIG_AIM_2			8
 
+SetWeapon(X)
+{
+	if ( X == 1 )
+	{
+		Aim1 = TRUE;
+		Aim2 = FALSE;
+	}
+	else
+	{
+		Aim2 = TRUE;
+		Aim1 = FALSE;
+	}
+	restore = FALSE;
+	sleep 500;
+	restore = TRUE;
+}
 
 walk()
 {
@@ -471,17 +487,13 @@ Create()
 {
 	hide rfirept;
 	hide lfirept;
-	turn rfirept to x-axis <10> now;
-	move rfirept to z-axis [-1.6] now;
-	move rfirept to y-axis [1] now;
-	turn lfirept to x-axis <160> now;
-	move lfirept to z-axis [1.5] now;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	isAiming1 = 0;
-	isAiming2 = 0;
+	Aim1 = TRUE;
+	Aim2 = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = torso;
+	gun_2 = torso;
 	start-script MotionControl();
 	start-script SmokeUnit();
 }
@@ -508,6 +520,8 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
+	if ( Aim2 == TRUE )
+	{
 	if( gun_1 == 0 )
 	{
 		piecenum = rfirept;
@@ -515,6 +529,11 @@ QueryPrimary(piecenum)
 	if( gun_1 == 1 )
 	{
 		piecenum = lfirept;
+	}
+	}
+	else
+	{
+	piecenum = torso;
 	}
 }
 
@@ -525,6 +544,8 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
+	if ( Aim1 == TRUE )
+	{
 	if( gun_1 == 0 )
 	{
 		piecenum = rfirept;
@@ -533,23 +554,33 @@ QuerySecondary(piecenum)
 	{
 		piecenum = lfirept;
 	}
+	}
+	else
+	{
+	piecenum = torso;
+	}
 }
 
 RestoreAfterDelay()
 {
-	isAiming1 = 0;
-	isAiming2 = 0;
+	while (restore == FALSE)
+	{
+	sleep 50;
+	}
+	sleep 50;
+		if (restore == TRUE)
+	{
 	sleep 2750;
 	turn torso to y-axis <0.000000> speed <90>;
 	turn gun to x-axis <0.000000> speed <45>;
 	bAiming = FALSE;
+	}
 }
 
 AimPrimary(heading, pitch)
 {
-	if (isAiming2 == 0)
+	if (Aim1 == TRUE)
 	{
-	isAiming1 = 1;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
@@ -592,14 +623,12 @@ FirePrimary()
 		wait-for-move lgun along z-axis;
 		return (0);
 	}
-	isAiming1 = 0;
 }
 
 AimSecondary(heading, pitch)
 {
-	if (isAiming1 == 0)
+	if (Aim2 == TRUE)
 	{
-	isAiming2 = 1;
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	bAiming = TRUE;
@@ -642,7 +671,6 @@ FireSecondary()
 		wait-for-move lgun along z-axis;
 		return (0);
 	}
-	isAiming2 = 0;
 }
 
 Killed(severity, corpsetype)

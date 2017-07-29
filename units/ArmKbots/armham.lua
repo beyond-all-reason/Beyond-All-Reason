@@ -186,6 +186,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_HAM2",
+				slavedto = 1,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

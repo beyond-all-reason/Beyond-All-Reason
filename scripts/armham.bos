@@ -6,13 +6,31 @@
 piece  pelvis, lfirept, rfirept, lcannon, rcannon, locase, lthigh, rthigh,
        torso, rleg, rfoot, lleg, lfoot, upcase2, canbase, ground;
 
-static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1,
+static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, isAiming1, isAiming2;
+            moveSpeed, currentSpeed, Aim1, Aim2, restore;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
+
+SetWeapon(X)
+{
+	if ( X == 1 )
+	{
+		Aim1 = TRUE;
+		Aim2 = FALSE;
+	}
+	else
+	{
+		Aim2 = TRUE;
+		Aim1 = FALSE;
+	}
+	restore = FALSE;
+	sleep 500;
+	restore = TRUE;
+}
+
 
 
 walk()
@@ -543,19 +561,16 @@ Create()
 	Static_Var_3 = 1;
 	Static_Var_4 = 0;
 	gun_1 = pelvis;
+	gun_2 = pelvis;
 	restore_delay = 3000;
 	hide rfirept;
 	hide lfirept;
-	turn rfirept to x-axis <10.5> now;
-	move rfirept to z-axis [-3] now;
-	move rfirept to y-axis [1] now;
-	turn lfirept to x-axis <160> now;
-	move lfirept to z-axis [2.5] now;
+	restore = TRUE;
 	dont-shade locase;
 	dont-shade lcannon;
-	isAiming1 = 0;
-	isAiming2 = 0;
 	dont-shade rcannon;
+	Aim1 = TRUE;
+	Aim2 = FALSE;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
 	statechg_DesiredState = TRUE;
@@ -585,20 +600,25 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
-	isAiming1 = 0;
-	isAiming2 = 0;
+	while (restore == FALSE)
+	{
+	sleep 50;
+	}
+	sleep 50;
+		if (restore == TRUE)
+	{
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn canbase to x-axis <0.000000> speed <45.000000>;
 	start-script RequestState(1);
+	}
 }
 
 AimPrimary(heading, pitch)
 {
-	if (isAiming2 == 0)
+	if (Aim1 == TRUE)
 	{
-	isAiming1 = 1;
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -626,7 +646,14 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
+	if ( Aim2 == TRUE )
+	{
+	piecenum = torso;
+	}
+	else
+	{
 	piecenum = lfirept + gun_1;
+	}
 }
 
 FirePrimary()
@@ -646,14 +673,12 @@ FirePrimary()
 		move lcannon to z-axis [0.000000] speed [4.000000];
 	}
 	gun_1 = !gun_1;
-	isAiming1 = 0;
 }
 
 AimSecondary(heading, pitch)
 {
-	if (isAiming1 == 0)
+	if (Aim2 == TRUE)
 	{
-	isAiming2 = 1;
 	start-script RequestState(0);
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -666,7 +691,6 @@ AimSecondary(heading, pitch)
 	wait-for-turn torso around y-axis;
 	wait-for-turn canbase around x-axis;
 	start-script RestoreAfterDelay();
-	isAiming2 = 1;
 	return (1);
 	}
 	else
@@ -682,12 +706,19 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	piecenum = lfirept + gun_1;
+	if ( Aim1 == TRUE )
+	{
+	piecenum = torso;
+	}
+	else
+	{
+	piecenum = lfirept + gun_2;
+	}
 }
 
 FireSecondary()
 {
-	if( gun_1 )
+	if( gun_2 )
 	{
 		emit-sfx 1024 + 0 from rfirept;
 		move rcannon to z-axis [-2.000000] speed [25.000000];
@@ -701,8 +732,7 @@ FireSecondary()
 		sleep 150;
 		move lcannon to z-axis [0.000000] speed [4.000000];
 	}
-	isAiming2 = 0;
-	gun_1 = !gun_1;
+	gun_2 = !gun_2;
 
 }
 
