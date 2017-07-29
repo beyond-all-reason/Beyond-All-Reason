@@ -16,17 +16,17 @@ static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
 
 SetWeapon(X)
 {
-	if ( X == 1 )
+	if ( X == 1 ) // SetWeapon to 1
 	{
-		Aim1 = TRUE;
-		Aim2 = FALSE;
+		Aim1 = TRUE; // Allow 1
+		Aim2 = FALSE; // Block 2
 	}
-	else
+	else // SetWeapon to 1
 	{
-		Aim2 = TRUE;
-		Aim1 = FALSE;
+		Aim2 = TRUE; // Allow 2
+		Aim1 = FALSE; // Block 1
 	}
-	restore = FALSE;
+	restore = FALSE; // Attempt to block restoreafterdelay when switching from 1 to 2 or 2 to 1 (doesnt seem like its working for now
 	sleep 500;
 	restore = TRUE;
 }
@@ -569,7 +569,7 @@ Create()
 	dont-shade locase;
 	dont-shade lcannon;
 	dont-shade rcannon;
-	Aim1 = TRUE;
+	Aim1 = TRUE; // Base = allow 1 and block 2
 	Aim2 = FALSE;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
@@ -600,7 +600,7 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
-	while (restore == FALSE)
+	while (restore == FALSE) // attempt to block restore when switching from 1 to 2 or 2 to 1.
 	{
 	sleep 50;
 	}
@@ -617,7 +617,7 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
-	if (Aim1 == TRUE)
+	if (Aim1 == TRUE) // Only do script when 1 is enabled
 	{
 	start-script RequestState(0);
 	signal SIG_AIM;
@@ -635,7 +635,7 @@ AimPrimary(heading, pitch)
 	}
 	else
 	{
-	return (0);
+	return (0); // Block fire if 1 was disabled
 	}
 }
 
@@ -646,7 +646,7 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if ( Aim2 == TRUE )
+	if ( Aim2 == TRUE )// Fixes units going from lowtraj to hightraj and hightraj to lowtraj without shooting because it checks if the unit can shoot from that piece, which is mobile when aimscripts are called
 	{
 	piecenum = torso;
 	}
@@ -677,7 +677,7 @@ FirePrimary()
 
 AimSecondary(heading, pitch)
 {
-	if (Aim2 == TRUE)
+	if (Aim2 == TRUE) // Only do script when 2 is enabled
 	{
 	start-script RequestState(0);
 	signal SIG_AIM_2;
@@ -695,7 +695,7 @@ AimSecondary(heading, pitch)
 	}
 	else
 	{
-	return (0);
+	return (0); // Block fire if 2 was disabled
 	}
 }
 
@@ -706,7 +706,7 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	if ( Aim1 == TRUE )
+	if ( Aim1 == TRUE ) // Fixes units going from lowtraj to hightraj and hightraj to lowtraj without shooting because it checks if the unit can shoot from that piece, which is mobile when aimscripts are called
 	{
 	piecenum = torso;
 	}
