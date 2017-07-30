@@ -70,19 +70,19 @@ reverseUnit = {}
 		local unitDefID = Spring.GetUnitDefID(unitID)
 			if a ~= 0 and isFront == true and not (UnitDefs[unitDefID].isBuilder == true) then -- When Targetting + facing unit + not a builder
 				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then -- If penetrator/arti/banisher/tremor
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 300)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 400)
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 120)
 				else -- If not penetrator/arti/banisher/tremor
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 180)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 90)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 250)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 120)
 				end
 			else -- If not Targetting + facing unit + not a builder
 				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then -- If penetrator/arti/banisher/tremor
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 300)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 400)
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 120)
 				else -- If not penetrator/arti/banisher/tremor
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 180)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 90)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 250)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 120)
 				end
 			end
 		end
