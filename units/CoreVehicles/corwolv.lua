@@ -25,7 +25,7 @@ return {
 		maxdamage = 577,
 		maxslope = 10,
 		maxvelocity = 1.87,
-		maxreversevelocity = 1.87*0.60,
+		--maxreversevelocity = 1.87*0.60,
 		maxwaterdepth = 8,
 		movementclass = "TANK2",
 		name = "Wolverine",
