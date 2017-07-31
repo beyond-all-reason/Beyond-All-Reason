@@ -73,6 +73,7 @@ return {
 			[28] = "armaap",
 			[29] = "armplat",
 			[30] = "seaplatform",
+			[31] = "cjuno",
 		},
 		customparams = {
 			
