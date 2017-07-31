@@ -74,7 +74,7 @@ return {
 			[25] = "corerad",
 			[26] = "cordl",
 			[27] = "corjamt",
-			[28] = "corjuno",
+			[28] = "seaplatform",
 			[29] = "coramsub",
 			[30] = "corsy",
 			[31] = "cortide",
@@ -89,7 +89,6 @@ return {
 			[40] = "corfhlt",
 			[41] = "corfrt",
 			[42] = "corptl",
-			[43] = "seaplatform",
 		},
 		customparams = {
 			description_long = "The Muskrat is an amphibious construction vehicle, which can travel on land and underwater equally well allowing easy expansion between islands, under rivers and across seas. Its build menu includes some water based units like underwater metal extractors, tidal generators and most importantly the amphibious complex, a lab that includes T2 amphibious tanks and Kbots. As all amphibious units it can easily cross stepper hills unlike regular vehicles. It can be destroyed by torpedoes so avoid submarines, launchers and destroyers. It is wise to use pairs of cons for expansion, so they can heal each other and build defensive structures faster. This makes them immune to light assault units like fleas/jeffys.",

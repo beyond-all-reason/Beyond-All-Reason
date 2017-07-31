@@ -72,9 +72,8 @@ return {
 			[27] = "corerad",
 			[28] = "cordl",
 			[29] = "corjamt",
-			[30] = "corjuno",
-			[31] = "corsy",
-			[32] = "seaplatform",
+			[30] = "corsy",
+			[31] = "seaplatform",
 		},
 		customparams = {
 			

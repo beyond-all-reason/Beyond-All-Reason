@@ -71,7 +71,7 @@ return {
 			[25] = "armcir",
 			[26] = "armdl",
 			[27] = "armjamt",
-			[28] = "armjuno",
+			[28] = "seaplatform",
 			[29] = "armfhp",
 			[30] = "armsy",
 			[31] = "armtide",
@@ -87,7 +87,6 @@ return {
 			[41] = "armfhlt",
 			[42] = "armfrt",
 			[43] = "armtl",
-			[44] = "seaplatform",
 		},
 		customparams = {
 			

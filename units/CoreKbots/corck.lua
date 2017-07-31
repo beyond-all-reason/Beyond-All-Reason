@@ -72,9 +72,8 @@ return {
 			[26] = "corerad",
 			[27] = "cordl",
 			[28] = "corjamt",
-			[29] = "corjuno",
-			[30] = "corsy",
-			[31] = "seaplatform",
+			[29] = "corsy",
+			[30] = "seaplatform",
 		},
 		customparams = {
 			description_long = "A construction Kbot is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Kbot lab. It is slightly slower and weaker than vehicle constructor, but it can climb stepper hills, so it is effective in expansion on mountainous terrain. Each Construction Kbot increases the player's energy and metal storage capacity by 50. It is wise to use pairs of cons for expansion, so they can heal each other and build defensive structures faster. This makes them immune to light assault units like fleas/jeffys.",

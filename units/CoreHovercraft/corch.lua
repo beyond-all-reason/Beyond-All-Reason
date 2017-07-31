@@ -71,7 +71,7 @@ return {
 			[25] = "corerad",
 			[26] = "cordl",
 			[27] = "corjamt",
-			[28] = "corjuno",
+			[28] = "seaplatform",
 			[29] = "corfhp",
 			[30] = "corsy",
 			[31] = "cortide",
@@ -87,7 +87,6 @@ return {
 			[41] = "corfhlt",
 			[42] = "corfrt",
 			[43] = "cortl",
-			[44] = "seaplatform",
 		},
 		customparams = {
 			
