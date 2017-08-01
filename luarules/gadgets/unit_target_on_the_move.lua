@@ -703,7 +703,8 @@ end
 
 local function pos2func(unitID)
 	local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(unitID,true,true)
-	return x2,y2,z2
+	local dx, dy, dz = Spring.GetUnitPosErrorParams(unitID)
+	return x2+dx,y2+dy,z2+dz
 end
 
 local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
