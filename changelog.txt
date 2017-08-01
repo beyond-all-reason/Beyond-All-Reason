@@ -32,7 +32,6 @@ Balance changes:
 • Pathing improvement: units wont get stuck in cliffs any longer
 • Readded KrogStomp (vs ground scouts + pws aks only) aswell as a GFX/SFX + camerashake on footsteps.
 • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
-• Vehicles can move in reverse at 40% of maxspeed for all and 60% for artilleries/banishers/penetrators.
 • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
 • T1 transport aircrafts finally fixed.
 • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
