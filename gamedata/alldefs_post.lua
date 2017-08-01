@@ -44,7 +44,7 @@ local vehAccelerationMultiplier = 1.0
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.00
-local vehRSpeedFactor = 0.40
+local vehRSpeedFactor = 0  --0.40
 
 
 local kbotUnits = {
