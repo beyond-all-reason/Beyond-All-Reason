@@ -15,11 +15,10 @@ Balance changes:
 • Commanders produce 40% additional energy (25->35)
 • Decoy commanders have been given same lasers as regular commanders
 • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
-• Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
 • T1 kbot/veh/air lab got 50% additional buildspeed
 • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
-• Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
+• Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
 • Armmart and cormart (mobile T2 arty) do 15% more damage
 • Morties are 5% slower and are a bit less acurate (even more when moving)
 • Vanguard does 20% more damage
@@ -100,6 +99,7 @@ Mod options: (default disabled)
 This replaces hitboxes with correctly sized hitspheres. 
 Currently hitboxes are smaller than desired, this was done so that units can somewhat can fire over others
 Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
+• Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
 
 Other:
 • All new particle/lighting effects!

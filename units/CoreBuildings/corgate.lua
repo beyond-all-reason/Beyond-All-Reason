@@ -128,7 +128,7 @@ return {
 					default = 100,
 				},
 				shield = {
-					alpha = 0.5,
+					alpha = 0.25,
 					armortype = "shields",
 					energyuse = 0,
 					force = 2.5,
@@ -146,11 +146,13 @@ return {
 						[1] = 1,
 						[2] = 0.2,
 						[3] = 0.2,
+						[4] = 0.25,
 					},
 					goodcolor = {
 						[1] = 0.2,
 						[2] = 1,
 						[3] = 0.2,
+						[4] = 0.2,
 					},
 				},
 			},
