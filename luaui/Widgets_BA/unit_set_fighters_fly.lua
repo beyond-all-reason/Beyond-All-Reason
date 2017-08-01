@@ -21,7 +21,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetMyTeamId = Spring.GetMyTeamID
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
-local cmdLand = 34569
+local cmdFly = 145
 --------------------------------------------------------------------------------
 
 
@@ -44,11 +44,10 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
     end
 end
 
-
 function switchToFlyMode(unitID, unitDefID)
     if (unitDefID == UnitDefNames["armfig"].id  or unitDefID == UnitDefNames["armsfig"].id or unitDefID == UnitDefNames["armhawk"].id or
         unitDefID == UnitDefNames["corveng"].id or unitDefID == UnitDefNames["corsfig"].id or unitDefID == UnitDefNames["corvamp"].id) then
-        spGiveOrderToUnit(unitID, cmdLand, { 0 }, {})
+        spGiveOrderToUnit(unitID, cmdFly, { 0 }, {})
     end
 end
 
