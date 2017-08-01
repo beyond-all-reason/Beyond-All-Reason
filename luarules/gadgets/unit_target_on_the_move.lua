@@ -701,8 +701,11 @@ function handleTargetChangeEvent(_,unitID,dataA,dataB,dataC)
     return true
 end
 
-local function pos2func(unitID)
+local function pos2func(unitID, hasLos)
 	local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(unitID,true,true)
+	if hasLos then
+		return x2, y2, z2
+	end
 	local dx, dy, dz = Spring.GetUnitPosErrorParams(unitID)
 	return x2+dx,y2+dy,z2+dz
 end
@@ -717,7 +720,7 @@ local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
 			local los = spGetUnitLosState(targetData.target, myAllyTeam, false)
 			if los and (los.los or los.radar) then
 				-- check teams los for target
-				glVertex(CallAsTeam(myTeam, pos2func, targetData.target))
+				glVertex(CallAsTeam(myTeam, pos2func, targetData.target, los.los))
 			end
 		end
 	elseif targetData and targetData.userTarget and not tonumber(targetData.target) and targetData.target then
