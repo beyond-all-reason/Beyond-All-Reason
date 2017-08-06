@@ -74,7 +74,7 @@ return {
 			[27] = "corlab",
 			[28] = "coralab",
 			[29] = "seaplatform",
-			[30] = "cjuno",
+			[30] = "corjuno",
 		},
 		customparams = {
 			
