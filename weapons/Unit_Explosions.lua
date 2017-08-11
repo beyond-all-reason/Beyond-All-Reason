@@ -79,14 +79,14 @@ unitDeaths = {
 		weaponType = "Cannon",
 		AreaOfEffect = 180,
 		cameraShake = 180,
-		edgeeffectiveness = 0.6,
+		edgeeffectiveness = 0.75,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundhit = "xplosml3",
 		soundstart = "largegun",
 		explosiongenerator="custom:genericbuildingexplosion-small",
 		damage = {
-			default = 100,
+			default = 80,
 		},
 	},
 
