@@ -16,7 +16,7 @@ Balance changes:
 • Decoy commanders have been given same lasers as regular commanders
 • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
 • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
-• T1 kbot/veh/air lab got 50% additional buildspeed
+• T1 kbot/veh/air lab got 33% additional buildspeed
 • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
 • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
 • Armmart and cormart (mobile T2 arty) do 15% more damage
@@ -37,12 +37,6 @@ Balance changes:
 • All vehicles with tracks can perform turninplace. The angle limit is set to 110, 60 for cons. Jeffies/Samsons and other wheeled vehicles cannot perform it.
 • Removed T3 Hovercrafts (maybe they will come back when balanced and fixed the weird lab).
 • Commander's uwlaser nerfed 50% default and 75% vs subs
-
-
-Wind:
-• Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
-• Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
-• Windspeed gained 50% (but due to price increases: generators wont be more effective)
 
 Sea reworked: Doo
 • Work In Prorgess

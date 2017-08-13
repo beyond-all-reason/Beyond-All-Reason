@@ -61,8 +61,8 @@ local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
 local spWind		  			= Spring.GetWind
-local minWind		  			= Game.windMin * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
-local maxWind		  			= Game.windMax * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+local minWind		  			= Game.windMin --* 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+local maxWind		  			= Game.windMax --* 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
 local windRotation			= 0
 
 local lastFrame = -1
@@ -474,7 +474,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 8 (arm) or 9 (core)")
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (arm) or 6 (core)")
 	end
 end
 
