@@ -22,166 +22,13 @@ UnitSpeed()
 {
     while(TRUE)
     {
-        currentSpeed = (1) * (get CURRENT_SPEED)*100/moveSpeed; if (currentSpeed<30) currentSpeed=30;
+        currentSpeed = (10/9) * (get CURRENT_SPEED)*100/moveSpeed; if (currentSpeed<80) currentSpeed=80;
         sleep 142;
     }
 }
  
 startwalk()
 {
-    if( TRUE )
-    {
-        if( Static_Var_5 )
-        {
-            Static_Var_8 = 0;
-            turn arml to x-axis <18.000000> speed <9.000000> * currentSpeed / 100 ;
-            turn armr to x-axis <-18.000000> speed <18.000000> * currentSpeed / 100 ;
-        }
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn ruparm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <-10.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <-10.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn luparm to x-axis <-30.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <25.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn thumbl to x-axis <-10.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 225 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn thumbl to x-axis <-25.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 125 * (100 / currentSpeed);
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn ruparm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn luparm to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        sleep 200 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn fingerra to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn thumbl to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <10.000000> speed <140.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <5.000000> speed <140.000000> * currentSpeed / 100 ;
-        sleep 100 * (100 / currentSpeed);
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn luparm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <-5.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <-5.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn ruparm to x-axis <-30.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <25.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn thumbr to x-axis <-10.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 225 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn thumbr to x-axis <-25.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 125 * (100 / currentSpeed);
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn luparm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn ruparm to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        sleep 200 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn fingerla to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn thumbr to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <10.000000> speed <140.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <5.000000> speed <140.000000> * currentSpeed / 100 ;
-        sleep 100 * (100 / currentSpeed);
-    }
-    if( TRUE )
-    {
-        if( Static_Var_5 )
-        {
-            turn arml to x-axis <-18.000000> speed <20.000000> * currentSpeed / 100 ;
-            turn armr to x-axis <18.000000> speed <20.000000> * currentSpeed / 100 ;
-        }
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn ruparm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <-5.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <-5.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn luparm to x-axis <-30.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <25.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn thumbl to x-axis <-10.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 225 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn thumbl to x-axis <-25.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 125 * (100 / currentSpeed);
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn ruparm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn luparm to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        sleep 200 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn fingerra to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn thumbl to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <10.000000> speed <140.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <5.000000> speed <140.000000> * currentSpeed / 100 ;
-        sleep 100 * (100 / currentSpeed);
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn luparm to x-axis <10.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <20.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <-5.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <-5.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn ruparm to x-axis <-30.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <25.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn thumbr to x-axis <-10.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <10.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 225 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn thumbr to x-axis <-25.000000> speed <200.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <25.000000> speed <300.000000> * currentSpeed / 100 ;
-        sleep 125 * (100 / currentSpeed);
-        move hips to y-axis [2.000000] speed [2.000000] * currentSpeed / 100 ;
-        turn luparm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn ruparm to x-axis <-15.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <0.000000> speed <90.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <15.000000> speed <90.000000> * currentSpeed / 100 ;
-        sleep 200 * (100 / currentSpeed);
-        move hips to y-axis [2.100000] speed [2.000000] * currentSpeed / 100 ;
-        turn fingerla to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <0.000000> speed <300.000000> * currentSpeed / 100 ;
-        turn thumbr to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <0.000000> speed <160.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <10.000000> speed <140.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <5.000000> speed <140.000000> * currentSpeed / 100 ;
-        sleep 100 * (100 / currentSpeed);
-    }
 }
  
 walk()
@@ -356,38 +203,38 @@ stopwalk()
 {
     if( TRUE )
     {
-        move hips to y-axis [2.000000] speed [1.000000] * currentSpeed / 100 ;
-        turn luparm to x-axis <0.000000> speed <50.000000> * currentSpeed / 100 ;
-        turn ruparm to x-axis <0.000000> speed <50.000000> * currentSpeed / 100 ;
-        turn lloarm to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn rloarm to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn body to x-axis <0.000000> speed <20.000000> * currentSpeed / 100 ;
-        move hips to y-axis [1.500000] speed [3.000000] * currentSpeed / 100 ;
-        move hips to y-axis [0.000000] speed [5.000000] * currentSpeed / 100 ;
-        turn hips to z-axis <0.000000> speed <20.000000> * currentSpeed / 100 ;
-        turn fingerra to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn fingerrb to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn thumbr to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn fingerla to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn fingerlb to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn thumbl to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn rhand to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn lhand to x-axis <0.000000> speed <100.000000> * currentSpeed / 100 ;
-        turn body to x-axis <8.000000> speed <48.000000> * currentSpeed / 100 ;
+        move hips to y-axis [2.000000] speed [1.000000];
+        turn luparm to x-axis <0.000000> speed <50.000000>;
+        turn ruparm to x-axis <0.000000> speed <50.000000>;
+        turn lloarm to x-axis <0.000000> speed <100.000000>;
+        turn rloarm to x-axis <0.000000> speed <100.000000>;
+        turn body to x-axis <0.000000> speed <20.000000>;
+        move hips to y-axis [1.500000] speed [3.000000];
+        move hips to y-axis [0.000000] speed [5.000000];
+        turn hips to z-axis <0.000000> speed <20.000000>;
+        turn fingerra to x-axis <0.000000> speed <100.000000>;
+        turn fingerrb to x-axis <0.000000> speed <100.000000>;
+        turn thumbr to x-axis <0.000000> speed <100.000000>;
+        turn fingerla to x-axis <0.000000> speed <100.000000>;
+        turn fingerlb to x-axis <0.000000> speed <100.000000>;
+        turn thumbl to x-axis <0.000000> speed <100.000000>;
+        turn rhand to x-axis <0.000000> speed <100.000000>;
+        turn lhand to x-axis <0.000000> speed <100.000000>;
+        turn body to x-axis <8.000000> speed <48.000000>;
         if( Static_Var_5 )
         {
-            turn arml to x-axis <-8.000000> speed <48.000000> * currentSpeed / 100 ;
-            turn armr to x-axis <-8.000000> speed <48.000000> * currentSpeed / 100 ;
+            turn arml to x-axis <-8.000000> speed <48.000000>;
+            turn armr to x-axis <-8.000000> speed <48.000000>;
         }
         wait-for-turn body around x-axis;
         wait-for-turn body around x-axis;
-        turn body to x-axis <-1.000000> speed <48.000000> * currentSpeed / 100 ;
+        turn body to x-axis <-1.000000> speed <48.000000>;
         wait-for-turn body around x-axis;
-        turn body to x-axis <0.000000> speed <48.000000> * currentSpeed / 100 ;
+        turn body to x-axis <0.000000> speed <48.000000>;
         if( Static_Var_5 )
         {
-            turn arml to x-axis <0.000000> speed <48.000000> * currentSpeed / 100 ;
-            turn armr to x-axis <0.000000> speed <48.000000> * currentSpeed / 100 ;
+            turn arml to x-axis <0.000000> speed <48.000000>;
+            turn armr to x-axis <0.000000> speed <48.000000>;
         }
         wait-for-turn body around x-axis;
     }
