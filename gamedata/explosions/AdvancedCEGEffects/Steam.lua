@@ -27,7 +27,6 @@ return {
         sizemod            = 0.9,
         texture            = [[new_dirta]],
         useairlos          = false,
-		colorchange			= "stuffs",
       },
     },
   },
