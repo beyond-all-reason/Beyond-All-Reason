@@ -308,9 +308,10 @@ function checkWidgets()
 end
 
 
-local startColumn = 0
-local maxColumns = 3
-local maxRows = 0
+local startColumn = 1		-- used for navigation
+local maxDrawColumns = 3
+local maxColumnRows = 0 	-- gets calculated
+local totalColumns = 0 		-- gets calculated
 function DrawWindow()
 
 	-- add widget options
@@ -343,10 +344,10 @@ function DrawWindow()
 	gl.PopMatrix()]]--
 	
 	-- title
-  local title = "Options"
+	local title = "Options"
 	local titleFontSize = 18
-  gl.Color(0,0,0,0.8)
-  titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+	gl.Color(0,0,0,0.8)
+	titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	
 	font:Begin()
@@ -377,72 +378,85 @@ function DrawWindow()
 	local sliderWidth = 110
 	local selectWidth = 140
 	local i = 0
+	local rows = 0
+	local column = 1
+	local drawColumnPos = 1
+	if totalColumns == 0 or maxColumnRows == 0 then
+		maxColumnRows = math.floor((y-yPosMax+oPadding) / (oHeight+oPadding+oPadding))
+		totalColumns = 1 + math.floor(#options / maxColumnRows)
+	end
 	optionButtons = {}
 	optionHover = {}
-	local column = 1
 	for oid,option in pairs(options) do
 		yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 		if yPos-oHeight < yPosMax then
-			maxRows = i+1
 			i = 0
 		  	column = column + 1
-			xPos = x + (( (screenWidth/3))*(column-1))
-			if column > 3 then
+			if column >= startColumn and rows > 0 then
+				drawColumnPos = drawColumnPos + 1
+			end
+			if drawColumnPos > 3 then
 				break
 			end
-			xPosMax = xPos + oWidth
+			if rows > 0 then
+				xPos = x + (( (screenWidth/3))*(drawColumnPos-1))
+				xPosMax = xPos + oWidth
+			end
 			yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 			gl.Color(0,0,0,0.25)
 			RectRound(xPos-oPadding-2.5,y-screenHeight+118,xPos-oPadding+2.5,y,2)
 		end
 
-		--option name
-		glText('\255\230\230\230'..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
+		if column >= startColumn then
+			rows = rows + 1
+			--option name
+			glText('\255\230\230\230'..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
 
-		-- define hover area
-		optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
+			-- define hover area
+			optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
 
-		-- option controller
-		local rightPadding = 4
-		if option.type == 'bool' then
-			optionButtons[oid] = {}
-			optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-			glColor(1,1,1,0.11)
-			RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
-			if option.value == true then
-				glColor(0.66,0.92,0.66,1)
-				RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-			else
-				glColor(0.92,0.66,0.66,1)
-				RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+			-- option controller
+			local rightPadding = 4
+			if option.type == 'bool' then
+				optionButtons[oid] = {}
+				optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
+				glColor(1,1,1,0.11)
+				RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+				if option.value == true then
+					glColor(0.66,0.92,0.66,1)
+					RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+				else
+					glColor(0.92,0.66,0.66,1)
+					RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+				end
+
+			elseif option.type == 'slider' then
+				local sliderSize = oHeight*0.75
+				local sliderPos = (option.value-option.min) / (option.max-option.min)
+				glColor(1,1,1,0.11)
+				RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
+				glColor(0.8,0.8,0.8,1)
+				RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 3)
+				optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
+				optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
+
+			elseif option.type == 'select' then
+				optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
+				glColor(1,1,1,0.11)
+				RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+				if option.options[tonumber(option.value)] ~= nil then
+				glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
 			end
-		
-		elseif option.type == 'slider' then
-			local sliderSize = oHeight*0.75
-			local sliderPos = (option.value-option.min) / (option.max-option.min)
-			glColor(1,1,1,0.11)
-			RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
-			glColor(0.8,0.8,0.8,1)
-			RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 3)
-			optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
-			optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
-			
-		elseif option.type == 'select' then
-			optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-			glColor(1,1,1,0.11)
-			RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
-			if option.options[tonumber(option.value)] ~= nil then 
-  			glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
-  		end
-			glColor(1,1,1,0.11)
-			RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
-			glColor(1,1,1,0.16)
-			glTexture(bgcorner1)
- 			glPushMatrix()
-   			glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
-				glRotate(-45,0,0,1)
-				glTexRect(-(oHeight*0.25),-(oHeight*0.25),(oHeight*0.25),(oHeight*0.25))
- 	 		glPopMatrix()
+				glColor(1,1,1,0.11)
+				RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
+				glColor(1,1,1,0.16)
+				glTexture(bgcorner1)
+				glPushMatrix()
+				glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
+					glRotate(-45,0,0,1)
+					glTexRect(-(oHeight*0.25),-(oHeight*0.25),(oHeight*0.25),(oHeight*0.25))
+				glPopMatrix()
+			end
 		end
 		i = i + 1
 	end
@@ -1061,6 +1075,9 @@ function widget:Initialize()
 		end
 	end
 	options = processedOptions
+
+	if windowList then gl.DeleteList(windowList) end
+	windowList = gl.CreateList(DrawWindow)
 end
 
 function widget:Shutdown()
