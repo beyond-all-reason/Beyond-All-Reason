@@ -61,8 +61,8 @@ local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
 local spWind		  			= Spring.GetWind
-local minWind		  			= Game.windMin --* 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
-local maxWind		  			= Game.windMax --* 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+local minWind		  			= Game.windMin
+local maxWind		  			= Game.windMax
 local windRotation			= 0
 
 local lastFrame = -1
@@ -822,7 +822,7 @@ function widget:Update(dt)
 	elseif (gameFrame ~= lastFrame) then
 		-- wind
 		_, _, _, currentWind = spWind()
-		currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+		currentWind = sformat('%.1f', currentWind)
 	end
 
  	-- coms

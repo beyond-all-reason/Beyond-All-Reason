@@ -308,6 +308,9 @@ function checkWidgets()
 end
 
 
+local startColumn = 0
+local maxColumns = 3
+local maxRows = 0
 function DrawWindow()
 
 	-- add widget options
@@ -376,28 +379,32 @@ function DrawWindow()
 	local i = 0
 	optionButtons = {}
 	optionHover = {}
-	local row = 1 
+	local column = 1
 	for oid,option in pairs(options) do
 		yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 		if yPos-oHeight < yPosMax then
-		  row = row + 1
+			maxRows = i+1
 			i = 0
-			xPos = x + (( (screenWidth/3))*(row-1))
+		  	column = column + 1
+			xPos = x + (( (screenWidth/3))*(column-1))
+			if column > 3 then
+				break
+			end
 			xPosMax = xPos + oWidth
 			yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 			gl.Color(0,0,0,0.25)
 			RectRound(xPos-oPadding-2.5,y-screenHeight+118,xPos-oPadding+2.5,y,2)
 		end
-		
+
 		--option name
-  	glText('\255\230\230\230'..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
-  	
-  	-- define hover area
+		glText('\255\230\230\230'..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
+
+		-- define hover area
 		optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
-			
-  	-- option controller
-  	local rightPadding = 4
-  	if option.type == 'bool' then
+
+		-- option controller
+		local rightPadding = 4
+		if option.type == 'bool' then
 			optionButtons[oid] = {}
 			optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
 			glColor(1,1,1,0.11)

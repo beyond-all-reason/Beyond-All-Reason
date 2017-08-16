@@ -39,7 +39,6 @@ return {
 		customparams = {
 			removewait = true,
 			removestop = true,
-			--windgen = 0.5,		-- UPDATE WIND DISPLAY WIDGET IF YOU CHANGE... extra wind energy multiplier (0.5 = 50% on top of currentwind)
 		},
 		featuredefs = {
 			dead = {
