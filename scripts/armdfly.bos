@@ -260,62 +260,62 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP4;
-		explode wing1 type BITMAPONLY | BITMAP3;
-		explode wing2 type BITMAPONLY | BITMAP2;
-		explode wing3 type BITMAPONLY | BITMAP3;
-		explode wing4 type BITMAPONLY | BITMAP2;
-		explode leg1 type BITMAPONLY | BITMAP1;
-		explode leg2 type BITMAPONLY | BITMAP1;
-		explode leg3 type BITMAPONLY | BITMAP2;
-		explode leg4 type BITMAPONLY | BITMAP3;
-		explode leg5 type BITMAPONLY | BITMAP1;
-		explode leg6 type BITMAPONLY | BITMAP1;
+		explode base type BITMAPONLY | BITMAP4 | NOHEATCLOUD;
+		explode wing1 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode wing3 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode wing4 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode leg1 type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		explode leg2 type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		explode leg3 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode leg4 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode leg5 type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
+		explode leg6 type BITMAPONLY | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP4;
-		explode wing1 type BITMAPONLY | BITMAP3;
-		explode wing2 type BITMAPONLY | BITMAP2;
-		explode wing3 type FALL | BITMAP4;
-		explode wing4 type FALL | BITMAP2;
-		explode leg1 type BITMAPONLY | BITMAP2;
-		explode leg2 type FALL | BITMAP1;
-		explode leg3 type BITMAPONLY | BITMAP3;
-		explode leg4 type BITMAPONLY | BITMAP4;
-		explode leg5 type FALL | BITMAP2;
-		explode leg6 type BITMAPONLY | BITMAP3;
+		explode base type BITMAPONLY | BITMAP4 | NOHEATCLOUD;
+		explode wing1 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode wing3 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode wing4 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode leg1 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode leg2 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode leg3 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode leg4 type BITMAPONLY | BITMAP4 | NOHEATCLOUD;
+		explode leg5 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode leg6 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | BITMAP4;
-		explode wing1 type BITMAPONLY | BITMAP3;
-		explode wing2 type BITMAPONLY | BITMAP2;
-		explode wing3 type FALL | SMOKE | FIRE | BITMAP4;
-		explode wing4 type FALL | SMOKE | FIRE | BITMAP2;
-		explode leg1 type BITMAPONLY | BITMAP2;
-		explode leg2 type FALL | SMOKE | FIRE | BITMAP3;
-		explode leg3 type BITMAPONLY | BITMAP3;
-		explode leg4 type BITMAPONLY | BITMAP4;
-		explode leg5 type FALL | SMOKE | FIRE | BITMAP2;
-		explode leg6 type BITMAPONLY | BITMAP3;
+		explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode wing1 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode wing3 type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
+		explode wing4 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
+		explode leg1 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+		explode leg2 type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
+		explode leg3 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+		explode leg4 type BITMAPONLY | BITMAP4 | NOHEATCLOUD;
+		explode leg5 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
+		explode leg6 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | BITMAP4;
-	explode wing1 type BITMAPONLY | BITMAP3;
-	explode wing2 type BITMAPONLY | BITMAP2;
-	explode wing3 type FALL | SMOKE | FIRE | BITMAP4;
-	explode wing4 type FALL | SMOKE | FIRE | BITMAP2;
-	explode leg1 type BITMAPONLY | BITMAP2;
-	explode leg2 type FALL | SMOKE | FIRE | BITMAP3;
-	explode leg3 type BITMAPONLY | BITMAP3;
-	explode leg4 type BITMAPONLY | BITMAP4;
-	explode leg5 type FALL | SMOKE | FIRE | BITMAP2;
-	explode leg6 type BITMAPONLY | BITMAP3;
+	explode base type SHATTER | BITMAP4 | NOHEATCLOUD;
+	explode wing1 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+	explode wing2 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+	explode wing3 type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
+	explode wing4 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
+	explode leg1 type BITMAPONLY | BITMAP2 | NOHEATCLOUD;
+	explode leg2 type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
+	explode leg3 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
+	explode leg4 type BITMAPONLY | BITMAP4 | NOHEATCLOUD;
+	explode leg5 type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
+	explode leg6 type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;
 }
