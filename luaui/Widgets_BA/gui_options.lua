@@ -18,6 +18,8 @@ local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize
 
 local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 local bgcorner1 = ":n:"..LUAUI_DIRNAME.."Images/bgcorner1.png" -- only used to draw dropdown arrow
+local backwardTex = LUAUI_DIRNAME.."Images/backward.dds"
+local forwardTex = LUAUI_DIRNAME.."Images/forward.dds"
 
 local bgMargin = 6
 
@@ -342,9 +344,9 @@ end
 
 
 function orderOptions()
-	local groupOptions = deepcopy(optionGroups)
-	for grId,grLabel in pairs(groupOptions) do
-		groupOptions[grId] = {}
+	local groupOptions = {}
+	for id,group in pairs(optionGroups) do
+		groupOptions[group.id] = {}
 	end
 	for oid,option in pairs(options) do
 		if option.type ~= 'label' then
@@ -352,9 +354,10 @@ function orderOptions()
 		end
 	end
 	local newOptions = {}
-	for grId,grOptions in pairs(groupOptions) do
+	for id,group in pairs(optionGroups) do
+		grOptions = groupOptions[group.id]
 		if #grOptions > 0 then
-			table.insert(newOptions, {id="group_"..grId, name=optionGroups[grId], type="label"})
+			table.insert(newOptions, {id="group_"..group.id, name=group.name, type="label"})
 		end
 		for oid,option in pairs(grOptions) do
 			table.insert(newOptions, option)
@@ -365,7 +368,7 @@ end
 
 
 local startColumn = 1		-- used for navigation
-local maxDrawColumns = 3
+local maxShownColumns = 3
 local maxColumnRows = 0 	-- gets calculated
 local totalColumns = 0 		-- gets calculated
 function DrawWindow()
@@ -417,9 +420,9 @@ function DrawWindow()
 	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
 	
 	-- description background
-	gl.Color(0.72,0.5,0.12,0.14)
+	gl.Color(0.62,0.5,0.22,0.14)
 	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
-  
+
 	-- draw options
 	local oHeight = 15
 	local oPadding = 6
@@ -443,6 +446,44 @@ function DrawWindow()
 	end
 	optionButtons = {}
 	optionHover = {}
+
+
+	-- draw navigation... backward/forward
+	if totalColumns > maxShownColumns then
+		local buttonSize = 52
+		local buttonMargin = 13
+		local startX = x+screenWidth
+		local startY = screenY-screenHeight+buttonMargin
+
+		glColor(1,1,1,1)
+
+		if (startColumn-1) + maxShownColumns  <  totalColumns then
+			optionButtonForward = {startX-buttonSize-buttonMargin, startY, startX-buttonMargin, startY+buttonSize}
+			glColor(1,1,1,1)
+			glTexture(forwardTex)
+			glTexRect(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4])
+		else
+			optionButtonForward = nil
+		end
+
+		glColor(1,1,1,0.4)
+		glText(startColumn..' - '..startColumn+(maxShownColumns-1)..'   of  '..totalColumns, startX-(buttonSize*2.6)-buttonMargin, startY+buttonSize/2.6, buttonSize/3, "rn")
+
+		if startColumn > 1 then
+			if optionButtonForward == nil then
+				optionButtonBackward = {startX-buttonSize-buttonMargin, startY, startX-buttonMargin, startY+buttonSize }
+			else
+				optionButtonBackward = {startX-(buttonSize*2)-buttonMargin-(buttonMargin/1.5), startY, startX-(buttonSize*1)-buttonMargin-(buttonMargin/1.5), startY+buttonSize}
+			end
+			glColor(1,1,1,1)
+			glTexture(backwardTex)
+			glTexRect(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4])
+		else
+			optionButtonBackward = nil
+		end
+	end
+
+	-- draw options
 	for oid,option in pairs(options) do
 		yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 		if yPos-oHeight < yPosMax then
@@ -574,13 +615,24 @@ function widget:DrawScreen()
 			local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
 			
 			-- mouseover (highlight and tooltip)
+
 		  local description = ''
 			local x,y = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
+
+		  if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+			  glColor(1,1,1,0.12)
+			  RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/8)
+		  end
+		  if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+			  glColor(1,1,1,0.12)
+			  RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
+		  end
+
 		  showPresetButtons = true
 			if not showSelectOptions then
 				for i, o in pairs(optionHover) do
-					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
 						glColor(1,1,1,0.055)
 						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
 						showPresetButtons = false
@@ -925,6 +977,24 @@ function mouseEvent(x, y, button, release)
 		local cx, cy = correctMouseForScaling(x,y)
   
 		if release then
+
+			if optionButtonForward ~=nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+				startColumn = startColumn + 1
+				if startColumn-1 + maxShownColumns > totalColumns then
+					startColumn = (totalColumns-maxShownColumns) + 1
+				end
+				if windowList then gl.DeleteList(windowList) end
+				windowList = gl.CreateList(DrawWindow)
+				return
+			end
+			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+				startColumn = startColumn - 1
+				if startColumn < 1 then startColumn = 1 end
+				if windowList then gl.DeleteList(windowList) end
+				windowList = gl.CreateList(DrawWindow)
+				return
+			end
+
 		 	-- apply new slider value
 			if draggingSlider ~= nil then
 				options[draggingSlider].value = getSliderValue(draggingSlider,cx)
@@ -1061,10 +1131,10 @@ function widget:Initialize()
 	
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
-		gfx = 'Graphics',
-		ui = 'User interface',
-		snd = 'Sound',
-		widget = 'Widget',
+		{id='gfx', name='Graphics'},
+		{id='snd', name='Sound'},
+		{id='ui', name='Interface'},
+		{id='widget', name='Widget'},
 	}
 	options = {
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
@@ -1105,7 +1175,7 @@ function widget:Initialize()
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
 		
 		{id="scrollspeed", group="ui", name="Zoom direction/speed", type="slider", min=-45, max=45, step=5, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
-		{id="sndvolmaster", group="ui", name="Sound volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
+		{id="sndvolmaster", group="snd", name="Sound volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
 		--{id="fpstimespeed", group="ui", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
 		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Show time/speed/fps on playerlist", type="bool", value=widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
 		
