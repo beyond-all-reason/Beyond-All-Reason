@@ -243,7 +243,6 @@ MotionControl(Func_Var_1)
 			Func_Var_1 = 1;
 		}
 			sleep 50;
-		
 	}
 }
 
