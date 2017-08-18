@@ -854,9 +854,9 @@ function loadPreset(preset)
 		options[i].value = 0
 		applyOptionValue(i, true)
 
-		i = getOptionByID('disticon')
-		options[i].value = 100
-		applyOptionValue(i, true)
+		--i = getOptionByID('disticon')
+		--options[i].value = 100
+		--applyOptionValue(i, true)
 
 		i = getOptionByID('advsky')
 		options[i].value = false
@@ -892,7 +892,7 @@ function loadPreset(preset)
 		applyOptionValue(i, true)
 
 		i = getOptionByID('water')
-		options[i].value = 1
+		options[i].value = 2
 		applyOptionValue(i, true)
 
 		i = getOptionByID('mapedgeextension')
@@ -935,9 +935,9 @@ function loadPreset(preset)
 		options[i].value = 250
 		applyOptionValue(i, true)
 
-		i = getOptionByID('disticon')
-		options[i].value = 500
-		applyOptionValue(i, true)
+		--i = getOptionByID('disticon')
+		--options[i].value = 500
+		--applyOptionValue(i, true)
 
 		i = getOptionByID('advsky')
 		options[i].value = false
@@ -973,7 +973,7 @@ function loadPreset(preset)
 		applyOptionValue(i, true)
 
 		i = getOptionByID('water')
-		options[i].value = 2
+		options[i].value = 4
 		applyOptionValue(i, true)
 
 		i = getOptionByID('mapedgeextension')
@@ -1016,9 +1016,9 @@ function loadPreset(preset)
 		options[i].value = 350
 		applyOptionValue(i, true)
 
-		i = getOptionByID('disticon')
-		options[i].value = 800
-		applyOptionValue(i, true)
+		--i = getOptionByID('disticon')
+		--options[i].value = 800
+		--applyOptionValue(i, true)
 
 		i = getOptionByID('advsky')
 		options[i].value = false
@@ -1054,7 +1054,7 @@ function loadPreset(preset)
 		applyOptionValue(i, true)
 
 		i = getOptionByID('water')
-		options[i].value = 3
+		options[i].value = 5
 		applyOptionValue(i, true)
 
 		i = getOptionByID('mapedgeextension')
@@ -1097,9 +1097,9 @@ function loadPreset(preset)
 		options[i].value = 550
 		applyOptionValue(i, true)
 
-		i = getOptionByID('disticon')
-		options[i].value = 800
-		applyOptionValue(i, true)
+		--i = getOptionByID('disticon')
+		--options[i].value = 800
+		--applyOptionValue(i, true)
 
 		i = getOptionByID('advsky')
 		options[i].value = false
@@ -1135,7 +1135,7 @@ function loadPreset(preset)
 		applyOptionValue(i, true)
 
 		i = getOptionByID('water')
-		options[i].value = 5
+		options[i].value = 3
 		applyOptionValue(i, true)
 
 		i = getOptionByID('mapedgeextension')
@@ -1178,9 +1178,9 @@ function loadPreset(preset)
 		options[i].value = 800
 		applyOptionValue(i, true)
 
-		i = getOptionByID('disticon')
-		options[i].value = 800
-		applyOptionValue(i, true)
+		--i = getOptionByID('disticon')
+		--options[i].value = 800
+		--applyOptionValue(i, true)
 
 		i = getOptionByID('advsky')
 		options[i].value = true
@@ -1475,7 +1475,6 @@ function widget:Initialize()
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=widgetHandler.orderList["LupsManager"] ~= nil and (widgetHandler.orderList["LupsManager"] > 0), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=widgetHandler.orderList["XrayShader"] ~= nil and (widgetHandler.orderList["XrayShader"] > 0), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="outline", group="gfx", widget="Outline", name="Unit Outline (tiny)", type="bool", value=widgetHandler.orderList["Outline"] ~= nil and (widgetHandler.orderList["Outline"] > 0), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
-		{id="disticon", group="gfx", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=100, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
@@ -1488,6 +1487,7 @@ function widget:Initialize()
 		{id="sndvolmaster", group="snd", name="Sound volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
 
 		-- UI
+		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="camera", group="ui", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="ui", widget="CameraShake", name="Camera shake", type="bool", value=widgetHandler.orderList["CameraShake"] ~= nil and (widgetHandler.orderList["CameraShake"] > 0), description='Shakes camera on explosions'},
 		{id="scrollspeed", group="ui", name="Zoom direction/speed", type="slider", min=-45, max=45, step=5, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
