@@ -84,6 +84,115 @@ local addedWidgetOptions = false
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
 
+local presetNames = {'lowest','low','medium','high','ultra'}
+local presets = {
+	lowest = {
+		bloom = 0,
+		water = 1,
+		mapedgeextension = false,
+		lighteffects = false,
+		lups = false,
+		snow = false,
+		xrayshader = false,
+		particles = 5000,
+		nanoparticles = 500,
+		grounddetail = 50,
+		grassdetail = 0,
+		treeradius = 0,
+		advsky = false,
+		outline = false,
+		guishader = false,
+		shadows = false,
+		advmapshading = false,
+		advmodelshading = false,
+		decals = 0,
+	},
+	low = {
+		bloom = 0,
+		water = 2,
+		mapedgeextension = false,
+		lighteffects = false,
+		lups = true,
+		snow = false,
+		xrayshader = false,
+		particles = 8000,
+		nanoparticles = 600,
+		grounddetail = 80,
+		grassdetail = 0,
+		treeradius = 200,
+		advsky = false,
+		outline = false,
+		guishader = false,
+		shadows = false,
+		advmapshading = true,
+		advmodelshading = true,
+		decals = 0,
+	},
+	medium = {
+		bloom = 1,
+		water = 4,
+		mapedgeextension = true,
+		lighteffects = true,
+		lups = true,
+		snow = true,
+		xrayshader = false,
+		particles = 12000,
+		nanoparticles = 800,
+		grounddetail = 120,
+		grassdetail = 0,
+		treeradius = 400,
+		advsky = false,
+		outline = false,
+		guishader = false,
+		shadows = false,
+		advmapshading = true,
+		advmodelshading = true,
+		decals = 1,
+	},
+	high = {
+		bloom = 1,
+		water = 5,
+		mapedgeextension = true,
+		lighteffects = true,
+		lups = true,
+		snow = true,
+		xrayshader = false,
+		particles = 15000,
+		nanoparticles = 1500,
+		grounddetail = 160,
+		grassdetail = 0,
+		treeradius = 800,
+		advsky = true,
+		outline = true,
+		guishader = true,
+		shadows = true,
+		advmapshading = true,
+		advmodelshading = true,
+		decals = 2,
+	},
+	ultra = {
+		bloom = 2,
+		water = 3,
+		mapedgeextension = true,
+		lighteffects = true,
+		lups = true,
+		snow = true,
+		xrayshader = false,
+		particles = 25000,
+		nanoparticles = 2500,
+		grounddetail = 160,
+		grassdetail = 0,
+		treeradius = 800,
+		advsky = true,
+		outline = true,
+		guishader = true,
+		shadows = true,
+		advmapshading = true,
+		advmodelshading = true,
+		decals = 3,
+	},
+}
+
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (screenWidth/2)
@@ -776,7 +885,7 @@ function applyOptionValue(i, skipRedrawWindow)
 		if id == 'preset' then
 			Spring.Echo('Loading preset:   '..options[i].options[value])
 			options[i].value = 0
-			loadPreset(value)
+			loadPreset(presetNames[value])
 		elseif id == 'water' then
 			Spring.SendCommands("water "..(value-1))
 		elseif id == 'camera' then
@@ -804,411 +913,12 @@ end
 
 
 function loadPreset(preset)
-	local i = 0
-	if preset == 1 then	-- lowest
-		i = getOptionByID('bloom')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('water')
-		options[i].value = 1
-		applyOptionValue(i, true)
-
-		i = getOptionByID('mapedgeextension')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lighteffects')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lups')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('snow')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('xrayshader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('particles')
-		options[i].value = 5000
-		applyOptionValue(i, true)
-
-		i = getOptionByID('nanoparticles')
-		options[i].value = 500
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grounddetail')
-		options[i].value = 50
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grassdetail')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('treeradius')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		--i = getOptionByID('disticon')
-		--options[i].value = 100
-		--applyOptionValue(i, true)
-
-		i = getOptionByID('advsky')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('outline')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('guishader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('shadows')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmapshading')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmodelshading')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('decals')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-	elseif preset == 2 then	-- low
-		i = getOptionByID('bloom')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('water')
-		options[i].value = 2
-		applyOptionValue(i, true)
-
-		i = getOptionByID('mapedgeextension')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lighteffects')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lups')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('snow')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('xrayshader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('particles')
-		options[i].value = 8000
-		applyOptionValue(i, true)
-
-		i = getOptionByID('nanoparticles')
-		options[i].value = 500
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grounddetail')
-		options[i].value = 64
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grassdetail')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('treeradius')
-		options[i].value = 250
-		applyOptionValue(i, true)
-
-		--i = getOptionByID('disticon')
-		--options[i].value = 500
-		--applyOptionValue(i, true)
-
-		i = getOptionByID('advsky')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('outline')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('guishader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('shadows')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmapshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmodelshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('decals')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-	elseif preset == 3 then	-- medium
-		i = getOptionByID('bloom')
-		options[i].value = 1
-		applyOptionValue(i, true)
-
-		i = getOptionByID('water')
-		options[i].value = 4
-		applyOptionValue(i, true)
-
-		i = getOptionByID('mapedgeextension')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lighteffects')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lups')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('snow')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('xrayshader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('particles')
-		options[i].value = 10000
-		applyOptionValue(i, true)
-
-		i = getOptionByID('nanoparticles')
-		options[i].value = 750
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grounddetail')
-		options[i].value = 80
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grassdetail')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('treeradius')
-		options[i].value = 350
-		applyOptionValue(i, true)
-
-		--i = getOptionByID('disticon')
-		--options[i].value = 800
-		--applyOptionValue(i, true)
-
-		i = getOptionByID('advsky')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('outline')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('guishader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('shadows')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmapshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmodelshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('decals')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-	elseif preset == 4 then -- high
-		i = getOptionByID('bloom')
-		options[i].value = 1
-		applyOptionValue(i, true)
-
-		i = getOptionByID('water')
-		options[i].value = 5
-		applyOptionValue(i, true)
-
-		i = getOptionByID('mapedgeextension')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lighteffects')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lups')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('snow')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('xrayshader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('particles')
-		options[i].value = 15000
-		applyOptionValue(i, true)
-
-		i = getOptionByID('nanoparticles')
-		options[i].value = 1500
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grounddetail')
-		options[i].value = 120
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grassdetail')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('treeradius')
-		options[i].value = 550
-		applyOptionValue(i, true)
-
-		--i = getOptionByID('disticon')
-		--options[i].value = 800
-		--applyOptionValue(i, true)
-
-		i = getOptionByID('advsky')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('outline')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('guishader')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('shadows')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmapshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmodelshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('decals')
-		options[i].value = 1
-		applyOptionValue(i, true)
-
-	elseif preset == 5 then -- ultra
-		i = getOptionByID('bloom')
-		options[i].value = 2
-		applyOptionValue(i, true)
-
-		i = getOptionByID('water')
-		options[i].value = 3
-		applyOptionValue(i, true)
-
-		i = getOptionByID('mapedgeextension')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lighteffects')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('lups')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('snow')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('xrayshader')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('particles')
-		options[i].value = 25000
-		applyOptionValue(i, true)
-
-		i = getOptionByID('nanoparticles')
-		options[i].value = 2500
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grounddetail')
-		options[i].value = 200
-		applyOptionValue(i, true)
-
-		i = getOptionByID('grassdetail')
-		options[i].value = 0
-		applyOptionValue(i, true)
-
-		i = getOptionByID('treeradius')
-		options[i].value = 800
-		applyOptionValue(i, true)
-
-		--i = getOptionByID('disticon')
-		--options[i].value = 800
-		--applyOptionValue(i, true)
-
-		i = getOptionByID('advsky')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('outline')
-		options[i].value = false
-		applyOptionValue(i, true)
-
-		i = getOptionByID('guishader')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('shadows')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmapshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('advmodelshading')
-		options[i].value = true
-		applyOptionValue(i, true)
-
-		i = getOptionByID('decals')
-		options[i].value = 2
-		applyOptionValue(i, true)
+	for optionID, value in pairs(presets[preset]) do
+		local i = getOptionByID(optionID)
+		if options[i] ~= nil then
+			options[i].value = value
+			applyOptionValue(i, true)
+		end
 	end
 
 	if windowList then gl.DeleteList(windowList) end
@@ -1452,7 +1162,7 @@ function widget:Initialize()
 	}
 	options = {
 		-- PRESET
-		{id="preset", group="preset", name="Load graphics preset", type="select", options={'lowest','low','medium','high','ultra'}, value=0},
+		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0},
 
 		--GFX
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
