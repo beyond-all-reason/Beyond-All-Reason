@@ -38,7 +38,6 @@ local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
   
 local spIsGUIHidden = Spring.IsGUIHidden
-local showHelp = false
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -81,7 +80,6 @@ local optionHover = {}
 local optionSelect = {}
 local fullWidgetsList = {}
 local addedWidgetOptions = false
-local showPresetButtons = true
 
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
@@ -93,8 +91,6 @@ function widget:ViewResize()
   widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
-  if presetsList then gl.DeleteList(presetsList) end
-  presetsList = gl.CreateList(DrawPresets)
 end
 
 local showOnceMore = false		-- used because of GUI shader delay
@@ -182,67 +178,6 @@ function lines(str)
   local function helper(line) table.insert(t, line) return "" end
   helper((str:gsub("(.-)\r?\n", helper)))
   return t
-end
-
-local presets = {
-	low = {
-		label   = '\255\195\155\110Set quality for:\n   \255\255\255\255GPU   \255\150\120\090CPU',
-		order   = 1,
-		toggler = 'GPU'
-	},
-	medium = {
-		label   = 'Low',
-		order   = 2
-	},
-	high = {
-		label   = 'Medium',
-		order   = 3
-	},
-	ultra = {
-		label   = 'High',
-		order   = 4
-	}
-}
-function DrawPresets()
-	local margin = 7
-	local padding = 3.5
-	local totalWidth = screenWidth * 0.6666 - margin
-	for preset, pp in pairs(presets) do
-		gl.Color(0.1,0.05,0.016,0.75)
-		local x = screenX + margin
-		presets[preset].pos = {
-			x + ((totalWidth/4)*(pp.order-1)),
-			screenY-screenHeight+margin,
-			x + ((totalWidth/4)*(pp.order))-margin,
-			screenY-screenHeight+90-margin,
-			padding
-		}
-		RectRound(
-			presets[preset].pos[1],
-			presets[preset].pos[2],
-			presets[preset].pos[3],
-			presets[preset].pos[4],
-			6
-		)
-		gl.Color(1,0.8,0.2,0.15)
-		RectRound(
-			presets[preset].pos[1]+padding,
-			presets[preset].pos[2]+padding,
-			presets[preset].pos[3]-padding,
-			presets[preset].pos[4]-padding,
-			4
-		)
-		local fontSize = 18
-		local textWidth = glGetTextWidth(presets[preset].label)*fontSize
-		local labellines = #lines(presets[preset].label)
-  	glText(
-  		'\255\230\230\230'..presets[preset].label, 
-  		presets[preset].pos[3]-((presets[preset].pos[3]-presets[preset].pos[1])/2)-(textWidth/2), 
-  		presets[preset].pos[2]+23+((fontSize*labellines)/2), 
-  		fontSize, 
-  		"no"
-  	)
-	end
 end
 
 function tableMerge(t1, t2)
@@ -467,7 +402,7 @@ function DrawWindow()
 		end
 
 		glColor(1,1,1,0.4)
-		glText(startColumn..' - '..startColumn+(maxShownColumns-1)..'   of  '..totalColumns, startX-(buttonSize*2.6)-buttonMargin, startY+buttonSize/2.6, buttonSize/3, "rn")
+		glText(math.ceil(startColumn/maxShownColumns)..' / '..math.ceil(totalColumns/maxShownColumns), startX-(buttonSize*2.6)-buttonMargin, startY+buttonSize/2.6, buttonSize/2.9, "rn")
 
 		if startColumn > 1 then
 			if optionButtonForward == nil then
@@ -581,9 +516,6 @@ function widget:DrawScreen()
   if not windowList then
     windowList = gl.CreateList(DrawWindow)
   end
-  if not presetsList then
-    presetsList = gl.CreateList(DrawPresets)
-  end
   
   -- update new slider value
 	if sliderValueChanged then
@@ -629,13 +561,11 @@ function widget:DrawScreen()
 			  RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
 		  end
 
-		  showPresetButtons = true
 			if not showSelectOptions then
 				for i, o in pairs(optionHover) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
 						glColor(1,1,1,0.055)
 						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
-						showPresetButtons = false
 						if options[i].description ~= nil then
 							description = options[i].description
 							glText('\255\255\210\120'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
@@ -660,7 +590,6 @@ function widget:DrawScreen()
 			
 			-- draw select options
 			if showSelectOptions ~= nil then
-				showPresetButtons = false
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
 				local oPadding = 4
 				y = optionButtons[showSelectOptions][4] -oPadding
@@ -684,20 +613,6 @@ function widget:DrawScreen()
 					glText('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
 				end
 			end
-			
-			-- draw preset quality buttons
-			showPresetButtons = false
-			if showPresetButtons == true then
-				--glCallList(presetsList)
-				
-				for preset, pp in pairs(presets) do
-					if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
-						glColor(0.7,1,0.3,0.2)
-						local padding = pp.pos[5]
-						RectRound(pp.pos[1]+padding, pp.pos[2]+padding, pp.pos[3]-padding, pp.pos[4]-padding, 6)
-					end
-				end
-			end
 		glPopMatrix()
 	else
 		if (WG['guishader_api'] ~= nil) then
@@ -711,9 +626,10 @@ function widget:DrawScreen()
 end
 
 function applyOptionValue(i)
+	if options[i] == nil then return end
+
 	local id = options[i].id
 	if options[i].type == 'bool' then
-		options[i].value = not options[i].value
 		local value = 0
 		if options[i].value then
 			value = 1
@@ -859,7 +775,11 @@ function applyOptionValue(i)
 		
 	elseif options[i].type == 'select' then
 		local value =  options[i].value
-		if id == 'water' then
+		if id == 'preset' then
+			Spring.Echo('Loading preset:   '..options[i].options[value])
+			options[i].value = 0
+			loadPreset(value)
+		elseif id == 'water' then
 			Spring.SendCommands("water "..(value-1))
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
@@ -878,18 +798,418 @@ function applyOptionValue(i)
 			WG['cursors'].setcursor(options[i].options[value])
 		end
 	end
-	
 	if windowList then gl.DeleteList(windowList) end
 	windowList = gl.CreateList(DrawWindow)
 end
 
 
 function loadPreset(preset)
-	Spring.Echo('loading options preset: '..presets[preset].label)
-	
-	
-	gl.DeleteList(windowList)
-	windowList = gl.CreateList(DrawWindow)
+	local i = 0
+	if preset == 1 then	-- lowest
+		i = getOptionByID('bloom')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('water')
+		options[i].value = 1
+		applyOptionValue(i)
+
+		i = getOptionByID('mapedgeextension')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('lighteffects')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('lups')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('snow')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('xrayshader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('particles')
+		options[i].value = 5000
+		applyOptionValue(i)
+
+		i = getOptionByID('nanoparticles')
+		options[i].value = 500
+		applyOptionValue(i)
+
+		i = getOptionByID('grounddetail')
+		options[i].value = 50
+		applyOptionValue(i)
+
+		i = getOptionByID('grassdetail')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('treeradius')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('disticon')
+		options[i].value = 100
+		applyOptionValue(i)
+
+		i = getOptionByID('advsky')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('outline')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('guishader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('shadows')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('advmapshading')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('advmodelshading')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('decals')
+		options[i].value = 0
+		applyOptionValue(i)
+
+	elseif preset == 2 then	-- low
+		i = getOptionByID('bloom')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('water')
+		options[i].value = 1
+		applyOptionValue(i)
+
+		i = getOptionByID('mapedgeextension')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('lighteffects')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('lups')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('snow')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('xrayshader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('particles')
+		options[i].value = 8000
+		applyOptionValue(i)
+
+		i = getOptionByID('nanoparticles')
+		options[i].value = 500
+		applyOptionValue(i)
+
+		i = getOptionByID('grounddetail')
+		options[i].value = 64
+		applyOptionValue(i)
+
+		i = getOptionByID('grassdetail')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('treeradius')
+		options[i].value = 250
+		applyOptionValue(i)
+
+		i = getOptionByID('disticon')
+		options[i].value = 500
+		applyOptionValue(i)
+
+		i = getOptionByID('advsky')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('outline')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('guishader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('shadows')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('advmapshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('advmodelshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('decals')
+		options[i].value = 0
+		applyOptionValue(i)
+
+	elseif preset == 3 then	-- medium
+		i = getOptionByID('bloom')
+		options[i].value = 1
+		applyOptionValue(i)
+
+		i = getOptionByID('water')
+		options[i].value = 2
+		applyOptionValue(i)
+
+		i = getOptionByID('mapedgeextension')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('lighteffects')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('lups')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('snow')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('xrayshader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('particles')
+		options[i].value = 10000
+		applyOptionValue(i)
+
+		i = getOptionByID('nanoparticles')
+		options[i].value = 750
+		applyOptionValue(i)
+
+		i = getOptionByID('grounddetail')
+		options[i].value = 80
+		applyOptionValue(i)
+
+		i = getOptionByID('grassdetail')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('treeradius')
+		options[i].value = 350
+		applyOptionValue(i)
+
+		i = getOptionByID('disticon')
+		options[i].value = 800
+		applyOptionValue(i)
+
+		i = getOptionByID('advsky')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('outline')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('guishader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('shadows')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('advmapshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('advmodelshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('decals')
+		options[i].value = 0
+		applyOptionValue(i)
+
+	elseif preset == 4 then -- high
+		i = getOptionByID('bloom')
+		options[i].value = 1
+		applyOptionValue(i)
+
+		i = getOptionByID('water')
+		options[i].value = 3
+		applyOptionValue(i)
+
+		i = getOptionByID('mapedgeextension')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('lighteffects')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('lups')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('snow')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('xrayshader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('particles')
+		options[i].value = 15000
+		applyOptionValue(i)
+
+		i = getOptionByID('nanoparticles')
+		options[i].value = 1500
+		applyOptionValue(i)
+
+		i = getOptionByID('grounddetail')
+		options[i].value = 120
+		applyOptionValue(i)
+
+		i = getOptionByID('grassdetail')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('treeradius')
+		options[i].value = 550
+		applyOptionValue(i)
+
+		i = getOptionByID('disticon')
+		options[i].value = 800
+		applyOptionValue(i)
+
+		i = getOptionByID('advsky')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('outline')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('guishader')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('shadows')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('advmapshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('advmodelshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('decals')
+		options[i].value = 1
+		applyOptionValue(i)
+
+	elseif preset == 5 then -- ultra
+		i = getOptionByID('bloom')
+		options[i].value = 2
+		applyOptionValue(i)
+
+		i = getOptionByID('water')
+		options[i].value = 5
+		applyOptionValue(i)
+
+		i = getOptionByID('mapedgeextension')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('lighteffects')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('lups')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('snow')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('xrayshader')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('particles')
+		options[i].value = 25000
+		applyOptionValue(i)
+
+		i = getOptionByID('nanoparticles')
+		options[i].value = 2500
+		applyOptionValue(i)
+
+		i = getOptionByID('grounddetail')
+		options[i].value = 200
+		applyOptionValue(i)
+
+		i = getOptionByID('grassdetail')
+		options[i].value = 0
+		applyOptionValue(i)
+
+		i = getOptionByID('treeradius')
+		options[i].value = 800
+		applyOptionValue(i)
+
+		i = getOptionByID('disticon')
+		options[i].value = 800
+		applyOptionValue(i)
+
+		i = getOptionByID('advsky')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('outline')
+		options[i].value = false
+		applyOptionValue(i)
+
+		i = getOptionByID('guishader')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('shadows')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('advmapshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('advmodelshading')
+		options[i].value = true
+		applyOptionValue(i)
+
+		i = getOptionByID('decals')
+		options[i].value = 2
+		applyOptionValue(i)
+	end
 end
 
 
@@ -972,15 +1292,16 @@ end
 
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
-  
-  if show then
+
+	if show then
 		local cx, cy = correctMouseForScaling(x,y)
   
 		if release then
 
+			-- navigation buttons
 			if optionButtonForward ~=nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-				startColumn = startColumn + 1
-				if startColumn-1 + maxShownColumns > totalColumns then
+				startColumn = startColumn + maxShownColumns
+				if startColumn > totalColumns + (maxShownColumns-1) then
 					startColumn = (totalColumns-maxShownColumns) + 1
 				end
 				if windowList then gl.DeleteList(windowList) end
@@ -988,7 +1309,7 @@ function mouseEvent(x, y, button, release)
 				return
 			end
 			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-				startColumn = startColumn - 1
+				startColumn = startColumn - maxShownColumns
 				if startColumn < 1 then startColumn = 1 end
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
@@ -1036,25 +1357,14 @@ function mouseEvent(x, y, button, release)
 					if showPresetButtons then
 						for preset, pp in pairs(presets) do
 							if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
-								if pp.toggler ~= nil then
-									if presets[preset].toggler == 'GPU' then
-										presets[preset].toggler = 'CPU'
-										presets[preset].label = '\255\195\155\110Set quality for:\n   \255\150\120\090GPU   \255\255\255\255CPU'
-									else
-										presets[preset].toggler = 'GPU'
-										presets[preset].label = '\255\195\155\110Set quality for:\n   \255\255\255\255GPU   \255\150\120\090CPU'
-									end
-								  if presetsList then gl.DeleteList(presetsList) end
-								  presetsList = gl.CreateList(DrawPresets)
-								else
-									loadPreset(preset)
-								end
+								loadPreset(preset)
 							end
 						end
 					end
 						
 					for i, o in pairs(optionButtons) do
 						if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							options[i].value = not options[i].value
 							applyOptionValue(i)
 						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						
@@ -1126,17 +1436,18 @@ function widget:Initialize()
   for name,data in pairs(widgetHandler.knownWidgets) do
 		fullWidgetsList[name] = data
   end
-	  
+
 	--local bloomValue = 0
 	
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
+		{id='preset', name='Preset'},
 		{id='gfx', name='Graphics'},
 		{id='snd', name='Sound'},
 		{id='ui', name='Interface'},
-		{id='widget', name='Widget'},
 	}
 	options = {
+		{id="preset", group="preset", name="Settings preset", type="select", options={'lowest','low','medium','high','ultra'}, value=0},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="screenedgemove", group="ui", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
@@ -1168,9 +1479,9 @@ function widget:Initialize()
 		{id="grounddetail", group="gfx", name="Ground mesh detail", type="slider", min=50, max=200, step=10, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground geometry mesh detail'},
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
-		
+
 		{id="crossalpha", group="ui", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigInt("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
-		{id="commandsfx", group="gfx", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfx", group="ui", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 		
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
 		
@@ -1181,7 +1492,7 @@ function widget:Initialize()
 		
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
 		{id="idlebuilders", group="ui", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a row containing a list of idle builder units (if there are any)'},
-		{id="teamcolors", group="gfx", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
+		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		
 		{id="camera", group="ui", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 	}
@@ -1218,6 +1529,5 @@ end
 function widget:Shutdown()
     if windowList then
         glDeleteList(windowList)
-        glDeleteList(presetsList)
     end
 end
