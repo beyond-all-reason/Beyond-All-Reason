@@ -1,6 +1,6 @@
 function widget:GetInfo()
     return {
-        name      = "Passive builders v5",
+        name      = "Passive builders", --v5
         desc      = "Allows to set builders (nanos, labs and cons) on passive mode",
         author    = "[teh]decay",
         date      = "20 aug 2015",

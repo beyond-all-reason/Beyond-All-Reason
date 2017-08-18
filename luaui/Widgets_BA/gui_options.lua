@@ -255,12 +255,12 @@ function checkWidgets()
 	end
 	-- EnemySpotter
 	if (WG['enemyspotter'] ~= nil) then
-		table.insert(options, {id="enemyspotter_opacity", group="gfx", name="Enemyspotter opacity", min=0.15, max=0.4, step=0.005, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
-		table.insert(options, {id="enemyspotter_highlight", group="gfx", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
+		table.insert(options, {id="enemyspotter_opacity", group="ui", name="Enemyspotter opacity", min=0.15, max=0.4, step=0.005, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
+		table.insert(options, {id="enemyspotter_highlight", group="ui", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
 	end
 	-- Highlight Selected Units
 	if (WG['highlightselunits'] ~= nil) then
-		table.insert(options, {id="highlightselunits_opacity", group="gfx", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=WG['highlightselunits'].getOpacity(), description='Set the opacity of the highlight on selected units'})
+		table.insert(options, {id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=WG['highlightselunits'].getOpacity(), description='Set the opacity of the highlight on selected units'})
 	end
 	-- Smart Select
 	if (WG['smartselect'] ~= nil) then
@@ -435,8 +435,6 @@ function DrawWindow()
 				xPosMax = xPos + oWidth
 			end
 			yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
-			gl.Color(0,0,0,0.25)
-			RectRound(xPos-oPadding-2.5,y-screenHeight+118,xPos-oPadding+2.5,y,2)
 		end
 
 		if column >= startColumn then
@@ -568,7 +566,7 @@ function widget:DrawScreen()
 						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
 						if options[i].description ~= nil then
 							description = options[i].description
-							glText('\255\255\210\120'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+							glText('\255\233\200\133'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
 						end
 					end
 				end
@@ -1450,13 +1448,15 @@ function widget:Initialize()
 		{id='gfx', name='Graphics'},
 		{id='snd', name='Sound'},
 		{id='ui', name='Interface'},
+		{id='game', name='Game'},
 	}
 	options = {
-		{id="preset", group="preset", name="Graphics preset", type="select", options={'lowest','low','medium','high','ultra'}, value=0},
+		-- PRESET
+		{id="preset", group="preset", name="Load graphics preset", type="select", options={'lowest','low','medium','high','ultra'}, value=0},
+
+		--GFX
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
-		{id="screenedgemove", group="ui", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
-		{id="hwcursor", group="ui", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
@@ -1464,8 +1464,6 @@ function widget:Initialize()
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
-
-		--{id="graphics", name="Graphics", type="label"},
 
 		--{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom shader", type="bool", value=widgetHandler.orderList["Bloom Shader"] ~= nil and (widgetHandler.orderList["Bloom Shader"] > 0), description='Bloom will make the map and units glow'},
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom shader", type="slider", min=0, max=2, step=1, value=0, description='Bloom will make the map and units glow\n\nSetting the slider all the way will stress your GPU more'},
@@ -1484,22 +1482,46 @@ function widget:Initialize()
 		{id="grounddetail", group="gfx", name="Ground mesh detail", type="slider", min=50, max=200, step=10, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 60), description='Ground geometry mesh detail'},
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
 
+		-- SND
+		{id="sndvolmaster", group="snd", name="Sound volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
+
+		-- UI
+		{id="camera", group="ui", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
+		{id="camerashake", group="ui", widget="CameraShake", name="Camera shake", type="bool", value=widgetHandler.orderList["CameraShake"] ~= nil and (widgetHandler.orderList["CameraShake"] > 0), description='Shakes camera on explosions'},
+		{id="scrollspeed", group="ui", name="Zoom direction/speed", type="slider", min=-45, max=45, step=5, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
+
+		{id="hwcursor", group="ui", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
 		{id="crossalpha", group="ui", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigInt("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
+		{id="screenedgemove", group="ui", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
+
+		{id="pausescreen", group="ui", widget="Pause Screen", name="Show pause screen", type="bool", value=widgetHandler.orderList["Pause Screen"] ~= nil and (widgetHandler.orderList["Pause Screen"] > 0), description='Displays an overlay when the game is paused'},
 		{id="commandsfx", group="ui", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
-		
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
 		
-		{id="scrollspeed", group="ui", name="Zoom direction/speed", type="slider", min=-45, max=45, step=5, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
-		{id="sndvolmaster", group="snd", name="Sound volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
 		--{id="fpstimespeed", group="ui", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
-		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Show time/speed/fps on playerlist", type="bool", value=widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
+		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Time/speed/fps on top of playerlist", type="bool", value=widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
 		
-		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
-		{id="idlebuilders", group="ui", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a row containing a list of idle builder units (if there are any)'},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
-		
-		{id="camera", group="ui", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
+		{id="idlebuilders", group="ui", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a row containing a list of idle builder units (if there are any)'},
+		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=widgetHandler.orderList["Display DPS"] ~= nil and (widgetHandler.orderList["Display DPS"] > 0), description='Display the \'Damage Per Second\' done where target are hit'},
+		{id="resurrectionhalos", group="ui", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=widgetHandler.orderList["Resurrection Halos"] ~= nil and (widgetHandler.orderList["Resurrection Halos"] > 0), description='Gives units have have been resurrected a little halo above it.'},
+		{id="rankicons", group="ui", widget="Rank Icons", name="Unit rank icons", type="bool", value=widgetHandler.orderList["Rank Icons"] ~= nil and (widgetHandler.orderList["Rank Icons"] > 0), description='Shows a rank icon depending on experience next to units'},
+		{id="givenunits", group="ui", widget="Given Units", name="Given units icons", type="bool", value=widgetHandler.orderList["Given Units"] ~= nil and (widgetHandler.orderList["Given Units"] > 0), description='Tags given units with \'new\' icon'},
+		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=widgetHandler.orderList["TeamPlatter"] ~= nil and (widgetHandler.orderList["TeamPlatter"] > 0), description='Shows a team color platter above all visible units'},
+		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=widgetHandler.orderList["EnemySpotter"] ~= nil and (widgetHandler.orderList["EnemySpotter"] > 0), description='Draws smoothed circles under enemy units'},
+
+		-- GAME
+		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["Autoquit"] > 0), description='Automatically quits after the game ends.\n...unless the mouse has been moved withing a few seconds.'},
+		{id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["OnlyFightersPatrol"] > 0), description='Only fighters go on factory\'s patrol route after leaving airlab.'},
+		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=widgetHandler.orderList["Set fighters on Fly mode"] ~= nil and (widgetHandler.orderList["Set fighters on Fly mode"] > 0), description='Setting fighters on Fly mode'},
+		{id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=widgetHandler.orderList["Passive builders"] ~= nil and (widgetHandler.orderList["Passive builders"] > 0), description='Sets builders (nanos, labs and cons) on passive mode'},
+		{id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=widgetHandler.orderList["FactoryGuard"] ~= nil and (widgetHandler.orderList["FactoryGuard"] > 0), description='Assigns new builders to assist their source factory'},
+		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=widgetHandler.orderList["Factory hold position"] ~= nil and (widgetHandler.orderList["Factory hold position"] > 0), description='Sets new factories, and all units they build, to hold position automatically (except aircraft)'},
+		{id="factoryrepeat", group="game", widget="Factory Auto-Repeat", name="Factory auto-repeat", type="bool", value=widgetHandler.orderList["Factory Auto-Repeat"] ~= nil and (widgetHandler.orderList["Factory Auto-Repeat"] > 0), description='Sets new factories to Repeat on automatically'},
+		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=widgetHandler.orderList["Transport AI"] ~= nil and (widgetHandler.orderList["Transport AI"] > 0), description='Transport units automatically pick up units going to factory waypoint.'},
+		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=widgetHandler.orderList["Set target default"] ~= nil and (widgetHandler.orderList["Set target default"] > 0), description='Replace default click from attack to a set-target command'},
 	}
 	
 	local processedOptions = {}
