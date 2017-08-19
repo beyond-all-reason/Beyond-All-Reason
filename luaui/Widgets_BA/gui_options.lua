@@ -7,7 +7,7 @@ return {
 	date    = "September 2016",
 	layer   = 2,
 	enabled = true,
-  handler = true, 
+	handler = true,
 }
 end
 
@@ -372,25 +372,13 @@ function checkWidgets()
 			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
 		end
 	end
-	-- EnemySpotter
-	if (WG['enemyspotter'] ~= nil) then
-		table.insert(options, {id="enemyspotter_opacity", group="ui", name="Enemyspotter opacity", min=0.15, max=0.4, step=0.005, type="slider", value=WG['enemyspotter'].getOpacity(), description='Set the opacity of the enemy-spotter rings'})
-		table.insert(options, {id="enemyspotter_highlight", group="ui", name="Enemyspotter unit highlight", type="bool", value=WG['enemyspotter'].getHighlight(), description='Colorize/highlight enemy units'})
-	end
 	-- Highlight Selected Units
 	if (WG['highlightselunits'] ~= nil) then
 		table.insert(options, {id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=WG['highlightselunits'].getOpacity(), description='Set the opacity of the highlight on selected units'})
 	end
 	-- Smart Select
 	if (WG['smartselect'] ~= nil) then
-		table.insert(options, {id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
-	end
-	-- redui buildmenu
-	if WG['red_buildmenu'] ~= nil then
-		--table.insert(options, {id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=WG['red_buildmenu'].getConfigOldUnitIcons(), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'})
-		table.insert(options, {id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=WG['red_buildmenu'].getConfigShortcutsInfo(), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'})
-		table.insert(options, {id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=WG['red_buildmenu'].getConfigUnitPrice(), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'})
-		table.insert(options, {id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=WG['red_buildmenu'].getConfigUnitTooltip(), description='Enables unit tooltip when hovering over unit in buildmenu'})
+		table.insert(options, {id="smartselect_includebuildings", group="", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
 	end
 
 	orderOptions()
@@ -798,7 +786,11 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'darkenmap_darkenfeatures' then
 			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
-			WG['enemyspotter'].setHighlight(options[i].value)
+			if WG['enemyspotter'] ~= nil then
+				WG['enemyspotter'].setHighlight(options[i].value)
+			else
+				widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
+			end
 		elseif id == 'smartselect_includebuildings' then
 			WG['smartselect'].setIncludeBuildings(options[i].value)
 		elseif id == 'lighteffects' then
@@ -870,7 +862,11 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'darkenmap' then
 			WG['darkenmap'].setMapDarkness(value)
 		elseif id == 'enemyspotter_opacity' then
-			WG['enemyspotter'].setOpacity(value)
+			if WG['enemyspotter'] ~= nil then
+				WG['enemyspotter'].setOpacity(value)
+			else
+				widgetHandler.configData.EnemySpotter.spotterOpacity = value
+			end
 		elseif id == 'highlightselunits_opacity' then
 			WG['highlightselunits'].setOpacity(value)
 		elseif id == 'bloom' then
@@ -1190,9 +1186,9 @@ function widget:Initialize()
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom shader", type="slider", min=0, max=2, step=1, value=0, description='Bloom will make the map and units glow\n\nSetting the slider all the way will stress your GPU more'},
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="guishader", group="gfx", widget="GUI-Shader", name="GUI blur shader", type="bool", value=widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
-		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnabled shaders for best result'},
+		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=widgetHandler.orderList["Map Edge Extension"] ~= nil and (widgetHandler.orderList["Map Edge Extension"] > 0), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
-		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=widgetHandler.orderList["Light Effects"] ~= nil and (widgetHandler.orderList["Light Effects"] > 0), description='Adds lights to projectiles, lasers and explosions.\n\nShaders are required to be enabled.'},
+		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=widgetHandler.orderList["Light Effects"] ~= nil and (widgetHandler.orderList["Light Effects"] > 0), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=widgetHandler.orderList["LupsManager"] ~= nil and (widgetHandler.orderList["LupsManager"] > 0), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=widgetHandler.orderList["XrayShader"] ~= nil and (widgetHandler.orderList["XrayShader"] > 0), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="outline", group="gfx", widget="Outline", name="Unit Outline (tiny)", type="bool", value=widgetHandler.orderList["Outline"] ~= nil and (widgetHandler.orderList["Outline"] > 0), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
@@ -1220,20 +1216,32 @@ function widget:Initialize()
 		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
-		{id="pausescreen", group="ui", widget="Pause Screen", name="Show pause screen", type="bool", value=widgetHandler.orderList["Pause Screen"] ~= nil and (widgetHandler.orderList["Pause Screen"] > 0), description='Displays an overlay when the game is paused'},
-		{id="commandsfx", group="ui", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].oldUnitpics, description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].shortcutsInfo, description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawPrice, description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawTooltip, description='Enables unit tooltip when hovering over unit in buildmenu'},
+
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
 		
 		--{id="fpstimespeed", group="ui", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
 		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Time/speed/fps on top of playerlist", type="bool", value=widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
-		
-		{id="idlebuilders", group="ui", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a row containing a list of idle builder units (if there are any)'},
+
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=widgetHandler.orderList["Display DPS"] ~= nil and (widgetHandler.orderList["Display DPS"] > 0), description='Display the \'Damage Per Second\' done where target are hit'},
-		{id="resurrectionhalos", group="ui", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=widgetHandler.orderList["Resurrection Halos"] ~= nil and (widgetHandler.orderList["Resurrection Halos"] > 0), description='Gives units have have been resurrected a little halo above it.'},
-		{id="rankicons", group="ui", widget="Rank Icons", name="Unit rank icons", type="bool", value=widgetHandler.orderList["Rank Icons"] ~= nil and (widgetHandler.orderList["Rank Icons"] > 0), description='Shows a rank icon depending on experience next to units'},
-		{id="givenunits", group="ui", widget="Given Units", name="Given units icons", type="bool", value=widgetHandler.orderList["Given Units"] ~= nil and (widgetHandler.orderList["Given Units"] > 0), description='Tags given units with \'new\' icon'},
+
+		{id="idlebuilders", group="ui", widget="Idle Builders", name="Display idle builders", type="bool", value=widgetHandler.orderList["Idle Builders"] ~= nil and (widgetHandler.orderList["Idle Builders"] > 0), description='Displays a row containing a list of idle builder units (if there are any)'},
+
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=widgetHandler.orderList["TeamPlatter"] ~= nil and (widgetHandler.orderList["TeamPlatter"] > 0), description='Shows a team color platter above all visible units'},
 		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=widgetHandler.orderList["EnemySpotter"] ~= nil and (widgetHandler.orderList["EnemySpotter"] > 0), description='Draws smoothed circles under enemy units'},
+		{id="enemyspotter_opacity", group="ui", name="   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=widgetHandler.configData.EnemySpotter.spotterOpacity, description='Set the opacity of the enemy-spotter rings'},
+		{id="enemyspotter_highlight", group="ui", name="   unit highlight", type="bool", value=widgetHandler.configData.EnemySpotter.useXrayHighlight, description='Colorize/highlight enemy units'},
+
+
+		{id="pausescreen", group="ui", widget="Pause Screen", name="Show pause screen", type="bool", value=widgetHandler.orderList["Pause Screen"] ~= nil and (widgetHandler.orderList["Pause Screen"] > 0), description='Displays an overlay when the game is paused'},
+		{id="commandsfx", group="ui", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+
+		{id="givenunits", group="ui", widget="Given Units", name="Given units icons", type="bool", value=widgetHandler.orderList["Given Units"] ~= nil and (widgetHandler.orderList["Given Units"] > 0), description='Tags given units with \'new\' icon'},
+		{id="resurrectionhalos", group="ui", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=widgetHandler.orderList["Resurrection Halos"] ~= nil and (widgetHandler.orderList["Resurrection Halos"] > 0), description='Gives units have have been resurrected a little halo above it.'},
+		{id="rankicons", group="ui", widget="Rank Icons", name="Unit rank icons", type="bool", value=widgetHandler.orderList["Rank Icons"] ~= nil and (widgetHandler.orderList["Rank Icons"] > 0), description='Shows a rank icon depending on experience next to units'},
 
 		-- GAME
 		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["Autoquit"] > 0), description='Automatically quits after the game ends.\n...unless the mouse has been moved withing a few seconds.'},
@@ -1246,7 +1254,8 @@ function widget:Initialize()
 		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=widgetHandler.orderList["Transport AI"] ~= nil and (widgetHandler.orderList["Transport AI"] > 0), description='Transport units automatically pick up units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=widgetHandler.orderList["Set target default"] ~= nil and (widgetHandler.orderList["Set target default"] > 0), description='Replace default click from attack to a set-target command'},
 	}
-	
+
+
 	local processedOptions = {}
 	local insert = true
 	for oid,option in pairs(options) do
