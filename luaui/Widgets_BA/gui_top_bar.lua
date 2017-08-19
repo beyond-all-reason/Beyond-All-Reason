@@ -979,11 +979,13 @@ function widget:DrawScreen()
 		local fadeProgress = (os.clock() - showQuitscreen) / fadeTime
 		if fadeProgress > 1 then fadeProgress = 1 end
 
+		-- background
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
 		end
-		glColor(0,0,0,0.2*fadeProgress)
+		glColor(0,0,0,0.25*fadeProgress)
 		glRect( 0, 0, vsx, vsy)
+
 
 		local width = vsx/5.5
 		local height = vsy/11
@@ -991,9 +993,6 @@ function widget:DrawScreen()
 		local buttonPadding = 2.5*widgetScale
 		local buttonMargin = width/32
 		local buttonHeight = height*0.55
-		if (WG['guishader_api'] ~= nil) then
-			--WG['guishader_api'].InsertRect((vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2), 'topbar_quitscreen')
-		end
 
 		quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
 		quitscreenResignArea = {(vsx/2)-(width/2)+buttonMargin, (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)-(buttonMargin/2), (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
@@ -1095,11 +1094,18 @@ local function hideWindows()
 	end
 end
 
-
 local function applyButtonAction(button)
 	if button == 'quit' then
+		local oldShowQuitscreen
+		if showQuitscreen ~= nil then
+			oldShowQuitscreen = showQuitscreen
+		end
 		hideWindows()
-		showQuitscreen = os.clock()
+		if oldShowQuitscreen ~= nil then
+			showQuitscreen = oldShowQuitscreen
+		else
+			showQuitscreen = os.clock()
+		end
 	elseif button == 'options' then
 		hideWindows()
 		if (WG['options'] ~= nil) then
@@ -1207,7 +1213,7 @@ function widget:MouseRelease(x, y, button)
 		if buttonsArea['buttons'] ~= nil then	-- reapply again because else the other widgets disable when there is a click outside of their window
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					applyButtonAction(button)
+					applyButtonAction(button, true)
 				end
 			end
 		end
