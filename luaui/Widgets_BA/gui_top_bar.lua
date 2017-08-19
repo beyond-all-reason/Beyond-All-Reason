@@ -1029,6 +1029,7 @@ local function applyButtonAction(button)
 	if button == 'quit' then
 		hideWindows()
 		Spring.SendCommands("QuitMenu")
+		--Spring.SendCommands("QuitForce")
 	elseif button == 'options' then
 		hideWindows()
 		if (WG['options'] ~= nil) then

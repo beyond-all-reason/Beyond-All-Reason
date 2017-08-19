@@ -363,7 +363,7 @@ function checkWidgets()
 				break
 			end
 		end
-		table.insert(options, {id="cursor", group="ui", name="Cursor", type="select", options=cursorsets, value=cursor})
+		table.insert(options, {id="cursor", group="control", name="Cursor", type="select", options=cursorsets, value=cursor})
 	end
 	-- Darken map
 	if (WG['darkenmap'] ~= nil) then
@@ -378,7 +378,7 @@ function checkWidgets()
 	end
 	-- Smart Select
 	if (WG['smartselect'] ~= nil) then
-		table.insert(options, {id="smartselect_includebuildings", group="", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
+		table.insert(options, {id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
 	end
 
 	orderOptions()
