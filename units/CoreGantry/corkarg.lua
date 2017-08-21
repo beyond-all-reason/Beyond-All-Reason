@@ -149,7 +149,7 @@ return {
 				proximitypriority = 1,
 				range = 700,
 				reloadtime = 5,
-				smoketrail = true,
+				smoketrail = false,
 				soundhit = "packohit",
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
