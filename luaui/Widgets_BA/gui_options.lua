@@ -399,7 +399,11 @@ function orderOptions()
 	for id,group in pairs(optionGroups) do
 		grOptions = groupOptions[group.id]
 		if #grOptions > 0 then
-			table.insert(newOptions, {id="group_"..group.id, name=group.name, type="label"})
+			local name = group.name
+			if group.id == 'gfx' then
+				name = group.name..'                                      \255\130\130\130'..vsx..' x '..vsy
+			end
+			table.insert(newOptions, {id="group_"..group.id, name=name, type="label"})
 		end
 		for oid,option in pairs(grOptions) do
 			table.insert(newOptions, option)
