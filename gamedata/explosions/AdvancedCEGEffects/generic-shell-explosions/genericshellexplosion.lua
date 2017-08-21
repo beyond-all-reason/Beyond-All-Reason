@@ -489,6 +489,20 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
+    groundflash_white = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.9 0.75 0.55   0 0 0 0.01]],
+        size               = 40,
+        sizegrowth         = 0,
+        ttl                = 2,
+        texture            = [[groundflash]],
+      },
+    },
     heatedgroundflash = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
@@ -955,6 +969,20 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
+    groundflash_white = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.9 0.75 0.7   0 0 0 0.01]],
+        size               = 55,
+        sizegrowth         = 0,
+        ttl                = 3,
+        texture            = [[groundflash]],
+      },
+    },
     heatedgroundflash = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
@@ -1372,6 +1400,20 @@ local definitions = {
         size               = 140,
         sizegrowth         = -1.5,
         ttl                = 22,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_white = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.9 0.75 0.8   0 0 0 0.01]],
+        size               = 110,
+        sizegrowth         = 0,
+        ttl                = 3,
         texture            = [[groundflash]],
       },
     },
@@ -1820,6 +1862,20 @@ local definitions = {
         size               = 220,
         sizegrowth         = -2,
         ttl                = 25,
+        texture            = [[groundflash]],
+      },
+    },
+    groundflash_white = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.9 0.75 0.9   0 0 0 0.01]],
+        size               = 150,
+        sizegrowth         = 0,
+        ttl                = 4,
         texture            = [[groundflash]],
       },
     },
@@ -2287,6 +2343,7 @@ local colors = {
   air = {
     groundflash_small = false,
     groundflash_large = false,
+    groundflash_white = false,
     underwaterexplosionsparks = false,
     kickedupwater = false,
     dirt = false,
@@ -2301,6 +2358,7 @@ local colors = {
   aa = {
     groundflash_small = false,
     groundflash_large = false,
+    groundflash_white = false,
     underwaterexplosionsparks = false,
     kickedupwater = false,
     dirt = false,
@@ -2343,6 +2401,7 @@ for size, e in pairs(sizes) do
     definitions[defname].clouddust = nil
     definitions[defname].groundflash_small.colormap    = [[1 0.7 0.3 0.05   0 0 0 0.01]]
     definitions[defname].groundflash_large.colormap    = [[1 0.7 0.3 0.016   0 0 0 0.01]]
+    definitions[defname].groundflash_white = false
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)
 	definitions[defname].explosion.properties.numparticles = [[0 r1.2]]
@@ -2397,6 +2456,7 @@ definitions['expldgun'].groundflash_large = {
     texture            = [[groundflash]],
   },
 }
+definitions['expldgun'].groundflash_white = false
 definitions['expldgun'].heatedgroundflash = {
   class              = [[CSimpleGroundFlash]],
   count              = 1,
