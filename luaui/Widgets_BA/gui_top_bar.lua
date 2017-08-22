@@ -1018,6 +1018,7 @@ function widget:DrawScreen()
 	end
 
 	if showQuitscreen ~= nil then
+		local fadeoutBonus = 0
 		local fadeTime = 0.2
 		local fadeProgress = (os.clock() - showQuitscreen) / fadeTime
 		if fadeProgress > 1 then fadeProgress = 1 end
@@ -1027,59 +1028,62 @@ function widget:DrawScreen()
             guishaderEnabled = true
 			WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
 		end
-		glColor(0,0,0,0.15*fadeProgress)
+
+		glColor(0,0,0,(0.15*fadeProgress))
 		glRect( 0, 0, vsx, vsy)
 
+		if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-		local width = vsx/6.2
-		local height = width/3.5
-		local padding = width/70
-		local buttonPadding = width/100
-		local buttonMargin = width/32
-		local buttonHeight = height*0.55
+			local width = vsx/6.2
+			local height = width/3.5
+			local padding = width/70
+			local buttonPadding = width/100
+			local buttonMargin = width/32
+			local buttonHeight = height*0.55
 
-		quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
-		quitscreenResignArea = {(vsx/2)-(width/2)+buttonMargin, (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)-(buttonMargin/2), (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
-		quitscreenQuitArea = {(vsx/2)+(buttonMargin/2), (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)+(width/2)-buttonMargin, (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
+			quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
+			quitscreenResignArea = {(vsx/2)-(width/2)+buttonMargin, (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)-(buttonMargin/2), (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
+			quitscreenQuitArea = {(vsx/2)+(buttonMargin/2), (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)+(width/2)-buttonMargin, (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
 
-		-- window
-		glColor(1,1,1,0.5+(0.36*fadeProgress))
-		RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
-		glColor(0,0,0,0.035+(0.035*fadeProgress))
-		RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, 5*widgetScale)
+			-- window
+			glColor(1,1,1,0.5+(0.36*fadeProgress))
+			RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
+			glColor(0,0,0,0.035+(0.035*fadeProgress))
+			RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, 5*widgetScale)
 
-		local fontSize = height/5.5
-		if not spec then
-			glText("\255\000\000\000Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
-		else
-			glText("\255\000\000\000Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
-		end
-
-		-- quit button
-		if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-			glColor(0.75,0.1,0.1,0.4+(0.4*fadeProgress))
-		else
-			glColor(0.5,0,0,0.35+(0.35*fadeProgress))
-		end
-		RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 5*widgetScale)
-		glColor(0,0,0,0.07+(0.05*fadeProgress))
-		RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 4*widgetScale)
-
-		local fontSize = fontSize*0.85
-		glText("\255\255\255\255Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
-
-		-- resign button
-		if not spec then
-			if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
-				glColor(0.6,0.6,0.6,0.4+(0.4*fadeProgress))
+			local fontSize = height/5.5
+			if not spec then
+				glText("\255\000\000\000Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
 			else
-				glColor(0.3,0.3,0.3,0.35+(0.35*fadeProgress))
+				glText("\255\000\000\000Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
 			end
-			RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 5*widgetScale)
-			glColor(0,0,0,0.07+(0.05*fadeProgress))
-			RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 4*widgetScale)
 
-			glText("\255\255\255\255Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
+			-- quit button
+			if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+				glColor(0.75,0.1,0.1,0.4+(0.4*fadeProgress))
+			else
+				glColor(0.5,0,0,0.35+(0.35*fadeProgress))
+			end
+			RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 5*widgetScale)
+			glColor(0,0,0,0.07+(0.05*fadeProgress))
+			RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 4*widgetScale)
+
+			local fontSize = fontSize*0.85
+			glText("\255\255\255\255Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
+
+			-- resign button
+			if not spec then
+				if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					glColor(0.6,0.6,0.6,0.4+(0.4*fadeProgress))
+				else
+					glColor(0.3,0.3,0.3,0.35+(0.35*fadeProgress))
+				end
+				RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 5*widgetScale)
+				glColor(0,0,0,0.07+(0.05*fadeProgress))
+				RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 4*widgetScale)
+
+				glText("\255\255\255\255Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
+			end
 		end
 	end
 end
@@ -1221,9 +1225,7 @@ function widget:MousePress(x, y, button)
 				if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
 					Spring.SendCommands("QuitForce")
 					showQuitscreen = nil
-					if (WG['guishader_api'] ~= nil) then
-						WG['guishader_api'].RemoveRect('topbar_screenblur')
-					end
+					hideQuitWindow = os.clock()
 					return true
 				end
 				if not spec and IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
