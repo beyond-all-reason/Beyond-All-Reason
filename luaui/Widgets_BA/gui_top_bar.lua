@@ -988,6 +988,13 @@ function widget:DrawScreen()
 	
 	if dlistRejoin and showRejoinUI then
 		glCallList(dlistRejoin)
+	elseif dlistRejoin ~= nil then
+		if dlistRejoin ~= nil then
+			glDeleteList(dlistRejoin)
+		end
+		if WG['guishader_api'] ~= nil then
+			WG['guishader_api'].RemoveRect('topbar_rejoin')
+		end
 	end
 
 	if dlistButtons1 then
