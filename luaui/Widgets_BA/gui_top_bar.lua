@@ -124,6 +124,19 @@ function widget:ViewResize(n_vsx,n_vsy)
 end
 
 local function DrawRectRound(px,py,sx,sy,cs)
+
+	local csx = cs
+	local csy = cs
+	if sx-px < (cs*2) then
+		csx = (sx-px)/2
+		if csx < 0 then csx = 0 end
+	end
+	if sy-py < (cs*2) then
+		csy = (sy-py)/2
+		if csy < 0 then csy = 0 end
+	end
+	cs = math.min(csx, csy)
+
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
@@ -142,7 +155,7 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	
 	local offset = 0.05		-- texture offset, because else gaps could show
 	local o = offset
-	
+
 	-- top left
 	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -897,6 +910,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreen()
+
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
