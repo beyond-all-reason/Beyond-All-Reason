@@ -7,7 +7,7 @@ function widget:GetInfo()
 		license		= "GNU GPL, v2 or later",
 		layer		= -3,			-- set to -5 to draw mascotte on top of advplayerlist
 		enabled		= false,
- 	  handler = true, 
+ 	  	handler = true,
 	}
 end
 ---------------------------------------------------------------------------------------------------

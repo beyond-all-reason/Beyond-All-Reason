@@ -7,7 +7,7 @@ function widget:GetInfo()
 		license	= "GNU GPL, v2 or later",
         layer     = -99999,
 		enabled   = true, --enabled by default
-		handler   = false, --can use widgetHandler:x()
+		handler   = true, --can use widgetHandler:x()
 	}
 end
 
@@ -88,6 +88,11 @@ local prevEnemyComCount		= 0
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 local lastUpdateFrame = 0
 local currentUpdateFrame = 0
+
+local guishaderEnabled = false
+local guishaderCheckUpdateRate = 2
+local nextGuishaderCheck = guishaderCheckUpdateRate
+local now = os.clock()
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -240,8 +245,9 @@ local function updateRejoin()
 		local bgpadding = 3*widgetScale
 		glColor(1,1,1,0.03)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
-		
+
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_rejoin')
 		end
 		
@@ -312,6 +318,7 @@ local function updateButtons()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
 		end
 		
@@ -386,6 +393,7 @@ local function updateComs(forceText)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
 		end
 	end)
@@ -450,6 +458,7 @@ local function updateWind()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
 		end
 		
@@ -616,6 +625,7 @@ local function updateResbar(res)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_'..res)
 		end
 		
@@ -717,6 +727,7 @@ function init()
 		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
 		
 		--if (WG['guishader_api'] ~= nil) then
+        --  guishaderEnabled = true3
 		--	WG['guishader_api'].InsertRect(topbarArea[1]+((borderPadding*widgetScale)/2), topbarArea[2], topbarArea[3], topbarArea[4], 'topbar')
 		--end
 	end)
@@ -802,8 +813,20 @@ function widget:GameFrame(n)
 	lastUpdateFrame = currentUpdateFrame
 end
 
+
 function widget:Update(dt)
 	local mx,my = spGetMouseState()
+    now = os.clock()
+
+	if now > nextGuishaderCheck then
+        nextGuishaderCheck = now+guishaderCheckUpdateRate
+		if guishaderEnabled == false and widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0) then
+			guishaderEnabled = true
+			init()
+		elseif guishaderEnabled and widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] == 0) then
+			guishaderEnabled = false
+		end
+	end
 
 	if not spec then
 		if isInBox(mx, my, resbarArea['energy']) then
@@ -857,7 +880,7 @@ function widget:Update(dt)
 	if comcountChanged then
 		updateComs()
 	end
-	
+
 	-- rejoin
 	if (gameFrame ~= lastFrame) then
 		if showRejoinUI then
@@ -865,7 +888,7 @@ function widget:Update(dt)
 			if oneSecondElapsed >= 1 then --wait for 1 second period
 				-----var localize-----
 				-----localize
-				
+
 				local serverFrameNum = serverFrameNum1 or serverFrameNum2 --use FrameNum from GameProgress if available, else use FrameNum derived from LUA_msg.
 				serverFrameNum = serverFrameNum + serverFrameRate*oneSecondElapsed -- estimate Server's frame number after each widget:Update() while waiting for GameProgress() to refresh with actual value.
 				local frameDistanceToFinish = serverFrameNum-gameFrame
@@ -879,31 +902,31 @@ function widget:Update(dt)
 				--]]
 				--Method2: simple moving average
 				myGameFrameRate = SimpleMovingAverage(myGameFrameRate, simpleMovingAverageLocalSpeed) -- get our average frameRate
-				
+
 				local timeToComplete = frameDistanceToFinish/myGameFrameRate -- estimate the time to completion.
 				local timeToComplete_string = "?/?"
-				
+
 				local minute, second = math.modf(timeToComplete/60) --second divide by 60sec-per-minute, then saperate result from its remainder
 				second = 60*second --multiply remainder with 60sec-per-minute to get second back.
 				timeToComplete_string = string.format ("Time Remaining: %d:%02d" , minute, second)
-				
+
 				oneSecondElapsed = 0
 				myLastFrameNum = gameFrame
-				
-				if serverFrameNum1 then 
+
+				if serverFrameNum1 then
 					serverFrameNum1 = serverFrameNum --update serverFrameNum1 if value from GameProgress() is used,
-				else 
+				else
 					serverFrameNum2 = serverFrameNum
 				end --update serverFrameNum2 if value from LuaRecvMsg() is used.
-				
+
 			end
-			
+
 			if gameFrame / serverFrameNum1 < 1 then
 				updateRejoin()
 			end
 		end
 	end
-	
+
 	if (gameFrame ~= lastFrame) then
 		lastFrame = gameFrame
 	end
@@ -914,7 +937,6 @@ function widget:DrawScreen()
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
-	local now = os.clock()
 
 	local x,y,b = spGetMouseState()
 
@@ -995,6 +1017,7 @@ function widget:DrawScreen()
 
 		-- background
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
 		end
 		glColor(0,0,0,0.15*fadeProgress)
@@ -1386,7 +1409,7 @@ end
 local function RemoveLUARecvMsg(n)
 	if n > 150 then
 		isReplay = nil
-		widgetHandler:RemoveCallIn("RecvLuaMsg") --remove unused method for increase efficiency after frame> timestampLimit (150frame or 5 second).
+		--widgetHandler:RemoveCallIn("RecvLuaMsg") --remove unused method for increase efficiency after frame> timestampLimit (150frame or 5 second).
 		functionContainer = function(x) end --replace this function with an empty function/method
 	end 
 end
