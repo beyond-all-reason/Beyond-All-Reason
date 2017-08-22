@@ -19,6 +19,21 @@ return {
       },
     },
 
+    groundflash_white = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.9 0.75 0.7   0 0 0 0.01]],
+        size               = 660,
+        sizegrowth         = 0,
+        ttl                = 22,
+        texture            = [[groundflash]],
+      },
+    },
+
     pop1 = {
       class=[[heatcloud]],
       air=1,

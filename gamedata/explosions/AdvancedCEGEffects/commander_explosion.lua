@@ -3,12 +3,27 @@ return {
 	["COMMANDER_EXPLOSION"] = {
 
 		GROUNDFLASH = {
-			flashsize=1000,
+			flashsize=800,
 			flashalpha=0.4,
 			circlegrowth=25,
 			circlealpha=0,
 			ttl=35,
 			color={1,0.75,0.6},
+		},
+
+		groundflash_white = {
+			class              = [[CSimpleGroundFlash]],
+			count              = 1,
+			air                = true,
+			ground             = true,
+			water              = true,
+			properties = {
+				colormap           = [[1 0.9 0.75 0.6   0 0 0 0.01]],
+				size               = 420,
+				sizegrowth         = 0,
+				ttl                = 18,
+				texture            = [[groundflash]],
+			},
 		},
 
 		pop1 = {

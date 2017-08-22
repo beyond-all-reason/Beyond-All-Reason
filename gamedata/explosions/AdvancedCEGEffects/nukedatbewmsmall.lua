@@ -34,6 +34,20 @@ return {
         texture            = [[groundflash]],
       },
     },
+    groundflash_white = {
+        class              = [[CSimpleGroundFlash]],
+        count              = 1,
+        air                = true,
+        ground             = true,
+        water              = true,
+        properties = {
+            colormap           = [[1 0.9 0.75 0.45   0 0 0 0.01]],
+            size               = 300,
+            sizegrowth         = 0,
+            ttl                = 14,
+            texture            = [[groundflash]],
+        },
+    },
     heatedgroundflash = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
