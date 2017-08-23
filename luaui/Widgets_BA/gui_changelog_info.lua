@@ -162,15 +162,15 @@ function DrawSidebar(x,y,width,height)
 	local fontOffsetX	= versionOffsetX
 	
 	-- background
-	gl.Color(0.72,0.5,0.15,0.25)
-	RectRound(x,y-height,x+width,y,6)
+	gl.Color(0.7,0.5,0.15,0.21)
+	RectRound(x,y-height,x+width,y,2.5*widgetScale)
 	
 	-- version links
 	versionQuickLinks = {}
 	if changelogFile then
 		font:Begin()
 		font:SetOutlineColor(0.25,0.2,0,0.3)
-		font:SetTextColor(1,0.8,0.1,1)
+		font:SetTextColor(0.92,0.72,0.15,1)
 		local lineKey = 1
 		local yOffset = 24
 		local j = 0
@@ -425,8 +425,8 @@ function widget:DrawScreen()
 				local x2 = usedScreenX+(70*widgetScale)
 				local y2 = textY+yOffsetDown
 				if IsOnRect(x, y, x1, y1, x2, y2) then
-					gl.Color(1,0.93,0.75,0.22)
-					RectRound(x1, y1, x2, y2, 5*widgetScale)
+					gl.Color(1,0.93,0.75,0.17)
+					RectRound(x1, y1, x2, y2, 3*widgetScale)
 					break;
 				end
 				j = j + 1

@@ -2501,7 +2501,7 @@ definitions['expldgun'].lightdots = {
   },
 }
 definitions['expldgun'].sparks.properties.numparticles = 3
-definitions['expldgun'].dirt.properties.numparticles = 1.4
+definitions['expldgun'].dirt.properties.numparticles = 2.2
 definitions['expldgun'].dirt2 = nil
 
 --definitions['expldgun'].groundflash2 = {
