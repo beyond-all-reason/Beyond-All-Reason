@@ -216,7 +216,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local fontSizeTitle				= 17		-- is version number
 	local fontSizeDate				= 13
 	local fontSizeLine				= 15
-	local lineSeparator				= 3
+	local lineSeparator				= 2
 	
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorDate				= {0.66,0.88,0.66,1}
@@ -297,7 +297,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 					end
 					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
 					line, numLines = font:WrapText(line, (width - 40 - textRightOffset)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > height then 
+					if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 						break;
 					end
 					font:Print("   - ", x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
@@ -306,7 +306,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 					-- line
 					line = "  " .. line
 					line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
-					if (fontSizeTitle)*(j+numLines-1) > height then 
+					if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 						break;
 					end
 					font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
