@@ -210,12 +210,13 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarWidth     		= 8
 	local scrollbarPosWidth  		= 4
 	local scrollbarPosMinHeight 	= 8
-	local scrollbarBackgroundColor	= {0,0,0,0.24	}
+	local scrollbarBackgroundColor	= {0,0,0,0.24}
 	local scrollbarBarColor			= {1,1,1,0.08}
 	
 	local fontSizeTitle				= 17		-- is version number
 	local fontSizeDate				= 13
 	local fontSizeLine				= 15
+	local lineSeparator				= 3
 	
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorDate				= {0.66,0.88,0.66,1}
@@ -262,7 +263,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 		local lineKey = startLine
 		local j = 1
 		while j < maxLines do	-- maxlines is not exact, just a failsafe
-			if (fontSizeTitle)*j > height then
+			if (lineSeparator+fontSizeTitle)*j > height then
 				break;
 			end
 			if changelogLines[lineKey] == nil then
@@ -274,7 +275,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				-- date line
 				line = "  " .. line
 				font:SetTextColor(fontColorDate)
-				font:Print(line, x, y-fontSizeTitle*j, fontSizeDate, "n")
+				font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeDate, "n")
 			elseif string.find(line, '^(%d*%d.?%d+)') then
 				-- version line
 				local versionStrip = string.match(line, '( %d*%d.?%d+)')
@@ -284,7 +285,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 					line = " " .. line
 				end
 				font:SetTextColor(fontColorTitle)
-				font:Print(line, x-9, y-fontSizeTitle*j, fontSizeTitle, "n")
+				font:Print(line, x-9, y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
 				
 			else
 				font:SetTextColor(fontColorLine)
@@ -299,8 +300,8 @@ function DrawTextarea(x,y,width,height,scrollbar)
 					if (fontSizeTitle)*(j+numLines-1) > height then 
 						break;
 					end
-					font:Print("   - ", x, y-fontSizeTitle*j, fontSizeLine, "n")
-					font:Print(line, x+26, y-fontSizeTitle*j, fontSizeLine, "n")
+					font:Print("   - ", x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
+					font:Print(line, x+26, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				else
 					-- line
 					line = "  " .. line
@@ -308,7 +309,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 					if (fontSizeTitle)*(j+numLines-1) > height then 
 						break;
 					end
-					font:Print(line, x, y-(fontSizeTitle)*j, fontSizeLine, "n")
+					font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				end
 				j = j + (numLines - 1)
 			end
@@ -396,7 +397,7 @@ function widget:DrawScreen()
 		local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 		local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
 
-		local x,y = Spring.GetMouseState()
+		local x,y,pressed = Spring.GetMouseState()
 		if changelogFile then
 			local lineKey = 1
 			local j = 0
@@ -425,7 +426,11 @@ function widget:DrawScreen()
 				local x2 = usedScreenX+(70*widgetScale)
 				local y2 = textY+yOffsetDown
 				if IsOnRect(x, y, x1, y1, x2, y2) then
-					gl.Color(1,0.93,0.75,0.17)
+					if pressed then
+						gl.Color(1,0.93,0.75,0.23)
+					else
+						gl.Color(1,0.93,0.75,0.15)
+					end
 					RectRound(x1, y1, x2, y2, 3*widgetScale)
 					break;
 				end
@@ -483,7 +488,7 @@ end
 function widget:MouseWheel(up, value)
 	
 	if show then	
-		local addLines = value*-5 -- direction is retarded
+		local addLines = value*-3 -- direction is retarded
 		
 		startLine = startLine + addLines
 		if startLine < 1 then startLine = 1 end
