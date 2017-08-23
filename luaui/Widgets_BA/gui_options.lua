@@ -753,6 +753,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("AdvSky",value)
 		elseif id == 'shadows' then
 			Spring.SendCommands("Shadows "..value)
+		elseif id == 'vsync' then
+			Spring.SendCommands("Vsync "..value)
+			Spring.SetConfigInt("Vsync",value)
 		elseif id == 'fullscreen' then
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
@@ -860,6 +863,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("grounddetail "..value)
 		elseif id == 'sndvolmaster' then
 			Spring.SetConfigInt("snd_volmaster", value)
+		elseif id == 'sndvolbattle' then
+			Spring.SetConfigInt("snd_volbattle", value)
+		elseif id == 'sndvoui' then
+			Spring.SetConfigInt("snd_volui", value)
+		elseif id == 'sndvolunitreply' then
+			Spring.SetConfigInt("snd_volunitreply", value)
+		elseif id == 'sndvolmusic' then
+			Spring.SetConfigInt("snd_volmusic", value)
 		elseif id == 'crossalpha' then
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 			Spring.SetConfigInt("CrossAlpha", value)
@@ -1178,6 +1189,7 @@ function widget:Initialize()
 		--GFX
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
+		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1, description=''},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
@@ -1206,6 +1218,10 @@ function widget:Initialize()
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
+		--{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
+		--{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
+		--{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
+		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
 
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
@@ -1226,7 +1242,7 @@ function widget:Initialize()
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawTooltip, description='Enables unit tooltip when hovering over unit in buildmenu'},
 
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
-		
+
 		--{id="fpstimespeed", group="ui", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
 		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Time/speed/fps on top of playerlist", type="bool", value=widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
 
