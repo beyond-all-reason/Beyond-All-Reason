@@ -551,9 +551,9 @@ function DrawWindow()
 		if column >= startColumn then
 			rows = rows + 1
 			--option name
-			color = '\255\230\230\230  '
+			color = '\255\225\225\225  '
 			if option.type == 'label' then
-				color = '\255\233\200\133'
+				color = '\255\235\200\125'
 			end
 			glText(color..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
 
@@ -677,7 +677,7 @@ function widget:DrawScreen()
 						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
 						if options[i].description ~= nil then
 							description = options[i].description
-							glText('\255\233\200\133'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
 						end
 					end
 				end
