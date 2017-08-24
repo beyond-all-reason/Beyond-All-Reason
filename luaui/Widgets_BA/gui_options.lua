@@ -1275,6 +1275,10 @@ function widget:Initialize()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=widgetHandler.orderList["Set target default"] ~= nil and (widgetHandler.orderList["Set target default"] > 0), description='Replace default click from attack to a set-target command'},
 	}
 
+	-- not sure if needed: remove vsync option when its dont by monitor (freesync/gsync) -> config value is set as 'x'
+	if Spring.GetConfigInt("Vsync",1) == 'x' then
+		options[getOptionByID('vsync')] = nil
+	end
 
 	local processedOptions = {}
 	local insert = true
