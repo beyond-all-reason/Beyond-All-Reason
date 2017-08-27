@@ -20,6 +20,7 @@ local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
 local bgcorner1 = ":n:"..LUAUI_DIRNAME.."Images/bgcorner1.png" -- only used to draw dropdown arrow
 local backwardTex = LUAUI_DIRNAME.."Images/backward.dds"
 local forwardTex = LUAUI_DIRNAME.."Images/forward.dds"
+local glowTex = LUAUI_DIRNAME.."Images/glow.dds"
 
 local bgMargin = 6
 
@@ -569,11 +570,18 @@ function DrawWindow()
 				RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
 				if option.value == true then
 					glColor(0.66,0.92,0.66,1)
-					RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-				else
+                    RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+                    local boolGlow = boolPadding*1.15
+                    glColor(0.66,1,0.66,0.23)
+                    glTexture(glowTex)
+                    glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
+                    glColor(0.55,1,0.55,0.09)
+                    glTexture(glowTex)
+                    glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
+                else
 					glColor(0.92,0.66,0.66,1)
 					RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-				end
+               end
 
 			elseif option.type == 'slider' then
 				local sliderSize = oHeight*0.75
@@ -1264,15 +1272,15 @@ function widget:Initialize()
 		{id="rankicons", group="ui", widget="Rank Icons", name="Unit rank icons", type="bool", value=widgetHandler.orderList["Rank Icons"] ~= nil and (widgetHandler.orderList["Rank Icons"] > 0), description='Shows a rank icon depending on experience next to units'},
 
 		-- GAME
-		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["Autoquit"] > 0), description='Automatically quits after the game ends.\n...unless the mouse has been moved withing a few seconds.'},
-		{id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["OnlyFightersPatrol"] > 0), description='Only fighters go on factory\'s patrol route after leaving airlab.'},
-		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=widgetHandler.orderList["Set fighters on Fly mode"] ~= nil and (widgetHandler.orderList["Set fighters on Fly mode"] > 0), description='Setting fighters on Fly mode'},
-		{id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=widgetHandler.orderList["Passive builders"] ~= nil and (widgetHandler.orderList["Passive builders"] > 0), description='Sets builders (nanos, labs and cons) on passive mode'},
-		{id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=widgetHandler.orderList["FactoryGuard"] ~= nil and (widgetHandler.orderList["FactoryGuard"] > 0), description='Assigns new builders to assist their source factory'},
-		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=widgetHandler.orderList["Factory hold position"] ~= nil and (widgetHandler.orderList["Factory hold position"] > 0), description='Sets new factories, and all units they build, to hold position automatically (except aircraft)'},
-		{id="factoryrepeat", group="game", widget="Factory Auto-Repeat", name="Factory auto-repeat", type="bool", value=widgetHandler.orderList["Factory Auto-Repeat"] ~= nil and (widgetHandler.orderList["Factory Auto-Repeat"] > 0), description='Sets new factories to Repeat on automatically'},
-		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=widgetHandler.orderList["Transport AI"] ~= nil and (widgetHandler.orderList["Transport AI"] > 0), description='Transport units automatically pick up units going to factory waypoint.'},
-		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=widgetHandler.orderList["Set target default"] ~= nil and (widgetHandler.orderList["Set target default"] > 0), description='Replace default click from attack to a set-target command'},
+		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["Autoquit"] > 0), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
+		{id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["OnlyFightersPatrol"] > 0), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
+		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=widgetHandler.orderList["Set fighters on Fly mode"] ~= nil and (widgetHandler.orderList["Set fighters on Fly mode"] > 0), description='Setting fighters on Fly mode when created'},
+		{id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=widgetHandler.orderList["Passive builders"] ~= nil and (widgetHandler.orderList["Passive builders"] > 0), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: You could set your most important builders on active and leave the rest on passive'},
+		{id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=widgetHandler.orderList["FactoryGuard"] ~= nil and (widgetHandler.orderList["FactoryGuard"] > 0), description='Newly created builders will assist their source factory'},
+		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=widgetHandler.orderList["Factory hold position"] ~= nil and (widgetHandler.orderList["Factory hold position"] > 0), description='Sets new factories, and all units they build, to hold position automatically (not aircraft)'},
+		{id="factoryrepeat", group="game", widget="Factory Auto-Repeat", name="Factory auto-repeat", type="bool", value=widgetHandler.orderList["Factory Auto-Repeat"] ~= nil and (widgetHandler.orderList["Factory Auto-Repeat"] > 0), description='Sets new factories on Repeat mode'},
+		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=widgetHandler.orderList["Transport AI"] ~= nil and (widgetHandler.orderList["Transport AI"] > 0), description='Transport units automatically pick up new units going to factory waypoint.'},
+		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=widgetHandler.orderList["Set target default"] ~= nil and (widgetHandler.orderList["Set target default"] > 0), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
 	-- not sure if needed: remove vsync option when its dont by monitor (freesync/gsync) -> config value is set as 'x'
