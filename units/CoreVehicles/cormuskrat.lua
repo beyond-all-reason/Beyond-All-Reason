@@ -11,7 +11,7 @@ return {
 		buildtime = 6864,
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -1 5",
+		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "22 16 41",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

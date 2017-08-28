@@ -8,7 +8,7 @@ return {
 		buildtime = 3312,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumeoffsets = "0 -1 -4",
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

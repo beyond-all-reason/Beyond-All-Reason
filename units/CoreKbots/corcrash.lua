@@ -9,7 +9,7 @@ return {
 		buildtime = 1900,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 0 3",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30.404109954834 37.404109954834 30.404109954834",
 		collisionvolumetype = "ell",
 		corpse = "DEAD",

@@ -18,7 +18,7 @@ return {
 		cloakcost = 50,
 		cloakcostmoving = 100,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "19 24 26",
+		collisionvolumescales = "23 25 34",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Radar-Invisible Spy Kbot",

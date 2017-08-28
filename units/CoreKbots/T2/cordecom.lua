@@ -18,7 +18,7 @@ return {
 		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		cloakcost = 30,
 		cloakcostmoving = 180,
-		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumeoffsets = "0 -1 -6",
 		collisionvolumescales = "27 39 27",
 		collisionvolumetype = "CylY",
 		decoyfor = "corcom",
