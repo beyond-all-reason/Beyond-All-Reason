@@ -33,7 +33,6 @@ return {
 		script = "BASICTANKSCRIPT.LUA",
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 585,
-		script = "armfav_lus.lua",
 		trackoffset = -3,
 		trackstrength = 3,
 		tracktype = "StdTank",

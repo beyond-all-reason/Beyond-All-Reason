@@ -31,6 +31,7 @@ return {
 		name = "Shellshocker",
 		nochasecategory = "VTOL",
 		objectname = "armart",
+		script = "BASICTANKSCRIPT.LUA",
 		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
