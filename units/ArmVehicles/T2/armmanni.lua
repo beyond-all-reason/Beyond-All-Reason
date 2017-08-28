@@ -31,6 +31,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMMANNI",
 		seismicsignature = 0,
+		script = "BASICTANKSCRIPT.LUA",
 		selfdestructas = "penetrator",
 		sightdistance = 650,
 		trackoffset = 16,
@@ -42,7 +43,27 @@ return {
 		turninplacespeedlimit = 1.00188,
 		turnrate = 151,
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flash",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-small",
+					driftratio = "0", --How likely will the unit drift when performing turns?
+					rockstrength = "0", --Howmuch will its weapon make it rock ?
+					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "5", --How fast will the cannon come back in position?
+					kickback = "-2", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "50", --turretSpeed as seen in COB script
+					cobturretxspeed = "50", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

@@ -26,6 +26,7 @@ function script.Create()
 	rockStrength = tonumber(uDef.customParams and uDef.customParams.rockstrength) or 0.02
 	rockSpeed = tonumber(uDef.customParams and uDef.customParams.rockspeed) or 3
 	rockRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.rockrestorespeed) or 1
+	firingCEG = uDef.customParams and uDef.customParams.firingceg or "barrelshot-medium"
 	
 	turretYSpeed = ProcessAngularSpeeds(COBturretYSpeed)
 	turretXSpeed = ProcessAngularSpeeds(COBturretXSpeed)
@@ -44,8 +45,8 @@ end
 function script.RockUnit (x,z)
 local ux, uy, uz = Spring.GetUnitDirection(unitID)
 RockXFactor = (ux*x) + (uz*z)
-RockZFactor = (uz * x) + (-ux * z)
-Turn (base, 1, RockXFactor*rockStrength, rockSpeed)
+RockZFactor = (-uz * x) + (ux * z)
+Turn (base, 1, -RockXFactor*rockStrength, rockSpeed)
 Turn (base, 3, RockZFactor*rockStrength, rockSpeed)
 Sleep (50)
 Turn (base, 1, 0, rockRestoreSpeed)
@@ -137,7 +138,6 @@ end
 
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
-dx, dy, dz = 1, 0, 1
 Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
 end
 
@@ -186,15 +186,18 @@ function script.Shot1()
 -- Spring.Echo(gun1)
 	if flare2 then
 		if gun1 == 1 then
+			Emit(flare1, firingCEG)
 			Move(cannon1, 3, kickback)
 			Move(cannon1, 3, 0, kickbackRestoreSpeed)
 			gun1 = 2
 		else
+			Emit(flare2, firingCEG)
 			Move(cannon2, 3, kickback)
 			Move(cannon2, 3, 0, kickbackRestoreSpeed)
 			gun1 = 1
 		end
 	else
+		Emit(flare1, firingCEG)
 		Move(cannon1, 3, kickback)
 		Move(cannon1, 3, 0, kickbackRestoreSpeed)
 	end
