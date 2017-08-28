@@ -7,7 +7,11 @@
 	flare2name = uDef.customParams and uDef.customParams.flare2name or nil
 	cannon2name = uDef.customParams and uDef.customParams.cannon2name or nil
 	driftRatio = tonumber(uDef.customParams and uDef.customParams.driftratio) or 1
-	common = include("headers/common_includes_lus.lua")
+	smokeCEGName1 = uDef.customParams and uDef.customParams.smokecegname1 or "unitsmoke"
+	smokeCEGName2 = uDef.customParams and uDef.customParams.smokecegname2 or "unitsmokefire"
+	smokeCEGName3 = uDef.customParams and uDef.customParams.smokecegname3 or "unitfire"
+	smokeCEGName4 = uDef.customParams and uDef.customParams.smokecegname4 or "unitsparkles"	
+	
 if cannon2name and flare2name then
 	base, turret, sleeve, cannon1, flare1, flare2, cannon2 = piece(basename, turretname, sleevename, cannon1name, flare1name, flare2name, cannon2name)
 	piecetable = {base, turret, sleeve, cannon1, flare1, cannon2, flare2}
@@ -17,7 +21,7 @@ else
 end
 
 function script.Create()
-	StartThread(common.SmokeUnit, {base, turret})
+	StartThread(SmokeUnit, piecetable)
 	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretyspeed) or 200
 	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretxspeed) or 200
 	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10
@@ -41,6 +45,30 @@ function script.Create()
 	Hide(flare2)
 	end
 end
+
+	function SmokeUnit (smokePieces)
+		local n = #smokePieces
+		while (GetUnitValue(COB.BUILD_PERCENT_LEFT) ~= 0) do
+			Sleep(1000)
+		end
+		while true do
+			local health = GetUnitValue(COB.HEALTH)
+			if (health <= 66) then -- only smoke if less then 2/3rd health left
+				randomnumber = math.random(1,4)
+				if randomnumber == 1 then
+					smokeCEGName = smokeCEGName1
+				elseif randomnumber == 2 then
+					smokeCEGName = smokeCEGName2
+				elseif randomnumber == 3 then
+					smokeCEGName = smokeCEGName3
+				else
+					smokeCEGName = smokeCEGName4
+				end
+				Emit(smokePieces[math.random(1,n)], smokeCEGName) --CEG name in quotes (string)
+			end
+			Sleep(200*health/100 + 200)
+		end
+	end
 
 function script.RockUnit (x,z)
 local ux, uy, uz = Spring.GetUnitDirection(unitID)
@@ -211,11 +239,11 @@ function script.Killed(recentDamage, maxHealth)
 		for count, piece in pairs(piecetable) do
 			randomnumber = math.random(1,7)
 			if randomnumber == 1 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.FIRE, SFX.SMOKE, SFX.NO_HEATCLOUD, SFX.FALL)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
 			elseif randomnumber == 2 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.SHATTER + SFX.NO_HEATCLOUD)
 			else
-				Explode(piece, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.SHATTER + SFX.NO_HEATCLOUD)
 			end
 			Hide(piece)
 		end
@@ -224,11 +252,11 @@ function script.Killed(recentDamage, maxHealth)
 		for count, piece in pairs(piecetable) do
 			randomnumber = math.random(1,5)
 			if randomnumber == 1 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.FIRE, SFX.SMOKE, SFX.NO_HEATCLOUD, SFX.FALL)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
 			elseif randomnumber == 2 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.SHATTER + SFX.NO_HEATCLOUD)
 			else
-				Explode(piece, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.SHATTER + SFX.NO_HEATCLOUD)
 			end
 			Hide(piece)
 		end
@@ -237,11 +265,11 @@ function script.Killed(recentDamage, maxHealth)
 		for count, piece in pairs(piecetable) do
 			randomnumber = math.random(1,3)
 			if randomnumber == 1 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.FIRE, SFX.SMOKE, SFX.NO_HEATCLOUD, SFX.FALL)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
 			elseif randomnumber == 2 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.SHATTER + SFX.NO_HEATCLOUD)
 			else
-				Explode(piece, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.SHATTER + SFX.NO_HEATCLOUD)
 			end
 			Hide(piece)
 		end

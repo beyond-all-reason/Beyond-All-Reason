@@ -63,6 +63,11 @@ return {
 					cobturretyspeed = "105", --turretSpeed as seen in COB script
 					cobturretxspeed = "65", --turretSpeed as seen in COB script
 					restoretime = "3000", --restore delay as seen in COB script
+				--UNITSMOKES (default/unspecified = unitsmoke
+				smokecegname1 = nil,
+				smokecegname2 = nil,
+				smokecegname3 = nil,
+				smokecegname4 = nil,
 		},
 		featuredefs = {
 			dead = {
