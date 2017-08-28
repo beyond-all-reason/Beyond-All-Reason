@@ -509,7 +509,7 @@ ResumeBuilding()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = nanogun;
 }
 
 QueryPrimary(piecenum)

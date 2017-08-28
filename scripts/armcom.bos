@@ -483,7 +483,7 @@ ResumeBuilding()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = nanolath;
 }
 
 QueryPrimary(piecenum)
@@ -574,7 +574,7 @@ FireSecondary()
 
 AimFromTertiary(piecenum)
 {
-	piecenum = pelvis;
+	piecenum = biggun;
 }
 
 QueryTertiary(piecenum)
@@ -589,7 +589,7 @@ AimTertiary(heading, pitch)
 	Static_Var_4 = 1;
 	bAiming = TRUE;
 	turn torso to y-axis heading speed <400.000000>;
-	turn ruparm to x-axis <-24.000000> - pitch speed <90.000000>;
+	turn ruparm to x-axis <-30.000000> - pitch speed <130.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn ruparm around x-axis;
 	return (1);
