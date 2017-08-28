@@ -135,6 +135,15 @@ end
 function WeaponDef_Post(name, wDef)
   wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
 
+	-- EdgeEffectiveness global buff to counterbalance smaller hitboxes
+	wDef.edgeeffectiveness = (wDef.edgeeffectiveness or 0) + 0.15
+	if wDef.edgeeffectiveness >= 1 then
+	wDef.edgeeffectiveness = 1
+	end
+	
+	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
+	wDef.targetborder = 1.0
+	
   -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
 	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
 		wDef["damage"].hvyboats = wDef["damage"].heavyunits 

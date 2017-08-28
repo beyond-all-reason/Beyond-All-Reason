@@ -10,6 +10,11 @@ Important:
 Balance changes:
  • All Energy and metal prices have been rounded (because buildmenu shows prices)
  • Introduced a minimum (slightly larger) buildrange
+ • Due to the introduction of collision volumes back in 2012-2013 that were smaller than the default radius previously used, a global edgeeffectiveness buff of 0.15 has been applyied to get back some of the aoe damages (both on aoe weapons and death explosions) that were previously lost. 
+The reasoning behind this change is: because the hitboxes were made smaller, the distance between an aoe weapon and the unit's colvol were made bigger, and therefor less damages were applyied. 
+By globally increasing edgeeffectiveness we decrease the effect of distance on the final damage value and we get back some of the damages that were lost in the process of reducing the hitboxes. (Doo)
+ • All weapons use TargetBorder = 1.0. It means that instead of aiming for the center of a unit (classic BA behaviour) and be unable to aim when this aimpoint is outside of range while the hitbox is still inside, weapons will try to aim for the closest hitbox's border. 
+This change seems to only apply to box shaped hitboxes at the moment. We hope that with Spring 104 out, this issue will be resolved and we will be able to use this functionnality as a default BA setting. (Doo)
 
  Movement
  • Raw unit movement implemented
@@ -55,7 +60,7 @@ Balance changes:
  T3
  • Vanguard does 20% more damage
  • Reintroduced KrogStomp (vs ground scouts + pws/aks only) aswell as a GFX/SFX
- • Removed T3 Hovercrafts
+ • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
 
  Mod options
  • Control victory options: info on startup and offers a better scoreboard window
@@ -66,45 +71,24 @@ Balance changes:
  Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
 
 
- Sea reworked: (by Doo)
- • Work In Prorgess
-Changelog date: 07/12/17
-IMPORTANT BALANCE CHANGES:
-• Increased T1 shipyards costs +40% and decreased T1 and T2 ships costs 20%.
-• Increased Patrol Boats reloadtime (100%), decreased hp 345->275, costs 20% (BEFORE the global costs decrease)
-• Added GUN PLATFORM to both factions for 160m/1600e. Available in T1 ship con, t2 engineer and Commander buildmenus.
-• Added SEA PLATFORM to both factions for 50m/400e. Available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
-• Added Plasma Frigates to both factions for 440m/2000e arm, 480m/2160e core. Available in T1 Shipyard.
-		These units stats will be posted separately on our Discord channel when they will be definite for the upcoming version.
-• Nerfed construction ship buildpower 50%
-• Added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships.
-• Reduced corvette costs for both faction (arm 55%, core 57%) and HP (arm 1900=>780, core 1800=>700) (BEFORE the global costs decrease)
-• Guardian, punisher, ambusher and toaster now have increased damages against ships. This was an original feature of Absolute Annihilation, that had been kept in the firsts BA version and had been removed at some point, leaving the guardian/punisher as a hardly useful unit.
-	They were also given bonus damages towards commanders (which were already existant on their high trajectory mode, but inexistant on their low traj mode.
-	The total bonus damages are: T1 and T2: lowtraj +300 vs comms and light ships, +150 vs heavyships, Hightraj +400 vs comms and light ships, +200 vs heavy ships.
+Sea reworked: (by Doo)
+Major balance changes:
+• Increased T1 shipyards costs and decreased T1 and T2 ships costs.
+• Increased Patrol Boats reloadtime, decreased hp, costs.
+• Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
+• Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
+• Added Plasma Frigates to both factions available in T1 Shipyard.
+• Nerfed construction ship buildpower, added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships
+• Reduced corvette costs and HP
+• Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
 
-MOVEMENT AND UNIT BEHAVIOUR RELATED (nothing is definite for now so i'll just state the global trend):
-• Accelerations are being reworked for slower movestarts (which means decreased acceleration overall). 
-	I'm calculating the new accel values as such: Acceleration(elmos/f²) = MaxVelocity(elmos/frame)/(30(frame/s)*TimeToReachMaxSpeed(s)
-	In the end, once all the MaxVelocity will be balanced, i'll just have to balance the "TimeToReachMaxSpeed" appropriately. As of now, accelerations for ships are clamped between 2 second and 8 seconds.
-• MaxVelocities are being reworked: Globaly, they are being decreased for most ships although some of them might have gained a bit of maxspeed in the end.
-• TurnRates were, overall, a bit too high and didnt really fit with the unit's corresponding model. They are being reworked for a more realistic behaviour. We are trying to keep it as enjoyable as possible though, and trying to avoid boring collisions against ground.
-• TurnInPlaces: As of now, ALL ships will be able to perform a turn-in-place. This might sound tricky and unrealistic. In reality, they never will turn in place because they will always start accelerating while turning. Also, due to finetuning the TurnInPlaceAngleLimit, we are trying to avoid as much as possible the weird behaviours where a ship brakes in the middle of a fight to turn.
-The turninplaceanglelimits have been set between 90 and 140 degrees, depending on the usage made of a unit. 
-A destroyer, for exemple, shouldn't brake when firing and trying to perform a 180° to avoid shots. We have set the turninplaceanglelimit to 140 degrees, which is the BA7.20 value from back when it still could perform turninplaces
-This function allows all move commands that are under 140 degrees not to trigger any braking. 
-If you wan to make a full 180° turn with a brake, directly queue the 180° turn. 
-If you don't want it to brake, split the turn into two moveorders < 140degrees each.
-This value has been set to 90 for construction ships, 110 for pships, 140 for scouts.
-These values might be subject to change to enhance the players' experience and avoid unwanted brakes in a middle of an intense battle.
-• BrakeRates: They are calculated with the same formula as the acceleration:
-	BrakeRate(elmos/f²) = MaxVelocity(elmos/frame)/(30(frame/s)*TimeToStop(s)
-	As of now, the TimeToStop times are clamped between 0.5 and 1.33 seconds.
+Movement: 
+• Uses Raw move to avoid needless turns in water
+• Ships can now turn-in-place (as it did back in 2012). This allows better control on boats by being able to anticipate if the unit will slow down for the turn or keep its max speed.
+• Globally, maxspeeds, accelerations, brakesrates and turnrates have been decreased for a smoother handling and better feeling of inertia. In terms of balance, this also results in ships being globally weaker to non instantaneous (non beamlasers) weapons (including each other as most ships use plasmas).
 
-MODELS AND ANIMATIONS:
-• Battleships and Cruisers model have had their Z-axis scaled up a bit (about a 1.4 factor) to give their model a proper ship-like impression.
-	The balance change caused by this new model isn't inexistant. It is kept to a minimal, but the turret placements being slightly different can cause some small changes to their effective range. (IE tower further behind = needs to get a little closer to its target).
-
+Models and animations:
+• Some models scales have been changed in order to add a ship feeling to them (mainly longer Z-Axis)
 
 Other:
  • Increased default player unit limit to 1500
