@@ -29,6 +29,7 @@ return {
 		name = "Pincer",
 		nochasecategory = "VTOL",
 		objectname = "ARMPINCER",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 240,
@@ -42,8 +43,27 @@ return {
 		turnrate = 398,
 		customparams = {
 			description_long = "A pincer is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way.",
-
 			paralyzemultiplier = 0.125,
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "turret",
+					cannon1name = "barrel",
+					flare1name = "emit",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					driftratio = "0.3", --How likely will the unit drift when performing turns?
+					rockstrength = "0.05", --Howmuch will its weapon make it rock ?
+					rockspeed = "2", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "1", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "6", --How fast will the cannon come back in position?
+					kickback = "-2.7", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "75", --turretSpeed as seen in COB script
+					cobturretxspeed = "64", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

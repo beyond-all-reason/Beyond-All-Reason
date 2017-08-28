@@ -30,8 +30,10 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFAV",
 		seismicsignature = 0,
+		script = "BASICTANKSCRIPT.LUA",
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 585,
+		script = "armfav_lus.lua",
 		trackoffset = -3,
 		trackstrength = 3,
 		tracktype = "StdTank",
@@ -42,6 +44,26 @@ return {
 		turnrate = 1144,
 		customparams = {
 			description_long = "Jeffies are supercheap and fast to build vehicles used for scouting and damaging the early eco structures of enemies. It is the fastest moving unit in the whole game but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion! In T2 warfare Jeffies come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery. ",
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "gun",
+					sleevename = "gun",
+					cannon1name = "flare1",
+					flare1name = "flare1",
+					cannon2name = "flare2", --optional (replace with nil)
+					flare2name = "flare2", --optional (replace with nil)
+				--SFXs HERE
+					driftratio = "0.8", --How likely will the unit drift when performing turns?
+					rockstrength = "0", --Howmuch will its weapon make it rock ?
+					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "0", --How fast will the cannon come back in position?
+					kickback = "0", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "200", --turretSpeed as seen in COB script
+					cobturretxspeed = "200", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {
