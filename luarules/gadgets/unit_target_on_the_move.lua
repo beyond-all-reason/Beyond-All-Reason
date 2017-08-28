@@ -3,7 +3,7 @@ function gadget:GetInfo()
   return {
 	name 	= "Target on the move",
 	desc	= "Adds a command to set a priority attack target",
-	author	= "Google Frog, adapted for BA by BrainDamage",
+	author	= "Google Frog, adapted for BA by BrainDamage, added remove on Dgun by doo",
 	date	= "06/05/2013",
 	license	= "GNU GPL, v2 or later",
 	layer	= 0,
@@ -81,7 +81,7 @@ local tremove					= table.remove
 local diag						= math.diag
 
 local CMD_STOP					= CMD.STOP
-
+local CMD_DGUN					= CMD.DGUN
 
 local SlowUpdate				= 15
 
@@ -515,7 +515,7 @@ end
 
 function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 	processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_STOP then
+	if cmdID == CMD_STOP or cmdID == CMD_DGUN then
 		if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 			removeUnit(unitID)
 		end
@@ -526,7 +526,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if spGetCommandQueue(unitID, -1, false) == 0 or not cmdOptions.meta then
 		if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 			return false --command was used & fully processed, so block command
-		elseif cmdID == CMD_STOP then
+		elseif cmdID == CMD_STOP or cmdID == CMD_DGUN then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 				removeUnit(unitID)
 			end
