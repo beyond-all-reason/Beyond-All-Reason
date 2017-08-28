@@ -21,7 +21,7 @@ else
 end
 
 function script.Create()
-	StartThread(SmokeUnit, piecetable)
+	StartThread(SmokeUnit, {base, turret})
 	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretyspeed) or 200
 	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretxspeed) or 200
 	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10
@@ -64,9 +64,9 @@ end
 				else
 					smokeCEGName = smokeCEGName4
 				end
-				Emit(smokePieces[math.random(1,n)], smokeCEGName) --CEG name in quotes (string)
+				EmitRand(smokePieces[math.random(1,n)], smokeCEGName) --CEG name in quotes (string)
 			end
-			Sleep(200*health/100 + 200)
+			Sleep(20*health + 200)
 		end
 	end
 
@@ -166,6 +166,12 @@ end
 
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
+Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
+end
+
+function EmitRand(pieceName, effectName)
+local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
+x,y,z,dx,dy,dz = x + math.random(-5,5),y+ math.random(-5,5),z+ math.random(-5,5),dx+ math.random(-1,1),dy+ math.random(-1,1),dz+ math.random(-1,1)
 Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
 end
 
