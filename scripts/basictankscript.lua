@@ -284,11 +284,11 @@ function script.Killed(recentDamage, maxHealth)
 		for count, piece in pairs(piecetable) do
 			randomnumber = math.random(1,2)
 			if randomnumber == 1 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.FIRE, SFX.SMOKE, SFX.NO_HEATCLOUD, SFX.FALL)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
 			elseif randomnumber == 2 then
-				Explode(piece, SFX.EXPLODE_ON_HIT, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.SHATTER + SFX.NO_HEATCLOUD)
 			else
-				Explode(piece, SFX.SHATTER, SFX.NO_HEATCLOUD)
+				Explode(piece, SFX.SHATTER + SFX.NO_HEATCLOUD)
 			end
 			Hide(piece)
 		end
