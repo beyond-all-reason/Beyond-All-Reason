@@ -107,7 +107,7 @@ for i=1, #UnitDefs do
 end
 
 unitTargets = {} -- data holds all unitID data
-
+pausedTargets = {}
 --------------------------------------------------------------------------------
 -- Commands
 
@@ -292,13 +292,13 @@ local function addUnitTargets(unitID, unitDefID, targets, append)
 	end
 end
 
-local function removeUnit(unitID)
+local function removeUnit(unitID, keeptrack)
 	spSetUnitTarget(unitID,nil)
 	spSetUnitRulesParam(unitID,"targetID",-1)
 	spSetUnitRulesParam(unitID,"targetCoordX",-1)
 	spSetUnitRulesParam(unitID,"targetCoordY",-1)
 	spSetUnitRulesParam(unitID,"targetCoordZ",-1)
-	if unitTargets[unitID] then
+	if unitTargets[unitID] and not keeptrack == true then
 		SendToUnsynced("targetList",unitID,0)
 	end
 	unitTargets[unitID] = nil
@@ -515,10 +515,14 @@ end
 
 function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams, cmdOptions)
 	processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if cmdID == CMD_STOP or cmdID == CMD_DGUN then
+	if cmdID == CMD_STOP then
 		if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 			removeUnit(unitID)
 		end
+	elseif cmdID == CMD_DGUN then
+		if pausedTargets[unitID] then
+			addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
+		end			
 	end
 end
 
@@ -526,10 +530,15 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	if spGetCommandQueue(unitID, -1, false) == 0 or not cmdOptions.meta then
 		if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 			return false --command was used & fully processed, so block command
-		elseif cmdID == CMD_STOP or cmdID == CMD_DGUN then
+		elseif cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 				removeUnit(unitID)
 			end
+		elseif cmdID == CMD_DGUN then
+			if unitTargets[unitID] then
+				pausedTargets[unitID] = unitTargets[unitID]
+				removeUnit(unitID, true)
+			end			
 		end
 	end
 	return true  -- command was not used OR was used but not fully processed, so don't block command
