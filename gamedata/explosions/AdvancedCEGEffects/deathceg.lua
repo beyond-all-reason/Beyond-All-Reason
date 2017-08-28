@@ -434,6 +434,58 @@ function deepcopy(orig)
     end
     return copy
 end
+local effects = {
+  electricity = {
+    air                = true,
+    class              = [[CSimpleParticleSystem]],
+    count              = 1,
+    ground             = true,
+    water              = true,
+    underwater         = true,
+    properties = {
+      airdrag            = 0.8,
+      colormap           = [[0.7 0.7 0.9 0.037   0.5 0.5 0.9 0.01]],
+      directional        = true,
+      emitrot            = 45,
+      emitrotspread      = 32,
+      emitvector         = [[0, 1, 0]],
+      gravity            = [[0, -0.01, 0]],
+      numparticles       = 2,
+      particlelife       = 4,
+      particlelifespread = 1,
+      particlesize       = 1.35,
+      particlesizespread = 0.8,
+      particlespeed      = 0,
+      particlespeedspread = 1.2,
+      pos                = [[0, 2, 0]],
+      sizegrowth         = 0.55,
+      sizemod            = 1,
+      texture            = [[whitelightb]],
+      useairlos          = false,
+    },
+  },
+  fire = {
+    properties = {
+      colormap           = [[1 1 1 0.55   1 0.75 0.8 0.44    0.75 0.47 0.47 0.37    0.3 0.14 0.28 0.3   0.11 0.033 0.14 0.11   0.08 0.016 0.12 0.16  0 0 0 0.01]],
+    },
+  },
+  fireglow = {
+    properties = {
+      colormap           = [[0.08 0.05 0.08 0.01   0 0 0 0.01]],
+    },
+  },
+}
+
+defs["deathceg2-lightning"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
+defs["deathceg2-lightning"].fire.properties.numparticles = defs["deathceg2-lightning"].fire.properties.numparticles/2.5
+defs["deathceg2-lightning"].electricity.properties.numparticles = defs["deathceg2-lightning"].electricity.properties.numparticles/1.6
+defs["deathceg2-lightning"].electricity.properties.particlelife = defs["deathceg2-lightning"].electricity.properties.particlelife/1.6
+defs["deathceg3-lightning"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+defs["deathceg3-lightning"].fire.properties.numparticles = defs["deathceg3-lightning"].fire.properties.numparticles/2.5
+defs["deathceg3-lightning"].electricity.properties.numparticles = defs["deathceg3-lightning"].electricity.properties.numparticles/1.2
+defs["deathceg3-lightning"].electricity.properties.particlelife = defs["deathceg3-lightning"].electricity.properties.particlelife/1.2
+defs["deathceg4-lightning"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
+defs["deathceg4-lightning"].fire.properties.numparticles = defs["deathceg4-lightning"].fire.properties.numparticles/2.5
 
 --local effects = {
 --  searingflame = {

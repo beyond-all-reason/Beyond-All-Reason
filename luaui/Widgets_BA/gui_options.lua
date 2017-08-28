@@ -571,7 +571,7 @@ function DrawWindow()
 				if option.value == true then
 					glColor(0.66,0.92,0.66,1)
                     RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-                    local boolGlow = boolPadding*1.15
+                    local boolGlow = boolPadding*1.3
                     glColor(0.66,1,0.66,0.23)
                     glTexture(glowTex)
                     glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
