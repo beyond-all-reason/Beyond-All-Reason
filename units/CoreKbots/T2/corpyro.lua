@@ -62,9 +62,11 @@ return {
 			},
 		},
 		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
+ 			 pieceExplosionGenerators = {
+				 "deathceg2",
+				 "deathceg3",
+				 "deathceg3",
+				 "deathceg4-fire",
  			}, 
 			explosiongenerators = {
 				[1] = "custom:PILOT",

@@ -27,7 +27,7 @@ local defs = {
         emitrotspread      = 0,
         emitvector         = [[0.0, 1, 0.0]],
         gravity            = [[0.0, 0.0, 0.0]],
-        numparticles       = 4,
+        numparticles       = 3,
         particlelife       = 4,
         particlelifespread = 2,
         particlesize       = 1.85,
@@ -84,7 +84,7 @@ local defs = {
         gravity            = [[0, 0.05, 0]],
         numparticles       = 1,
         particlelife       = 13,
-        particlelifespread = 11,
+        particlelifespread = 9,
         particlesize       = 2,
         particlesizespread = 0.55,
         particlespeed      = 0.3,
@@ -126,7 +126,7 @@ local defs = {
         emitrotspread      = 0,
         emitvector         = [[0.0, 1, 0.0]],
         gravity            = [[0.0, 0.0, 0.0]],
-        numparticles       = 5,
+        numparticles       = 4,
         particlelife       = 5,
         particlelifespread = 3,
         particlesize       = 2,
@@ -183,7 +183,7 @@ local defs = {
         gravity            = [[0, 0.05, 0]],
         numparticles       = 1,
         particlelife       = 20,
-        particlelifespread = 16,
+        particlelifespread = 14,
         particlesize       = 2.4,
         particlesizespread = 0.7,
         particlespeed      = 0.35,
@@ -279,7 +279,7 @@ local defs = {
         emitrotspread      = 0,
         emitvector         = [[0.0, 1, 0.0]],
         gravity            = [[0.0, 0.0, 0.0]],
-        numparticles       = 6,
+        numparticles       = 5,
         particlelife       = 7,
         particlelifespread = 4,
         particlesize       = 2.25,
@@ -336,7 +336,7 @@ local defs = {
         gravity            = [[0, 0.05, 0]],
         numparticles       = 1,
         particlelife       = 35,
-        particlelifespread = 30,
+        particlelifespread = 25,
         particlesize       = 3.5,
         particlesizespread = 1.5,
         particlespeed      = 0.35,
@@ -450,15 +450,15 @@ local effects = {
       emitrotspread      = 32,
       emitvector         = [[0, 1, 0]],
       gravity            = [[0, -0.01, 0]],
-      numparticles       = 2,
+      numparticles       = 2.5,
       particlelife       = 4,
       particlelifespread = 1,
-      particlesize       = 1.35,
+      particlesize       = 1.6,
       particlesizespread = 0.8,
       particlespeed      = 0,
       particlespeedspread = 1.2,
       pos                = [[0, 2, 0]],
-      sizegrowth         = 0.55,
+      sizegrowth         = 0.6,
       sizemod            = 1,
       texture            = [[whitelightb]],
       useairlos          = false,
@@ -466,12 +466,12 @@ local effects = {
   },
   fire = {
     properties = {
-      colormap           = [[1 1 1 0.55   1 0.75 0.8 0.44    0.75 0.47 0.47 0.37    0.3 0.14 0.28 0.3   0.11 0.033 0.14 0.11   0.08 0.016 0.12 0.16  0 0 0 0.01]],
+      colormap           = [[1 1 1 0.55   1 0.75 0.55 0.44    0.75 0.47 0.44 0.37    0.3 0.14 0.25 0.3   0.11 0.033 0.14 0.11   0.08 0.016 0.12 0.16  0 0 0 0.01]],
     },
   },
   fireglow = {
     properties = {
-      colormap           = [[0.08 0.05 0.08 0.01   0 0 0 0.01]],
+      colormap           = [[0.1 0.06 0.07 0.01   0 0 0 0.01]],
     },
   },
 }
@@ -486,6 +486,31 @@ defs["deathceg3-lightning"].electricity.properties.numparticles = defs["deathceg
 defs["deathceg3-lightning"].electricity.properties.particlelife = defs["deathceg3-lightning"].electricity.properties.particlelife/1.2
 defs["deathceg4-lightning"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
 defs["deathceg4-lightning"].fire.properties.numparticles = defs["deathceg4-lightning"].fire.properties.numparticles/2.5
+
+effects = {
+  fire = {
+    properties = {
+      colormap           = [[1 0.97 0.93 0.66   1 0.8 0.4 0.5    0.75 0.47 0.18 0.4    0.33 0.14 0.04 0.33   0.14 0.033 0 0.25   0.11 0.016 0 0.16  0 0 0 0.01]],
+    },
+  },
+  fireglow = {
+    properties = {
+      colormap           = [[0.15 0.075 0.02 0.015   0 0 0 0.01]],
+    },
+  },
+}
+defs["deathceg2-fire"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
+defs["deathceg2-fire"].fireglow.properties.particlesize = defs["deathceg2-fire"].fireglow.properties.particlesize*1.7
+defs["deathceg2-fire"].fire.properties.particlesize = defs["deathceg2-fire"].fire.properties.particlesize*1.7
+defs["deathceg2-fire"].fire.properties.particlelife = defs["deathceg2-fire"].fire.properties.particlelife*1.7
+defs["deathceg3-fire"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+defs["deathceg3-fire"].fireglow.properties.particlesize = defs["deathceg3-fire"].fireglow.properties.particlesize*1.7
+defs["deathceg3-fire"].fire.properties.particlesize = defs["deathceg3-fire"].fire.properties.particlesize*1.7
+defs["deathceg3-fire"].fire.properties.particlelife = defs["deathceg3-fire"].fire.properties.particlelife*1.7
+defs["deathceg4-fire"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+defs["deathceg4-fire"].fireglow.properties.particlesize = defs["deathceg4-fire"].fireglow.properties.particlesize*1.7
+defs["deathceg4-fire"].fire.properties.particlesize = defs["deathceg4-fire"].fire.properties.particlesize*1.7
+defs["deathceg4-fire"].fire.properties.particlelife = defs["deathceg4-fire"].fire.properties.particlelife*1.7
 
 --local effects = {
 --  searingflame = {

@@ -81,9 +81,11 @@ return {
 			},
 		},
 		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-lightning",
-				"deathceg3-lightning",
+ 			pieceExplosionGenerators = {
+				"deathceg2",
+				"deathceg3",
+				"deathceg2",
+				"deathceg3",
 				"deathceg4-lightning",
 			},
 		},
