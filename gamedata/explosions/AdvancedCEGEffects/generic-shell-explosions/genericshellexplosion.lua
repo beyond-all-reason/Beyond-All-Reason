@@ -2472,37 +2472,9 @@ definitions['expldgun'].heatedgroundflash = {
     texture            = [[groundflash]],
   },
 }
-definitions['expldgun'].lightdots = {
-  air                = true,
-  class              = [[CSimpleParticleSystem]],
-  count              = 1,
-  ground             = true,
-  underwater         = true,
-  water              = true,
-  properties = {
-    airdrag            = 0.7,
-    colormap           = [[1 0.75 0.55 0.016    0.6 0.3 0.1 0.12    0.2 0.1 0.05 0.07    0 0 0 0]],
-    directional        = false,
-    emitrot            = 80,
-    emitrotspread      = 5,
-    emitvector         = [[1, 1, 1]],
-    gravity            = [[0, -0.005, 0]],
-    numparticles       = 2,
-    particlelife       = 7,
-    particlelifespread = 4,
-    particlesize       = 5.7,
-    particlesizespread = 1,
-    particlespeed      = 0.2,
-    particlespeedspread = 0.6,
-    pos                = [[0, 30, 0]],
-    sizegrowth         = -0.01,
-    sizemod            = 1.0,
-    texture            = [[randomdots]],
-  },
-}
 definitions['expldgun'].sparks.properties.numparticles = 3
-definitions['expldgun'].dirt.properties.numparticles = 2.2
-definitions['expldgun'].dirt2 = nil
+definitions['expldgun'].dirt.properties.numparticles = 5
+definitions['expldgun'].dirt2.properties.numparticles = 2
 
 --definitions['expldgun'].groundflash2 = {
 --    class              = [[CSimpleGroundFlash]],
@@ -2523,10 +2495,9 @@ definitions['expldgun'].sparks.properties.particlelife            = definitions[
 definitions['expldgun'].sparks.properties.particlespeed           = definitions['expldgun'].sparks.properties.particlespeed*1.3
 definitions['expldgun'].sparks.properties.particlespeedspread     = definitions['expldgun'].sparks.properties.particlespeedspread*1.8
 definitions['expldgun'].sparks.properties.numparticles            = definitions['expldgun'].sparks.properties.numparticles*0.66
-definitions['expldgun'].dirt.properties.numparticles              = definitions['expldgun'].dirt.properties.numparticles*4
-definitions['expldgun'].dirt.properties.particlelife              = definitions['expldgun'].dirt.properties.particlelife*1.9
-definitions['expldgun'].dirt.properties.particlespeed             = definitions['expldgun'].dirt.properties.particlespeed*1.9
-definitions['expldgun'].dirt.properties.particlespeedspread       = definitions['expldgun'].dirt.properties.particlespeedspread*2
+definitions['expldgun'].dirt.properties.particlelife              = definitions['expldgun'].dirt.properties.particlelife*1.2
+definitions['expldgun'].dirt.properties.particlespeed             = definitions['expldgun'].dirt.properties.particlespeed*1.25
+definitions['expldgun'].dirt.properties.particlespeedspread       = definitions['expldgun'].dirt.properties.particlespeedspread*1.4
 
 definitions['expldgun'].clouddust.properties.numparticles = definitions['expldgun'].clouddust.properties.numparticles/2
 definitions['expldgun'].innersmoke = nil
