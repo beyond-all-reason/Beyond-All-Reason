@@ -66,7 +66,7 @@ end
 				end
 				EmitRand(smokePieces[math.random(1,n)], smokeCEGName) --CEG name in quotes (string)
 			end
-			Sleep(20*health + 200)
+			Sleep(20*health + math.random(100,300))
 		end
 	end
 
