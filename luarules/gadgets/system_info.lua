@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		author	= "Floris",
 		date	= "July,2016",
 		layer	= 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 

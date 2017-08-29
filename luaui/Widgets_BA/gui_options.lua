@@ -37,7 +37,10 @@ local startLine = 1
 local vsx,vsy = Spring.GetViewGeometry()
 local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
-  
+
+local wsx,wsy,wpx,wpy = Spring.GetWindowGeometry()
+local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
+
 local spIsGUIHidden = Spring.IsGUIHidden
 
 local glColor = gl.Color
@@ -368,7 +371,7 @@ function checkWidgets()
 	end
 	-- Darken map
 	if (WG['darkenmap'] ~= nil) then
-		table.insert(options, {id="darkenmap", group="gfx", name="Darken map", min=0, max=0.55, step=0.005, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
+		table.insert(options, {id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
 		if WG['darkenmap'].getDarkenFeatures ~= nil then
 			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
 		end
@@ -419,17 +422,16 @@ local maxShownColumns = 3
 local maxColumnRows = 0 	-- gets calculated
 local totalColumns = 0 		-- gets calculated
 function DrawWindow()
+	orderOptions()
 
 	-- add widget options
 	if not addedWidgetOptions then
 		addedWidgetOptions = true
 		checkWidgets()
 	end
-	
-  local vsx,vsy = Spring.GetViewGeometry()
+
   local x = screenX --rightwards
   local y = screenY --upwards
-	
 	-- background
   gl.Color(0,0,0,0.8)
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
@@ -850,6 +852,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 			Spring.SendCommands("shadows "..enabled.." "..value)
 			Spring.SetConfigInt("shadows", value)
+		elseif id == 'windowposx' then
+			Spring.SetConfigInt("WindowPosX ", value)
+		elseif id == 'windowposy' then
+			Spring.SetConfigInt("WindowPosY ", value)
+		elseif id == 'windowresx' then
+			Spring.SetConfigInt("XResolutionWindowed ", value)
+		elseif id == 'windowresy' then
+			Spring.SetConfigInt("YResolutionWindowed ", value)
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
@@ -1195,8 +1205,12 @@ function widget:Initialize()
 		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0, description='Loads a preset.\n\nIt wont set the preset every time you restart a game. So feel free to adjust things.'},
 
 		--GFX
+		--{id="windowposx", group="gfx", name="Window position X", type="slider", min=0, max=math.ceil(ssx/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosX",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
+		--{id="windowposy", group="gfx", name="Window position Y", type="slider", min=0, max=math.ceil(ssy/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosY",1) or 0), description='Set where on the screen the window is positioned on the Y axis'},
+		--{id="windowresx", group="gfx", name="Window resolution X", type="slider", min=math.floor(ssx/3), max=ssx, step=1, value=tonumber(Spring.GetConfigInt("XResolutionWindowed",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
+		--{id="windowresy", group="gfx", name="Window resolution Y", type="slider", min=math.floor(ssy/3), max=ssy, step=1, value=tonumber(Spring.GetConfigInt("YResolutionWindowe",1) or 0), description='Set where on the screen the window is positioned on the Y axis'},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
-		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
+		{id="borderless", group="gfx", name="  Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1, description=''},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
