@@ -48,7 +48,7 @@ return {
 					turretname = "turret",
 					sleevename = "turret",
 					cannon1name = "barrel",
-					flare1name = "flare",
+					flare1name = "flare1",
 					cannon2name = nil, --optional (replace with nil)
 					flare2name =  nil, --optional (replace with nil)
 				--SFXs HERE
