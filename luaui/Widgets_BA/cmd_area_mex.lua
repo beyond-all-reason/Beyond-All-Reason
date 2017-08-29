@@ -24,6 +24,7 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
+local spGetGroundHeight = Spring.GetGroundHeight
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitPosition = Spring.GetUnitPosition 
 local spGetTeamUnits = Spring.GetTeamUnits
@@ -170,7 +171,7 @@ function widget:CommandNotify(id, params, options)
 					for j=1, mexBuilder[id].buildings do
 						local buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x,0,command.z,1)
 						if buildable ~= 0 then
-							spGiveOrderToUnit(id, mexBuilder[id].building[j], {command.x,0,command.z} , {"shift"})
+							spGiveOrderToUnit(id, mexBuilder[id].building[j], {command.x,spGetGroundHeight(command.x,command.z),command.z} , {"shift"})
 							break
 						end
 					end
