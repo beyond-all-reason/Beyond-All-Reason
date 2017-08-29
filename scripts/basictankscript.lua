@@ -38,6 +38,7 @@ function script.Create()
 	gun1 = 1
 	Spring.UnitScript.StartThread(UnitTurns)
 	Spring.UnitScript.StartThread(UnitJumps)	
+	hp = 100
 	if flare1 then
 	Hide(flare1)
 	end
@@ -67,6 +68,13 @@ end
 				EmitRand(smokePieces[math.random(1,n)], smokeCEGName) --CEG name in quotes (string)
 			end
 			Sleep(20*health + math.random(100,300))
+			hp = health
+			if hp >60 then 
+				if flare2name then
+				flare2 = piece(flare2name)
+				Show(cannon2)
+				end
+			end
 		end
 	end
 
@@ -229,6 +237,11 @@ function script.Shot1()
 			Move(cannon2, 3, kickback)
 			Move(cannon2, 3, 0, kickbackRestoreSpeed)
 			gun1 = 1
+			if hp < 30 then
+			Explode(cannon2, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE)
+			Hide(cannon2)
+			flare2 = nil
+			end
 		end
 	else
 		Emit(flare1, firingCEG)
@@ -237,6 +250,28 @@ function script.Shot1()
 	end
 	Spring.UnitScript.Signal(31)
 	Spring.UnitScript.StartThread(Restore,restoreTime)
+end
+
+function DeathRun()
+smokePieces = {base, turret}
+if f == 1 then
+while f <=25 do
+randomnumber = math.random(1,4)
+		if randomnumber == 1 then
+		smokeCEGName = smokeCEGName1
+		elseif randomnumber == 2 then
+			smokeCEGName = smokeCEGName2
+		elseif randomnumber == 3 then
+			smokeCEGName = smokeCEGName3
+		else
+			smokeCEGName = smokeCEGName4
+		end
+		EmitRand(smokePieces[math.random(1,2)], smokeCEGName) --CEG name in quotes (string)
+Sleep(math.random(5,100))
+f = f + 1
+end
+end
+return 1
 end
 
 function script.Killed(recentDamage, maxHealth)
@@ -268,7 +303,14 @@ function script.Killed(recentDamage, maxHealth)
 		end
 		return 2
 	elseif severity <= 99 then
+		-- randomnumber = math.random(1,2)
+		-- if randomnumber == 1 then
+			-- f = 1
+			-- while DeathRun()~=1 do
+			-- end
+		-- end
 		for count, piece in pairs(piecetable) do
+
 			randomnumber = math.random(1,3)
 			if randomnumber == 1 then
 				Explode(piece, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
