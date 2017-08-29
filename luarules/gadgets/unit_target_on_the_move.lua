@@ -518,6 +518,9 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams,
 	if cmdID == CMD_STOP then
 		if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 			removeUnit(unitID)
+		elseif pausedTargets[unitID] then
+			SendToUnsynced("targetList",unitID,0)
+			pausedTargets[unitID] = nil
 		end
 	elseif cmdID == CMD_DGUN then
 		if pausedTargets[unitID] then
@@ -534,6 +537,9 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		elseif cmdID == CMD_STOP then
 			if unitTargets[unitID] and not unitTargets[unitID].ignoreStop then
 				removeUnit(unitID)
+			elseif pausedTargets[unitID] then
+				SendToUnsynced("targetList",unitID,0)
+				pausedTargets[unitID] = nil
 			end
 		elseif cmdID == CMD_DGUN then
 			if unitTargets[unitID] then
