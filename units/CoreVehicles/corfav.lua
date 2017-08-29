@@ -40,9 +40,31 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.2274,
 		turnrate = 1097,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "Weasels are supercheap and fast to build vehicles used for scouting and damaging the early eco structures of enemies. It is the fastest moving unit in the whole game (except ARM counterpart -Jeffy) but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion! In T2 warfare Weasels come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",
-		},
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "turret",
+					cannon1name = "turret",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "1", --How likely will the unit drift when performing turns?
+					rockstrength = "0", --Howmuch will its weapon make it rock ?
+					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "0", --How fast will the cannon come back in position?
+					kickback = "0", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "200", --turretSpeed as seen in COB script
+					cobturretxspeed = "200", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,

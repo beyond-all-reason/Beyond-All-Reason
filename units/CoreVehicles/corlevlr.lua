@@ -40,9 +40,31 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.94149,
 		turnrate = 366.20001,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Leveler is a powerful tank armed with an impulse weapon that deals AoE damage and repels light units. It makes it highly effective against swarms of peewees, flashes etc. A drawback is their low speed and inability to shoot over each other, therefore always try to move them in a line. Rather ineffective against long range defense towers - combine them with Slashers (rocket trucks) or Storms (rocket Kbots) to push the front and constructors for repairing.",
-		},
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flash",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "0.5", --How likely will the unit drift when performing turns?
+					rockstrength = "0.02", --Howmuch will its weapon make it rock ?
+					rockspeed = "2", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "1", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
+					kickback = "-4", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "170", --turretSpeed as seen in COB script
+					cobturretxspeed = "20", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,
