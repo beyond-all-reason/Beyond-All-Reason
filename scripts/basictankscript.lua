@@ -86,8 +86,10 @@ end
 
 function script.RockUnit (x,z)
 local ux, uy, uz = Spring.GetUnitDirection(unitID)
-RockXFactor = (ux*x) + (uz*z)
-RockZFactor = (-uz * x) + (ux * z)
+nux = (ux /math.sqrt(ux^2 + uz^2))
+nuz = (uz /math.sqrt(ux^2 + uz^2))
+RockXFactor = -z
+RockZFactor = x
 Turn (base, 1, -RockXFactor*rockStrength, rockSpeed)
 Turn (base, 3, RockZFactor*rockStrength, rockSpeed)
 Sleep (50)

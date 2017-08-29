@@ -58,9 +58,9 @@ return {
 					flare2name = nil, --optional (replace with nil)
 				--SFXs HERE
 					driftratio = "0.2", --How likely will the unit drift when performing turns?
-					rockstrength = "0.1", --Howmuch will its weapon make it rock ?
-					rockspeed = "0.2", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "0.1", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockstrength = "20", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					cobkickbackrestorespeed = "13.25", --How fast will the cannon come back in position?
 					kickback = "-6.25", --How much will the cannon kickback
 				--AIMING HERE

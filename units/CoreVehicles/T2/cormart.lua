@@ -55,9 +55,9 @@ return {
 				--SFXs HERE
 					firingceg = "barrelshot-tiny",
 					driftratio = "0.4", --How likely will the unit drift when performing turns?
-					rockstrength = "0.02", --Howmuch will its weapon make it rock ?
-					rockspeed = "2", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "1", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockstrength = "10", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					cobkickbackrestorespeed = "7.5", --How fast will the cannon come back in position?
 					kickback = "-6", --How much will the cannon kickback
 				--AIMING HERE
