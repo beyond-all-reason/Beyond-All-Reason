@@ -27,11 +27,13 @@ function script.Create()
 	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10
 	kickback = tonumber(uDef.customParams and uDef.customParams.kickback) or -2	
 	restoreTime = tonumber(uDef.customParams and uDef.customParams.restoretime) or 3000	
-	rockStrength = tonumber(uDef.customParams and uDef.customParams.rockstrength) or 0.02
-	rockSpeed = tonumber(uDef.customParams and uDef.customParams.rockspeed) or 3
-	rockRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.rockrestorespeed) or 1
+	COBrockStrength = tonumber(uDef.customParams and uDef.customParams.rockstrength) or 20
+	COBrockSpeed = tonumber(uDef.customParams and uDef.customParams.rockspeed) or 60
+	COBrockRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.rockrestorespeed) or 60
 	firingCEG = uDef.customParams and uDef.customParams.firingceg or "barrelshot-medium"
-	
+	rockStrength = ProcessAngularSpeeds(COBrockStrength)
+	rockSpeed = ProcessAngularSpeeds(COBrockSpeed)
+	rockRestoreSpeed = ProcessAngularSpeeds(COBrockRestoreSpeed)
 	turretYSpeed = ProcessAngularSpeeds(COBturretYSpeed)
 	turretXSpeed = ProcessAngularSpeeds(COBturretXSpeed)
 	kickbackRestoreSpeed = ProcessLinearSpeeds(COBkickbackRestoreSpeed)
@@ -70,9 +72,13 @@ end
 			Sleep(20*health + math.random(100,300))
 			hp = health
 			if hp >60 then 
+				if not flare2 then
 				if flare2name then
+				Emit (cannon2,"unitsparkles")
+				Sleep(100)
 				flare2 = piece(flare2name)
 				Show(cannon2)
+				end
 				end
 			end
 		end
@@ -238,7 +244,7 @@ function script.Shot1()
 			Move(cannon2, 3, 0, kickbackRestoreSpeed)
 			gun1 = 1
 			if hp < 30 then
-			Explode(cannon2, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE)
+			Explode(cannon2, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
 			Hide(cannon2)
 			flare2 = nil
 			end

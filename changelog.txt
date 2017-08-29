@@ -106,6 +106,7 @@ Other:
  • A few more turrets/barrels get a kickback when they fire
  • Some walking animations are improved
  • Changed some missile models
+ • One universal tank script for the most basic tanks, which has preset animations that can be tweaked directly via unitDefs
 
  Interface
  • GUI background 10% darker
