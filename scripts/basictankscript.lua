@@ -21,7 +21,7 @@ else
 end
 
 function script.Create()
-	StartThread(SmokeUnit, {base, turret})
+	--StartThread(SmokeUnit, {base, turret})
 	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretyspeed) or 200
 	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretxspeed) or 200
 	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10

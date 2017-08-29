@@ -883,8 +883,8 @@ function GetAllPlayers()
 		player[i + 64] = CreatePlayerFromTeam(i)
 		for _,playerID in ipairs(teamPlayers) do
 			player[playerID] = CreatePlayer(playerID)
-		end
-		playerSpecs[i] = true
+		endu
+		playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
 	end
 	specPlayers = Spring_GetTeamList()
 	for _,playerID in ipairs(specPlayers) do
@@ -2185,8 +2185,8 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 			textindent = 0
 		end
 		local nameColourR,nameColourG,nameColourB,nameColourA = 1,1,1,1
-		
-		if playerSpecs[playerID] ~= nil then 
+
+		if playerSpecs[playerID] ~= nil then
 			nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
 			if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
 				gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
