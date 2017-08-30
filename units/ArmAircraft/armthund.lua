@@ -33,7 +33,7 @@ return {
 		sightdistance = 195,
 		turnrate = 829,
 		customparams = {
-			description_long = "The Thunder is a bomber, designed for destroying buildings. It drops bombs over the target and makes a flyby to reload his ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle.",
+			description_long = "The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORE counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle.",
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
