@@ -36,6 +36,7 @@ local iconScaling = true
 local highlightscale = true
 local drawPrice = true
 local drawTooltip = true
+local drawBigTooltip = false
 local largePrice = true
 local shortcutsInfo = false
 local oldUnitpics = false
@@ -213,6 +214,29 @@ local function esc(x)
             :gsub('%?', '%%?'))
 end
 
+function wrap(str, limit)
+	limit = limit or 72
+	local here = 1
+	local buf = ""
+	local t = {}
+	str:gsub("(%s*)()(%S+)()",
+		function(sp, st, word, fi)
+			if fi-here > limit then
+				--# Break the line
+				here = st
+				table.insert(t, buf)
+				buf = word
+			else
+				buf = buf..sp..word  --# Append
+			end
+		end)
+	--# Tack on any leftovers
+	if(buf ~= "") then
+		table.insert(t, buf)
+	end
+	return t
+end
+
 local function CreateGrid(r)
 
 	local background2 = {"rectanglerounded",
@@ -334,7 +358,19 @@ local function CreateGrid(r)
 			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
 				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
 					local udefid =  tonumber(string.sub(self.texture, 2))
-					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"..UnitDefs[udefid].tooltip
+					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
+					if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
+						local lines = wrap(UnitDefs[udefid].customParams.description_long, 55)
+						local description = ''
+						local newline = ''
+						for i, line in ipairs(lines) do
+							description = description..newline..line
+							newline = '\n'
+						end
+						text = text..description
+					else
+						text = text..UnitDefs[udefid].tooltip
+					end
 					WG['tooltip'].ShowTooltip('redui_buildmenu', text)
 			 		tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
 				end
@@ -797,11 +833,21 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon spacing:  disabled")
 		end
 	end
-	if (string.find(command, "icontooltip") == 1  and  string.len(command) == 11) then 
+	if (string.find(command, "icontooltip") == 1  and  string.len(command) == 11) then
 		drawTooltip = not drawTooltip
 		--AutoResizeObjects()
 		Spring.ForceLayoutUpdate()
 		if drawTooltip then
+			Spring.Echo("Build menu icon tooltip:  enabled")
+		else
+			Spring.Echo("Build menu icon tooltip:  disabled")
+		end
+	end
+	if (string.find(command, "iconbigtooltip") == 1  and  string.len(command) == 14) then
+		drawBigTooltip = not drawBigTooltip
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if drawBigTooltip then
 			Spring.Echo("Build menu icon tooltip:  enabled")
 		else
 			Spring.Echo("Build menu icon tooltip:  disabled")
@@ -869,6 +915,9 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigUnitTooltip = function()
   	return drawTooltip
   end
+  WG['red_buildmenu'].getConfigUnitBigTooltip = function()
+  	return drawBigTooltip
+  end
   WG['red_buildmenu'].getConfigUnitPriceLarge = function()
   	return largePrice
   end
@@ -883,6 +932,9 @@ function widget:Initialize()
   end
   WG['red_buildmenu'].setConfigUnitTooltip = function(value)
   	drawTooltip = value
+  end
+  WG['red_buildmenu'].setConfigUnitBigTooltip = function(value)
+  	drawBigTooltip = value
   end
   WG['red_buildmenu'].setConfigUnitPriceLarge = function(value)
   	largePrice = value
@@ -920,7 +972,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -934,6 +986,9 @@ function widget:SetConfigData(data) --load config
 		end
 		if (data.drawTooltip ~= nil) then
 			drawTooltip = data.drawTooltip
+		end
+		if (data.drawTooltip ~= nil) then
+			drawBigTooltip = data.drawBigTooltip
 		end
 		if (data.iconScaling ~= nil) then
 			iconScaling = data.iconScaling
@@ -949,9 +1004,6 @@ function widget:SetConfigData(data) --load config
 		end
 	end
 end
-
-
-
 
 
 
