@@ -55,7 +55,7 @@ local Config = {
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
 		iconscale = 0.91,
-		iconhoverscale = 0.89,
+		iconhoverscale = 0.91,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -360,7 +360,7 @@ local function CreateGrid(r)
 					local udefid =  tonumber(string.sub(self.texture, 2))
 					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
 					if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
-						local lines = wrap(UnitDefs[udefid].customParams.description_long, 55)
+						local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
 						local description = ''
 						local newline = ''
 						for i, line in ipairs(lines) do
