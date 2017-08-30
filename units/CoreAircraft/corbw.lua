@@ -69,9 +69,9 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				avoidfriendly = false,
-				beamtime = 0.15,
+				beamtime = 0.1,
 				collidefriendly = false,
-				corethickness = 0.2,
+				corethickness = 0.12,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -81,7 +81,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 6,
+				laserflaresize = 5,
 				name = "Paralyzer",
 				noselfdamage = true,
 				paralyzer = true,
@@ -95,16 +95,17 @@ return {
 				soundstart = "hackshot",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
-				thickness = 1.6,
+				thickness = 1.4,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				damage = {
-					default = 550,
+					default = 800,
 				},
 				customparams = {
-					light_multiplier = "0.7",		-- used by light_effects widget
+					light_multiplier = "0.6",		-- used by light_effects widget
+					light_radius_mult = "0.6",		-- used by light_effects widget
 				},
 			},
 		},

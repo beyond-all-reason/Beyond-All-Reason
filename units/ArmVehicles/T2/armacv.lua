@@ -42,7 +42,7 @@ return {
 		trackstrength = 6,
 		tracktype = "StdTank",
 		trackwidth = 34,
-		turninplace = 1,
+		turninplace = true,
 		turninplaceanglelimit = 60,
 		turninplacespeedlimit = 1.2342,
 		turnrate = 399,
@@ -50,8 +50,8 @@ return {
 		buildoptions = {
 			[1] = "armfus",
 			[2] = "armckfus",
-			[3] = "aafus",
-			[4] = "amgeo",
+			[3] = "armafus",
+			[4] = "armageo",
 			[5] = "armgmm",
 			[6] = "armmoho",
 			[7] = "armmmkr",
@@ -68,7 +68,7 @@ return {
 			[18] = "armpb",
 			[19] = "armanni",
 			[20] = "armflak",
-			[21] = "mercury",
+			[21] = "armmercury",
 			[22] = "armemp",
 			[23] = "armamd",
 			[24] = "armsilo",
@@ -77,7 +77,8 @@ return {
 			[27] = "armdf",
 			[28] = "armvp",
 			[29] = "armavp",
-			[30] = "armcube",
+			[30] = "seaplatform",
+			[31] = "armjuno",
 		},
 		customparams = {
 			

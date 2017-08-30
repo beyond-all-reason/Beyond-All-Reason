@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 3",
-		collisionvolumescales = "13 18 41",
+		collisionvolumescales = "31 20 39",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Light Artillery Vehicle",
@@ -25,11 +25,13 @@ return {
 		maxdamage = 556,
 		maxslope = 15,
 		maxvelocity = 1.96,
+		maxreversevelocity = 1.96*0.60,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
 		name = "Shellshocker",
 		nochasecategory = "VTOL",
 		objectname = "armart",
+		script = "BASICTANKSCRIPT.LUA",
 		pushresistant = true,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
@@ -38,13 +40,33 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.29228,
 		turnrate = 393.79999,
 		customparams = {
 			description_long = "The Shellshocker is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
 			canareaattack = 1,
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "gun",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					driftratio = "0.2", --How likely will the unit drift when performing turns?
+					rockstrength = "20", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "13.25", --How fast will the cannon come back in position?
+					kickback = "-6.25", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "110", --turretSpeed as seen in COB script
+					cobturretxspeed = "40", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

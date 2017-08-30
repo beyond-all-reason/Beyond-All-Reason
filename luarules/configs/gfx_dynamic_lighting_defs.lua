@@ -45,8 +45,8 @@ local copyLightDefs = {
 		["armbrtha_arm_berthacannon" ] = "berthacannon",
 
 		--Juno
-		["ajuno_juno_pulse"          ] = "juno",
-		["cjuno_juno_pulse"          ] = "juno",
+		["armjuno_juno_pulse"          ] = "juno",
+		["corjuno_juno_pulse"          ] = "juno",
 	},
 }
 local dynLightDefs = {

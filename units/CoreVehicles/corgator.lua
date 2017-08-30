@@ -8,7 +8,7 @@ return {
 		buildtime = 1761,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -1 -1",
+		collisionvolumeoffsets = "0 -1 -8",
 		collisionvolumescales = "30 15 32",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -36,13 +36,35 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 21,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.98,
 		turnrate = 484,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Instigator is a light, fast moving tank armed with a weak, but very precise laser weapon, accurate even when fired on the move. This makes it useful against fast lightly armored units, such as Peewees. A bit slower than its ARM counterpart - flash, but it has a higher range, so always try to keep distance. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",  
-		},
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "1", --How likely will the unit drift when performing turns?
+					rockstrength = "0", --Howmuch will its weapon make it rock ?
+					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
+					kickback = "-2.4", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "175", --turretSpeed as seen in COB script
+					cobturretxspeed = "175", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,

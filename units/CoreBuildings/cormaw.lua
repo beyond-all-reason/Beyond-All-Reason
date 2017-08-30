@@ -16,7 +16,7 @@ return {
 		damagemodifier = 0.25,
 		description = "Pop-up Flamethrower Turret",
 		energystorage = 15,
-		explodeas = "tinyBuildingexplosiongeneric",
+		explodeas = "flamethrower",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -33,7 +33,7 @@ return {
 		objectname = "CORMAW",
 		radardistancejam = 8,
 		seismicsignature = 0,
-		selfdestructas = "tinyBuildingExplosionGenericSelfd",
+		selfdestructas = "flamethrowerSelfd",
 		sightdistance = 422,
 		stealth = true,
 		turnrate = 0,
@@ -86,9 +86,9 @@ return {
 			},
 		},
 		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
+ 			pieceExplosionGenerators = {
 				"deathceg3",
+				"deathceg4-fire",
 			},
 		},
 		sounds = {

@@ -32,16 +32,42 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
+		script = "BASICTANKSCRIPT.LUA",
 		trackoffset = 8,
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 40,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.6104,
 		turnrate = 415,
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel1",
+					flare1name = "flare1",
+					cannon2name = "barrel2", --optional (replace with nil)
+					flare2name = "flare2", --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-medium",
+					driftratio = "0.5", --How likely will the unit drift when performing turns?
+					rockstrength = "15", --Howmuch will its weapon make it rock ?
+					rockspeed = "100", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
+					kickback = "-2.4", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "105", --turretSpeed as seen in COB script
+					cobturretxspeed = "65", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
+				--UNITSMOKES (default/unspecified = unitsmoke
+				smokecegname1 = nil,
+				smokecegname2 = nil,
+				smokecegname3 = nil,
+				smokecegname4 = nil,
 		},
 		featuredefs = {
 			dead = {

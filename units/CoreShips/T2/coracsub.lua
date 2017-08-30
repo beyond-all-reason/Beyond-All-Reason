@@ -57,11 +57,11 @@ return {
 			[8] = "corsy",
 			[9] = "corasy",
 			[10] = "corgantuw",
-			[11] = "csubpen",
+			[11] = "coramsub",
 			[12] = "corason",
 			[13] = "corenaa",
 			[14] = "coratl",
-			[15] = "armcube",
+			[15] = "seaplatform",
 		},
 		customparams = {
 

@@ -33,6 +33,20 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
+    groundflash_white = {
+      class              = [[CSimpleGroundFlash]],
+      count              = 1,
+      air                = true,
+      ground             = true,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.9 0.75 0.09   0 0 0 0.01]],
+        size               = 90,
+        sizegrowth         = 0,
+        ttl                = 3,
+        texture            = [[groundflash]],
+      },
+    },
     heatedgroundflash = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
@@ -496,6 +510,13 @@ local sizes = {
         ttl                = 17,
       },
     },
+    groundflash_white = {
+      properties = {
+        colormap           = [[1 0.9 0.75 0.08   0 0 0 0.01]],
+        size               = 55,
+        ttl                = 2,
+      },
+    },
     heatedgroundflash = {
       properties = {
         size = 8,
@@ -643,6 +664,13 @@ local sizes = {
         ttl                = 26,
       },
     },
+      groundflash_white = {
+          properties = {
+              colormap           = [[1 0.9 0.75 0.1   0 0 0 0.01]],
+              size               = 155,
+              ttl                = 4,
+          },
+      },
     heatedgroundflash = {
       properties = {
         size = 20,
@@ -787,6 +815,13 @@ local sizes = {
         ttl                = 25,
       },
     },
+      groundflash_white = {
+          properties = {
+              colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
+              size               = 200,
+              ttl                = 4,
+          },
+      },
     heatedgroundflash = {
       properties = {
         size = 30,
@@ -931,6 +966,13 @@ local sizes = {
         ttl                = 30,
       },
     },
+      groundflash_white = {
+          properties = {
+              colormap           = [[1 0.9 0.75 0.12   0 0 0 0.01]],
+              size               = 250,
+              ttl                = 5,
+          },
+      },
     heatedgroundflash = {
       properties = {
         size = 36,
@@ -1075,6 +1117,13 @@ local sizes = {
         ttl                = 33,
       },
     },
+      groundflash_white = {
+          properties = {
+              colormap           = [[1 0.9 0.75 0.13   0 0 0 0.01]],
+              size               = 300,
+              ttl                = 5,
+          },
+      },
     heatedgroundflash = {
       properties = {
         size = 45,
@@ -1212,6 +1261,7 @@ end
 
 definitions['genericshellexplosion-meteor'] = deepcopy(definitions[root.."-huge"])
 definitions['genericshellexplosion-meteor'].groundflash_large.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].groundflash_white.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].heatedgroundflash.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].explosion.properties.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].centerflare.properties.alwaysvisible = true

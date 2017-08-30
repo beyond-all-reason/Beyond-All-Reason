@@ -62,7 +62,7 @@ return {
 			[15] = "armap",
 			[16] = "armfhp",
 			[18] = "armnanotc",
-			[17] = "asubpen",
+			[17] = "armamsub",
 			[19] = "armsonar",
 			[20] = "armfrad",
 			[21] = "armfdrag",
@@ -71,7 +71,7 @@ return {
 			[24] = "armfrt",
 			[25] = "armfhlt",
 			[26] = "armplat",
-			[27] = "armcube",
+			[27] = "seaplatform",
 		},
 		customparams = {
 			

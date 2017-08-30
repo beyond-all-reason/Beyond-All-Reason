@@ -74,7 +74,7 @@ return {
 			[15] = "armllt",
 			[16] = "armrl",
 			[17] = "armrad",
-			[18] = "armcube",
+			[18] = "seaplatform",
 		},
 		customparams = {
 			
@@ -197,8 +197,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 125,
-					subs = 75,
+					default = 125*0.5,
+					subs = 75*0.25,
 				},
 			},
 			decoy_disintegrator = {

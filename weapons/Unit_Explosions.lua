@@ -3,34 +3,62 @@ local impulseboost = 0.123
 local impulsefactor = 0.123
 
 unitDeaths = {
-	
-	pyro = {
-		weaponType = "Cannon",
-		areaofeffect = 64,
-		camerashake = 64,
-		impulseboost = impulseboost,
-		impulsefactor = impulsefactor,
-		soundhit = "xplolrg3",
-		soundstart = "largegun",
-		explosiongenerator = "custom:genericunitexplosion-large",
-		damage = {
-			default = 50,
-		},
-	},
-	pyroselfd = {
-		weaponType = "Cannon",
-		areaofeffect = 200,
-		camerashake = 200,
-		edgeeffectiveness = 0.5,
-		impulseboost = impulseboost,
-		impulsefactor = impulsefactor,
-		soundhit = "xplolrg3",
-		soundstart = "largegun",
-		explosiongenerator = "custom:genericunitexplosion-large",
-		damage = {
-			default = 1000,
-		},
-	},
+
+    pyro = {
+        weaponType = "Cannon",
+        areaofeffect = 64,
+        camerashake = 64,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericunitexplosion-large-fire",
+        damage = {
+            default = 50,
+        },
+    },
+    pyroselfd = {
+        weaponType = "Cannon",
+        areaofeffect = 200,
+        camerashake = 200,
+        edgeeffectiveness = 0.5,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericunitexplosion-huge-fire",
+        damage = {
+            default = 1000,
+        },
+    },
+
+    flamethrower = {
+        weaponType = "Cannon",
+        areaofeffect = 48,
+        camerashake = 48,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericunitexplosion-medium-fire",
+        damage = {
+            default = 35,
+        },
+    },
+    flamethrowerSelfd = {
+        weaponType = "Cannon",
+        areaofeffect = 140,
+        camerashake = 140,
+        edgeeffectiveness = 0.5,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericunitexplosion-large-fire",
+        damage = {
+            default = 650,
+        },
+    },
 	
 	nanoboom = {
 		weaponType = "Cannon",
@@ -79,14 +107,14 @@ unitDeaths = {
 		weaponType = "Cannon",
 		AreaOfEffect = 180,
 		cameraShake = 180,
-		edgeeffectiveness = 0.6,
+		edgeeffectiveness = 0.75,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
 		soundhit = "xplosml3",
 		soundstart = "largegun",
 		explosiongenerator="custom:genericbuildingexplosion-small",
 		damage = {
-			default = 100,
+			default = 80,
 		},
 	},
 

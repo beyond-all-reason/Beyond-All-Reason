@@ -73,7 +73,7 @@ local requiresAlt = {
 -- Normal logic will follow after override, i.e. must be a formationCmd to get formation, alt must be held if requiresAlt, etc.
 local overrideCmds = {
 	[CMD.GUARD] = CMD_RAW_MOVE,
-	[CMD.ATTACK] = CMD_RAW_MOVE, 
+	[CMD.ATTACK] = CMD_RAW_MOVE,
 	[CMD_SETTARGET] = CMD_RAW_MOVE
 }
 

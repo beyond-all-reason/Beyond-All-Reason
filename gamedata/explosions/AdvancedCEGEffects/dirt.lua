@@ -27,7 +27,6 @@ return {
         sizemod            = 1.0,
         texture            = [[new_dirta]],
         useairlos          = false,
-		colorchange			= "stuffs",
       },
     },
     dirtw = {
@@ -86,7 +85,6 @@ return {
         sizemod            = 1.0,
         texture            = [[new_dirta]],
         useairlos          = false,
-		colorchange			= "stuffs",
       },
     },
     dirtw = {

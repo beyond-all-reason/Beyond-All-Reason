@@ -196,26 +196,13 @@ local options={
         name   = "Set small features to non-blocking status",
         desc   = "Small rocks/trees/unit wrecks will no longer block unit pathing",
         type="list",
-        def="enabled",
+        def="disabled",
         section= "ba_enhancements_misc",
         items={
             {key="disabled", name="Disabled", desc=""},
             {key="enabled", name="Enabled", desc="Small 2x2 rocks/trees/unit wrecks will no longer block unit pathing"},
         }
     },
-
-    --{
-    --    key    = "windheightbonus",
-    --    name   = "Wind Height Bonus",
-    --    desc   = "Wind generators placed heigher on the map, will generate extra energy",
-    --    type="list",
-    --    def="disabled",
-    --    section= "ba_enhancements_misc",
-    --    items={
-    --        {key="disabled", name="Disabled", desc=""},
-    --        {key="enabled", name="Enabled", desc="Wind generators placed heigher on the map, will generate extra energy"},
-    --    }
-    --},
 	
 -- Control Victory Options	
 	{

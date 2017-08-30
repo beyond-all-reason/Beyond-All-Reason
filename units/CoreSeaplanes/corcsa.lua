@@ -58,7 +58,7 @@ return {
 			[[corenaa]],
 			[[coratl]],
 			[[corason]],
-			[[armcube]],
+			[[seaplatform]],
 		},
 		customparams = {
 			

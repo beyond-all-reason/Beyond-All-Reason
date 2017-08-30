@@ -8,8 +8,8 @@ return {
 		buildtime = 2904,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "29 15 35",
+		collisionvolumeoffsets = "0 0 -4",
+		collisionvolumescales = "26 14 35",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Medium Assault Tank",
@@ -30,6 +30,7 @@ return {
 		name = "Stumpy",
 		nochasecategory = "VTOL",
 		objectname = "ARMSTUMP",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 325,
@@ -37,12 +38,33 @@ return {
 		trackstrength = 6,
 		tracktype = "StdTank",
 		trackwidth = 24,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.914,
 		turnrate = 484,
 		customparams = {
 			description_long = "A stumpy is a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Stumpies can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Samsons or artillery for a great frontline push or use large pasks for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "cannon1",
+					flare1name = "flare1",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-small",
+					driftratio = "0.8", --How likely will the unit drift when performing turns?
+					rockstrength = "4", --Howmuch will its weapon make it rock ?
+					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
+					kickback = "-2.4", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "90", --turretSpeed as seen in COB script
+					cobturretxspeed = "50", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

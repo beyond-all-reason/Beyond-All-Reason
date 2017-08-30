@@ -29,6 +29,7 @@ return {
 		name = "Flash",
 		nochasecategory = "VTOL",
 		objectname = "ARMFLASH",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 299,
@@ -36,12 +37,33 @@ return {
 		trackstrength = 4,
 		tracktype = "StdTank",
 		trackwidth = 22,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 2.376,
 		turnrate = 592,
 		customparams = {
 			description_long = "The Flash is a light, fast moving tank with close combat rapid fire weapon. It is slightly more powerful and faster than Peewee and A.K. on flat terrain. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeves",
+					cannon1name = "barrel1",
+					flare1name = "flare1",
+					cannon2name = "barrel2", --optional (replace with nil)
+					flare2name = "flare2", --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "1", --How likely will the unit drift when performing turns?
+					rockstrength = "2", --Howmuch will its weapon make it rock ?
+					rockspeed = "40", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "10", --How fast will the cannon come back in position?
+					kickback = "-2", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "200", --turretSpeed as seen in COB script
+					cobturretxspeed = "200", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

@@ -42,10 +42,10 @@ modConfig["BA"]["unitList"] =
 								armhlt = { weapons = { 1 } },
 								armguard = { weapons = { 1, 1 } },
 								armrl = { weapons = { 2 } }, --light aa
-								packo = { weapons = { 2 } },
+								armpacko = { weapons = { 2 } },
 								armcir = { weapons = { 2 } }, --chainsaw
 								armdl = { weapons = { 1 } }, --depthcharge
-								ajuno = { weapons = { 1 } },
+								armjuno = { weapons = { 1 } },
 								armtl = { weapons = { 1 } }, --torp launcher
 								armfhlt = { weapons = { 1 } },  --floating hlt
 								armfrt = { weapons = { 2 } },  --floating rocket laucher
@@ -56,7 +56,7 @@ modConfig["BA"]["unitList"] =
 								armpb = { weapons = { 1 } }, --pitbull
 								armanni = { weapons = { 1 } },
 								armflak = { weapons = { 2 } },
-								mercury = { weapons = { 2 } },
+								armmercury = { weapons = { 2 } },
 								armemp = { weapons = { 1 } },
 								armamd = { weapons = { 3 } }, --antinuke
 								
@@ -67,14 +67,14 @@ modConfig["BA"]["unitList"] =
 								corexp = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
 								corllt = { weapons = { 1 } },
-								hllt = { weapons = { 1 } },
+								corhllt = { weapons = { 1 } },
 								corhlt = { weapons = { 1 } },
 								corpun = { weapons = { 1, 1 } },
 								corrl = { weapons = { 2 } },
-								madsam = { weapons = { 2 } },
+								cormadsam = { weapons = { 2 } },
 								corerad = { weapons = { 2 } },
 								cordl = { weapons = { 1 } },
-								cjuno = { weapons = { 1 } },
+								corjuno = { weapons = { 1 } },
 								
 								corfhlt = { weapons = { 1 } },  --floating hlt
 								cortl = { weapons = { 1 } }, --torp launcher
@@ -86,7 +86,7 @@ modConfig["BA"]["unitList"] =
 								corvipe = { weapons = { 1 } },
 								cordoom = { weapons = { 1 } },
 								corflak = { weapons = { 2 } },
-								screamer = { weapons = { 2 } },
+								corscreamer = { weapons = { 2 } },
 								cortron = { weapons = { 1 } },
 								corfmd = { weapons = { 3 } },
 								corint = { weapons = { 1 } },
@@ -120,10 +120,10 @@ modConfig["BARC"]["unitList"] =
 								armhlt = { weapons = { 1 } },
 								armguard = { weapons = { 1, 1 } },
 								armrl = { weapons = { 2 } }, --light aa
-								packo = { weapons = { 2 } },
+								armpacko = { weapons = { 2 } },
 								armcir = { weapons = { 2 } }, --chainsaw
 								armdl = { weapons = { 1 } }, --depthcharge
-								ajuno = { weapons = { 1 } },
+								armjuno = { weapons = { 1 } },
 								armtl = { weapons = { 1 } }, --torp launcher
 								armfhlt = { weapons = { 1 } },  --floating hlt
 								armfrt = { weapons = { 2 } },  --floating rocket laucher
@@ -134,7 +134,7 @@ modConfig["BARC"]["unitList"] =
 								armpb = { weapons = { 1 } }, --pitbull
 								armanni = { weapons = { 1 } },
 								armflak = { weapons = { 2 } },
-								mercury = { weapons = { 2 } },
+								armmercury = { weapons = { 2 } },
 								armemp = { weapons = { 1 } },
 								armamd = { weapons = { 3 } }, --antinuke
 								
@@ -145,14 +145,14 @@ modConfig["BARC"]["unitList"] =
 								corexp = { weapons = { 1 } },
 								cormaw = { weapons = { 1 } },
 								corllt = { weapons = { 1 } },
-								hllt = { weapons = { 1 } },
+								corhllt = { weapons = { 1 } },
 								corhlt = { weapons = { 1 } },
 								corpun = { weapons = { 1, 1 } },
 								corrl = { weapons = { 2 } },
-								madsam = { weapons = { 2 } },
+								cormadsam = { weapons = { 2 } },
 								corerad = { weapons = { 2 } },
 								cordl = { weapons = { 1 } },
-								cjuno = { weapons = { 1 } },
+								corjuno = { weapons = { 1 } },
 								
 								corfhlt = { weapons = { 1 } },  --floating hlt
 								cortl = { weapons = { 1 } }, --torp launcher
@@ -164,7 +164,7 @@ modConfig["BARC"]["unitList"] =
 								corvipe = { weapons = { 1 } },
 								cordoom = { weapons = { 1 } },
 								corflak = { weapons = { 2 } },
-								screamer = { weapons = { 2 } },
+								corscreamer = { weapons = { 2 } },
 								cortron = { weapons = { 1 } },
 								corfmd = { weapons = { 3 } },
 								corint = { weapons = { 1 } },

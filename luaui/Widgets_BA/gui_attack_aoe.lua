@@ -609,7 +609,7 @@ function widget:DrawWorld()
 	local offset_z = (cos(angle)*13)
 	local dx = fx + offset_x
 	local dz = fz + offset_z
-	DrawNoExplode(info.aoe, dx, fy, dz, tx + offset_x, ty, tz + offset_z, info.range)
+	DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range)
     glColor(1, 0, 0, 0.75)
     glLineWidth(1)
 	glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)

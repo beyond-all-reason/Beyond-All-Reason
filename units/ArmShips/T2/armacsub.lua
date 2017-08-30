@@ -57,11 +57,11 @@ return {
 			[8] = "armsy",
 			[9] = "armasy",
 			[10] = "armshltxuw",
-			[11] = "asubpen",
+			[11] = "armamsub",
 			[12] = "armason",
 			[13] = "armfflak",
 			[14] = "armatl",
-			[15] = "armcube",
+			[15] = "seaplatform",
 		},
 		customparams = {
 			

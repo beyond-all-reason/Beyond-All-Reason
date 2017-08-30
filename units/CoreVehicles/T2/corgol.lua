@@ -37,12 +37,33 @@ return {
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 49,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.957,
 		turnrate = 220,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-medium",
+					driftratio = "0", --How likely will the unit drift when performing turns?
+					rockstrength = "3", --Howmuch will its weapon make it rock ?
+					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
+					kickback = "-2.4", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "40", --turretSpeed as seen in COB script
+					cobturretxspeed = "30", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

@@ -28,7 +28,7 @@ local minimumbuilddistancerange = 155
 
 local vehUnits = {
 	-- t1
-	armbeamver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
+	armbeaver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
 	-- t2
 	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', armconsul='',
 	-- t1
@@ -39,11 +39,12 @@ local vehUnits = {
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.015
 
-local vehAdditionalAcceleration = 0.01
-local vehAccelerationMultiplier = 1.1
+local vehAdditionalAcceleration = 0.00
+local vehAccelerationMultiplier = 1.0
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1.015
+local vehVelocityMultiplier = 1.00
+local vehRSpeedFactor = 0.40
 
 
 local kbotUnits = {
@@ -84,7 +85,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
 		end
-
+		
 		if uDef.acceleration ~= nil then
 			uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
 		end
@@ -96,6 +97,12 @@ function UnitDef_Post(name, uDef)
 		if uDef.turninplace == 0 then
 			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.82
 		end
+		
+		if (uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0) and not (name == "armcv" or name == "armacv" or name == "armconsul" or name == "armbeaver" or name == "corcv" or name == "coracv" or name == "cormuskrat") then
+			uDef.maxreversevelocity = (uDef.maxvelocity) * vehRSpeedFactor
+			-- List all the vehicles that shouldn't have reverse speed in the "if". (i.e jeffies and flash mb)
+		end
+		
 	end
 
 	-- kbots
@@ -128,6 +135,15 @@ end
 function WeaponDef_Post(name, wDef)
   wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
 
+	-- EdgeEffectiveness global buff to counterbalance smaller hitboxes
+	wDef.edgeeffectiveness = (wDef.edgeeffectiveness or 0) + 0.15
+	if wDef.edgeeffectiveness >= 1 then
+	wDef.edgeeffectiveness = 1
+	end
+	
+	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
+	wDef.targetborder = 1.0
+	
   -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
 	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
 		wDef["damage"].hvyboats = wDef["damage"].heavyunits 
@@ -177,40 +193,40 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				-- for id,unitDef in pairs(UnitDefs) do
 
 					-- if unitDef.objectname == "CORMLS" then
-						-- unitDef["buildoptions"][21] = "armcube"
+						-- unitDef["buildoptions"][21] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMMLS" then
-						-- unitDef["buildoptions"][21] = "armcube"
+						-- unitDef["buildoptions"][21] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCSA" then
-						-- unitDef["buildoptions"][15] = "armcube"
+						-- unitDef["buildoptions"][15] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCSA" then
-						-- unitDef["buildoptions"][15] = "armcube"
+						-- unitDef["buildoptions"][15] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCONSUL" then
-						-- unitDef["buildoptions"][23] = "armcube"
+						-- unitDef["buildoptions"][23] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORFAST" then
-						-- unitDef["buildoptions"][23] = "armcube"
+						-- unitDef["buildoptions"][23] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCH" then
-						-- unitDef["buildoptions"][44] = "armcube"
+						-- unitDef["buildoptions"][44] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCH" then
-						-- unitDef["buildoptions"][44] = "armcube"
+						-- unitDef["buildoptions"][44] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCK" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCK" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "CORCV" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 					-- if unitDef.objectname == "ARMCV" then
-						-- unitDef["buildoptions"][31] = "armcube"
+						-- unitDef["buildoptions"][31] = "seaplatform"
 					-- end
 				-- end
 		-- end

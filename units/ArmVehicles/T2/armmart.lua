@@ -8,7 +8,7 @@ return {
 		buildtime = 5530,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -8 0",
+		collisionvolumeoffsets = "0 -8 -6",
 		collisionvolumescales = "36 36 42",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
@@ -24,24 +24,46 @@ return {
 		maxdamage = 600,
 		maxslope = 12,
 		maxvelocity = 1.8,
+		maxreversevelocity = 1.8*0.60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Luger",
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "ARMMART",
 		seismicsignature = 0,
+		script = "BASICTANKSCRIPT.LUA",
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 286,
 		trackoffset = -8,
 		trackstrength = 8,
 		tracktype = "StdTank",
 		trackwidth = 35,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.1946,
 		turnrate = 402,
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-medium",
+					driftratio = "0.2", --How likely will the unit drift when performing turns?
+					rockstrength = "10", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "10", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "7.5", --How fast will the cannon come back in position?
+					kickback = "-6", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "35", --turretSpeed as seen in COB script
+					cobturretxspeed = "35", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 			canareaattack = 1,
 		},
 		featuredefs = {

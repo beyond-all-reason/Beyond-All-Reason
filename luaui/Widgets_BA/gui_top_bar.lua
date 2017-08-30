@@ -7,7 +7,7 @@ function widget:GetInfo()
 		license	= "GNU GPL, v2 or later",
         layer     = -99999,
 		enabled   = true, --enabled by default
-		handler   = false, --can use widgetHandler:x()
+		handler   = true, --can use widgetHandler:x()
 	}
 end
 
@@ -61,8 +61,8 @@ local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
 local spWind		  			= Spring.GetWind
-local minWind		  			= Game.windMin * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
-local maxWind		  			= Game.windMax * 1.5 -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+local minWind		  			= Game.windMin
+local maxWind		  			= Game.windMax
 local windRotation			= 0
 
 local lastFrame = -1
@@ -88,6 +88,11 @@ local prevEnemyComCount		= 0
 local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 local lastUpdateFrame = 0
 local currentUpdateFrame = 0
+
+local guishaderEnabled = false
+local guishaderCheckUpdateRate = 2
+local nextGuishaderCheck = guishaderCheckUpdateRate
+local now = os.clock()
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -124,6 +129,19 @@ function widget:ViewResize(n_vsx,n_vsy)
 end
 
 local function DrawRectRound(px,py,sx,sy,cs)
+
+	local csx = cs
+	local csy = cs
+	if sx-px < (cs*2) then
+		csx = (sx-px)/2
+		if csx < 0 then csx = 0 end
+	end
+	if sy-py < (cs*2) then
+		csy = (sy-py)/2
+		if csy < 0 then csy = 0 end
+	end
+	cs = math.min(csx, csy)
+
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
@@ -142,7 +160,7 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	
 	local offset = 0.05		-- texture offset, because else gaps could show
 	local o = offset
-	
+
 	-- top left
 	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -227,8 +245,9 @@ local function updateRejoin()
 		local bgpadding = 3*widgetScale
 		glColor(1,1,1,0.03)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
-		
+
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_rejoin')
 		end
 		
@@ -299,6 +318,7 @@ local function updateButtons()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
 		end
 		
@@ -373,6 +393,7 @@ local function updateComs(forceText)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
 		end
 	end)
@@ -437,6 +458,7 @@ local function updateWind()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
 		end
 		
@@ -474,7 +496,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 8 (arm) or 9 (core)")
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (arm) or 6 (core)")
 	end
 end
 
@@ -603,6 +625,7 @@ local function updateResbar(res)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_'..res)
 		end
 		
@@ -704,6 +727,7 @@ function init()
 		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
 		
 		--if (WG['guishader_api'] ~= nil) then
+        --  guishaderEnabled = true3
 		--	WG['guishader_api'].InsertRect(topbarArea[1]+((borderPadding*widgetScale)/2), topbarArea[2], topbarArea[3], topbarArea[4], 'topbar')
 		--end
 	end)
@@ -754,6 +778,7 @@ function checkStatus()
 end
 
 function widget:GameFrame(n)
+	spec = spGetSpectatingState()
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		checkStatus()
@@ -788,8 +813,20 @@ function widget:GameFrame(n)
 	lastUpdateFrame = currentUpdateFrame
 end
 
+
 function widget:Update(dt)
 	local mx,my = spGetMouseState()
+    now = os.clock()
+
+	if now > nextGuishaderCheck then
+        nextGuishaderCheck = now+guishaderCheckUpdateRate
+		if guishaderEnabled == false and widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0) then
+			guishaderEnabled = true
+			init()
+		elseif guishaderEnabled and widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] == 0) then
+			guishaderEnabled = false
+		end
+	end
 
 	if not spec then
 		if isInBox(mx, my, resbarArea['energy']) then
@@ -822,7 +859,7 @@ function widget:Update(dt)
 	elseif (gameFrame ~= lastFrame) then
 		-- wind
 		_, _, _, currentWind = spWind()
-		currentWind = sformat('%.1f', currentWind * 1.5) -- BA added extra wind income via gadget unit_windgenerators with an additional 50%
+		currentWind = sformat('%.1f', currentWind)
 	end
 
  	-- coms
@@ -843,7 +880,7 @@ function widget:Update(dt)
 	if comcountChanged then
 		updateComs()
 	end
-	
+
 	-- rejoin
 	if (gameFrame ~= lastFrame) then
 		if showRejoinUI then
@@ -851,7 +888,7 @@ function widget:Update(dt)
 			if oneSecondElapsed >= 1 then --wait for 1 second period
 				-----var localize-----
 				-----localize
-				
+
 				local serverFrameNum = serverFrameNum1 or serverFrameNum2 --use FrameNum from GameProgress if available, else use FrameNum derived from LUA_msg.
 				serverFrameNum = serverFrameNum + serverFrameRate*oneSecondElapsed -- estimate Server's frame number after each widget:Update() while waiting for GameProgress() to refresh with actual value.
 				local frameDistanceToFinish = serverFrameNum-gameFrame
@@ -865,41 +902,43 @@ function widget:Update(dt)
 				--]]
 				--Method2: simple moving average
 				myGameFrameRate = SimpleMovingAverage(myGameFrameRate, simpleMovingAverageLocalSpeed) -- get our average frameRate
-				
+
 				local timeToComplete = frameDistanceToFinish/myGameFrameRate -- estimate the time to completion.
 				local timeToComplete_string = "?/?"
-				
+
 				local minute, second = math.modf(timeToComplete/60) --second divide by 60sec-per-minute, then saperate result from its remainder
 				second = 60*second --multiply remainder with 60sec-per-minute to get second back.
 				timeToComplete_string = string.format ("Time Remaining: %d:%02d" , minute, second)
-				
+
 				oneSecondElapsed = 0
 				myLastFrameNum = gameFrame
-				
-				if serverFrameNum1 then 
+
+				if serverFrameNum1 then
 					serverFrameNum1 = serverFrameNum --update serverFrameNum1 if value from GameProgress() is used,
-				else 
+				else
 					serverFrameNum2 = serverFrameNum
 				end --update serverFrameNum2 if value from LuaRecvMsg() is used.
-				
+
 			end
-			
+
 			if gameFrame / serverFrameNum1 < 1 then
 				updateRejoin()
 			end
 		end
 	end
-	
+
 	if (gameFrame ~= lastFrame) then
 		lastFrame = gameFrame
 	end
 end
 
 function widget:DrawScreen()
+
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
-	local now = os.clock()
+
+	local x,y,b = spGetMouseState()
 
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] and dlistResbar[res][4] then
@@ -937,7 +976,6 @@ function widget:DrawScreen()
 			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
 		end
 	end
-	
 	if dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
@@ -950,12 +988,18 @@ function widget:DrawScreen()
 	
 	if dlistRejoin and showRejoinUI then
 		glCallList(dlistRejoin)
+	elseif dlistRejoin ~= nil then
+		if dlistRejoin ~= nil then
+			glDeleteList(dlistRejoin)
+		end
+		if WG['guishader_api'] ~= nil then
+			WG['guishader_api'].RemoveRect('topbar_rejoin')
+		end
 	end
-	
+
 	if dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
-		local x,y,b = spGetMouseState()
 		if buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			buttonsAreaHovered = nil
 			for button, pos in pairs(buttonsArea['buttons']) do
@@ -971,6 +1015,76 @@ function widget:DrawScreen()
 			end
 		end
 		glCallList(dlistButtons2)
+	end
+
+	if showQuitscreen ~= nil then
+		local fadeoutBonus = 0
+		local fadeTime = 0.2
+		local fadeProgress = (os.clock() - showQuitscreen) / fadeTime
+		if fadeProgress > 1 then fadeProgress = 1 end
+
+		-- background
+		if (WG['guishader_api'] ~= nil) then
+            guishaderEnabled = true
+			WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
+		end
+
+		glColor(0,0,0,(0.15*fadeProgress))
+		glRect( 0, 0, vsx, vsy)
+
+		if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
+
+			local width = vsx/6.2
+			local height = width/3.5
+			local padding = width/70
+			local buttonPadding = width/100
+			local buttonMargin = width/32
+			local buttonHeight = height*0.55
+
+			quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
+			quitscreenResignArea = {(vsx/2)-(width/2)+buttonMargin, (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)-(buttonMargin/2), (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
+			quitscreenQuitArea = {(vsx/2)+(buttonMargin/2), (vsy/1.8)-(height/2)+buttonMargin, (vsx/2)+(width/2)-buttonMargin, (vsy/1.8)-(height/2)+buttonHeight-buttonMargin}
+
+			-- window
+			glColor(1,1,1,0.5+(0.36*fadeProgress))
+			RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
+			glColor(0,0,0,0.035+(0.035*fadeProgress))
+			RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, 5*widgetScale)
+
+			local fontSize = height/5.5
+			if not spec then
+				glText("\255\000\000\000Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
+			else
+				glText("\255\000\000\000Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
+			end
+
+			-- quit button
+			if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+				glColor(0.75,0.1,0.1,0.4+(0.4*fadeProgress))
+			else
+				glColor(0.5,0,0,0.35+(0.35*fadeProgress))
+			end
+			RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 5*widgetScale)
+			glColor(0,0,0,0.07+(0.05*fadeProgress))
+			RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 4*widgetScale)
+
+			local fontSize = fontSize*0.85
+			glText("\255\255\255\255Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
+
+			-- resign button
+			if not spec then
+				if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					glColor(0.6,0.6,0.6,0.4+(0.4*fadeProgress))
+				else
+					glColor(0.3,0.3,0.3,0.35+(0.35*fadeProgress))
+				end
+				RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 5*widgetScale)
+				glColor(0,0,0,0.07+(0.05*fadeProgress))
+				RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 4*widgetScale)
+
+				glText("\255\255\255\255Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
+			end
+		end
 	end
 end
 
@@ -1022,13 +1136,28 @@ local function hideWindows()
 	end
     if (WG['teamstats'] ~= nil) then
         WG['teamstats'].toggle(false)
-    end
+	end
+	showQuitscreen = nil
+	if (WG['guishader_api'] ~= nil) then
+		WG['guishader_api'].RemoveRect('topbar_screenblur')
+	end
 end
 
 local function applyButtonAction(button)
 	if button == 'quit' then
+		local oldShowQuitscreen
+		if showQuitscreen ~= nil then
+			oldShowQuitscreen = showQuitscreen
+		end
 		hideWindows()
-		Spring.SendCommands("QuitMenu")
+		if oldShowQuitscreen ~= nil then
+			showQuitscreen = oldShowQuitscreen
+			if (WG['guishader_api'] ~= nil) then
+				WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
+			end
+		else
+			showQuitscreen = os.clock()
+		end
 	elseif button == 'options' then
 		hideWindows()
 		if (WG['options'] ~= nil) then
@@ -1057,6 +1186,12 @@ local function applyButtonAction(button)
 	end
 end
 
+function widget:KeyPress(key)
+	if key == 27 then	-- ESC
+		hideWindows()
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if button == 1 then
 		if not spec then
@@ -1073,8 +1208,7 @@ function widget:MousePress(x, y, button)
 				return true
 			end
 		end
-	end
-	if button == 1 then
+
 		if buttonsArea['buttons'] ~= nil then
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
@@ -1083,6 +1217,36 @@ function widget:MousePress(x, y, button)
 				end
 			end
 		end
+
+		if showQuitscreen ~= nil and quitscreenArea ~= nil then
+
+			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
+
+				if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+					Spring.SendCommands("QuitForce")
+					showQuitscreen = nil
+					hideQuitWindow = os.clock()
+					return true
+				end
+				if not spec and IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					Spring.SendCommands("spectator")
+					showQuitscreen = nil
+					if (WG['guishader_api'] ~= nil) then
+						WG['guishader_api'].RemoveRect('topbar_screenblur')
+					end
+					return true
+				end
+				return true
+			else
+				showQuitscreen = nil
+				if (WG['guishader_api'] ~= nil) then
+					WG['guishader_api'].RemoveRect('topbar_screenblur')
+				end
+				return true
+			end
+		end
+
+
 	end
 end
 
@@ -1254,7 +1418,7 @@ end
 local function RemoveLUARecvMsg(n)
 	if n > 150 then
 		isReplay = nil
-		widgetHandler:RemoveCallIn("RecvLuaMsg") --remove unused method for increase efficiency after frame> timestampLimit (150frame or 5 second).
+		--widgetHandler:RemoveCallIn("RecvLuaMsg") --remove unused method for increase efficiency after frame> timestampLimit (150frame or 5 second).
 		functionContainer = function(x) end --replace this function with an empty function/method
 	end 
 end

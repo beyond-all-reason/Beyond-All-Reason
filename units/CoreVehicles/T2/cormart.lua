@@ -8,7 +8,7 @@ return {
 		buildtime = 4270,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -1 1",
+		collisionvolumeoffsets = "0 -1 -7",
 		collisionvolumescales = "36 22 38",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -24,6 +24,7 @@ return {
 		maxdamage = 560,
 		maxslope = 12,
 		maxvelocity = 1.95,
+		maxreversevelocity = 1.95*0.60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Pillager",
@@ -36,12 +37,33 @@ return {
 		trackstrength = 8,
 		tracktype = "StdTank",
 		trackwidth = 31,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.287,
 		turnrate = 445,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "0.4", --How likely will the unit drift when performing turns?
+					rockstrength = "10", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "7.5", --How fast will the cannon come back in position?
+					kickback = "-6", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "35", --turretSpeed as seen in COB script
+					cobturretxspeed = "35", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 			canareaattack = 1,
 		},
 		featuredefs = {

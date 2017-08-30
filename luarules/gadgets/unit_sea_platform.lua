@@ -17,7 +17,7 @@ function gadget:UnitFinished(unitID)
 unitDefID = Spring.GetUnitDefID(unitID)
 unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
-if unitName == "armcube" then
+if unitName == "seaplatform" then
 -- Spring.Echo("go")
 --Spring.SetUnitNoDraw(unitID, true)
 
@@ -146,7 +146,7 @@ function gadget:UnitDestroyed(unitID)
 unitDefID = Spring.GetUnitDefID(unitID)
 unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
-if unitName == "armcube" then
+if unitName == "seaplatform" then
 if (GroundHeight[unitID]) then
 Spring.LevelHeightMap(x-31,z-31,x+32,z+32, GroundHeight[unitID])
 end

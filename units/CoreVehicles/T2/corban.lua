@@ -25,6 +25,7 @@ return {
 		maxdamage = 2250,
 		maxslope = 20,
 		maxvelocity = 1.9,
+		maxreversevelocity = 1.9*0.60,
 		maxwaterdepth = 20,
 		metalstorage = 4,
 		movementclass = "HTANK4",
@@ -38,12 +39,33 @@ return {
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 42,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.2573,
 		turnrate = 375.10001,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "missile1",
+					flare1name = "flare1",
+					cannon2name = "missile2", --optional (replace with nil)
+					flare2name = "flare2", --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-medium",
+					driftratio = "0.25", --How likely will the unit drift when performing turns?
+					rockstrength = "15", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "3", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "0.005", --How fast will the cannon come back in position?
+					kickback = "-12", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "125", --turretSpeed as seen in COB script
+					cobturretxspeed = "125", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

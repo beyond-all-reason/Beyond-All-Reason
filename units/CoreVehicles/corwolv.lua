@@ -8,8 +8,8 @@ return {
 		buildtime = 3254,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 1 0",
-		collisionvolumescales = "29 15 35",
+		collisionvolumeoffsets = "0 1 -7",
+		collisionvolumescales = "31 15 43",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Light Mobile Artillery",
@@ -25,6 +25,7 @@ return {
 		maxdamage = 577,
 		maxslope = 10,
 		maxvelocity = 1.87,
+		maxreversevelocity = 1.87*0.60,
 		maxwaterdepth = 8,
 		movementclass = "TANK2",
 		name = "Wolverine",
@@ -38,13 +39,35 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.2342,
 		turnrate = 466,
+		-- script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Wolverine is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Levelers/Insstigators, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
 			canareaattack = 1,
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeves",
+					cannon1name = "barrel1",
+					flare1name = "flare1",
+					cannon2name = "barrel2", --optional (replace with nil)
+					flare2name = "flare2", --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "1", --How likely will the unit drift when performing turns?
+					rockstrength = "0.02", --Howmuch will its weapon make it rock ?
+					rockspeed = "2", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "1", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "10", --How fast will the cannon come back in position?
+					kickback = "-2", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "200", --turretSpeed as seen in COB script
+					cobturretxspeed = "200", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {

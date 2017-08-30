@@ -8,7 +8,7 @@ return {
 		buildtime = 3312,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumeoffsets = "0 -1 -4",
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -36,13 +36,35 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.83678,
 		turnrate = 459.79999,
+		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Raider a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Raiders can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Slashers or artillery for a great frontline push or use large packs for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
-		},
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flare",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-tiny",
+					driftratio = "0.8", --How likely will the unit drift when performing turns?
+					rockstrength = "5", --Howmuch will its weapon make it rock ?
+					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
+					kickback = "-2.4", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "90", --turretSpeed as seen in COB script
+					cobturretxspeed = "50", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,

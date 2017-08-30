@@ -148,8 +148,13 @@ function MakeBindsTable (swapYZ)
         "bind shift+v buildunit_corsy",
         
         -- build spacing
-        "bind any+alt+"..Z.." buildspacing inc",
-        "bind any+alt+x buildspacing dec",    
+        "bind alt+"..Z.." buildspacing inc",
+        "bind shift+alt+"..Z.." buildspacing inc",		
+        "bind any+alt+x buildspacing dec",
+        "bind shift+alt+x buildspacing dec",
+		
+		-- area mex
+		"bind ctrl+alt+z areamex",
         
         -- numpad movement
         "bind numpad2 moveback",

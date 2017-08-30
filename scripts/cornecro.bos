@@ -37,8 +37,8 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
+		currentSpeed = (14 / 4) * (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<70) currentSpeed=70;
 		sleep 142;
 	}
 }
@@ -133,7 +133,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <-17.027473> speed <72.776532> *  currentSpeed / 100;
 				turn rfoot to x-axis <-40.137363> speed <165.428391> *  currentSpeed / 100;
 				turn lfoot to x-axis <-40.137363> speed <76.094071> *  currentSpeed / 100;
-				sleep 14600 / currentSpeed;
+				sleep 20000 / currentSpeed;
 				move hip to z-axis [0.169995] speed [0.979148] *  currentSpeed / 100;
 				move lleg to y-axis [-0.350000] speed [2.991758] *  currentSpeed / 100;
 				move rleg to y-axis [0.119995] speed [0.652720] *  currentSpeed / 100;
@@ -143,7 +143,7 @@ MotionControl(Func_Var_1)
 				turn rleg to x-axis <-7.000000> speed <54.545045> *  currentSpeed / 100;
 				turn rfoot to x-axis <-35.879121> speed <23.162965> *  currentSpeed / 100;
 				turn lfoot to x-axis <-44.395604> speed <23.162959> *  currentSpeed / 100;
-				sleep 14800 / currentSpeed;
+				sleep 20000 / currentSpeed;
 			}
 			if( bMoving )
 			{
@@ -242,24 +242,7 @@ MotionControl(Func_Var_1)
 			}
 			Func_Var_1 = 1;
 		}
-		if( !bMoving )
-		{
-			if( Func_Var_1 )
-			{
-				move hip to z-axis [0.000000] now;
-				move lfoot to y-axis [0.000000] now;
-				move rfoot to y-axis [0.000000] now;
-				move lleg to y-axis [0.000000] now;
-				move rleg to y-axis [0.000000] now;
-				turn hip to x-axis <0.000000> now;
-				turn rleg to x-axis <0.000000> now;
-				turn rfoot to x-axis <0.000000> now;
-				turn lleg to x-axis <0.000000> now;
-				turn lfoot to x-axis <0.000000> now;
-				Func_Var_1 = 0;
-			}
 			sleep 50;
-		}
 	}
 }
 
@@ -515,8 +498,8 @@ StartMoving()
 }
 
 StopMoving()
-{
-	bMoving = FALSE;
+{ 
+	bMoving = FALSE; 
 }
 
 QueryNanoPiece(piecenum)

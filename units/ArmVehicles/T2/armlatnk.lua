@@ -36,8 +36,8 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 2.19516,
 		turnrate = 550,
 		customparams = {
@@ -90,7 +90,7 @@ return {
  			pieceExplosionGenerators = { 
 				"deathceg2",
 				"deathceg3",
-				"deathceg4",
+				"deathceg3-lightning",
 			},
 		},
 		sounds = {

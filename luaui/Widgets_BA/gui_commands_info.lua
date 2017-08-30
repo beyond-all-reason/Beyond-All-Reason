@@ -162,11 +162,12 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local fontSizeTitle				= 17		-- is version number
 	local fontSizeDate				= 13
 	local fontSizeLine				= 15
+	local lineSeparator				= 2
 	
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorDate				= {0.66,0.88,0.66,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
-	local fontColorCommand			= {0.9,0.6,0.2,1}
+	local fontColorCommand			= {0.86,0.66,0.2,1}
 	
 	local textRightOffset = scrollbar and scrollbarMargin+scrollbarWidth+scrollbarWidth or 0
 	local maxLines = math.floor((height-5)/fontSizeLine)
@@ -208,7 +209,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 		local lineKey = startLine
 		local j = 1
 		while j < maxLines do	-- maxlines is not exact, just a failsafe
-			if (fontSizeTitle)*j > height then
+			if (lineSeparator+fontSizeTitle)*j > height then
 				break;
 			end
 			if changelogLines[lineKey] == nil then
@@ -220,25 +221,25 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				local cmd = string.match(line, '^/([\+a-zA-Z0-9_-]*)')
 				local descr = string.sub(line, string.len(string.match(line, '^/[a-zA-Z0-9_-]*[ \t]*')))
 				descr, numLines = font:WrapText(descr, (width-scrollbarMargin-scrollbarWidth - 250 - textRightOffset)*(loadedFontSize/fontSizeLine))
-				if (fontSizeTitle)*(j+numLines-1) > height then 
+				if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 					break;
 				end
 				
 				font:SetTextColor(fontColorCommand)
-				font:Print(cmd, x+20, y-fontSizeTitle*j, fontSizeLine, "n")
+				font:Print(cmd, x+20, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				
 				font:SetTextColor(fontColorLine)
-				font:Print(descr, x+230, y-fontSizeTitle*j, fontSizeLine, "n")
+				font:Print(descr, x+230, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			else
 				-- line
 				font:SetTextColor(fontColorLine)
 				line = line
 				line, numLines = font:WrapText(line, (width-scrollbarMargin-scrollbarWidth)*(loadedFontSize/fontSizeLine))
-				if (fontSizeTitle)*(j+numLines-1) > height then 
+				if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 					break;
 				end
-				font:Print(line, x+10, y-(fontSizeTitle)*j, fontSizeLine, "n")
+				font:Print(line, x+10, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			end
 
@@ -368,7 +369,7 @@ end
 function widget:MouseWheel(up, value)
 	
 	if show then	
-		local addLines = value*-5 -- direction is retarded
+		local addLines = value*-3 -- direction is retarded
 		
 		startLine = startLine + addLines
 		if startLine < 1 then startLine = 1 end

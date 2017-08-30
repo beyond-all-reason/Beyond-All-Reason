@@ -2,8 +2,8 @@ return {
 	corap = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 1500,
-		buildcostmetal = 1000,
+		buildcostenergy = 1400,
+		buildcostmetal = 870,
 		builder = true,
 		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
@@ -40,7 +40,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
-		workertime = 150,
+		workertime = 133,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooo",
 		buildoptions = {
 			[1] = "corca",

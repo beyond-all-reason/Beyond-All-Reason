@@ -73,18 +73,18 @@ end
 
 local UnitEffects = {
 
-  [UnitDefNames["cjuno"].id] = {
+  [UnitDefNames["corjuno"].id] = {
     {class='ShieldSphere',options=junoShieldSphere},
     {class='GroundFlash',options=groundFlashJuno},
   },
-  [UnitDefNames["ajuno"].id] = {
+  [UnitDefNames["armjuno"].id] = {
     {class='ShieldSphere',options=junoShieldSphere},
     {class='GroundFlash',options=groundFlashJuno},
   },
   --// FUSIONS //--------------------------
-  [UnitDefNames["cafus"].id] = {
-    --{class='Bursts',options=cafusBursts},
-    {class='ShieldSphere',options=cafusShieldSphere},
+  [UnitDefNames["corafus"].id] = {
+    --{class='Bursts',options=corafusBursts},
+    {class='ShieldSphere',options=corafusShieldSphere},
     {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,58.9,-4.5}, size=24.5, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashBlue},
   },
@@ -94,7 +94,7 @@ local UnitEffects = {
     {class='ShieldJitter',options={life=math.huge, pos={0,50,-5}, size=23, precision=22, repeatEffect=true}},
     {class='GroundFlash',options=groundFlashGreen},
   },
-  [UnitDefNames["aafus"].id] = {
+  [UnitDefNames["armafus"].id] = {
     {class='SimpleParticles2', options=MergeTable({pos={-38,70,-10}, delay=10, lifeSpread=300},sparks)},
     {class='SimpleParticles2', options=MergeTable({pos={21,70,-10}, delay=60, lifeSpread=300},sparks)},
     {class='ShieldJitter',options={layer=-16, life=math.huge, pos={-31,55,-10}, size=12, precision=22, repeatEffect=true}},

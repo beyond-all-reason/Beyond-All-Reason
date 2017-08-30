@@ -93,7 +93,7 @@ return {
 			[25] = "armgplat",
 			[26] = "armfrt",
 			[27] = "armfrad",
-			[28] = "armcube",
+			[28] = "seaplatform",
 		},
 		customparams = {
 			--death_sounds = "commander",

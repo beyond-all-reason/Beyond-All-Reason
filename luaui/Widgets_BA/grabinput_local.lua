@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name	= "Grabinput Local",
-		desc	= "Enables GrabInput in Windowed mode",
+		desc	= "Enables GrabInput in Windowed mode (Prevents/Enables the mouse from leaving the game window)",
 		author	= "abma",
 		date	= "2012-08-11",
 		license	= "GPL v2 or later",

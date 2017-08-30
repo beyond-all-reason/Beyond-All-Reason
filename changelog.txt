@@ -2,149 +2,153 @@
 XX/XX/2017
 
 Important:
-• Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
-• Decay resigned as balancing dev/maintainer
-• Doo assigned to redesign Sea
-• Lots of things changed, please grant us some time to adjust
+ • Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
+ • Decay resigned as balancing dev/maintainer
+ • Doo assigned to redesign Sea
+ • Lots of things changed, please grant us some time to adjust
 
 Balance changes:
-• Raw unit movement implemented
-• All Energy and metal prices have been rounded (because buildmenu shows prices)
-• Introduced a minimum (slightly larger) buildrange
-• Vehicles accelerate faster and slows less when turning + 2% speed increase
-• Commander torso turnspeed increased 33% + dgun reloadspeed reduced 10%
-• Commanders produce 40% additional energy (25->35)
-• Decoy commanders have been given same lasers as regular commanders
-• Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
-• Small (2x2) wreckage dont block movement (this is a modoption you can disable: smallfeaturenoblock)
-• T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
-• T1 kbot/veh/air lab got 50% additional buildspeed
-• Thud/Hammer (plasma kbots) reduced projectile speed: 15%
-• Plasma shields are 50% weaker to non LRPC shots, cost reduced by 20%.
-• Armmart and cormart (mobile T2 arty) do 15% more damage
-• Morties are 10% slower and are a bit less acurate (even more when moving)
-• Vanguard does 20% more damage
-• Armvulc and corbuzz cost increased by 40%
-• Bertha and Intimidator weapons have 25% more Area of Effect
-• Fixed viper overshooting (when aiming at radar dots)
-• Fixed flak doing ludicrous damage to ground units
-• Air transports don't have collision enabled anylonger, fixes the unload bug
-• EMP Missile Launcher: Added one step to the animation to improve it which slighlty increases the time to fire the weapon (around +1.25 second). The projectile speed and accel are still the same. Doo
-• Pathing improvement: units wont get stuck in cliffs any longer
-• Readded KrogStomp (vs ground scouts + pws aks only) aswell as a GFX/SFX + camerashake on footsteps.
-• T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell)
+ • All Energy and metal prices have been rounded (because buildmenu shows prices)
+ • Introduced a minimum (slightly larger) buildrange
+ • Due to the introduction of collision volumes back in 2012-2013 that were smaller than the default radius previously used, a global edgeeffectiveness buff of 0.15 has been applyied to get back some of the aoe damages (both on aoe weapons and death explosions) that were previously lost. 
+The reasoning behind this change is: because the hitboxes were made smaller, the distance between an aoe weapon and the unit's colvol were made bigger, and therefor less damages were applyied. 
+By globally increasing edgeeffectiveness we decrease the effect of distance on the final damage value and we get back some of the damages that were lost in the process of reducing the hitboxes. (Doo)
+ • All weapons use TargetBorder = 1.0. It means that instead of aiming for the center of a unit (classic BA behaviour) and be unable to aim when this aimpoint is outside of range while the hitbox is still inside, weapons will try to aim for the closest hitbox's border. 
+This change seems to only apply to box shaped hitboxes at the moment. We hope that with Spring 104 out, this issue will be resolved and we will be able to use this functionnality as a default BA setting. (Doo)
 
-Wind:
-• Wind generators have a bigger footprint: 4x4 (was 3x3), fan blades wont touch eachother this way
-• Wind generators 50% more expensive for 50% more energy production/health/buildtime/storage
-• Windspeed gained 50% (but due to price increases: generators wont be more effective)
+ Movement
+ • Raw unit movement implemented
+ • Pathing improvement: units wont get stuck in cliffs any longer
+ • Vehicles with tracks can turn-in-place. The angle limit: 110, 60 for cons. Wheeled vehicles cannot do this (Jeffy/Samson) 
+ • Some units are able to go in reverse on small distances
 
-Sea reworked: Doo
-• Work In Prorgess
-Changelog date: 07/12/17
-IMPORTANT BALANCE CHANGES:
-• Increased T1 shipyards costs +40% and decreased T1 and T2 ships costs 20%.
-• Increased Patrol Boats reloadtime (100%), decreased hp 345->275, costs 20% (BEFORE the global costs decrease)
-• Added GUN PLATFORM to both factions for 160m/1600e. Available in T1 ship con, t2 engineer and Commander buildmenus.
-• Added SEA PLATFORM to both factions for 50m/400e. Available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
-• Added Plasma Frigates to both factions for 440m/2000e arm, 480m/2160e core. Available in T1 Shipyard.
-		These units stats will be posted separately on our Discord channel when they will be definite for the upcoming version.
-• Nerfed construction ship buildpower 50%
-• Added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships.
-• Reduced corvette costs for both faction (arm 55%, core 57%) and HP (arm 1900=>780, core 1800=>700) (BEFORE the global costs decrease)
-• Guardian, punisher, ambusher and toaster now have increased damages against ships. This was an original feature of Absolute Annihilation, that had been kept in the firsts BA version and had been removed at some point, leaving the guardian/punisher as a hardly useful unit.
-	They were also given bonus damages towards commanders (which were already existant on their high trajectory mode, but inexistant on their low traj mode.
-	The total bonus damages are: T1 and T2: lowtraj +300 vs comms and light ships, +150 vs heavyships, Hightraj +400 vs comms and light ships, +200 vs heavy ships.
+ Commanders
+ • produce 40% additional energy (25->35)
+ • torso turnspeed increased 33% + dgun reloadspeed reduced 10%
+ • uwlaser nerfed 50% default and 75% vs subs
+ • Decoy commanders have been given same lasers as regular commanders
+ • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
+ 
+ Air
+ • Air transports unload bug fixed: don't have collision enabled anymore
+ • Fixed flak doing ludicrous damage to ground units
+ • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
+ • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
 
-MOVEMENT AND UNIT BEHAVIOUR RELATED (nothing is definite for now so i'll just state the global trend):
-• Accelerations are being reworked for slower movestarts (which means decreased acceleration overall). 
-	I'm calculating the new accel values as such: Acceleration(elmos/f²) = MaxVelocity(elmos/frame)/(30(frame/s)*TimeToReachMaxSpeed(s)
-	In the end, once all the MaxVelocity will be balanced, i'll just have to balance the "TimeToReachMaxSpeed" appropriately. As of now, accelerations for ships are clamped between 2 second and 8 seconds.
-• MaxVelocities are being reworked: Globaly, they are being decreased for most ships although some of them might have gained a bit of maxspeed in the end.
-• TurnRates were, overall, a bit too high and didnt really fit with the unit's corresponding model. They are being reworked for a more realistic behaviour. We are trying to keep it as enjoyable as possible though, and trying to avoid boring collisions against ground.
-• TurnInPlaces: As of now, ALL ships will be able to perform a turn-in-place. This might sound tricky and unrealistic. In reality, they never will turn in place because they will always start accelerating while turning. Also, due to finetuning the TurnInPlaceAngleLimit, we are trying to avoid as much as possible the weird behaviours where a ship brakes in the middle of a fight to turn.
-The turninplaceanglelimits have been set between 90 and 140 degrees, depending on the usage made of a unit. 
-A destroyer, for exemple, shouldn't brake when firing and trying to perform a 180° to avoid shots. We have set the turninplaceanglelimit to 140 degrees, which is the BA7.20 value from back when it still could perform turninplaces
-This function allows all move commands that are under 140 degrees not to trigger any braking. 
-If you wan to make a full 180° turn with a brake, directly queue the 180° turn. 
-If you don't want it to brake, split the turn into two moveorders < 140degrees each.
-This value has been set to 90 for construction ships, 110 for pships, 140 for scouts.
-These values might be subject to change to enhance the players' experience and avoid unwanted brakes in a middle of an intense battle.
-• BrakeRates: They are calculated with the same formula as the acceleration:
-	BrakeRate(elmos/f²) = MaxVelocity(elmos/frame)/(30(frame/s)*TimeToStop(s)
-	As of now, the TimeToStop times are clamped between 0.5 and 1.33 seconds.
+ (AA) missiles:
+ • AA missile range increased a tiny bit
+ • T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
+ • Fighters have been given more range due to slower missile speed and missile turnrate
+ • Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
 
-MODELS AND ANIMATIONS:
-• Battleships and Cruisers model have had their Z-axis scaled up a bit (about a 1.4 factor) to give their model a proper ship-like impression.
-	The balance change caused by this new model isn't inexistant. It is kept to a minimal, but the turret placements being slightly different can cause some small changes to their effective range. (IE tower further behind = needs to get a little closer to its target).
+ Long range plasma
+ • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
+ • Armvulc and corbuzz cost increased by 40%
+ • Bertha and Intimidator weapons have 25% more Area of Effect
+
+ T1
+ • T1 kbot/veh/air lab got 33% additional buildspeed
+ • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
+ • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
+
+ T2
+ • Armmart and cormart (mobile T2 arty) do 15% more damage
+ • Morties are 5% slower and are a bit less acurate (even more when moving)
+ • Fixed viper overshooting (when aiming at radar dots)
+ • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
+
+ T3
+ • Vanguard does 20% more damage
+ • Reintroduced KrogStomp (vs ground scouts + pws/aks only) aswell as a GFX/SFX
+ • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
+
+ Mod options
+ • Control victory options: info on startup and offers a better scoreboard window
+ • Optional: Small (2x2) wreckage dont block movement (smallfeaturenoblock)
+ • Optional modoption for fixed hitspheres (requires firethroughfriendly enabled)
+ This replaces hitboxes with correctly sized hitspheres. 
+ Currently hitboxes are smaller than desired, this was done so that units can somewhat can fire over others
+ Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
 
 
+Sea reworked: (by Doo)
+Major balance changes:
+• Increased T1 shipyards costs and decreased T1 and T2 ships costs.
+• Increased Patrol Boats reloadtime, decreased hp, costs.
+• Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
+• Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
+• Added Plasma Frigates to both factions available in T1 Shipyard.
+• Nerfed construction ship buildpower, added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships
+• Reduced corvette costs and HP
+• Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
 
-(AA) missiles:
-• AA missile range increased a tiny bit, but Arm/core defender range increased 15%
-• T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
-• Fighters have been given more range due to slower missile speed and missile turnrate 
-(old fighter missile range was too short to show missile exhaust effect properly)
-• Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
+Movement: 
+• Uses Raw move to avoid needless turns in water
+• Ships can now turn-in-place (as it did back in 2012). This allows better control on boats by being able to anticipate if the unit will slow down for the turn or keep its max speed.
+• Globally, maxspeeds, accelerations, brakesrates and turnrates have been decreased for a smoother handling and better feeling of inertia. In terms of balance, this also results in ships being globally weaker to non instantaneous (non beamlasers) weapons (including each other as most ships use plasmas).
 
-
-Mod options: (default disabled)
-• control victory options: shows info on startup and offers a better scoreboard window
-• Added modoption for fixed hitspheres (requires firethroughfriendly enabled)
-This replaces hitboxes with correctly sized hitspheres. 
-Currently hitboxes are smaller than desired, this was done so that units can somewhat can fire over others
-Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
+Models and animations:
+• Some models scales have been changed in order to add a ship feeling to them (mainly longer Z-Axis)
 
 Other:
-• All new particle/lighting effects!
-• Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options)
-• Added luamex (lua metal extractor points) functionality for mappers
-• Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
-• Added Tooltip widget, shows tooltips at mouse cursor location
-• Buildmenu: shows metal/energy cost and tooltip on hover
-• Buildmenu: could show shortcuts when enabled via Options widget
-• Buildspacing shortcuts B and N are now ALT+Z and ALT+X
-• Keybinds, commands, changelog, options windows hide with Escape key
-• Teamstats widget renamed, simplified, spiced up and has a fixed position (this fixes bugs aswell)
-• Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
-• Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
-• Added outline widget, toggable via Options (default disabled)
-• Unit textures reprocessed with bigger color range and less grain
-• More units have been given a shatter effect on death
-• Options: fixed that not all settings remembered their value
-• Removed right column on options menu to allow a 3rd column of options
-• Bloomshader: prettier and more pronounced, offers 2 levels (modest/heavier) via Options
-• Pausescreen changed and darkens screen or decolorizes it when shaders enabled
-• Changelog widget: version shortcuts only show for every 10th version number
-• GUI background 10% darker
-• Spiced up 'Buildbar' and 'Selected Unit Buttons' widgets
-• Restyled prestart faction change widget (also scales with resolution)
-• Removed 'Allies' label from advplayerslist
-• Unit info widget removed
-• Removed all old loadscreens, added new ones
-• Commands FX widget: improved performance
-• Ally Cursors widget: improved performance
-• Fixed commander nametags occasionally showing spectator name
-• Spiced up the loadscreen progress bar
-• Fixed cursor size changing after alt tabbed to desktop and back
-• Fixed glitchy/spiky healthbars shader on intel gfx and very old cards
-• Darken map widget can optionally darken features aswell (trees/wreckages)
-• Added "Include buildings in area selections" option via option widget (from Smart Select widget)
-• Enemy spotter opacity and unit teamcolor highlight configurable via options widget
-• Arm Beamer updates its aim faster when firing
-• A few more turrets/barrels get a kickback when they fire
-• Fixed unit_stats dps values for beamlaser weapons (dps = damages/beamtime+reloadtime instead of dps = damages/reloadtime). Also changed the minimal reload time to 1/600 instead of 1/30, which caused some weapons with reload times < 0.03 to show wrong dps values. Doo
-• Fixed unit_stats dps values for stockpiling weapons (had to apply a 1/30 factor). Doo
-• Fixed unit_stats crashes when hovering enemy units. Doo
-• Replaced engine info screen (shortcut i) with our own screen
-• Changed and fixed some missile models (missile.3do, empmisl.3do) Doo
-• Krogoth model scaled down (10%) and bantha model scaled up (5%) without any weapon/cost/HP buff or nerf. Doo
-• Fixed some models flare pieces to properly spawn the weapon in the right place planning on checking every model i can. Doo
-• Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
-• Added additional extensive unit description (by PtaQ)
-• Increased default player unit limit to 1500
-• Removed useless repeat/stop/wait orders from a lot of buildings
-• Added GFX + SFX on karg footsteps (no damages) and fixed its script and model a bit.
+ • Increased default player unit limit to 1500
+ • Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
+ • Krogoth model scaled down (10%) and bantha model scaled up (5%)
+ • Arm Beamer updates its aim faster when firing
+
+ Graphics
+ • All new particle/lighting effects!
+ • Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
+ • Added outline widget, toggable via Options (default disabled)
+ • Unit textures reprocessed with bigger color range and less grain
+ • More units have been given a shatter effect on death
+ • Bloomshader: prettier and more pronounced, offers 2 levels (modest/heavier) via Options
+ • A few more turrets/barrels get a kickback when they fire
+ • Some walking animations are improved
+ • Changed some missile models
+ • One universal tank script for the most basic tanks, which has preset animations that can be tweaked directly via unitDefs
+
+ Interface
+ • GUI background 10% darker
+ • Added Tooltip widget, shows tooltips at mouse cursor location
+ • Buildmenu: shows metal/energy cost and tooltip on hover
+ • Buildmenu: could show shortcuts when enabled via Options widget
+ • Buildspacing shortcuts B and N are now ALT+Z and ALT+X
+ • Player Color Palette widget has beed added (rainbow scemed team coloring, toggable via Options)
+ • Removed 'Allies' label from advplayerslist
+ • Added grabinput widget (enable if you have problems with mouse detection in (borderless) window mode)
+ • Pausescreen changed and darkens screen or decolorizes it when shaders enabled
+ • Restyled prestart faction change widget (also scales with resolution)
+ • Spiced up the loadscreen progress bar, and removed old loadscreens
+ • Replaced engine info screen (shortcut i) with our own screen
+ • Spiced up 'Buildbar' and 'Selected Unit Buttons' widgets
+ • Added additional extensive unit description (by PtaQ)
+ • Unit info widget removed (the one with the ctrl+u shortcut)
+ • Added quit button showing a custom resign/quit window
+ • Added widget "Set fighters on Fly mode" (default enabled), toggable via options widget
+ • Added widget "Depth of Field" (default disabled) hold ctrl+[] to increase amount of DoF
+
+ Top widgets:
+ • Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
+ • Escape key now hides windows: Keybinds, commands, changelog, options, quit, gameinfo
+ • Teamstats widget renamed, bugfixed, simplified, spiced up and has a fixed position
+ • Changelog widget: version shortcuts only show for every 10th version number
+
+ Options
+ • Added graphics presets
+ • Added labeled option groups, and a lot of new options
+ • Fixed that not all settings remembered their values
+
+ Fixes
+ • Removed useless repeat/stop/wait order buttons from a lot of buildings
+ • Commands FX widget: improved performance
+ • Ally Cursors widget: improved performance
+ • Fixed Team stats widget creating an unresponsive darkened/blurred screen
+ • Fixed commander nametags occasionally showing spectator name
+ • Fixed cursor size changing after alt tabbed to desktop and back
+ • Fixed glitchy/spiky healthbars shader on current intel gfx and very old cards
+ • Fixed unit_stats crashes when hovering enemy units. And dps values for beamlaser and stockpiling weapons
+ • Settarget queues will now be paused when a unit attempts to dgun.
 
 
 9.45 -> 9.46

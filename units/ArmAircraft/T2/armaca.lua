@@ -45,7 +45,7 @@ return {
 		buildoptions = {
 			[1] = "armfus",
 			[2] = "armckfus",
-			[3] = "amgeo",
+			[3] = "armageo",
 			[4] = "armgmm",
 			[5] = "armmoho",
 			[6] = "armmmkr",
@@ -62,7 +62,7 @@ return {
 			[17] = "armpb",
 			[18] = "armanni",
 			[19] = "armflak",
-			[20] = "mercury",
+			[20] = "armmercury",
 			[21] = "armemp",
 			[22] = "armamd",
 			[23] = "armsilo",
@@ -72,7 +72,8 @@ return {
 			[27] = "armap",
 			[28] = "armaap",
 			[29] = "armplat",
-			[30] = "armcube",
+			[30] = "seaplatform",
+			[31] = "armjuno",
 		},
 		customparams = {
 			

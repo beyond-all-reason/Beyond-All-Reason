@@ -8,7 +8,7 @@ return {
 		buildtime = 25706,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -6 2",
+		collisionvolumeoffsets = "0 -6 -7",
 		collisionvolumescales = "39 49 39",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
@@ -24,24 +24,46 @@ return {
 		maxdamage = 2500,
 		maxslope = 12,
 		maxvelocity = 1.52,
+		maxreversevelocity = 1.52*0.60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Penetrator",
 		nochasecategory = "VTOL",
 		objectname = "ARMMANNI",
 		seismicsignature = 0,
+		script = "BASICTANKSCRIPT.LUA",
 		selfdestructas = "penetrator",
 		sightdistance = 650,
 		trackoffset = 16,
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 37,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.00188,
 		turnrate = 151,
 		customparams = {
-			
+			--ANIMATION DATA
+				--PIECENAMES HERE
+					basename = "base",
+					turretname = "turret",
+					sleevename = "sleeve",
+					cannon1name = "barrel",
+					flare1name = "flash",
+					cannon2name = nil, --optional (replace with nil)
+					flare2name = nil, --optional (replace with nil)
+				--SFXs HERE
+					firingceg = "barrelshot-small",
+					driftratio = "0", --How likely will the unit drift when performing turns?
+					rockstrength = "0", --Howmuch will its weapon make it rock ?
+					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
+					cobkickbackrestorespeed = "5", --How fast will the cannon come back in position?
+					kickback = "-2", --How much will the cannon kickback
+				--AIMING HERE
+					cobturretyspeed = "50", --turretSpeed as seen in COB script
+					cobturretxspeed = "50", --turretSpeed as seen in COB script
+					restoretime = "3000", --restore delay as seen in COB script
 		},
 		featuredefs = {
 			dead = {
