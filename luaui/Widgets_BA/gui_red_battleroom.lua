@@ -49,7 +49,7 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local Config = {
 	console = {
-		px = vsx*0.75,py = vsy*0.05, --default start position
+		px = vsx*0.70,py = vsy*0.05, --default start position
 		sx = vsx*0.2, --background size
 		
 		fontsize = 11.5*widgetScale,
@@ -518,27 +518,25 @@ local function processLine(line,g,cfg,newlinecolor)
 				end
 				end
 			end
-		
-			
 			if sfind(text, "BAAlphatest1") then
 				playSound = true
 			text = ssub(text, sfind(text, "BAAlphatest1") + 15)
 			end
-			if sfind(text, "[ACE]Ticot") then
+			if sfind(text, "Ticot") then
 				playSound = true
-			text = ssub(text, sfind(text, "[ACE]Ticot") + 13)
+			text = ssub(text, sfind(text, "Ticot") + 9)
 			end
-			if sfind(text, "[ACE]Pirateur") then
+			if sfind(text, "Pirateur") then
 				playSound = true
-			text = ssub(text, sfind(text, "[ACE]Pirateur") + 16)
+			text = ssub(text, sfind(text, "Pirateur") + 12)
 			end
 			if sfind(text, "OverKillHost1") then
 				playSound = true
 			text = ssub(text, sfind(text, "OverKillHost1") + 16)
 			end
-			if sfind(text, "BlackholehostMain") then
-				playSound = true
-			text = ssub(text, sfind(text, "BlackholehostMain") + 20)
+			if sfind(text, "Pirine") then
+			playSound = true
+			text = ssub(text, sfind(text, "Pirine") + 9)
 			end
 			
 			-- Will have to insert a basic autohosts list here, for now it's just available on tests hosts so let's not bother too much.
