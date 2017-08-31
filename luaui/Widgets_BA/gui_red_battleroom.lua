@@ -438,11 +438,12 @@ local function processLine(line,g,cfg,newlinecolor)
 	local names = {}
 	for i=1,#roster do
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
-		if roster[i][3] == Spring.GetMyPlayerID() then
-		myname = roster[i][1]
-		end
+		-- Spring.Echo(roster[i][3])
+		-- if roster[i][3] == Spring.GetMyPlayerID() then
+		-- Spring.Echo(Spring.GetMyPlayerID())
+		-- myname = roster[i][1]
+		-- end
 	end
-	
 	local name = ""
 	local text = ""
 	local linetype = 0 --other
@@ -452,6 +453,12 @@ local function processLine(line,g,cfg,newlinecolor)
 	ignoreThisMessage = false
 	end
     local playSound = false
+	
+	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
+	-- Spring.SendCommands("say Registration ID found")
+	registermyname = true
+	ignoreThisMessage = true
+	end
 	
 	if (not newlinecolor) then
 		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
@@ -472,6 +479,8 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
+			-- Spring.Echo(name)
+			-- Spring.Echo(myname)
 				if myname and myname == name then
 				waitbotanswer = true
 				end
@@ -496,7 +505,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 4 --gamemessage
 			playSound = true
 			text = ssub(line,3)
-			if sfind(text, "Invalid command") or sfind(text, "You cannot") or sfind(text, "You are not allowed") or (sfind(text, "Invalid") and sfind(text, "command")) or sfind(text, "Unable to") or sfind(text, "Could not find") or sfind(text, "Ringing") or sfind(text, "There is no one to ring") then
+			if sfind(text, "Invalid command") or sfind(text, "You cannot") or sfind(text, "You are not allowed") or (sfind(text, "Invalid") and sfind(text, "command")) or sfind(text, "Unable to") or sfind(text, "Could not find") or sfind(text, "Ringing") or sfind(text, " is no one to ring") then
 				ignoreThisMessage = true
 				playSound = false
 				if waitbotanswer then
@@ -548,6 +557,14 @@ local function processLine(line,g,cfg,newlinecolor)
             end
 		end		
     end
+	
+	if registermyname and not nameregistered then
+	myname = name
+	registermyname = false
+	nameregistered = true
+	ignoreThisMessage = true 
+	-- Spring.SendCommands("wByNum "..regID.." Registered as "..myname)
+	end
 	
 	-- filter shadows config changes
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
@@ -846,6 +863,8 @@ end
 function widget:GameFrame()
 if not Initialized then
 Initialized = true
+regID = tostring(Spring.GetMyPlayerID())
+Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
 end
 end
 

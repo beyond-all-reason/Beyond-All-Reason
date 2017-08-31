@@ -449,6 +449,12 @@ local function processLine(line,g,cfg,newlinecolor)
 	ignoreThisMessage = false
 	end
 	
+	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
+	-- Spring.SendCommands("say Registration ID found")
+	registermyname = true
+	ignoreThisMessage = true
+	end
+	
 	if (not newlinecolor) then
 		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
 				ignoreThisMessage = false
@@ -500,6 +506,15 @@ local function processLine(line,g,cfg,newlinecolor)
             end
 		end		
     end
+	
+	if registermyname and not nameregistered then
+	myname = name
+	registermyname = false
+	nameregistered = true
+	ignoreThisMessage = true 
+	elseif sfind(line, "My player ID is") and sfind(line, regID) then
+	ignoreThisMessage = true 
+	end
 	
 	-- filter shadows config changes
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
@@ -819,6 +834,8 @@ function widget:Update()
 	AutoResizeObjects()
 	if not Initialized == true then
 	if onelinedone == true then
+	regID = tostring(Spring.GetMyPlayerID())
+Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
 	Initialized = true
 	end
 	end
