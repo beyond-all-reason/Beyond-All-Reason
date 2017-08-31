@@ -8,9 +8,9 @@
 	cannon2name = uDef.customParams and uDef.customParams.cannon2name or nil
 	driftRatio = tonumber(uDef.customParams and uDef.customParams.driftratio) or 1
 	smokeCEGName1 = uDef.customParams and uDef.customParams.smokecegname1 or "unitsmoke"
-	smokeCEGName2 = uDef.customParams and uDef.customParams.smokecegname2 or "unitsmoke"
-	smokeCEGName3 = uDef.customParams and uDef.customParams.smokecegname3 or "unitsmoke"
-	smokeCEGName4 = uDef.customParams and uDef.customParams.smokecegname4 or "unitsmoke"	
+	smokeCEGName2 = uDef.customParams and uDef.customParams.smokecegname2 or "unitsmokefire"
+	smokeCEGName3 = uDef.customParams and uDef.customParams.smokecegname3 or "unitfire"
+	smokeCEGName4 = uDef.customParams and uDef.customParams.smokecegname4 or "unitsparkles"	
 	
 if cannon2name and flare2name then
 	base, turret, sleeve, cannon1, flare1, flare2, cannon2 = piece(basename, turretname, sleevename, cannon1name, flare1name, flare2name, cannon2name)
@@ -49,7 +49,7 @@ function script.Create()
 	end
 end
 
-	function SmokeUnit (smokePieces)
+	function SmokeUnit(smokePieces)
 		local n = #smokePieces
 		while (GetUnitValue(COB.BUILD_PERCENT_LEFT) ~= 0) do
 			Sleep(1000)
@@ -268,6 +268,7 @@ end
 function DeathRun()
 smokePieces = {base, turret}
 if f == 1 then
+Spring.SetUnitNoSelect(unitID, true)
 while f <=25 do
 randomnumber = math.random(1,4)
 		if randomnumber == 1 then
@@ -284,6 +285,7 @@ Sleep(math.random(5,100))
 f = f + 1
 end
 end
+EmitRand(base, "genericunitexplosion-small" )
 return 1
 end
 
@@ -316,12 +318,12 @@ function script.Killed(recentDamage, maxHealth)
 		end
 		return 2
 	elseif severity <= 99 then
-		-- randomnumber = math.random(1,2)
-		-- if randomnumber == 1 then
-			-- f = 1
-			-- while DeathRun()~=1 do
-			-- end
-		-- end
+		randomnumber = math.random(1,2)
+		if randomnumber == 1 then
+			f = 1
+			while DeathRun()~=1 do
+			end
+		end
 		for count, piece in pairs(piecetable) do
 
 			randomnumber = math.random(1,3)
