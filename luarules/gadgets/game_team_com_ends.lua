@@ -44,12 +44,25 @@ local deathWave = false
 local deathTimeBoost = 1
 local modeComEnds = true
 
+local gaiaTeamID = Spring.GetGaiaTeamID()
 local allyTeamList = Spring.GetAllyTeamList()
+
+
+local teamCount = 0
+for _,teamID in ipairs(GetTeamList()) do
+	if teamID ~= gaiaTeamID then
+		teamCount = teamCount + 1
+	end
+end
 
 local blowUpWhenEmptyAllyTeam = true
 if Spring.GetModOptions() and Spring.GetModOptions().mo_ffa ~= nil and (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
 	blowUpWhenEmptyAllyTeam = false
 end
+if teamCount == 2 then
+	blowUpWhenEmptyAllyTeam = false -- let player quit & rejoin in 1v1
+end
+
 
 local function getSqrDistance(x1,z1,x2,z2)
   local dx,dz = x1-x2,z1-z2
@@ -75,10 +88,10 @@ function gadget:GameFrame(t)
 			for _,allyTeamID in ipairs(allyTeamList) do
 				if deadAllyTeams[allyTeamID] == nil then
 					local deadAllyTeam = true
-					local teamsList = Spring.GetTeamList(allyTeamID)
+					local teamsList = GetTeamList(allyTeamID)
 					for _,teamID in ipairs(teamsList) do
 						local _,_,_,isAi, _, _ = Spring.GetTeamInfo(teamID)
-						if isAi or teamID == Spring.GetGaiaTeamID() then
+						if isAi or teamID == gaiaTeamID then
 							deadAllyTeam = false
 						else
 							local playersList = Spring.GetPlayerList(teamID,true)
@@ -94,7 +107,6 @@ function gadget:GameFrame(t)
 						destroyQueue[allyTeamID] = {x=0,y=0,z=0}
 						aliveCount[allyTeamID] = 0
 						deadAllyTeams[allyTeamID] = true
-						local teamsList = Spring.GetTeamList(allyTeamID)
 						for _,teamID in ipairs(teamsList) do
 							Spring.KillTeam(teamID)
 						end
