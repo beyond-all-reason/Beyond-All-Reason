@@ -523,6 +523,14 @@ local function processLine(line,g,cfg,newlinecolor)
 				playSound = true
 			text = ssub(text, sfind(text, "[ACE]Pirateur") + 16)
 			end
+			if sfind(text, "OverKillHost1") then
+				playSound = true
+			text = ssub(text, sfind(text, "OverKillHost1") + 16)
+			end
+			if sfind(text, "BlackholehostMain") then
+				playSound = true
+			text = ssub(text, sfind(text, "BlackholehostMain") + 20)
+			end
 			
 			-- Will have to insert a basic autohosts list here, for now it's just available on tests hosts so let's not bother too much.
 			
