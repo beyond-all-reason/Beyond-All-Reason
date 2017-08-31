@@ -44,6 +44,13 @@ local deathWave = false
 local deathTimeBoost = 1
 local modeComEnds = true
 
+local allyTeamList = Spring.GetAllyTeamList()
+
+local blowUpWhenEmptyAllyTeam = true
+if Spring.GetModOptions() and Spring.GetModOptions().mo_ffa ~= nil and (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
+	blowUpWhenEmptyAllyTeam = false
+end
+
 local function getSqrDistance(x1,z1,x2,z2)
   local dx,dz = x1-x2,z1-z2
   return (dx*dx)+(dz*dz)
@@ -59,38 +66,40 @@ function gadget:Initialize()
 	end
 end
 
-function gadget:GameFrame(t)
-	if t % 15 < .1 then
 
+function gadget:GameFrame(t)
+
+	if t % 15 < .1 then
 		-- blow up an allyteam when it has no players left
-		local allyTeamList = Spring.GetAllyTeamList()
-		for _,allyTeamID in ipairs(allyTeamList) do
-			if deadAllyTeams[allyTeamID] == nil then
-				local deadAllyTeam = true
-				local teamsList = Spring.GetTeamList(allyTeamID)
-				for _,teamID in ipairs(teamsList) do
-					local _,_,_,isAi, _, _ = Spring.GetTeamInfo(teamID)
-					if isAi or teamID == Spring.GetGaiaTeamID() then
-						deadAllyTeam = false
-					else
-						local playersList = Spring.GetPlayerList(teamID,true)
-						for _,playerID in ipairs(playersList) do
-							local name,_,isSpec = Spring.GetPlayerInfo(playerID)
-							if name ~= nil and not isSpec then
-								deadAllyTeam = false
+		if blowUpWhenEmptyAllyTeam then
+			for _,allyTeamID in ipairs(allyTeamList) do
+				if deadAllyTeams[allyTeamID] == nil then
+					local deadAllyTeam = true
+					local teamsList = Spring.GetTeamList(allyTeamID)
+					for _,teamID in ipairs(teamsList) do
+						local _,_,_,isAi, _, _ = Spring.GetTeamInfo(teamID)
+						if isAi or teamID == Spring.GetGaiaTeamID() then
+							deadAllyTeam = false
+						else
+							local playersList = Spring.GetPlayerList(teamID,true)
+							for _,playerID in ipairs(playersList) do
+								local name,_,isSpec = Spring.GetPlayerInfo(playerID)
+								if name ~= nil and not isSpec then
+									deadAllyTeam = false
+								end
 							end
 						end
 					end
-				end
-				if deadAllyTeam then
-					destroyQueue[allyTeamID] = {x=0,y=0,z=0}
-					aliveCount[allyTeamID] = 0
-					deadAllyTeams[allyTeamID] = true
-					local teamsList = Spring.GetTeamList(allyTeamID)
-					for _,teamID in ipairs(teamsList) do
-						Spring.KillTeam(teamID)
+					if deadAllyTeam then
+						destroyQueue[allyTeamID] = {x=0,y=0,z=0}
+						aliveCount[allyTeamID] = 0
+						deadAllyTeams[allyTeamID] = true
+						local teamsList = Spring.GetTeamList(allyTeamID)
+						for _,teamID in ipairs(teamsList) do
+							Spring.KillTeam(teamID)
+						end
+						break
 					end
-					break
 				end
 			end
 		end
@@ -103,12 +112,12 @@ function gadget:GameFrame(t)
 						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 450), 450)
 						if (destroyUnitQueue[unitID] == nil) then
 							destroyUnitQueue[unitID] = { 
-									time = t + deathTime + math.random(0,7),
-									x = x, 
-									y = y, 
-									z = z, 
-									spark = false 
-								}
+								time = t + deathTime + math.random(0,7),
+								x = x,
+								y = y,
+								z = z,
+								spark = false
+							}
 						end
 					end
 				end
@@ -117,7 +126,7 @@ function gadget:GameFrame(t)
 			destroyQueue[at]=nil
 		end
 	end
-	
+
 	if (deathWave) and next(destroyUnitQueue) then
 		local dt = (t + deathTimeBoost)
 		for unitID, defs in pairs(destroyUnitQueue) do
