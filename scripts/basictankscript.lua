@@ -8,9 +8,9 @@
 	cannon2name = uDef.customParams and uDef.customParams.cannon2name or nil
 	driftRatio = tonumber(uDef.customParams and uDef.customParams.driftratio) or 1
 	smokeCEGName1 = uDef.customParams and uDef.customParams.smokecegname1 or "unitsmoke"
-	smokeCEGName2 = uDef.customParams and uDef.customParams.smokecegname2 or "unitsmokefire"
-	smokeCEGName3 = uDef.customParams and uDef.customParams.smokecegname3 or "unitfire"
-	smokeCEGName4 = uDef.customParams and uDef.customParams.smokecegname4 or "unitsparkles"	
+	smokeCEGName2 = uDef.customParams and uDef.customParams.smokecegname2 or "unitsmoke"
+	smokeCEGName3 = uDef.customParams and uDef.customParams.smokecegname3 or "unitsmoke"
+	smokeCEGName4 = uDef.customParams and uDef.customParams.smokecegname4 or "unitsmoke"	
 	
 if cannon2name and flare2name then
 	base, turret, sleeve, cannon1, flare1, flare2, cannon2 = piece(basename, turretname, sleevename, cannon1name, flare1name, flare2name, cannon2name)
@@ -21,7 +21,7 @@ else
 end
 
 function script.Create()
-	--StartThread(SmokeUnit, {base, turret})
+	StartThread(SmokeUnit, {base, turret})
 	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretyspeed) or 200
 	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretxspeed) or 200
 	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10
@@ -57,19 +57,24 @@ end
 		while true do
 			local health = GetUnitValue(COB.HEALTH)
 			if (health <= 66) then -- only smoke if less then 2/3rd health left
-				randomnumber = math.random(1,4)
-				if randomnumber == 1 then
-					smokeCEGName = smokeCEGName1
-				elseif randomnumber == 2 then
-					smokeCEGName = smokeCEGName2
-				elseif randomnumber == 3 then
-					smokeCEGName = smokeCEGName3
-				else
-					smokeCEGName = smokeCEGName4
+				randomnumber = math.random(1,(100-health))
+				if  randomnumber >=80 then
+				Emit(smokePieces[math.random(1,n)], smokeCEGName1) --CEG name in quotes (string)
+				-- EmitRand(smokePieces[math.random(1,n)], smokeCEGName2) --CEG name in quotes (string)
+				-- EmitRand(smokePieces[math.random(1,n)], smokeCEGName3) --CEG name in quotes (string)
+				-- EmitRand(smokePieces[math.random(1,n)], smokeCEGName4) --CEG name in quotes (string)
+				elseif randomnumber >= 66 then
+				Emit(smokePieces[math.random(1,n)], smokeCEGName1) --CEG name in quotes (string)
+				-- EmitRand(smokePieces[math.random(1,n)], smokeCEGName2) --CEG name in quotes (string)
+				-- EmitRand(smokePieces[math.random(1,n)], smokeCEGName3) --CEG name in quotes (string)
+				elseif randomnumber >= 50 then
+				Emit(smokePieces[math.random(1,n)], smokeCEGName1) --CEG name in quotes (string)
+				-- EmitRand(smokePieces[math.random(1,n)], smokeCEGName2) --CEG name in quotes (string)
+				elseif randomnumber >= 34 then
+				Emit(smokePieces[math.random(1,n)], smokeCEGName1) --CEG name in quotes (string)
 				end
-				EmitRand(smokePieces[math.random(1,n)], smokeCEGName) --CEG name in quotes (string)
 			end
-			Sleep(20*health + math.random(100,300))
+			Sleep(health/100 * math.random(2500,15000))
 			hp = health
 			if hp >60 then 
 				if not flare2 then
@@ -187,7 +192,7 @@ end
 
 function EmitRand(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
-x,y,z,dx,dy,dz = x + math.random(-5,5),y+ math.random(-5,5),z+ math.random(-5,5),dx+ math.random(-1,1),dy+ math.random(-1,1),dz+ math.random(-1,1)
+x,y,z,dx,dy,dz = x + 1.5*dx - 0.75*dz*(math.random(50,150)/100), y + 1.5*dy ,z + 1.5*dz + 0.75 * dx *(math.random(50,150)/100), dx,dy,dz
 Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
 end
 
