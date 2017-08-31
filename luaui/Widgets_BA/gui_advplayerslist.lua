@@ -1253,6 +1253,7 @@ function SortAllyTeams(vOffset)
 	return vOffset
 end
 
+local deadPlayerHeightReduction = 10
 function SortTeams(allyTeamID, vOffset)
 	-- Adds teams to the draw list (own team first)
 	--(teams are not visible as such unless they are empty or AI)
@@ -1263,7 +1264,11 @@ function SortTeams(allyTeamID, vOffset)
 	for _,teamID in ipairs(teamsList) do
 			table.insert(drawListOffset, vOffset)
 			table.insert(drawList, -1)
-			vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team 
+			vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
+            local _,_, isDead, _, _, _ = Spring_GetTeamInfo(teamID)
+            if isDead then
+                vOffset = vOffset - (deadPlayerHeightReduction/2)
+            end
 	end
 	
 	return vOffset
@@ -1315,7 +1320,7 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	
 	-- add no player token if no player found in this team at this point
 	if noPlayer == true then
-		vOffset = vOffset + playerOffset
+		vOffset = vOffset + playerOffset - (deadPlayerHeightReduction/2)
 		table.insert(drawListOffset, vOffset)
 		table.insert(drawList, 64 + teamID)  -- no players team
 		player[64 + teamID].posY = vOffset
