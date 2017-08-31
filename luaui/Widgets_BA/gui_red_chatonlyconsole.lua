@@ -58,7 +58,7 @@ local Config = {
 		maxlines = 6,
 		maxlinesScrollmode = 10,
 		
-		maxage = 1000, --max time for a message to be displayed, in seconds
+		maxage = 60, --max time for a message to be displayed, in seconds
 		
 		margin = 7*widgetScale, --distance from background border
 		
@@ -455,7 +455,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 1 --playermessage
 			name = ssub(line,2,sfind(line,"> ")-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" then
+		if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!" then --bot command
 			ignoreThisMessage = true
 		end
 		elseif (names[ssub(line,2,(sfind(line,"] ") or 1)-1)] ~= nil) then
@@ -463,7 +463,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"] ")-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" then
+		if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!"  then --bot command
 			ignoreThisMessage = true
 		end
 		elseif (names[ssub(line,2,(sfind(line,"(replay)") or 3)-3)] ~= nil) then
@@ -471,7 +471,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"(replay)")-3)
 			text = ssub(line,slen(name)+13)
-		if ssub(text,1,1) == "!" then
+		if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!"  then --bot command
 			ignoreThisMessage = true
 		end
 		elseif (names[ssub(line,1,(sfind(line," added point: ") or 1)-1)] ~= nil) then
@@ -479,14 +479,18 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 3 --playerpoint
 			name = ssub(line,1,sfind(line," added point: ")-1)
 			text = ssub(line,slen(name.." added point: ")+1)
+			if text == "" then
+				text = "Look here!"
+			end
 		elseif (ssub(line,1,1) == ">") then
 			linetype = 4 --gamemessage
 			text = ssub(line,3)
+			ignoreThisMessage = true
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
 					ignoreThisMessage = false
-					if ssub(text,1,1) == "!" then
-			ignoreThisMessage = true
-		end
+					if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!"  then
+					ignoreThisMessage = true
+			end
                 local i = sfind(ssub(line,4,slen(line)), ">")
 				if (i) then
 					name = ssub(line,4,i+2)
@@ -660,7 +664,7 @@ local function processLine(line,g,cfg,newlinecolor)
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end
-
+	onelinedone = true
 	return history[#history]
 end
 
@@ -791,21 +795,17 @@ function widget:Initialize()
 	AutoResizeObjects()
 end
 
-function widget:GameFrame()
-if not Initialized then
-Initialized = true
-end
-end
-
 function widget:GameOver()
 	gameOver = true
 end
 
 function widget:Shutdown()
+	Initialized = false
 	Spring.SendCommands("console 1")
 end
 
 function widget:AddConsoleLine(lines,priority)
+	-- widget:Initialize()
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	local textcolor
 	for line in lines:gmatch("[^\n]+") do
@@ -817,6 +817,12 @@ end
 function widget:Update()
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
+	if not Initialized == true then
+	if onelinedone == true then
+	Initialized = true
+	end
+	end
+
 end
 
 --save/load stuff

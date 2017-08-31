@@ -5,13 +5,13 @@ end
 
 function widget:GetInfo()
 	return {
-	name      = "Red Console", --version 4.1
+	name      = "Red Console (AllInOne)", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
-	enabled   = true, --enabled by default
+	enabled   = false, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end

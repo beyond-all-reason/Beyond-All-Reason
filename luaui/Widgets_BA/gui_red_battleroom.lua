@@ -11,7 +11,7 @@ function widget:GetInfo()
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
 	layer     = 0,
-	enabled   = false, --enabled by default
+	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
 end
@@ -438,6 +438,9 @@ local function processLine(line,g,cfg,newlinecolor)
 	local names = {}
 	for i=1,#roster do
 		names[roster[i][1]] = {roster[i][4],roster[i][5],roster[i][3],roster[i][2]}
+		if roster[i][3] == Spring.GetMyPlayerID() then
+		myname = roster[i][1]
+		end
 	end
 	
 	local name = ""
@@ -448,6 +451,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	else
 	ignoreThisMessage = false
 	end
+    local playSound = false
 	
 	if (not newlinecolor) then
 		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
@@ -457,14 +461,8 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
-				if text == "!vote y" or text == "!y" or text == "!vote 1" then
-				text = "Voted YES for current vote."
-				end
-				if text == "!vote n" or text == "!n" or text == "!vote 2" then
-				text = "Voted NO for current vote."
-				end
-				if text == "!vote b" or text == "!b" then
-				text = "Doesn't care."
+				if myname and myname == name then
+				waitbotanswer = true
 				end
 		end
 		elseif (names[ssub(line,2,(sfind(line,"] ") or 1)-1)] ~= nil) then
@@ -474,14 +472,8 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
-				if text == "!vote y" or text == "!y" or text == "!vote 1" then
-				text = "Voted YES for current vote."
-				end
-				if text == "!vote n" or text == "!n" or text == "!vote 2" then
-				text = "Voted NO for current vote."
-				end
-				if text == "!vote b" or text == "!b" then
-				text = "Doesn't care."
+				if myname and myname == name then
+				waitbotanswer = true
 				end
 		end
 		elseif (names[ssub(line,2,(sfind(line,"(replay)") or 3)-3)] ~= nil) then
@@ -491,14 +483,8 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,slen(name)+13)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
-				if text == "!vote y" or text == "!y" or text == "!vote 1" then
-				text = "Voted YES for current vote."
-				end
-				if text == "!vote n" or text == "!n" or text == "!vote 2" then
-				text = "Voted NO for current vote."
-				end
-				if text == "!vote b" or text == "!b" then
-				text = "Doesn't care."
+				if myname and myname == name then
+				waitbotanswer = true
 				end
 		end
 		elseif (names[ssub(line,1,(sfind(line," added point: ") or 1)-1)] ~= nil) then
@@ -508,35 +494,42 @@ local function processLine(line,g,cfg,newlinecolor)
 			text = ssub(line,slen(name.." added point: ")+1)
 		elseif (ssub(line,1,1) == ">") then
 			linetype = 4 --gamemessage
+			playSound = true
 			text = ssub(line,3)
-			if sfind(text, "Invalid command") then
+			if sfind(text, "Invalid command") or sfind(text, "You cannot") or sfind(text, "You are not allowed") or (sfind(text, "Invalid") and sfind(text, "command")) or sfind(text, "Unable to") or sfind(text, "Could not find") or sfind(text, "Ringing") or sfind(text, "There is no one to ring") then
 				ignoreThisMessage = true
+				playSound = false
+				if waitbotanswer then
+				playSound = true
+				ignoreThisMessage = false
+				waitbotanswer = nil
+				if sfind(text, myname) then
+				ignoreThisMessage = false
+				playSound = true
+				end
+				end
 			end
+		
 			
 			if sfind(text, "BAAlphatest1") then
+				playSound = true
 			text = ssub(text, sfind(text, "BAAlphatest1") + 15)
 			end
 			if sfind(text, "[ACE]Ticot") then
+				playSound = true
 			text = ssub(text, sfind(text, "[ACE]Ticot") + 13)
 			end
 			if sfind(text, "[ACE]Pirateur") then
+				playSound = true
 			text = ssub(text, sfind(text, "[ACE]Pirateur") + 16)
 			end
+			
 			-- Will have to insert a basic autohosts list here, for now it's just available on tests hosts so let's not bother too much.
 			
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
 					ignoreThisMessage = true
 			if ssub(text,1,1) == "!" then
 				ignoreThisMessage = true
-				if text == "!vote y" or text == "!y" or text == "!vote 1" then
-				text = "Voted YES for current vote."
-				end
-				if text == "!vote n" or text == "!n" or text == "!vote 2" then
-				text = "Voted NO for current vote."
-				end
-				if text == "!vote b" or text == "!b" then
-				text = "Doesn't care."
-				end
 		end
                 local i = sfind(ssub(line,4,slen(line)), ">")
 				if (i) then
@@ -616,7 +609,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	local MyAllyTeamID = sGetMyAllyTeamID()
 	local textcolor = nil
 	
-    local playSound = false
+
 	if (linetype==1) then --playermessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
@@ -703,11 +696,11 @@ local function processLine(line,g,cfg,newlinecolor)
 	local history = g.vars.consolehistory	
 
 
-	if (not ignoreThisMessage == true) then		--mute--
+	if (not ignoreThisMessage) then		--mute--
 		local lineID = #history+1	
 		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
         
-        if ( playSound ) and (not ignoreThisMessage == true) then
+        if ( playSound ) then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end
