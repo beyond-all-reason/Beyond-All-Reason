@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name = "Team Com Ends",
-		desc = "Implements com ends for allyteams",
+		name = "Team Com Ends + dead allyteam blowup",
+		desc = "Implements com ends for allyteams + blows up team if no players left",
 		author = "KDR_11k (David Becker)",
 		date = "2008-02-04",
 		license = "Public domain",
@@ -28,7 +28,7 @@ local destroyQueue = {}
 local destroyUnitQueue = {}
 
 local aliveCount = {}
-
+local deadAllyTeams = {}
 local isAlive = {}
 
 local GetTeamList=Spring.GetTeamList
@@ -42,6 +42,7 @@ local DISTANCE_LIMIT = (math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.ma
 local min = math.min
 local deathWave = false
 local deathTimeBoost = 1
+local modeComEnds = true
 
 local function getSqrDistance(x1,z1,x2,z2)
   local dx,dz = x1-x2,z1-z2
@@ -50,7 +51,8 @@ end
 
 function gadget:Initialize()
 	if not endmodes[Spring.GetModOptions().deathmode] then
-		gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		--gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		modeComEnds = false
 	end
 	for _,t in ipairs(Spring.GetAllyTeamList()) do
 		aliveCount[t] = 0
@@ -59,15 +61,49 @@ end
 
 function gadget:GameFrame(t)
 	if t % 15 < .1 then
+
+		-- blow up an allyteam when it has no players left
+		local allyTeamList = Spring.GetAllyTeamList()
+		for _,allyTeamID in ipairs(allyTeamList) do
+			if deadAllyTeams[allyTeamID] == nil then
+				local deadAllyTeam = true
+				local teamsList = Spring.GetTeamList(allyTeamID)
+				for _,teamID in ipairs(teamsList) do
+					local _,_,_,isAi, _, _ = Spring.GetTeamInfo(teamID)
+					if isAi or teamID == Spring.GetGaiaTeamID() then
+						deadAllyTeam = false
+					else
+						local playersList = Spring.GetPlayerList(teamID,true)
+						for _,playerID in ipairs(playersList) do
+							local name,_,isSpec = Spring.GetPlayerInfo(playerID)
+							if name ~= nil and not isSpec then
+								deadAllyTeam = false
+							end
+						end
+					end
+				end
+				if deadAllyTeam then
+					destroyQueue[allyTeamID] = {x=0,y=0,z=0}
+					aliveCount[allyTeamID] = 0
+					deadAllyTeams[allyTeamID] = true
+					local teamsList = Spring.GetTeamList(allyTeamID)
+					for _,teamID in ipairs(teamsList) do
+						Spring.KillTeam(teamID)
+					end
+					break
+				end
+			end
+		end
+
 		for at,defs in pairs(destroyQueue) do
 			if aliveCount[at] <= 0 then --safety check, triggers on transferring the last com otherwise
 				for _,team in ipairs(GetTeamList(at)) do
 					for _,unitID in ipairs(GetTeamUnits(team)) do
 						local x,y,z = GetUnitPosition(unitID)
-						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 350), 350)
+						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 450), 450)
 						if (destroyUnitQueue[unitID] == nil) then
 							destroyUnitQueue[unitID] = { 
-									time = t + deathTime + math.random(0,5), 
+									time = t + deathTime + math.random(0,7),
 									x = x, 
 									y = y, 
 									z = z, 
@@ -100,34 +136,40 @@ function gadget:GameFrame(t)
 end
 
 function gadget:UnitCreated(u, ud, team)
-	isAlive[u] = true
-	if UnitDefs[ud].customParams.iscommander then
-		local allyTeam = GetUnitAllyTeam(u)
-		aliveCount[allyTeam] = aliveCount[allyTeam] + 1
+	if modeComEnds then
+		isAlive[u] = true
+		if UnitDefs[ud].customParams.iscommander then
+			local allyTeam = GetUnitAllyTeam(u)
+			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
+		end
 	end
 end
 
 function gadget:UnitGiven(u, ud, team)
-	if UnitDefs[ud].customParams.iscommander then
-		local allyTeam = GetUnitAllyTeam(u)
-		aliveCount[allyTeam] = aliveCount[allyTeam] + 1
+	if modeComEnds then
+		if UnitDefs[ud].customParams.iscommander then
+			local allyTeam = GetUnitAllyTeam(u)
+			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
+		end
 	end
 end
 
 function gadget:UnitDestroyed(u, ud, team)
-	isAlive[u] = nil
-	if UnitDefs[ud].customParams.iscommander then
-		local allyTeam = GetUnitAllyTeam(u)
-		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
-		if aliveCount[allyTeam] <= 0 then
-			local x,y,z = Spring.GetUnitPosition(u)
-			destroyQueue[allyTeam] = {x = x, y = y, z = z}
+	if modeComEnds then
+		isAlive[u] = nil
+		if UnitDefs[ud].customParams.iscommander then
+			local allyTeam = GetUnitAllyTeam(u)
+			aliveCount[allyTeam] = aliveCount[allyTeam] - 1
+			if aliveCount[allyTeam] <= 0 then
+				local x,y,z = Spring.GetUnitPosition(u)
+				destroyQueue[allyTeam] = {x = x, y = y, z = z}
+			end
 		end
 	end
 end
 
 function gadget:UnitTaken(u, ud, team)
-	if isAlive[u] and UnitDefs[ud].customParams.iscommander then
+	if modeComEnds and isAlive[u] and UnitDefs[ud].customParams.iscommander then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
@@ -136,6 +178,8 @@ function gadget:UnitTaken(u, ud, team)
 		end
 	end
 end
+
+
 
 else
 
