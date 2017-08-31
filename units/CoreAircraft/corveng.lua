@@ -99,6 +99,8 @@ return {
 					vtol = 125,
 				},
 				customparams = {
+
+description_long = "The Avenger is a fast-moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs it is also able to destroy weak land based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in vicinity. Send fighters with your bombing runs to disable opponent's fighter wall.",
 					light_skip = true,		-- used by light_effects widget
 				},
 			},

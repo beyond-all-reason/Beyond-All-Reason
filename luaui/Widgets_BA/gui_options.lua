@@ -800,6 +800,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			WG['red_buildmenu'].setConfigUnitPrice(options[i].value)
 		elseif id == 'buildmenutooltip' then
 			WG['red_buildmenu'].setConfigUnitTooltip(options[i].value)
+		elseif id == 'buildmenubigtooltip' then
+			WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
 		elseif id == 'darkenmap_darkenfeatures' then
 			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
@@ -1262,6 +1264,7 @@ function widget:Initialize()
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].shortcutsInfo, description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawPrice, description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawTooltip, description='Enables unit tooltip when hovering over unit in buildmenu'},
+		{id="buildmenubigtooltip", group="ui", name="  extensive unit info", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawBigTooltip, description='Displays elaborative unit description when availible'},
 
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
 
