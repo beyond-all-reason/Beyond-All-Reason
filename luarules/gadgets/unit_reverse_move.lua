@@ -47,9 +47,7 @@ reverseUnit = {}
 	if cmdID == 1 then
 	x,y,z = cmdParams[4],cmdParams[5],cmdParams[6]
 	xu, yu, zu = Spring.GetUnitPosition(unitID)
-	if x ~= nil then
-	if y ~= nil then
-	if z ~= nil then
+	if x ~= nil and y ~= nil and z ~= nil then
 	distance = math.sqrt((x-xu)^2 + (z-zu)^2)
 	else
 	distance = 1000
@@ -133,7 +131,5 @@ reverseUnit = {}
 		end
 	end
 
-end
-end
 end
 end
