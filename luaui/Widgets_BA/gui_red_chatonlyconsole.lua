@@ -801,6 +801,7 @@ local function updateconsole(g,cfg)
 end
 
 function widget:Initialize()
+regID = tostring(Spring.GetMyPlayerID())
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 	

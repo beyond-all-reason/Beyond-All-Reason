@@ -719,7 +719,10 @@ local function processLine(line,g,cfg,newlinecolor)
 		g.vars.consolehistory = {}
 	end
 	local history = g.vars.consolehistory	
-
+	
+	if not Initialized then
+	ignoreThisMessage = false
+	end
 
 	if (not ignoreThisMessage) then		--mute--
 		local lineID = #history+1	
@@ -729,7 +732,7 @@ local function processLine(line,g,cfg,newlinecolor)
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end
-
+	onelinedone = true
 	return history[#history]
 end
 
@@ -851,6 +854,7 @@ local function updateconsole(g,cfg)
 end
 
 function widget:Initialize()
+regID = tostring(Spring.GetMyPlayerID())
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 	
@@ -858,14 +862,6 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
-end
-
-function widget:GameFrame()
-if not Initialized then
-Initialized = true
-regID = tostring(Spring.GetMyPlayerID())
-Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
-end
 end
 
 function widget:GameOver()
@@ -888,6 +884,13 @@ end
 function widget:Update()
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
+if not Initialized then
+	if onelinedone == true then
+Initialized = true
+regID = tostring(Spring.GetMyPlayerID())
+Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
+end
+end
 end
 
 --save/load stuff
