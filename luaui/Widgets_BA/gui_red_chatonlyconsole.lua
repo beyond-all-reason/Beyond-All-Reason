@@ -455,7 +455,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 1 --playermessage
 			name = ssub(line,2,sfind(line,"> ")-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!" then --bot command
+		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 			ignoreThisMessage = true
 		end
 		elseif (names[ssub(line,2,(sfind(line,"] ") or 1)-1)] ~= nil) then
@@ -463,7 +463,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"] ")-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!"  then --bot command
+		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 			ignoreThisMessage = true
 		end
 		elseif (names[ssub(line,2,(sfind(line,"(replay)") or 3)-3)] ~= nil) then
@@ -471,7 +471,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"(replay)")-3)
 			text = ssub(line,slen(name)+13)
-		if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!"  then --bot command
+		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 			ignoreThisMessage = true
 		end
 		elseif (names[ssub(line,1,(sfind(line," added point: ") or 1)-1)] ~= nil) then
@@ -488,7 +488,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			ignoreThisMessage = true
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
 					ignoreThisMessage = false
-					if ssub(text,1,1) == "!" and not ssub(text, 1,2) == "!!"  then
+			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 					ignoreThisMessage = true
 			end
                 local i = sfind(ssub(line,4,slen(line)), ">")
