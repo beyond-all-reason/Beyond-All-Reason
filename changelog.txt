@@ -109,6 +109,12 @@ Other:
  • One universal tank script for the most basic tanks, which has preset animations that can be tweaked directly via unitDefs
 
  Interface
+ • Console split into Chat Only and Battle/Autohost:
+Chat console will handle all chats between players from and to lobby/all/team/spectators.
+Battle/Autohost will handle all battlestates messages (warnings, errors, pauses, lags, afk, resigns...) and all autohosts messages (votes, rings...)
+"!xxx" commands are hidden from players and only the feedbacks will be seen in the battle/autohost console.
+Autohosts feedbacks on invalid commands or rings are hidden from players unless your name is mentionned by the host or you are the one who attempted the command.
+Autohosts vote feedbacks only include: who started the vote, whose votes are missing, and vote results.
  • GUI background 10% darker
  • Added Tooltip widget, shows tooltips at mouse cursor location
  • Buildmenu: shows metal/energy cost and tooltip on hover
