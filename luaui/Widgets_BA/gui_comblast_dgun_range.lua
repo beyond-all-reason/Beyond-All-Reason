@@ -61,7 +61,7 @@ local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
 local comCenters = {}
 local amSpec = false
 local inSpecFullView = false
-local dgunRange	= WeaponDefNames["armcom_arm_disintegrator"].range + WeaponDefNames["armcom_arm_disintegrator"].damageAreaOfEffect
+local dgunRange	= WeaponDefNames["armcom_arm_disintegrator"].range --+ WeaponDefNames["armcom_arm_disintegrator"].damageAreaOfEffect
 
 --------------------------------------------------------------------------------
 -- OPTIONS
