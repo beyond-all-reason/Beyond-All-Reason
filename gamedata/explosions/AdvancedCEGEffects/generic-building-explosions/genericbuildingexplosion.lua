@@ -27,7 +27,7 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.7 0.3 0.28   0 0 0 0.01]],
-        size               = 125,
+        size               = 115,
         sizegrowth         = -1,
         ttl                = 18,
         texture            = [[groundflash]],
@@ -41,9 +41,9 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.9 0.75 0.09   0 0 0 0.01]],
-        size               = 90,
+        size               = 105,
         sizegrowth         = 0,
-        ttl                = 3,
+        ttl                = 4,
         texture            = [[groundflash]],
       },
     },
@@ -506,15 +506,15 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.24   0 0 0 0.01]],
-        size               = 77,
+        size               = 70,
         ttl                = 17,
       },
     },
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.08   0 0 0 0.01]],
-        size               = 55,
-        ttl                = 2,
+        size               = 62,
+        ttl                = 4,
       },
     },
     heatedgroundflash = {
@@ -660,15 +660,15 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.32   0 0 0 0.01]],
-        size               = 230,
+        size               = 205,
         ttl                = 26,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.1   0 0 0 0.01]],
-              size               = 155,
-              ttl                = 4,
+              size               = 185,
+              ttl                = 5,
           },
       },
     heatedgroundflash = {
@@ -811,15 +811,15 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.35   0 0 0 0.01]],
-        size               = 290,
+        size               = 255,
         ttl                = 25,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
-              size               = 200,
-              ttl                = 4,
+              size               = 230,
+              ttl                = 6,
           },
       },
     heatedgroundflash = {
@@ -962,15 +962,15 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
-        size               = 350,
+        size               = 310,
         ttl                = 30,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.12   0 0 0 0.01]],
-              size               = 250,
-              ttl                = 5,
+              size               = 275,
+              ttl                = 7,
           },
       },
     heatedgroundflash = {
@@ -1113,15 +1113,15 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
-        size               = 430,
+        size               = 400,
         ttl                = 33,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.13   0 0 0 0.01]],
-              size               = 300,
-              ttl                = 5,
+              size               = 360,
+              ttl                = 7,
           },
       },
     heatedgroundflash = {
