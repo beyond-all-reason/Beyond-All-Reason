@@ -152,6 +152,9 @@ return {
 					fighters = 85,
 					vtol = 85,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 			armmech_cannon = {
 				areaofeffect = 12,

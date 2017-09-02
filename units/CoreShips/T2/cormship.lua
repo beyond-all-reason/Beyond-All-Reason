@@ -151,6 +151,9 @@ return {
 					fighters = 138,
 					vtol = 138,
 				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
+				},
 			},
 			cormship_rocket = {
 				areaofeffect = 96,

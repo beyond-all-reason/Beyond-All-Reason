@@ -128,6 +128,9 @@ return {
 					fighters = 120,
 					vtol = 150,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 			karg_shoulder = {
 				areaofeffect = 16,
@@ -170,6 +173,9 @@ return {
 					fighters = 120,
 					vtol = 150,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 			super_missile = {
 				areaofeffect = 64,

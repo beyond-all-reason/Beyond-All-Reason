@@ -177,6 +177,9 @@ return {
 					fighters = 62,
 					vtol = 62,
 				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
+				},
 			},
 		},
 		weapons = {

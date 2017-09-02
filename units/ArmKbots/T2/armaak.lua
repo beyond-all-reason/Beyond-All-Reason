@@ -187,6 +187,9 @@ return {
 					fighters = 150,
 					vtol = 150,
 				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
+				},
 			},
 			armaakbot_missile2 = {
 				areaofeffect = 24,
@@ -228,6 +231,9 @@ return {
 					bombers = 75,
 					fighters = 75,
 					vtol = 75,
+				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
 				},
 			},
 			bogus_missile = {

@@ -213,6 +213,9 @@ return {
 					fighters = 33,
 					vtol = 33,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 			coraakbot_missile2 = {
 				areaofeffect = 24,
@@ -255,6 +258,9 @@ return {
 					fighters = 33,
 					vtol = 33,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 			coraakbot_missile3 = {
 				areaofeffect = 24,
@@ -297,6 +303,9 @@ return {
 					fighters = 33,
 					vtol = 33,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 			coraakbot_missile4 = {
 				areaofeffect = 64,
@@ -339,6 +348,9 @@ return {
 					fighters = 75,
 					vtol = 75,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 		},
 		weapons = {

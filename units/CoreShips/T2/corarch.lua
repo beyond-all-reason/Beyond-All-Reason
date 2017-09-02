@@ -182,6 +182,9 @@ return {
 					default = 63,
 					subs = 5,
 				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
+				},
 			},
 			mobileflak = {
 				accuracy = 1000,

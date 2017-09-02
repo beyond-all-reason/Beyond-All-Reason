@@ -183,6 +183,9 @@ return {
 					fighters = 63,
 					vtol = 63,
 				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
+				},
 			},
 			mobileflak = {
 				accuracy = 1000,

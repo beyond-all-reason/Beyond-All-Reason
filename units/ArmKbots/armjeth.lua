@@ -151,6 +151,9 @@ return {
 					fighters = 110,
 					vtol = 110,
 				},
+				customparams = {
+					light_skip = true,		-- used by light_effects widget
+				},
 			},
 			bogus_missile = {
 				areaofeffect = 48,
