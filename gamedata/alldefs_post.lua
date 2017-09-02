@@ -128,6 +128,7 @@ function UnitDef_Post(name, uDef)
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
 	end
+
 end
 
 
@@ -167,6 +168,11 @@ function WeaponDef_Post(name, wDef)
 			wDef.beamttl = 5
 			wDef.beamdecay = 0.55
 		end
+	end
+
+	--Flare texture has been scaled down to half, so correcting the result of that a bit
+	if wDef ~= nil and wDef.laserflaresize ~= nil and wDef.laserflaresize > 0 then
+		wDef.laserflaresize = wDef.laserflaresize * 1.33
 	end
 end
 
