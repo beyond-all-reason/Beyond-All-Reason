@@ -142,6 +142,9 @@ description_long = "The Avenger is a fast-moving fighter jet that is designed fo
 					default = 23,
 					subs = 5,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 		},
 		weapons = {

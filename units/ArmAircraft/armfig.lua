@@ -140,6 +140,9 @@ return {
 					default = 23,
 					subs = 5,
 				},
+                customparams = {
+                    light_skip = true,		-- used by light_effects widget
+                },
 			},
 		},
 		weapons = {
