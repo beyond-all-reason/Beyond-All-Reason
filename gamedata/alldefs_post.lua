@@ -155,11 +155,11 @@ function WeaponDef_Post(name, wDef)
  
 	if wDef.weapontype == "Cannon" then
 		if wDef.stages == nil then
-			wDef.stages = 9
+			wDef.stages = 10
 			if wDef.damage ~= nil and wDef.damage.default ~= nil and wDef.areaofeffect ~= nil then
 				wDef.stages = math.floor(7.5 + math.min(wDef.damage.default * 0.0033, wDef.areaofeffect * 0.13))
-				wDef.alphadecay = 1.16
-				wDef.sizedecay = 0.02
+				wDef.alphadecay = 1 - ((1/wDef.stages)/1.5)
+				wDef.sizedecay = 0.4 / wDef.stages
 			end
 		end
 	end
