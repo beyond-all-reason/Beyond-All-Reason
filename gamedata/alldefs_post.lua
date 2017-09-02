@@ -103,6 +103,10 @@ function UnitDef_Post(name, uDef)
 			-- List all the vehicles that shouldn't have reverse speed in the "if". (i.e jeffies and flash mb)
 		end
 		
+		if uDef.turninplaceanglelimit then
+		uDef.customparams.anglelimit = uDef.turninplaceanglelimit
+		end
+		
 	end
 
 	-- kbots
