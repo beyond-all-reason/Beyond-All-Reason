@@ -141,9 +141,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 990,
 				damage = {
-					commanders = 5,
-					default = 15,
-					subs = 5,
+					commanders = 2,
+					default = 4,
+					subs = 2,
 				},
                 customparams = {
                     light_skip = true,		-- used by light_effects widget

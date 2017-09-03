@@ -138,9 +138,9 @@ description_long = "The Avenger is a fast-moving fighter jet that is designed fo
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					commanders = 5,
-					default = 23,
-					subs = 5,
+					commanders = 3,
+					default = 6,
+					subs = 3,
 				},
                 customparams = {
                     light_skip = true,		-- used by light_effects widget
