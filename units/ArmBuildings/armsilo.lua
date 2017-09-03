@@ -12,7 +12,7 @@ return {
 		buildpic = "ARMSILO.DDS",
 		buildtime = 178453,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -4 0",
+		collisionvolumeoffsets = "-1 3 1",
 		collisionvolumescales = "90 26 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

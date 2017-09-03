@@ -12,7 +12,7 @@ return {
 		buildpic = "ARMEMP.DDS",
 		buildtime = 79247,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -6 0",
+		collisionvolumeoffsets = "0 18 0",
 		collisionvolumescales = "48 28 48",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

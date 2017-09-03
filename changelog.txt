@@ -20,12 +20,12 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Raw unit movement implemented
  • Pathing improvement: units wont get stuck in cliffs any longer
  • Vehicles with tracks can turn-in-place. The angle limit: 110, 60 for cons. Wheeled vehicles cannot do this (Jeffy/Samson) 
- • Some units are able to go in reverse on small distances
+ • Some units are able to go in reverse on small distances, at 40% of maxspeed (60% for tachyons, artillery, banishers)
 
  Commanders
  • produce 40% additional energy (25->35)
  • torso turnspeed increased 33% + dgun reloadspeed reduced 10%
- • uwlaser nerfed 50% default and 75% vs subs
+ • Uwlaser nerfed 50% default and 75% vs subs
  • Decoy commanders have been given same lasers as regular commanders
  • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
  
@@ -40,7 +40,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
  • Fighters have been given more range due to slower missile speed and missile turnrate
  • Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
- • Fighters (T1,T2,seplanes) a2g missiles damages 75% decreased (default) and do 50% less damages than default to commanders.
+ • Fighters (T1,T2,seaplanes) a2g missiles damages 75% decreased (default) and do 50% less damages than default to commanders.
 
  Long range plasma
  • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
@@ -156,6 +156,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Fixed glitchy/spiky healthbars shader on current intel gfx and very old cards
  • Fixed unit_stats crashes when hovering enemy units. And dps values for beamlaser and stockpiling weapons
  • Settarget queues will now be paused when a unit attempts to dgun.
+ • Fixed units created after initiating builder death (mostly factories issue)
 
 
 9.45 -> 9.46
