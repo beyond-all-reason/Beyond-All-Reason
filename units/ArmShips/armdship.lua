@@ -1,5 +1,6 @@
 return {
 	armdship = {
+		activatewhenbuilt = true,
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
 		blocking = true,
