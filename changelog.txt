@@ -73,8 +73,8 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
 
 Sea reworked: (by Doo)
 Major balance changes:
-• Increased T1 shipyards costs and decreased T1 and T2 ships costs.
-• Increased Patrol Boats reloadtime, decreased hp, costs.
+• Increased T1 shipyards costs (+40%) and decreased T1 and T2 ships costs (-20%).
+• Increased Patrol Boats laser reloadtime, decreased hp, costs.
 • Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
 • Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
 • Added Plasma Frigates to both factions available in T1 Shipyard.
