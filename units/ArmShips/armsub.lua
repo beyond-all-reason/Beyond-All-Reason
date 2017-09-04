@@ -32,12 +32,12 @@ return {
 		upright = true,
 		waterline = 30,
 		--move
-		brakerate =  2.40/20,
-		acceleration = 2.40/120,
-		maxvelocity = 2.40,
+		brakerate =  2.20/20,
+		acceleration = 2.20/120,
+		maxvelocity = 2.20,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.40,
+		turninplacespeedlimit = 0.64*2.20,
 		turnrate = 320,	
 		--end move
 		customparams = {

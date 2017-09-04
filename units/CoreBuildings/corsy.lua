@@ -39,12 +39,13 @@ return {
 		buildoptions = {
 			[1] = "corcs",
 			[2] = "corpt",
-			[4] = "corpship",
+			[5] = "corpship",
 			[3] = "coresupp",
-			[5] = "corsub",
-			[6] = "correcl",
-			[7] = "corroy",
-			[8] = "cortship",
+			[4] = "cordship",
+			[6] = "corsub",
+			[7] = "correcl",
+			[8] = "corroy",
+			[9] = "cortship",
 		},
 		customparams = {
 			

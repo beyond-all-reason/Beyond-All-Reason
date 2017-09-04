@@ -34,12 +34,12 @@ return {
 		sonardistance = 400,
 		waterline = 3.5,
 		--move
-		acceleration = 1.955/120,
-		brakerate = 1.955/35,
+		acceleration = 1.86/120,
+		brakerate = 1.86/35,
 		turninplace = true,
-		maxvelocity = 1.955,
+		maxvelocity = 1.86,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*1.955,
+		turninplacespeedlimit = 0.64*1.86,
 		turnrate = 194,
 		--end move
 		customparams = {
