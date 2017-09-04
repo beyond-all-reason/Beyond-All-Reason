@@ -76,7 +76,12 @@ function UnitDef_Post(name, uDef)
 			uDef.buildingmask = 0
 		end
 	end
-
+	
+	if uDef.canmove == true then
+		uDef.footprintx = uDef.footprintx + 1
+		uDef.footprintz = uDef.footprintz + 1
+		-- uDef.pushresistant = true
+	end
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 
