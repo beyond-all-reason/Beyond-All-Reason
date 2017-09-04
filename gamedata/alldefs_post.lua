@@ -44,7 +44,7 @@ local vehAccelerationMultiplier = 1.0
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1.00
-local vehRSpeedFactor = 0.40
+local vehRSpeedFactor = 0.35
 
 
 local kbotUnits = {
@@ -98,7 +98,7 @@ function UnitDef_Post(name, uDef)
 			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.82
 		end
 		
-		if (uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0) and not (name == "armcv" or name == "armacv" or name == "armconsul" or name == "armbeaver" or name == "corcv" or name == "coracv" or name == "cormuskrat") then
+		if (uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0) then --and not (name == "armcv" or name == "armacv" or name == "armconsul" or name == "armbeaver" or name == "corcv" or name == "coracv" or name == "cormuskrat") then
 			uDef.maxreversevelocity = (uDef.maxvelocity) * vehRSpeedFactor
 			-- List all the vehicles that shouldn't have reverse speed in the "if". (i.e jeffies and flash mb)
 		end
