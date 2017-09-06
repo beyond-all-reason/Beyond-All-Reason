@@ -104,6 +104,10 @@ return {
 					default = 5625,
 					subs = 5,
 				},
+				customparams = {
+					light_radius_mult = "0.4",		-- used by light_effects widget
+					light_multiplier = "0.6",		-- used by light_effects widget
+				},
 			},
 			arm_pidrbomb = {
 				areaofeffect = 256,
@@ -142,6 +146,10 @@ return {
 					commanders = 3350,
 					default = 5625,
 					subs = 5,
+				},
+				customparams = {
+					light_radius_mult = "0.4",		-- used by light_effects widget
+					light_multiplier = "0.6",		-- used by light_effects widget
 				},
 			},
 		},
