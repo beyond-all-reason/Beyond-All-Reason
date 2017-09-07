@@ -44,7 +44,7 @@ reverseUnit = {}
 	
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	-- allowreverse = "Reverse is not allowed"
-	if cmdID == 1 then
+	if cmdID == 39812 then
 	x,y,z = cmdParams[4],cmdParams[5],cmdParams[6]
 	xu, yu, zu = Spring.GetUnitPosition(unitID)
 	if x ~= nil and y ~= nil and z ~= nil then
@@ -67,6 +67,7 @@ reverseUnit = {}
 				if a == 3 then -- Target = projectile
 					Xt, Yt, Zt = Spring.GetProjectilePosition(c)
 				end
+				if Xt, Yt, Zt then
 				Xu,Yu,Zu = Spring.GetUnitPosition(unitID)
 				DXu,DYu,DZu = Spring.GetUnitDirection(unitID)
 				DXu = DXu/math.sqrt((DXu^2 + DZu^2)) -- UnitDirectionX normalized on XoZ plane
@@ -74,6 +75,7 @@ reverseUnit = {}
 				DXt = (Xt - Xu)/ math.sqrt((Xt - Xu)^2 + (Zt - Zu)^2) -- Unit-Target DirectionX normalized on XoZ plane
 				DZt = (Zt - Zu)/ math.sqrt((Xt - Xu)^2 + (Zt - Zu)^2) -- Unit-Target DirectionZ normalized on XoZ plane
 				isFront = CheckWeaponTarget(DXt, DXu, DXu, DZu) -- Call for CheckWeaponTarget() to check if unit is facing its target
+				end
 			end
 			
 			

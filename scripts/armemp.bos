@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, launch, Door1, Door2, Frame1, Frame2, Frame3, Frame4,
-       Cover2, Cover1, dummy;
+       Cover2, Cover1, dummy, arm;
 
 static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
@@ -56,8 +56,8 @@ activatescr()
 		wait-for-move Cover2 along x-axis;
 		wait-for-move Cover1 along z-axis;
 		wait-for-move Cover2 along z-axis;
-		move Dummy to y-axis [14.00000] speed [11.84639];
-		move launch to y-axis [-4.00000] speed [11.84639];
+		move arm to y-axis [24.00000] speed [11.84639];
+		move launch to y-axis [2] speed [11.84639];
 		wait-for-move Dummy along y-axis;
 		wait-for-move launch along y-axis;
 		sleep 1036;
