@@ -1260,11 +1260,11 @@ function widget:Initialize()
 		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
-		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].oldUnitpics, description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
-		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].shortcutsInfo, description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
-		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawPrice, description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
-		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawTooltip, description='Enables unit tooltip when hovering over unit in buildmenu'},
-		{id="buildmenubigtooltip", group="ui", name="  extensive unit info", type="bool", value=widgetHandler.configData["Red Build/Order Menu"].drawBigTooltip, description='Displays elaborative unit description when availible'},
+		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
+		{id="buildmenubigtooltip", group="ui", name="  extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
 
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=widgetHandler.orderList["Fancy Selected Units"] ~= nil and (widgetHandler.orderList["Fancy Selected Units"] > 0), description=''},
 
