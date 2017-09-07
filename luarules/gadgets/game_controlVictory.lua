@@ -10,6 +10,10 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().scoremode == nil then
+	return
+end
+
 --[[
 -------------------
 Before implementing this gadget, read this!!!
@@ -315,6 +319,7 @@ VFS.Include("LuaRules/Configs/cv_modOptions.lua")
 
 local moveSpeed =.5
 local buildingMask = 2
+local captureRadius = 250
 
 --Here we mitigate potential issues caused by wonky options settings
 if numberOfControlPoints == 13 then

@@ -30,7 +30,7 @@ MINE_BLAST[WeaponDefNames["mine_medium"].id] = true
 MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true 
 local mines = {}
 local orderQueue = {}
-COMMANDO_MINELAYER = WeaponDefNames['commando_minelayer'].id
+local COMMANDO_MINELAYER = WeaponDefNames['cormando_commando_minelayer'].id
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if (unitDefID == COMMANDO) then  
