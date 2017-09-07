@@ -95,7 +95,7 @@ function init()
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}
         WG['tooltip'].AddTooltip = function(name, area, value, delay)
-            if value ~= nil or tooltips[name] ~= nil and tooltips[name].value ~= nil then
+			if (value ~= nil and area[1]~=nil and area[2]~=nil and area[3]~=nil and area[4]~=nil) or tooltips[name] ~= nil and tooltips[name].value ~= nil then
                 if delay == nil then delay = defaultDelay end
                 tooltips[name] = {area=area, delay=delay}
                 if value ~= nil then
@@ -205,7 +205,7 @@ function widget:DrawScreen()
 		end
 	end
 	for name, tooltip in pairs(tooltips) do
-		if tooltip.area == nil or IsOnRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4]) then
+		if tooltip.area == nil or (tooltip.area[4]~= nil and IsOnRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
 			if tooltip.area == nil then
                 if tooltip.pos ~= nil then
 				    drawTooltip(name, tooltip.pos[1], tooltip.pos[2])
