@@ -44,7 +44,7 @@ function gadget:GameFrame(f)
 			if nearingUnits[1] ~= nil then
 			if morenearingUnits[1] ~= nil then
 			-- Spring.Echo(#nearingUnits)
-			SlowAmount = 1 * 0.95^(#nearingUnits - 1) * 0.1^(#morenearingUnits - 1)
+			SlowAmount = 1 * 0.95^(#nearingUnits - 1) * 0.3^(#morenearingUnits - 1)
 			-- Spring.Echo(SlowAmount)
 			vx, vy, vz, vw = Spring.GetUnitVelocity(unitID)
 			-- Spring.Echo(vw)
