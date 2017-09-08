@@ -67,7 +67,7 @@ reverseUnit = {}
 				if a == 3 then -- Target = projectile
 					Xt, Yt, Zt = Spring.GetProjectilePosition(c)
 				end
-				if Xt, Yt, Zt then
+				if (Xt) and (Yt) and (Zt) then
 				Xu,Yu,Zu = Spring.GetUnitPosition(unitID)
 				DXu,DYu,DZu = Spring.GetUnitDirection(unitID)
 				DXu = DXu/math.sqrt((DXu^2 + DZu^2)) -- UnitDirectionX normalized on XoZ plane
