@@ -229,9 +229,9 @@ function deepcopy(orig)
 end
 
 definitions["cruisemissiletrail-emp"] = deepcopy(definitions["cruisemissiletrail"])
-definitions["cruisemissiletrail-emp"].smokeandfire.properties.colormap = [[0.7 0.6 0.7 0.2   0.44 0.33 0.5 0.2    0.34 0.15 0.4 0.15    0.09 0.025 0.11 0.11     0.05 0.01 0.065 0.09   0.02 0.01 0.2 0.06   0 0 0 0.01]]
-definitions["cruisemissiletrail-emp"].fireglow.properties.colormap = [[0.05 0.027 0.07 0.01   0 0 0 0.01]]
-definitions["cruisemissiletrail-emp"].sparks.properties.colormap = [[0.9 0.5 0.9 0.01   0.8 0.4 0.9 0.007  0.5 0.1 0.65 0]]
+definitions["cruisemissiletrail-emp"].smokeandfire.properties.colormap = [[0.65 0.6 0.7 0.2   0.4 0.36 0.5 0.2    0.24 0.22 0.4 0.15    0.064 0.06 0.11 0.11     0.032 0.03 0.065 0.09   0.053 0.05 0.2 0.06   0 0 0 0.01]]
+definitions["cruisemissiletrail-emp"].fireglow.properties.colormap = [[0.045 0.04 0.07 0.01   0 0 0 0.01]]
+definitions["cruisemissiletrail-emp"].sparks.properties.colormap = [[0.66 0.6 0.9 0.01   0.5 0.45 0.9 0.007  0.27 0.25 0.65 0]]
 
 definitions["cruisemissiletrail-tacnuke"] = deepcopy(definitions["cruisemissiletrail"])
 definitions["cruisemissiletrail-tacnuke"].smokeandfire.properties.colormap = [[0.7 0.6 0.45 0.2   0.44 0.33 0.06 0.2    0.34 0.15 0 0.15    0.09 0.025 0 0.11     0.05 0.01 0 0.09   0.024 0.01 0 0.065   0.014 0.002 0 0.03   0 0 0 0.01]]
