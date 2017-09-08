@@ -23,7 +23,7 @@ return {
 		idletime = 0,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 1,
+		maxdamage = 2,
 		maxvelocity = 0,
 		name = "meteor",
 		noautofire = false,
