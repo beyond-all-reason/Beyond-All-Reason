@@ -74,7 +74,7 @@ return {
 			[15] = "armllt",
 			[16] = "armrl",
 			[17] = "armrad",
-			[18] = "seaplatform",
+			-- [18] = "seaplatform",
 		},
 		customparams = {
 			

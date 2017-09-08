@@ -71,8 +71,8 @@ return {
 			[26] = "corap",
 			[27] = "coraap",
 			[28] = "corplat",
-			[29] = "seaplatform",			
-			[30] = "corjuno",
+			-- [29] = "seaplatform",			
+			[29] = "corjuno",
 		},
 		customparams = {
 			

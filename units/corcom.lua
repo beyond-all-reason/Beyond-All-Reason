@@ -93,7 +93,7 @@ return {
 			[25] = "corgplat",
 			[26] = "corfrt",
 			[27] = "corfrad",
-			[28] = "seaplatform",
+			-- [28] = "seaplatform",
 		},
 		customparams = {
 			--death_sounds = "commander",

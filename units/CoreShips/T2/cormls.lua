@@ -63,7 +63,7 @@ return {
 			[17] = "corsub",
 			[18] = "coramph",
 			[19] = "corfmine3",
-			[20] = "seaplatform",
+			-- [20] = "seaplatform",
 		},
 		customparams = {
 

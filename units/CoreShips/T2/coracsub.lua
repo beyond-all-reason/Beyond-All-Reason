@@ -61,7 +61,7 @@ return {
 			[12] = "corason",
 			[13] = "corenaa",
 			[14] = "coratl",
-			[15] = "seaplatform",
+			-- [15] = "seaplatform",
 		},
 		customparams = {
 

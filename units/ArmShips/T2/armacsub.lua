@@ -61,7 +61,7 @@ return {
 			[12] = "armason",
 			[13] = "armfflak",
 			[14] = "armatl",
-			[15] = "seaplatform",
+			-- [15] = "seaplatform",
 		},
 		customparams = {
 			

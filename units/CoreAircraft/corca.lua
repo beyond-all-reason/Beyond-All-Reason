@@ -73,7 +73,7 @@ return {
 			[28] = "cordl",
 			[29] = "corjamt",
 			[30] = "corsy",
-			[31] = "seaplatform",
+			-- [31] = "seaplatform",
 		},
 		customparams = {
 

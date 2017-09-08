@@ -73,8 +73,8 @@ return {
 			[26] = "corbuzz",
 			[27] = "corlab",
 			[28] = "coralab",
-			[29] = "seaplatform",
-			[30] = "corjuno",
+			-- [29] = "seaplatform",
+			[29] = "corjuno",
 		},
 		customparams = {
 			

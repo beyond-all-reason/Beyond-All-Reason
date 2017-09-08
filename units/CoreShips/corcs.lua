@@ -71,7 +71,7 @@ return {
 			[24] = "corfrt",
 			[25] = "corfhlt",
 			[26] = "corplat",
-			[27] = "seaplatform",
+			-- [27] = "seaplatform",
 		},
 		customparams = {
 
