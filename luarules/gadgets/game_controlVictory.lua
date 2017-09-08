@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions() == nil or Spring.GetModOptions().scoremode == nil then
+if Spring.GetModOptions() == nil or Spring.GetModOptions().scoremode == nil or Spring.GetModOptions().scoremode == "disabled" then
 	return
 end
 
@@ -288,8 +288,8 @@ That's all folks!!!
 -------------------
 ]]--
 
-nonCapturingUnits = VFS.Include"LuaRules/Configs/cv_nonCapturingUnits.lua"
---buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
+local nonCapturingUnits = VFS.Include("LuaRules/Configs/cv_nonCapturingUnits.lua")
+--local buildableUnits = VFS.Include("LuaRules/Configs/cv_buildableUnits.lua")
 
 --Make controlvictory exit if chickens are present
 
