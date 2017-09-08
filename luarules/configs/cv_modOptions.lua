@@ -2,7 +2,7 @@ cvMode = Spring.GetModOptions().scoremode
 
 --Is CV Enabled when you launch spring.exe directly?
 if cvMode == nil then
-	cvMode = "disabled"
+	cvMode = "countdown"
 end
 
 -- CV Enabled/Disabled Controls
@@ -76,7 +76,7 @@ end
 
 startTime = tonumber(Spring.GetModOptions().starttime) -- The time when capturing can start
 if startTime == nil then
-	startTime = 0
+	startTime = 180
 end
 
 tugofWarModifier = tonumber(Spring.GetModOptions().tugofwarmodifier) -- Radius around a point in which to capture it

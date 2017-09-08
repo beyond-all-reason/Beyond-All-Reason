@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions().scoremode == nil then
+if Spring.GetModOptions() == nil or Spring.GetModOptions().scoremode == nil then
 	return
 end
 
@@ -319,9 +319,9 @@ VFS.Include("LuaRules/Configs/cv_modOptions.lua")
 
 local moveSpeed =.5
 local buildingMask = 2
-local captureRadius = 250
 
 --Here we mitigate potential issues caused by wonky options settings
+
 if numberOfControlPoints == 13 then
 	limitScore = limitScore * 2
 	captureRadius = captureRadius * 0.83
@@ -694,7 +694,7 @@ if (gadgetHandler:IsSyncedCode()) then
       end
    end ]]--
 
-		if f % 30 <.1 and f / 1800 > startTime then
+		if f % 30 <.1 and f / 30 > startTime then
 			local owned = {}
 			for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 				owned[allyTeamID] = 0
@@ -1305,7 +1305,7 @@ else -- UNSYNCED
 			-- textarea
 			
 			local infotext = offwhite .. [[Controlpoints are spread across the map. They can be captured by moving units into the circles.
-Note that you can only build certain units inside them (e.g. Metal Extractors).
+Note that you can only build certain units inside them (e.g. Metal Extractors/Resource Node Generators).
  
 There are 3 modes (Current mode is ]] .. yellow .. scoreModeAsString .. offwhite .. [[):
 - Countdown:  Your score counts down until zero based upon how many points your enemy owns.
@@ -1450,8 +1450,12 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 	  end
 	  
 		local frame = Spring.GetGameFrame()
-		Spring.Echo(frame)
-		if frame / 1800 > startTime then
+		if frame / 30 > startTime then
+			if controlPointPromptPlayed ~= true then
+				Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1)
+				Spring.Echo([[Control Points may now be captured!]])
+				controlPointPromptPlayed = true
+			end			
 		  if scoreboardList == nil or frame%15==0 then
 		  	if scoreboardList ~= nil then
 		  		gl.DeleteList(scoreboardList)
@@ -1481,7 +1485,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
   		end
 		else
 			Text("Capturing points begins in:", vsx - 280, vsy *.58, 18, "lo")
-			local timeleft = startTime * 60 - frame / 30
+			local timeleft = startTime - frame / 30
 			timeleft = timeleft - timeleft % 1
 			Text(timeleft .. " seconds", vsx - 280, vsy *.58 - 25, 18, "lo")
 		end
