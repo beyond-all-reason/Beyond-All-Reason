@@ -37,13 +37,13 @@ local vehUnits = {
 	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', corintr='', corban='', cortrem='',
 }
 local vehAdditionalTurnrate = 0
-local vehTurnrateMultiplier = 1.015
+local vehTurnrateMultiplier = 1.0
 
 local vehAdditionalAcceleration = 0.00
-local vehAccelerationMultiplier = 1.0
+local vehAccelerationMultiplier = 0.95
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 1.00
+local vehVelocityMultiplier = 0.95
 local vehRSpeedFactor = 0.35
 
 

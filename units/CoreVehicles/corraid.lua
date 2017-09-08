@@ -61,8 +61,8 @@ return {
 					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
 					kickback = "-2.4", --How much will the cannon kickback
 				--AIMING HERE
-					cobturretyspeed = "90", --turretSpeed as seen in COB script
-					cobturretxspeed = "50", --turretSpeed as seen in COB script
+					cobturretyspeed = "80", --turretSpeed as seen in COB script
+					cobturretxspeed = "45", --turretSpeed as seen in COB script
 					restoretime = "3000", --restore delay as seen in COB script
 			},
 		featuredefs = {
