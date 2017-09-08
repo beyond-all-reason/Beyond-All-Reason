@@ -192,54 +192,6 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
-		-- if (modOptions.mo_seaplatforms == "enabled") then
-			-- Spring.Echo("Sea Platforms enabled")
-			
-				-- for id,unitDef in pairs(UnitDefs) do
-					-- if unitDef.name == "Platform" then
-						-- cubeID = id
-					-- end
-				-- end
-				-- for id,unitDef in pairs(UnitDefs) do
-
-					-- if unitDef.objectname == "CORMLS" then
-						-- unitDef["buildoptions"][21] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "ARMMLS" then
-						-- unitDef["buildoptions"][21] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "CORCSA" then
-						-- unitDef["buildoptions"][15] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "ARMCSA" then
-						-- unitDef["buildoptions"][15] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "ARMCONSUL" then
-						-- unitDef["buildoptions"][23] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "CORFAST" then
-						-- unitDef["buildoptions"][23] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "CORCH" then
-						-- unitDef["buildoptions"][44] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "ARMCH" then
-						-- unitDef["buildoptions"][44] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "CORCK" then
-						-- unitDef["buildoptions"][31] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "ARMCK" then
-						-- unitDef["buildoptions"][31] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "CORCV" then
-						-- unitDef["buildoptions"][31] = "seaplatform"
-					-- end
-					-- if unitDef.objectname == "ARMCV" then
-						-- unitDef["buildoptions"][31] = "seaplatform"
-					-- end
-				-- end
-		-- end
 		
 		if (modOptions.logicalbuildtime == "enabled") then
 			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
