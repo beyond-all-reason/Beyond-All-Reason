@@ -44,7 +44,9 @@ reverseUnit = {}
 	
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	allowreverse = "Reverse is not allowed"
+		-- Spring.Echo(cmdID)
 	if cmdID == 1 then
+
 	x,y,z = cmdParams[4],cmdParams[5],cmdParams[6]
 	xu, yu, zu = Spring.GetUnitPosition(unitID)
 	if x ~= nil and y ~= nil and z ~= nil then
@@ -123,13 +125,13 @@ reverseUnit = {}
 					end
 				end
 			end
+	end
 		else
 			if (reverseUnit[unitID]) then
 				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
 				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)
 			end
 		end
-	end
 			-- Spring.Echo(allowreverse)
 
 end
