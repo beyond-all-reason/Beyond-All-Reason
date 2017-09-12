@@ -1,5 +1,5 @@
 
-return {
+local definitions = {
 
   ["missiletrailfighter"] = {
     engine = {
@@ -599,7 +599,7 @@ return {
         colormap           = [[0.16 0.13 0.1 0.2   0.16 0.13 0.1 0.34   0.11 0.105 0.1 0.28   0.085 0.085 0.085 0.21   0.07 0.07 0.07 0.17    0.04 0.04 0.04 0.1   0 0 0 0.01]],
         directional        = true,
         emitrot            = -180,
-        emitrotspread      = 12,
+        emitrotspread      = 11,
         emitvector         = [[dir]],
         gravity            = [[0.0, -0.03, 0.0]],
         numparticles       = 2,
@@ -1014,3 +1014,50 @@ return {
     },
   },
 }
+
+
+
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+        if type(v) == "table" then
+            if type(t1[k] or false) == "table" then
+                tableMerge(t1[k] or {}, t2[k] or {})
+            else
+                t1[k] = v
+            end
+        else
+            t1[k] = v
+        end
+    end
+    return t1
+end
+
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+definitions["missiletrailaa-large"] = deepcopy(definitions["missiletraillarge"])
+definitions["missiletrailaa-large"].fire.properties.colormap = [[0.9 0.7 0.75 0.15   0.44 0.26 0.36 0.2    0.14 0.04 0.115 0.17    0.02 0.01 0.0165 0.1	 0 0 0 0.01]]
+definitions["missiletrailaa-large"].fireglow.properties.colormap = [[0.05 0.025 0.04 0.01   0 0 0 0.01]]
+definitions["missiletrailaa-large"].sparks.properties.colormap = [[0.9 0.5 0.7 0.01   0.9 0.4 0.7 0.007  0.25 0.1 0.02 0.005   0 0 0 0.01]]
+definitions["missiletrailaa-large"].sparks.properties.particlesize = 120
+definitions["missiletrailaa-large"].sparks.properties.particlelifespread = 4
+definitions["missiletrailaa-large"].sparks.properties.numparticles = 1
+definitions["missiletrailaa-large"].smoke.properties.numparticles = 4
+definitions["missiletrailaa-large"].smoke.properties.particlespeed = 5
+definitions["missiletrailaa-large"].smoke.properties.particlespeedspread = 8
+definitions["missiletrailaa-large"].dustparticles = nil
+
+
+return definitions
