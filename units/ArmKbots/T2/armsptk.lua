@@ -139,6 +139,7 @@ return {
 				soundtrigger = true,
 				startvelocity = 80,
 				targetmoveerror = 0.2,
+                texture1 = "trans",
 				texture2 = "armsmoketrail",
 				trajectoryheight = 1,
 				turnrate = 2000,

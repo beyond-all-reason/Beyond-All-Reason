@@ -150,7 +150,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 6,
+				laserflaresize = 4,
 				name = "Laser",
 				noselfdamage = true,
 				range = 230,

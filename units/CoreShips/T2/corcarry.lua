@@ -160,7 +160,7 @@ return {
 				stockpile = true,
 				stockpiletime = 90,
                 smoketrail = false,
-                texture1 = "null",
+				texture1 = "trans",
                 texture2 = "null",
                 texture3 = "null",
 				tolerance = 4000,

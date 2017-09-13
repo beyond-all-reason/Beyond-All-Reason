@@ -135,6 +135,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 150,
+                texture1 = "trans",
 				texture2 = "coresmoketrail",
 				turret = true,
 				weaponacceleration = 120,

@@ -139,7 +139,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
 				smoketrail = false,
-				texture1 = "null",
+				texture1 = "trans",
 				texture2 = "null",
 				texture3 = "null",
 				tolerance = 4000,

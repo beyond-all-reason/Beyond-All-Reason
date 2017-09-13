@@ -298,16 +298,16 @@ local definitions = {
         colormap           = [[0.16 0.13 0.1 0.2   0.16 0.13 0.1 0.34   0.11 0.105 0.1 0.28   0.085 0.085 0.085 0.21   0.07 0.07 0.07 0.17    0.04 0.04 0.04 0.1   0 0 0 0.01]],
         directional        = true,
         emitrot            = -180,
-        emitrotspread      = 8,
+        emitrotspread      = 7.5,
         emitvector         = [[dir]],
         gravity            = [[0.0, -0.01, 0.0]],
         numparticles       = 1,
         particlelife       = 30,
         particlelifespread = 28,
-        particlesize       = 3,
-        particlesizespread = 2.7,
-        particlespeed      = 2,
-        particlespeedspread = 3.5,
+        particlesize       = 2.7,
+        particlesizespread = 2.1,
+        particlespeed      = 2.3,
+        particlespeedspread = 4,
         pos                = [[0.0, 1, 0.0]],
         sizegrowth         = 0.16,
         sizemod            = 1,
@@ -776,6 +776,135 @@ local definitions = {
     },
   },
 
+
+  ["missiletrailaa-large"] = {
+      --groundflash = {
+      --  circlealpha        = 0,
+      --  circlegrowth       = 0,
+      --  flashalpha         = 0.05,
+      --  flashsize          = 85,
+      --  ttl                = 10,
+      --  color = {
+      --    [1]  = 0.80000001192093,
+      --    [2]  = 0.50000000149012,
+      --    [3]  = 0.15,
+      --  },
+      --},
+      fire = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          properties = {
+              airdrag            = 1,
+              colormap           = [[0.9 0.7 0.75 0.15   0.44 0.26 0.36 0.2    0.14 0.04 0.115 0.17    0.02 0.01 0.0165 0.1	 0 0 0 0.01]],
+              directional        = true,
+              emitrot            = 180,
+              emitrotspread      = 7,
+              emitvector         = [[dir]],
+              gravity            = [[0.0, 0.1, 0.0]],
+              numparticles       = 4,
+              particlelife       = 7,
+              particlelifespread = 3,
+              particlesize       = 3.4,
+              particlesizespread = 3,
+              particlespeed      = 1,
+              particlespeedspread = 4,
+              pos                = [[0.0, 88, 0.0]],
+              sizegrowth         = -0.15,
+              sizemod            = 1,
+              texture            = [[dirt]],
+              useairlos          = true,
+          },
+      },
+      fireglow = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          properties = {
+              airdrag            = 1,
+              colormap           = [[0.05 0.025 0.04 0.01   0 0 0 0.01]],
+              directional        = true,
+              emitrot            = -180,
+              emitrotspread      = 0,
+              emitvector         = [[dir]],
+              gravity            = [[0.0, 0.0, 0.0]],
+              numparticles       = 1,
+              particlelife       = 5,
+              particlelifespread = 0,
+              particlesize       = 77,
+              particlesizespread = 7,
+              particlespeed      = 16,
+              particlespeedspread = 0,
+              pos                = [[0.0, 0, 0.0]],
+              sizegrowth         = -0.5,
+              sizemod            = 1,
+              texture            = [[dirt]],
+              useairlos          = true,
+          },
+      },
+      sparks = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          properties = {
+              airdrag            = 0.9,
+              colormap           = [[0.9 0.5 0.4 0.01   0.9 0.4 0.1 0.007  0.25 0.1 0.04 0.005   0 0 0 0.01]],
+              directional        = true,
+              emitrot            = 180,
+              emitrotspread      = 6,
+              emitvector         = [[dir]],
+              gravity            = [[0, 0, 0]],
+              numparticles       = 1,
+              particlelife       = 2,
+              particlelifespread = 4,
+              particlesize       = 120,
+              particlesizespread = 30,
+              particlespeed      = 4,
+              particlespeedspread = 7,
+              pos                = [[0, 90 ,0]],
+              sizegrowth         = -2,
+              sizemod            = 0.8,
+              texture            = [[gunshotglow]],
+              useairlos          = false,
+          },
+      },
+      smoke = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          properties = {
+              airdrag            = 0.915,
+              colormap           = [[0.16 0.13 0.1 0.2   0.16 0.13 0.1 0.34   0.11 0.105 0.1 0.28   0.085 0.085 0.085 0.21   0.07 0.07 0.07 0.17    0.04 0.04 0.04 0.1   0 0 0 0.01]],
+              directional        = true,
+              emitrot            = -180,
+              emitrotspread      = 11,
+              emitvector         = [[dir]],
+              gravity            = [[0.0, -0.03, 0.0]],
+              numparticles       = 4,
+              particlelife       = 22,
+              particlelifespread = 18,
+              particlesize       = 5,
+              particlesizespread = 5,
+              particlespeed      = 5.25,
+              particlespeedspread = 8.5,
+              pos                = [[0.0, 0, 0.0]],
+              sizegrowth         = 0.22,
+              sizemod            = 1,
+              texture            = [[dirt]],
+              useairlos          = true,
+          },
+      },
+  },
+
+
   ["nuketrail"] = {
     groundflash = {
       circlealpha        = 0,
@@ -1014,50 +1143,6 @@ local definitions = {
     },
   },
 }
-
-
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
-definitions["missiletrailaa-large"] = deepcopy(definitions["missiletraillarge"])
-definitions["missiletrailaa-large"].fire.properties.colormap = [[0.9 0.7 0.75 0.15   0.44 0.26 0.36 0.2    0.14 0.04 0.115 0.17    0.02 0.01 0.0165 0.1	 0 0 0 0.01]]
-definitions["missiletrailaa-large"].fireglow.properties.colormap = [[0.05 0.025 0.04 0.01   0 0 0 0.01]]
-definitions["missiletrailaa-large"].sparks.properties.colormap = [[0.9 0.5 0.7 0.01   0.9 0.4 0.7 0.007  0.25 0.1 0.02 0.005   0 0 0 0.01]]
-definitions["missiletrailaa-large"].sparks.properties.particlesize = 120
-definitions["missiletrailaa-large"].sparks.properties.particlelifespread = 4
-definitions["missiletrailaa-large"].sparks.properties.numparticles = 1
-definitions["missiletrailaa-large"].smoke.properties.numparticles = 4
-definitions["missiletrailaa-large"].smoke.properties.particlespeed = 5
-definitions["missiletrailaa-large"].smoke.properties.particlespeedspread = 8
-definitions["missiletrailaa-large"].dustparticles = nil
 
 
 return definitions

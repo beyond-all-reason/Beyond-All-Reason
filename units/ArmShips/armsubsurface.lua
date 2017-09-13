@@ -174,6 +174,7 @@ return {
 				soundstart = "rocklit1",
 				soundstartvolume = 7,
 				startvelocity = 100,
+				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tracks = true,
 				trajectoryheight = 0.4,

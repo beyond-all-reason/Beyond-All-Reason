@@ -122,7 +122,7 @@ return {
 				firestarter = 90,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 12,
+				laserflaresize = 8.5,
 				name = "HeatRay",
 				noselfdamage = true,
 				range = 340,

@@ -126,7 +126,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 12,
+				laserflaresize = 8.5,
 				name = "BeamLaser",
 				noselfdamage = true,
 				range = 475,

@@ -114,6 +114,7 @@ return {
 				soundstart = "cannhvy1",
 				model = "bomb",
 				targetmoveerror = 0.1,
+				texture1 = "trans",
 				turret = true,
 				size = 1.75,
 				tolerance = 0,

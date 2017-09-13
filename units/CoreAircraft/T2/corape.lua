@@ -91,6 +91,7 @@ return {
 				soundstart = "rocklit3",
 				soundtrigger = true,
 				startvelocity = 300,
+				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
 				turnrate = 9000,

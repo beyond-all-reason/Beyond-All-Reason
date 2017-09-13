@@ -140,6 +140,7 @@ return {
 				startvelocity = 1200,
 				stockpile = true,
 				stockpiletime = 14,
+				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tolerance = 10000,
 				tracks = true,

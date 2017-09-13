@@ -128,7 +128,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 8,
+				laserflaresize = 5.5,
 				minintensity = 0.7,
 				name = "LightLaser",
 				noselfdamage = true,

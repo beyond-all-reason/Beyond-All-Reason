@@ -131,7 +131,7 @@ return {
 				firestarter = 90,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 20,
+				laserflaresize = 14,
 				name = "ATA",
 				noselfdamage = true,
 				range = 1400,
