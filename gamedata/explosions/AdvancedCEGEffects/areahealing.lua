@@ -33,7 +33,7 @@ return {
         size               = 9,
         sizegrowth         = 75,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
     electricarcs1 = {

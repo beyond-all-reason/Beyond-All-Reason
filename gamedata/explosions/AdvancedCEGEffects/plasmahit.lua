@@ -120,7 +120,7 @@ local definitions = {
         size               = 0.8,
         sizegrowth         = 1.5,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
 
@@ -269,7 +269,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 1.5,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
     underwaterexplosionspikes = {
