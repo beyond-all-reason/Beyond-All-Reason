@@ -61,6 +61,7 @@ end
 
 function gadget:GameFrame(f)
 		for unitID, doesscatter in pairs (Units) do
+		if Spring.ValiedUnitID(unitID) then
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
 			local radius = Spring.GetUnitRadius(unitID) * 3
 			local nearingUnits = {}
@@ -125,6 +126,7 @@ function gadget:GameFrame(f)
 			end
 			end
 			end
+end
 end
 end
 end
