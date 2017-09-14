@@ -118,17 +118,19 @@ local myFont	 		= gl.LoadFont("FreeSansBold.otf",textsize, 1.9, 40) --gl.LoadFon
 local bgcorner	= LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local images			= {
-						["arm"]					= "LuaUI/Images/ecostats/arm_default.png",
-						["core"]     			= "LuaUI/Images/ecostats/core_default.png",
-						["checkboxon"]			= "LuaUI/Images/ecostats/chkBoxOn.png",
-						["checkboxoff"]			= "LuaUI/Images/ecostats/chkBoxOff.png",
-						["default"]				= "LuaUI/Images/ecostats/default.png",
-						["dead"]     			= "LuaUI/Images/ecostats/cross.png",
-						["zombie"]     			= "LuaUI/Images/ecostats/cross_inv.png",
-						["bar"]     			= "LuaUI/Images/ecostats/bar.png",
-						["barbg"]     			= "LuaUI/Images/ecostats/barbg.png",
-						["outer_colonies"]		= "LuaUI/Images/ecostats/ecommander.png", -- commander in evorts
-						}
+	["arm"]					= "LuaUI/Images/ecostats/arm_default.png",
+	["core"]     			= "LuaUI/Images/ecostats/core_default.png",
+	["checkboxon"]			= "LuaUI/Images/ecostats/chkBoxOn.png",
+	["checkboxoff"]			= "LuaUI/Images/ecostats/chkBoxOff.png",
+	["default"]				= "LuaUI/Images/ecostats/default.png",
+	["dead"]     			= "LuaUI/Images/ecostats/cross.png",
+	["zombie"]     			= "LuaUI/Images/ecostats/cross_inv.png",
+	["bar"]     			= "LuaUI/Images/ecostats/bar.png",
+	["barbg"]     			= "LuaUI/Images/ecostats/barbg.png",
+	["barglowcenter"]     	= "LuaUI/Images/ecostats/barglow-center.dds",
+	["barglowedge"]     	= "LuaUI/Images/ecostats/barglow-edge.dds",
+	["outer_colonies"]		= "LuaUI/Images/ecostats/ecommander.png", -- commander in evorts
+}
 
 ---------------------------------------------------------------------------------------------------
 --  Start
@@ -498,6 +500,31 @@ local function DrawEBar(tE,vOffset)-- where tE = team Energy = [0,1]
 		widgetPosX + dx + tE * maxW,
 		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
 	)
+	if tE * maxW > 0.9 then
+		local glowsize = 26*sizeMultiplier
+		glColor(1,1,0,0.04)
+		gl.Texture(images["barglowcenter"])
+		glTexRect(
+			widgetPosX + dx,
+			widgetPosY + widgetHeight -vOffset+dy+glowsize,
+			widgetPosX + dx + tE * maxW,
+			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+		)
+		gl.Texture(images["barglowedge"])
+		glTexRect(
+			widgetPosX + dx-(glowsize*1.8),
+			widgetPosY + widgetHeight -vOffset+dy+glowsize,
+			widgetPosX + dx,
+			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+		)
+		gl.Texture(images["barglowedge"])
+		glTexRect(
+			widgetPosX + dx + tE * maxW+(glowsize*1.8),
+			widgetPosY + widgetHeight -vOffset+dy+glowsize,
+			widgetPosX + dx + tE * maxW,
+			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+		)
+	end
 	gl.Texture(false)
 	glColor(1,1,1,1)
 end
@@ -525,6 +552,31 @@ local function DrawMBar(tM,vOffset) -- where tM = team Metal = [0,1]
 		widgetPosX + dx + tM * maxW,
 		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
 	)
+	if tM * maxW > 0.9 then
+		local glowsize = 26*sizeMultiplier
+		glColor(1,1,1,0.04)
+		gl.Texture(images["barglowcenter"])
+		glTexRect(
+			widgetPosX + dx,
+			widgetPosY + widgetHeight -vOffset+dy+glowsize,
+			widgetPosX + dx + tM * maxW,
+			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+		)
+		gl.Texture(images["barglowedge"])
+		glTexRect(
+			widgetPosX + dx-(glowsize*1.8),
+			widgetPosY + widgetHeight -vOffset+dy+glowsize,
+			widgetPosX + dx,
+			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+		)
+		gl.Texture(images["barglowedge"])
+		glTexRect(
+			widgetPosX + dx + tM * maxW+(glowsize*1.8),
+			widgetPosY + widgetHeight -vOffset+dy+glowsize,
+			widgetPosX + dx + tM * maxW,
+			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+		)
+	end
 	gl.Texture(false)
 	glColor(1,1,1)
 end
