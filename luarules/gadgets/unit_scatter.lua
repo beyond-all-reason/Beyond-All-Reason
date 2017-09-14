@@ -7,7 +7,7 @@ function gadget:GetInfo()
 	date	= "05/09/2017",
 	license	= "GNU GPL, v2 or later",
 	layer	= 0,
-	enabled = true,
+	enabled = false,
   }
 end
 if (gadgetHandler:IsSyncedCode()) then --SYNCED
