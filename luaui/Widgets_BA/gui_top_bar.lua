@@ -585,7 +585,8 @@ local function updateResbar(res)
 	end
 	local barHeight = (height*widgetScale/10)
 	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
-	local barLeftPadding = 2 * widgetScale
+	--local barLeftPadding = 2 * widgetScale
+	local barLeftPadding = 31 * widgetScale
 	local barRightPadding = 7 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 3.5
@@ -606,14 +607,16 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barArea = barArea
 	
 	resbarDrawinfo[res].barTexRect = {barArea[1], barArea[2], barArea[1]+((r[1]/r[2]) * barWidth), barArea[4]}
-	resbarDrawinfo[res].barGlowMiddleTexRect = {barArea[1], barArea[2] - glowSize, barArea[1]+((r[1]/r[2]) * barWidth), barArea[4] + glowSize}
-	resbarDrawinfo[res].barGlowLeftTexRect = {barArea[1]-(glowSize*2), barArea[2] - glowSize, barArea[1], barArea[4] + glowSize}
-	resbarDrawinfo[res].barGlowRightTexRect = {(barArea[1]+((r[1]/r[2]) * barWidth))+(glowSize*2), barArea[2] - glowSize, barArea[1]+((r[1]/r[2]) * barWidth), barArea[4] + glowSize}
+	resbarDrawinfo[res].barGlowMiddleTexRect = {resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
+	resbarDrawinfo[res].barGlowLeftTexRect = {resbarDrawinfo[res].barTexRect[1]-(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[4] + glowSize}
+	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	
 	resbarDrawinfo[res].textCurrent = {short(r[1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
-	resbarDrawinfo[res].textStorage = {"\255\133\133\133"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textPull = {"\255\200\100\100"..short(r[3]), barArea[1]+((barArea[3]-barArea[1])*0.2), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
-	resbarDrawinfo[res].textIncome = {"\255\100\200\100"..short(r[4]), barArea[1], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
+	resbarDrawinfo[res].textStorage = {"\255\144\144\144"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
+	--resbarDrawinfo[res].textPull = {"\255\200\100\100"..short(r[3]), barArea[1]+((barArea[3]-barArea[1])*0.2), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
+	--resbarDrawinfo[res].textIncome = {"\255\100\200\100"..short(r[4]), barArea[1], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
+	resbarDrawinfo[res].textPull = {"\255\220\100\100"..short(r[3]), barArea[1]-(6*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textIncome = {"\255\100\220\100"..short(r[4]), barArea[1]-(6*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'ord'}
 
 	dlistResbar[res][1] = glCreateList( function()
 

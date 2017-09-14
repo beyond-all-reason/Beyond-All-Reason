@@ -441,24 +441,6 @@ local definitions = {
         texture            = [[bigexplosmoke]],
       },
     },
-    outerflash = {
-      air                = true,
-      class              = [[heatcloud]],
-      count              = 2,
-      ground             = true,
-      water              = true, 
-	  underwater         = true,
-      properties = {
-        heat               = 14,
-        heatfalloff        = 1.3,
-        maxheat            = 40,
-        pos                = [[r-2 r2, 4, r-2 r2]],
-        size               = 12,
-        sizegrowth         = 1.2,
-        speed              = [[0, 1 0, 0]],
-        texture            = [[orangenovaexplo]],
-      },
-    },
   },
 }
 
@@ -637,13 +619,6 @@ local sizes = {
         particlespeedspread = 0.9,
 	   	}
     },
-    outerflash = {
-      properties = {
-        heat               = 10,
-        maxheat            = 30,
-        size               = 8.8,
-      },
-    },
   },
 	
   small = {
@@ -792,13 +767,6 @@ local sizes = {
         particlespeedspread = 1.7,
 	  }
     },
-    outerflash = {
-      properties = {
-        heat               = 16,
-        maxheat            = 50,
-        size               = 22,
-      },
-    },
   },
 	
   large = {
@@ -942,13 +910,6 @@ local sizes = {
         particlespeed      = 6.2,
         particlespeedspread = 3.3,
 	  }
-    },
-    outerflash = {
-      properties = {
-        heat               = 20,
-        maxheat            = 60,
-        size               = 36,
-      },
     },
   },
 
@@ -1094,13 +1055,6 @@ local sizes = {
         particlespeedspread = 4,
       }
     },
-    outerflash = {
-      properties = {
-        heat               = 20,
-        maxheat            = 60,
-        size               = 36,
-      },
-    },
   },
 
   gigantic = {
@@ -1245,13 +1199,6 @@ local sizes = {
         particlespeedspread = 5.5,
       }
     },
-    outerflash = {
-      properties = {
-        heat               = 20,
-        maxheat            = 60,
-        size               = 45,
-      },
-    },
   },
 }
 for size, effects in pairs(sizes) do
@@ -1276,7 +1223,6 @@ definitions['genericshellexplosion-meteor'].shard3 = nil
 definitions['genericshellexplosion-meteor'].grounddust.properties.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].clouddust.properties.alwaysvisible = true
 --definitions['genericshellexplosion-meteor'].groundclouddust.properties.alwaysvisible = true
-definitions['genericshellexplosion-meteor'].outerflash.properties.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].kickedupwater.properties.alwaysvisible = true
 
 
