@@ -161,6 +161,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 480,
+				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				tolerance = 9000,
 				tracks = true,

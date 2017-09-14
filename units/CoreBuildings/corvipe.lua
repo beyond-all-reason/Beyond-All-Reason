@@ -136,6 +136,7 @@ return {
 				soundstart = "SabotFire",
 				startvelocity = 450,
 				targetmoveerror = 0.2,
+				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
 				tracks = true,

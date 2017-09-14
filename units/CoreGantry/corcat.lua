@@ -139,6 +139,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "rapidrocket3",
 				startvelocity = 150,
+				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				trajectoryheight = 1,
 				turnrate = 0,

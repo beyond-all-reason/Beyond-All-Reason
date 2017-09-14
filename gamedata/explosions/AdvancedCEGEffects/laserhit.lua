@@ -163,7 +163,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 2.2,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
 
@@ -243,7 +243,7 @@ local definitions = {
     --    size               = 1,
     --    sizegrowth         = 5.25,
     --    speed              = [[0, 0, 0]],
-    --    texture            = [[flareorg]],
+    --    texture            = [[flare]],
     --  },
     --},
     --kickedupdirt = {
@@ -405,7 +405,7 @@ local definitions = {
         size               = 2.5,
         sizegrowth         = 2.8,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
     underwaterexplosionspikes = {
@@ -483,7 +483,7 @@ local definitions = {
     --    size               = 1,
     --    sizegrowth         = 5.25,
     --    speed              = [[0, 0, 0]],
-    --    texture            = [[flareorg]],
+    --    texture            = [[flare]],
     --  },
     --},
     --kickedupdirt = {
@@ -645,7 +645,7 @@ local definitions = {
         size               = 4,
         sizegrowth         = 3.5,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
     underwaterexplosionspikes = {
@@ -723,7 +723,7 @@ local definitions = {
     --    size               = 1,
     --    sizegrowth         = 5.25,
     --    speed              = [[0, 0, 0]],
-    --    texture            = [[flareorg]],
+    --    texture            = [[flare]],
     --  },
     --},
     --kickedupdirt = {
@@ -885,7 +885,7 @@ local definitions = {
         size               = 6,
         sizegrowth         = 4,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
     underwaterexplosionspikes = {

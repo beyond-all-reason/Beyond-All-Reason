@@ -139,6 +139,7 @@ return {
 				soundstart = "rocklit1",
 				soundtrigger = true,
 				startvelocity = 550,
+				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tolerance = 100000,
 				tracks = true,

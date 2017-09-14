@@ -208,7 +208,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "rapidrocket3",
 				startvelocity = 150,
-				texture1 = "null",
+				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				texture3 = "null",
 				weaponacceleration = 100,

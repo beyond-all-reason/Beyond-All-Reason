@@ -170,6 +170,7 @@ return {
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 320,
+				texture1 = "trans",
 				tolerance = 9950,
 				tracks = true,
 				turnrate = 68000,

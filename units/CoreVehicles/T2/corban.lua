@@ -166,6 +166,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "corban_a",
 				startvelocity = 100,
+				texture1 = "trans",
 				tolerance = 9000,
 				tracks = true,
 				trajectoryheight = 0.45,

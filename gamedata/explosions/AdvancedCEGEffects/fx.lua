@@ -149,7 +149,7 @@ return {
         size               = [[10 r-1.5]],
         sizegrowth         = -0.9,
         speed              = [[0, r-1.5, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
   },

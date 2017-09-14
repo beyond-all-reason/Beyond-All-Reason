@@ -170,7 +170,7 @@ return {
 				soundstart = "torpedo1",
 				startvelocity = 300,
 				smoketrail = false,
-				texture1 = "null",
+				texture1 = "trans",
 				texture2 = "null",
 				texture3 = "null",
 				tolerance = 50000,

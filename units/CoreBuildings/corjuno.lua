@@ -134,7 +134,7 @@ return {
 				stockpile = true,
 				stockpiletime = 75,
                 smoketrail = false,
-                texture1 = "null",
+				texture1 = "trans",
                 texture2 = "null",
                 texture3 = "null",
 				targetable = 0,

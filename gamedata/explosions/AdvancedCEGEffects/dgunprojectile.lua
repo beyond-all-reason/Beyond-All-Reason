@@ -38,7 +38,7 @@ return {
                 pos                = [[0, 2, 0]],
                 sizegrowth         = -0.05,
                 sizemod            = 1.0,
-                texture            = [[flareorg]],
+                texture            = [[flare]],
                 useairlos          = false,
             },
         },

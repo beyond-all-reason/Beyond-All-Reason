@@ -137,7 +137,7 @@ return {
 				tolerance = 4000,
 				turnrate = 24384,
 				smoketrail = false,
-				texture1 = "null",
+				texture1 = "trans",
 				texture2 = "null",
 				texture3 = "null",
 				weaponacceleration = 75,

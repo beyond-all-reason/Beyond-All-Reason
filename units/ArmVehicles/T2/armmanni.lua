@@ -149,7 +149,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 20,
+				laserflaresize = 14,
 				name = "ATAM",
 				noselfdamage = true,
 				range = 950,

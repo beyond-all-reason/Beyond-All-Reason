@@ -136,7 +136,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 20,
+				laserflaresize = 14,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
 				range = 1150,

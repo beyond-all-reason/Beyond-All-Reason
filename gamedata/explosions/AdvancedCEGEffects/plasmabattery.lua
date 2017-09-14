@@ -61,7 +61,7 @@ return {
         size               = 1,
         sizegrowth         = 3,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
   },

@@ -51,7 +51,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true,
+      water              = false,
       underwater         = true,
       properties = {
         airdrag            = 0.9,
@@ -80,7 +80,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true,
+      water              = false,
       underwater         = true,
       properties = {
         airdrag            = 0.9,
@@ -110,7 +110,7 @@ local definitions = {
       count              = 1,
       ground             = true,
       underwater         = 1,
-      water              = true,
+      water              = false,
       underwater         = true,
       properties = {
         heat               = 7,
@@ -120,7 +120,7 @@ local definitions = {
         size               = 0.8,
         sizegrowth         = 1.5,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
 
@@ -200,7 +200,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true,
+      water              = false,
       underwater         = true,
       properties = {
         airdrag            = 0.9,
@@ -229,7 +229,7 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true,
+      water              = false,
       underwater         = true,
       properties = {
         airdrag            = 0.9,
@@ -253,14 +253,13 @@ local definitions = {
         useairlos          = false,
       },
     },
-
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
       underwater         = 1,
-      water              = true,
+      water              = false,
       underwater         = true,
       properties = {
         heat               = 8,
@@ -270,7 +269,7 @@ local definitions = {
         size               = 1,
         sizegrowth         = 1.5,
         speed              = [[0, 0, 0]],
-        texture            = [[flareorg]],
+        texture            = [[flare]],
       },
     },
     underwaterexplosionspikes = {
