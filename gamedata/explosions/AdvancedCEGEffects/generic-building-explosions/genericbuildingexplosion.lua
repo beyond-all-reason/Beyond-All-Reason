@@ -1212,6 +1212,29 @@ definitions[root..'-wind'].dirt.properties.numparticles = definitions[root..'-wi
 definitions[root..'-wind'].dirt2.properties.numparticles = definitions[root..'-wind'].dirt2.properties.numparticles / 2
 definitions[root..'-wind'].sparks.properties.numparticles = definitions[root..'-wind'].sparks.properties.numparticles / 2
 
+definitions[root..'-metalmaker'] = deepcopy(definitions[root.."-medium"])
+definitions[root..'-metalmaker'].clouddust.properties.numparticles = definitions[root..'-metalmaker'].clouddust.properties.numparticles / 3
+definitions[root..'-metalmaker'].grounddust.properties.numparticles = definitions[root..'-metalmaker'].grounddust.properties.numparticles / 3
+definitions[root..'-metalmaker'].dirt.properties.numparticles = definitions[root..'-metalmaker'].dirt.properties.numparticles / 2
+definitions[root..'-metalmaker'].dirt2.properties.numparticles = definitions[root..'-metalmaker'].dirt2.properties.numparticles / 2
+definitions[root..'-metalmaker'].sparks.properties.numparticles = definitions[root..'-metalmaker'].sparks.properties.numparticles / 2
+
+definitions[root..'-metalmakerselfd'] = deepcopy(definitions[root.."-large"])
+definitions[root..'-metalmakerselfd'].clouddust.properties.numparticles = definitions[root..'-metalmakerselfd'].clouddust.properties.numparticles / 3
+definitions[root..'-metalmakerselfd'].grounddust.properties.numparticles = definitions[root..'-metalmakerselfd'].grounddust.properties.numparticles / 3
+definitions[root..'-metalmakerselfd'].dirt.properties.numparticles = definitions[root..'-metalmakerselfd'].dirt.properties.numparticles / 2
+definitions[root..'-metalmakerselfd'].dirt2.properties.numparticles = definitions[root..'-metalmakerselfd'].dirt2.properties.numparticles / 2
+definitions[root..'-metalmakerselfd'].sparks.properties.numparticles = definitions[root..'-metalmakerselfd'].sparks.properties.numparticles / 2
+
+definitions[root..'-advmetalmaker'] = deepcopy(definitions[root.."-metalmakerselfd"])
+
+definitions[root..'-advmetalmakerselfd'] = deepcopy(definitions[root.."-huge"])
+definitions[root..'-advmetalmakerselfd'].clouddust.properties.numparticles = definitions[root..'-advmetalmakerselfd'].clouddust.properties.numparticles / 3
+definitions[root..'-advmetalmakerselfd'].grounddust.properties.numparticles = definitions[root..'-advmetalmakerselfd'].grounddust.properties.numparticles / 3
+definitions[root..'-advmetalmakerselfd'].dirt.properties.numparticles = definitions[root..'-advmetalmakerselfd'].dirt.properties.numparticles / 2
+definitions[root..'-advmetalmakerselfd'].dirt2.properties.numparticles = definitions[root..'-advmetalmakerselfd'].dirt2.properties.numparticles / 2
+definitions[root..'-advmetalmakerselfd'].sparks.properties.numparticles = definitions[root..'-advmetalmakerselfd'].sparks.properties.numparticles / 2
+
 definitions[root..'-nano'] = deepcopy(definitions[root.."-wind"])
 definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.9 1 0.7 0.09   0.75 0.9 0.21 0.066   0.5 0.66 0.04 0.033   0 0 0 0.01]]
 definitions[root..'-nano'].fireglow.properties.colormap = [[0.12 0.15 0.1 0.005  0 0 0 0.01]]
