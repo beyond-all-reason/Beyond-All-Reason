@@ -69,7 +69,7 @@ unitDeaths = {
 		impulsefactor = impulsefactor,
 		soundhit = "xplosml3",
 		soundstart = "largegun",
-		explosiongenerator = "custom:genericbuildingexplosion-small",
+		explosiongenerator = "custom:genericbuildingexplosion-nano",
 		damage = {
 			default = 10,
 			nanos = 480,
@@ -112,7 +112,7 @@ unitDeaths = {
 		impulsefactor = impulsefactor,
 		soundhit = "xplosml3",
 		soundstart = "largegun",
-		explosiongenerator="custom:genericbuildingexplosion-small",
+		explosiongenerator="custom:genericbuildingexplosion-wind",
 		damage = {
 			default = 80,
 		},
