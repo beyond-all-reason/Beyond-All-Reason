@@ -501,7 +501,7 @@ local function DrawEBar(tE,vOffset)-- where tE = team Energy = [0,1]
 		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
 	)
 	if tE * maxW > 0.9 then
-		local glowsize = 26*sizeMultiplier
+		local glowsize = 22*sizeMultiplier
 		glColor(1,1,0,0.04)
 		gl.Texture(images["barglowcenter"])
 		glTexRect(
