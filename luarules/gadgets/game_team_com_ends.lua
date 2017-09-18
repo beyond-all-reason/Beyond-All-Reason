@@ -63,6 +63,8 @@ if teamCount == 2 then
 	blowUpWhenEmptyAllyTeam = false -- let player quit & rejoin in 1v1
 end
 
+blowUpWhenEmptyAllyTeam = false -- disabled for now because other gadget already seems to handle this
+
 
 local function getSqrDistance(x1,z1,x2,z2)
   local dx,dz = x1-x2,z1-z2
@@ -71,7 +73,9 @@ end
 
 function gadget:Initialize()
 	if not endmodes[Spring.GetModOptions().deathmode] then
-		--gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		if blowUpWhenEmptyAllyTeam == false then
+			gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
+		end
 		modeComEnds = false
 	end
 	for _,t in ipairs(Spring.GetAllyTeamList()) do
@@ -123,7 +127,7 @@ function gadget:GameFrame(t)
 						local x,y,z = GetUnitPosition(unitID)
 						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 450), 450)
 						if (destroyUnitQueue[unitID] == nil) then
-							destroyUnitQueue[unitID] = { 
+							destroyUnitQueue[unitID] = {
 								time = t + deathTime + math.random(0,7),
 								x = x,
 								y = y,

@@ -1029,6 +1029,9 @@ local function GetCommands()
 		[8] = true, --squadwait
 		[7] = true, --deathwait
 		[6] = true, --timewait
+		[39812] = true, --raw move
+		[34922] = true, -- set unit target
+		--[34923] = true, -- set target
 	}
 	local buildcmds = {}
 	local statecmds = {}
@@ -1087,7 +1090,7 @@ local function hijacklayout()
 		widgetHandler.commands.n = cmdCount
 		widgetHandler:CommandsChanged() --call widget:CommandsChanged()
 		local iconList = {[1337]=9001}
-		local custom_cmdz = widgetHandler.customCommands		
+		local custom_cmdz = widgetHandler.customCommands
 		return "", xIcons, yIcons, {}, custom_cmdz, {}, {}, {}, {}, {}, iconList
 	end
 	widgetHandler:ConfigLayoutHandler(dummylayouthandler) --override default build/ordermenu layout

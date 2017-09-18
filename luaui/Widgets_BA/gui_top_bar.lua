@@ -27,6 +27,7 @@ local barGlowEdgeTexture		= LUAUI_DIRNAME.."Images/barglow-edge.dds"
 local bladesTexture					= ":c:"..LUAUI_DIRNAME.."Images/blades.png"
 local poleTexture						= LUAUI_DIRNAME.."Images/pole.png"
 local comTexture						= LUAUI_DIRNAME.."Images/comIcon.png"
+local glowTexture						= LUAUI_DIRNAME.."Images/glow.dds"
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
@@ -65,6 +66,8 @@ local minWind		  			= Game.windMin
 local maxWind		  			= Game.windMax
 local windRotation			= 0
 
+local sec = 0
+local glowCycle = 0
 local lastFrame = -1
 local gameFrame = 0
 local topbarArea = {}
@@ -515,13 +518,19 @@ local function updateResbarValues(res)
         if r[1] > r[2]*1.07 then
             cappedCurRes = r[2]*1.07
 		end
+		if res == 'energy' then
+			glColor(1,1,0, 0.04 + (glowCycle/25))
+			glTexture(glowTexture)
+			local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
+			glTexRect(resbarArea[res][1]+iconPadding, resbarArea[res][2]+iconPadding, resbarArea[res][1]+(height*widgetScale)-iconPadding, resbarArea[res][4]-iconPadding)
+		end
 
 		-- Bar value
         glColor(resbarDrawinfo[res].barColor)
         glTexture(barbg)
-        glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
+		glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
 
-        -- Bar value glow
+		-- Bar value glow
         glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.06)
         glTexture(barGlowCenterTexture)
         glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
@@ -543,11 +552,11 @@ local function updateResbarText(res)
     dlistResbar[res][4] = glCreateList( function()
         local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
         -- Text: storage
-        glText("\255\133\133\133"..short(r[2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+        glText("\255\150\150\150"..short(r[2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
         -- Text: pull
-        glText("\255\200\100\100"..short(r[3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+        glText("\255\210\100\100"..short(r[3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
         -- Text: income
-        glText("\255\100\200\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+        glText("\255\100\210\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
         -- display overflow notification
 		if not spec and r[1] >= r[2] and Spring.GetGameFrame() > 90 then
@@ -586,7 +595,7 @@ local function updateResbar(res)
 	local barHeight = (height*widgetScale/10)
 	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 31 * widgetScale
+	local barLeftPadding = 33 * widgetScale
 	local barRightPadding = 7 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 3.5
@@ -612,11 +621,11 @@ local function updateResbar(res)
 	resbarDrawinfo[res].barGlowRightTexRect = {resbarDrawinfo[res].barTexRect[3]+(glowSize*2), resbarDrawinfo[res].barTexRect[2] - glowSize, resbarDrawinfo[res].barTexRect[3], resbarDrawinfo[res].barTexRect[4] + glowSize}
 	
 	resbarDrawinfo[res].textCurrent = {short(r[1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
-	resbarDrawinfo[res].textStorage = {"\255\144\144\144"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textStorage = {"\255\150\150\150"..short(r[2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
 	--resbarDrawinfo[res].textPull = {"\255\200\100\100"..short(r[3]), barArea[1]+((barArea[3]-barArea[1])*0.2), barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
 	--resbarDrawinfo[res].textIncome = {"\255\100\200\100"..short(r[4]), barArea[1], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'od'}
-	resbarDrawinfo[res].textPull = {"\255\220\100\100"..short(r[3]), barArea[1]-(6*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textIncome = {"\255\100\220\100"..short(r[4]), barArea[1]-(6*widgetScale), barArea[2]+barHeight*2.5, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textPull = {"\255\210\100\100"..short(r[3]), barArea[1]-(7*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textIncome = {"\255\100\210\100"..short(r[4]), barArea[1]-(7*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
 
 	dlistResbar[res][1] = glCreateList( function()
 
@@ -699,8 +708,10 @@ local function updateResbar(res)
 		if res == 'energy' then
 			WG['tooltip'].AddTooltip(res..'_metalmaker_slider', conversionIndicatorArea, "\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Convertor units)")
 		end
-		WG['tooltip'].AddTooltip(res..'_pull',    {resbarDrawinfo[res].textPull[2]-(resbarDrawinfo[res].textPull[4]*0.5),       resbarDrawinfo[res].textPull[3],    resbarDrawinfo[res].textPull[2]+(resbarDrawinfo[res].textPull[4]*2),       resbarDrawinfo[res].textPull[3]+resbarDrawinfo[res].textPull[4]}, ""..res.." usage")
-		WG['tooltip'].AddTooltip(res..'_income',  {resbarDrawinfo[res].textIncome[2]-(resbarDrawinfo[res].textIncome[4]*0.5),   resbarDrawinfo[res].textIncome[3],  resbarDrawinfo[res].textIncome[2]+(resbarDrawinfo[res].textIncome[4]*2),   resbarDrawinfo[res].textIncome[3]+resbarDrawinfo[res].textIncome[4]}, ""..res.." income")
+		--WG['tooltip'].AddTooltip(res..'_pull',    {resbarDrawinfo[res].textPull[2]-(resbarDrawinfo[res].textPull[4]*0.5),       resbarDrawinfo[res].textPull[3],    resbarDrawinfo[res].textPull[2]+(resbarDrawinfo[res].textPull[4]*2),       resbarDrawinfo[res].textPull[3]+resbarDrawinfo[res].textPull[4]}, ""..res.." usage")
+		--WG['tooltip'].AddTooltip(res..'_income',  {resbarDrawinfo[res].textIncome[2]-(resbarDrawinfo[res].textIncome[4]*0.5),   resbarDrawinfo[res].textIncome[3],  resbarDrawinfo[res].textIncome[2]+(resbarDrawinfo[res].textIncome[4]*2),   resbarDrawinfo[res].textIncome[3]+resbarDrawinfo[res].textIncome[4]}, ""..res.." income")
+		WG['tooltip'].AddTooltip(res..'_pull',    {resbarDrawinfo[res].textPull[2]-(resbarDrawinfo[res].textPull[4]*2.5),       resbarDrawinfo[res].textPull[3],    resbarDrawinfo[res].textPull[2]+(resbarDrawinfo[res].textPull[4]*0.5),       resbarDrawinfo[res].textPull[3]+resbarDrawinfo[res].textPull[4]}, ""..res.." usage")
+		WG['tooltip'].AddTooltip(res..'_income',  {resbarDrawinfo[res].textIncome[2]-(resbarDrawinfo[res].textIncome[4]*2.5),   resbarDrawinfo[res].textIncome[3],  resbarDrawinfo[res].textIncome[2]+(resbarDrawinfo[res].textIncome[4]*0.5),   resbarDrawinfo[res].textIncome[3]+resbarDrawinfo[res].textIncome[4]}, ""..res.." income")
 		WG['tooltip'].AddTooltip(res..'_storage', {resbarDrawinfo[res].textStorage[2]-(resbarDrawinfo[res].textStorage[4]*2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3]+resbarDrawinfo[res].textStorage[4]}, ""..res.." storage")
 		WG['tooltip'].AddTooltip(res..'_curent', {resbarDrawinfo[res].textCurrent[2]-(resbarDrawinfo[res].textCurrent[4]*1.75), resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[2]+(resbarDrawinfo[res].textCurrent[4]*1.75), resbarDrawinfo[res].textCurrent[3]+resbarDrawinfo[res].textCurrent[4]}, "\255\215\255\215"..string.upper(res).."\n\255\240\240\240Share "..res.." to a specific player by...\n1) Using the (adv)playerlist,\n    dragging up the "..res.." icon at the rightside.\n2) An interface brought up with the H key.")
 	end
@@ -817,10 +828,12 @@ function widget:GameFrame(n)
 	lastUpdateFrame = currentUpdateFrame
 end
 
-
 function widget:Update(dt)
 	local mx,my = spGetMouseState()
     now = os.clock()
+
+	sec = sec + dt
+	glowCycle = math.sin(math.pi*(sec)/2)
 
 	if now > nextGuishaderCheck then
         nextGuishaderCheck = now+guishaderCheckUpdateRate
