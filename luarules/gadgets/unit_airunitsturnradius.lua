@@ -51,13 +51,11 @@ end
 
 function gadget:GameFrame()
 	for unitID, isbomber in pairs (Bombers) do
-		local cQueue = Spring.GetCommandQueue(unitID)
+		local cQueue = Spring.GetCommandQueue(unitID,1)
 			if cQueue[1] and cQueue[1].id == CMD.ATTACK then
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
-				-- Spring.Echo("TurnRadius = 500")
 			else
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
-				-- Spring.Echo("TurnRadius = 75")
 			end
 	end
 end
@@ -66,10 +64,8 @@ function gadget:AllowCommand(unitID, _, _, _, cmdID)
 	if Bombers[unitID] then
 		if cmdID == CMD.ATTACK then
 			Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
-			-- Spring.Echo("TurnRadius = 500")
 		else
 			Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
-			-- Spring.Echo("TurnRadius = 75")
 		end
 	end
 	return true
