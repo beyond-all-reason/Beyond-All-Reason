@@ -1111,6 +1111,11 @@ transform()
 {
 	if( TRUE )
 	{
+		move body to y-axis [-8.000000] speed [24.000000];
+		sleep 73;
+	}
+	if( TRUE )
+	{
 		move lhippivot to z-axis [0.000000] now;
 		move rhippivot to z-axis [0.000000] now;
 		move rfoot to y-axis [0.000000] now;
@@ -1159,11 +1164,6 @@ transform()
 	{
 		turn body to x-axis <-8.000000> speed <50.000000>;
 		sleep 173;
-	}
-	if( TRUE )
-	{
-		turn body to x-axis <0.000000> speed <120.000000>;
-		sleep 73;
 	}
 	sleep 73;
 	return (0);
@@ -1304,6 +1304,7 @@ swim()
 {
 	if( TRUE )
 	{
+		move body to y-axis [-8] speed [27];
 		move lhippivot to x-axis [2.724991] now;
 		move lhippivot to y-axis [-7.250000] now;
 		move lhippivot to z-axis [7.224991] now;
