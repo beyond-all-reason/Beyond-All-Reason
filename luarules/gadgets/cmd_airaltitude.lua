@@ -48,7 +48,6 @@ end
 
 function gadget:UnitCreated(unitID)
 	if UnitDefs[Spring.GetUnitDefID(unitID)].canFly == true then
-		Spring.Echo(nolowalt[UnitDefs[Spring.GetUnitDefID(unitID)].name])
 		Spring.InsertUnitCmdDesc(unitID, CMD.ALTITUDE, CruiseAltDesc)
 		if UnitDefs[Spring.GetUnitDefID(unitID)].hoverAttack == false then
 			Spring.MoveCtrl.SetAirMoveTypeData(unitID, "wantedHeight", UnitDefs[Spring.GetUnitDefID(unitID)].wantedHeight)
