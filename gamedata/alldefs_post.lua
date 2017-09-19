@@ -76,7 +76,19 @@ function UnitDef_Post(name, uDef)
 			uDef.buildingmask = 0
 		end
 	end
-
+	
+	--Aircraft movements here:
+	if uDef.canfly == true then
+		turn = (((uDef.turnrate)*0.16)/360)/30
+		uDef.wingdrag = uDef.brakerate * 4
+		uDef.wingangle = turn
+		uDef.speedtofront = 0.01/(uDef.turnrate^(0.4)/850^(0.4))
+		uDef.turnradius =0
+		uDef.maxaileron =turn
+		uDef.maxelevator =turn
+		uDef.maxrudder = turn
+		uDef.maxacc = (uDef.acceleration*2*uDef.maxvelocity^(0.4))/(10^(0.4))
+	end
 	-- Enable default Nanospray
 	uDef.shownanospray = true
 
