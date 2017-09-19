@@ -72,6 +72,8 @@ CMD_TERRAFORM_INTERNAL = 39801
 
 CMD_RAW_MOVE = 39812
 
+CMD_ALTITUDE = 39999
+
 -- not included here, just listed
 --[[
 CMD_PURCHASE = 32601	-- planetwars, range up to 32601 + #purchases
