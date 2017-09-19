@@ -1,6 +1,6 @@
 return {
 	armawac = {
-		acceleration = 0.114,
+		acceleration = 0.25,
 		brakerate = 0.05,
 		buildcostenergy = 8600,
 		buildcostmetal = 180,
@@ -31,10 +31,10 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1275,
 		sonardistance = 1200,
-		turnrate = 392,
+		turnrate = 650,
 		blocking = false,
 		customparams = {
-			
+			wingsurface = 0.50,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

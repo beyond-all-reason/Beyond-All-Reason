@@ -43,9 +43,8 @@ return {
 		verticalSpeed = 5.0,
 		blocking = false,
 		customparams = {
-
-description_long = "The Valkyrie is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your build power where you currently need it.",
-			
+			wingsurface = 0.1,
+			description_long = "The Valkyrie is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your build power where you currently need it.",
 			paralyzemultiplier = 0.025,
 		},
 		sfxtypes = { 

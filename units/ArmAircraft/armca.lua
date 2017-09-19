@@ -1,6 +1,6 @@
 return {
 	armca = {
-		acceleration = 0.072,
+		acceleration = 0.07,
 		brakerate = 0.4275,
 		buildcostenergy = 4608,
 		buildcostmetal = 112,
@@ -38,7 +38,7 @@ return {
 		sightdistance = 390,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
-		turnrate = 110,
+		turnrate = 240,
 		workertime = 55,
 		blocking = false,
 		buildoptions = {
@@ -76,7 +76,7 @@ return {
 		},
 		customparams = {
 			description_long = "A Construction Aircraft is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Aircraft Plant. Due to their speed, the highest amongst constructors, it may be used for quick expansions and reclaiming in areas far from your base. It can also access the whole map, as it doesn't care about any natural obstacles. It has a very low HP, so keep away from enemy's anti air units. Due to little build power you may want to use multiple air cons at once. Each Construction Aircraft increases the player's energy and metal storage capacity by 25.",
-
+			wingsurface = 0.5,
 			area_mex_def = "armmex",
 		},
 		sfxtypes = { 

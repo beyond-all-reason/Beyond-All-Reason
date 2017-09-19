@@ -1,6 +1,6 @@
 return {
 	armaca = {
-		acceleration = 0.078,
+		acceleration = 0.07,
 		brakerate = 0.4275,
 		buildcostenergy = 11642,
 		buildcostmetal = 282,
@@ -39,7 +39,7 @@ return {
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
-		turnrate = 138,
+		turnrate = 240,
 		workertime = 100,
 		blocking = false,
 		buildoptions = {
@@ -76,7 +76,7 @@ return {
 			[30] = "armjuno",
 		},
 		customparams = {
-			
+			wingsurface = 0.25,
 			area_mex_def = "armmoho",
 		},
 		sfxtypes = { 

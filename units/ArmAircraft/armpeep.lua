@@ -1,6 +1,6 @@
 return {
 	armpeep = {
-		acceleration = 0.2,
+		acceleration = 0.30,
 		brakerate = 0.01125,
 		buildcostenergy = 1600,
 		buildcostmetal = 50,
@@ -31,11 +31,12 @@ return {
 		selfdestructas = "tinyExplosionGenericSelfd",
 		selfdestructcountdown = 1,
 		sightdistance = 865,
-		turnrate = 880,
+		turnrate = 850,
 		blocking = false,
 		customparams = {
 			description_long = "The Peeper is a cheap and fast moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim.",
-		},
+			wingsurface = 0.5,
+			},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
 				"deathceg2",

@@ -1,6 +1,6 @@
 return {
 	coraca = {
-		acceleration = 0.066,
+		acceleration = 0.065,
 		brakerate = 0.4275,
 		buildcostenergy = 11294,
 		buildcostmetal = 295,
@@ -39,7 +39,7 @@ return {
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
-		turnrate = 121,
+		turnrate = 240,
 		workertime = 100,
 		blocking = false,
 		buildoptions = {
@@ -75,7 +75,7 @@ return {
 			[29] = "corjuno",
 		},
 		customparams = {
-			
+			wingsurface = 0.7,
 			area_mex_def = "cormoho",
 		},
 		sfxtypes = { 

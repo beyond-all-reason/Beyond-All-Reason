@@ -1,6 +1,6 @@
 return {
 	armlance = {
-		acceleration = 0.08,
+		acceleration = 0.20,
 		brakerate = 0.075,
 		buildcostenergy = 7000,
 		buildcostmetal = 330,
@@ -30,9 +30,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 462,
+		turnrate = 700,
 		customparams = {
-			
+		wingsurface = 0.5,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

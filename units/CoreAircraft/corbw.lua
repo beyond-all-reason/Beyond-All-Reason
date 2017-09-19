@@ -1,6 +1,6 @@
 return {
 	corbw = {
-		acceleration = 0.264,
+		acceleration = 0.25,
 		brakerate = 0.55,
 		buildcostenergy = 1300,
 		buildcostmetal = 60,
@@ -31,12 +31,12 @@ return {
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 364,
 		turninplaceanglelimit = 360,
-		turnrate = 1144,
+		turnrate = 1100,
 		upright = true,
 		usesmoothmesh = 0,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 1.0,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

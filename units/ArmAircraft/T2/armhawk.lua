@@ -1,6 +1,6 @@
 return {
 	armhawk = {
-		acceleration = 0.16,
+		acceleration = 0.40,
 		airsightdistance = 1100,
 		brakerate = 0.01125,
 		buildcostenergy = 5000,
@@ -28,10 +28,10 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 250,
 		stealth = true,
-		turnrate = 1425,
+		turnrate = 900,
 		blocking = false,
 		customparams = {
-			
+			wingsurface = 0.40,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

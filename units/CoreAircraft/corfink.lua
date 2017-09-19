@@ -1,6 +1,6 @@
 return {
 	corfink = {
-		acceleration = 0.16,
+		acceleration = 0.30,
 		brakerate = 0.0125,
 		buildcostenergy = 1600,
 		buildcostmetal = 50,
@@ -31,11 +31,11 @@ return {
 		selfdestructas = "tinyExplosionGenericSelfd",
 		selfdestructcountdown = 1,
 		sightdistance = 835,
-		turnrate = 770,
+		turnrate = 850,
 		blocking = false,
 		customparams = {
-
-description_long = "The Fink is a cheap and fast-moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim. They can also be used as a cheap distraction swarm that takes the fire from anti-air during bombing runs.",		
+		wingsurface = 0.25,
+		description_long = "The Fink is a cheap and fast-moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim. They can also be used as a cheap distraction swarm that takes the fire from anti-air during bombing runs.",		
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

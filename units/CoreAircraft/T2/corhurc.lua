@@ -1,6 +1,6 @@
 return {
 	corhurc = {
-		acceleration = 0.03,
+		acceleration = 0.20,
 		brakerate = 0.1,
 		buildcostenergy = 18500,
 		buildcostmetal = 310,
@@ -31,10 +31,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 221,
-		turnrate = 220,
+		turnrate = 400,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 1.0,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

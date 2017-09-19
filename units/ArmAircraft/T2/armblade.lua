@@ -1,6 +1,6 @@
 return {
 	armblade = {
-		acceleration = 0.6,
+		acceleration = 0.2,
 		brakerate = 0.35,
 		buildcostenergy = 21000,
 		buildcostmetal = 1300,
@@ -35,7 +35,7 @@ return {
 		turnrate = 720,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.2,	
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

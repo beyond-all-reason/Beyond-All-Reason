@@ -1,6 +1,6 @@
 return {
 	armliche = {
-		acceleration = 0.13,
+		acceleration = 0.15,
 		brakerate = 0.05,
 		buildcostenergy = 43000,
 		buildcostmetal = 2250,
@@ -31,10 +31,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 535,
+		turnrate = 540,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.8,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

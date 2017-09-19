@@ -32,10 +32,10 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
-		turnrate = 792,
+		turnrate = 800,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.35,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

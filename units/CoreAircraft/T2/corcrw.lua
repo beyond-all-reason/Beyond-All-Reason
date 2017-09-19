@@ -1,6 +1,6 @@
 return {
 	corcrw = {
-		acceleration = 0.154,
+		acceleration = 0.15,
 		activatewhenbuilt = true,
 		brakerate = 0.375,
 		buildcostenergy = 74000,
@@ -32,11 +32,11 @@ return {
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 494,
 		turninplaceanglelimit = 360,
-		turnrate = 297,
+		turnrate = 300,
 		upright = true,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.8,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

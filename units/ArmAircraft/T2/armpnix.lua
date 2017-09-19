@@ -1,6 +1,6 @@
 return {
 	armpnix = {
-		acceleration = 0.03,
+		acceleration = 0.20,
 		brakerate = 0.1,
 		buildcostenergy = 12500,
 		buildcostmetal = 230,
@@ -31,10 +31,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 260,
-		turnrate = 402,
+		turnrate = 600,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.65,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

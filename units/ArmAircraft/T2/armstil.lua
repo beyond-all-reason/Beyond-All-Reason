@@ -1,6 +1,6 @@
 return {
 	armstil = {
-		acceleration = 0.16,
+		acceleration = 0.25,
 		brakerate = 0.04,
 		buildcostenergy = 18000,
 		buildcostmetal = 180,
@@ -34,9 +34,10 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 390,
 		stealth = true,
-		turnrate = 396,
+		turnrate = 600,
 		blocking = false,
 		customparams = {
+		wingsurface = 0.25,
 			
 		},
 		sfxtypes = { 

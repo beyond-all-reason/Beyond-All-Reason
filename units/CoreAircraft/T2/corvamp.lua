@@ -1,6 +1,6 @@
 return {
 	corvamp = {
-		acceleration = 0.166,
+		acceleration = 0.35,
 		airsightdistance = 1100,
 		brakerate = 0.0875,
 		buildcostenergy = 3650,
@@ -28,10 +28,10 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 250,
 		stealth = true,
-		turnrate = 1337,
+		turnrate = 980,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.55,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

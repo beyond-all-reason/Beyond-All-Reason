@@ -1,6 +1,6 @@
 return {
 	corape = {
-		acceleration = 0.152,
+		acceleration = 0.15,
 		brakerate = 0.356,
 		buildcostenergy = 7000,
 		buildcostmetal = 370,
@@ -32,10 +32,10 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
-		turnrate = 594,
+		turnrate = 600,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.65,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

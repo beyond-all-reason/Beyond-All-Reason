@@ -80,14 +80,18 @@ function UnitDef_Post(name, uDef)
 	--Aircraft movements here:
 	if uDef.canfly == true then
 		turn = (((uDef.turnrate)*0.16)/360)/30
+		wingsurffactor = tonumber(uDef.customparams and uDef.customparams.wingsurface) or 1
+		uDef.usesmoothmesh = false
 		uDef.wingdrag = uDef.brakerate * 4
 		uDef.wingangle = turn
-		uDef.speedtofront = 0.01/(uDef.turnrate^(0.4)/850^(0.4))
+		uDef.speedtofront = 0.01*wingsurffactor
 		uDef.turnradius =0
+		uDef.maxbank = 0.8
+		uDef.maxpitch = 0.8
 		uDef.maxaileron =turn
 		uDef.maxelevator =turn
 		uDef.maxrudder = turn
-		uDef.maxacc = (uDef.acceleration*2*uDef.maxvelocity^(0.4))/(10^(0.4))
+		uDef.maxacc = uDef.acceleration
 	end
 	-- Enable default Nanospray
 	uDef.shownanospray = true

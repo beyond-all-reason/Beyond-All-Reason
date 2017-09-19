@@ -1,6 +1,6 @@
 return {
 	cortitan = {
-		acceleration = 0.06,
+		acceleration = 0.20,
 		brakerate = 0.0725,
 		buildcostenergy = 7200,
 		buildcostmetal = 340,
@@ -30,10 +30,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 450,
+		turnrate = 600,
 		blocking = false,
 		customparams = {
-			
+			wingsurface = 0.4,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

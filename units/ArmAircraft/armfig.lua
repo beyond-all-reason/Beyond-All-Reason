@@ -1,6 +1,6 @@
 return {
 	armfig = {
-		acceleration = 0.83,
+		acceleration = 0.30,
 		airsightdistance = 950,
 		brakerate = 0.075,
 		buildcostenergy = 2800,
@@ -27,11 +27,12 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 210,
-		turnrate = 891,
+		turnrate = 850,
 		blocking = false,
 		customparams = {
 			description_long = "The Freedom Fighter is a fast moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs it is also able to destroy weak land based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in vicinity. Send fighters with your bombing runs to disable opponent's fighter wall before your bombers come to deliver the final blow.",
-		},
+			wingsurface = 0.5,
+			},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
 				"deathceg2",

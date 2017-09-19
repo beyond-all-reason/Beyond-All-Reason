@@ -1,6 +1,6 @@
 return {
 	corawac = {
-		acceleration = 0.114,
+		acceleration = 0.25,
 		brakerate = 0.0375,
 		buildcostenergy = 8300,
 		buildcostmetal = 180,
@@ -31,10 +31,10 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1250,
 		sonardistance = 1200,
-		turnrate = 402,
+		turnrate = 650,
 		blocking = false,
 		customparams = {
-			
+		wingsurface = 0.50,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

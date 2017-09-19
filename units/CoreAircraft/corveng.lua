@@ -1,6 +1,6 @@
 return {
 	corveng = {
-		acceleration = 0.83,
+		acceleration = 0.30,
 		airsightdistance = 950,
 		brakerate = 0.065,
 		buildcostenergy = 2800,
@@ -27,10 +27,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 210,
-		turnrate = 839,
+		turnrate = 850,
 		blocking = false,
 		customparams = {
-			
+			wingsurface = 0.4,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

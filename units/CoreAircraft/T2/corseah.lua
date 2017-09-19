@@ -43,7 +43,7 @@ return {
 		upright = true,
 		blocking = false,
 		customparams = {
-			
+			wingsurface = 0.50,
 			paralyzemultiplier = 0.025,
 		},
 		sfxtypes = { 
