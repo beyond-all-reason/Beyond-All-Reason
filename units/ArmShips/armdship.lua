@@ -130,7 +130,7 @@ return {
 				model = "DEPTHCHARGE",
 				name = "CruiserDepthCharge",
 				noselfdamage = true,
-				range = 500,
+				range = 550,
 				reloadtime = 3,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
@@ -145,7 +145,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 180,
+					default = 120,
+					subs = 240,
 				},
 			},
 		},
