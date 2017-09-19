@@ -31,10 +31,14 @@ dx2, dy2, dz2 = Spring.GetUnitDirection(unitID2)
 scalar2d = math.abs(dx1*dx2 + dz1*dz2)
 mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID2)].mass
 if not UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true then
+if (UnitDefs[Spring.GetUnitDefID(unitID2)].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID1),Spring.GetUnitTeam(unitID2)) == false) or not UnitDefs[Spring.GetUnitDefID(unitID2)].isFactory == true then
 Spring.SetUnitVelocity(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
 end
+end
 if not UnitDefs[Spring.GetUnitDefID(unitID2)].isBuilding == true then
+if (UnitDefs[Spring.GetUnitDefID(unitID1)].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID1),Spring.GetUnitTeam(unitID2)) == false) or not UnitDefs[Spring.GetUnitDefID(unitID1)].isFactory == true then
 Spring.SetUnitVelocity(unitID2, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
+end
 end
 end
 
