@@ -51,6 +51,7 @@ local lineFadeRate = 2.0
 
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = 34923
+local CMD_RAW_MOVE = 39812
 
 local formationCmds = {
 	[CMD.MOVE] = true,
@@ -58,21 +59,22 @@ local formationCmds = {
 	[CMD.ATTACK] = true,
 	[CMD.PATROL] = true,
 	[CMD.UNLOAD_UNIT] = true,
-	[CMD_SETTARGET] = true -- set target
+	[CMD_SETTARGET] = true, -- set target
+	[CMD_RAW_MOVE] = true
 }
 
 -- What commands require alt to be held 
 local requiresAlt = {
-	--nothing!
+
 }
 
 -- Context-based default commands that can be overridden (meaning that cf2 doesn't touch the command i.e. guard/attack when mouseover unit)
 -- If the mouse remains on the same target for both Press/Release then the formation is ignored and original command is issued.
 -- Normal logic will follow after override, i.e. must be a formationCmd to get formation, alt must be held if requiresAlt, etc.
 local overrideCmds = {
-	[CMD.GUARD] = CMD.MOVE,
-	[CMD.ATTACK] = CMD.MOVE, 
-	[CMD_SETTARGET] = CMD.MOVE
+	[CMD.GUARD] = CMD_RAW_MOVE,
+	[CMD.ATTACK] = CMD_RAW_MOVE,
+	[CMD_SETTARGET] = CMD_RAW_MOVE
 }
 
 -- What commands can be issued at a position or unit/feature ID (Only used by GetUnitPosition)
@@ -80,7 +82,7 @@ local positionCmds = {
 	[CMD.MOVE]=true,		[CMD.ATTACK]=true,		[CMD.RECLAIM]=true,		[CMD.RESTORE]=true,		[CMD.RESURRECT]=true,
 	[CMD.PATROL]=true,		[CMD.CAPTURE]=true,		[CMD.FIGHT]=true, 		[CMD.MANUALFIRE]=true,	
 	[CMD.UNLOAD_UNIT]=true,	[CMD.UNLOAD_UNITS]=true,[CMD.LOAD_UNITS]=true,	[CMD.GUARD]=true,		[CMD.AREA_ATTACK] = true,
-	[CMD_SETTARGET] = true -- set target
+	[CMD_SETTARGET] = true, [CMD_RAW_MOVE] = true, -- set target
 }
 
 
@@ -177,7 +179,7 @@ local huge = math.huge
 local pi2 = 2*math.pi
 
 local CMD_INSERT = CMD.INSERT
-local CMD_MOVE = CMD.MOVE
+local CMD_MOVE = CMD_RAW_MOVE
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNLOADUNIT = CMD.UNLOAD_UNIT
 local CMD_UNLOADUNITS = CMD.UNLOAD_UNITS
@@ -371,7 +373,6 @@ local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
 	end
-	
 	spGiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOpts)
@@ -450,6 +451,11 @@ function widget:MousePress(mx, my, mButton)
 	if not (formationCmds[usingCmd] and (alt or not requiresAlt[usingCmd])) then
 		return false
 	end
+
+	--[[-- Set move cmd to raw move if appropriate
+	if usingCmd == CMD_MOVE then
+		usingCmd = CMD_RAW_MOVE
+	end--]]
 	
 	-- Get clicked position
 	local _, pos = spTraceScreenRay(mx, my, true, inMinimap)
@@ -460,7 +466,6 @@ function widget:MousePress(mx, my, mButton)
 	
 	-- Is this line a path candidate (We don't do a path off an overriden command)
 	pathCandidate = (not overriddenCmd) and (spGetSelectedUnitsCount()==1 or (alt and not requiresAlt[usingCmd]))
-	
 	-- We handled the mouse press
 	return true
 end
@@ -494,9 +499,11 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		
 		-- If the line is a path, start the units moving to this node
 		if pathCandidate then
-			
 			local alt, ctrl, meta, shift = GetModKeys()
 			local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
+			if usingCmd == CMD_RAW_MOVE then
+				usingCmd = CMD.MOVE
+			end
 			GiveNotifyingOrder(usingCmd, pos, cmdOpts)
 			lastPathPos = pos
 			
@@ -511,6 +518,9 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 				
 				local alt, ctrl, meta, shift = GetModKeys()
 				local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB) -- using alt uses springs box formation, so we set it off always
+				if usingCmd == CMD_RAW_MOVE then
+					usingCmd = CMD.MOVE
+				end
 				GiveNotifyingOrder(usingCmd, pos, cmdOpts)
 				lastPathPos = pos
 			end
@@ -521,6 +531,8 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 end
 function widget:MouseRelease(mx, my, mButton)
 	
+	-- Spring.Echo("release")
+
 	-- It is possible for MouseRelease to fire after MouseRelease
 	if #fNodes == 0 then
 		return false
@@ -541,6 +553,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Override checking
 	if overriddenCmd then
+		-- Spring.Echo("overriding")
 	
 		local targetID
 		local targType, targID = spTraceScreenRay(mx, my, false, inMinimap)
@@ -563,7 +576,7 @@ function widget:MouseRelease(mx, my, mButton)
 	
 	-- Using path? If so then we do nothing
 	if draggingPath then
-		
+		-- Spring.Echo("using path")
 		draggingPath = false
 		
 	-- Using formation? If so then it's time to calculate and issue orders.
@@ -600,8 +613,15 @@ function widget:MouseRelease(mx, my, mButton)
 			if targetID then
 				-- Give order (i.e. pass the command to the engine to use as normal)
 				GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)			
-			elseif usingCmd == CMD_MOVE then 
-				GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)			
+			elseif usingCmd == CMD_MOVE then
+				VFS.Include("LuaRules/Configs/customcmds.h.lua")
+				local selUnits = spGetSelectedUnits()
+				local uSpeed = UnitDefs[spGetUnitDefID(selUnits[1])].speed
+				--spGiveOrderToUnit(selUnits[1],
+			--		CMD_INSERT,
+			--		{-1,CMD_RAW_MOVE,0,fNodes[1][1],fNodes[1][2],fNodes[1][3]},
+			--		{"alt"})
+			    GiveNotifyingOrder(CMD.MOVE, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)			
 			else
 				-- Deselect command, select default command instead
 				spSetActiveCommand(0)
@@ -691,6 +711,44 @@ function widget:KeyRelease(key)
 		spSetActiveCommand(0)
 		endShift = false
 	end
+end
+
+function table_print (tt, indent, done)
+  done = done or {}
+  indent = indent or 0
+  if type(tt) == "table" then
+    local sb = {}
+    for key, value in pairs (tt) do
+      table.insert(sb, string.rep (" ", indent)) -- indent it
+      if type (value) == "table" and not done [value] then
+        done [value] = true
+        table.insert(sb, "{\n");
+        table.insert(sb, table_print (value, indent + 2, done))
+        table.insert(sb, string.rep (" ", indent)) -- indent it
+        table.insert(sb, "}\n");
+      elseif "number" == type(key) then
+        table.insert(sb, string.format("\"%s\"\n", tostring(value)))
+      else
+        table.insert(sb, string.format(
+            "%s = \"%s\"\n", tostring (key), tostring(value)))
+       end
+    end
+    return table.concat(sb)
+  else
+    return tt .. "\n"
+  end
+end
+
+function to_string( tbl )
+    if  "nil"       == type( tbl ) then
+        return tostring(nil)
+    elseif  "table" == type( tbl ) then
+        return table_print(tbl)
+    elseif  "string" == type( tbl ) then
+        return tbl
+    else
+        return tostring(tbl)
+    end
 end
 
 --------------------------------------------------------------------------------
