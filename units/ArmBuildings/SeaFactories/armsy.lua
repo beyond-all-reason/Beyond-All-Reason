@@ -7,7 +7,7 @@ return {
 		builder = true,
 		shownanospray = false,
 		buildpic = "ARMSY.DDS",
-		buildtime = 1.4*6050,
+		buildtime = 1.1*6050,
 		canmove = true,
 		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-2 -3 -3",

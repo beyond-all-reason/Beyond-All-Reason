@@ -40,6 +40,10 @@ return false
 end
 
 end
+function dot(cx1,cz1,cx2,cz2)
+	local dotprod = cx1*cx2 + cz1*cz2
+	return dotprod
+end
 
 function Norm2DVectr(cx,cy,cz)
 	local ndx = (cx/math.abs(cx))*math.sqrt(cx^2/(cx^2+cz^2))
@@ -95,14 +99,19 @@ function gadget:UnitUnitCollision(unitID1, unitID2)
 				Spring.SetUnitVelocity(unitID1, rspeedx, rspeedy, rspeedz)
 				
 				if UnitDefs[Spring.GetUnitDefID(unitID2)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID2)].name == "armnanotc" then
-					if ddotdir1 > 0.7 then
-					
-					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x1 - 24*dirx1, Spring.GetGroundHeight(x1 - 24*dirx1,z1 - 24*dirz1), z1 - 24*dirz1},{"alt"})
-					
+					if ddotdir1 > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0 then
+						local movegoalx, movegoaly, movegoalz =  x1 - 24*dirx1, Spring.GetGroundHeight(x1 - 24*dirx1,z1 - 24*dirz1), z1 - 24*dirz1
+
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID1), movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+						Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
+						end
 					else
-					
-						Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x1 + 24*(-dirx1+dx1), Spring.GetGroundHeight(x1 + 24*(-dirx1+dx1),z1 + 24*(-dirz1+dz1)), z1 + 24*(-dirz1+dz1)},{"alt"})
-					
+						local movegoalx, movegoaly, movegoalz =  x1 + 8*(-dirx1+dx1), Spring.GetGroundHeight(x1 + 8*(-dirx1+dx1),z1 + 8*(-dirz1+dz1)), z1 + 8*(-dirz1+dz1)
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if dot(dx1,dz1, -dirx1+dx1, -dirz1+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID1), movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+						Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
+						end			
 					end
 				end
 			end
@@ -120,10 +129,18 @@ if ddotdir2 > 0 then
 			local rspeedz = vz1*(1-ddotdir2) + (vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))*(ddotdir2)
 			Spring.SetUnitVelocity(unitID2, rspeedx, rspeedy, rspeedz)
 			if UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "armnanotc" then
-				if ddotdir2 > 0.7 then
-					Spring.GiveOrderToUnit(unitID2, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x2 - 24*dirx2, Spring.GetGroundHeight(x2 - 24*dirx2,z2 - 24*dirz2), z2 - 24*dirz},{"alt"})
+				if ddotdir2 > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID2)].rSpeed ~= 0  then
+					local movegoalx, movegoaly, movegoalz =  x2 - 24*dirx2, Spring.GetGroundHeight(x2 - 24*dirx2,z2 - 24*dirz2), z2 - 24*dirz
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID2), movegoalx, movegoaly, movegoalz,  dx2, 0, dz2, true, true, false) == true then
+					Spring.GiveOrderToUnit(unitID2, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
+					end
 				else
-					Spring.GiveOrderToUnit(unitID2, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x2+ 24*(-dirx2+dx2), Spring.GetGroundHeight(x2 + 24*(-dirx2+dx2),z2 + 24*(-dirz2+dz2)), z2 + 24*(-dirz2+dz2)},{"alt"})
+					local movegoalx, movegoaly, movegoalz =  x2+ 8*(-dirx2+dx2), Spring.GetGroundHeight(x2 + 8*(-dirx2+dx2),z2 + 8*(-dirz2+dz2)), z2 + 8*(-dirz2+dz2)
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if dot(dx2,dz2, -dirx2+dx2, -dirz2+dz2) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID2), movegoalx, movegoaly, movegoalz, dx2, 0, dz2, true, true, false) == true then
+					Spring.GiveOrderToUnit(unitID2, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
+					end
 				end
 			end
 		end
@@ -154,10 +171,18 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, FeatureDefs[Spring.GetFeatureDefID(unitID2)].mass
 				end
 			Spring.SetUnitVelocity(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
-				if ddotdir > 0.7 then
-					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x1 + 24*-dirx, Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)), z1 + 24*-dirz},{"alt"})
+				if ddotdir > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0  then
+					local movegoalx, movegoaly, movegoalz = x1 + 24*-dirx,Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)),z1 + 24*-dirz
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID1), movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
+					end
 				else
-					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x1 + 24*(-dirx+dx1), Spring.GetGroundHeight(x1 + 24*(-dirx+dx1),z1 + 24*(-dirz+dz1)), z1 + 24*(-dirz+dz1)},{"alt"})
+					local movegoalx, movegoaly, movegoalz = x1 + 8*(-dirx+dx1), Spring.GetGroundHeight(x1 + 8*(-dirx+dx1),z1 + 8*(-dirz+dz1)), z1 + 8*(-dirz+dz1)
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if dot(dx1,dz1, -dirx+dx1, -dirz+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID1), movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
+					end
 				end
 			end
 		end
@@ -182,11 +207,19 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, FeatureDefs[Spring.GetFeatureDefID(unitID2)].mass
 				end
 			Spring.SetUnitVelocity(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
-				if ddotdir > 0.7 then
-					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x1 + 24*-dirx, Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)), z1 + 24*-dirz},{"alt"})
-				else
-					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, x1 + 24*(-dirx+dx1), Spring.GetGroundHeight(x1 + 24*(-dirx+dx1),z1 + 24*(-dirz+dz1)), z1 + 24*(-dirz+dz1)},{"alt"})
-				end
+				if ddotdir > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0  then
+					local movegoalx, movegoaly, movegoalz = x1 + 24*-dirx,Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)),z1 + 24*-dirz
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID1), movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
+					end				
+					else
+					local movegoalx, movegoaly, movegoalz = x1 + 8*(-dirx+dx1), Spring.GetGroundHeight(x1 + 8*(-dirx+dx1),z1 + 8*(-dirz+dz1)), z1 + 8*(-dirz+dz1)
+						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
+						if dot(dx1,dz1, -dirx+dx1, -dirz+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(Spring.GetUnitDefID(unitID1), movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+					Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
+					end				
+					end
 			end
 		end
 	end

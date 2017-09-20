@@ -45,7 +45,7 @@ reverseUnit = {}
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	allowreverse = "Reverse is not allowed"
 		-- Spring.Echo(cmdID)
-	if cmdID == 1 then
+	if cmdID == 1 or cmdID == CMD.RAW_MOVE then
 
 	x,y,z = cmdParams[4],cmdParams[5],cmdParams[6]
 	xu, yu, zu = Spring.GetUnitPosition(unitID)
