@@ -58,6 +58,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Morties are 5% slower and are a bit less acurate (even more when moving)
  • Fixed viper overshooting (when aiming at radar dots)
  • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
+ • Moho Exploiter has been given the same health as normal moho metal extractors, but does slightly less damage per shot
 
  T3
  • Vanguard does 20% more damage
@@ -135,6 +136,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Added quit button showing a custom resign/quit window
  • Added widget "Set fighters on Fly mode" (default enabled), toggable via options widget
  • Added widget "Depth of Field" (default disabled) hold ctrl+[] to increase amount of DoF
+ • Added widget "Tombstones" (default enabled), toggable via options widget
 
  Top widgets:
  • Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
