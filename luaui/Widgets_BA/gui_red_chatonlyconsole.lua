@@ -49,10 +49,10 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local Config = {
 	console = {
-		px = vsx*0.3,py = vsy*0.05, --default start position
+		px = vsx*0.3,py = vsy*0.105, --default start position
 		sx = vsx*0.4, --background size
 		
-		fontsize = 12*widgetScale,
+		fontsize = 11.5*widgetScale,
 		
 		minlines = 2, --minimal number of lines to display
 		maxlines = 6,
@@ -63,7 +63,7 @@ local Config = {
 		margin = 7*widgetScale, --distance from background border
 		
 		fadetime = 0.25, --fade effect time, in seconds
-		fadedistance = 100*widgetScale, --distance from cursor at which console shows up when empty
+		fadedistance = 1*widgetScale, --distance from cursor at which console shows up when empty
 
 		filterduplicates = true, --group identical lines, f.e. ( 5x Nickname: blahblah)
 		

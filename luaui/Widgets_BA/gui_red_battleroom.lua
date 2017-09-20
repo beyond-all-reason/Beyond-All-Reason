@@ -49,21 +49,21 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 
 local Config = {
 	console = {
-		px = vsx*0.70,py = vsy*0.05, --default start position
-		sx = vsx*0.2, --background size
+		px = vsx*0.3,py = vsy*0.05, --default start position
+		sx = vsx*0.4, --background size
 		
-		fontsize = 11.5*widgetScale,
+		fontsize = 10*widgetScale,
 		
-		minlines = 6, --minimal number of lines to display
-		maxlines = 6,
-		maxlinesScrollmode = 6,
+		minlines = 3, --minimal number of lines to display
+		maxlines = 3,
+		maxlinesScrollmode = 3,
 		
 		maxage = 30, --max time for a message to be displayed, in seconds
 		
 		margin = 7*widgetScale, --distance from background border
 		
 		fadetime = 0.25, --fade effect time, in seconds
-		fadedistance = 100*widgetScale, --distance from cursor at which console shows up when empty
+		fadedistance = 1*widgetScale, --distance from cursor at which console shows up when empty
 
 		filterduplicates = true, --group identical lines, f.e. ( 5x Nickname: blahblah)
 		
@@ -505,7 +505,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			linetype = 4 --gamemessage
 			playSound = true
 			text = ssub(line,3)
-			if sfind(text, "Invalid command") or sfind(text, "You cannot") or sfind(text, "You are not allowed") or (sfind(text, "Invalid") and sfind(text, "command")) or sfind(text, "Unable to") or sfind(text, "Could not find") or sfind(text, "Ringing") or sfind(text, " is no one to ring") then
+			if sfind(text, "Invalid command" )or sfind(line, "not a valid") or sfind(text, "you cannot") or sfind(text, "You are not allowed") or (sfind(text, "Invalid") and sfind(text, "command")) or sfind(text, "Unable to") or sfind(text, "Could not find") or sfind(text, "Ringing") or sfind(text, " is no one to ring") then
 				ignoreThisMessage = true
 				playSound = false
 				if waitbotanswer then
@@ -524,19 +524,41 @@ local function processLine(line,g,cfg,newlinecolor)
 			end
 			if sfind(text, "Ticot") then
 				playSound = true
-			text = ssub(text, sfind(text, "Ticot") + 9)
+			text = ssub(text, sfind(text, "Ticot") + 8)
 			end
 			if sfind(text, "Pirateur") then
 				playSound = true
-			text = ssub(text, sfind(text, "Pirateur") + 12)
+			text = ssub(text, sfind(text, "Pirateur") + 11)
 			end
 			if sfind(text, "OverKillHost1") then
 				playSound = true
-			text = ssub(text, sfind(text, "OverKillHost1") + 16)
+			text = ssub(text, sfind(text, "OverKillHost1") + 15)
 			end
 			if sfind(text, "Pirine") then
 			playSound = true
 			text = ssub(text, sfind(text, "Pirine") + 9)
+			end
+			
+			--PROCESSS VOTES HERE--
+			if sfind(text, "vote for command") then
+				-- vote start: "Didgeri[doo] called a vote for command "bKick Didgeri[doo]" [!vote y, !vote n, !vote b]"
+				local command = ssub(text, sfind(text,"called a vote for command") + 27, sfind(text, '" ')-1)
+				local user = ssub(text, 1, sfind(text,"called a vote for command")-1)
+				text = user.." started vote: "..command
+			elseif sfind(text, "Vote for command") then
+				-- vote end: "Vote for command "xxx" passed."
+				text = "Vote "..ssub(text, sfind(text, '" ')+2,sfind(text, '" ')+7).."."
+			elseif sfind(text, "Vote in progress") then
+				-- vote progress :"Vote in progress: "bKick Didgeri[doo]" [y:0/2, n:1/2] (39s remaining)"
+				local votes = ssub(text,sfind(text, 'y:'), sfind(text, " (")-2)
+				local timeremaining = ssub(text,sfind(text, " (") + 2, sfind(text, " remaining")-1)
+				text = "Vote: "..votes..", "..timeremaining.." seconds left"				
+			end
+			
+			if sfind(text, "allowed to vote") then
+				if myname and not sfind(text, myname) then
+				ignoreThisMessage = true
+				end
 			end
 			
 			-- Will have to insert a basic autohosts list here, for now it's just available on tests hosts so let's not bother too much.
@@ -566,6 +588,10 @@ local function processLine(line,g,cfg,newlinecolor)
 	
 	-- filter shadows config changes
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
+		ignoreThisMessage = true
+	end
+	
+	if sfind(line,"->") then
 		ignoreThisMessage = true
 	end
 	
