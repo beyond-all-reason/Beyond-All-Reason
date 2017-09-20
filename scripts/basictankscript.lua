@@ -152,7 +152,7 @@ if heading[t-1] then
 		heading[t-2] = nil
 	end
 	_,_,_,vw = Spring.GetUnitVelocity(unitID)
-	difference = (difference * vw * 30 / 112.5) * driftRatio
+	difference = (difference * vw * 30 / 150) * driftRatio
 end
 t = t+1
 if vw * 30 / 112.5 > 1 then
