@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, barrel1, holders, leg1, leg2, foot1, foot2, turret1,
-       turret2, emit1, flare, misc, emit2;
+       turret2, emit1, flare, misc, emit2, sleeve2;
 
 static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay;
 
@@ -37,7 +37,7 @@ walk()
 	}
 	if( TRUE )
 	{
-		move leg1 to z-axis [-250.000000] speed [32.500000];
+		move leg1 to z-axis [-125.000000] speed [32.500000];
 		sleep 164;
 		if( TRUE )
 		{
@@ -69,7 +69,7 @@ walk()
 		}
 		if( TRUE )
 		{
-			move leg2 to z-axis [-250.000000] speed [32.500000];
+			move leg2 to z-axis [-125.000000] speed [32.500000];
 			sleep 164;
 		}
 		if( TRUE )
@@ -113,7 +113,7 @@ walklegs()
 	}
 	if( TRUE )
 	{
-		move leg1 to z-axis [-250.000000] speed [32.500000];
+		move leg1 to z-axis [-125.000000] speed [32.500000];
 		sleep 164;
 		if( TRUE )
 		{
@@ -145,7 +145,7 @@ walklegs()
 		}
 		if( TRUE )
 		{
-			move leg2 to z-axis [-250.000000] speed [32.500000];
+			move leg2 to z-axis [-125.000000] speed [32.500000];
 			sleep 164;
 		}
 		if( TRUE )
@@ -236,8 +236,6 @@ Create()
 	turn flare to y-axis <180> now;
 	turn flare to z-axis <-10> now;
 	turn flare to x-axis <-9> now;
-	move flare to z-axis [27] now;
-	move flare to y-axis [-2.5] now;
 	restore_delay = 3000;
 	start-script MotionControl();
 	start-script SmokeUnit();
@@ -272,14 +270,14 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	turn turret2 to y-axis <0.000000> speed <50.000000>;
-	turn barrel1 to x-axis <0.000000> speed <100.000000>;
+	turn sleeve2 to x-axis <0.000000> speed <100.000000>;
 	Static_Var_2 = 0;
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = turret2;
 	return (0);
 }
 
@@ -294,7 +292,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret2 to y-axis heading speed <100.000000>;
-	turn barrel1 to x-axis <0.000000> - pitch speed <75.000000>;
+	turn sleeve2 to x-axis <0.000000> - pitch speed <75.000000>;
 	wait-for-turn turret2 around y-axis;
 	wait-for-turn barrel1 around x-axis;
 	start-script RestoreAfterDelay();
