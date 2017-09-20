@@ -15,8 +15,28 @@ local uPos = Spring.GetUnitPosition
 local fPos = Spring.GetFeaturePosition
 local uDir = Spring.GetUnitDirection
 
+Ignoring = {}
+
 if (gadgetHandler:IsSyncedCode()) then --SYNCED
 Units = {}
+
+function SendToIgnoreList(id, delay)
+	Ignoring[id] = Spring.GetGameFrame() + delay
+end
+
+function CheckIgnore(id)
+	if Ignoring[id] then
+		if Ignoring[id] > Spring.GetGameFrame() then
+			return false
+		else
+			Ignoring[id] = nil
+			return true
+		end
+	else
+	return false
+	end
+end
+
 
 function gadget:Initialize()
 	for uDid, uDef in pairs(UnitDefs) do
@@ -67,7 +87,9 @@ return cx, cy, cz
 end
 
 function gadget:UnitUnitCollision(unitID1, unitID2)
-
+	if not (CheckIgnore(unitID1) or CheckIgnore(unitID2)) then
+	SendToIgnoreList(unitID1, 5)
+	SendToIgnoreList(unitID2, 5)
 	local dx1, dz1 = Norm2DVectr(uDir(unitID1))
 	local dx2, dz2 = Norm2DVectr(uDir(unitID2))
 
@@ -146,10 +168,13 @@ if ddotdir2 > 0 then
 		end
 	end
 end
-
+end
 end
 
 function gadget:UnitFeatureCollision(ID1, ID2)
+	if not (CheckIgnore(ID1) or CheckIgnore(ID2)) then
+	SendToIgnoreList(ID1, 5)
+	SendToIgnoreList(ID2, 5)
 	if Spring.ValidUnitID(ID1) then
 		local unitID1 = ID1
 		local unitID2 = ID2
@@ -223,6 +248,6 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 			end
 		end
 	end
-
+end
 end
 end
