@@ -29,10 +29,6 @@ for udefID,def in ipairs(UnitDefs) do
 end
 
 
-function widget:Initialize()
-
-end
-
 function widget:Shutdown()
   for i, tombstone in ipairs(tombstones) do
     gl.DeleteList(tombstone[1])
@@ -90,7 +86,7 @@ function widget:SetConfigData(data)
   if Spring.GetGameFrame() > 0 then
     if data.tombstones ~= nil then
       tombstones = data.tombstones
-      reloaded = true
+      reloaded = true   -- this is used to create displaylist at later time cause player color widget might change the teamcolors
     end
   end
 end
