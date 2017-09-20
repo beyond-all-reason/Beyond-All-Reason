@@ -1,7 +1,6 @@
 return {
 	armstone = {
 		acceleration = 0,
-		blocking = true,
 		brakerate = 0,
 		buildcostenergy = 200,
 		buildcostmetal = 10,

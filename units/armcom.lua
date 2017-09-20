@@ -26,7 +26,6 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "27 39 27",
 		collisionvolumetype = "CylY",
-		commander = true,
 		corpse = "DEAD",
 		description = "Commander",
 		energymake = 35,
