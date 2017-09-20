@@ -1282,11 +1282,12 @@ function widget:Initialize()
 
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Show pause screen", type="bool", value=widgetHandler.orderList["Pause Screen"] ~= nil and (widgetHandler.orderList["Pause Screen"] > 0), description='Displays an overlay when the game is paused'},
-		{id="commandsfx", group="ui", widget="Commands FX", name="Unit command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfx", group="ui", widget="Commands FX", name="Command FX", type="bool", value=widgetHandler.orderList["Commands FX"] ~= nil and (widgetHandler.orderList["Commands FX"] > 0), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 
-		{id="givenunits", group="ui", widget="Given Units", name="Given units icons", type="bool", value=widgetHandler.orderList["Given Units"] ~= nil and (widgetHandler.orderList["Given Units"] > 0), description='Tags given units with \'new\' icon'},
+		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=widgetHandler.orderList["Given Units"] ~= nil and (widgetHandler.orderList["Given Units"] > 0), description='Tags given units with \'new\' icon'},
 		{id="resurrectionhalos", group="ui", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=widgetHandler.orderList["Resurrection Halos"] ~= nil and (widgetHandler.orderList["Resurrection Halos"] > 0), description='Gives units have have been resurrected a little halo above it.'},
-		{id="rankicons", group="ui", widget="Rank Icons", name="Unit rank icons", type="bool", value=widgetHandler.orderList["Rank Icons"] ~= nil and (widgetHandler.orderList["Rank Icons"] > 0), description='Shows a rank icon depending on experience next to units'},
+		{id="tombstones", group="ui", widget="Tombstones", name="Tombstones", type="bool", value=widgetHandler.orderList["Tombstones"] ~= nil and (widgetHandler.orderList["Tombstones"] > 0), description='Displays tombstones where commanders died'},
+		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=widgetHandler.orderList["Rank Icons"] ~= nil and (widgetHandler.orderList["Rank Icons"] > 0), description='Shows a rank icon depending on experience next to units'},
 
 		-- GAME
 		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=widgetHandler.orderList["Autoquit"] ~= nil and (widgetHandler.orderList["Autoquit"] > 0), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
