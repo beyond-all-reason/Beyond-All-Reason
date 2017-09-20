@@ -21,6 +21,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Pathing improvement: units wont get stuck in cliffs any longer
  • Vehicles with tracks can turn-in-place. The angle limit: 110, 60 for cons. Wheeled vehicles cannot do this (Jeffy/Samson) 
  • Some units are able to go in reverse on small distances, at 40% of maxspeed (60% for tachyons, artillery, banishers)
+ • Improved Air Units maniability and lowered TurnRadius (allowing close move commands)
 
  Commanders
  • produce 40% additional energy (25->35)
@@ -74,7 +75,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
 
 Sea reworked: (by Doo)
 Major balance changes:
-• Increased T1 shipyards costs (+40%) and decreased T1 and T2 ships costs (-20%).
+• Increased T1 shipyards costs (+40% for m and e, +10% for buildtime) and decreased T1 and T2 ships costs (-20% for m and e and buildtime).
 • Increased Patrol Boats laser reloadtime, decreased hp, costs.
 • Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
 • Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
