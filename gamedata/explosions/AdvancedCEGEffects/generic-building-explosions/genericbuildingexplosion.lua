@@ -1209,11 +1209,11 @@ definitions[root..'-wind'].dirt2.properties.numparticles = definitions[root..'-w
 definitions[root..'-wind'].sparks.properties.numparticles = definitions[root..'-wind'].sparks.properties.numparticles / 2
 
 definitions[root..'-nano'] = deepcopy(definitions[root.."-wind"])
-definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   1 0.9 0.7 0.09   0.8 0.9 0.21 0.066   0.6 0.66 0.04 0.033   0 0 0 0.01]]
+definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.9 1 0.7 0.08   0.75 0.9 0.21 0.06   0.55 0.66 0.04 0.03   0 0 0 0.01]]
 definitions[root..'-nano'].fireglow.properties.colormap = [[0.15 0.15 0.1 0.005  0 0 0 0.01]]
 definitions[root..'-nano'].fireglow2.properties.colormap = [[0.26 0.26 0.08 0.26   0.36 0.44 0.13 0.44   0.15 0.2 0 0.2   0 0 0 0.01]]
 definitions[root..'-nano'].sparks.properties.colormap = [[0.5 0.8 0.2 0.01   0.5 0.9 0.2 0.017   0 0 0 0.01]]
-definitions[root..'-nano'].sparks.properties.numparticles = definitions[root..'-nano'].sparks.properties.numparticles * 2
+definitions[root..'-nano'].sparks.properties.numparticles = definitions[root..'-nano'].sparks.properties.numparticles * 1.5
 definitions[root..'-nano'].dirt.properties.colormap = [[0.7 1 0.4 0.1   0 0 0 0.01]]
 definitions[root..'-nano'].dirt2.properties.colormap = [[0.6 1 0.3 0.1   0 0 0 0.01]]
 

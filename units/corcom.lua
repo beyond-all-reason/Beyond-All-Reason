@@ -220,6 +220,12 @@ return {
 				damage = {
 					default = 99999,
 				},
+				customparams = {
+					expl_light_radius = 650,
+					expl_light_opacity = 0.18,
+					expl_light_life = 1,
+					expl_light_color = "1 0.6 0.15",
+				},
 			},
 			armcomlaser = {
 				areaofeffect = 12,

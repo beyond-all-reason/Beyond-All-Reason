@@ -233,7 +233,10 @@ return {
 					default = 20,
 				},
 				customparams = {
-					light_radius = "55",		-- used by light_effects widget
+					expl_light_radius = 650,
+					expl_light_opacity = 0.18,
+					expl_light_life = 1,
+					expl_light_color = "1 0.6 0.15",
 				},
 			},
 		},
