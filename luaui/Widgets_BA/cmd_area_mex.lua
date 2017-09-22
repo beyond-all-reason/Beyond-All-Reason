@@ -84,15 +84,19 @@ function widget:Update()
 	local _,cmd,_ = spGetActiveCommand()
 	if (cmd == CMD_AREA_MEX) then
 		if (spGetMapDrawMode() ~= 'metal') then
+			if Spring.GetMapDrawMode() == "los" then
+				retoggleLos = true
+			end
 			spSendCommands({'ShowMetalMap'})
 			toggledMetal = true
 		end
 	else
 		if toggledMetal then
 			spSendCommands({'ShowStandard'})
-		    if Spring.GetMapDrawMode()~="los" then
+		    if retoggleLos then
 		        Spring.SendCommands("togglelos")
-		    end			
+				retoggleLos = nil
+		    end
 			toggledMetal = false
 		end
 	end	
