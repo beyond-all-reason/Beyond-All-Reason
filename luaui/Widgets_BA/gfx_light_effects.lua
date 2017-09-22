@@ -398,7 +398,6 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		else
 			lightParams = projectileLightTypes[spGetProjectileDefID(pID)]
 			if lightParams and (not useLOD or ProjectileLevelOfDetailCheck(lightParams, pID, fps, cameraHeight)) then
-				Spring.Echo(spGetProjectileDefID(pID))
 				if lightParams.beam then --BEAM type
 					local drawParams = GetBeamLights(lightParams, pID, x, y, z)
 					beamLightCount = beamLightCount + 1
