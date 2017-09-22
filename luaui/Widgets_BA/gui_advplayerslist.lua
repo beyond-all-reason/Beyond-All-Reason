@@ -1976,7 +1976,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
         local glowsize = 13.5
-        gl_Color(1,1,1.2,0.04)
+        gl_Color(1,1,1.2,0.033)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 7+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + 5-glowsize)
 
@@ -1994,7 +1994,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
         local glowsize = 13.5
-        gl_Color(1,1,0.2,0.04)
+        gl_Color(1,1,0.2,0.033)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 11+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + 9-glowsize)
 

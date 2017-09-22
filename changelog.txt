@@ -52,6 +52,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • T1 kbot/veh/air lab got 33% additional buildspeed
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
+ • Juno removed from t1 constructor buildist, added to t2 constructors.
 
  T2
  • Armmart and cormart (mobile T2 arty) do 15% more damage

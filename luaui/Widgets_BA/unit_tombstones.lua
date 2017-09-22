@@ -76,6 +76,7 @@ function widget:DrawWorldPreUnit()
     gl.CallList(tombstone[1])
     gl.PopMatrix()
   end
+  gl.Color(1, 1, 1, 1)
   gl.DepthTest(false)
 end
 
