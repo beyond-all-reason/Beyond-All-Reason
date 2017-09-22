@@ -32,21 +32,15 @@ for udefID,def in ipairs(UnitDefs) do
   end
 end
 
+function widget:Initialize()
+  createTombstoneDlist()
+end
 
 function widget:Shutdown()
-  for i, tombstone in ipairs(tombstones) do
-    gl.DeleteList(tombstone[1])
+  if tombstonesDlist ~= nil then
+    gl.DeleteList(tombstonesDlist)
   end
 end
-
-
-function createTombstoneDrawList(tombstoneUdefID, unitTeam)
-  gl.Rotate((math.random()-0.5)*25,0,1,1)
-  gl.Rotate(14 + (math.random()*14),-1,0,0)
-  gl.Rotate((math.random()-0.5)*18,0,0,1)
-  gl.UnitShape(tombstoneUdefID, unitTeam, false, true, true)
-end
-
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   local ud = UnitDefs[unitDefID]
@@ -56,28 +50,63 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if ud.name == 'corcom' then
       tombstoneUdefID = corstoneUdefID
     end
-    table.insert(tombstones, {gl.CreateList(createTombstoneDrawList, tombstoneUdefID, unitTeam), x,y,z, tombstoneUdefID, unitTeam})
+    table.insert(tombstones, {tombstoneUdefID, unitTeam, x,Spring.GetGroundHeight(x,z),z, math.random(),math.random(),math.random()})
+    createTombstoneDlist()
   end
 end
 
+local sec = 0
+function widget:Update(dt)
+  sec = sec + dt
+  if sec > 2.7 then
+    sec = sec - 2.7
+    local changed = false
+    for i, tombstone in ipairs(tombstones) do
+      if tombstones[i][4] ~= Spring.GetGroundHeight(tombstone[3],tombstone[5]) then
+        changed = true
+      end
+    end
+    if changed then
+      createTombstoneDlist()
+    end
+  end
+end
+
+function createTombstoneDlist()
+  if tombstonesDlist ~= nil then
+    gl.DeleteList(tombstonesDlist)
+  end
+  tombstonesDlist = gl.CreateList(function()
+    for i, tombstone in ipairs(tombstones) do
+      tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
+      gl.PushMatrix()
+      gl.Translate(tombstone[3],tombstone[4],tombstone[5])
+      gl.Rotate((tombstone[6]-0.5)*25,0,1,1)
+      gl.Rotate(14 + (tombstone[7]*14),-1,0,0)
+      gl.Rotate((tombstone[8]-0.5)*18,0,0,1)
+      gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
+      gl.PopMatrix()
+    end
+  end)
+end
 
 function widget:DrawWorldPreUnit()
-  gl.DepthTest(true)
-  gl.Color(1, 1, 1, 1)
-  if reloaded ~= nil then
+  if tombstonesDlist ~= nil then
+    gl.DepthTest(true)
+    --gl.CallList(tombstonesDlist)  -- sometimes this seems to make some units another team's color, zooming affects it aswell, strange stuff!
+
     for i, tombstone in ipairs(tombstones) do
-      tombstones[i][1] = gl.CreateList(createTombstoneDrawList, tombstone[5], tombstone[6])
+      tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
+      gl.PushMatrix()
+      gl.Translate(tombstone[3],tombstone[4],tombstone[5])
+      gl.Rotate((tombstone[6]-0.5)*25,0,1,1)
+      gl.Rotate(14 + (tombstone[7]*14),-1,0,0)
+      gl.Rotate((tombstone[8]-0.5)*18,0,0,1)
+      gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
+      gl.PopMatrix()
     end
-    reloaded = nil
+    gl.DepthTest(false)
   end
-  for i, tombstone in ipairs(tombstones) do
-    gl.PushMatrix()
-    gl.Translate(tombstone[2],Spring.GetGroundHeight(tombstone[2],tombstone[4]),tombstone[4])
-    gl.CallList(tombstone[1])
-    gl.PopMatrix()
-  end
-  gl.Color(1, 1, 1, 1)
-  gl.DepthTest(false)
 end
 
 -- preserve data in case of a /luaui reload
@@ -89,10 +118,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-  if Spring.GetGameFrame() > 0 and data.gameframe ~= nil and data.gameframe+150 > Spring.GetGameFrame() then
+  if Spring.GetGameFrame() > 0 and data.gameframe ~= nil and data.gameframe+1800 > Spring.GetGameFrame() and data.gameframe >= Spring.GetGameFrame() then
     if data.tombstones ~= nil then
       tombstones = data.tombstones
-      reloaded = true   -- this is used to create displaylist at later time cause player color widget might change the teamcolors
     end
   end
 end
