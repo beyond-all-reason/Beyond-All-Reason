@@ -164,7 +164,7 @@ end
 --initialization
 --------------------------------------------------------------------------------
 
-local dgunRange	= WeaponDefNames["armcom_arm_disintegrator"].range --+ WeaponDefNames["armcom_arm_disintegrator"].damageAreaOfEffect
+local dgunRange	= WeaponDefNames["armcom_disintegrator"].range --+ WeaponDefNames["armcom_disintegrator"].damageAreaOfEffect
 
 local function SetupUnitDef(unitDefID, unitDef)
   if (not unitDef.weapons) then return end

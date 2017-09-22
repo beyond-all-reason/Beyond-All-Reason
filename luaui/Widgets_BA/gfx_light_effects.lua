@@ -76,12 +76,33 @@ end
 --------------------------------------------------------------------------------
 -- Light Defs
 
-local function ProcessWeaponDef(weaponDef)
-	local customParams = weaponDef.customParams or {}
-	local skip = false
-	if customParams.light_skip ~= nil and customParams.light_skip then
-		skip = true
-	else
+
+local function GetLightsFromUnitDefs()
+	--Spring.Echo('GetLightsFromUnitDefs init')
+	local plighttable = {}
+	for weaponDefID = 1, #WeaponDefs do
+		--These projectiles should have lights:
+		--Cannon (projectile size: tempsize = 2.0f + std::min(wd.customParams.shield_damage * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
+		--Dgun
+		--MissileLauncher
+		--StarburstLauncher
+		--LaserCannon
+		--LightningCannon
+		--BeamLaser
+		--Flame
+		--Shouldnt:
+		--AircraftBomb
+		--Shield
+		--TorpedoLauncher
+		local weaponDef = WeaponDefs[weaponDefID]
+
+		local customParams = weaponDef.customParams or {}
+
+		local skip = false
+		if customParams.light_skip ~= nil and customParams.light_skip then
+			skip = true
+		end
+
 		local lightMultiplier = 0.08
 		local bMult = 1.6		-- because blue appears to be very faint
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
@@ -135,6 +156,9 @@ local function ProcessWeaponDef(weaponDef)
 			end
 		end
 
+		if customParams.light_opacity then
+			lightMultiplier = customParams.light_opacity
+		end
 		if customParams.light_multiplier ~= nil then
 			recalcRGB = true
 			lightMultiplier = lightMultiplier * tonumber(customParams.light_multiplier)
@@ -203,34 +227,10 @@ local function ProcessWeaponDef(weaponDef)
 		if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
 			weaponData.radius = weaponData.radius * globalRadiusMultLaser
 		end
-	end
-	if skip or (weaponData ~= nil and weaponData.radius <= 0) or (customParams ~= nil and customParams.fake_weapon) then
-		return nil
-	else
-		return weaponData
-	end
-end
 
-local function GetLightsFromUnitDefs()
-	--Spring.Echo('GetLightsFromUnitDefs init')
-	local plighttable = {}
-	for weaponDefID = 1, #WeaponDefs do
-		--These projectiles should have lights:
-		--Cannon (projectile size: tempsize = 2.0f + std::min(wd.customParams.shield_damage * 0.0025f, wd.damageAreaOfEffect * 0.1f);)
-		--Dgun
-		--MissileLauncher
-		--StarburstLauncher
-		--LaserCannon
-		--LightningCannon
-		--BeamLaser
-		--Flame
-		--Shouldnt:
-		--AircraftBomb
-		--Shield
-		--TorpedoLauncher
 
-		local weaponData = ProcessWeaponDef(WeaponDefs[weaponDefID])
-		if weaponData ~= nil then
+		if not skip and weaponData ~= nil and weaponData.radius > 0 and customParams.fake_weapon == nil then
+
 			plighttable[weaponDefID] = weaponData
 		end
 	end
@@ -398,6 +398,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		else
 			lightParams = projectileLightTypes[spGetProjectileDefID(pID)]
 			if lightParams and (not useLOD or ProjectileLevelOfDetailCheck(lightParams, pID, fps, cameraHeight)) then
+				Spring.Echo(spGetProjectileDefID(pID))
 				if lightParams.beam then --BEAM type
 					local drawParams = GetBeamLights(lightParams, pID, x, y, z)
 					beamLightCount = beamLightCount + 1
@@ -490,12 +491,7 @@ for i=1, #WeaponDefs do
 		params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5)
 		params.orgMult = 0.35 + (params.radius/2400)
 		params.life = 14*(0.8+ params.radius/1200)
-		if WeaponDefs[i].type == 'DGun' then
-			params.radius = 650
-			params.orgMult = 0.18
-			params.life = 1
-			params.r, params.g, params.b = 1, 0.6, 0.15
-		end
+
 		if customParams.expl_light_color then
 			local colorList = Split(customParams.expl_light_color, " ")
 			params.r = colorList[1]
