@@ -32,16 +32,6 @@ for udefID,def in ipairs(UnitDefs) do
   end
 end
 
-function widget:Initialize()
-  createTombstoneDlist()
-end
-
-function widget:Shutdown()
-  if tombstonesDlist ~= nil then
-    gl.DeleteList(tombstonesDlist)
-  end
-end
-
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   local ud = UnitDefs[unitDefID]
   if (ud ~= nil and commanders[ud.name] ~= nil) then
@@ -50,63 +40,23 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if ud.name == 'corcom' then
       tombstoneUdefID = corstoneUdefID
     end
-    table.insert(tombstones, {tombstoneUdefID, unitTeam, x,Spring.GetGroundHeight(x,z),z, math.random(),math.random(),math.random()})
-    createTombstoneDlist()
+    table.insert(tombstones, {tombstoneUdefID, unitTeam, x,Spring.GetGroundHeight(x,z),z, ((math.random()-0.5)*25), (14 + (math.random()*14)), ((math.random()-0.5)*18)})
   end
-end
-
-local sec = 0
-function widget:Update(dt)
-  sec = sec + dt
-  if sec > 2.7 then
-    sec = sec - 2.7
-    local changed = false
-    for i, tombstone in ipairs(tombstones) do
-      if tombstones[i][4] ~= Spring.GetGroundHeight(tombstone[3],tombstone[5]) then
-        changed = true
-      end
-    end
-    if changed then
-      createTombstoneDlist()
-    end
-  end
-end
-
-function createTombstoneDlist()
-  if tombstonesDlist ~= nil then
-    gl.DeleteList(tombstonesDlist)
-  end
-  tombstonesDlist = gl.CreateList(function()
-    for i, tombstone in ipairs(tombstones) do
-      tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
-      gl.PushMatrix()
-      gl.Translate(tombstone[3],tombstone[4],tombstone[5])
-      gl.Rotate((tombstone[6]-0.5)*25,0,1,1)
-      gl.Rotate(14 + (tombstone[7]*14),-1,0,0)
-      gl.Rotate((tombstone[8]-0.5)*18,0,0,1)
-      gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
-      gl.PopMatrix()
-    end
-  end)
 end
 
 function widget:DrawWorldPreUnit()
-  if tombstonesDlist ~= nil then
-    gl.DepthTest(true)
-    --gl.CallList(tombstonesDlist)  -- sometimes this seems to make some units another team's color, zooming affects it aswell, strange stuff!
-
-    for i, tombstone in ipairs(tombstones) do
-      tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
-      gl.PushMatrix()
-      gl.Translate(tombstone[3],tombstone[4],tombstone[5])
-      gl.Rotate((tombstone[6]-0.5)*25,0,1,1)
-      gl.Rotate(14 + (tombstone[7]*14),-1,0,0)
-      gl.Rotate((tombstone[8]-0.5)*18,0,0,1)
-      gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
-      gl.PopMatrix()
-    end
-    gl.DepthTest(false)
+  gl.DepthTest(true)
+  for i, tombstone in ipairs(tombstones) do
+    tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
+    gl.PushMatrix()
+    gl.Translate(tombstone[3],tombstone[4],tombstone[5])
+    gl.Rotate(tombstone[6],0,1,1)
+    gl.Rotate(tombstone[7],-1,0,0)
+    gl.Rotate(tombstone[8],0,0,1)
+    gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
+    gl.PopMatrix()
   end
+  gl.DepthTest(false)
 end
 
 -- preserve data in case of a /luaui reload
