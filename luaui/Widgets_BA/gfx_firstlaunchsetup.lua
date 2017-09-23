@@ -1,10 +1,11 @@
 
 local minMaxparticles = 12000
+local turnVsyncOff = true       -- because vsync results in considerable amount of lagginess
 
 function widget:GetInfo()
   return {
     name      = "First launch setup",
-    desc      = "Turns Vsync off and sets a minimum amount of maxparticles of: "..minMaxparticles.." (only once)",
+    desc      = "Turns Vsync off and sets a minimum amount of maxparticles of: "..minMaxparticles,
     author    = "Floris",
     date      = "GPL v3 or later",
     license   = "August 2017",
@@ -13,10 +14,9 @@ function widget:GetInfo()
   }
 end
 
+
+
 local firstlaunchsetupDone = false
-local turnVsyncOff = true
-
-
 function widget:GetConfigData()
     savedTable = {}
     savedTable.firsttimesetupDone = firsttimesetupDone

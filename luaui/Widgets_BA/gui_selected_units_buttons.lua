@@ -72,7 +72,7 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local highlightColor = {0.55, 1, 0.2, 0.33}
+local highlightColor = {1, 0.75, 0.4, 0.2}
 --local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
@@ -150,6 +150,8 @@ function widget:DrawScreen()
         end
         if icon > 0 then
         enabled = true
+        justCreatedList = false
+        gl.CallList(picList)
         -- draw the highlights
         local x,y,lb,mb,rb = spGetMouseState()
         mouseIcon = MouseOverIcon(x, y)
@@ -165,8 +167,6 @@ function widget:DrawScreen()
           picList = gl.CreateList(DrawPicList)
           prevMouseIcon = mouseIcon
         end
-        justCreatedList = false
-        gl.CallList(picList)
         end
 	  end    
 	end
@@ -246,17 +246,17 @@ end
 
 
 function DrawUnitDefTexture(unitDefID, iconPos, count, row)
-	local usedIconImgMult = iconImgMult
-	local ypad2 = -usedIconSizeY/50
-	local color = {1, 1, 1, 0.9}
-	if mouseIcon ~= -1 then
-		color = {1, 1, 1, 0.75}
-	end
-	if iconPos == mouseIcon then
-		usedIconImgMult = iconImgMult*1.08
-		color = {1, 1, 1, 1}
-		ypad2 = 0
-	end
+  local usedIconImgMult = iconImgMult
+  local ypad2 = -usedIconSizeY/50
+  local color = {1, 1, 1, 0.9}
+  if mouseIcon ~= -1 then
+  	color = {1, 1, 1, 0.75}
+  end
+  if iconPos == mouseIcon then
+  	usedIconImgMult = iconImgMult*1.08
+  	color = {1, 1, 1, 1}
+  	ypad2 = 0
+  end
   local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 2
   local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 2
   
@@ -275,11 +275,11 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
   
-	if count > 1 then
-	  -- draw the count text
-	  local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
-	  glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16) , fontSize, "or")
-	 end
+  if count > 1 then
+    -- draw the count text
+    local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
+    glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16) , fontSize, "or")
+  end
 end
 
 
@@ -308,11 +308,22 @@ function RectRound(px,py,sx,sy,cs)
 end
 
 function DrawIconQuad(iconPos, color)
-  local xmin = rectMinX + (usedIconSizeX * iconPos)
-  local xmax = xmin + usedIconSizeX
-  local ymin = rectMinY
-  local ymax = rectMaxY
-  
+
+  local usedIconImgMult = iconImgMult*1.08
+  local ypad2 = 0
+
+  local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 2
+  local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 2
+
+  local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
+  local xmax = xmin + usedIconSizeX - xPad - xPad
+  if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
+
+  local ymin = rectMinY + yPad
+  local ymax = rectMaxY - yPad
+  local xmid = (xmin + xmax) * 0.5
+  local ymid = (ymin + ymax) * 0.5
+
   gl.Texture(highlightImg)
   gl.Color(color)
   glTexRect(xmin+iconMargin, ymin+iconMargin+iconMargin, xmax-iconMargin, ymax-iconMargin)
