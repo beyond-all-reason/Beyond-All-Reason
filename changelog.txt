@@ -54,7 +54,8 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • T1 kbot/veh/air lab got 33% additional buildspeed
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
- • Rezbots have 15% reduced speed
+ • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
+
 
  T2
  • Armmart and cormart (mobile T2 arty) do 15% more damage
