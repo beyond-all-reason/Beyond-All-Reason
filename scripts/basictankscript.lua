@@ -198,7 +198,7 @@ end
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
 ndx, ndy, ndz = Norm3DVectr(dx, dy, dz)
-Spring.Echo(ndx, ndy, ndz)
+-- Spring.Echo(ndx, ndy, ndz)
 Spring.SpawnCEG(effectName, x,y,z, ndx, ndy, ndz)
 end
 

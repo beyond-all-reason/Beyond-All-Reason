@@ -48,7 +48,7 @@ return {
 				--PIECENAMES HERE
 					basename = "base",
 					turretname = "turret",
-					sleevename = "turret",
+					sleevename = "sleeve",
 					cannon1name = "barrel",
 					flare1name = "emit",
 					cannon2name = nil, --optional (replace with nil)
