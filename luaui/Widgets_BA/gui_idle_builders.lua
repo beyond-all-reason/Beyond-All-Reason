@@ -83,6 +83,7 @@ local glDeleteList = gl.DeleteList
 local glBeginEnd = gl.BeginEnd
 local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
+local glLoadIdentity = gl.LoadIdentity
 
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_LINE_LOOP = GL.LINE_LOOP
@@ -251,6 +252,7 @@ local function CenterUnitDef(unitDefID)
 end
 
 
+
 local function DrawUnitIcons(number)
 	if not drawTable then
 		return -1 
@@ -258,9 +260,11 @@ local function DrawUnitIcons(number)
 	local ct = 0
 	local X1, X2
 	glTexture(false)
-	
 	glScissor(true)
+	--
+
 	while (ct < number) do
+
 		ct = ct + 1
 		local unitID = drawTable[ct].units
 		
@@ -268,27 +272,20 @@ local function DrawUnitIcons(number)
 			
 			X1 = X_MIN+(ICON_SIZE_X*(ct-1))
 			X2 = X1+ICON_SIZE_X
-			
+
 			glPushMatrix()
-			glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
-			
-			glTranslate(0.5*(X2+X1), 0.5*(Y_MAX+Y_MIN), 0)
-			glRotate(18, 1, 0, 0)
-			glRotate(rot, 0, 1, 0)
-			
-			CenterUnitDef(drawTable[ct].unitDefID)
-			glColor(1,1,1,1)
-			glTexture('%'..drawTable[ct].unitDefID..':1')
-			
-			--glUnitShapeTextures(drawTable[ct].unitDefID, true)
-			glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), false, true, true)
-			
-		  --glUnitShapeTextures(drawTable[ct].unitDefID, true)
-	    --glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), true)
-	    --glUnitShapeTextures(drawTable[ct].unitDefID, false)
-	    
-    	glTexture(false)
-			glScissor(false)
+				--glLoadIdentity()
+				glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
+
+				glTranslate(0.5*(X2+X1), 0.5*(Y_MAX+Y_MIN), 0)
+				glRotate(18, 1, 0, 0)
+				glRotate(rot, 0, 1, 0)
+
+				CenterUnitDef(drawTable[ct].unitDefID)
+
+				glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), false, true, true)
+
+				glScissor(false)
 			glPopMatrix()
 			
 			if CONDENSE then

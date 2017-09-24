@@ -27,7 +27,7 @@ return {
 		idletime = 60,
 		maxdamage = 200,
 		maxslope = 14,
-		maxvelocity = 2.6,
+		maxvelocity = 2.2,
 		maxwaterdepth = 22,
 		movementclass = "KBOT2",
 		name = "Rector",

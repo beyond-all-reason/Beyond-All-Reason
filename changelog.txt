@@ -15,7 +15,7 @@ The reasoning behind this change is: because the hitboxes were made smaller, the
 By globally increasing edgeeffectiveness we decrease the effect of distance on the final damage value and we get back some of the damages that were lost in the process of reducing the hitboxes. (Doo)
  • All weapons use TargetBorder = 1.0. It means that instead of aiming for the center of a unit (classic BA behaviour) and be unable to aim when this aimpoint is outside of range while the hitbox is still inside, weapons will try to aim for the closest hitbox's border. 
 This change seems to only apply to box shaped hitboxes at the moment. We hope that with Spring 104 out, this issue will be resolved and we will be able to use this functionnality as a default BA setting. (Doo, not currently used)
- • Junos are moved from t1 buildmenu to t2.
+ • Junos are moved from t1 buildmenu to t2 constuctors.
  • Reclaimspeed is 30% reduced compared to older versions.
 
  Movement
@@ -54,7 +54,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • T1 kbot/veh/air lab got 33% additional buildspeed
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
- • Juno removed from t1 constructor buildist, added to t2 constructors.
+ • Rezbots have 15% reduced speed
 
  T2
  • Armmart and cormart (mobile T2 arty) do 15% more damage

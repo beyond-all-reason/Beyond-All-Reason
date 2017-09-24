@@ -14,7 +14,7 @@
 function widget:GetInfo()
   return {
     name      = "Selected Units Buttons",
-    desc      = "Buttons for the current selection (incomplete)",
+    desc      = "Buttons for the current selection",
     author    = "trepan, Floris",
     date      = "28 may 2015",
     license   = "GNU GPL, v2 or later",
@@ -278,7 +278,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   if count > 1 then
     -- draw the count text
     local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
-    glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16) , fontSize, "or")
+    glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
   end
 end
 

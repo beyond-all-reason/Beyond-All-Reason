@@ -17,7 +17,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
 local tombstones = {}
 local commanders = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -44,16 +43,18 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   end
 end
 
+
 function widget:DrawWorldPreUnit()
   gl.DepthTest(true)
   for i, tombstone in ipairs(tombstones) do
     tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
     gl.PushMatrix()
-    gl.Translate(tombstone[3],tombstone[4],tombstone[5])
-    gl.Rotate(tombstone[6],0,1,1)
-    gl.Rotate(tombstone[7],-1,0,0)
-    gl.Rotate(tombstone[8],0,0,1)
-    gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
+      --gl.LoadIdentity()
+      gl.Translate(tombstone[3],tombstone[4],tombstone[5])
+      gl.Rotate(tombstone[6],0,1,1)
+      gl.Rotate(tombstone[7],-1,0,0)
+      gl.Rotate(tombstone[8],0,0,1)
+      gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
     gl.PopMatrix()
   end
   gl.DepthTest(false)
