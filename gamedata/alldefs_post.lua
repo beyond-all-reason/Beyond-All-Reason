@@ -76,6 +76,13 @@ function UnitDef_Post(name, uDef)
 			uDef.buildingmask = 0
 		end
 	end
+	if uDef.workertime then
+	if uDef.reclaimspeed then 
+	uDef.reclaimspeed =  0.7 * uDef.reclaimspeed
+	else 
+	uDef.reclaimspeed = 0.7 * uDef.workertime
+	end
+	end
 	
 	--Aircraft movements here:
 	if uDef.canfly == true then
