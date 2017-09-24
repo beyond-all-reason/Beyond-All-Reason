@@ -75,6 +75,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Light Defs
+
+
 local function GetLightsFromUnitDefs()
 	--Spring.Echo('GetLightsFromUnitDefs init')
 	local plighttable = {}
@@ -92,136 +94,144 @@ local function GetLightsFromUnitDefs()
 		--AircraftBomb
 		--Shield
 		--TorpedoLauncher
-
 		local weaponDef = WeaponDefs[weaponDefID]
+
 		local customParams = weaponDef.customParams or {}
-		if customParams.light_skip == nil then
-			local skip = false
-			local lightMultiplier = 0.08
-			local bMult = 1.6		-- because blue appears to be very faint
-			local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
-			local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
-			local recalcRGB = false
+		local skip = false
+		if customParams.light_skip ~= nil and customParams.light_skip then
+			skip = true
+		end
 
-			if (weaponDef.type == 'Cannon') then
-				if customParams.single_hit then
-					weaponData.beamOffset = 1
-					weaponData.beam = true
-				else
-					weaponData.radius = 120 * weaponDef.size
-					if weaponDef.damageAreaOfEffect ~= nil  then
-						weaponData.radius = 120 * ((weaponDef.size*0.4) + (weaponDef.damageAreaOfEffect * 0.025))
-					end
-					lightMultiplier = 0.02 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
-					if lightMultiplier > 0.08 then
-						lightMultiplier = 0.08
-					end
-					recalcRGB = true
-				end
-			elseif (weaponDef.type == 'LaserCannon') then
-				weaponData.radius = 70 * weaponDef.size
-			elseif (weaponDef.type == 'DGun') then
-				weaponData.radius = 500
-				lightMultiplier = 0.28
-			elseif (weaponDef.type == 'MissileLauncher') then
-				weaponData.radius = 125 * weaponDef.size
-				if weaponDef.damageAreaOfEffect ~= nil  then
-					weaponData.radius = 125 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.01))
-				end
-				lightMultiplier = 0.01 + (weaponDef.size/55)
-				recalcRGB = true
-			elseif (weaponDef.type == 'StarburstLauncher') then
-				weaponData.radius = 400
-			elseif (weaponDef.type == 'Flame') then
-				weaponData.radius = 70 * weaponDef.size
-				lightMultiplier = 0.05
-				recalcRGB = true
-				skip = true
-			elseif (weaponDef.type == 'LightningCannon') then
-				weaponData.radius = 70 * weaponDef.size
-				weaponData.beam = true
-			elseif (weaponDef.type == 'BeamLaser') then
-				weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
-				weaponData.beam = true
-				if weaponDef.beamTTL > 2 then
-					weaponData.fadeTime = weaponDef.beamTTL
-					weaponData.fadeOffset = 0
-				end
-			end
+		local lightMultiplier = 0.08
+		local bMult = 1.6		-- because blue appears to be very faint
+		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
-			if customParams.light_multiplier ~= nil then
-				recalcRGB = true
-				lightMultiplier = lightMultiplier * tonumber(customParams.light_multiplier)
-			end
+		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
+		local recalcRGB = false
 
-			-- For long lasers or projectiles
-			if customParams.light_beam_mult then
+		if (weaponDef.type == 'Cannon') then
+			if customParams.single_hit then
 				weaponData.beamOffset = 1
 				weaponData.beam = true
-				weaponData.beamMult = tonumber(customParams.light_beam_mult)
-				weaponData.beamMultFrames = tonumber(customParams.light_beam_mult_frames)
-			end
-
-			if customParams.light_fade_time and customParams.light_fade_offset then
-				weaponData.fadeTime = tonumber(customParams.light_fade_time)
-				weaponData.fadeOffset = tonumber(customParams.light_fade_offset)
-			end
-
-			if customParams.light_radius_mult then
-				weaponData.radius = weaponData.radius * tonumber(customParams.light_radius_mult)
-			end
-
-			if customParams.light_radius then
-				weaponData.radius = tonumber(customParams.light_radius)
-			end
-
-			if customParams.light_ground_height then
-				weaponData.groundHeightLimit = tonumber(customParams.light_ground_height)
-			end
-
-			if customParams.light_camera_height then
-				weaponData.cameraHeightLimit = tonumber(customParams.light_camera_height)
-			end
-
-			if customParams.light_beam_start then
-				weaponData.beamStartOffset = tonumber(customParams.light_beam_start)
-			end
-
-			if customParams.light_beam_offset then
-				weaponData.beamOffset = tonumber(customParams.light_beam_offset)
-			end
-
-			if customParams.light_color then
-				local colorList = Split(customParams.light_color, " ")
-				r = colorList[1]
-				g = colorList[2]
-				b = colorList[3]*bMult
-			end
-
-			if recalcRGB or globalLightMult ~= 1 or globalLightMultLaser ~= 1 then
-				local laserMult = 1
-				if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
-					laserMult = globalLightMultLaser
+			else
+				weaponData.radius = 120 * weaponDef.size
+				if weaponDef.damageAreaOfEffect ~= nil  then
+					weaponData.radius = 120 * ((weaponDef.size*0.4) + (weaponDef.damageAreaOfEffect * 0.025))
 				end
-				weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult * laserMult
-				weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult * laserMult
-				weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult * laserMult
+				lightMultiplier = 0.02 * ((weaponDef.size*0.66) + (weaponDef.damageAreaOfEffect * 0.012))
+				if lightMultiplier > 0.08 then
+					lightMultiplier = 0.08
+				end
+				recalcRGB = true
 			end
-
-
-			if (weaponDef.type == 'Cannon') then
-				weaponData.glowradius = weaponData.radius
+		elseif (weaponDef.type == 'LaserCannon') then
+			weaponData.radius = 70 * weaponDef.size
+		elseif (weaponDef.type == 'DGun') then
+			weaponData.radius = 500
+			lightMultiplier = 0.28
+		elseif (weaponDef.type == 'MissileLauncher') then
+			weaponData.radius = 125 * weaponDef.size
+			if weaponDef.damageAreaOfEffect ~= nil  then
+				weaponData.radius = 125 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.01))
 			end
+			lightMultiplier = 0.01 + (weaponDef.size/55)
+			recalcRGB = true
+		elseif (weaponDef.type == 'StarburstLauncher') then
+			weaponData.radius = 400
+		elseif (weaponDef.type == 'Flame') then
+			weaponData.radius = 70 * weaponDef.size
+			lightMultiplier = 0.05
+			recalcRGB = true
+			skip = true
+		elseif (weaponDef.type == 'LightningCannon') then
+			weaponData.radius = 70 * weaponDef.size
+			weaponData.beam = true
+		elseif (weaponDef.type == 'BeamLaser') then
+			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
+			weaponData.beam = true
+			if weaponDef.beamTTL > 2 then
+				weaponData.fadeTime = weaponDef.beamTTL
+				weaponData.fadeOffset = 0
+			end
+		end
 
-			weaponData.radius = weaponData.radius * globalRadiusMult
+		if customParams.light_opacity then
+			lightMultiplier = customParams.light_opacity
+		end
+		if customParams.light_multiplier ~= nil then
+			recalcRGB = true
+			lightMultiplier = lightMultiplier * tonumber(customParams.light_multiplier)
+		end
+
+		-- For long lasers or projectiles
+		if customParams.light_beam_mult then
+			weaponData.beamOffset = 1
+			weaponData.beam = true
+			weaponData.beamMult = tonumber(customParams.light_beam_mult)
+			weaponData.beamMultFrames = tonumber(customParams.light_beam_mult_frames)
+		end
+
+		if customParams.light_fade_time and customParams.light_fade_offset then
+			weaponData.fadeTime = tonumber(customParams.light_fade_time)
+			weaponData.fadeOffset = tonumber(customParams.light_fade_offset)
+		end
+
+		if customParams.light_radius then
+			weaponData.radius = tonumber(customParams.light_radius)
+		end
+
+		if customParams.light_radius_mult then
+			weaponData.radius = weaponData.radius * tonumber(customParams.light_radius_mult)
+		end
+
+		if customParams.light_ground_height then
+			weaponData.groundHeightLimit = tonumber(customParams.light_ground_height)
+		end
+
+		if customParams.light_camera_height then
+			weaponData.cameraHeightLimit = tonumber(customParams.light_camera_height)
+		end
+
+		if customParams.light_beam_start then
+			weaponData.beamStartOffset = tonumber(customParams.light_beam_start)
+		end
+
+		if customParams.light_beam_offset then
+			weaponData.beamOffset = tonumber(customParams.light_beam_offset)
+		end
+
+		if customParams.light_color then
+			local colorList = Split(customParams.light_color, " ")
+			r = colorList[1]
+			g = colorList[2]
+			b = colorList[3]*bMult
+		end
+
+		if recalcRGB or globalLightMult ~= 1 or globalLightMultLaser ~= 1 then
+			local laserMult = 1
 			if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
-				weaponData.radius = weaponData.radius * globalRadiusMultLaser
+				laserMult = globalLightMultLaser
 			end
+			weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult * laserMult
+			weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult * laserMult
+			weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult * laserMult
+		end
 
-			if weaponData.radius > 0 and not customParams.fake_weapon and skip == false then
-				plighttable[weaponDefID] = weaponData
-			end
+
+		if (weaponDef.type == 'Cannon') then
+			weaponData.glowradius = weaponData.radius
+		end
+
+		weaponData.radius = weaponData.radius * globalRadiusMult
+		if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
+			weaponData.radius = weaponData.radius * globalRadiusMultLaser
+		end
+
+
+		if not skip and weaponData ~= nil and weaponData.radius > 0 and customParams.fake_weapon == nil then
+
+			plighttable[weaponDefID] = weaponData
 		end
 	end
 
@@ -480,12 +490,35 @@ for i=1, #WeaponDefs do
 		params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5)
 		params.orgMult = 0.35 + (params.radius/2400)
 		params.life = 14*(0.8+ params.radius/1200)
-		if WeaponDefs[i].type == 'DGun' then
-			params.radius = 650
-			params.orgMult = 0.18
-			params.life = 1
-			params.r, params.g, params.b = 1, 0.6, 0.15
+
+		if customParams.expl_light_color then
+			local colorList = Split(customParams.expl_light_color, " ")
+			params.r = colorList[1]
+			params.g = colorList[2]
+			params.b = colorList[3]
 		end
+
+		if customParams.expl_light_opacity ~= nil then
+			params.orgMult = customParams.expl_light_opacity
+		end
+
+		if customParams.expl_light_multiplier ~= nil then
+			params.orgMult = params.orgMult * customParams.expl_light_multiplier
+		end
+
+		if customParams.expl_light_radius then
+			params.radius = tonumber(customParams.expl_light_radius)
+		end
+		if customParams.expl_light_radius_mult then
+			params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
+		end
+		if customParams.expl_light_life then
+			params.life = tonumber(customParams.expl_light_life)
+		end
+		if customParams.expl_light_life_mult then
+			params.life = params.life * tonumber(customParams.expl_light_life_mult)
+		end
+
 		weaponConf[i] = params
 	end
 end

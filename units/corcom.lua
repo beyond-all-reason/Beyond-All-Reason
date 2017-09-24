@@ -182,7 +182,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_disintegrator = {
+			disintegrator = {
 				areaofeffect = 36,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -219,6 +219,15 @@ return {
 				weaponvelocity = 300,
 				damage = {
 					default = 99999,
+				},
+				customparams = {
+					light_radius = 550,
+					light_opacity = 0.15,
+					light_color = "1 0.6 0.15",
+					expl_light_radius = 650,
+					expl_light_opacity = 0.18,
+					expl_light_life = 1,
+					expl_light_color = "1 0.6 0.15",
 				},
 			},
 			armcomlaser = {
@@ -313,7 +322,7 @@ return {
 				def = "ARMCOMSEALASER",
 			},
 			[3] = {
-				def = "ARM_DISINTEGRATOR",
+				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

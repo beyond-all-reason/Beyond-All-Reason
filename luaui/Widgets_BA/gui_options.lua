@@ -808,6 +808,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setHighlight(options[i].value)
 			else
+				if widgetHandler.configData.EnemySpotter == nil then
+					widgetHandler.configData.EnemySpotter = {}
+				end
 				widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
 			end
 		elseif id == 'smartselect_includebuildings' then
@@ -900,6 +903,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
 			else
+				if widgetHandler.configData.EnemySpotter == nil then
+					widgetHandler.configData.EnemySpotter = {}
+				end
 				widgetHandler.configData.EnemySpotter.spotterOpacity = value
 			end
 		elseif id == 'highlightselunits_opacity' then
@@ -1277,8 +1283,8 @@ function widget:Initialize()
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=widgetHandler.orderList["TeamPlatter"] ~= nil and (widgetHandler.orderList["TeamPlatter"] > 0), description='Shows a team color platter above all visible units'},
 		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=widgetHandler.orderList["EnemySpotter"] ~= nil and (widgetHandler.orderList["EnemySpotter"] > 0), description='Draws smoothed circles under enemy units'},
-		{id="enemyspotter_opacity", group="ui", name="   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=widgetHandler.configData.EnemySpotter.spotterOpacity, description='Set the opacity of the enemy-spotter rings'},
-		{id="enemyspotter_highlight", group="ui", name="   unit highlight", type="bool", value=widgetHandler.configData.EnemySpotter.useXrayHighlight, description='Colorize/highlight enemy units'},
+		{id="enemyspotter_opacity", group="ui", name="   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
+		{id="enemyspotter_highlight", group="ui", name="   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Show pause screen", type="bool", value=widgetHandler.orderList["Pause Screen"] ~= nil and (widgetHandler.orderList["Pause Screen"] > 0), description='Displays an overlay when the game is paused'},
@@ -1304,6 +1310,13 @@ function widget:Initialize()
 	-- not sure if needed: remove vsync option when its dont by monitor (freesync/gsync) -> config value is set as 'x'
 	if Spring.GetConfigInt("Vsync",1) == 'x' then
 		options[getOptionByID('vsync')] = nil
+	end
+
+	if  widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
+		options[getOptionByID("enemyspotter_opacity")].value = widgetHandler.configData.EnemySpotter.spotterOpacity
+	end
+	if  widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.useXrayHighlight ~= nil then
+		options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
 	end
 
 	local processedOptions = {}

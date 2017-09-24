@@ -74,6 +74,9 @@ unitDeaths = {
 			default = 10,
 			nanos = 480,
 		},
+        customparams = {
+            expl_light_color = "0.7 1 0.3",
+        },
 	},
 
     smallbuilder = {

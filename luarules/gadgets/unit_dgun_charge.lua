@@ -29,8 +29,8 @@ function isCom(uDID)
 end
 
 local dgunWeapons = {
-    [WeaponDefNames["corcom_arm_disintegrator"].id] = true,
-    [WeaponDefNames["armcom_arm_disintegrator"].id] = true,    
+    [WeaponDefNames["corcom_disintegrator"].id] = true,
+    [WeaponDefNames["armcom_disintegrator"].id] = true,
 }
 local weaponNum = {}
 

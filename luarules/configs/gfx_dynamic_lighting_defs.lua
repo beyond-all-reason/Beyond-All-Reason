@@ -22,8 +22,10 @@ local rgbSpecMults = {0.2, 0.2, 0.2} -- specular RGB scales
 local copyLightDefs = {
 	["BA"] = {
 		--Dgun
-		["armcom_arm_disintegrator"  ] = "arm_disintegrator",
-		["corcom_arm_disintegrator"  ] = "arm_disintegrator",
+		["armcom_disintegrator"  ] = "disintegrator",
+		["corcom_disintegrator"  ] = "disintegrator",
+		["armdecom_disintegrator"  ] = "disintegrator",
+		["cordecom_disintegrator"  ] = "disintegrator",
 
 		--Self-D , Explosion for large units eg corkrog and commanders etc
 		--["commanderexplosion"           ] = "commander_explosion",
@@ -58,10 +60,10 @@ local dynLightDefs = {
 			--   projectile triggers a new explosion for
 			--   every frame it is alive (which consumes
 			--   too many light slots)
-			["arm_disintegrator"] = {
+			["disintegrator"] = {
 				projectileLightDef = {
-					diffuseColor      = {0.8,                   0.4,                   0.03                  },
-					specularColor     = {0.8 * rgbSpecMults[1], 0.4 * rgbSpecMults[2], 0.03 * rgbSpecMults[3]},
+					diffuseColor      = {0.66,                   0.34,                   0.025                  },
+					specularColor     = {0.66 * rgbSpecMults[1], 0.34 * rgbSpecMults[2], 0.025 * rgbSpecMults[3]},
 					radius            = 180.0,
 					priority          = 2 * 10,
 					ttl               = 100000,

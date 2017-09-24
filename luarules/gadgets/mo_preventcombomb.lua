@@ -41,8 +41,8 @@ local DestroyUnit = Spring.DestroyUnit
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local DGUN = {
-    [WeaponDefNames['armcom_arm_disintegrator'].id] = true,
-    [WeaponDefNames['corcom_arm_disintegrator'].id] = true,
+    [WeaponDefNames['armcom_disintegrator'].id] = true,
+    [WeaponDefNames['corcom_disintegrator'].id] = true,
 }
 
 local COMMANDER = {

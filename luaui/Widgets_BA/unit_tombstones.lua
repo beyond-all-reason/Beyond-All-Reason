@@ -32,22 +32,6 @@ for udefID,def in ipairs(UnitDefs) do
   end
 end
 
-
-function widget:Shutdown()
-  for i, tombstone in ipairs(tombstones) do
-    gl.DeleteList(tombstone[1])
-  end
-end
-
-
-function createTombstoneDrawList(tombstoneUdefID, unitTeam)
-  gl.Rotate((math.random()-0.5)*25,0,1,1)
-  gl.Rotate(14 + (math.random()*14),-1,0,0)
-  gl.Rotate((math.random()-0.5)*18,0,0,1)
-  gl.UnitShape(tombstoneUdefID, unitTeam, false, true, true)
-end
-
-
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   local ud = UnitDefs[unitDefID]
   if (ud ~= nil and commanders[ud.name] ~= nil) then
@@ -56,24 +40,20 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     if ud.name == 'corcom' then
       tombstoneUdefID = corstoneUdefID
     end
-    table.insert(tombstones, {gl.CreateList(createTombstoneDrawList, tombstoneUdefID, unitTeam), x,y,z, tombstoneUdefID, unitTeam})
+    table.insert(tombstones, {tombstoneUdefID, unitTeam, x,Spring.GetGroundHeight(x,z),z, ((math.random()-0.5)*25), (14 + (math.random()*14)), ((math.random()-0.5)*18)})
   end
 end
 
-
 function widget:DrawWorldPreUnit()
   gl.DepthTest(true)
-  gl.Color(1, 1, 1, 1)
-  if reloaded ~= nil then
-    for i, tombstone in ipairs(tombstones) do
-      tombstones[i][1] = gl.CreateList(createTombstoneDrawList, tombstone[5], tombstone[6])
-    end
-    reloaded = nil
-  end
   for i, tombstone in ipairs(tombstones) do
+    tombstones[i][4] = Spring.GetGroundHeight(tombstone[3],tombstone[5])
     gl.PushMatrix()
-    gl.Translate(tombstone[2],Spring.GetGroundHeight(tombstone[2],tombstone[4]),tombstone[4])
-    gl.CallList(tombstone[1])
+    gl.Translate(tombstone[3],tombstone[4],tombstone[5])
+    gl.Rotate(tombstone[6],0,1,1)
+    gl.Rotate(tombstone[7],-1,0,0)
+    gl.Rotate(tombstone[8],0,0,1)
+    gl.UnitShape(tombstone[1],tombstone[2], false, true, true)
     gl.PopMatrix()
   end
   gl.DepthTest(false)
@@ -88,10 +68,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-  if Spring.GetGameFrame() > 0 and data.gameframe ~= nil and data.gameframe+150 > Spring.GetGameFrame() then
+  if Spring.GetGameFrame() > 0 and data.gameframe ~= nil and data.gameframe+1800 > Spring.GetGameFrame() and data.gameframe >= Spring.GetGameFrame() then
     if data.tombstones ~= nil then
       tombstones = data.tombstones
-      reloaded = true   -- this is used to create displaylist at later time cause player color widget might change the teamcolors
     end
   end
 end

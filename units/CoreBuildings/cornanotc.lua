@@ -43,7 +43,7 @@ return {
 		useBuildingGroundDecal = true,
 		workertime = 200,
 		customparams = {
-			
+
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
