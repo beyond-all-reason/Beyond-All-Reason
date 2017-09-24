@@ -185,9 +185,21 @@ Sleep(100)
 end
 end
 
+function Norm3DVectr(dx, dy, dz)
+ndx = (math.abs(dx)/dx)*math.sqrt((dx^2)/(dx^2 + dy^2 + dz^2))
+ndy = (math.abs(dy)/dy)*math.sqrt((dy^2)/(dx^2 + dy^2 + dz^2))
+ndz = (math.abs(dz)/dz)*math.sqrt((dz^2)/(dx^2 + dy^2 + dz^2))
+if dx == 0 then ndz = 0 end
+if dy == 0 then ndy = 0 end
+if dz == 0 then ndz = 0 end
+return ndx, ndy, ndz
+end
+
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
-Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
+ndx, ndy, ndz = Norm3DVectr(dx, dy, dz)
+Spring.Echo(ndx, ndy, ndz)
+Spring.SpawnCEG(effectName, x,y,z, ndx, ndy, ndz)
 end
 
 function EmitRand(pieceName, effectName)
