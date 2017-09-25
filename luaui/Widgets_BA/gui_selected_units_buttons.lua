@@ -139,6 +139,7 @@ end
 
 local prevMouseIcon
 local justCreatedList = false
+local hoverClock = nil
 function widget:DrawScreen()
 	enabled = false
 	if (not spIsGUIHidden()) then
@@ -161,6 +162,12 @@ function widget:DrawScreen()
           else
             --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
           end
+          if hoverClock == nil then hoverClock = os.clock() end
+          if WG['tooltip'] ~= nil and os.clock() - hoverClock > 0.6 then
+            WG['tooltip'].ShowTooltip('selectedunitbuttons', "\255\215\255\215Selected units\n \255\255\240\200Left click\255\240\240\240: Remove all other unit types\n \255\255\240\200Left click + CTRL\255\240\240\240: Select all units of this type on map\n \255\255\240\200Left click + ALT\255\240\240\240: Remove all by 1 unit of this unit type\n \255\255\240\200Right click\255\240\240\240: Remove that unit type from the selection\n \255\255\240\200Right click + CTRL\255\240\240\240: Only remove 1 unit from that unit type\n \255\255\240\200Middle click\255\240\240\240: Move to the center location of the selected unit(s)\n \255\255\240\200Middle click + CTRL\255\240\240\240: Move to the center off whole selection")
+          end
+        else
+          hoverClock = nil
         end
         if mouseIcon ~= prevMouseIcon and justCreatedList == false then     -- justCreatedList check is needed: white icon texture error occurs when you run the createlist twice
           gl.DeleteList(picList)
