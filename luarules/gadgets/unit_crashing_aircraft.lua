@@ -30,12 +30,12 @@ local crashing = {}
 
 local totalUnits = 0
 local totalUnitsTime = 0
-local percentage = 0.5
+local percentage = 0.5	-- is reset somewhere else
 
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true and not UnitDef.transportSize then
+		if UnitDef.canFly == true and UnitDef.transportSize == 0 then
 			crashable[UnitDef.id] = true
 		end
 	end
@@ -43,6 +43,13 @@ function gadget:Initialize()
 	crashable[UnitDefNames['armpeep'].id] = false
 	crashable[UnitDefNames['corfink'].id] = false
 	crashable[UnitDefNames['critter_gull'].id] = false
+
+	crashable[UnitDefNames['armfig'].id] = false
+	crashable[UnitDefNames['armsfig'].id] = false
+	crashable[UnitDefNames['armhawk'].id] = false
+	crashable[UnitDefNames['corveng'].id] = false
+	crashable[UnitDefNames['corsfig'].id] = false
+	crashable[UnitDefNames['corvamp'].id] = false
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -55,9 +62,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			totalUnits = #Spring.GetAllUnits()
-			percentage = 0.5 * (1 - (totalUnits/4000))
-			if percentage < 0.12 then
-				percentage = 0.12
+			percentage = 0.5 * (1 - (totalUnits/5000))
+			if percentage < 0.2 then
+				percentage = 0.2
 			end
 		end
 		if random() < percentage then
