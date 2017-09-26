@@ -170,7 +170,7 @@ function WeaponDef_Post(name, wDef)
 	end
 	
 	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
-	-- wDef.targetborder = 1.0
+	wDef.targetborder = 1.0
 	
   -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
 	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
