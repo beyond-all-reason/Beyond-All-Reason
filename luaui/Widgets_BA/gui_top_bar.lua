@@ -34,6 +34,7 @@ local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
 local gameStarted = false
+local displayComCounter = false
 
 local glTranslate				= gl.Translate
 local glColor						= gl.Color
@@ -66,6 +67,7 @@ local minWind		  			= Game.windMin
 local maxWind		  			= Game.windMax
 local windRotation			= 0
 
+local startComs = 0
 local sec = 0
 local glowCycle = 0
 local lastFrame = -1
@@ -765,10 +767,12 @@ function init()
 	updateWind()
 	
 	-- coms
-	comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
-	updateComs()
-	
+	if displayComCounter then
+		comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
+		filledWidth = filledWidth + width + areaSeparator
+		updateComs()
+	end
+
 	-- rejoin
 	width = (totalWidth/4) / 3.3
 	rejoinArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
@@ -797,8 +801,11 @@ function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		checkStatus()
-		countComs()
-		updateComs(true)
+
+		if displayComCounter then
+			countComs()
+			updateComs(true)
+		end
 
 		-- code for rejoin
 		local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
@@ -811,7 +818,7 @@ function widget:GameFrame(n)
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
     functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
-	if n == 1 then	-- dunno why its not properly updated at GameStart
+	if n == 1 and displayComCounter then	-- dunno why its not properly updated at GameStart
 		countComs()
 		updateComs(true)
 	end
@@ -880,22 +887,24 @@ function widget:Update(dt)
 	end
 
  	-- coms
-	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
-		checkStatus()
-		countComs()
-	end
-	if not spec and receiveCount then	-- check if we have received a TeamRulesParam from the gadget part
-		local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
-		if type(newEnemyComCount) == 'number' then
-			enemyComCount = newEnemyComCount
-			if enemyComCount ~= prevEnemyComCount then
-				comcountChanged = true
-				prevEnemyComCount = enemyComCount
+	if displayComCounter then
+		if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+			checkStatus()
+			countComs()
+		end
+		if not spec and receiveCount then	-- check if we have received a TeamRulesParam from the gadget part
+			local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+			if type(newEnemyComCount) == 'number' then
+				enemyComCount = newEnemyComCount
+				if enemyComCount ~= prevEnemyComCount then
+					comcountChanged = true
+					prevEnemyComCount = enemyComCount
+				end
 			end
 		end
-	end
-	if comcountChanged then
-		updateComs()
+		if comcountChanged then
+			updateComs()
+		end
 	end
 
 	-- rejoin
@@ -950,6 +959,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreen()
+	local now = os.clock()
 
 	if dlistBackground then
 		glCallList(dlistBackground)
@@ -982,7 +992,6 @@ function widget:DrawScreen()
 		--end
 	end
 
-
 	if dlistWind1 then
 		glCallList(dlistWind1)
 		glRotate(windRotation, 0, 0, 1)
@@ -991,9 +1000,25 @@ function widget:DrawScreen()
 		if gameFrame > 0 then
 			local fontSize = (height/2.66)*widgetScale
 			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+		else
+			if now < 30 then
+				if (minWind + maxWind)/2 < 5.5 then
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind isnt worth', windArea[1], windArea[2]-13*widgetScale)
+				elseif (minWind + maxWind)/2 >= 5.5 and (minWind + maxWind)/2 < 7 then
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is viable', windArea[1], windArea[2]-13*widgetScale)
+				elseif (minWind + maxWind)/2 >= 7 and (minWind + maxWind)/2 < 8.5 then
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is okay', windArea[1], windArea[2]-13*widgetScale)
+				elseif (minWind + maxWind)/2 >= 8.5 and (minWind + maxWind)/2 < 10 then
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is good', windArea[1], windArea[2]-13*widgetScale)
+				elseif (minWind + maxWind)/2 >= 10  and (minWind + maxWind)/2 < 15 then
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Average wind is really good', windArea[1], windArea[2]-13*widgetScale)
+				elseif (minWind + maxWind)/2 >= 15 then
+					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind is insanely good', windArea[1], windArea[2]-13*widgetScale)
+				end
+			end
 		end
 	end
-	if dlistComs1 then
+	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
 			glColor(1,0.6,0,0.6)
@@ -1037,7 +1062,7 @@ function widget:DrawScreen()
 	if showQuitscreen ~= nil then
 		local fadeoutBonus = 0
 		local fadeTime = 0.2
-		local fadeProgress = (os.clock() - showQuitscreen) / fadeTime
+		local fadeProgress = (now - showQuitscreen) / fadeTime
 		if fadeProgress > 1 then fadeProgress = 1 end
 
 		-- background
@@ -1291,7 +1316,9 @@ end
 function widget:PlayerChanged()
 	spec = spGetSpectatingState()
 	checkStatus()
-	countComs()
+	if displayComCounter then
+		countComs()
+	end
 end
 
 
@@ -1305,11 +1332,11 @@ function isCom(unitID,unitDefID)
 	return UnitDefs[unitDefID].customParams.iscommander ~= nil
 end
 
+
 function countComs()
 	-- recount my own ally team coms
 	local prevAllyComs = allyComs
 	local prevEnemyComs = enemyComs
-	
 	allyComs = 0
 	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 	for _,teamID in ipairs(myAllyTeamList) do
@@ -1474,8 +1501,23 @@ end
 
 
 function widget:Initialize()
+	-- determine if we want to show comcounter
+	local allyTeamList = Spring.GetAllyTeamList()
+	for _,allyTeamID in ipairs(allyTeamList) do
+		local teamList = Spring.GetTeamList(allyTeamID)
+		local allyComCount = 0
+		for _,teamID in ipairs(teamList) do
+			allyComCount = allyComCount + 1
+			enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+		end
+		if allyComCount > 1 then
+			displayComCounter = true
+			break
+		end
+	end
+
 	Spring.SendCommands("resbar 0")
-	if Spring.GetGameFrame() > 0 then
+	if displayComCounter and Spring.GetGameFrame() > 0 then
 		countComs()
 	end
 	init()

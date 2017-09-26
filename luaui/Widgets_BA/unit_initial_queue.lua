@@ -29,6 +29,8 @@ local borderSize = 0
 local maxCols = 5
 local fontSize = 17
 local margin = 6
+local drawTooltip = true		-- drawBigTooltip = true... this needs to be true aswell
+local drawBigTooltip = false
 
 local borderPadding = 2.5
 local borderColor = {1,1,1,0.025}
@@ -217,6 +219,28 @@ local totalTime
 -- Local functions
 ------------------------------------------------------------
 
+function wrap(str, limit)
+	limit = limit or 72
+	local here = 1
+	local buf = ""
+	local t = {}
+	str:gsub("(%s*)()(%S+)()",
+		function(sp, st, word, fi)
+			if fi-here > limit then
+				--# Break the line
+				here = st
+				table.insert(t, buf)
+				buf = word
+			else
+				buf = buf..sp..word  --# Append
+			end
+		end)
+	--# Tack on any leftovers
+	if(buf ~= "") then
+		table.insert(t, buf)
+	end
+	return t
+end
 
 local function RectQuad(px,py,sx,sy)
 	local o = 0.008		-- texture offset, because else grey line might show at the edges
@@ -621,6 +645,24 @@ function widget:DrawScreen()
 			end
 			gl.Texture(false)
 			gl.Translate(((iconWidth*widgetScale)*col), ((iconHeight*widgetScale)*row), 0)
+
+			if drawTooltip and WG['tooltip'] ~= nil then
+				local udefid = TraceDefID(CurMouseState[1], CurMouseState[2])
+				local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
+				if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
+					local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
+					local description = ''
+					local newline = ''
+					for i, line in ipairs(lines) do
+						description = description..newline..line
+						newline = '\n'
+					end
+					text = text..description
+				else
+					text = text..UnitDefs[udefid].tooltip
+				end
+				WG['tooltip'].ShowTooltip('initialqueue', text)
+			end
 		end
 		if selDefID ~= nil and lastClickedRow ~= nil and lastClickedCol ~= nil then
 			local row, col = lastClickedRow, lastClickedCol

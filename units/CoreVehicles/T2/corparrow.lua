@@ -59,7 +59,7 @@ return {
 					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
+					kickback = "-4", --How much will the cannon kickback
 				--AIMING HERE
 					cobturretyspeed = "55", --turretSpeed as seen in COB script
 					cobturretxspeed = "35", --turretSpeed as seen in COB script
