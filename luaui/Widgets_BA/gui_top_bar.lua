@@ -801,7 +801,7 @@ function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		checkStatus()
-		
+
 		if displayComCounter then
 			countComs()
 			updateComs(true)
