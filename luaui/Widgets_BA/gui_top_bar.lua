@@ -1001,7 +1001,7 @@ function widget:DrawScreen()
 			local fontSize = (height/2.66)*widgetScale
 			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
 		else
-			if now < 60 then
+			if now < 30 then
 				if (minWind + maxWind)/2 < 5.5 then
 					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind isnt worth', windArea[1], windArea[2]-13*widgetScale)
 				elseif (minWind + maxWind)/2 >= 5.5 and (minWind + maxWind)/2 < 7 then
