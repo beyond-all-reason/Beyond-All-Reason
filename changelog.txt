@@ -51,7 +51,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Bertha and Intimidator weapons have 25% more Area of Effect
 
  T1
- • T1 kbot/veh/air lab got 33% additional buildspeed
+ • T1 kbot/veh/air lab got 25% additional buildspeed
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
