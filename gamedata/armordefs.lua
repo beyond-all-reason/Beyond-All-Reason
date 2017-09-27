@@ -267,7 +267,7 @@ local armorDefs = {
         "armbanth",
 		"corcat",
 		"armraz",
-		"armshock",
+		"armvang",
 		"corkarg",
 		"krogtaar",
         "armamb",

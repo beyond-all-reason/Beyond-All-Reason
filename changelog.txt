@@ -65,7 +65,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Moho Exploiter now has same health (2000 -> 3500) as regular moho, but does less damage per shot
 
  T3
- • Vanguard does 20% more damage
+ • Vanguard does 15% more damage
  • Reintroduced KrogStomp (vs ground scouts + pws/aks only) aswell as a GFX/SFX
  • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
 
