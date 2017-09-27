@@ -634,7 +634,7 @@ function gadget:Initialize()
 	if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
 		gadgetHandler:RemoveGadget(self)
 	end
-	
+
 	gadgetHandler:RegisterCMDID(CMD_RAW_MOVE)
 	for _, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
