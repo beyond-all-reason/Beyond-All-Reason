@@ -56,7 +56,6 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
 
-
  T2
  • Armmart and cormart (mobile T2 arty) do 15% more damage
  • Morties are 5% slower and are a bit less acurate (even more when moving)
