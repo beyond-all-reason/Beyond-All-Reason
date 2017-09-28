@@ -706,7 +706,7 @@ local function updateResbar(res)
 	
 	-- add tooltips
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip(res..'_share_slider', shareIndicatorArea[res], "\255\215\255\215"..res:sub(1,1):upper()..res:sub(2).." Share Slider\n\255\240\240\240Overflowing to your team when \n"..res.." goes beyond this point")
+		WG['tooltip'].AddTooltip(res..'_share_slider', {resbarDrawinfo[res].barArea[1], shareIndicatorArea[res][2], resbarDrawinfo[res].barArea[3], shareIndicatorArea[res][4]}, "\255\215\255\215"..res:sub(1,1):upper()..res:sub(2).." Share Slider\n\255\240\240\240Overflowing to your team when \n"..res.." goes beyond this point")
 		if res == 'energy' then
 			WG['tooltip'].AddTooltip(res..'_metalmaker_slider', conversionIndicatorArea, "\255\215\255\215Energy Conversion slider\n\255\240\240\240Excess energy beyond this point will be\nconverted to metal\n(by your Energy Convertor units)")
 		end
@@ -1241,12 +1241,22 @@ function widget:MousePress(x, y, button)
 				draggingShareIndicator = 'metal'
 				return true
 			end
+			if IsOnRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
+				draggingShareIndicator = 'metal'
+				adjustSliders(x, y)
+				return true
+			end
 			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 				return true
 			end
 			if showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
+				return true
+			end
+			if IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+				draggingShareIndicator = 'energy'
+				adjustSliders(x, y)
 				return true
 			end
 		end

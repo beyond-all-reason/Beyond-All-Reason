@@ -43,7 +43,7 @@ return {
 			[1] = "armbanth",
 			[2] = "armraz",
 			[3] = "armmar",
-			[4] = "armshock",
+			[4] = "armvang",
 			-- [5] = "armlun",
 		},
 		customparams = {

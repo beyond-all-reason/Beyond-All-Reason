@@ -1,10 +1,10 @@
 return {
-	armshock = {
+	armvang = {
 		acceleration = 0.023,
 		brakerate = 0.3,
 		buildcostenergy = 70000,
 		buildcostmetal = 3300,
-		buildpic = "ARMSHOCK.DDS",
+		buildpic = "ARMVANG.DDS",
 		buildtime = 91096,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE",
@@ -27,7 +27,7 @@ return {
 		movementclass = "HTKBOT4",
 		name = "Vanguard",
 		nochasecategory = "VTOL",
-		objectname = "ARMSHOCK",
+		objectname = "ARMVANG",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 625,
@@ -54,7 +54,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2028,
-				object = "ARMSHOCK_DEAD",
+				object = "ARMVANG_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -87,7 +87,7 @@ return {
 				"deathceg4",
 			},
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-huge",
 			},
 		},
 		sounds = {
@@ -141,9 +141,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				damage = {
-					default = 1320,
+					default = 1265,
 					commanders = 1100,
-					shields = 800,
+					shields = 765,
 					subs = 5,
 				},
 			},
