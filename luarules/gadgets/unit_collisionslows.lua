@@ -86,6 +86,52 @@ local cz = pz2 - pz1
 return cx, cy, cz
 end
 
+function SlowDownUnit(unitID, maxx, maxy, maxz)
+local vx, vy, vz = Spring.GetUnitVelocity(unitID)
+	if vx < 0 then
+		if vx < maxx then
+			nvx = maxx
+		else
+			nvx = vx
+		end
+	else
+		if vx > maxx then
+			nvx = maxx
+		else
+			nvx = vx
+		end
+	end
+	
+	if vy < 0 then
+		if vy < maxy then
+			nvy = maxy
+		else
+			nvy = vy
+		end
+	else
+		if vy > maxy then
+			nvy = maxy
+		else
+			nvy = vy
+		end
+	end
+	
+	if vz < 0 then
+		if vz < maxz then
+			nvz = maxz
+		else
+			nvz = vz
+		end
+	else
+		if vz > maxz then
+			nvz = maxz
+		else
+			nvz = vz
+		end
+	end
+Spring.SetUnitVelocity(unitID, nvx, nvy, nvz)
+end
+
 function gadget:UnitUnitCollision(unitID1, unitID2)
 	if not (CheckIgnore(unitID1) or CheckIgnore(unitID2)) then
 	SendToIgnoreList(unitID1, 5)
@@ -107,18 +153,23 @@ function gadget:UnitUnitCollision(unitID1, unitID2)
 		if not (UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "armnanotc" or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "cornanotc") then
 			if (UnitDefs[Spring.GetUnitDefID(unitID2)].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID1),Spring.GetUnitTeam(unitID2)) == false) or not UnitDefs[Spring.GetUnitDefID(unitID2)].isFactory == true then
 				
-				local vx1,vy1,vz1 = Spring.GetUnitVelocity(unitID1)
+				local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
+				local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
 				local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID2)
 				
 				local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
 				
-				local mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID2)].mass
+				if UnitDefs[Spring.GetUnitDefID(unitID2)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID2)].name == "armnanotc" then	
+				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, 50000		
+				else
+				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID2)].mass*20
+				end
 				
 				local rspeedx = vx1*(1-ddotdir1) + (vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)))*(ddotdir1)
 				local rspeedy = vy1*(1-ddotdir1) + (vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)))*(ddotdir1)
 				local rspeedz = vz1*(1-ddotdir1) + (vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))*(ddotdir1)
 				
-				Spring.SetUnitVelocity(unitID1, rspeedx, rspeedy, rspeedz)
+				SlowDownUnit(unitID1, rspeedx, rspeedy, rspeedz)
 				
 				if UnitDefs[Spring.GetUnitDefID(unitID2)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID2)].name == "armnanotc" then
 					if ddotdir1 > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0 then
@@ -142,14 +193,19 @@ end
 if ddotdir2 > 0 then
 	if not (UnitDefs[Spring.GetUnitDefID(unitID2)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID2)].name == "armnanotc" or UnitDefs[Spring.GetUnitDefID(unitID2)].name == "cornanotc") then
 		if (UnitDefs[Spring.GetUnitDefID(unitID1)].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID2),Spring.GetUnitTeam(unitID1)) == false) or not UnitDefs[Spring.GetUnitDefID(unitID1)].isFactory == true then
-			local vx1,vy1,vz1 = Spring.GetUnitVelocity(unitID2)
+			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID2)
+			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vz1
 			local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID1)
 			local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
-			local mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID2)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID1)].mass
+				if UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "armnanotc" then	
+				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID2)].mass*scalar2d*5, 50000		
+				else
+				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID2)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID1)].mass*20
+				end
 			local rspeedx = vx1*(1-ddotdir2) + (vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)))*(ddotdir2)
 			local rspeedy = vy1*(1-ddotdir2) + (vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)))*(ddotdir2)
 			local rspeedz = vz1*(1-ddotdir2) + (vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))*(ddotdir2)
-			Spring.SetUnitVelocity(unitID2, rspeedx, rspeedy, rspeedz)
+			SlowDownUnit(unitID2, rspeedx, rspeedy, rspeedz)
 			if UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "armnanotc" then
 				if ddotdir2 > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID2)].rSpeed ~= 0  then
 					local movegoalx, movegoaly, movegoalz =  x2 - 24*dirx2, Spring.GetGroundHeight(x2 - 24*dirx2,z2 - 24*dirz2), z2 - 24*dirz
@@ -188,14 +244,15 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 		local ddotdir = (dx1 * dirx + dz1 * dirz)
 		
 			if ddotdir > 0 then
-			local vx1,vy1,vz1 = Spring.GetUnitVelocity(unitID1)
+			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
+			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
 			local vx2,vy2,vz2 = 0,0,0
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 0
 				else
-					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, FeatureDefs[Spring.GetFeatureDefID(unitID2)].mass
+					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 50000
 				end
-			Spring.SetUnitVelocity(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
+			SlowDownUnit(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
 				if ddotdir > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0  then
 					local movegoalx, movegoaly, movegoalz = x1 + 24*-dirx,Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)),z1 + 24*-dirz
 						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
@@ -224,14 +281,15 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 		local ddotdir = (dx1 * dirx + dz1 * dirz)
 		
 			if ddotdir > 0 then
-			local vx1,vy1,vz1 = Spring.GetUnitVelocity(unitID1)
+			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
+			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
 			local vx2,vy2,vz2 = 0,0,0
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 0
 				else
-					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, FeatureDefs[Spring.GetFeatureDefID(unitID2)].mass
+					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 50000
 				end
-			Spring.SetUnitVelocity(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
+			SlowDownUnit(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
 				if ddotdir > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0  then
 					local movegoalx, movegoaly, movegoalz = x1 + 24*-dirx,Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)),z1 + 24*-dirz
 						local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
