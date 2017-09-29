@@ -320,6 +320,9 @@ function widget:Initialize()
 			show = not show
 		end
 	end
+	WG['keybinds'].isvisible = function()
+		return show
+	end
 end
 
 function widget:Shutdown()

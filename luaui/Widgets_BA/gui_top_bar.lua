@@ -1186,6 +1186,7 @@ local function hideWindows()
 end
 
 local function applyButtonAction(button)
+	local isvisible = false
 	if button == 'quit' then
 		local oldShowQuitscreen
 		if showQuitscreen ~= nil then
@@ -1201,28 +1202,43 @@ local function applyButtonAction(button)
 			showQuitscreen = os.clock()
 		end
 	elseif button == 'options' then
-		hideWindows()
 		if (WG['options'] ~= nil) then
+			isvisible = WG['options'].isvisible()
+		end
+		hideWindows()
+		if (WG['options'] ~= nil and isvisible ~= true) then
 			WG['options'].toggle()
 		end
 	elseif button == 'changelog' then
-		hideWindows()
 		if (WG['changelog'] ~= nil) then
+			isvisible = WG['changelog'].isvisible()
+		end
+		hideWindows()
+		if (WG['changelog'] ~= nil and isvisible ~= true) then
 			WG['changelog'].toggle()
 		end
 	elseif button == 'keybinds' then
-		hideWindows()
 		if (WG['keybinds'] ~= nil) then
+			isvisible = WG['keybinds'].isvisible()
+		end
+		hideWindows()
+		if (WG['keybinds'] ~= nil and isvisible ~= true) then
 			WG['keybinds'].toggle()
 		end
     elseif button == 'commands' then
+		if (WG['commands'] ~= nil) then
+			isvisible = WG['commands'].isvisible()
+		end
         hideWindows()
-        if (WG['commands'] ~= nil) then
+        if (WG['commands'] ~= nil and isvisible ~= true) then
             WG['commands'].toggle()
         end
     elseif button == 'stats' then
+		if (WG['teamstats'] ~= nil) then
+			isvisible = WG['teamstats'].isvisible()
+		end
         hideWindows()
-        if (WG['teamstats'] ~= nil) then
+        if (WG['teamstats'] ~= nil and isvisible ~= true) then
             WG['teamstats'].toggle()
         end
 	end
@@ -1316,7 +1332,7 @@ function widget:MouseRelease(x, y, button)
 		if buttonsArea['buttons'] ~= nil then	-- reapply again because else the other widgets disable when there is a click outside of their window
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					applyButtonAction(button)
+					--applyButtonAction(button)
 				end
 			end
 		end

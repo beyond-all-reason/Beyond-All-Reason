@@ -419,6 +419,9 @@ function widget:Initialize()
 			widget:GameFrame(GetGameFrame(),true)
 		end
 	end
+	WG['teamstats'].isvisible = function()
+		return guiData.mainPanel.visible
+	end
 end
 
 

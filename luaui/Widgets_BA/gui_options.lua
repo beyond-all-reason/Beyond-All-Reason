@@ -1191,6 +1191,9 @@ function widget:Initialize()
 			show = not show
 		end
 	end
+	WG['options'].isvisible = function()
+		return show
+	end
 	
 	-- get widget list
   for name,data in pairs(widgetHandler.knownWidgets) do

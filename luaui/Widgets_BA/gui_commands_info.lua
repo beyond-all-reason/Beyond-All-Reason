@@ -463,6 +463,9 @@ function widget:Initialize()
 				show = not show
 			end
 		end
+		WG['commands'].isvisible = function()
+			return show
+		end
 		
 		-- somehow there are a few characters added at the start that we need to remove
 		--changelogFile = string.sub(changelogFile, 4)

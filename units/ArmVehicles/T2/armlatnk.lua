@@ -192,7 +192,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.33",		-- used by light_effects widget
+					light_multiplier = "0.38",		-- used by light_effects widget
 				},
 			},
 		},
