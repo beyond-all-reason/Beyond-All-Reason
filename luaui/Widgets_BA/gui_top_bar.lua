@@ -1191,12 +1191,15 @@ local function applyButtonAction(button)
 		local oldShowQuitscreen
 		if showQuitscreen ~= nil then
 			oldShowQuitscreen = showQuitscreen
+			isvisible = true
 		end
 		hideWindows()
 		if oldShowQuitscreen ~= nil then
-			showQuitscreen = oldShowQuitscreen
-			if (WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
+			if isvisible ~= true then
+				showQuitscreen = oldShowQuitscreen
+				if (WG['guishader_api'] ~= nil) then
+					WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
+				end
 			end
 		else
 			showQuitscreen = os.clock()
