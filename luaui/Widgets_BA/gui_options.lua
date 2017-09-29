@@ -1252,10 +1252,10 @@ function widget:Initialize()
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
 
 		-- SND
-		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
-		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
-		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
-		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
+		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=5, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
+		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=5, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
+		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=5, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
+		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=5, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
 		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
 
 		-- CONTROL
