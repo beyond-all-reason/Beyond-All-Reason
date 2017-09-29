@@ -45,8 +45,8 @@ local wasLuaModUIEnabled = 0
 
 function gadget:Initialize()
 
-  Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",2)
-  Spring.AddUnitIcon("corcom.user", "LuaUI/Icons/corcom.png",2)
+  Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",2, 2)
+  Spring.AddUnitIcon("corcom.user", "LuaUI/Icons/corcom.png",2, 2)
   Spring.AddUnitIcon("cross.user", "LuaUI/Icons/cross.png")
   Spring.AddUnitIcon("diamond.user", "LuaUI/Icons/diamond.png",1.1)
   Spring.AddUnitIcon("e.user", "LuaUI/Icons/e.png")

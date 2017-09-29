@@ -890,10 +890,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("snd_volmaster", value)
 		elseif id == 'sndvolbattle' then
 			Spring.SetConfigInt("snd_volbattle", value)
+		elseif id == 'sndvolgeneral' then
+			Spring.SetConfigInt("snd_volgeneral", value)
 		elseif id == 'sndvolui' then
 			Spring.SetConfigInt("snd_volui", value)
 		elseif id == 'sndvolunitreply' then
 			Spring.SetConfigInt("snd_volunitreply", value)
+		elseif id == 'sndairabsorption' then
+			Spring.SetConfigInt("snd_airAbsorption", value)
 		elseif id == 'sndvolmusic' then
 			Spring.SetConfigInt("snd_volmusic", value)
 		elseif id == 'crossalpha' then
@@ -1252,11 +1256,13 @@ function widget:Initialize()
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=widgetHandler.orderList["Snow"] ~= nil and (widgetHandler.orderList["Snow"] > 0), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
 
 		-- SND
-		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=5, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
-		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=5, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
-		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=5, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
-		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=5, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
-		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
+		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
+		--{id="sndvolgeneral", group="snd", name="General volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volgeneral",1) or 100)},
+		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
+		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
+		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
+		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
+		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
 
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
