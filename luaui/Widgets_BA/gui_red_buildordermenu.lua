@@ -26,6 +26,9 @@ local barGlowEdgeTexture   = LUAUI_DIRNAME.."Images/barglow-edge.dds"
 
 local oldUnitpicsDir   = LUAUI_DIRNAME.."Images/oldunitpics/"
 
+local sound_queue_add = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
+local sound_queue_rem = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+
 local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
@@ -575,9 +578,11 @@ local function UpdateGrid(g,cmds,ordertype)
 		
 		icon.mouseclick = {
 			{1,function(mx,my,self)
+				Spring.PlaySoundFile(sound_queue_add, 0.9, 'ui')
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
 			end},
 			{3,function(mx,my,self)
+				Spring.PlaySoundFile(sound_queue_rem, 0.9, 'ui')
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),3,false,true,Spring.GetModKeyState())
 			end},
 		}
