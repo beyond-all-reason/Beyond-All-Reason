@@ -804,7 +804,7 @@ function widget:MousePress(x, y, button)
   if (hoveredFac+hoveredBOpt>=-1) then
     if waypointMode>1 then
       Spring.Echo("BuildBar: Exited greedy waypoint mode")
-      Spring.PlaySoundFile(sound_waypoint, 1, 'ui')
+      Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
     end
     waypointFac  = -1
     waypointMode = 0
@@ -822,7 +822,7 @@ function widget:MousePress(x, y, button)
 
     if waypointMode>1 then
       Spring.Echo("BuildBar: Exited greedy waypoint mode")
-      Spring.PlaySoundFile(sound_waypoint, 1, 'ui')
+      Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
     end
     waypointFac  = -1
     waypointMode = 0
@@ -874,15 +874,15 @@ function MenuHandler(x,y,button)
       local onoff  = {1}
       if ustate ~= nil and ustate["repeat"] then onoff = {0} end
       Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, { })
-      Spring.PlaySoundFile(sound_click, 0.97, 'ui')
+      Spring.PlaySoundFile(sound_click, 0.8, 'ui')
     else--if (bar_openByClick) then
       if (not menuHovered)and(openedMenu == pressedFac) then
         openedMenu = -1
-        Spring.PlaySoundFile(sound_click, 0.9, 'ui')
+        Spring.PlaySoundFile(sound_click, 0.75, 'ui')
       else
         menuHovered= false
         openedMenu = pressedFac
-        Spring.PlaySoundFile(sound_click, 0.9, 'ui')
+        Spring.PlaySoundFile(sound_click, 0.75, 'ui')
       end
     end
   elseif button==2 then
@@ -890,7 +890,7 @@ function MenuHandler(x,y,button)
     Spring.SetCameraTarget(x,y,z)
   elseif button==3 then
     Spring.Echo("BuildBar: Entered greedy waypoint mode")
-    Spring.PlaySoundFile(sound_waypoint, 1, 'ui')
+    Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
     waypointMode = 2 -- greedy mode
     waypointFac  = openedMenu
     openedMenu   = -1
@@ -913,11 +913,11 @@ function BuildHandler(button)
 
   if button==1 then
     Spring.GiveOrderToUnit(facs[openedMenu+1].unitID, -(facs[openedMenu+1].buildList[pressedBOpt+1]),{},opt)
-    Spring.PlaySoundFile(sound_queue_add, 0.95, 'ui')
+    Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
   elseif button==3 then
     push(opt,"right")
     Spring.GiveOrderToUnit(facs[openedMenu+1].unitID, -(facs[openedMenu+1].buildList[pressedBOpt+1]),{},opt)
-    Spring.PlaySoundFile(sound_queue_rem, 0.97, 'ui')
+    Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
   end
 end
 
@@ -925,7 +925,7 @@ end
 function WaypointHandler(x,y,button)
   if (button==1)or(button>3) then
     Spring.Echo("BuildBar: Exited greedy waypoint mode")
-    Spring.PlaySoundFile(sound_waypoint, 1, 'ui')
+    Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
     menuHovered  = false
     waypointFac  = -1
     waypointMode = 0
@@ -1055,7 +1055,7 @@ function widget:IsAbove(x,y)
       openedMenu = hoveredFac
     end
     if not blured then
-      Spring.PlaySoundFile(sound_hover, 0.95, 'ui')
+      Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
       --blurFullscreen(true)
       blured = true
     end
@@ -1063,7 +1063,7 @@ function widget:IsAbove(x,y)
   elseif (openedMenu>=0) and IsInRect(x,y, boptRect) then
     --buildoption icon
     if not blured then
-      Spring.PlaySoundFile(sound_hover, 0.95, 'ui')
+      Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
       --blurFullscreen(true)
       blured = true
     end
@@ -1080,7 +1080,7 @@ function widget:IsAbove(x,y)
   end
 
   if blured then
-    Spring.PlaySoundFile(sound_hover, 0.9, 'ui')
+    Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
     --blurFullscreen(false)
     blured = false
   end

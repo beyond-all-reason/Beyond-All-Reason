@@ -675,11 +675,11 @@ end
 
 function widget:TextCommand(command)
     if (string.find(command, "allyresbars_sizeup") == 1  and  string.len(command) == 18) then 
-		customScale = customScale + 0.08
+		customScale = customScale + 0.2
 		processScaling()
 	end
     if (string.find(command, "allyresbars_sizedown") == 1  and  string.len(command) == 20) then 
-		customScale = customScale - 0.08
+		customScale = customScale - 0.2
 		if customScale < 0.5 then 
 			customScale = 0.5
 		end
