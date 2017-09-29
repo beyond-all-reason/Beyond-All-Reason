@@ -501,6 +501,28 @@ unitDeaths = {
 		turret = 1,
 		damage = {
 			default = 50000,
+			commanders = 8000,
+		},
+	},
+    commanderexplosionselfd = {
+		name = "Matter/AntimatterExplosion",
+		weaponType = "Cannon",
+		AreaOfEffect = 720,
+		cameraShake = 720,
+		impulseboost = 3,
+		impulsefactor = 3,
+		soundhit = "newboom",
+		soundstart = "largegun",
+		explosiongenerator="custom:COMMANDER_EXPLOSION",
+		range = 380,
+		weaponvelocity = 250,
+		craterboost = 6,
+		cratermult = 3,
+		edgeeffectiveness = 0.25,
+		reloadtime = 3.5999999046326,
+		turret = 1,
+		damage = {
+			default = 50000,
 		},
 	},
 
