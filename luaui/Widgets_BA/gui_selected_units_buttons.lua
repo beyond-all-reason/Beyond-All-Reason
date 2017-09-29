@@ -72,7 +72,9 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local highlightColor = {1, 0.75, 0.4, 0.2}
+local leftmouseColor = {1, 0.72, 0.25, 0.22}
+local middlemouseColor = {1, 1, 1, 0.16}
+local rightmouseColor = {1, 0.4, 0.4, 0.2}
 --local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
@@ -163,7 +165,13 @@ function widget:DrawScreen()
         mouseIcon = MouseOverIcon(x, y)
         if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
           if (lb or mb or rb) then
-            DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
+            if lb then
+              DrawIconQuad(mouseIcon, leftmouseColor)  --  click highlight
+            elseif mb then
+              DrawIconQuad(mouseIcon, middlemouseColor)  --  click highlight
+            elseif rb then
+              DrawIconQuad(mouseIcon, rightmouseColor)  --  click highlight
+            end
           else
             --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
           end
