@@ -111,7 +111,7 @@ local iconSizeX  = 70
 local iconSizeY  = math.floor(iconSizeX * 0.92)
 local iconImgMult= 0.66
 local repIcoSize = math.floor(iconSizeY*0.6)   --repeat iconsize
-local fontSize   = iconSizeY * 0.28
+local fontSize   = iconSizeY * 0.31
 local borderSize = 1.5
 local maxVisibleBuilds = 3
 local vsx, vsy   = widgetHandler:GetViewSizes()
@@ -138,7 +138,7 @@ end
 local function UpdateIconSizes()
   iconSizeX = math.floor(bar_iconSizeBase+((vsx-800)/35))
   iconSizeY = math.floor(iconSizeX * 0.95)
-  fontSize  = iconSizeY * 0.27
+  fontSize  = iconSizeY * 0.31
   repIcoSize = math.floor(iconSizeY*0.4)
 end
 
@@ -304,10 +304,13 @@ local function DrawLineRect(rect, color, width)
   glColor(1,1,1,1)
 end
 
-local function DrawTexRect(rect, texture, alpha)
-  glTexture(true)
+local function DrawTexRect(rect, texture, color)
+  if color ~= nil then
+    glColor(color)
+  else
+    glColor(1,1,1,1)
+  end
   glTexture(texture)
-  glColor(1,1,1, alpha or 1)
   glTexRect(rect[1],rect[4],rect[3],rect[2])
   glColor(1,1,1,1)
   glTexture(false)
@@ -378,44 +381,55 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
     DrawBuildProgress(rect[1],rect[2],rect[3],rect[4], options.progress, { 1, 1, 1, 0.4 })
   end
 
-  -- loop status?
-  if options['repeat'] then
-    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic, 0.7)
-  elseif isFac then
-    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic, 0.2)
-  end
-
   -- hover or pressed?
   local hoverPadding = 0
   local iconAlpha = (options.alpha or 1)
-  if (options.hovered_repeat) then
-    DrawTexRect({rect[3]-repIcoSize-4,rect[2]-4,rect[3]-4,rect[2]-repIcoSize-4}, repeatPic)
-  elseif (options.pressed) then
-    DrawRect(rect, { 1, 0.6, 0, 0.45 })  -- pressed
-    hoverPadding = -iconSizeX/13.5
+  if (options.pressed) then
+    Spring.Echo(options.pressed)
+    if options.pressed == 2 then
+      DrawRect(rect, { 1, 0.8, 0.8, 0.5 })  -- pressed
+    else
+      DrawRect(rect, { 1, 1, 1, 0.5 })  -- pressed
+    end
+    hoverPadding = -iconSizeX/20
     iconAlpha = 1
   elseif (options.hovered) then
-    DrawRect(rect, { 1, 1, 1, 0.45})  -- hover
-    hoverPadding = -iconSizeX/17
+    --DrawRect(rect, { 1, 1, 1, 0.45})  -- hover
+    hoverPadding = -iconSizeX/15
     iconAlpha = 1
   end
 
   -- draw icon
-	local imgRect = {rect[1]+hoverPadding, rect[2]-hoverPadding, rect[3]-hoverPadding, rect[4]+hoverPadding}
+  local imgRect = {rect[1]+hoverPadding, rect[2]-hoverPadding, rect[3]-hoverPadding, rect[4]+hoverPadding}
   if iconResize then
     --local yPad = (iconSizeY*(1-iconImgMult)) / 2  -- used with transparant uniticons
     --local xPad = (iconSizeX*(1-iconImgMult)) / 2  -- used with transparant uniticons
     local yPad = (iconSizeY*(1-iconImgMult)) / 3.3
     local xPad = (iconSizeX*(1-iconImgMult)) / 3.3
     imgRect = {imgRect[1]+xPad, imgRect[2]-yPad, imgRect[3]-xPad, imgRect[4]+yPad}
-  	DrawTexRect(imgRect, '#'..unitDefID,iconAlpha)
+  	DrawTexRect(imgRect, '#'..unitDefID,{1,1,1,iconAlpha})
 	else
-  	DrawTexRect(imgRect, '#'..unitDefID,iconAlpha)
+  	DrawTexRect(imgRect, '#'..unitDefID,{1,1,1,iconAlpha})
   end
-  
+
+  -- loop status?
+  if options['repeat'] then
+    local color = {1,1,1,0.8}
+    if (options.hovered_repeat) then
+      color = {1,1,1,0.65}
+    end
+    DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+  elseif isFac then
+    local color = {1,1,1,0.35}
+    if (options.hovered_repeat) then
+      color = {1,1,1,0.5}
+    end
+    DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+  end
+
   -- amount
   if ((options.amount or 0)>0) then
-    glText( options.amount ,rect[1]+5,rect[4]+6.5,fontSize,"o")
+      glText( options.amount ,rect[1]+((rect[3]-rect[1])*0.22),rect[4]-((rect[4]-rect[2])*0.22),fontSize,"o")
   end
 
   -- draw border
@@ -480,7 +494,7 @@ function widget:DrawScreen()
       end
      -- hover or pressed?
       if (i==hoveredFac+1) then
-        options.hovered_repeat = IsInRect(mx,my, {fac_rec[3]-repIcoSize,fac_rec[2],fac_rec[3],fac_rec[2]-repIcoSize}) 
+        options.hovered_repeat = IsInRect(mx,my, {fac_rec[3]-repIcoSize,fac_rec[2],fac_rec[3],fac_rec[2]-repIcoSize})
         options.pressed = (lb or mb or rb)or(options.hovered_repeat)
         options.hovered = true
       end
@@ -511,6 +525,13 @@ function widget:DrawScreen()
          -- hover or pressed?
           if (j==hoveredBOpt+1) then
             options.pressed = (lb or mb or rb)
+            if lb then
+              options.pressed = 1
+            elseif rb then
+              options.pressed = 2
+            elseif mb then
+              options.pressed = 3
+            end
             options.hovered = true
           end
           options.alpha = 0.85
@@ -540,8 +561,11 @@ function widget:DrawScreen()
           
 					  local yPad = (iconSizeY*(1-iconImgMult)) / 2
 					  local xPad = (iconSizeX*(1-iconImgMult)) / 2
-            DrawTexRect({bopt_rec[1]+xPad,bopt_rec[2]-yPad,bopt_rec[3]-xPad,bopt_rec[4]+yPad},"#"..unitBuildDefID,0.5)
-            if (count>1) then glText( count ,bopt_rec[1]+5,bopt_rec[4]+6.5,fontSize,"o") end
+            DrawTexRect({bopt_rec[1]+xPad,bopt_rec[2]-yPad,bopt_rec[3]-xPad,bopt_rec[4]+yPad},"#"..unitBuildDefID,{1,1,1,0.5})
+            if (count>1) then
+              glColor(1,1,1,0.66)
+              glText( count ,bopt_rec[1]+((bopt_rec[3]-bopt_rec[1])*0.22),bopt_rec[4]-((bopt_rec[4]-bopt_rec[2])*0.22),fontSize,"")
+            end
 
             OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])
             j = j-1
