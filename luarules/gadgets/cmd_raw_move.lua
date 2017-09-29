@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date	= "June 12 2014",
 		license	= "GNU GPL, v2 or later",
 		layer	= 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 include("LuaRules/Configs/customcmds.h.lua")

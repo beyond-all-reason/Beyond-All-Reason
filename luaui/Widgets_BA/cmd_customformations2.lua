@@ -190,17 +190,17 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
 
-if Game ~= nil and Game.version ~= nil and Game.version <= '103' then   -- v103 compatibility
-	local CMD_RAW_MOVE = 39812
-	formationCmds[CMD_RAW_MOVE] = true
-	overrideCmds = {
-	    [CMD.GUARD] = CMD_RAW_MOVE,
-	    [CMD.ATTACK] = CMD_RAW_MOVE,
-	    [CMD_SETTARGET] = CMD_RAW_MOVE
-	}
-	positionCmds[CMD_RAW_MOVE] = true
-	CMD_MOVE = CMD_RAW_MOVE
-end
+--if Game ~= nil and Game.version ~= nil and Game.version <= '103' then   -- v103 compatibility
+--	local CMD_RAW_MOVE = 39812
+--	formationCmds[CMD_RAW_MOVE] = true
+--	overrideCmds = {
+--	    [CMD.GUARD] = CMD_RAW_MOVE,
+--	    [CMD.ATTACK] = CMD_RAW_MOVE,
+--	    [CMD_SETTARGET] = CMD_RAW_MOVE
+--	}
+--	positionCmds[CMD_RAW_MOVE] = true
+--	CMD_MOVE = CMD_RAW_MOVE
+--end
 
 --------------------------------------------------------------------------------
 -- Helper Functions

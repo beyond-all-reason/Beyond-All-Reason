@@ -1331,15 +1331,15 @@ function widget:MouseRelease(x, y, button)
 		draggingConversionIndicator = nil
 	end
 	
-	if button == 1 then
-		if buttonsArea['buttons'] ~= nil then	-- reapply again because else the other widgets disable when there is a click outside of their window
-			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					--applyButtonAction(button)
-				end
-			end
-		end
-	end
+	--if button == 1 then
+	--	if buttonsArea['buttons'] ~= nil then	-- reapply again because else the other widgets disable when there is a click outside of their window
+	--		for button, pos in pairs(buttonsArea['buttons']) do
+	--			if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+	--				applyButtonAction(button)
+	--			end
+	--		end
+	--	end
+	--end
 end
 
 function widget:PlayerChanged()
