@@ -30,7 +30,7 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
   if activateSounds[unitDefID] then
     local x,y,z = GetUnitPosition(unitID)
-    PlaySoundFile(activateSounds[unitDefID],volume,x,y,z, 'ui')
+    PlaySoundFile(activateSounds[unitDefID],volume,x,y,z, 'sfx')
   end
 end
   

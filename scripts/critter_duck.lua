@@ -52,7 +52,7 @@ function script.StartMoving()
 		else
 			snd = 'sounds/critters/duckcall3.wav'
 		end
-		--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
+		--PlaySoundFile(snd,volume,x,y,z,0,0,0,'sfx')
 		lastSound = GetGameFrame ()
 	end
 	StartThread(walk)

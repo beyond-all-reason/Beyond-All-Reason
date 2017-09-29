@@ -76,7 +76,7 @@ function script.setSFXoccupy (curTerrainType)
 	if  GetGameFrame () -lastSound > soundPause then
 		local x,y,z = GetUnitPosition(unitID)
 		local snd = 'sounds/critters/penbray2.wav'
-		PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
+		PlaySoundFile(snd,volume,x,y,z,0,0,0,'sfx')
 		lastSound = GetGameFrame ()
 	end]]--
 	--Spring.Echo (curTerrainType)

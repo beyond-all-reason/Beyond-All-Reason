@@ -74,7 +74,7 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
             soundFile = soundFile .. ".wav" --append .wav if no extension is found
         end
             
-        spPlaySoundFile( "sounds/" .. soundFile, udef.sounds.underattack[id].volume, nil, "ui" )
+        spPlaySoundFile( "sounds/" .. soundFile, udef.sounds.underattack[id].volume, nil, "sfx" )
     end
         
     if (x and y and z) then spSetLastMessagePosition(x,y,z) end

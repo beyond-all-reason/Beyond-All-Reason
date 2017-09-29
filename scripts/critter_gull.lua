@@ -43,7 +43,7 @@ function flapWings()
 			else
 				snd =  'sounds/critters/seacry3.wav'
 			end
-			--PlaySoundFile(snd,volume,x,y,z,vx,vy,vz,'battle')
+			--PlaySoundFile(snd,volume,x,y,z,vx,vy,vz,'sfx')
 			lastSound = GetGameFrame ()
 		end]]--
 	end
