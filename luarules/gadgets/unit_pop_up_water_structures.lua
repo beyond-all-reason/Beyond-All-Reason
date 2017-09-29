@@ -105,7 +105,7 @@ end
 
 function SplashSound(_,x,y,z)
   if (Spring.IsPosInLos(x,y,z)) then
-    Spring.PlaySoundFile("sounds/splslrg.wav", ((Spring.GetConfigInt("snd_volmaster") or 100) / 100), x,y,z)
+    Spring.PlaySoundFile("sounds/splslrg.wav", ((Spring.GetConfigInt("snd_volmaster") or 100) / 100), x,y,z, 'ui')
   end
 end
 

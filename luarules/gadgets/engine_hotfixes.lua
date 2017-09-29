@@ -56,7 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 					local fx, fy, fz = Spring.GetFeaturePosition(fID)
 					Spring.DestroyFeature(fID)
 					Spring.SpawnCEG('sparklegreen', fx, fy, fz)
-					Spring.PlaySoundFile('sounds/reclaimate.wav', 1, fx, fy, fz)
+					Spring.PlaySoundFile('sounds/reclaimate.wav', 1, fx, fy, fz, 'sfx')
 				end
 			end
 		end

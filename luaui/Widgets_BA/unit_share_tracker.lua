@@ -243,7 +243,7 @@ function widget:Update(dt)
 	  msgTimer = msgTimer + dt
 	  if (msgTimer > 0.1) then
 	    Spring.Echo("You received " .. unitCount .. " new unit(s)*")
-	    Spring.PlaySoundFile("sounds/beep4.wav", 1)
+	    Spring.PlaySoundFile("sounds/beep4.wav", 1, 'ui')
 	    unitCount = 0
 	    msgTimer = 0
 	  end

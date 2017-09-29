@@ -18,8 +18,8 @@ local UNPAUSED = LUAUI_DIRNAME .. 'sounds/pause/unpaused.wav'
 
 function widget:GamePaused(playerID, paused)
     if paused then
-        Spring.PlaySoundFile(PAUSED, 1.0, 3)
+        Spring.PlaySoundFile(PAUSED, 1.0, 'ui')
     else
-        Spring.PlaySoundFile(UNPAUSED, 1.0, 3)
+        Spring.PlaySoundFile(UNPAUSED, 1.0, 'ui')
     end
 end

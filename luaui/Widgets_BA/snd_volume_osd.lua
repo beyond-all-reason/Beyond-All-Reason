@@ -68,7 +68,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		if volume > 100 then volume = 100 end
 		Spring.SetConfigInt("snd_volmaster", volume)
 		--Spring.Echo("Volume = " .. volume)
-		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0) end
+		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui') end
 		dt = os.clock()
 		return true		
 	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then -- KEY = minuskey
@@ -78,7 +78,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		if volume > 100 then volume = 100 end
 		Spring.SetConfigInt("snd_volmaster", volume)
 		--Spring.Echo("Volume = " .. volume)
-		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0) end
+		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui') end
 		dt = os.clock()
 		return true
 	end

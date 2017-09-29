@@ -888,7 +888,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("snd_volmaster", value)
 		elseif id == 'sndvolbattle' then
 			Spring.SetConfigInt("snd_volbattle", value)
-		elseif id == 'sndvoui' then
+		elseif id == 'sndvolui' then
 			Spring.SetConfigInt("snd_volui", value)
 		elseif id == 'sndvolunitreply' then
 			Spring.SetConfigInt("snd_volunitreply", value)
@@ -1251,10 +1251,10 @@ function widget:Initialize()
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
-		--{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
-		--{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
-		--{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
-		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=200, step=10, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
+		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
+		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
+		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
+		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=10, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
 
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},

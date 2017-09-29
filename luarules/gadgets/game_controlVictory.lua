@@ -1452,7 +1452,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		local frame = Spring.GetGameFrame()
 		if frame / 30 > startTime then
 			if controlPointPromptPlayed ~= true then
-				Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1)
+				Spring.PlaySoundFile("sounds/ui/controlpointscanbecaptured.wav", 1, 'ui')
 				Spring.Echo([[Control Points may now be captured!]])
 				controlPointPromptPlayed = true
 			end			
