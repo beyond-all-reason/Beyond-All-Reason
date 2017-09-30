@@ -327,7 +327,7 @@ else
         playerInfoTableEntry.present = afk == 0
         playerInfoTable[playerID] = playerInfoTableEntry
         local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
-        if not spectator then
+        if not spectator and name ~= nil then
             if currentGameFrame > minTimeToTake*gameSpeed then
                 if previousPresent and not playerInfoTableEntry.present then
                     SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " went AFK")
