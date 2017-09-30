@@ -41,7 +41,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*2.15,
-		turnrate = 285,
+		turnrate = 253,
 		customparams = {
 			
 		},
