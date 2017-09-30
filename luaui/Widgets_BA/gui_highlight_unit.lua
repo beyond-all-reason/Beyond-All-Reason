@@ -98,7 +98,6 @@ local spGetUnitTeam             = Spring.GetUnitTeam
 local spIsCheatingEnabled       = Spring.IsCheatingEnabled
 local spTraceScreenRay          = Spring.TraceScreenRay
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -308,7 +307,7 @@ function widget:DrawWorld()
     HilightFeature(data)
   elseif (type == 'unit') then
     local unitID = spGetPlayerControlledUnit(spGetMyPlayerID())
-    if (data ~= unitID) then
+    if data ~= unitID and not Spring.IsUnitIcon(data) then
       HilightUnit(data)
       -- also draw the unit's command queue
       local a,c,m,s = spGetModKeyState()
