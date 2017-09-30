@@ -106,7 +106,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_radius_mult = "1.2",		-- used by light_effects widget
+					light_radius_mult = "1.14",		-- used by light_effects widget
 				},
 			},
 			krowlaser2 = {
@@ -147,8 +147,8 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_radius_mult = "1.3",		-- used by light_effects widget
-					light_multiplier = "1.1",		-- used by light_effects widget
+					light_radius_mult = "1.2",		-- used by light_effects widget
+					light_multiplier = "1.05",		-- used by light_effects widget
 				},
 			},
 		},
