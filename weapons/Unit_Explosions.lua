@@ -501,7 +501,7 @@ unitDeaths = {
 		turret = 1,
 		damage = {
 			default = 50000,
-			commanders = 8000,
+			commanders = 9500,
 		},
 	},
     commanderexplosionselfd = {
