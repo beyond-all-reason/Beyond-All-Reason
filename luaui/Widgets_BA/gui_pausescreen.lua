@@ -163,8 +163,8 @@ function widget:Initialize()
   if isPaused then
       paused = true
   end
-  
-  if gl.CreateShader then
+
+  if gl.CreateShader and (Platform == nil or Platform.gpuVendor ~= 'Intel') then
     shaderProgram = gl.CreateShader(
     {
 		  fragment = fragmentShaderSource.washed,

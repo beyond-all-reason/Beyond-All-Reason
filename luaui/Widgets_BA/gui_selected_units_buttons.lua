@@ -72,7 +72,9 @@ local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
-local highlightColor = {1, 0.75, 0.4, 0.2}
+local leftmouseColor = {1, 0.72, 0.25, 0.22}
+local middlemouseColor = {1, 1, 1, 0.16}
+local rightmouseColor = {1, 0.4, 0.4, 0.2}
 --local hoverColor = { 1, 1, 1, 0.25 }
 
 local unitTypes = 0
@@ -98,6 +100,11 @@ local backgroundDimentions = {}
 local iconMargin = usedIconSizeX / 25		-- changed in ViewResize anyway
 local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
 local picList
+
+local playSounds = true
+local leftclick = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
+local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -158,7 +165,13 @@ function widget:DrawScreen()
         mouseIcon = MouseOverIcon(x, y)
         if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
           if (lb or mb or rb) then
-            DrawIconQuad(mouseIcon, highlightColor)  --  click highlight
+            if lb then
+              DrawIconQuad(mouseIcon, leftmouseColor)  --  click highlight
+            elseif mb then
+              DrawIconQuad(mouseIcon, middlemouseColor)  --  click highlight
+            elseif rb then
+              DrawIconQuad(mouseIcon, rightmouseColor)  --  click highlight
+            end
           else
             --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
           end
@@ -357,11 +370,14 @@ end
 
 local function LeftMouseButton(unitDefID, unitTable)
   local alt, ctrl, meta, shift = spGetModKeyState()
+  local acted = false
   if (not ctrl) then
     -- select units of icon type
     if (alt or meta) then
+      acted = true
       spSelectUnitArray({ unitTable[1] })  -- only 1
     else
+      acted = true
       spSelectUnitArray(unitTable)
     end
   else
@@ -369,8 +385,12 @@ local function LeftMouseButton(unitDefID, unitTable)
     local sorted = spGetTeamUnitsSorted(spGetMyTeamID())
     local units = sorted[unitDefID]
     if (units) then
+      acted = true
       spSelectUnitArray(units, shift)
     end
+  end
+  if acted and playSounds then
+    Spring.PlaySoundFile(leftclick, 0.75, 'ui')
   end
 end
 
@@ -388,6 +408,9 @@ local function MiddleMouseButton(unitDefID, unitTable)
     spSendCommands({"viewselection"})
     spSelectUnitArray(selUnits)
   end
+  if playSounds then
+    Spring.PlaySoundFile(middleclick, 0.75, 'ui')
+  end
 end
 
 
@@ -402,6 +425,9 @@ local function RightMouseButton(unitDefID, unitTable)
     if (ctrl) then break end -- only remove 1 unit
   end
   spSelectUnitMap(map)
+  if playSounds then
+    Spring.PlaySoundFile(rightclick, 0.75, 'ui')
+  end
 end
 
 

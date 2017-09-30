@@ -186,6 +186,12 @@ local function CheckHardware()
     return false
   end
 
+  if Platform ~= nil then
+     if Platform.gpuVendor == 'Intel' then
+         Spring.Echo("guishader api: your use an Intel GPU, it will malfunction so we'll disable")
+         widgetHandler:RemoveWidget()
+     end
+  end
   return true
 end
 
@@ -381,7 +387,7 @@ end
 
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
-  
+
 	if screenBlur and allowScreenBlur then
 
 	  gl.Texture(false)

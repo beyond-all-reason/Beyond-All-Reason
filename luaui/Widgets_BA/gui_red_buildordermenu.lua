@@ -35,6 +35,7 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
+local playSounds = true
 local iconScaling = true
 local highlightscale = true
 local drawPrice = true
@@ -578,11 +579,15 @@ local function UpdateGrid(g,cmds,ordertype)
 		
 		icon.mouseclick = {
 			{1,function(mx,my,self)
-				Spring.PlaySoundFile(sound_queue_add, 0.9, 'ui')
+				if playSounds then
+					Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+				end
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
 			end},
 			{3,function(mx,my,self)
-				Spring.PlaySoundFile(sound_queue_rem, 0.9, 'ui')
+				if playSounds then
+					Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+				end
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),3,false,true,Spring.GetModKeyState())
 			end},
 		}
@@ -898,6 +903,16 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon shortcut info:  disabled")
 		end
 	end
+	if (string.find(command, "buildmenusounds") == 1  and  string.len(command) == 15) then
+		playSounds = not playSounds
+		--AutoResizeObjects()
+		Spring.ForceLayoutUpdate()
+		if playSounds then
+			Spring.Echo("Build/order menu sounds:  enabled")
+		else
+			Spring.Echo("Build/order menu sounds:  disabled")
+		end
+	end
 end
 
 function widget:Initialize()
@@ -932,6 +947,9 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigShortcutsInfo = function()
   	return shortcutsInfo
   end
+	WG['red_buildmenu'].getConfigPlaySounds = function()
+		return playSounds
+	end
   WG['red_buildmenu'].setConfigUnitPrice = function(value)
   	drawPrice = value
   end
@@ -950,6 +968,9 @@ function widget:Initialize()
   WG['red_buildmenu'].setConfigShortcutsInfo = function(value)
   	shortcutsInfo = value
   end
+	WG['red_buildmenu'].setConfigPlaySounds = function(value)
+		playSounds = value
+	end
 end
 
 local function onNewCommands(buildcmds,othercmds)
@@ -977,7 +998,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo, playSounds=playSounds}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -1006,6 +1027,9 @@ function widget:SetConfigData(data) --load config
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo
+		end
+		if (data.playSounds ~= nil) then
+			playSounds = data.playSounds
 		end
 	end
 end

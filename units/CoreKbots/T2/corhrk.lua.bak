@@ -138,10 +138,10 @@ return {
 				texture2 = "null",
 				texture3 = "null",
 				turnrate = 28384,
-				weaponacceleration = 100,
+				weaponacceleration = 75,
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
-				weaponvelocity = 800,
+				weaponvelocity = 850,
 				damage = {
 					default = 800,
 					subs = 5,
