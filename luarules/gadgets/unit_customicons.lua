@@ -94,7 +94,7 @@ function gadget:Initialize()
       elseif (ud.name=="armwin") or (ud.name=="corwin") then
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.name=="armfig") or (ud.name=="corveng") or (ud.name=="armhawk") or (ud.name=="corvamp") then
-        Spring.SetUnitDefIcon(udid, "tri-up_fighter.user") 
+        Spring.SetUnitDefIcon(udid, "tri-up_fighter.user")
       elseif (ud.name=="corafus") or (ud.name=="armafus") then
         Spring.SetUnitDefIcon(udid, "e3.user")
       elseif (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then

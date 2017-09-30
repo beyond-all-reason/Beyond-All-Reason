@@ -15,7 +15,6 @@ end
 
 local playSounds = true
 local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
-local sliderclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 local toggleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
 local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
@@ -1063,10 +1062,9 @@ function widget:MouseMove(x, y)
 			options[draggingSlider].value = newValue
 			sliderValueChanged = true
 			applyOptionValue(draggingSlider)
-
-			if playSounds and  sliderdrag ~= nil and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
+			if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os.clock()
-				Spring.PlaySoundFile(sliderdrag, 0.25, 'ui')
+				Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
 			end
 		end
 	end
@@ -1179,10 +1177,13 @@ function mouseEvent(x, y, button, release)
 					for i, o in pairs(optionButtons) do
 						if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
 							draggingSlider = i
-							options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-							applyOptionValue(draggingSlider)
-							if playSounds and sliderclick ~= nil then
-								Spring.PlaySoundFile(sliderclick, 0.5, 'ui')
+							local newValue = getSliderValue(draggingSlider,cx)
+							if options[draggingSlider].value ~= newValue then
+								options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+								applyOptionValue(draggingSlider)
+								if playSounds then
+									Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+								end
 							end
 						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 
@@ -1316,7 +1317,7 @@ function widget:Initialize()
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 
 		-- UI
-		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
+		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},

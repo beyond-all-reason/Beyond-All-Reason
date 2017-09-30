@@ -37,7 +37,7 @@ local icontypes = {
     bitmap="icons/krogoth.tga",
     size=3,
   },
-  
+
   air = {
     bitmap="icons/triangle.tga",
     size=1.2,

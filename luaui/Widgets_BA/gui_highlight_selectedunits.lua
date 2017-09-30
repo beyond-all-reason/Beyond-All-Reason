@@ -27,6 +27,7 @@ end
 
 
 highlightAlpha = 0.21
+local spIsUnitIcon = Spring.IsUnitIcon
 
 
 --------------------------------------------------------------------------------
@@ -106,14 +107,16 @@ function widget:DrawWorld()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
 	for _,unitID in ipairs(Spring.GetSelectedUnits()) do
-		local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
-		gl.Color(
-		health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
-		health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
-		0, -- blue
-		highlightAlpha) -- alpha
-		gl.Unit(unitID, true)
-		--HilightModel(unitID)
+        if not spIsUnitIcon(unitID) then
+            local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
+            gl.Color(
+            health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
+            health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
+            0, -- blue
+            highlightAlpha) -- alpha
+            gl.Unit(unitID, true)
+            --HilightModel(unitID)
+        end
 	end
 
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
