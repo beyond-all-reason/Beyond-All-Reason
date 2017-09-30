@@ -212,6 +212,12 @@ local myLastCameraState
 -- 
 --------------------------------------------------------------------------------
 
+local playSounds = true
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local sliderclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local sliderrelease = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
+
 local lastActivity = {}
 local lastFpsData = {}
 local lastSystemData = {}
@@ -2714,10 +2720,16 @@ function widget:MousePress(x,y,button) --super ugly code here
 							end
 							if IsOnRect(x, y, m_share.posX + widgetPosX +17, posY, m_share.posX + widgetPosX +33,posY+16) then      -- share energy button (initiates the slider)
 								energyPlayer = clickedPlayer
+								if playSounds and sliderclick ~= nil then
+									Spring.PlaySoundFile(sliderclick, 0.5, 'ui')
+								end
 								return true
 							end
 							if IsOnRect(x, y, m_share.posX + widgetPosX +33, posY, m_share.posX + widgetPosX +49,posY+16) then      -- share metal button (initiates the slider)
 								metalPlayer = clickedPlayer
+								if playSounds and sliderclick ~= nil then
+									Spring.PlaySoundFile(sliderclick, 0.5, 'ui')
+								end
 								return true
 							end
 						end
@@ -2801,7 +2813,11 @@ function widget:MouseMove(x,y,dx,dy,button)
 		sliderPosition = (y-sliderOrigin) * (1/widgetScale)
 		if sliderPosition < 0 then sliderPosition = 0 end
 		if sliderPosition > 39 then sliderPosition = 39 end
-		
+
+		if playSounds and sliderdrag ~= nil and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.05) then
+			lastSliderSound = os.clock()
+			Spring.PlaySoundFile(sliderdrag, 0.25, 'ui')
+		end
 		UpdateResources()
 	end
 end
@@ -2825,6 +2841,9 @@ function widget:MouseRelease(x,y,button)
 				Spring_ShareResources(energyPlayer.team, "energy", amountEM)
 				Spring_SendCommands("say a: I sent "..amountEM.." energy to "..energyPlayer.name)
 			end
+			if playSounds and sliderrelease ~= nil then
+				Spring.PlaySoundFile(sliderrelease, 0.3, 'ui')
+			end
 			sliderOrigin = nil
 			amountEMMax = nil
 			sliderPosition = nil
@@ -2842,6 +2861,9 @@ function widget:MouseRelease(x,y,button)
 			elseif amountEM > 0 then
 				Spring_ShareResources(metalPlayer.team, "metal", amountEM)
 				Spring_SendCommands("say a: I sent "..amountEM.." metal to "..metalPlayer.name)
+			end
+			if playSounds and sliderrelease ~= nil then
+				Spring.PlaySoundFile(sliderrelease, 0.3, 'ui')
 			end
 			sliderOrigin = nil
 			amountEMMax = nil

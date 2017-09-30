@@ -13,6 +13,13 @@ end
 
 --local show = true
 
+local playSounds = true
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local sliderclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local toggleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
+local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
@@ -1042,9 +1049,17 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		local cx, cy = correctMouseForScaling(x,y)
-		options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-		sliderValueChanged = true
-		applyOptionValue(draggingSlider)
+		local newValue = getSliderValue(draggingSlider,cx)
+		if options[draggingSlider].value ~= newValue then
+			options[draggingSlider].value = newValue
+			sliderValueChanged = true
+			applyOptionValue(draggingSlider)
+
+			if playSounds and  sliderdrag ~= nil and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
+				lastSliderSound = os.clock()
+				Spring.PlaySoundFile(sliderdrag, 0.25, 'ui')
+			end
+		end
 	end
 end
 
@@ -1070,6 +1085,9 @@ function mouseEvent(x, y, button, release)
 				if startColumn > totalColumns + (maxShownColumns-1) then
 					startColumn = (totalColumns-maxShownColumns) + 1
 				end
+				if playSounds then
+					Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+				end
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 				return
@@ -1077,6 +1095,9 @@ function mouseEvent(x, y, button, release)
 			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 				startColumn = startColumn - maxShownColumns
 				if startColumn < 1 then startColumn = 1 end
+				if playSounds then
+					Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+				end
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 				return
@@ -1096,6 +1117,9 @@ function mouseEvent(x, y, button, release)
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						options[showSelectOptions].value = o[5]
 						applyOptionValue(showSelectOptions)
+						if playSounds then
+							Spring.PlaySoundFile(selectclick, 0.5, 'ui')
+						end
 					end
 				end
 				if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
@@ -1132,10 +1156,12 @@ function mouseEvent(x, y, button, release)
 						if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 							options[i].value = not options[i].value
 							applyOptionValue(i)
+							if playSounds then
+								Spring.PlaySoundFile(toggleclick, 0.5, 'ui')
+							end
 						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						
 						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-							
 						end
 					end
 				end
@@ -1146,7 +1172,14 @@ function mouseEvent(x, y, button, release)
 							draggingSlider = i
 							options[draggingSlider].value = getSliderValue(draggingSlider,cx)
 							applyOptionValue(draggingSlider)
+							if playSounds and sliderclick ~= nil then
+								Spring.PlaySoundFile(sliderclick, 0.5, 'ui')
+							end
 						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+
+							if playSounds then
+								Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+							end
 							if showSelectOptions == nil then
 								showSelectOptions = i
 							elseif showSelectOptions == i then
