@@ -78,9 +78,9 @@ function UnitDef_Post(name, uDef)
 	end
 	if uDef.workertime then
 	if uDef.reclaimspeed then 
-	uDef.reclaimspeed =  0.7 * uDef.reclaimspeed
+	uDef.reclaimspeed =  0.85 * uDef.reclaimspeed
 	else 
-	uDef.reclaimspeed = 0.7 * uDef.workertime
+	uDef.reclaimspeed = 0.85 * uDef.workertime
 	end
 	end
 	
