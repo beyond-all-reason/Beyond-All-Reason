@@ -34,13 +34,13 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
   if step > 0 then return true end
   local reclaimspeed = (UnitDefs[GetUnitDefID(builderID)].reclaimSpeed / 30)
   local reclaimtime = FeatureDefs[featureDefID].reclaimTime
-  local oldformula = (reclaimspeed * 0.15 / reclaimtime)
-  local newformula = (reclaimspeed * 0.15 / reclaimtime)
+  local oldformula = ((reclaimspeed*0.70 + 10*0.30)*1.5  / reclaimtime)
+  local newformula = (reclaimspeed  / reclaimtime)
   local resource = math.max(FeatureDefs[featureDefID].metal,FeatureDefs[featureDefID].energy)
   if (resource <= 0) then
     return true
   end
-  local newpercent = select(5,GetFeatureResources(featureID)) - ((((resource * oldformula) * 6) - (resource * newformula)) / resource)
+  local newpercent = select(5,GetFeatureResources(featureID)) - ((((resource * oldformula) * 1) - (resource * newformula)) / resource)
   SetFeatureReclaim(featureID, newpercent) 
   return true
 end
