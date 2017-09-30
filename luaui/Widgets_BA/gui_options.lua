@@ -675,15 +675,23 @@ function widget:DrawScreen()
 			-- mouseover (highlight and tooltip)
 
 		  local description = ''
-			local x,y = Spring.GetMouseState()
+			local x,y,ml = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
 
 		  if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-			  glColor(1,1,1,0.12)
+			  if ml then
+				glColor(1,0.91,0.66,0.36)
+			  else
+			  	glColor(1,1,1,0.14)
+			  end
 			  RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/8)
 		  end
 		  if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-			  glColor(1,1,1,0.12)
+			  if ml then
+				  glColor(1,0.91,0.66,0.36)
+			  else
+				  glColor(1,1,1,0.14)
+			  end
 			  RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
 		  end
 
@@ -877,6 +885,7 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
+			Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		elseif id == 'scrollspeed' then
 			Spring.SetConfigInt("ScrollWheelSpeed",value)
 		elseif id == 'disticon' then
@@ -1110,7 +1119,7 @@ function mouseEvent(x, y, button, release)
 				draggingSlider = nil
 				return
 			end
-			
+
 			-- select option
 			if showSelectOptions ~= nil then
 				for i, o in pairs(optionSelect) do
