@@ -160,7 +160,7 @@ function gadget:UnitUnitCollision(unitID1, unitID2)
 				local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
 				
 				if UnitDefs[Spring.GetUnitDefID(unitID2)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID2)].name == "armnanotc" then	
-				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, 50000		
+				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID1)].mass*20	
 				else
 				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID2)].mass*20
 				end
@@ -198,7 +198,7 @@ if ddotdir2 > 0 then
 			local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID1)
 			local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
 				if UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "armnanotc" then	
-				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID2)].mass*scalar2d*5, 50000		
+				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID2)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID2)].mass*20		
 				else
 				mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID2)].mass*scalar2d*5, UnitDefs[Spring.GetUnitDefID(unitID1)].mass*20
 				end
@@ -250,7 +250,7 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 0
 				else
-					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 50000
+					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, UnitDefs[Spring.GetUnitDefID(unitID1)].mass*20
 				end
 			SlowDownUnit(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
 				if ddotdir > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0  then
@@ -287,7 +287,7 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 0
 				else
-					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 50000
+					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, UnitDefs[Spring.GetUnitDefID(unitID1)].mass*20
 				end
 			SlowDownUnit(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
 				if ddotdir > 0.7 and UnitDefs[Spring.GetUnitDefID(unitID1)].rSpeed ~= 0  then
