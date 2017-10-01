@@ -30,7 +30,7 @@ return {
 		objectname = "ARMROY",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 490,
+		sightdistance = 500,
 		sonardistance = 400,
 		waterline = 4.5,
 		--move
@@ -128,7 +128,7 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 700,
+				range = 650,
 				reloadtime = 1.2,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",

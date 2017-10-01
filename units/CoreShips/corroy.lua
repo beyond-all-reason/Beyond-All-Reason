@@ -30,7 +30,7 @@ return {
 		objectname = "CORROY",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 490,
+		sightdistance = 500,
 		sonardistance = 400,
 		waterline = 3.5,
 		--move
@@ -128,7 +128,7 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				range = 710,
+				range = 650,
 				reloadtime = 2.5,
 				soundhit = "xplomed2",
 				soundhitwet = "splssml",
