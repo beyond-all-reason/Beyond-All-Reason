@@ -33,6 +33,11 @@ local bgcorner			= LUAUI_DIRNAME.."Images/bgcorner.png"
 local cornerSize		= 12
 local bgcornerSize		= cornerSize
 
+local playSounds = true
+local leftclick = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
+local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+
 local hoversize = 0
 local rot = 0
 
@@ -659,9 +664,15 @@ function widget:MouseRelease(x, y, button)
 
 	if (button == 1) then -- left mouse
 		SelectUnitArray({unitID})
+		if playSounds then
+			Spring.PlaySoundFile(leftclick, 0.75, 'ui')
+		end
 	elseif (button == 2) then -- middle mouse
 		SelectUnitArray({unitID})
 		SendCommands({"viewselection"})
+		if playSounds then
+			Spring.PlaySoundFile(middleclick, 0.75, 'ui')
+		end
 	end
 
 	return -1

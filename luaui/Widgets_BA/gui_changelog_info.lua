@@ -25,7 +25,10 @@ local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
-local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
+local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines
+
+local playSounds = true
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
 
 local customScale = 1
 
@@ -599,6 +602,9 @@ function mouseEvent(x, y, button, release)
 								glDeleteList(changelogList)
 							end
 							changelogList = gl.CreateList(DrawWindow)
+							if playSounds then
+								Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+							end
 							break;
 						end
 						

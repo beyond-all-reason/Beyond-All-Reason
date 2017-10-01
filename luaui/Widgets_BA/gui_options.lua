@@ -13,6 +13,12 @@ end
 
 --local show = true
 
+local playSounds = true
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local toggleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
+local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
@@ -668,15 +674,23 @@ function widget:DrawScreen()
 			-- mouseover (highlight and tooltip)
 
 		  local description = ''
-			local x,y = Spring.GetMouseState()
+			local x,y,ml = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
 
 		  if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-			  glColor(1,1,1,0.12)
+			  if ml then
+				glColor(1,0.91,0.66,0.36)
+			  else
+			  	glColor(1,1,1,0.14)
+			  end
 			  RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/8)
 		  end
 		  if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-			  glColor(1,1,1,0.12)
+			  if ml then
+				  glColor(1,0.91,0.66,0.36)
+			  else
+				  glColor(1,1,1,0.14)
+			  end
 			  RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
 		  end
 
@@ -851,6 +865,11 @@ function applyOptionValue(i, skipRedrawWindow)
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
 		if id == 'fsaa' then
+			if value > 0 then
+				Spring.SetConfigInt("FSAA",1)
+			else
+				Spring.SetConfigInt("FSAA",0)
+			end
 			Spring.SetConfigInt("FSAALevel",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
@@ -870,6 +889,7 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
+			Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		elseif id == 'scrollspeed' then
 			Spring.SetConfigInt("ScrollWheelSpeed",value)
 		elseif id == 'disticon' then
@@ -1042,9 +1062,16 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		local cx, cy = correctMouseForScaling(x,y)
-		options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-		sliderValueChanged = true
-		applyOptionValue(draggingSlider)
+		local newValue = getSliderValue(draggingSlider,cx)
+		if options[draggingSlider].value ~= newValue then
+			options[draggingSlider].value = newValue
+			sliderValueChanged = true
+			applyOptionValue(draggingSlider)
+			if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
+				lastSliderSound = os.clock()
+				Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+			end
+		end
 	end
 end
 
@@ -1070,6 +1097,9 @@ function mouseEvent(x, y, button, release)
 				if startColumn > totalColumns + (maxShownColumns-1) then
 					startColumn = (totalColumns-maxShownColumns) + 1
 				end
+				if playSounds then
+					Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+				end
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 				return
@@ -1077,6 +1107,9 @@ function mouseEvent(x, y, button, release)
 			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 				startColumn = startColumn - maxShownColumns
 				if startColumn < 1 then startColumn = 1 end
+				if playSounds then
+					Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+				end
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 				return
@@ -1089,13 +1122,16 @@ function mouseEvent(x, y, button, release)
 				draggingSlider = nil
 				return
 			end
-			
+
 			-- select option
 			if showSelectOptions ~= nil then
 				for i, o in pairs(optionSelect) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						options[showSelectOptions].value = o[5]
 						applyOptionValue(showSelectOptions)
+						if playSounds then
+							Spring.PlaySoundFile(selectclick, 0.5, 'ui')
+						end
 					end
 				end
 				if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
@@ -1132,10 +1168,12 @@ function mouseEvent(x, y, button, release)
 						if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 							options[i].value = not options[i].value
 							applyOptionValue(i)
+							if playSounds then
+								Spring.PlaySoundFile(toggleclick, 0.5, 'ui')
+							end
 						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						
 						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-							
 						end
 					end
 				end
@@ -1144,9 +1182,19 @@ function mouseEvent(x, y, button, release)
 					for i, o in pairs(optionButtons) do
 						if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
 							draggingSlider = i
-							options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-							applyOptionValue(draggingSlider)
+							local newValue = getSliderValue(draggingSlider,cx)
+							if options[draggingSlider].value ~= newValue then
+								options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+								applyOptionValue(draggingSlider)
+								if playSounds then
+									Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+								end
+							end
 						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+
+							if playSounds then
+								Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+							end
 							if showSelectOptions == nil then
 								showSelectOptions = i
 							elseif showSelectOptions == i then
@@ -1274,7 +1322,7 @@ function widget:Initialize()
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 
 		-- UI
-		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=50, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
+		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=widgetHandler.orderList["Player Color Palette"] ~= nil and (widgetHandler.orderList["Player Color Palette"] > 0), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},

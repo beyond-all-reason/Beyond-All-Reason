@@ -1,4 +1,5 @@
 local versionNumber = "v2.3"
+return false
 
 function widget:GetInfo()
   return {

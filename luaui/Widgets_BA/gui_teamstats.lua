@@ -26,6 +26,9 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
+local playSounds = true
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+
 local header = {
 	"frame",
 	"damageDealt",
@@ -605,6 +608,9 @@ function mouseEvent(mx,my,button,release)
 			if line <= 3 then -- header
 				local newSort = header[column]
 				if newSort then
+					if playSounds then
+						Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+					end
 					if sortVar == newSort then
 						sortAscending = not sortAscending
 					end

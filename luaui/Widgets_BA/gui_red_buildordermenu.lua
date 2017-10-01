@@ -28,6 +28,7 @@ local oldUnitpicsDir   = LUAUI_DIRNAME.."Images/oldunitpics/"
 
 local sound_queue_add = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
 local sound_queue_rem = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local sound_button = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
 
 local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
@@ -809,6 +810,9 @@ local function UpdateGrid(g,cmds,ordertype)
 					g.page = 1
 				end
 				UpdateGrid(g,cmds,ordertype)
+				if playSounds then
+					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+				end
 			end},
 		}
 		g.backward.mouseclick={
@@ -818,6 +822,9 @@ local function UpdateGrid(g,cmds,ordertype)
 					g.page = g.pagecount
 				end
 				UpdateGrid(g,cmds,ordertype)
+				if playSounds then
+					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+				end
 			end},
 		}
 		g.backward.active = nil --activate
@@ -1194,6 +1201,9 @@ function widget:KeyPress(key, mods, isRepeat)
 				end
 			end
 			if found ~= -1 and buildcmds[found] ~= nil then
+				if playSounds then
+					Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+				end
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(buildcmds[found].id),1,true,false,Spring.GetModKeyState())
 			end
 			building = -1

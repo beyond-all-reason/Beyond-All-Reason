@@ -212,6 +212,10 @@ local myLastCameraState
 -- 
 --------------------------------------------------------------------------------
 
+local playSounds = true
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+
 local lastActivity = {}
 local lastFpsData = {}
 local lastSystemData = {}
@@ -2801,8 +2805,12 @@ function widget:MouseMove(x,y,dx,dy,button)
 		sliderPosition = (y-sliderOrigin) * (1/widgetScale)
 		if sliderPosition < 0 then sliderPosition = 0 end
 		if sliderPosition > 39 then sliderPosition = 39 end
-		
+        local prevAmountEM = amountEM
 		UpdateResources()
+        if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.05) and amountEM ~= prevAmountEM then
+            lastSliderSound = os.clock()
+            Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+        end
 	end
 end
 

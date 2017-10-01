@@ -47,39 +47,40 @@ function gadget:Initialize()
 
   Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",2, 2)
   Spring.AddUnitIcon("corcom.user", "LuaUI/Icons/corcom.png",2, 2)
-  Spring.AddUnitIcon("cross.user", "LuaUI/Icons/cross.png")
-  Spring.AddUnitIcon("diamond.user", "LuaUI/Icons/diamond.png",1.1)
+  Spring.AddUnitIcon("cross.user", "LuaUI/Icons/cross1.png")
+  Spring.AddUnitIcon("sub.user", "LuaUI/Icons/sub.png",1.1)
   Spring.AddUnitIcon("e.user", "LuaUI/Icons/e.png")
   Spring.AddUnitIcon("e2.user", "LuaUI/Icons/e.png",1.4)
   Spring.AddUnitIcon("e3.user", "LuaUI/Icons/e.png",1.8)
-  Spring.AddUnitIcon("hemi-down.user", "LuaUI/Icons/hemi-down.png",1.3)
-  Spring.AddUnitIcon("hemi-up.user", "LuaUI/Icons/hemi-up.png")
-  Spring.AddUnitIcon("hemi.user", "LuaUI/Icons/hemi.png")
-  Spring.AddUnitIcon("hourglass-side.user", "LuaUI/Icons/hourglass-side.png")
-  Spring.AddUnitIcon("hourglass.user", "LuaUI/Icons/hourglass.png")
+  Spring.AddUnitIcon("hemi-down.user", "LuaUI/Icons/hemi-down1.png",1.3)
+  Spring.AddUnitIcon("hemi-up.user", "LuaUI/Icons/hemi-up1.png")
+  Spring.AddUnitIcon("hemi.user", "LuaUI/Icons/hemi1.png")
+  Spring.AddUnitIcon("hourglass-side.user", "LuaUI/Icons/hourglass-side1.png")
+  Spring.AddUnitIcon("hourglass.user", "LuaUI/Icons/hourglass1.png")
   Spring.AddUnitIcon("krogoth.user", "LuaUI/Icons/krogoth.png",3)
   Spring.AddUnitIcon("m-down.user", "LuaUI/Icons/m-down.png")
   Spring.AddUnitIcon("m-up.user", "LuaUI/Icons/m-up.png")
   Spring.AddUnitIcon("m.user", "LuaUI/Icons/m.png")
-  Spring.AddUnitIcon("nuke.user", "LuaUI/Icons/nuke.png",1.25)
-  Spring.AddUnitIcon("slash.user", "LuaUI/Icons/slash.png") 
-  Spring.AddUnitIcon("sphere.user", "LuaUI/Icons/ba_sphere.png",1.1)
-  Spring.AddUnitIcon("sphere2.user", "LuaUI/Icons/ba_sphere.png",1.35)
-  Spring.AddUnitIcon("sphere3.user", "LuaUI/Icons/ba_sphere.png",1.7)
-  Spring.AddUnitIcon("square.user", "LuaUI/Icons/square.png")
+  Spring.AddUnitIcon("nuke.user", "LuaUI/Icons/nuke.png",1.35)
+  Spring.AddUnitIcon("anti-nuke.user", "LuaUI/Icons/anti-nuke.png",1.15)
+  Spring.AddUnitIcon("slash.user", "LuaUI/Icons/slash.png")
+  Spring.AddUnitIcon("sphere.user", "LuaUI/Icons/ba_sphere1.png",1.1)
+  Spring.AddUnitIcon("sphere2.user", "LuaUI/Icons/ba_sphere1.png",1.35)
+  Spring.AddUnitIcon("sphere3.user", "LuaUI/Icons/ba_sphere1.png",1.7)
+  Spring.AddUnitIcon("square.user", "LuaUI/Icons/square1.png")
   Spring.AddUnitIcon("square_+.user", "LuaUI/Icons/square_+.png")
-  Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x.png")
-  Spring.AddUnitIcon("square_x_factory.user", "LuaUI/Icons/square_x.png",1.5)
+  Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x1.png")
+  Spring.AddUnitIcon("square_x_factory.user", "LuaUI/Icons/square_x1.png",1.5)
   Spring.AddUnitIcon("star-dark.user", "LuaUI/Icons/star-dark.png")
   Spring.AddUnitIcon("star.user", "LuaUI/Icons/star.png")
-  Spring.AddUnitIcon("tiny-sphere.user", "LuaUI/Icons/ba_sphere.png",0.55)
-  Spring.AddUnitIcon("tiny-square.user", "LuaUI/Icons/square.png",0.55)
-  Spring.AddUnitIcon("tri-down.user", "LuaUI/Icons/tri-down.png",1.3)
-  Spring.AddUnitIcon("tri-up.user", "LuaUI/Icons/tri-up.png",1.4)
-  Spring.AddUnitIcon("tri-up_fighter.user", "LuaUI/Icons/tri-up.png",0.9)
-  Spring.AddUnitIcon("triangle-down.user", "LuaUI/Icons/triangle-down.png")
-  Spring.AddUnitIcon("triangle-up.user", "LuaUI/Icons/triangle-up.png")
-  Spring.AddUnitIcon("x.user", "LuaUI/Icons/x.png")
+  Spring.AddUnitIcon("tiny-sphere.user", "LuaUI/Icons/ba_sphere1.png",0.55)
+  Spring.AddUnitIcon("tiny-square.user", "LuaUI/Icons/square1.png",0.55)
+  Spring.AddUnitIcon("tri-down.user", "LuaUI/Icons/tri-down1.png",1.3)
+  Spring.AddUnitIcon("tri-up.user", "LuaUI/Icons/tri-up1.png",1.4)
+  Spring.AddUnitIcon("tri-up_fighter.user", "LuaUI/Icons/tri-up1.png",0.9)
+  Spring.AddUnitIcon("triangle-down.user", "LuaUI/Icons/triangle-down1.png")
+  Spring.AddUnitIcon("triangle-up.user", "LuaUI/Icons/triangle-up1.png")
+  Spring.AddUnitIcon("x.user", "LuaUI/Icons/warning.png")
   Spring.AddUnitIcon("blank.user", "LuaUI/Icons/blank.png")
    
   -- Setup the unitdef icons
@@ -94,7 +95,7 @@ function gadget:Initialize()
       elseif (ud.name=="armwin") or (ud.name=="corwin") then
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.name=="armfig") or (ud.name=="corveng") or (ud.name=="armhawk") or (ud.name=="corvamp") then
-        Spring.SetUnitDefIcon(udid, "tri-up_fighter.user") 
+        Spring.SetUnitDefIcon(udid, "tri-up_fighter.user")
       elseif (ud.name=="corafus") or (ud.name=="armafus") then
         Spring.SetUnitDefIcon(udid, "e3.user")
       elseif (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then
@@ -115,9 +116,12 @@ function gadget:Initialize()
         else
           Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
         end
-      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer") then
-      	-- nuke / antinuke ( stockpile weapon, but not mercury/screamer )
+      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer" or ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
+      	-- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
       	Spring.SetUnitDefIcon(udid, "nuke.user")
+	  elseif (ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
+	    -- anti nukes
+		Spring.SetUnitDefIcon(udid,"anti-nuke.user")
       elseif (ud.canFly) then
         -- aircraft
         Spring.SetUnitDefIcon(udid, "tri-up.user")
@@ -134,7 +138,7 @@ function gadget:Initialize()
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.isTransport) then
         -- transports
-        Spring.SetUnitDefIcon(udid, "diamond.user")
+        Spring.SetUnitDefIcon(udid, "sub.user")
       elseif ((ud.minWaterDepth > 0) and (ud.speed > 0) and (ud.waterline > 12)) then
         -- submarines
         Spring.SetUnitDefIcon(udid, "tri-down.user")

@@ -20,6 +20,12 @@ local bladeSpeedMultiplier = 0.22
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
+local playSounds = true
+local leftclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local resourceclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+
 local bgcorner							= LUAUI_DIRNAME.."Images/bgcorner.png"
 local barbg									= ":n:"..LUAUI_DIRNAME.."Images/resbar.dds"
 local barGlowCenterTexture	= LUAUI_DIRNAME.."Images/barglow-center.dds"
@@ -958,6 +964,7 @@ function widget:Update(dt)
 	end
 end
 
+
 function widget:DrawScreen()
 	local now = os.clock()
 
@@ -1186,6 +1193,11 @@ local function hideWindows()
 end
 
 local function applyButtonAction(button)
+
+	if playSounds then
+		Spring.PlaySoundFile(leftclick, 0.8, 'ui')
+	end
+
 	local isvisible = false
 	if button == 'quit' then
 		local oldShowQuitscreen
@@ -1258,24 +1270,25 @@ function widget:MousePress(x, y, button)
 		if not spec then
 			if IsOnRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
-				return true
 			end
 			if IsOnRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 				adjustSliders(x, y)
-				return true
 			end
 			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
-				return true
 			end
-			if showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if draggingShareIndicator == nil and showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
-				return true
 			end
-			if IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 				adjustSliders(x, y)
+			end
+			if draggingShareIndicator or draggingConversionIndicator then
+				if playSounds then
+					Spring.PlaySoundFile(resourceclick, 0.7, 'ui')
+				end
 				return true
 			end
 		end
@@ -1294,12 +1307,18 @@ function widget:MousePress(x, y, button)
 			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
 
 				if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+					if playSounds then
+						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
+					end
 					Spring.SendCommands("QuitForce")
 					showQuitscreen = nil
 					hideQuitWindow = os.clock()
 					return true
 				end
 				if not spec and IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					if playSounds then
+						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
+					end
 					Spring.SendCommands("spectator")
 					showQuitscreen = nil
 					if (WG['guishader_api'] ~= nil) then
