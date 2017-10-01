@@ -30,7 +30,7 @@ return {
 		objectname = "ARMGPLAT",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
-		sightdistance = 700,
+		sightdistance = 550,
 		waterline = 1,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
@@ -105,7 +105,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Cannon",
 				noselfdamage = true,
-				range = 590*0.8,
+				range = 475,
 				reloadtime = 1.625*0.5,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
