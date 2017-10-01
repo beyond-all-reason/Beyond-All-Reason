@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret1, turret2, abarrela, abarrelb, bbarrela, bbarrelb, flare11,
+piece  base, turret1, turret2, flare3, abarrela, abarrelb, bbarrela, bbarrelb, flare11,
        flare12, flare21, flare22, wake1, wake2, ground;
 
 static-var  gun_1, gun_2, restore_delay, oldHead;
@@ -226,6 +226,21 @@ QueryPrimary(piecenum)
 QuerySecondary(piecenum)
 {
 	piecenum = flare21 + gun_2;
+}
+
+AimWeapon3(heading, pitch)
+{
+	return (1);
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = base;
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = flare3;
 }
 
 SweetSpot(piecenum)
