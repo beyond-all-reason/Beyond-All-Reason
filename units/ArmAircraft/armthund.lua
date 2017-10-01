@@ -85,7 +85,7 @@ return {
 				name = "Bombs",
 				noselfdamage = true,
 				range = 1280,
-				reloadtime = 8,
+				reloadtime = 6,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundhitwetvolume = 0.5,
@@ -93,7 +93,7 @@ return {
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
 				damage = {
-					default = 140,
+					default = 105,
 					subs = 5,
 				},
 			},
