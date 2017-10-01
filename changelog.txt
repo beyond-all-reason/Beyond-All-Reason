@@ -104,6 +104,7 @@ Other:
 
  Graphics
  • All new particle/lighting effects!
+ • Radar/distance icons are sharper and more various (thanks BasiC)
  • Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
  • Added outline widget, toggable via Options (default disabled)
  • Unit textures reprocessed with bigger color range and less grain
@@ -132,17 +133,19 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Pausescreen changed and darkens screen or decolorizes it when shaders enabled
  • Restyled prestart faction change widget (also scales with resolution)
  • Spiced up the loadscreen progress bar, and removed old loadscreens
- • Replaced engine info screen (shortcut i) with our own screen
+ • Replaced engine info screen (shortcut i) with our own variant
  • Spiced up 'Buildbar' and 'Selected Unit Buttons' widgets
  • Added additional extensive unit description (by PtaQ)
- • Unit info widget removed (the one with the ctrl+u shortcut)
+ • Unit info widget removed (the one that had the ctrl+u shortcut)
  • Added quit button showing a custom resign/quit window
  • Added widget "Set fighters on Fly mode" (default enabled), toggable via options widget
- • Added widget "Depth of Field" (default disabled) hold ctrl+[] to increase amount of DoF
+ • Added widget "Depth of Field" (default disabled, when enabled: toggle with f10) ctrl+[] to in/decrease DoF 
  • Added widget "Tombstones" (default enabled), toggable via options widget
+ • Button click sounds added for various widgets
 
- Top widgets:
+ Top bar widget
  • Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
+ • No com counter when teams consist of just 1 player
  • Escape key now hides windows: Keybinds, commands, changelog, options, quit, gameinfo
  • Teamstats widget renamed, bugfixed, simplified, spiced up and has a fixed position
  • Changelog widget: version shortcuts only show for every 10th version number
@@ -162,7 +165,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Fixed glitchy/spiky healthbars shader on current intel gfx and very old cards
  • Fixed unit_stats crashes when hovering enemy units. And dps values for beamlaser and stockpiling weapons
  • Settarget queues will now be paused when a unit attempts to dgun.
- • Fixed units created after initiating builder death (mostly factories issue)
+ • Highlight unit/highlight selected units widgets skip a unit when its shown as icon
 
 
 9.45 -> 9.46
