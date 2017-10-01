@@ -865,6 +865,11 @@ function applyOptionValue(i, skipRedrawWindow)
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
 		if id == 'fsaa' then
+			if value > 0 then
+				Spring.SetConfigInt("FSAA",1)
+			else
+				Spring.SetConfigInt("FSAA",0)
+			end
 			Spring.SetConfigInt("FSAALevel",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
