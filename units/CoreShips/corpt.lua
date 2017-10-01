@@ -30,7 +30,7 @@ return {
 		objectname = "CORPT",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 585,
+		sightdistance = 700,
 		waterline = 1.5,
 		--move
 		acceleration = 3.82/60,
