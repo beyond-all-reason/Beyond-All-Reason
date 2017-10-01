@@ -142,7 +142,16 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	init()
 end
 
+function widget:PlayerChanged(playerID)
+	if not enabledAsSpec then
+		if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+			widgetHandler:RemoveWidget()
+		end
+	end
+end
+
 function widget:Initialize()
+	widget:PlayerChanged()
 	enabled = true
 	if not enabledAsSpec then
 		enabled = not spGetSpectatingState()
@@ -152,12 +161,6 @@ end
 
 function widget:GameOver()
 	widgetHandler:RemoveWidget(self)
-end
-
-function widget:PlayerChanged(playerID)
-	if not enabledAsSpec then
-		enabled = not spGetSpectatingState()
-	end
 end
 
 local function IsIdleBuilder(unitID)

@@ -13,6 +13,16 @@ function widget:GetInfo()
   }
 end
 
+function widget:PlayerChanged(playerID)
+  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+    widgetHandler:RemoveWidget()
+  end
+end
+
+function widget:Initialize()
+  widget:PlayerChanged()
+end
+
 --[[
 -- use this for debugging:
 function table.val_to_str ( v )

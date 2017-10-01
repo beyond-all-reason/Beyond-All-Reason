@@ -119,7 +119,14 @@ local unitArray = {
 --------------------------------------------------------------------------------
 
 
-function widget:Initialize() 
+function widget:PlayerChanged(playerID)
+  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+    widgetHandler:RemoveWidget()
+  end
+end
+
+function widget:Initialize()
+  widget:PlayerChanged()
   for i, v in pairs(unitArray) do
     unitSet[v] = true
   end

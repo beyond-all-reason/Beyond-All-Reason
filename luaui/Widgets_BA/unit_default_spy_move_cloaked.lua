@@ -22,23 +22,14 @@ local GetPlayerInfo = Spring.GetPlayerInfo
 
 local CMD_MOVE = CMD.MOVE
 
-local myPlayerID = Spring.GetMyPlayerID()
-
-function UnloadIfSpec()
-	local _, _, spec, _, _, _, _, _ = GetPlayerInfo(myPlayerID)
-	if ( spec == true ) then
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
-		return 
 	end
-	return 
 end
 
 function widget:Initialize()
-	UnloadIfSpec()
-end
-
-function widget:PlayerChanged()
-	UnloadIfSpec()
+	widget:PlayerChanged()
 end
 
 local spySelected = false

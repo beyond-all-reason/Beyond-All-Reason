@@ -23,7 +23,14 @@ local SendCommmands = Spring.SendCommands
 
 local hotKeys = {}
 
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
+
 function widget:Initialize()
+	widget:PlayerChanged()
 	if rebindKeys then
 		for _, keycombo in ipairs(GetActionHotKeys("attack")) do
 			hotKeys[keycombo] = true

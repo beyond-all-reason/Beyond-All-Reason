@@ -8,9 +8,11 @@
 --  WG['guishader_api'].InsertRect(left,top,right,bottom) -> idx
 --  WG['guishader_api'].RemoveRect(idx)
 
+
+local widgetName = "GUI-Shader"
 function widget:GetInfo()
   return {
-    name      = "GUI-Shader",
+    name      = widgetName,
     desc      = "Blurs the 3D-world under several other widgets UI elements.",
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
@@ -190,6 +192,7 @@ local function CheckHardware()
      if Platform.gpuVendor == 'Intel' then
          Spring.Echo("guishader api: you use an Intel GPU, it will malfunction so we'll disable")
          widgetHandler:RemoveWidget()
+         --Spring.SendCommands("luaui disablewidget "..widgetName)
          return false
      end
   end

@@ -79,19 +79,24 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-local TestBuildOrder		= Spring.TestBuildOrder
 local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
 local GetMouseState			= Spring.GetMouseState
 local TraceScreenRay		= Spring.TraceScreenRay
 local TestBuildOrder		= Spring.TestBuildOrder
-local GetFPS				= Spring.GetFPS
 
 local alternative_units = {}-- unit def id --> list of alternative unit def ids
 local updateRate = 8/30
 local timeCounter = 0
 
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
+
 function widget:Initialize()
+	widget:PlayerChanged()
 	local unitnameToUnitDefID = {}--- unit name or humanName --> unit def id
 	for index,def in ipairs(UnitDefs) do
 		unitnameToUnitDefID[def.name]=index

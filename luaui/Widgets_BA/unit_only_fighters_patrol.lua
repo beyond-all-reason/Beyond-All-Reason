@@ -22,7 +22,6 @@ function widget:GetInfo()
 		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= false,
-		handler   = true
 	}
 end
 
@@ -76,16 +75,6 @@ local function MustStop(unitID, unitDefID)
 		if (not opts.stop_builders)and ud and ud.isBuilder then
 			return false
 		end
-		--[[
-		if opts.FactoryGuard_workaround then
-			local factoryGuard = widgetHandler.knownWidgets["FactoryGuard"]
-			if factoryGuard and factoryGuard.name and (widgetHandler.orderList[factoryGuard.name]>0) then
-				if ud and ud.isBuilder and ud.canAssist then
-					return false
-				end
-			end			
-		end	
-		]]--		
 		return true
 	end
 	return false
@@ -117,4 +106,14 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	--if ud.humanName=="Liche" then
 	--	UnitCanTargetAir(unitDefID)
 	--end
+end
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
+
+function widget:Initialize()
+	widget:PlayerChanged()
 end

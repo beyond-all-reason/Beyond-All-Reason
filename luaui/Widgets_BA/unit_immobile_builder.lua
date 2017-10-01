@@ -68,16 +68,14 @@ local function SetupUnit(unitID)
 	end
 end
 
-function widget:PlayerChanged()
-	if spGetSpectatingState() then
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:Initialize()
-	if spGetSpectatingState() then
-		widgetHandler:RemoveWidget()
-	end
+	widget:PlayerChanged()
 	for _,unitID in ipairs(spGetTeamUnits(spGetMyTeamID())) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if IsImmobileBuilder(UnitDefs[unitDefID]) then

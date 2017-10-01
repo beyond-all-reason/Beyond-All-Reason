@@ -75,6 +75,18 @@ local glScale				= gl.Scale
 
 local GL_TRIANGLES			= GL.TRIANGLES
 ----------------------------------------------------------------------------------
+
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
+
+function widget:Initialize()
+	widget:PlayerChanged()
+end
+
 function widget:Update()
 	local timef = spGetGameSeconds()
 	local time = floor(timef)

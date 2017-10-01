@@ -53,6 +53,16 @@ local atan2 = math.atan2
 -- end locals----------------------------------------------------
 -----------------------------------------------------------------
 
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
+
+function widget:Initialize()
+	widget:PlayerChanged()
+end
+
 local function tsp(rList, tList, dx, dz)
 	dx = dx or 0
 	dz = dz or 0

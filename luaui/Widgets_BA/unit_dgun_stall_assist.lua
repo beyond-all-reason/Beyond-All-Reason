@@ -44,12 +44,15 @@ local CMD_WAIT = CMD.WAIT
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-function widget:Initialize()
-	
-	if spGetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-		return
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
 	end
+end
+
+function widget:Initialize()
+	widget:PlayerChanged()
 	
 	for uDefID, uDef in pairs(UnitDefs) do
 		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.canManualFire) then
@@ -87,11 +90,6 @@ function widget:Update(dt)
 	end
 	
 	if (watchTime > 0) and (not waitedUnits) then
-		
-		if spGetSpectatingState() then
-			widgetHandler:RemoveWidget(self)
-			return
-		end
 		
 		local myTeamID = spGetMyTeamID()
 		local currentEnergy, energyStorage = spGetTeamResources(myTeamID, "energy")

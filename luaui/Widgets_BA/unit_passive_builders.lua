@@ -30,7 +30,6 @@ local spGetUnitDefID    	= Spring.GetUnitDefID
 local spGiveOrderToUnit 	= Spring.GiveOrderToUnit
 local spGetMyPlayerID		= Spring.GetMyPlayerID
 local spGetPlayerInfo		= Spring.GetPlayerInfo
-local spGetSpectatingState	= Spring.GetSpectatingState
 
 local glTexRect				= gl.TexRect
 local glText				= gl.Text
@@ -54,7 +53,6 @@ local panelWidth = 105;
 local panelHeight = 95;
 
 local sizeMultiplier = 1
-local IsSpec = spGetSpectatingState()
 
 local function isBuilder(ud)
     if not passiveCons and not passiveLabs and not passiveNanos then
@@ -110,7 +108,7 @@ end
 
 
 function widget:TweakDrawScreen()
-	if not IsSpec then
+	if not Spring.GetSpectatingState() then
 		glColor(0, 0, 0, 0.6)
 		RectRound(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 8*sizeMultiplier)
 		glColor(1, 1, 1, 1)
@@ -214,7 +212,7 @@ function widget:IsAbove(mx, my)
 end
 
 function widget:TweakMousePress(mx, my, mb)
-	if not IsSpec then
+	if not Spring.GetSpectatingState() then
 		if (mb == 2 or mb == 3) and widget:IsAbove(mx,my) then
 			return true
 		end
@@ -237,7 +235,7 @@ function widget:TweakMousePress(mx, my, mb)
 end
 
 function widget:TweakMouseMove(mx, my, dx, dy)
-	if not IsSpec then
+	if not Spring.GetSpectatingState() then
 		if xPos + dx >= -1 and xPos + (panelWidth*sizeMultiplier) + dx - 1 <= vsx then
 			xRelPos = xRelPos + dx/vsx
 		end
@@ -332,7 +330,12 @@ function refreshUints()
     end
 end
 
-  
+function processGuishader()
+    if (WG['guishader_api'] ~= nil) then
+        WG['guishader_api'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'passivebuilders')
+    end
+end
+
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx, vsy = viewSizeX, viewSizeY
 	xPos, yPos = xRelPos*vsx, yRelPos*vsy
@@ -340,13 +343,13 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:PlayerChanged(playerID)
-	IsSpec = spGetSpectatingState()
+    if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+       widgetHandler:RemoveWidget()
+    end
 end
 
-function processGuishader()
-    if (WG['guishader_api'] ~= nil) then
-        WG['guishader_api'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'passivebuilders')
-    end
+function widget:Initialize()
+    widget:PlayerChanged()
 end
 
 function widget:Shutdown()

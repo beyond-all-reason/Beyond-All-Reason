@@ -31,18 +31,14 @@ local buildID = 0
 local buildLocs = {}
 local buildCount = 0
 
-function widget:Initialize()
-	if spGetGameFrame() > 0 then
-		widget:GameStart()
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
 	end
 end
 
-function widget:GameStart()
-	
-	local areSpec = spGetSpecState()
-	if areSpec then
-		widgetHandler:RemoveWidget(self)
-	end
+function widget:Initialize()
+	widget:PlayerChanged()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters

@@ -53,11 +53,14 @@ function ChangeMaxStockPile(_,_,words)
 	UpdateStockPileAllUnits()
 end
 
-function widget:Initialize()
-	if GetSpectatingState() then
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
-		return
 	end
+end
+
+function widget:Initialize()
+	widget:PlayerChanged()
     --Spring.SendCommands{"luaui disablewidget Stockpiler"} -- Disable the old stockpiler widget which could conflict
     widgetHandler:AddAction("stockpilecount", ChangeMaxStockPile, nil, "t")
 
@@ -74,13 +77,6 @@ function UpdateStockPileAllUnits()
 			CancelExcessStockpile(unitID)
 			DoStockPile(unitID)
 		end
-	end
-end
-
-function widget:PlayerChanged(playerID)
-	if GetSpectatingState() then
-		widgetHandler:RemoveWidget()
-		return
 	end
 end
 

@@ -34,11 +34,15 @@ local spGetSpectatingState = Spring.GetSpectatingState
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-function widget:Initialize()
-	if spGetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-		return
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
 	end
+end
+
+function widget:Initialize()
+	widget:PlayerChanged()
 end
 
 function widget:UnitCommand(uID, uDefID, uTeam, cmdID, cmdParams, cmdOpts)

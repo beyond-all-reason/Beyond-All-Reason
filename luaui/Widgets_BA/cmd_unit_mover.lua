@@ -41,8 +41,8 @@ local engineers = {}
 local engineerDefs = {}
 local moveUnitsDefs = {}
 
-function widget:PlayerChanged()
-	if GetSpectatingState() then
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget()
 	end
 end

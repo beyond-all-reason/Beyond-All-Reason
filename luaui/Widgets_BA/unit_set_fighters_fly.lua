@@ -51,22 +51,16 @@ function switchToFlyMode(unitID, unitDefID)
     end
 end
 
+
 function widget:PlayerChanged(playerID)
-    local _, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
-    if spec then
+    if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
         widgetHandler:RemoveWidget()
-        return false
     end
 end
 
-
 function widget:Initialize()
-    local _, _, spec, teamId = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
-    if spec then
-        widgetHandler:RemoveWidget()
-        return false
-    end
-
+    widget:PlayerChanged()
+    local _, _, _, teamId = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
     for _, unitID in ipairs(spGetTeamUnits(teamId)) do  -- init existing labs
         switchToFlyMode(unitID, spGetUnitDefID(unitID))
     end

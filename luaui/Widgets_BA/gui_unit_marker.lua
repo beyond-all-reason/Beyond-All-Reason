@@ -119,7 +119,14 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
   return name or "Gaia"
 end
 
+function widget:PlayerChanged(playerID)
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget()
+	end
+end
+
 function widget:Initialize()
+	widget:PlayerChanged()
 
 	myColour = colourNames(Spring.GetMyTeamID())
 	markerLocal = nil --note: this name of this here and on the lua wiki is a misnomer
@@ -183,11 +190,4 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 			end
 	  end
 	end
-end
-	
-
-function widget:PlayerChanged(playerID)
-  if Spring.GetSpectatingState() then
-  	widgetHandler:RemoveWidget()
-  end
 end

@@ -169,15 +169,18 @@ end
 
 
 
+function widget:PlayerChanged(playerID)
+  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+    widgetHandler:RemoveWidget()
+  end
+end
+
 function widget:Initialize()
-	local _, _, spec, teamID = GetPlayerInfo(Spring.GetMyPlayerID())
-	if spec then
-		widgetHandler:RemoveWidget()
-		return false
-	end
+  widget:PlayerChanged()
+
+  local _, _, _, teamID = GetPlayerInfo(Spring.GetMyPlayerID())
   myTeamID = teamID
   widgetHandler:RegisterGlobal('taiEmbark', taiEmbark)
-
 
   for _, unitID in ipairs(GetTeamUnits(teamID)) do  -- init existing transports
 	if AddTransport(unitID, GetUnitDefID(unitID)) then
