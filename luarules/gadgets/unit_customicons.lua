@@ -48,7 +48,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",2, 2)
   Spring.AddUnitIcon("corcom.user", "LuaUI/Icons/corcom.png",2, 2)
   Spring.AddUnitIcon("cross.user", "LuaUI/Icons/cross1.png")
-  Spring.AddUnitIcon("diamond.user", "LuaUI/Icons/diamond1.png",1.1)
+  Spring.AddUnitIcon("sub.user", "LuaUI/Icons/sub.png",1.1)
   Spring.AddUnitIcon("e.user", "LuaUI/Icons/e.png")
   Spring.AddUnitIcon("e2.user", "LuaUI/Icons/e.png",1.4)
   Spring.AddUnitIcon("e3.user", "LuaUI/Icons/e.png",1.8)
@@ -61,7 +61,8 @@ function gadget:Initialize()
   Spring.AddUnitIcon("m-down.user", "LuaUI/Icons/m-down.png")
   Spring.AddUnitIcon("m-up.user", "LuaUI/Icons/m-up.png")
   Spring.AddUnitIcon("m.user", "LuaUI/Icons/m.png")
-  Spring.AddUnitIcon("nuke.user", "LuaUI/Icons/nuke.png",1.25)
+  Spring.AddUnitIcon("nuke.user", "LuaUI/Icons/nuke.png",1.35)
+  Spring.AddUnitIcon("anti-nuke.user", "LuaUI/Icons/anti-nuke.png",1.15)
   Spring.AddUnitIcon("slash.user", "LuaUI/Icons/slash.png") 
   Spring.AddUnitIcon("sphere.user", "LuaUI/Icons/ba_sphere1.png",1.1)
   Spring.AddUnitIcon("sphere2.user", "LuaUI/Icons/ba_sphere1.png",1.35)
@@ -69,7 +70,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("square.user", "LuaUI/Icons/square1.png")
   Spring.AddUnitIcon("square_+.user", "LuaUI/Icons/square_+.png")
   Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x1.png")
-  Spring.AddUnitIcon("square_x_factory.user", "LuaUI/Icons/square_x1.png1",1.5)
+  Spring.AddUnitIcon("square_x_factory.user", "LuaUI/Icons/square_x1.png",1.5)
   Spring.AddUnitIcon("star-dark.user", "LuaUI/Icons/star-dark.png")
   Spring.AddUnitIcon("star.user", "LuaUI/Icons/star.png")
   Spring.AddUnitIcon("tiny-sphere.user", "LuaUI/Icons/ba_sphere1.png",0.55)
@@ -115,9 +116,12 @@ function gadget:Initialize()
         else
           Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
         end
-      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer") then
-      	-- nuke / antinuke ( stockpile weapon, but not mercury/screamer )
+      elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer" or ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
+      	-- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
       	Spring.SetUnitDefIcon(udid, "nuke.user")
+	  elseif (ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
+	    -- anti nukes
+		Spring.SetUnitDefIcon(udid,"anti-nuke.user")
       elseif (ud.canFly) then
         -- aircraft
         Spring.SetUnitDefIcon(udid, "tri-up.user")
@@ -134,7 +138,7 @@ function gadget:Initialize()
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.isTransport) then
         -- transports
-        Spring.SetUnitDefIcon(udid, "diamond.user")
+        Spring.SetUnitDefIcon(udid, "sub.user")
       elseif ((ud.minWaterDepth > 0) and (ud.speed > 0) and (ud.waterline > 12)) then
         -- submarines
         Spring.SetUnitDefIcon(udid, "tri-down.user")
