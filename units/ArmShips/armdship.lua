@@ -1,13 +1,13 @@
 return {
 	armdship = {
 		activatewhenbuilt = true,
-		airsightdistance = 0.8 *500,
+		airsightdistance = 400,
 		autoheal = 1.5,
 		blocking = true,
 		buildcostenergy = 840,
 		buildcostmetal = 145,
 		buildpic = "ARMDSHIP.DDS",
-		buildtime = 1600,
+		buildtime = 3800,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER LIGHTBOAT SURFACE",
 		collisionvolumeoffsets = "0 -4 1",

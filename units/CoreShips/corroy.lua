@@ -2,10 +2,10 @@ return {
 	corroy = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 0.8*6000,
-		buildcostmetal = 0.8*1100,
+		buildcostenergy = 4800,
+		buildcostmetal = 880,
 		buildpic = "CORROY.DDS",
-		buildtime = 0.8*13368,
+		buildtime = 10700,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",

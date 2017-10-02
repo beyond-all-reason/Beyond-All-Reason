@@ -2,10 +2,10 @@ return {
 	coresupp = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 0.8*1305,
-		buildcostmetal = 0.8*170,
+		buildcostenergy = 1040,
+		buildcostmetal = 130,
 		buildpic = "CORESUPP.DDS",
-		buildtime = 0.8*6660*0.55,
+		buildtime = 2900,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -1",

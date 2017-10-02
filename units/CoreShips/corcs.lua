@@ -1,12 +1,12 @@
 return {
 	corcs = {
-		buildcostenergy = 0.8*2400,
-		buildcostmetal = 0.8*300,
+		buildcostenergy = 1920,
+		buildcostmetal = 240,
 		builddistance = 200,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORCS.DDS",
-		buildtime = 0.8*8306,
+		buildtime = 6600,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 0",

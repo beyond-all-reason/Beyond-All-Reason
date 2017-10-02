@@ -2,10 +2,10 @@ return {
 	armroy = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 0.8*6000,
-		buildcostmetal = 0.8*1050,
+		buildcostenergy = 4800,
+		buildcostmetal = 840,
 		buildpic = "ARMROY.DDS",
-		buildtime = 0.8*13391,
+		buildtime = 10700,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 -2",

@@ -2,10 +2,10 @@ return {
 	armpt = {
 		airsightdistance = 800,
 		autoheal = 1.5,
-		buildcostenergy = 0.8*880,
-		buildcostmetal = 0.8*80,
+		buildcostenergy = 700,
+		buildcostmetal = 60,
 		buildpic = "ARMPT.DDS",
-		buildtime = 0.8*1640,
+		buildtime = 1300,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 0",

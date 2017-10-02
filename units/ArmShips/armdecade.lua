@@ -2,10 +2,10 @@ return {
 	armdecade = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 0.8*1480,
-		buildcostmetal = 0.8*180,
+		buildcostenergy = 1200,
+		buildcostmetal = 140,
 		buildpic = "ARMDECADE.DDS",
-		buildtime = 0.8*6525*0.57,
+		buildtime = 3000,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -2",

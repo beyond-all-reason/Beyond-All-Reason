@@ -1,12 +1,12 @@
 return {
 	armcs = {
-		buildcostenergy = 0.8*2300,
-		buildcostmetal = 0.8*300,
+		buildcostenergy = 1840,
+		buildcostmetal = 240,
 		builddistance = 200,
 		builder = true,
 		shownanospray = false,
 		buildpic = "ARMCS.DDS",
-		buildtime = 0.8*7700,
+		buildtime = 6160,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB NOWEAPON SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 -1",

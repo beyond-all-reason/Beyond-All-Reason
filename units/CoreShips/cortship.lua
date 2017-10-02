@@ -2,10 +2,10 @@ return {
 	cortship = {
 		autoheal = 5,
 		buildangle = 16384,
-		buildcostenergy = 0.8*6800,
-		buildcostmetal = 0.8*750,
+		buildcostenergy = 5440,
+		buildcostmetal = 600,
 		buildpic = "CORTSHIP.DDS",
-		buildtime = 0.8*9564,
+		buildtime = 7650,
 		canattack = false,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
