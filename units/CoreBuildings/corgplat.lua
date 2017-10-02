@@ -126,12 +126,12 @@ return {
 				nogap = false,
 				stages = 20,
 				damage = {
-					bombers = 1*2.1,
-					default = 67*2.1,
-					heavyunits = 67*2.1*0.7,
-					fighters = 13*2.1,
-					subs = 1*2.1,
-					vtol = 1*2.1,
+					bombers = 1*1.5*2.1,
+					default = 67*1.5*2.1,
+					heavyunits = 67*1.5*2.1*0.7,
+					fighters = 13*1.5*2.1,
+					subs = 1*1.5*2.1,
+					vtol = 1*1.5*2.1,
 
 				},
 			},
