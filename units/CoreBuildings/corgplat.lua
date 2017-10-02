@@ -107,7 +107,7 @@ return {
 				impulsefactor = 0.123,
 				name = "Cannon",
 				noselfdamage = true,
-				range = 360,
+				range = 475,
 				reloadtime = 1.625*0.5,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",

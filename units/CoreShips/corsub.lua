@@ -27,7 +27,7 @@ return {
 		objectname = "CORSUB",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 330,
+		sightdistance = 350,
 		sonardistance = 250,
 		upright = true,
 		waterline = 30,

@@ -30,10 +30,8 @@ return {
 		objectname = "CORROY",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
-		sightdistance = 400,
+		sightdistance = 500,
 		sonardistance = 400,
-	    radardistance = 1000,
-		radaremitheight = 30,
 		waterline = 3.5,
 		--move
 		acceleration = 1.76/120,
