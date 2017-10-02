@@ -30,8 +30,10 @@ return {
 		objectname = "ARMROY",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 500,
+		sightdistance = 400,
 		sonardistance = 400,
+		radardistance = 1000,
+		radaremitheight = 30,
 		waterline = 4.5,
 		--move
 		acceleration = 1.90/120,
