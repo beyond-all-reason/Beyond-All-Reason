@@ -18,8 +18,8 @@ end
 -- CONFIGURATION
 local debug = false
 local updateInt = 1 --seconds for the ::update loop
-local sens = 150	--rotate mouse sensitivity - length of mouse movement vector
-local drawForAll = false --draw facing direction also for other buildings than labs
+local sens = 80	--rotate mouse sensitivity - length of mouse movement vector
+local drawForAll = true --draw facing direction also for other buildings than labs
 --------------------------------------------------------------------------------
 local inDrag = false
 local mmbStart = false
@@ -189,7 +189,7 @@ function manipulateFacing()
 	local mx,my,lmb,mmb,rmb = spGetMouseState()
 	local alt,ctrl,meta,shift = spGetModKeyState()
 	
-	if (lmb and mmb) then
+	if (lmb and not shift) then
 		--in       
         if not inDrag then
             mouseDeltaX = 0
@@ -226,6 +226,7 @@ function manipulateFacing()
 		mouseDeltaY = mouseDeltaY + curDeltaY
         
 		local newFacing = getFacingByMouseDelta( mouseDeltaX, mouseDeltaY )
+
 		if ( newFacing ~= nil ) then
 			mouseDeltaX = 0
 			mouseDeltaY = 0 
@@ -242,26 +243,31 @@ function manipulateFacing()
 end
 
 function drawOrientation()
+	local mx,my,lmb,mmb,rmb = spGetMouseState()
+	if not lmb then return false end
+
+	local alt,ctrl,meta,shift = spGetModKeyState()
+	if shift then return false end
+
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 	local cmdDesc = spGetActiveCmdDesc( idx )
-	
+
 	if ( cmdDesc == nil or cmdDesc["type"] ~= 20 ) then
 		--quit here if not a build command
 		return
 	end
-	
+
 	local unitDefID = -cmd_id
-	local alt,ctrl,meta,shift = spGetModKeyState()
-	
+
 	local udef = udefTab[unitDefID]
-	
+
 	--check for an empty buildlist to avoid to draw for air repair pads
 	if (drawForAll == false and (udef["isFactory"] == false or #udef["buildOptions"] == 0)) then
 		return
 	end
-	
+
 	local mx, my = spGetMouseState()
-	
+
 	if ( shift and inDrag ) then
 		mx = mouseXStartDrag
 		my = mouseYStartDrag
@@ -269,36 +275,40 @@ function drawOrientation()
 	end
 
 	local _, coords = spTraceScreenRay(mx, my, true, true)
-	
+
 	if not coords then return end
-		
+
 	local centerX = coords[1]
 	local centerY = coords[2]
 	local centerZ = coords[3]
-	
+
 	centerX, centerY, centerZ = spPos2BuildPos( unitDefID, centerX, centerY, centerZ )
-	
+
 	glLineWidth(1)
-	glColor( 0.0, 1.0, 0.0, 0.5 )
-	
+	glColor( 0.0, 1.0, 0.0, 0.45 )
+
 	local function drawFunc()
-		glVertex( 0, 0, -8)
-		glVertex( 0, 0, 8)
-		glVertex( 50, 0, -3)
+		glVertex( 0, 0, -10)
+		glVertex( 0, 0, 10)
+		glVertex( 30, 0, -7)
 
-		glVertex( 0, 0,  8)
-		glVertex( 50, 0, 3)
-		glVertex( 50, 0, -3 )
-		
-		glVertex( 50, 0, 0)
-		glVertex( 30, 0, -30 )
-		glVertex( 80, 0, 0 )
+		glVertex( 0, 0,  10)
+		glVertex( 30, 0, 7)
+		glVertex( 30, 0, -7 )
 
-		glVertex( 50, 0, 0)
-		glVertex( 80, 0, 0 )
-		glVertex( 30, 0, 30 )
+		glVertex( 30, 0, -7)
+		glVertex( 24, 0, -26 )
+		glVertex( 56, 0, 0 )
+
+		glVertex( 30, 0, 7)
+		glVertex( 56, 0, 0 )
+		glVertex( 24, 0, 26 )
+
+		glVertex( 30, 0, 7)
+		glVertex( 56, 0, 0)
+		glVertex( 30, 0, -7)
 	end
-  
+
 	--local height = spGetGroundHeight( centerX, centerZ )
 	local transSpace = udef["zsize"] * 4   --should be ysize but its not there?!?
 
@@ -319,14 +329,14 @@ function drawOrientation()
 	end
 
 	glPushMatrix()
-	
+
 	glTranslate( centerX + transX, centerY, centerZ + transZ)
 	glRotate( ( 3 + facing ) * 90, 0, 1, 0 )
 	glScale( (transSpace or 70)/70, 1.0, (transSpace or 70)/70)
 	glBeginEnd( GL_TRIANGLES, drawFunc )
-	
+
 	glScale( 1.0, 1.0, 1.0 )
-	
+
 	glPopMatrix()
 
 	glColor( 1.0, 1.0, 1.0 )

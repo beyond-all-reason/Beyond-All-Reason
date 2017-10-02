@@ -1,20 +1,20 @@
-local sprGetActiveCommand    = Spring.GetActiveCommand
-local sprGetGameSeconds      = Spring.GetGameSeconds
-local sprGetSelectedUnits    = Spring.GetSelectedUnits
-local sprGetCommandQueue     = Spring.GetCommandQueue
-local sprGetUnitCommands     = Spring.GetUnitCommands
-local sprGetMouseState       = Spring.GetMouseState
-local sprGetModKeyState      = Spring.GetModKeyState
-local sprGiveOrderToUnit     = Spring.GiveOrderToUnit
-local sprSelectUnitArray     = Spring.SelectUnitArray
-local sprIsAboveMiniMap      = Spring.IsAboveMiniMap
-local sprMinimapMouseToWorld = Spring.MinimapMouseToWorld
-local sprTestBuildOrder      = Spring.TestBuildOrder
-local sprGetBuildFacing      = Spring.GetBuildFacing
-local sprGetMyTeamID         = Spring.GetMyTeamID
+local spGetActiveCommand    = Spring.GetActiveCommand
+local spGetGameSeconds      = Spring.GetGameSeconds
+local spGetSelectedUnits    = Spring.GetSelectedUnits
+local spGetCommandQueue     = Spring.GetCommandQueue
+local spGetUnitCommands     = Spring.GetUnitCommands
+local spGetMouseState       = Spring.GetMouseState
+local spGetModKeyState      = Spring.GetModKeyState
+local spGiveOrderToUnit     = Spring.GiveOrderToUnit
+local spSelectUnitArray     = Spring.SelectUnitArray
+local spIsAboveMiniMap      = Spring.IsAboveMiniMap
+local spMinimapMouseToWorld = Spring.MinimapMouseToWorld
+local spTestBuildOrder      = Spring.TestBuildOrder
+local spGetBuildFacing      = Spring.GetBuildFacing
+local spGetMyTeamID         = Spring.GetMyTeamID
 
-local sprWorldToScreenCoords = Spring.WorldToScreenCoords
-local sprTraceScreenRay      = Spring.TraceScreenRay
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
+local spTraceScreenRay      = Spring.TraceScreenRay
 
 local floor = math.floor
 
@@ -79,10 +79,10 @@ end
 local function GetMouseWorldCoors(mx, my)
 	local cwc = nil
 
-	if (sprIsAboveMiniMap(mx, my)) then
-		cwc = sprMinimapMouseToWorld(mx, my)
+	if (spIsAboveMiniMap(mx, my)) then
+		cwc = spMinimapMouseToWorld(mx, my)
 	else
-		_, cwc = sprTraceScreenRay(mx, my, true)
+		_, cwc = spTraceScreenRay(mx, my, true)
 	end
 
 	return cwc
@@ -158,7 +158,7 @@ local function GetCommandWorldPosition(cmd)
 end
 
 local function GetWayPointsNearCursor(wpTbl, mx, my)
-	local selUnitsTbl = sprGetSelectedUnits()
+	local selUnitsTbl = spGetSelectedUnits()
 	local numSelWayPts = 0
 
 	if (selUnitsTbl == nil or #selUnitsTbl == 0) then
@@ -167,14 +167,14 @@ local function GetWayPointsNearCursor(wpTbl, mx, my)
 	
 	for i = 1, #selUnitsTbl do
 		local unitID = selUnitsTbl[i]
-		local commands = sprGetCommandQueue(unitID,20)
+		local commands = spGetCommandQueue(unitID,20)
 		for cmdNum = 1, #commands do
 			local curCmd      = commands[cmdNum    ]
 			if cmdColorsTbl[curCmd.id] then
 				local nxtCmd      = commands[cmdNum + 1]
 				local x, y, z, fr = GetCommandWorldPosition(curCmd)
 				if x then
-					local p, q  = sprWorldToScreenCoords(x, y, z)
+					local p, q  = spWorldToScreenCoords(x, y, z)
 					if (GetSqDist2D(mx,my,p,q) < wayPtSelDistSqr) then
 						-- save the tag of the next command
 						local wpLink = (nxtCmd and nxtCmd.tag) or nil
@@ -198,7 +198,7 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 	if (cursorWorldCoors ~= nil) then
 		local wpTblTmp = {}
 		local cx, cy, cz = cursorWorldCoors[1], cursorWorldCoors[2], cursorWorldCoors[3]
-		local alt, ctrl, _, _ = sprGetModKeyState()
+		local alt, ctrl, _, _ = spGetModKeyState()
 
 		if (ctrl) then
 			-- merge waypoints that are currently near
@@ -227,15 +227,15 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 				end
 
 				if (cmdFacRad > 0) then
-					-- sprGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz, cmdFacRad}, {"alt"})
-					sprGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdLink, cmdID, 0, cx, cy, cz, cmdFacRad}, {""})
+					-- spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz, cmdFacRad}, {"alt"})
+					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdLink, cmdID, 0, cx, cy, cz, cmdFacRad}, {""})
 				else
-					-- sprGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz}, {"alt"})
-					sprGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdLink, cmdID, 0, cx, cy, cz}, {""})
+					-- spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz}, {"alt"})
+					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdLink, cmdID, 0, cx, cy, cz}, {""})
 				end
 
 				if (not alt) then
-					sprGiveOrderToUnit(cmdUnitID, CMD.REMOVE, {cmdTag}, {""})
+					spGiveOrderToUnit(cmdUnitID, CMD.REMOVE, {cmdTag}, {""})
 				end
 			else
 				wpData[1] = cx
@@ -253,7 +253,7 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 end
 
 local function UpdateWayPoints(wpTbl)
-	local _, _, _, shift = sprGetModKeyState()
+	local _, _, _, shift = spGetModKeyState()
 	local badWayPtsTbl = {}
 
 	for wpKey, wpData in pairs(wpTbl) do
@@ -261,7 +261,7 @@ local function UpdateWayPoints(wpTbl)
 		local cmdUnitID = wpData[7]
 		local cmdValid  = false
 
-		local unitCmds = sprGetCommandQueue(cmdUnitID,20)
+		local unitCmds = spGetCommandQueue(cmdUnitID,20)
 
 		-- check if the command has not been completed
 		-- since the MousePress() event occurred (tags
@@ -299,8 +299,8 @@ function widget:MousePress(mx, my, mb)
 	--   4. our mouse cursor is within "grabbing" radius of (at least)
 	--      one waypoint of at least one of the units we have selected
 	--
-	local _, actCmdID, _, _      = sprGetActiveCommand()
-	local alt, ctrl, meta, shift = sprGetModKeyState()
+	local _, actCmdID, _, _      = spGetActiveCommand()
+	local alt, ctrl, meta, shift = spGetModKeyState()
 	local numWayPts              = 0
 	if (not shift)                                     then  return false  end
 	if (mb ~= 1)                                       then  return false  end
@@ -333,8 +333,8 @@ function widget:Update(_)
 end
 
 function widget:DrawWorld()
-	local mx, my, _, _, _ = sprGetMouseState()
-	local _, _, _, shift = sprGetModKeyState()
+	local mx, my, _, _, _ = spGetMouseState()
+	local _, _, _, shift = spGetModKeyState()
 
 	if (not shift) then
 		return
@@ -343,7 +343,7 @@ function widget:DrawWorld()
 		local cmd           = wpData[6]
 		local nx, ny, nz    = wpData[1], wpData[2], wpData[3]
 		local ox, oy, oz, _ = GetCommandWorldPosition(cmd)
-		local p, q          = sprWorldToScreenCoords(ox, oy, oz)
+		local p, q          = spWorldToScreenCoords(ox, oy, oz)
 		local d             = GetSqDist2D(mx, my, p, q)
 		local r, g, b, a    = GetCommandColor(cmd.id)
 
@@ -354,7 +354,7 @@ function widget:DrawWorld()
 		end
 
 		local pattern = (65536 - 775)
-		local offset = floor((sprGetGameSeconds() * 16) % 16)
+		local offset = floor((spGetGameSeconds() * 16) % 16)
 
 		glLineStipple(2, pattern, -offset)
 		glBeginEnd(GL.LINES,
