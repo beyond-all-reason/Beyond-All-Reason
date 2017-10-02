@@ -28,6 +28,7 @@ return {
 		name = "Thunderbolt",
 		nochasecategory = "MOBILE",
 		objectname = "CORFHLT",
+		script = "CORFHLT_LUS.LUA",
 		seismicsignature = 0,
 		stealth = true,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",

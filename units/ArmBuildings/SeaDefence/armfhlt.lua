@@ -28,6 +28,7 @@ return {
 		name = "Stingray",
 		nochasecategory = "MOBILE",
 		objectname = "ARMFHLT",
+		script = "ARMFHLT_LUS.LUA",
 		seismicsignature = 0,
 		stealth = true,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",

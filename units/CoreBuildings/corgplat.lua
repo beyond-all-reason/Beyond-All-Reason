@@ -28,6 +28,7 @@ return {
 		name = "Gun Platform",
 		nochasecategory = "MOBILE",
 		objectname = "CORGPLAT",
+		script = "CORGPLAT_LUS.LUA",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 550,
