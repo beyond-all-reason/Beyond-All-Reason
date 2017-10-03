@@ -14,10 +14,14 @@ end
 --local show = true
 
 local playSounds = true
-local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local buttonclick = LUAUI_DIRNAME .. 'Sounds/tock.wav'
+local paginatorclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
-local toggleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
 local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
+local selectunfoldclick = LUAUI_DIRNAME .. 'Sounds/zap.wav'
+local selecthoverclick = LUAUI_DIRNAME .. 'Sounds/hover.wav'
+local toggleonclick = LUAUI_DIRNAME .. 'Sounds/switchon.wav'
+local toggleoffclick = LUAUI_DIRNAME .. 'Sounds/switchoff.wav'
 
 local loadedFontSize = 32
 local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
@@ -771,12 +775,18 @@ function widget:DrawScreen()
 					if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
 						glColor(1,1,1,0.1)
 						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
+						if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
+							Spring.PlaySoundFile(selecthoverclick, 0.03, 'ui')
+						end
+						prevSelectHover = i
 					end
 					table.insert(optionSelect, {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i})
 					glText('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
 				end
+			elseif prevSelectHover ~= nil then
+				prevSelectHover = nil
 			end
-		glPopMatrix()
+	 	glPopMatrix()
 	else
 		if (WG['guishader_api'] ~= nil) then
 			local removed = WG['guishader_api'].RemoveRect('options')
@@ -885,7 +895,17 @@ function applyOptionValue(i, skipRedrawWindow)
 					end
 				end
 			end
-			widgetHandler:ToggleWidget(options[i].widget)
+			if value == 1 then
+				if widgetHandler.orderList[options[i].widget] < 0.5 then
+					widgetHandler:EnableWidget(options[i].widget)
+				end
+			else
+				if widgetHandler.orderList[options[i].widget] > 0 then
+					widgetHandler:ToggleWidget(options[i].widget)
+				else
+					widgetHandler:DisableWidget(options[i].widget)
+				end
+			end
 			forceUpdate = true
 			if id == "teamcolors" then
       			Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
@@ -1128,8 +1148,10 @@ function mouseEvent(x, y, button, release)
 					startColumn = (totalColumns-maxShownColumns) + 1
 				end
 				if playSounds then
-					Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+					Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
 				end
+				showSelectOptions = nil
+				selectClickAllowHide = nil
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 				return
@@ -1138,8 +1160,10 @@ function mouseEvent(x, y, button, release)
 				startColumn = startColumn - maxShownColumns
 				if startColumn < 1 then startColumn = 1 end
 				if playSounds then
-					Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+					Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
 				end
+				showSelectOptions = nil
+				selectClickAllowHide = nil
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 				return
@@ -1199,7 +1223,11 @@ function mouseEvent(x, y, button, release)
 							options[i].value = not options[i].value
 							applyOptionValue(i)
 							if playSounds then
-								Spring.PlaySoundFile(toggleclick, 0.5, 'ui')
+								if options[i].value then
+									Spring.PlaySoundFile(toggleonclick, 0.5, 'ui')
+								else
+									Spring.PlaySoundFile(toggleoffclick, 0.5, 'ui')
+								end
 							end
 						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						
@@ -1223,7 +1251,7 @@ function mouseEvent(x, y, button, release)
 						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 
 							if playSounds then
-								Spring.PlaySoundFile(buttonclick, 0.6, 'ui')
+								Spring.PlaySoundFile(selectunfoldclick, 0.6, 'ui')
 							end
 							if showSelectOptions == nil then
 								showSelectOptions = i

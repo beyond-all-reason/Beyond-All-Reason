@@ -21,7 +21,7 @@ local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
 local playSounds = true
-local leftclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local leftclick = LUAUI_DIRNAME .. 'Sounds/tock.wav'
 local resourceclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
 local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
 local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
