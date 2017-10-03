@@ -47,7 +47,8 @@ function gadget:Initialize()
 
   Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",2)
   Spring.AddUnitIcon("corcom.user", "LuaUI/Icons/corcom.png",2)
-  Spring.AddUnitIcon("cross.user", "LuaUI/Icons/cross1.png")
+  Spring.AddUnitIcon("cross.user", "LuaUI/Icons/cross1.png",0.95)
+  Spring.AddUnitIcon("cross_t2.user", "LuaUI/Icons/cross1.png", 1.3)
   Spring.AddUnitIcon("sub.user", "LuaUI/Icons/sub.png",1.2)
   Spring.AddUnitIcon("sub_t2.user", "LuaUI/Icons/sub.png",1.55)
   Spring.AddUnitIcon("sub_worker.user", "LuaUI/Icons/sub-worker.png",1.33)
@@ -58,14 +59,18 @@ function gadget:Initialize()
   Spring.AddUnitIcon("hemi-down_flagship.user", "LuaUI/Icons/hemi-down1.png",3)
   Spring.AddUnitIcon("hemi-down_battleship.user", "LuaUI/Icons/hemi-down1.png",2.3)
   Spring.AddUnitIcon("hemi-down.user", "LuaUI/Icons/hemi-down1.png",1.3)
-  Spring.AddUnitIcon("hemi-up.user", "LuaUI/Icons/hemi-up1.png")
+  Spring.AddUnitIcon("hemi-down_worker.user", "LuaUI/Icons/hemi-down_worker.png",1.3)
+  Spring.AddUnitIcon("shield.user", "LuaUI/Icons/shield.png", 1.8)
   Spring.AddUnitIcon("hemi.user", "LuaUI/Icons/hemi1.png")
   Spring.AddUnitIcon("hourglass-side.user", "LuaUI/Icons/hourglass-side1.png")
   Spring.AddUnitIcon("hourglass.user", "LuaUI/Icons/hourglass1.png")
   Spring.AddUnitIcon("krogoth.user", "LuaUI/Icons/krogoth.png",3)
   Spring.AddUnitIcon("m-down.user", "LuaUI/Icons/m-down.png")
   Spring.AddUnitIcon("m-up.user", "LuaUI/Icons/m-up.png")
-  Spring.AddUnitIcon("m.user", "LuaUI/Icons/m.png")
+  Spring.AddUnitIcon("m.user", "LuaUI/Icons/m.png",0.85)
+  Spring.AddUnitIcon("m_t2.user", "LuaUI/Icons/m.png",1.15)
+  Spring.AddUnitIcon("mm.user", "LuaUI/Icons/m-down1.png",0.85)
+  Spring.AddUnitIcon("mm_t2.user", "LuaUI/Icons/m-down1.png",1.15)
   Spring.AddUnitIcon("nuke.user", "LuaUI/Icons/nuke.png",1.35)
   Spring.AddUnitIcon("anti-nuke.user", "LuaUI/Icons/anti-nuke.png",1.15)
   Spring.AddUnitIcon("slash.user", "LuaUI/Icons/slash.png")
@@ -75,7 +80,9 @@ function gadget:Initialize()
   Spring.AddUnitIcon("square.user", "LuaUI/Icons/square1.png")
   Spring.AddUnitIcon("square_+.user", "LuaUI/Icons/square_+.png")
   Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x1.png")
-  Spring.AddUnitIcon("square_x_factory.user", "LuaUI/Icons/square_x1.png",1.6)
+  Spring.AddUnitIcon("factory.user", "LuaUI/Icons/square_x1.png",1.45)
+  Spring.AddUnitIcon("factoryt2.user", "LuaUI/Icons/square_x1.png",1.85)
+  Spring.AddUnitIcon("factoryt3.user", "LuaUI/Icons/square_x1.png",2.4)
   Spring.AddUnitIcon("star-dark.user", "LuaUI/Icons/star-dark.png")
   Spring.AddUnitIcon("star.user", "LuaUI/Icons/star.png")
   Spring.AddUnitIcon("lrpc.user", "LuaUI/Icons/star.png", 2.1)
@@ -85,9 +92,12 @@ function gadget:Initialize()
   Spring.AddUnitIcon("tiny-square.user", "LuaUI/Icons/square1.png",0.55)
   Spring.AddUnitIcon("tri-down.user", "LuaUI/Icons/tri-down1.png",1.3)
   Spring.AddUnitIcon("tri-t2down.user", "LuaUI/Icons/tri-down1.png",1.6)
-  Spring.AddUnitIcon("tri-up.user", "LuaUI/Icons/tri-up1.png",1.4)
-  Spring.AddUnitIcon("tri-up_worker.user", "LuaUI/Icons/tri-up_worker.png",1.25)
-  Spring.AddUnitIcon("tri-up_t2worker.user", "LuaUI/Icons/tri-up_worker.png",1.5)
+  Spring.AddUnitIcon("tri-up.user", "LuaUI/Icons/tri-up1.png",1.3)
+  Spring.AddUnitIcon("tri-up_hover.user", "LuaUI/Icons/tri-up_hover.png",1.25)
+  Spring.AddUnitIcon("tri-up_hover_bladew.user", "LuaUI/Icons/tri-up_hover.png",0.75)
+  Spring.AddUnitIcon("tri-up_t2hover.user", "LuaUI/Icons/tri-up_hover.png",1.55)
+  Spring.AddUnitIcon("tri-up_worker.user", "LuaUI/Icons/tri-up_worker.png",1.2)
+  Spring.AddUnitIcon("tri-up_t2worker.user", "LuaUI/Icons/tri-up_worker.png",1.6)
   Spring.AddUnitIcon("tri-up_fighter.user", "LuaUI/Icons/tri-up1.png",0.9)
   Spring.AddUnitIcon("tri-up_t2fighter.user", "LuaUI/Icons/tri-up1.png",1.15)
   Spring.AddUnitIcon("tri-up_scout.user", "LuaUI/Icons/tri-up1.png",0.6)
@@ -135,32 +145,35 @@ function gadget:Initialize()
         Spring.SetUnitDefIcon(udid, "hemi-down_flagship.user")
       elseif (ud.isFactory) then
         -- factories
-        Spring.SetUnitDefIcon(udid, "square_x_factory.user")
+        if (ud.name=="armshltx" or ud.name=="armshltxuw" or ud.name=="corgant" or ud.name=="corgantuw") then
+          Spring.SetUnitDefIcon(udid, "factoryt3.user")
+        elseif (ud.name=="armaap" or ud.name=="armavp" or ud.name=="armalab" or ud.name=="armasy" or ud.name=="coraap" or ud.name=="coravp" or ud.name=="coralab" or ud.name=="corasy") then
+          Spring.SetUnitDefIcon(udid, "factoryt2.user")
+        else
+          Spring.SetUnitDefIcon(udid, "factory.user")
+        end
       elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer" or ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
       	-- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
       	Spring.SetUnitDefIcon(udid, "nuke.user")
 	  elseif (ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
 	    -- anti nukes
 		Spring.SetUnitDefIcon(udid,"anti-nuke.user")
-      elseif (ud.canFly) then
-        -- aircraft
-        if (ud.isBuilder) then
-          if (ud.name=="armaca" or ud.name=="coraca") then
-            Spring.SetUnitDefIcon(udid, "tri-up_t2worker.user")
-          else
-            Spring.SetUnitDefIcon(udid, "tri-up_worker.user")
-          end
-        else
-          Spring.SetUnitDefIcon(udid, "tri-up.user")
-        end
       elseif ((ud.speed <= 0) and ud.shieldWeaponDef) then
         -- immobile shields
-        Spring.SetUnitDefIcon(udid, "hemi-up.user")
+        Spring.SetUnitDefIcon(udid, "shield.user")
       elseif ((ud.extractsMetal > 0) or (ud.makesMetal > 0)) or
 	(ud.name=="armmakr") or (ud.name=="armfmkr") or (ud.name=="armmmkr") or (ud.name=="armuwmmm") or
 	(ud.name=="cormakr") or (ud.name=="corfmkr") or (ud.name=="cormmkr") or (ud.name=="coruwmmm") then
         -- metal extractors and makers
-        Spring.SetUnitDefIcon(udid, "m.user")
+        if ud.extractsMetal > 0.001 then
+          Spring.SetUnitDefIcon(udid, "m_t2.user")
+        elseif ud.extractsMetal > 0 and ud.extractsMetal <= 0.001 then
+          Spring.SetUnitDefIcon(udid, "m.user")
+        elseif ud.name=="armmmkr" or ud.name=="cormmkr" then
+          Spring.SetUnitDefIcon(udid, "mm_t2.user")
+        else
+          Spring.SetUnitDefIcon(udid, "mm.user")
+        end
       elseif ((ud.totalEnergyOut > 10) and (ud.speed <= 0)) then
         -- energy generators
         Spring.SetUnitDefIcon(udid, "e.user")
@@ -176,20 +189,46 @@ function gadget:Initialize()
         Spring.SetUnitDefIcon(udid, "sub_t2.user")
       elseif (ud.name=="armacsub" or ud.name=="coracsub") then
         Spring.SetUnitDefIcon(udid, "sub_t2worker.user")
-      elseif (ud.name=="armrecl" or ud.name=="correcl") then
-        Spring.SetUnitDefIcon(udid, "sub_worker.user")
       elseif ((ud.minWaterDepth > 0) and (ud.speed > 0) and (ud.waterline > 12)) then
         Spring.SetUnitDefIcon(udid, "sub.user")
+      elseif (ud.isBuilder) then
+          -- builders
+          if (ud.name=="armack" or ud.name=="armacv" or ud.name=="corack" or ud.name=="coracv") then
+            Spring.SetUnitDefIcon(udid, "cross_t2.user")
+          elseif (ud.canFly) then
+            if (ud.name=="armaca" or ud.name=="coraca") then
+              Spring.SetUnitDefIcon(udid, "tri-up_t2worker.user")
+            else
+              Spring.SetUnitDefIcon(udid, "tri-up_worker.user")
+            end
+          elseif ((ud.minWaterDepth > 0) and (ud.speed > 0)) then -- ships
+            Spring.SetUnitDefIcon(udid, "hemi-down_worker.user")
+          elseif (ud.name=="armrecl" or ud.name=="correcl") then  -- subs
+            Spring.SetUnitDefIcon(udid, "sub_worker.user")
+          else
+            if ((ud.speed > 0) and ud.canMove) then
+              Spring.SetUnitDefIcon(udid, "cross.user")     -- mobile
+            else
+              Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
+            end
+          end
+      elseif (ud.canFly) then
+        -- aircraft
+        if (ud.hoverAttack) then
+
+          if (ud.name=="corbw") then
+            Spring.SetUnitDefIcon(udid, "tri-up_hover_bladew.user")
+          elseif (ud.name=="armbrawl" or ud.name=="corblade") then
+            Spring.SetUnitDefIcon(udid, "tri-up_t2hover.user")
+          else
+            Spring.SetUnitDefIcon(udid, "tri-up_hover.user")
+          end
+        else
+          Spring.SetUnitDefIcon(udid, "tri-up.user")
+        end
       elseif ((ud.minWaterDepth > 0) and (ud.speed > 0)) then
         -- ships
         Spring.SetUnitDefIcon(udid, "hemi-down.user")
-      elseif (ud.isBuilder) then
-          -- builders
-          if ((ud.speed > 0) and ud.canMove) then
-            Spring.SetUnitDefIcon(udid, "cross.user")     -- mobile
-          else
-            Spring.SetUnitDefIcon(udid, "square_+.user")  -- immobile
-          end
       elseif (((ud.radarRadius > 1) or
                (ud.sonarRadius > 1) or
                (ud.seismicRadius > 1)) and (ud.speed <= 0) and (#ud.weapons <= 0)) then
