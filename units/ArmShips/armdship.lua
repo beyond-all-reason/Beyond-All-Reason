@@ -33,7 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 450,
-		sonardistance = 250,
+		sonardistance = 350,
 		waterline = 3,
 		acceleration = 2.20/120,
 		brakerate = 2.20/25,
