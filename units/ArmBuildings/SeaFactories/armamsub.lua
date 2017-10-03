@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMAMSUB.DDS",
 		buildtime = 11112,
 		canmove = true,
-		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "118 40 119",
 		collisionvolumetype = "Box",
@@ -48,7 +48,6 @@ return {
 			[5] = "armaak",
 			[6] = "armdecom",
 			[7] = "armsub",
-			[8] = "armrecl",
 		},
 		customparams = {
 			

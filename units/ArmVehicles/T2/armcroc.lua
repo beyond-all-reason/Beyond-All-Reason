@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMCROC.DDS",
 		buildtime = 13367,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "53 23 53",
 		collisionvolumetype = "CylY",

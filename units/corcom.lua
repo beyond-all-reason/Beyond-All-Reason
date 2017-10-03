@@ -20,7 +20,7 @@ return {
 		canmanualfire = true,
 		canmove = true,
 		capturespeed = 1800,
-		category = "ALL WEAPON COMMANDER NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL WEAPON COMMANDER NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		cloakcost = 100,
 		cloakcostmoving = 1000,
 		collisionvolumeoffsets = "0 -1 -6",

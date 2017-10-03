@@ -12,7 +12,7 @@ return {
 		buildpic = "CORUWMS.DDS",
 		buildtime = 3874,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
 		corpse = "DEAD",
 		description = "Increases Metal Storage (3000)",
 		explodeas = "largeBuildingexplosiongeneric",

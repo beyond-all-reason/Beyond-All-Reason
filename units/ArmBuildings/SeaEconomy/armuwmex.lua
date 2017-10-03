@@ -14,7 +14,7 @@ return {
 		buildpic = "ARMUWMEX.DDS",
 		buildtime = 1875,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
 		corpse = "DEAD",
 		description = "Extracts Metal",
 		explodeas = "mediumBuildingexplosiongeneric",

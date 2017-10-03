@@ -10,7 +10,7 @@ return {
 		buildpic = "ARMBEAVER.DDS",
 		buildtime = 6708,
 		canmove = true,
-		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 22 41",
 		collisionvolumetype = "Box",

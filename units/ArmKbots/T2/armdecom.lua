@@ -15,7 +15,7 @@ return {
 		canmove = true,
 		cancapture = true,
 		capturespeed = 900,
-		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		cloakcost = 30,
 		cloakcostmoving = 180,
 		collisionvolumeoffsets = "0 -1 0",

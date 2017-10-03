@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMMAR.DDS",
 		buildtime = 26061,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
+		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW",
 		collisionvolumeoffsets = "0 -2 -2",
 		collisionvolumescales = "29 31 45",
 		collisionvolumetype = "Box",

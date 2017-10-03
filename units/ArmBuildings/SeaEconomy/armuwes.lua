@@ -12,7 +12,7 @@ return {
 		buildpic = "ARMUWES.DDS",
 		buildtime = 7085,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
 		corpse = "DEAD",
 		description = "Increases Energy Storage (6000)",
 		energystorage = 6000,

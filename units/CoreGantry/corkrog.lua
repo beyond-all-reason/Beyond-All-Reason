@@ -7,7 +7,7 @@ return {
 		buildpic = "CORKROG.DDS",
 		buildtime = 555000,
 		canmove = true,
-		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "KBOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		collisionvolumeoffsets = "0 -6 -5",
 		collisionvolumescales = "97 160 97",
 		collisionvolumetype = "CylY",
