@@ -38,8 +38,8 @@ return {
 		waterline = 1,
 		--move
 		brakerate =  1.928/40,
-		acceleration = 1.928/180,
-		maxvelocity = 1.928,
+		acceleration = 1.684/180,
+		maxvelocity = 2.313,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*1.928,
