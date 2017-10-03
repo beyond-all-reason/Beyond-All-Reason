@@ -3,7 +3,7 @@ return {
 		airsightdistance = 800,
 		autoheal = 1.5,
 		buildcostenergy = 700,
-		buildcostmetal = 60,
+		buildcostmetal = 50,
 		buildpic = "ARMPT.DDS",
 		buildtime = 1300,
 		canmove = true,
