@@ -62,8 +62,10 @@ function gadget:Initialize()
   Spring.AddUnitIcon("hemi-down_worker.user", "LuaUI/Icons/hemi-down_worker.png",1.3)
   Spring.AddUnitIcon("shield.user", "LuaUI/Icons/shield.png", 1.8)
   Spring.AddUnitIcon("hemi.user", "LuaUI/Icons/hemi1.png")
-  Spring.AddUnitIcon("hourglass-side.user", "LuaUI/Icons/hourglass-side1.png")
-  Spring.AddUnitIcon("hourglass.user", "LuaUI/Icons/hourglass1.png")
+  Spring.AddUnitIcon("hourglass-side.user", "LuaUI/Icons/hourglass2-side.png", 0.9)
+  Spring.AddUnitIcon("hourglass.user", "LuaUI/Icons/hourglass2.png", 0.9)
+  Spring.AddUnitIcon("hourglasst2-side.user", "LuaUI/Icons/hourglass2-side.png", 1.2)
+  Spring.AddUnitIcon("hourglasst2.user", "LuaUI/Icons/hourglass2.png", 1.2)
   Spring.AddUnitIcon("krogoth.user", "LuaUI/Icons/krogoth.png",3)
   Spring.AddUnitIcon("m-down.user", "LuaUI/Icons/m-down.png")
   Spring.AddUnitIcon("m-up.user", "LuaUI/Icons/m-up.png")
@@ -104,6 +106,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("triangle-down.user", "LuaUI/Icons/triangle-down1.png")
   Spring.AddUnitIcon("triangle-up.user", "LuaUI/Icons/triangle-up1.png")
   Spring.AddUnitIcon("x.user", "LuaUI/Icons/warning.png")
+  Spring.AddUnitIcon("x-t2.user", "LuaUI/Icons/warning.png")
   Spring.AddUnitIcon("blank.user", "LuaUI/Icons/blank.png")
    
   -- Setup the unitdef icons
@@ -112,7 +115,7 @@ function gadget:Initialize()
     if (ud ~= nil) then
 
       if (ud.name=="roost") or (ud.name=="meteor") then
-        Spring.SetUnitDefIcon(udid, "star.user")
+          Spring.SetUnitDefIcon(udid, "star.user")
       elseif string.sub(ud.name, 0, 7) == "critter" then
         Spring.SetUnitDefIcon(udid, "blank.user")
       elseif (ud.name=="corfav" or ud.name=="armfav" or ud.name=="armflea") then
@@ -137,6 +140,8 @@ function gadget:Initialize()
         Spring.SetUnitDefIcon(udid, "armcom.user")
       elseif (ud.name=="corcom") or (ud.name=="cordecom") then
         Spring.SetUnitDefIcon(udid, "corcom.user")
+      elseif (ud.name=="armclaw") or (ud.name=="cormaw") then
+        Spring.SetUnitDefIcon(udid, "x.user")
       elseif (ud.name=="corkrog") then
         Spring.SetUnitDefIcon(udid, "krogoth.user")
       elseif (ud.name=="armbats" or ud.name=="corbats") then
@@ -233,11 +238,19 @@ function gadget:Initialize()
                (ud.sonarRadius > 1) or
                (ud.seismicRadius > 1)) and (ud.speed <= 0) and (#ud.weapons <= 0)) then
         -- sensors
-        Spring.SetUnitDefIcon(udid, "hourglass-side.user")
+        if (ud.name=="corsd" or ud.name=="armarad" or ud.name=="armason" or ud.name=="corarad" or ud.name=="corason") then
+          Spring.SetUnitDefIcon(udid, "hourglasst2-side.user")
+        else
+          Spring.SetUnitDefIcon(udid, "hourglass-side.user")
+        end
       elseif (((ud.jammerRadius > 1) or
                (ud.sonarJamRadius > 1)) and (ud.speed <= 0)) then
         -- jammers
-        Spring.SetUnitDefIcon(udid, "hourglass.user")
+        if (ud.name=="corshroud" or ud.name=="armveil") then
+          Spring.SetUnitDefIcon(udid, "hourglasst2.user")
+        else
+          Spring.SetUnitDefIcon(udid, "hourglass.user")
+        end
       elseif (ud.isBuilding or (ud.speed <= 0)) then
          -- defenders and other buildings
         if (#ud.weapons <= 0) then
