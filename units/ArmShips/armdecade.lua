@@ -232,7 +232,7 @@ return {
 			},
 			[3] = {
 				def = "CORVETTE_DEPTH",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "UNDERWATER CANBEUW",
 			},
 		},
 	},

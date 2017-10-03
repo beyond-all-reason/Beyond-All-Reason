@@ -206,7 +206,7 @@ return {
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT SHIP",
 				def = "ADVDEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "UNDERWATER CANBEUW",
 			},
 		},
 	},

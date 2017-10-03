@@ -232,7 +232,7 @@ return {
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "UNDERWATER CANBEUW",
 			},
 		},
 	},

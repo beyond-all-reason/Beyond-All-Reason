@@ -191,7 +191,7 @@ return {
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "UNDERWATER CANBEUW",
 			},
 		},
 	},

@@ -204,11 +204,9 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				maindir = {0, -1, 0},
-				maxanglediff = 90,
 				badtargetcategory = "LIGHTAIRSCOUT SHIP",
 				def = "ADVDEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				onlytargetcategory = "UNDERWATER CANBEUW",
 			},
 		},
 	},
