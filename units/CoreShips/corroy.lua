@@ -117,7 +117,7 @@ return {
 		},
 		weapondefs = {
 			core_roy = {
-				areaofeffect = 64,
+				areaofeffect = 88,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
