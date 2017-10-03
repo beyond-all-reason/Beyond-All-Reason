@@ -148,12 +148,12 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT SUBMARINE CORVETTE",
+				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT UNDERWATER",
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT SUBMARINE CORVETTE",
+				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT UNDERWATER",
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "NOTSUB",
 			},
