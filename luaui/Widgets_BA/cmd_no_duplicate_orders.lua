@@ -35,9 +35,9 @@ local GetUnitHealth    = Spring.GetUnitHealth
 local buildList = {}
 
 function widget:PlayerChanged(playerID)
-  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget()
-  end
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:Initialize()
@@ -46,6 +46,10 @@ function widget:Initialize()
     local _, _, _, _, buildProgress = GetUnitHealth(unitID)
     if (buildProgress < 1) then widget:UnitCreated(unitID) end    
   end
+end
+
+function widget:GameStart()
+    widget:PlayerChanged()
 end
 
 local function toLocString(posX,posY,posZ)

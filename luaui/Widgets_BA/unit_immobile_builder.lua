@@ -69,7 +69,7 @@ local function SetupUnit(unitID)
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
 		widgetHandler:RemoveWidget()
 	end
 end

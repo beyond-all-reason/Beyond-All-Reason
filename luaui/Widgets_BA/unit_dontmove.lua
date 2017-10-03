@@ -120,9 +120,9 @@ local unitArray = {
 
 
 function widget:PlayerChanged(playerID)
-  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget()
-  end
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:Initialize()

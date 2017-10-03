@@ -42,7 +42,7 @@ local engineerDefs = {}
 local moveUnitsDefs = {}
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -63,6 +63,10 @@ function widget:Initialize()
 	for _,unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
 		widget:UnitCreated(unitID,GetUnitDefID(unitID),myTeamID)
 	end
+end
+
+function widget:GameStart()
+	widget:PlayerChanged()
 end
 
 

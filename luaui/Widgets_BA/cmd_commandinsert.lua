@@ -14,13 +14,17 @@ function widget:GetInfo()
 end
 
 function widget:PlayerChanged(playerID)
-  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget()
-  end
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:Initialize()
-  widget:PlayerChanged()
+	widget:PlayerChanged()
+end
+
+function widget:GameStart()
+	widget:PlayerChanged()
 end
 
 --[[

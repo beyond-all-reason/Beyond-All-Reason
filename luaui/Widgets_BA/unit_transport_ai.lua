@@ -170,9 +170,9 @@ end
 
 
 function widget:PlayerChanged(playerID)
-  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget()
-  end
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
+		widgetHandler:RemoveWidget()
+	end
 end
 
 function widget:Initialize()
@@ -187,6 +187,10 @@ function widget:Initialize()
        AssignTransports(unitID, 0)
     end
   end
+end
+
+function widget:GameStart()
+    widget:PlayerChanged()
 end
 
 function widget:Shutdown()

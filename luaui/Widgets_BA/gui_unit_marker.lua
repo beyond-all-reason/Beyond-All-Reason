@@ -1,4 +1,4 @@
-function widget:GetInfo()
+﻿function widget:GetInfo()
 	return {
 		name      = "Unit Marker",
 		version   = "1.0",
@@ -26,44 +26,44 @@ unitList["BA"] = {
 --[UnitDefNames["armcom"].id] = true,
 --[UnitDefNames["corcom"].id] = true,
 
-[UnitDefNames["armamd"].id] = {["en"]="Anti-Nuke", ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nucl�aire" },
-[UnitDefNames["corfmd"].id] = {["en"]="Anti-Nuke" , ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nucl�aire" },
+[UnitDefNames["armamd"].id] = {["en"]="Anti-Nuke", ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nuclaire" },
+[UnitDefNames["corfmd"].id] = {["en"]="Anti-Nuke" , ["de"]="Anti-Atomwaffe", ["fr"]="Contre l'Arme Nuclaire" },
 
-[UnitDefNames["cormabm"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nucl�aire" },
-[UnitDefNames["armscab"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nucl�aire" },
+[UnitDefNames["cormabm"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nuclaire" },
+[UnitDefNames["armscab"].id] = {["en"]="Mobile Anti-Nuke", ["de"]="Mobile Anti-Atomwaffe", ["fr"]="Mobile Contre l'Arme Nuclaire" },
 
-[UnitDefNames["armsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nucl�aire" },
-[UnitDefNames["corsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nucl�aire" },
+[UnitDefNames["armsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nuclaire" },
+[UnitDefNames["corsilo"].id] = 	{["en"]="Nuke Missile Silo", ["de"]="Atom-Raketensilo", ["fr"]="l'Arme Nuclaire" },
 
 --[UnitDefNames["armfus"].id] = 	{["en"]="Fusion", ["de"]="Fusion", ["fr"]="Fusion" },
 --[UnitDefNames["corfus"].id] = 	{["en"]="Fusion", ["de"]="Fusion", ["fr"]="Fusion" },
---[UnitDefNames["armckfus"].id] = {["en"]="Cloakable Fusion", 	["de"]="Unsichtbar Fusion", ["fr"]="Camoufl�e Fusion" },
+--[UnitDefNames["armckfus"].id] = {["en"]="Cloakable Fusion", 	["de"]="Unsichtbar Fusion", ["fr"]="Camoufle Fusion" },
 
---[UnitDefNames["armafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Sup�rieur Fusion" },
---[UnitDefNames["corafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Sup�rieur Fusion" },
+--[UnitDefNames["armafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Suprieur Fusion" },
+--[UnitDefNames["corafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Suprieur Fusion" },
 
---[UnitDefNames["armageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho G�o" },
---[UnitDefNames["corageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho G�o" },
+--[UnitDefNames["armageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Go" },
+--[UnitDefNames["corageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Go" },
 
---[UnitDefNames["armbrtha"].id] = {["en"]="LRPC", ["de"]="Gro�e Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Port�e" },
---[UnitDefNames["corint"].id] = 	{["en"]="LRPC", ["de"]="Gro�e Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Port�e" },
+--[UnitDefNames["armbrtha"].id] = {["en"]="LRPC", ["de"]="Groe Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Porte" },
+--[UnitDefNames["corint"].id] = 	{["en"]="LRPC", ["de"]="Groe Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Porte" },
 
 [UnitDefNames["armemp"].id] = 	{["en"]="EMP Silo", ["de"]="EMP-Raketensilo", ["fr"]="EMP Silo" },
-[UnitDefNames["cortron"].id] = 	{["en"]="Tactical Nuke Silo", ["de"]="Taktische Atom-Raketensilo", ["fr"]="l'Arme Tactiques Nucl�aire" },
+[UnitDefNames["cortron"].id] = 	{["en"]="Tactical Nuke Silo", ["de"]="Taktische Atom-Raketensilo", ["fr"]="l'Arme Tactiques Nuclaire" },
 
-[UnitDefNames["armvulc"].id] = 	{["en"]="Vulcan", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir �lev� Plasma Canon" },
-[UnitDefNames["corbuzz"].id] = 	{["en"]="Buzzsaw", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir �lev� Plasma Canon" },
+[UnitDefNames["armvulc"].id] = 	{["en"]="Vulcan", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir lev Plasma Canon" },
+[UnitDefNames["corbuzz"].id] = 	{["en"]="Buzzsaw", ["de"]="Schnellfeuer-Plasmakanone", ["fr"]="Cadence de Tir lev Plasma Canon" },
 
---[UnitDefNames["armshltx"].id] = {["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exp�rimentale" },
---[UnitDefNames["corgant"].id] = 	{["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exp�rimentale" },
+--[UnitDefNames["armshltx"].id] = {["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exprimentale" },
+--[UnitDefNames["corgant"].id] = 	{["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exprimentale" },
 
 --[UnitDefNames["corkrog"].id] = 	{["en"]="Krogoth", ["de"]="Krogoth", ["fr"]="Krogoth" },
 --[UnitDefNames["armbanth"].id] = 	{["en"]="Bantha", ["de"]="Bantha", ["fr"]="Bantha" },
 
---[UnitDefNames["corshroud"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarst�rsender", ["fr"]="" },
---[UnitDefNames["armveil"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarst�rsender", ["fr"]="" },
---[UnitDefNames["armjamt"].id] = 	{["en"]="Cloakable Jammer", ["de"]="Unsichtbar Radarst�rsender", ["fr"]="" },
---[UnitDefNames["coreter"].id] = 	{["en"]="Jammer", ["de"]="Radarst�rsender", ["fr"]="" },
+--[UnitDefNames["corshroud"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstrsender", ["fr"]="" },
+--[UnitDefNames["armveil"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstrsender", ["fr"]="" },
+--[UnitDefNames["armjamt"].id] = 	{["en"]="Cloakable Jammer", ["de"]="Unsichtbar Radarstrsender", ["fr"]="" },
+--[UnitDefNames["coreter"].id] = 	{["en"]="Jammer", ["de"]="Radarstrsender", ["fr"]="" },
 
 --[UnitDefNames["corspy"].id] = 	{["en"]="Spy", ["de"]="Spion", ["fr"]="" },
 --[UnitDefNames["armspy"].id] = 	{["en"]="Spy", ["de"]="Spion", ["fr"]="" },
@@ -120,7 +120,7 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
 		widgetHandler:RemoveWidget()
 	end
 end
@@ -139,6 +139,10 @@ function widget:Initialize()
 		curUnitList = unitList[curModID] or {}
 	end
 	myLang = myLang or string.lower(select(8,Spring.GetPlayerInfo(Spring.GetMyPlayerID())))
+end
+
+function widget:GameStart()
+    widget:PlayerChanged()
 end
 
 function colourNames(teamID) 

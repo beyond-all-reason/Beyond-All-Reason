@@ -212,6 +212,12 @@ local presets = {
 	},
 }
 
+--if VFS.FileExists("LuaUI/configs/options.lua",VFS.ZIP) then
+----if io.open("LuaUI/configs/options.lua",'r') ~= nil then -- file exists?
+--	Spring.Echo("Options: loading external options config")
+--	include("configs/options.lua")
+--end
+
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (screenWidth/2)
