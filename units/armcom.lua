@@ -89,9 +89,9 @@ return {
 			-- [22] = "armsonar",
 			[22] = "armfdrag",
 			[23] = "armtl",
-			-- [25] = "armgplat",
-			[24] = "armfrt",
-			[25] = "armfrad",
+			[24] = "armgplat",
+			[25] = "armfrt",
+			[26] = "armfrad",
 			-- [28] = "seaplatform",
 		},
 		customparams = {

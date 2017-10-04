@@ -27,7 +27,7 @@ return {
 		objectname = "ARMSUB",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 350,
+		sightdistance = 330,
 		sonardistance = 250,
 		upright = true,
 		waterline = 30,
