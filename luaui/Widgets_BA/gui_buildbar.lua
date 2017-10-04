@@ -385,7 +385,6 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
   local hoverPadding = 0
   local iconAlpha = (options.alpha or 1)
   if (options.pressed) then
-    Spring.Echo(options.pressed)
     if options.pressed == 2 then
       DrawRect(rect, { 1, 0.8, 0.8, 0.5 })  -- pressed
     else

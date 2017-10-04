@@ -945,6 +945,7 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'disticon' then
 			--Spring.SetConfigInt("UnitIconDist "..value)
 			Spring.SendCommands("disticon "..value)
+			Spring.SendCommands("distdraw 100000")
 		elseif id == 'treeradius' then
 			Spring.SetConfigInt("TreeRadius",value)
 		elseif id == 'particles' then
