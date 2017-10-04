@@ -61,7 +61,7 @@ return {
 			"armsy",
 			"armasy",
 			"armnanotcplat",
-			"armfhp",
+			-- "armfhp",
 			"armamsub",
 			-- "armsonar",
 			"armfrad",
