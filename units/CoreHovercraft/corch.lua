@@ -3,7 +3,7 @@ return {
 		acceleration = 0.12,
 		brakerate = 0.372,
 		buildcostenergy = 3000,
-		buildcostmetal = 160,
+		buildcostmetal = 190,
 		builddistance = 112,
 		builder = true,
 		shownanospray = false,
@@ -42,7 +42,7 @@ return {
 		turninplaceanglelimit = 60,
 		turninplacespeedlimit = 1.518,
 		turnrate = 410,
-		workertime = 110,
+		workertime = 90,
 		buildoptions = {
 			"corsolar",
 			"coradvsol",
