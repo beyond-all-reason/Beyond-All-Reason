@@ -3,7 +3,7 @@ return {
 		acceleration = 0.144,
 		brakerate = 0.45,
 		buildcostenergy = 2700,
-		buildcostmetal = 150,
+		buildcostmetal = 195,
 		builddistance = 112,
 		builder = true,
 		shownanospray = false,
@@ -42,7 +42,7 @@ return {
 		turninplaceanglelimit = 60,
 		turninplacespeedlimit = 1.6698,
 		turnrate = 425,
-		workertime = 150,
+		workertime = 90,
 		buildoptions = {
 			"armsolar",
 			"armadvsol",
