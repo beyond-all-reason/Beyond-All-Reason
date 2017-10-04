@@ -1,6 +1,6 @@
 return {
 	corcs = {
-		buildcostenergy = 2500,
+		buildcostenergy = 1920,
 		buildcostmetal = 240,
 		builddistance = 200,
 		builder = true,
