@@ -60,7 +60,7 @@ return {
 			"armuwes",
 			"armsy",
 			"armasy",
-			"armnanotcplat"
+			"armnanotcplat",
 			"armfhp",
 			"armamsub",
 			-- "armsonar",
