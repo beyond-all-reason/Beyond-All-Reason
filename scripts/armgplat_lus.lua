@@ -6,7 +6,7 @@ function script.Create()
 	COBturretYSpeed = 250
 	COBturretXSpeed = 125
 	COBkickbackRestoreSpeed = 10
-	kickback = -1
+	kickback = -7.5
 	restoreTime = 3000
 	COBrockStrength = 5
 	COBrockSpeed = 30
@@ -31,9 +31,9 @@ function RockOnWaves()
 f = 0
 while true do
 f = f + 1
-Turn(rockonwaves, 1, math.sin(f/23)*0.05)
-Turn(rockonwaves,3,math.sin(f/18)*0.05)
-Move(rockonwaves,2,math.sin(f/20.5)*2)
+Turn(rockonwaves, 1, math.sin(f/23)*0.04)
+Turn(rockonwaves,3,math.sin(f/18)*0.04)
+Move(rockonwaves,2,math.sin(f/20.5)*1.75)
 Sleep (math.random(1,2))
 end
 end
@@ -78,8 +78,8 @@ RockZFactor = x
 k = rockStrength
 while k > 0.1*rockStrength do
 -- Spring.Echo(k/rockStrength)
-Turn (base, 1, -RockXFactor*k*math.sin(ru/10))
-Turn (base, 3, RockZFactor*k*math.sin(ru/10))
+Turn (base, 1, -RockXFactor*k*math.sin(ru/23))
+Turn (base, 3, RockZFactor*k*math.sin(ru/18))
 ru = ru + 1
 k = 0.99 * k
 Sleep (math.random(2))

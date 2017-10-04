@@ -6,7 +6,7 @@ function script.Create()
 	COBturretYSpeed = 200
 	COBturretXSpeed = 220
 	COBkickbackRestoreSpeed = 10
-	kickback = -1
+	kickback = -10
 	restoreTime = 3000
 	COBrockStrength = 5
 	COBrockSpeed = 30
@@ -78,11 +78,11 @@ RockZFactor = x
 k = rockStrength
 while k > 0.1*rockStrength do
 -- Spring.Echo(k/rockStrength)
-Turn (base, 1, -RockXFactor*k*math.sin(ru/10))
-Turn (base, 3, RockZFactor*k*math.sin(ru/10))
+Turn (base, 1, -RockXFactor*k*math.sin(ru/23))
+Turn (base, 3, RockZFactor*k*math.sin(ru/18))
 ru = ru + 1
 k = 0.99 * k
-Sleep (math.random(2))
+Sleep (math.random(1,2))
 end
 end
 
