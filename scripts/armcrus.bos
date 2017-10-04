@@ -4,9 +4,9 @@
 #include "exptype.h"
 
 piece  base, turret, barrel1, flare1, barrel2, flare2, cannon1, cannon2,
-       wake1, wake2, foreturret, foregun, foreflare, aftturret, aftgun, aftflare, ground;
+       wake1, wake2, foreturret, foregun, forecannon, foreflare, aftturret, aftcannon, aftgun, aftflare, foregun2, forecannon2, foreflare2, aftcannon2, aftgun2, aftflare2, ground;
 
-static-var  gun_1, restore_delay, gun_2, Static_Var_7, Static_Var_8, aimDir, oldHead;
+static-var  gun_1, restore_delay, gun_2, Static_Var_7, Static_Var_8, aimDir, oldHead, aft_gun, fore_gun;
 
 // Signal definitions
 #define SIG_AIM_2			2
@@ -117,6 +117,8 @@ Create()
 	hide flare2;
 	hide foreflare;
 	hide aftflare;
+	aft_gun = 1;
+	fore_gun = 1;
 	gun_1 = base;
 	gun_2 = base;
 	restore_delay = 3000;
@@ -189,21 +191,46 @@ AimSecondary(heading, pitch)
 	set-signal-mask SIG_AIM_2;
 	if( gun_2 )
 	{
-		turn aftturret to y-axis heading speed <300.000000>;
-		turn aftgun to x-axis <0.000000> - pitch speed <200.000000>;
-		wait-for-turn aftturret around y-axis;
-		wait-for-turn aftgun around x-axis;
-		start-script RestoreDeckLaser();
-		return (1);
+		if (aft_gun == 1)
+			{
+			turn aftturret to y-axis heading speed <300.000000>;
+			turn aftgun to x-axis <0.000000> - pitch speed <200.000000>;
+			wait-for-turn aftturret around y-axis;
+			wait-for-turn aftgun around x-axis;
+			start-script RestoreDeckLaser();
+			return (1);
+			}
+		else
+			{
+			turn aftturret to y-axis heading speed <300.000000>;
+			turn aftgun2 to x-axis <0.000000> - pitch speed <200.000000>;
+			wait-for-turn aftturret around y-axis;
+			wait-for-turn aftgun2 around x-axis;
+			start-script RestoreDeckLaser();
+			return (1);
+			}
 	}
 	else
 	{
-		turn foreturret to y-axis heading speed <300.000000>;
-		turn foregun to x-axis <0.000000> - pitch speed <200.000000>;
-		wait-for-turn foreturret around y-axis;
-		wait-for-turn foregun around x-axis;
-		start-script RestoreDeckLaser();
-		return (1);
+		if (fore_gun == 1)
+			{
+			turn foreturret to y-axis heading speed <300.000000>;
+			turn foregun to x-axis <0.000000> - pitch speed <200.000000>;
+			wait-for-turn foreturret around y-axis;
+			wait-for-turn foregun around x-axis;
+			start-script RestoreDeckLaser();
+			return (1);
+			}
+		else		
+			{
+			turn foreturret to y-axis heading speed <300.000000>;
+			turn foregun2 to x-axis <0.000000> - pitch speed <200.000000>;
+			wait-for-turn foreturret around y-axis;
+			wait-for-turn foregun2 around x-axis;
+			start-script RestoreDeckLaser();
+			return (1);
+			}
+
 	}
 }
 
@@ -211,15 +238,33 @@ FireSecondary()
 {
 	if( gun_2 )
 	{
-		show aftflare;
-		sleep 150;
-		hide aftflare;
+			if (fore_gun == 2)
+			{
+				move forecannon to z-axis [-2] now;
+				move forecannon to z-axis [0] speed [50];
+				fore_gun = 1;
+			}
+			else
+			{
+				move forecannon2 to z-axis [-2] now;
+				move forecannon2 to z-axis [0] speed [50];
+				fore_gun = 2;
+			}
 	}
 	else
 	{
-		show foreflare;
-		sleep 150;
-		hide foreflare;
+			if (aft_gun == 2)
+			{
+				move aftcannon to z-axis [-2] now;
+				move aftcannon to z-axis [0] speed [50];
+				aft_gun = 1;
+			}
+			else
+			{
+				move aftcannon2 to z-axis [-2] now;
+				move aftcannon2 to z-axis [0] speed [50];
+				aft_gun = 2;
+			}
 	}
 	gun_2 = !gun_2;
 }
@@ -228,11 +273,11 @@ AimFromSecondary(piecenum)
 {
 	if( gun_2 )
 	{
-		piecenum = aftgun;
+		piecenum = aftturret;
 	}
 	else
 	{
-		piecenum = foregun;
+		piecenum = foreturret;
 	}
 }
 
@@ -240,11 +285,25 @@ QuerySecondary(piecenum)
 {
 	if( gun_2 )
 	{
+		if (aft_gun == 1)
+		{
 		piecenum = aftflare;
+		}
+		else
+		{
+		piecenum = aftflare2;
+		}
 	}
 	else
 	{
+		if (fore_gun == 1)
+		{
 		piecenum = foreflare;
+		}
+		else
+		{
+		piecenum = foreflare2;
+		}
 	}
 }
 
