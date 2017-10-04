@@ -68,14 +68,16 @@ function gadget:Initialize()
   Spring.AddUnitIcon("sub_t2.user", "LuaUI/Icons/sub.png",1.55)
   Spring.AddUnitIcon("sub_worker.user", "LuaUI/Icons/sub-worker.png",1.33)
   Spring.AddUnitIcon("sub_t2worker.user", "LuaUI/Icons/sub-worker.png",1.66)
-  Spring.AddUnitIcon("e.user", "LuaUI/Icons/e.png")
-  Spring.AddUnitIcon("e2.user", "LuaUI/Icons/e.png",1.4)
-  Spring.AddUnitIcon("e3.user", "LuaUI/Icons/e.png",1.8)
+  Spring.AddUnitIcon("e.user", "LuaUI/Icons/bolt.png",1.4)
+  Spring.AddUnitIcon("e1.user", "LuaUI/Icons/bolt.png",1.85)
+  Spring.AddUnitIcon("e2.user", "LuaUI/Icons/bolt.png",2.6)
+  Spring.AddUnitIcon("e3.user", "LuaUI/Icons/bolt.png",3.1)
+  Spring.AddUnitIcon("e4.user", "LuaUI/Icons/bolt.png",3.7)
   Spring.AddUnitIcon("hemi-down_flagship.user", "LuaUI/Icons/hemi-down1.png",3)
   Spring.AddUnitIcon("hemi-down_battleship.user", "LuaUI/Icons/hemi-down1.png",2.3)
   Spring.AddUnitIcon("hemi-down.user", "LuaUI/Icons/hemi-down1.png",1.3)
   Spring.AddUnitIcon("hemi-down_worker.user", "LuaUI/Icons/hemi-down_worker.png",1.3)
-  Spring.AddUnitIcon("shield.user", "LuaUI/Icons/shield.png", 1.8)
+  Spring.AddUnitIcon("shield.user", "LuaUI/Icons/shield.png", 1.85)
   Spring.AddUnitIcon("hemi.user", "LuaUI/Icons/hemi1.png")
   Spring.AddUnitIcon("hourglass-side.user", "LuaUI/Icons/hourglass2-side.png", 0.9)
   Spring.AddUnitIcon("hourglass.user", "LuaUI/Icons/hourglass2.png", 0.9)
@@ -100,8 +102,8 @@ function gadget:Initialize()
   Spring.AddUnitIcon("tiny-vehicle_flea.user", "LuaUI/Icons/vehicle.png",0.55)
   Spring.AddUnitIcon("tiny-vehicle.user", "LuaUI/Icons/vehicle.png",0.7)
   Spring.AddUnitIcon("vehicle.user", "LuaUI/Icons/vehicle.png",1)
-  Spring.AddUnitIcon("vehicle2.user", "LuaUI/Icons/vehicle.png",1.33)
-  Spring.AddUnitIcon("vehicle3.user", "LuaUI/Icons/vehicle.png",1.77)
+  Spring.AddUnitIcon("vehicle2.user", "LuaUI/Icons/vehicle.png",1.3)
+  Spring.AddUnitIcon("vehicle3.user", "LuaUI/Icons/vehicle.png",1.85)
   Spring.AddUnitIcon("square.user", "LuaUI/Icons/square1.png")
   Spring.AddUnitIcon("square_+.user", "LuaUI/Icons/square_+.png")
   Spring.AddUnitIcon("square_x.user", "LuaUI/Icons/square_x1.png")
@@ -110,20 +112,25 @@ function gadget:Initialize()
   Spring.AddUnitIcon("factoryt3.user", "LuaUI/Icons/square_x1.png",2.4)
   Spring.AddUnitIcon("star-dark.user", "LuaUI/Icons/star-dark.png")
   Spring.AddUnitIcon("star.user", "LuaUI/Icons/star.png")
-  Spring.AddUnitIcon("lrpc.user", "LuaUI/Icons/star.png", 2.2)
-  Spring.AddUnitIcon("lrpc_lolcannon.user", "LuaUI/Icons/star.png", 3)
+  Spring.AddUnitIcon("lrpc.user", "LuaUI/Icons/star.png", 2.3)
+  Spring.AddUnitIcon("lrpc_lolcannon.user", "LuaUI/Icons/star.png", 3.3)
   Spring.AddUnitIcon("tiny-square.user", "LuaUI/Icons/square1.png",0.55)
   Spring.AddUnitIcon("tri-down.user", "LuaUI/Icons/tri-down1.png",1.3)
   Spring.AddUnitIcon("tri-t2down.user", "LuaUI/Icons/tri-down1.png",1.6)
   Spring.AddUnitIcon("tri-up.user", "LuaUI/Icons/tri-up1.png",1.3)
+  Spring.AddUnitIcon("tri-up_bomber.user", "LuaUI/Icons/tri-bomber.png",1.35)
+  Spring.AddUnitIcon("tri-up_t2bomber.user", "LuaUI/Icons/tri-bomber.png",1.66)
+  Spring.AddUnitIcon("tri-up_liche.user", "LuaUI/Icons/tri-bomber.png",2)
   Spring.AddUnitIcon("tri-up_hover.user", "LuaUI/Icons/tri-up_hover.png",1.25)
+  Spring.AddUnitIcon("tri-up_hover_huge.user", "LuaUI/Icons/tri-up_hover.png",2)
   Spring.AddUnitIcon("tri-up_hover_bladew.user", "LuaUI/Icons/tri-up_hover.png",0.75)
   Spring.AddUnitIcon("tri-up_t2hover.user", "LuaUI/Icons/tri-up_hover.png",1.55)
   Spring.AddUnitIcon("tri-up_worker.user", "LuaUI/Icons/tri-up_worker.png",1.2)
   Spring.AddUnitIcon("tri-up_t2worker.user", "LuaUI/Icons/tri-up_worker.png",1.6)
-  Spring.AddUnitIcon("tri-up_fighter.user", "LuaUI/Icons/tri-up1.png",0.9)
-  Spring.AddUnitIcon("tri-up_t2fighter.user", "LuaUI/Icons/tri-up1.png",1.15)
-  Spring.AddUnitIcon("tri-up_scout.user", "LuaUI/Icons/tri-up1.png",0.6)
+  Spring.AddUnitIcon("tri-up_fighter.user", "LuaUI/Icons/tri-up1.png",0.85)
+  Spring.AddUnitIcon("tri-up_t2fighter.user", "LuaUI/Icons/tri-up1.png",1.05)
+  Spring.AddUnitIcon("tri-up_scout.user", "LuaUI/Icons/tri.png",0.6)
+  Spring.AddUnitIcon("tri-up_radar.user", "LuaUI/Icons/tri.png",1.33)
   Spring.AddUnitIcon("triangle-down.user", "LuaUI/Icons/triangle-down1.png")
   Spring.AddUnitIcon("triangle-up.user", "LuaUI/Icons/triangle-up1.png")
   Spring.AddUnitIcon("x.user", "LuaUI/Icons/warning.png")
@@ -153,14 +160,24 @@ function gadget:Initialize()
         end
       elseif (ud.name=="armpeep" or ud.name=="corfink") then
         Spring.SetUnitDefIcon(udid, "tri-up_scout.user")
+      elseif (ud.name=="armawac" or ud.name=="corawac") then
+        Spring.SetUnitDefIcon(udid, "tri-up_radar.user")
       elseif (ud.name=="armwin") or (ud.name=="corwin") then
         Spring.SetUnitDefIcon(udid, "e.user")
       elseif (ud.name=="armfig") or (ud.name=="corveng") or (ud.name=="armhawk") or (ud.name=="corvamp") then
-        Spring.SetUnitDefIcon(udid, "tri-up_fighter.user")
-      elseif (ud.name=="corafus") or (ud.name=="armafus") then
+        if (ud.name=="armhawk") or (ud.name=="corvamp") then
+          Spring.SetUnitDefIcon(udid, "tri-up_t2fighter.user")
+        else
+          Spring.SetUnitDefIcon(udid, "tri-up_fighter.user")
+        end
+      elseif (ud.name=="corafus" or ud.name=="armafus") then
+        Spring.SetUnitDefIcon(udid, "e4.user")
+      elseif (ud.name=="armageo" or ud.name=="corageo") then
         Spring.SetUnitDefIcon(udid, "e3.user")
-      elseif (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then
+      elseif (ud.name=="armgmm") or  (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then
         Spring.SetUnitDefIcon(udid, "e2.user")
+      elseif (ud.name=="armadvsol" or ud.name=="coradvsol" or ud.name=="armgeo" or ud.name=="corgeo" or ud.name=="corbhmth") then
+        Spring.SetUnitDefIcon(udid, "e1.user")
       elseif (ud.name=="armvulc") or (ud.name=="corbuzz") then
         Spring.SetUnitDefIcon(udid, "lrpc_lolcannon.user")
       elseif (ud.name=="armbrtha") or (ud.name=="corint") then
@@ -259,16 +276,29 @@ function gadget:Initialize()
       elseif (ud.canFly) then
         -- aircraft
         if (ud.hoverAttack) then
-
           if (ud.name=="corbw") then
             Spring.SetUnitDefIcon(udid, "tri-up_hover_bladew.user")
           elseif (ud.name=="armbrawl" or ud.name=="corblade") then
             Spring.SetUnitDefIcon(udid, "tri-up_t2hover.user")
+          elseif (ud.name=="corcrw") then
+            Spring.SetUnitDefIcon(udid, "tri-up_hover_huge.user")
           else
             Spring.SetUnitDefIcon(udid, "tri-up_hover.user")
           end
         else
-          Spring.SetUnitDefIcon(udid, "tri-up.user")
+          if (ud.name=="armliche") then
+            Spring.SetUnitDefIcon(udid, "tri-up_liche.user")
+          else
+            if #ud.weapons > 0 and WeaponDefs[ud.weapons[1].weaponDef].type == "AircraftBomb" then
+              if (ud.name=="armpnix" or ud.name=="corhurc") then
+                Spring.SetUnitDefIcon(udid, "tri-up_t2bomber.user")
+              else
+                Spring.SetUnitDefIcon(udid, "tri-up_bomber.user")
+              end
+            else
+              Spring.SetUnitDefIcon(udid, "tri-up.user")
+            end
+          end
         end
       elseif ((ud.minWaterDepth > 0) and (ud.speed > 0)) then
         -- ships
