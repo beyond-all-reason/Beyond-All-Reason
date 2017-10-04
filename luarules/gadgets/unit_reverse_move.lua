@@ -97,7 +97,7 @@ reverseUnit = {}
 				else -- If not penetrator/arti/banisher/tremor
 					if distance < 350 then
 						allowreverse = "Reverse is allowed"
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 350)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 250)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", anglelimit)
 					else
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
@@ -117,7 +117,7 @@ reverseUnit = {}
 				else -- If not penetrator/arti/banisher/tremor
 					if distance < 175 then	
 						allowreverse = "Reverse is allowed"
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 175)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 125)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", anglelimit)
 					else
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
