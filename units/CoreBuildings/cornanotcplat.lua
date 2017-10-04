@@ -31,6 +31,7 @@ return {
 		mass = 700,
 		maxdamage = 500,
 		maxslope = 10,
+		minwaterdepth = 12,
 		maxwaterdepth = 50000000,
 		movementclass = "NANO",
 		name = "Nano Turret",
