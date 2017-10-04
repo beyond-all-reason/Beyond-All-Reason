@@ -2,7 +2,7 @@ return {
 	corroy = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 4800,
+		buildcostenergy = 6200,
 		buildcostmetal = 880,
 		buildpic = "CORROY.DDS",
 		buildtime = 10700,

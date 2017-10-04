@@ -2,7 +2,7 @@ return {
 	armroy = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 4800,
+		buildcostenergy = 6200,
 		buildcostmetal = 840,
 		buildpic = "ARMROY.DDS",
 		buildtime = 10700,
