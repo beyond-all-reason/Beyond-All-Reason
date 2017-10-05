@@ -32,6 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 372,
+		sonardistance = 372*0.75,
 		script = "BASICTANKSCRIPT.LUA",
 		trackoffset = 6,
 		trackstrength = 5,

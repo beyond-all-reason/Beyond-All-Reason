@@ -32,6 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 399,
+		sonardistance = 399*0.75,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "StdTank",
