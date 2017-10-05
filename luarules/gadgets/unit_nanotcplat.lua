@@ -21,7 +21,7 @@ if unitName == "armnanotcplat" or unitName == "cornanotcplat" then
 GroundHeight = Spring.GetGroundHeight(x,z)
 Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
 Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )
-Spring.SetUnitMidAndAimPos(unitID, 0, -32, 0, 0, 0, 0, true)
+Spring.SetUnitMidAndAimPos(unitID, 0, 10, 0, 0, 0, 0, true)
 end
 end
 end

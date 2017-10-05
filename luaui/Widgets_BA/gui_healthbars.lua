@@ -1002,7 +1002,22 @@ do
 
   local customInfo = {}
   local ci
-
+  
+customInfo[UnitDefNames["armnanotcplat"].id] = {
+		height        = 15+barHeightOffset,
+        maxShield     = 0,
+        canStockpile  = nil,
+        reloadTime    = 0,
+        primaryWeapon = 0,
+		}
+customInfo[UnitDefNames["cornanotcplat"].id] = {
+		height        = 15+barHeightOffset,
+        maxShield     = 0,
+        canStockpile  = nil,
+        reloadTime    = 0,
+        primaryWeapon = 0,
+		}	
+	
   function DrawUnitInfos(unitID,unitDefID, ud)
     if (not customInfo[unitDefID]) then
       customInfo[unitDefID] = {
@@ -1012,6 +1027,7 @@ do
         reloadTime    = ud.reloadTime,
         primaryWeapon = ud.primaryWeapon,
       }
+	  
     end
     ux, uy, uz = GetUnitViewPosition(unitID)
     if ux == nil then
