@@ -18,11 +18,11 @@ reverseUnit = {}
 		if not (UnitDefs[unitDefID].rSpeed == nil or UnitDefs[unitDefID].rSpeed == 0) then -- If unitID has a defined MaxReverseVelocity ~= 0.
 			reverseUnit[unitID] = true -- Add to reverse units table
 				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed) >= 50 then -- If penetrator/arti/banisher/tremor
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 1)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)
 				else -- If not penetrator/arti/banisher/tremor
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 1)
+					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)
 				end
 		end
 	end
@@ -47,12 +47,17 @@ reverseUnit = {}
 		-- Spring.Echo(cmdID)
 	if cmdID == CMD.MOVE or cmdID == CMD.RAW_MOVE then
 
-	x,y,z = cmdParams[4],cmdParams[5],cmdParams[6]
+	if #cmdParams == 3 then
+	x,y,z = cmdParams[1],Spring.GetGroundHeight(cmdParams[1],cmdParams[3]),cmdParams[3]
+	elseif #cmdParams == 6 then
+	x,y,z = cmdParams[4],Spring.GetGroundHeight(cmdParams[4],cmdParams[6]),cmdParams[6]
+	end
+	
 	xu, yu, zu = Spring.GetUnitPosition(unitID)
 	if x ~= nil and y ~= nil and z ~= nil then
 	distance = math.sqrt((x-xu)^2 + (z-zu)^2)
 	else
-	distance = 1000
+	distance = 1
 	end
 
 	-- Spring.Echo(distance)
@@ -82,56 +87,59 @@ reverseUnit = {}
 			
 			
 		local unitDefID = Spring.GetUnitDefID(unitID)
+					-- Spring.Echo(a)
+
 		local anglelimit = tonumber(UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.anglelimit) or 140
 			if a ~= 0 and isFront == true and not (UnitDefs[unitDefID].isBuilder == true) then -- When Targetting + facing unit + not a builder
 
 				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed)*100 >= 50 then -- If penetrator/arti/banisher/tremor
-					if distance < 700 then
+					if distance < 400 then
 						allowreverse = "Reverse is allowed"
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 700)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 400)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", anglelimit)
 					else
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)	
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 1)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)	
 					end
 				else -- If not penetrator/arti/banisher/tremor
-					if distance < 350 then
+					if distance < 250 then
 						allowreverse = "Reverse is allowed"
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 250)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", anglelimit)
 					else
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)						
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 1)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)						
 					end
 				end
 			else -- If not Targetting + facing unit + not a builder
 				if (UnitDefs[unitDefID].rSpeed/UnitDefs[unitDefID].speed)*100 >= 50 then -- If penetrator/arti/banisher/tremor
-					if distance < 350 then	
+					if distance < 100 then	
 						allowreverse = "Reverse is allowed"
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 350)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 100)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", anglelimit)
 					else
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 1)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)
 					end
 				else -- If not penetrator/arti/banisher/tremor
-					if distance < 175 then	
+					if distance < 75 then	
 						allowreverse = "Reverse is allowed"
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 125)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 75)
 						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", anglelimit)
 					else
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 1)
+						Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)
 					end
 				end
 			end
 	end
 		else
-			if (reverseUnit[unitID]) then
-				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
-				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 0)
-			end
+			-- if (reverseUnit[unitID]) then
+				-- Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseDist", 0)
+				-- Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "minReverseAngle", 180)
+			-- end
 		end
+			-- Spring.Echo(distance)
 			-- Spring.Echo(allowreverse)
 
 end
