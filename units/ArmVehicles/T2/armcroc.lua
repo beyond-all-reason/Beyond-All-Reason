@@ -1,6 +1,8 @@
 return {
 	armcroc = {
 		acceleration = 0.0528,
+		activatewhenbuilt = true,
+
 		brakerate = 0.0627,
 		buildcostenergy = 12300,
 		buildcostmetal = 500,

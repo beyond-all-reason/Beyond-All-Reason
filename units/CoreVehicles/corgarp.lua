@@ -1,6 +1,8 @@
 return {
 	corgarp = {
 		acceleration = 0.0243,
+		activatewhenbuilt = true,
+
 		brakerate = 0.063,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,

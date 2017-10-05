@@ -1,6 +1,8 @@
 return {
 	corseal = {
 		acceleration = 0.0462,
+		activatewhenbuilt = true,
+
 		brakerate = 0.0627,
 		buildcostenergy = 9000,
 		buildcostmetal = 500,
