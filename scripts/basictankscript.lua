@@ -294,8 +294,7 @@ return turret
 end
 
 function script.AimWeapon2( heading, pitch )
-
-x,y,z = Spring.GetUnitPiecePosDir(unitID, turret) = Spring.GetUnitPosition(unitID)
+x,y,z = Spring.GetUnitPiecePosDir(unitID, turret)
 if y < 0 then
 	Spring.UnitScript.Signal(31)
 	Spring.UnitScript.StartThread(Restore, restoreTime)
