@@ -25,6 +25,7 @@ return {
 		name = "Commander Tombstone",
 		objectname = "ARMSTONE.3do",
 		repairable = false,
+		script = "",
 		seismicsignature = 0,
 		sightdistance = 1,
 		usebuildinggrounddecal = false,
