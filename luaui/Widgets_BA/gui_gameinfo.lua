@@ -33,7 +33,7 @@ changelogFile = changelogFile .. "\n"
 changelogFile = changelogFile .. titlecolor..Game.mapName.."\n"
 changelogFile = changelogFile .. valuegreycolor..Game.mapDescription.."\n"
 changelogFile = changelogFile .. keycolor.."Size"..separator..valuegreycolor..Game.mapX..valuegreycolor.." x "..valuegreycolor..Game.mapY.."\n"
-changelogFile = changelogFile .. keycolor.."Gavity"..separator..valuegreycolor..Game.gravity.."\n"
+changelogFile = changelogFile .. keycolor.."Gravity"..separator..valuegreycolor..Game.gravity.."\n"
 changelogFile = changelogFile .. keycolor.."Hardness"..separator..valuegreycolor..Game.mapHardness.. keycolor.."\n"
 changelogFile = changelogFile .. keycolor.."Tidal speed"..separator..valuegreycolor..Game.tidal.. keycolor.."\n"
 if Game.windMin == Game.windMax then

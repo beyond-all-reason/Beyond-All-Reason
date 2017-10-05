@@ -15,13 +15,9 @@ local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/discord.png"
 local iconSize = 32
 
 local spGetGameFrame		= Spring.GetGameFrame
-local myPlayerID				= Spring.GetMyPlayerID()
 
 local glText	          = gl.Text
 local glGetTextWidth		= gl.GetTextWidth
-local glBlending        = gl.Blending
-local glScale          	= gl.Scale
-local glRotate					= gl.Rotate
 local glTranslate				= gl.Translate
 local glPushMatrix      = gl.PushMatrix
 local glPopMatrix				= gl.PopMatrix
@@ -33,9 +29,7 @@ local glCallList				= gl.CallList
 local drawlist = {}
 local xPos = 0
 local yPos = 0
-local clickTime = -60
 
-local shown = false
 local mouseover = false
 
 ---------------------------------------------------------------------------------------------------
@@ -138,11 +132,8 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
-	
-		if os.clock() - clickTime > 60 then		-- prevent spamming
-			Spring.SendCommands("say BA's discord server: https://discord.gg/aDtX3hW")
-			clickTime = os.clock()
-		end
+		Spring.SendCommands("say BA's discord server: https://discord.gg/aDtX3hW")
+		widgetHandler:RemoveWidget(self)
 		return true
 	end
 end
