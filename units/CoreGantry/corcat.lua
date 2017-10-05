@@ -7,7 +7,7 @@ return {
 		buildpic = "CORCAT.DDS",
 		buildtime = 127000,
 		canmove = true,
-		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
+		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE KBOT",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "60 53 30",
 		collisionvolumetype = "box",

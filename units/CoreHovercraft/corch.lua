@@ -75,12 +75,12 @@ return {
 			
 			"corfhp",
 			"corsy",
+			"coramsub",
 			"cortide",
 			"coruwmex",
 			"corfmkr",
 			"coruwms",
 			"coruwes",
-			"coramsub",
 			
 			"corfdrag",
 			"corfrad",

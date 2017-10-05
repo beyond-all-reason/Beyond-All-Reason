@@ -18,7 +18,7 @@ local buttonclick = LUAUI_DIRNAME .. 'Sounds/tock.wav'
 local paginatorclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local selectunfoldclick = LUAUI_DIRNAME .. 'Sounds/zap.wav'
+local selectunfoldclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
 local selecthoverclick = LUAUI_DIRNAME .. 'Sounds/hover.wav'
 local toggleonclick = LUAUI_DIRNAME .. 'Sounds/switchon.wav'
 local toggleoffclick = LUAUI_DIRNAME .. 'Sounds/switchoff.wav'
@@ -776,7 +776,7 @@ function widget:DrawScreen()
 						glColor(1,1,1,0.1)
 						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
 						if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-							Spring.PlaySoundFile(selecthoverclick, 0.03, 'ui')
+							Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 						end
 						prevSelectHover = i
 					end
@@ -1225,9 +1225,9 @@ function mouseEvent(x, y, button, release)
 							applyOptionValue(i)
 							if playSounds then
 								if options[i].value then
-									Spring.PlaySoundFile(toggleonclick, 0.5, 'ui')
+									Spring.PlaySoundFile(toggleonclick, 0.75, 'ui')
 								else
-									Spring.PlaySoundFile(toggleoffclick, 0.5, 'ui')
+									Spring.PlaySoundFile(toggleoffclick, 0.75, 'ui')
 								end
 							end
 						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
