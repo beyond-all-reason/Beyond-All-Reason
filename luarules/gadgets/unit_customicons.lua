@@ -58,9 +58,9 @@ function gadget:Initialize()
   Spring.AddUnitIcon("armcom.user", "LuaUI/Icons/armcom.png",1.75)
   Spring.AddUnitIcon("corcom.user", "LuaUI/Icons/corcom.png",1.75)
 
-  Spring.AddUnitIcon("mine1.user", "LuaUI/Icons/mine.png",0.4)
-  Spring.AddUnitIcon("mine2.user", "LuaUI/Icons/mine.png",0.5)
-  Spring.AddUnitIcon("mine3.user", "LuaUI/Icons/mine.png",0.62)
+  Spring.AddUnitIcon("mine1.user", "LuaUI/Icons/mine.png",0.36)
+  Spring.AddUnitIcon("mine2.user", "LuaUI/Icons/mine.png",0.44)
+  Spring.AddUnitIcon("mine3.user", "LuaUI/Icons/mine.png",0.53)
 
   Spring.AddUnitIcon("sub.user", "LuaUI/Icons/sub.png",1.33)
   Spring.AddUnitIcon("sub_t2.user", "LuaUI/Icons/sub.png",1.7)
@@ -116,7 +116,7 @@ function gadget:Initialize()
   Spring.AddUnitIcon("mex.user", "LuaUI/Icons/mex.png",0.85)
   Spring.AddUnitIcon("mex_t2.user", "LuaUI/Icons/mex.png",1.15)
 
-  Spring.AddUnitIcon("metalmaker.user", "LuaUI/Icons/metalmaker.png",0.85)
+  Spring.AddUnitIcon("metalmaker.user", "LuaUI/Icons/metalmaker.png",0.75)
   Spring.AddUnitIcon("metalmaker_t2.user", "LuaUI/Icons/metalmaker.png",1.15)
 
   Spring.AddUnitIcon("nukenergy1.user", "LuaUI/Icons/nuke.png",1.35)

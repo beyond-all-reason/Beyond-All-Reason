@@ -7,7 +7,7 @@ return {
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5182,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE",
+		category = "KBOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE PHIB",
 		collisionvolumeoffsets = "0 0 -8",
 		collisionvolumescales = "27 27 33",
 		collisionvolumetype = "CylZ",
