@@ -132,7 +132,7 @@ return {
 				name = "Laser",
 				noselfdamage = true,
 				range = 260,
-				reloadtime = 1.2,
+				reloadtime = 0.8,
 				rgbcolor = "1 1 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -204,11 +204,11 @@ return {
 				def = "CORPT_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "CORPT_MISSILE",
-				onlytargetcategory = "VTOL",
-			},
+			-- [3] = {
+				-- badtargetcategory = "LIGHTAIRSCOUT",
+				-- def = "CORPT_MISSILE",
+				-- onlytargetcategory = "VTOL",
+			-- },
 		},
 	},
 }
