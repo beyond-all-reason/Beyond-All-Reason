@@ -88,7 +88,7 @@ function UnitDef_Post(name, uDef)
 	if uDef.canfly == true then
 		turn = (((uDef.turnrate)*0.16)/360)/30
 		wingsurffactor = tonumber(uDef.customparams and uDef.customparams.wingsurface) or 1
-		uDef.usesmoothmesh = false
+		uDef.usesmoothmesh = true
 		uDef.wingdrag = uDef.brakerate * 4
 		uDef.wingangle = turn
 		uDef.speedtofront = 0.07*wingsurffactor
