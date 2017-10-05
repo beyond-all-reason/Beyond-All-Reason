@@ -8,7 +8,7 @@ return {
 		buildpic = "ARMSPID.DDS",
 		buildtime = 5090,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL KBOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 15 28",
 		collisionvolumetype = "box",

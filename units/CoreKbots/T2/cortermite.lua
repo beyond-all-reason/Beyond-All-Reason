@@ -7,7 +7,7 @@ return {
 		buildpic = "CORTERMITE.DDS",
 		buildtime = 18834,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
+		category = "ALL KBOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -14 0",
 		collisionvolumescales = "37 38 56",
 		collisionvolumetype = "Box",
