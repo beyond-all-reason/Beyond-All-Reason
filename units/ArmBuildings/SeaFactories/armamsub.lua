@@ -47,7 +47,7 @@ return {
 			[4] = "armjeth",
 			[5] = "armaak",
 			[6] = "armdecom",
-			[7] = "armsub",
+			-- [7] = "armsub",
 		},
 		customparams = {
 			

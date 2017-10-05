@@ -49,7 +49,7 @@ return {
 			[6] = "coraak",
 			[7] = "cordecom",
 			[8] = "corintr",
-			[9] = "corsub",
+			-- [9] = "corsub",
 		},
 		customparams = {
 			
