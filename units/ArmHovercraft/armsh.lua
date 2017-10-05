@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 260,
 		maxslope = 16,
-		maxvelocity = 4.49,
+		maxvelocity = 3.79,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Skimmer",

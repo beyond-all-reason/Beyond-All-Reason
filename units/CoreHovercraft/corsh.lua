@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 230,
 		maxslope = 16,
-		maxvelocity = 4.26,
+		maxvelocity = 3.65,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Scrubber",
