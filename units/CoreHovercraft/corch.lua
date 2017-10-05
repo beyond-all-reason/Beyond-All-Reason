@@ -73,7 +73,7 @@ return {
 			"cordl",
 			"corjamt",
 			
-			"corfhp",
+			-- "corfhp",
 			"corsy",
 			"coramsub",
 			"cortide",

@@ -277,6 +277,68 @@ function script.Shot1()
 	Spring.UnitScript.StartThread(Restore,restoreTime)
 end
 
+function script.QueryWeapon2()
+if flare2 then
+	if gun1 == 2 then
+		return flare1
+	else
+		return flare2
+	end
+else
+	return flare1	
+end
+end
+
+function script.AimFromWeapon2()
+return turret
+end
+
+function script.AimWeapon2( heading, pitch )
+x,y,z = Spring.GetUnitPiecePosDir(unitID, turret)
+if y < 0 then
+	Spring.UnitScript.Signal(31)
+	Spring.UnitScript.StartThread(Restore, restoreTime)
+	Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
+	Turn (sleeve, 1, (0-pitch),turretXSpeed)
+	WaitForTurn(turret, 2)
+	WaitForTurn(sleeve, 1)
+		Spring.Echo("underwater")
+
+	return (true)
+else
+	Spring.Echo("overwater")
+	return (false)
+end
+end
+
+function script.Shot2()
+-- Spring.Echo(gun1)
+	if flare2 then
+		if gun1 == 1 then
+			Emit(flare1, firingCEG)
+			Move(cannon1, 3, kickback)
+			Move(cannon1, 3, 0, kickbackRestoreSpeed)
+			gun1 = 2
+		else
+			Emit(flare2, firingCEG)
+			Move(cannon2, 3, kickback)
+			Move(cannon2, 3, 0, kickbackRestoreSpeed)
+			gun1 = 1
+			if hp < 30 then
+			Explode(cannon2, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
+			Hide(cannon2)
+			flare2 = nil
+			end
+		end
+	else
+		Emit(flare1, firingCEG)
+		Move(cannon1, 3, kickback)
+		Move(cannon1, 3, 0, kickbackRestoreSpeed)
+	end
+	Spring.UnitScript.Signal(31)
+	Spring.UnitScript.StartThread(Restore,restoreTime)
+end
+
 function DeathRun()
 smokePieces = {base, turret}
 if f == 1 then
