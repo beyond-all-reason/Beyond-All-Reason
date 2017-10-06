@@ -1,5 +1,4 @@
 local versionNumber = "v2.3"
-return false
 
 function widget:GetInfo()
   return {
@@ -14,7 +13,7 @@ function widget:GetInfo()
   }
 end
 
-local maxMetalData = 2500000
+local maxMetalData = 40000 --2500000
 local pathToSave = "LuaUI/Widgets_BA/MetalMaps/" -- where to store mexmaps (MaDDoX: edited for BA 9.5x)
 -----------------
 --command notification and mex placement
@@ -281,7 +280,7 @@ local function mergeToFlag(flagNum, px, pz, pWeight)
 	mexes[flagNum].weight = fWeight + pWeight
 end
 
-local function AnalyzeMetalMap()	
+local function AnalyzeMetalMap()
 	for mx_i = 1, mapWidth2 do
 		metalMap[mx_i] = {}
 		for mz_i = 1, mapHeight2 do
@@ -292,10 +291,10 @@ local function AnalyzeMetalMap()
 			metalMap[mx_i][mz_i] = curMetal
 			if (curMetal > maxMetal) then
 				maxMetal = curMetal
-			end	
+			end
 		end
 	end
-	
+
 	local lowMetalThresh = floor(maxMetal * threshFraction)
 	
 	for mx_i = 1, mapWidth2 do
@@ -303,23 +302,26 @@ local function AnalyzeMetalMap()
 			local mCur = metalMap[mx_i][mz_i]
 			if mCur > lowMetalThresh then
 				metalDataCount = metalDataCount +1
-				
 				metalData[metalDataCount] = {
 					x = mx_i * gridSize,
 					z = mz_i * gridSize,
 					metal = mCur
 				}
-				
+				if #metalData > maxMetalData then -- Probably a metal map, ceases to work
+					Spring.Echo("Area Mex: widget auto-removed, too many spots found in map.")
+					widgetHandler:RemoveWidget()
+					return
+				end
 			end
 		end
 	end
-	
-	--Spring.Echo("number of spots " .. #metalData)
-	if #metalData > maxMetalData then -- ceases to work
-		Spring.Echo("Removed Area Mex, too many spots.")
-		widgetHandler:RemoveWidget()
-		return
-	end
+
+--	--Spring.Echo("number of spots " .. #metalData)
+--	if #metalData > maxMetalData then -- ceases to work
+--		Spring.Echo("Removed Area Mex, too many spots.")
+--		widgetHandler:RemoveWidget()
+--		return
+--	end
 	
 	table.sort(metalData, function(a,b) return a.metal > b.metal end)
 	
