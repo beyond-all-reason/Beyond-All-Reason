@@ -943,9 +943,10 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'scrollspeed' then
 			Spring.SetConfigInt("ScrollWheelSpeed",value)
 		elseif id == 'disticon' then
-			--Spring.SetConfigInt("UnitIconDist "..value)
+			if Spring.GetConfigInt("distdraw",1) < 10000 then
+				Spring.SendCommands("distdraw 10000")
+			end
 			Spring.SendCommands("disticon "..value)
-			Spring.SendCommands("distdraw 100000")
 		elseif id == 'treeradius' then
 			Spring.SetConfigInt("TreeRadius",value)
 		elseif id == 'particles' then
