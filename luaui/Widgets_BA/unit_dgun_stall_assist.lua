@@ -46,13 +46,15 @@ local CMD_WAIT = CMD.WAIT
 ----------------------------------------------------------------
 
 function widget:PlayerChanged(playerID)
-	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
-		widgetHandler:RemoveWidget()
-	end
+    if Spring.GetSpectatingState() then
+        widgetHandler:RemoveWidget()
+    end
 end
 
 function widget:Initialize()
-	widget:PlayerChanged()
+    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+        widget:PlayerChanged()
+    end
 	
 	for uDefID, uDef in pairs(UnitDefs) do
 		if (uDef.buildSpeed > 0) and uDef.canAssist and (not uDef.canManualFire) then

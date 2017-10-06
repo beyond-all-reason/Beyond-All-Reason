@@ -110,13 +110,15 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
-		widgetHandler:RemoveWidget()
-	end
+    if Spring.GetSpectatingState() then
+        widgetHandler:RemoveWidget()
+    end
 end
 
 function widget:Initialize()
-	widget:PlayerChanged()
+    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+        widget:PlayerChanged()
+    end
 
 	myColour = colourNames(Spring.GetMyTeamID())
 	markerLocal = nil --note: this name of this here and on the lua wiki is a misnomer

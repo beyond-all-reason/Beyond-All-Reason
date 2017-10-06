@@ -42,13 +42,15 @@ local engineerDefs = {}
 local moveUnitsDefs = {}
 
 function widget:PlayerChanged(playerID)
-	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
-		widgetHandler:RemoveWidget()
-	end
+    if Spring.GetSpectatingState() then
+        widgetHandler:RemoveWidget()
+    end
 end
 
 function widget:Initialize()
-	widget:PlayerChanged()
+    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+        widget:PlayerChanged()
+    end
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		if unitDef.canMove and unitDef.speed > 0 then --mobile builder
 			for _,buildeeDefID in pairs(unitDef.buildOptions) do
