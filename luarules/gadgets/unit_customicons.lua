@@ -95,9 +95,9 @@ local icons = {
   {"jammer_t2.user", "LuaUI/Icons/jammer.png", 1.2*iconScale},
 
   {"krogoth.user", "LuaUI/Icons/mech.png",3.2*iconScale},
-  {"bantha.user", "LuaUI/Icons/mech.png",2.66*iconScale},
+  {"bantha.user", "LuaUI/Icons/mech.png",2.6*iconScale},
   {"juggernaut.user", "LuaUI/Icons/kbot.png",2.75*iconScale},
-  {"commando.user", "LuaUI/Icons/mech.png",1.35*iconScale},
+  {"commando.user", "LuaUI/Icons/mech.png",1.3*iconScale},
 
   {"mex_t1.user", "LuaUI/Icons/mex.png",0.85*iconScale},
   {"mex_t2.user", "LuaUI/Icons/mex.png",1.15*iconScale},
@@ -199,6 +199,15 @@ function changeUnitIcons()
       Spring.SetUnitDefIcon(udid, "meteor.user")
     elseif string.sub(ud.name, 0, 7) == "critter" then
       Spring.SetUnitDefIcon(udid, "blank.user")
+
+    elseif (ud.name=="corkrog") then
+      Spring.SetUnitDefIcon(udid, "krogoth.user")
+    elseif (ud.name=="armbanth") then
+      Spring.SetUnitDefIcon(udid, "bantha.user")
+    elseif (ud.name=="corjugg") then
+      Spring.SetUnitDefIcon(udid, "juggernaut.user")
+    elseif (ud.name=="cormando") then
+      Spring.SetUnitDefIcon(udid, "commando.user")
 
       -- mine
     elseif ud.modCategories["mine"] ~= nil or ud.modCategories["kamikaze"] ~= nil then
@@ -512,15 +521,7 @@ function changeUnitIcons()
       -- kbots
     elseif ud.modCategories["kbot"] ~= nil then
 
-      if (ud.name=="corkrog") then
-        Spring.SetUnitDefIcon(udid, "krogoth.user")
-      elseif (ud.name=="armbanth") then
-        Spring.SetUnitDefIcon(udid, "bantha.user")
-      elseif (ud.name=="corjugg") then
-        Spring.SetUnitDefIcon(udid, "juggernaut.user")
-      elseif (ud.name=="cormando") then
-        Spring.SetUnitDefIcon(udid, "commando.user")
-      elseif (ud.name=="corsumo" or ud.name=="corgol") then
+      if (ud.name=="corsumo" or ud.name=="corgol") then
         Spring.SetUnitDefIcon(udid, "kbot_t2_big.user")
       elseif ud.name=="armflea" then
         Spring.SetUnitDefIcon(udid, "kbot_t1_flea.user")
