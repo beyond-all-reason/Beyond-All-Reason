@@ -1,4 +1,5 @@
-﻿function widget:GetInfo()
+﻿
+function widget:GetInfo()
 	return {
 		name      = "Unit Marker",
 		version   = "1.0",
@@ -84,23 +85,12 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local IsUnitAllied = Spring.IsUnitAllied
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetGameSeconds = Spring.GetGameSeconds
-local spGetUnitHealth = Spring.GetUnitHealth
 local spGetTeamColor	= Spring.GetTeamColor
-local spSendCommands = Spring.SendCommands
-local spGetSpectatingState = Spring.GetSpectatingState
-local lastUpdate = 0
-local addedMarksTable = {}
-local addToTable = {}
-local markTime = 0
-local lastUpdate = 0
 local prevX,prevY,prevZ = 0,0,0
 local prevMarkX = {}
 local prevMarkY = {}
 local prevMarkZ = {}
-local x,y,z = 0,0,0
 
-local knownUnits = {} --all units that have been marked already, so they wont get marked again
 local teamNames = {}
 
 local function GetTeamName(teamID) --need to rewrite this sloppy functionality

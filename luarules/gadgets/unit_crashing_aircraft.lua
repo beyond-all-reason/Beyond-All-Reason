@@ -62,9 +62,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			totalUnits = #Spring.GetAllUnits()
-			percentage = 0.5 * (1 - (totalUnits/5000))
-			if percentage < 0.2 then
-				percentage = 0.2
+			percentage = 0.66 * (1 - (totalUnits/5000))
+			if percentage < 0.25 then
+				percentage = 0.25
 			end
 		end
 		if random() < percentage then

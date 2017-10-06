@@ -676,7 +676,10 @@ local function updateResbar(res)
             local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
             if draggingConversionIndicator ~= nil and draggingConversionIndicatorValue ~= nil then
                 convValue = draggingConversionIndicatorValue/100
-            end
+			end
+			if convValue == nil then
+				convValue = 1
+			end
 			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 			glTexture(barbg)
 			if resbarHover ~= nil and resbarHover == res then

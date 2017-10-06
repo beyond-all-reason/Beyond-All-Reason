@@ -1120,7 +1120,7 @@ function widget:MouseMove(x, y)
 			applyOptionValue(draggingSlider)
 			if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os.clock()
-				Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+				Spring.PlaySoundFile(sliderdrag, 0.4, 'ui')
 			end
 		end
 	end
