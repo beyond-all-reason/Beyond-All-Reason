@@ -1,10 +1,10 @@
 return {
 	corssub = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*12000,
-		buildcostmetal = 0.8*1900,
+		buildcostenergy = 0.8*14500,
+		buildcostmetal = 0.8*2300,
 		buildpic = "CORSSUB.DDS",
-		buildtime = 0.8*23007,
+		buildtime = 0.8*27500,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
@@ -35,7 +35,7 @@ return {
 				--move
 		brakerate =  2.052/20,
 		acceleration = 2.052/120,
-		maxvelocity = 2.052,
+		maxvelocity = 2.257,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.052,
@@ -130,7 +130,7 @@ return {
 				name = "advTorpedo",
 				noselfdamage = true,
 				range = 690,
-				reloadtime = 1.5,
+				reloadtime = 2.3,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 150,

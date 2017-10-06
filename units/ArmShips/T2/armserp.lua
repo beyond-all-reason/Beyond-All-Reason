@@ -1,10 +1,10 @@
 return {
 	armserp = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*12000,
-		buildcostmetal = 0.8*1800,
+		buildcostenergy = 0.8*14400,
+		buildcostmetal = 0.8*2150,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 0.8*21087,
+		buildtime = 0.8*25300,
 		canmove = true,
 		category = "UNDERWATER ALL WEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -2 0",
@@ -35,7 +35,7 @@ return {
 				--move
 		brakerate =  2.10/20,
 		acceleration = 2.10/120,
-		maxvelocity = 2.10,
+		maxvelocity = 2.3,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.10,
@@ -132,7 +132,7 @@ return {
 				name = "AdvTorpedo",
 				noselfdamage = true,
 				range = 690,
-				reloadtime = 1.5,
+				reloadtime = 2.3,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 150,

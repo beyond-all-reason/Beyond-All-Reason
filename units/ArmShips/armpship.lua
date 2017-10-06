@@ -31,7 +31,7 @@ return {
 		objectname = "ARMPSHIP",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 470,
+		sightdistance = 400,
 		waterline = 3,
 		--move
 		acceleration = 2.45/120,

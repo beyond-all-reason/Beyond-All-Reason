@@ -33,7 +33,7 @@ return {
 		--move
 		brakerate =  2.80/20,
 		acceleration = 2.80/150,
-		maxvelocity = 2.80,
+		maxvelocity = 3.08,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.80,
@@ -130,7 +130,7 @@ return {
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 2,
+				reloadtime = 3,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 120,

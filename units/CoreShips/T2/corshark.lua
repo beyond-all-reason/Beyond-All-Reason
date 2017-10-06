@@ -1,10 +1,10 @@
 return {
 	corshark = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*10000,
-		buildcostmetal = 0.8*1000,
+		buildcostenergy = 0.8*12000,
+		buildcostmetal = 0.8*1200,
 		buildpic = "CORSHARK.DDS",
-		buildtime = 0.8*15529,
+		buildtime = 0.8*18600,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0.5 0 0",
@@ -33,7 +33,7 @@ return {
 		--move
 		brakerate =  2.745/20,
 		acceleration = 2.745/150,
-		maxvelocity = 2.745,
+		maxvelocity = 3.01,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.745,
@@ -130,7 +130,7 @@ return {
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 2,
+				reloadtime = 3,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 120,
