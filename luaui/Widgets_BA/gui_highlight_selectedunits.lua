@@ -102,6 +102,8 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
+    if Spring.IsGUIHidden() then return end
+
 	gl.DepthTest(true)
 	gl.PolygonOffset(-2, -2)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
