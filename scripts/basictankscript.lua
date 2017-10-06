@@ -302,11 +302,11 @@ if y < 0 then
 	Turn (sleeve, 1, (0-pitch),turretXSpeed)
 	WaitForTurn(turret, 2)
 	WaitForTurn(sleeve, 1)
-		Spring.Echo("underwater")
+		-- Spring.Echo("underwater")
 
 	return (true)
 else
-	Spring.Echo("overwater")
+	-- Spring.Echo("overwater")
 	return (false)
 end
 end
