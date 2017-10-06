@@ -48,18 +48,18 @@ local icons = {
   {"mine2.user", "LuaUI/Icons/mine.png",0.44*iconScale},
   {"mine3.user", "LuaUI/Icons/mine.png",0.53*iconScale},
 
-  {"wind.user", "LuaUI/Icons/wind.png",1.1*iconScale},
-
   {"sub_t1.user", "LuaUI/Icons/sub.png",1.33*iconScale},
   {"sub_t2.user", "LuaUI/Icons/sub.png",1.7*iconScale},
   {"sub_t1_worker.user", "LuaUI/Icons/sub_worker.png",1.33*iconScale},
   {"sub_t2_worker.user", "LuaUI/Icons/sub_worker.png",1.66*iconScale},
 
-  {"energy1.user", "LuaUI/Icons/energy.png",1*iconScale},
-  {"energy2.user", "LuaUI/Icons/energy.png",1.45*iconScale},
-  {"energy3.user", "LuaUI/Icons/energy.png",1.85*iconScale},
-  {"energy4.user", "LuaUI/Icons/energy.png",2.35*iconScale},
-  {"energy5.user", "LuaUI/Icons/energy.png",2.85*iconScale},
+
+  {"wind.user", "LuaUI/Icons/wind.png",1.1*iconScale},
+  {"energy1.user", "LuaUI/Icons/energy.png",1.3*iconScale},   -- unused
+  {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
+  {"energy3.user", "LuaUI/Icons/fusion.png",1.85*iconScale},
+  {"energy4.user", "LuaUI/Icons/fusion.png",2.35*iconScale},
+  {"energy5.user", "LuaUI/Icons/fusion.png",2.85*iconScale},
 
   {"eye.user", "LuaUI/Icons/eye.png",0.85*iconScale},
   {"spy.user", "LuaUI/Icons/eye.png",1.25*iconScale},
