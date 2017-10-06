@@ -76,13 +76,15 @@ local function UpdateUnitsList()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.IsReplay() or (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState()) then
-		widgetHandler:RemoveWidget()
-	end
+    if Spring.GetSpectatingState() then
+        widgetHandler:RemoveWidget()
+    end
 end
 
 function widget:Initialize()
-	widget:PlayerChanged()
+    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+        widget:PlayerChanged()
+    end
 	for i,ud in pairs(UnitDefs) do
 		if bombers[ud.name] then
 			bomber_uds[i]=ud

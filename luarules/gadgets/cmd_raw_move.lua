@@ -12,7 +12,7 @@ end
 include("LuaRules/Configs/customcmds.h.lua")
 
 --disable if Spring v104 is detected
-if Engine ~= nil and Engine.version ~= nil and Engine.version >= 104 then   -- v104 compatibility
+if Engine ~= nil and Engine.version ~= nil and Engine.version >= '104' then   -- v104 compatibility
 	gadgetHandler:RemoveGadget(self)
 end
 
