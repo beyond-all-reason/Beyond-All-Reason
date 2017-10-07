@@ -81,49 +81,49 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode level34 type SHATTER | NOHEATCLOUD; 
-		explode level68 type SHATTER | NOHEATCLOUD; 
-		explode level102 type SHATTER | NOHEATCLOUD; 
-		explode level136 type SHATTER | NOHEATCLOUD; 
-		explode level170 type SHATTER | NOHEATCLOUD; 
-		explode level204 type SHATTER | NOHEATCLOUD; 
-		explode level238 type SHATTER | NOHEATCLOUD;
+		//explode level34 type SHATTER | NOHEATCLOUD;
+		//explode level68 type SHATTER | NOHEATCLOUD;
+		//explode level102 type SHATTER | NOHEATCLOUD;
+		//explode level136 type SHATTER | NOHEATCLOUD;
+		//explode level170 type SHATTER | NOHEATCLOUD;
+		//explode level204 type SHATTER | NOHEATCLOUD;
+		//explode level238 type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode level34 type SHATTER | NOHEATCLOUD; 
-		explode level68 type SHATTER | NOHEATCLOUD; 
-		explode level102 type SHATTER | NOHEATCLOUD; 
-		explode level136 type SHATTER | NOHEATCLOUD; 
-		explode level170 type SHATTER | NOHEATCLOUD; 
-		explode level204 type SHATTER | NOHEATCLOUD; 
-		explode level238 type SHATTER | NOHEATCLOUD;
-		explode texture type SHATTER | BITMAP2 | NOHEATCLOUD;
+		//explode level34 type SHATTER | NOHEATCLOUD;
+		//explode level68 type SHATTER | NOHEATCLOUD;
+		//explode level102 type SHATTER | NOHEATCLOUD;
+		//explode level136 type SHATTER | NOHEATCLOUD;
+		//explode level170 type SHATTER | NOHEATCLOUD;
+		//explode level204 type SHATTER | NOHEATCLOUD;
+		//explode level238 type SHATTER | NOHEATCLOUD;
+		//explode texture type SHATTER | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode level34 type SHATTER | NOHEATCLOUD; 
-		explode level68 type SHATTER | NOHEATCLOUD; 
-		explode level102 type SHATTER | NOHEATCLOUD;
-		explode level136 type SHATTER | NOHEATCLOUD; 
-		explode level170 type SHATTER | NOHEATCLOUD; 
-		explode level204 type SHATTER | NOHEATCLOUD; 
-		explode level238 type SHATTER | NOHEATCLOUD;
-		explode texture type SHATTER | BITMAP2 | NOHEATCLOUD;
+		//explode level34 type SHATTER | NOHEATCLOUD;
+		//explode level68 type SHATTER | NOHEATCLOUD;
+		//explode level102 type SHATTER | NOHEATCLOUD;
+		//explode level136 type SHATTER | NOHEATCLOUD;
+		//explode level170 type SHATTER | NOHEATCLOUD;
+		//explode level204 type SHATTER | NOHEATCLOUD;
+		//explode level238 type SHATTER | NOHEATCLOUD;
+		//explode texture type SHATTER | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode level34 type SHATTER | NOHEATCLOUD; 
-	explode level68 type SHATTER | NOHEATCLOUD; 
-	explode level102 type SHATTER | NOHEATCLOUD; 
-	explode level136 type SHATTER | NOHEATCLOUD; 
-	explode level170 type SHATTER | NOHEATCLOUD; 
-	explode level204 type SHATTER | NOHEATCLOUD; 
-	explode level238 type SHATTER | NOHEATCLOUD;
-	explode texture type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//explode level34 type SHATTER | NOHEATCLOUD;
+	//explode level68 type SHATTER | NOHEATCLOUD;
+	//explode level102 type SHATTER | NOHEATCLOUD;
+	//explode level136 type SHATTER | NOHEATCLOUD;
+	//explode level170 type SHATTER | NOHEATCLOUD;
+	//explode level204 type SHATTER | NOHEATCLOUD;
+	//explode level238 type SHATTER | NOHEATCLOUD;
+	//explode texture type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return (corpsetype);
 }

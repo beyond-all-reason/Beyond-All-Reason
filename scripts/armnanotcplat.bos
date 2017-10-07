@@ -209,6 +209,6 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode aim type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode aim type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return (corpsetype);
 }
