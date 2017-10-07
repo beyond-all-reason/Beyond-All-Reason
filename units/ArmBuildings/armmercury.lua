@@ -156,7 +156,7 @@ return {
 					vtol = 750,
 				},
 				customparams = {
-					light_radius_mult = 0.75,
+					light_radius_mult = 0.55,
 				},
 			},
 		},

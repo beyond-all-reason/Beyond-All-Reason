@@ -330,7 +330,6 @@ end
 function DrawIconQuad(iconPos, color)
 
   local usedIconImgMult = iconImgMult*1.08
-  local ypad2 = 0
 
   local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 2
   local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 2
@@ -339,7 +338,7 @@ function DrawIconQuad(iconPos, color)
   local xmax = xmin + usedIconSizeX - xPad - xPad
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
 
-  local ymin = rectMinY + yPad
+  local ymin = rectMinY
   local ymax = rectMaxY - yPad
   local xmid = (xmin + xmax) * 0.5
   local ymid = (ymin + ymax) * 0.5

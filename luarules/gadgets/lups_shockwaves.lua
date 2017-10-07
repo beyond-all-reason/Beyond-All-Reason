@@ -29,31 +29,32 @@ if (gadgetHandler:IsSyncedCode()) then
     if (not customParams.lups_noshockwave) then
       local speed = 1
       local life = 1
-	  	local normalShockwave = (wd.damageAreaOfEffect>70 and not wd.paralyzer and not customParams.disarmdamageonly)
+      local normalShockwave = (wd.damageAreaOfEffect>62 and not wd.paralyzer and not customParams.disarmdamageonly)
+
       if customParams.lups_explodespeed then
-		    speed = wd.customParams.lups_explodespeed
-				normalShockwave = true
+		speed = wd.customParams.lups_explodespeed
+		normalShockwave = true
       end
       if customParams.lups_explodelife then
-		    life = wd.customParams.lups_explodelife
-				normalShockwave = true
+		life = wd.customParams.lups_explodelife
+		normalShockwave = true
       end
-		  if wd.description == "Implosion Bomb" then
-				hasShockwave[wd.id] = {special = 1}
+		if wd.description == "Implosion Bomb" then
+		  hasShockwave[wd.id] = {special = 1}
 	      Script.SetWatchWeapon(wd.id,true)
-		    wantedList[#wantedList + 1] = wd.id
+		  wantedList[#wantedList + 1] = wd.id
 	    elseif normalShockwave then
-		    hasShockwave[wd.id] = {
-					life = 23*life, 
-					speed = speed,
-					growth = (wd.damageAreaOfEffect*1.1)/20*speed
-				}
+		  hasShockwave[wd.id] = {
+		  	life = 9*life,
+		  	speed = speed,
+		  	growth = (wd.damageAreaOfEffect*1.1)/20*speed
+		  }
 	      Script.SetWatchWeapon(wd.id,true)
-		    wantedList[#wantedList + 1] = wd.id
-      --elseif (wd.type == "DGun") then
-	  --  	hasShockwave[wd.id] = {DGun = true}
-      --  Script.SetWatchWeapon(wd.id,true)
-	  --  	wantedList[#wantedList + 1] = wd.id
+		  wantedList[#wantedList + 1] = wd.id
+        --elseif (wd.type == "DGun") then
+	    --  	hasShockwave[wd.id] = {DGun = true}
+        --  Script.SetWatchWeapon(wd.id,true)
+	    --  	wantedList[#wantedList + 1] = wd.id
       end
     end
   end
