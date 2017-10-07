@@ -20,7 +20,7 @@ local random = math.random
 
 --local splashCEG = "watersplash_extrasmall"
 --local bubblesCEG = "small_water_bubbles"
-local emergeCEG = "watersplash_emerge"
+local emergeCEG = "splash-emerge"
 
 local depthChargeWeapons = {
     [WeaponDefNames["armdl_coax_depthcharge"].id] = true,

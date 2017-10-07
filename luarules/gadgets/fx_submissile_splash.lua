@@ -16,17 +16,25 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local GetProjectilePosition = Spring.GetProjectilePosition
+local GetProjectileDirection = Spring.GetProjectileDirection
 local random = math.random
 
-local splashCEG = "watersplash_extrasmall"
-local bubblesCEG = "small_water_bubbles"
-local emergeCEG = "watersplash_emerge"
+local splashCEG = "torpedo-launch"
+local emergeCEG = "splash-emerge"
 
-local subMissileWeapons = {
-    -- hardcoded because wDef.subMissile apparently doesn't exist
-    [WeaponDefNames["armatl_armatl_torpedo"].id] = true,
-    [WeaponDefNames["coratl_coratl_torpedo"].id] = true,
-}
+local subMissileWeapons = {}
+
+for weaponID, weaponDef in pairs(WeaponDefs) do
+    if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
+        subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
+    elseif weaponDef.visuals.modelName == 'objects3d/torpedo.3do' then
+        subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
+    elseif weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+        subMissileWeapons[weaponDef.id] = 'torpedotrail-large'
+    else
+    end
+end
+
 
 function gadget:Initialize()
     for wDID,_ in pairs(subMissileWeapons) do
@@ -38,7 +46,7 @@ local missiles = {} --subMissiles that are below the surface still
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if subMissileWeapons[weaponDefID] then
-        missiles[proID] = true
+        missiles[proID] = subMissileWeapons[weaponDefID]
         local x,_,z = GetProjectilePosition(proID)
         Spring.SpawnCEG(splashCEG,x,0,z)
     end
@@ -52,12 +60,13 @@ end
 
 
 function gadget:GameFrame(n)
-    for proID,_ in pairs(missiles) do
+    for proID, CEG in pairs(missiles) do
         local x,y,z = GetProjectilePosition(proID)
         if y then
-            if random() < 0.4 then
-                Spring.SpawnCEG(bubblesCEG,x,y,z)
-            end
+            --if random() < 0.92 then
+                local dirX,dirY,dirZ = GetProjectileDirection(proID)
+                Spring.SpawnCEG(CEG,x,y,z,dirX,dirY,dirZ)
+            --end
             if y>0 then
                 Spring.SpawnCEG(emergeCEG,x,0,z)
                 missiles[proID] = nil

@@ -101,7 +101,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-small",
+				explosiongenerator = "custom:genericshellexplosion-small-uw",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",

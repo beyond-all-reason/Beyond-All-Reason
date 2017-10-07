@@ -15,7 +15,7 @@ return {
 		description = "Anti-Air Ship",
 		energymake = 7,
 		energyuse = 7,
-		explodeas = "largeExplosionGeneric",
+		explodeas = "largeExplosionGeneric-uw",
 		floater = true,
 		footprintx = 3,
 		footprintz = 5,
@@ -29,7 +29,7 @@ return {
 		nochasecategory = "ALL",
 		objectname = "ARMAAS",
 		seismicsignature = 0,
-		selfdestructas = "largeExplosionGenericSelfd",
+		selfdestructas = "largeExplosionGenericSelfd-uw",
 		sightdistance = 475,
 		waterline = 4,
 				--move

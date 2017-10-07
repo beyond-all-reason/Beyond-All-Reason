@@ -17,7 +17,7 @@ return {
 		energymake = 30,
 		energystorage = 150,
 		energyuse = 30,
-		explodeas = "mediumexplosiongeneric",
+		explodeas = "mediumexplosiongeneric-uw",
 		footprintx = 3,
 		footprintz = 5,
 		icontype = "sea",
@@ -32,7 +32,7 @@ return {
 		objectname = "CORACSUB",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumexplosiongenericSelfd",
+		selfdestructas = "mediumexplosiongenericSelfd-uw",
 		sightdistance = 156,
 		terraformspeed = 1500,
 				--move

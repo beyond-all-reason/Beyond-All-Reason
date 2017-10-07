@@ -62,32 +62,32 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
-    kickedupwater = {
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      water              = true, 
-	  underwater         = true,
-      properties = {
-        airdrag            = 0.87,
-        colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
-        directional        = false,
-        emitrot            = 90,
-        emitrotspread      = 5,
-        emitvector         = [[0, 1, 0]],
-        gravity            = [[0, 0.1, 0]],
-        numparticles       = 80,
-        particlelife       = 2,
-        particlelifespread = 30,
-        particlesize       = 2,
-        particlesizespread = 1,
-        particlespeed      = 10,
-        particlespeedspread = 6,
-        pos                = [[0, 1, 0]],
-        sizegrowth         = 0.5,
-        sizemod            = 1.0,
-        texture            = [[wake]],
-      },
-    },
+    --kickedupwater = {
+    --  class              = [[CSimpleParticleSystem]],
+    --  count              = 1,
+    --  water              = true,
+	--  underwater         = true,
+    --  properties = {
+    --    airdrag            = 0.87,
+    --    colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
+    --    directional        = false,
+    --    emitrot            = 90,
+    --    emitrotspread      = 5,
+    --    emitvector         = [[0, 1, 0]],
+    --    gravity            = [[0, 0.1, 0]],
+    --    numparticles       = 80,
+    --    particlelife       = 2,
+    --    particlelifespread = 30,
+    --    particlesize       = 2,
+    --    particlesizespread = 1,
+    --    particlespeed      = 10,
+    --    particlespeedspread = 6,
+    --    pos                = [[0, 1, 0]],
+    --    sizegrowth         = 0.5,
+    --    sizemod            = 1.0,
+    --    texture            = [[wake]],
+    --  },
+    --},
     explosion = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1257,21 +1257,25 @@ definitions['genericshellexplosion-meteor'].shard3 = nil
 definitions['genericshellexplosion-meteor'].grounddust.properties.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].clouddust.properties.alwaysvisible = true
 --definitions['genericshellexplosion-meteor'].groundclouddust.properties.alwaysvisible = true
-definitions['genericshellexplosion-meteor'].kickedupwater.properties.alwaysvisible = true
+--definitions['genericshellexplosion-meteor'].kickedupwater.properties.alwaysvisible = true
 
 
--- add coloring
---local colors = {
---	--blue = {
---	--	groundflash = {
---	--		color = {0.15,0.15,1},
---	--	}
---	},
---}
---for color, effects in pairs(colors) do
---	for size, e in pairs(sizes) do
---		definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
---	end
---end
+local types = {
+  uw = {
+    groundflash_small = false,
+    groundflash_large = false,
+    groundflash_white = false,
+    explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]}},
+    dirt = false,
+    dirt2 = false,
+    sparks = false,
+  },
+}
+for t, effects in pairs(types) do
+  for size, _ in pairs(sizes) do
+    definitions[root.."-"..size.."-"..t] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+  end
+end
+
 
 return definitions
