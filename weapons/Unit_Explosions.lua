@@ -906,6 +906,32 @@ unitDeaths = {
             default = 50,
         },
     },
+    ['tinyExplosionGeneric-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 24,
+        cameraShake = 0,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed2",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-tiny-phib",
+        damage = {
+            default = 5,
+        },
+    },
+    ['tinyExplosionGenericSelfd-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 44,
+        cameraShake = 0,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed2",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-small-phib",
+        damage = {
+            default = 50,
+        },
+    },
 
     smallExplosionGeneric = {
         weaponType = "Cannon",
@@ -955,6 +981,32 @@ unitDeaths = {
         soundhit = "xplolrg3",
         soundstart = "largegun",
         explosiongenerator="custom:genericunitexplosion-medium-uw",
+        damage = {
+            default = 200,
+        },
+    },
+    ['smallExplosionGeneric-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 36,
+        cameraShake = 0,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-small-phib",
+        damage = {
+            default = 10,
+        },
+    },
+    ['smallExplosionGenericSelfd-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 60,
+        cameraShake = 60,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-medium-phib",
         damage = {
             default = 200,
         },
@@ -1012,6 +1064,32 @@ unitDeaths = {
             default = 280,
         },
     },
+    ['mediumExplosionGeneric-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 48,
+        cameraShake = 48,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed2",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-medium-phib",
+        damage = {
+            default = 18,
+        },
+    },
+    ['mediumExplosionGenericSelfd-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 96,
+        cameraShake = 96,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed2",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-large-phib",
+        damage = {
+            default = 280,
+        },
+    },
 
     largeExplosionGeneric = {
         weaponType = "Cannon",
@@ -1039,7 +1117,7 @@ unitDeaths = {
             default = 350,
         },
     },
-    ['largeExplosionGeneric'] = {
+    ['largeExplosionGeneric-uw'] = {
         weaponType = "Cannon",
         AreaOfEffect = 64,
         cameraShake = 64,
@@ -1052,7 +1130,7 @@ unitDeaths = {
             default = 25,
         },
     },
-    ['largeExplosionGenericSelfd'] = {
+    ['largeExplosionGenericSelfd-uw'] = {
         weaponType = "Cannon",
         AreaOfEffect = 120,
         cameraShake = 120,
@@ -1061,6 +1139,32 @@ unitDeaths = {
         soundhit = "xplolrg3",
         soundstart = "largegun",
         explosiongenerator="custom:genericunitexplosion-huge-uw",
+        damage = {
+            default = 350,
+        },
+    },
+    ['largeExplosionGeneric-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 64,
+        cameraShake = 64,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-large-phib",
+        damage = {
+            default = 25,
+        },
+    },
+    ['largeExplosionGenericSelfd-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 120,
+        cameraShake = 120,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-huge-phib",
         damage = {
             default = 350,
         },
@@ -1114,6 +1218,32 @@ unitDeaths = {
         soundhit = "xplolrg4",
         soundstart = "largegun",
         explosiongenerator="custom:genericunitexplosion-gigantic-uw",
+        damage = {
+            default = 500,
+        },
+    },
+    ['hugeExplosionGeneric-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 96,
+        cameraShake = 96,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg4",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-huge-phib",
+        damage = {
+            default = 35,
+        },
+    },
+    ['hugeExplosionGenericSelfd-phib'] = {
+        weaponType = "Cannon",
+        AreaOfEffect = 160,
+        cameraShake = 160,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg4",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-gigantic-phib",
         damage = {
             default = 500,
         },

@@ -2557,8 +2557,15 @@ local types = {
     groundflash_small = false,
     groundflash_large = false,
     groundflash_white = false,
-    explosion = false,
-    --explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]}},
+    explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]}},
+    dirt = false,
+    dirt2 = false,
+    sparks = false,
+  },
+  phib = {
+    groundflash_small = false,
+    groundflash_large = false,
+    groundflash_white = false,
     dirt = false,
     dirt2 = false,
     sparks = false,
@@ -2595,6 +2602,14 @@ local types = {
 for t, effects in pairs(types) do
   for size, e in pairs(sizes) do
     definitions[root.."-"..size.."-"..t] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+    if t == 'phib' then
+      definitions[root.."-"..size.."-"..t].explosion_uw = deepcopy(definitions[root.."-"..size].explosion)
+      definitions[root.."-"..size.."-"..t].explosion_uw.water = false
+      definitions[root.."-"..size.."-"..t].explosion_uw.ground = false
+      definitions[root.."-"..size.."-"..t].explosion_uw.air = false
+      definitions[root.."-"..size.."-"..t].explosion_uw.underwater = true
+      definitions[root.."-"..size.."-"..t].explosion_uw.properties.colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]
+    end
     if t == 'dirty' then
       definitions[root.."-"..size.."-"..t].innersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..t].innersmoke.properties.numparticles * 2)
       definitions[root.."-"..size.."-"..t].outersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..t].outersmoke.properties.numparticles * 2)
