@@ -13,7 +13,7 @@ end
 
 if (gadgetHandler:IsSyncedCode()) then
 GroundHeight = {}
-function gadget:UnitFinished(unitID)
+function gadget:UnitCreated(unitID)
 unitDefID = Spring.GetUnitDefID(unitID)
 unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
