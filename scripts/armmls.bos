@@ -218,19 +218,19 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode Base type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode Body type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoDoor1 type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoDoor2 type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoTurret type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoPlate type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoGun type SHATTER | BITMAP4 | NOHEATCLOUD;
+		//explode base type FALL | BITMAP4 | NOHEATCLOUD;
+		explode Body type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoDoor1 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoDoor2 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoTurret type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoPlate type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoGun type FALL | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode Base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode Body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode NanoDoor1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode NanoDoor2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
@@ -240,7 +240,7 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode Base type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode Body type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode NanoDoor1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode NanoDoor2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;

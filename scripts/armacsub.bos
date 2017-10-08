@@ -155,37 +155,37 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode beam type FALL | BITMAP2 | NOHEATCLOUD;
-		explode gun type SHATTER | BITMAP5 | NOHEATCLOUD;
-		explode post type FALL | BITMAP2 | NOHEATCLOUD;
-		explode wake1 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode wake2 type FALL | BITMAP4 | NOHEATCLOUD;
+		//explode base type NOHEATCLOUD;
+		explode beam type BITMAP2 | NOHEATCLOUD;
+		explode gun type BITMAP5 | NOHEATCLOUD;
+		explode post type BITMAP2 | NOHEATCLOUD;
+		explode wake1 type BITMAP3 | NOHEATCLOUD;
+		explode wake2 type BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode gun type SHATTER | BITMAP5 | NOHEATCLOUD;
-		explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		//explode base type NOHEATCLOUD;
+		explode beam type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode gun type BITMAP5 | NOHEATCLOUD;
+		explode post type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode wake1 type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode wake2 type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
-	explode beam type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode gun type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-	explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	//explode base type NOHEATCLOUD;
+	explode beam type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode gun type EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode post type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode wake1 type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode wake2 type FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }
