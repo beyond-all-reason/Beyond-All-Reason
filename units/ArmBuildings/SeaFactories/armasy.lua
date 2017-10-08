@@ -45,6 +45,7 @@ return {
 			"armserp",
 			"armaas",
 			"armcrus",
+			"armlun",
 			"armbats",
 			"armmh",
 			"armmship",

@@ -46,6 +46,7 @@ return {
 			"corarch",
 			"corcrus",
 			"corhal",
+			"corsok",
 			"corbats",
 			"cormh",
 			"cormship",
