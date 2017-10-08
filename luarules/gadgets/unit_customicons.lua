@@ -53,11 +53,13 @@ local icons = {
   {"sub_t1_worker.user", "LuaUI/Icons/sub_worker.png",1.33*iconScale},
   {"sub_t2_worker.user", "LuaUI/Icons/sub_worker.png",1.66*iconScale},
 
-  {"energy1.user", "LuaUI/Icons/energy.png",1.4*iconScale},
-  {"energy2.user", "LuaUI/Icons/energy.png",1.85*iconScale},
-  {"energy3.user", "LuaUI/Icons/energy.png",2.6*iconScale},
-  {"energy4.user", "LuaUI/Icons/energy.png",3.1*iconScale},
-  {"energy5.user", "LuaUI/Icons/energy.png",3.7*iconScale},
+
+  {"wind.user", "LuaUI/Icons/wind.png",1.1*iconScale},
+  {"energy1.user", "LuaUI/Icons/energy.png",1.3*iconScale},   -- unused
+  {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
+  {"energy3.user", "LuaUI/Icons/fusion.png",1.85*iconScale},
+  {"energy4.user", "LuaUI/Icons/fusion.png",2.35*iconScale},
+  {"energy5.user", "LuaUI/Icons/fusion.png",2.85*iconScale},
 
   {"eye.user", "LuaUI/Icons/eye.png",0.85*iconScale},
   {"spy.user", "LuaUI/Icons/eye.png",1.25*iconScale},
@@ -95,9 +97,9 @@ local icons = {
   {"jammer_t2.user", "LuaUI/Icons/jammer.png", 1.2*iconScale},
 
   {"krogoth.user", "LuaUI/Icons/mech.png",3.2*iconScale},
-  {"bantha.user", "LuaUI/Icons/mech.png",2.66*iconScale},
+  {"bantha.user", "LuaUI/Icons/mech.png",2.6*iconScale},
   {"juggernaut.user", "LuaUI/Icons/kbot.png",2.75*iconScale},
-  {"commando.user", "LuaUI/Icons/mech.png",1.35*iconScale},
+  {"commando.user", "LuaUI/Icons/mech.png",1.3*iconScale},
 
   {"mex_t1.user", "LuaUI/Icons/mex.png",0.85*iconScale},
   {"mex_t2.user", "LuaUI/Icons/mex.png",1.15*iconScale},
@@ -200,6 +202,15 @@ function changeUnitIcons()
     elseif string.sub(ud.name, 0, 7) == "critter" then
       Spring.SetUnitDefIcon(udid, "blank.user")
 
+    elseif (ud.name=="corkrog") then
+      Spring.SetUnitDefIcon(udid, "krogoth.user")
+    elseif (ud.name=="armbanth") then
+      Spring.SetUnitDefIcon(udid, "bantha.user")
+    elseif (ud.name=="corjugg") then
+      Spring.SetUnitDefIcon(udid, "juggernaut.user")
+    elseif (ud.name=="cormando") then
+      Spring.SetUnitDefIcon(udid, "commando.user")
+
       -- mine
     elseif ud.modCategories["mine"] ~= nil or ud.modCategories["kamikaze"] ~= nil then
       if (ud.name=="cormine3" or ud.name=="armmine3" or ud.name=="corfmine3" or ud.name=="armfmine3" or ud.name=="corsktl") then
@@ -220,7 +231,7 @@ function changeUnitIcons()
 
       -- energy
     elseif (ud.name=="armwin") or (ud.name=="corwin") then
-      Spring.SetUnitDefIcon(udid, "energy1.user")
+      Spring.SetUnitDefIcon(udid, "wind.user")
     elseif (ud.name=="corafus" or ud.name=="armafus") then
       Spring.SetUnitDefIcon(udid, "energy5.user")
     elseif (ud.name=="armageo" or ud.name=="corageo") then
@@ -512,15 +523,7 @@ function changeUnitIcons()
       -- kbots
     elseif ud.modCategories["kbot"] ~= nil then
 
-      if (ud.name=="corkrog") then
-        Spring.SetUnitDefIcon(udid, "krogoth.user")
-      elseif (ud.name=="armbanth") then
-        Spring.SetUnitDefIcon(udid, "bantha.user")
-      elseif (ud.name=="corjugg") then
-        Spring.SetUnitDefIcon(udid, "juggernaut.user")
-      elseif (ud.name=="cormando") then
-        Spring.SetUnitDefIcon(udid, "commando.user")
-      elseif (ud.name=="corsumo" or ud.name=="corgol") then
+      if (ud.name=="corsumo" or ud.name=="corgol") then
         Spring.SetUnitDefIcon(udid, "kbot_t2_big.user")
       elseif ud.name=="armflea" then
         Spring.SetUnitDefIcon(udid, "kbot_t1_flea.user")

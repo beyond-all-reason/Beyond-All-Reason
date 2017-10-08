@@ -303,7 +303,7 @@ local armorDefs = {
 		"cortitan",
 	},
 	fighters = {
-        "armfig",
+		"armfig",
 		"corveng",
 		"armhawk",
 		"armsfig",

@@ -65,7 +65,7 @@ function gadget:GameFrame(n)
 			Spring.SetUnitHealth(newUnitID, select(1,Spring.GetUnitHealth(unitID)))
 			Spring.DestroyUnit(unitID, false, true)
 	  
-			Spring.SpawnCEG("watersplash_small",x,-5,z,0,0,0)
+			Spring.SpawnCEG("splash-tiny",x,-5,z,0,0,0)
 			SendToUnsynced("splashsound", x,y,z)
 			popUps[unitID].process = false
 			local collisions = Spring.GetUnitsInSphere(x,0,z,35)

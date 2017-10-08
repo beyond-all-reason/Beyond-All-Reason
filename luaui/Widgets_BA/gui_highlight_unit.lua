@@ -303,6 +303,7 @@ end
 
 
 function widget:DrawWorld()
+  if Spring.IsGUIHidden() then return end
   if drawFeatureHighlight and (type == 'feature') then
     HilightFeature(data)
   elseif (type == 'unit') then

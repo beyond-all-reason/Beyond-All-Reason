@@ -458,7 +458,7 @@ Killed(severity, corpsetype)
 		explode gun6 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode tur3 type FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode tur4 type FALL | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-		explode gun5 type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode gun5 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
@@ -474,7 +474,7 @@ Killed(severity, corpsetype)
 		explode gun6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode tur3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode tur4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode tur2 type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode tur2 type FALL | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
@@ -487,7 +487,7 @@ Killed(severity, corpsetype)
 	explode gun5 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode gun6 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode tur4 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-	explode tur1 type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode tur1 type FALL | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return corpsetype;

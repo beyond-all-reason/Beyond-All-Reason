@@ -173,28 +173,28 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode leftwing type SHATTER | BITMAP2 | NOHEATCLOUD;
+		//explode base type FALL | NOHEATCLOUD;
+		explode leftwing type FALL | BITMAP2 | NOHEATCLOUD;
 		explode nanopoint type FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode leftwing type SHATTER | BITMAP2 | NOHEATCLOUD;
+		//explode base type FALL | NOHEATCLOUD;
+		explode leftwing type FALL | BITMAP2 | NOHEATCLOUD;
 		explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
-	explode leftwing type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//explode base type FALL | NOHEATCLOUD;
+	explode leftwing type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return (corpsetype);
 }

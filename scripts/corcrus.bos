@@ -279,40 +279,40 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode foreturret type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode aftturret type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode foregun type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode aftgun type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode wake1 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode wake2 type FALL | BITMAP4 | NOHEATCLOUD;
+		//explode base type NOHEATCLOUD;
+		explode foreturret type EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode aftturret type EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode foregun type EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode aftgun type EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode wake1 type BITMAP3 | NOHEATCLOUD;
+		explode wake2 type BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode foreturret type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode aftturret type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode foregun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode aftgun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		//explode base type NOHEATCLOUD;
+		explode foreturret type EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode aftturret type EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode foregun type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode aftgun type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode wake1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode wake2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
-	explode foreturret type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode aftturret type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode foregun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode aftgun type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	//explode base type NOHEATCLOUD;
+	explode foreturret type EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode aftturret type EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode foregun type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode aftgun type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode wake1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode wake2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }

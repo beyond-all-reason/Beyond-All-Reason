@@ -164,7 +164,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.8,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				explosiongenerator = "custom:genericshellexplosion-medium-uw",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "DEPTHCHARGE",

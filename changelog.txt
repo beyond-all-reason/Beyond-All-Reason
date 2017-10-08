@@ -51,7 +51,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Bertha and Intimidator weapons have 25% more Area of Effect
 
  T1
- • T1 kbot/veh/air lab got 25% additional buildspeed
+ • T1 kbot/veh/air lab got 20% additional buildspeed
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
@@ -99,12 +99,13 @@ Models and animations:
 Other:
  • Increased default player unit limit to 1500
  • Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
- • Krogoth model scaled down (10%) and bantha model scaled up (5%)
+ • Krogoth model scaled down (10%) and bantha model scaled up (5%) Flagships scaled up (15%)
  • Arm Beamer updates its aim faster when firing
+ • Critters default disabled
 
  Graphics
  • All new particle/lighting effects!
- • Radar/distance icons are sharper and more various (thanks BasiC)
+ • Radar/distance icons are sharper and more various
  • Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
  • Added outline widget, toggable via Options (default disabled)
  • Unit textures reprocessed with bigger color range and less grain
@@ -142,6 +143,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Added widget "Depth of Field" (default disabled, when enabled: toggle with f10) ctrl+[] to in/decrease DoF 
  • Added widget "Tombstones" (default enabled), toggable via options widget
  • Button click sounds added for various widgets
+ • Various (ui/control) widgets disable when you become spectator
 
  Top bar widget
  • Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget

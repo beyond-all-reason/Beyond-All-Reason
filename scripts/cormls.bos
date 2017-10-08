@@ -226,22 +226,20 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode Base type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode Body type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoDoor1 type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoDoor2 type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode Boom type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode Neck type SHATTER | BITMAP4 | NOHEATCLOUD;
-		explode NanoGun type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode Body type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoDoor1 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoDoor2 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode Boom type FALL | BITMAP4 | NOHEATCLOUD;
+		explode Neck type FALL | BITMAP4 | NOHEATCLOUD;
+		explode NanoGun type FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode Base type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode Body type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode NanoDoor1 type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode NanoDoor2 type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode Boom type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode Neck type SHATTER | BITMAP4 | NOHEATCLOUD;
-	explode NanoGun type SHATTER | BITMAP4 | NOHEATCLOUD;
+	explode Body type FALL | BITMAP4 | NOHEATCLOUD;
+	explode NanoDoor1 type FALL | BITMAP4 | NOHEATCLOUD;
+	explode NanoDoor2 type FALL | BITMAP4 | NOHEATCLOUD;
+	explode Boom type FALL | BITMAP4 | NOHEATCLOUD;
+	explode Neck type FALL | BITMAP4 | NOHEATCLOUD;
+	explode NanoGun type FALL | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }
