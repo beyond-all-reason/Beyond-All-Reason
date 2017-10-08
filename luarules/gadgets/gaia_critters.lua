@@ -11,6 +11,9 @@ end
 
 -- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
 
+if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == "disabled" then
+	return
+end
 
 -- synced only
 if (not gadgetHandler:IsSyncedCode()) then
