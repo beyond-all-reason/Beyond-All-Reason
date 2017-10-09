@@ -1,6 +1,6 @@
 return {
 	corcut = {
-		acceleration = 0.125,
+		acceleration = 0.18,
 		brakerate = 0.3938,
 		buildcostenergy = 5400,
 		buildcostmetal = 230,
@@ -33,7 +33,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
-		turnrate = 828,
+		turnrate = 550,
 		blocking = false,
 		customparams = {
 			

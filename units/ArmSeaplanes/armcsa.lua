@@ -1,6 +1,6 @@
 return {
 	armcsa = {
-		acceleration = 0.084,
+		acceleration = 0.07,
 		brakerate = 0.4275,
 		buildcostenergy = 25677,
 		buildcostmetal = 271,
@@ -28,7 +28,7 @@ return {
 		idletime = 1800,
 		maxdamage = 365,
 		maxslope = 10,
-		maxvelocity = 7.5,
+		maxvelocity = 6.4,
 		maxwaterdepth = 255,
 		metalmake = 0.2,
 		metalstorage = 75,
@@ -39,7 +39,7 @@ return {
 		sightdistance = 364,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
-		turnrate = 148,
+		turnrate = 240,
 		workertime = 110,
 		blocking = false,
 		buildoptions = {

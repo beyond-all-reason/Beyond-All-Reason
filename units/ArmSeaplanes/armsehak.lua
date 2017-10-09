@@ -1,6 +1,6 @@
 return {
 	armsehak = {
-		acceleration = 0.069,
+		acceleration = 0.20,
 		brakerate = 0.05,
 		buildcostenergy = 7000,
 		buildcostmetal = 125,
@@ -32,7 +32,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1100,
 		sonardistance = 900,
-		turnrate = 402,
+		turnrate = 750,
 		blocking = false,
 		customparams = {
 			

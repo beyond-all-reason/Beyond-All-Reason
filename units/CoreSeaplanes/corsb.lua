@@ -1,6 +1,6 @@
 return {
 	corsb = {
-		acceleration = 0.0276,
+		acceleration = 0.28,
 		brakerate = 0.015,
 		buildcostenergy = 30000,
 		buildcostmetal = 260,
@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 368,
+		turnrate = 750,
 		blocking = false,
 		customparams = {
 			

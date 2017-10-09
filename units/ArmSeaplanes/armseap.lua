@@ -1,7 +1,7 @@
 return {
 	armseap = {
-		acceleration = 0.108,
-		brakerate = 0.05,
+		acceleration = 0.20,
+		brakerate = 0.375,
 		buildcostenergy = 6500,
 		buildcostmetal = 290,
 		buildpic = "ARMSEAP.DDS",
@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 597,
+		turnrate = 720,
 		blocking = false,
 		customparams = {
 			

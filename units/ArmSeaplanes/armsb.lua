@@ -1,6 +1,6 @@
 return {
 	armsb = {
-		acceleration = 0.096,
+		acceleration = 0.25,
 		brakerate = 1.5,
 		buildcostenergy = 30400,
 		buildcostmetal = 310,
@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 392,
+		turnrate = 750,
 		customparams = {
 			
 		},

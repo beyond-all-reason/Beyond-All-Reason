@@ -1,6 +1,6 @@
 return {
 	armsaber = {
-		acceleration = 0.288,
+		acceleration = 0.24,
 		brakerate = 0.46,
 		buildcostenergy = 6400,
 		buildcostmetal = 210,
@@ -33,7 +33,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
-		turnrate = 931,
+		turnrate = 720,
 		blocking = false,
 		customparams = {
 			

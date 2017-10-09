@@ -1,6 +1,6 @@
 return {
 	corhunt = {
-		acceleration = 0.06,
+		acceleration = 0.22,
 		brakerate = 0.0375,
 		buildcostenergy = 6900,
 		buildcostmetal = 130,
@@ -32,7 +32,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1130,
 		sonardistance = 900,
-		turnrate = 450,
+		turnrate = 680,
 		blocking = false,
 		customparams = {
 			

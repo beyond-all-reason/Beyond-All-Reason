@@ -1,6 +1,6 @@
 return {
 	armsfig = {
-		acceleration = 0.16,
+		acceleration = 0.35,
 		airsightdistance = 950,
 		brakerate = 0.1,
 		buildcostenergy = 4500,
@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 230,
-		turnrate = 1625,
+		turnrate = 750,
 		blocking = false,
 		customparams = {
 			

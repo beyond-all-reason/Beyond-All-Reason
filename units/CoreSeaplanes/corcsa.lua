@@ -39,7 +39,7 @@ return {
 		sightdistance = 351,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,
-		turnrate = 132,
+		turnrate = 240,
 		workertime = 110,
 		blocking = false,
 		buildoptions = {

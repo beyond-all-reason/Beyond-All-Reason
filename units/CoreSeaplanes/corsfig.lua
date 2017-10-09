@@ -1,8 +1,8 @@
 return {
 	corsfig = {
-		acceleration = 0.152,
+		acceleration = 0.37,
 		airsightdistance = 950,
-		brakerate = 0.075,
+		brakerate = 0.1,
 		buildcostenergy = 3800,
 		buildcostmetal = 70,
 		buildpic = "CORSFIG.DDS",
@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 230,
-		turnrate = 1547,
+		turnrate = 680,
 		blocking = false,
 		customparams = {
 			

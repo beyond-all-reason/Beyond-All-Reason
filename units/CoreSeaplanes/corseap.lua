@@ -1,7 +1,7 @@
 return {
 	corseap = {
-		acceleration = 0.104,
-		brakerate = 0.0475,
+		acceleration = 0.22,
+		brakerate = 0.375,
 		buildcostenergy = 6100,
 		buildcostmetal = 240,
 		buildpic = "CORSEAP.DDS",
@@ -32,7 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
-		turnrate = 575,
+		turnrate = 610,
 		blocking = false,
 		customparams = {
 			
