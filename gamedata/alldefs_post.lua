@@ -84,6 +84,14 @@ function UnitDef_Post(name, uDef)
 	end
 	end
 	
+	if uDef.icontype and uDef.icontype == "sea" then
+		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.metal and uDef.buildcostmetal then
+			uDef.featuredefs.dead.metal = uDef.buildcostmetal * 0.5
+		end
+		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.metal and uDef.buildcostmetal then
+			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.5
+		end
+	end
 	--Aircraft movements here:
 	if uDef.canfly == true then
 		turn = (((uDef.turnrate)*0.16)/360)/30
