@@ -1002,21 +1002,25 @@ do
 
   local customInfo = {}
   local ci
-  
-customInfo[UnitDefNames["armnanotcplat"].id] = {
-		height        = 15+barHeightOffset,
-        maxShield     = 0,
-        canStockpile  = nil,
-        reloadTime    = 0,
-        primaryWeapon = 0,
-		}
-customInfo[UnitDefNames["cornanotcplat"].id] = {
-		height        = 15+barHeightOffset,
-        maxShield     = 0,
-        canStockpile  = nil,
-        reloadTime    = 0,
-        primaryWeapon = 0,
-		}	
+
+  if UnitDefNames["armnanotcplat"] ~= nil then
+    customInfo[UnitDefNames["armnanotcplat"].id] = {
+      height        = 15+barHeightOffset,
+      maxShield     = 0,
+      canStockpile  = nil,
+      reloadTime    = 0,
+      primaryWeapon = 0,
+    }
+  end
+  if UnitDefNames["cornanotcplat"] ~= nil then
+    customInfo[UnitDefNames["cornanotcplat"].id] = {
+      height        = 15+barHeightOffset,
+      maxShield     = 0,
+      canStockpile  = nil,
+      reloadTime    = 0,
+      primaryWeapon = 0,
+    }
+  end
 	
   function DrawUnitInfos(unitID,unitDefID, ud)
     if (not customInfo[unitDefID]) then

@@ -114,14 +114,15 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode arms type SHATTER | BITMAP1 | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
 		explode arms type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
@@ -133,6 +134,6 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode arms type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	//explode base type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return corpsetype;
 }

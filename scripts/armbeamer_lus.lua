@@ -3,7 +3,7 @@ base, turret, sleeve, barrel, flare = piece('base', 'turret', 'sleeve', 'barrel'
 local SIG_AIM = {}
 
 function script.Create()
-	StartThread(common.SmokeUnit, {base, turret, barrel})
+	--StartThread(common.SmokeUnit, {base, turret, barrel})
 end
 
 common = include("headers/common_includes_lus.lua")
@@ -42,7 +42,7 @@ function script.FireWeapon(weaponID)
 end
 
 function script.Killed()
-		Explode(base, SFX.SHATTER + SFX.NO_HEATCLOUD)
+		--Explode(base, SFX.SHATTER + SFX.NO_HEATCLOUD)
 		Explode(barrel, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
 		Explode(turret, SFX.SHATTER + SFX.NO_HEATCLOUD)
 		Explode(sleeve, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
