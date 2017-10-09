@@ -20,18 +20,21 @@ local GetProjectileDirection = Spring.GetProjectileDirection
 local random = math.random
 
 local splashCEG = "torpedo-launch"
-local emergeCEG = "splash-emerge"
+local emergeCEG = "splash-emerge-small"
 
 local subMissileWeapons = {}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
-    if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
-        subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
-    elseif weaponDef.visuals.modelName == 'objects3d/torpedo.3do' then
-        subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
-    elseif weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
-        subMissileWeapons[weaponDef.id] = 'torpedotrail-large'
-    else
+    if weaponDef.type == 'TorpedoLauncher' then
+        if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
+            subMissileWeapons[weaponDef.id] = 'torpedotrail-tiny'
+        elseif weaponDef.visuals.modelName == 'objects3d/torpedo.3do' then
+            subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
+        elseif weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+            subMissileWeapons[weaponDef.id] = 'torpedotrail-large'
+        else
+            subMissileWeapons[weaponDef.id] = 'torpedotrail-small'
+        end
     end
 end
 
@@ -63,13 +66,9 @@ function gadget:GameFrame(n)
     for proID, CEG in pairs(missiles) do
         local x,y,z = GetProjectilePosition(proID)
         if y then
-            --if random() < 0.92 then
+            if y < 0 and random() < 0.95 then
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
                 Spring.SpawnCEG(CEG,x,y,z,dirX,dirY,dirZ)
-            --end
-            if y>0 then
-                Spring.SpawnCEG(emergeCEG,x,0,z)
-                missiles[proID] = nil
             end
         else
             missiles[proID] = nil

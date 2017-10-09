@@ -20,18 +20,22 @@ local random = math.random
 
 --local splashCEG = "watersplash_extrasmall"
 --local bubblesCEG = "small_water_bubbles"
-local emergeCEG = "splash-emerge"
 
-local depthChargeWeapons = {
-    [WeaponDefNames["armdl_coax_depthcharge"].id] = true,
-    [WeaponDefNames["cordl_coax_depthcharge"].id] = true,
-    --[WeaponDefNames["armlun_armlun_depthcharge"].id] = true,
-    [WeaponDefNames["corsok_corsok_depthcharge"].id] = true,
-    [WeaponDefNames["armlance_armair_torpedo"].id] = true,
-    [WeaponDefNames["cortitan_armair_torpedo"].id] = true,
-    [WeaponDefNames["armseap_armseap_weapon1"].id] = true,
-    [WeaponDefNames["corseap_armseap_weapon1"].id] = true,
-}
+
+local depthChargeWeapons = {}
+for weaponID, weaponDef in pairs(WeaponDefs) do
+    if weaponDef.type == 'TorpedoLauncher' then
+        if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
+            depthChargeWeapons[weaponID] = 'splash-emerge-tiny'
+        elseif weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
+            depthChargeWeapons[weaponID] = 'splash-emerge-small'
+        elseif weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+            depthChargeWeapons[weaponID] = 'splash-emerge-large'
+        else
+            depthChargeWeapons[weaponID] = 'splash-emerge-small'
+        end
+    end
+end
 
 function gadget:Initialize()
     for wDID,_ in pairs(depthChargeWeapons) do
@@ -43,7 +47,10 @@ local missiles = {} --Depthcharges that are above the surface still
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if depthChargeWeapons[weaponDefID] then
-        missiles[proID] = true
+        local _,y,_ = GetProjectilePosition(proID)
+        if y > 0 then
+            missiles[proID] = depthChargeWeapons[weaponDefID]
+        end
     end
 end
 
@@ -58,8 +65,8 @@ function gadget:GameFrame(n)
     for proID,_ in pairs(missiles) do
         local x,y,z = GetProjectilePosition(proID)
         if y then
-            if y<0 then
-                Spring.SpawnCEG(emergeCEG,x,0,z)
+            if y < 0 then
+                Spring.SpawnCEG(missiles[proID],x,0,z)
                 missiles[proID] = nil
             end
         else

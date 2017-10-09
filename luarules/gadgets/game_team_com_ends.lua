@@ -155,7 +155,7 @@ function gadget:GameFrame(t)
 				destroyUnitQueue[unitID] = nil
 			end
 		end
-		deathTimeBoost = math.min(deathTimeBoost * 1.35, 350)
+		deathTimeBoost = math.min(deathTimeBoost * 1.5, 500)
 	end
 	
 end
