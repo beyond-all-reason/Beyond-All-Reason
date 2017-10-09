@@ -79,7 +79,7 @@ local function isBuilder(ud)
 
     --cons
     if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist
-            and ud.id ~= coreCommando.id and not ud.isFactory and ud.canMove then
+            and (coreCommando ~= nil and ud.id ~= coreCommando.id) and not ud.isFactory and ud.canMove then
         if passiveCons then
             return true
         else
@@ -319,7 +319,7 @@ function refreshUints()
         local ud = UnitDefs[unitDefID];
 
         -- re-activate all builders
-        if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist and ud.id ~= coreCommando.id then
+        if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist and (coreCommando ~= nil and ud.id ~= coreCommando.id) then
             activateBuilder(unitID)
         end
 
