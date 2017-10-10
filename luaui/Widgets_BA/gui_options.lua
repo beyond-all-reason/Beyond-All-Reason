@@ -596,7 +596,7 @@ function DrawWindow()
 					glTexture(glowTex)
 					glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
 				elseif option.value == 0.5 then
-					glColor(0.91,0.8,0.66,1)
+					glColor(0.91,0.82,0.66,1)
 					RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
 				else
 					glColor(0.9,0.66,0.66,1)

@@ -197,12 +197,15 @@ function widget:CommandsChanged()
   if picList then
     gl.DeleteList(picList)
   end
-  picList = gl.CreateList(DrawPicList)
-  justCreatedList = true
+  if justCreatedList == false then
+    picList = gl.CreateList(DrawPicList)
+    justCreatedList = true
+  end
 end
 
 function widget:Initialize()
   picList = gl.CreateList(DrawPicList)
+  justCreatedList = true
 end
 
 function widget:Shutdown()
@@ -259,7 +262,7 @@ function DrawPicList()
     if icon % iconsPerRow == 0 then 
 		row = row + 1
 	end
-  DrawUnitDefTexture(udid, icon, count, row)
+    DrawUnitDefTexture(udid, icon, count, row)
 	icon = icon + 1
   end
 end
@@ -291,6 +294,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID]
   glColor(color)
+  glTexture(true)
   glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
