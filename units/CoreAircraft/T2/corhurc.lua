@@ -80,7 +80,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "bomb",
+				model = "bomb2",
 				mygravity = 0.4,
 				name = "AdvancedBombs",
 				noselfdamage = true,
