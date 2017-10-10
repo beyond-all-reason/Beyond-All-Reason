@@ -171,7 +171,7 @@ return {
 				name = "Missiles",
 				noselfdamage = true,
 				range = 770,
-				reloadtime = 2,
+				reloadtime = 3,
 				smoketrail = false,
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
@@ -189,9 +189,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 110,
-					fighters = 110,
-					vtol = 110,
+					bombers = 80,
+					fighters = 80,
+					vtol = 80,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
@@ -204,11 +204,11 @@ return {
 				def = "CORPT_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [3] = {
-				-- badtargetcategory = "LIGHTAIRSCOUT",
-				-- def = "CORPT_MISSILE",
-				-- onlytargetcategory = "VTOL",
-			-- },
+			[3] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
+				def = "CORPT_MISSILE",
+				onlytargetcategory = "VTOL",
+			},
 		},
 	},
 }
