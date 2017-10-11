@@ -119,6 +119,8 @@ local maxWidth = 0
 local textBuffer = {}
 local textBufferCount = 0
 
+local spec = Spring.GetSpectatingState()
+
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
@@ -206,6 +208,10 @@ function widget:Shutdown()
 	RemoveGuishader()
 end
 
+function widget:PlayerChanged()
+	spec = Spring.GetSpectatingState()
+end
+
 function init()
 	vsx, vsy = gl.GetViewSizes()
 	fontSize = customFontSize * (0.55 + (vsx*vsy / 8500000))
@@ -230,7 +236,7 @@ function widget:DrawScreen()
 	if rType == 'unit' then
 		uID = unitID
 	end
-	if useSelection then
+	if spec and useSelection then
 		local selUnits = spGetSelectedUnits()
 		if #selUnits >= 1 then
 			uID = selUnits[1]
