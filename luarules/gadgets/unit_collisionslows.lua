@@ -155,6 +155,9 @@ function gadget:UnitUnitCollision(unitID1, unitID2)
 				
 				local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
 				local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
+				if vw1 == 0 then
+					vx1,vy1,vz1 = 0
+				end
 				local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID2)
 				
 				local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
@@ -195,6 +198,9 @@ if ddotdir2 > 0 then
 		if (UnitDefs[Spring.GetUnitDefID(unitID1)].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID2),Spring.GetUnitTeam(unitID1)) == false) or not UnitDefs[Spring.GetUnitDefID(unitID1)].isFactory == true then
 			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID2)
 			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vz1
+							if vw1 == 0 then
+					vx1,vy1,vz1 = 0
+				end
 			local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID1)
 			local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
 				if UnitDefs[Spring.GetUnitDefID(unitID1)].isBuilding == true or UnitDefs[Spring.GetUnitDefID(unitID1)].name == "armnanotc" then	
@@ -246,6 +252,9 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 			if ddotdir > 0 then
 			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
 			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
+				if vw1 == 0 then
+					vx1,vy1,vz1 = 0
+				end
 			local vx2,vy2,vz2 = 0,0,0
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 0
@@ -283,6 +292,9 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 			if ddotdir > 0 then
 			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
 			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
+				if vw1 == 0 then
+					vx1,vy1,vz1 = 0
+				end
 			local vx2,vy2,vz2 = 0,0,0
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
 					mass1, mass2 = UnitDefs[Spring.GetUnitDefID(unitID1)].mass, 0
