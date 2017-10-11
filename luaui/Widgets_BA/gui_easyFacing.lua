@@ -19,7 +19,7 @@ end
 local debug = false
 local updateInt = 1 --seconds for the ::update loop
 local sens = 80	--rotate mouse sensitivity - length of mouse movement vector
-local drawForAll = true --draw facing direction also for other buildings than labs
+local drawForAll = false --draw facing direction also for other buildings than labs
 --------------------------------------------------------------------------------
 local inDrag = false
 local mmbStart = false
@@ -195,7 +195,7 @@ function manipulateFacing()
 	local mx,my,lmb,mmb,rmb = spGetMouseState()
 	local alt,ctrl,meta,shift = spGetModKeyState()
 	
-	if (lmb and not shift) then
+	if (lmb and (mmb or not shift)) then
 		--in       
         if not inDrag then
             mouseDeltaX = 0
