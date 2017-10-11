@@ -156,7 +156,7 @@ function gadget:UnitUnitCollision(unitID1, unitID2)
 				local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
 				local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
 				if vw1 == 0 then
-					vx1,vy1,vz1 = 0
+					vx1,vy1,vz1 = 0,0,0
 				end
 				local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID2)
 				
@@ -199,7 +199,7 @@ if ddotdir2 > 0 then
 			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID2)
 			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID2)].speed)/(vw1*30))*vz1
 							if vw1 == 0 then
-					vx1,vy1,vz1 = 0
+					vx1,vy1,vz1 = 0,0,0
 				end
 			local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID1)
 			local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
@@ -253,7 +253,7 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
 			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
 				if vw1 == 0 then
-					vx1,vy1,vz1 = 0
+					vx1,vy1,vz1 = 0,0,0
 				end
 			local vx2,vy2,vz2 = 0,0,0
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
@@ -293,7 +293,7 @@ function gadget:UnitFeatureCollision(ID1, ID2)
 			local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
 			local vx1,vy1,vz1 = ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vx1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vy1, ((UnitDefs[Spring.GetUnitDefID(unitID1)].speed)/(vw1*30))*vz1
 				if vw1 == 0 then
-					vx1,vy1,vz1 = 0
+					vx1,vy1,vz1 = 0,0,0
 				end
 			local vx2,vy2,vz2 = 0,0,0
 				if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
