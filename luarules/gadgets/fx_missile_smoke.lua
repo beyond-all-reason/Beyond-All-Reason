@@ -12,7 +12,7 @@ function gadget:GetInfo()
     date      = "October 2017",
     license   = "GNU GPL, v3 or later",
     layer     = 0,
-    enabled   = false,  --  loaded by default?
+    enabled   = true,  --  loaded by default?
   }
 end
 
@@ -31,7 +31,17 @@ local missileWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'MissileLauncher' then
         if weaponDef.cegTag == 'missiletrailsmall' then
-            missileWeapons[weaponDef.id] = {weaponDef.flightTime, 'missiletrailsmall-smoke'}
+            missileWeapons[weaponDef.id] = 'missiletrailsmall-smoke'
+        elseif weaponDef.cegTag == 'missiletrailmedium' then
+            missileWeapons[weaponDef.id] = 'missiletrailmedium-smoke'
+        elseif weaponDef.cegTag == 'missiletraillarge' then
+            missileWeapons[weaponDef.id] = 'missiletraillarge-smoke'
+        elseif weaponDef.cegTag == 'missiletrailtiny' then
+            missileWeapons[weaponDef.id] = 'missiletrailtiny-smoke'
+        elseif weaponDef.cegTag == 'missiletrailaa' then
+            missileWeapons[weaponDef.id] = 'missiletrailaa-smoke'
+        --elseif weaponDef.cegTag == 'missiletrailfighter' then
+        --    missileWeapons[weaponDef.id] = 'missiletrailfighter-smoke'
         end
     end
 end
@@ -47,7 +57,7 @@ local missiles = {} --subMissiles that are below the surface still
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if missileWeapons[weaponDefID] then
-        missiles[proID] = {Spring.GetGameFrame()-5 + missileWeapons[weaponDefID][1], missileWeapons[weaponDefID][2]}
+        missiles[proID] = {Spring.GetGameFrame()-4 + Spring.GetProjectileTimeToLive(proID), missileWeapons[weaponDefID]}
     end
 end
 
