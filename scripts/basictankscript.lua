@@ -341,6 +341,7 @@ end
 
 function DeathRun()
 smokePieces = {base, turret}
+if Spring.GetGameFrame() >= 30*60*7 then
 if f == 1 then
 Spring.SetUnitNoSelect(unitID, true)
 while f <=25 do
@@ -360,6 +361,7 @@ f = f + 1
 end
 end
 EmitRand(base, "genericunitexplosion-small" )
+end
 return 1
 end
 
