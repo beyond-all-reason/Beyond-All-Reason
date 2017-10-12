@@ -51,7 +51,7 @@ return {
 			"corfrad",
 			-- "corsonar",
 			"corsy",
-			-- "corfhp",
+			"corfhp",
 			"coramsub",
 			"corcs",
 			"cortl",
