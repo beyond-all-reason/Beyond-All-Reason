@@ -191,12 +191,22 @@ function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
 	return newFacing
 end
 
-function manipulateFacing()	
+local ineffect = false
+function manipulateFacing()
+	ineffect = false
+
 	local mx,my,lmb,mmb,rmb = spGetMouseState()
 	local alt,ctrl,meta,shift = spGetModKeyState()
-	
-	if (lmb and (mmb or not shift)) then
-		--in       
+
+	--check if valid command
+	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
+	if (not cmd_id) then return end
+
+	local unitDefID = -cmd_id
+	local udef = udefTab[unitDefID]
+
+	if (lmb and (mmb or (not shift or udef["isFactory"]))) then
+		--in
         if not inDrag then
             mouseDeltaX = 0
             mouseDeltaY = 0
@@ -205,18 +215,15 @@ function manipulateFacing()
             mouseXStartDrag = mx
             mouseYStartDrag = my
         end
-        
+
 		inDrag = true
-		printDebug("IN")        
-	else 
+		printDebug("IN")
+	else
 		--out
 		printDebug("OUT")
 		inDrag = false
 	end
-		
-	--check if valid command
-	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
-	if (not cmd_id) then return end
+
 
 	--check if build command
 	local cmdDesc = spGetActiveCmdDesc( idx )
@@ -246,14 +253,17 @@ function manipulateFacing()
 			spWarpMouse( mouseXStartRotate, mouseYStartRotate ) --set old mouse coords to prevent mouse movement
 		end
 	end
+	ineffect = true
 end
 
 function drawOrientation()
-	local mx,my,lmb,mmb,rmb = spGetMouseState()
-	if not lmb then return false end
+	if not ineffect then return end
 
-	local alt,ctrl,meta,shift = spGetModKeyState()
-	if shift then return false end
+	--local mx,my,lmb,mmb,rmb = spGetMouseState()
+	--if not lmb then return false end
+
+	--local alt,ctrl,meta,shift = spGetModKeyState()
+	--if shift then return false end
 
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 	local cmdDesc = spGetActiveCmdDesc( idx )
@@ -294,25 +304,29 @@ function drawOrientation()
 	glColor( 0.0, 1.0, 0.0, 0.45 )
 
 	local function drawFunc()
-		glVertex( 0, 0, -10)
-		glVertex( 0, 0, 10)
-		glVertex( 30, 0, -7)
+		glVertex( 0, 0, -23)
+		glVertex( 0, 0, 23)
+		glVertex( 15, 0, 0)
 
-		glVertex( 0, 0,  10)
-		glVertex( 30, 0, 7)
-		glVertex( 30, 0, -7 )
+		--glVertex( 0, 0, -10)
+		--glVertex( 0, 0, 10)
+		--glVertex( 30, 0, -7)
 
-		glVertex( 30, 0, -7)
-		glVertex( 24, 0, -26 )
-		glVertex( 56, 0, 0 )
+		--glVertex( 0, 0,  10)
+		--glVertex( 30, 0, 7)
+		--glVertex( 30, 0, -7 )
 
-		glVertex( 30, 0, 7)
-		glVertex( 56, 0, 0 )
-		glVertex( 24, 0, 26 )
+		--glVertex( 30, 0, -7)
+		--glVertex( 24, 0, -26 )
+		--glVertex( 56, 0, 0 )
 
-		glVertex( 30, 0, 7)
-		glVertex( 56, 0, 0)
-		glVertex( 30, 0, -7)
+		--glVertex( 30, 0, 7)
+		--glVertex( 56, 0, 0 )
+		--glVertex( 24, 0, 26 )
+
+		--glVertex( 30, 0, 7)
+		--glVertex( 56, 0, 0)
+		--glVertex( 30, 0, -7)
 	end
 
 	--local height = spGetGroundHeight( centerX, centerZ )

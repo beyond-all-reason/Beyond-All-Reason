@@ -18,9 +18,6 @@ end
 local GetProjectilePosition = Spring.GetProjectilePosition
 local random = math.random
 
---local splashCEG = "watersplash_extrasmall"
---local bubblesCEG = "small_water_bubbles"
-
 
 local depthChargeWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do

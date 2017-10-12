@@ -20,7 +20,6 @@ local GetProjectileDirection = Spring.GetProjectileDirection
 local random = math.random
 
 local splashCEG = "torpedo-launch"
-local emergeCEG = "splash-emerge-small"
 
 local subMissileWeapons = {}
 

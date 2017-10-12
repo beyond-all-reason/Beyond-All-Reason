@@ -139,7 +139,6 @@
 				texture2 = "armsmoketrail",
 				turret = true,
 				weaponacceleration = 120,
-				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 215,
 				damage = {

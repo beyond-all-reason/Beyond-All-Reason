@@ -145,9 +145,9 @@ return {
 				turnrate = 22000,
 				turret = true,
 				weaponacceleration = 80,
-				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
+				--flighttime = 1.8,
 				damage = {
 					bombers = 35,
 					default = 330,

@@ -86,9 +86,9 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show hole1;
+	//show hole1;
 	sleep 150;
-	hide hole1;
+	//hide hole1;
 	gun_2 = !gun_2;
 }
 
@@ -116,9 +116,9 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
-	show hole2;
+	//show hole2;
 	sleep 150;
-	hide hole2;
+	//hide hole2;
 	gun_2 = !gun_2;
 }
 
