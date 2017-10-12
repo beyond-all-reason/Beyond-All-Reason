@@ -12,7 +12,7 @@ local modrules  = {
     unitMethod = 1,
 	
     unitEnergyCostFactor    = 0,  -- defaults to 0
-    unitEfficiency          = 1,  -- defaults to 1
+    unitEfficiency          = (Spring.GetModOptions and Spring.GetModOptions().reclaimunitefficiency) or 1,  -- defaults to 1
     featureEnergyCostFactor = 0,  -- defaults to 0
 	
     allowEnemies  = true,  -- defaults to true
