@@ -60,7 +60,7 @@ local definitions = {
       },
     },
   },
-    ["missiletrailfighter-smoke"] = {
+    ["missiletrailfighter-smoke"] = {        -- used by gadget: fx_missile_smoke
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -219,7 +219,7 @@ local definitions = {
     --  },
     --},
   },
-    ["missiletrailtiny-smoke"] = {
+    ["missiletrailtiny-smoke"] = {        -- used by gadget: fx_missile_smoke
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -358,7 +358,7 @@ local definitions = {
             },
         },
     },
-    ["missiletrailsmall-smoke"] = {
+    ["missiletrailsmall-smoke"] = {        -- used by gadget: fx_missile_smoke
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -562,7 +562,7 @@ local definitions = {
           },
       },
   },
-  ["missiletrailmedium-smoke"] = {
+  ["missiletrailmedium-smoke"] = {        -- used by gadget: fx_missile_smoke
       smoke = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
@@ -747,7 +747,7 @@ local definitions = {
       },
     },
   },
-  ["missiletraillarge-smoke"] = {
+  ["missiletraillarge-smoke"] = {        -- used by gadget: fx_missile_smoke
       smoke = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
@@ -907,7 +907,7 @@ local definitions = {
             },
         },
     },
-    ["missiletrailaa-smoke"] = {
+    ["missiletrailaa-smoke"] = {        -- used by gadget: fx_missile_smoke
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
