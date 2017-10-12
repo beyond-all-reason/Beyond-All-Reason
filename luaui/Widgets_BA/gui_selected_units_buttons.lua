@@ -144,10 +144,24 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   end
 end
 
+function cacheUnitIcons()
+    if cached == nil then
+        gl.Color(1,1,1,0.001)
+        for id, unit in pairs(UnitDefs) do
+            gl.Texture('#' .. id)
+            gl.TexRect(-1,-1,0,0)
+            gl.Texture(false)
+        end
+        gl.Color(1,1,1,1)
+        cached = true
+    end
+end
+
 local prevMouseIcon
 local justCreatedList = false
 local hoverClock = nil
 function widget:DrawScreen()
+    cacheUnitIcons()    -- else white icon bug happens
 	enabled = false
 	if (not spIsGUIHidden()) then
 	  if picList then
