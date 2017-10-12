@@ -61,7 +61,7 @@ return {
             "corsy",
             "corasy",
 			"cornanotcplat",
-			-- "corfhp",
+			"corfhp",
 			"coramsub",
 			-- "corsonar",
 			"corfrad",

@@ -49,7 +49,7 @@ return {
 			"armfrad",
 			-- [4] = "armsonar",
 			"armsy",
-			-- "armfhp",
+			"armfhp",
 			"armamsub",
 			"armcs",
 			"armtl",

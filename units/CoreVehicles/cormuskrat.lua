@@ -75,7 +75,7 @@ return {
 			"corerad",
 			"cordl",
 			"corjamt",
-			
+			"corfhp",
 			"coramsub",
 			"corsy",
 			"cortide",

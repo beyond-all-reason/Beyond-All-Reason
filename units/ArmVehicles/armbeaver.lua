@@ -75,7 +75,7 @@ return {
 			"armcir",
 			"armdl",
 			"armjamt",
-			-- "armfhp",
+			"armfhp",
 			"armsy",
 			"armtide",
 			"armuwmex",
