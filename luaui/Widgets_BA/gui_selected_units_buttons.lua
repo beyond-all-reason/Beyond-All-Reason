@@ -196,7 +196,7 @@ function widget:DrawScreen()
         else
           hoverClock = nil
         end
-        if mouseIcon ~= prevMouseIcon and justCreatedList == false then     -- justCreatedList check is needed: white icon texture error occurs when you run the createlist twice
+        if mouseIcon ~= prevMouseIcon and justCreatedList == false then
           gl.DeleteList(picList)
           picList = gl.CreateList(DrawPicList)
           prevMouseIcon = mouseIcon

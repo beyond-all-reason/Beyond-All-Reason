@@ -26,7 +26,6 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Improved Air Units maniability and lowered TurnRadius (allowing close move commands)
 
  Commanders
- • produce 40% additional energy (25->35)
  • torso turnspeed increased 33% + dgun reloadspeed reduced 10%
  • Uwlaser nerfed 50% default and 75% vs subs
  • Decoy commanders have been given same lasers as regular commanders
@@ -51,7 +50,6 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Bertha and Intimidator weapons have 25% more Area of Effect
 
  T1
- • T1 kbot/veh/air lab got 20% additional buildspeed
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
