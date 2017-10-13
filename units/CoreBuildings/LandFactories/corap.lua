@@ -40,7 +40,7 @@ return {
 		sightdistance = 273,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
-		workertime = 120,
+		workertime = 100,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooo",
 		buildoptions = {
 			[1] = "corca",
