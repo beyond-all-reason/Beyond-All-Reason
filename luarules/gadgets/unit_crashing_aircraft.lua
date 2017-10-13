@@ -44,6 +44,8 @@ function gadget:Initialize()
 	crashable[UnitDefNames['corfink'].id] = false
 	crashable[UnitDefNames['critter_gull'].id] = false
 
+	crashable[UnitDefNames['corbw'].id] = false
+
 	crashable[UnitDefNames['armfig'].id] = false
 	crashable[UnitDefNames['armsfig'].id] = false
 	crashable[UnitDefNames['armhawk'].id] = false
@@ -62,7 +64,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			totalUnits = #Spring.GetAllUnits()
-			percentage = 0.66 * (1 - (totalUnits/5000))
+			percentage = 0.7 * (1 - (totalUnits/5000))
 			if percentage < 0.25 then
 				percentage = 0.25
 			end
