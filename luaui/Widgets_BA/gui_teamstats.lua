@@ -522,6 +522,9 @@ function widget:GameFrame(n,forceupdate)
 					else
 						history.killEfficiency = huge
 					end
+					playerName = nil
+					playerName = playerName or ''
+
 					history.frame = colorToChar(teamColor) .. playerName..'    '
 
 					allyVec[teamInsertCount] = history
