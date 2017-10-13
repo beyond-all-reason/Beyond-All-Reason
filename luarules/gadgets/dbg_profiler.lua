@@ -304,7 +304,7 @@ local function SortFunc(a,b)
   --end
 end
 
-  function gadget:DrawScreen_()
+  function gadget:DrawScreen()
   	if not show then return end
     if not (next(callinTimes)) then
         --Spring.Echo("no callin times in profiler!")
