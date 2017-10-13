@@ -111,7 +111,7 @@ options = {
 }
 
 local finiGroup = {}
-local myTeam
+local myTeam = Spring.GetMyTeamID()
 local selUnitDefs = {}
 local loadGroups = true
 local createdFrame = {}
@@ -145,13 +145,14 @@ function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() then
         widgetHandler:RemoveWidget()
     end
+    myTeam = Spring.GetMyTeamID()
 end
 
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         widget:PlayerChanged()
     end
-	myTeam = team
+	myTeam = Spring.GetMyTeamID()
 end
 
 function widget:GameStart()
