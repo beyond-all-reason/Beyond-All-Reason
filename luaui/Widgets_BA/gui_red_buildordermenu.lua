@@ -332,19 +332,19 @@ local function CreateGrid(r)
 				heldhighlight.py = self.py
 				heldhighlight.active = nil
 			end},
-			--{3,function(mx,my,self)
-			--	self.iconscale=(iconScaling and self.iconhoverscale or 1)
-			--	--if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
-			--	--	heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
-			--	--else
-			--	--	heldhighlight.iconscale = self.iconscale
-			--	--end
-			--	heldhighlight.iconscale = self.iconscale
-			--	heldhighlight.color={1,0.2,0,0.06}
-			--	heldhighlight.px = self.px
-			--	heldhighlight.py = self.py
-			--	heldhighlight.active = nil
-			--end},
+			{3,function(mx,my,self)
+				self.iconscale=(iconScaling and self.iconhoverscale or 1)
+				--if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
+				--	heldhighlight.iconscale = (iconScaling and ((not highlightscale and r.menuname == "buildmenu") or r.menuname ~= "buildmenu") and self.iconhoverscale or 1)
+				--else
+				--	heldhighlight.iconscale = self.iconscale
+				--end
+				heldhighlight.iconscale = self.iconscale
+				heldhighlight.color={1,0.2,0,0.06}
+				heldhighlight.px = self.px
+				heldhighlight.py = self.py
+				heldhighlight.active = nil
+			end},
 		},
 		
 			--[[mouserelease={
