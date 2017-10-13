@@ -18,7 +18,7 @@ return {
 		collisionvolumescales = "48.0 110.0 48.0",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		damagemodifier = 0.17,
+		damagemodifier = 0.25,
 		description = "Energy Weapon",
 		energystorage = 2000,
 		explodeas = "largeBuildingexplosiongeneric",
