@@ -674,6 +674,15 @@ local function UpdateGrid(g,cmds,ordertype)
 						metalCost = '  '..metalCost
 						energyCost = '  '..energyCost
 					end
+					if tonumber(energyCost) < 10 then
+						energyCost = energyCost .. '       '
+					elseif tonumber(energyCost) < 100 then
+						energyCost = energyCost .. '    '
+					elseif tonumber(energyCost) < 1000 then
+						energyCost = energyCost .. '  '
+					elseif tonumber(energyCost) < 10000 then
+						energyCost = energyCost .. ' '
+					end
 					for digit in string.gmatch(str, "%d") do
 					  addedSpaces = string.sub(addedSpaces, 0, -2)
 					end
