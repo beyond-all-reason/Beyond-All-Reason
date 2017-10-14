@@ -27,7 +27,7 @@ return {
 		minwaterdepth = 20,
 		name = "Tidal Generator",
 		objectname = "ARMTIDE",
-		onoffable = true,
+		onoffable = false,
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 130,
