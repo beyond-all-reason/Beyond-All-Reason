@@ -27,7 +27,7 @@ return {
 		minwaterdepth = 20,
 		name = "Tidal Generator",
 		objectname = "CORTIDE",
-		onoffable = true,
+		onoffable = false,
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 130,
