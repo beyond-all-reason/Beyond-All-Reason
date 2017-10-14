@@ -903,7 +903,7 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon price:  disabled")
 		end
 	end
-	if (string.find(command, "iconprizesize") == 1  and  string.len(command) == 13) then
+	if (string.find(command, "iconpricesize") == 1  and  string.len(command) == 13) then
 		largePrice = not largePrice
 		--AutoResizeObjects()
 		Spring.ForceLayoutUpdate()
