@@ -75,6 +75,7 @@ return {
 			"armfhp",
 			"armsy",
 			"armamsub",
+			"armplat",
 			"armtide",
 			"armuwmex",
 			"armfmkr",

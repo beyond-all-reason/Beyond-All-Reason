@@ -76,6 +76,7 @@ return {
 			"corfhp",
 			"corsy",
 			"coramsub",
+			"corplat",
 			"cortide",
 			"coruwmex",
 			"corfmkr",

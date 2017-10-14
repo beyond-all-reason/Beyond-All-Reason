@@ -63,6 +63,7 @@ return {
 			"cornanotcplat",
 			"corfhp",
 			"coramsub",
+			"corplat",
 			-- "corsonar",
 			"corfrad",
 			"corfdrag",
@@ -70,7 +71,6 @@ return {
 			"corgplat",
 			"corfrt",
 			"corfhlt",
-			"corplat",
 			-- "seaplatform",
 		},
 		customparams = {

@@ -63,6 +63,7 @@ return {
 			"armnanotcplat",
 			"armfhp",
 			"armamsub",
+			"armplat",
 			-- "armsonar",
 			"armfrad",
 			"armfdrag",
@@ -70,7 +71,7 @@ return {
 			"armgplat",
 			"armfrt",
 			"armfhlt",
-			"armplat",
+
 			--"seaplatform",
 		},
 		customparams = {
