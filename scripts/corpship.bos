@@ -232,6 +232,21 @@ QueryWeapon1(piecenum)
 	}
 }
 
+AimWeapon2(heading, pitch)
+{
+	return (1);
+}
+
+AimFromWeapon2(piecenum)
+{
+	piecenum = base;
+}
+
+QueryWeapon2(piecenum)
+{
+	piecenum = flare3;
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;

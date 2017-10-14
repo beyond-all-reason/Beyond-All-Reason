@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT",
 		collisionvolumeoffsets = "0 -1 2",
-		collisionvolumescales = "10 14 15",
+		collisionvolumescales = "20 25 30",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Fast Scout Kbot",
@@ -34,7 +34,7 @@ return {
 		sightdistance = 550,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 2.904,
-		turnrate = 1672,
+		turnrate = 1572,
 		customparams = {
 			description_long = "Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! In T2 warfare fleas come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery. ",
 		},

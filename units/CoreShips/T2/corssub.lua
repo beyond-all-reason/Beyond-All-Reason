@@ -130,7 +130,7 @@ return {
 				name = "advTorpedo",
 				noselfdamage = true,
 				range = 690,
-				reloadtime = 2.3,
+				reloadtime = 3,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 150,

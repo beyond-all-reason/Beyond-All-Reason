@@ -185,7 +185,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 220,
+					default = 230,
 				},
 			},
 			cor_crus = {
@@ -203,7 +203,7 @@ return {
 				impulsefactor = 0,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
-				range = 785,
+				range = 745,
 				reloadtime = 0.9,
 				rgbcolor = "0 1 0",
 				soundhitdry = "",

@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -1",
-		collisionvolumescales = "25 25 69",
+		collisionvolumescales = "20 20 54",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Corvette",
@@ -33,13 +33,13 @@ return {
 		sonardistance = 200,
 		waterline = 3,
 		--move
-		acceleration = 3.10/90,
-		brakerate = 3.10/15,
-		maxvelocity = 3.10,		
+		acceleration = 3.255/90,
+		brakerate = 3.255/15,
+		maxvelocity = 3.255,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*3.10,
-		turnrate = 408,
+		turnrate = 436,
 		--end move
 		customparams = {
 
@@ -133,7 +133,7 @@ return {
 				minintensity = 0.6,
 				name = "LightLaser",
 				noselfdamage = true,
-				range = 290,
+				range = 255,
 				reloadtime = 0.73,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
@@ -174,7 +174,7 @@ return {
 				minintensity = 0.6,
 				name = "LightLaser",
 				noselfdamage = true,
-				range = 290,
+				range = 255,
 				reloadtime = 0.73,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
@@ -232,7 +232,6 @@ return {
 				damage = {
 					default = 110,
 					commanders =55,
-					subs = 75,
 				},
 			},
 		},

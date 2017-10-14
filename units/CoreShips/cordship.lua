@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER LIGHTBOAT SURFACE",
 		collisionvolumeoffsets = "0 -4 0",
-		collisionvolumescales = "26 26 65",
+		collisionvolumescales = "23 23 61",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Missile frigate",
@@ -155,7 +155,7 @@ return {
 				damage = {
 					bombers = 150,
 					commanders = 22,
-					default = 32,
+					default = 36,
 					fighters = 150,
 					subs = 5,
 					vtol = 80,

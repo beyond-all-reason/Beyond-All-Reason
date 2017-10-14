@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",
-		collisionvolumescales = "21 21 64",
+		collisionvolumescales = "15 15 45",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Patrol Boat/Light Anti-Air",
@@ -189,9 +189,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 80,
-					fighters = 80,
-					vtol = 80,
+					bombers = 60,
+					fighters = 60,
+					vtol = 60,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget

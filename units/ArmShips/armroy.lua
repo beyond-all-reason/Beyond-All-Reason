@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 4800,
-		buildcostmetal = 840,
+		buildcostmetal = 810,
 		buildpic = "ARMROY.DDS",
 		buildtime = 10700,
 		canmove = true,
@@ -117,7 +117,7 @@ return {
 		},
 		weapondefs = {
 			arm_roy = {
-				areaofeffect = 66,
+				areaofeffect = 86,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

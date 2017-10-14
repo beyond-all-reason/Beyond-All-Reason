@@ -260,6 +260,21 @@ QueryWeapon2(piecenum)
 	piecenum = flare21 + gun_2;
 }
 
+AimWeapon3(heading, pitch)
+{
+	return (1);
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = base;
+}
+
+QueryWeapon3(piecenum)
+{
+	piecenum = base;
+}
+
 SweetSpot(piecenum)
 {
 	piecenum = base;
