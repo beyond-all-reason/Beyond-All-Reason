@@ -43,7 +43,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*2.30,
-		turnrate = 205,
+		turnrate = 255,
 		--end move
 		customparams = {
 			

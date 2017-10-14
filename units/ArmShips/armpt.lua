@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 0",
-		collisionvolumescales = "15 15 45",
+		collisionvolumescales = "18 18 45",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Patrol Boat/Light Anti-Air",
