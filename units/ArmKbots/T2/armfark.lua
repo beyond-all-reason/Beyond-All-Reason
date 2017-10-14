@@ -27,7 +27,7 @@ return {
 		idletime = 1800,
 		maxdamage = 300,
 		maxslope = 14,
-		maxvelocity = 2.64,
+		maxvelocity = 2.5,
 		maxwaterdepth = 22,
 		metalmake = 0.12,
 		metalstorage = 25,
@@ -44,7 +44,7 @@ return {
 		turninplacespeedlimit = 1.7424,
 		turnrate = 1100,
 		upright = true,
-		workertime = 120,
+		workertime = 140,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armwin",
