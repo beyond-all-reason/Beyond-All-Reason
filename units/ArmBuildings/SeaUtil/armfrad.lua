@@ -32,7 +32,7 @@ return {
 		objectname = "ARMFRAD",
 		onoffable = true,
 		radardistance = 2100,
-		sonardistance = 1200, 
+		sonardistance = 800, 
 		radaremitheight = 52,
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
