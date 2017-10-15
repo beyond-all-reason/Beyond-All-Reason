@@ -1,6 +1,5 @@
 return {
 	corpship = {
-		activatewhenbuilt = true,
 		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
@@ -33,7 +32,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 400,
-		sonardistance = 250,
 		turnrate = 120,
 		waterline = 3,
 		--move
