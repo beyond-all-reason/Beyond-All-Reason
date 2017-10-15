@@ -100,7 +100,7 @@ return {
 				name = "Level1TorpedoLauncher",
 				noselfdamage = true,
 				range = 475,
-				reloadtime = 2,
+				reloadtime = 1.2,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 450,
