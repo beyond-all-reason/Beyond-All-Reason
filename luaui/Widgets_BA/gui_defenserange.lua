@@ -319,7 +319,7 @@ buttonConfig["borderColor"] = { 0, 0, 0, 1.0 }
 buttonConfig["currentHeight"] = 0 --do not change
 buttonConfig["currentWidth"] = 0 --do not change
 buttonConfig["nextOrigin"] = {{0,0}, 0, 0, 0, 0} --do not change
-buttonConfig["enabled"] = { ally = { ground = false, air = false, nuke = false }, enemy = { ground = true, air = true, nuke = true } }
+buttonConfig["enabled"] = { ally = { ground = false, air = false, nuke = false , radar = false }, enemy = { ground = true, air = true, nuke = true, radar = false } }
 
 buttonConfig["baseColorEnemy"] = { 0.6, 0.0, 0.0, 0.6 }
 buttonConfig["baseColorAlly"] = { 0.0, 0.3, 0.0, 0.6 }
@@ -342,7 +342,9 @@ local tooltips = {
      [3] = 'Display ally air defense (on/off)',
      [4] = 'Display enemy air defense (on/off)',
      [5] = 'Display ally nuke defense (on/off)',
-     [6] = 'Display enemy nuke defense (on/off)'
+     [6] = 'Display enemy nuke defense (on/off)',
+	 [7] = 'Display ally radar ranges (on/off)',
+	 [8] = 'Display Ally radar ranger (on/off)'
 }
 
 local defences = {}	
@@ -534,12 +536,12 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local dps
 	local weaponDef
 	
-	if ( #udef.weapons == 0  ) then
-		--not interesting, has no weapons, lame
+	if ( #udef.weapons == 0 and unitdef.radardistance = nil) then
+		--not interesting, has no weapons and no radar coverage, lame
 		return
 	end
 
-	if udef.canMove then 
+	if ( udef.canMove and unitdef.radardistance = nil ) then 
 		--not interesting, it moves
 		return
 	end
@@ -776,7 +778,11 @@ function UpdateButtonList()
     	enabled = true
     elseif ( num == 6 and buttonConfig["enabled"]["enemy"]["nuke"] ) then
     	enabled = true
-    end
+    elseif ( num == 7 and buttonConfig["enabled"]["ally"]["radar"] ) then
+    	enabled = true
+	elseif ( num == 8 and buttonConfig["enabled"]["enemy"]["radar"] ) then
+    	enabled = true
+	end
 
     DrawButtonGL(data[2], coords[1][1], coords[1][2], coords[2][1], coords[2][2], enemy, enabled)
   end
@@ -886,6 +892,8 @@ function widget:MouseRelease(x, y, button)
   if (buttonIndex == 4) then ButtonEnemyPressed("air") end
   if (buttonIndex == 5) then ButtonAllyPressed("nuke") end
   if (buttonIndex == 6) then ButtonEnemyPressed("nuke") end
+  if (buttonIndex == 7) then ButtonEnemyPressed("radar") end
+  if (buttonIndex == 8) then ButtonEnemyPressed("radar") end
  
   UpdateButtons()
   return -1
