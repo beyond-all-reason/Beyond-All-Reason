@@ -1,6 +1,5 @@
 return {
 	armdecade = {
-		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 1200,
 		buildcostmetal = 140,
@@ -29,7 +28,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 320,
-		sonardistance = 200,
 		waterline = 2,
 		--move
 		acceleration = 3/90,

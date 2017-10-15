@@ -1,6 +1,5 @@
 return {
 	coresupp = {
-		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 1040,
 		buildcostmetal = 130,
@@ -30,7 +29,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 320,
-		sonardistance = 200,
 		waterline = 2,
 		--move
 		acceleration = 2.95/90,
