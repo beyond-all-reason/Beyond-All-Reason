@@ -74,8 +74,6 @@ local maxWind		  			= Game.windMax
 local windRotation			= 0
 
 local startComs = 0
-local sec = 0
-local glowCycle = 0
 local lastFrame = -1
 local gameFrame = 0
 local topbarArea = {}
@@ -104,6 +102,7 @@ local guishaderEnabled = false
 local guishaderCheckUpdateRate = 2
 local nextGuishaderCheck = guishaderCheckUpdateRate
 local now = os.clock()
+local gameFrame = Spring.GetGameFrame()
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -527,7 +526,7 @@ local function updateResbarValues(res)
             cappedCurRes = r[2]*1.07
 		end
 		if res == 'energy' then
-			glColor(1,1,0, 0.04 + (glowCycle/25))
+			glColor(1,1,0, 0.04)
 			glTexture(glowTexture)
 			local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
 			glTexRect(resbarArea[res][1]+iconPadding, resbarArea[res][2]+iconPadding, resbarArea[res][1]+(height*widgetScale)-iconPadding, resbarArea[res][4]-iconPadding)
@@ -567,7 +566,7 @@ local function updateResbarText(res)
         glText("\255\100\210\100"..short(r[4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
         -- display overflow notification
-		if not spec and r[1] >= r[2] and Spring.GetGameFrame() > 90 then
+		if not spec and r[1] >= r[2] and gameFrame > 90 then
 			if showOverflowTooltip[res] == nil then
 				showOverflowTooltip[res] = os.clock() + 1.5
 			end
@@ -805,32 +804,31 @@ function checkStatus()
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
+
+function widget:GameStart()
+	gameStarted = true
+	checkStatus()
+
+	if displayComCounter then
+		countComs()
+		updateComs(true)
+	end
+
+	-- code for rejoin
+	local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
+	local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
+	local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
+	Spring.SendLuaUIMsg(timestampMsg) --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
+	myTimestamp = systemSecond
+end
+
+
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
-	if n > 0 and not gameStarted then
-		gameStarted = true
-		checkStatus()
-
-		if displayComCounter then
-			countComs()
-			updateComs(true)
-		end
-
-		-- code for rejoin
-		local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
-		local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
-		local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
-		Spring.SendLuaUIMsg(timestampMsg) --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-		myTimestamp = systemSecond
-	end
 
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
     functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
-	if n == 1 and displayComCounter then	-- dunno why its not properly updated at GameStart
-		countComs()
-		updateComs(true)
-	end
 
 	-- not updating every gameframe because you can have lower fps than your gameframe rate
 	if lastUpdateFrame ~= currentUpdateFrame then
@@ -847,9 +845,6 @@ end
 function widget:Update(dt)
 	local mx,my = spGetMouseState()
     now = os.clock()
-
-	sec = sec + dt
-	glowCycle = math.sin(math.pi*(sec)/2)
 
 	if now > nextGuishaderCheck then
         nextGuishaderCheck = now+guishaderCheckUpdateRate
@@ -1462,7 +1457,7 @@ end
 function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
 	local ui_active = showRejoinUI
 
-	local frameDistanceToFinish = serverFrameNum-Spring.GetGameFrame()
+	local frameDistanceToFinish = serverFrameNum-gameFrame
 	ui_active = ActivateGUI_n_TTS (frameDistanceToFinish, ui_active)
 	
 	serverFrameNum1 = serverFrameNum
@@ -1552,6 +1547,9 @@ end
 
 
 function widget:Initialize()
+	gameFrame = Spring.GetGameFrame()
+	Spring.SendCommands("resbar 0")
+
 	-- determine if we want to show comcounter
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _,allyTeamID in ipairs(allyTeamList) do
@@ -1567,15 +1565,18 @@ function widget:Initialize()
 		end
 	end
 
-	Spring.SendCommands("resbar 0")
-	if displayComCounter and Spring.GetGameFrame() > 0 then
+	if displayComCounter and gameFrame > 0 then
 		countComs()
 	end
-	init()
-	
+
+	if gameFrame > 0 then
+		widget:GameStart()
+	end
+
 	-- used for rejoin progress functionality
 	functionContainer = RemoveLUARecvMsg
-	isReplay = Spring.IsReplay()
+
+	init()
 end
 
 function widget:Shutdown()
