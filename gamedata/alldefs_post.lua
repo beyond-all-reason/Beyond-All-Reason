@@ -26,16 +26,6 @@ SaveDefsToCustomParams = false
 -- process unitdef
 local minimumbuilddistancerange = 155
 
-local vehUnits = {
-	-- t1
-	armbeaver='', armcv='', armfav='', armflash='', armjanus='', armmlv='', armpincer='', armsam='', armstump='', armart='',
-	-- t2
-	armacv='', armbull='', armcroc='', armjam='', armlatnk='', armmanni='', armmart='', armmerl='', armseer='', armst='', armyork='', armconsul='',
-	-- t1
-	corcv='', corfav='', corgarp='', corgator='', corlevlr='', cormist='', cormlv='', cormuskrat='', corraid='', corwolv='',
-	-- t2
-	coracv='', coreter='', corgol='', cormabm='', cormart='', corparrow='', correap='', corseal='', corsent='', corvrad='', corvroc='', corintr='', corban='', cortrem='',
-}
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.0
 
@@ -46,17 +36,6 @@ local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 0.95
 local vehRSpeedFactor = 0.35
 
-
-local kbotUnits = {
-	-- t1
-	armck='', armflea='', armham='', armjeth='', armpw='', armrectr='', armrock='', armwar='',
-	-- t2
-	armaak='', armack='', armamph='', armaser='', armdecom='', armfark='', armfast='', armfboy='', armfido='', armmark='', armmav='', armscab='', armsnipe='', armspid='', armsptk='', armspy='', armvader='', armzues='',
-	-- t1
-	corak='', corck='', corcrash='', cornecro='', corstorm='', corthud='',
-	-- t2
-	cormando='', coraak='', coramph='', corcan='', cordecom='', corfast='', corhrk='', cormort='', corpyro='', corroach='', corsktl='', corspec='', corspy='', corsumo='', cortermite='', corvoyr='',
-}
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1
 
@@ -89,7 +68,7 @@ function UnitDef_Post(name, uDef)
 			uDef.featuredefs.dead.metal = uDef.buildcostmetal * 0.5
 		end
 		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.metal and uDef.buildcostmetal then
-			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.5
+			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.25
 		end
 	end
 	--Aircraft movements here:
@@ -112,7 +91,7 @@ function UnitDef_Post(name, uDef)
 	uDef.shownanospray = true
 
 	-- vehicles
-	if vehUnits[name] ~= nil then
+	if uDef.category["tank"] ~= nil then
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
 		end
@@ -134,13 +113,13 @@ function UnitDef_Post(name, uDef)
 		-- end
 		
 		if uDef.turninplaceanglelimit then
-		uDef.customparams.anglelimit = uDef.turninplaceanglelimit
+			uDef.customparams.anglelimit = uDef.turninplaceanglelimit
 		end
 		
 	end
 
 	-- kbots
-	if kbotUnits[name] ~= nil then
+	if uDef.category["kbot"] ~= nil then
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + kbotAdditionalTurnrate) * kbotTurnrateMultiplier
 		end

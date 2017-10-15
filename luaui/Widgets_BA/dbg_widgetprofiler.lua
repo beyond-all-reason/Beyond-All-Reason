@@ -9,7 +9,7 @@ function widget:GetInfo()
     version   = "2.0",
     date      = "2007,2008,2009",
     license   = "GNU GPL, v2 or later",
-    layer     = math.huge,
+    layer     = -math.huge,
     handler   = true,
     enabled   = false  --  loaded by default?
   }
@@ -264,7 +264,7 @@ function DrawWidgetList(list,name,x,y,j)
     j = j + 1
     gl.Text("\255\160\255\160"..name.." WIDGETS", x+150, y-1-(12)*j, 10, "no")
     j = j + 2
-    
+
     for i=1,#list do
       if j>=maxLines then x = x - 350; j = 0; end
       local v = list[i]
@@ -273,43 +273,43 @@ function DrawWidgetList(list,name,x,y,j)
       local tLoad = v.tLoad
       local colour = v.colourString
       gl.Text(wname, x+150, y+1-(12)*j, 10, "no")
-      gl.Text(colour .. ('%.3f%%'):format(tLoad), x+105, y+1-(12)*j, 10, "no")	  
+      gl.Text(colour .. ('%.3f%%'):format(tLoad), x+105, y+1-(12)*j, 10, "no")
 
 	  j = j + 1
     end
-    
+
     gl.Text("\255\255\064\064total load ("..string.lower(name)..")", x+150, y+1-(12)*j, 10, "no")
-    gl.Text("\255\255\064\064"..('%.3f%%'):format(list.allOverTime), x+105, y+1-(12)*j, 10, "no")	  
+    gl.Text("\255\255\064\064"..('%.3f%%'):format(list.allOverTime), x+105, y+1-(12)*j, 10, "no")
     j = j + 1
-    
+
     return x,j
 end
 
 function ColourString(R,G,B)
-	R255 = math.floor(R*255)  
+	R255 = math.floor(R*255)
     G255 = math.floor(G*255)
     B255 = math.floor(B*255)
     if (R255%10 == 0) then R255 = R255+1 end
     if (G255%10 == 0) then G255 = G255+1 end
     if (B255%10 == 0) then B255 = B255+1 end
 	return "\255"..string.char(R255)..string.char(G255)..string.char(B255)
-end 
+end
 
 local minTime = 0.005 -- above this value, we fade in how heavy we mark a widget
 local maxTime = 0.02 -- above this value, we mark a widget as heavy
-local minFPS = 30 -- above this value, we fade out how red we mark heavy widgets 
+local minFPS = 30 -- above this value, we fade out how red we mark heavy widgets
 local maxFPS = 60 -- above this value, we don't mark any widgets red
 
 function CheckLoad(v) --tLoad is %
     local tTime = v.tTime
     local name = v.plainname
-    local FPS = Spring.GetFPS() 
-    
+    local FPS = Spring.GetFPS()
+
     if tTime>maxTime then tTime = maxTime end
     if tTime<minTime then tTime = minTime end
     if FPS>maxFPS then FPS = maxFPS end
     if FPS<minFPS then FPS = minFPS end
-    
+
     local new_r = ((tTime-minTime)/(maxTime-minTime)) * ((maxFPS-FPS)/(maxFPS-minFPS))
     local u = math.exp(-deltaTime/5) --magic colour changing rate
     redStrength[name] = u*redStrength[name] + (1-u)*new_r
@@ -321,7 +321,7 @@ end
     if not (next(callinTimes)) then
       return --// nothing to do
     end
-    
+
 
     deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTimer)
 
@@ -329,7 +329,7 @@ end
     if (deltaTime>=tick) then
       startTimer = Spring.GetTimer()
 	  sortedList = {}
-	  
+
       totalLoads = {}
       maximum = 0
       avg = 0
@@ -362,7 +362,7 @@ end
         n = n + 1
       end
       avg = avg/n
-	  
+
       table.sort(sortedList,SortFunc)
     end
 
@@ -386,31 +386,31 @@ end
         elseif specialWidgets[sortedList[i].plainname] then
             sortedList[i].colourString = "\255\255\255\255"
             specialList[#specialList+1] = sortedList[i]
-            specialList.allOverTime = specialList.allOverTime + sortedList[i].tLoad  
+            specialList.allOverTime = specialList.allOverTime + sortedList[i].tLoad
         else
             sortedList[i].colourString = CheckLoad(sortedList[i])
             gameList[#gameList+1] = sortedList[i]
             gameList.allOverTime = gameList.allOverTime + sortedList[i].tLoad
         end
     end
-    
+
     -- draw
     local vsx, vsy = gl.GetViewSizes()
     local x,y = vsx-450, vsy-100
-  	local widgetScale = (1 + (vsx*vsy / 7500000))
-  	
+  	local widgetScale = (1 + (vsx*vsy / 6500000))
+
 	  gl.PushMatrix()
 	    gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
 	    gl.Scale(widgetScale,widgetScale,1)
-	    
+
 	    gl.Color(1,1,1,1)
 	    gl.BeginText()
 			local j = -1 --line number
-	    
+
 	    x,j = DrawWidgetList(gameList,"GAME",x,y,j)
 	    x,j = DrawWidgetList(specialList,"API & SPECIAL",x,y,j)
 	    x,j = DrawWidgetList(userList,"USER",x,y,j)
-	    
+
 	    if j>=maxLines-5 then x = x - 350; j = 0; end
 	    j = j + 1
 	    gl.Text("\255\180\255\180TOTAL", x+150, y-1-(12)*j, 10, "no")

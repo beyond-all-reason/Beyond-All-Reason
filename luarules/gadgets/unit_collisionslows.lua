@@ -7,7 +7,7 @@ function gadget:GetInfo()
 	date	= "05/09/2017",
 	license	= "GNU GPL, v2 or later",
 	layer	= 0,
-	enabled = true,
+	enabled = false,
   }
 end
 
@@ -152,11 +152,11 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
             local uDefID2 = Spring.GetUnitDefID(unitID2)
 
             if ddotdir1 > 0 then
-                if not (UnitDefs[udefID1].isBuilding == true or UnitDefs[udefID1].name == "armnanotc" or UnitDefs[udefID1].name == "cornanotc") then
-                    if (UnitDefs[udefID2].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID1),Spring.GetUnitTeam(unitID2)) == false) or not UnitDefs[udefID2].isFactory == true then
+                if not (UnitDefs[uDefID1].isBuilding == true or UnitDefs[uDefID1].name == "armnanotc" or UnitDefs[uDefID1].name == "cornanotc") then
+                    if (UnitDefs[uDefID2].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID1),Spring.GetUnitTeam(unitID2)) == false) or not UnitDefs[uDefID2].isFactory == true then
 
                         local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
-                        local vx1,vy1,vz1 = ((UnitDefs[udefID1].speed)/(vw1*30))*vx1, ((UnitDefs[udefID1].speed)/(vw1*30))*vy1, ((UnitDefs[udefID1].speed)/(vw1*30))*vz1
+                        local vx1,vy1,vz1 = ((UnitDefs[uDefID1].speed)/(vw1*30))*vx1, ((UnitDefs[uDefID1].speed)/(vw1*30))*vy1, ((UnitDefs[uDefID1].speed)/(vw1*30))*vz1
                         if vw1 == 0 then
                             vx1,vy1,vz1 = 0,0,0
                         end
@@ -164,10 +164,10 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 
                         local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
 
-                        if UnitDefs[udefID2].isBuilding == true or UnitDefs[udefID2].name == "armnanotc" then
-                            mass1, mass2 = UnitDefs[udefID1].mass*scalar2d*5, UnitDefs[udefID1].mass*9
+                        if UnitDefs[uDefID2].isBuilding == true or UnitDefs[uDefID2].name == "armnanotc" then
+                            mass1, mass2 = UnitDefs[uDefID1].mass*scalar2d*5, UnitDefs[uDefID1].mass*9
                         else
-                            mass1, mass2 = UnitDefs[udefID1].mass*scalar2d*5, UnitDefs[udefID2].mass*9
+                            mass1, mass2 = UnitDefs[uDefID1].mass*scalar2d*5, UnitDefs[uDefID2].mass*9
                         end
 
                         local rspeedx = vx1*(1-ddotdir1) + (vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)))*(ddotdir1)
@@ -176,18 +176,18 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 
                         SlowDownUnit(unitID1, rspeedx, rspeedy, rspeedz)
 
-                        if UnitDefs[udefID2].isBuilding == true or UnitDefs[udefID2].name == "armnanotc" then
-                            if ddotdir1 > 0.7 and UnitDefs[udefID1].rSpeed ~= 0 then
+                        if UnitDefs[uDefID2].isBuilding == true or UnitDefs[uDefID2].name == "armnanotc" then
+                            if ddotdir1 > 0.7 and UnitDefs[uDefID1].rSpeed ~= 0 then
                                 local movegoalx, movegoaly, movegoalz =  x1 - 24*dirx1, Spring.GetGroundHeight(x1 - 24*dirx1,z1 - 24*dirz1), z1 - 24*dirz1
 
                                 local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                                if #unitsatgoal < 2 and Spring.TestMoveOrder(udefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+                                if #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
                                     Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
                                 end
                             else
                                 local movegoalx, movegoaly, movegoalz =  x1 + 8*(-dirx1+dx1), Spring.GetGroundHeight(x1 + 8*(-dirx1+dx1),z1 + 8*(-dirz1+dz1)), z1 + 8*(-dirz1+dz1)
                                 local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                                if dot(dx1,dz1, -dirx1+dx1, -dirz1+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(udefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+                                if dot(dx1,dz1, -dirx1+dx1, -dirz1+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
                                     Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
                                 end
                             end
@@ -196,35 +196,35 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
                 end
             end
             if ddotdir2 > 0 then
-                if not (UnitDefs[udefID2].isBuilding == true or UnitDefs[udefID2].name == "armnanotc" or UnitDefs[udefID2].name == "cornanotc") then
-                    if (UnitDefs[udefID1].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID2),Spring.GetUnitTeam(unitID1)) == false) or not UnitDefs[udefID1].isFactory == true then
+                if not (UnitDefs[uDefID2].isBuilding == true or UnitDefs[uDefID2].name == "armnanotc" or UnitDefs[uDefID2].name == "cornanotc") then
+                    if (UnitDefs[uDefID1].isFactory == true and Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID2),Spring.GetUnitTeam(unitID1)) == false) or not UnitDefs[uDefID1].isFactory == true then
                         local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID2)
-                        local vx1,vy1,vz1 = ((UnitDefs[udefID2].speed)/(vw1*30))*vx1, ((UnitDefs[udefID2].speed)/(vw1*30))*vy1, ((UnitDefs[udefID2].speed)/(vw1*30))*vz1
+                        local vx1,vy1,vz1 = ((UnitDefs[uDefID2].speed)/(vw1*30))*vx1, ((UnitDefs[uDefID2].speed)/(vw1*30))*vy1, ((UnitDefs[uDefID2].speed)/(vw1*30))*vz1
                         if vw1 == 0 then
                             vx1,vy1,vz1 = 0,0,0
                         end
                         local vx2,vy2,vz2 = Spring.GetUnitVelocity(unitID1)
                         local scalar2d = math.abs(dx1*dx2 + dz1*dz2)
-                        if UnitDefs[udefID1].isBuilding == true or UnitDefs[udefID1].name == "armnanotc" then
-                            mass1, mass2 = UnitDefs[udefID2].mass*scalar2d*5, UnitDefs[udefID2].mass*9
+                        if UnitDefs[uDefID1].isBuilding == true or UnitDefs[uDefID1].name == "armnanotc" then
+                            mass1, mass2 = UnitDefs[uDefID2].mass*scalar2d*5, UnitDefs[uDefID2].mass*9
                         else
-                            mass1, mass2 = UnitDefs[udefID2].mass*scalar2d*5, UnitDefs[udefID1].mass*9
+                            mass1, mass2 = UnitDefs[uDefID2].mass*scalar2d*5, UnitDefs[uDefID1].mass*9
                         end
                         local rspeedx = vx1*(1-ddotdir2) + (vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)))*(ddotdir2)
                         local rspeedy = vy1*(1-ddotdir2) + (vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)))*(ddotdir2)
                         local rspeedz = vz1*(1-ddotdir2) + (vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))*(ddotdir2)
                         SlowDownUnit(unitID2, rspeedx, rspeedy, rspeedz)
-                        if UnitDefs[udefID1].isBuilding == true or UnitDefs[udefID1].name == "armnanotc" then
-                            if ddotdir2 > 0.7 and UnitDefs[udefID2].rSpeed ~= 0  then
+                        if UnitDefs[uDefID1].isBuilding == true or UnitDefs[uDefID1].name == "armnanotc" then
+                            if ddotdir2 > 0.7 and UnitDefs[uDefID2].rSpeed ~= 0  then
                                 local movegoalx, movegoaly, movegoalz =  x2 - 24*dirx2, Spring.GetGroundHeight(x2 - 24*dirx2,z2 - 24*dirz2), z2 - 24*dirz
                                 local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                                if #unitsatgoal < 2 and Spring.TestMoveOrder(udefID2, movegoalx, movegoaly, movegoalz,  dx2, 0, dz2, true, true, false) == true then
+                                if #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID2, movegoalx, movegoaly, movegoalz,  dx2, 0, dz2, true, true, false) == true then
                                     Spring.GiveOrderToUnit(unitID2, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
                                 end
                             else
                                 local movegoalx, movegoaly, movegoalz =  x2+ 8*(-dirx2+dx2), Spring.GetGroundHeight(x2 + 8*(-dirx2+dx2),z2 + 8*(-dirz2+dz2)), z2 + 8*(-dirz2+dz2)
                                 local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                                if dot(dx2,dz2, -dirx2+dx2, -dirz2+dz2) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(udefID2, movegoalx, movegoaly, movegoalz, dx2, 0, dz2, true, true, false) == true then
+                                if dot(dx2,dz2, -dirx2+dx2, -dirz2+dz2) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID2, movegoalx, movegoaly, movegoalz, dx2, 0, dz2, true, true, false) == true then
                                     Spring.GiveOrderToUnit(unitID2, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT,movegoalx, movegoaly, movegoalz},{"alt"})
                                 end
                             end
@@ -232,6 +232,7 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
                     end
                 end
             end
+        end
     end
 
     function gadget:UnitFeatureCollision(ID1, ID2)
@@ -251,31 +252,31 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
                     local ddotdir = (dx1 * dirx + dz1 * dirz)
 
                     local uDefID1 = Spring.GetUnitDefID(unitID1)
-                    local uDefID2 = Spring.GetUnitDefID(unitID2)
+                    local fDefID2 = Spring.GetFeatureDefID(unitID2)
 
                     if ddotdir > 0 then
                         local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
-                        local vx1,vy1,vz1 = ((UnitDefs[udefID1].speed)/(vw1*30))*vx1, ((UnitDefs[udefID1].speed)/(vw1*30))*vy1, ((UnitDefs[udefID1].speed)/(vw1*30))*vz1
+                        local vx1,vy1,vz1 = ((UnitDefs[uDefID1].speed)/(vw1*30))*vx1, ((UnitDefs[uDefID1].speed)/(vw1*30))*vy1, ((UnitDefs[uDefID1].speed)/(vw1*30))*vz1
                         if vw1 == 0 then
                             vx1,vy1,vz1 = 0,0,0
                         end
                         local vx2,vy2,vz2 = 0,0,0
-                        if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
-                            mass1, mass2 = UnitDefs[udefID1].mass, 0
+                        if FeatureDefs[fDefID2].blocking == false then
+                            mass1, mass2 = UnitDefs[uDefID1].mass, 0
                         else
-                            mass1, mass2 = UnitDefs[udefID1].mass, UnitDefs[udefID1].mass*9
+                            mass1, mass2 = UnitDefs[uDefID1].mass, UnitDefs[uDefID1].mass*9
                         end
                         SlowDownUnit(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
-                        if ddotdir > 0.7 and UnitDefs[udefID1].rSpeed ~= 0  then
+                        if ddotdir > 0.7 and UnitDefs[uDefID1].rSpeed ~= 0  then
                             local movegoalx, movegoaly, movegoalz = x1 + 24*-dirx,Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)),z1 + 24*-dirz
                             local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                            if #unitsatgoal < 2 and Spring.TestMoveOrder(udefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+                            if #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
                                 Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
                             end
                         else
                             local movegoalx, movegoaly, movegoalz = x1 + 8*(-dirx+dx1), Spring.GetGroundHeight(x1 + 8*(-dirx+dx1),z1 + 8*(-dirz+dz1)), z1 + 8*(-dirz+dz1)
                             local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                            if dot(dx1,dz1, -dirx+dx1, -dirz+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(udefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+                            if dot(dx1,dz1, -dirx+dx1, -dirz+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
                                 Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
                             end
                         end
@@ -295,27 +296,27 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 
                     if ddotdir > 0 then
                         local vx1,vy1,vz1,vw1 = Spring.GetUnitVelocity(unitID1)
-                        local vx1,vy1,vz1 = ((UnitDefs[udefID1].speed)/(vw1*30))*vx1, ((UnitDefs[udefID1].speed)/(vw1*30))*vy1, ((UnitDefs[udefID1].speed)/(vw1*30))*vz1
+                        local vx1,vy1,vz1 = ((UnitDefs[uDefID1].speed)/(vw1*30))*vx1, ((UnitDefs[uDefID1].speed)/(vw1*30))*vy1, ((UnitDefs[uDefID1].speed)/(vw1*30))*vz1
                         if vw1 == 0 then
                             vx1,vy1,vz1 = 0,0,0
                         end
                         local vx2,vy2,vz2 = 0,0,0
-                        if FeatureDefs[Spring.GetFeatureDefID(unitID2)].blocking == false then
-                            mass1, mass2 = UnitDefs[udefID1].mass, 0
+                        if FeatureDefs[fDefID2].blocking == false then
+                            mass1, mass2 = UnitDefs[uDefID1].mass, 0
                         else
-                            mass1, mass2 = UnitDefs[udefID1].mass, UnitDefs[udefID1].mass*9
+                            mass1, mass2 = UnitDefs[uDefID1].mass, UnitDefs[uDefID1].mass*9
                         end
                         SlowDownUnit(unitID1, vx1*(mass1/(mass1+mass2))+vx2*(mass2/(mass1+mass2)),vy1*(mass1/(mass1+mass2))+vy2*(mass2/(mass1+mass2)),vz1*(mass1/(mass1+mass2))+vz2*(mass2/(mass1+mass2)))
-                        if ddotdir > 0.7 and UnitDefs[udefID1].rSpeed ~= 0  then
+                        if ddotdir > 0.7 and UnitDefs[uDefID1].rSpeed ~= 0  then
                             local movegoalx, movegoaly, movegoalz = x1 + 24*-dirx,Spring.GetGroundHeight(x1 + 24*(-dirx),z1 + 24*(-dirz)),z1 + 24*-dirz
                             local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                            if #unitsatgoal < 2 and Spring.TestMoveOrder(udefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+                            if #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
                                 Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
                             end
                         else
                             local movegoalx, movegoaly, movegoalz = x1 + 8*(-dirx+dx1), Spring.GetGroundHeight(x1 + 8*(-dirx+dx1),z1 + 8*(-dirz+dz1)), z1 + 8*(-dirz+dz1)
                             local unitsatgoal = Spring.GetUnitsInSphere(movegoalx, movegoaly, movegoalz, 24)
-                            if dot(dx1,dz1, -dirx+dx1, -dirz+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(udefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
+                            if dot(dx1,dz1, -dirx+dx1, -dirz+dz1) > 0.9 and  #unitsatgoal < 2 and Spring.TestMoveOrder(uDefID1, movegoalx, movegoaly, movegoalz, dx1, 0, dz1, true, true, false) == true then
                                 Spring.GiveOrderToUnit(unitID1, CMD.INSERT, {0, CMD.MOVE, CMD.OPT_ALT, movegoalx, movegoaly, movegoalz},{"alt"})
                             end
                         end
