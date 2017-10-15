@@ -164,6 +164,7 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
+	explode level34 type SHATTER | NOHEATCLOUD;
 	if( severity <= 25 )
 	{
 		corpsetype = 1;

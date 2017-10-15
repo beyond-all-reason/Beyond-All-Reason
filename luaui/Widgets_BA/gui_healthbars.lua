@@ -1021,6 +1021,24 @@ do
       primaryWeapon = 0,
     }
   end
+    if UnitDefNames["coruwmex"] ~= nil then
+    customInfo[UnitDefNames["coruwmex"].id] = {
+      height        = 15+barHeightOffset,
+      maxShield     = 0,
+      canStockpile  = nil,
+      reloadTime    = 0,
+      primaryWeapon = 0,
+    }
+  end
+    if UnitDefNames["armuwmex"] ~= nil then
+    customInfo[UnitDefNames["armuwmex"].id] = {
+      height        = 15+barHeightOffset,
+      maxShield     = 0,
+      canStockpile  = nil,
+      reloadTime    = 0,
+      primaryWeapon = 0,
+    }
+  end
 	
   function DrawUnitInfos(unitID,unitDefID, ud)
     if (not customInfo[unitDefID]) then
