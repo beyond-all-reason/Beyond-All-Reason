@@ -245,10 +245,10 @@ return {
 				def = "CORVETTE_LIGHTLASER_REAR",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
-				def = "CORVETTE_DEPTH",
-				onlytargetcategory = "UNDERWATER CANBEUW",
-			},
+			-- [3] = {
+				-- def = "CORVETTE_DEPTH",
+				-- onlytargetcategory = "UNDERWATER CANBEUW",
+			-- },
 		},
 	},
 }

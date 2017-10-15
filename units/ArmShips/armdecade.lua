@@ -232,10 +232,10 @@ return {
 				def = "CORVETTE_EMG_REAR",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
-				def = "CORVETTE_DEPTH",
-				onlytargetcategory = "UNDERWATER CANBEUW",
-			},
+			-- [3] = {
+				-- def = "CORVETTE_DEPTH",
+				-- onlytargetcategory = "UNDERWATER CANBEUW",
+			-- },
 		},
 	},
 }
