@@ -5,11 +5,26 @@
 
 piece  flare1, flare2, flare3, base, turret, barrel1, barrel2, barrel3;
 
-static-var  gun_1;
+static-var  gun_1, rockframe, Xrot, Zrot, Ymove;
 
 // Signal definitions
 #define SIG_AIM				2
 
+RockOnWaves()
+{
+rockframe = 1;
+while ( TRUE )
+{
+	Xrot = (get KCOS (rockframe * 690)) * 360 / 1024 ;
+	Ymove = (get KSIN (rockframe * 650)) * 2;
+	Zrot = (get KSIN (rockframe * 560)) * 360 / 1024;
+	turn base to x-axis Xrot now;
+	turn base to z-axis Zrot now;
+	move base to y-axis Ymove now;
+	rockframe = rockframe + 1;
+	sleep 1;
+}
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -71,6 +86,7 @@ Create()
 	dont-shade barrel3;
 	gun_1 = flare2;
 	start-script SmokeUnit();
+	start-script RockOnWaves();
 	return (0);
 }
 

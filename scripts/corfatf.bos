@@ -5,8 +5,22 @@
 
 piece  base, top, armu, lightu, armdl, lightdl, armdr, lightdr;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
-
+static-var  statechg_DesiredState, statechg_StateChanging, rockframe, Xrot, Zrot, Ymove;
+RockOnWaves()
+{
+rockframe = 1;
+while ( TRUE )
+{
+	Xrot = (get KCOS (rockframe * 690)) * 360 / 1024 ;
+	Ymove = (get KSIN (rockframe * 650)) * 2;
+	Zrot = (get KSIN (rockframe * 560)) * 360 / 1024;
+	turn base to x-axis Xrot now;
+	turn base to z-axis Zrot now;
+	move base to y-axis Ymove now;
+	rockframe = rockframe + 1;
+	sleep 1;
+}
+}
 
 activatescr()
 {
@@ -131,6 +145,7 @@ Create()
 	call-script InitState();
 	start-script SmokeUnit();
 	return (0);
+	start-script RockOnWaves();
 }
 
 Activate()

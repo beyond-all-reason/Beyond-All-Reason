@@ -5,12 +5,26 @@
 
 piece  flare1, turret, flare2, guns, base, sleeve;
 
-static-var  restore_delay, gun_1;
+static-var  restore_delay, gun_1, rockframe, Xrot, Zrot, Ymove;
 
 // Signal definitions
 #define SIG_AIM				2
 
-
+RockOnWaves()
+{
+rockframe = 1;
+while ( TRUE )
+{
+	Xrot = (get KCOS (rockframe * 690)) * 360 / 1024 ;
+	Ymove = (get KSIN (rockframe * 650)) * 2;
+	Zrot = (get KSIN (rockframe * 560)) * 360 / 1024;
+	turn base to x-axis Xrot now;
+	turn base to z-axis Zrot now;
+	move base to y-axis Ymove now;
+	rockframe = rockframe + 1;
+	sleep 1;
+}
+}
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -76,6 +90,7 @@ Create()
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	gun_1 = flare1;
+	start-script RockOnWaves();
 	return (0);
 }
 
