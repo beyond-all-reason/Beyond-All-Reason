@@ -132,7 +132,7 @@ return {
 				name = "Torpedo",
 				noselfdamage = true,
 				predictboost = 0.7,
-				range = 200,
+				range = 410,
 				reloadtime = 2.7,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
