@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 0.8*8500,
 		buildcostmetal = 0.8*650,
 		buildpic = "CORARCH.DDS",
-		buildtime = 0.8*9791,
+		buildtime = 1.5 * 0.8*9791,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 0",

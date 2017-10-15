@@ -7,7 +7,7 @@ return {
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORCARRY.DDS",
-		buildtime = 0.8*20800,
+		buildtime = 1.5 * 0.8*20800,
 		canassist = false,
 		canattack = false,
 		canmove = true,

@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 0.8*270000,
 		buildcostmetal = 0.8*37000,
 		buildpic = "CORBLACKHY.DDS",
-		buildtime = 0.8*309264,
+		buildtime = 1.5 * 0.8*309264,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -14 10",

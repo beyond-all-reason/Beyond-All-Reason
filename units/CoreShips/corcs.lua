@@ -6,7 +6,7 @@ return {
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORCS.DDS",
-		buildtime = 6600,
+		buildtime = 1.5 * 6600,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -7 0",

@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 0.8*4000,
 		buildcostmetal = 0.8*700,
 		buildpic = "ARMSUB.DDS",
-		buildtime = 0.8*10983,
+		buildtime = 1.5 * 0.8*10983,
 		canmove = true,
 		onoffable = true,
 		category = "NOTSUB ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",

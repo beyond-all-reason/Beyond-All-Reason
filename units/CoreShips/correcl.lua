@@ -7,7 +7,7 @@ return {
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORRECL.DDS",
-		buildtime = 5300,
+		buildtime = 1.5 * 5300,
 		canassist = false,
 		canmove = true,
 		category = "UNDERWATER ALL NOWEAPON NOTAIR NOTHOVER",

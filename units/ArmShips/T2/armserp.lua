@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 0.8*14400,
 		buildcostmetal = 0.8*2150,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 0.8*25300,
+		buildtime = 1.5 * 0.8*25300,
 		canmove = true,
 		category = "UNDERWATER ALL WEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -2 0",

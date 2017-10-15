@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 0.8*14500,
 		buildcostmetal = 0.8*2300,
 		buildpic = "CORSSUB.DDS",
-		buildtime = 0.8*27500,
+		buildtime = 1.5 * 0.8*27500,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 0",
