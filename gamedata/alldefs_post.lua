@@ -89,7 +89,7 @@ function UnitDef_Post(name, uDef)
 			uDef.featuredefs.dead.metal = uDef.buildcostmetal * 0.5
 		end
 		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.metal and uDef.buildcostmetal then
-			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.5
+			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.25
 		end
 	end
 	--Aircraft movements here:
