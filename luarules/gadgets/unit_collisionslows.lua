@@ -232,6 +232,7 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
                     end
                 end
             end
+        end
     end
 
     function gadget:UnitFeatureCollision(ID1, ID2)
