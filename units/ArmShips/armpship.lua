@@ -130,6 +130,7 @@ return {
 				noselfdamage = true,
 				range = 470,
 				reloadtime = 1.75,
+				predictboost = 0.4,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
@@ -139,11 +140,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 250,
 				damage = {
-					bombers = 21*1.5,
-					default = 80*1.5,
-					fighters = 21*1.5,
+					bombers = 215*1.5,
+					default = 95*1.5,
+					fighters = 25*1.5,
 					subs = 5*1.5,
-					vtol = 21*1.5,
+					vtol = 25*1.5,
 				},
 			},
 		corvette_depth = {
@@ -195,10 +196,10 @@ return {
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
-				def = "CORVETTE_DEPTH",
-				onlytargetcategory = "UNDERWATER CANBEUW",
-			},
+			-- [3] = {
+				-- def = "CORVETTE_DEPTH",
+				-- onlytargetcategory = "UNDERWATER CANBEUW",
+			-- },
 		},
 	},
 }

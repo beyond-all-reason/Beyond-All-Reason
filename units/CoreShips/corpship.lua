@@ -132,6 +132,7 @@ return {
 				impulsefactor = 0.123,
 				name = "LightCannon",
 				noselfdamage = true,
+				predictboost = 0.4,
 				range = 470,
 				reloadtime = 0.875*3,
 				soundhit = "xplomed3",
@@ -142,11 +143,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 190*1.5,
 				damage = {
-					bombers = 18*1.5,
-					default = 74*1.5,
-					fighters = 18*1.5,
+					bombers = 21*1.5,
+					default = 87*1.5,
+					fighters = 21*1.5,
 					subs = 5*1.5,
-					vtol = 18,
+					vtol = 21,
 				},
 			},
 		corvette_depth = {
@@ -193,10 +194,10 @@ return {
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "NOTSUB",
 			},
-			[2] = {
-				def = "CORVETTE_DEPTH",
-				onlytargetcategory = "UNDERWATER CANBEUW",
-			},
+			-- [2] = {
+				-- def = "CORVETTE_DEPTH",
+				-- onlytargetcategory = "UNDERWATER CANBEUW",
+			-- },
 		},
 	},
 }
