@@ -17,7 +17,7 @@ function gadget:UnitCreated(unitID)
 unitDefID = Spring.GetUnitDefID(unitID)
 unitName = UnitDefs[unitDefID].name
 x,y,z = Spring.GetUnitPosition(unitID)
-if unitName == "armnanotcplat" or unitName == "cornanotcplat" then
+if unitName == "armnanotcplat" or unitName == "cornanotcplat" or unitName == "armuwmex" or unitName == "coruwmex" then
 GroundHeight = Spring.GetGroundHeight(x,z)
 Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
 Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )

@@ -3,23 +3,92 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, drive, fan, emit1, emit2, emit3;
+piece  base, arms, hand1, hand2, hand3, stand, level34, level68, level102, level136, level170, level204, level238;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
 
-// Signal definitions
-#define SIG_ACTIVATE			2
+HidePieces(groundlevel)
+{
+	if (groundlevel < 204)
+	{
+		hide level238;
+		if (groundlevel < 170)
+		{
+			hide level204;
+			if (groundlevel < 136)
+			{
+				hide level170;
+				if (groundlevel < 102)
+				{
+					hide level136;
+					if (groundlevel < 68)
+					{
+						hide level102;
+						if (groundlevel < 34)
+						{
+							hide level68;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
 
 fixGo()
 {
-	spin drive around y-axis speed <-100> accelerate <1>;
+	set ARMORED to 0;
+	dont-cache arms;
+	dont-cache hand1;
+	dont-cache hand2;
+	dont-cache hand3;
+	dont-cache stand;
+	move stand to y-axis [6.750000] speed [5.000000];
+	wait-for-move stand along y-axis;
+	spin arms around y-axis speed <-100> accelerate <1>;
 }
 
 Stop()
 {
-	stop-spin drive around y-axis decelerate <1>;
-	wait-for-turn drive around y-axis;
+	stop-spin arms around y-axis decelerate <1>;
+	wait-for-turn arms around y-axis;
+	turn arms to y-axis <0.000000> speed <70.000000>;
+	wait-for-turn arms around y-axis;
+	move stand to y-axis [0.000000] speed [10.000000];
+	wait-for-move arms along y-axis;
+	cache arms;
+	cache hand1;
+	cache hand2;
+	cache hand3;
+	cache stand;
+	set ARMORED to 1;
 }
 
 InitState()
@@ -56,42 +125,31 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 0;
-	Static_Var_2 = 91;
-	Static_Var_3 = 182;
-	dont-shade drive;
-	dont-cache drive;
+	Static_Var_1 = 500;
+	Static_Var_2 = 80;
+	Static_Var_3 = 160;
+	move arms to y-axis [-1.75] now;
+	dont-shade arms;
+	dont-shade hand1;
+	dont-shade hand2;
+	dont-shade hand3;
+	dont-shade stand;
 	call-script InitState();
+	start-script SmokeUnit();
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 1000;
+		sleep 250;
 	}
-	spin fan around y-axis speed <-400.093407>;
 }
 
 Activate()
 {
 	start-script RequestState(0);
-	signal SIG_ACTIVATE;
-	set-signal-mask SIG_ACTIVATE;
-	while( TRUE )
-	{
-		emit-sfx 259 from emit1;
-		emit-sfx 259 from emit2;
-		emit-sfx 259 from emit3;
-		sleep 250;
-	}
 }
 
 Deactivate()
 {
 	start-script RequestState(1);
-	signal SIG_ACTIVATE;
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = fan;
 }
 
 SetSpeed(Func_Var_1)
@@ -99,30 +157,43 @@ SetSpeed(Func_Var_1)
 	Static_Var_1 = Func_Var_1 * 20;
 }
 
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		//explode base type FALL | BITMAP1 | NOHEATCLOUD;
+		explode hand1 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode drive type FALL | BITMAP1 | BITMAP1 | NOHEATCLOUD;
-		//explode base type FALL | BITMAP2 | NOHEATCLOUD;
+		explode arms type FALL | BITMAP1 | NOHEATCLOUD;
+		explode hand1 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode hand2 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode hand3 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		//explode base type FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode drive type FALL | BITMAP1 | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		//explode base type FALL | BITMAP2 | NOHEATCLOUD;
+		explode arms type FALL | BITMAP1 | NOHEATCLOUD;
+		explode hand1 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode hand2 type FALL | BITMAP1 | NOHEATCLOUD;
+		explode hand3 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		//explode base type FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode drive type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	//explode base type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode arms type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode hand1 type SHATTER | BITMAP1 | NOHEATCLOUD;
+	//explode base type SHATTER | NOHEATCLOUD;
 	return corpsetype;
 }
