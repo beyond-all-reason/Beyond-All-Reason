@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 900,
-		maxdamage = 220,
+		maxdamage = 120,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Searcher",
