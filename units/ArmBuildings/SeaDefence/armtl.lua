@@ -1,11 +1,10 @@
 return {
 	armtl = {
 		acceleration = 0,
-		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
 		buildcostenergy = 1260,
-		buildcostmetal = 153,
+		buildcostmetal = 140,
 		buildpic = "ARMTL.DDS",
 		buildtime = 4680,
 		canrepeat = false,
@@ -27,7 +26,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 494,
-		sonardistance = 400,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
 		customparams = {

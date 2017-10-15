@@ -1,11 +1,10 @@
 return {
 	armdl = {
 		acceleration = 0,
-		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 2500,
-		buildcostmetal = 290,
+		buildcostenergy = 2250,
+		buildcostmetal = 240,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
@@ -35,7 +34,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 617,
-		sonardistance = 515,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {

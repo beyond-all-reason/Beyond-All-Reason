@@ -1,11 +1,10 @@
 return {
 	cortl = {
 		acceleration = 0,
-		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
 		buildcostenergy = 1500,
-		buildcostmetal = 165,
+		buildcostmetal = 140,
 		buildpic = "CORTL.DDS",
 		buildtime = 4700,
 		canrepeat = false,
@@ -28,7 +27,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 495,
-		sonardistance = 400,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
 		customparams = {

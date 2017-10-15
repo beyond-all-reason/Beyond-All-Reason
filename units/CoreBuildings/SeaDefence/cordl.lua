@@ -1,11 +1,10 @@
 return {
 	cordl = {
 		acceleration = 0,
-		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 2500,
-		buildcostmetal = 300,
+		buildcostenergy = 2250,
+		buildcostmetal = 250,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
@@ -35,7 +34,6 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 611,
-		sonardistance = 525,
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
