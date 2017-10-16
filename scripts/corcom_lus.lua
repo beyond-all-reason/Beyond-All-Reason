@@ -129,9 +129,9 @@ function script.Create()
 for ct, piecenum in pairs (lvl1hides) do
 	Hide(piecenum)
 end
-	for i = 1, #UnitDefs[Spring.GetUnitDefID(unitID)].weapons do
-		Spring.Echo(i.." "..WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
-	end
+	-- for i = 1, #UnitDefs[Spring.GetUnitDefID(unitID)].weapons do
+		-- Spring.Echo(i.." "..WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
+	-- end
 -- Stats = {
 -- bp=UnitDefs[Spring.GetUnitDefID(unitID)].buildSpeed,
 -- Range = 300,
