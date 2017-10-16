@@ -3,6 +3,8 @@ local foot2 = piece "foot2"
 local body = piece "body"
 local wing1 = piece "wing1"
 local wing2 = piece "wing2"
+local flare1 = piece "flare1"
+local flare2 = piece "flare2"
 local tail = piece "tail"
 
 local SIG_WALK = 2
@@ -94,9 +96,34 @@ function jump()
 	--PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end
 
-function script.QueryWeapon1() return body end
-function script.AimFromWeapon1() return body end
-function script.AimWeapon1( heading, pitch )
+
+function script.AimFromWeapon1()
+	return flare1
+end
+function script.AimFromWeapon2()
+	return flare2
+end
+
+function script.QueryWeapon1()
+	return flare1
+end
+
+function script.QueryWeapon2()
+	return flare2
+end
+
+
+function script.AimWeapon1(heading, pitch)
+	return true
+end
+function script.AimWeapon2(heading, pitch)
+	return true
+end
+
+function script.FireWeapon1()
+	return true
+end
+function script.FireWeapon2()
 	return true
 end
 

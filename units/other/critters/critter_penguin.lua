@@ -29,7 +29,7 @@ unitDef = {
   mass                = 24,
   maxDamage           = 10,
   maxSlope            = 45,
-  maxVelocity         = 0.35,
+  maxVelocity         = 0.5,
   maxWaterDepth       = 22,  
   movementClass       = [[CRITTERH]],
   --crushStrength 	  = 25,
@@ -61,6 +61,64 @@ unitDef = {
   stealth 			      = true,
   sonarStealth		    = true,
 	capturable          = false,
+  weapondefs = {
+    eyelaser = {
+      areaofeffect = 8,
+      avoidfeature = false,
+      beamtime = 0.22,
+      corethickness = 0.05,
+      craterareaofeffect = 0,
+      craterboost = 0,
+      cratermult = 0,
+      energypershot = 0,
+      explosiongenerator = "custom:laserhit-mini-red",
+      firestarter = 100,
+      impactonly = 1,
+      impulseboost = 0,
+      impulsefactor = 0,
+      laserflaresize = 0,
+      name = "LightLaser",
+      noselfdamage = true,
+      proximitypriority = 3,
+      range = 125,
+      reloadtime = 0.5,
+      rgbcolor = "1 0 0",
+      soundhitdry = "",
+      soundhitwet = "sizzle",
+      soundhitwetvolume = 0.5,
+      soundstart = "lasrfir3",
+      soundtrigger = 1,
+      targetmoveerror = 0.1,
+      thickness = 0.5,
+      tolerance = 10000,
+      turret = false,
+      weapontype = "BeamLaser",
+      weaponvelocity = 2250,
+      damage = {
+        bombers = 1,
+        default = 10,
+        fighters = 1,
+        subs = 1,
+        vtol = 1,
+      },
+      customparams = {
+        light_radius_mult = "0.26",		-- used by light_effects widget
+        light_multiplier = "0.7   ",		-- used by light_effects widget
+      },
+    },
+  },
+  weapons = {
+    [1] = {
+      badtargetcategory = "VTOL",
+      def = "EYELASER",
+      onlytargetcategory = "NOTSUB",
+    },
+    [2] = {
+      badtargetcategory = "VTOL",
+      def = "EYELASER",
+      onlytargetcategory = "NOTSUB",
+    },
+  }
 }
 
 return lowerkeys({ critter_penguin = unitDef })

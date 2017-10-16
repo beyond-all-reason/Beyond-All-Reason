@@ -40,7 +40,6 @@ local GetAllUnits        		= Spring.GetAllUnits
 local IsUnitInView	 	 		= Spring.IsUnitInView
 local GetCameraPosition  		= Spring.GetCameraPosition
 local GetUnitPosition    		= Spring.GetUnitPosition
-local GetFPS					= Spring.GetFPS
 local GetSpectatingState		= Spring.GetSpectatingState
 
 local glDepthTest        		= gl.DepthTest
