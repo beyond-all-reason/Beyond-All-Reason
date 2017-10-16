@@ -55,6 +55,11 @@ local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
 common = include("headers/common_includes_lus.lua")
 
+function Emit(pieceName, effectName)
+local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
+Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
+end
+
 function move(piece, axis, goal, speed)
 if speed then
 	Move(piece, axis, goal,speed*currentSpeed/100)
@@ -176,7 +181,22 @@ while(true) do
 local null, fxp = Spring.GetUnitExperience(unitID)
 local realxp = 10 * fxp
 -- Spring.Echo(level)
-if realxp > 5 and level == 5 then
+if realxp > 10 and level == 10 then
+LevelUpModel(10)
+LevelUpStats(10)
+elseif realxp > 9 and level == 9 then
+LevelUpModel(9)
+LevelUpStats(9)
+elseif realxp > 8 and level == 8 then
+LevelUpModel(8)
+LevelUpStats(8)
+elseif realxp > 7 and level == 7 then
+LevelUpModel(7)
+LevelUpStats(7)
+elseif realxp > 6 and level == 6 then
+LevelUpModel(6)
+LevelUpStats(6)
+elseif realxp > 5 and level == 5 then
 LevelUpModel(5)
 LevelUpStats(5)
 elseif realxp > 4 and level == 4 then
@@ -241,6 +261,7 @@ function LevelUpStats(curLevel)
 end
 
 function LevelUpModel(curLevel)
+Emit(pelvis, "greencannonimpact")
 if curLevel == 0 then
 elseif curLevel == 1 then
 	switchpieces(torso1, torso2)
