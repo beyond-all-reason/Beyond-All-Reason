@@ -1,6 +1,8 @@
 --BASE PIECES:
 local pelvis, torso, head, luparm, nanolath, nanospray, lfirept, ruparm, biggun, rbigflash, rthigh, rleg, lthigh, lleg = piece("pelvis", "torso", "head", "luparm", "nanolath", "nanospray", "lfirept", "ruparm", "biggun", "rbigflash", "rthigh", "rleg", "lthigh", "lleg")
 local ground = piece("ground")
+--shieldpiece
+local shield = piece("shield")
 --LVL1 : 
 local pelvis1, torso1, head1, luparm1, nanolath1, nanospray1, lfirept1, ruparm1, biggun1, rbigflash1, rthigh1, rleg1, lthigh1, lleg1 = piece("pelvis1", "torso1", "head1", "luparm1", "nanolath1", "nanospray1", "lfirept1", "ruparm1", "biggun1", "rbigflash1", "rthigh1", "rleg1", "lthigh1", "lleg1")
 
@@ -16,8 +18,36 @@ local biggun4, rbigflash4 = piece("biggun4", "rbigflash4")
 --LVL5:
 local rthigh5, lthigh5, rleg5, lleg5 = piece("rthigh5", "lthigh5", "rleg5", "lleg5")
 --MovePelvisY+5
+
+--Pieces to hide at level 1 (spawn)
 lvl1hides = {}
 lvl1hides = {rthigh5, lthigh5, rleg5, lleg5, biggun4, rbigflash4, nanolath3, nanospray3, lfirept3, torso2}
+
+--Stats Tables:
+--Weapon: Laser
+Range = {300,375,430,430,475,525,575,630,700,800,1000}
+AOE = {12,12,12,16,16,16,24,24,24,32,32}
+ReloadTime = {0.4,0.4,0.4,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2}
+Damages = {75,75,125,125,125,150,150,200,200,250,250}
+--Weapon:SeaLaser
+Range2 = {300,375,430,430,475,525,575,630,700,800,1000}
+AOE2 = {12,12,12,16,16,16,24,24,24,32,32}
+ReloadTime2 = {1,1,1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
+Damages21 = {75,75,125,125,125,150,150,200,200,250,250}
+Damages22 = {0.5,0.5,0.5,0.75,0.75,0.75,1,1,1,1,1}
+--Weapon:Dgun
+ReloadTime3 = {0.9,0.9,0.8,0.8,0.7,0.7,0.6,0.6,0.6,0.5,0.4}
+--Speeds
+BuildSpeed = {300,325,350,400,450,500,550,600,700,800,900}
+MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
+--Armor/hp
+ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
+AdditionalMaxHealth = {-500,-250,0,500,1000,1500,2000,2500,3000,3500,4000}
+DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
+--Vision
+LOS = {450,500,550,600,625,650,675,700,725,750,800}
+Sonar = {450,450,500,500,550,550,600,600,650,650,700}
+Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 
 local SIG_WALK = 2
 local PlaySoundFile 	= Spring.PlaySoundFile
@@ -45,6 +75,10 @@ end
 
 function UnitSpeed()
 	while (true) do
+		local mm, mu, em, eu = Spring.GetUnitResources(unitID)
+		local null, fxp = Spring.GetUnitExperience(unitID)
+		local xptoadd = (mm * 0.000000025) + (mu * 0.00000025) + ((em/60) * 0.000000025) + ((eu/60)*0.00000025)
+		Spring.SetUnitExperience(unitID, null + xptoadd)
 		vx,vy,vz,Speed = Spring.GetUnitVelocity(unitID)
 		currentSpeed = Speed*100*30/moveSpeed
 		if (currentSpeed < 35) then currentSpeed = 35 end
@@ -95,6 +129,9 @@ function script.Create()
 for ct, piecenum in pairs (lvl1hides) do
 	Hide(piecenum)
 end
+	for i = 1, #UnitDefs[Spring.GetUnitDefID(unitID)].weapons do
+		Spring.Echo(i.." "..WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
+	end
 -- Stats = {
 -- bp=UnitDefs[Spring.GetUnitDefID(unitID)].buildSpeed,
 -- Range = 300,
@@ -106,7 +143,7 @@ end
 -- sonar=UnitDefs[Spring.GetUnitDefID(unitID)].sonarRadius,
 -- armor=1,
 -- }
-	level = 1
+	level = 0
 	-- side = math.random(0,1)
 	randomness = math.random(-25,25)
 	-- addheight = 0
@@ -140,15 +177,23 @@ local null, fxp = Spring.GetUnitExperience(unitID)
 local realxp = 10 * fxp
 -- Spring.Echo(level)
 if realxp > 5 and level == 5 then
-LevelUp(5)
+LevelUpModel(5)
+LevelUpStats(5)
 elseif realxp > 4 and level == 4 then
-LevelUp(4)
+LevelUpModel(4)
+LevelUpStats(4)
 elseif realxp > 3 and level == 3 then
-LevelUp(3)
+LevelUpModel(3)
+LevelUpStats(3)
 elseif realxp > 2 and level == 2 then
-LevelUp(2)
+LevelUpModel(2)
+LevelUpStats(2)
 elseif realxp > 1 and level == 1 then
-LevelUp(1)
+LevelUpModel(1)
+LevelUpStats(1)
+elseif realxp >= 0 and level == 0 then
+LevelUpModel(0)
+LevelUpStats(0)
 end
 Sleep(1)
 end
@@ -159,116 +204,66 @@ Hide(piecenum1)
 Show(piecenum2)
 end
 
-function LevelUp(curLevel)
+function LevelUpStats(curLevel)
+	level = curLevel + 1
+	Spring.SetUnitMaxRange(unitID, Range[level])
+	for i = 23, 29 do
+	-- if UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i] then
+		-- Spring.Echo(WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
+	-- end
+		if i - 22 == level or (i == 29 and i - 22 <= level) then
+			-- Spring.Echo(i.."activated")
 
-if curLevel == 1 then
-switchpieces(torso1, torso2)
-level = 2
-currentRange = 375
-currentDamage = 75
-currentAreaOfEffect = 12
-currentReloadTime = 0.4
-Spring.SetUnitMaxRange(unitID, currentRange)
-for i = 14, 24 do
-if i -13 == level then
-Spring.SetUnitShieldState(unitID, i, true)
-else
-Spring.SetUnitShieldState(unitID, i, false)
-end
-end
-for i = 1,11 do
-	Spring.SetUnitWeaponState(unitID,i, "range", currentRange)
-	Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", currentAreaOfEffect)
-	Spring.SetUnitWeaponState(unitID,i, "reloadTime", currentReloadTime)
+			Spring.SetUnitShieldState(unitID, i, true)
+		else
+			-- Spring.Echo(i)
+			Spring.SetUnitShieldState(unitID, i, false)
+		end
 	end
+	for i = 1,11 do
+		Spring.SetUnitWeaponState(unitID,i, "range", Range[level])
+		-- Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", AOE[level])
+		-- Spring.SetUnitWeaponState(unitID,i, "reloadTime", ReloadTime[level])
+	end
+	for i = 12,22 do
+		Spring.SetUnitWeaponState(unitID,i, "range", Range2[level])
+		-- Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", AOE2[level])
+		-- Spring.SetUnitWeaponState(unitID,i, "reloadTime", ReloadTime2[level])
+	end
+	Spring.SetUnitWeaponState(unitID,30, "reloadTime", ReloadTime3[level])
+	Spring.SetUnitBuildSpeed(unitID, BuildSpeed[level], BuildSpeed[level], BuildSpeed[level]*0.7)
+	Spring.SetUnitSensorRadius(unitID,"los", LOS[level])
+	Spring.SetUnitSensorRadius(unitID,"airLos",LOS[level])
+	Spring.SetUnitSensorRadius(unitID,"radar",Radar[level])
+	Spring.SetUnitSensorRadius(unitID,"sonar",Sonar[level])
+	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
+	_,maxhealth = Spring.GetUnitHealth(unitID)
+	Spring.SetUnitMaxHealth(unitID, maxhealth + AdditionalMaxHealth[level])
+end
+
+function LevelUpModel(curLevel)
+if curLevel == 0 then
+elseif curLevel == 1 then
+	switchpieces(torso1, torso2)
 elseif curLevel == 2 then
-switchpieces(nanolath1, nanolath3)
-nanospray = nanospray3
-lfirept = lfirept3
-Spring.SetUnitNanoPieces(unitID, {lfirept})
-level = 3
-currentRange = 430
-currentDamage = 125
-currentAreaOfEffect = 12
-currentReloadTime = 0.4
-for i = 14, 24 do
-if i -13 == level then
-Spring.SetUnitShieldState(unitID, i, true)
-else
-Spring.SetUnitShieldState(unitID, i, false)
-end
-end
-Spring.SetUnitMaxRange(unitID, currentRange)
+	switchpieces(nanolath1, nanolath3)
+	nanospray = nanospray3
+	lfirept = lfirept3
+	Spring.SetUnitNanoPieces(unitID, {lfirept})
 
-for i = 1,11 do
-	Spring.SetUnitWeaponState(unitID,i, "range", currentRange)
-	Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", currentAreaOfEffect)
-	Spring.SetUnitWeaponState(unitID,i, "reloadTime", currentReloadTime)
-		end
 elseif curLevel == 3 then
-switchpieces(biggun1, biggun4)
-rbigflash = rbigflash4
-level = 4
-currentRange = 430
-currentDamage = 125
-currentAreaOfEffect = 16
-currentReloadTime = 0.2
-for i = 14, 24 do
-if i -13 == level then
-Spring.SetUnitShieldState(unitID, i, true)
-else
-Spring.SetUnitShieldState(unitID, i, false)
-end
-end
-Spring.SetUnitMaxRange(unitID, currentRange)
+	switchpieces(biggun1, biggun4)
+	rbigflash = rbigflash4
 
-for i = 1,11 do
-	Spring.SetUnitWeaponState(unitID,i, "range", currentRange)
-	Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", currentAreaOfEffect)
-	Spring.SetUnitWeaponState(unitID,i, "reloadTime", currentReloadTime)
-		end
 elseif curLevel == 4 then
-switchpieces(rthigh1, rthigh5)
-switchpieces(lthigh1, lthigh5)
-switchpieces(rleg1, rleg5)
-switchpieces(lleg1, lleg5)
-Move(ground, 2, 5)
-level = 5
-currentRange = 475
-currentDamage = 125
-currentAreaOfEffect = 16
-currentReloadTime = 0.2
-for i = 14, 24 do
-if i -13 == level then
-Spring.SetUnitShieldState(unitID, i, true)
-else
-Spring.SetUnitShieldState(unitID, i, false)
-end
-end
-Spring.SetUnitMaxRange(unitID, currentRange)
-for i = 1,11 do
-	Spring.SetUnitWeaponState(unitID,i, "range", currentRange)
-	Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", currentAreaOfEffect)
-	Spring.SetUnitWeaponState(unitID,i, "reloadTime", currentReloadTime)
-		end
+	switchpieces(rthigh1, rthigh5)
+	switchpieces(lthigh1, lthigh5)
+	switchpieces(rleg1, rleg5)
+	switchpieces(lleg1, lleg5)
+	Move(ground, 2, 5)
+
 elseif curLevel == 5 then
-currentRange = 525
-currentDamage = 150
-currentAreaOfEffect = 16
-currentReloadTime = 0.4
-for i = 14, 24 do
-if i -13 == level then
-Spring.SetUnitShieldState(unitID, i, true)
-else
-Spring.SetUnitShieldState(unitID, i, false)
-end
-end
-Spring.SetUnitMaxRange(unitID, currentRange)
-for i = 1,11 do
-	Spring.SetUnitWeaponState(unitID,i, "range", currentRange)
-	Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", currentAreaOfEffect)
-	Spring.SetUnitWeaponState(unitID,i, "reloadTime", currentReloadTime)
-end
+
 end
 end
 
@@ -285,39 +280,35 @@ end
 function script.AimFromWeapon(weapon)
 if weapon <= 11 then
 return torso
-elseif weapon == 12 then
+elseif weapon >= 12 and weapon <= 22 then
 return torso
-elseif weapon == 13 then
+elseif weapon == 30 then
 return biggun
-elseif weapon >= 14 and weapon <= 24 then
-return pelvis
+elseif weapon >= 23 and weapon <= 29 then
+return shield
 end
 end
 
 function script.AimWeapon(weapon, heading, pitch)
--- Spring.Echo(dgunning)
--- Spring.Echo(aiming)
-if weapon >= 14 and weapon <= 24 then
-if weapon - 13 == level then
+-- Spring.Echo(weapon)
+if weapon >= 23 and weapon <= 29 then
+if weapon - 22 == level then
 return true
 else
 return false
 end
 end
 if weapon <= 11 then
--- Spring.Echo(weapon)
--- Spring.Echo(level)
 	if weapon == level then
 	if dgunning then
 		return false
 	else
 		Spring.UnitScript.Signal(31)
-			Spring.UnitScript.StartThread(Restore,3000)
-
-		-- Spring.UnitScript.SetSignalMask(31)
+		Spring.UnitScript.StartThread(Restore,3000)
 		aiming = true
+		Turn(luparm, 1, 0, math.rad(200))
 		Turn(torso, 2, heading, math.rad(400))
-		Turn(nanolath, 1, -90-pitch, math.rad(250))
+		Turn(nanolath, 1, math.rad(-90)-pitch, math.rad(250))
 		WaitForTurn(nanolath, 1)
 		WaitForTurn(torso, 2)
 		justfired = true
@@ -326,7 +317,8 @@ if weapon <= 11 then
 	else
 	return false
 	end
-elseif weapon == 12 then
+elseif weapon >= 12 and weapon <= 22 then
+	if weapon - 11 == level then
 	_,uwlaserheight = Spring.GetUnitPosition(unitID)
 	if uwlaserheight > -15 then
 		return false
@@ -336,25 +328,27 @@ elseif weapon == 12 then
 	else
 		Spring.UnitScript.Signal(31)
 		Spring.UnitScript.StartThread(Restore,3000)
-
-		-- Spring.UnitScript.Signal(31)
-		-- Spring.UnitScript.SetSignalMask(31)
 		aiming = true
+		Turn(luparm, 1, 0, math.rad(200))
 		Turn(torso, 2, heading, math.rad(400))
-		Turn(nanolath, 1, -90-pitch, math.rad(250))
+		Turn(nanolath, 1, math.rad(-90)-pitch, math.rad(250))
 		WaitForTurn(nanolath, 1)
 		WaitForTurn(torso, 2)
 		justfired = true
 		return true
 	end
 	end
-elseif weapon == 13 then
+	else
+	return false
+	end
+elseif weapon == 30 then
 	Spring.UnitScript.Signal(31)
 	Spring.UnitScript.StartThread(Restore,1000)
 	dgunning = true
 	aiming = true
 	Turn(torso, 2, heading, math.rad(400))
-	Turn(biggun, 1, -90-pitch, math.rad(200))
+	Turn(ruparm, 1, 0, math.rad(200))
+	Turn(biggun, 1, math.rad(-90)-pitch, math.rad(200))
 	WaitForTurn(biggun, 1)
 	WaitForTurn(torso, 2)
 	return true
@@ -366,11 +360,11 @@ if weapon <= 11 then
 Spring.UnitScript.Signal(31)
 Spring.UnitScript.StartThread(Restore,3000)
 justfired = false
-elseif weapon == 12 then
+elseif weapon >= 12 and weapon <= 22 then
 Spring.UnitScript.Signal(31)
 Spring.UnitScript.StartThread(Restore,3000)
 justfired = false
-elseif weapon == 13 then
+elseif weapon == 3 then
 Spring.UnitScript.Signal(31)
 Spring.UnitScript.StartThread(Restore,1000)
 
@@ -381,12 +375,12 @@ end
 function script.QueryWeapon(weapon)
 if weapon <= 11 then
 return lfirept
-elseif weapon == 12 then
+elseif weapon >= 12 and weapon <= 22 then
 return lfirept
-elseif weapon == 13 then
+elseif weapon == 30 then
 return rbigflash
-elseif weapon >= 14 and weapon <= 24 then
-return pelvis
+elseif weapon >= 23 and weapon <= 29 then
+return shield
 end
 end
 
@@ -398,8 +392,9 @@ Spring.UnitScript.StartThread(Restore,3000)
 		dgunning = false
 		aiming = true
 		building = true
+		Turn(luparm, 1, 0, math.rad(200))
 		Turn(torso, 2, heading, math.rad(400))
-		Turn(nanolath, 1, -90-pitch, math.rad(250))
+		Turn(nanolath, 1, math.rad(-90)-pitch, math.rad(250))
 		WaitForTurn(nanolath, 1)
 		WaitForTurn(torso, 2)
 		SetUnitValue(COB.INBUILDSTANCE, 1)
