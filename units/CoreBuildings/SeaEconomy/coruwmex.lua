@@ -32,7 +32,7 @@ return {
 		maxslope = 30,
 		metalstorage = 50,
 		minwaterdepth = 15,
-		name = "Underwater Metal Extractor",
+		name = "Offshore Metal Extractor",
 		objectname = "CORUWMEX",
 		onoffable = false,
 		seismicsignature = 0,
