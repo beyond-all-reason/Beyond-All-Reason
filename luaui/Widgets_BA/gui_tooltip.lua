@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "April 2017",
 		license   = "GNU GPL, v2 or later",
-		layer     = -9999999999,
+		layer     = -math.huge,
 		enabled   = true,  --  loaded by default?
 	}
 end
