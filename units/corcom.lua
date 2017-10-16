@@ -33,10 +33,10 @@ Damages22 = {0.5,0.5,0.5,0.75,0.75,0.75,1,1,1,1,1}
 ReloadTime3 = {0.9,0.9,0.8,0.8,0.7,0.7,0.6,0.6,0.6,0.5,0.4}
 --Speeds
 BuildSpeed = {300,325,350,400,450,500,550,600,700,800,900}
-moveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
+MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
 --Armor/hp
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
-MaxHealth = {2500,2750,3000,3500,4000,4500,5000,5500,6000,6500,7000}
+HealOnLevelUp = {0,250,250,500,500,500,500,500,500,500,500}
 DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
 --Vision
 LOS = {450,500,550,600,625,650,675,700,725,750,800}
@@ -47,7 +47,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 	tablecorcom = {
 		acceleration = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 5,
+		autoheal = 2,
 		brakerate = 1.125,
 		buildcostenergy = 26500,
 		buildcostmetal = 2670,
@@ -409,6 +409,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 		},
 	}
 if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and Spring.GetModOptions().mo_unba == "enabled" then
+	tablecorcom.maxdamage = 2500
 	tablecorcom.weapondefs.armcomlaser.weapontype = "LaserCannon"
 	tablecorcom.weapons = {}
 	tablecorcom.script = "corcom_lus.lua"

@@ -42,7 +42,7 @@ BuildSpeed = {300,325,350,400,450,500,550,600,700,800,900}
 MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
 --Armor/hp
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
-AdditionalMaxHealth = {-500,-250,0,500,1000,1500,2000,2500,3000,3500,4000}
+HealOnLevelUp = {0,250,250,500,500,500,500,500,500,500,500}
 DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
 --Vision
 LOS = {450,500,550,600,625,650,675,700,725,750,800}
@@ -238,7 +238,7 @@ function LevelUpStats(curLevel)
 	Spring.SetUnitSensorRadius(unitID,"sonar",Sonar[level])
 	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
 	_,maxhealth = Spring.GetUnitHealth(unitID)
-	Spring.SetUnitMaxHealth(unitID, maxhealth + AdditionalMaxHealth[level])
+	Spring.SetUnitMaxHealth(unitID, maxhealth + HealOnLevelUp[level])
 end
 
 function LevelUpModel(curLevel)

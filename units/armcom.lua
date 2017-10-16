@@ -34,15 +34,16 @@ Damages22 = {0.5,0.5,0.5,0.75,0.75,0.75,1,1,1,1,1}
 ReloadTime3 = {0.9,0.9,0.8,0.8,0.7,0.7,0.6,0.6,0.6,0.5,0.4}
 --Speeds
 BuildSpeed = {300,325,350,400,450,500,550,600,700,800,900}
-moveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
+MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
 --Armor/hp
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
-MaxHealth = {2500,2750,3000,3500,4000,4500,5000,5500,6000,6500,7000}
+HealOnLevelUp = {0,250,250,500,500,500,500,500,500,500,500}
 DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
 --Vision
 LOS = {450,500,550,600,625,650,675,700,725,750,800}
 Sonar = {450,450,500,500,550,550,600,600,650,650,700}
 Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
+
 
 tablearmcom = {
 		acceleration = 0.18,
@@ -68,7 +69,7 @@ tablearmcom = {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Commander",
-		energymake = 35,
+		energymake = 25,
 		explodeas = "commanderExplosion",
 		footprintx = 2,
 		footprintz = 2,
