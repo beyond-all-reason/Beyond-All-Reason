@@ -32,7 +32,7 @@ return {
 		objectname = "CORFRAD",
 		onoffable = true,
 		radardistance = 2100,
-		sonardistance = 800,
+		sonardistance = 1200,
 		radaremitheight = 72,
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
