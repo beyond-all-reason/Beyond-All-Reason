@@ -2,9 +2,49 @@ local wreck_metal = 2500
 if (Spring.GetModOptions) then
 	wreck_metal = Spring.GetModOptions().comm_wreck_metal or 2500
 end
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
 
-return {
-	corcom = {
+--Stats Tables:
+--Weapon: Laser
+Range = {300,375,430,430,475,525,575,630,700,800,1000}
+AOE = {12,12,12,16,16,16,24,24,24,32,32}
+ReloadTime = {0.4,0.4,0.4,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2}
+Damages = {75,75,125,125,125,150,150,200,200,250,250}
+--Weapon:SeaLaser
+Range2 = {300,375,430,430,475,525,575,630,700,800,1000}
+AOE2 = {12,12,12,16,16,16,24,24,24,32,32}
+ReloadTime2 = {1,1,1,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5}
+Damages21 = {75,75,125,125,125,150,150,200,200,250,250}
+Damages22 = {0.5,0.5,0.5,0.75,0.75,0.75,1,1,1,1,1}
+--Weapon:Dgun
+ReloadTime3 = {0.9,0.9,0.8,0.8,0.7,0.7,0.6,0.6,0.6,0.5,0.4}
+--Speeds
+BuildSpeed = {300,325,350,400,450,500,550,600,700,800,900}
+moveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
+--Armor/hp
+ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
+MaxHealth = {2500,2750,3000,3500,4000,4500,5000,5500,6000,6500,7000}
+DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
+--Vision
+LOS = {450,500,550,600,625,650,675,700,725,750,800}
+Sonar = {450,450,500,500,550,550,600,600,650,650,700}
+Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
+
+
+	tablecorcom = {
 		acceleration = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -311,6 +351,47 @@ return {
 					subs = 75*0.25,
 				},
 			},
+			repulsor1 = {
+				avoidfeature = false,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+				name = "PlasmaRepulsor",
+				range = 50,
+				soundhitwet = "sizzle",
+				soundhitwetvolume = 0.5,
+				weapontype = "Shield",
+				damage = {
+					default = 100,
+				},
+				shield = {
+					alpha = 0.25,
+					energyuse = 0,
+					force = 2.5,
+					intercepttype = 511,
+					power = 1000,
+					powerregen = 20,
+					powerregenenergy = 0,
+					radius = 30,
+					repulser = false,
+					smart = true,
+					startingpower = 1000,
+					visible = true,
+					visiblehitframes = 70,
+					badcolor = {
+						[1] = 1,
+						[2] = 0.2,
+						[3] = 0.2,
+						[4] = 0.25,
+					},
+					goodcolor = {
+						[1] = 0.2,
+						[2] = 1,
+						[3] = 0.2,
+						[4] = 0.2,
+					},
+				},
+			},
 		},
 		weapons = {
 			[1] = {
@@ -326,5 +407,109 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 		},
-	},
-}
+	}
+if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and Spring.GetModOptions().mo_unba == "enabled" then
+	tablecorcom.weapondefs.armcomlaser.weapontype = "LaserCannon"
+	tablecorcom.weapons = {}
+	tablecorcom.script = "corcom_lus.lua"
+	tablecorcom.objectname = "UNBACORCOM.3DO"
+		--Weapon: Laser
+	tablecorcom.weapondefs.armcomlaser2 = deepcopy(tablecorcom.weapondefs.armcomlaser)
+	tablecorcom.weapondefs.armcomlaser2.damage.default = Damages[2]
+	tablecorcom.weapondefs.armcomlaser2.range = Range[2]
+	tablecorcom.weapondefs.armcomlaser2.areaofeffect = AOE[2]
+	tablecorcom.weapondefs.armcomlaser2.reloadtime = ReloadTime[2]
+for i = 3,11 do
+	I = tostring(i)
+	H = tostring(i-1)
+	tablecorcom.weapondefs["armcomlaser"..I] = deepcopy(tablecorcom.weapondefs["armcomlaser"..H])
+	tablecorcom.weapondefs["armcomlaser"..I].damage.default = Damages[i]
+	tablecorcom.weapondefs["armcomlaser"..I].range = Range[i]
+	tablecorcom.weapondefs["armcomlaser"..I].areaofeffect = AOE[i]
+	tablecorcom.weapondefs["armcomlaser"..I].reloadtime = ReloadTime[i]
+	if i == 3 then
+		tablecorcom.weapondefs.armcomlaser3.rgbcolor = "0.75 0.25 0"
+	elseif i == 6 then
+		tablecorcom.weapondefs.armcomlaser6.rgbcolor = "0.5 0.5 0"
+	elseif i == 8 then
+		tablecorcom.weapondefs.armcomlaser8.rgbcolor = "0.25 0.75 0"
+	elseif i == 10 then
+		tablecorcom.weapondefs.armcomlaser10.rgbcolor = "0 1 0"
+	end
+end
+
+for i = 1,11 do
+	if i == 1 then
+		tablecorcom.weapons[1] = {
+				def = "ARMCOMLASER",
+				onlytargetcategory = "NOTSUB",
+				}
+	else
+		tablecorcom.weapons[i] = {
+				def = "ARMCOMLASER"..tostring(i),
+				onlytargetcategory = "NOTSUB",
+				}
+	end
+end
+	--Weapon: SeaLaser
+tablecorcom.weapondefs.armcomsealaser2 = deepcopy(tablecorcom.weapondefs.armcomsealaser)
+	tablecorcom.weapondefs["armcomsealaser2"].damage.default = Damages21[2]
+	tablecorcom.weapondefs["armcomsealaser2"].damage.subs = Damages22[2]*Damages21[2]
+	tablecorcom.weapondefs["armcomsealaser2"].range = Range2[2]
+	tablecorcom.weapondefs["armcomsealaser2"].areaofeffect = AOE2[2]
+	tablecorcom.weapondefs["armcomsealaser2"].reloadtime = ReloadTime2[2]
+for i = 3,11 do
+	I = tostring(i)
+	H = tostring(i-1)
+	tablecorcom.weapondefs["armcomsealaser"..I] = deepcopy(tablecorcom.weapondefs["armcomsealaser"..H])
+	tablecorcom.weapondefs["armcomsealaser"..I].damage.default = Damages21[i]
+	tablecorcom.weapondefs["armcomsealaser"..I].damage.subs = Damages22[i] * Damages21[i]
+	tablecorcom.weapondefs["armcomsealaser"..I].range = Range2[i]
+	tablecorcom.weapondefs["armcomsealaser"..I].areaofeffect = AOE2[i]
+	tablecorcom.weapondefs["armcomsealaser"..I].reloadtime = ReloadTime2[i]
+	if i == 3 then
+		tablecorcom.weapondefs.armcomsealaser3.rgbcolor = "0.75 0.25 0"
+	elseif i == 6 then
+		tablecorcom.weapondefs.armcomsealaser6.rgbcolor = "0.5 0.5 0"
+	elseif i == 8 then
+		tablecorcom.weapondefs.armcomsealaser8.rgbcolor = "0.25 0.75 0"
+	elseif i == 10 then
+		tablecorcom.weapondefs.armcomsealaser10.rgbcolor = "0 1 0"
+	end
+end
+
+for i = 12,22 do
+	if i - 11 == 1 then
+		tablecorcom.weapons[12] = {
+				def = "ARMCOMSEALASER",
+				badtargetcategory = "VTOL",
+				}
+	else
+		tablecorcom.weapons[i] = {
+				def = "ARMCOMSEALASER"..tostring(i-11),
+				badtargetcategory = "VTOL",
+				}
+	end
+end
+
+	--Weapon: Shield
+
+for i = 2,7 do
+	I = tostring(i)
+	H = tostring(i-1)
+	tablecorcom.weapondefs["repulsor"..I] = deepcopy(tablecorcom.weapondefs["repulsor"..H])
+	tablecorcom.weapondefs["repulsor"..I].shield.power = ShieldPower[i]
+end
+
+for i = 23,29 do
+	tablecorcom.weapons[i] = {
+			def = "REPULSOR"..tostring(i-22),
+			}
+end
+	
+tablecorcom.weapons[30] ={
+				def = "DISINTEGRATOR",
+				onlytargetcategory = "NOTSUB",
+			}
+end
+return { corcom = deepcopy(tablecorcom) }
