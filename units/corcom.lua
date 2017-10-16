@@ -47,7 +47,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 	tablecorcom = {
 		acceleration = 0.18,
 		activatewhenbuilt = true,
-		autoheal = 2,
+		autoheal = 5,
 		brakerate = 1.125,
 		buildcostenergy = 26500,
 		buildcostmetal = 2670,
@@ -409,13 +409,14 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 		},
 	}
 if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and Spring.GetModOptions().mo_unba == "enabled" then
-	tablecorcom.maxdamage = 2500
+	tablecorcom.autoheal = 2
 	tablecorcom.weapondefs.armcomlaser.weapontype = "LaserCannon"
 	tablecorcom.weapons = {}
 	tablecorcom.script = "corcom_lus.lua"
 	tablecorcom.objectname = "UNBACORCOM.3DO"
 		--Weapon: Laser
 	tablecorcom.weapondefs.armcomlaser2 = deepcopy(tablecorcom.weapondefs.armcomlaser)
+	tablecorcom.weapondefs.armcomlaser.weapontype = "BeamLaser"
 	tablecorcom.weapondefs.armcomlaser2.damage.default = Damages[2]
 	tablecorcom.weapondefs.armcomlaser2.range = Range[2]
 	tablecorcom.weapondefs.armcomlaser2.areaofeffect = AOE[2]

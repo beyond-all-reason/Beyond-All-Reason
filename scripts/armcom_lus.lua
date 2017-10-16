@@ -211,7 +211,7 @@ function LevelUpStats(curLevel)
 	-- if UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i] then
 		-- Spring.Echo(WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
 	-- end
-		if i - 22 == level or (i == 29 and i - 22 <= level) then
+		if i - 22 == level - 1 or (i == 29 and i - 22 <= level -1) then
 			-- Spring.Echo(i.."activated")
 
 			Spring.SetUnitShieldState(unitID, i, true)
@@ -238,7 +238,7 @@ function LevelUpStats(curLevel)
 	Spring.SetUnitSensorRadius(unitID,"sonar",Sonar[level])
 	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
 	curHP = Spring.GetUnitHealth(unitID)
-	Spring.Echo(maxhealth)
+	-- Spring.Echo(maxhealth)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
 end
 
