@@ -34,7 +34,7 @@ factionColors = {
   arm     = {0, 0.2, 1},   --// arm
   core    = {1, 0.7, 0.2},   --// core
   chicken = {1.0,0.8,0.2},   --// chicken
-  unknown = {0, 1.0, 0},   --// unknown
+  unknown = {1.0, 0, 0},   --// unknown -- This is what is being used to color the units when processed, as it cannot tell the side of a unit when using "/luarules buildicon unitName"
 }
 
 
@@ -51,7 +51,7 @@ lightPos     = {-0.3,0.5,0.6}
 aoPower     = ((scheme=="bw") and 1.5) or 1
 aoContrast  = ((scheme=="bw") and 2.5) or 1
 aoTolerance = 0
-olContrast  = ((scheme=="bw") and 5) or 10
+olContrast  = ((scheme=="bw") and 5) or 2
 olTolerance = 0
 
 --// halo (white)
@@ -165,7 +165,13 @@ backgrounds = {
 
   ]]--
   
-  {check={},                                                 texture="LuaRules/Images/IconGenBkgs/transparent.png"},
+  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/transparent.png"}, -- allpurpose blank background
+  {check={},                                                 texture="LuaRules/Images/IconGenBkgs/ssbwater.png"}, -- for arm and core sea units
+  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/ssbgrass.png"}, -- for arm land units
+  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/sand.png"}, -- for amphibs
+  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/dryground.png"}, -- for corland units
+
+
 }
 
 

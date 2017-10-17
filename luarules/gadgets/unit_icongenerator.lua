@@ -768,11 +768,11 @@ end
 		  amfibianunit = true
 	  end
 	  if amfibianunit then 
-	    gl.Texture(":n:LuaRules/Images/amfibianunit.png");
+	    gl.Texture(":n:LuaRules/Images/blank.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 		elseif waterunit then
-	    gl.Texture(":n:LuaRules/Images/waterunit.png");
+	    gl.Texture(":n:LuaRules/Images/blank.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 	  end
