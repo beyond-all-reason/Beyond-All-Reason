@@ -1,0 +1,40 @@
+[BRAIN_SPHERE_EMIT]
+{
+	[nanodecay]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0.5 0 0 0.0001   0.5 0.0 0.0 0.0001   0.5 0.0 0.0 0.7	  0.3 0.0 0.0 0.5 	0.2 0.0 0.0 0.001;
+
+      		pos 		= 10 r-20, 0, 10 r-20;
+		gravity		= 0, 0.1, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 16;
+		emitRotSpread	= 16;
+
+		sizeGrowth	= -0.01;
+		sizeMod		= 1;
+
+		airdrag			= 0.8;
+		particleLife		= 5;
+		particleLifeSpread	= 18;
+		numParticles		= 1;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 3;
+		particleSize		= 4;
+		particleSizeSpread	= 8;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=3;
+	}
+}

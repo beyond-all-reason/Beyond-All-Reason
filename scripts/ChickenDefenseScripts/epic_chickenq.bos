@@ -1,0 +1,425 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  body, head, tail, lthighf, lkneef, lshinf, lfootf, rthighf,
+       rkneef, rshinf, rfootf, lthighb, lkneeb, lshinb, lfootb, rthighb,
+       rkneeb, rshinb, rfootb, lforearml, lbladel, rforearml, rbladel, lforearmu,
+       lbladeu, rforearmu, rbladeu, spike1, spike2, spike3, firepoint;
+
+static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+walk()
+{
+	while( bMoving )
+	{
+		Static_Var_2 = 1;
+		if( bMoving )
+		{
+			turn lthighf to x-axis <70.000000> speed <115.000000>;
+			turn lkneef to x-axis <-40.000000> speed <145.000000>;
+			turn lshinf to x-axis <20.000000> speed <145.000000>;
+			turn lfootf to x-axis <-50.000000> speed <210.000000>;
+			turn rthighf to x-axis <-20.000000> speed <210.000000>;
+			turn rkneef to x-axis <-60.000000> speed <210.000000>;
+			turn rshinf to x-axis <50.000000> speed <210.000000>;
+			turn rfootf to x-axis <30.000000> speed <210.000000>;
+			turn rthighb to x-axis <70.000000> speed <115.000000>;
+			turn rkneeb to x-axis <-40.000000> speed <145.000000>;
+			turn rshinb to x-axis <20.000000> speed <145.000000>;
+			turn rfootb to x-axis <-50.000000> speed <210.000000>;
+			turn lthighb to x-axis <-20.000000> speed <210.000000>;
+			turn lkneeb to x-axis <-60.000000> speed <210.000000>;
+			turn lshinb to x-axis <50.000000> speed <210.000000>;
+			turn lfootb to x-axis <30.000000> speed <210.000000>;
+			turn body to z-axis <5.000000> speed <20.000000>;
+			turn lthighf to z-axis <-5.000000> speed <20.000000>;
+			turn rthighf to z-axis <-5.000000> speed <20.000000>;
+			turn lthighb to z-axis <-5.000000> speed <20.000000>;
+			turn rthighb to z-axis <-5.000000> speed <20.000000>;
+			move body to y-axis [0.700000] speed [4.443359];
+			turn tail to y-axis <10.000000> speed <40.000000>;
+			turn head to x-axis <-10.000000> speed <20.000000>;
+			turn tail to x-axis <10.000000> speed <20.000000>;
+			wait-for-turn lthighf around x-axis;
+			emit-sfx 1024+3 from lthighf;
+			emit-sfx 1024+3 from spike1;
+		}
+		if( bMoving )
+		{
+			turn lthighf to x-axis <-10.000000> speed <160.000000>;
+			turn lkneef to x-axis <15.000000> speed <145.000000>;
+			turn lshinf to x-axis <-60.000000> speed <250.000000>;
+			turn lfootf to x-axis <30.000000> speed <145.000000>;
+			turn rthighf to x-axis <40.000000> speed <145.000000>;
+			turn rkneef to x-axis <-35.000000> speed <145.000000>;
+			turn rshinf to x-axis <-40.000000> speed <145.000000>;
+			turn rfootf to x-axis <35.000000> speed <145.000000>;
+			turn rthighb to x-axis <-10.000000> speed <160.000000>;
+			turn rkneeb to x-axis <15.000000> speed <145.000000>;
+			turn rshinb to x-axis <-60.000000> speed <250.000000>;
+			turn rfootb to x-axis <30.000000> speed <145.000000>;
+			turn lthighb to x-axis <40.000000> speed <145.000000>;
+			turn lkneeb to x-axis <-35.000000> speed <145.000000>;
+			turn lshinb to x-axis <-40.000000> speed <145.000000>;
+			turn lfootb to x-axis <35.000000> speed <145.000000>;
+			move body to y-axis [0.000000] speed [4.443359];
+			turn head to x-axis <10.000000> speed <20.000000>;
+			turn tail to x-axis <-10.000000> speed <20.000000>;
+			wait-for-turn lshinf around x-axis;
+			emit-sfx 1024+3 from lshinf;
+			emit-sfx 1024+3 from spike2;
+		}
+		if( bMoving )
+		{
+			turn rthighf to x-axis <70.000000> speed <115.000000>;
+			turn rkneef to x-axis <-40.000000> speed <145.000000>;
+			turn rshinf to x-axis <20.000000> speed <145.000000>;
+			turn rfootf to x-axis <-50.000000> speed <210.000000>;
+			turn lthighf to x-axis <-20.000000> speed <210.000000>;
+			turn lkneef to x-axis <-60.000000> speed <210.000000>;
+			turn lshinf to x-axis <50.000000> speed <210.000000>;
+			turn lfootf to x-axis <30.000000> speed <210.000000>;
+			turn lthighb to x-axis <70.000000> speed <115.000000>;
+			turn lkneeb to x-axis <-40.000000> speed <145.000000>;
+			turn lshinb to x-axis <20.000000> speed <145.000000>;
+			turn lfootb to x-axis <-50.000000> speed <210.000000>;
+			turn rthighb to x-axis <-20.000000> speed <210.000000>;
+			turn rkneeb to x-axis <-60.000000> speed <210.000000>;
+			turn rshinb to x-axis <50.000000> speed <210.000000>;
+			turn rfootb to x-axis <30.000000> speed <210.000000>;
+			turn tail to y-axis <-10.000000> speed <40.000000>;
+			turn body to z-axis <-5.000000> speed <20.000000>;
+			turn lthighf to z-axis <5.000000> speed <20.000000>;
+			turn rthighf to z-axis <5.000000> speed <20.000000>;
+			turn lthighb to z-axis <5.000000> speed <20.000000>;
+			turn rthighb to z-axis <5.000000> speed <20.000000>;
+			move body to y-axis [0.700000] speed [4.443359];
+			turn head to x-axis <-10.000000> speed <20.000000>;
+			turn tail to x-axis <10.000000> speed <20.000000>;
+			wait-for-turn rthighf around x-axis;
+			emit-sfx 1024+3 from rthighf;
+			emit-sfx 1024+3 from spike3;
+		}
+		if( bMoving )
+		{
+			turn rthighf to x-axis <-10.000000> speed <160.000000>;
+			turn rkneef to x-axis <15.000000> speed <145.000000>;
+			turn rshinf to x-axis <-60.000000> speed <250.000000>;
+			turn rfootf to x-axis <30.000000> speed <145.000000>;
+			turn lthighf to x-axis <40.000000> speed <145.000000>;
+			turn lkneef to x-axis <-35.000000> speed <145.000000>;
+			turn lshinf to x-axis <-40.000000> speed <145.000000>;
+			turn lfootf to x-axis <35.000000> speed <145.000000>;
+			turn lthighb to x-axis <-10.000000> speed <160.000000>;
+			turn lkneeb to x-axis <15.000000> speed <145.000000>;
+			turn lshinb to x-axis <-60.000000> speed <250.000000>;
+			turn lfootb to x-axis <30.000000> speed <145.000000>;
+			turn rthighb to x-axis <40.000000> speed <145.000000>;
+			turn rkneeb to x-axis <-35.000000> speed <145.000000>;
+			turn rshinb to x-axis <-40.000000> speed <145.000000>;
+			turn rfootb to x-axis <35.000000> speed <145.000000>;
+			move body to y-axis [0.000000] speed [4.443359];
+			turn head to x-axis <10.000000> speed <20.000000>;
+			turn tail to x-axis <-10.000000> speed <20.000000>;
+			wait-for-turn rshinf around x-axis;
+			emit-sfx 1024+3 from rshinf;
+			emit-sfx 1024+3 from head;
+		}
+	}
+}
+
+Halt()
+{
+	sleep 150;
+	if( !bMoving )
+	{
+		Static_Var_2 = 0;
+		turn lfootf to x-axis <0.000000> speed <200.000000>;
+		turn rfootf to x-axis <0.000000> speed <200.000000>;
+		turn rthighf to x-axis <0.000000> speed <200.000000>;
+		turn lthighf to x-axis <0.000000> speed <200.000000>;
+		turn lshinf to x-axis <0.000000> speed <200.000000>;
+		turn rshinf to x-axis <0.000000> speed <200.000000>;
+		turn lkneef to x-axis <0.000000> speed <200.000000>;
+		turn rkneef to x-axis <0.000000> speed <200.000000>;
+		turn lfootb to x-axis <0.000000> speed <200.000000>;
+		turn rfootb to x-axis <0.000000> speed <200.000000>;
+		turn rthighb to x-axis <0.000000> speed <200.000000>;
+		turn lthighb to x-axis <0.000000> speed <200.000000>;
+		turn lshinb to x-axis <0.000000> speed <200.000000>;
+		turn rshinb to x-axis <0.000000> speed <200.000000>;
+		turn lkneeb to x-axis <0.000000> speed <200.000000>;
+		turn rkneeb to x-axis <0.000000> speed <200.000000>;
+	}
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	if( !Static_Var_2 )
+	{
+		start-script walk();
+	}
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	start-script Halt();
+}
+
+Create()
+{
+	emit-sfx 1026 from body;
+	emit-sfx 1026 from head;
+	emit-sfx 1026 from tail;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = firepoint;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = firepoint;
+}
+
+AimFromWeapon2(Func_Var_1)
+{
+	Func_Var_1 = 27;
+}
+
+QueryWeapon2(Func_Var_1)
+{
+	Func_Var_1 = 27;
+}
+
+AimFromWeapon3(Func_Var_1)
+{
+	Func_Var_1 = 28;
+}
+
+QueryWeapon3(Func_Var_1)
+{
+	Func_Var_1 = 28;
+}
+
+AimFromWeapon4(Func_Var_1)
+{
+	Func_Var_1 = 29;
+}
+
+QueryWeapon4(Func_Var_1)
+{
+	Func_Var_1 = 29;
+}
+
+AimFromWeapon5(Func_Var_1)
+{
+	Func_Var_1 = 30;
+}
+
+QueryWeapon5(Func_Var_1)
+{
+	Func_Var_1 = 30;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn head to y-axis heading speed <350.000000>;
+	turn head to x-axis <0.000000> - pitch speed <300.000000>;
+	wait-for-turn head around y-axis;
+	return (1);
+}
+
+AimWeapon2()
+{
+	return (1);
+}
+
+AimWeapon3()
+{
+	return (1);
+}
+
+AimWeapon4()
+{
+	return (1);
+}
+
+AimWeapon5(Func_Var_1, Func_Var_2)
+{
+	Static_Var_4 = Func_Var_2;
+	Static_Var_5 = Func_Var_1;
+	return (1);
+}
+
+Shot1()
+{
+	++Static_Var_3;
+	if( Static_Var_3 > 4 )
+	{
+		Static_Var_3 = 1;
+	}
+	if( Static_Var_3 == 1 )
+	{
+		turn lforearmu to y-axis <-140.000000> speed <600.000000>;
+		turn lbladeu to y-axis <140.000000> speed <600.000000>;
+		wait-for-turn lbladeu around y-axis;
+		turn lforearmu to y-axis <0.000000> speed <120.000000>;
+		turn lbladeu to y-axis <0.000000> speed <120.000000>;
+	}
+	if( Static_Var_3 == 2 )
+	{
+		turn lforearml to y-axis <-140.000000> speed <600.000000>;
+		turn lbladel to y-axis <140.000000> speed <600.000000>;
+		wait-for-turn lbladel around y-axis;
+		turn lforearml to y-axis <0.000000> speed <120.000000>;
+		turn lbladel to y-axis <0.000000> speed <120.000000>;
+	}
+	if( Static_Var_3 == 3 )
+	{
+		turn rforearmu to y-axis <140.000000> speed <600.000000>;
+		turn rbladeu to y-axis <-140.000000> speed <600.000000>;
+		wait-for-turn rbladeu around y-axis;
+		turn rforearmu to y-axis <0.000000> speed <120.000000>;
+		turn rbladeu to y-axis <0.000000> speed <120.000000>;
+	}
+	if( Static_Var_3 == 4 )
+	{
+		turn rforearml to y-axis <140.000000> speed <600.000000>;
+		turn rbladel to y-axis <-140.000000> speed <600.000000>;
+		wait-for-turn rbladel around y-axis;
+		turn rforearml to y-axis <0.000000> speed <120.000000>;
+		turn rbladel to y-axis <0.000000> speed <120.000000>;
+	}
+}
+
+Shot2()
+{
+	set UNKNOWN_UNIT_VALUE(98) to 2;
+}
+
+Shot3()
+{
+	set UNKNOWN_UNIT_VALUE(98) to 3;
+}
+
+Shot4()
+{
+	set UNKNOWN_UNIT_VALUE(98) to 4;
+}
+
+Shot5()
+{
+	turn head to x-axis <0.000000> - Static_Var_4 speed <400.000000>;
+	turn head to y-axis Static_Var_5 speed <300.000000>;
+	wait-for-turn head around x-axis;
+	turn lforearmu to y-axis <-140.000000> speed <600.000000>;
+	turn lbladeu to y-axis <140.000000> speed <600.000000>;
+	turn lforearml to y-axis <-140.000000> speed <600.000000>;
+	turn lbladel to y-axis <140.000000> speed <600.000000>;
+	turn rforearmu to y-axis <140.000000> speed <600.000000>;
+	turn rbladeu to y-axis <-140.000000> speed <600.000000>;
+	turn rforearml to y-axis <140.000000> speed <600.000000>;
+	turn rbladel to y-axis <-140.000000> speed <600.000000>;
+	wait-for-turn lbladeu around y-axis;
+	wait-for-turn lbladel around y-axis;
+	wait-for-turn rbladeu around y-axis;
+	wait-for-turn rbladel around y-axis;
+	turn lforearmu to y-axis <0.000000> speed <120.000000>;
+	turn lbladeu to y-axis <0.000000> speed <120.000000>;
+	turn lforearml to y-axis <0.000000> speed <120.000000>;
+	turn lbladel to y-axis <0.000000> speed <120.000000>;
+	turn rforearmu to y-axis <0.000000> speed <120.000000>;
+	turn rbladeu to y-axis <0.000000> speed <120.000000>;
+	turn rforearml to y-axis <0.000000> speed <120.000000>;
+	turn rbladel to y-axis <0.000000> speed <120.000000>;
+}
+
+HitByWeaponId(Func_Var_1, Func_Var_2, Func_Var_3, Func_Var_4)
+{
+	if( Func_Var_3 == 51 )
+	{
+		emit-sfx 1025 from head;
+		emit-sfx 1025 from body;
+		emit-sfx 1024 from rthighf;
+		emit-sfx 1025 from rthighb;
+		emit-sfx 1024 from lthighf;
+		emit-sfx 1025 from lthighb;
+	}
+	return (100);
+}
+
+Killed(severity, corpsetype)
+{
+	corpsetype = 1;
+	emit-sfx 1025 from body;
+	emit-sfx 1025 from head;
+	emit-sfx 1025 from rbladeu;
+	emit-sfx 1025 from lbladel;
+	emit-sfx 1025 from tail;
+	emit-sfx 1025 from rthighf;
+	emit-sfx 1025 from rthighb;
+	emit-sfx 1025 from lthighf;
+	emit-sfx 1025 from lthighb;
+	emit-sfx 1024 from rfootf;
+	emit-sfx 1024 from rfootb;
+	emit-sfx 1024 from lfootf;
+	emit-sfx 1024 from lfootb;
+	sleep 50;
+	emit-sfx 2048 + 4 from body;
+	emit-sfx 2048 + 4 from head;
+	emit-sfx 2048 + 4 from tail;
+	emit-sfx 2048 + 4 from lthighf;
+	emit-sfx 2048 + 4 from rthighf;
+	emit-sfx 2048 + 4 from rthighb;
+	emit-sfx 2048 + 4 from lthighb;
+	emit-sfx 2048 + 4 from spike1;
+	emit-sfx 2048 + 4 from spike2;
+	emit-sfx 2048 + 4 from spike3;
+	explode head type FALL | FIRE | EXPLODE_ON_HIT;
+	explode lforearml type FALL | EXPLODE_ON_HIT;
+	explode lbladel type FALL | EXPLODE_ON_HIT;
+	explode rforearml type FALL | EXPLODE_ON_HIT;
+	explode rbladel type FALL | EXPLODE_ON_HIT;
+	explode lforearmu type FALL | EXPLODE_ON_HIT;
+	explode lbladeu type FALL | EXPLODE_ON_HIT;
+	explode rforearmu type FALL | EXPLODE_ON_HIT;
+	explode rbladeu type FALL | EXPLODE_ON_HIT;
+	explode spike1 type FALL | EXPLODE_ON_HIT;
+	explode spike2 type FALL | EXPLODE_ON_HIT;
+	explode spike3 type FALL | EXPLODE_ON_HIT;
+	explode tail type FALL | EXPLODE_ON_HIT;
+	explode body type FALL | EXPLODE_ON_HIT;
+	explode lthighf type FALL | EXPLODE_ON_HIT;
+	explode lkneef type FALL | EXPLODE_ON_HIT;
+	explode lshinf type FALL | EXPLODE_ON_HIT;
+	explode lfootf type FALL | EXPLODE_ON_HIT;
+	explode rthighf type FALL | EXPLODE_ON_HIT;
+	explode rkneef type FALL | EXPLODE_ON_HIT;
+	explode rshinf type FALL | EXPLODE_ON_HIT;
+	explode rfootf type FALL | EXPLODE_ON_HIT;
+	explode lthighb type FALL | EXPLODE_ON_HIT;
+	explode lkneeb type FALL | EXPLODE_ON_HIT;
+	explode lshinb type FALL | EXPLODE_ON_HIT;
+	explode lfootb type FALL | EXPLODE_ON_HIT;
+	explode rthighb type FALL | EXPLODE_ON_HIT;
+	explode rkneeb type FALL | EXPLODE_ON_HIT;
+	explode rshinb type FALL | EXPLODE_ON_HIT;
+	explode rfootb type FALL | EXPLODE_ON_HIT;
+}

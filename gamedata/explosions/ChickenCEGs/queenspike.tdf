@@ -1,0 +1,61 @@
+[QUEENSPIKES]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=fireball;
+			airdrag=0.95;
+			particleLife=1;
+			particleLifeSpread=5;
+			numParticles=1;
+			particleSpeed=5;
+			particleSpeedSpread=2;
+			particleSize=10;
+			particleSizeSpread=5;
+			directional=1;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  0.3 0.3 0.3 0.7	0.3 0.3 0.3 0.7	0.3 0.3 0.3 0.6	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=5;
+			particleLifeSpread=15;
+			numParticles=1;
+			particleSpeed=6;
+			particleSpeedSpread=1;
+			particleSize=15;
+			particleSizeSpread=15;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+}

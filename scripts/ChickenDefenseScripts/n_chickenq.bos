@@ -1,0 +1,417 @@
+piece body,head,tail,lthighf,lkneef,lshinf,lfootf,rthighf,rkneef,rshinf,rfootf,lthighb,lkneeb,lshinb,lfootb,rthighb,rkneeb,rshinb,rfootb,lforearml,lbladel,rforearml,rbladel,lforearmu,lbladeu,rforearmu,rbladeu,spike1,spike2,spike3,firepoint;
+
+static-var aMoving, bMoving, gun_1, shot5pitch, shot5heading;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_MOVE			16
+#define CHANGE_TARGET        98
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+walk()
+{
+ while (aMoving)
+ {
+    bMoving = TRUE;
+	if (aMoving) {
+			turn lthighf to x-axis <70> speed<115>;
+			turn lkneef to x-axis <-40> speed<145>;
+			turn lshinf to x-axis <20> speed<145>;
+			turn lfootf to x-axis <-50> speed<210>;
+			
+			turn rthighf to x-axis <-20> speed<210>;
+			turn rkneef to x-axis <-60> speed<210>;
+			turn rshinf to x-axis <50> speed<210>;
+			turn rfootf to x-axis <30> speed<210>;
+			
+			turn rthighb to x-axis <70> speed<115>;
+			turn rkneeb to x-axis <-40> speed<145>;
+			turn rshinb to x-axis <20> speed<145>;
+			turn rfootb to x-axis <-50> speed<210>;
+			
+			turn lthighb to x-axis <-20> speed<210>;
+			turn lkneeb to x-axis <-60> speed<210>;
+			turn lshinb to x-axis <50> speed<210>;
+			turn lfootb to x-axis <30> speed<210>;
+			
+			turn body to z-axis <5> speed <20>;
+			turn lthighf to z-axis <-5> speed <20>;
+			turn rthighf to z-axis <-5> speed <20>;
+			turn lthighb to z-axis <-5> speed <20>;
+			turn rthighb to z-axis <-5> speed <20>;
+			move body to y-axis [0.7] speed <4000>;			
+			turn tail to y-axis <10> speed <40>;
+			turn head to x-axis <-10> speed <20>;
+			turn tail to x-axis <10> speed <20>;
+			wait-for-turn lthighf around x-axis;}
+			
+			if (aMoving) {
+			turn lthighf to x-axis <-10> speed<160>;
+			turn lkneef to x-axis <15> speed<145>;
+			turn lshinf to x-axis <-60> speed<250>;
+			turn lfootf to x-axis <30> speed<145>;
+			
+			turn rthighf to x-axis <40> speed<145>;
+			turn rkneef to x-axis <-35> speed<145>;
+			turn rshinf to x-axis <-40> speed<145>;
+			turn rfootf to x-axis <35> speed<145>;
+			
+			turn rthighb to x-axis <-10> speed<160>;
+			turn rkneeb to x-axis <15> speed<145>;
+			turn rshinb to x-axis <-60> speed<250>;
+			turn rfootb to x-axis <30> speed<145>;
+			
+			turn lthighb to x-axis <40> speed<145>;
+			turn lkneeb to x-axis <-35> speed<145>;
+			turn lshinb to x-axis <-40> speed<145>;
+			turn lfootb to x-axis <35> speed<145>;
+			
+			move body to y-axis [0] speed <4000>;
+			turn head to x-axis <10> speed <20>;
+			turn tail to x-axis <-10> speed <20>;
+			wait-for-turn lshinf around x-axis;}
+			if (aMoving) {
+			
+			turn rthighf to x-axis <70> speed<115>;
+			turn rkneef to x-axis <-40> speed<145>;
+			turn rshinf to x-axis <20> speed<145>;
+			turn rfootf to x-axis <-50> speed<210>;
+			
+			turn lthighf to x-axis <-20> speed<210>;
+			turn lkneef to x-axis <-60> speed<210>;
+			turn lshinf to x-axis <50> speed<210>;
+			turn lfootf to x-axis <30> speed<210>;
+						
+			turn lthighb to x-axis <70> speed<115>;
+			turn lkneeb to x-axis <-40> speed<145>;
+			turn lshinb to x-axis <20> speed<145>;
+			turn lfootb to x-axis <-50> speed<210>;
+			
+			turn rthighb to x-axis <-20> speed<210>;
+			turn rkneeb to x-axis <-60> speed<210>;
+			turn rshinb to x-axis <50> speed<210>;
+			turn rfootb to x-axis <30> speed<210>;
+			
+			turn tail to y-axis <-10> speed <40>;
+			turn body to z-axis <-5> speed <20>;
+			turn lthighf to z-axis <5> speed <20>;
+			turn rthighf to z-axis <5> speed <20>;
+			turn lthighb to z-axis <5> speed <20>;
+			turn rthighb to z-axis <5> speed <20>;
+			move body to y-axis [0.7] speed <4000>;
+			turn head to x-axis <-10> speed <20>;
+			turn tail to x-axis <10> speed <20>;
+			wait-for-turn rthighf around x-axis;}
+			if (aMoving) {
+			
+			turn rthighf to x-axis <-10> speed<160>;
+			turn rkneef to x-axis <15> speed<145>;
+			turn rshinf to x-axis <-60> speed<250>;
+			turn rfootf to x-axis <30> speed<145>;
+			
+			turn lthighf to x-axis <40> speed<145>;
+			turn lkneef to x-axis <-35> speed<145>;
+			turn lshinf to x-axis <-40> speed<145>;
+			turn lfootf to x-axis <35> speed<145>;
+						
+			turn lthighb to x-axis <-10> speed<160>;
+			turn lkneeb to x-axis <15> speed<145>;
+			turn lshinb to x-axis <-60> speed<250>;
+			turn lfootb to x-axis <30> speed<145>;
+			
+			turn rthighb to x-axis <40> speed<145>;
+			turn rkneeb to x-axis <-35> speed<145>;
+			turn rshinb to x-axis <-40> speed<145>;
+			turn rfootb to x-axis <35> speed<145>;
+
+			move body to y-axis [0] speed <4000>;
+			turn head to x-axis <10> speed <20>;
+			turn tail to x-axis <-10> speed <20>;
+			wait-for-turn rshinf around x-axis;
+			
+			}
+			
+	}
+			
+	return 0;		
+}
+
+Halt()
+{	
+	sleep 150;
+	if(!aMoving)
+	{	
+	bMoving = FALSE;
+	turn lfootf		to x-axis <0> 		speed <200>;
+	turn rfootf		to x-axis <0> 		speed <200>;
+	turn rthighf	to x-axis <0> 		speed <200>;
+	turn lthighf	to x-axis <0> 		speed <200>;
+	turn lshinf		to x-axis <0> 		speed <200>;
+	turn rshinf		to x-axis <0> 		speed <200>;
+	turn lkneef 	to x-axis <0> 		speed <200>;
+	turn rkneef		to x-axis <0> 		speed <200>;
+	turn lfootb		to x-axis <0> 		speed <200>;
+	turn rfootb		to x-axis <0> 		speed <200>;
+	turn rthighb	to x-axis <0> 		speed <200>;
+	turn lthighb 	to x-axis <0> 		speed <200>;
+	turn lshinb  	to x-axis <0> 		speed <200>;
+	turn rshinb		to x-axis <0> 		speed <200>;
+	turn lkneeb  	to x-axis <0> 		speed <200>;
+	turn rkneeb		to x-axis <0> 		speed <200>;
+	}
+}
+
+
+StartMoving()
+{
+	aMoving = TRUE;
+	if (!bMoving)
+	{
+		start-script Walk();
+	}
+}
+
+StopMoving()
+{
+	aMoving = FALSE;
+	start-script Halt();
+}
+
+
+Create()
+{
+	emit-sfx 1026 from body;
+	emit-sfx 1026 from head;
+	emit-sfx 1026 from tail;
+}
+
+SweetSpot(piecenum)
+	{	piecenum=body;	}	
+	
+AimFromPrimary(piecenum)
+	{	piecenum=firepoint;	}
+
+QueryPrimary(piecenum)
+	{	piecenum=firepoint; }
+
+AimFromWeapon2(piecenum)
+	{	piecenum=spike1;	}
+
+QueryWeapon2(piecenum)
+	{	piecenum=spike1; }
+
+AimFromWeapon3(piecenum)
+	{	piecenum=spike2;	}
+
+QueryWeapon3(piecenum)
+	{	piecenum=spike2; }
+
+AimFromWeapon4(piecenum)
+	{	piecenum=spike3;	}
+
+QueryWeapon4(piecenum)
+	{	piecenum=spike3; }
+
+AimFromWeapon5(piecenum)
+	{	piecenum=firepoint;	}
+
+QueryWeapon5(piecenum)
+	{	piecenum=firepoint; }
+
+	
+AimPrimary(heading,pitch)
+	{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn head to y-axis heading speed <350>;
+	turn head to x-axis 0 -pitch speed <300>;
+		
+	wait-for-turn head around y-axis;
+	
+	return(TRUE);
+	}
+	
+AimWeapon2()
+	{
+	return(TRUE);
+	}
+
+AimWeapon3()
+	{
+	return(TRUE);
+	}
+
+AimWeapon4()
+	{
+	return(TRUE);
+	}
+
+AimWeapon5(heading,pitch)
+	{
+	shot5pitch = pitch;
+	shot5heading = heading;
+	return(TRUE);
+	}
+
+
+Shot1()
+	{
+	++gun_1;
+	if (gun_1 > 4)
+		{
+		gun_1 = 1;
+		}
+	if (gun_1 == 1)
+		{
+		turn lforearmu to y-axis <-140> speed <600>;
+		turn lbladeu to y-axis <140> speed <600>;
+		wait-for-turn lbladeu around y-axis;
+		turn lforearmu to y-axis <0> speed <120>;
+		turn lbladeu to y-axis <0> speed <120>;
+		}
+	if (gun_1 == 2)
+		{
+		turn lforearml to y-axis <-140> speed <600>;
+		turn lbladel to y-axis <140> speed <600>;
+		wait-for-turn lbladel around y-axis;
+		turn lforearml to y-axis <0> speed <120>;
+		turn lbladel to y-axis <0> speed <120>;
+		}
+	if (gun_1 == 3)
+		{
+		turn rforearmu to y-axis <140> speed <600>;
+		turn rbladeu to y-axis <-140> speed <600>;
+		wait-for-turn rbladeu around y-axis;
+		turn rforearmu to y-axis <0> speed <120>;
+		turn rbladeu to y-axis <0> speed <120>;
+		}
+	if (gun_1 == 4)
+		{
+		turn rforearml to y-axis <140> speed <600>;
+		turn rbladel to y-axis <-140> speed <600>;
+		wait-for-turn rbladel around y-axis;
+		turn rforearml to y-axis <0> speed <120>;
+		turn rbladel to y-axis <0> speed <120>;
+		}
+	}
+	
+
+Shot2()
+{
+ set CHANGE_TARGET to 2;
+}
+
+Shot3()
+{
+ set CHANGE_TARGET to 3;
+}
+
+Shot4()
+{
+set CHANGE_TARGET to 4;
+}
+
+Shot5()
+{
+        turn head to x-axis 0 -shot5pitch speed <400>;
+        turn head to y-axis shot5heading speed <300>;
+	    wait-for-turn head around x-axis;
+		turn lforearmu to y-axis <-140> speed <600>;
+		turn lbladeu to y-axis <140> speed <600>;
+		turn lforearml to y-axis <-140> speed <600>;
+		turn lbladel to y-axis <140> speed <600>;	
+		turn rforearmu to y-axis <140> speed <600>;
+		turn rbladeu to y-axis <-140> speed <600>;
+		turn rforearml to y-axis <140> speed <600>;
+		turn rbladel to y-axis <-140> speed <600>;
+		wait-for-turn lbladeu around y-axis;
+		wait-for-turn lbladel around y-axis;
+		wait-for-turn rbladeu around y-axis;
+		wait-for-turn rbladel around y-axis;	
+		turn lforearmu to y-axis <0> speed <120>;
+		turn lbladeu to y-axis <0> speed <120>;
+		turn lforearml to y-axis <0> speed <120>;
+		turn lbladel to y-axis <0> speed <120>;
+		turn rforearmu to y-axis <0> speed <120>;
+		turn rbladeu to y-axis <0> speed <120>;
+		turn rforearml to y-axis <0> speed <120>;
+		turn rbladel to y-axis <0> speed <120>;		
+}
+
+
+HitByWeaponId(z,x,weapon_id,shot_power)
+	{
+	if (weapon_id == 51)
+	  {
+	   emit-sfx 1025 from head;
+	   emit-sfx 1025 from body;
+	   emit-sfx 1024 from rthighf;
+	   emit-sfx 1025 from rthighb;
+	   emit-sfx 1024 from lthighf;
+	   emit-sfx 1025 from lthighb;
+	  }
+	return 100;
+	}
+
+Killed( severity, corpsetype )
+	{
+	corpsetype = 1;
+	emit-sfx 1025 from body;
+	emit-sfx 1025 from head;
+	emit-sfx 1025 from rbladeu;
+	emit-sfx 1025 from lbladel;
+	emit-sfx 1025 from tail;
+	emit-sfx 1025 from rthighf;
+	emit-sfx 1025 from rthighb;
+	emit-sfx 1025 from lthighf;
+	emit-sfx 1025 from lthighb;
+	emit-sfx 1024 from rfootf;
+	emit-sfx 1024 from rfootb;
+	emit-sfx 1024 from lfootf;
+	emit-sfx 1024 from lfootb;
+	sleep 50;
+	emit-sfx 2048+4 from body;
+	emit-sfx 2048+4 from head;
+	emit-sfx 2048+4 from tail;
+	emit-sfx 2048+4 from lthighf;
+	emit-sfx 2048+4 from rthighf;
+	emit-sfx 2048+4 from rthighb;
+	emit-sfx 2048+4 from lthighb;
+	emit-sfx 2048+4 from spike1;
+	emit-sfx 2048+4 from spike2;
+	emit-sfx 2048+4 from spike3;
+	explode head type FALL | FIRE | EXPLODE_ON_HIT;
+	explode lforearml type FALL | EXPLODE_ON_HIT;
+	explode lbladel type FALL | EXPLODE_ON_HIT;
+	explode rforearml type FALL | EXPLODE_ON_HIT;
+	explode rbladel type FALL | EXPLODE_ON_HIT;
+	explode lforearmu type FALL | EXPLODE_ON_HIT;;
+	explode lbladeu type FALL | EXPLODE_ON_HIT;
+	explode rforearmu type FALL | EXPLODE_ON_HIT;
+	explode rbladeu type FALL | EXPLODE_ON_HIT;
+	explode spike1 type FALL | EXPLODE_ON_HIT;
+	explode spike2 type FALL | EXPLODE_ON_HIT;
+	explode spike3 type FALL | EXPLODE_ON_HIT;
+	explode tail type FALL | EXPLODE_ON_HIT;
+	explode body type FALL | EXPLODE_ON_HIT;
+	explode lthighf type FALL | EXPLODE_ON_HIT;
+	explode lkneef type FALL | EXPLODE_ON_HIT;
+	explode lshinf type FALL | EXPLODE_ON_HIT;
+	explode lfootf type FALL | EXPLODE_ON_HIT;
+	explode rthighf type FALL | EXPLODE_ON_HIT;
+	explode rkneef type FALL | EXPLODE_ON_HIT;
+	explode rshinf type FALL | EXPLODE_ON_HIT;
+	explode rfootf type FALL | EXPLODE_ON_HIT;
+	explode lthighb type FALL | EXPLODE_ON_HIT;
+	explode lkneeb type FALL | EXPLODE_ON_HIT;
+	explode lshinb type FALL | EXPLODE_ON_HIT;
+	explode lfootb type FALL | EXPLODE_ON_HIT;
+	explode rthighb type FALL | EXPLODE_ON_HIT;
+	explode rkneeb type FALL | EXPLODE_ON_HIT;
+	explode rshinb type FALL | EXPLODE_ON_HIT;
+	explode rfootb type FALL | EXPLODE_ON_HIT;
+	return( 0 );
+	}

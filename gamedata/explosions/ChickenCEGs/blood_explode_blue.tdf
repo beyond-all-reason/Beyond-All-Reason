@@ -1,0 +1,65 @@
+[blood_explode_blue]
+{
+   	[splashes]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-.1;
+			sizemod=1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=blooddropwhite;
+			colorMap=0 0.6 0.6 1   0 0.6 0.6 1   0 0 0 0;
+			airdrag=.96;
+			particleLife=12;
+			particleLifeSpread=8;
+			numParticles=5;
+			particleSpeed=1.5;
+			particleSpeedSpread=3;
+			particleSize=12;
+			particleSizeSpread=8;
+			emitRot=0;
+			emitRotSpread=80;
+			directional=1;
+		}
+		air=1;
+		ground=1;
+	}
+
+	[pop]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=3;
+			sizemod=1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=bloodblastwhite;
+			colorMap=0 0.6 0.6 1   0 0.6 0.6 1   0 0 0 0;
+			airdrag=.9;
+			particleLife=20;
+			particleLifeSpread=2;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=0;
+			particleSize=22;
+			particleSizeSpread=8;
+			emitRot=45;
+			emitRotSpread=30;
+			directional=0;
+		}
+		air=1;
+		ground=1;
+	}
+/*	[groundflash]
+	{
+		flashSize = 96;   // flash size
+		flashAlpha = .6;    // initial alpha of the flash
+		circleGrowth = 9; // size increase/frame
+		circleAlpha = .4;   // initial alpha of the ring
+		ttl = 16;          // number of frames
+		color = .2,.4,.9;    // color RGB
+	}*/
+}

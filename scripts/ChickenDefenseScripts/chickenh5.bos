@@ -1,0 +1,256 @@
+piece body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade,head_emit;
+
+static-var aMoving, bMoving, lasthit;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_MOVE			16
+#define CHANGE_TARGET       98 
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+
+FxEmit()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		emit-sfx 1024+3 from head_emit;
+		sleep 600;
+	}
+}
+
+walk()
+{
+ while (aMoving)
+ {
+    bMoving = TRUE;
+	if (aMoving) {
+			turn lthigh to x-axis <70> speed<230>;
+			turn lknee to x-axis <-40> speed<270>;
+			turn lshin to x-axis <20> speed<270>;
+			turn lfoot to x-axis <-50> speed<420>;
+			
+			turn rthigh to x-axis <-20> speed<420>;
+			turn rknee to x-axis <-60> speed<420>;
+			turn rshin to x-axis <50> speed<420>;
+			turn rfoot to x-axis <30> speed<420>;
+			
+			turn body to z-axis <5> speed <40>;
+			turn lthigh to z-axis <-5> speed <40>;
+			turn rthigh to z-axis <-5> speed <40>;
+			move body to y-axis [0.7] speed <8000>;			
+			turn tail to y-axis <10> speed <80>;
+			turn head to x-axis <-10> speed <40>;
+			turn tail to x-axis <10> speed <40>;
+			wait-for-turn lthigh around x-axis;
+		}
+	if (aMoving) {		
+			turn lthigh to x-axis <-10> speed<320>;
+			turn lknee to x-axis <15> speed<270>;
+			turn lshin to x-axis <-60> speed<500>;
+			turn lfoot to x-axis <30> speed<270>;
+			
+			turn rthigh to x-axis <40> speed<270>;
+			turn rknee to x-axis <-35> speed<270>;
+			turn rshin to x-axis <-40> speed<270>;
+			turn rfoot to x-axis <35> speed<270>;
+			
+			move body to y-axis <0> speed <8000>;
+			turn head to x-axis <10> speed <40>;
+			turn tail to x-axis <-10> speed <40>;
+			wait-for-turn lshin around x-axis;
+		}
+	if (aMoving) {	
+			turn rthigh to x-axis <70> speed<230>;
+			turn rknee to x-axis <-40> speed<270>;
+			turn rshin to x-axis <20> speed<270>;
+			turn rfoot to x-axis <-50> speed<420>;
+			
+			turn lthigh to x-axis <-20> speed<420>;
+			turn lknee to x-axis <-60> speed<420>;
+			turn lshin to x-axis <50> speed<420>;
+			turn lfoot to x-axis <30> speed<420>;
+			
+			turn tail to y-axis <-10> speed <80>;
+			turn body to z-axis <-5> speed <40>;
+			turn lthigh to z-axis <5> speed <40>;
+			turn rthigh to z-axis <5> speed <40>;
+			move body to y-axis [0.7] speed <8000>;
+			turn head to x-axis <-10> speed <40>;
+			turn tail to x-axis <10> speed <40>;
+			wait-for-turn rthigh around x-axis;
+		}
+	if (aMoving) {
+			turn rthigh to x-axis <-10> speed<320>;
+			turn rknee to x-axis <15> speed<270>;
+			turn rshin to x-axis <-60> speed<500>;
+			turn rfoot to x-axis <30> speed<270>;
+			
+			turn lthigh to x-axis <40> speed<270>;
+			turn lknee to x-axis <-35> speed<270>;
+			turn lshin to x-axis <-40> speed<270>;
+			turn lfoot to x-axis <35> speed<270>;
+			
+			
+			move body to y-axis <0> speed <8000>;
+			turn head to x-axis <10> speed <40>;
+			turn tail to x-axis <-10> speed <40>;
+			wait-for-turn rshin around x-axis;
+		}
+	}
+	return 0;
+}
+
+Halt()
+{	
+	sleep 150;
+	if(!aMoving)
+	{
+		bMoving = FALSE;
+		turn lfoot		to x-axis <0> 		speed <200>;
+		turn rfoot		to x-axis <0> 		speed <200>;
+		turn rthigh 	to x-axis <0> 		speed <200>;
+		turn lthigh 	to x-axis <0> 		speed <200>;
+		turn lshin  	to x-axis <0> 		speed <200>;
+		turn rshin 		to x-axis <0> 		speed <200>;
+		turn lknee  	to x-axis <0> 		speed <200>;
+		turn rknee 		to x-axis <0> 		speed <200>;
+	}
+}
+
+StartMoving()
+{
+	aMoving = TRUE;
+	if (!bMoving)
+	{
+		start-script Walk();
+	}
+}
+
+StopMoving()
+{
+	aMoving = FALSE;
+	start-script Halt();
+}
+
+HitByWeaponId()
+{
+	return 100;
+}
+
+Create()
+{
+	emit-sfx 1024+2 from body;
+	start-script FxEmit();
+}
+
+SweetSpot(piecenum)
+	{	piecenum=body;	}	
+	
+AimFromPrimary(piecenum)
+	{	piecenum=head;	}
+
+QueryPrimary(piecenum)
+	{	piecenum=head; }
+
+RestoreAfterDelay()
+	{
+	sleep 1000;
+	turn head to y-axis 0 speed <250>;
+	turn head to x-axis 0 speed <200>;
+	}
+
+AimPrimary(heading,pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn head to y-axis heading speed <250>;
+	turn head to x-axis 0 -pitch speed <200>;
+		
+	wait-for-turn head around y-axis;
+	start-script RestoreAfterDelay();
+	
+	return(TRUE);
+}
+	
+AimSecondary(heading,pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn head to y-axis heading speed <250>;
+	turn head to x-axis 0 -pitch speed <200>;
+		
+	wait-for-turn head around y-axis;
+	start-script RestoreAfterDelay();
+	
+	return(TRUE);
+}
+
+	
+Shot1()
+	{
+	turn lforearm to y-axis <-140> speed <600>;
+	turn rforearm to y-axis <140> speed <600>;
+	turn lblade to y-axis <140> speed <600>;
+	turn rblade to y-axis <-140> speed <600>;
+	wait-for-turn rblade around y-axis;
+	turn lforearm to y-axis <0> speed <120>;
+	turn rforearm to y-axis <0> speed <120>;
+	turn lblade to y-axis <0> speed <120>;
+	turn rblade to y-axis <0> speed <120>;
+	}
+	
+Shot2()
+	{
+	turn lforearm to y-axis <-450> speed <600>;
+	turn rforearm to y-axis <45> speed <600>;
+	turn lblade to y-axis <45> speed <600>;
+	turn rblade to y-axis <-45> speed <600>;
+	wait-for-turn rblade around y-axis;
+	turn lforearm to y-axis <0> speed <120>;
+	turn rforearm to y-axis <0> speed <120>;
+	turn lblade to y-axis <0> speed <120>;
+	turn rblade to y-axis <0> speed <120>;
+	set CHANGE_TARGET to 2;
+	}
+
+QuerySecondary(piecenum)
+	{	piecenum=head; }
+	
+	AimFromSecondary(piecenum)
+	{	piecenum=head;	}
+	
+	
+StartBuilding(heading, pitch)
+{
+	turn head to y-axis heading speed <250.000000>;
+	set INBUILDSTANCE to 1;
+}
+
+StopBuilding()
+{
+	set INBUILDSTANCE to 0;
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = head_emit;
+}
+
+
+Killed( severity, corpsetype ) 
+	{
+	corpsetype = 1;
+	emit-sfx 1025 from body;
+	explode head type FALL | NOHEATCLOUD;
+	explode tail type FALL | NOHEATCLOUD;
+	explode lblade type FALL | NOHEATCLOUD;
+	explode rblade type FALL | NOHEATCLOUD;
+	return( 0 );
+	}

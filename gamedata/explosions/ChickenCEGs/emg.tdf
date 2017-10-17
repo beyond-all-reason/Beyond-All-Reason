@@ -1,0 +1,344 @@
+[brawlermuzzle]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 0 0.01	1 0.5 0 0.01	0 0 0 0.01; 
+          	size=12;
+          	length=18;
+          	sizeGrowth=1;
+          	ttl=3;
+          	frontOffset=0.1;
+          	sideTexture=plasma2;
+          	frontTexture=flowerflash;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+   	[GROUNDFLASH]
+	{
+		flashsize=35;
+		flashalpha=0.9;
+		circlegrowth=0;
+		circlealpha=1;
+		ttl=3;
+		color=1,0.7,0;
+	}
+}
+
+[BRAWLIMPACTS]
+{
+	usedefaultexplosions=0;
+	[GROUNDFLASH]
+	{
+		flashsize=12;
+		flashalpha=0.9;
+		circlegrowth=0;
+		circlealpha=1;
+		ttl=3;
+		color=1,0.7,0;
+	}
+   [sparks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0;
+		sizeMod=1.0;
+		pos=0, 1, 0;
+		emitVector=dir;
+		gravity=0, -0.4, 0;
+		colorMap=1 1 0 0.01   1 1 0 0.01   1 0.5 0 0.01   0 0 0 0.01;
+		Texture=plasma;
+		airdrag=0.97;
+		particleLife=14;
+		particleLifeSpread=0;
+		numParticles=4;
+		particleSpeed=5;
+		particleSpeedSpread=10;
+		particleSize=6;
+		particleSizeSpread=0;
+		emitRot=0;
+		emitRotSpread=90;
+		directional=1;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	
+	}
+}	
+
+[flashplosion]
+{
+	usedefaultexplosions=0;
+	[GROUNDFLASH]
+	{
+		flashsize=12;
+		flashalpha=0.9;
+		circlegrowth=0;
+		circlealpha=1;
+		ttl=3;
+		color=1,0.7,0;
+	}
+   [sparks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0;
+		sizeMod=1.0;
+		pos=0, 1, 0;
+		emitVector=dir;
+		gravity=0, -0.2, 0;
+		colorMap=1 1 0 0.01   1 1 0 0.01   1 0.5 0 0.01   0 0 0 0.01;
+		Texture=plasma;
+		airdrag=0.97;
+		particleLife=7;
+		particleLifeSpread=0;
+		numParticles=4;
+		particleSpeed=3;
+		particleSpeedSpread=4;
+		particleSize=6;
+		particleSizeSpread=0;
+		emitRot=0;
+		emitRotSpread=40;
+		directional=1;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	
+	}
+}	
+
+
+[emg_shells_l]
+{
+	usedefaultexplosions=0;
+   [shells]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0;
+		sizeMod=1.0;
+		pos=0, 0, 0;
+		emitVector=dir;
+		gravity=0, -0.5, 0;
+		colorMap=1 1 1 1   1 1 1 1;
+		Texture=shell;
+		airdrag=0.97;
+		particleLife=15;
+		particleLifeSpread=0;
+		numParticles=1;
+		particleSpeed=3;
+		particleSpeedSpread=0;
+		particleSize=2.5;
+		particleSizeSpread=0;
+		emitRot=0;
+		emitRotSpread=10;
+		directional=1;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	
+	}
+}
+
+[emg_shells_m]
+{
+	usedefaultexplosions=0;
+   [shells]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0;
+		sizeMod=1.0;
+		pos=0, 0, 0;
+		emitVector=dir;
+		gravity=0, -0.5, 0;
+		colorMap=1 1 1 1   1 1 1 1;
+		Texture=shell;
+		airdrag=0.97;
+		particleLife=45;
+		particleLifeSpread=0;
+		numParticles=1;
+		particleSpeed=3;
+		particleSpeedSpread=0;
+		particleSize=2.5;
+		particleSizeSpread=0;
+		emitRot=0;
+		emitRotSpread=10;
+		directional=1;
+		}
+	air=1;
+	water=1;
+	ground=1;
+	count=1;
+	
+	}
+}
+
+[flashmuzzle1]
+{
+   [BitmapMuzzleFlame]
+   {
+	class = CBitmapMuzzleFlame;
+      
+	[properties]
+      	{
+         	dir = dir;
+         	colorMap=1 1 1 0.07  1 0.7 0 0.01	0.9 0.3 0 0.01	0 0 0 0.01; 
+          	size=12;
+          	length=18;
+          	sizeGrowth=1;
+          	ttl=3;
+          	frontOffset=0;
+          	sideTexture=plasma2;
+          	frontTexture=flowerflash;
+      	}
+   water=1;
+   air=1;
+   underwater=1;
+   ground=1;
+   count=1;
+   }
+   	[GROUNDFLASH]
+	{
+		flashsize=35;
+		flashalpha=0.4;
+		circlegrowth=0;
+		circlealpha=1;
+		ttl=3;
+		color=1,0.7,0;
+	}
+}
+
+[EMG_HIT_HE]
+{
+	usedefaultexplosions=0;
+	[main]{
+		class=heatcloud;
+		[properties]{
+			texture=explo;
+			heat = 6;
+			maxheat = 6;
+			heatFalloff = 1;
+
+			size = 1;
+			sizeGrowth = 8;
+
+			pos = 0, 1, 0;
+			speed=0, 1, 0;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	} 
+	[sparks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0;
+			sizeMod=1.0;
+			pos=0, 1, 0;
+			emitVector=0, 1, 0;
+			gravity=0, -0.2, 0;
+			colorMap=1 0.95 0.5 0.01   1 0.95 0.5 0.01   1 0.95 0.5 0.01   0 0 0 0.01;
+			Texture=plasma;
+			airdrag=0.97;
+			particleLife=10;
+			particleLifeSpread=0;
+			numParticles=16;
+			particleSpeed=1;
+			particleSpeedSpread=6;
+			particleSize=2;
+			particleSizeSpread=1;
+			emitRot=0;
+			emitRotSpread=90;
+			directional=1;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=1;
+	}
+	[groundsmoke]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0.2, 0;
+			colorMap=1 1 0 1  1 0.25 0 0.8  0 0 0 0.6  0 0 0 0.4  0 0 0 0.2  0 0 0 0;
+			Texture=smokesmall;
+			airdrag=0.8;
+			particleLife=10;
+			particleLifeSpread=5;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=2;
+			particleSize=4;
+			particleSizeSpread=4;
+			emitRot=0;
+			emitRotSpread=90;
+			directional=1;
+		}
+		unit=1;
+		ground=1;
+		count=3;
+	}
+	[watermist]{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0.2, 0;
+			colorMap=0.75 0.75 1 1  0 0 0 0;
+			Texture=smokesmall;
+			airdrag=0.8;
+			particleLife=10;
+			particleLifeSpread=5;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=2;
+			particleSize=4;
+			particleSizeSpread=4;
+			emitRot=0;
+			emitRotSpread=90;
+			directional=1;
+		}
+		water=1;
+		count=3;
+	}
+	[GROUNDFLASH]
+	{
+		flashsize=48;
+		flashalpha=0.25;
+		circlegrowth=0;
+		circlealpha=1;
+		ttl=3;
+		color=1,0.95,0.5;
+	}
+}

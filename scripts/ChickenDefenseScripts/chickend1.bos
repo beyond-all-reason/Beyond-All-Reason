@@ -1,0 +1,66 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  body, firepoint;
+
+// Signal definitions
+#define SIG_AIM				2
+
+Create()
+{
+	turn body to y-axis Rand(0, 65534) now;
+	emit-sfx 1024+2 from body;
+	move body to y-axis [-20] now;
+	move body to y-axis [0] speed [8];
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	sleep 30;
+	return (TRUE);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = firepoint;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = firepoint;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+HitByWeaponId()
+{
+	emit-sfx 1024 from body;
+	return 100;
+}
+
+Killed( severity, corpsetype )
+{
+	corpsetype = 1;
+	emit-sfx 1025 from body;
+	return( 0 );
+}
+
+StartBuilding(Func_Var_1, Func_Var_2)
+{
+}
+
+StopBuilding()
+{
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = firepoint;
+}

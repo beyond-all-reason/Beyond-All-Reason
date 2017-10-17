@@ -1,0 +1,140 @@
+[DODOTRAIL]
+{
+	usedefaultexplosions=1;	
+	[rocks]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0,0,0;
+			colorMap= 0 0 0  0.01   0.9 0.9 0 0.05  0.9 0.9 0 0.1  0.9 0.9 0 0.15     0.9 0.9 0 0.2     0.9 0.9 0 0.25       0.8 0.8 0.1 0.3       0.7 0.7 0.2 0.4      0.5 0.35 0. 0.5   0.5 0.35 0. 0.5   0.5 0.35 0. 0.5    0.5 0.35 0. 0.5   0 0 0 0.01;
+			texture=fireball;
+			airdrag=0.95;
+			particleLife=5;
+			particleLifeSpread=15;
+			numParticles=1;
+			particleSpeed=5;
+			particleSpeedSpread=2;
+			particleSize=15;
+			particleSizeSpread=5;
+			directional=1;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+	[smokey]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=0.05;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			colorMap=0 0 0 0	0 0 0 0	  0.3 0.3 0.3 0.7	0.3 0.3 0.3 0.7	0.3 0.3 0.3 0.6	0 0 0 0.01;
+			texture=graysmoke;
+			airdrag=0.95;
+			particleLife=35;
+			particleLifeSpread=45;
+			numParticles=1;
+			particleSpeed=6;
+			particleSpeedSpread=1;
+			particleSize=20;
+			particleSizeSpread=15;
+			emitRot=10;
+			emitRotSpread=10;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		count=3;
+	}
+}
+
+
+[ANGRYLOBBERTRAIL]
+{	
+	[unit_sparkles]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+			sizeGrowth=1.25;
+			sizeMod=1.0;
+			pos=0, 0, 0;
+			emitVector=0, -1, 0;
+			gravity=0,0,0;
+			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
+			texture=lightb2;
+			airdrag=0.95;
+			particleLife=6;
+			particleLifeSpread=3;
+			numParticles=1;
+			particleSpeed=2;
+			particleSpeedSpread=2;
+			particleSize=5;
+			particleSizeSpread=30;
+			directional=1;
+			emitRot=0;
+			emitRotSpread=270;
+		}
+		air=1;
+		water=1;
+		ground=1;
+		unit=1;
+		count=2;
+	}	
+		
+}
+
+
+[CHICKENHERO]
+{	
+	[fireworks]
+	{
+	class=CSimpleParticleSystem;
+
+		[properties]
+		{
+		alwaysVisible=0;
+		Texture=nanoball;
+
+		colorMap	= 0.9 0 0 0.2   0.8 0.0 0.0 0.4   0.7 0.0 0.0 0.7	  0.6 0.0 0.0 0.4 	0.5 0.0 0.0 0.001;
+
+      		pos 		= 0, 0, 0;
+		gravity		= 0, -0.3, 0;
+	       	emitVector	= 0, 1, 0;
+		emitRot		= 45;
+		emitRotSpread	= 32;
+
+		sizeGrowth	= -0.02;
+		sizeMod		= 1;
+
+		airdrag			= 0.95;
+		particleLife		= 8;
+		particleLifeSpread	= 14;
+		numParticles		= 1;
+		particleSpeed		= 1;
+		particleSpeedSpread	= 5;
+		particleSize		= 2;
+		particleSizeSpread	= 5;
+
+		directional		= 1;
+		useAirLos		= 0;
+		}
+	air=1;
+	unit=1;
+	ground=1;
+	count=1;
+	}
+		
+}
