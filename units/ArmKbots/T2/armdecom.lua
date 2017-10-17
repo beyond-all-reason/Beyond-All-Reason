@@ -69,7 +69,7 @@ return {
 			[10] = "armtide",
 			[11] = "armuwms",
 			[12] = "armuwes",
-			[13] = "armuwmex",
+			[13] = "armomex",
 			[14] = "armfmkr",
 			[15] = "armllt",
 			[16] = "armrl",

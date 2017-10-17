@@ -1021,8 +1021,8 @@ do
       primaryWeapon = 0,
     }
   end
-    if UnitDefNames["coruwmex"] ~= nil then
-    customInfo[UnitDefNames["coruwmex"].id] = {
+    if UnitDefNames["coromex"] ~= nil then
+    customInfo[UnitDefNames["coromex"].id] = {
       height        = 15+barHeightOffset,
       maxShield     = 0,
       canStockpile  = nil,
@@ -1030,8 +1030,8 @@ do
       primaryWeapon = 0,
     }
   end
-    if UnitDefNames["armuwmex"] ~= nil then
-    customInfo[UnitDefNames["armuwmex"].id] = {
+    if UnitDefNames["armomex"] ~= nil then
+    customInfo[UnitDefNames["armomex"].id] = {
       height        = 15+barHeightOffset,
       maxShield     = 0,
       canStockpile  = nil,

@@ -78,6 +78,7 @@ return {
 			"armfhp",
 			"armsy",
 			"armtide",
+			"armomex",
 			"armuwmex",
 			"armfmkr",
 			"armuwms",

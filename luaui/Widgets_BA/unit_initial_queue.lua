@@ -73,8 +73,8 @@ local CORCOM = UnitDefNames["corcom"].id
 
 local ARMMEX = UnitDefNames["armmex"].id
 local CORMEX = UnitDefNames["cormex"].id
-local ARMUWMEX = UnitDefNames["armuwmex"].id
-local CORUWMEX = UnitDefNames["coruwmex"].id
+local ARMOMEX = UnitDefNames["armomex"].id
+local COROMEX = UnitDefNames["coromex"].id
 
 local ARMSOLAR = UnitDefNames["armsolar"].id
 local CORSOLAR = UnitDefNames["corsolar"].id
@@ -149,7 +149,7 @@ local CORPTL = UnitDefNames["corptl"].id
 local armToCore = {}
 
 armToCore[ARMMEX] = CORMEX
-armToCore[ARMUWMEX] = CORUWMEX
+armToCore[ARMOMEX] = COROMEX
 armToCore[ARMSOLAR] = CORSOLAR
 armToCore[ARMWIN] = CORWIN
 armToCore[ARMTIDE] = CORTIDE
@@ -989,8 +989,8 @@ local VKEY = 118
 function widget:KeyPress(key,mods,isrepeat)
 	if sDef == UnitDefs[ARMCOM] then
 		if key == ZKEY then
-			if 		selDefID == ARMMEX then 	SetSelDefID(ARMUWMEX)
-			elseif 	selDefID == ARMUWMEX then	SetSelDefID(ARMMEX)
+			if 		selDefID == ARMMEX then 	SetSelDefID(ARMOMEX)
+			elseif 	selDefID == ARMOMEX then	SetSelDefID(ARMMEX)
 			else								SetSelDefID(ARMMEX)
 			end		
 		elseif key == XKEY then
@@ -1017,8 +1017,8 @@ function widget:KeyPress(key,mods,isrepeat)
 		end	
 	elseif sDef == UnitDefs[CORCOM] then
 		if key == ZKEY then
-			if 		selDefID == CORMEX then 	SetSelDefID(CORUWMEX)
-			elseif 	selDefID == CORUWMEX then	SetSelDefID(CORMEX)
+			if 		selDefID == CORMEX then 	SetSelDefID(COROMEX)
+			elseif 	selDefID == COROMEX then	SetSelDefID(CORMEX)
 			else								SetSelDefID(CORMEX)
 			end		
 		elseif key == XKEY then

@@ -51,7 +51,8 @@ return {
             [[corasy]],
             [[corplat]],
 			[[coruwmmm]],
-            [[coruwmex]],
+            [[coromex]],
+			[[coruwmex]],
 			[[cormls]],
 			[[corfrad]],
 			[[corfatf]],
@@ -62,7 +63,7 @@ return {
 		},
 		customparams = {
 			
-			area_mex_def = "coruwmex",
+			area_mex_def = "coromex",
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
