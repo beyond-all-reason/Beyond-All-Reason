@@ -344,7 +344,7 @@ local tooltips = {
      [5] = 'Display ally nuke defense (on/off)',
      [6] = 'Display enemy nuke defense (on/off)',
 	 [7] = 'Display ally radar ranges (on/off)',
-	 [8] = 'Display Ally radar ranger (on/off)'
+	 [8] = 'Display enemy radar ranges (on/off)',
 }
 
 local defences = {}	
@@ -536,12 +536,12 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local dps
 	local weaponDef
 	
-	if ( #udef.weapons == 0 and unitdef.radardistance = nil) then
+	if ( #udef.weapons == 0 and udef.radardistance == nil) then
 		--not interesting, has no weapons and no radar coverage, lame
 		return
 	end
 
-	if ( udef.canMove and unitdef.radardistance = nil ) then 
+	if ( udef.canMove and udef.radardistance == nil ) then
 		--not interesting, it moves
 		return
 	end
