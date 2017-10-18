@@ -535,17 +535,19 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local type = 0
 	local dps
 	local weaponDef
-	
-	if ( #udef.weapons == 0 and udef.radardistance == nil) then
-		--not interesting, has no weapons and no radar coverage, lame
-		return
+
+	if udef.radarRadius < 100 then
+		if ( #udef.weapons == 0 ) then
+			--not interesting, has no weapons and no radar coverage, lame
+			return
+		end
+
+		if ( udef.canMove ) then
+			--not interesting, it moves
+			return
+		end
 	end
 
-	if ( udef.canMove and udef.radardistance == nil ) then
-		--not interesting, it moves
-		return
-	end
-	
 	printDebug( udef.name )
 	local foundWeapons = {}
 			
