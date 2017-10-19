@@ -22,7 +22,7 @@ function SpeedLimit()
 while (true) do
 	if speedlimit then
 		local vx, vy, vz, vw = Spring.GetUnitVelocity(unitID)
-		Spring.Echo(vw)
+		-- Spring.Echo(vw)
 			if (vw*30) > speedlimit * uDef.speed then
 				local ratio = speedlimit * uDef.speed/(vw*30)
 				Spring.SetUnitVelocity(unitID, ratio*vx, ratio*vy, ratio*vz)
