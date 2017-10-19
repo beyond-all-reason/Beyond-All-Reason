@@ -4,8 +4,8 @@ return {
 		airsightdistance = 0.8 *500,
 		autoheal = 1.5,
 		blocking = true,
-		buildcostenergy = 900,
-		buildcostmetal = 155,
+		buildcostenergy = 920,
+		buildcostmetal = 160,
 		buildpic = "CORRSHIP.DDS",
 		buildtime = 4350,
 		canmove = true,
@@ -24,7 +24,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 680,
+		maxdamage = 750,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Crusher",
@@ -41,7 +41,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*2.15,
-		turnrate = 253,
+		turnrate = 240,
 		customparams = {
 			
 		},
