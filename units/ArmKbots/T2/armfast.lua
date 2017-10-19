@@ -150,7 +150,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_FAST",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

@@ -152,7 +152,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_KBOT_ROCKET",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

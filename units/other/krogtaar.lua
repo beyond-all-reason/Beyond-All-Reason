@@ -146,7 +146,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOWEAPON",
 				def = "COR_TAAR_RC",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

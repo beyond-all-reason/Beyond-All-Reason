@@ -236,17 +236,17 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMBANTHA_FIRE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "TEHLAZEROFDEWM",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "BANTHA_ROCKET",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

@@ -180,7 +180,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "GATOR_LASERX",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

@@ -167,7 +167,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "HLLT_BOTTOM",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

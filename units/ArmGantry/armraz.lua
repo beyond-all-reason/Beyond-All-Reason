@@ -150,7 +150,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "MECH_RAPIDLASER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

@@ -396,7 +396,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 		weapons = {
 			[1] = {
 				def = "ARMCOMLASER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
@@ -404,7 +404,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	}
@@ -444,12 +444,12 @@ for i = 1,11 do
 	if i == 1 then
 		tablecorcom.weapons[1] = {
 				def = "ARMCOMLASER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 				}
 	else
 		tablecorcom.weapons[i] = {
 				def = "ARMCOMLASER"..tostring(i),
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 				}
 	end
 end
@@ -511,7 +511,7 @@ end
 	
 tablecorcom.weapons[30] ={
 				def = "DISINTEGRATOR",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			}
 end
 return { corcom = deepcopy(tablecorcom) }

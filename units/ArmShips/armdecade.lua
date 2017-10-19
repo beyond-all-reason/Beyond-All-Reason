@@ -224,11 +224,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORVETTE_EMG_FRONT",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[2] = {
 				def = "CORVETTE_EMG_REAR",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			-- [3] = {
 				-- def = "CORVETTE_DEPTH",

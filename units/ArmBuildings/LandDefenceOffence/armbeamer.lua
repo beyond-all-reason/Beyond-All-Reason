@@ -160,7 +160,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "armbeamer_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

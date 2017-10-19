@@ -1,4 +1,4 @@
-return {
+﻿return {
 	armflea = {
 		acceleration = 0.5,
 		brakerate = 1.5,
@@ -153,7 +153,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "FLEA_LASER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

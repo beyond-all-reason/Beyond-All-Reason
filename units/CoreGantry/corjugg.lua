@@ -237,7 +237,7 @@ return {
 				def = "JUGGERNAUT_TOP",
 				maindir = "0 1 0",
 				maxangledif = 270,
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

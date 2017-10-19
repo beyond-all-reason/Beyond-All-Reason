@@ -260,7 +260,7 @@ return {
 			[1] = {
 				badtargetcategory = "GROUNDSCOUT",
 				def = "SUPER_MISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[2] = {
 				badtargetcategory = "GROUNDSCOUT",

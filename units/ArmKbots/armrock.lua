@@ -151,7 +151,7 @@
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_KBOT_ROCKET",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

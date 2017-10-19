@@ -165,7 +165,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "JUNO_PULSE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

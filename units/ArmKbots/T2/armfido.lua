@@ -177,12 +177,12 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "GAUSS",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "BFIDO",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

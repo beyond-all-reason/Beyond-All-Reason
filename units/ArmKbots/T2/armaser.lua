@@ -144,7 +144,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "BOGUS_GROUND_MISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

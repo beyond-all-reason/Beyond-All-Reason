@@ -198,12 +198,12 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "HLLT_TOP",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "HLLT_BOTTOM",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

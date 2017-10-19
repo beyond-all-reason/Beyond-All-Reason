@@ -158,7 +158,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

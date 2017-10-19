@@ -156,7 +156,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "NUCLEAR_MISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

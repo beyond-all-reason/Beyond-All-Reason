@@ -130,7 +130,7 @@ return {
 			},
 			[2] = {
 				def = "CRAWL_DETONATOR",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

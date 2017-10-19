@@ -158,7 +158,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "SEA_REPULSOR",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

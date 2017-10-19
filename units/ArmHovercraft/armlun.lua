@@ -187,7 +187,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMLUN_CANNON",
-				onlytargetcategory = "NOTSUB",	
+				onlytargetcategory = "",	
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

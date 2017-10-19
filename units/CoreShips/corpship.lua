@@ -190,7 +190,7 @@ return {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT UNDERWATER",
 				def = "LIGHTPLASMA",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			-- [2] = {
 				-- def = "CORVETTE_DEPTH",

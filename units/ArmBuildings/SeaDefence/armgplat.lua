@@ -136,7 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL LIGHTBOAT CAPITALSHIP",
 				def = "ARMGPLAT",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

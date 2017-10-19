@@ -204,7 +204,7 @@ return {
 			
 						[2] = {
 				def = "JANUS_ROCKET",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

@@ -134,7 +134,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORFHLT_LASER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

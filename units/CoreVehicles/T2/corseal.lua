@@ -204,7 +204,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_CROC",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			-- [2] = {
 				-- badtargetcategory = "VTOL",

@@ -166,7 +166,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR",
 				def = "CORTRUCK_MISSILE",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

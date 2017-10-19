@@ -153,7 +153,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "EMG",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

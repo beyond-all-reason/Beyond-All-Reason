@@ -145,7 +145,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMSH_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

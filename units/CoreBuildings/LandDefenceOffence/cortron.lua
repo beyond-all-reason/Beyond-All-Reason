@@ -155,7 +155,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTLAND",
 				def = "CORTRON_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

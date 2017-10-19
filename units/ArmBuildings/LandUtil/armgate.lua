@@ -160,7 +160,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "REPULSOR",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 		},
 	},

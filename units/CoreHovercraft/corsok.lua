@@ -197,7 +197,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORSOK_LASER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "",
 			},
 			-- [3] = {
 				-- badtargetcategory = "VTOL",
