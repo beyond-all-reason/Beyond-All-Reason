@@ -1164,8 +1164,6 @@ function mouseEvent(x, y, button, release)
 							if playSounds then
 								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
 							end
-							if windowList then gl.DeleteList(windowList) end
-							windowList = gl.CreateList(DrawWindow)
 							if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
 								showSelectOptions = nil
 								selectClickAllowHide = nil
@@ -1358,7 +1356,7 @@ function init()
 	}
 	options = {
 		-- PRESET
-		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nRightclick to delete a (custom) added preset'},
+		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
 
 		--GFX
 		--{id="windowposx", group="gfx", name="Window position X", type="slider", min=0, max=math.ceil(ssx/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosX",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
@@ -1537,6 +1535,8 @@ function deletePreset(name)
 	end
 	presetNames = newPresetNames
 	options[getOptionByID('preset')].options = presetNames
+	if windowList then gl.DeleteList(windowList) end
+	windowList = gl.CreateList(DrawWindow)
 end
 
 function savePreset(name)
