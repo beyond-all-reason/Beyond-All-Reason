@@ -8,7 +8,7 @@ return {
 		buildtime = 8800,
 		canmove = true,
 		-- canmanualfire = true,
-		category = "ALL CANBEUW MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
+		category = "ALL CANBEUW MOBILE WEAPON NOTLAND NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "35 17 50",
 		collisionvolumetype = "box",

@@ -6,7 +6,7 @@ return {
 		buildpic = "ARMSERP.DDS",
 		buildtime = 1.5 * 0.8*25300,
 		canmove = true,
-		category = "UNDERWATER ALL WEAPON NOTAIR NOTHOVER",
+		category = "CANBEUW ALL WEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "45 19 57",
 		collisionvolumetype = "box",
