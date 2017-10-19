@@ -97,7 +97,7 @@ local addedWidgetOptions = false
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
 
-local presetNames = {'lowest','low','medium','high','ultra'}
+local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
 	lowest = {
 		bloom = 0,
@@ -215,6 +215,7 @@ local presets = {
 		enemyspotter_highlight = true,
 	},
 }
+local customPresets = {}
 
 --if VFS.FileExists("LuaUI/configs/options.lua",VFS.ZIP) then
 ----if io.open("LuaUI/configs/options.lua",'r') ~= nil then -- file exists?
@@ -420,7 +421,7 @@ function orderOptions()
 		if #grOptions > 0 then
 			local name = group.name
 			if group.id == 'gfx' then
-				name = group.name..'                                      \255\130\130\130'..vsx..' x '..vsy
+				name = group.name..'                                          \255\130\130\130'..vsx..' x '..vsy
 			end
 			table.insert(newOptions, {id="group_"..group.id, name=name, type="label"})
 		end
@@ -739,24 +740,36 @@ function widget:DrawScreen()
 						end
 					end
 				end
-			end
-			for i, o in pairs(optionButtons) do
-				if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-					glColor(1,1,1,0.08)
-					RectRound(o[1], o[2], o[3], o[4], 2.5)
-					if WG['tooltip'] ~= nil and options[i].type == 'slider' then
-						local value = options[i].value
-						local decimalValue, floatValue = math.modf(options[i].step)
-						if floatValue ~= 0 then
-							value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+				for i, o in pairs(optionButtons) do
+					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+						glColor(1,1,1,0.08)
+						RectRound(o[1], o[2], o[3], o[4], 2.5)
+						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
+							local value = options[i].value
+							local decimalValue, floatValue = math.modf(options[i].step)
+							if floatValue ~= 0 then
+								value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+							end
+							WG['tooltip'].ShowTooltip('options_showvalue', value)
 						end
-						WG['tooltip'].ShowTooltip('options_showvalue', value)
 					end
 				end
 			end
-			
+
 			-- draw select options
 			if showSelectOptions ~= nil then
+
+				-- highlight all that are affected by presets
+				if options[showSelectOptions].id == 'preset' then
+					glColor(1,1,1,0.08)
+					for optionID, _ in pairs(presets['lowest']) do
+						optionKey = getOptionByID(optionID)
+						if optionHover[optionKey] ~= nil then
+							RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 2.5)
+						end
+					end
+				end
+
 				local oHeight = optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]
 				local oPadding = 4
 				y = optionButtons[showSelectOptions][4] -oPadding
@@ -1140,157 +1153,184 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		local cx, cy = correctMouseForScaling(x,y)
-  
-		if release then
 
-			-- navigation buttons
-			if optionButtonForward ~=nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-				startColumn = startColumn + maxShownColumns
-				if startColumn > totalColumns + (maxShownColumns-1) then
-					startColumn = (totalColumns-maxShownColumns) + 1
-				end
-				if playSounds then
-					Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
-				end
-				showSelectOptions = nil
-				selectClickAllowHide = nil
-				if windowList then gl.DeleteList(windowList) end
-				windowList = gl.CreateList(DrawWindow)
-				return
-			end
-			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-				startColumn = startColumn - maxShownColumns
-				if startColumn < 1 then startColumn = 1 end
-				if playSounds then
-					Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
-				end
-				showSelectOptions = nil
-				selectClickAllowHide = nil
-				if windowList then gl.DeleteList(windowList) end
-				windowList = gl.CreateList(DrawWindow)
-				return
-			end
-
-		 	-- apply new slider value
-			if draggingSlider ~= nil then
-				options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-				applyOptionValue(draggingSlider)
-				draggingSlider = nil
-				return
-			end
-
-			-- select option
-			if showSelectOptions ~= nil then
+		if button == 3 then
+			if showSelectOptions ~= nil and options[showSelectOptions].id == 'preset' then
 				for i, o in pairs(optionSelect) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						options[showSelectOptions].value = o[5]
-						applyOptionValue(showSelectOptions)
-						if playSounds then
-							Spring.PlaySoundFile(selectclick, 0.5, 'ui')
+						if presetNames[o[5]] and customPresets[presetNames[o[5]]] ~= nil then
+							Spring.Echo('deleted preset:  '..presetNames[o[5]])
+							customPresets[presetNames[o[5]]] = nil
+							presets[presetNames[o[5]]] = nil
+							presetNames[o[5]] = nil
+							options[showSelectOptions].options = presetNames
+							if playSounds then
+								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
+							end
+							if windowList then gl.DeleteList(windowList) end
+							windowList = gl.CreateList(DrawWindow)
+							if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+								showSelectOptions = nil
+								selectClickAllowHide = nil
+							else
+								selectClickAllowHide = true
+							end
+							return
 						end
 					end
 				end
-				if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+			end
+		elseif button == 1 then
+			if release then
+
+				-- navigation buttons
+				if optionButtonForward ~=nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+					startColumn = startColumn + maxShownColumns
+					if startColumn > totalColumns + (maxShownColumns-1) then
+						startColumn = (totalColumns-maxShownColumns) + 1
+					end
+					if playSounds then
+						Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
+					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
-				else
-					selectClickAllowHide = true
+					if windowList then gl.DeleteList(windowList) end
+					windowList = gl.CreateList(DrawWindow)
+					return
 				end
-				return
-			end
-		end
-		
-		-- on window
-		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-			
-			
-			if release then
-			
-				-- select option
-				if showSelectOptions == nil then
-					if showPresetButtons then
-						for preset, pp in pairs(presets) do
-							if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
-								loadPreset(preset)
-							end
-						end
+				if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+					startColumn = startColumn - maxShownColumns
+					if startColumn < 1 then startColumn = 1 end
+					if playSounds then
+						Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
 					end
-						
-					for i, o in pairs(optionButtons) do
-						if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-							options[i].value = not options[i].value
-							applyOptionValue(i)
-							if playSounds then
-								if options[i].value then
-									Spring.PlaySoundFile(toggleonclick, 0.75, 'ui')
-								else
-									Spring.PlaySoundFile(toggleoffclick, 0.75, 'ui')
-								end
-							end
-						elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						
-						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						end
-					end
+					showSelectOptions = nil
+					selectClickAllowHide = nil
+					if windowList then gl.DeleteList(windowList) end
+					windowList = gl.CreateList(DrawWindow)
+					return
 				end
-			else -- mousepress
-				if not showSelectOptions then
-					for i, o in pairs(optionButtons) do
-						if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
-							draggingSlider = i
-							local newValue = getSliderValue(draggingSlider,cx)
-							if options[draggingSlider].value ~= newValue then
-								options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-								applyOptionValue(draggingSlider)
-								if playSounds then
-									Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
-								end
-							end
-						elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 
+				-- apply new slider value
+				if draggingSlider ~= nil then
+					options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+					applyOptionValue(draggingSlider)
+					draggingSlider = nil
+					return
+				end
+
+				-- select option
+				if showSelectOptions ~= nil then
+					for i, o in pairs(optionSelect) do
+						if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							options[showSelectOptions].value = o[5]
+							applyOptionValue(showSelectOptions)
 							if playSounds then
-								Spring.PlaySoundFile(selectunfoldclick, 0.6, 'ui')
+								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
 							end
-							if showSelectOptions == nil then
-								showSelectOptions = i
-							elseif showSelectOptions == i then
-								--showSelectOptions = nil
+						end
+					end
+					if selectClickAllowHide ~= nil or not IsOnRect(cx, cy, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
+						showSelectOptions = nil
+						selectClickAllowHide = nil
+					else
+						selectClickAllowHide = true
+					end
+					return
+				end
+			end
+
+			-- on window
+			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+
+
+				if release then
+
+					-- select option
+					if showSelectOptions == nil then
+						if showPresetButtons then
+							for preset, pp in pairs(presets) do
+								if IsOnRect(cx, cy, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
+									loadPreset(preset)
+								end
+							end
+						end
+
+						for i, o in pairs(optionButtons) do
+							if options[i].type == 'bool' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+								options[i].value = not options[i].value
+								applyOptionValue(i)
+								if playSounds then
+									if options[i].value then
+										Spring.PlaySoundFile(toggleonclick, 0.75, 'ui')
+									else
+										Spring.PlaySoundFile(toggleoffclick, 0.75, 'ui')
+									end
+								end
+							elseif options[i].type == 'slider' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+
+							elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+							end
+						end
+					end
+				else -- mousepress
+					if not showSelectOptions then
+						for i, o in pairs(optionButtons) do
+							if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
+								draggingSlider = i
+								local newValue = getSliderValue(draggingSlider,cx)
+								if options[draggingSlider].value ~= newValue then
+									options[draggingSlider].value = getSliderValue(draggingSlider,cx)
+									applyOptionValue(draggingSlider)
+									if playSounds then
+										Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+									end
+								end
+							elseif options[i].type == 'select' and IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
+
+								if playSounds then
+									Spring.PlaySoundFile(selectunfoldclick, 0.6, 'ui')
+								end
+								if showSelectOptions == nil then
+									showSelectOptions = i
+								elseif showSelectOptions == i then
+									--showSelectOptions = nil
+								end
 							end
 						end
 					end
 				end
-			end
-			--[[ on close button
-			local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
-				if release then
+				--[[ on close button
+				local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
+				local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
+				if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
+					if release then
+						showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
+						show = not show
+					end
+					return true
+				end]]--
+
+				if button == 1 or button == 3 then
+					return true
+				end
+			elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+				if release and draggingSlider == nil then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-					show = not show
+					show = false
 				end
 				return true
-			end]]--
-			
-			if button == 1 or button == 3 then
-				return true
 			end
-		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
-			if release and draggingSlider == nil then
-				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
+
+			if show then
+				if windowList then gl.DeleteList(windowList) end
+				windowList = gl.CreateList(DrawWindow)
 			end
-			return true
 		end
-		
-		if show then
-			if windowList then gl.DeleteList(windowList) end
-			windowList = gl.CreateList(DrawWindow)
-		end
-		
   end
 end
 
@@ -1321,7 +1361,7 @@ function init()
 	}
 	options = {
 		-- PRESET
-		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0, description='Loads a preset.\n\nIt wont set the preset every time you restart a game. So feel free to adjust things.'},
+		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nRightclick to delete a (custom) added preset'},
 
 		--GFX
 		--{id="windowposx", group="gfx", name="Window position X", type="slider", min=0, max=math.ceil(ssx/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosX",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
@@ -1487,6 +1527,43 @@ function init()
 	options = processedOptions
 end
 
+
+
+function savePreset(name)
+	if name == nil then
+		name = 'custom'
+		local i = 1
+		while customPresets[name] ~= nil do
+			i = i + 1
+			name = 'custom'..i
+		end
+	end
+	if presets[name] ~= nil then
+		Spring.Echo("preset '"..name.."' already exists")
+	else
+		local preset = {}
+		for optionID, _ in pairs(presets['lowest']) do
+			if options[getOptionByID(optionID)] ~= nil then
+				preset[optionID] = options[getOptionByID(optionID)].value
+			end
+		end
+		customPresets[name] = preset
+		presets[name] = preset
+		table.insert(presetNames, name)
+		options[getOptionByID('preset')].options = presetNames
+		Spring.Echo('saved preset: '..name)
+		if windowList then gl.DeleteList(windowList) end
+		windowList = gl.CreateList(DrawWindow)
+	end
+end
+
+
+function cmdSavePreset(cmd, line, words)
+	if words[1] then
+		savePreset(words[1])
+	end
+end
+
 function widget:Initialize()
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
@@ -1498,6 +1575,12 @@ function widget:Initialize()
 	end
 	WG['options'].isvisible = function()
 		return show
+	end
+	--widgetHandler.AddAction("savepreset", cmdSavePreset, nil, "t")	-- this widget is a handler so AddAction doesnt work :(
+
+	presets = tableMerge(presets, customPresets)
+	for preset,_ in pairs(customPresets) do
+		table.insert(presetNames, preset)
 	end
 
 	init()
@@ -1515,5 +1598,20 @@ function widget:TextCommand(command)
 	if (string.find(command, "options") == 1  and  string.len(command) == 7) then
 		show = not show
 	end
+	if (string.find(command, "savepreset") == 1  and  string.len(command) == 10) then
+		savePreset()
+	end
 end
 
+-- preserve data in case of a /luaui reload
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.customPresets = customPresets
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.customPresets ~= nil then
+		customPresets = data.customPresets
+	end
+end
