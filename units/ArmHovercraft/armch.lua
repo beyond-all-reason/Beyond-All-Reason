@@ -77,7 +77,6 @@ return {
 			"armamsub",
 			"armplat",
 			"armtide",
-			"armomex",
 			"armuwmex",
 			"armfmkr",
 			"armuwms",
