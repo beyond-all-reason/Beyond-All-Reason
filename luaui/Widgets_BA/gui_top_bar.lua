@@ -998,9 +998,11 @@ function widget:DrawScreen()
 	end
 
 	if dlistWind1 then
+		glPushMatrix()
 		glCallList(dlistWind1)
 		glRotate(windRotation, 0, 0, 1)
 		glCallList(dlistWind2)
+		glPopMatrix()
 		-- current wind
 		if gameFrame > 0 then
 			local fontSize = (height/2.66)*widgetScale
