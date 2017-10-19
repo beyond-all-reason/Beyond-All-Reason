@@ -1148,6 +1148,7 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
 
@@ -1159,11 +1160,7 @@ function mouseEvent(x, y, button, release)
 				for i, o in pairs(optionSelect) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						if presetNames[o[5]] and customPresets[presetNames[o[5]]] ~= nil then
-							Spring.Echo('deleted preset:  '..presetNames[o[5]])
-							customPresets[presetNames[o[5]]] = nil
-							presets[presetNames[o[5]]] = nil
-							presetNames[o[5]] = nil
-							options[showSelectOptions].options = presetNames
+							deletePreset(presetNames[o[5]])
 							if playSounds then
 								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
 							end
@@ -1418,6 +1415,7 @@ function init()
 		-- UI
 		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
+		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
@@ -1450,7 +1448,6 @@ function init()
 		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
 		-- GAME
-		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 		{id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
 		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=GetWidgetToggleValue("Set fighters on Fly mode"), description='Setting fighters on Fly mode when created'},
 		{id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=GetWidgetToggleValue("Passive builders"), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: You could set your most important builders on active and leave the rest on passive'},
@@ -1528,6 +1525,19 @@ function init()
 end
 
 
+function deletePreset(name)
+	Spring.Echo('deleted preset:  '..name)
+	customPresets[name] = nil
+	presets[name] = nil
+	local newPresetNames = {}
+	for _, presetName in ipairs(presetNames) do
+		if presetName ~= name then
+			table.insert(newPresetNames, presetName)
+		end
+	end
+	presetNames = newPresetNames
+	options[getOptionByID('preset')].options = presetNames
+end
 
 function savePreset(name)
 	if name == nil then
@@ -1558,12 +1568,6 @@ function savePreset(name)
 end
 
 
-function cmdSavePreset(cmd, line, words)
-	if words[1] then
-		savePreset(words[1])
-	end
-end
-
 function widget:Initialize()
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
@@ -1576,7 +1580,6 @@ function widget:Initialize()
 	WG['options'].isvisible = function()
 		return show
 	end
-	--widgetHandler.AddAction("savepreset", cmdSavePreset, nil, "t")	-- this widget is a handler so AddAction doesnt work :(
 
 	presets = tableMerge(presets, customPresets)
 	for preset,_ in pairs(customPresets) do
@@ -1593,13 +1596,25 @@ function widget:Shutdown()
 end
 
 
+local function Split(s, separator)
+	local results = {}
+	for part in s:gmatch("[^"..separator.."]+") do
+		results[#results + 1] = part
+	end
+	return results
+end
 
 function widget:TextCommand(command)
 	if (string.find(command, "options") == 1  and  string.len(command) == 7) then
 		show = not show
 	end
-	if (string.find(command, "savepreset") == 1  and  string.len(command) == 10) then
-		savePreset()
+	if (string.find(command, "savepreset") == 1)  then
+		local words = Split(command, ' ')
+		if words[2] then
+			savePreset(words[2])
+		else
+			savePreset()
+		end
 	end
 end
 
