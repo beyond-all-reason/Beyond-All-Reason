@@ -153,7 +153,7 @@ return {
 					heavyunits = 1,
 					mines = 1000,
 					nanos = 1,
-					subs = 1,
+					--subs = 1,
 					vtol = 1,
 				},
 				customparams = {

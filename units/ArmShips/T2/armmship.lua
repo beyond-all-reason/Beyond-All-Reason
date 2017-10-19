@@ -152,7 +152,7 @@ return {
 				damage = {
 					commanders = 500,
 					default = 800,
-					subs = 5,
+					--subs = 5,
 				},
 			},
 			armmship_missile = {
@@ -191,7 +191,7 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					default = 138,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget

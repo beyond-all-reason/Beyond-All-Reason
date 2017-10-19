@@ -149,7 +149,7 @@ return {
 				damage = {
 					commanders = 999,
 					default = 4500,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_radius_mult = "1.15",		-- used by light_effects widget
@@ -191,7 +191,7 @@ return {
 					bombers = 65,
 					default = 247,
 					fighters = 65,
-					subs = 5,
+					--subs = 5,
 					vtol = 65,
 				},
 			},
@@ -231,7 +231,7 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 40,
-					subs = 2,
+					--subs = 2,
 				},
 			},
 		},

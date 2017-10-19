@@ -147,7 +147,7 @@ return {
 					bombers = 65,
 					default = 275,
 					fighters = 65,
-					subs = 5,
+					--subs = 5,
 					vtol = 65,
 				},
 				customparams = {

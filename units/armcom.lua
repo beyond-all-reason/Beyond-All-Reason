@@ -296,7 +296,7 @@ tablearmcom = {
 					bombers = 180,
 					default = 75,
 					fighters = 110,
-					subs = 5,
+					--subs = 5,
 				},
 			},
 			armcomsealaser = {
@@ -337,7 +337,7 @@ tablearmcom = {
 				weaponvelocity = 900,
 				damage = {
 					default = 125*0.5,
-					subs = 75*0.25,
+					--subs = 75*0.25,
 				},
 			},
 			repulsor1 = {
@@ -445,7 +445,7 @@ end
 	--Weapon: SeaLaser
 tablearmcom.weapondefs.armcomsealaser2 = deepcopy(tablearmcom.weapondefs.armcomsealaser)
 	tablearmcom.weapondefs["armcomsealaser2"].damage.default = Damages21[2]
-	tablearmcom.weapondefs["armcomsealaser2"].damage.subs = Damages22[2]*Damages21[2]
+	tablearmcom.weapondefs["armcomsealaser2"].damage.--subs = Damages22[2]*Damages21[2]
 	tablearmcom.weapondefs["armcomsealaser2"].range = Range2[2]
 	tablearmcom.weapondefs["armcomsealaser2"].areaofeffect = AOE2[2]
 	tablearmcom.weapondefs["armcomsealaser2"].reloadtime = ReloadTime2[2]
@@ -454,7 +454,7 @@ for i = 3,11 do
 	H = tostring(i-1)
 	tablearmcom.weapondefs["armcomsealaser"..I] = deepcopy(tablearmcom.weapondefs["armcomsealaser"..H])
 	tablearmcom.weapondefs["armcomsealaser"..I].damage.default = Damages21[i]
-	tablearmcom.weapondefs["armcomsealaser"..I].damage.subs = Damages22[i] * Damages21[i]
+	tablearmcom.weapondefs["armcomsealaser"..I].damage.--subs = Damages22[i] * Damages21[i]
 	tablearmcom.weapondefs["armcomsealaser"..I].range = Range2[i]
 	tablearmcom.weapondefs["armcomsealaser"..I].areaofeffect = AOE2[i]
 	tablearmcom.weapondefs["armcomsealaser"..I].reloadtime = ReloadTime2[i]

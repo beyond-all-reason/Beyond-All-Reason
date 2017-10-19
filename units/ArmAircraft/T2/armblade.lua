@@ -105,7 +105,7 @@ return {
 				damage = {
 					commanders = 95,
 					default = 190,
-					subs = 5,
+					--subs = 5,
 				},
 			},
 		},

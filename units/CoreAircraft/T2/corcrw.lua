@@ -103,7 +103,7 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 90,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_radius_mult = "1.14",		-- used by light_effects widget
@@ -144,7 +144,7 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 250,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_radius_mult = "1.2",		-- used by light_effects widget

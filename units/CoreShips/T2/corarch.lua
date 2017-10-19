@@ -181,7 +181,7 @@ return {
 				weaponvelocity = 950,
 				damage = {
 					default = 63,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
@@ -225,7 +225,7 @@ return {
 					heavyunits = 10,
 					mines = 10,
 					nanos = 10,
-					subs = 5,
+					--subs = 5,
 					vtol = 200,
 				},
 			},

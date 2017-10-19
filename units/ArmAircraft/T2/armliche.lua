@@ -103,7 +103,7 @@ return {
 				damage = {
 					commanders = 3350,
 					default = 5625,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_radius_mult = "0.4",		-- used by light_effects widget
@@ -146,7 +146,7 @@ return {
 				damage = {
 					commanders = 3350,
 					default = 5625,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_radius_mult = "0.4",		-- used by light_effects widget

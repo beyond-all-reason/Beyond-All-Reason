@@ -144,7 +144,7 @@
 					bombers = 2,
 					default = 24,
 					fighters = 2,
-					subs = 1,
+					--subs = 1,
 					vtol = 2,
 				},
 			},

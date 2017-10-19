@@ -157,7 +157,7 @@ return {
 					bombers = 180,
 					default = 75,
 					fighters = 110,
-					subs = 5,
+					--subs = 5,
 				},
 			},
 			armcomsealaser = {
@@ -198,7 +198,7 @@ return {
 				weaponvelocity = 900,
 				damage = {
 					default = 125*0.5,
-					subs = 75*0.25,
+					--subs = 75*0.25,
 				},
 			},
 			disintegrator = {

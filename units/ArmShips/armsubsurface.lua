@@ -148,7 +148,7 @@ return {
 				damage = {
 					commanders = 400,
 					default = 433,
-					subs = 100,
+					--subs = 100,
 				},
 			},
 			janus_rocket = {
@@ -188,7 +188,7 @@ return {
 					bombers = 35,
 					default = 330,
 					fighters = 35,
-					subs = 5,
+					--subs = 5,
 					vtol = 35,
 				},
 			},

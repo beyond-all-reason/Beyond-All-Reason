@@ -95,7 +95,7 @@ return {
 					antibomber = 100,
 					default = 266,
 					l1bombers = 5,
-					l1subs = 5,
+					--subs = 5,
 				},
 			},
 		},

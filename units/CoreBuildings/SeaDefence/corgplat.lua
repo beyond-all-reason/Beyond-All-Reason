@@ -130,7 +130,7 @@ return {
 					default = 45*1.5*2.1,
 					heavyunits = 45*1.5*2.1*0.7,
 					fighters = 10*1.5*2.1,
-					subs = 1*1.5*2.1,
+					--subs = 1*1.5*2.1,
 					vtol = 1*1.5*2.1,
 
 				},

@@ -143,7 +143,7 @@ return {
 					default = 675,
 					hvyboats = 675*0.7,
 					fighters = 26,
-					subs = 5,
+					--subs = 5,
 					vtol = 26,
 				},
 			},

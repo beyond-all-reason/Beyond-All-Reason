@@ -146,7 +146,7 @@ return {
 				weaponvelocity = 900,
 				damage = {
 					default = 165,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_multiplier = "0.03",		-- used by light_effects widget
@@ -188,7 +188,7 @@ return {
 				damage = {
 					commanders = 1200,
 					default = 5500,
-					subs = 5,
+					--subs = 5,
 				},
 				customparams = {
 					light_multiplier = "2",		-- used by light_effects widget
@@ -232,7 +232,7 @@ return {
 				weaponvelocity = 2600,
 				damage = {
 					default = 800,
-					subs = 5,
+					--subs = 5,
 				},
 			},
 			krogkick = {

@@ -139,7 +139,7 @@ return {
 				weaponvelocity = 1150,
 				damage = {
 					default = 1330,
-					subs = 5,
+					--subs = 5,
 					shields = 665,
 				},
 			},

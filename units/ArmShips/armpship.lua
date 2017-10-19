@@ -141,7 +141,7 @@ return {
 					bombers = 215*1.5,
 					default = 85*1.5,
 					fighters = 25*1.5,
-					subs = 5*1.5,
+					--subs = 5*1.5,
 					vtol = 25*1.5,
 				},
 			},
