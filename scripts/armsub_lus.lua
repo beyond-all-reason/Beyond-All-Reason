@@ -16,6 +16,7 @@ function script.Create()
 	Spring.SetUnitMaxRange(unitID, 310)
 	StartThread(SpeedLimit)
 	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, {})
+	Spring.SetUnitArmored(unitID, true, 0.5)
 end
 
 function SpeedLimit()
@@ -43,11 +44,12 @@ Spring.UnitScript.SetSignalMask(1)
 Spring.SetUnitArmored(unitID, false)
 Surfaced = true
 speedlimit = 0.5
-
+Spring.SetUnitSensorRadius(unitID,"los", uDef.losRadius)
 end
 
 function Drown()
 Surfaced = false
+Spring.SetUnitSensorRadius(unitID,"los", 0)
 Spring.UnitScript.SetSignalMask(2)
 	while f > 0 do
 		Move(base, 2, (-math.cos(f)+1)*10)
@@ -55,7 +57,7 @@ Spring.UnitScript.SetSignalMask(2)
 		f = f - math.pi/125
 		Sleep(1)
 	end
-Spring.SetUnitArmored(unitID, false)
+Spring.SetUnitArmored(unitID, true, 0.5)
 Surfaced = false
 speedlimit = nil
 end
