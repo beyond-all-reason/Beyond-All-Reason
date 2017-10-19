@@ -26,6 +26,7 @@ return {
 		name = "Serpent",
 		nochasecategory = "VTOL",
 		objectname = "ARMSERP",
+		script = "armserp_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 468,
@@ -147,7 +148,7 @@ return {
 				weaponvelocity = 220,
 				damage = {
 					default = 500,
-					subs = 250,
+					--subs =250,
 				},
 			},
 		},

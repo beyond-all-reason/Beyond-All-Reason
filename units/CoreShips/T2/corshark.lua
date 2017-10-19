@@ -26,6 +26,7 @@ return {
 		name = "Shark",
 		nochasecategory = "VTOL",
 		objectname = "CORSHARK",
+		script = "corshark_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 390,
@@ -145,7 +146,7 @@ return {
 				weaponvelocity = 200,
 				damage = {
 					default = 200,
-					subs = 300,
+					--subs =300,
 				},
 			},
 		},
