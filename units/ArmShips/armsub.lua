@@ -29,8 +29,8 @@ return {
 		script = "ARMSUB_LUS.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-uw",
-		sightdistance = 380,
-		sonardistance = 250,
+		sightdistance = 350,
+		sonardistance = 450,
 		upright = true,
 		waterline = 30,
 		--move
