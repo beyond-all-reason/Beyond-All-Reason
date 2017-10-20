@@ -1,8 +1,8 @@
 return {
 	coresupp = {
 		buildangle = 16384,
-		buildcostenergy = 1300,
-		buildcostmetal = 150,
+		buildcostenergy = 400,
+		buildcostmetal = 180,
 		buildpic = "CORESUPP.DDS",
 		buildtime = 1.5 * 2200,
 		canmove = true,
@@ -20,7 +20,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 580,
+		maxdamage = 720,
 		minwaterdepth = 12,
 		movementclass = "BOAT42X4",
 		name = "Supporter",
@@ -31,12 +31,12 @@ return {
 		sightdistance = 320,
 		waterline = 2,
 		--move
-		acceleration = 3.30/90,
-		brakerate = 3.30/15,
+		acceleration = 3.15/90,
+		brakerate = 3.15/15,
 		maxvelocity = 3.30,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*3.30,
+		turninplacespeedlimit = 0.64*3.15,
 		turnrate = 406,
 		--end move
 		customparams = {

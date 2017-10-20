@@ -1,10 +1,10 @@
 return {
 	armdecade = {
 		buildangle = 16384,
-		buildcostenergy = 1800,
-		buildcostmetal = 300,
+		buildcostenergy = 1650,
+		buildcostmetal = 260,
 		buildpic = "ARMDECADE.DDS",
-		buildtime = 1.5 * 3000,
+		buildtime = 1.5 * 2800,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -2",
@@ -19,7 +19,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 850,
+		maxdamage = 1450,
 		minwaterdepth = 12,
 		movementclass = "BOAT42X4",
 		name = "Decade",
@@ -137,7 +137,7 @@ return {
 				--stages = 10,
 				damage = {
 					bombers = 15,
-					default = 87,
+					default = 57,
 					fighters = 15,
 					--subs = 5,
 					vtol = 15,
