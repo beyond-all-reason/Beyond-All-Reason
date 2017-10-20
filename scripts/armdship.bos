@@ -3,9 +3,9 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ground, wake1, wake2, turret, launcher, charge, plunger, flare;
+piece  base, ground, wake1, wake2, turret, sleeve, gun1, gun2, flare1, flare2;
 		
-static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
+static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead, gun;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -111,9 +111,11 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	hide flare;
+	hide flare1;
+	hide flare2;
 	restore_delay = 3000;
 	start-script SmokeUnit();
+	gun = 1;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -138,7 +140,8 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <50.000000>;
+	turn turret to y-axis <0.000000> speed <100.000000>;
+	turn sleeve to x-axis <0.000000> speed <100.000000>;
 }
 
 
@@ -152,8 +155,8 @@ StartMoving()
 	{
 		emit-sfx 2 from wake1;
 		emit-sfx 2 from wake2;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
+		waketime = (get CURRENT_SPEED) * 30 / get MAX_SPEED;
+		if( waketime < 5 ) waketime = 5;
 		sleep 12000 / waketime;
 	}
 }
@@ -169,23 +172,29 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <100.00000>;
+	turn turret to y-axis heading speed <200.00000>;
+	turn sleeve to x-axis <0> - pitch speed <150.00000>;
 	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
-	move plunger to z-axis [0.00000] speed [250.00000];
-	wait-for-move plunger along z-axis;
-	hide charge;
-	sleep 250;
-	move plunger to z-axis [-2.500000] speed [20.00000];
-	move launcher to y-axis [-2.500000] speed [20.00000];
-	wait-for-move launcher along y-axis;
-	show charge;
-	move launcher to y-axis [0.00000] speed [20.00000];
+	if (gun == 1)
+	{
+	move gun1 to z-axis <-5> now;
+	move gun1 to z-axis <0> speed <25>;
+	gun = 2;
+	}
+	else
+	{
+	move gun2 to z-axis <-5> now;
+	move gun2 to z-axis <0> speed <25>;
+	gun = 2;	
+	gun = 1;
+	}
 	return (0);
 }
 
@@ -197,7 +206,14 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	if (gun == 1)
+	{
+	piecenum = flare2;
+	}
+	else
+	{
+	piecenum = flare1;
+	}
 	return (0);
 }
 Killed(severity, corpsetype)
