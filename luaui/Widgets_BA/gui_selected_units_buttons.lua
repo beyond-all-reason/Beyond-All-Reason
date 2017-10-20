@@ -158,7 +158,6 @@ function cacheUnitIcons()
 end
 
 local prevMouseIcon
-local justCreatedList = false
 local hoverClock = nil
 function widget:DrawScreen()
     cacheUnitIcons()    -- else white icon bug happens
@@ -172,7 +171,6 @@ function widget:DrawScreen()
         end
         if icon > 0 then
         enabled = true
-        justCreatedList = false
         gl.CallList(picList)
         -- draw the highlights
         local x,y,lb,mb,rb = spGetMouseState()
@@ -196,13 +194,13 @@ function widget:DrawScreen()
         else
           hoverClock = nil
         end
-        if mouseIcon ~= prevMouseIcon and justCreatedList == false then
+        if mouseIcon ~= prevMouseIcon then
           gl.DeleteList(picList)
           picList = gl.CreateList(DrawPicList)
           prevMouseIcon = mouseIcon
         end
         end
-	  end    
+	  end
 	end
 	updateGuishader()
 end
@@ -211,15 +209,11 @@ function widget:CommandsChanged()
   if picList then
     gl.DeleteList(picList)
   end
-  if justCreatedList == false then
-    picList = gl.CreateList(DrawPicList)
-    justCreatedList = true
-  end
+  picList = gl.CreateList(DrawPicList)
 end
 
 function widget:Initialize()
-  picList = gl.CreateList(DrawPicList)
-  justCreatedList = true
+  widget:ViewResize(vsx, vsy)
 end
 
 function widget:Shutdown()
@@ -308,7 +302,6 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID]
   glColor(color)
-  glTexture(true)
   glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)

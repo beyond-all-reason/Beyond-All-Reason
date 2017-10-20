@@ -4,8 +4,8 @@ return {
 		airsightdistance = 400,
 		autoheal = 1.5,
 		blocking = true,
-		buildcostenergy = 920,
-		buildcostmetal = 160,
+		buildcostenergy = 900,
+		buildcostmetal = 155,
 		buildpic = "ARMRSHIP.DDS",
 		buildtime = 4200,
 		canmove = true,
@@ -24,7 +24,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 750,
+		maxdamage = 700,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Intervention",
@@ -42,7 +42,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*2.20,
-		turnrate = 240,
+		turnrate = 250,
 		--end move
 		customparams = {
 			

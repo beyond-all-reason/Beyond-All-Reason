@@ -1,4 +1,4 @@
-﻿
+
 function widget:GetInfo()
 	return {
 		name      = "Unit Marker",
