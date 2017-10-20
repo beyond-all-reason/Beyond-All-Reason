@@ -183,6 +183,9 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNoMinimap(unitID, true)
 	Spring.SetUnitSensorRadius(unitID, 'los', 0)
 	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	Spring.SetUnitMaxHealth(unitID, 1)
+	Spring.SetUnitBlocking(unitID, false)
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
 		Spring.UnitWeaponHoldFire(unitID, weaponID)
 	end
