@@ -127,7 +127,7 @@ return {
 				explosiongenerator = "custom:FLASH4",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "torpedo",
+				model = "smalltorpedo",
 				name = "CruiserDepthCharge",
 				noselfdamage = true,
 				range = 240,
