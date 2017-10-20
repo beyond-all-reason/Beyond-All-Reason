@@ -123,7 +123,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 			[16] = "cortide",
 			[17] = "coruwms",
 			[18] = "coruwes",
-			[19] = "coruwmex",
+			[19] = "coromex",
 			[20] = "corfmkr",
 			[21] = "corsy",
 			-- [22] = "corsonar",
@@ -456,7 +456,6 @@ end
 	--Weapon: SeaLaser
 tablecorcom.weapondefs.armcomsealaser2 = deepcopy(tablecorcom.weapondefs.armcomsealaser)
 	tablecorcom.weapondefs["armcomsealaser2"].damage.default = Damages21[2]
-	tablecorcom.weapondefs["armcomsealaser2"].damage.--subs = Damages22[2]*Damages21[2]
 	tablecorcom.weapondefs["armcomsealaser2"].range = Range2[2]
 	tablecorcom.weapondefs["armcomsealaser2"].areaofeffect = AOE2[2]
 	tablecorcom.weapondefs["armcomsealaser2"].reloadtime = ReloadTime2[2]
@@ -465,7 +464,6 @@ for i = 3,11 do
 	H = tostring(i-1)
 	tablecorcom.weapondefs["armcomsealaser"..I] = deepcopy(tablecorcom.weapondefs["armcomsealaser"..H])
 	tablecorcom.weapondefs["armcomsealaser"..I].damage.default = Damages21[i]
-	tablecorcom.weapondefs["armcomsealaser"..I].damage.--subs = Damages22[i] * Damages21[i]
 	tablecorcom.weapondefs["armcomsealaser"..I].range = Range2[i]
 	tablecorcom.weapondefs["armcomsealaser"..I].areaofeffect = AOE2[i]
 	tablecorcom.weapondefs["armcomsealaser"..I].reloadtime = ReloadTime2[i]
