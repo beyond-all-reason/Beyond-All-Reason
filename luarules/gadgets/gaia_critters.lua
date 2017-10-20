@@ -12,7 +12,7 @@ end
 -- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
 
 if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == "disabled" then
-	return
+	--return
 end
 
 -- synced only
@@ -181,6 +181,11 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNoSelect(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoMinimap(unitID, true)
+	Spring.SetUnitSensorRadius(unitID, 'los', 0)
+	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
+		Spring.UnitWeaponHoldFire(unitID, weaponID)
+	end
 end
 
 
