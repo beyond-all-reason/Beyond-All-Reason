@@ -3,7 +3,7 @@ function widget:GetInfo()
 	return {
 		name		= "Bet-Frontend",
 		desc		= "Use player console and markers to place bets",
-		author		= "BrainDamage",
+		author		= "BrainDamage (GUI by Floris)",
 		date		= "Jan,2013",
 		license		= "WTFPL",
 		layer		= 1,
@@ -575,6 +575,10 @@ end
 function processBoxes()
 	panelBox = {xPos-((panelWidth/2)*sizeMultiplier), yPos-((panelHeight/2)*sizeMultiplier), xPos+((panelWidth/2)*sizeMultiplier), yPos+((panelHeight/2)*sizeMultiplier)}
 	panelBoxContent = {panelBox[1]+((borderPadding+contentMargin)*sizeMultiplier), panelBox[2]+((borderPadding+contentMargin)*sizeMultiplier), panelBox[3]-((borderPadding+contentMargin)*sizeMultiplier), panelBox[4]-((borderPadding+contentMargin)*sizeMultiplier)}
+	panelBoxWallet = {panelBox[1]-(75*sizeMultiplier), panelBox[2], panelBox[1], panelBox[4]}
+	local offset = -5
+	local addsize = 16
+	panelBoxCost = {panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier)}
 	panelBoxForward = {panelBoxContent[3]-(square*sizeMultiplier), panelBoxContent[2], panelBoxContent[3], panelBoxContent[4]}
 	panelBoxBackward = {panelBoxContent[3]-((square+square+contentMargin)*sizeMultiplier), panelBoxContent[2], panelBoxContent[3]-((square+contentMargin)*sizeMultiplier), panelBoxContent[4]}
 	placebetBox = {panelBox[3], panelBox[2], panelBox[3]+(120*sizeMultiplier), panelBox[4]}
@@ -928,17 +932,19 @@ function widget:DrawScreen()
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
 					canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID] ~= nil and playerScores[myPlayerID].score >= betCost)
 
+					local chipsOwned = (playerScores[myPlayerID] and playerScores[myPlayerID].score) or STARTING_SCORE
+					chipsOwned = chipsOwned
 					if lastBetTime < ceil(absTime/BET_GRANULARITY) then
 						lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
 					end
 					
 					-- background
 					glColor(0, 0, 0, 0.6)
-					RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+					RectRound(panelBoxWallet[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
 					glColor(1,1,1,0.022)
-					RectRound(panelBox[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					RectRound(panelBoxWallet[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
 					glColor(1, 1, 1, 1)
-					
+
 					-- place bet
 					if canAfford then
 						if mouseoverPlacebetBox then
@@ -952,13 +958,23 @@ function widget:DrawScreen()
 						if mouseoverPlacebetBox then
 							glColor(1,0.3,0.3,0.4)
 							textcolor = "\255\255\255\255"
+							if WG['tooltip'] ~= nil then
+								--WG['tooltip'].ShowTooltip('bet', '')
+							end
 						else
 							glColor(1,0.4,0.4,0.2)
 						end
 						RectRound(placebetBox[1]+(borderPadding*sizeMultiplier), placebetBox[2]+(borderPadding*sizeMultiplier), placebetBox[3]-(borderPadding*sizeMultiplier), placebetBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
 						glText(textcolor.."Place bet", placebetBox[1]+((borderPadding+14)*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nlo")
 					end
-					
+
+
+					if mouseoverWallet then
+						if WG['tooltip'] ~= nil then
+							WG['tooltip'].ShowTooltip('bet', 'Number of chips you have')
+						end
+					end
+
 					-- chip cost
 					glTexture(chipTexture)
 					local offsetAdd = -5
@@ -976,12 +992,21 @@ function widget:DrawScreen()
 						glColor(0.85, 0.85, 0.85, 1)
 						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
 					end
+
+					if mouseoverCost then
+						if WG['tooltip'] ~= nil then
+							WG['tooltip'].ShowTooltip('bet', 'Cost of participation')
+						end
+					end
 					glText(betCost, panelBox[1]+((borderPadding+(panelHeight/2.66)+(contentMargin/2.66))*sizeMultiplier), yPos-(6*sizeMultiplier), (19+(addsize/6))*sizeMultiplier, "nco")
 					
 					-- back/forward buttons
 					if canAfford then
 						if mouseoverForwardBox then
 							glColor(1, 1, 1, 1)
+							if WG['tooltip'] ~= nil then
+								WG['tooltip'].ShowTooltip('bet', 'Increase minutes')
+							end
 						else
 							glColor(1, 1, 1, 0.6)
 						end
@@ -989,9 +1014,14 @@ function widget:DrawScreen()
 						glTexRect(panelBoxForward[1],panelBoxForward[2],panelBoxForward[3],panelBoxForward[4])
 						--local timePosX = panelBoxForward[1]-(12*sizeMultiplier)
 						local prevAvalibleTime = getValidBetTime(lastSelectedUnit, (lastBetTime), -1)
+						local backBoxShown = false
 						if absTime/BET_GRANULARITY < lastBetTime-1 and prevAvalibleTime < lastBetTime and prevAvalibleTime >= (ceil(absTime/BET_GRANULARITY)) then
 							if mouseoverBackwardBox then
+								backBoxShown = true
 								glColor(1, 1, 1, 1)
+								if WG['tooltip'] ~= nil then
+									WG['tooltip'].ShowTooltip('bet', 'Decrease minutes')
+								end
 							else
 								glColor(1, 1, 1, 0.6)
 							end
@@ -999,7 +1029,13 @@ function widget:DrawScreen()
 							glTexRect(panelBoxBackward[1],panelBoxBackward[2],panelBoxBackward[3],panelBoxBackward[4])
 							--timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
 						end
-						
+
+						if mouseoverContent and not mouseoverSelectBetsBox and not mouseoverCost and not mouseoverForwardBox and not backBoxShown then
+							if WG['tooltip'] ~= nil then
+								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict how much minutes away from now the selected unit will be killed.\nWinner takes the stack of chips everyone else betted on this unit.')
+							end
+						end
+
 						-- bet time
 						local timePosX = panelBoxBackward[1]-(12*sizeMultiplier)
 						glColor(1, 1, 1, 1)
@@ -1007,6 +1043,10 @@ function widget:DrawScreen()
 					else
 						glText('cant afford bet', panelBoxForward[3]-(6*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nro")
 					end
+
+					-- wallet
+					glText(chipsOwned, panelBoxWallet[1]+((panelBox[1]-panelBoxWallet[1])/2)-(3*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+
 					if (WG['guishader_api'] ~= nil) then
 						local x2 = placebetBox[3]
 						if not canAfford then
@@ -1108,6 +1148,21 @@ function widget:IsAbove(mx, my)
 				mouseoverBackwardBox = true
 			else
 				mouseoverBackwardBox = false
+			end
+			if isInBox(mx, my, panelBoxCost) then
+				mouseoverCost = true
+			else
+				mouseoverCost = false
+			end
+			if isInBox(mx, my, panelBoxContent) then
+				mouseoverContent = true
+			else
+				mouseoverContent = false
+			end
+			if isInBox(mx, my, panelBoxWallet) then
+				mouseoverWallet = true
+			else
+				mouseoverWallet = false
 			end
 		else
 			if isInBox(mx, my, panelBox) and showSelectBets and numBetUnits > 0 then
