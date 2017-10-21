@@ -181,10 +181,12 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNoSelect(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
 	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.SetUnitSensorRadius(unitID, 'los', 0)
-	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
 	Spring.SetUnitMaxHealth(unitID, 2)
 	Spring.SetUnitBlocking(unitID, false)
+	Spring.SetUnitSensorRadius(unitID, 'los', 0)
+	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
 		Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S
 	end
