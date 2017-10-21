@@ -81,13 +81,14 @@ end
 
 function UnitSpeed()
 	while (true) do
-		local mm, mu, em, eu = Spring.GetUnitResources(unitID)
-		local null, fxp = Spring.GetUnitExperience(unitID)
-		local xptoadd = (mm * 0.000000025) + (mu * 0.00000025) + ((em/60) * 0.000000025) + ((eu/60)*0.00000025)
-		Spring.SetUnitExperience(unitID, null + xptoadd)
 		vx,vy,vz,Speed = Spring.GetUnitVelocity(unitID)
 		currentSpeed = Speed*100*30/moveSpeed
 		if (currentSpeed < 35) then currentSpeed = 35 end
+		local mm, mu, em, eu = Spring.GetUnitResources(unitID)
+		local null, fxp = Spring.GetUnitExperience(unitID)
+		local movexp = (Speed or 0) * 0.000005
+		local xptoadd = (mm * 0.00000005) + (mu * 0.0000005) + ((em/60) * 0.00000005) + ((eu/60)*0.0000005) + movexp
+		Spring.SetUnitExperience(unitID, null + xptoadd)
 		randomness = math.random(-10,10)
 		currentSpeed = currentSpeed + randomness
 		Sleep (1)
