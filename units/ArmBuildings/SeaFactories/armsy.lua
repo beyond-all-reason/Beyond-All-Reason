@@ -42,12 +42,9 @@ return {
 			"armch",
 			"armpt",
 			"armdship",
-			-- "armsh",
 			"armdecade",
 			"armrship",
-			-- "armah",
 			"armsub",
-			-- "armpship",
 			"armroy",
 			"armtship",
 
