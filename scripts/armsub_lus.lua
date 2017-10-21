@@ -6,6 +6,7 @@ SIG_MOVE = 8
 Surfaced = false
 piecetable = {flare1, flare2, base, tail}
 uDef = UnitDefs[Spring.GetUnitDefID(unitID)]
+wDef = WeaponDefs[WeaponDefNames["armsub_arm_torpedobig"].id]
 
 function script.Create()
 	local sx,sy,sz,ox,oy,oz,vt, tt,pa, disabled = Spring.GetUnitCollisionVolumeData(unitID)
@@ -15,7 +16,7 @@ function script.Create()
 	f = 0
 	Spring.SetUnitMaxRange(unitID, 310)
 	StartThread(SpeedLimit)
-	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, {})
+	-- Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, {})
 	Spring.SetUnitArmored(unitID, true, 0.5)
 end
 
@@ -38,7 +39,7 @@ Spring.UnitScript.SetSignalMask(1)
 	while f < math.pi do
 		Move(base, 2, (-math.cos(f)+1)*10)
 		Spring.SetUnitMidAndAimPos(unitID, mpx, mpy + (-math.cos(f)+1)*15, mpz, apx, apy + (-math.cos(f)+1)*15, apz, true)
-		f = f + math.pi/125
+		f = f + math.pi/45
 		Sleep(1)
 	end
 Spring.SetUnitArmored(unitID, false)
@@ -54,7 +55,7 @@ Spring.UnitScript.SetSignalMask(2)
 	while f > 0 do
 		Move(base, 2, (-math.cos(f)+1)*10)
 		Spring.SetUnitMidAndAimPos(unitID, mpx, mpy + (-math.cos(f)+1)*15, mpz, apx, apy + (-math.cos(f)+1)*15, apz, true)
-		f = f - math.pi/125
+		f = f - math.pi/45
 		Sleep(1)
 	end
 Spring.SetUnitArmored(unitID, true, 0.5)
@@ -81,8 +82,10 @@ function script.AimWeapon1(heading, pitch)
 	Sleep(10)
 	end
 	if Surfaced == true then
+	local reloadTime = Spring.GetUnitWeaponState(unitID, 1, "reloadTime")
+	-- Spring.Echo(reloadTime)
 	Signal(27)
-	StartThread(Restore, 10000)
+	StartThread(Restore, reloadTime * 1000)
 	return (true)
 	else
 	return (false)
@@ -119,8 +122,9 @@ else
 gun = 1 
 end
 	if weapon == 1 then
+	local reloadTime = Spring.GetUnitWeaponState(unitID, 1, "reloadTime")
 	Signal(27)
-	StartThread(Restore, 10000)
+	StartThread(Restore, reloadTime * 1000)
 	end
 end
 
