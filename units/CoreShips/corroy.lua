@@ -117,9 +117,9 @@ return {
 		},
 		weapondefs = {
 			core_roy = {
-				areaofeffect = 92,
+				areaofeffect = 64,
 				avoidfeature = false,
-				craterareaofeffect = 0,
+				craterareaofeffect = 64,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-medium",

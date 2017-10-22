@@ -117,7 +117,7 @@ return {
 		},
 		weapondefs = {
 			arm_roy = {
-				areaofeffect = 86,
+				areaofeffect = 32,
 				avoidfeature = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
