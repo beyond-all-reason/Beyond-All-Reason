@@ -50,6 +50,7 @@ return {
 			[[armsy]],
 			[[armasy]],
 			[[armplat]],
+			[[armomex]],
 			[[armuwmex]],
 			[[armuwmmm]],
 			[[armmls]],
@@ -62,7 +63,7 @@ return {
 		},
 		customparams = {
 			
-			area_mex_def = "armuwmex",
+			area_mex_def = "armomex",
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

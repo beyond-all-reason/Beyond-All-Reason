@@ -45,7 +45,7 @@ return {
 		--end move
 		buildoptions = {
 			"armtide",
-			"armuwmex",
+			"armomex",
 			"armfrad",
 			-- [4] = "armsonar",
 			"armsy",
@@ -66,7 +66,7 @@ return {
 		},
 		customparams = {
 			
-			area_mex_def = "armuwmex",
+			area_mex_def = "armomex",
 		},
 		featuredefs = {
 			dead = {

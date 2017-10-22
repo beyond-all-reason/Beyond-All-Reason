@@ -53,6 +53,7 @@ return {
 			"armdrag",
 			"armclaw",
 			"armmex",
+			"armomex",
 			"armuwmex",
 			"armtide",
 			"armfmkr",
@@ -76,7 +77,7 @@ return {
 		},
 		customparams = {
 			
-			area_mex_def = "armuwmex",
+			area_mex_def = "armomex",
 		},
 		featuredefs = {
 			dead = {

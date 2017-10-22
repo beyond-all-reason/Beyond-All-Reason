@@ -83,13 +83,13 @@ local buildableUnits = {
 	"armamex",
 	"armmex",
 	"armmoho",
-	"armuwmex",
+	"armomex",
 	"armuwmme",
 	"corexp",
 	"cormex",
 	"cormexp",
 	"cormoho",
-	"coruwmex",
+	"coromex",
 	"coruwmme",
 }
 
