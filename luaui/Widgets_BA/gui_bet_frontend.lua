@@ -664,8 +664,8 @@ function widget:Initialize()
 	if GetGameFrame() > 2 then
 		SendCommands({"luarules getbetsstats","luarules getplayerscores", "luarules getbetlist", "luarules getplayerbetlist"})
 	end
-	
-	
+
+    widget:ViewResize(vsx, vsx)
 	
 	WG['betfrontend'] = {}
 	WG['betfrontend'].GetPlayerScores = function()
@@ -910,6 +910,8 @@ function widget:GamePaused(playerID, paused)
 end
 
 function widget:DrawScreen()
+	if Spring.IsGUIHidden() then return end
+
 	if not IsGameOver and IsSpec then
 		local selUnits = GetSelectedUnits()
 		if AllowBets and not IsReplay then
@@ -940,10 +942,10 @@ function widget:DrawScreen()
 					
 					-- background
                     glColor(0, 0, 0, 0.6)
-                    RectRound(panelBox[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
-                    glColor(0, 0.11, 0, 0.6)
-                    RectRound(panelBoxWallet[1], panelBox[2], panelBox[1]+(8*sizeMultiplier), panelBox[4], 8*sizeMultiplier)
-					glColor(1,1,1,0.022)
+                    RectRound(panelBoxWallet[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+                    glColor(0, 1, 0, 0.12)
+					RectRound(panelBoxWallet[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[1]+(8*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					glColor(1,1,1,0.03)
 					RectRound(panelBoxWallet[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
 					glColor(1, 1, 1, 1)
 
@@ -1047,7 +1049,7 @@ function widget:DrawScreen()
 					end
 
 					-- wallet
-					glText('\255\150\210\150'..chipsOwned, panelBoxWallet[1]+((panelBox[1]-panelBoxWallet[1])/2)-(3*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					glText('\255\166\233\166'..chipsOwned, panelBoxWallet[1]+((panelBox[1]-panelBoxWallet[1])/2)-(3*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
 
 					if (WG['guishader_api'] ~= nil) then
 						local x2 = placebetBox[3]
