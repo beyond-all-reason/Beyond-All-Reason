@@ -41,7 +41,7 @@ return {
 		turnrate = 145,	
 		--end move
 		upright = true,
-		waterline = 30,
+		waterline = 40,
 		customparams = {
 
 		},

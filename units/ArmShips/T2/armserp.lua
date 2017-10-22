@@ -32,7 +32,7 @@ return {
 		sightdistance = 468,
 		sonardistance = 550,
 		upright = true,
-		waterline = 30,
+		waterline = 45,
 				--move
 		brakerate =  2.10/20,
 		acceleration = 2.10/120,
