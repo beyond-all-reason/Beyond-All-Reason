@@ -640,6 +640,11 @@ function RecvPlayerBetList(newPlayerBetList)
 end
 
 function widget:Initialize()
+
+    if MIN_BET_TIME == nil then
+        widgetHandler:RemoveWidget()
+    end
+
 	widgetHandler:RegisterGlobal('getBetsStats', RecvBetStats)
 	widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
 	widgetHandler:RegisterGlobal('getBetList', RecvBetList)
@@ -975,7 +980,7 @@ function widget:DrawScreen()
 
 					if mouseoverWallet then
 						if WG['tooltip'] ~= nil then
-							WG['tooltip'].ShowTooltip('bet', 'Number of chips you have')
+							WG['tooltip'].ShowTooltip('bet', 'Chips you have')
 						end
 					end
 
