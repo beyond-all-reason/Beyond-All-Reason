@@ -1,9 +1,10 @@
 return {
 	corpt = {
 		airsightdistance = 800,
+		activatewhenbuilt = true,
 		autoheal = 1.5,
 		buildcostenergy = 640,
-		buildcostmetal = 50,
+		buildcostmetal = 65,
 		buildpic = "CORPT.DDS",
 		buildtime = 1.5 * 1200,
 		canmove = true,
@@ -31,6 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 700,
+		sonardistance = 320,
 		waterline = 1,
 		--move
 		acceleration = 3.82/60,

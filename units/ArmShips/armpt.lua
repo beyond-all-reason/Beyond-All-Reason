@@ -1,9 +1,10 @@
 return {
 	armpt = {
 		airsightdistance = 800,
+		activatewhenbuilt = true,
 		autoheal = 1.5,
 		buildcostenergy = 700,
-		buildcostmetal = 50,
+		buildcostmetal = 65,
 		buildpic = "ARMPT.DDS",
 		buildtime = 1.5 * 1300,
 		canmove = true,
@@ -31,6 +32,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 700,
+		sonardistance = 320,
 		waterline = 2,
 		--move
 		acceleration = 4.00/60,

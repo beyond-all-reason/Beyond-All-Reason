@@ -40,7 +40,7 @@ return {
 			"corcs",
 			"corch",
 			"corpt",
-			"cordship",
+			-- "cordship",
 			"coresupp",
 			"corrship",
 			"corsub",
