@@ -2,7 +2,7 @@ return {
 	coresupp = {
 		buildangle = 16384,
 		buildcostenergy = 1400,
-		buildcostmetal = 180,
+		buildcostmetal = 165,
 		buildpic = "CORESUPP.DDS",
 		buildtime = 1.5 * 2200,
 		canmove = true,
@@ -11,7 +11,7 @@ return {
 		collisionvolumescales = "20 20 55",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Light Assault Corvette",
+		description = "Fast Assault Corvette",
 		energymake = 3,
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
@@ -37,7 +37,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.64*3.15,
-		turnrate = 406,
+		turnrate = 425,
 		--end move
 		customparams = {
 
