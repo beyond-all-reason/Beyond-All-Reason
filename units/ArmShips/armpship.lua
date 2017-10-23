@@ -4,7 +4,7 @@ return {
 		autoheal = 1.5,
 		blocking = true,
 		buildcostenergy = 2000,
-		buildcostmetal = 320,
+		buildcostmetal = 390,
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 1.5 * 4000,
 		canmove = true,
@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 1490,
+		maxdamage = 1940,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X5",
 		name = "Ellysaw",
@@ -31,7 +31,7 @@ return {
 		objectname = "ARMPSHIP",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 400,
+		sightdistance = 500,
 		waterline = 3,
 		--move
 		acceleration = 2.45/120,
@@ -138,8 +138,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 250,
 				damage = {
-					bombers = 215*1.5,
-					default = 85*1.5,
+					bombers = 25*1.5,
+					default = 65*1.5,
 					fighters = 25*1.5,
 					--subs = 5*1.5,
 					vtol = 25*1.5,
@@ -185,19 +185,15 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT UNDERWATER",
+				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "",
 			},
 			[2] = {
-				badtargetcategory = "LIGHTAIRSCOUT LIGHTBOAT UNDERWATER",
+				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "LIGHTPLASMA",
 				onlytargetcategory = "",
 			},
-			-- [3] = {
-				-- def = "CORVETTE_DEPTH",
-				-- onlytargetcategory = "UNDERWATER CANBEUW",
-			-- },
 		},
 	},
 }

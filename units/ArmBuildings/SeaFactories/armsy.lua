@@ -41,13 +41,12 @@ return {
 			"armcs",
 			"armch",
 			"armpt",
-			-- "armdship",
 			"armdecade",
+			"armpship",
 			"armrship",
-			"armsub",
+			-- "armsub",
 			"armroy",
 			"armtship",
-
 		},
 		customparams = {
 			
