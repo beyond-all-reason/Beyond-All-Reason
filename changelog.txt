@@ -55,6 +55,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
 
  T2
+ • Fark workerspeed increased 16%
  • Armmart and cormart (mobile T2 arty) do 15% more damage
  • Morties are 5% slower and are a bit less acurate (even more when moving)
  • Fixed viper overshooting (when aiming at radar dots)
@@ -67,6 +68,9 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
 
  Mod options
+ • Added mo_unba (Unbalanced Commanders) modoption. When enabled, the commander levels up when it reaches 5 XP. Up to 5 levels availible with model changes and upgraded weapons.
+ • Added reclaimunitefficiency (Set how much metal a reclaimed unit should give back. 1 = max, 0.5 = half)
+ • Added mm_diminish_factor (The strength of diminishing returns from metal makers. 0 = off, 1 = very strong diminish effect.)
  • Control victory options: info on startup and offers a better scoreboard window
  • Optional: Small (2x2) wreckage dont block movement (smallfeaturenoblock)
  • Optional modoption for fixed hitspheres (requires firethroughfriendly enabled)
@@ -74,32 +78,30 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  Currently hitboxes are smaller than desired, this was done so that units can somewhat can fire over others
  Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
 
+ Sea reworked: (by Doo) Major balance changes:
+ • Increased T1 shipyards costs (+40% for m and e, +10% for buildtime) and decreased T1 and T2 ships costs (-20% for m and e and buildtime).
+ • Increased Patrol Boats laser reloadtime, decreased hp, costs.
+ • Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
+ • Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
+ • Added Plasma Frigates to both factions available in T1 Shipyard.
+ • Nerfed construction ship buildpower, added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships
+ • Reduced corvette costs and HP
+ • Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
 
-Sea reworked: (by Doo)
-Major balance changes:
-• Increased T1 shipyards costs (+40% for m and e, +10% for buildtime) and decreased T1 and T2 ships costs (-20% for m and e and buildtime).
-• Increased Patrol Boats laser reloadtime, decreased hp, costs.
-• Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
-• Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
-• Added Plasma Frigates to both factions available in T1 Shipyard.
-• Nerfed construction ship buildpower, added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships
-• Reduced corvette costs and HP
-• Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
+ Movement: 
+ • Uses Raw move to avoid needless turns in water
+ • Ships can now turn-in-place (as it did back in 2012). This allows better control on boats by being able to anticipate if the unit will slow down for the turn or keep its max speed.
+ • Globally, maxspeeds, accelerations, brakesrates and turnrates have been decreased for a smoother handling and better feeling of inertia. In terms of balance, this also results in ships being globally weaker to non instantaneous (non beamlasers) weapons (including each other as most ships use plasmas).
 
-Movement: 
-• Uses Raw move to avoid needless turns in water
-• Ships can now turn-in-place (as it did back in 2012). This allows better control on boats by being able to anticipate if the unit will slow down for the turn or keep its max speed.
-• Globally, maxspeeds, accelerations, brakesrates and turnrates have been decreased for a smoother handling and better feeling of inertia. In terms of balance, this also results in ships being globally weaker to non instantaneous (non beamlasers) weapons (including each other as most ships use plasmas).
-
-Models and animations:
-• Some models scales have been changed in order to add a ship feeling to them (mainly longer Z-Axis)
 
 Other:
+ • Add SystemPrivacy=1 to springsettings.cfg to not send your system info
  • Increased default player unit limit to 1500
  • Renamed a lot of unit id's, so they start with arm/cor and the id fits the name
  • Krogoth model scaled down (10%) and bantha model scaled up (5%) Flagships scaled up (15%)
+ • Some models scales have been changed in order to add a ship feeling to them (mainly longer Z-Axis)
  • Arm Beamer updates its aim faster when firing
- • Critters default disabled
+ • Half the amount of critters, and smaller in size
 
  Graphics
  • All new particle/lighting effects!
@@ -115,6 +117,7 @@ Other:
  • One universal tank script for the most basic tanks, which has preset animations that can be tweaked directly via unitDefs
 
  Interface
+ • Re-added betting functionality. More starting chips. Betted chips still count for your score as showed in advplayerslist
  • Console split into Chat Only and Battle/Autohost:
 Chat console will handle all chats between players from and to lobby/all/team/spectators.
 Battle/Autohost will handle all battlestates messages (warnings, errors, pauses, lags, afk, resigns...) and all autohosts messages (votes, rings...)
@@ -142,9 +145,10 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Added widget "Tombstones" (default enabled), toggable via options widget
  • Button click sounds added for various widgets
  • Various (ui/control) widgets disable when you become spectator
+ • Unit stats: when not spectating: disabled unit info screen for selected units
 
  Top bar widget
- • Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress integrated into 'Top Bar' widget
+ • Resource bars, Energy Conversion, Wind Display, Com Counter, Rejoin progress merged into 'Top Bar' widget
  • No com counter when teams consist of just 1 player
  • Escape key now hides windows: Keybinds, commands, changelog, options, quit, gameinfo
  • Teamstats widget renamed, bugfixed, simplified, spiced up and has a fixed position
