@@ -115,14 +115,14 @@ return {
 		},
 		weapondefs = {
 			armtruck_missile = {
-				areaofeffect = 92,
+				areaofeffect = 32,
 				avoidfeature = false,
 				craterareaofeffect = 92,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				cegTag = "missiletraillarge",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				cegTag = "missiletrailmedium",
+				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 20,
 				flighttime = 2.5,
 				impulseboost = 0.123,
@@ -149,8 +149,8 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
 				damage = {
-					commanders = 450,
-					default = 500,
+					commanders = 375,
+					default = 400,
 					--subs = 5,
 				},
 			},
