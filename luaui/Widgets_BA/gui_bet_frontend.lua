@@ -483,7 +483,7 @@ function selectBetUnits()
 		table.insert(units, unitID)
 	end
 	Spring.SelectUnitArray(units)
-	Echo("Units with bets on them: "..#units)
+	--Echo("Units with bets on them: "..#units)
 end
 
 function printscores()
@@ -1042,7 +1042,7 @@ function widget:DrawScreen()
 
 						if mouseoverContent and not mouseoverSelectBetsBox and not mouseoverCost and not mouseoverForwardBox and not backBoxShown then
 							if WG['tooltip'] ~= nil then
-								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score')
+								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (a delay to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score')
 							end
 						end
 

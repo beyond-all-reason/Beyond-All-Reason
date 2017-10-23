@@ -723,7 +723,28 @@ function gadget:DrawScreen()
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
 		glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
-		glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")	
+		glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
+
+		--Spring.Echo(_G['betengine'].playerScores)
+		if GG['betengine'] ~= nil and GG['betengine'].playerScores ~= nil then
+			local scores = GG['betengine'].playerScores
+			local winners = {}
+			local maxscore = 0
+			local participants = 0
+			for playerID, info in pairs(scores) do
+				participants = participants + 1
+				if info.score > maxscore then
+					winners = {playerID}
+				elseif info.score > maxscore then
+					table.insert(winners, playerID)
+				end
+			end
+			if #winner == 1 then
+				local playerName, _, isSpec = Spring.GetPlayerInfo(winners[1])
+				glText(graphColour .. 'Spectator betting winner is '..playerName..' with '..maxscore..'chips having '..participants..' participants', bx+10, by+10, 14, "o")
+			end
+		end
+
 	glPopMatrix()
 end
 

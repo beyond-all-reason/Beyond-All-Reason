@@ -239,12 +239,12 @@ local function placedBet(playerID, betType, betID, betTime)
 	betStats[betType][betID].prizePoints = betStat.prizePoints + (POINTS_PRIZE_PER_BET[betType] < 0 and abs(POINTS_PRIZE_PER_BET[betType])*betCost or POINTS_PRIZE_PER_BET[betType])
 	insert(betValid[validFrom],{betType = betType, betID = betID, timeSlot = timeSlot, playerID = playerID})
 	-- updated exported tables
-	local exporttable = _G[_G_INDEX]
+	local exporttable = GG[_G_INDEX]
 	exporttable.playerScores = playerScores
 	exporttable.timeBets = timeBets
 	exporttable.playerBets = playerBets
 	exporttable.betStats = betStats
-	_G[_G_INDEX] = exporttable
+	GG[_G_INDEX] = exporttable
 	-- run received bet callback
 	SendToUnsynced("receivedBetCallback",playerID, betType, betID, betTime, betCost, validFrom)
 end
@@ -293,40 +293,55 @@ local function betOver(betType, betID)
 		-- no bets were made
 		return
 	end
+
+	local numPlayers = 0
 	for playerID, scores in pairs(playerScores) do
 		-- get the amount of bets the player placed on the item
 		if playerBets[playerID] then
 			if playerBets[playerID][betType] then
 				if playerBets[playerID][betType][betID] then
-					local numBets = #playerBets[playerID][betType][betID]
-					if numBets > 0 then
-						-- update score for the winner, set also win/loss count
-						if playerID == winnerID then
-							--we got a winner!
-							scores.score = scores.score + prizePoints
-							scores.won = scores.won + 1
-						else
-							scores.lost = scores.lost + 1
-							scores.score = scores.score - numBets
-						end
-						scores.currentlyRunning = scores.currentlyRunning - numBets
-						playerScores[playerID] = scores
-					end
-					--delete the bets at the same time  ( needed because unitID can be recycled )
-					playerBets[playerID][betType][betID] = nil
+					numPlayers = numPlayers + 1
 				end
 			end
 		end
 	end
+	if numPlayers > 1 then
+		for playerID, scores in pairs(playerScores) do
+			-- get the amount of bets the player placed on the item
+			if playerBets[playerID] then
+				if playerBets[playerID][betType] then
+					if playerBets[playerID][betType][betID] then
+						local numBets = #playerBets[playerID][betType][betID]
+						if numBets > 0 then
+							-- update score for the winner, set also win/loss count
+							if playerID == winnerID then
+								--we got a winner!
+								scores.score = scores.score + prizePoints
+								scores.won = scores.won + 1
+							else
+								scores.lost = scores.lost + 1
+								scores.score = scores.score - numBets
+							end
+							scores.currentlyRunning = scores.currentlyRunning - numBets
+							playerScores[playerID] = scores
+						end
+						--delete the bets at the same time  ( needed because unitID can be recycled )
+						playerBets[playerID][betType][betID] = nil
+					end
+				end
+			end
+		end
+	end
+
 	--delete the bet infos ( needed because unitID can be recycled )
 	timeBets[betType][betID] = nil
 	betStats[betType][betID] = nil
 
 	-- update shared tables
-	_G[_G_INDEX].playerScores = playerScores
-	_G[_G_INDEX].timeBets = timeBets
-	_G[_G_INDEX].playerBets = playerBets
-	_G[_G_INDEX].betStats = betStats
+	GG[_G_INDEX].playerScores = playerScores
+	GG[_G_INDEX].timeBets = timeBets
+	GG[_G_INDEX].playerBets = playerBets
+	GG[_G_INDEX].betStats = betStats
 	-- run bet over callback
 	SendToUnsynced("betOverCallback", betType, betID, winnerID, prizePoints)
 end
@@ -403,11 +418,11 @@ function gadget:Initialize()
 	exporttable.playerBets = playerBets
 	exporttable.betStats = betStats
 
-	_G[_G_INDEX] = exporttable
+	GG[_G_INDEX] = exporttable
 end
 
 function gadget:Shutdown()
-	_G[_G_INDEX] = nil
+	GG[_G_INDEX] = nil
 end
 
 else
