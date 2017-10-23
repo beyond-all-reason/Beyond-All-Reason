@@ -741,13 +741,13 @@ end
 --  Init/GameStart (creating players)
 ---------------------------------------------------------------------------------------------------
 
---[[function RecvPlayerScores(newPlayerScores)
+function RecvPlayerScores(newPlayerScores)
 	playerScores = newPlayerScores or {}
-end]]--
+end
 
 function widget:Initialize()
-	--widgetHandler:RegisterGlobal('getPlayerScores', RecvPlayerScores)
-	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
+  widgetHandler:RegisterGlobal('getPlayerScoresAdvplayerslist', RecvPlayerScores)
+  widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
   widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
   widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
   widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
@@ -1739,6 +1739,9 @@ function DrawLabelRightside(text, vOffset)
 end
 
 
+function RecvPlayerBetList(newPlayerBetList)
+	playerBetList = newPlayerBetList or {}
+end
 
 function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	tipY                 = nil
@@ -1770,7 +1773,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	local alpha = 0.44-- alpha used to show inactivity for specs
 	
 	if WG['betfrontend'] ~= nil then
-		playerScores = WG['betfrontend'].GetPlayerScores()
+		--playerScores = WG['betfrontend'].GetPlayerScores()
 	end
 	
 	--if mySpecStatus then

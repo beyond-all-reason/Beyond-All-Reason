@@ -552,6 +552,13 @@ function PushGetPlayerScores(cmd,line,params,playerID)
 			Script.LuaUI.getPlayerScores(playerScores)
 		end
 	end
+	if Script.LuaUI("getPlayerScoresAdvplayerslist") then
+		if not FullView() then
+			Script.LuaUI.getPlayerScoresAdvplayerslist()
+		else
+			Script.LuaUI.getPlayerScoresAdvplayerslist(playerScores)
+		end
+	end
 end
 
 function PushGetBetList(cmd,line,params,playerID)

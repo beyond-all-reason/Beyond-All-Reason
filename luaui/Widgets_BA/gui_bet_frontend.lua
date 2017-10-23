@@ -575,7 +575,7 @@ end
 function processBoxes()
 	panelBox = {xPos-((panelWidth/2)*sizeMultiplier), yPos-((panelHeight/2)*sizeMultiplier), xPos+((panelWidth/2)*sizeMultiplier), yPos+((panelHeight/2)*sizeMultiplier)}
 	panelBoxContent = {panelBox[1]+((borderPadding+contentMargin)*sizeMultiplier), panelBox[2]+((borderPadding+contentMargin)*sizeMultiplier), panelBox[3]-((borderPadding+contentMargin)*sizeMultiplier), panelBox[4]-((borderPadding+contentMargin)*sizeMultiplier)}
-	panelBoxWallet = {panelBox[1]-(75*sizeMultiplier), panelBox[2], panelBox[1], panelBox[4]}
+	panelBoxWallet = {panelBox[1]-(70*sizeMultiplier), panelBox[2], panelBox[1], panelBox[4]}
 	local offset = -5
 	local addsize = 16
 	panelBoxCost = {panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier)}
@@ -944,14 +944,16 @@ function widget:DrawScreen()
 					if lastBetTime < ceil(absTime/BET_GRANULARITY) then
 						lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
 					end
-					
+
+					local offsetAdd = -5	-- offset every added chip of betcost
+
 					-- background
                     glColor(0, 0, 0, 0.6)
-                    RectRound(panelBoxWallet[1], panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
+                    RectRound(panelBoxWallet[1]+(offsetAdd*betCost), panelBox[2], panelBox[3], panelBox[4], 8*sizeMultiplier)
                     glColor(0, 1, 0, 0.12)
-					RectRound(panelBoxWallet[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[1]+(8*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					RectRound(panelBoxWallet[1]+(offsetAdd*betCost)+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[1]+(8*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
 					glColor(1,1,1,0.03)
-					RectRound(panelBoxWallet[1]+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
+					RectRound(panelBoxWallet[1]+(offsetAdd*betCost)+(borderPadding*sizeMultiplier), panelBox[2]+(borderPadding*sizeMultiplier), panelBox[3]-(borderPadding*sizeMultiplier), panelBox[4]-(borderPadding*sizeMultiplier), 6*sizeMultiplier)
 					glColor(1, 1, 1, 1)
 
 					-- place bet
@@ -968,7 +970,7 @@ function widget:DrawScreen()
 							glColor(1,0.3,0.3,0.4)
 							textcolor = "\255\255\255\255"
 							if WG['tooltip'] ~= nil then
-								--WG['tooltip'].ShowTooltip('bet', '')
+								WG['tooltip'].ShowTooltip('bet', 'At '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid')
 							end
 						else
 							glColor(1,0.4,0.4,0.2)
@@ -986,7 +988,6 @@ function widget:DrawScreen()
 
 					-- chip cost
 					glTexture(chipTexture)
-					local offsetAdd = -5
 					local addsize = 18
 					local offset = offsetAdd * betCost
 					for i=1, betCost do
@@ -1041,7 +1042,7 @@ function widget:DrawScreen()
 
 						if mouseoverContent and not mouseoverSelectBetsBox and not mouseoverCost and not mouseoverForwardBox and not backBoxShown then
 							if WG['tooltip'] ~= nil then
-								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict how much minutes away from now the selected unit will be killed.\nWinner takes the stack of chips everyone else betted on this unit.')
+								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score')
 							end
 						end
 
@@ -1054,7 +1055,7 @@ function widget:DrawScreen()
 					end
 
 					-- wallet
-					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+((panelBox[1]-panelBoxWallet[1])/2)-(3*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+(offsetAdd*betCost)+((panelBox[1]-panelBoxWallet[1])/2), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
 
 					if (WG['guishader_api'] ~= nil) then
 						local x2 = placebetBox[3]
