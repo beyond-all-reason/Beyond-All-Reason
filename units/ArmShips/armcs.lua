@@ -1,7 +1,7 @@
 return {
 	armcs = {
 		buildcostenergy = 1920,
-		buildcostmetal = 240,
+		buildcostmetal = 200,
 		builddistance = 200,
 		builder = true,
 		shownanospray = false,
