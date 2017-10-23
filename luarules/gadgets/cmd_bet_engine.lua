@@ -239,12 +239,12 @@ local function placedBet(playerID, betType, betID, betTime)
 	betStats[betType][betID].prizePoints = betStat.prizePoints + (POINTS_PRIZE_PER_BET[betType] < 0 and abs(POINTS_PRIZE_PER_BET[betType])*betCost or POINTS_PRIZE_PER_BET[betType])
 	insert(betValid[validFrom],{betType = betType, betID = betID, timeSlot = timeSlot, playerID = playerID})
 	-- updated exported tables
-	local exporttable = GG[_G_INDEX]
+	local exporttable = _G[_G_INDEX]
 	exporttable.playerScores = playerScores
 	exporttable.timeBets = timeBets
 	exporttable.playerBets = playerBets
 	exporttable.betStats = betStats
-	GG[_G_INDEX] = exporttable
+	_G[_G_INDEX] = exporttable
 	-- run received bet callback
 	SendToUnsynced("receivedBetCallback",playerID, betType, betID, betTime, betCost, validFrom)
 end
@@ -332,16 +332,16 @@ local function betOver(betType, betID)
 			end
 		end
 	end
-
+	
 	--delete the bet infos ( needed because unitID can be recycled )
 	timeBets[betType][betID] = nil
 	betStats[betType][betID] = nil
 
 	-- update shared tables
-	GG[_G_INDEX].playerScores = playerScores
-	GG[_G_INDEX].timeBets = timeBets
-	GG[_G_INDEX].playerBets = playerBets
-	GG[_G_INDEX].betStats = betStats
+	_G[_G_INDEX].playerScores = playerScores
+	_G[_G_INDEX].timeBets = timeBets
+	_G[_G_INDEX].playerBets = playerBets
+	_G[_G_INDEX].betStats = betStats
 	-- run bet over callback
 	SendToUnsynced("betOverCallback", betType, betID, winnerID, prizePoints)
 end
@@ -418,11 +418,11 @@ function gadget:Initialize()
 	exporttable.playerBets = playerBets
 	exporttable.betStats = betStats
 
-	GG[_G_INDEX] = exporttable
+	_G[_G_INDEX] = exporttable
 end
 
 function gadget:Shutdown()
-	GG[_G_INDEX] = nil
+	_G[_G_INDEX] = nil
 end
 
 else
