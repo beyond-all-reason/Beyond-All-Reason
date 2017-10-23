@@ -41,7 +41,7 @@ local MIN_BET_TIME_SCALE = 10*60*simSpeed --frames, the time of bet will be slow
 local BET_GRANULARITY = 1*60*simSpeed -- frames
 local BET_COST = {team=-1,unit=-1} -- if negative, cost BET_COST*numbets, if 0 or positive it's fixed
 local POINTS_PRIZE_PER_BET = {team=1,unit=1} -- negative values instead assign the bet cost times prize to the winner
-local STARTING_SCORE = #Spring.GetTeamList() -1 -(Spring.GetGaiaTeamID() and 1 or 0) -- minus one to leave last "survivor" in FFA, and minus another because of gaia
+local STARTING_SCORE = 7 + #Spring.GetTeamList() -1 -(Spring.GetGaiaTeamID() and 1 or 0) -- minus one to leave last "survivor" in FFA, and minus another because of gaia
 local _G_INDEX = "betengine"
 
 -- dynamic data tables, hold infos about bets, scores and other players
@@ -132,8 +132,8 @@ function isValidBet(playerID, betType, betID, betTime)
 	end
 	local playerScore = getCreatePlayerScores(playerID)
 	local betCost = getBetCost(playerID,betType,betID)
-	if playerScore.score < betCost then
-		return false, "not enough points to bet ( got: " .. playerScore.score .. " cost: " .. betCost .. " )"
+	if playerScore.score-playerScore.currentlyRunning < betCost then
+		return false, "not enough points to bet ( got: " ..  playerScore.score-playerScore.currentlyRunning .. " cost: " .. betCost .. " )"
 	end
 	-- check if there are already existing bets on the player within the same time slot
 	local timeSlot = getBetTimeSlot(betTime)
@@ -229,7 +229,7 @@ local function placedBet(playerID, betType, betID, betTime)
 	playerpersonalbets[betCost] = betTime
 	playerBets[playerID][betType][betID] = playerpersonalbets
 	local playerScore = getCreatePlayerScores(playerID)
-	playerScores[playerID].score = playerScore.score - betCost
+	playerScores[playerID].score = playerScore.score
 	playerScores[playerID].totalPlaced = playerScores[playerID].totalPlaced + 1
 	playerScores[playerID].currentlyRunning = playerScores[playerID].currentlyRunning + 1
 	local timeSlot = getBetTimeSlot(betTime)
@@ -307,6 +307,7 @@ local function betOver(betType, betID)
 							scores.won = scores.won + 1
 						else
 							scores.lost = scores.lost + 1
+							scores.score = scores.score - numBets
 						end
 						scores.currentlyRunning = scores.currentlyRunning - numBets
 						playerScores[playerID] = scores

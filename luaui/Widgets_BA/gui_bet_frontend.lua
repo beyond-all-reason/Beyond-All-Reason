@@ -937,10 +937,10 @@ function widget:DrawScreen()
 					lastSelectedUnit = unitID
 					showingPanel = true
 					local betCost = getBetCost(myPlayerID,"unit",unitID)
-					canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID] ~= nil and playerScores[myPlayerID].score >= betCost)
+					canAfford = (playerScores[myPlayerID] == nil and STARTING_SCORE >= betCost) or (playerScores[myPlayerID] ~= nil and playerScores[myPlayerID].score-playerScores[myPlayerID].currentlyRunning >= betCost)
 
-					local chipsOwned = (playerScores[myPlayerID] and playerScores[myPlayerID].score) or STARTING_SCORE
-					chipsOwned = chipsOwned
+					local chipsFree = (playerScores[myPlayerID] and playerScores[myPlayerID].score-playerScores[myPlayerID].currentlyRunning) or STARTING_SCORE
+					chipsFree = chipsFree
 					if lastBetTime < ceil(absTime/BET_GRANULARITY) then
 						lastBetTime = getValidBetTime(lastSelectedUnit, (ceil(absTime/BET_GRANULARITY)-1), 1)
 					end
@@ -1054,7 +1054,7 @@ function widget:DrawScreen()
 					end
 
 					-- wallet
-					glText('\255\166\233\166'..chipsOwned, panelBoxWallet[1]+((panelBox[1]-panelBoxWallet[1])/2)-(3*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+((panelBox[1]-panelBoxWallet[1])/2)-(3*sizeMultiplier), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
 
 					if (WG['guishader_api'] ~= nil) then
 						local x2 = placebetBox[3]
