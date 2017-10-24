@@ -288,6 +288,10 @@ function gadget:GameOver(winningAllyTeams)
 		end
 	end
 
+	local playerScores = {}
+	if GG['betengine'] ~= nil and GG['betengine'].playerScores ~= nil then
+		playerScores = GG['betengine'].playerScores
+	end
 	
 	--tell unsynced
 	SendToUnsynced("ReceiveAwards", ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
@@ -296,8 +300,8 @@ function gadget:GameOver(winningAllyTeams)
 									ecoAward, ecoScore, 
 									dmgRecAward, dmgRecScore, 
 									sleepAward, sleepScore,
-									cowAward)
-	
+									cowAward, playerScores)
+
 end
 
 
@@ -360,7 +364,20 @@ local myPlayerID = Spring.GetMyPlayerID()
 
 
 
+
+function gadget:ViewResize(viewSizeX, viewSizeY)
+
+	--fix geometry
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.75 + (vsx*vsy / 7500000))
+	cx = vsx/2
+	cy = vsy/2
+	bx = cx - w/2
+	by = cy - h/2 - 50
+end
+
 function gadget:Initialize()
+	gadget:ViewResize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)	
 	
@@ -389,30 +406,17 @@ function gadget:Initialize()
 end
 
 
---[[function gadget:ViewResize(viewSizeX, viewSizeY)
-	vsx,vsy = viewSizeX,viewSizeY
-	if drawAwards then
-		
-	end
-end
-]]--
-
-
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
 						fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 
 						effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 
 						ecoAward, ecoScore, 
 						dmgRecAward, dmgRecScore, 
 						sleepAward, sleepScore,
-						cowAward)
+						cowAward,
+						playerScores)
 
-	--fix geometry
-	vsx,vsy = Spring.GetViewGeometry()
-    cx = vsx/2 
-    cy = vsy/2 
-	bx = cx - w/2
-	by = cy - h/2 - 50
-	
+	bettingScores = playerScores
+
     --record who won which awards in chat message (for demo parsing by replays.springrts.com)
 	--make all values positive, as unsigned ints are easier to parse
 	local ecoKillLine    = '\161' .. tostring(1+ecoKillAward) .. ':' .. tostring(ecoKillScore) .. '\161' .. tostring(1+ecoKillAwardSec) .. ':' .. tostring(ecoKillScoreSec) .. '\161' .. tostring(1+ecoKillAwardThi) .. ':' .. tostring(ecoKillScoreThi)  
@@ -421,7 +425,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	local otherLine      = '\164' .. tostring(1+cowAward) .. '\165' ..  tostring(1+ecoAward) .. ':' .. tostring(ecoScore).. '\166' .. tostring(1+dmgRecAward) .. ':' .. tostring(dmgRecScore) ..'\167' .. tostring(1+sleepAward) .. ':' .. tostring(sleepScore)
 	local awardsMsg = ecoKillLine .. fightKillLine .. effKillLine .. otherLine
 	Spring.SendLuaRulesMsg(awardsMsg)
-  
+
 	--create awards
 	CreateBackground()
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
@@ -435,7 +439,7 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	drawAwards = true
 	
 	--don't show graph
-	Spring.SendCommands('endgraph 0')	
+	Spring.SendCommands('endgraph 0')
 end
 
 
@@ -684,17 +688,18 @@ end
 function gadget:DrawScreen()
 
 	if not drawAwards then return end
-	
-  vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.75 + (vsx*vsy / 7500000))
   
 	glPushMatrix()
 		glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 		glScale(widgetScale, widgetScale, 1)
-		
+
+
+		--if Background == nil then
+		--	CreateBackground()
+		--end
 		if Background then
 			glCallList(Background)
-		end 
+		end
 		
 		if FirstAward and SecondAward and ThirdAward then
 			glCallList(FirstAward)
@@ -725,13 +730,11 @@ function gadget:DrawScreen()
 		glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
 		glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
 
-		--Spring.Echo(_G['betengine'].playerScores)
-		if GG['betengine'] ~= nil and GG['betengine'].playerScores ~= nil then
-			local scores = GG['betengine'].playerScores
+		if bettingScores ~= nil then
 			local winners = {}
 			local maxscore = 0
 			local participants = 0
-			for playerID, info in pairs(scores) do
+			for playerID, info in pairs(bettingScores) do
 				participants = participants + 1
 				if info.score > maxscore then
 					winners = {playerID}
@@ -741,10 +744,9 @@ function gadget:DrawScreen()
 			end
 			if #winner == 1 then
 				local playerName, _, isSpec = Spring.GetPlayerInfo(winners[1])
-				glText(graphColour .. 'Spectator betting winner is '..playerName..' with '..maxscore..'chips having '..participants..' participants', bx+10, by+10, 14, "o")
+				glText('\255\220\220\220'..playerName..'\255\140\140\140 became the betting winner!!!    (with \255\185\185\185'..maxscore..'\255\140\140\140 chips and \255\185\185\185'..participants..'\255\140\140\140 participants)', bx+10, by+10, 14, "o")
 			end
 		end
-
 	glPopMatrix()
 end
 

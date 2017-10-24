@@ -851,8 +851,8 @@ function updateDisplayList(unitID,betInfo)
 					glText(titleText, 0, 0,stepSize, "o")
 				else
 					local iconSize = 18
-					local chipHeight = 5.5
-					glTranslate(0,50,0)
+					local chipHeight = 3.5
+					glTranslate(0,60,0)
 					glColor({1,1,1,1})
 					glTexture(chipTexture)
 					for i = 1, totalWin do

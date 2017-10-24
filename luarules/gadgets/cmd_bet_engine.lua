@@ -332,7 +332,7 @@ local function betOver(betType, betID)
 			end
 		end
 	end
-	
+
 	--delete the bet infos ( needed because unitID can be recycled )
 	timeBets[betType][betID] = nil
 	betStats[betType][betID] = nil
