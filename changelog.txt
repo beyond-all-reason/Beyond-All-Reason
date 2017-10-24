@@ -27,7 +27,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
 
  Commanders
  • torso turnspeed increased 33% + dgun reloadspeed reduced 10%
- • Uwlaser nerfed 50% default and 75% vs subs
+ • Current Test: Uwlaser damages increased to 150 per second.
  • Decoy commanders have been given same lasers as regular commanders
  • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
  
@@ -68,7 +68,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
 
  Mod options
- • Added mo_unba (Unbalanced Commanders) modoption. When enabled, the commander levels up when it reaches 5 XP. Up to 5 levels availible with model changes and upgraded weapons.
+ • Added mo_unba (Unbalanced Commanders) modoption. When enabled, the commander levels up as it gains XP. Up to 5 levels are actually availible with model changes and upgraded weapons and 5 more will be coming soon.
  • Added reclaimunitefficiency (Set how much metal a reclaimed unit should give back. 1 = max, 0.5 = half)
  • Added mm_diminish_factor (The strength of diminishing returns from metal makers. 0 = off, 1 = very strong diminish effect.)
  • Control victory options: info on startup and offers a better scoreboard window
@@ -79,14 +79,26 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  Smaller than desired hitboxes result in missed projectiles or projectiles passing through without hitting
 
  Sea reworked: (by Doo) Major balance changes:
- • Increased T1 shipyards costs (+40% for m and e, +10% for buildtime) and decreased T1 and T2 ships costs (-20% for m and e and buildtime).
- • Increased Patrol Boats laser reloadtime, decreased hp, costs.
+ • Increased T1 shipyards costs.
+ • Increased Patrol Boats laser reloadtime and decreased hp, costs. Added a small sonar. Tweaked their speeds.
+ • Decreased Submarines costs, damages and range, increased HP. Tweaked their speeds.
+	Current Test Version: Submersible Riot Torpedo Frigate, close range aoe damage dealer that needs to surface to shoot.
+ • Decreased Destroyers speed, costs, and depthcharge AoE, increased range, damages, hp and reloadtime.
+ • Added Plasma Frigates to both factions available in T1 Shipyard.
+ • Added Missile Frigates to both factions available in T1 Shipyard.
+ • Reduced Construction ships costs, buildpower, added land labs in buildmenu, tweaked speeds.
+ • Reduced corvettes costs and HP, tweaked speeds and renamed "Fast Assault Corvette".
+ • Removed the resurection submarine from t1 sea labs.
+ • Added the Construction Hovercraft to the t1 sea labs.
+ • Nerfed the Construction Hovercraft build power to 90 for both arm and core (arm 150, core 125 before nerf)
+
+ • Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
  • Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
  • Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
- • Added Plasma Frigates to both factions available in T1 Shipyard.
- • Nerfed construction ship buildpower, added T1 Kbot Labs, Vehicle Plants, Aircraft Plants, and Nano Turrets to T1 construction ships
- • Reduced corvette costs and HP
- • Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
+ • Reduced the Floating HLTs costs.
+ • Reduced the Torpedo Launchers costs, reload time and damages, increased their ranges to 475.
+ • Added Nanot Turret Platform to both factions available in amphibs, hovers, t1 construction ships and seaplanes.
+ • Merged the sonar and the floating radar into a floating Radar/Sonar tower with 1200 sonar range and its old radar range. Radar cost unchanged.
 
  Movement: 
  • Uses Raw move to avoid needless turns in water
