@@ -16,8 +16,26 @@ function script.Create()
 	f = 0
 	Spring.SetUnitMaxRange(unitID, 310)
 	StartThread(SpeedLimit)
+	StartThread(Steam)
 	-- Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, {})
 	Spring.SetUnitArmored(unitID, true, 0.5)
+end
+
+function Emit(pieceName, effectName)
+local x,y,z	= Spring.GetUnitPosition(unitID)
+y = y + 30
+ndx, ndy, ndz = 0,1,0
+-- Spring.Echo(ndx, ndy, ndz)
+Spring.SpawnCEG(effectName, x,y,z, ndx, ndy, ndz)
+end
+
+function Steam()
+while (true) do
+	if Surfaced then
+		Emit(base, "steam")
+	end
+Sleep(1000)
+end
 end
 
 function SpeedLimit()
