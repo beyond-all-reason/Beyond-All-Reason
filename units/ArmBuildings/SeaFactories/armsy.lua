@@ -44,7 +44,7 @@ return {
 			"armdecade",
 			"armpship",
 			"armrship",
-			-- "armsub",
+			"armsub",
 			"armroy",
 			"armtship",
 		},
