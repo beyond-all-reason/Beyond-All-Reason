@@ -10,7 +10,7 @@ function gadget:GetInfo()
   }
 end
 
-local localtestDebug = true
+local localtestDebug = false		-- when true: ends game after 30 secs
 
 if (gadgetHandler:IsSyncedCode()) then 
 
