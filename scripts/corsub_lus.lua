@@ -57,7 +57,7 @@ Spring.UnitScript.SetSignalMask(2)
 		f = f - math.pi/45
 		Sleep(1)
 	end
-Spring.SetUnitArmored(unitID, true, 0.5)
+Spring.SetUnitArmored(unitID, true, 0.75)
 Spring.SetUnitSensorRadius(unitID,"los", 0)
 speedlimit = nil
 end
