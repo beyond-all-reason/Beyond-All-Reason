@@ -1055,7 +1055,7 @@ function widget:DrawScreen()
 					end
 
 					-- wallet
-					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+(offsetAdd*betCost)+((panelBox[1]-panelBoxWallet[1])/2), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+(offsetAdd*betCost)+((panelBox[1]-panelBoxWallet[1])/2), yPos-(6*sizeMultiplier), (20*sizeMultiplier), "nco")
 
 					if (WG['guishader_api'] ~= nil) then
 						local x2 = placebetBox[3]

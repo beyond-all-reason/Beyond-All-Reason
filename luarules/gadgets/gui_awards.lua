@@ -288,9 +288,24 @@ function gadget:GameOver(winningAllyTeams)
 		end
 	end
 
-	local playerScores = {}
+	local bettingWinners = ''
+	local bettingScore = 0
+	local bettingParticipants = 0
 	if GG['betengine'] ~= nil and GG['betengine'].playerScores ~= nil then
-		playerScores = GG['betengine'].playerScores
+		local winners = {}
+		for playerID, info in pairs(GG['betengine'].playerScores) do
+			bettingParticipants = bettingParticipants + 1
+			local playerName, _, isSpec = Spring.GetPlayerInfo(playerID)
+			if info.score > bettingScore then
+				bettingScore = info.score
+				bettingWinners = playerName
+			elseif info.score == bettingScore then
+				bettingWinners = bettingWinners .. ', ' .. playerName
+			end
+		end
+		if bettingParticipants <= 1 then
+			bettingWinners = ''
+		end
 	end
 	
 	--tell unsynced
@@ -300,7 +315,8 @@ function gadget:GameOver(winningAllyTeams)
 									ecoAward, ecoScore, 
 									dmgRecAward, dmgRecScore, 
 									sleepAward, sleepScore,
-									cowAward, playerScores)
+									cowAward,
+									bettingWinners, bettingScore, bettingParticipants)
 
 end
 
@@ -413,9 +429,9 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						dmgRecAward, dmgRecScore, 
 						sleepAward, sleepScore,
 						cowAward,
-						playerScores)
+						bettingWinners, bettingScore, bettingParticipants)
 
-	bettingScores = playerScores
+	bettingScores = {bettingWinners, bettingScore, bettingParticipants}
 
     --record who won which awards in chat message (for demo parsing by replays.springrts.com)
 	--make all values positive, as unsigned ints are easier to parse
@@ -730,22 +746,11 @@ function gadget:DrawScreen()
 		glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
 		glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
 
-		if bettingScores ~= nil then
-			local winners = {}
-			local maxscore = 0
-			local participants = 0
-			for playerID, info in pairs(bettingScores) do
-				participants = participants + 1
-				if info.score > maxscore then
-					winners = {playerID}
-				elseif info.score > maxscore then
-					table.insert(winners, playerID)
-				end
-			end
-			if #winner == 1 then
-				local playerName, _, isSpec = Spring.GetPlayerInfo(winners[1])
-				glText('\255\220\220\220'..playerName..'\255\140\140\140 became the betting winner!!!    (with \255\185\185\185'..maxscore..'\255\140\140\140 chips and \255\185\185\185'..participants..'\255\140\140\140 participants)', bx+10, by+10, 14, "o")
-			end
+		if bettingScores ~= nil and bettingScores[1] ~= '' then
+			local winners = bettingScores[1]
+			local maxscore = bettingScores[2]
+			local participants = bettingScores[3]
+			glText('\255\220\220\220'..winners..'\255\140\140\140 became the betting winner(s)!!!    (with \255\185\185\185'..maxscore..'\255\140\140\140 chips and \255\185\185\185'..participants..'\255\140\140\140 participants)', bx+10, by+10, 14, "o")
 		end
 	glPopMatrix()
 end
