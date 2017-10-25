@@ -246,7 +246,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "ARMCOMLASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "ARMCOMSEALASER",
@@ -254,7 +254,7 @@ return {
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

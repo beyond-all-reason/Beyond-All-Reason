@@ -175,7 +175,7 @@ return {
 		weapons = {
 			[1] = {
 				def = "FLAMETHROWER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

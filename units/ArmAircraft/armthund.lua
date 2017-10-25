@@ -102,7 +102,7 @@ return {
 			[1] = {
 				badtargetcategory = "MOBILE",
 				def = "ARMBOMB",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

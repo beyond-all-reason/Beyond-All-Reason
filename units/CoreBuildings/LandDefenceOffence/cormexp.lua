@@ -199,11 +199,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORSUMO_WEAPON",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORMEXP_ROCKET",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

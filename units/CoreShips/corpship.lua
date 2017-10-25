@@ -151,7 +151,7 @@ return {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
 				def = "LIGHTPLASMA",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -232,7 +232,7 @@ return {
 			},
 			[2] = {
 				def = "ADV_DECKLASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",

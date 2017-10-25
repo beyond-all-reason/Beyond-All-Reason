@@ -109,12 +109,12 @@ unitDef = {
     [1] = {
       badtargetcategory = "VTOL",
       def = "EYELASER",
-      onlytargetcategory = "",
+      onlytargetcategory = "NOTSUB",
     },
     [2] = {
       badtargetcategory = "VTOL",
       def = "EYELASER",
-      onlytargetcategory = "",
+      onlytargetcategory = "NOTSUB",
     },
   }
 }

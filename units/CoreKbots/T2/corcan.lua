@@ -154,7 +154,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORE_CANLASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

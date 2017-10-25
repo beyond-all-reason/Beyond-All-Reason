@@ -189,7 +189,7 @@ return {
 				def = "BANISHER",
 				maindir = "0 0 1",
 				maxangledif = 270,
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -208,7 +208,7 @@ return {
 				maindir = "0 0 1",
 				maxangledif = 110,
 				onlytargetcategory = "NOTHOVER",
-			},
+			},			
 		},
 	},
 }

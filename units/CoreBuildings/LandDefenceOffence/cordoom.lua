@@ -243,11 +243,11 @@ return {
 			},
 			[2] = {
 				def = "DOOMSDAY_GREEN_LASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				def = "DOOMSDAY_RED_LASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

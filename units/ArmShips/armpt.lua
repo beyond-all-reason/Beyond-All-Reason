@@ -204,7 +204,7 @@ return {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "ARMPT_LASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				badtargetcategory = "LIGHTAIRSCOUT",

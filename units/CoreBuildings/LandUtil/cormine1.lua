@@ -127,7 +127,7 @@ return {
 			},
 			[2] = {
 				def = "MINE_DETONATOR",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

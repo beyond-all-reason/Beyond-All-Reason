@@ -186,13 +186,13 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_HAM",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "ARM_HAM2",
 				slavedto = 1,
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -152,11 +152,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORVETTE_PLASMA",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORVETTE_PLASMA",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

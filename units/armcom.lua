@@ -385,7 +385,7 @@ tablearmcom = {
 		weapons = {
 			[1] = {
 				def = "ARMCOMLASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
@@ -393,7 +393,7 @@ tablearmcom = {
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	}
@@ -433,12 +433,12 @@ for i = 1,11 do
 	if i == 1 then
 		tablearmcom.weapons[1] = {
 				def = "ARMCOMLASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 				}
 	else
 		tablearmcom.weapons[i] = {
 				def = "ARMCOMLASER"..tostring(i),
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 				}
 	end
 end
@@ -500,7 +500,7 @@ end
 	
 tablearmcom.weapons[30] ={
 				def = "DISINTEGRATOR",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			}
 
 end

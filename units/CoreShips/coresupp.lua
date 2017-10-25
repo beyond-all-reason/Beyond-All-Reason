@@ -199,11 +199,11 @@ return {
 		weapons = {
 			[1] = {
 				def = "CORVETTE_LIGHTLASER_FRONT",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "CORVETTE_LIGHTLASER_REAR",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

@@ -282,7 +282,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CORKROG_LASER",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
@@ -293,13 +293,13 @@ return {
 				def = "KROGKICK",
 				maindir = "-1.4 -1.5 1",
 				maxangledif = 170,
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 			[5] = {
 				def = "KROGKICK",
 				maindir = "1.4 -1.5 1",
 				maxangledif = 170,
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

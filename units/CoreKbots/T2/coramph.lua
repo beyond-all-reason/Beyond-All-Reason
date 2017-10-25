@@ -172,7 +172,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORAMPH_WEAPON2",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

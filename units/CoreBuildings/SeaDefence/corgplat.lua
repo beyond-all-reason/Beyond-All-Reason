@@ -140,7 +140,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL LIGHTBOAT CAPITALSHIP",
 				def = "CORGPLAT",
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
