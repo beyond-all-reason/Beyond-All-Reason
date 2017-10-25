@@ -1,6 +1,6 @@
 return {
 	armjanus = {
-		acceleration = 0.0198,
+		acceleration = 0.02,
 		brakerate = 0.165,
 		buildcostenergy = 2500,
 		buildcostmetal = 240,
