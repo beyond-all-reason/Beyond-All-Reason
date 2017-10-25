@@ -31,6 +31,13 @@ for udefID,def in ipairs(UnitDefs) do
   end
 end
 
+function widget:Initialize()
+  if armstoneUdefID == nil or corstoneUdefID == nil then
+    Spring.Echo('tombstones widget: No tombstones availible')
+    widgetHandler:RemoveWidget()
+  end
+end
+
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   local ud = UnitDefs[unitDefID]
   if (ud ~= nil and commanders[ud.name] ~= nil) then

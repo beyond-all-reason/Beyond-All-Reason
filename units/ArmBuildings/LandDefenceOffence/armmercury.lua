@@ -121,7 +121,7 @@ return {
 				cegTag = "missiletrailaa-large",
 				explosiongenerator = "custom:genericshellexplosion-large-aa",
 				firestarter = 90,
-				flighttime = 2.5,
+				flighttime = 1.75,
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,

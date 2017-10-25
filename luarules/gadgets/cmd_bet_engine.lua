@@ -332,7 +332,7 @@ local function betOver(betType, betID)
 			end
 		end
 	end
-	
+
 	--delete the bet infos ( needed because unitID can be recycled )
 	timeBets[betType][betID] = nil
 	betStats[betType][betID] = nil
@@ -419,10 +419,12 @@ function gadget:Initialize()
 	exporttable.betStats = betStats
 
 	_G[_G_INDEX] = exporttable
+	GG[_G_INDEX] = exporttable
 end
 
 function gadget:Shutdown()
 	_G[_G_INDEX] = nil
+	GG[_G_INDEX] = nil
 end
 
 else

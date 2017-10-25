@@ -851,8 +851,8 @@ function updateDisplayList(unitID,betInfo)
 					glText(titleText, 0, 0,stepSize, "o")
 				else
 					local iconSize = 18
-					local chipHeight = 5.5
-					glTranslate(0,50,0)
+					local chipHeight = 3.5
+					glTranslate(0,60,0)
 					glColor({1,1,1,1})
 					glTexture(chipTexture)
 					for i = 1, totalWin do
@@ -1055,7 +1055,7 @@ function widget:DrawScreen()
 					end
 
 					-- wallet
-					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+(offsetAdd*betCost)+((panelBox[1]-panelBoxWallet[1])/2), yPos-(6*sizeMultiplier), (19*sizeMultiplier), "nco")
+					glText('\255\166\233\166'..chipsFree, panelBoxWallet[1]+(offsetAdd*betCost)+((panelBox[1]-panelBoxWallet[1])/2), yPos-(6*sizeMultiplier), (20*sizeMultiplier), "nco")
 
 					if (WG['guishader_api'] ~= nil) then
 						local x2 = placebetBox[3]
