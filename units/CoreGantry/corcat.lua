@@ -151,7 +151,7 @@ return {
 				wobble = 2000,
 				damage = {
 					default = 450,
-					--subs = 5,
+					subs = 5,
 				},
 				customparams = {
 					light_multiplier = "0.25",		-- used by light_effects widget

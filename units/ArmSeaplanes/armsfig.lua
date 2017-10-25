@@ -144,7 +144,7 @@ return {
 				damage = {
 					commanders = 4,
 					default = 12,
-					--subs = 2,
+					subs = 2,
 				},
                 customparams = {
                     light_skip = true,		-- used by light_effects widget

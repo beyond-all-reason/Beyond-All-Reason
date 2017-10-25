@@ -94,7 +94,7 @@ return {
 				weapontype = "AircraftBomb",
 				damage = {
 					default = 105,
-					--subs = 5,
+					subs = 5,
 				},
 			},
 		},

@@ -194,7 +194,7 @@ return {
 					damage = {
 						commanders = 1025,
 						default = 2500,
-						--subs = 5,
+						subs = 5,
 					},
 					customparams = {
 						light_skip = true,

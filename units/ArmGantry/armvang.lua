@@ -144,7 +144,7 @@ return {
 					default = 1265,
 					commanders = 1100,
 					shields = 765,
-					--subs = 5,
+					subs = 5,
 				},
 			},
 		},

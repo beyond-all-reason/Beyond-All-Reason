@@ -149,7 +149,7 @@ return {
 				weaponvelocity = 400,
 				damage = {
 					default = 365,
-					--subs = 5,
+					subs = 5,
 				},
 			},
 			bantha_rocket = {
@@ -189,7 +189,7 @@ return {
 				weaponvelocity = 1500,
 				damage = {
 					default = 360,
-					--subs = 5,
+					subs = 5,
 				},
 			},
 			tehlazerofdewm = {
@@ -224,7 +224,7 @@ return {
 				damage = {
 					commanders = 1200,
 					default = 4000,
-					--subs = 5,
+					subs = 5,
 				},
 				customparams = {
 					light_multiplier = "1.3",		-- used by light_effects widget

@@ -148,7 +148,7 @@ return {
 					commanders = 140,
 					default = 75,
 					fighters = 5,
-					--subs = 3,
+					subs = 3,
 					vtol = 5,
 				},
 			},

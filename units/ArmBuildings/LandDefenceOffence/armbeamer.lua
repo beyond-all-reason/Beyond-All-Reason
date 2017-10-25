@@ -148,7 +148,7 @@ return {
 					commanders = 53.2,
 					default = 26.6,
 					fighters = 1,
-					--subs = 1,
+					subs = 1,
 					vtol = 1,
 				},
 				customparams = {

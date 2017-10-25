@@ -108,7 +108,7 @@ return {
 					bombers = 5,
 					default = 50,
 					ship = 100,
-					--subs = 70,
+					subs = 70,
 				},
 			},
 		},

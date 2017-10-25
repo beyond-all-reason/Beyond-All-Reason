@@ -131,7 +131,7 @@ return {
 	--       },      
 	--       damage                   = {
 	--				default = 25,
-	--				--subs = 1,
+	--				subs = 1,
 	--       },
 	--   	},
 			flamethrower = {
@@ -168,7 +168,7 @@ return {
 				weaponvelocity = 265,
 				damage = {
 					default = 12,
-					--subs = 1,
+					subs = 1,
 				},
 			},
 		},

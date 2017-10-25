@@ -151,7 +151,7 @@ return {
 				damage = {
 					commanders = 2400,
 					default = 10800,
-					--subs = 5,
+					subs = 5,
 				},
 				customparams = {
 					light_radius_mult = "1.15",		-- used by light_effects widget

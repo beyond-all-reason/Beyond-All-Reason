@@ -141,8 +141,8 @@ return {
 					bombers = 41*1.25,
 					default = 175*1.25,
 					fighters = 41*1.25,
-					--subs = 5,
 					vtol = 41*1.25,
+					subs = 5,
 				},
 			},
 			depthcharge = {

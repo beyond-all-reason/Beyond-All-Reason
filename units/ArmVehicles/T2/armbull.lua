@@ -169,7 +169,7 @@ return {
 					bombers = 30,
 					default = 270,
 					fighters = 30,
-					--subs = 5,
+					subs = 5,
 					vtol = 30,
 				},
 			},

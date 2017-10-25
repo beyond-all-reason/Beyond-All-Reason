@@ -138,7 +138,7 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					default = 48,
-					--subs = 2,
+					subs = 2,
 				},
 				customparams = {
 					light_multiplier = "0.5",		-- used by light_effects widget
