@@ -48,6 +48,7 @@ DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
 LOS = {450,500,550,600,625,650,675,700,725,750,800}
 Sonar = {450,450,500,500,550,550,600,600,650,650,700}
 Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
+repairRange = 300
 
 local SIG_WALK = 2
 local PlaySoundFile 	= Spring.PlaySoundFile
@@ -77,7 +78,40 @@ else
 end
 end
 
-
+function PassiveRepairs()
+while true do
+x,y,z = Spring.GetUnitPosition(unitID)
+			local unittable = Spring.GetUnitsInSphere(x, y, z, repairRange)
+				for _, uid in pairs(unittable) do
+					if uid ~= unitID then
+						if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(uid)) == true then
+							local oldhp2, maxhp2,_,_,bprog = Spring.GetUnitHealth(uid)
+							if oldhp2 / maxhp2 <= bprog then
+								if oldhp2 >0 then
+									local unit2DefID = Spring.GetUnitDefID(uid)
+									local unit1DefID = Spring.GetUnitDefID(unitID)
+									local buildTime2S = UnitDefs[unit2DefID].buildTime
+									local workerTime1S = BuildSpeed[level]
+									local workerTime1F = workerTime1S / 30
+									local areaRepairTime1 = 0.1 * workerTime1F
+									local HPRepairPerFrame = (maxhp2 / buildTime2S) * areaRepairTime1
+									local newhp2 = oldhp2 + HPRepairPerFrame
+									if newhp2 > maxhp2*bprog then
+										newhp2 = maxhp2
+									end
+									Spring.SetUnitHealth(uid, newhp2)	
+									if Spring.GetGameFrame() %30 == 0 then
+									x2, y2, z2 = Spring.GetUnitPosition(uid)
+									Spring.SpawnCEG("steam", x2, y2, z2, 0,1,0)
+									end
+								end
+							end
+						end
+					end
+				end
+Sleep(1)
+end
+end
 
 function UnitSpeed()
 	while (true) do
@@ -175,6 +209,7 @@ end
 	Spring.UnitScript.StartThread(MotionControl)
 	Spring.UnitScript.StartThread(UnitSpeed)
 	Spring.UnitScript.StartThread(HandleLevelUps)
+	Spring.UnitScript.StartThread(PassiveRepairs)
 	Spring.SetUnitNanoPieces(unitID, {lfirept})
 end
 
