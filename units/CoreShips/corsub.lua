@@ -2,10 +2,10 @@ return {
 	corsub = {
 		activatewhenbuilt = true,
 		autoheal = 2,
-		buildcostenergy = 4162,
-		buildcostmetal = 724,
+		buildcostenergy = 4100*0.8,
+		buildcostmetal = 720*0.8,
 		buildpic = "CORSUB.DDS",
-		buildtime = 10895,
+		buildtime = 10895*0.8,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -4 0",

@@ -2,10 +2,10 @@ return {
 	armsub = {
 		activatewhenbuilt = true,
 		autoheal = 2,
-		buildcostenergy = 3972,
-		buildcostmetal = 694,
+		buildcostenergy = 4000*0.8,
+		buildcostmetal = 690*0.8,
 		buildpic = "ARMSUB.DDS",
-		buildtime = 10983,
+		buildtime = 10983*0.8,
 		canmove = true,
 		category = "UNDERWATER ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -4 0",
