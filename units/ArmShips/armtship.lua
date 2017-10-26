@@ -2,8 +2,8 @@ return {
 	armtship = {
 		autoheal = 5,
 		buildangle = 16384,
-		buildcostenergy = 0.8*6400,
-		buildcostmetal = 0.8*800,
+		buildcostenergy = 5000,
+		buildcostmetal = 640,
 		buildpic = "ARMTSHIP.DDS",
 		buildtime = 1.5 * 0.8*10176,
 		canattack = false,

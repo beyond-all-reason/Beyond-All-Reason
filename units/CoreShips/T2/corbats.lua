@@ -1,8 +1,8 @@
 return {
 	corbats = {
 		buildangle = 16000,
-		buildcostenergy = 0.8*23000,
-		buildcostmetal = 0.8*5760,
+		buildcostenergy = 18000,
+		buildcostmetal = 4600,
 		buildpic = "CORBATS.DDS",
 		buildtime = 1.5 * 0.8*60640,
 		canmove = true,

@@ -2,7 +2,7 @@ return {
 	armsjam = {
 		activatewhenbuilt = true,
 		buildcostenergy = 0.8*2000,
-		buildcostmetal = 0.8*140,
+		buildcostmetal = 110,
 		buildpic = "ARMSJAM.DDS",
 		buildtime = 1.5 * 0.8*6708,
 		canmove = true,

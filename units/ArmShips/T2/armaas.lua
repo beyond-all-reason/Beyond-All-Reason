@@ -3,7 +3,7 @@ return {
 		airsightdistance = 900,
 		buildangle = 16384,
 		buildcostenergy = 0.8*7500,
-		buildcostmetal = 0.8*700,
+		buildcostmetal = 550,
 		buildpic = "ARMAAS.DDS",
 		buildtime = 1.5 * 0.8*8628,
 		canmove = true,

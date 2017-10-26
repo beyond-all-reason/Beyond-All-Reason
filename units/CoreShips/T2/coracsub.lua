@@ -1,7 +1,7 @@
 return {
 	coracsub = {
-		buildcostenergy = 0.8*11500,
-		buildcostmetal = 0.8*840,
+		buildcostenergy = 9000,
+		buildcostmetal = 670,
 		builddistance = 160,
 		builder = true,
 		shownanospray = false,

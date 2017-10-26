@@ -2,7 +2,7 @@ return {
 	armsubk = {
 		activatewhenbuilt = true,
 		buildcostenergy = 0.8*10000,
-		buildcostmetal = 0.8*1120,
+		buildcostmetal = 900,
 		buildpic = "ARMSUBK.DDS",
 		buildtime = 1.5 * 0.8*17767,
 		canmove = true,

@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 
 		brakerate = 0.0627,
-		buildcostenergy = 12300,
+		buildcostenergy = 12000,
 		buildcostmetal = 500,
 		buildpic = "ARMCROC.DDS",
 		buildtime = 13367,

@@ -1,7 +1,7 @@
 return {
 	corsjam = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*2300,
+		buildcostenergy = 1800,
 		buildcostmetal = 0.8*150,
 		buildpic = "CORSJAM.DDS",
 		buildtime = 1.5 * 0.8*7025,

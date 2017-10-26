@@ -1,7 +1,7 @@
 return {
 	cormship = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*17000,
+		buildcostenergy = 13000,
 		buildcostmetal = 0.8*3000,
 		buildpic = "CORMSHIP.DDS",
 		buildtime = 1.5 * 0.8*22200,

@@ -3,7 +3,7 @@ return {
 		airsightdistance = 800,
 		activatewhenbuilt = true,
 		autoheal = 1.5,
-		buildcostenergy = 640,
+		buildcostenergy = 650,
 		buildcostmetal = 65,
 		buildpic = "CORPT.DDS",
 		buildtime = 1.5 * 1200,

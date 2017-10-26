@@ -1,8 +1,8 @@
 return {
 	corshark = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*12000,
-		buildcostmetal = 0.8*1200,
+		buildcostenergy = 9500,
+		buildcostmetal = 950,
 		buildpic = "CORSHARK.DDS",
 		buildtime = 1.5 * 0.8*18600,
 		canmove = true,
