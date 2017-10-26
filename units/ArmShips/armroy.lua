@@ -140,6 +140,7 @@ return {
 				damage = {
 					bombers = 41*1.25,
 					default = 175*1.25,
+					heavyunits = 175*1.25,
 					fighters = 41*1.25,
 					vtol = 41*1.25,
 					subs = 5,
@@ -178,7 +179,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 190,
 				damage = {
-					default = 190*1.25,
+					default = 150,
+					subs = 390,
 				},
 			},
 		},

@@ -193,7 +193,7 @@ return {
 				damage = {
 					bombers = 80,
 					fighters = 80,
-					vtol = 80,
+					vtol = 74,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
