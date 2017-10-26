@@ -181,6 +181,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Fixed glitchy/spiky healthbars shader on current intel gfx and very old cards
  • Fixed unit_stats crashes when hovering enemy units. And dps values for beamlaser and stockpiling weapons
  • Settarget queues will now be paused when a unit attempts to dgun.
+ • Settarget will stick to water surface instead of ground level if main weapon (weapon 1) cannot reach underwater.
  • Highlight unit/highlight selected units widgets skip a unit when its shown as icon
 
 
