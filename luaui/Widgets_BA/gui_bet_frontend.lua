@@ -992,11 +992,14 @@ function widget:DrawScreen()
 					local offset = offsetAdd * betCost
 					for i=1, betCost do
 						offset = offset -offsetAdd
-						addsize = 18
-						glColor(0,0,0,0.2)
+						addsize = 18.5
+						glColor(0,0,0,0.25)
 						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
-						addsize = 17
-						glColor(0,0,0,0.4)
+						addsize = 17.5
+						glColor(0,0,0,0.25)
+						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
+						addsize = 16.25
+						glColor(0,0,0,0.25)
 						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
 						addsize = 15
 						glColor(0.85, 0.85, 0.85, 1)
@@ -1042,7 +1045,7 @@ function widget:DrawScreen()
 
 						if mouseoverContent and not mouseoverSelectBetsBox and not mouseoverCost and not mouseoverForwardBox and not backBoxShown then
 							if WG['tooltip'] ~= nil then
-								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (a delay to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score')
+								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (a delay to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score\nYou will get your chips back when the betted unit dies and you\'re the only participant')
 							end
 						end
 
