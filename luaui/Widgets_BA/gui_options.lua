@@ -1403,7 +1403,7 @@ function init()
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
-		{id="scrollspeed", group="control", name="Zoom direction/speed", type="slider", min=-45, max=45, step=5, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
+		{id="scrollspeed", group="control", name="Zoom direction/speed", type="slider", min=-45, max=45, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
