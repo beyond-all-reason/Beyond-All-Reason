@@ -834,10 +834,9 @@ function widget:GameFrame(n)
 	if lastUpdateFrame ~= currentUpdateFrame then
 		updateResbarValues('metal')
 		updateResbarValues('energy')
-    end
-    if n % 30 == 1 then
-        updateResbarText('metal')
-        updateResbarText('energy')
+	elseif n % 30 == 1 then
+		updateResbarText('metal')
+		updateResbarText('energy')
     end
 	lastUpdateFrame = currentUpdateFrame
 end
@@ -884,7 +883,9 @@ function widget:Update(dt)
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 		updateResbar('metal')
 		updateResbar('energy')
-	elseif (gameFrame ~= lastFrame) then
+	end
+
+	if (gameFrame ~= lastFrame) then
 		-- wind
 		_, _, _, currentWind = spWind()
 		currentWind = sformat('%.1f', currentWind)
