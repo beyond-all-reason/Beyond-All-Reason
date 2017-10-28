@@ -337,7 +337,7 @@ tablearmcom = {
 				weaponvelocity = 900,
 				damage = {
 					default = 150,
-					subs = 75*0.25,
+					subs = 75,
 				},
 			},
 			repulsor1 = {

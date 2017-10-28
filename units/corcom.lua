@@ -348,7 +348,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 				weaponvelocity = 900,
 				damage = {
 					default = 150,
-					subs = 150*0.5,
+					subs = 75,
 				},
 			},
 			repulsor1 = {
