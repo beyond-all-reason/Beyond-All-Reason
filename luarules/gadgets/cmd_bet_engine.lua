@@ -355,6 +355,9 @@ function gadget:GameFrame(n)
 		end
 		betValid[n] = nil
 	end
+	--if n % 60 == 1 then
+	--
+	--end
 end
 
 local function teamDeath(teamID)

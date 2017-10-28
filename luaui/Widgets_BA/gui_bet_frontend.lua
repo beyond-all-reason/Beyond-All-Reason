@@ -11,6 +11,14 @@ function widget:GetInfo()
 	}
 end
 
+local drawChipModels = false		-- using displaylist and its buggy, so not yet!
+
+for udefID,def in ipairs(UnitDefs) do
+	if def.name == 'chip' then
+		chipUdefID = udefID
+	end
+end
+
 local chipTexture = ':n:'..LUAUI_DIRNAME..'Images/chip.dds'
 local backwardTexture = ':n:'..LUAUI_DIRNAME..'Images/backward.dds'
 local forwardTexture = ':n:'..LUAUI_DIRNAME..'Images/forward.dds'
@@ -93,6 +101,7 @@ local glColor = gl.Color
 local glText = gl.Text
 local glTranslate = gl.Translate
 local glBillboard = gl.Billboard
+local glUnitShape = gl.UnitShape
 local glRotate = gl.Rotate
 local glScale = gl.Scale
 local glVertex = gl.Vertex
@@ -698,6 +707,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	IsSpec = GetSpectatingState()
+	Spring.Echo(IsSpec)
 end
 
 function widget:UnitDestroyed(unitID)
@@ -851,7 +861,10 @@ function updateDisplayList(unitID,betInfo)
 					glText(titleText, 0, 0,stepSize, "o")
 				else
 					local iconSize = 18
-					local chipHeight = 3.5
+					local chipHeight = 3.2
+					if drawChipModels and chipUdefID ~= nil then
+						chipHeight = 2.1
+					end
 					glTranslate(0,60,0)
 					glColor({1,1,1,1})
 					glTexture(chipTexture)
@@ -865,7 +878,13 @@ function updateDisplayList(unitID,betInfo)
 						glRotate(90,1,0,0)
 						glPushMatrix()
 							glRotate(chipStackOffset[i].r*360,0,0,1)
-							glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
+							if drawChipModels and chipUdefID ~= nil then
+								glRotate(90,1,0,0)
+								glScale(1.4,1.4,1.4)
+								glUnitShape(chipUdefID, 0, false, true, true)
+							else
+								glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
+							end
 						glPopMatrix()
 						glRotate(90,-1,0,0)
 						glTranslate(-offsetX,chipHeight,-offsetZ)
