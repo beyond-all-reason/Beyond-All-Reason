@@ -1,6 +1,7 @@
 return {
 	armtl = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
 		buildcostenergy = 1260,
@@ -26,6 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 494,
+		sonardistance = 475 * 0.5,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
 		customparams = {
