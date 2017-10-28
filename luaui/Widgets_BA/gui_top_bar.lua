@@ -830,8 +830,6 @@ function widget:GameFrame(n)
     gameFrame = n
     functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 
-	if lastUpdateFrame ~= currentUpdateFrame then
-
 	-- not updating every gameframe because you can have lower fps than your gameframe rate
 	if n % 30 == 1 then
 		updateResbarText('metal')
