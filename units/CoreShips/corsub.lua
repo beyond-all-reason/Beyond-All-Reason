@@ -19,7 +19,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
-		maxdamage = 635,
+		maxdamage = 435,
 		minwaterdepth = 15,
 		movementclass = "UBOAT32X3",
 		name = "Snake",
