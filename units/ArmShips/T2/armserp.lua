@@ -1,8 +1,8 @@
 return {
 	armserp = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*14400,
-		buildcostmetal = 0.8*2150,
+		buildcostenergy = 12000,
+		buildcostmetal = 1700,
 		buildpic = "ARMSERP.DDS",
 		buildtime = 1.5 * 0.8*25300,
 		canmove = true,

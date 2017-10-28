@@ -1,6 +1,6 @@
 return {
 	cormls = {
-		buildcostenergy = 0.8*4200,
+		buildcostenergy = 3300,
 		buildcostmetal = 0.8*250,
 		builddistance = 136,
 		builder = true,

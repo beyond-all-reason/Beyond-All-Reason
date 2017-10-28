@@ -1,6 +1,7 @@
 return {
 	cortl = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
 		buildcostenergy = 1500,
@@ -27,6 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 495,
+		sonardistance = 475*0.5,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
 		customparams = {

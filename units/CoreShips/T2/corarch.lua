@@ -2,8 +2,8 @@ return {
 	corarch = {
 		airsightdistance = 900,
 		buildangle = 16384,
-		buildcostenergy = 0.8*8500,
-		buildcostmetal = 0.8*650,
+		buildcostenergy = 7000,
+		buildcostmetal = 500,
 		buildpic = "CORARCH.DDS",
 		buildtime = 1.5 * 0.8*9791,
 		canmove = true,

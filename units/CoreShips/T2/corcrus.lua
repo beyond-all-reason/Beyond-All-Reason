@@ -2,8 +2,8 @@ return {
 	corcrus = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 0.8*14000,
-		buildcostmetal = 0.8*1900,
+		buildcostenergy = 11000,
+		buildcostmetal = 1500,
 		buildpic = "CORCRUS.DDS",
 		buildtime = 1.5 * 0.8*19950,
 		canmove = true,

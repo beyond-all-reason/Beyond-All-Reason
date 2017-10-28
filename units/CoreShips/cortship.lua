@@ -2,7 +2,7 @@ return {
 	cortship = {
 		autoheal = 5,
 		buildangle = 16384,
-		buildcostenergy = 5440,
+		buildcostenergy = 5500,
 		buildcostmetal = 600,
 		buildpic = "CORTSHIP.DDS",
 		buildtime = 1.5 * 7650,

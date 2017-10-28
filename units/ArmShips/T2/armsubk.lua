@@ -2,7 +2,7 @@ return {
 	armsubk = {
 		activatewhenbuilt = true,
 		buildcostenergy = 0.8*10000,
-		buildcostmetal = 0.8*1120,
+		buildcostmetal = 900,
 		buildpic = "ARMSUBK.DDS",
 		buildtime = 1.5 * 0.8*17767,
 		canmove = true,
@@ -131,7 +131,7 @@ return {
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 1,
+				reloadtime = 2,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 120,
@@ -145,8 +145,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 200,
-					--subs =300,
+					default = 250,
+					subs = 400,
 				},
 			},
 		},

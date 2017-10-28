@@ -1,8 +1,8 @@
 return {
 	corshark = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*12000,
-		buildcostmetal = 0.8*1200,
+		buildcostenergy = 9500,
+		buildcostmetal = 950,
 		buildpic = "CORSHARK.DDS",
 		buildtime = 1.5 * 0.8*18600,
 		canmove = true,
@@ -131,7 +131,7 @@ return {
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
 				range = 600,
-				reloadtime = 1,
+				reloadtime = 2,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 120,
@@ -145,8 +145,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 200,
-					--subs =300,
+					default = 250,
+					subs =400,
 				},
 			},
 		},

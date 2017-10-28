@@ -2,8 +2,8 @@ return {
 	corcarry = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 0.8*22000,
-		buildcostmetal = 0.8*1700,
+		buildcostenergy = 17000,
+		buildcostmetal = 1400,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORCARRY.DDS",

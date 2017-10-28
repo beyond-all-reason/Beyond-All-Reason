@@ -35,6 +35,11 @@ function gadget:GetInfo()
 	}
 end
 
+local chipsOnUnitDeath = true
+local chipsLifeTime = 30*20
+local chipsLifeTimeVariation = 30*3
+local chips = {}
+
 local simSpeed = Game.gameSpeed
 local MIN_BET_TIME = 5*60*simSpeed -- frames
 local MIN_BET_TIME_SCALE = 10*60*simSpeed --frames, the time of bet will be slowly increased from 0 to MIN_BET_TIME during this period
@@ -65,6 +70,12 @@ local min = math.min
 local max = math.max
 local floor = math.floor
 local insert = table.insert
+
+for udefID,def in ipairs(UnitDefs) do
+	if def.name == 'chip' then
+		chipUdefID = udefID
+	end
+end
 
 function getBetCost(playerID,betType,betID)
 	if not playerID or not betType or not betID then
@@ -318,6 +329,14 @@ local function betOver(betType, betID)
 								--we got a winner!
 								scores.score = scores.score + prizePoints
 								scores.won = scores.won + 1
+								if betType == 'unit' and chipUdefID ~= nil and chipsOnUnitDeath then
+									local x,y,z = Spring.GetUnitPosition(betID)
+									local i = 0
+									while i < prizePoints do
+										Spring.CreateUnit(chipUdefID, x,y,z, 0, GaiaTeam)
+										i = i + 1
+									end
+								end
 							else
 								scores.lost = scores.lost + 1
 								scores.score = scores.score - numBets
@@ -354,6 +373,14 @@ function gadget:GameFrame(n)
 			end
 		end
 		betValid[n] = nil
+	end
+	if n % 30 == 1 then
+		for unitID, frame in pairs(chips) do
+			if frame < n then
+				chips[unitID] = nil
+				Spring.DestroyUnit(unitID, false, false)
+			end
+		end
 	end
 end
 
@@ -426,6 +453,36 @@ function gadget:Shutdown()
 	_G[_G_INDEX] = nil
 	GG[_G_INDEX] = nil
 end
+
+
+local function setGaiaUnitSpecifics(unitID)
+	Spring.SetUnitNeutral(unitID, true)
+	Spring.SetUnitNoSelect(unitID, true)
+	Spring.SetUnitStealth(unitID, true)
+	Spring.SetUnitNoMinimap(unitID, true)
+	--Spring.SetUnitMaxHealth(unitID, 2)
+	Spring.SetUnitBlocking(unitID, false)
+	Spring.SetUnitSensorRadius(unitID, 'los', 0)
+	Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+	for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+		Spring.UnitWeaponHoldFire(unitID, weaponID)
+	end
+end
+
+
+if chipUdefID ~= nil then
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if unitDefID == chipUdefID then
+			chips[unitID] = Spring.GetGameFrame() + chipsLifeTime + (math.random()*chipsLifeTimeVariation)
+			setGaiaUnitSpecifics(unitID)
+			Spring.SetUnitRotation(unitID,0,math.random()*360,0)
+			Spring.AddUnitImpulse(unitID, (math.random()-0.5)*2.5, 4.5+(math.random()*1), (math.random()-0.5)*2.5)
+		end
+	end
+end
+
 
 else
 --- BEGIN UNSYNCED CODE
@@ -663,5 +720,6 @@ function gadget:GameOver()
 		SendLuaRulesMsg("betreport: player " .. playerID .. " score " .. score.score .. " unfinished " .. score.currentlyRunning .." won " .. score.won .. " lost " .. score.lost .. " totalplaced " .. score.totalPlaced)
 	end
 end
+
 
 end

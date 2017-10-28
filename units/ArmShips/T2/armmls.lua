@@ -1,7 +1,7 @@
 return {
 	armmls = {
 		buildcostenergy = 0.8*4000,
-		buildcostmetal = 0.8*230,
+		buildcostmetal = 190,
 		builddistance = 135,
 		builder = true,
 		shownanospray = false,

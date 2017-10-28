@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 0.8*15000,
-		buildcostmetal = 0.8*1800,
+		buildcostmetal = 1400,
 		buildpic = "ARMCRUS.DDS",
 		buildtime = 1.5 * 0.8*19789,
 		canmove = true,

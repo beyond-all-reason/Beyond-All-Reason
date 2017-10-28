@@ -4,7 +4,7 @@ return {
 		airsightdistance = 925,
 		brakerate = 0.564,
 		buildcostenergy = 5600,
-		buildcostmetal = 510,
+		buildcostmetal = 500,
 		buildpic = "ARMAAK.DDS",
 		buildtime = 6958,
 		canmove = true,

@@ -1,8 +1,8 @@
 return {
 	armmship = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*18000,
-		buildcostmetal = 0.8*2800,
+		buildcostenergy = 14000,
+		buildcostmetal = 2200,
 		buildpic = "ARMMSHIP.DDS",
 		buildtime = 1.5 * 0.8*24817,
 		canmove = true,

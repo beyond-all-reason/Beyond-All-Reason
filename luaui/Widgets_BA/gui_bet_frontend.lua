@@ -11,6 +11,14 @@ function widget:GetInfo()
 	}
 end
 
+local drawChipModels = true
+
+for udefID,def in ipairs(UnitDefs) do
+	if def.name == 'chip' then
+		chipUdefID = udefID
+	end
+end
+
 local chipTexture = ':n:'..LUAUI_DIRNAME..'Images/chip.dds'
 local backwardTexture = ':n:'..LUAUI_DIRNAME..'Images/backward.dds'
 local forwardTexture = ':n:'..LUAUI_DIRNAME..'Images/forward.dds'
@@ -93,6 +101,7 @@ local glColor = gl.Color
 local glText = gl.Text
 local glTranslate = gl.Translate
 local glBillboard = gl.Billboard
+local glUnitShape = gl.UnitShape
 local glRotate = gl.Rotate
 local glScale = gl.Scale
 local glVertex = gl.Vertex
@@ -698,6 +707,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	IsSpec = GetSpectatingState()
+	Spring.Echo(IsSpec)
 end
 
 function widget:UnitDestroyed(unitID)
@@ -819,59 +829,37 @@ function updateDisplayList(unitID,betInfo)
 	if GetUnitIsDead(unitID) == false then
 		unitDisplayList[unitID] = glCreateList( function()
 			glPushMatrix()
-				local unitPos = {GetUnitPosition(unitID,true,true)}
-				--glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
-				if IsUnitSelected(unitID) then
-					glTranslate(25,25,25)
-					glBillboard()
-					local betCost = getBetCost(myPlayerID,"unit",unitID)
-					local titleText = getTotalText(numBets,totalScore,totalWin,betCost)
-					local totalBgHeight = (numBets*stepSize)+stepSize
-					local padding = 8
-					
-					local maxWidth =0
-					local betLines = {}
-					for timeSlot,betEntry in spairs(betInfo) do
-						glTranslate(0,stepSize,0)
-						betLines[betEntry] = getBetLineText(betEntry)
-						maxWidth = math.max(maxWidth, gl.GetTextWidth(betLines[betEntry]))
-					end
-					maxWidth = maxWidth * stepSize
-					
-					glColor(0,0,0,0.5)
-					RectRound(-padding, -padding+stepSize-totalBgHeight, maxWidth+padding, padding+(stepSize*0.65)+1, padding*0.66)
-					
-					glTranslate(0,-totalBgHeight,0)
-					for timeSlot,betEntry in spairs(betInfo) do
-						glTranslate(0,stepSize,0)
-						glText(betLines[betEntry], 0, 0,stepSize, "o")
-					end
-					glTranslate(0,stepSize+1,0)
-					local betCost = getBetCost(myPlayerID,"unit",unitID)
-					glText(titleText, 0, 0,stepSize, "o")
-				else
-					local iconSize = 18
-					local chipHeight = 3.5
-					glTranslate(0,60,0)
-					glColor({1,1,1,1})
-					glTexture(chipTexture)
-					for i = 1, totalWin do
-						if chipStackOffset[i] == nil then
-							chipStackOffset[i] = {x=random(),z=random(),r=random()}
-						end
-						local offsetX = chipStackOffset[i].x*1.5
-						local offsetZ = chipStackOffset[i].z*1.5
-						glTranslate(offsetX,0,offsetZ)
-						glRotate(90,1,0,0)
-						glPushMatrix()
-							glRotate(chipStackOffset[i].r*360,0,0,1)
-							glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
-						glPopMatrix()
-						glRotate(90,-1,0,0)
-						glTranslate(-offsetX,chipHeight,-offsetZ)
-					end
-					glTexture(false)
+			local unitPos = {GetUnitPosition(unitID,true,true)}
+			--glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
+			if IsUnitSelected(unitID) then
+				glTranslate(25,25,25)
+				glBillboard()
+				local betCost = getBetCost(myPlayerID,"unit",unitID)
+				local titleText = getTotalText(numBets,totalScore,totalWin,betCost)
+				local totalBgHeight = (numBets*stepSize)+stepSize
+				local padding = 8
+
+				local maxWidth =0
+				local betLines = {}
+				for timeSlot,betEntry in spairs(betInfo) do
+					glTranslate(0,stepSize,0)
+					betLines[betEntry] = getBetLineText(betEntry)
+					maxWidth = math.max(maxWidth, gl.GetTextWidth(betLines[betEntry]))
 				end
+				maxWidth = maxWidth * stepSize
+
+				glColor(0,0,0,0.5)
+				RectRound(-padding, -padding+stepSize-totalBgHeight, maxWidth+padding, padding+(stepSize*0.65)+1, padding*0.66)
+
+				glTranslate(0,-totalBgHeight,0)
+				for timeSlot,betEntry in spairs(betInfo) do
+					glTranslate(0,stepSize,0)
+					glText(betLines[betEntry], 0, 0,stepSize, "o")
+				end
+				glTranslate(0,stepSize+1,0)
+				local betCost = getBetCost(myPlayerID,"unit",unitID)
+				glText(titleText, 0, 0,stepSize, "o")
+			end
 			glPopMatrix()
 		end)
 	else
@@ -992,11 +980,14 @@ function widget:DrawScreen()
 					local offset = offsetAdd * betCost
 					for i=1, betCost do
 						offset = offset -offsetAdd
-						addsize = 18
-						glColor(0,0,0,0.2)
+						addsize = 18.5
+						glColor(0,0,0,0.25)
 						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
-						addsize = 17
-						glColor(0,0,0,0.4)
+						addsize = 17.5
+						glColor(0,0,0,0.25)
+						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
+						addsize = 16.25
+						glColor(0,0,0,0.25)
 						glTexRect(panelBoxContent[1]-(addsize*sizeMultiplier)+offset, panelBoxContent[2]-(addsize*sizeMultiplier), panelBoxContent[1]+((square+addsize)*sizeMultiplier)+offset, panelBoxContent[4]+(addsize*sizeMultiplier))
 						addsize = 15
 						glColor(0.85, 0.85, 0.85, 1)
@@ -1042,7 +1033,7 @@ function widget:DrawScreen()
 
 						if mouseoverContent and not mouseoverSelectBetsBox and not mouseoverCost and not mouseoverForwardBox and not backBoxShown then
 							if WG['tooltip'] ~= nil then
-								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (a delay to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score')
+								WG['tooltip'].ShowTooltip('bet', '\255\215\255\215Bet interface\n\255\240\240\240Predict when the selected unit will be killed.\nAt '..(ceil(absTime/BET_GRANULARITY))..' minutes gametime your bet becomes valid (a delay to prevent bet sniping)\nWinner takes the stack of chips, until that happens they still count for your score\nYou will get your chips back when the betted unit dies and you\'re the only participant')
 							end
 						end
 
@@ -1259,16 +1250,63 @@ end
 
 function widget:DrawWorld()
 	local camX, camY, camZ = GetCameraPosition()
-	glPushMatrix()
-		for unitID,displayList in pairs(unitDisplayList) do
+	for unitID,displayList in pairs(unitDisplayList) do
+		local betInfo = betList.unit[unitID] or {}
+		if GetUnitIsDead(unitID) == false then
 			local x,y,z = GetUnitPosition(unitID,true,true)
-			local camDistance = diag(camX-x, camY-y, camZ-z) 
+			local camDistance = diag(camX-x, camY-y, camZ-z)
 			local usedScale = 0.55 + (camDistance/4500)
 			glPushMatrix()
 			glTranslate(x,y+GetUnitRadius(unitID),z)
 			glScale(usedScale,usedScale,usedScale)
-			glCallList(displayList)
+
+			if IsUnitSelected(unitID) then
+				glCallList(displayList)
+			else
+				local stepSize = 15
+				--local cubeShift = 25
+				if not betStats.unit or not betStats.unit[unitID] then
+					return
+				end
+				local numBets, totalScore, totalWin = betStats.unit[unitID].numBets, betStats.unit[unitID].totalSpent, betStats.unit[unitID].prizePoints
+				local cubeScaleFactor = (totalWin)^0.5 --while it should be cube root to make the volume linear with the total win, i prefer square, or it grows too little
+				local cubeFactor = 5*cubeScaleFactor
+
+				local unitPos = {GetUnitPosition(unitID,true,true)}
+				--glTranslate(unitPos[4],unitPos[5]+GetUnitRadius(unitID),unitPos[6])
+
+				local iconSize = 18
+				local chipHeight = 3.2
+				if drawChipModels and chipUdefID ~= nil then
+					chipHeight = 1.52
+				end
+				glTranslate(0,60,0)
+				glColor({1,1,1,1})
+				glTexture(chipTexture)
+				glScale(1.7,1.7,1.7)
+				for i = 1, totalWin do
+					if chipStackOffset[i] == nil then
+						chipStackOffset[i] = {x=random(),z=random(),r=random()}
+					end
+					local offsetX = chipStackOffset[i].x*2
+					local offsetZ = chipStackOffset[i].z*2
+					glTranslate(offsetX,0,offsetZ)
+					glRotate(90,1,0,0)
+					glPushMatrix()
+					glRotate(chipStackOffset[i].r*360,0,0,1)
+					if drawChipModels and chipUdefID ~= nil then
+						glRotate(90,1,0,0)
+						glUnitShape(chipUdefID, 0, false, true, true)
+					else
+						glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
+					end
+					glPopMatrix()
+					glRotate(90,-1,0,0)
+					glTranslate(-offsetX,chipHeight,-offsetZ)
+				end
+				glTexture(false)
+			end
 			glPopMatrix()
 		end
-	glPopMatrix()
+	end
 end

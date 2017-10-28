@@ -1,7 +1,7 @@
 return {
 	armbats = {
 		buildangle = 16384,
-		buildcostenergy = 0.8*22000,
+		buildcostenergy = 18000,
 		buildcostmetal = 0.8*5500,
 		buildpic = "ARMBATS.DDS",
 		buildtime = 1.5 * 0.8*58730,

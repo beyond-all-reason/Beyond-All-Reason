@@ -1,8 +1,8 @@
 return {
 	corssub = {
 		activatewhenbuilt = true,
-		buildcostenergy = 0.8*14500,
-		buildcostmetal = 0.8*2300,
+		buildcostenergy = 12000,
+		buildcostmetal = 1800,
 		buildpic = "CORSSUB.DDS",
 		buildtime = 1.5 * 0.8*27500,
 		canmove = true,

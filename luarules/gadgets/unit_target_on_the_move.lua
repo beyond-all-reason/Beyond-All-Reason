@@ -437,6 +437,10 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
 						if validTarget then
 							break
+						elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID,weaponID,target[1],1,target[3]) then
+							target[2] = 1
+							validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
+							break
 						end
 					end
 					if validTarget then
