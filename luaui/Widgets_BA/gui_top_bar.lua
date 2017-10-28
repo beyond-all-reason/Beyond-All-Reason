@@ -831,15 +831,17 @@ function widget:GameFrame(n)
     functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 
 	-- not updating every gameframe because you can have lower fps than your gameframe rate
+	if n % 30 == 1 then
+		updateResbarText('metal')
+		updateResbarText('energy')
+	end
 	if lastUpdateFrame ~= currentUpdateFrame then
 		updateResbarValues('metal')
 		updateResbarValues('energy')
-	elseif n % 30 == 1 then
-		updateResbarText('metal')
-		updateResbarText('energy')
-    end
+	end
 	lastUpdateFrame = currentUpdateFrame
 end
+
 
 function widget:Update(dt)
 	local mx,my = spGetMouseState()
@@ -885,8 +887,8 @@ function widget:Update(dt)
 		updateResbar('energy')
 	end
 
+	-- wind
 	if (gameFrame ~= lastFrame) then
-		-- wind
 		_, _, _, currentWind = spWind()
 		currentWind = sformat('%.1f', currentWind)
 	end
