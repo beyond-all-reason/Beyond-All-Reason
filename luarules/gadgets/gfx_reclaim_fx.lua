@@ -16,8 +16,14 @@ end
 
 local random = math.random
 
+local ignoreUnits = {}
+if UnitDefNames["chip"] ~= nil then
+   ignoreUnits[UnitDefNames["chip"].id] = true
+end
+
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if attackerID == nil then -- if reclaimed
+	if attackerID == nil and ignoreUnits[unitDefID] == nil then -- if reclaimed
 		local ux,uy,uz = Spring.GetUnitPosition(unitID)
 		if ux ~= nil then
 			local udef = UnitDefs[unitDefID]

@@ -118,6 +118,11 @@ local barColors = {
   dguncharge = { 1.00,0.80,0.00,barValueAlpha },
 }
 
+local ignoreUnits = {}
+if UnitDefNames["chip"] ~= nil then
+  ignoreUnits[UnitDefNames["chip"].id] = true
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -1039,8 +1044,10 @@ do
       primaryWeapon = 0,
     }
   end
-	
+
   function DrawUnitInfos(unitID,unitDefID, ud)
+    if ignoreUnits[unitDefID] ~= nil then return end
+
     if (not customInfo[unitDefID]) then
       customInfo[unitDefID] = {
         height        = ud.height+barHeightOffset,

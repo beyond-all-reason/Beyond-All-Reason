@@ -188,7 +188,7 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitSensorRadius(unitID, 'radar', 0)
 	Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
-		Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S
+		Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesnt seem to work :S (maybe because they still patrol)
 	end
 end
 
