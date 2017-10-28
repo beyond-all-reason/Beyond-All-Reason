@@ -4,6 +4,18 @@ local impulsefactor = 0.123
 
 unitDeaths = {
 
+    blank = {
+        weaponType = "Cannon",
+        AreaOfEffect = 0,
+        cameraShake = 0,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        explosiongenerator="custom:blank",
+        damage = {
+            default = 0,
+        },
+    },
+
     pyro = {
         weaponType = "Cannon",
         areaofeffect = 64,
