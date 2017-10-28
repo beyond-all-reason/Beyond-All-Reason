@@ -19,7 +19,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
-		maxdamage = 835,
+		maxdamage = 635,
 		minwaterdepth = 15,
 		movementclass = "UBOAT32X4",
 		name = "Lurker",
