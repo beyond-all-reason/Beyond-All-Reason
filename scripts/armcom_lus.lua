@@ -44,7 +44,7 @@ MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
 ShieldRadius = {30,30,30,35,35,35,40,40,40,45,45}
 HealOnLevelUp = {0,250,250,500,500,750,750,1000,1000,1000,1000}
-DamageMultiplierNoDgun = {1,1,1,1,1,1,0.9,0.8,0.7,0.6,0.5}
+DamageMultiplierNoDgun = {1,1,1,1,1,1,0.95,0.9,0.85,0.8,0.75}
 --Vision
 LOS = {450,500,550,600,625,650,675,700,725,750,800}
 Sonar = {450,450,500,500,550,550,600,600,650,650,700}
@@ -269,6 +269,7 @@ function LevelUpStats(curLevel)
 	level = curLevel + 1
 	Spring.SetUnitMaxRange(unitID, Range[level])
 	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
+
 	for i = 23, 29 do
 	-- if UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i] then
 		-- Spring.Echo(WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
