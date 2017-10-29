@@ -102,7 +102,9 @@ x,y,z = Spring.GetUnitPosition(unitID)
 									Spring.SetUnitHealth(uid, newhp2)	
 									if Spring.GetGameFrame() %30 == 0 then
 									x2, y2, z2 = Spring.GetUnitPosition(uid)
-									Spring.SpawnCEG("steam", x2, y2, z2, 0,1,0)
+										if newhp2>oldhp2 then
+											Spring.SpawnCEG("steam", x2, y2, z2, 0,1,0)
+										end
 									end
 								end
 							end
