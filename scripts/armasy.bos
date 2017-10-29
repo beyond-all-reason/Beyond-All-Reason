@@ -17,9 +17,9 @@ activatescr()
 	if( TRUE )
 	{
 		move nano2 to y-axis [0.00000] now;
-		move nano2 to y-axis [19.50002] speed [37.93777];
+		move nano2 to y-axis [16] speed [37.93777];
 		move nano1 to y-axis [0.00000] now;
-		move nano1 to y-axis [19.12500] speed [37.20819];
+		move nano1 to y-axis [16] speed [37.20819];
 		sleep 514;
 	}
 	if( TRUE )
@@ -42,8 +42,8 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move nano2 to y-axis [19.50002] now;
-		move nano1 to y-axis [19.12500] now;
+		move nano2 to y-axis [16] now;
+		move nano1 to y-axis [16] now;
 		turn piling1 to y-axis <-52.65934> now;
 		turn piling1 to y-axis <0.00000> speed <102.45604>;
 		turn piling2 to y-axis <47.70879> now;
