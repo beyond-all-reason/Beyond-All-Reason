@@ -1,7 +1,7 @@
 return {
 	chip = {
-		buildcostenergy = 200,
-		buildcostmetal = 10,
+		buildcostenergy = 0,
+		buildcostmetal = 0,
 		buildpic = "CHIP.DDS",
 		buildtime = 255,
 		canattack = false,
@@ -24,6 +24,7 @@ return {
 		name = "Chip",
 		objectname = "chip.s3o",
 		repairable = false,
+		reclaimable = false,
 		script = "chip.lua",
 		seismicsignature = 0,
 		selfdestructas = "blank",

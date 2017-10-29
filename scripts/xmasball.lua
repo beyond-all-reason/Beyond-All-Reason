@@ -12,7 +12,7 @@ function Sink()
 end
 
 function MoveDown()
-	while f > -50 do
+	while f > -900 do
 		Move(base, 2, f)
 		f = f - 0.03
 		Sleep(1)

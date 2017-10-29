@@ -45,6 +45,7 @@ local drawFeatureBarPercentage  = 0	            -- true:  commanders always will
 local choppedCornerSize         = 0.48
 local outlineSize               = 0.88
 local drawFullHealthBars        = false
+local unitHpThreshold           = 0.99
 
 local drawFeatureHealth         = true
 local featureTitlesAlpha        = featureBarAlpha * titlesAlpha/barAlpha
@@ -1096,7 +1097,7 @@ do
       end
 
       --// HEALTH
-      if (health) and ((drawFullHealthBars)or(hp<1)) and ((build==1)or(build-hp>=0.01)) then
+      if (health) and ((drawFullHealthBars)or(hp<unitHpThreshold)) and ((build==1)or(build-hp>=0.01)) then
         hp100 = hp*100; hp100 = hp100 - hp100%1; --//same as floor(hp*100), but 10% faster
         if (hp100<0) then hp100=0 elseif (hp100>100) then hp100=100 end
         if (drawFullHealthBars)or(hp100<100) and not ((hp<0) or (hp>0.999)) then

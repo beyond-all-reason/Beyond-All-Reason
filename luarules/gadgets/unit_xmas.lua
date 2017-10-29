@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local decorationLifeTime = 30*25
+	local decorationLifeTime = 3*25
 	local decorationLifeTimeVariation = 30*5
 
 	local decorations = {}
@@ -36,7 +36,6 @@ if gadgetHandler:IsSyncedCode() then
 	local createdDecorations = {}
 
 	local GaiaTeam = Spring.GetGaiaTeamID()
-
 
 	local function setGaiaUnitSpecifics(unitID)
 		Spring.SetUnitNeutral(unitID, true)
@@ -59,7 +58,10 @@ if gadgetHandler:IsSyncedCode() then
 			for unitID, frame in pairs(decorations) do
 				if frame < n then
 					decorations[unitID] = nil
-					decorationsTerminal[unitID] = n+250
+					local x,y,z = Spring.GetUnitPosition(unitID)
+					local gy = Spring.GetGroundHeight(x,z)
+
+					decorationsTerminal[unitID] = n+300+((y - gy) * 33)
 					local env = Spring.UnitScript.GetScriptEnv(unitID)
 					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
 				end
@@ -67,6 +69,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if n % 90 == 1 then
 			for unitID, frame in pairs(decorationsTerminal) do
+
 				if frame < n then
 					decorationsTerminal[unitID] = nil
 					Spring.DestroyUnit(unitID, false, false)

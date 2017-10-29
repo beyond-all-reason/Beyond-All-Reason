@@ -25,6 +25,7 @@ return {
 		name = "Commander Tombstone",
 		objectname = "CORSTONE.3do",
 		repairable = false,
+		reclaimable = false,
 		script = "blank.cob",
 		seismicsignature = 0,
 		sightdistance = 1,
