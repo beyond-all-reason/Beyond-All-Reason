@@ -326,6 +326,8 @@ local armorDefs = {
 	nanos = {
 		"armnanotc",
 		"cornanotc",
+		"armnanotcplat",
+		"cornanotcplat",
 	},
 	vtol = {
 		"armaca",
