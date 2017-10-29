@@ -136,7 +136,7 @@ return {
 				size = 1.5,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 250,
+				weaponvelocity = 275,
 				damage = {
 					bombers = 25*1.5,
 					default = 65*1.5,
