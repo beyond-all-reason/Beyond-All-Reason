@@ -10,6 +10,7 @@
 --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function widget:GetInfo()
   return {
@@ -405,7 +406,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
-  gl.Fog(false)
+  --gl.Fog(false)
 
   local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 
@@ -430,8 +431,8 @@ function widget:DrawWorld()
       end
     end
   end
-  
-  gl.Fog(true)
+
+  --gl.Fog(true)
 end
 
 --------------------------------------------------------------------------------
@@ -439,7 +440,7 @@ end
 
 function widget:DrawScreenEffects()
   -- show the names over the team start positions
-  gl.Fog(false)
+  --gl.Fog(false)
   for _, teamID in ipairs(Spring.GetTeamList()) do
     local _,leader = Spring.GetTeamInfo(teamID)
     local name,_,spec = Spring.GetPlayerInfo(leader)
@@ -457,7 +458,7 @@ function widget:DrawScreenEffects()
       end
     end
   end
-  gl.Fog(true)
+  --gl.Fog(true)
 end
 
 
