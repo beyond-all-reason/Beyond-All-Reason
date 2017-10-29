@@ -33,7 +33,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 700,
 		sonardistance = 320,
-		waterline = 2,
+		waterline = 0,
 		--move
 		acceleration = 4.00/60,
 		brakerate = 4.00/15,

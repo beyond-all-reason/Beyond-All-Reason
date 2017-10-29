@@ -40,7 +40,7 @@ return {
 		turninplacespeedlimit = 0.64*2.048,
 		turnrate = 200,
 		--end move
-		waterline = 5,
+		waterline = 0,
 		customparams = {
 
 		},

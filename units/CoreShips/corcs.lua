@@ -33,7 +33,7 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1250,
-		waterline = 3,
+		waterline = 0,
 		workertime = 125,
 		--move
 		acceleration = 2.00/90,
