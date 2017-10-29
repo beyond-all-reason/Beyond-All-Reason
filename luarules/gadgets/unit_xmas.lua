@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local decorationLifeTime = 3*25
+	local decorationLifeTime = 20*25
 	local decorationLifeTimeVariation = 30*5
 
 	local decorations = {}
@@ -72,7 +72,9 @@ if gadgetHandler:IsSyncedCode() then
 
 				if frame < n then
 					decorationsTerminal[unitID] = nil
-					Spring.DestroyUnit(unitID, false, false)
+					if Spring.GetUnitIsDead(unitID) == false then
+						Spring.DestroyUnit(unitID, false, false)
+					end
 				end
 			end
 		end
@@ -112,7 +114,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil then
-			Spring.Echo('decorations!')
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			table.insert(createDecorations, {x,y,z, teamID, unitDefID})
 		end
