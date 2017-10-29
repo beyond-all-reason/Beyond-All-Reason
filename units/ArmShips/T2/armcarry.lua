@@ -47,7 +47,7 @@ return {
 		sightdistance = 1105,
 		sonardistance = 760,
 		terraformspeed = 5000,
-		waterline = 7,
+		waterline = 0,
 		workertime = 1000,
 		--move
 		acceleration = 2.10/270,

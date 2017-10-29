@@ -35,7 +35,7 @@ return {
 		transportsize = 4,
 		transportunloadmethod = 0,
 		unloadspread = 1,
-		waterline = 11,
+		waterline = 8,
 		--move
 		brakerate =  2.00/40,
 		acceleration = 1.75/180,

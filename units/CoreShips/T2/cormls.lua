@@ -41,7 +41,7 @@ return {
 		turninplacespeedlimit = 0.64*1.925,
 		turnrate = 262,
 		--end move
-		waterline = 3,
+		waterline = 0,
 		workertime = 400,
 		buildoptions = {
             "coreyes",

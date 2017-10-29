@@ -36,7 +36,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "flagshipExplosionSelfd",
 		sightdistance = 689,
-		waterline = 13,
+		waterline = 0,
 		--move
 		acceleration = 2.10/270,
 		brakerate = 2.10/35,

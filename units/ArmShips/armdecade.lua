@@ -28,7 +28,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 375,
-		waterline = 2,
+		waterline = 0,
 		--move
 		acceleration = 3.15/105,
 		brakerate = 3.15/15,
