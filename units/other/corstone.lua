@@ -34,5 +34,8 @@ return {
         stealth = true,
         sonarStealth = true,
         capturable = false,
+		customparams = {
+			nohealthbars = true,
+		},
 	},
 }

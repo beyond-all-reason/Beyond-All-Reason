@@ -19,7 +19,9 @@ local cmdname = 'give'
 local PACKET_HEADER = "$g$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
-local authorizedPlayers  = {'[teh]Flow', 'FlowerPower'}
+local authorizedPlayers  = {'[teh]Flow', 'FlowerPower', 'Floris'}
+
+local isSilentUnitGift = {armstone=true, corstone=true, chip=true, xmasball=true}
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -71,6 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 			if succesfullyCreated > 0 then
+				if isSilentUnitGift[unitName] ~= nil then
 				Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
 				Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)
 			end

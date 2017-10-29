@@ -119,8 +119,10 @@ local barColors = {
 }
 
 local ignoreUnits = {}
-if UnitDefNames["chip"] ~= nil then
-  ignoreUnits[UnitDefNames["chip"].id] = true
+for udefID,def in ipairs(UnitDefs) do
+  if def.customParams['nohealthbars'] then
+    ignoreUnits[udefID] = true
+  end
 end
 
 --------------------------------------------------------------------------------

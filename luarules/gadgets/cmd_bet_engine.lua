@@ -416,6 +416,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if GetTeamUnitCount(teamID) == 0 then
 		teamDeath(teamID)
 	end
+	if unitDefID == chipUdefID then
+		if chips[unitID] ~= nil then
+			chips[unitID] = nil
+		elseif chipTerminal[unitID] ~= nil then
+			chipTerminal[unitID] = nil
+		end
+	end
 end
 
 

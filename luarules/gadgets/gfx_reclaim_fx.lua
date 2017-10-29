@@ -18,7 +18,10 @@ local random = math.random
 
 local ignoreUnits = {}
 if UnitDefNames["chip"] ~= nil then
-   ignoreUnits[UnitDefNames["chip"].id] = true
+	ignoreUnits[UnitDefNames["chip"].id] = true
+	ignoreUnits[UnitDefNames["xmasball"].id] = true
+	ignoreUnits[UnitDefNames["armstone"].id] = true
+	ignoreUnits[UnitDefNames["corstone"].id] = true
 end
 
 
@@ -45,7 +48,7 @@ end
 
 local damagedFeatures = {}
 function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15 then
+	if damage > 0 and damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15 then
 		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 		if (fx ~= nil) then
 			local x,y,z = fx,fy,fz

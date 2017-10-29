@@ -93,6 +93,13 @@ local smoothPolys			= gl.Smoothing			-- looks a lot nicer, esp. without FSAA  (b
 local rectangleFactor		= 3.3
 local scalefaktor			= 2.9
 
+local ignoreUnits = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.customParams['nohealthbars'] then
+		ignoreUnits[udefID] = true
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -246,6 +253,9 @@ function checkUnit(unitID)
 	local allyID = spGetUnitAllyTeam(unitID)
 	if not skipOwnAllyTeam  or  (skipOwnAllyTeam  and  not (allyID == myAllyID))  then
 		local unitDefIDValue = spGetUnitDefID(unitID)
+		if ignoreUnits[unitDefIDValue] ~= nil then
+			return
+		end
 		if (unitDefIDValue) then
 			if drawUnits[allyID] == nil then
 				drawUnits[allyID] = {}
