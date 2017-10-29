@@ -74,7 +74,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if succesfullyCreated > 0 then
 				if isSilentUnitGift[unitName] ~= nil then
-				Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
+					Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
+				end
 				Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)
 			end
 		end
