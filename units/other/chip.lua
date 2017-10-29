@@ -1,7 +1,5 @@
 return {
 	chip = {
-		acceleration = 0.3,
-		brakerate = 0.3,
 		buildcostenergy = 200,
 		buildcostmetal = 10,
 		buildpic = "CHIP.DDS",
@@ -22,11 +20,11 @@ return {
 		maxdamage = 500000,
 		maxslope = 64,
 		mass = 5,
-		maxwaterdepth = 250,
+		maxwaterdepth = 0,
 		name = "Chip",
 		objectname = "chip_r.s3o",
 		repairable = false,
-		script = "blank.cob",
+		script = "chip.lua",
 		seismicsignature = 0,
 		selfdestructas = "blank",
 		sightdistance = 0,
@@ -38,6 +36,6 @@ return {
         capturable = false,
 		canmove = true,
 		maxvelocity = 1,
-		movementclass = "KBOT2",
+		movementclass = "KBOT1",
 	},
 }

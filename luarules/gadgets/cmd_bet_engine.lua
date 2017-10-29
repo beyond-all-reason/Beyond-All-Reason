@@ -36,9 +36,10 @@ function gadget:GetInfo()
 end
 
 local chipsOnUnitDeath = true
-local chipsLifeTime = 30*20
-local chipsLifeTimeVariation = 30*3
+local chipsLifeTime = 25*20
+local chipsLifeTimeVariation = 30*5
 local chips = {}
+local chipTerminal = {}
 
 local simSpeed = Game.gameSpeed
 local MIN_BET_TIME = 5*60*simSpeed -- frames
@@ -378,6 +379,16 @@ function gadget:GameFrame(n)
 		for unitID, frame in pairs(chips) do
 			if frame < n then
 				chips[unitID] = nil
+				chipTerminal[unitID] = n+250
+				local env = Spring.UnitScript.GetScriptEnv(unitID)
+				Spring.UnitScript.CallAsUnit(unitID,env.Sink)
+			end
+		end
+	end
+	if n % 90 == 1 then
+		for unitID, frame in pairs(chipTerminal) do
+			if frame < n then
+				chipTerminal[unitID] = nil
 				Spring.DestroyUnit(unitID, false, false)
 			end
 		end
@@ -477,6 +488,9 @@ if chipUdefID ~= nil then
 		if unitDefID == chipUdefID then
 			chips[unitID] = Spring.GetGameFrame() + chipsLifeTime + (math.random()*chipsLifeTimeVariation)
 			setGaiaUnitSpecifics(unitID)
+			--local x,y,z = Spring.GetUnitPosition(unitID)
+			--Spring.SetUnitPosition(unitID,x,y,z)
+			--Spring.SetUnitVelocity(unitID,0,math.random()*20,0)
 			Spring.SetUnitRotation(unitID,0,math.random()*360,0)
 			Spring.AddUnitImpulse(unitID, (math.random()-0.5)*2.5, 4.5+(math.random()*1), (math.random()-0.5)*2.5)
 		end
