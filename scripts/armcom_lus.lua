@@ -268,6 +268,7 @@ end
 function LevelUpStats(curLevel)
 	level = curLevel + 1
 	Spring.SetUnitMaxRange(unitID, Range[level])
+	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
 	for i = 23, 29 do
 	-- if UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i] then
 		-- Spring.Echo(WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
