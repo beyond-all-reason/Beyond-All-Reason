@@ -1,7 +1,7 @@
 return {
 	xmasball = {
-		buildcostenergy = 200,
-		buildcostmetal = 10,
+		buildcostenergy = 0,
+		buildcostmetal = 0,
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,
@@ -27,6 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "blank",
 		sightdistance = 0,
+		reclaimable = false,
 		usebuildinggrounddecal = false,
 		yardmap = "f",
         blocking = false,
