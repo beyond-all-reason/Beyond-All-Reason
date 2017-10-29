@@ -1100,7 +1100,7 @@ do
       if (health) and ((drawFullHealthBars)or(hp<unitHpThreshold)) and ((build==1)or(build-hp>=0.01)) then
         hp100 = hp*100; hp100 = hp100 - hp100%1; --//same as floor(hp*100), but 10% faster
         if (hp100<0) then hp100=0 elseif (hp100>100) then hp100=100 end
-        if (drawFullHealthBars)or(hp100<100) and not ((hp<0) or (hp>0.999)) then
+        if (drawFullHealthBars)or(hp100<100) and not (hp<0) then
           local infotext = ''
           if (fullText and (hp100 and hp100 <= drawBarPercentage and hp100 > 0) or dist < minPercentageDistance) then
             infotext = hp100..'%'
