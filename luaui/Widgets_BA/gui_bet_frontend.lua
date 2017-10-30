@@ -27,6 +27,7 @@ local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 local betString = {"fail at ", "fails at ", "dead at ", "dies at ", "dead by ", "die at ", "death at"}
 local playerString = {"player","pro","pr0","noob","newbie","idiot","n00b","tard", "autist","retard"}
 local searchRadius = 300
+local GaiaTeam = Spring.GetGaiaTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GetUnitPosition = Spring.GetUnitPosition
@@ -1296,7 +1297,7 @@ function widget:DrawWorld()
 					glRotate(chipStackOffset[i].r*360,0,0,1)
 					if drawChipModels and chipUdefID ~= nil then
 						glRotate(90,1,0,0)
-						glUnitShape(chipUdefID, 0, false, true, true)
+						glUnitShape(chipUdefID, GaiaTeam, false, true, true)
 					else
 						glTexRect(-(iconSize/2), -(iconSize/2), (iconSize/2), (iconSize/2))
 					end

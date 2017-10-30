@@ -48,7 +48,7 @@ end
 
 local damagedFeatures = {}
 function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if damage > 1 and damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15 then
+	if damage > 1 and (damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15) then
 		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 		if (fx ~= nil) then
 			local x,y,z = fx,fy,fz
