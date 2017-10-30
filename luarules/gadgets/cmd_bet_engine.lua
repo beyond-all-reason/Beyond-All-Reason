@@ -389,7 +389,9 @@ function gadget:GameFrame(n)
 		for unitID, frame in pairs(chipTerminal) do
 			if frame < n then
 				chipTerminal[unitID] = nil
-				Spring.DestroyUnit(unitID, false, false)
+				if Spring.GetUnitIsDead(unitID) == false then
+					Spring.DestroyUnit(unitID, false, false)
+				end
 			end
 		end
 	end
