@@ -301,7 +301,7 @@ function LevelUpStats(curLevel)
 end
 
 function LevelUpModel(curLevel)
-Emit(pelvis, "greencannonimpact")
+Emit(pelvis, "commander-levelup")
 if curLevel == 0 then
 elseif curLevel == 1 then
 	switchpieces(torso1, torso2)

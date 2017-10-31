@@ -1054,7 +1054,7 @@ function widget:DrawScreen()
 						if not canAfford then
 							x2 = panelBox[3]
 						end
-						WG['guishader_api'].InsertRect(panelBox[1], panelBox[2], x2, panelBox[4], 'betfrontend')
+						WG['guishader_api'].InsertRect(panelBoxWallet[1]+(offsetAdd*betCost), panelBox[2], x2, panelBox[4], 'betfrontend')
 					end
 					glTexture(false)
 					glColor(1, 1, 1, 1)
