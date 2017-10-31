@@ -13,6 +13,9 @@ end
 local randomize = false					-- randomize player colors
 local offsetstartcolor = true		-- when false it will always use red as start color, when true it starts with an offset towards center of rgb hue palette more in effect with small playernumbers
 
+local GaiaTeam = Spring.GetGaiaTeamID()
+local GaiaTeamColor = {255,0,0 }
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -125,16 +128,20 @@ local function SetNewTeamColors()
 	local i = 0
 	for _, allyID in ipairs(allyTeamList) do
 		for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
-			if randomize then
-				i = GetShuffledNumber(i, numteams)
+			if teamID == GaiaTeam then
+				Spring.SetTeamColor(teamID, GaiaTeamColor[1],GaiaTeamColor[2],GaiaTeamColor[3])
 			else
-				i = i + 1
+				if randomize then
+					i = GetShuffledNumber(i, numteams)
+				else
+					i = i + 1
+				end
+				local r,g,b = GetColor(i, numteams, numallyteams)
+
+				local _, playerID = Spring.GetTeamInfo(teamID)
+				local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
+				Spring.SetTeamColor(teamID, r,g,b)
 			end
-			local r,g,b = GetColor(i, numteams, numallyteams)
-			
-			local _, playerID = Spring.GetTeamInfo(teamID)
-			local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
-			Spring.SetTeamColor(teamID, r,g,b)
 		end
 	end
 end

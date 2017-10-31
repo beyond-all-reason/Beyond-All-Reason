@@ -19,7 +19,7 @@ return {
 		corpse = "DEAD",
 		description = "Light Laser Tower",
 		energystorage = 20,
-		explodeas = "mediumBuildingexplosiongeneric",
+		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
 		icontype = "building",
