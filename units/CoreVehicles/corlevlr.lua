@@ -54,7 +54,7 @@ return {
 					flare2name = nil, --optional (replace with nil)
 				--SFXs HERE
 					firingceg = "barrelshot-tiny",
-					driftratio = "0.5", --How likely will the unit drift when performing turns?
+					driftratio = "0.4", --How likely will the unit drift when performing turns?
 					rockstrength = "15", --Howmuch will its weapon make it rock ?
 					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					rockrestorespeed = "15", -- More datas about rock(honestly you can keep 2 and 1 as default here)
