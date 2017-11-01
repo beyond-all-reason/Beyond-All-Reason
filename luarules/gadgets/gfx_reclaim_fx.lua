@@ -19,6 +19,7 @@ local random = math.random
 local ignoreUnits = {}
 if UnitDefNames["chip"] ~= nil then
 	ignoreUnits[UnitDefNames["chip"].id] = true
+	ignoreUnits[UnitDefNames["dice"].id] = true
 	ignoreUnits[UnitDefNames["xmasball"].id] = true
 	ignoreUnits[UnitDefNames["armstone"].id] = true
 	ignoreUnits[UnitDefNames["corstone"].id] = true

@@ -21,7 +21,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 local authorizedPlayers  = {'[teh]Flow', 'FlowerPower', 'Floris'}
 
-local isSilentUnitGift = {armstone=true, corstone=true, chip=true, xmasball=true}
+local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true}
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -112,6 +112,18 @@ if gadgetHandler:IsSyncedCode() then
 		giveunits(tonumber(params[2]), params[3], tonumber(params[4]), tonumber(params[5]), tonumber(params[6]), playerID)
 		return true
 	end
+
+	--function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	--	if unitDefID == chipUdefID or (diceUdefID ~= nil and unitDefID == diceUdefID) then
+	--		chips[unitID] = Spring.GetGameFrame() + chipsLifeTime + (math.random()*chipsLifeTimeVariation)
+	--		setGaiaUnitSpecifics(unitID)
+	--		--local x,y,z = Spring.GetUnitPosition(unitID)
+	--		--Spring.SetUnitPosition(unitID,x,y,z)
+	--		--Spring.SetUnitVelocity(unitID,0,math.random()*20,0)
+	--		Spring.SetUnitRotation(unitID,0,math.random()*360,0)
+	--		Spring.AddUnitImpulse(unitID, (math.random()-0.5)*2.5, 4.5+(math.random()*1), (math.random()-0.5)*2.5)
+	--	end
+	--end
 
 else	-- UNSYNCED
 

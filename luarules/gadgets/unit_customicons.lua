@@ -201,7 +201,7 @@ function changeUnitIcons()
       Spring.SetUnitDefIcon(udid, "meteor.user")
     elseif string.sub(ud.name, 0, 7) == "critter" then
       Spring.SetUnitDefIcon(udid, "blank.user")
-    elseif ud.name=="chip" or ud.name=="xmasball" or ud.name=="corstone" or ud.name=="armstone" then
+    elseif ud.name=="chip" or ud.name=="dice" or ud.name=="xmasball" or ud.name=="corstone" or ud.name=="armstone" then
       Spring.SetUnitDefIcon(udid, "blank.user")
     elseif (ud.name=="corkrog") then
       Spring.SetUnitDefIcon(udid, "krogoth.user")

@@ -76,6 +76,9 @@ for udefID,def in ipairs(UnitDefs) do
 	if def.name == 'chip' then
 		chipUdefID = udefID
 	end
+	if def.name == 'dice' then
+		diceUdefID = udefID
+	end
 end
 
 function getBetCost(playerID,betType,betID)
@@ -494,7 +497,7 @@ end
 
 if chipUdefID ~= nil then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if unitDefID == chipUdefID then
+		if unitDefID == chipUdefID or (diceUdefID ~= nil and unitDefID == diceUdefID) then
 			chips[unitID] = Spring.GetGameFrame() + chipsLifeTime + (math.random()*chipsLifeTimeVariation)
 			setGaiaUnitSpecifics(unitID)
 			--local x,y,z = Spring.GetUnitPosition(unitID)
