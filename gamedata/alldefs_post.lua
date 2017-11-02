@@ -72,7 +72,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 	--Aircraft movements here:
-	if uDef.canfly == true then
+	if uDef.canfly == true and not uDef.hoverattack == true then
 		turn = (((uDef.turnrate)*0.16)/360)/30
 		wingsurffactor = tonumber(uDef.customparams and uDef.customparams.wingsurface) or 1
 		uDef.usesmoothmesh = true
