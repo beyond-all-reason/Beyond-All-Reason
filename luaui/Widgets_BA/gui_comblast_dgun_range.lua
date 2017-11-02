@@ -42,6 +42,11 @@ local glText				= gl.Text
 local glBlending			= gl.Blending
 local glBeginEnd			= gl.BeginEnd
 local glVertex				= gl.Vertex
+local glCreateList			= gl.CreateList
+local glDeleteList			= gl.DeleteList
+local glCallList			= gl.CallList
+local glPushMatrix			= gl.PushMatrix
+local glPopMatrix			= gl.PopMatrix
 
 local diag					= math.diag
 local PI					= math.pi
@@ -62,6 +67,9 @@ local comCenters = {}
 local amSpec = false
 local inSpecFullView = false
 local dgunRange	= WeaponDefNames["armcom_disintegrator"].range --+ WeaponDefNames["armcom_disintegrator"].damageAreaOfEffect
+
+local comCircleDlist = {}
+local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 
 --------------------------------------------------------------------------------
 -- OPTIONS
@@ -101,6 +109,10 @@ end
 
 function removeCom(unitID)
 	comCenters[unitID] = nil
+	if comCircleDlist[unitID] ~= nil then
+		comCircleDlist[unitID] = nil
+		glDeleteList(comCircleDlist[unitID])
+	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -216,6 +228,7 @@ function widget:GameFrame(n)
 			end
 			if draw and hideOnDistantEnemy then
 				local nearestEnemyUnitID = spGetUnitNearestEnemy(unitID,showOnEnemyDistance+fadeInDistance)
+
 				if nearestEnemyUnitID then
 					local ex,ey,ez = spGetUnitPosition(nearestEnemyUnitID)
 					local distance = diag(x-ex, y-ey, z-ez)
@@ -265,7 +278,6 @@ function widget:GameFrame(n)
 end
 
 
-
 function drawBlast(x,y,z,range)
 	local numDivs = circleDivs
 	local maxErr = 5
@@ -303,11 +315,24 @@ function widget:DrawWorldPreUnit()
     if spIsGUIHidden() then return end
 
 	local camX, camY, camZ = spGetCameraPosition()
+	local changedCamPos = false
+	if camX ~= prevCamX or camY ~= prevCamY or camZ ~= prevCamZ then
+		changedCamPos = true
+	end
+
 	glDepthTest(true)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glPushMatrix()
 	for unitID,center in pairs(comCenters) do
 		if center[4] then
 			local camDistance = diag(camX-center[1], camY-center[2], camZ-center[3])
+
+			local changedPos = false
+			if comCircleDlist[unitID] ~= nil then
+				if camDistance ~= comCircleDlist[unitID][1] then
+					changedPos = true
+				end
+			end
 
 			local lineWidthMinus = (camDistance/2000)
 			if lineWidthMinus > 2 then
@@ -330,16 +355,46 @@ function widget:DrawWorldPreUnit()
 					usedCircleDivs = 48
 				end
 
-				glLineWidth(2.5-lineWidthMinus)
-				glColor(1, 0.8, 0, .24*lineOpacityMultiplier*opacityMultiplier)
-				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange )
+				if changedCamPos or changedPos or comCircleDlist[unitID] == nil then
+					if comCircleDlist[unitID] ~= nil then
+						glDeleteList(comCircleDlist[unitID][4])
+					end
+					comCircleDlist[unitID] = {camDistance}
+					comCircleDlist[unitID][2] = glCreateList( function()
+						glLineWidth(3-lineWidthMinus)
+						glColor(1, 0.85, 0, .24*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+1.2 )
 
-				glLineWidth(2.7-lineWidthMinus)
-				glColor(1, 0, 0, .41*lineOpacityMultiplier*opacityMultiplier)
-				glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius )
+						glLineWidth(3.5-lineWidthMinus)
+						glColor(1, 0, 0, .5*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange)
+
+						glLineWidth(10)
+						glColor(1, 0, 0, .26*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.1666))
+
+						glColor(1, 0, 0, .23*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.3333))
+
+						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.5))
+
+						glColor(1, 0, 0, .17*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.6666))
+
+						glColor(1, 0, 0, .14*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.8333))
+
+						glColor(1, 0, 0, .11*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius)
+					end)
+				end
+				glCallList(comCircleDlist[unitID][2])
 			end
 		end
 	end
+	prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
+	glPopMatrix()
 	glLineWidth(1)
 	glDepthTest(false)
 end

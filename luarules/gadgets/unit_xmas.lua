@@ -62,8 +62,8 @@ if gadgetHandler:IsSyncedCode() then
 					local gy = Spring.GetGroundHeight(x,z)
 
 					decorationsTerminal[unitID] = n+300+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
-					if decorationsTerminal[unitID] > 1800 then	-- limit time to 1 min
-						decorationsTerminal[unitID] = 1800
+					if decorationsTerminal[unitID] > n+1800 then	-- limit time to 1 min
+						decorationsTerminal[unitID] = n+1800
 					end
 					local env = Spring.UnitScript.GetScriptEnv(unitID)
 					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
