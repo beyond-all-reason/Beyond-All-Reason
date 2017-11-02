@@ -67,11 +67,13 @@ local options={
 	{
 		key="map_waterlevel",
 		name="Water Level",
+		desc="-1 = Dry, 0 = Unchanged, 1-100 = Waterlevel in % of max height",
 		type="number",
         def    = 0,
         min    = -1,
         max    = 100,
         step   = 1,
+		section="ba_options",
 	},	
 	
     {
