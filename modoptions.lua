@@ -64,6 +64,16 @@ local options={
 		}
 	},	
 	
+	{
+		key="map_waterlevel",
+		name="Water Level",
+		type="number",
+        def    = 0,
+        min    = -1,
+        max    = 100,
+        step   = 1,
+	},	
+	
     {
         key    = 'mo_coop',
         name   = 'Cooperative mode',
