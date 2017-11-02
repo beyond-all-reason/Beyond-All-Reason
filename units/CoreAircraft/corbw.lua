@@ -36,7 +36,8 @@ return {
 		usesmoothmesh = 0,
 		blocking = false,
 		customparams = {
-		wingsurface = 1.0,
+			description_long = "Bladewings are little drones armed with EMP lasers. They can paralyze opponents units, but they can't deal any damage. They serve as a great support for your attacks and can turn the tide of war easily. However, they have very little armor and quickly vanish if faced with even basic anti-air. Always try to hide them from enemy's radars - surprise is their strength. Useful as a defense of last resort too.",
+			wingsurface = 1.0,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
@@ -104,8 +105,6 @@ return {
 					default = 800,
 				},
 				customparams = {
-
-description_long = "Bladewings are little drones armed with EMP lasers. They can paralyze opponents units, but they can't deal any damage. They serve as a great support for your attacks and can turn the tide of war easily. However, they have very little armor and quickly vanish if faced with even basic anti-air. Always try to hide them from enemy's radars - surprise is their strength. Useful as a defense of last resort too.",  
 					light_multiplier = "0.6",		-- used by light_effects widget
 					light_radius_mult = "0.6",		-- used by light_effects widget
 				},
