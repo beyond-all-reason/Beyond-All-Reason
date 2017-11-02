@@ -98,6 +98,12 @@ function widget:Initialize()
     return true
 end
 
+function widget:Shutdown()
+	for unitID,_ in pairs(comCircleDlist) do
+		glDeleteList(comCircleDlist[unitID][2])
+	end
+end
+
 function addCom(unitID)
 	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
 	local x,y,z = Spring.GetUnitPosition(unitID)
@@ -357,7 +363,7 @@ function widget:DrawWorldPreUnit()
 
 				if changedCamPos or changedPos or comCircleDlist[unitID] == nil then
 					if comCircleDlist[unitID] ~= nil then
-						glDeleteList(comCircleDlist[unitID][4])
+						glDeleteList(comCircleDlist[unitID][2])
 					end
 					comCircleDlist[unitID] = {camDistance}
 					comCircleDlist[unitID][2] = glCreateList( function()
