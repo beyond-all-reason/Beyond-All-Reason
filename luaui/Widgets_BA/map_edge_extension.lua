@@ -397,6 +397,21 @@ function widget:Shutdown()
 	end
 end
 
+-- reset needed when waterlevel has changed by gadget (modoption)
+if (Spring.GetModOptions ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
+	local resetsec = 0
+	local resetted = false
+	function widget:Update(dt)
+		if not resetted then
+			resetsec = resetsec + dt
+			if resetsec > 1 then
+				resetted = true
+				ResetWidget()
+			end
+		end
+	end
+end
+
 local function DrawWorldFunc() --is overwritten when not using the shader
     if (not island) or options.drawForIslands.value then
         local glTranslate = gl.Translate
