@@ -72,6 +72,7 @@ return {
 			[28] = "armdl",
 			[29] = "armjamt",
 			[30] = "armsy",
+			[31] = "armjun",
 			-- [31] = "seaplatform",
 		},
 		customparams = {

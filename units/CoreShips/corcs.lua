@@ -71,7 +71,8 @@ return {
 			"cortl",
 			"corgplat",
 			"corfrt",
-			"corfhlt",
+            "corfhlt",
+            "corjun",
 			-- "seaplatform",
 		},
 		customparams = {

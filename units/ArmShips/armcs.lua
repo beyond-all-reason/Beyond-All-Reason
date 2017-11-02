@@ -72,7 +72,7 @@ return {
 			"armgplat",
 			"armfrt",
 			"armfhlt",
-
+            "armjun",
 			--"seaplatform",
 		},
 		customparams = {

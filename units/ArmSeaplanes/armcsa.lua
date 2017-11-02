@@ -59,6 +59,7 @@ return {
 			[[armfflak]],
 			[[armatl]],
 			[[armason]],
+			[[armjun]],
 			-- [[seaplatform]],
 		},
 		customparams = {
