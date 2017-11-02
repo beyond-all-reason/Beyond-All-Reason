@@ -19,7 +19,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 
 function gadget:Initialize()
-	if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel ~= "0" then
+	if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and Spring.GetModOptions().map_waterlevel ~= "0" then
 		local miny, maxy = Spring.GetGroundExtremes()
 				if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel == "-1" then
 					Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny+100)
