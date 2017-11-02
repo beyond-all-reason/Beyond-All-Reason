@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 1200,
+		buildcostenergy = 950,
 		buildcostmetal = 120,
 		buildpic = "CORGPLAT.DDS",
 		buildtime = 3003,

@@ -113,17 +113,32 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	--function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	--	if unitDefID == chipUdefID or (diceUdefID ~= nil and unitDefID == diceUdefID) then
-	--		chips[unitID] = Spring.GetGameFrame() + chipsLifeTime + (math.random()*chipsLifeTimeVariation)
-	--		setGaiaUnitSpecifics(unitID)
-	--		--local x,y,z = Spring.GetUnitPosition(unitID)
-	--		--Spring.SetUnitPosition(unitID,x,y,z)
-	--		--Spring.SetUnitVelocity(unitID,0,math.random()*20,0)
-	--		Spring.SetUnitRotation(unitID,0,math.random()*360,0)
-	--		Spring.AddUnitImpulse(unitID, (math.random()-0.5)*2.5, 4.5+(math.random()*1), (math.random()-0.5)*2.5)
-	--	end
-	--end
+	local function setGaiaUnitSpecifics(unitID)
+		Spring.SetUnitNeutral(unitID, true)
+		Spring.SetUnitNoSelect(unitID, true)
+		Spring.SetUnitStealth(unitID, true)
+		Spring.SetUnitNoMinimap(unitID, true)
+		--Spring.SetUnitMaxHealth(unitID, 2)
+		Spring.SetUnitBlocking(unitID, false)
+		Spring.SetUnitSensorRadius(unitID, 'los', 0)
+		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+		for weaponID, _ in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+			Spring.UnitWeaponHoldFire(unitID, weaponID)
+		end
+	end
+
+	local isObjectUnit = {}
+	if UnitDefNames['armstone'] ~= nil and UnitDefNames['corstone'] ~= nil then
+		isObjectUnit[UnitDefNames['armstone'].id] = true
+		isObjectUnit[UnitDefNames['corstone'].id] = true
+	end
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+		if isObjectUnit[unitDefID] then
+			setGaiaUnitSpecifics(unitID)
+		end
+	end
 
 else	-- UNSYNCED
 

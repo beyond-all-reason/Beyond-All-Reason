@@ -26,14 +26,14 @@ local resourceclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
 local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
 local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
 
-local bgcorner							= LUAUI_DIRNAME.."Images/bgcorner.png"
-local barbg									= ":n:"..LUAUI_DIRNAME.."Images/resbar.dds"
-local barGlowCenterTexture	= LUAUI_DIRNAME.."Images/barglow-center.dds"
-local barGlowEdgeTexture		= LUAUI_DIRNAME.."Images/barglow-edge.dds"
-local bladesTexture					= ":c:"..LUAUI_DIRNAME.."Images/blades.png"
-local poleTexture						= LUAUI_DIRNAME.."Images/pole.png"
-local comTexture						= LUAUI_DIRNAME.."Images/comIcon.png"
-local glowTexture						= LUAUI_DIRNAME.."Images/glow.dds"
+local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
+local barbg = ":n:"..LUAUI_DIRNAME.."Images/resbar.dds"
+local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
+local barGlowEdgeTexture = LUAUI_DIRNAME.."Images/barglow-edge.dds"
+local bladesTexture = ":c:"..LUAUI_DIRNAME.."Images/blades.png"
+local poleTexture = LUAUI_DIRNAME.."Images/pole.png"
+local comTexture = LUAUI_DIRNAME.."Images/comIcon.png"
+local glowTexture = LUAUI_DIRNAME.."Images/glow.dds"
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
@@ -42,19 +42,19 @@ local currentWind = 0
 local gameStarted = false
 local displayComCounter = false
 
-local glTranslate				= gl.Translate
-local glColor						= gl.Color
-local glPushMatrix			= gl.PushMatrix
-local glPopMatrix				= gl.PopMatrix
-local glTexture					= gl.Texture
-local glRect						= gl.Rect
-local glTexRect					= gl.TexRect
-local glText						= gl.Text
-local glGetTextWidth		= gl.GetTextWidth
-local glRotate					= gl.Rotate
-local glCreateList			= gl.CreateList
-local glCallList				= gl.CallList
-local glDeleteList			= gl.DeleteList
+local glTranslate = gl.Translate
+local glColor = gl.Color
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTexture = gl.Texture
+local glRect = gl.Rect
+local glTexRect = gl.TexRect
+local glText = gl.Text
+local glGetTextWidth = gl.GetTextWidth
+local glRotate = gl.Rotate
+local glCreateList = gl.CreateList
+local glCallList = gl.CallList
+local glDeleteList = gl.DeleteList
 
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamResources = Spring.GetTeamResources
@@ -68,10 +68,10 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
-local spWind		  			= Spring.GetWind
-local minWind		  			= Game.windMin
-local maxWind		  			= Game.windMax
-local windRotation			= 0
+local spWind = Spring.GetWind
+local minWind = Game.windMin
+local maxWind = Game.windMax
+local windRotation = 0
 
 local startComs = 0
 local lastFrame = -1
@@ -90,11 +90,11 @@ local buttonsArea = {}
 
 local showOverflowTooltip = {}
 
-local allyComs				= 0
-local enemyComs				= 0 -- if we are counting ourselves because we are a spec
-local enemyComCount			= 0 -- if we are receiving a count from the gadget part (needs modoption on)
-local prevEnemyComCount		= 0
-local receiveCount			= (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
+local allyComs = 0
+local enemyComs = 0 -- if we are counting ourselves because we are a spec
+local enemyComCount = 0 -- if we are receiving a count from the gadget part (needs modoption on)
+local prevEnemyComCount = 0
+local receiveCount = (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 local lastUpdateFrame = 0
 local currentUpdateFrame = 0
 
@@ -973,6 +973,7 @@ end
 function widget:DrawScreen()
 	local now = os.clock()
 
+	glPushMatrix()
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
@@ -1142,6 +1143,8 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	glColor(1,1,1,1)
+	glPopMatrix()
 end
 
 
