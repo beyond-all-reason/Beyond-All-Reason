@@ -75,7 +75,6 @@ return {
 			[28] = "armlab",
 			[29] = "armalab",
 			-- [30] = "seaplatform",
-			[30] = "armjuno",
 		},
 		customparams = {
 			

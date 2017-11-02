@@ -71,8 +71,7 @@ return {
 			[26] = "corap",
 			[27] = "coraap",
 			[28] = "corplat",
-			-- [29] = "seaplatform",			
-			[29] = "corjuno",
+			-- [29] = "seaplatform",
 		},
 		customparams = {
 			wingsurface = 0.7,

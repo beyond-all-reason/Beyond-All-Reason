@@ -376,22 +376,22 @@ function widget:DrawWorldPreUnit()
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange)
 
 						glLineWidth(10)
-						glColor(1, 0, 0, .26*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .225*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.1666))
 
-						glColor(1, 0, 0, .23*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.3333))
 
-						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .175*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.5))
 
-						glColor(1, 0, 0, .17*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .15*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.6666))
 
-						glColor(1, 0, 0, .14*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .125*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.8333))
 
-						glColor(1, 0, 0, .11*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .1*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius)
 					end)
 				end

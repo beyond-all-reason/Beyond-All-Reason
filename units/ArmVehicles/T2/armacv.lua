@@ -78,7 +78,6 @@ return {
 			[28] = "armvp",
 			[29] = "armavp",
 			-- [30] = "seaplatform",
-			[30] = "armjuno",
 		},
 		customparams = {
 			

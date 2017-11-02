@@ -89,7 +89,8 @@ return {
 			"corgplat",
 			"corfhlt",
 			"corfrt",
-			"cortl",
+            "cortl",
+            "corjun",
 		},
 		customparams = {
 			

@@ -15,7 +15,6 @@ The reasoning behind this change is: because the hitboxes were made smaller, the
 By globally increasing edgeeffectiveness we decrease the effect of distance on the final damage value and we get back some of the damages that were lost in the process of reducing the hitboxes. (Doo)
  • All weapons use TargetBorder = 1.0. It means that instead of aiming for the center of a unit (classic BA behaviour) and be unable to aim when this aimpoint is outside of range while the hitbox is still inside, weapons will try to aim for the closest hitbox's border. 
 This change seems to only apply to box shaped hitboxes at the moment. We hope that with Spring 104 out, this issue will be resolved and we will be able to use this functionnality as a default BA setting. (Doo, not currently used)
- • Junos are moved from t1 buildmenu to t2 constuctors.
  • Reclaimspeed is 30% reduced compared to older versions.
 
  Movement
@@ -26,7 +25,8 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Improved Air Units maniability and lowered TurnRadius (allowing close move commands)
 
  Commanders
- • torso turnspeed increased 33% + dgun reloadspeed reduced 10%
+ • Blast radius untill dgun range same damage als before, after that it has gotten a non-lethal falloff dmg to other commanders
+ • Torso turnspeed increased 33% + dgun reloadspeed reduced 10%
  • Current Test: Uwlaser damages increased to 150 per second.
  • Decoy commanders have been given same lasers as regular commanders
  • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
@@ -186,6 +186,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Settarget queues will now be paused when a unit attempts to dgun.
  • Settarget will stick to water surface instead of ground level if main weapon (weapon 1) cannot reach underwater.
  • Highlight unit/highlight selected units widgets skip a unit when its shown as icon
+ • Map startbox widget wont enable fog any longer
 
 
 9.45 -> 9.46

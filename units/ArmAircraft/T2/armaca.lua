@@ -73,7 +73,6 @@ return {
 			[28] = "armaap",
 			[29] = "armplat",
 			-- [30] = "seaplatform",
-			[30] = "armjuno",
 		},
 		customparams = {
 			wingsurface = 0.25,
