@@ -554,5 +554,22 @@ function widget:ViewResize(x, y)
   usedFontSize = fontSize/1.44 + (fontSize * ((vsx*vsy / 10000000)))
 end
 
+
+-- reset needed when waterlevel has changed by gadget (modoption)
+if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
+  local resetsec = 0
+  local resetted = false
+  function widget:Update(dt)
+    if not resetted then
+      resetsec = resetsec + dt
+      if resetsec > 1 then
+        resetted = true
+        widget:Shutdown()
+        widget:Initialize()
+      end
+    end
+  end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
