@@ -380,9 +380,7 @@ local function updateButtons()
 		glDeleteList(dlistButtons2)
 	end
 	dlistButtons2 = glCreateList( function()
-		
 		glText('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
-		
 	end)
 end
 
@@ -962,6 +960,9 @@ function widget:Update(dt)
 				updateRejoin()
 			end
 		end
+
+	--elseif dlistRejoin ~= nil then
+	--	glDeleteList(dlistRejoin)
 	end
 
 	if (gameFrame ~= lastFrame) then
@@ -1048,9 +1049,13 @@ function widget:DrawScreen()
 	elseif dlistRejoin ~= nil then
 		if dlistRejoin ~= nil then
 			glDeleteList(dlistRejoin)
+			dlistRejoin = nil
 		end
 		if WG['guishader_api'] ~= nil then
 			WG['guishader_api'].RemoveRect('topbar_rejoin')
+		end
+		if WG['tooltip'] ~= nil then
+			WG['tooltip'].RemoveTooltip('rejoin')
 		end
 	end
 
