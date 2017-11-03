@@ -15,7 +15,7 @@ The reasoning behind this change is: because the hitboxes were made smaller, the
 By globally increasing edgeeffectiveness we decrease the effect of distance on the final damage value and we get back some of the damages that were lost in the process of reducing the hitboxes. (Doo)
  • All weapons use TargetBorder = 1.0. It means that instead of aiming for the center of a unit (classic BA behaviour) and be unable to aim when this aimpoint is outside of range while the hitbox is still inside, weapons will try to aim for the closest hitbox's border. 
 This change seems to only apply to box shaped hitboxes at the moment. We hope that with Spring 104 out, this issue will be resolved and we will be able to use this functionnality as a default BA setting. (Doo, not currently used)
- • Reclaimspeed is 30% reduced compared to older versions.
+ • Reclaimspeed is 10% reduced compared to older versions.
 
  Movement
  • Raw unit movement implemented
@@ -52,7 +52,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  T1
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
- • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -30%), 25 % reduced repair/rezz speed and 70% increased HP.
+ • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 70% increased HP.
 
  T2
  • Fark workerspeed increased 16%
