@@ -398,7 +398,7 @@ function widget:Shutdown()
 end
 
 -- reset needed when waterlevel has changed by gadget (modoption)
-if (Spring.GetModOptions ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
+if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
 	local resetsec = 0
 	local resetted = false
 	function widget:Update(dt)
