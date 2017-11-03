@@ -201,7 +201,21 @@ end
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
-		
+	local map_tidal = modOptions and modOptions.map_tidal
+		if map_tidal and map_tidal ~= "unchanged" then
+			for id, unitDef in pairs(UnitDefs) do
+					if unitDef.tidalgenerator == 1 then
+						unitDef.tidalgenerator = 0
+						if map_tidal == "low" then
+							unitDef.energymake = 13
+						elseif map_tidal == "medium" then
+							unitDef.energymake = 18
+						elseif map_tidal == "high" then
+							unitDef.energymake = 23
+						end
+					end
+			end
+		end
 		if (modOptions.logicalbuildtime == "enabled") then
 			--Spring.Echo("Begin Buildtime Values----------------------------------------------------------------------------")
 			--Spring.Echo("\n")

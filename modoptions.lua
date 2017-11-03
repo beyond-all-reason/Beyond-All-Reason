@@ -76,6 +76,21 @@ local options={
 		section="ba_options",
 	},	
 	
+	{
+		key="map_tidal",
+		name="Tidal Strength",
+		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+		type="list",
+		def="unchanged",
+		section="ba_options",
+		items={
+			{key="unchanged", name="Unchanged", desc="Use map settings"},
+			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+		}
+	},
+	
     {
         key    = 'mo_coop',
         name   = 'Cooperative mode',
