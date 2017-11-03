@@ -241,7 +241,7 @@ end
 --[[
 function widget:GameFrame(n)
 	if n % updateFrequency == 0 then
-		DspList = nil
+		DspLst = nil
 	end
 end
 ]]--
@@ -322,13 +322,32 @@ function widget:DrawWorldRefraction()
 	end	
 end
 
+
 function widget:Initialize()
 	Spring.SendCommands("luaui disablewidget Map Edge Extension")
 	island = IsIsland()
 	InitGroundHeights()
+	if DspLst then
+		gl.DeleteList(DspLst)
+	end
 	DspLst = glCreateList(DrawTiles)
 end
 
 function widget:Shutdown()
-	gl.DeleteList(DspList)
+	gl.DeleteList(DspLst)
+end
+
+-- reset needed when waterlevel has changed by gadget (modoption)
+if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
+	local resetsec = 0
+	local resetted = false
+	function widget:Update(dt)
+		if not resetted then
+			resetsec = resetsec + dt
+			if resetsec > 1 then
+				resetted = true
+				widget:Initialize()
+			end
+		end
+	end
 end
