@@ -90,7 +90,7 @@ return {
 			"corfhlt",
 			"corfrt",
             "cortl",
-            "corjun",
+            "corjuno",
 		},
 		customparams = {
 			

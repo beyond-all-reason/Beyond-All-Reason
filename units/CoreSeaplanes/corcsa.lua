@@ -59,7 +59,7 @@ return {
 			[[corenaa]],
 			[[coratl]],
 			[[corason]],
-			[[corjun]],
+			[[corjuno]],
 			-- [[seaplatform]],
 		},
 		customparams = {
