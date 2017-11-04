@@ -76,7 +76,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.7,
-				explosiongenerator = "custom:genericshellexplosion-large-dirty",
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
@@ -96,6 +96,9 @@ return {
 					default = 333,
 					l1bombers = 5,
 					l1subs = 5,
+				},
+				customparams = {
+					expl_light_color = "1 0.4 0.15",
 				},
 			},
 		},

@@ -2355,8 +2355,10 @@ local colors = {
     dirt2 = false,
     sparks = false,
   },
-  dirty = {
-
+  bomb = {
+    explosion = {properties={colormap=[[0 0 0 0   1 0.7 0.55 0.09   0.9 0.33 0.2 0.066   0.66 0.2 0.04 0.033   0 0 0 0]]}},
+    groundflash_small = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
+    groundflash_large = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
   }
 }
 for color, effects in pairs(colors) do
@@ -2366,14 +2368,6 @@ for color, effects in pairs(colors) do
       if defs == false then
         definitions[root.."-"..size.."-"..color][pname] = nil
       end
-    end
-    if color == 'dirty' then
-      definitions[root.."-"..size.."-"..color].innersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].innersmoke.properties.numparticles * 1.4)
-      definitions[root.."-"..size.."-"..color].outersmoke.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].outersmoke.properties.numparticles * 1.4)
-      definitions[root.."-"..size.."-"..color].clouddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].clouddust.properties.numparticles * 1.6)
-      --definitions[root.."-"..size.."-"..color].grounddust.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].grounddust.properties.numparticles * 1.6)
-      definitions[root.."-"..size.."-"..color].dirt.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].dirt.properties.numparticles * 2.3)
-      definitions[root.."-"..size.."-"..color].dirt2.properties.numparticles = math.floor(definitions[root.."-"..size.."-"..color].dirt2.properties.numparticles * 2.3)
     end
   end
 end

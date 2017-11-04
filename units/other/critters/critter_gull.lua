@@ -50,47 +50,6 @@ unitDef = {
   mass                = 125,
   blocking            = false,
   capturable          = false,
-  --weapondefs = {
-  --  armbomb = {
-  --    accuracy = 500,
-  --    areaofeffect = 144,
-  --    avoidfeature = false,
-  --    burst = 1,
-  --    burstrate = 0.3,
-  --    collidefriendly = false,
-  --    commandfire = false,
-  --    craterareaofeffect = 144,
-  --    craterboost = 0,
-  --    cratermult = 0,
-  --    edgeeffectiveness = 0.4,
-  --    explosiongenerator = "custom:genericshellexplosion-medium-dirty",
-  --    gravityaffected = "true",
-  --    impulseboost = 0.5,
-  --    impulsefactor = 0.5,
-  --    model = "birdbomb",
-  --    name = "Bombs",
-  --    noselfdamage = true,
-  --    range = 1280,
-  --    reloadtime = 6,
-  --    soundhit = "xplomed2",
-  --    soundhitwet = "splsmed",
-  --    soundhitwetvolume = 0.5,
-  --    soundstart = "bombrel",
-  --    sprayangle = 300,
-  --    weapontype = "AircraftBomb",
-  --    damage = {
-  --      default = 105,
-  --      --subs = 5,
-  --    },
-  --  },
-  --},
-  --weapons = {
-  --  [1] = {
-  --    badtargetcategory = "MOBILE",
-  --    def = "ARMBOMB",
-  --    onlytargetcategory = "",
-  --  },
-  --},
 }
 
 return lowerkeys({ [unitName] = unitDef })

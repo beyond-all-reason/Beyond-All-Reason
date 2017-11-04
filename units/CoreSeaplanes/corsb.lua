@@ -83,7 +83,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				explosiongenerator = "custom:genericshellexplosion-small-dirty",
+				explosiongenerator = "custom:genericshellexplosion-small-bomb",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
@@ -110,6 +110,9 @@ return {
 					ship = 100,
 					subs = 70,
 				},
+                customparams = {
+                    expl_light_color = "1 0.4 0.15",
+                },
 			},
 		},
 		weapons = {
