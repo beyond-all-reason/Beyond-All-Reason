@@ -234,6 +234,16 @@ end
 
 local showOnceMore = false		-- used because of GUI shader delay
 
+local showOptionsToggleButton = false
+local textSize		= 1
+local textMargin	= 0.25
+local lineWidth		= 0.0625
+
+local posX = 0.947
+local posY = 0.965
+local buttonGL
+local startPosX = posX
+
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
@@ -671,7 +681,21 @@ end
 function widget:DrawScreen()
 
   if spIsGUIHidden() then return end
-  
+
+  -- draw the button
+  if not buttonGL then
+    buttonGL = gl.CreateList(DrawButton)
+  end
+
+  if showOptionsToggleButton then
+	  glPushMatrix()
+		glTranslate(posX*vsx, posY*vsy, 0)
+		glScale(17*widgetScale, 17*widgetScale, 1)
+		glColor(0, 0, 0, (0.3*bgColorMultiplier))
+		glCallList(buttonGL)
+	  glPopMatrix()
+  end
+
   -- draw the window
   if not windowList then
     windowList = gl.CreateList(DrawWindow)
@@ -897,6 +921,8 @@ function applyOptionValue(i, skipRedrawWindow)
 				end
 				widgetHandler:DisableWidget("Light Effects")
 			end
+		elseif id == 'resourceprompts' then
+			Spring.SetConfigInt("evo_resourceprompts",value)
 		end
 		
 		if options[i].widget ~= nil then
@@ -1325,7 +1351,20 @@ function mouseEvent(x, y, button, release)
 				windowList = gl.CreateList(DrawWindow)
 			end
 		end
-  end
+	elseif showOptionsToggleButton then
+		tx = (x - posX*vsx)/(17*widgetScale)
+		ty = (y - posY*vsy)/(17*widgetScale)
+		if tx < 0 or tx > 5.25 or ty < -0.25 or ty > 1.4 then return false end
+		if release then
+			showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
+			show = not show
+		end
+		if show then
+			if windowList then gl.DeleteList(windowList) end
+			windowList = gl.CreateList(DrawWindow)
+		end
+		return true
+	end
 end
 
 function GetWidgetToggleValue(widgetname)
@@ -1420,6 +1459,8 @@ function init()
 		{id="buildmenusounds", group="ui", name="Buildmenu sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
 		{id="buildmenubigtooltip", group="ui", name="  extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
+
+		--{id="resourceprompts", group="ui", name="Audio/Visual Resource Prompts", type="bool", value=tonumber(Spring.GetConfigInt("evo_resourceprompts",1) or 1) == 1, description="If enabled, messages will be sent to the chat as well as\naudio cues when your resources need attention"},
 
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description=''},
 
@@ -1590,6 +1631,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+    if buttonGL then
+        glDeleteList(buttonGL)
+    end
     if windowList then
         glDeleteList(windowList)
     end

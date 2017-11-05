@@ -1870,7 +1870,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 				local ms = player[playerID].metalStorage
 				local mi = player[playerID].metalIncome
 				if es > 0 then
-					DrawResources(e, es, m, ms, posY)
+					DrawResources(e, es, m, ms, posY, dead)
 					if tipY == true then ResourcesTip(mouseX, e, es, ei, m, ms, mi) end
 				end
 			end
@@ -1970,44 +1970,57 @@ function DrawChatButton(posY)
 	DrawRect(m_chat.posX + widgetPosX + 1, posY, m_chat.posX + widgetPosX + 17, posY + 16)	
 end
 
-function DrawResources(energy, energyStorage, metal, metalStorage, posY)
+function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	local paddingLeft = 2
 	local paddingRight = 2
 	local barWidth = m_resources.width - paddingLeft - paddingRight
+	local y1Offset = 7
+	local y2Offset = 5
+	if dead then
+		y1Offset = 8
+		y2Offset = 6
+	end
 	gl_Color(1,1,1,0.14)
 	gl_Texture(pics["resbarBgPic"])
-	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 7, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + 5)	
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + y2Offset)
 	gl_Color(1,1,1,1)
 	gl_Texture(pics["resbarPic"])
-	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 7, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + 5)
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
         local glowsize = 12
         gl_Color(1,1,1.2,0.033)
         gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 7+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + 5-glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
 
         gl_Texture(pics["barGlowEdgePic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft-(glowsize*1.8), posY + 7+glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + 5-glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal)+(glowsize*1.8), posY + 7+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + 5-glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft-(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset-glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal)+(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
     end
 
+	if not dead then
+		y1Offset = 11
+		y2Offset = 9
+	else
+		y1Offset = 10
+		y2Offset = 8
+	end
     gl_Color(1,1,0,0.14)
 	gl_Texture(pics["resbarBgPic"])
-	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 11, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + 9)	
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + barWidth, posY + y2Offset)
 	gl_Color(1,1,0,1)
 	gl_Texture(pics["resbarPic"])
-	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 11, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + 9)
+	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
         local glowsize = 12
         gl_Color(1,1,0.2,0.033)
         gl_Texture(pics["barGlowCenterPic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + 11+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + 9-glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
 
         gl_Texture(pics["barGlowEdgePic"])
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft-(glowsize*1.8), posY + 11+glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + 9-glowsize)
-        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy)+(glowsize*1.8), posY + 11+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + 9-glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft-(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft, posY + y2Offset-glowsize)
+        DrawRect(m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy)+(glowsize*1.8), posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
     end
 end
 

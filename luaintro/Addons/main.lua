@@ -174,28 +174,6 @@ function addon.DrawLoadScreen()
 		end
 
 	gl.PopMatrix()
-	
-	-- round off screen edges
-	local cornersizeH = 0.0035
-	local cornersizeW = cornersizeH * (vsy/vsx)
-	gl.Color(0,0,0,1)
-	gl.Texture(":n:luaui/Images/bgcorner-inverted.png")
-	gl.PushMatrix()
-		gl.Translate(0+cornersizeW,0+cornersizeH,0)
-		gl.TexRect(-cornersizeW,cornersizeH,cornersizeW,-cornersizeH)
-	gl.PopMatrix()
-	gl.PushMatrix()
-		gl.Translate(1-cornersizeW,0+cornersizeH,0)
-		gl.TexRect(cornersizeW,cornersizeH,-cornersizeW,-cornersizeH)
-	gl.PopMatrix()
-	gl.PushMatrix()
-		gl.Translate(1-cornersizeW,1-cornersizeH,0)
-		gl.TexRect(cornersizeW,-cornersizeH,-cornersizeW,cornersizeH)
-	gl.PopMatrix()
-	gl.PushMatrix()
-		gl.Translate(0+cornersizeW,1-cornersizeH,0)
-		gl.TexRect(-cornersizeW,-cornersizeH,cornersizeW,cornersizeH)
-	gl.PopMatrix()
 end
 
 
