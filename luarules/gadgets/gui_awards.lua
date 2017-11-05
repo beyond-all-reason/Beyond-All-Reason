@@ -671,11 +671,6 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 			end
 		end
 		
-		--extra text for cow award
-		if award == 1 then 
-			glText(yellow .. 'Memorial WarCow', bx+9, by+15, 12, "o")
-		end
-	
 	end)
 	
 	return thisAward
