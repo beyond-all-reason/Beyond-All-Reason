@@ -1,0 +1,115 @@
+[blob_trail]
+{
+   	[splashes]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-.2;
+			sizemod=1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=blooddropwhite;
+			colorMap=0.2 0.5 0.9 1   0.3 0.6 0.8 0.3   0.4 0.7 0.7 0;
+			airdrag=.96;
+			particleLife=2;
+			particleLifeSpread=4;
+			numParticles=2;
+			particleSpeed=1;
+			particleSpeedSpread=2;
+			particleSize=6;
+			particleSizeSpread=3;
+			emitRot=0;
+			emitRotSpread=30;
+			directional=0;
+		}
+		air=1;
+		ground=1;
+	}
+
+	[pop]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-.35;
+			sizemod=1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=bloodblastwhite;
+			colorMap=0.4 0.7 1 1   0.3 0.6 0.8 0.3   0.4 0.7 0.7 0;
+			airdrag=.9;
+			particleLife=2;
+			particleLifeSpread=3;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=0;
+			particleSize=3;
+			particleSizeSpread=6;
+			emitRot=45;
+			emitRotSpread=30;
+			directional=0;
+		}
+		air=1;
+		ground=1;
+	}
+}
+
+
+[blood_trail]
+{
+   	[splashes]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-.2;
+			sizemod=1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=blooddrop;
+			colorMap=1 1 1 1   1 1 1 1   0 0 0 0;
+			airdrag=.96;
+			particleLife=2;
+			particleLifeSpread=4;
+			numParticles=2;
+			particleSpeed=1;
+			particleSpeedSpread=2;
+			particleSize=6;
+			particleSizeSpread=9;
+			emitRot=0;
+			emitRotSpread=30;
+			directional=0;
+		}
+		air=1;
+		ground=1;
+	}
+
+	[pop]
+	{
+		class=CSimpleParticleSystem;
+		[properties] {
+			sizegrowth=-.35;
+			sizemod=1;
+			pos=0, 1.0, 0;
+			emitVector=0, 1, 0;
+			gravity=0, 0, 0;
+			Texture=bloodblast;
+			colorMap=1 1 1 1   1 1 1 1   0 0 0 0;
+			airdrag=.9;
+			particleLife=2;
+			particleLifeSpread=3;
+			numParticles=1;
+			particleSpeed=0;
+			particleSpeedSpread=0;
+			particleSize=3;
+			particleSizeSpread=6;
+			emitRot=45;
+			emitRotSpread=30;
+			directional=0;
+		}
+		air=1;
+		ground=1;
+	}
+}
+

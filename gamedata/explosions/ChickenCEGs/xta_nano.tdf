@@ -1,0 +1,24 @@
+[NANO]//Gives better effect
+{
+  [heatcloud]// Fire burst
+  {
+    [properties]
+    {
+      heat = 25;
+      Texture=Light;
+      maxheat = 25;
+      heatFalloff = 1.5;
+      size = 8.0 r1;
+      sizeGrowth = 0.08 r.16;
+      sizemod = 0;
+      sizemodmod = 0;
+      speed = 0.05 r-0.1, 0.05 r-0.1, 0.05 r-0.1;
+      pos = 0, 0.0, 0;
+    }
+    air=1;
+    water=0;
+    ground=1;
+    count=1;
+    useAirLos=0;
+  }
+}

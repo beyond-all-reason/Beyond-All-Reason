@@ -1,0 +1,385 @@
+// use this effect sparingly. It can slow machines down.
+
+[dirt]
+{
+
+	[POOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.8 0.65 0.55 1.0	0 0 0 0.0;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=40;
+		numParticles=5;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+    
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+
+	[POOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.8 0.65 0.55 1.0	0 0 0 0.0;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+	[WPOOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
+		Texture=dirtild;
+		airdrag=1.0;
+		particleLife=3;
+		particleLifeSpread=40;
+		numParticles=4;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	water=1;
+	count=1;
+	}
+
+
+	[WPOOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.8;
+		sizeMod=1.0;
+        	pos = r-1 r1, r-1 r1, r-1 r1;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
+		Texture=dirtold;
+		airdrag=1.0;
+		particleLife=2;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=10;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	water=1;
+	count=1;
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+
+[dirt2]
+{
+
+	[POOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.2;
+		sizeMod=1.0;
+        	pos = r-50 r5, r-25 r1, r-50 r50;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.8 0.65 0.55 1.0	0 0 0 0.0;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=40;
+		numParticles=5;
+		particleSpeed=1;
+		particleSpeedSpread=3;
+		particleSize=3;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+
+	[POOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.2;
+		sizeMod=1.0;
+        	pos = r-50 r50, r-25 r1, r-50 r50;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.8 0.65 0.55 1.0	0 0 0 0.0;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=0.6;
+		particleSpeedSpread=0.3;
+		particleSize=3;
+		particleSizeSpread=0;
+		emitRot=45;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	air=1;
+	ground=1;
+	count=1;
+	}
+
+	[WPOOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.2;
+		sizeMod=1.0;
+        	pos = r-50 r50, r-25 r1, r-50 r50;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
+		Texture=dirtild;
+		airdrag=1.0;
+		particleLife=3;
+		particleLifeSpread=40;
+		numParticles=4;
+		particleSpeed=1;
+		particleSpeedSpread=3;
+		particleSize=3;
+		particleSizeSpread=0;
+		emitRot=45;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	water=1;
+	count=1;
+	}
+
+
+	[WPOOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=0.2;
+		sizeMod=1.0;
+        	pos = r-50 r50, r-25 r1, r-50 r50;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
+		Texture=dirtold;
+		airdrag=1.0;
+		particleLife=2;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=0.6;
+		particleSpeedSpread=0.3;
+		particleSize=3;
+		particleSizeSpread=0;
+		emitRot=45;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	water=1;
+	count=1;
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+
+
+
+[dirt3]
+{
+
+	[POOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=1.6;
+		sizeMod=1.0;
+        	pos = r-5 r5, r-25 r1, r-5 r5;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.8 0.65 0.55 1.0	0 0 0 0.0;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=8;
+		particleLifeSpread=40;
+		numParticles=5;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=20;
+		particleSizeSpread=0;
+		emitRot=90;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	air=1;
+	ground=1;
+	count=10;
+	}
+
+
+	[POOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=1.6;
+		sizeMod=1.0;
+        	pos = r-50 r50, r-25 r1, r-50 r50;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.8 0.65 0.55 1.0	0 0 0 0.0;
+		Texture=dirt;
+		airdrag=1.0;
+		particleLife=8;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=20;
+		particleSizeSpread=0;
+		emitRot=45;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	air=1;
+	ground=1;
+	count=10;
+	}
+
+	[WPOOF01]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=1.6;
+		sizeMod=1.0;
+        	pos = r-50 r50, r-25 r1, r-50 r50;
+         	emitVector=0, 0, 0;
+		gravity=r-0.05 r0.05, 0 r0.05, r-0.05 r0.05;
+		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
+		Texture=dirtild;
+		airdrag=1.0;
+		particleLife=6;
+		particleLifeSpread=40;
+		numParticles=4;
+		particleSpeed=3;
+		particleSpeedSpread=10;
+		particleSize=20;
+		particleSizeSpread=0;
+		emitRot=45;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	water=1;
+	count=10;
+	}
+
+
+	[WPOOF02]
+	{
+		class=CSimpleParticleSystem;
+		[properties]
+		{
+		sizeGrowth=1.6;
+		sizeMod=1.0;
+        	pos = r-50 r50, r-25 r1, r-50 r50;
+         	emitVector=0, 1, 0;
+		gravity=r-0.1 r0.1, 0 r0.1, r-0.1 r0.1;
+		colorMap= 0.2 0.2 0.4 0.01	0 0 0 0.0;
+		Texture=dirtold;
+		airdrag=1.0;
+		particleLife=4;
+		particleLifeSpread=20;
+		numParticles=10;
+		particleSpeed=2;
+		particleSpeedSpread=1;
+		particleSize=20;
+		particleSizeSpread=0;
+		emitRot=45;
+		emitRotSpread=25;
+		directional=1;
+		alwaysVisible=0;
+		}
+	water=1;
+	count=10;
+	}
+}

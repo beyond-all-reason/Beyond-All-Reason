@@ -1,0 +1,182 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
+       rknee, rshin, rfoot, lforearm, lupperarm, lblade, rforearm, rupperarm,
+       rblade;
+
+static-var  bMoving, Static_Var_2, Static_Var_3;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+walk()
+{
+	while( bMoving )
+	{
+		Static_Var_2 = 1;
+		if( bMoving )
+		{
+			turn lthigh to x-axis <70.000000> speed <230.000000>;
+			turn lknee to x-axis <-40.000000> speed <270.000000>;
+			turn lshin to x-axis <20.000000> speed <270.000000>;
+			turn lfoot to x-axis <-50.000000> speed <420.000000>;
+			turn rthigh to x-axis <-20.000000> speed <420.000000>;
+			turn rknee to x-axis <-60.000000> speed <420.000000>;
+			turn rshin to x-axis <50.000000> speed <420.000000>;
+			turn rfoot to x-axis <30.000000> speed <420.000000>;
+			turn body to z-axis <5.000000> speed <40.000000>;
+			turn lthigh to z-axis <-5.000000> speed <40.000000>;
+			turn rthigh to z-axis <-5.000000> speed <40.000000>;
+			move body to y-axis [0.700000] speed [8.886719];
+			turn tail to y-axis <10.000000> speed <80.000000>;
+			turn head to x-axis <-10.000000> speed <40.000000>;
+			turn tail to x-axis <10.000000> speed <40.000000>;
+			wait-for-turn lthigh around x-axis;
+		}
+		if( bMoving )
+		{
+			turn lthigh to x-axis <-10.000000> speed <320.000000>;
+			turn lknee to x-axis <15.000000> speed <270.000000>;
+			turn lshin to x-axis <-60.000000> speed <500.000000>;
+			turn lfoot to x-axis <30.000000> speed <270.000000>;
+			turn rthigh to x-axis <40.000000> speed <270.000000>;
+			turn rknee to x-axis <-35.000000> speed <270.000000>;
+			turn rshin to x-axis <-40.000000> speed <270.000000>;
+			turn rfoot to x-axis <35.000000> speed <270.000000>;
+			move body to y-axis [0.000000] speed [8.886719];
+			turn head to x-axis <10.000000> speed <40.000000>;
+			turn tail to x-axis <-10.000000> speed <40.000000>;
+			wait-for-turn lshin around x-axis;
+		}
+		if( bMoving )
+		{
+			turn rthigh to x-axis <70.000000> speed <230.000000>;
+			turn rknee to x-axis <-40.000000> speed <270.000000>;
+			turn rshin to x-axis <20.000000> speed <270.000000>;
+			turn rfoot to x-axis <-50.000000> speed <420.000000>;
+			turn lthigh to x-axis <-20.000000> speed <420.000000>;
+			turn lknee to x-axis <-60.000000> speed <420.000000>;
+			turn lshin to x-axis <50.000000> speed <420.000000>;
+			turn lfoot to x-axis <30.000000> speed <420.000000>;
+			turn tail to y-axis <-10.000000> speed <80.000000>;
+			turn body to z-axis <-5.000000> speed <40.000000>;
+			turn lthigh to z-axis <5.000000> speed <40.000000>;
+			turn rthigh to z-axis <5.000000> speed <40.000000>;
+			move body to y-axis [0.700000] speed [8.886719];
+			turn head to x-axis <-10.000000> speed <40.000000>;
+			turn tail to x-axis <10.000000> speed <40.000000>;
+			wait-for-turn rthigh around x-axis;
+		}
+		if( bMoving )
+		{
+			turn rthigh to x-axis <-10.000000> speed <320.000000>;
+			turn rknee to x-axis <15.000000> speed <270.000000>;
+			turn rshin to x-axis <-60.000000> speed <500.000000>;
+			turn rfoot to x-axis <30.000000> speed <270.000000>;
+			turn lthigh to x-axis <40.000000> speed <270.000000>;
+			turn lknee to x-axis <-35.000000> speed <270.000000>;
+			turn lshin to x-axis <-40.000000> speed <270.000000>;
+			turn lfoot to x-axis <35.000000> speed <270.000000>;
+			move body to y-axis [0.000000] speed [8.886719];
+			turn head to x-axis <10.000000> speed <40.000000>;
+			turn tail to x-axis <-10.000000> speed <40.000000>;
+			wait-for-turn rshin around x-axis;
+		}
+	}
+}
+
+Halt()
+{
+	sleep 150;
+	if( !bMoving )
+	{
+		Static_Var_2 = 0;
+		turn lfoot to x-axis <0.000000> speed <200.000000>;
+		turn rfoot to x-axis <0.000000> speed <200.000000>;
+		turn rthigh to x-axis <0.000000> speed <200.000000>;
+		turn lthigh to x-axis <0.000000> speed <200.000000>;
+		turn lshin to x-axis <0.000000> speed <200.000000>;
+		turn rshin to x-axis <0.000000> speed <200.000000>;
+		turn lknee to x-axis <0.000000> speed <200.000000>;
+		turn rknee to x-axis <0.000000> speed <200.000000>;
+	}
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	if( !Static_Var_2 )
+	{
+		start-script walk();
+	}
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	start-script Halt();
+}
+
+HitByWeaponId()
+{
+	return (100);
+}
+
+Create()
+{
+	emit-sfx 1024 + 2 from body;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = body;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = head;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = head;
+}
+
+RestoreAfterDelay()
+{
+	sleep 1000;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn head to y-axis heading speed <250.000000>;
+	turn head to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn head around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+Shot1()
+{
+	turn lforearm to y-axis <-140.000000> speed <700.000000>;
+	turn rforearm to y-axis <140.000000> speed <700.000000>;
+	turn lblade to y-axis <140.000000> speed <700.000000>;
+	turn rblade to y-axis <-140.000000> speed <700.000000>;
+	wait-for-turn rblade around y-axis;
+	turn lforearm to y-axis <0.000000> speed <400.000000>;
+	turn rforearm to y-axis <0.000000> speed <400.000000>;
+	turn lblade to y-axis <0.000000> speed <400.000000>;
+	turn rblade to y-axis <0.000000> speed <400.000000>;
+}
+
+Killed(severity, corpsetype)
+{
+	corpsetype = 1;
+	emit-sfx 1025 from body;
+}

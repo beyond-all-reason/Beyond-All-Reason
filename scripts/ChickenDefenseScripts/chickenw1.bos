@@ -1,0 +1,118 @@
+piece body,head,tail,lwing,rwing,lblade,mblade,rblade,rsack,lsack;
+
+static-var bMoving;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_MOVE			16
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+
+fly()
+{
+	if (bMoving)
+		{
+			turn lwing to z-axis <-40> speed<120>;
+			turn rwing to z-axis <40> speed<120>;
+			wait-for-turn lwing around z-axis;
+			turn lwing to z-axis <40> speed<240>;
+			turn rwing to z-axis <-40> speed<240>;
+			wait-for-turn lwing around z-axis;
+			start-script fly();
+		}
+}
+
+stopfly ()
+{	
+	turn lwing		to z-axis <0> 		speed <200>;
+	turn rwing		to z-axis <0> 		speed <200>;
+}
+
+
+Go()
+{
+	call-script fly();
+}
+
+Stop()
+{
+	call-script stopfly();
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	start-script fly();
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	start-script stopfly();
+}
+
+Create()
+{
+	emit-sfx 1024+2 from body;
+}
+
+AimFromPrimary(piecenum)
+	{	piecenum=head;	}
+
+QueryPrimary(piecenum)
+	{	piecenum=head; }
+
+	RestoreAfterDelay()
+	{
+	sleep 1000;
+	}
+
+AimPrimary(heading,pitch)
+	{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn head to x-axis 0 -pitch speed <200>;
+	wait-for-turn head around y-axis;
+	start-script RestoreAfterDelay();
+	
+	return(TRUE);
+	}
+	
+Shot1()
+	{
+	turn lsack to y-axis <40> speed [1];
+	turn rsack to y-axis <-40> speed [1];
+	move rsack to x-axis [-1] speed [1];
+	move lsack to x-axis [1] speed [1];
+	move mblade to z-axis [-8] speed [100];
+	wait-for-turn lsack around y-axis;
+	turn lsack to y-axis <0> speed [0.3];
+	turn rsack to y-axis <0> speed [0.3];
+	move rsack to x-axis [0] speed [0.3];
+	move lsack to x-axis [0] speed [0.3];
+	move mblade to z-axis <0> speed [3];
+	}
+
+SweetSpot(piecenum)
+	{	piecenum=body;	}	
+	
+
+	
+HitByWeaponId()
+	{
+	return 100;
+	}
+
+Killed( severity, corpsetype )
+	{
+	corpsetype = 1;
+	emit-sfx 1025 from body;
+	explode head type FALL;
+	explode lwing type FALL;
+	explode rwing type FALL;
+	explode mblade type FALL | EXPLODE_ON_HIT;
+	return( 0 );
+	}
