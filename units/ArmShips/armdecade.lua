@@ -153,10 +153,14 @@ return {
 			[1] = {
 				def = "CORVETTE_PLASMA",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0 0 1",
+				maxangledif = 270,
 			},
 			[2] = {
 				def = "CORVETTE_PLASMA",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0 0 -1",
+				maxangledif = 270,
 			},
 		},
 	},
