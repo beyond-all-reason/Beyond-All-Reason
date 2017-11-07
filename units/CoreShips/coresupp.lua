@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 1400,
 		buildcostmetal = 165,
 		buildpic = "CORESUPP.DDS",
-		buildtime = 0.75 * 1.5 * 2200,
+		buildtime = 2475,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -1",

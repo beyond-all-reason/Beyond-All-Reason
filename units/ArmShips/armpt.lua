@@ -6,7 +6,7 @@ return {
 		buildcostenergy = 700,
 		buildcostmetal = 65,
 		buildpic = "ARMPT.DDS",
-		buildtime = 0.75 * 1.5 * 1300,
+		buildtime = 1460,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 0",
