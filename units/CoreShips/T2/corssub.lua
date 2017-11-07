@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 12000,
 		buildcostmetal = 1800,
 		buildpic = "CORSSUB.DDS",
-		buildtime = 1.5 * 0.8*27500,
+		buildtime = 0.75 * 1.5 * 0.8*27500,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW SURFACE",
 		collisionvolumeoffsets = "0 0 0",

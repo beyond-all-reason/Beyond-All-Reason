@@ -6,7 +6,7 @@ return {
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORMLS.DDS",
-		buildtime = 1.5 * 0.8*5352,
+		buildtime = 0.75 * 1.5 * 0.8*5352,
 		canmove = true,
 		category = "ALL NOWEAPON MINELAYER SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-2 -3 5",

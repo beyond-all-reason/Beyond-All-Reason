@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 210000,
 		buildcostmetal = 27000,
 		buildpic = "ARMEPOCH.DDS",
-		buildtime = 1.5 * 0.8*299523,
+		buildtime = 0.75 * 1.5 * 0.8*299523,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -6 3",

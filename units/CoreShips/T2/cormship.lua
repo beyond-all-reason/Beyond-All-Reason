@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 13000,
 		buildcostmetal = 0.8*3000,
 		buildpic = "CORMSHIP.DDS",
-		buildtime = 1.5 * 0.8*22200,
+		buildtime = 0.75 * 1.5 * 0.8*22200,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",

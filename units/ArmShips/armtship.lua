@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 5000,
 		buildcostmetal = 640,
 		buildpic = "ARMTSHIP.DDS",
-		buildtime = 1.5 * 0.8*10176,
+		buildtime = 0.75 * 1.5 * 0.8*10176,
 		canattack = false,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",

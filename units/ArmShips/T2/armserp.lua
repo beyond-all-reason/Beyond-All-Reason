@@ -4,7 +4,7 @@ return {
 		buildcostenergy = 12000,
 		buildcostmetal = 1700,
 		buildpic = "ARMSERP.DDS",
-		buildtime = 1.5 * 0.8*25300,
+		buildtime = 0.75 * 1.5 * 0.8*25300,
 		canmove = true,
 		category = "CANBEUW ALL WEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -2 0",
