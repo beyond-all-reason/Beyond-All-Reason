@@ -42,7 +42,7 @@ return {
 		terraformspeed = 1000,
 		turnrate = 1,
 		upright = true,
-		useBuildingGroundDecal = true,
+		useBuildingGroundDecal = false,
 		workertime = 200,
 		customparams = {
 
