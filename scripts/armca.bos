@@ -13,9 +13,9 @@ activatescr()
 	if( TRUE )
 	{
 		move wing1 to x-axis [0.00000] now;
-		move wing1 to x-axis [-11.25000] speed [12.38986];
+		move wing1 to x-axis [-4.500] speed [12.38986];
 		move wing2 to x-axis [0.00000] now;
-		move wing2 to x-axis [14.62498] speed [16.10681];
+		move wing2 to x-axis [6.400] speed [16.10681];
 		sleep 908;
 	}
 	sleep 40;
@@ -26,9 +26,9 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move wing1 to x-axis [-11.25000] now;
+		move wing1 to x-axis [-4.5000] now;
 		move wing1 to x-axis [0.00000] speed [12.38986];
-		move wing2 to x-axis [14.62498] now;
+		move wing2 to x-axis [6.400] now;
 		move wing2 to x-axis [0.00000] speed [16.10681];
 		sleep 908;
 	}
@@ -146,22 +146,22 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type FALL | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type FALL | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type FALL | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
+	//explode base type FALL | BITMAP1 | NOHEATCLOUD;
 	return (corpsetype);
 }
