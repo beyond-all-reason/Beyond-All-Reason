@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armpt_laser = {
+			laser = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -155,7 +155,7 @@ return {
 					vtol = 9,
 				},
 			},
-			armpt_missile = {
+			aamissile = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
@@ -203,12 +203,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "ARMPT_LASER",
+				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "ARMPT_MISSILE",
+				def = "AAMISSILE",
 				onlytargetcategory = "VTOL",
 			},
 		},

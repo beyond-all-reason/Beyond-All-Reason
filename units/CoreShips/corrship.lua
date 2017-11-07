@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armtruck_missile = {
+			aamissile = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burst = 2,
@@ -200,7 +200,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "ARMTRUCK_MISSILE",
+				def = "AAMISSILE",
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {

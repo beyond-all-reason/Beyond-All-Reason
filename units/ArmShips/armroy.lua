@@ -116,7 +116,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_roy = {
+			plasma = {
 				accuracy = 512,
 				areaofeffect = 32,
 				avoidfeature = false,
@@ -190,7 +190,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_ROY",
+				def = "PLASMA",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

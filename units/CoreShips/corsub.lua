@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_torpedo = {
+			torpedo = {
 				areaofeffect = 64,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -155,7 +155,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "ARM_TORPEDO",
+				def = "TORPEDO",
 				maindir = "0 0 1",
 				maxangledif = 90,
 				onlytargetcategory = "NOTHOVER",

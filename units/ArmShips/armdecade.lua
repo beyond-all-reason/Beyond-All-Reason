@@ -112,7 +112,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corvette_plasma = {
+			emg = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				burst = 3,
@@ -151,13 +151,13 @@ return {
 	
 		weapons = {
 			[1] = {
-				def = "CORVETTE_PLASMA",
+				def = "EMG",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
 				maxangledif = 270,
 			},
 			[2] = {
-				def = "CORVETTE_PLASMA",
+				def = "EMG",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 -1",
 				maxangledif = 270,

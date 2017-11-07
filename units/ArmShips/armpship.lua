@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "26 26 76",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Plasma Frigate",
+		description = "Assault Frigate",
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-		lightplasma = {
+		plasma = {
 				areaofeffect = 36,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -187,12 +187,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
-				def = "LIGHTPLASMA",
+				def = "PLASMA",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
-				def = "LIGHTPLASMA",
+				def = "PLASMA",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
 				maxangledif = 270,

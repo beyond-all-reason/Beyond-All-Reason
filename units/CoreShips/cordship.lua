@@ -114,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-			advdepthcharge = {
+			depthcharge = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -157,7 +157,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT SHIP",
-				def = "ADVDEPTHCHARGE",
+				def = "DEPTHCHARGE",
 				onlytargetcategory = "NOTHOVER",
 			},
 		},
