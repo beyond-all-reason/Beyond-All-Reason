@@ -13,7 +13,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = "1",
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN",
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "30 38 60",
 		collisionvolumetype = "box",
@@ -75,7 +75,7 @@ return {
 				avoidfriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:chickenspike-large-sparks-burn",
+				explosiongenerator = "custom:chickenspike-medium-sparks-burn",
 				impulseboost = 2.2,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
@@ -102,7 +102,7 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 		},
 		customparams = {

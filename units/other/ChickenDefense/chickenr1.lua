@@ -13,7 +13,7 @@ return {
 		canmove = true,
 		canpatrol = true,
 		canstop = "1",
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "25 34 44",
 		collisionvolumetype = "box",
@@ -113,7 +113,7 @@ return {
 				def = "GOOLAUNCHER",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 		},
 		customparams = {

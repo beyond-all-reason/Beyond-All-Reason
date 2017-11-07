@@ -46,6 +46,10 @@ local kbotBrakerateMultiplier = 0.75
 
 function UnitDef_Post(name, uDef)
 
+	if uDef.category['chicken'] ~= nil then
+		uDef.turnrate = 1500
+	end
+
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	-- Set building Mask 0 for all units that can be built in Control Victory points
@@ -141,7 +145,6 @@ function UnitDef_Post(name, uDef)
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
 	end
-
 end
 
 

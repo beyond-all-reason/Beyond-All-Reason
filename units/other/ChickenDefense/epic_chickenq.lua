@@ -16,7 +16,7 @@ return {
 		canpatrol = true,
 		canstop = "1",
 		cantbetransported = true,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN",
 		collisionspherescale = 1.75,
 		collisionvolumeoffsets = "0 -52 15",
 		collisionvolumescales = "69 160 180",
