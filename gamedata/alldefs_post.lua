@@ -142,6 +142,11 @@ function UnitDef_Post(name, uDef)
 		uDef.builddistance = minimumbuilddistancerange
 	end
 
+
+	-- vehicles
+	if uDef.category["chicken"] ~= nil then
+		uDef.turnrate = 1500
+	end
 end
 
 
