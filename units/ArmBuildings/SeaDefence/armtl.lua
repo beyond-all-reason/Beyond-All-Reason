@@ -11,7 +11,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
-		description = "Torpedo Launcher",
+		description = "Offshore Torpedo Launcher",
 		energymake = 0.1,
 		energyuse = 0.1,
 		explodeas = "mediumExplosionGeneric",
@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 494,
-		sonardistance = 475 * 0.5,
+		sonardistance = 230,
 		waterline = 13,
 		yardmap = "wwwwwwwww",
 		customparams = {
@@ -47,7 +47,7 @@ return {
 				footprintz = 3,
 				height = 4,
 				hitdensity = 100,
-				metal = 196,
+				metal = 70,
 				object = "ARMTL_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -83,7 +83,7 @@ return {
 			},
 		},
 		weapondefs = {
-			coax_torpedo = {
+			torpedo = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -122,7 +122,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "COAX_TORPEDO",
+				def = "TORPEDO",
 				onlytargetcategory = "NOTHOVER",
 			},
 		},

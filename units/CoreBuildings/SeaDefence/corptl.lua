@@ -4,10 +4,10 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 900,
-		buildcostmetal = 95,
+		buildcostenergy = 1500,
+		buildcostmetal = 140,
 		buildpic = "CORTL.DDS",
-		buildtime = 2600,
+		buildtime = 4700,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
@@ -20,14 +20,15 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1520,
+		maxdamage = 1330,
 		maxslope = 999,
 		minwaterdepth = 12,
 		name = "Urchin",
 		objectname = "CORTL",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
-		sightdistance = 300,
+		sightdistance = 495,
+		sonardistance = 230,
 		yardmap = "ooooooooo",
 		customparams = {
 			removewait = true,
@@ -82,7 +83,7 @@ return {
 			},
 		},
 		weapondefs = {
-			coax_torpedo = {
+			torpedo = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				avoidfriendly = true,
@@ -121,7 +122,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "HOVER NOTSHIP",
-				def = "COAX_TORPEDO",
+				def = "TORPEDO",
 				onlytargetcategory = "VTOL",
 			},
 		},

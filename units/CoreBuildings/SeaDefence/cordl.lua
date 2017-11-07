@@ -17,7 +17,7 @@ return {
 		collisionvolumescales = "38 51 38",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Torpedo Launcher",
+		description = "Coastal Torpedo Launcher",
 		energymake = 0.1,
 		energyuse = 0.1,
 		explodeas = "smallBuildingExplosionGeneric",
