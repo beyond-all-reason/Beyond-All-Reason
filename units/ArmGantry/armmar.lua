@@ -19,7 +19,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		mass = 200000,
-		maxdamage = 4200,
+		maxdamage = 4400,
 		maxslope = 17,
 		maxvelocity = 3.15,
 		maxwaterdepth = 32,
@@ -182,7 +182,7 @@ return {
 				weaponvelocity = 600,
 				damage = {
 					bombers = 60,
-					default = 215,
+					default = 235,
 					fighters = 60,
 					subs = 5,
 					vtol = 60,
