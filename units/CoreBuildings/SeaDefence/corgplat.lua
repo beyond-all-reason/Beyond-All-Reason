@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "76 36 76",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Floating Gun Platform (Good vs Light Boats)",
+		description = "Light Plasma Defense",
 		energymake = 1,
 		energystorage = 10,
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -89,7 +89,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corgplat = {
+			gun = {
 				accuracy = 4,
 				areaofeffect = 16,
 				avoidfeature = false,
@@ -108,7 +108,7 @@ return {
 				name = "Cannon",
 				noselfdamage = true,
 				range = 430,
-				reloadtime = 1.625*0.5,
+				reloadtime = 0.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
@@ -126,12 +126,12 @@ return {
 				nogap = false,
 				stages = 20,
 				damage = {
-					bombers = 1*1.5*2.1,
-					default = 30*1.5*2.1,
-					heavyunits = 30*1.5*2.1*0.7,
-					fighters = 10*1.5*2.1,
-					subs = 1*1.5*2.1,
-					vtol = 1*1.5*2.1,
+					bombers = 5,
+					default = 45,
+					heavyunits = 32,
+					fighters = 5,
+					subs = 5,
+					vtol = 5,
 
 				},
 			},
@@ -139,7 +139,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL LIGHTBOAT CAPITALSHIP",
-				def = "CORGPLAT",
+				def = "GUN",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
