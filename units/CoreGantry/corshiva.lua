@@ -29,7 +29,7 @@ return {
 		objectname = "CORSHIVA",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd-phib",
-		sightdistance = 299,
+		sightdistance = 520,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.0626,
 		turnrate = 616,

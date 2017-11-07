@@ -64,6 +64,8 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
 
  T3
  • Vanguard does 15% more damage
+ • Marauder does 10% more damage and has 5% more health
+ • Shiva has more sightdistance (300 -> 520)
  • Reintroduced KrogStomp (vs ground scouts + pws/aks only) aswell as a GFX/SFX
  • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
 
