@@ -143,13 +143,13 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 			[2] = {
 				def = "CONTROLBLOB",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 		},
 		customparams = {

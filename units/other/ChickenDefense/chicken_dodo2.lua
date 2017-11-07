@@ -41,7 +41,7 @@ return {
 		movementclass = "CHICKENHOVERDODO",
 		name = "Alpha Dodo",
 		noautofire = false,
-		nochasecategory = "VTOL SINK HOVER",
+		nochasecategory = "VTOL HOVER",
 		objectname = "ChickenDefenseModels/big_chicken_dodo.s3o",
 		script = "ChickenDefenseScripts/chicken_dodo2.cob",
 		seismicsignature = 4,

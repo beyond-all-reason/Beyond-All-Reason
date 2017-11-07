@@ -141,7 +141,7 @@ return {
 				def = "WEAPON",
 				maindir = "0 0 1",
 				maxangledif = 125,
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 			[2] = {
 				badtargetcategory = "NOTAIR",

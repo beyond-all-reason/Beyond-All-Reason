@@ -127,7 +127,7 @@ return {
 			[1] = {
 				def = "CHASEWEAPON",
 				maindir = "0 0 1",
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 			[2] = {
 				badtargetcategory = "VTOL",

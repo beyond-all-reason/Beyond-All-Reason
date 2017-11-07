@@ -127,14 +127,14 @@ return {
 				badtargetcategory = "VTOL",
 				def = "CHASEWEAPON",
 				maindir = "0 0 1",
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "FLAMER",
 				maindir = "0 0 1",
 				maxangledif = 180,
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 		},
 		customparams = {

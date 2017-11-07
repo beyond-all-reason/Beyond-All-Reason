@@ -102,7 +102,7 @@ return {
 				badtargetcategory = "MOBILE",
 				def = "METEORLAUNCHER",
 				maindir = "0 0 1",
-				onlytargetcategory = "NOTAIR LIGHT ARMORED BUILDING",
+				onlytargetcategory = "NOTAIR",	-- LIGHT ARMORED BUILDING
 			},
 		},
 		customparams = {
