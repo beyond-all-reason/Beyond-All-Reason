@@ -172,8 +172,8 @@ return {
 				model = "missile",
 				name = "Missiles",
 				noselfdamage = true,
-				range = 800,
-				reloadtime = 3,
+				range = 450,
+				reloadtime = 2,
 				smoketrail = false,
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
@@ -191,9 +191,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 80,
-					fighters = 80,
-					vtol = 74,
+					bombers = 40,
+					fighters = 40,
+					vtol = 40,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
