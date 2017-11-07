@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 3,
 		buildinggrounddecalsizey = 3,
 		canrepeat = false,
-		category = "ALL NOTLAND SUBMARINE ",
+		category = "ALL NOTLAND",
 		corpse = "DEAD",
 		description = "Sea Foundations",
 		energystorage = 0,
