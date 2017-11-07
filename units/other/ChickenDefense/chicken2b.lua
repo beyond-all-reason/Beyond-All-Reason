@@ -76,7 +76,7 @@ return {
 				avoidfriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:chickenspike-large-sparks-burn",
+				explosiongenerator = "custom:chickenspike-medium-sparks-burn",
 				impulseboost = 2.2,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
