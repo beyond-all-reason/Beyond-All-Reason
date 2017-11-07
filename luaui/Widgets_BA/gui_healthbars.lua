@@ -1010,25 +1010,7 @@ do
 
   local customInfo = {}
   local ci
-
-  if UnitDefNames["armnanotcplat"] ~= nil then
-    customInfo[UnitDefNames["armnanotcplat"].id] = {
-      height        = 15+barHeightOffset,
-      maxShield     = 0,
-      canStockpile  = nil,
-      reloadTime    = 0,
-      primaryWeapon = 0,
-    }
-  end
-  if UnitDefNames["cornanotcplat"] ~= nil then
-    customInfo[UnitDefNames["cornanotcplat"].id] = {
-      height        = 15+barHeightOffset,
-      maxShield     = 0,
-      canStockpile  = nil,
-      reloadTime    = 0,
-      primaryWeapon = 0,
-    }
-  end
+  
     if UnitDefNames["coromex"] ~= nil then
     customInfo[UnitDefNames["coromex"].id] = {
       height        = 15+barHeightOffset,
