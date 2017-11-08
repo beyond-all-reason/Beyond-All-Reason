@@ -40,7 +40,7 @@ return {
 		name = "Chicken Colonizer",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "ChickenDefenseModels/chicken_colonizer_old.s3o",
+		objectname = "ChickenDefenseModels/chicken_colonizer.s3o",
 		script = "ChickenDefenseScripts/chickenr3.cob",
 		seismicsignature = 4,
 		selfdestructas = "LOBBER_MORPH",
