@@ -191,6 +191,8 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
+				maindir = "0 0 1",
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
