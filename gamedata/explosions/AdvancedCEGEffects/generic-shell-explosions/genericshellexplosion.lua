@@ -2390,9 +2390,9 @@ for size, e in pairs(sizes) do
     definitions[defname].sparks.properties.numparticles = [[0 r2.1]]
     definitions[defname].dirt.properties.numparticles = [[0 r2.1]]
     definitions[defname].dirt2.properties.numparticles = [[0 r2.1]]
-    definitions[defname].shard1.properties.numparticles = [[0.1 r0.4]]
-    definitions[defname].shard2.properties.numparticles = [[0.1 r0.4]]
-    definitions[defname].shard3.properties.numparticles = [[0.1 r0.4]]
+    definitions[defname].shard1.properties.numparticles = [[0.2 r1.2]]
+    definitions[defname].shard2.properties.numparticles = [[0.2 r0.6]]
+    definitions[defname].shard3.properties.numparticles = [[0.2 r0.6]]
 
     if definitions[defname].innersmoke ~= nil then
         definitions[defname].innersmoke.properties.numparticles = [[0 r1.7]]
