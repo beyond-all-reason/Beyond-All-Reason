@@ -46,9 +46,10 @@ local kbotBrakerateMultiplier = 0.75
 
 function UnitDef_Post(name, uDef)
 
-	if uDef.category['chicken'] ~= nil then
-		uDef.turnrate = 1500
-	end
+	--if uDef.category['chicken'] ~= nil then	-- doesnt seem to work
+	--	uDef.turnrate = 1800
+	--	uDef.turninplaceanglelimit = 90
+	--end
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------

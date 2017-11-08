@@ -61,7 +61,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0,
-				explosiongenerator = "custom:nukedatbewm-roost",
+				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 70,
 				flighttime = 100,
 				metalpershot = 0,

@@ -540,4 +540,42 @@ definitions['cornuke'].groundflash_large.properties.size = math.floor(definition
 definitions['cornuke'].groundflash_white.properties.size = math.floor(definitions['cornuke'].groundflash_white.properties.size * size)
 definitions['cornuke'].heatedgroundflash.properties.size = math.floor(definitions['cornuke'].heatedgroundflash.properties.size * size)
 
+
+
+local size = 0.6
+
+definitions['chickennuke-floor'] = deepcopy(definitions['armnuke-floor'])
+definitions['chickennuke-floor'].smoke.properties.numparticles = math.floor(definitions['chickennuke-floor'].smoke.properties.numparticles * size)
+definitions['chickennuke-floor'].smoke.properties.particlespeedspread = math.floor(definitions['chickennuke-floor'].smoke.properties.particlespeedspread * size)
+definitions['chickennuke-stem'] = deepcopy(definitions['armnuke-stem'])
+definitions['chickennuke-stem'].smoke.properties.particlesize = math.floor(definitions['chickennuke-stem'].smoke.properties.particlesize * size)
+definitions['chickennuke-stem2'] = deepcopy(definitions['armnuke-stem2'])
+definitions['chickennuke-stem2'].smoke.properties.particlesize = math.floor(definitions['chickennuke-stem2'].smoke.properties.particlesize * size)
+definitions['chickennuke-headring'] = deepcopy(definitions['armnuke-headring'])
+definitions['chickennuke-headring'].smoke.properties.numparticles = math.floor(definitions['chickennuke-headring'].smoke.properties.numparticles * size)
+definitions['chickennuke-headring'].smoke.properties.particlespeedspread = math.floor(definitions['chickennuke-headring'].smoke.properties.particlespeedspread * size)
+definitions['chickennuke-headring'].smoke.properties.particlesize = math.floor(definitions['chickennuke-headring'].smoke.properties.particlesize * size)
+definitions['chickennuke-head'] = deepcopy(definitions['armnuke-head'])
+definitions['chickennuke-head'].smoke.properties.numparticles = math.floor(definitions['chickennuke-head'].smoke.properties.numparticles * size)
+definitions['chickennuke-head'].smoke.properties.particlespeedspread = math.floor(definitions['chickennuke-head'].smoke.properties.particlespeedspread * size)
+definitions['chickennuke-head'].smoke.properties.particlesize = math.floor(definitions['chickennuke-head'].smoke.properties.particlesize * size)
+--
+definitions['chickennuke'] = deepcopy(definitions['armnuke'])
+definitions['chickennuke'].nukefloor.properties.explosiongenerator = [[custom:chickennuke-floor]]
+definitions['chickennuke'].nukestem.properties.explosiongenerator = [[custom:chickennuke-stem]]
+definitions['chickennuke'].nukestem2.properties.explosiongenerator = [[custom:chickennuke-stem2]]
+definitions['chickennuke'].nukeheadring.properties.explosiongenerator = [[custom:chickennuke-headring]]
+definitions['chickennuke'].nukehead.properties.explosiongenerator = [[custom:chickennuke-head]]
+
+definitions['chickennuke'].sparks.properties.particlespeed = math.floor(definitions['chickennuke'].sparks.properties.particlespeed * size)
+definitions['chickennuke'].sparks.properties.particlespeedspread = math.floor(definitions['chickennuke'].sparks.properties.particlespeedspread * size)
+definitions['chickennuke'].dirt.properties.particlespeed = math.floor(definitions['chickennuke'].dirt.properties.particlespeed * size)
+definitions['chickennuke'].dirt.properties.particlespeedspread = math.floor(definitions['chickennuke'].dirt.properties.particlespeedspread * size)
+definitions['chickennuke'].dirt2.properties.particlespeed = math.floor(definitions['chickennuke'].dirt2.properties.particlespeed * size)
+definitions['chickennuke'].dirt2.properties.particlespeedspread = math.floor(definitions['chickennuke'].dirt2.properties.particlespeedspread * size)
+definitions['chickennuke'].centerflare.properties.size = math.floor(definitions['chickennuke'].centerflare.properties.size * size)
+definitions['chickennuke'].groundflash_large.properties.size = math.floor(definitions['chickennuke'].groundflash_large.properties.size * size)
+definitions['chickennuke'].groundflash_white.properties.size = math.floor(definitions['chickennuke'].groundflash_white.properties.size * size)
+definitions['chickennuke'].heatedgroundflash.properties.size = math.floor(definitions['chickennuke'].heatedgroundflash.properties.size * size)
+
 return definitions

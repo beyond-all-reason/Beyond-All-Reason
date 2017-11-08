@@ -49,7 +49,7 @@ return {
 		sightdistance = 370,
 		smoothanim = true,
 		tedclass = "METAL",
-		turnrate = 5000,
+		turnrate = 1600,
 		unitname = "chickend1",
 		upright = false,
 		waterline = 1,

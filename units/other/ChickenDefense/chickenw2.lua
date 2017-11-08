@@ -53,7 +53,7 @@ return {
 		steeringmode = "1",
 		tedclass = "VTOL",
 		turninplace = true,
-		turnrate = 5000,
+		turnrate = 1600,
 		unitname = "chickenw2",
 		workertime = 0,
 		featuredefs = {

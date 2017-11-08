@@ -65,7 +65,7 @@ return {
 		tracktype = "ChickenTrack",
 		trackwidth = 10,
 		turninplace = true,
-		turnrate = 5000,
+		turnrate = 1600,
 		unitname = "chickenh1b",
 		upright = false,
 		waterline = 8,

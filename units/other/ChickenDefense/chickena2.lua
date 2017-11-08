@@ -53,7 +53,7 @@ return {
 		tracktype = "ChickenTrack",
 		trackwidth = 38,
 		turninplace = true,
-		turnrate = 5000,
+		turnrate = 1600,
 		unitname = "chickena2",
 		upright = false,
 		workertime = 0,

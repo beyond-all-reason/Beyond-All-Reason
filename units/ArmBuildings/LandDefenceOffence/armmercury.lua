@@ -157,6 +157,7 @@ return {
 				},
 				customparams = {
 					light_radius_mult = 0.55,
+                    expl_light_radius_mult = 0.55,
 				},
 			},
 		},
