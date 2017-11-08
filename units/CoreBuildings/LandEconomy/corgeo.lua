@@ -29,7 +29,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1850,
 		maxslope = 15,
-		maxwaterdepth = 0,
+		maxwaterdepth = 99999,
 		name = "Geothermal Powerplant",
 		objectname = "CORGEO",
 		seismicsignature = 0,
