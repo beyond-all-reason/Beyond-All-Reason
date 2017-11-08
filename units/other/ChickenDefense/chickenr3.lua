@@ -1,5 +1,5 @@
 return {
-	chickenr3old = {
+	chickenr3 = {
 		acceleration = 1,
 		bmcode = "1",
 		brakerate = 8,
@@ -86,7 +86,7 @@ return {
 				model = "ChickenDefenseModels/greyrock2.s3o",
 				name = "METEORLAUNCHER",
 				proximitypriority = -6,
-				range = 15000,
+				range = 14000,
 				reloadtime = 15,
 				soundhit = "ChickenDefenseSounds/nuke4",
 				targetable = 1,
