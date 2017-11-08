@@ -2378,15 +2378,22 @@ for size, e in pairs(sizes) do
 	local defname = root.."-"..size.."-beam"
 	definitions[defname] = deepcopy(definitions[root.."-"..size])
     definitions[defname].clouddust = nil
+    if definitions[defname].groundclouddust ~= nil then
+        definitions[defname].groundclouddust.properties.numparticles = definitions[defname].groundclouddust.properties.numparticles / 5
+    end
     definitions[defname].groundflash_small.colormap    = [[1 0.7 0.3 0.05   0 0 0 0.01]]
     definitions[defname].groundflash_large.colormap    = [[1 0.7 0.3 0.016   0 0 0 0.01]]
     definitions[defname].groundflash_white = false
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)
-	definitions[defname].explosion.properties.numparticles = [[0 r1.2]]
-    definitions[defname].sparks.properties.numparticles = [[0 r2.2]]
-    definitions[defname].dirt.properties.numparticles = [[0 r2.5]]
-    definitions[defname].dirt2.properties.numparticles = [[0 r2.5]]
+	definitions[defname].explosion.properties.numparticles = [[0 r1.15]]
+    definitions[defname].sparks.properties.numparticles = [[0 r2.1]]
+    definitions[defname].dirt.properties.numparticles = [[0 r2.1]]
+    definitions[defname].dirt2.properties.numparticles = [[0 r2.1]]
+    definitions[defname].shard1.properties.numparticles = definitions[defname].shard1.properties.numparticles / 5
+    definitions[defname].shard2.properties.numparticles = definitions[defname].shard2.properties.numparticles / 5
+    definitions[defname].shard3.properties.numparticles = definitions[defname].shard3.properties.numparticles / 5
+
     if definitions[defname].innersmoke ~= nil then
         definitions[defname].innersmoke.properties.numparticles = [[0 r1.7]]
     end

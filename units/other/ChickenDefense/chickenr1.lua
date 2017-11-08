@@ -101,7 +101,7 @@ return {
 				tolerance = 5000,
 				turret = true,
 				weapontimer = 0.2,
-				weaponvelocity = 600,
+				weaponvelocity = 550,
 				damage = {
 					default = 600,
 				},
