@@ -47,7 +47,7 @@ return {
 		smoothanim = true,
 		steeringmode = "1",
 		tedclass = "VTOL",
-		turnrate = 5000,
+		turnrate = 1600,
 		unitname = "chickens3",
 		featuredefs = {
 			dead = {},
