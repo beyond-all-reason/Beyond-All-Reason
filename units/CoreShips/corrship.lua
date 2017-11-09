@@ -24,7 +24,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 1650,
+		maxdamage = 1320,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X4",
 		name = "Crusher",
