@@ -497,6 +497,11 @@ function loadWeaponDefs()
 				params.r = colorList[1]
 				params.g = colorList[2]
 				params.b = colorList[3]
+			elseif WeaponDefs[i].rgbColor ~= nil then
+				local colorList = Split(WeaponDefs[i].rgbColor, " ")
+				params.r = colorList[1]
+				params.g = colorList[2]
+				params.b = colorList[3]
 			end
 
 			if customParams.expl_light_opacity ~= nil then

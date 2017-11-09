@@ -1,11 +1,14 @@
-﻿9.46 -> 9.55
-XX/XX/2017
+﻿9.46 -> 10.00
+XX/12/2017
 
 Important:
  • Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
  • Decay resigned as balancing dev/maintainer
  • Doo assigned to redesign Sea
  • Lots of things changed, please grant us some time to adjust
+
+Chicken Defence
+ • Has been integrated into BA. Just add an chicken AI bot and makes sure you have startboxes set.
 
 Balance changes:
  • All Energy and metal prices have been rounded (because buildmenu shows prices)
@@ -109,7 +112,6 @@ T1 buildings:
  • Uses Raw move to avoid needless turns in water
  • Ships can now turn-in-place (as it did back in 2012). This allows better control on boats by being able to anticipate if the unit will slow down for the turn or keep its max speed.
  • Globally, maxspeeds, accelerations, brakesrates and turnrates have been decreased for a smoother handling and better feeling of inertia. In terms of balance, this also results in ships being globally weaker to non instantaneous (non beamlasers) weapons (including each other as most ships use plasmas).
-
 
 Other:
  • Add SystemPrivacy=1 to springsettings.cfg to not send your system info
