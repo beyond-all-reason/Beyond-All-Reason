@@ -151,6 +151,10 @@ return {
 					subs = 3,
 					vtol = 25,
 				},
+				customparams = {
+					light_color = "0.2 0.5 1",
+					expl_light_color = "0.2 0.5 1",
+				},
 			},
 		},
 		weapons = {
