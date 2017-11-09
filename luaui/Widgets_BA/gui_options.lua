@@ -94,6 +94,8 @@ local optionHover = {}
 local optionSelect = {}
 local addedWidgetOptions = false
 
+local widgetOptionColor = '\255\160\160\160'
+
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
 
@@ -399,7 +401,7 @@ function checkWidgets()
 	if (WG['darkenmap'] ~= nil) then
 		table.insert(options, {id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
 		if WG['darkenmap'].getDarkenFeatures ~= nil then
-			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
+			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
 		end
 	end
 	-- Highlight Selected Units
@@ -1033,6 +1035,24 @@ function applyOptionValue(i, skipRedrawWindow)
 				end
 				widgetHandler.configData["Light Effects"].globalRadiusMult = value
 			end
+		elseif id == 'lighteffects_laserbrightness' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setLaserBrightness(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalLightMultLaser = value
+			end
+		elseif id == 'lighteffects_radius' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setLaserRadius(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
+			end
 		elseif id == 'enemyspotter_opacity' then
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
@@ -1400,7 +1420,6 @@ function GetWidgetToggleValue(widgetname)
 end
 
 function init()
-	local widgetOptionColor = '\255\160\160\160'
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
 		{id='preset', name='Preset'},
@@ -1439,7 +1458,9 @@ function init()
 
 		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=1, max=2.5, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
-		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
+		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
+		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above'},
+		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius  (gpu intensive)", min=0.4, max=2, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\nWARNING: the bigger the radius the heavier on the GPU'},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
@@ -1537,6 +1558,12 @@ function init()
 	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
 		options[getOptionByID("lighteffects_radius")].value = widgetHandler.configData["Light Effects"].globalRadiusMult
 	end
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMultLaser ~= nil then
+		options[getOptionByID("lighteffects_laserbrightness")].value = widgetHandler.configData["Light Effects"].globalLightMultLaser
+	end
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalRadiusMultLaser ~= nil then
+		options[getOptionByID("lighteffects_laserradius")].value = widgetHandler.configData["Light Effects"].globalRadiusMultLaser
+	end
 
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigShortcutsInfo == nil then
 		options[getOptionByID('buildmenushortcuts')] = nil
@@ -1556,6 +1583,10 @@ function init()
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then
 		options[getOptionByID('lighteffects')] = nil
+		options[getOptionByID("lighteffects_brightness")] = nil
+		options[getOptionByID("lighteffects_laserbrightness")] = nil
+		options[getOptionByID("lighteffects_radius")] = nil
+		options[getOptionByID("lighteffects_laserradius")] = nil
 	end
 
 	if widgetHandler.knownWidgets["EnemySpotter"] == nil then
