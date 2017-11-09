@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4320,
+		maxdamage = 3240,
 		minwaterdepth = 12,
 		movementclass = "BOAT43X5",
 		name = "Crusader",
