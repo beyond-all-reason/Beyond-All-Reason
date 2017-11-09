@@ -551,4 +551,37 @@ function widget:Initialize()
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()
 	end
+
+	WG['lighteffects'] = {}
+	WG['lighteffects'].getGlobalBrightness = function()
+		return globalLightMult
+	end
+	WG['lighteffects'].getGlobalRadius = function()
+		return globalRadiusMult
+	end
+	WG['lighteffects'].setGlobalBrightness = function(value)
+		globalLightMult = value
+		projectileLightTypes = GetLightsFromUnitDefs()
+	end
+	WG['lighteffects'].setGlobalRadius = function(value)
+		globalRadiusMult = value
+		projectileLightTypes = GetLightsFromUnitDefs()
+	end
+end
+
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.globalLightMult = globalLightMult
+	savedTable.globalRadiusMult = globalRadiusMult
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.globalLightMult ~= nil then
+		globalLightMult = data.globalLightMult
+	end
+	if data.globalRadiusMult ~= nil then
+		globalRadiusMult = data.globalRadiusMult
+	end
 end
