@@ -168,6 +168,7 @@ return {
 				noselfdamage = true,
 				range = 775,
 				reloadtime = 0.55,
+                rgbcolor = {1, 0.5, 0.7},
 				soundhit = "flakhit",
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
@@ -181,6 +182,10 @@ return {
 					fighters = 250,
 					vtol = 250,
 				},
+                customparams = {
+                    light_color = "1 0.5 0.6",
+                    expl_light_color = "1 0.4 0.5",
+                },
 			},
 			orcone_rocket = {
 				areaofeffect = 160,
