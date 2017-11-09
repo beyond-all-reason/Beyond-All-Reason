@@ -110,7 +110,7 @@ return {
 				predictboost = 1,
 				range = 775,
 				reloadtime = 0.55,
-				rgbcolor = "1, 0.5, 0",
+				rgbcolor = {1, 0.5, 0.7},
 				soundhit = "flakhit",
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
@@ -124,6 +124,10 @@ return {
 					fighters = 500,
 					vtol = 250,
 				},
+                customparams = {
+                    light_color = "1 0.5 0.6",
+                    expl_light_color = "1 0.4 0.5",
+                },
 			},
 		},
 		weapons = {

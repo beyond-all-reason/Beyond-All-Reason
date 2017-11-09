@@ -185,6 +185,8 @@ return {
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
+                    light_color = "1 0.5 0.6",
+                    expl_light_color = "1 0.4 0.5",
 				},
 			},
 			mobileflak = {
@@ -207,7 +209,7 @@ return {
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 0.75,
-				rgbcolor = "1, 0.5, 0",
+				rgbcolor = {1, 0.5, 0.7},
 				soundhit = "flakhit",
 				soundhitwet = "splsmed",
 				soundhitwetvolume = 0.5,
@@ -227,6 +229,10 @@ return {
 					nanos = 10,
 					subs = 5,
 					vtol = 200,
+				},
+				customparams = {
+					light_color = "1 0.5 0.6",
+					expl_light_color = "1 0.4 0.5",
 				},
 			},
 		},

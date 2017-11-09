@@ -152,6 +152,10 @@ return {
 				damage = {
 					default = 50000,
 				},
+				customparams = {
+					light_color = "0.7 0.7 1",
+					expl_light_color = "0.7 0.7 1",
+				},
 			},
 		},
 		weapons = {

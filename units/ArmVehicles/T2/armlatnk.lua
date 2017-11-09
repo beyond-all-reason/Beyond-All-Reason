@@ -157,6 +157,8 @@ return {
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
+                    light_color = "1 0.5 0.6",
+                    expl_light_color = "1 0.4 0.5",
 				},
 			},
 			armlatnk_weapon = {
@@ -193,6 +195,8 @@ return {
 				},
 				customparams = {
 					light_multiplier = "0.38",		-- used by light_effects widget
+                    light_color = "0.2 0.5 1",
+                    expl_light_color = "0.2 0.5 1",
 				},
 			},
 		},

@@ -128,7 +128,7 @@ return {
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 5.5,
-				rgbcolor = "1, 0.5, 0",
+				rgbcolor = {1, 0.5, 0.7},
 				size = 1.4,
 				soundhit = "flakhit",
 				soundhitvolume = 9,
@@ -144,6 +144,10 @@ return {
 					bombers = 200,
 					fighters = 200,
 					vtol = 200,
+				},
+				customparams = {
+					light_color = "1 0.5 0.6",
+					expl_light_color = "1 0.4 0.5",
 				},
 			},
 			armaakbot_missile1 = {
@@ -190,6 +194,8 @@ return {
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
+                    light_color = "1 0.5 0.6",
+                    expl_light_color = "1 0.4 0.5",
 				},
 			},
 			armaakbot_missile2 = {
@@ -236,6 +242,8 @@ return {
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
+					light_color = "1 0.5 0.6",
+					expl_light_color = "1 0.4 0.5",
 				},
 			},
 			bogus_missile = {
