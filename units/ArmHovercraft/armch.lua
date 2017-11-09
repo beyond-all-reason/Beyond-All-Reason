@@ -72,6 +72,7 @@ return {
 			"armcir",
 			"armdl",
 			"armjamt",
+			"armjuno",
 			"armfhp",
 			"armsy",
 			"armamsub",
@@ -88,7 +89,6 @@ return {
 			"armfhlt",
 			"armfrt",
 			"armtl",
-			"armjuno",
 		},
 		customparams = {
 			

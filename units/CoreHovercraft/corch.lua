@@ -72,6 +72,7 @@ return {
 			"corerad",
 			"cordl",
 			"corjamt",
+            "corjuno",
 			
 			"corfhp",
 			"corsy",
@@ -90,7 +91,6 @@ return {
 			"corfhlt",
 			"corfrt",
             "cortl",
-            "corjuno",
 		},
 		customparams = {
 			

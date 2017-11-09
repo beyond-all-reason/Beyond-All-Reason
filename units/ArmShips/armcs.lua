@@ -72,7 +72,6 @@ return {
 			"armgplat",
 			"armfrt",
 			"armfhlt",
-            "armjuno",
 			--"seaplatform",
 		},
 		customparams = {
