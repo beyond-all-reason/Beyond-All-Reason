@@ -14,6 +14,9 @@ function widget:GetInfo()
   }
 end
 
+local customScale = 1
+local widgetScale = customScale
+
 local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -234,6 +237,7 @@ end
 local function CreatePanelDisplayList()
   gl.PushMatrix()
   gl.Translate(x1, y1, 0)
+  gl.Scale(widgetScale, widgetScale, 1)
   gl.CallList(displayList)
   fontHandler.DisableCache()
   fontHandler.UseFont(panelFont)
@@ -448,7 +452,15 @@ function widget:ViewResize(vsx, vsy)
   viewSizeX, viewSizeY = vsx, vsy
   x1 = viewSizeX + x1
   y1 = viewSizeY + y1
+  widgetScale = (0.75 + (viewSizeX*viewSizeY / 7500000)) * customScale
 end
+
+
+local widgetScale = 1
+local vsx, vsy = Spring.GetViewGeometry()
+
+local changelogLines = {}
+local totalChangelogLines = 0
 
 
 --------------------------------------------------------------------------------
