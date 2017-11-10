@@ -397,6 +397,10 @@ function checkWidgets()
 		end
 		table.insert(options, {id="cursor", group="control", name="Cursor", type="select", options=cursorsets, value=cursor})
 	end
+	-- Icon adjuster
+	if (WG['iconadjuster'] ~= nil) then
+		table.insert(options, {id="iconadjuster", group="gfx", name="Unit icon scale", min=0.75, max=1.25, step=0.05, type="slider", value=WG['iconadjuster'].getScale(), description='Sets radar/unit icon size'})
+	end
 	-- Darken map
 	if (WG['darkenmap'] ~= nil) then
 		table.insert(options, {id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
@@ -1017,6 +1021,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
 			WG['darkenmap'].setMapDarkness(value)
+		elseif id == 'iconadjuster' then
+			WG['iconadjuster'].setScale(value)
 		elseif id == 'lighteffects_brightness' then
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalBrightness(value)
@@ -1424,8 +1430,8 @@ function init()
 	optionGroups = {
 		{id='preset', name='Preset'},
 		{id='gfx', name='Graphics'},
-		{id='snd', name='Sound'},
 		{id='control', name='Control'},
+		{id='snd', name='Sound'},
 		{id='ui', name='Interface'},
 		{id='game', name='Game'},
 	}
@@ -1473,6 +1479,7 @@ function init()
 		{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
+		{id="disticon", group="gfx", name="Unit icon distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -1493,7 +1500,6 @@ function init()
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 
 		-- UI
-		{id="disticon", group="ui", name="Unit icon distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
