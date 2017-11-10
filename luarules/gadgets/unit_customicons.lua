@@ -31,6 +31,11 @@ function gadget:GetInfo()
   }
 end
 
+
+-- do note BA now includes a widget "Icon adjuster" that does this aswell (can change icon size)
+-- so any changes made here will/could be be overwritten by the widget
+
+
 --------------------------------------------------------------------------------
 
 if (gadgetHandler:IsSyncedCode()) then
