@@ -25,10 +25,14 @@ function gadget:Initialize()
 					Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny+100)
 				else
 					local waterlevel1 = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel))/100)
-					if miny >= 0 then
+					if miny >= 0 then						
 						local delta = maxy-miny
 						waterlevel = miny + (math.abs(delta*waterlevel1))
+						if waterlevel1 == 1 then
+						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel-50)
+						else
 						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+						end
 					elseif miny < 0 then
 						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny)
 						local delta = maxy - miny
@@ -42,7 +46,7 @@ function gadget:Initialize()
 		-- Spring.Echo(featureDefID)
 		x,_,z = Spring.GetFeaturePosition(featuretable[i])
 				Spring.DestroyFeature(featuretable[i])
-				if Spring.GetGroundHeight(x,z) >= 0 then
+				if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true then
 				Spring.CreateFeature(featureDefID, x, Spring.GetGroundHeight(x,z), z)
 				end
 		end
