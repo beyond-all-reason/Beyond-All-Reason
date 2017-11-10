@@ -41,13 +41,10 @@ function gadget:Initialize()
 		featureDefID = Spring.GetFeatureDefID(featuretable[i])
 		-- Spring.Echo(featureDefID)
 		x,_,z = Spring.GetFeaturePosition(featuretable[i])
-		Spring.SetFeaturePosition(featuretable[i], x,Spring.GetGroundHeight(x,z), z)
-			if featureDefID >= 595 and featureDefID <= 617 then -- engine trees
 				Spring.DestroyFeature(featuretable[i])
 				if Spring.GetGroundHeight(x,z) >= 0 then
 				Spring.CreateFeature(featureDefID, x, Spring.GetGroundHeight(x,z), z)
 				end
-			end
 		end
 	end
 end
