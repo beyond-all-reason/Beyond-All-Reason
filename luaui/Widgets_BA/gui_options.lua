@@ -94,6 +94,8 @@ local optionHover = {}
 local optionSelect = {}
 local addedWidgetOptions = false
 
+local widgetOptionColor = '\255\160\160\160'
+
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
 
@@ -399,7 +401,7 @@ function checkWidgets()
 	if (WG['darkenmap'] ~= nil) then
 		table.insert(options, {id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
 		if WG['darkenmap'].getDarkenFeatures ~= nil then
-			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name="Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
+			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
 		end
 	end
 	-- Highlight Selected Units
@@ -1015,6 +1017,42 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
 			WG['darkenmap'].setMapDarkness(value)
+		elseif id == 'lighteffects_brightness' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setGlobalBrightness(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalLightMult = value
+			end
+		elseif id == 'lighteffects_radius' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setGlobalRadius(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalRadiusMult = value
+			end
+		elseif id == 'lighteffects_laserbrightness' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setLaserBrightness(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalLightMultLaser = value
+			end
+		elseif id == 'lighteffects_radius' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setLaserRadius(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
+			end
 		elseif id == 'enemyspotter_opacity' then
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
@@ -1382,7 +1420,6 @@ function GetWidgetToggleValue(widgetname)
 end
 
 function init()
-
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
 		{id='preset', name='Preset'},
@@ -1418,8 +1455,15 @@ function init()
 		{id="guishader", group="gfx", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
-		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
+
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
+
+		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
+		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=1, max=2.5, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
+		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
+		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above'},
+		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius  (gpu intensive)", min=0.4, max=2, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\nWARNING: the bigger the radius the heavier on the GPU'},
+
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="outline", group="gfx", widget="Outline", name="Unit Outline (tiny)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
@@ -1442,7 +1486,7 @@ function init()
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
-		{id="scrollspeed", group="control", name="Zoom direction/speed", type="slider", min=-45, max=45, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!\n\nChanges will be applied next game'},
+		{id="scrollspeed", group="control", name="Zoom direction/speed", type="slider", min=-45, max=45, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!'},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
@@ -1458,7 +1502,7 @@ function init()
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenusounds", group="ui", name="Buildmenu sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
-		{id="buildmenubigtooltip", group="ui", name="  extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
+		{id="buildmenubigtooltip", group="ui", name=widgetOptionColor.."   extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
 
 		--{id="resourceprompts", group="ui", name="Audio/Visual Resource Prompts", type="bool", value=tonumber(Spring.GetConfigInt("evo_resourceprompts",1) or 1) == 1, description="If enabled, messages will be sent to the chat as well as\naudio cues when your resources need attention"},
 
@@ -1474,8 +1518,8 @@ function init()
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
-		{id="enemyspotter_opacity", group="ui", name="   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
-		{id="enemyspotter_highlight", group="ui", name="   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
+		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
+		{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
@@ -1509,6 +1553,19 @@ function init()
 		options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
 	end
 
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
+		options[getOptionByID("lighteffects_brightness")].value = widgetHandler.configData["Light Effects"].globalLightMult
+	end
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
+		options[getOptionByID("lighteffects_radius")].value = widgetHandler.configData["Light Effects"].globalRadiusMult
+	end
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMultLaser ~= nil then
+		options[getOptionByID("lighteffects_laserbrightness")].value = widgetHandler.configData["Light Effects"].globalLightMultLaser
+	end
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalRadiusMultLaser ~= nil then
+		options[getOptionByID("lighteffects_laserradius")].value = widgetHandler.configData["Light Effects"].globalRadiusMultLaser
+	end
+
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigShortcutsInfo == nil then
 		options[getOptionByID('buildmenushortcuts')] = nil
 	end
@@ -1527,6 +1584,10 @@ function init()
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then
 		options[getOptionByID('lighteffects')] = nil
+		options[getOptionByID("lighteffects_brightness")] = nil
+		options[getOptionByID("lighteffects_laserbrightness")] = nil
+		options[getOptionByID("lighteffects_radius")] = nil
+		options[getOptionByID("lighteffects_laserradius")] = nil
 	end
 
 	if widgetHandler.knownWidgets["EnemySpotter"] == nil then
