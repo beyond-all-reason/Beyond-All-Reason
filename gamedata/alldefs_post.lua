@@ -30,10 +30,10 @@ local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.0
 
 local vehAdditionalAcceleration = 0.00
-local vehAccelerationMultiplier = 0.95
+local vehAccelerationMultiplier = 0.92
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 0.95
+local vehVelocityMultiplier = 0.92
 local vehRSpeedFactor = 0.35
 
 local kbotAdditionalTurnrate = 0
