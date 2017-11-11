@@ -36,6 +36,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  
  Air
  • Air transports unload bug fixed: don't have collision enabled anymore
+ • Thunder hp increased 560 -> 600 and speed increased 8.15 -> 8.50.
  • Fixed flak doing ludicrous damage to ground units
  • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
  • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
@@ -56,6 +57,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 70% increased HP.
+ • Guardians/punishers have lower m cost (1500 -> 1250)
 
  T2
  • Fark workerspeed increased 16%
