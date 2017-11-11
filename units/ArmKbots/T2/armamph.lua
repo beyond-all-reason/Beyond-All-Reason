@@ -21,7 +21,7 @@ return {
 		footprintz = 3,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 910,
+		maxdamage = 1050,
 		maxslope = 14,
 		maxvelocity = 3,
 		movementclass = "HOVER3",
@@ -186,7 +186,7 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					bombers = 15,
-					default = 70,
+					default = 80,
 					fighters = 15,
 					subs = 5,
 					vtol = 15,

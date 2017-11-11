@@ -1452,7 +1452,7 @@ Create()
 	Static_Var_4 = 0;
 	gun_3 = body;
 	hide flare;
-	move flare to z-axis [-9] now;
+	move flare to z-axis [-36] now;
 	hide pontoons;
 	restore_delay = 3000;
 	start-script MotionControl();
@@ -1541,8 +1541,8 @@ AimPrimary(heading, pitch)
 	{
 		sleep 100;
 	}
-	turn lasturret to y-axis heading speed <150.000000>;
-	turn lasturret to x-axis <0.000000> - pitch speed <150.000000>;
+	turn lasturret to y-axis heading speed <200.000000>;
+	turn lasturret to x-axis <0.000000> - pitch speed <200.000000>;
 	wait-for-turn lasturret around y-axis;
 	wait-for-turn lasturret around x-axis;
 	start-script RestoreAfterDelay();
