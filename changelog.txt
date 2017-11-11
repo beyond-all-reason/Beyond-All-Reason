@@ -8,7 +8,7 @@ Important:
  • Lots of things changed, please grant us some time to adjust
 
 Chicken Defence
- • Has been integrated into BA. Just add an chicken AI bot and makes sure you have startboxes set.
+ • Has been integrated into BA. Just add an chicken AI bot and makes sure you have startboxes set. ("!autobalance off" to manually get everyone on the same team)
 
 Balance changes:
  • All Energy and metal prices have been rounded (because buildmenu shows prices)
