@@ -14,7 +14,7 @@ function widget:GetInfo()
   }
 end
 
-local customScale = 1
+local customScale = 0.9
 local widgetScale = customScale
 
 local teams = Spring.GetTeamList()
@@ -452,7 +452,7 @@ function widget:ViewResize(vsx, vsy)
   viewSizeX, viewSizeY = vsx, vsy
   x1 = viewSizeX + x1
   y1 = viewSizeY + y1
-  widgetScale = (0.75 + (viewSizeX*viewSizeY / 7500000)) * customScale
+  widgetScale = (0.66 + (viewSizeX*viewSizeY / 7500000)) * customScale
 end
 
 
