@@ -118,7 +118,7 @@ return {
 			},
 		},
 		weapondefs = {
-			adv_decklaser = {
+			laser = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.15,
@@ -136,7 +136,7 @@ return {
 				name = "L2DeckLaser",
 				noselfdamage = true,
 				range = 450,
-				reloadtime = 0.4,
+				reloadtime = 0.8,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
@@ -157,7 +157,7 @@ return {
 					vtol = 15,
 				},
 			},
-			advdepthcharge = {
+			depthcharge = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -191,7 +191,7 @@ return {
 					default = 220,
 				},
 			},
-			arm_crus = {
+			plasma = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -223,15 +223,23 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARM_CRUS",
+				def = "PLASMA",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "ADV_DECKLASER",
+				def = "LASER",
 				onlytargetcategory = "NOTSUB",
+				maindir = "0 0 -1",
+				maxangledif = 285,
 			},
 			[3] = {
-				def = "ADVDEPTHCHARGE",
+				def = "LASER",
+				onlytargetcategory = "NOTSUB",
+				maindir = "0 0 1",
+				maxangledif = 285,
+			},
+			[4] = {
+				def = "DEPTHCHARGE",
 				onlytargetcategory = "NOTHOVER",
 			},
 		},
