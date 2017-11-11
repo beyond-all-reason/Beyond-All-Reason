@@ -162,6 +162,8 @@ local icons = {
   {"lrpc.user", "LuaUI/Icons/lrpc.png", 2.35*iconScale},
   {"lrpc_lolcannon.user", "LuaUI/Icons/lrpc.png", 3.5*iconScale},
 
+  {"chicken_queen.user", "LuaUI/Icons/lrpc.png", 4.5*iconScale},
+
   {"meteor.user", "LuaUI/Icons/meteor.png", 1*iconScale},
 
   {"wall.user", "LuaUI/Icons/building.png",0.55*iconScale},
@@ -208,6 +210,8 @@ function changeUnitIcons()
       Spring.SetUnitDefIcon(udid, "blank.user")
     elseif ud.name=="chip" or ud.name=="dice" or ud.name=="xmasball" or ud.name=="corstone" or ud.name=="armstone" then
       Spring.SetUnitDefIcon(udid, "blank.user")
+    elseif (ud.moveDef ~= nil and ud.moveDef.name=="chickqueen") then
+      Spring.SetUnitDefIcon(udid, "chicken_queen.user")
     elseif (ud.name=="corkrog") then
       Spring.SetUnitDefIcon(udid, "krogoth.user")
     elseif (ud.name=="armbanth") then
