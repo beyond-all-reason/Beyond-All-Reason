@@ -4,7 +4,7 @@ return {
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 12000,
-		buildcostmetal = 1500,
+		buildcostmetal = 1250,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
@@ -55,7 +55,7 @@ return {
 				footprintz = 3,
 				height = 40,
 				hitdensity = 100,
-				metal = 1069,
+				metal = 890,
 				object = "ARMGUARD_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -72,7 +72,7 @@ return {
 				footprintz = 3,
 				height = 4,
 				hitdensity = 100,
-				metal = 428,
+				metal = 357,
 				object = "3X3D",
                 collisionvolumescales = "55.0 4.0 6.0",
                 collisionvolumetype = "cylY",
@@ -116,7 +116,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armguard_fixedkine = {
+			plasma = {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				accuracy = 75,
 				areaofeffect = 128,
@@ -152,7 +152,7 @@ return {
 			},
 				
 				
-			armfixed_gun_high = {
+			plasma_high = {
 				accuracy = 75,
 				areaofeffect = 192,
 				avoidfeature = false,
@@ -182,8 +182,8 @@ return {
 					default = 550,
 					subs = 90,
 					fighters = 90,
-					lboats = 950,
-					hvyboats = 750,
+					lboats = 1100,
+					hvyboats = 1100,
 					vtol = 90,
 				},
 			},
@@ -191,13 +191,13 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARMGUARD_FIXEDKINE",
+				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "ARMFIXED_GUN_HIGH",
+				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -55,7 +55,7 @@ return {
 				footprintz = 4,
 				height = 20,
 				hitdensity = 100,
-				metal = 1123,
+				metal = 936,
 				object = "CORPUN_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -72,7 +72,7 @@ return {
 				footprintz = 4,
 				height = 4,
 				hitdensity = 100,
-				metal = 449,
+				metal = 373,
 				object = "4X4B",
                 collisionvolumescales = "85.0 14.0 6.0",
                 collisionvolumetype = "cylY",
@@ -116,7 +116,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corfixed_gun = {
+			plasma = {
 				accuracy = 75,
 				areaofeffect = 140,
 				avoidfeature = false,
@@ -150,7 +150,7 @@ return {
 					vtol = 95,
 				},
 			},
-			corfixed_gun_high = {
+			plasma_high = {
 				accuracy = 75,
 				areaofeffect = 208,
 				avoidfeature = false,
@@ -180,8 +180,8 @@ return {
 					default = 550,
 					fighters = 95,
 					subs = 95,
-					lboats = 950,
-					hvyboats = 750,
+					lboats = 1100,
+					hvyboats = 1100,
 					vtol = 95,
 				},
 			},
@@ -189,13 +189,13 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORFIXED_GUN",
+				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "CORFIXED_GUN_HIGH",
+				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
 		},
