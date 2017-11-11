@@ -5,7 +5,7 @@ end
 
 function widget:GetInfo()
 	return {
-	name      = "Red Console (AllInOne)", --version 4.1
+	name      = "Red Console (old)", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
 	date      = "29 may 2015",

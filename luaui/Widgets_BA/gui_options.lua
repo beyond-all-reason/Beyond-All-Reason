@@ -890,6 +890,17 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("fps "..value)
 			Spring.SendCommands("clock "..value)
 			Spring.SendCommands("speed "..value)
+		elseif id == 'oldconsole' then
+			if value == 1 then
+				widgetHandler:DisableWidget('Red Console (In-game chat only)')
+				widgetHandler:DisableWidget('Red Console (Battle and autohosts)')
+				widgetHandler:EnableWidget('Red Console (old)')
+			else
+				widgetHandler:DisableWidget('Red Console (old)')
+				widgetHandler:EnableWidget('Red Console (In-game chat only)')
+				widgetHandler:EnableWidget('Red Console (Battle and autohosts)')
+			end
+			Spring.SendCommands("luarules reloadluaui")
 		elseif id == 'buildmenuoldicons' then
 			WG['red_buildmenu'].setConfigOldUnitIcons(options[i].value)
 		elseif id == 'buildmenushortcuts' then
@@ -1503,6 +1514,8 @@ function init()
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
+		{id="oldconsole", group="ui", name="Old console (single)", type="bool", value=GetWidgetToggleValue("Red Console (old)"), description='Enable old console that doesnt separate system and chat messages'},
+
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
@@ -1677,7 +1690,21 @@ end
 
 
 function widget:Initialize()
-	WG['options'] = {}
+
+	-- making sure a redui console is displayed without the alternatives in play
+	if widgetHandler.orderList['Red Console (old)'] ~= nil and widgetHandler.orderList['Red Console (In-game chat only)'] ~= nil and widgetHandler.orderList['Red Console (Battle and autohosts)'] ~= nil then
+		if widgetHandler.orderList['Red Console (old)'] == 0 and (widgetHandler.orderList['Red Console (In-game chat only)'] == 0 or widgetHandler.orderList['Red Console (Battle and autohosts)'] == 0) then
+			widgetHandler:EnableWidget('Red Console (In-game chat only)')
+			widgetHandler:EnableWidget('Red Console (Battle and autohosts)')
+			Spring.SendCommands("luarules reloadluaui")
+		elseif widgetHandler.orderList['Red Console (old)'] > 0 and (widgetHandler.orderList['Red Console (In-game chat only)'] > 0 or widgetHandler.orderList['Red Console (Battle and autohosts)'] > 0) then
+			widgetHandler:DisableWidget('Red Console (In-game chat only)')
+			widgetHandler:DisableWidget('Red Console (Battle and autohosts)')
+			Spring.SendCommands("luarules reloadluaui")
+		end
+	end
+
+		WG['options'] = {}
 	WG['options'].toggle = function(state)
 		if state ~= nil then
 			show = state
