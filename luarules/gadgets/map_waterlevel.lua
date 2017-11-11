@@ -45,7 +45,7 @@ function gadget:Initialize()
 		featureDefID = Spring.GetFeatureDefID(featuretable[i])
 		x,_,z = Spring.GetFeaturePosition(featuretable[i])
 				Spring.DestroyFeature(featuretable[i])
-				if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or (FeatureDefs[featureDefID].metal > 0 and FeatureDefs[featureDefID].energy == 0) then -- Keep features (> 0 height) or (geovents) or (pure metal)
+				if Spring.GetGroundHeight(x,z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then -- Keep features (> 0 height) or (geovents) or (contains metal)
 				Spring.CreateFeature(featureDefID, x, Spring.GetGroundHeight(x,z), z)
 				end
 		end
