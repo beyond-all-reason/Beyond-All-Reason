@@ -15,10 +15,10 @@
 			particleLife=12;
 			particleLifeSpread=8;
 			numParticles=5;
-			particleSpeed=1.5;
-			particleSpeedSpread=3;
-			particleSize=12;
-			particleSizeSpread=8;
+			particleSpeed=1.25;
+			particleSpeedSpread=2.5;
+			particleSize=9;
+			particleSizeSpread=6;
 			emitRot=0;
 			emitRotSpread=80;
 			directional=1;
@@ -31,7 +31,7 @@
 	{
 		class=CSimpleParticleSystem;
 		[properties] {
-			sizegrowth=3;
+			sizegrowth=2.5;
 			sizemod=1;
 			pos=0, 1.0, 0;
 			emitVector=0, 1, 0;
@@ -44,8 +44,8 @@
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=22;
-			particleSizeSpread=8;
+			particleSize=18;
+			particleSizeSpread=6;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;

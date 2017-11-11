@@ -15,10 +15,10 @@
 			particleLife=12;
 			particleLifeSpread=8;
 			numParticles=5;
-			particleSpeed=3;
-			particleSpeedSpread=6;
-			particleSize=24;
-			particleSizeSpread=16;
+			particleSpeed=2.5;
+			particleSpeedSpread=5;
+			particleSize=20;
+			particleSizeSpread=13;
 			emitRot=0;
 			emitRotSpread=80;
 			directional=1;
@@ -31,7 +31,7 @@
 	{
 		class=CSimpleParticleSystem;
 		[properties] {
-			sizegrowth=3;
+			sizegrowth=2.5;
 			sizemod=1;
 			pos=0, 1.0, 0;
 			emitVector=0, 1, 0;
@@ -39,13 +39,13 @@
 			Texture=bloodblast;
 			colorMap=1 1 1 1   1 1 1 1   0 0 0 0;
 			airdrag=.9;
-			particleLife=16;
+			particleLife=15;
 			particleLifeSpread=0;
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=24;
-			particleSizeSpread=16;
+			particleSize=20;
+			particleSizeSpread=13;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;
@@ -55,9 +55,9 @@
 	}
 /*	[groundflash]
 	{
-		flashSize = 96;   // flash size
-		flashAlpha = .6;    // initial alpha of the flash
-		circleGrowth = 9; // size increase/frame
+		flashSize = 77;   // flash size
+		flashAlpha = .5;    // initial alpha of the flash
+		circleGrowth = 8; // size increase/frame
 		circleAlpha = .4;   // initial alpha of the ring
 		ttl = 16;          // number of frames
 		color = .2,.4,.9;    // color RGB
@@ -81,10 +81,10 @@
 			particleLife=12;
 			particleLifeSpread=8;
 			numParticles=5;
-			particleSpeed=3;
-			particleSpeedSpread=6;
-			particleSize=24;
-			particleSizeSpread=16;
+			particleSpeed=2.5;
+			particleSpeedSpread=5;
+			particleSize=20;
+			particleSizeSpread=13;
 			emitRot=0;
 			emitRotSpread=80;
 			directional=1;
@@ -97,7 +97,7 @@
 	{
 		class=CSimpleParticleSystem;
 		[properties] {
-			sizegrowth=3;
+			sizegrowth=2.5;
 			sizemod=1;
 			pos=0, 1.0, 0;
 			emitVector=0, 1, 0;
@@ -110,8 +110,8 @@
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=24;
-			particleSizeSpread=16;
+			particleSize=20;
+			particleSizeSpread=13;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;
@@ -142,9 +142,9 @@
 		airdrag			= 0.8;
 		particleLife		= 5;
 		particleLifeSpread	= 12;
-		numParticles		= 16;
-		particleSpeed		= 10;
-		particleSpeedSpread	= 6;
+		numParticles		= 14;
+		particleSpeed		= 6.5;
+		particleSpeedSpread	= 4/5;
 		particleSize		= 15;
 		particleSizeSpread	= 10;
 
@@ -191,10 +191,10 @@
 			particleLife=6;
 			particleLifeSpread=12;
 			numParticles=2;
-			particleSpeed=3;
-			particleSpeedSpread=6;
-			particleSize=6;
-			particleSizeSpread=12;
+			particleSpeed=2.5;
+			particleSpeedSpread=5.5;
+			particleSize=4.5;
+			particleSizeSpread=9;
 			emitRot=0;
 			emitRotSpread=80;
 			directional=1;
@@ -207,7 +207,7 @@
 	{
 		class=CSimpleParticleSystem;
 		[properties] {
-			sizegrowth=3;
+			sizegrowth=2.5;
 			sizemod=1;
 			pos=0, 1.0, 0;
 			emitVector=0, 1, 0;
@@ -220,8 +220,8 @@
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=8;
-			particleSizeSpread=16;
+			particleSize=6;
+			particleSizeSpread=12;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;

@@ -5,7 +5,7 @@
 	{
 		class=CSimpleParticleSystem;
 		[properties] {
-			sizegrowth=4;
+			sizegrowth=3.3;
 			sizemod=1;
 			pos=0, 1.0, 0;
 			emitVector=dir;
@@ -16,9 +16,9 @@
 			particleLife=12;
 			particleLifeSpread=2;
 			numParticles=2;
-			particleSpeed=10;
-			particleSpeedSpread=2;
-			particleSize=2;
+			particleSpeed=8;
+			particleSpeedSpread=1.5;
+			particleSize=1.8;
 			particleSizeSpread=1;
 			emitRot=0;
 			emitRotSpread=40;
@@ -37,8 +37,8 @@
          	colorMap=1 1 1 1   1 1 1 1   0 0 0 0;
           	size=1;
           	length=2;
-          	sizeGrowth=16;
-          	ttl=18;
+          	sizeGrowth=13;
+          	ttl=17;
           	frontOffset=0;
           	sideTexture=bloodsplat;
           	frontTexture=bloodsplat;
