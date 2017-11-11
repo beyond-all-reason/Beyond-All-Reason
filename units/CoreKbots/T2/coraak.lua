@@ -126,7 +126,7 @@ return {
 				size = 4.5,
 				noselfdamage = true,
 				range = 800,
-				reloadtime = 5.5,
+				reloadtime = 4.5,
 				rgbcolor = {1, 0.5, 0.7},
 				size = 1.4,
 				soundhit = "flakhit",

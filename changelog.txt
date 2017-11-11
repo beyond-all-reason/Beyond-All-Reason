@@ -41,6 +41,8 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
  • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
  • Chainsaw costs 8700e 750m => 7000e/600m, airlos 1000 -> 1200, range 1200 ->1500
+ • Armaak: missile damages +33 % (1:150 => 200 and 2:75 => 100)
+ • Coraak: flak reload time 5.5 -> 4.5
 
  (AA) missiles:
  • AA missile range increased a tiny bit
@@ -48,6 +50,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Fighters have been given more range due to slower missile speed and missile turnrate
  • Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
  • Fighters (T1,T2,seaplanes) a2g missiles damages 75% decreased (default) and do 50% less damages than default to commanders.
+
 
  Long range plasma
  • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.

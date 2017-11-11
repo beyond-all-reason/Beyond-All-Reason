@@ -188,9 +188,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 150,
-					fighters = 150,
-					vtol = 150,
+					bombers = 200,
+					fighters = 200,
+					vtol = 200,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
@@ -236,9 +236,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 75,
-					fighters = 75,
-					vtol = 75,
+					bombers = 100,
+					fighters = 100,
+					vtol = 100,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
