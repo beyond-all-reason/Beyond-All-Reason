@@ -165,7 +165,7 @@ function WeaponDef_Post(name, wDef)
   -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
 	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
 		wDef["damage"].hvyboats = wDef["damage"].heavyunits 
-	elseif not wDef["damage"].heavyunits then 
+	elseif (not (wDef["damage"].hvyboats)) and (not wDef["damage"].heavyunits) then 
 		wDef["damage"].hvyboats = wDef["damage"].default
 	end
   -- end of artificial ArmorDefs tree
