@@ -133,7 +133,7 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
-				size = 1.5,
+				size = 2,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 290,
