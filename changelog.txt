@@ -70,6 +70,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Fixed viper overshooting (when aiming at radar dots)
  • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
  • Moho Exploiter now has same health (2000 -> 3500) as regular moho, but does less damage per shot
+ • Core Tremor m cost 2000 -> 1800
 
  T3
  • Vanguard does 15% more damage
