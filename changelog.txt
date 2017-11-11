@@ -40,6 +40,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Fixed flak doing ludicrous damage to ground units
  • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
  • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
+ • Chainsaw costs 8700e 750m => 7000e/600m, airlos 1000 -> 1200, range 1200 ->1500
 
  (AA) missiles:
  • AA missile range increased a tiny bit
