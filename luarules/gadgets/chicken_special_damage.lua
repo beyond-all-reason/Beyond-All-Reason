@@ -47,55 +47,55 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 local DAMAGE_LIMITS = {
-  -- [WeaponDefNames['cordecom_decoy_disintegrator'].id] = 10,
-  -- [WeaponDefNames['armdecom_decoy_disintegrator'].id] = 10
+	[WeaponDefNames['cordecom_disintegrator'].id] = 10,
+	[WeaponDefNames['armdecom_disintegrator'].id] = 10
 }
 
 local DGUN = {
-  -- [WeaponDefNames['corcom_arm_disintegrator'].id] = 15000,
-  -- [WeaponDefNames['armcom_arm_disintegrator'].id] = 15000
+	[WeaponDefNames['corcom_disintegrator'].id] = 15000,
+	[WeaponDefNames['armcom_disintegrator'].id] = 15000
 }
 
 local CHICKEN_RESISTS = {
-	-- [UnitDefNames['chickenp1'].id] = {
-		-- [WeaponDefNames['cormaw_dmaw'].id] = 0.4,
-		-- [WeaponDefNames['corpyro_flamethrower'].id] = 0.4,
-		-- [WeaponDefNames['corhurc_coradvbomb'].id] = 0.75,
-		-- [WeaponDefNames['cortermite_core_termite_laser'].id] = 0.75,
-		-- [WeaponDefNames['corkrog_corkrog_laser'].id] = 0.75,
-	-- },
-	-- [UnitDefNames['chickenc1'].id] = {
-		-- [WeaponDefNames['armclaw_dclaw'].id] = 0.6,
-		-- [WeaponDefNames['armzeus_lightning'].id] = 0.6,
-		-- [WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.6,
-		-- [WeaponDefNames['armbanth_armbantha_fire'].id] = 0.6,
-	-- },
-	-- [UnitDefNames['chickenc3'].id] = {
-		-- [WeaponDefNames['armclaw_dclaw'].id] = 0.5,
-		-- [WeaponDefNames['armzeus_lightning'].id] = 0.5,
-		-- [WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
-		-- [WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
-	-- },
-	-- [UnitDefNames['chickenc3b'].id] = {
-		-- [WeaponDefNames['armclaw_dclaw'].id] = 0.5,
-		-- [WeaponDefNames['armzeus_lightning'].id] = 0.5,
-		-- [WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
-		-- [WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
-	-- },
-	-- [UnitDefNames['chickenc3b'].id] = {
-		-- [WeaponDefNames['armclaw_dclaw'].id] = 0.5,
-		-- [WeaponDefNames['armzeus_lightning'].id] = 0.5,
-		-- [WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
-		-- [WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
-	-- },
-	-- [UnitDefNames['chickenh5'].id] = {
-		-- [WeaponDefNames['corvipe_vipersabot'].id] = 0.5,
-		-- [WeaponDefNames['armpb_armpb_weapon'].id] = 0.5,
-	-- },
-	-- [UnitDefNames['chicken2b'].id] = {
-		-- [WeaponDefNames['cordoom_atadr'].id] = 0.666,
-		-- [WeaponDefNames['armanni_ata'].id] = 0.666,
-	-- },
+	[UnitDefNames['chickenp1'].id] = {
+		[WeaponDefNames['cormaw_dmaw'].id] = 0.4,
+		[WeaponDefNames['corpyro_flamethrower'].id] = 0.4,
+		[WeaponDefNames['corhurc_coradvbomb'].id] = 0.75,
+		[WeaponDefNames['cortermite_core_termite_laser'].id] = 0.75,
+		[WeaponDefNames['corkrog_corkrog_laser'].id] = 0.75,
+	},
+	[UnitDefNames['chickenc1'].id] = {
+		[WeaponDefNames['armclaw_dclaw'].id] = 0.6,
+		[WeaponDefNames['armzeus_lightning'].id] = 0.6,
+		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.6,
+		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.6,
+	},
+	[UnitDefNames['chickenc3'].id] = {
+		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
+		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
+		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
+		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
+	},
+	[UnitDefNames['chickenc3b'].id] = {
+		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
+		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
+		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
+		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
+	},
+	[UnitDefNames['chickenc3b'].id] = {
+		[WeaponDefNames['armclaw_dclaw'].id] = 0.5,
+		[WeaponDefNames['armzeus_lightning'].id] = 0.5,
+		[WeaponDefNames['armlatnk_armlatnk_weapon'].id] = 0.5,
+		[WeaponDefNames['armbanth_armbantha_fire'].id] = 0.5,
+	},
+	[UnitDefNames['chickenh5'].id] = {
+		[WeaponDefNames['corvipe_vipersabot'].id] = 0.5,
+		[WeaponDefNames['armpb_armpb_weapon'].id] = 0.5,
+	},
+	[UnitDefNames['chicken2b'].id] = {
+		[WeaponDefNames['cordoom_atadr'].id] = 0.666,
+		[WeaponDefNames['armanni_ata'].id] = 0.666,
+	},
 }
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
