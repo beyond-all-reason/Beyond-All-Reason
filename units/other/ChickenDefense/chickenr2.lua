@@ -58,7 +58,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:ANGRYLOBBERTRAIL",
+				[1] = "custom:blank",
 				[2] = "custom:blood_spray",
 				[3] = "custom:blood_explode",
 				[4] = "custom:dirt",

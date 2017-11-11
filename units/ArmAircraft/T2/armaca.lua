@@ -2,8 +2,8 @@ return {
 	armaca = {
 		acceleration = 0.07,
 		brakerate = 0.4275,
-		buildcostenergy = 11642,
-		buildcostmetal = 282,
+		buildcostenergy = 12000,
+		buildcostmetal = 280,
 		builddistance = 136,
 		builder = true,
 		shownanospray = false,

@@ -62,7 +62,7 @@
 
 
 [ANGRYLOBBERTRAIL]
-{	
+{
 	[unit_sparkles]
 	{
 		class=CSimpleParticleSystem;
@@ -74,7 +74,7 @@
 			emitVector=0, -1, 0;
 			gravity=0,0,0;
 			colorMap=0 0 0 0	0.5 0.5 0.5 0.2	  0.8 0.8 0.8 0.4	  0.3 0.3 0.3 0.2	  0.1 0.1 0.1 0.1	  0 0 0 0.01;
-			texture=lightb2;
+			texture=lightb;
 			airdrag=0.95;
 			particleLife=6;
 			particleLifeSpread=3;
@@ -92,7 +92,7 @@
 		ground=1;
 		unit=1;
 		count=2;
-	}	
+	}
 		
 }
 
