@@ -7,12 +7,12 @@
 		[properties]
       		{
 		texture=uglynovaexplo;
-      		heat = 10;
-      		maxheat = 15;
-      		heatFalloff = 1.1;
+      		heat = 8;
+      		maxheat = 14;
+      		heatFalloff = 1.15;
 
       		size = 1;
-      		sizeGrowth = 15;
+      		sizeGrowth = 12;
 
          	pos = r-2 r2, 5, r-2 r2;
          	speed=0, 1 0, 0;
@@ -30,12 +30,12 @@
 		[properties]
       		{
 		texture=flare;
-      		heat = 10;
-      		maxheat = 15;
-      		heatFalloff = 1.3;
+      		heat = 8;
+      		maxheat = 13;
+      		heatFalloff = 1.35;
 
-      		size = 3;
-      		sizeGrowth = 25;
+      		size = 2.4;
+      		sizeGrowth = 21;
 
          	pos = r-2 r2, 5, r-2 r2;
          	speed=0, 1 0, 0;
@@ -68,11 +68,11 @@
 		airdrag			= 0.8;
 		particleLife		= 10;
 		particleLifeSpread	= 5;
-		numParticles		= 8;
-		particleSpeed		= 10;
-		particleSpeedSpread	= 15;
-		particleSize		= 30;
-		particleSizeSpread	= 10;
+		numParticles		= 7;
+		particleSpeed		= 6;
+		particleSpeedSpread	= 13;
+		particleSize		= 24;
+		particleSizeSpread	= 8;
 
 		directional		= 1;
 		useAirLos		= 0;
@@ -86,7 +86,7 @@
 	{
 		[properties]
 		{
-		size=20;
+		size=15;
 		color=0.2, 0.1, 0.05;
 		alphaFalloff=2;
 		speed= r1.5 r-1.5, 2, r1.5 r-1.5;
@@ -98,16 +98,16 @@
 
 	[groundflash]
    	{
-      	ttl = 13;
-      	flashSize = 180;
-      	flashAlpha = 0.9;
+      	ttl = 12;
+      	flashSize = 140;
+      	flashAlpha = 0.6;
 
-      	circleGrowth = 6;
-      	circleAlpha = 0.6;
+      	circleGrowth = 5;
+      	circleAlpha = 0.5;
 
       	color = 1, 0.5, 0;
 
-	air=1;
+	    air=1;
      	ground=1;
       	water=1;
 	}
