@@ -293,9 +293,14 @@ local armorDefs = {
 		"coruwadvms",
 	},
 	bombers = {
+		"chickenw1",
+		"chickenw1b",
+		"chickenw1c",
+		"chickenw1d",
+		"chickenw2",		
 		"armthund",
 		"corshad",
-        "armliche",
+		"armliche",
 		"armlance",
 		"armpnix",
 		"armsb",
@@ -305,6 +310,9 @@ local armorDefs = {
 		"cortitan",
 	},
 	fighters = {
+		"chickenf1",
+		"chickenf1b",
+		"chickenf2",
 		"armfig",
 		"corveng",
 		"armhawk",
@@ -330,6 +338,7 @@ local armorDefs = {
 		"cornanotcplat",
 	},
 	vtol = {
+		"chickens3",
 		"armaca",
 		"armca",
 		"armcsa",
