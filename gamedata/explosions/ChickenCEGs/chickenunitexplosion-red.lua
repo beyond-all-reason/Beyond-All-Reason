@@ -25,40 +25,40 @@ return {
     },
 	
 	-- put this next to groundflash
-	explosionwave = {
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-      water              = true, 
-	  underwater         = true,
-      properties = {
-        airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[1 0 0 0.05	0 0 0 0.0]], -- same as groundflash colors
-        directional        = false,
-        emitrot            = 90,
-        emitrotspread      = 5,
-        emitvector         = [[0, 0, 0]],
-        gravity            = [[0, 0, 0]],
-        numparticles       = 1,
-        particlelife       = [[20]], -- same as groundflash ttl
-        particlelifespread = 0,
-        particlesize       = 2, -- groundflash flashsize 25 = 1, so if flashsize is 200, particlesize here would be 8
-        particlesizespread = 1,
-        particlespeed      = [[8]],
-        particlespeedspread = 6,
-        pos                = [[0, 1, 0]],
-        sizegrowth         = 3, -- same as groundflash circlegrowth
-        sizemod            = 1.0,
-        texture            = [[bloodblast]],
-      },
-    },
+	--explosionwave = {
+    --  air                = true,
+    --  class              = [[CSimpleParticleSystem]],
+    --  count              = 1,
+    --  ground             = true,
+    --  water              = true,
+	--  underwater         = true,
+    --  properties = {
+    --    airdrag            = 0.87,
+    --    alwaysvisible      = true,
+    --    colormap           = [[1 0 0 0.05	0 0 0 0.0]], -- same as groundflash colors
+    --    directional        = false,
+    --    emitrot            = 90,
+    --    emitrotspread      = 5,
+    --    emitvector         = [[0, 0, 0]],
+    --    gravity            = [[0, 0, 0]],
+    --    numparticles       = 1,
+    --    particlelife       = [[20]], -- same as groundflash ttl
+    --    particlelifespread = 0,
+    --    particlesize       = 2, -- groundflash flashsize 25 = 1, so if flashsize is 200, particlesize here would be 8
+    --    particlesizespread = 1,
+    --    particlespeed      = [[8]],
+    --    particlespeedspread = 6,
+    --    pos                = [[0, 1, 0]],
+    --    sizegrowth         = 3, -- same as groundflash circlegrowth
+    --    sizemod            = 1.0,
+    --    texture            = [[bloodblast]],
+    --  },
+    --},
 	
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      flashalpha         = 0.5,
+      flashalpha         = 0.6,
       flashsize          = 50,
       ground             = true,
       ttl                = 20,
@@ -164,11 +164,11 @@ return {
       properties = {
         alwaysvisible      = true,
         heat               = 10,
-        heatfalloff        = 1.1,
+        heatfalloff        = 1.15,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
         size               = 1,
-        sizegrowth         = 10,
+        sizegrowth         = 7,
         speed              = [[0, 1 0, 0]],
         texture            = [[bloodblast]],
       },
@@ -197,42 +197,40 @@ return {
     },
 	
 	-- put this next to groundflash
-	explosionwave = {
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-      water              = true, 
-	  underwater         = true,
-      properties = {
-        airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[1 0 0 0.05	0 0 0 0.0]], -- same as groundflash colors
-        directional        = false,
-        emitrot            = 90,
-        emitrotspread      = 5,
-        emitvector         = [[0, 0, 0]],
-        gravity            = [[0, 0, 0]],
-        numparticles       = 1,
-        particlelife       = [[20]], -- same as groundflash ttl
-        particlelifespread = 0,
-        particlesize       = 4, -- groundflash flashsize 25 = 1, so if flashsize is 200, particlesize here would be 8
-        particlesizespread = 1,
-        particlespeed      = [[8]],
-        particlespeedspread = 6,
-        pos                = [[0, 1, 0]],
-        sizegrowth         = 6, -- same as groundflash circlegrowth
-        sizemod            = 1.0,
-        texture            = [[bloodblast]],
-      },
-    },
+	--explosionwave = {
+    --  air                = true,
+    --  class              = [[CSimpleParticleSystem]],
+    --  count              = 1,
+    --  ground             = true,
+    --  water              = true,
+	--  underwater         = true,
+    --  properties = {
+    --    airdrag            = 0.87,
+    --    alwaysvisible      = true,
+    --    colormap           = [[1 0 0 0.05	0 0 0 0.0]], -- same as groundflash colors
+    --    directional        = false,
+    --    emitrot            = 90,
+    --    emitrotspread      = 5,
+    --    emitvector         = [[0, 0, 0]],
+    --    gravity            = [[0, 0, 0]],
+    --    numparticles       = 1,
+    --    particlelife       = [[20]], -- same as groundflash ttl
+    --    particlelifespread = 0,
+    --    particlesize       = 4, -- groundflash flashsize 25 = 1, so if flashsize is 200, particlesize here would be 8
+    --    particlesizespread = 1,
+    --    particlespeed      = [[8]],
+    --    particlespeedspread = 6,
+    --    pos                = [[0, 1, 0]],
+    --    sizegrowth         = 6, -- same as groundflash circlegrowth
+    --    sizemod            = 1.0,
+    --    texture            = [[bloodblast]],
+    --  },
+    --},
 	
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      circlealpha        = 0.6,
-      circlegrowth       = 6,
-      flashalpha         = 0.9,
+      flashalpha         = 0.6,
       flashsize          = 100,
       ground             = true,
       ttl                = 20,
@@ -338,11 +336,11 @@ return {
       properties = {
         alwaysvisible      = true,
         heat               = 10,
-        heatfalloff        = 1.1,
+        heatfalloff        = 1.15,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
         size               = 1,
-        sizegrowth         = 15,
+        sizegrowth         = 11,
         speed              = [[0, 1 0, 0]],
         texture            = [[bloodblast]],
       },
@@ -355,7 +353,7 @@ return {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         alwaysvisible      = true,
@@ -369,48 +367,46 @@ return {
         texture            = [[flare-chickens]],
       },
     },
-	
+
 	-- put this next to groundflash
-	explosionwave = {
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-      water              = true, 
-	  underwater         = true,
-      properties = {
-        airdrag            = 0.87,
-        alwaysvisible      = true,
-        colormap           = [[1 0 0 0.05	0 0 0 0.0]], -- same as groundflash colors
-        directional        = false,
-        emitrot            = 90,
-        emitrotspread      = 5,
-        emitvector         = [[0, 0, 0]],
-        gravity            = [[0, 0, 0]],
-        numparticles       = 1,
-        particlelife       = [[20]], -- same as groundflash ttl
-        particlelifespread = 0,
-        particlesize       = 6, -- groundflash flashsize 25 = 1, so if flashsize is 200, particlesize here would be 8
-        particlesizespread = 1,
-        particlespeed      = [[8]],
-        particlespeedspread = 6,
-        pos                = [[0, 1, 0]],
-        sizegrowth         = 12, -- same as groundflash circlegrowth
-        sizemod            = 1.0,
-        texture            = [[bloodblast]],
-      },
-    },
-	
+	--explosionwave = {
+    --  air                = true,
+    --  class              = [[CSimpleParticleSystem]],
+    --  count              = 1,
+    --  ground             = true,
+    --  water              = true,
+	--  underwater         = true,
+    --  properties = {
+    --    airdrag            = 0.87,
+    --    alwaysvisible      = true,
+    --    colormap           = [[1 0 0 0.05	0 0 0 0.0]], -- same as groundflash colors
+    --    directional        = false,
+    --    emitrot            = 90,
+    --    emitrotspread      = 5,
+    --    emitvector         = [[0, 0, 0]],
+    --    gravity            = [[0, 0, 0]],
+    --    numparticles       = 1,
+    --    particlelife       = [[20]], -- same as groundflash ttl
+    --    particlelifespread = 0,
+    --    particlesize       = 6, -- groundflash flashsize 25 = 1, so if flashsize is 200, particlesize here would be 8
+    --    particlesizespread = 1,
+    --    particlespeed      = [[8]],
+    --    particlespeedspread = 6,
+    --    pos                = [[0, 1, 0]],
+    --    sizegrowth         = 12, -- same as groundflash circlegrowth
+    --    sizemod            = 1.0,
+    --    texture            = [[bloodblast]],
+    --  },
+    --},
+
     groundflash = {
       air                = true,
       alwaysvisible      = true,
-      circlealpha        = 0.6,
-      circlegrowth       = 12,
-      flashalpha         = 0.9,
+      flashalpha         = 0.6,
       flashsize          = 150,
       ground             = true,
       ttl                = 20,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       color = {
         [1]  = 1,
@@ -437,7 +433,7 @@ return {
         particlelifespread = 30,
         particlesize       = 2,
         particlesizespread = 1,
-        particlespeed      = 10,
+        particlespeed      = 8,
         particlespeedspread = 6,
         pos                = [[0, 1, 0]],
         sizegrowth         = 0.5,
@@ -448,7 +444,7 @@ return {
     kickedupwater = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         airdrag            = 0.87,
@@ -477,7 +473,7 @@ return {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         airdrag            = 0.8,
@@ -493,7 +489,7 @@ return {
         particlelifespread = 0,
         particlesize       = 1,
         particlesizespread = 0,
-        particlespeed      = 12,
+        particlespeed      = 10,
         particlespeedspread = 2,
         pos                = [[0, 2, 0]],
         sizegrowth         = 1,
@@ -507,16 +503,16 @@ return {
       class              = [[heatcloud]],
       count              = 2,
       ground             = true,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         alwaysvisible      = true,
         heat               = 10,
-        heatfalloff        = 1.1,
+        heatfalloff        = 1.15,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
         size               = 1,
-        sizegrowth         = 30,
+        sizegrowth         = 15,
         speed              = [[0, 1 0, 0]],
         texture            = [[bloodblast]],
       },
