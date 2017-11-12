@@ -100,10 +100,7 @@
    	{
       	ttl = 12;
       	flashSize = 140;
-      	flashAlpha = 0.6;
-
-      	circleGrowth = 5;
-      	circleAlpha = 0.5;
+      	flashAlpha = 0.4;
 
       	color = 1, 0.5, 0;
 
@@ -157,10 +154,7 @@
    	{
       	ttl = 13;
       	flashSize = 120;
-      	flashAlpha = 0.9;
-
-      	circleGrowth = 6;
-      	circleAlpha = 0.6;
+      	flashAlpha = 0.4;
 
       	color = 1, 0.5, 0;
 

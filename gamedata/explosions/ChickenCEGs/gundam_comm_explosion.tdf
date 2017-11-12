@@ -108,10 +108,7 @@
 	alwaysVisible=1;
       	ttl = 17;
       	flashSize = 120;
-      	flashAlpha = 0.9;
-
-      	circleGrowth = 8;
-      	circleAlpha = 0.5;
+      	flashAlpha = 0.55;
 
       	color = 0.7, 0.0, 0.5;
 

@@ -56,9 +56,7 @@
 /*	[groundflash]
 	{
 		flashSize = 96;   // flash size
-		flashAlpha = .6;    // initial alpha of the flash
-		circleGrowth = 9; // size increase/frame
-		circleAlpha = .4;   // initial alpha of the ring
+		flashAlpha = .4;    // initial alpha of the flash
 		ttl = 16;          // number of frames
 		color = .2,.4,.9;    // color RGB
 	}*/

@@ -9,8 +9,6 @@ return {
 	  water				 = true,
 	  underwater		 = true,
       alwaysvisible      = true,
-      circlealpha        = 0.5,
-      circlegrowth       = 2,
       flashalpha         = 0.5,
       flashsize          = 2000,
       ground             = true,

@@ -25,9 +25,7 @@
    	[GROUNDFLASH]
 	{
 		flashsize=35;
-		flashalpha=0.9;
-		circlegrowth=0;
-		circlealpha=1;
+		flashalpha=0.3;
 		ttl=3;
 		color=1,0.7,0;
 	}
@@ -39,9 +37,7 @@
 	[GROUNDFLASH]
 	{
 		flashsize=12;
-		flashalpha=0.9;
-		circlegrowth=0;
-		circlealpha=1;
+		flashalpha=0.35;
 		ttl=3;
 		color=1,0.7,0;
 	}
@@ -83,9 +79,7 @@
 	[GROUNDFLASH]
 	{
 		flashsize=12;
-		flashalpha=0.9;
-		circlegrowth=0;
-		circlealpha=1;
+		flashalpha=0.4;
 		ttl=3;
 		color=1,0.7,0;
 	}
@@ -219,9 +213,7 @@
    	[GROUNDFLASH]
 	{
 		flashsize=35;
-		flashalpha=0.4;
-		circlegrowth=0;
-		circlealpha=1;
+		flashalpha=0.35;
 		ttl=3;
 		color=1,0.7,0;
 	}
@@ -335,9 +327,7 @@
 	[GROUNDFLASH]
 	{
 		flashsize=48;
-		flashalpha=0.25;
-		circlegrowth=0;
-		circlealpha=1;
+		flashalpha=0.2;
 		ttl=3;
 		color=1,0.95,0.5;
 	}
