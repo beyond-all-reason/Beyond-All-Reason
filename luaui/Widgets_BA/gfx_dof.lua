@@ -304,7 +304,8 @@ function widget:Initialize()
       tex2 = 2,
     }
   })
-  
+
+  Spring.Echo('DoF shaderlog:')
   Spring.Echo(gl.GetShaderLog())
 
   -- create blurtexture

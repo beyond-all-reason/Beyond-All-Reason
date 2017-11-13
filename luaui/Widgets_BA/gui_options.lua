@@ -399,7 +399,7 @@ function checkWidgets()
 	end
 	-- Icon adjuster
 	if (WG['iconadjuster'] ~= nil) then
-		table.insert(options, {id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.4, step=0.05, type="slider", value=WG['iconadjuster'].getScale(), description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'})
+		table.insert(options, {id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=WG['iconadjuster'].getScale(), description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'})
 	end
 	-- Darken map
 	if (WG['darkenmap'] ~= nil) then

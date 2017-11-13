@@ -708,7 +708,6 @@ end
 
 function widget:PlayerChanged(playerID)
 	IsSpec = GetSpectatingState()
-	Spring.Echo(IsSpec)
 end
 
 function widget:UnitDestroyed(unitID)
