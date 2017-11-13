@@ -179,9 +179,9 @@ HitByWeaponId()
 Killed( severity, corpsetype )
 	{
 	corpsetype = 1;
-	explode head type FALL;
-	explode lblade type FALL;
-	explode rblade type FALL;
-	explode tail type FALL;
+	explode head type FALL | NOHEATCLOUD;
+	explode lblade type FALL | NOHEATCLOUD;
+	explode rblade type FALL | NOHEATCLOUD;
+	explode tail type FALL | NOHEATCLOUD;
 	return( 0 );
 	}

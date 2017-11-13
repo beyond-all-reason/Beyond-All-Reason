@@ -99,11 +99,11 @@ Killed( severity, corpsetype )
 	emit-sfx 1025 from body;
 	emit-sfx 1024 from lwing;
 	emit-sfx 1024 from rwing;
-	explode body type SHATTER;
-	explode head type FALL;
-	explode tail type FALL;
-	explode lwing type FALL;
-	explode rwing type FALL;
-	explode mblade type FALL | EXPLODE_ON_HIT;
+	explode body type SHATTER | NOHEATCLOUD;
+	explode head type FALL | NOHEATCLOUD;
+	explode tail type FALL | NOHEATCLOUD;
+	explode lwing type FALL | NOHEATCLOUD;
+	explode rwing type FALL | NOHEATCLOUD;
+	explode mblade type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
 	return( 0 );
 	}

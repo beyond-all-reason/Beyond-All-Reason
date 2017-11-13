@@ -47,7 +47,7 @@ return {
 		steeringmode = "2",
 		tedclass = "KBOT",
 		trackoffset = 0.5,
-		trackstrength = 9,
+		trackstrength = 3,
 		trackstretch = 1,
 		tracktype = "ChickenTrackPointy",
 		trackwidth = 35,

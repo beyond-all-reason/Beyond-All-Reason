@@ -54,7 +54,7 @@ return {
 		steeringmode = "2",
 		tedclass = "AKBOT2",
 		trackoffset = 6,
-		trackstrength = 8,
+		trackstrength = 3,
 		trackstretch = 1,
 		tracktype = "ChickenTrack",
 		trackwidth = 30,

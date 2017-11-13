@@ -184,15 +184,15 @@ Killed(severity, corpsetype)
 	emit-sfx 1025 from head;
 	emit-sfx 1025 from tail;
 	emit-sfx 1025 from lsack;
-	explode body type FALL | EXPLODE_ON_HIT;
-	explode head type FALL | EXPLODE_ON_HIT;
-	explode tail type FALL | EXPLODE_ON_HIT;
-	explode lthigh type FALL | EXPLODE_ON_HIT;
-	explode lknee type FALL | EXPLODE_ON_HIT;
-	explode lshin type FALL | EXPLODE_ON_HIT;
-	explode rthigh type FALL | EXPLODE_ON_HIT;
-	explode rknee type FALL | EXPLODE_ON_HIT;
-	explode rshin type FALL | EXPLODE_ON_HIT;
-	explode rsack type FALL | EXPLODE_ON_HIT;
-	explode lsack type FALL | EXPLODE_ON_HIT;
+	explode body type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode head type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode tail type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode lthigh type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode lknee type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode lshin type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode rthigh type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode rknee type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode rshin type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode rsack type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
+	explode lsack type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
 }

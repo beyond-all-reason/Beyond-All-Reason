@@ -230,9 +230,9 @@ Killed( severity, corpsetype )
 	{
 	corpsetype = 1;
 	emit-sfx 1024+2 from head;
-	explode head type FALL;
-	explode tail type FALL;
-	explode lthigh type FALL;
-	explode rthigh type FALL;
+	explode head type FALL | NOHEATCLOUD;
+	explode tail type FALL | NOHEATCLOUD;
+	explode lthigh type FALL | NOHEATCLOUD;
+	explode rthigh type FALL | NOHEATCLOUD;
 	return( 0 );
 	}
