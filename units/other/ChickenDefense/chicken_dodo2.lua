@@ -70,6 +70,10 @@ return {
 			heap = {},
 		},
 		sfxtypes = {
+			pieceExplosionGenerators = {
+				"deathceg3",
+				"deathceg4",
+			},
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",

@@ -185,19 +185,19 @@ Killed( severity, corpsetype )
 	{
 	corpsetype = 1;
 	emit-sfx 1025 from body;
-	explode body type FALL | EXPLODE_ON_HIT;
-	explode tail type FALL | EXPLODE_ON_HIT;
-	explode head type FALL | EXPLODE_ON_HIT;
-	explode lblade type FALL | EXPLODE_ON_HIT;
-	explode rblade type FALL | EXPLODE_ON_HIT;
-	explode lblade type FALL | EXPLODE_ON_HIT;
-	explode rblade type FALL | EXPLODE_ON_HIT;
-	explode lblade type FALL | EXPLODE_ON_HIT;
-	explode rblade type FALL | EXPLODE_ON_HIT;
-	explode lblade type FALL | EXPLODE_ON_HIT;
-	explode rblade type FALL | EXPLODE_ON_HIT;
-	explode rfoot type FALL | EXPLODE_ON_HIT;
-	explode lfoot type FALL | EXPLODE_ON_HIT;
+	explode body type FALL | FIRE | BITMAP1 | NOHEATCLOUD;
+	explode tail type FALL | FIRE | BITMAP1 | NOHEATCLOUD;
+	explode head type FALL | FIRE | BITMAP1 | NOHEATCLOUD;
+	explode lblade type FALL | FIRE | BITMAP2 | NOHEATCLOUD;
+	//explode rblade type FALL | FIRE | BITMAP2 | NOHEATCLOUD;
+	//explode lblade type FALL | NOHEATCLOUD;
+	//explode rblade type FALL | NOHEATCLOUD;
+	//explode lblade type FALL | NOHEATCLOUD;
+	//explode rblade type FALL | NOHEATCLOUD;
+	//explode lblade type FALL | NOHEATCLOUD;
+	explode rblade type FALL | NOHEATCLOUD;
+	//explode rfoot type FALL | NOHEATCLOUD;
+	explode lfoot type FALL | NOHEATCLOUD;
 
 	return( 0 );
 	}
