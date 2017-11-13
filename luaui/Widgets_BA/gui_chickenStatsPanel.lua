@@ -219,8 +219,8 @@ end
 
 
 local function updatePos(x, y)
-  x1 = math.min(viewSizeX-w/2,x)
-  y1 = math.min(viewSizeY-h/2,y)
+  x1 = math.min((viewSizeX*0.95)-w/2,x)
+  y1 = math.min((viewSizeY*0.95)-h/2,y)
   updatePanel = true
 end
 
@@ -427,8 +427,8 @@ end
 
 function widget:MousePress(x, y, button)
   if (enabled and 
-       x > x1 and x < x1 + w and
-       y > y1 and y < y1 + h) then
+       x > x1 and x < x1 + (w*widgetScale)_ and
+       y > y1 and y < y1 + (h*widgetScale) then
     capture = true
     moving  = true
   end
@@ -451,8 +451,8 @@ function widget:ViewResize(vsx, vsy)
   y1 = math.floor(y1 - viewSizeY)
   viewSizeX, viewSizeY = vsx, vsy
   widgetScale = (0.75 + (viewSizeX*viewSizeY / 10000000)) * customScale
-  x1 = viewSizeX + x1+((x1/2) *(widgetScale-1))
-  y1 = viewSizeY + y1+((y1/2) *(widgetScale-1))
+  x1 = viewSizeX + x1+((x1/2) * (widgetScale-1))
+  y1 = viewSizeY + y1+((y1/2) * (widgetScale-1))
 end
 
 
