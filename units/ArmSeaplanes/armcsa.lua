@@ -77,7 +77,6 @@ return {
 			"armamsub",
 			"armplat",
 			"armtide",
-			"armomex",
 			"armuwmex",
 			"armfmkr",
 			"armuwms",
@@ -91,7 +90,7 @@ return {
 		},
 		customparams = {
 			
-			area_mex_def = "armomex",
+			area_mex_def = "armuwmex",
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

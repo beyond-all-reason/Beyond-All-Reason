@@ -2,7 +2,7 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
  -- BA
  -- this should only ever swap between pairs of (buildable) units, 03/06/13
  
-{'armmex','armomex', 'cormex','coromex'},-- to test that widget behaves correctly when unit can't really be built
+{'armmex','armuwmex', 'cormex','coruwmex'},-- to test that widget behaves correctly when unit can't really be built
 {'armmakr','armfmkr'},
 {'cormakr','corfmkr'},
 --{'armdrag','armfdrag'},  --both can be built in shallow water -> do not touch

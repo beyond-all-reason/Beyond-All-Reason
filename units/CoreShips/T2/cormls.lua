@@ -47,7 +47,7 @@ return {
             "coreyes",
             "coramph",
 			"cortide",
-			"coromex",
+			"coruwmex",
 			"corfrad",
 			-- "corsonar",
 			"corsy",
@@ -67,7 +67,7 @@ return {
 		},
 		customparams = {
 
-			area_mex_def = "coromex",
+			area_mex_def = "coruwmex",
 		},
 		featuredefs = {
 			dead = {
