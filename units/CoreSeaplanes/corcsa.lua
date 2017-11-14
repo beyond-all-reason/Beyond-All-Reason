@@ -78,7 +78,6 @@ return {
 			"coramsub",
 			"corplat",
 			"cortide",
-			"coromex",
 			"coruwmex",
 			"corfmkr",
 			"coruwms",
@@ -93,7 +92,7 @@ return {
 		},
 		customparams = {
 			
-			area_mex_def = "coromex",
+			area_mex_def = "coruwmex",
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
