@@ -1009,7 +1009,7 @@ function CreatePlayer(playerID)
 		ping             = tping,
 		cpu              = tcpu,
 		country          = tcountry,
-		tdead            = false,
+		dead             = false,
 		spec             = tspec,
 		ai               = false,
 		energy           = energy,
@@ -1026,8 +1026,9 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	
 	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
-	local tname, ttotake, tdead, tskill
-	
+	local tname, ttotake, tskill
+	local tdead = true
+
 	if isAI then
 	
 		local version
@@ -1977,7 +1978,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	local y1Offset = 7
 	local y2Offset = 5
 	if dead then
-		y1Offset = 8
+		y1Offset = 7.4
 		y2Offset = 6
 	end
 	gl_Color(1,1,1,0.14)
@@ -2003,7 +2004,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 		y2Offset = 9
 	else
 		y1Offset = 10
-		y2Offset = 8
+		y2Offset = 8.6
 	end
     gl_Color(1,1,0,0.14)
 	gl_Texture(pics["resbarBgPic"])
