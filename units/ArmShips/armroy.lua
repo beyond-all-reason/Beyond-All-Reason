@@ -117,7 +117,7 @@ return {
 		},
 		weapondefs = {
 			plasma = {
-				accuracy = 512,
+				accuracy = 256,
 				areaofeffect = 32,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -129,7 +129,6 @@ return {
 				impulsefactor = 0.123,
 				name = "HeavyCannon",
 				noselfdamage = true,
-				ownerexpaccweight = 0.3,
 				proximitypriority = -0.1,
 				range = 700,
 				reloadtime = 1.875,
@@ -137,7 +136,7 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "cannon3",
-				targetmoveerror = 0.2,
+				targetmoveerror = 0.1,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 310,
