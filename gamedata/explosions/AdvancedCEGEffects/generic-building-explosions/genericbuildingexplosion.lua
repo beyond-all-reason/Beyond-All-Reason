@@ -103,11 +103,11 @@ local definitions = {
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.01, 0]],
-        numparticles       = 22,
+        numparticles       = 14,
         particlelife       = 4,
         particlelifespread = 9,
-        particlesize       = 2.2,
-        particlesizespread = 4.7,
+        particlesize       = 2.7,
+        particlesizespread = 5,
         particlespeed      = 0.5,
         particlespeedspread = 3.5,
         pos                = [[0, 2, 0]],
@@ -244,13 +244,13 @@ local definitions = {
         emitrotspread      = 40,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = 9,
+        numparticles       = 6,
         particlelife       = 7,
         particlelifespread = 7,
-        particlesize       = 60,
-        particlesizespread = 110,
-        particlespeed      = 2.25,
-        particlespeedspread = 4.5,
+        particlesize       = 70,
+        particlesizespread = 120,
+        particlespeed      = 2.4,
+        particlespeedspread = 4.55,
         pos                = [[0, 4, 0]],
         sizegrowth         = 1,
         sizemod            = 0.66,
@@ -270,7 +270,7 @@ local definitions = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.33, 0]],
-        numparticles       = 14,
+        numparticles       = 9,
         particlelife       = 18,
         particlelifespread = 14,
         particlesize       = 1.6,
@@ -296,7 +296,7 @@ local definitions = {
         emitrotspread      = 16,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.33, 0]],
-        numparticles       = 7,
+        numparticles       = 4.5,
         particlelife       = 33,
         particlelifespread = 15,
         particlesize       = 1.5,
@@ -322,7 +322,7 @@ local definitions = {
         emitrotspread      = 25,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[2.5 r1.5]],
+        numparticles       = [[2 r1.5]],
         particlelife       = 24,
         particlelifespread = 15,
         particlesize       = 2,
@@ -348,7 +348,7 @@ local definitions = {
         emitrotspread      = 25,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[2.5 r1.5]],
+        numparticles       = [[2 r1.25]],
         particlelife       = 24,
         particlelifespread = 15,
         particlesize       = 2,
@@ -374,7 +374,7 @@ local definitions = {
         emitrotspread      = 25,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[2.5 r1.5]],
+        numparticles       = [[2 r1.25]],
         particlelife       = 28,
         particlelifespread = 12,
         particlesize       = 2,
@@ -401,9 +401,9 @@ local definitions = {
         emitrotspread      = 4,
         emitvector         = [[0.5, 1.35, 0.5]],
         gravity            = [[0, 0.03, 0]],
-        numparticles       = 4,
-        particlelife       = 70,
-        particlelifespread = 350,
+        numparticles       = 3,
+        particlelife       = 60,
+        particlelifespread = 180,
         particlesize       = 45,
         particlesizespread = 70,
         particlespeed      = 3,
@@ -428,13 +428,13 @@ local definitions = {
         emitrotspread      = -2,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0.03, 0]],
-        numparticles       = 45,
+        numparticles       = 25,
         particlelife       = 10,
         particlelifespread = 90,
-        particlesize       = 4.8,
-        particlesizespread = 2.7,
-        particlespeed      = 3,
-        particlespeedspread = 1.3,
+        particlesize       = 5.2,
+        particlesizespread = 2.8,
+        particlespeed      = 3.2,
+        particlespeedspread = 1.35,
         pos                = [[0, 5, 0]],
         sizegrowth         = 0.18,
         sizemod            = 1.0,
@@ -507,11 +507,11 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 14,
+        numparticles       = 12,
         particlelifespread = 8,
         particlesize       = 1.75,
         particlesizespread = 3.75,
-        particlespeedspread = 2,
+        particlespeedspread = 2.3,
 	  }
 	},
     fireglow = {
@@ -551,24 +551,24 @@ local sizes = {
     sparks = {
       properties = {
         numparticles = 5,
-        particlespeed      = 1.5,
+        particlespeed      = 1.6,
         particlespeedspread = 3,
 	   	}
     },
     dirt = {
       properties = {
-	    numparticles = 10,
+	    numparticles = 8,
         particlelifespread = 13,
-        particlespeed      = 2.75,
-        particlespeedspread = 3.6,
+        particlespeed      = 2.95,
+        particlespeedspread = 3.7,
 	   	}
     },
     dirt2 = {
       properties = {
-	    numparticles = 5,
+	    numparticles = 4,
         particlelifespread = 17,
-        particlespeed      = 2.66,
-        particlespeedspread = 4.3,
+        particlespeed      = 2.77,
+        particlespeedspread = 4.4,
 	   	}
     },
     shard1 = {
@@ -577,7 +577,7 @@ local sizes = {
         particlelife       = 22,
         particlesize       = 1.8,
         particlesizespread = 2.3,
-        particlespeed      = 2,
+        particlespeed      = 2.2,
         particlespeedspread = 4.5,
       },
     },
@@ -587,7 +587,7 @@ local sizes = {
         particlelife       = 22,
         particlesize       = 1.8,
         particlesizespread = 2.3,
-        particlespeed      = 2,
+        particlespeed      = 2.2,
         particlespeedspread = 4.5,
       },
     },
@@ -597,27 +597,27 @@ local sizes = {
         particlelife       = 22,
         particlesize       = 1.8,
         particlesizespread = 2.3,
-        particlespeed      = 2,
+        particlespeed      = 2.2,
         particlespeedspread = 4.5,
       },
     },
     clouddust = {
       properties = {
-        numparticles       = 2,
-      	particlelifespread = 280,
+        numparticles       = 1,
+      	particlelifespread = 140,
         particlesize       = 33,
         particlesizespread = 55,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 25,
+        numparticles       = 17,
         particlelifespread = 65,
-        particlesize       = 3.8,
-        particlesizespread = 2,
-        particlespeed      = 2.25,
-        particlespeedspread = 0.9,
-	   	}
+        particlesize       = 4.1,
+        particlesizespread = 2.1,
+        particlespeed      = 2.33,
+        particlespeedspread = 1,
+	  }
     },
   },
 	
@@ -629,54 +629,54 @@ local sizes = {
     centerflare = {
       properties = {
         size               = 3,
-        sizegrowth         = 22,
+        sizegrowth         = 23,
       },
     },
     groundflash_large = {
       properties = {
-        colormap           = [[1 0.7 0.3 0.32   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.36   0 0 0 0.01]],
         size               = 205,
         ttl                = 26,
       },
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.1   0 0 0 0.01]],
+              colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
               size               = 185,
               ttl                = 5,
           },
       },
     heatedgroundflash = {
       properties = {
-        size = 20,
+        size = 22,
         ttl = 36,
       },
     },
 	explosion = {
       properties = {
-        numparticles       = 30,
+        numparticles       = 22,
         particlelifespread = 11,
-        particlesize       = 3.3,
-        particlesizespread = 10,
-        particlespeedspread = 6,
+        particlesize       = 4,
+        particlesizespread = 11,
+        particlespeedspread = 6.5,
 	  }
 	},
     fireglow = {
       properties = {
-        particlesize       = 30,
+        particlesize       = 33,
         particlelife       = 16,
       }
     },
     fireglow2 = {
       properties = {
-        particlesize       = 60,
+        particlesize       = 64,
         particlelife       = 18,
       }
     },
     innersmoke = {
       properties = {
         particleLife = 20,
-        particleLifeSpread = 60,
+        particleLifeSpread = 55,
         numparticles = 4,
         particleSpeed = 3,
         particleSpeedSpread = 7,
@@ -687,7 +687,7 @@ local sizes = {
     outersmoke = {
       properties = {
         particleLife = 10,
-        particleLifeSpread = 44,
+        particleLifeSpread = 40,
         numparticles = 3,
         particleSpeed = 3.2,
         particleSpeedSpread = 7.5,
@@ -697,30 +697,30 @@ local sizes = {
     },
     sparks = {
       properties = {
-	    numparticles = 14,
-        particlespeed      = 3,
-        particlespeedspread = 5.5,
+	    numparticles = 13,
+        particlespeed      = 3.3,
+        particlespeedspread = 6,
 	  }
     },
     dirt = {
       properties = {
-	    numparticles = 20,
-        particlelifespread = 44,
-        particlespeed      = 3.5,
-        particlespeedspread = 4.4,
+	    numparticles = 14,
+        particlelifespread = 40,
+        particlespeed      = 3.7,
+        particlespeedspread = 4.7,
 	  }
     },
     dirt2 = {
       properties = {
-	    numparticles = 10,
-        particlelifespread = 50,
-        particlespeed      = 3.5,
-        particlespeedspread = 5.5,
+	    numparticles = 7,
+        particlelifespread = 45,
+        particlespeed      = 3.7,
+        particlespeedspread = 5.7,
 	  }
     },
     shard1 = {
       properties = {
-        numparticles       = [[5 r3.5]],
+        numparticles       = [[4 r3.5]],
         particlelife       = 40,
         particlesize       = 2.3,
         particlesizespread = 3,
@@ -730,8 +730,8 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[5 r3.5]],
-        particlelife       = 40,
+        numparticles       = [[4 r3]],
+        particlelife       = 30,
         particlesize       = 2.3,
         particlesizespread = 3,
         particlespeed      = 4,
@@ -740,8 +740,8 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[5 r3.5]],
-        particlelife       = 40,
+        numparticles       = [[4 r3]],
+        particlelife       = 25,
         particlesize       = 2.3,
         particlesizespread = 3,
         particlespeed      = 4,
@@ -750,20 +750,20 @@ local sizes = {
     },
     clouddust = {
       properties = {
-        numparticles       = 5,
-      	particlelifespread = 400,
-        particlesize       = 70,
-        particlesizespread = 90,
+        numparticles       = 4,
+      	particlelifespread = 250,
+        particlesize       = 72,
+        particlesizespread = 95,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 95,
-        particlelifespread = 100,
-        particlesize       = 6,
-        particlesizespread = 3,
-        particlespeed      = 4.5,
-        particlespeedspread = 1.7,
+        numparticles       = 45,
+        particlelifespread = 90,
+        particlesize       = 7,
+        particlesizespread = 3.3,
+        particlespeed      = 4.75,
+        particlespeedspread = 1.75,
 	  }
     },
   },
@@ -797,115 +797,115 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 38,
+        numparticles       = 28,
         particlelifespread = 13,
-        particlesize       = 5,
-        particlesizespread = 13,
-        particlespeedspread = 8,
+        particlesize       = 7,
+        particlesizespread = 14,
+        particlespeedspread = 8.5,
 	  }
 	},
     fireglow = {
       properties = {
-        particlesize       = 50,
+        particlesize       = 53,
         particlelife       = 17,
       }
     },
     fireglow2 = {
       properties = {
-        particlesize       = 100,
+        particlesize       = 105,
         particlelife       = 19,
       }
     },
     innersmoke = {
       properties = {
         particleLife = 26,
-        particleLifeSpread = 75,
+        particleLifeSpread = 70,
         numparticles = 5,
         particleSpeed = 3,
         particleSpeedSpread = 10,
-        particleSize = 20,
+        particleSize = 25,
         particleSizeSpread = 36,
       },
     },
     outersmoke = {
       properties = {
         particleLife = 14,
-        particleLifeSpread = 60,
+        particleLifeSpread = 55,
         numparticles = 3,
         particleSpeed = 3.2,
         particleSpeedSpread = 10.5,
-        particleSize = 55,
+        particleSize = 60,
         particleSizeSpread = 37,
       },
     },
     sparks = {
       properties = {
-	    numparticles = 16,
-        particlespeed      = 3.5,
-        particlespeedspread = 6.5,
+	    numparticles = 15,
+        particlespeed      = 3.75,
+        particlespeedspread = 6.8,
 	  }
     },
     dirt = {
       properties = {
-	    numparticles = 22,
+	    numparticles = 18,
         particlelifespread = 50,
-        particlespeed      = 5,
-        particlespeedspread = 6,
+        particlespeed      = 5.3,
+        particlespeedspread = 6.2,
 	  }
     },
     dirt2 = {
       properties = {
-	    numparticles = 11,
+	    numparticles = 9,
         particlelifespread = 55,
-        particlespeed      = 5.3,
-        particlespeedspread = 7.3,
+        particlespeed      = 5.5,
+        particlespeedspread = 7.5,
 	  }
     },
     shard1 = {
       properties = {
-        numparticles       = [[6 r4.5]],
+        numparticles       = [[5 r4.3]],
         particlelife       = 50,
         particlesize       = 2.5,
         particlesizespread = 4.5,
-        particlespeed      = 5.5,
+        particlespeed      = 5.6,
         particlespeedspread = 10.5,
       },
     },
     shard2 = {
       properties = {
-        numparticles       = [[6 r4.5]],
-        particlelife       = 50,
+        numparticles       = [[4 r3]],
+        particlelife       = 40,
         particlesize       = 2.5,
         particlesizespread = 4.5,
-        particlespeed      = 5,
+        particlespeed      = 5.2,
         particlespeedspread = 10.5,
       },
     },
     shard3 = {
       properties = {
-        numparticles       = [[6 r4.5]],
-        particlelife       = 50,
+        numparticles       = [[4 r3]],
+        particlelife       = 45,
         particlesize       = 2.5,
         particlesizespread = 4.5,
-        particlespeed      = 5,
+        particlespeed      = 5.2,
         particlespeedspread = 10.5,
       },
     },
     clouddust = {
       properties = {
-        numparticles       = 8,
-      	particlelifespread = 450,
+        numparticles       = 6,
+      	particlelifespread = 300,
         particlesize       = 85,
         particlesizespread = 90,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 120,
+        numparticles       = 60,
         particlelifespread = 115,
-        particlesize       = 8.5,
-        particlesizespread = 4.4,
-        particlespeed      = 6.2,
+        particlesize       = 9.5,
+        particlesizespread = 5,
+        particlespeed      = 6.6,
         particlespeedspread = 3.3,
 	  }
     },
@@ -940,11 +940,11 @@ local sizes = {
     },
     explosion = {
       properties = {
-        numparticles       = 44,
+        numparticles       = 33,
         particlelifespread = 15,
-        particlesize       = 6.5,
-        particlesizespread = 18,
-        particlespeedspread = 8.5,
+        particlesize       = 8.5,
+        particlesizespread = 20,
+        particlespeedspread = 8.8,
       }
     },
     fireglow = {
@@ -961,8 +961,8 @@ local sizes = {
     },
     innersmoke = {
       properties = {
-        particleLife = 33,
-        particleLifeSpread = 90,
+        particleLife = 30,
+        particleLifeSpread = 85,
         numparticles = 6,
         particleSpeed = 3,
         particleSpeedSpread = 13,
@@ -973,7 +973,7 @@ local sizes = {
     outersmoke = {
       properties = {
         particleLife = 20,
-        particleLifeSpread = 75,
+        particleLifeSpread = 72,
         numparticles = 4,
         particleSpeed = 3.2,
         particleSpeedSpread = 14,
@@ -983,55 +983,55 @@ local sizes = {
     },
     sparks = {
       properties = {
-        numparticles = 18,
-        particlespeed      = 4,
-        particlespeedspread = 7.5,
+        numparticles = 17,
+        particlespeed      = 4.2,
+        particlespeedspread = 8,
       }
     },
     dirt = {
       properties = {
-        numparticles = 25,
+        numparticles = 20,
         particlelifespread = 55,
-        particlespeed      = 6,
-        particlespeedspread = 7.5,
+        particlespeed      = 6.5,
+        particlespeedspread = 7.7,
       }
     },
     dirt2 = {
       properties = {
-        numparticles = 12,
+        numparticles = 10,
         particlelifespread = 60,
-        particlespeed      = 6.5,
-        particlespeedspread = 10,
+        particlespeed      = 7,
+        particlespeedspread = 10.3,
       }
     },
     shard1 = {
       properties = {
-        numparticles       = [[7 r4.5]],
+        numparticles       = [[5 r4.5]],
         particlelife       = 55,
         particlesize       = 3,
         particlesizespread = 5,
         particlespeed      = 6.5,
-        particlespeedspread = 13,
+        particlespeedspread = 15,
       },
     },
     shard2 = {
       properties = {
-        numparticles       = [[7 r4.5]],
-        particlelife       = 55,
+        numparticles       = [[5 r3]],
+        particlelife       = 45,
         particlesize       = 3,
         particlesizespread = 5,
         particlespeed      = 6.5,
-        particlespeedspread = 13,
+        particlespeedspread = 15,
       },
     },
     shard3 = {
       properties = {
-        numparticles       = [[7 r4.5]],
-        particlelife       = 55,
+        numparticles       = [[5 r3]],
+        particlelife       = 50,
         particlesize       = 3,
         particlesizespread = 5,
         particlespeed      = 6.5,
-        particlespeedspread = 13,
+        particlespeedspread = 15,
       },
     },
     clouddust = {
@@ -1044,12 +1044,12 @@ local sizes = {
     },
     grounddust = {
       properties = {
-        numparticles       = 150,
+        numparticles       = 70,
         particlelifespread = 130,
-        particlesize       = 11,
-        particlesizespread = 5,
-        particlespeed      = 9,
-        particlespeedspread = 4,
+        particlesize       = 13,
+        particlesizespread = 5.5,
+        particlespeed      = 10,
+        particlespeedspread = 4.4,
       }
     },
   },
@@ -1083,10 +1083,10 @@ local sizes = {
     },
     explosion = {
       properties = {
-        numparticles       = 50,
+        numparticles       = 40,
         particlelifespread = 17,
-        particlesize       = 8,
-        particlesizespread = 22,
+        particlesize       = 10,
+        particlesizespread = 24,
         particlespeedspread = 10.5,
       }
     },
@@ -1104,8 +1104,8 @@ local sizes = {
     },
     innersmoke = {
       properties = {
-        particleLife = 36,
-        particleLifeSpread = 100,
+        particleLife = 32,
+        particleLifeSpread = 90,
         numparticles = 7,
         particleSpeed = 3.2,
         particleSpeedSpread = 16,
@@ -1115,8 +1115,8 @@ local sizes = {
     },
     outersmoke = {
       properties = {
-        particleLife = 23,
-        particleLifeSpread = 85,
+        particleLife = 20,
+        particleLifeSpread = 80,
         numparticles = 5,
         particleSpeed = 3.4,
         particleSpeedSpread = 19,
@@ -1126,30 +1126,30 @@ local sizes = {
     },
     sparks = {
       properties = {
-        numparticles = 20,
-        particlespeed      = 5,
-        particlespeedspread = 8.5,
+        numparticles = 18,
+        particlespeed      = 6,
+        particlespeedspread = 9,
       }
     },
     dirt = {
       properties = {
-        numparticles = 30,
+        numparticles = 22,
         particlelifespread = 60,
-        particlespeed      = 8,
-        particlespeedspread = 10.5,
+        particlespeed      = 9,
+        particlespeedspread = 11,
       }
     },
     dirt2 = {
       properties = {
-        numparticles = 15,
+        numparticles = 11,
         particlelifespread = 65,
-        particlespeed      = 8.5,
-        particlespeedspread = 14,
+        particlespeed      = 9.5,
+        particlespeedspread = 14.5,
       }
     },
     shard1 = {
       properties = {
-        numparticles       = [[11 r4.5]],
+        numparticles       = [[6 r4.5]],
         particlelife       = 55,
         particlesize       = 3.4,
         particlesizespread = 6,
@@ -1159,7 +1159,7 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[11 r4.5]],
+        numparticles       = [[5 r3.5]],
         particlelife       = 55,
         particlesize       = 3.4,
         particlesizespread = 6,
@@ -1169,7 +1169,7 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[11 r4.5]],
+        numparticles       = [[5 r3.5]],
         particlelife       = 55,
         particlesize       = 3.4,
         particlesizespread = 6,
@@ -1179,20 +1179,20 @@ local sizes = {
     },
     clouddust = {
       properties = {
-        numparticles       = 12,
-        particlelifespread = 500,
+        numparticles       = 9,
+        particlelifespread = 330,
         particlesize       = 120,
         particlesizespread = 120,
       }
     },
     grounddust = {
       properties = {
-        numparticles       = 150,
+        numparticles       = 80,
         particlelifespread = 130,
-        particlesize       = 12,
-        particlesizespread = 6,
-        particlespeed      = 13,
-        particlespeedspread = 5.5,
+        particlesize       = 14,
+        particlesizespread = 7,
+        particlespeed      = 14,
+        particlespeedspread = 6,
       }
     },
   },
