@@ -116,6 +116,9 @@ function UnitDef_Post(name, uDef)
 		-- if (uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0) then --and not (name == "armcv" or name == "armacv" or name == "armconsul" or name == "armbeaver" or name == "corcv" or name == "coracv" or name == "cormuskrat") then
 			-- uDef.maxreversevelocity = (uDef.maxvelocity) * vehRSpeedFactor
 		-- end
+		if uDef.turnrate ~= nil then
+			uDef.turninplaceanglelimit = uDef.turnrate*30/180
+		end
 		
 		if uDef.turninplaceanglelimit then
 			uDef.customparams.anglelimit = uDef.turninplaceanglelimit
