@@ -217,10 +217,9 @@ local function MakeCountString(type, showbreakdown)
   end
 end
 
-
 local function updatePos(x, y)
-  x1 = math.min((viewSizeX*0.95)-w/2,x)
-  y1 = math.min((viewSizeY*0.95)-h/2,y)
+  x1 = math.min((viewSizeX*0.93)-(w*widgetScale)/2,x)
+  y1 = math.min((viewSizeY*0.93)-(h*widgetScale)/2,y)
   updatePanel = true
 end
 
