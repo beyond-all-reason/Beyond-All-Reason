@@ -107,7 +107,7 @@ return {
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "FlakCannon",
-				size = 4.5,
+				size = 3.5,
 				noselfdamage = true,
 				predictboost = 1,
 				range = 775,
@@ -127,6 +127,8 @@ return {
 					vtol = 250,
 				},
 				customparams = {
+                    light_radius_mult = 0.55,
+                    light_multiplier = 0.8,
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
 				},

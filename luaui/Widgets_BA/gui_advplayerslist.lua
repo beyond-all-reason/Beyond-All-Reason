@@ -1009,7 +1009,7 @@ function CreatePlayer(playerID)
 		ping             = tping,
 		cpu              = tcpu,
 		country          = tcountry,
-		tdead            = false,
+		dead             = false,
 		spec             = tspec,
 		ai               = false,
 		energy           = energy,
@@ -1026,8 +1026,9 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	
 	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
-	local tname, ttotake, tdead, tskill
-	
+	local tname, ttotake, tskill
+	local tdead = true
+
 	if isAI then
 	
 		local version
@@ -1835,7 +1836,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 			end
 			gl_Color(red,green,blue,1)
 			if m_ID.active == true then
-				DrawID(team, posY, dark)
+				DrawID(team, posY, dark, dead)
 			end
 			if m_skill.active == true then
 				DrawSkill(skill, posY, dark, name)
@@ -1977,7 +1978,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	local y1Offset = 7
 	local y2Offset = 5
 	if dead then
-		y1Offset = 8
+		y1Offset = 7.4
 		y2Offset = 6
 	end
 	gl_Color(1,1,1,0.14)
@@ -2003,7 +2004,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 		y2Offset = 9
 	else
 		y1Offset = 10
-		y2Offset = 8
+		y2Offset = 8.6
 	end
     gl_Color(1,1,0,0.14)
 	gl_Texture(pics["resbarBgPic"])
@@ -2258,17 +2259,28 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 	end
 end
 
-function DrawID(playerID, posY, dark)
+function DrawID(playerID, posY, dark, dead)
 	local spacer = ""
 	if playerID < 10 then
 		spacer = " "
 	end
-	--gl_Text(colourNames(playerID) .. " ".. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "o") 
-	gl_Color(0,0,0,0.6)
-	gl_Text(spacer .. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 4.1, 11, "n") 
-	gl_Color(1,1,1,0.5)
-	gl_Text(spacer .. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "n") 
-
+	local fontSize = 11
+	local deadspace = 0
+	if dead then
+		fontSize = 8
+		deadspace = 1.5
+		gl_Color(0,0,0,0.4)
+	else
+		gl_Color(0,0,0,0.6)
+	end
+	--gl_Text(colourNames(playerID) .. " ".. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "o")
+	gl_Text(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
+	if dead then
+		gl_Color(1,1,1,0.33)
+	else
+		gl_Color(1,1,1,0.5)
+	end
+	gl_Text(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "n")
 	gl_Color(1,1,1)
 end
 
