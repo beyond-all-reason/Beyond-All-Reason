@@ -428,7 +428,7 @@ end
 function widget:MousePress(x, y, button)
   if (enabled and 
        x > x1 and x < x1 + (w*widgetScale) and
-       y > y1 and y < y1 + (h*widgetScale) then
+       y > y1 and y < y1 + (h*widgetScale)) then
     capture = true
     moving  = true
   end
