@@ -40,9 +40,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 37,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 70,
 		turninplacespeedlimit = 1.00188,
-		turnrate = 151,
+		turnrate = 101,
 		customparams = {
 			--ANIMATION DATA
 				--PIECENAMES HERE

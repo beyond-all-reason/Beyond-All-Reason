@@ -37,7 +37,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 27,
 		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 3.2274,
 		turnrate = 750,
 		script = "BASICTANKSCRIPT.LUA",
