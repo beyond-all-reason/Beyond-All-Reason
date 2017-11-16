@@ -6,10 +6,6 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 500,
 		buildcostmetal = 60,
-		buildinggrounddecaldecayspeed = 30,
-		buildinggrounddecalsizex = 2.5,
-		buildinggrounddecalsizey = 2.5,
-		buildinggrounddecaltype = "coromex_aoplane.dds",
 		buildingMask = 0,
 		buildpic = "COROMEX.DDS",
 		buildtime = 1887,
@@ -39,7 +35,6 @@ return {
 		selfdestructcountdown = 1,
 		explodeas = "tinyBuildingExplosionGeneric-uw",
 		sightdistance = 169,
-		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		waterline = 0,
 		customparams = {
