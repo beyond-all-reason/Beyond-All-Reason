@@ -61,6 +61,26 @@ local definitions = {
     },
   },
     ["missiletrailfighter-smoke"] = {        -- used by gadget: fx_missile_smoke
+        engine = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = [[-6.5 r1]],
+                sidetexture        = [[muzzleside]],
+                size               = 1.35,
+                sizegrowth         = [[0.2 r0.3]],
+                pos                = [[0, 0.01 ,0]],
+                ttl                = 1,
+            },
+        },
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -220,6 +240,26 @@ local definitions = {
     --},
   },
     ["missiletrailtiny-smoke"] = {        -- used by gadget: fx_missile_smoke
+        engine = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = [[-8 r1]],
+                sidetexture        = [[muzzleside]],
+                size               = 1.5,
+                sizegrowth         = [[0.2 r0.3]],
+                pos                = [[0, 0.01 ,0]],
+                ttl                = 1,
+            },
+        },
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -316,7 +356,7 @@ local definitions = {
                 emitvector         = [[dir]],
                 gravity            = [[0, 0, 0]],
                 numparticles       = 1,
-                particlelife       = 2.3,
+                particlelife       = 2,
                 particlelifespread = 2,
                 particlesize       = 25,
                 particlesizespread = 30,
@@ -359,6 +399,26 @@ local definitions = {
         },
     },
     ["missiletrailsmall-smoke"] = {        -- used by gadget: fx_missile_smoke
+        engine = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = [[-9 r1]],
+                sidetexture        = [[muzzleside]],
+                size               = 2.2,
+                sizegrowth         = [[0.2 r0.3]],
+                pos                = [[0, 0.01 ,0]],
+                ttl                = 1,
+            },
+        },
         smoke = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -498,6 +558,26 @@ local definitions = {
         },
     },
     ["missiletrailsmall-simple-smoke"] = {        -- used by gadget: fx_missile_smoke
+        engine = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = [[-9 r1]],
+                sidetexture        = [[muzzleside]],
+                size               = 2.2,
+                sizegrowth         = [[0.2 r0.3]],
+                pos                = [[0, 0.01 ,0]],
+                ttl                = 1,
+            },
+        },
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
@@ -506,15 +586,15 @@ local definitions = {
             underwater         = 1,
             water              = true,
             properties = {
-                colormap           = [[0.035 0.025 0.015 0.08   0 0 0 0.01]],
+                colormap           = [[0 0 0 0.01  0.035 0.025 0.015 0.09  0.035 0.025 0.015 0.07  0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
                 length             = 40,
                 sidetexture        = [[smoketrail]],
-                size               = 1.85,
-                sizegrowth         = -0.03,
-                ttl                = 6.5,
+                size               = 2.4,
+                sizegrowth         = -0.055,
+                ttl                = 11,
             },
         },
     },
@@ -693,6 +773,26 @@ local definitions = {
       },
   },
   ["missiletrailmedium-smoke"] = {        -- used by gadget: fx_missile_smoke
+      engine = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = 1,
+          water              = true,
+          properties = {
+              colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+              dir                = [[dir]],
+              frontoffset        = 0,
+              fronttexture       = [[none]],
+              length             = [[-12 r1]],
+              sidetexture        = [[muzzleside]],
+              size               = 2.75,
+              sizegrowth         = [[0.2 r0.3]],
+              pos                = [[0, 0.01 ,0]],
+              ttl                = 1,
+          },
+      },
       smoke = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
@@ -878,6 +978,26 @@ local definitions = {
     },
   },
   ["missiletraillarge-smoke"] = {        -- used by gadget: fx_missile_smoke
+      engine = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = 1,
+          water              = true,
+          properties = {
+              colormap           = [[1 0.25 0.05 0.01   0.7 0.15 0.03 0.01   0 0 0 0.01]],
+              dir                = [[dir]],
+              frontoffset        = 0,
+              fronttexture       = [[none]],
+              length             = [[-15 r1]],
+              sidetexture        = [[muzzleside]],
+              size               = 3.6,
+              sizegrowth         = [[0.2 r0.3]],
+              pos                = [[0, 0.01 ,0]],
+              ttl                = 1,
+          },
+      },
       smoke = {
           air                = true,
           class              = [[CSimpleParticleSystem]],
@@ -1427,5 +1547,44 @@ local definitions = {
   },
 }
 
+
+
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+        if type(v) == "table" then
+            if type(t1[k] or false) == "table" then
+                tableMerge(t1[k] or {}, t2[k] or {})
+            else
+                t1[k] = v
+            end
+        else
+            t1[k] = v
+        end
+    end
+    return t1
+end
+
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+
+definitions["missiletrailsmall-simple-catapult"] = deepcopy(definitions["missiletrailsmall-simple"])
+definitions["missiletrailsmall-simple-catapult"].engine.properties.colormap = [[1 0.42 0.2 0.01   1.0 0.3 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
+definitions["missiletrailsmall-simple-catapult"].engine.properties.length = [[-18 r7]]
+definitions["missiletrailsmall-simple-catapult"].engine.properties.size = 3.45
+definitions["missiletrailsmall-simple-catapult"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.33 0.1 0.007  0.4 0.11 0.05 0.007   0 0 0 0.01]]
+definitions["missiletrailsmall-simple-catapult"].sparks.properties.particlesize = 31
 
 return definitions

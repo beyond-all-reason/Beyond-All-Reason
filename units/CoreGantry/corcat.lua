@@ -119,8 +119,8 @@ return {
 				cratermult = 0,
 				dance = 24,
 				edgeeffectiveness = 0.5,
-				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				cegTag = "missiletrailsmall-simple-catapult",
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
 				flighttime = 3,
 				impulseboost = 0.123,
@@ -138,7 +138,7 @@ return {
 				soundhitwet = "splsmed",
 				soundhitwetvolume = 0.5,
 				soundstart = "rapidrocket3",
-				startvelocity = 150,
+				startvelocity = 166,
 				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				trajectoryheight = 1,
@@ -154,7 +154,10 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.25",		-- used by light_effects widget
+					light_multiplier = "0.32",		-- used by light_effects widget
+                    light_color = "1 0.6 0.05",
+                    expl_light_color = "1 0.5 0.05",
+                    expl_light_radius_mult = 1.6,
 				},
 			},
 		},

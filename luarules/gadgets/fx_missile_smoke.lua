@@ -32,7 +32,9 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'MissileLauncher' then
         if weaponDef.cegTag == 'missiletrailsmall' then
             missileWeapons[weaponDef.id] = 'missiletrailsmall-smoke'
-        elseif weaponDef.cegTag == 'missiletrailmsmall-simple' then
+        elseif weaponDef.cegTag == 'missiletrailsmall-simple' then
+            missileWeapons[weaponDef.id] = 'missiletrailsmall-simple-smoke'
+        elseif weaponDef.cegTag == 'missiletrailsmall-simple-catapult' then
             missileWeapons[weaponDef.id] = 'missiletrailsmall-simple-smoke'
         elseif weaponDef.cegTag == 'missiletrailmedium' then
             missileWeapons[weaponDef.id] = 'missiletrailmedium-smoke'
