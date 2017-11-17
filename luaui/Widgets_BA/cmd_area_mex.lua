@@ -287,6 +287,9 @@ local function AnalyzeMetalMap()
 			local mx = mx_i * gridSize
 			local mz = mz_i * gridSize
 			local _, curMetal = spGetGroundInfo(mx, mz)
+            if type(curMetal) == 'string' then	-- Spring > v104
+                _, _, curMetal = spGetGroundInfo(mx, mz)
+            end
 			curMetal = floor(curMetal * 100)
 			metalMap[mx_i][mz_i] = curMetal
 			if (curMetal > maxMetal) then
