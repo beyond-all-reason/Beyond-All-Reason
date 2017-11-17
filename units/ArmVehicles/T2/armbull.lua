@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.6104,
-		turnrate = 415,
+		turnrate = 415*0.8,
 		customparams = {
 			--ANIMATION DATA
 				--PIECENAMES HERE

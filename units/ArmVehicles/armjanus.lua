@@ -39,7 +39,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.29228,
-		turnrate = 338.79999,
+		turnrate = 339*0.8,
 		customparams = {
 			description_long = "The Janus is a heavy dual rocket tank. Its slow moving speed and fire rate makes it susceptible to groups of fast moving units like PeeWees, but once it shoots it deals massive AoE damage, which can eliminate virtually all Kbots (except Warriors) in a single blow. Combine with Samsons (rocket trucks) and repairing units to achieve devastating effect on enemy defenses. It is also a perfect unit for destroying Commanders, as only 5 shots is enough to deal lethal damage. It requires some good micro, so focus!",
 		},
