@@ -501,8 +501,8 @@ effects = {
 }
 defs["deathceg2-fire"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
 defs["deathceg2-fire"].fireglow.properties.particlesize = defs["deathceg2-fire"].fireglow.properties.particlesize*1.7
-defs["deathceg2-fire"].smoke.properties.particlesize = defs["deathceg2-fire"].smoke.properties.particlesize*1.4
-defs["deathceg2-fire"].smoke.properties.particlelife = defs["deathceg2-fire"].smoke.properties.particlelife*1.8
+--defs["deathceg2-fire"].smoke.properties.particlesize = defs["deathceg2-fire"].smoke.properties.particlesize*1.4
+--defs["deathceg2-fire"].smoke.properties.particlelife = defs["deathceg2-fire"].smoke.properties.particlelife*1.8
 defs["deathceg2-fire"].fire.properties.particlesize = defs["deathceg2-fire"].fire.properties.particlesize*1.7
 defs["deathceg2-fire"].fire.properties.particlelife = defs["deathceg2-fire"].fire.properties.particlelife*1.7
 defs["deathceg3-fire"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
