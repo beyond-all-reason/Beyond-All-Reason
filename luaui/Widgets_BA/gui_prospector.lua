@@ -170,9 +170,9 @@ local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 			local dist = sqrt(dx * dx + dz * dz)
 			
 			if (dist < MEX_RADIUS) then
-				local _, metal = GetGroundInfo(cx, cz)
+				local _, metal, metal2 = GetGroundInfo(cx, cz)
 				if type(metal) == 'string' then	-- Spring > v104
-					_, _, metal = GetGroundInfo(cx, cz)
+					metal = metal2
 				end
 				result = result + metal
 			end

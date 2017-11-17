@@ -184,9 +184,9 @@ function IntegrateMetal(x, z, radius)
 			local dist = sqrt(dx * dx + dz * dz)
 
 			if (dist < radius) then
-				local _, metal = spGetGroundInfo(cx, cz)
+				local _, metal,metal2 = spGetGroundInfo(cx, cz)
 				if type(metal) == 'string' then		-- Spring > v104
-					_, _, metal = spGetGroundInfo(cx, cz)
+					metal = metal2
 				end
 				result = result + metal
 			end
