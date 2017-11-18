@@ -119,7 +119,7 @@ return {
 				cratermult = 0,
 				dance = 24,
 				edgeeffectiveness = 0.5,
-				cegTag = "missiletrailsmall-simple-catapult",
+				cegTag = "missiletrailsmall-red",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
 				flighttime = 3,
@@ -154,7 +154,6 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.32",		-- used by light_effects widget
                     light_color = "1 0.6 0.05",
                     expl_light_color = "1 0.5 0.05",
                     expl_light_radius_mult = 1.6,

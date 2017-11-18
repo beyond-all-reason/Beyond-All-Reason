@@ -116,7 +116,7 @@ return {
 		weapondefs = {
 			armmship_rocket = {
 				cegTag = "missiletrailmedium",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				areaofeffect = 120,
 				avoidfeature = false,
 				burnblow = true,
@@ -154,6 +154,9 @@ return {
 					default = 800,
 					subs = 5,
 				},
+                customparams = {
+                    expl_light_color = "1 0.5 0.05",
+                },
 			},
 			armmship_missile = {
 				areaofeffect = 96,

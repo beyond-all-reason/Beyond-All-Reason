@@ -34,11 +34,15 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
             missileWeapons[weaponDef.id] = 'missiletrailsmall-smoke'
         elseif weaponDef.cegTag == 'missiletrailsmall-simple' then
             missileWeapons[weaponDef.id] = 'missiletrailsmall-simple-smoke'
-        elseif weaponDef.cegTag == 'missiletrailsmall-simple-catapult' then
-            missileWeapons[weaponDef.id] = 'missiletrailsmall-simple-smoke'
+        elseif weaponDef.cegTag == 'missiletrailsmall-red' then
+            missileWeapons[weaponDef.id] = 'missiletrailsmall-red-smoke'
         elseif weaponDef.cegTag == 'missiletrailmedium' then
             missileWeapons[weaponDef.id] = 'missiletrailmedium-smoke'
+        elseif weaponDef.cegTag == 'missiletrailmedium-red' then
+            missileWeapons[weaponDef.id] = 'missiletrailmedium-smoke'
         elseif weaponDef.cegTag == 'missiletraillarge' then
+            missileWeapons[weaponDef.id] = 'missiletraillarge-smoke'
+        elseif weaponDef.cegTag == 'missiletraillarge-red' then
             missileWeapons[weaponDef.id] = 'missiletraillarge-smoke'
         elseif weaponDef.cegTag == 'missiletrailtiny' then
             missileWeapons[weaponDef.id] = 'missiletrailtiny-smoke'

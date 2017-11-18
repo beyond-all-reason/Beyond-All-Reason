@@ -1580,11 +1580,26 @@ function deepcopy(orig)
 end
 
 
-definitions["missiletrailsmall-simple-catapult"] = deepcopy(definitions["missiletrailsmall-simple"])
-definitions["missiletrailsmall-simple-catapult"].engine.properties.colormap = [[1 0.42 0.2 0.01   1.0 0.3 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
-definitions["missiletrailsmall-simple-catapult"].engine.properties.length = [[-18 r7]]
-definitions["missiletrailsmall-simple-catapult"].engine.properties.size = 3.45
-definitions["missiletrailsmall-simple-catapult"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.33 0.1 0.007  0.4 0.11 0.05 0.007   0 0 0 0.01]]
-definitions["missiletrailsmall-simple-catapult"].sparks.properties.particlesize = 31
+definitions["missiletrailsmall-red"] = deepcopy(definitions["missiletrailsmall-simple"])
+definitions["missiletrailsmall-red"].engine.properties.colormap = [[1 0.46 0.2 0.01   1.0 0.35 0.1 0.01   1.0 0.25 0.05 0.01   0 0 0 0.01]]
+definitions["missiletrailsmall-red"].engine.properties.length = [[-18 r7]]
+definitions["missiletrailsmall-red"].engine.properties.size = 3.45
+definitions["missiletrailsmall-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
+definitions["missiletrailsmall-red"].sparks.properties.particlesize = 31
+definitions["missiletrailsmall-red"].trail.properties.size = 2.75
+definitions["missiletrailsmall-red-smoke"] = deepcopy(definitions["missiletrailsmall-simple-smoke"])
+definitions["missiletrailsmall-red-smoke"].engine.properties.length = [[-11 r1.5]]
+definitions["missiletrailsmall-red-smoke"].engine.properties.size = 2.5
+definitions["missiletrailsmall-red-smoke"].trail.properties.size = 2.75
+definitions["missiletrailmedium-red"] = deepcopy(definitions["missiletrailmedium"])
+definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.42 0.2 0.01   1.0 0.3 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-red"].fire.propertiescolormap  = [[0.9 0.5 0.16 0.15   0.44 0.2 0.05 0.2    0.14 0.03 0.005 0.17    0.02 0.007 0.003 0.1	 0 0 0 0.01]]
+definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.06 0.022 0.004 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
+definitions["missiletraillarge-red"] = deepcopy(definitions["missiletraillarge"])
+definitions["missiletraillarge-red"].fire.properties.colormap  = [[0.9 0.45 0.16 0.15   0.44 0.22 0.05 0.2    0.14 0.03 0.005 0.17    0.02 0.007 0.003 0.1	 0 0 0 0.01]]
+definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.06 0.022 0.004 0.01   0 0 0 0.01]]
+definitions["missiletraillarge-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
+
 
 return definitions

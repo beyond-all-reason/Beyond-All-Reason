@@ -121,8 +121,8 @@ return {
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
-				explosiongenerator = "custom:genericshellexplosion-medium",
+                cegTag = "missiletrailsmall-red",
+				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 70,
 				impulsefactor = 1.015,
 				model = "megamisl",
@@ -155,6 +155,11 @@ return {
 					subs = 5,
 					vtol = 35,
 				},
+                customparams = {
+                    light_color = "1 0.6 0.05",
+                    expl_light_color = "1 0.5 0.05",
+                    expl_light_radius_mult = 1.05,
+                },
 			},
 		},
 		weapons = {
