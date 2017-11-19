@@ -43,7 +43,7 @@ local definitions = {
         colormap           = [[1 0.9 0.75 0.09   0 0 0 0.01]],
         size               = 105,
         sizegrowth         = 0,
-        ttl                = 4,
+        ttl                = 5,
         texture            = [[groundflash]],
       },
     },
@@ -496,7 +496,7 @@ local sizes = {
       properties = {
         colormap           = [[1 0.9 0.75 0.08   0 0 0 0.01]],
         size               = 62,
-        ttl                = 4,
+        ttl                = 5,
       },
     },
     heatedgroundflash = {
@@ -643,7 +643,7 @@ local sizes = {
           properties = {
               colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
               size               = 185,
-              ttl                = 5,
+              ttl                = 6,
           },
       },
     heatedgroundflash = {
@@ -786,7 +786,7 @@ local sizes = {
           properties = {
               colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
               size               = 230,
-              ttl                = 6,
+              ttl                = 7,
           },
       },
     heatedgroundflash = {
@@ -929,7 +929,7 @@ local sizes = {
           properties = {
               colormap           = [[1 0.9 0.75 0.12   0 0 0 0.01]],
               size               = 275,
-              ttl                = 7,
+              ttl                = 7.5,
           },
       },
     heatedgroundflash = {
@@ -1072,7 +1072,7 @@ local sizes = {
           properties = {
               colormap           = [[1 0.9 0.75 0.13   0 0 0 0.01]],
               size               = 360,
-              ttl                = 7,
+              ttl                = 8,
           },
       },
     heatedgroundflash = {
