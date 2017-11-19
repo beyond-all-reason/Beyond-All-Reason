@@ -14,7 +14,7 @@ local definitions = {
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
         size               = 2,
-        sizegrowth         = 16,
+        sizegrowth         = 17,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
       },
@@ -26,8 +26,8 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.28   0 0 0 0.01]],
-        size               = 115,
+        colormap           = [[1 0.7 0.3 0.3   0 0 0 0.01]],
+        size               = 120,
         sizegrowth         = -1,
         ttl                = 18,
         texture            = [[groundflash]],
@@ -40,8 +40,8 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.09   0 0 0 0.01]],
-        size               = 105,
+        colormap           = [[1 0.9 0.75 0.15   0 0 0 0.01]],
+        size               = 115,
         sizegrowth         = 0,
         ttl                = 5,
         texture            = [[groundflash]],
@@ -108,8 +108,8 @@ local definitions = {
         particlelifespread = 9,
         particlesize       = 2.7,
         particlesizespread = 5,
-        particlespeed      = 0.5,
-        particlespeedspread = 3.5,
+        particlespeed      = 1.5,
+        particlespeedspread = 3.75,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0.3,
         sizemod            = 1,
@@ -270,7 +270,7 @@ local definitions = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.33, 0]],
-        numparticles       = 9,
+        numparticles       = 5,
         particlelife       = 18,
         particlelifespread = 14,
         particlesize       = 1.6,
@@ -296,7 +296,7 @@ local definitions = {
         emitrotspread      = 16,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.33, 0]],
-        numparticles       = 4.5,
+        numparticles       = 2.5,
         particlelife       = 33,
         particlelifespread = 15,
         particlesize       = 1.5,
@@ -322,7 +322,7 @@ local definitions = {
         emitrotspread      = 25,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[2 r1.5]],
+        numparticles       = [[1 r1.5]],
         particlelife       = 24,
         particlelifespread = 15,
         particlesize       = 2,
@@ -348,7 +348,7 @@ local definitions = {
         emitrotspread      = 25,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[2 r1.25]],
+        numparticles       = [[1 r1.25]],
         particlelife       = 24,
         particlelifespread = 15,
         particlesize       = 2,
@@ -374,7 +374,7 @@ local definitions = {
         emitrotspread      = 25,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[2 r1.25]],
+        numparticles       = [[1 r1.25]],
         particlelife       = 28,
         particlelifespread = 12,
         particlesize       = 2,
@@ -488,14 +488,14 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.24   0 0 0 0.01]],
-        size               = 70,
+        size               = 75,
         ttl                = 17,
       },
     },
     groundflash_white = {
       properties = {
         colormap           = [[1 0.9 0.75 0.08   0 0 0 0.01]],
-        size               = 62,
+        size               = 66,
         ttl                = 5,
       },
     },
@@ -511,7 +511,8 @@ local sizes = {
         particlelifespread = 8,
         particlesize       = 1.75,
         particlesizespread = 3.75,
-        particlespeedspread = 2.3,
+        particlespeed      = 1,
+        particlespeedspread = 2.5,
 	  }
 	},
     fireglow = {
@@ -557,7 +558,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-	    numparticles = 8,
+	    numparticles = 3,
         particlelifespread = 13,
         particlespeed      = 2.95,
         particlespeedspread = 3.7,
@@ -565,7 +566,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-	    numparticles = 4,
+	    numparticles = 2,
         particlelifespread = 17,
         particlespeed      = 2.77,
         particlespeedspread = 4.4,
@@ -573,7 +574,7 @@ local sizes = {
     },
     shard1 = {
       properties = {
-        numparticles       = [[1 r1.5]],
+        numparticles       = [[1 r0.75]],
         particlelife       = 22,
         particlesize       = 1.8,
         particlesizespread = 2.3,
@@ -583,7 +584,7 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[1 r1.5]],
+        numparticles       = [[1 r0.5]],
         particlelife       = 22,
         particlesize       = 1.8,
         particlesizespread = 2.3,
@@ -593,7 +594,7 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[1 r1.5]],
+        numparticles       = [[1 r0.5]],
         particlelife       = 22,
         particlesize       = 1.8,
         particlesizespread = 2.3,
@@ -635,14 +636,14 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.36   0 0 0 0.01]],
-        size               = 205,
+        size               = 215,
         ttl                = 26,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
-              size               = 185,
+              size               = 200,
               ttl                = 6,
           },
       },
@@ -658,7 +659,8 @@ local sizes = {
         particlelifespread = 11,
         particlesize       = 4,
         particlesizespread = 11,
-        particlespeedspread = 6.5,
+        particlespeed      = 2,
+        particlespeedspread = 7,
 	  }
 	},
     fireglow = {
@@ -704,7 +706,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-	    numparticles = 14,
+	    numparticles = 7,
         particlelifespread = 40,
         particlespeed      = 3.7,
         particlespeedspread = 4.7,
@@ -712,7 +714,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-	    numparticles = 7,
+	    numparticles = 4,
         particlelifespread = 45,
         particlespeed      = 3.7,
         particlespeedspread = 5.7,
@@ -720,7 +722,7 @@ local sizes = {
     },
     shard1 = {
       properties = {
-        numparticles       = [[4 r3.5]],
+        numparticles       = [[2 r2.5]],
         particlelife       = 40,
         particlesize       = 2.3,
         particlesizespread = 3,
@@ -730,7 +732,7 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[4 r3]],
+        numparticles       = [[2 r2]],
         particlelife       = 30,
         particlesize       = 2.3,
         particlesizespread = 3,
@@ -740,7 +742,7 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[4 r3]],
+        numparticles       = [[2 r2]],
         particlelife       = 25,
         particlesize       = 2.3,
         particlesizespread = 3,
@@ -778,14 +780,14 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.35   0 0 0 0.01]],
-        size               = 255,
+        size               = 265,
         ttl                = 25,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.11   0 0 0 0.01]],
-              size               = 230,
+              size               = 250,
               ttl                = 7,
           },
       },
@@ -801,7 +803,8 @@ local sizes = {
         particlelifespread = 13,
         particlesize       = 7,
         particlesizespread = 14,
-        particlespeedspread = 8.5,
+        particlespeed      = 3,
+        particlespeedspread = 9.5,
 	  }
 	},
     fireglow = {
@@ -847,7 +850,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-	    numparticles = 18,
+	    numparticles = 9,
         particlelifespread = 50,
         particlespeed      = 5.3,
         particlespeedspread = 6.2,
@@ -855,7 +858,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-	    numparticles = 9,
+	    numparticles = 4,
         particlelifespread = 55,
         particlespeed      = 5.5,
         particlespeedspread = 7.5,
@@ -863,7 +866,7 @@ local sizes = {
     },
     shard1 = {
       properties = {
-        numparticles       = [[5 r4.3]],
+        numparticles       = [[3 r2.5]],
         particlelife       = 50,
         particlesize       = 2.5,
         particlesizespread = 4.5,
@@ -873,7 +876,7 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[4 r3]],
+        numparticles       = [[3 r2.2]],
         particlelife       = 40,
         particlesize       = 2.5,
         particlesizespread = 4.5,
@@ -883,7 +886,7 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[4 r3]],
+        numparticles       = [[3 r2.2]],
         particlelife       = 45,
         particlesize       = 2.5,
         particlesizespread = 4.5,
@@ -921,14 +924,14 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
-        size               = 310,
+        size               = 330,
         ttl                = 30,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.12   0 0 0 0.01]],
-              size               = 275,
+              size               = 300,
               ttl                = 7.5,
           },
       },
@@ -944,7 +947,8 @@ local sizes = {
         particlelifespread = 15,
         particlesize       = 8.5,
         particlesizespread = 20,
-        particlespeedspread = 8.8,
+        particlespeed      = 4,
+        particlespeedspread = 10,
       }
     },
     fireglow = {
@@ -990,7 +994,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-        numparticles = 20,
+        numparticles = 11,
         particlelifespread = 55,
         particlespeed      = 6.5,
         particlespeedspread = 7.7,
@@ -998,7 +1002,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-        numparticles = 10,
+        numparticles = 5,
         particlelifespread = 60,
         particlespeed      = 7,
         particlespeedspread = 10.3,
@@ -1006,7 +1010,7 @@ local sizes = {
     },
     shard1 = {
       properties = {
-        numparticles       = [[5 r4.5]],
+        numparticles       = [[4 r3.5]],
         particlelife       = 55,
         particlesize       = 3,
         particlesizespread = 5,
@@ -1016,7 +1020,7 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[5 r3]],
+        numparticles       = [[3 r2.5]],
         particlelife       = 45,
         particlesize       = 3,
         particlesizespread = 5,
@@ -1026,7 +1030,7 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[5 r3]],
+        numparticles       = [[3 r2.5]],
         particlelife       = 50,
         particlesize       = 3,
         particlesizespread = 5,
@@ -1064,14 +1068,14 @@ local sizes = {
     groundflash_large = {
       properties = {
         colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
-        size               = 400,
+        size               = 430,
         ttl                = 33,
       },
     },
       groundflash_white = {
           properties = {
               colormap           = [[1 0.9 0.75 0.13   0 0 0 0.01]],
-              size               = 360,
+              size               = 390,
               ttl                = 8,
           },
       },
@@ -1087,7 +1091,8 @@ local sizes = {
         particlelifespread = 17,
         particlesize       = 10,
         particlesizespread = 24,
-        particlespeedspread = 10.5,
+        particlespeed      = 5,
+        particlespeedspread = 11,
       }
     },
     fireglow = {
@@ -1133,7 +1138,7 @@ local sizes = {
     },
     dirt = {
       properties = {
-        numparticles = 22,
+        numparticles = 12,
         particlelifespread = 60,
         particlespeed      = 9,
         particlespeedspread = 11,
@@ -1141,7 +1146,7 @@ local sizes = {
     },
     dirt2 = {
       properties = {
-        numparticles = 11,
+        numparticles = 6,
         particlelifespread = 65,
         particlespeed      = 9.5,
         particlespeedspread = 14.5,
@@ -1149,7 +1154,7 @@ local sizes = {
     },
     shard1 = {
       properties = {
-        numparticles       = [[6 r4.5]],
+        numparticles       = [[4 r4]],
         particlelife       = 55,
         particlesize       = 3.4,
         particlesizespread = 6,
@@ -1159,7 +1164,7 @@ local sizes = {
     },
     shard2 = {
       properties = {
-        numparticles       = [[5 r3.5]],
+        numparticles       = [[3 r3]],
         particlelife       = 55,
         particlesize       = 3.4,
         particlesizespread = 6,
@@ -1169,7 +1174,7 @@ local sizes = {
     },
     shard3 = {
       properties = {
-        numparticles       = [[5 r3.5]],
+        numparticles       = [[3 r3]],
         particlelife       = 55,
         particlesize       = 3.4,
         particlesizespread = 6,
@@ -1209,13 +1214,13 @@ definitions[root..'-wind'].dirt2.properties.numparticles = definitions[root..'-w
 definitions[root..'-wind'].sparks.properties.numparticles = definitions[root..'-wind'].sparks.properties.numparticles / 2
 
 definitions[root..'-nano'] = deepcopy(definitions[root.."-wind"])
-definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.9 1 0.7 0.08   0.75 0.9 0.21 0.06   0.55 0.66 0.04 0.03   0 0 0 0.01]]
-definitions[root..'-nano'].fireglow.properties.colormap = [[0.15 0.15 0.1 0.005  0 0 0 0.01]]
-definitions[root..'-nano'].fireglow2.properties.colormap = [[0.26 0.26 0.08 0.26   0.36 0.44 0.13 0.44   0.15 0.2 0 0.2   0 0 0 0.01]]
-definitions[root..'-nano'].sparks.properties.colormap = [[0.5 0.8 0.2 0.01   0.5 0.9 0.2 0.017   0 0 0 0.01]]
+definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]
+definitions[root..'-nano'].fireglow.properties.colormap = [[0.15 0.14 0.1 0.005  0 0 0 0.01]]
+definitions[root..'-nano'].fireglow2.properties.colormap = [[0.26 0.24 0.08 0.26   0.36 0.44 0.13 0.44   0.15 0.2 0 0.2   0 0 0 0.01]]
+definitions[root..'-nano'].sparks.properties.colormap = [[0.6 0.8 0.2 0.01   0.6 0.9 0.2 0.017   0 0 0 0.01]]
 definitions[root..'-nano'].sparks.properties.numparticles = definitions[root..'-nano'].sparks.properties.numparticles * 1.5
-definitions[root..'-nano'].dirt.properties.colormap = [[0.7 1 0.4 0.1   0 0 0 0.01]]
-definitions[root..'-nano'].dirt2.properties.colormap = [[0.6 1 0.3 0.1   0 0 0 0.01]]
+definitions[root..'-nano'].dirt.properties.colormap = [[0.8 1 0.4 0.1   0 0 0 0.01]]
+definitions[root..'-nano'].dirt2.properties.colormap = [[0.7 1 0.3 0.1   0 0 0 0.01]]
 
 definitions[root..'-metalmaker'] = deepcopy(definitions[root.."-medium"])
 definitions[root..'-metalmaker'].clouddust.properties.numparticles = definitions[root..'-metalmaker'].clouddust.properties.numparticles / 3
@@ -1255,7 +1260,7 @@ definitions['genericshellexplosion-meteor'].shard1 = nil
 definitions['genericshellexplosion-meteor'].shard2 = nil
 definitions['genericshellexplosion-meteor'].shard3 = nil
 definitions['genericshellexplosion-meteor'].grounddust.properties.alwaysvisible = true
-definitions['genericshellexplosion-meteor'].clouddust.properties.alwaysvisible = true
+definitions['genericshellexplosion-meteor'].clouddust = nil
 --definitions['genericshellexplosion-meteor'].groundclouddust.properties.alwaysvisible = true
 --definitions['genericshellexplosion-meteor'].kickedupwater.properties.alwaysvisible = true
 

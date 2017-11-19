@@ -309,7 +309,7 @@ return {
         particlespeed      = 0.5,
         particlespeedspread = 1,
         pos                = [[0, 1, 0]],
-        sizegrowth         = 1.14,
+        sizegrowth         = 1.08,
         sizemod            = 1.0,
         texture            = [[flame]],
       },
