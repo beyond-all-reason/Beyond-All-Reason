@@ -13,9 +13,9 @@ local definitions = {
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[shotgunflare]],
-        length             = 40,
+        length             = 45,
         sidetexture        = [[shotgunside]],
-        size               = 9,
+        size               = 9.6,
         sizegrowth         = -0.55,
         ttl                = 5.5,
         pos                = [[0.0, 1, 0.0]],
@@ -33,9 +33,9 @@ local definitions = {
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[none]],
-        length             = -8,
+        length             = -9,
         sidetexture        = [[shotgunside]],
-        size               = 9,
+        size               = 10,
         sizegrowth         = -0.55,
         ttl                = 5.5,
       },
@@ -57,7 +57,7 @@ local definitions = {
 	      numparticles       = 1,
 	      particlelife       = 9,
 	      particlelifespread = 0,
-	      particlesize       = 47,
+	      particlesize       = 50,
 	      particlesizespread = 6,
 	      particlespeed      = 0,
 	      particlespeedspread = 0,
@@ -79,14 +79,14 @@ local definitions = {
         colormap           = [[0 0 0 0   0.15 0.06 0.02 0.2    0.48 0.3 0.19 0.44    0.2 0.15 0.11 0.4     0.16 0.13 0.1 0.4    0.145 0.115 0.09 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]],
         directional        = false,
         emitrot            = 0,
-        emitrotspread      = 1,
+        emitrotspread      = 1.3,
         emitvector         = [[dir]],
         gravity            = [[0, -0.004, 0]],
         numparticles       = 35,
         particlelife       = 0,
         particlelifespread = 60,
-        particlesize       = 0.9,
-        particlesizespread = 0.45,
+        particlesize       = 1.1,
+        particlesizespread = 0.55,
         particlespeed      = 0,
         particlespeedspread = 3,
         pos                = [[0, -3, 3]],
@@ -95,32 +95,32 @@ local definitions = {
         texture            = [[smoke]],
       },
     },
-    clouddust = {
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-      properties = {
-        airdrag            = 0.85,
-        colormap           = [[0.02 0.02 0.02 0.03  0.045 0.045 0.045 0.07  0.035 0.035 0.035 0.05  0.019 0.019 0.019 0.03  0 0 0 0]],
-        directional        = true,
-        emitrot            = 45,
-        emitrotspread      = 4,
-        emitvector         = [[0.5, 1, 0.5]],
-        gravity            = [[0, 0.015, 0]],
-        numparticles       = 2,
-        particlelife       = 90,
-        particlelifespread = 90,
-        particlesize       = 4,
-        particlesizespread = 1.5,
-        particlespeed      = 1,
-        particlespeedspread = 1,
-        pos                = [[0, 0, 0]],
-        sizegrowth         = 0.25,
-        sizemod            = 1.0,
-        texture            = [[bigexplosmoke]],
-      },
-    },
+    --clouddust = {
+    --  air                = true,
+    --  class              = [[CSimpleParticleSystem]],
+    --  count              = 1,
+    --  ground             = true,
+    --  properties = {
+    --    airdrag            = 0.85,
+    --    colormap           = [[0.02 0.02 0.02 0.03  0.045 0.045 0.045 0.07  0.035 0.035 0.035 0.05  0.019 0.019 0.019 0.03  0 0 0 0]],
+    --    directional        = true,
+    --    emitrot            = 45,
+    --    emitrotspread      = 4,
+    --    emitvector         = [[0.5, 1, 0.5]],
+    --    gravity            = [[0, 0.015, 0]],
+    --    numparticles       = 2,
+    --    particlelife       = 90,
+    --    particlelifespread = 90,
+    --    particlesize       = 4,
+    --    particlesizespread = 1.5,
+    --    particlespeed      = 1,
+    --    particlespeedspread = 1,
+    --    pos                = [[0, 0, 0]],
+    --    sizegrowth         = 0.25,
+    --    sizemod            = 1.0,
+    --    texture            = [[bigexplosmoke]],
+    --  },
+    --},
   },
 }
 
@@ -140,7 +140,7 @@ function deepcopy(orig)
     return copy
 end
 
-local size = 0.4
+local size = 0.44
 definitions["barrelshot-tiny"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-tiny"].fire.properties.length										= definitions["barrelshot-tiny"].fire.properties.length * size
 definitions["barrelshot-tiny"].fire.properties.size											= definitions["barrelshot-tiny"].fire.properties.size * size
@@ -154,7 +154,7 @@ definitions["barrelshot-tiny"].fireglow.properties.colormap       			= [[0.122 0
 definitions["barrelshot-tiny"].smoke = nil
 definitions["barrelshot-tiny"].clouddust = nil
 
-size = 0.66
+size = 0.7
 definitions["barrelshot-small"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-small"].fire.properties.length									= definitions["barrelshot-small"].fire.properties.length * size
 definitions["barrelshot-small"].fire.properties.size										= definitions["barrelshot-small"].fire.properties.size * size
@@ -170,12 +170,12 @@ definitions["barrelshot-small"].smoke.properties.particlesize						= definitions
 definitions["barrelshot-small"].smoke.properties.particlesizespread			= definitions["barrelshot-small"].smoke.properties.particlesizespread * size
 definitions["barrelshot-small"].smoke.properties.numparticles						= definitions["barrelshot-small"].smoke.properties.numparticles * size
 definitions["barrelshot-small"].smoke.properties.particlespeedspread		= definitions["barrelshot-small"].smoke.properties.particlespeedspread * size
-definitions["barrelshot-small"].clouddust.properties.particlesize				= definitions["barrelshot-small"].clouddust.properties.particlesize * size
-definitions["barrelshot-small"].clouddust.properties.particlesizespread	= definitions["barrelshot-small"].clouddust.properties.particlesizespread * size
-definitions["barrelshot-small"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
-definitions["barrelshot-small"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
+--definitions["barrelshot-small"].clouddust.properties.particlesize				= definitions["barrelshot-small"].clouddust.properties.particlesize * size
+--definitions["barrelshot-small"].clouddust.properties.particlesizespread	= definitions["barrelshot-small"].clouddust.properties.particlesizespread * size
+--definitions["barrelshot-small"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
+--definitions["barrelshot-small"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
-size = 1.5
+size = 1.6
 definitions["barrelshot-large"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-large"].fire.properties.length 									= definitions["barrelshot-large"].fire.properties.length * size
 definitions["barrelshot-large"].fire.properties.size										= definitions["barrelshot-large"].fire.properties.size * size
@@ -191,12 +191,12 @@ definitions["barrelshot-large"].smoke.properties.particlesize						= definitions
 definitions["barrelshot-large"].smoke.properties.particlesizespread			= definitions["barrelshot-large"].smoke.properties.particlesizespread * size
 definitions["barrelshot-large"].smoke.properties.numparticles						= definitions["barrelshot-large"].smoke.properties.numparticles * size
 definitions["barrelshot-large"].smoke.properties.particlespeedspread		= definitions["barrelshot-large"].smoke.properties.particlespeedspread * size
-definitions["barrelshot-large"].clouddust.properties.particlesize				= definitions["barrelshot-large"].clouddust.properties.particlesize * size
-definitions["barrelshot-large"].clouddust.properties.particlesizespread	= definitions["barrelshot-large"].clouddust.properties.particlesizespread * size
-definitions["barrelshot-large"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
-definitions["barrelshot-large"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
+--definitions["barrelshot-large"].clouddust.properties.particlesize				= definitions["barrelshot-large"].clouddust.properties.particlesize * size
+--definitions["barrelshot-large"].clouddust.properties.particlesizespread	= definitions["barrelshot-large"].clouddust.properties.particlesizespread * size
+--definitions["barrelshot-large"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
+--definitions["barrelshot-large"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
-size = 2.66
+size = 2.9
 definitions["barrelshot-huge"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-huge"].fire.properties.length 									= definitions["barrelshot-huge"].fire.properties.length * size
 definitions["barrelshot-huge"].fire.properties.size											= definitions["barrelshot-huge"].fire.properties.size * size
@@ -212,10 +212,10 @@ definitions["barrelshot-huge"].smoke.properties.particlesize						= definitions[
 definitions["barrelshot-huge"].smoke.properties.particlesizespread			= definitions["barrelshot-huge"].smoke.properties.particlesizespread * size
 definitions["barrelshot-huge"].smoke.properties.numparticles						= definitions["barrelshot-huge"].smoke.properties.numparticles * size
 definitions["barrelshot-huge"].smoke.properties.particlespeedspread			= definitions["barrelshot-huge"].smoke.properties.particlespeedspread * size
-definitions["barrelshot-huge"].clouddust.properties.particlesize				= definitions["barrelshot-huge"].clouddust.properties.particlesize * size
-definitions["barrelshot-huge"].clouddust.properties.particlesizespread	= definitions["barrelshot-huge"].clouddust.properties.particlesizespread * size
-definitions["barrelshot-huge"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
-definitions["barrelshot-huge"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
+--definitions["barrelshot-huge"].clouddust.properties.particlesize				= definitions["barrelshot-huge"].clouddust.properties.particlesize * size
+--definitions["barrelshot-huge"].clouddust.properties.particlesizespread	= definitions["barrelshot-huge"].clouddust.properties.particlesizespread * size
+--definitions["barrelshot-huge"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
+--definitions["barrelshot-huge"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
 definitions["barrelshot-huge"].flash = {
 	air = 1,
