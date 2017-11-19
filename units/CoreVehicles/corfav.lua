@@ -37,9 +37,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 27,
 		turninplace = 0,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.2274,
-		turnrate = 750,
+		turnrate = 750*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "Weasels are supercheap and fast to build vehicles used for scouting and damaging the early eco structures of enemies. It is the fastest moving unit in the whole game (except ARM counterpart -Jeffy) but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion! In T2 warfare Weasels come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",

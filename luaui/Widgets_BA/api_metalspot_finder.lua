@@ -197,7 +197,10 @@ function GetSpots()
 		local stripWorth = 0
 		
 		for mx = metalmapStartZ, metalmapSizeX, gridSize do
-			local _, groundMetal = spGetGroundInfo(mx, mz)
+			local _, groundMetal, groundMetal2 = spGetGroundInfo(mx, mz)
+			if type(groundMetal) == 'string' then	-- Spring > v104
+				groundMetal = groundMetal2
+			end
 			if groundMetal > 0 then
 				stripStart = stripStart or mx
 				stripWorth = stripWorth + groundMetal

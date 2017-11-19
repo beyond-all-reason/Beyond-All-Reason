@@ -37,9 +37,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 70,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.94149,
-		turnrate = 266,
+		turnrate = 366*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Leveler is a powerful tank armed with an impulse weapon that deals AoE damage and repels light units. It makes it highly effective against swarms of peewees, flashes etc. A drawback is their low speed and inability to shoot over each other, therefore always try to move them in a line. Rather ineffective against long range defense towers - combine them with Slashers (rocket trucks) or Storms (rocket Kbots) to push the front and constructors for repairing.",

@@ -167,7 +167,7 @@ return {
 				cratermult = 0,
 				energypershot = 100,
 				cegTag = "missiletrailmedium",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 15,
 				impulseboost = 0.123,
@@ -197,6 +197,9 @@ return {
 					default = 1100,
 					subs = 5,
 				},
+                customparams = {
+                    expl_light_color = "1 0.5 0.05",
+                },
 			},
 		},
 		weapons = {

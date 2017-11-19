@@ -203,7 +203,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.7,
 				cegTag = "missiletrailmedium",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
 				impulseboost = 1,
 				impulsefactor = 1,
@@ -234,6 +234,9 @@ return {
 					default = 800,
 					subs = 5,
 				},
+                customparams = {
+                    expl_light_color = "1 0.5 0.05",
+                },
 			},
 			krogkick = {
 				areaofeffect = 192,

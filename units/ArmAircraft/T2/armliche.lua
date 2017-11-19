@@ -74,7 +74,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				cegTag = "missiletrailmedium",
+				cegTag = "missiletrailmedium-red",
 				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 100,
 				flighttime = 1.75,
@@ -108,6 +108,7 @@ return {
 				customparams = {
 					light_radius_mult = "0.4",		-- used by light_effects widget
 					light_multiplier = "0.6",		-- used by light_effects widget
+					light_color = "1 0.5 0.05",
 				},
 			},
 			arm_pidrbomb = {

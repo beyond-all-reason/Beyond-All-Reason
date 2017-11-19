@@ -1070,6 +1070,15 @@ function applyOptionValue(i, skipRedrawWindow)
 				end
 				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
 			end
+		elseif id == 'lighteffects_life' then
+			if WG['lighteffects'] ~= nil then
+				WG['lighteffects'].setLife(value)
+			else
+				if widgetHandler.configData["Light Effects"] == nil then
+					widgetHandler.configData["Light Effects"] = {}
+				end
+				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
+			end
 		elseif id == 'enemyspotter_opacity' then
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
@@ -1476,7 +1485,8 @@ function init()
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 
 		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
-		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=1, max=2.5, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
+		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.25, max=1, step=0.05, type="slider", value=1, description='lifetime of explosion lights'},
+		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2.2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius  (gpu intensive)", min=0.4, max=2, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\nWARNING: the bigger the radius the heavier on the GPU'},
@@ -1583,6 +1593,9 @@ function init()
 	end
 	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalRadiusMultLaser ~= nil then
 		options[getOptionByID("lighteffects_laserradius")].value = widgetHandler.configData["Light Effects"].globalRadiusMultLaser
+	end
+	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLifeMult ~= nil then
+		options[getOptionByID("lighteffects_life")].value = widgetHandler.configData["Light Effects"].globalLifeMult
 	end
 
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigShortcutsInfo == nil then

@@ -37,9 +37,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 21,
 		turninplace = true,
-		turninplaceanglelimit = 70,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.98,
-		turnrate = 384,
+		turnrate = 484*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Instigator is a light, fast moving tank armed with a weak, but very precise laser weapon, accurate even when fired on the move. This makes it useful against fast lightly armored units, such as Peewees. A bit slower than its ARM counterpart - flash, but it has a higher range, so always try to keep distance. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",  

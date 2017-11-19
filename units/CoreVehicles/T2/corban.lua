@@ -40,9 +40,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 42,
 		turninplace = true,
-		turninplaceanglelimit = 70,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.2573,
-		turnrate = 275,
+		turnrate = 375*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			--ANIMATION DATA
@@ -149,8 +149,8 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				cegTag = "missiletraillarge",
-				explosiongenerator = "custom:genericshellexplosion-large",
+				cegTag = "missiletraillarge-red",
+				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 20,
 				flighttime = 2.5,
 				impulseboost = 0.123,
@@ -181,6 +181,12 @@ return {
 					default = 1000,
 					subs = 5,
 				},
+                customparams = {
+                    light_multiplier = "0.32",		-- used by light_effects widget
+                    light_color = "1 0.6 0.05",
+                    expl_light_color = "1 0.5 0.05",
+                    expl_light_radius_mult = 1.1,
+                },
 			},
 		},
 		weapons = {

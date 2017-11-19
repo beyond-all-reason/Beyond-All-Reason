@@ -37,9 +37,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 33,
 		turninplace = true,
-		turninplaceanglelimit = 70,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.72656,
-		turnrate = 334,
+		turnrate = 434*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			--ANIMATION DATA

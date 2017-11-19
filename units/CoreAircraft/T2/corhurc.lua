@@ -98,7 +98,7 @@ return {
 					l1subs = 5,
 				},
 				customparams = {
-					expl_light_color = "1 0.4 0.15",
+					expl_light_color = "1 0.5 0.05",
 				},
 			},
 		},
