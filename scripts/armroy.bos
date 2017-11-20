@@ -113,8 +113,8 @@ Create()
 {
 	hide flare1;
 	hide flare2;
-	move flare1 to z-axis [0.5] now;
-	move flare2 to z-axis [0.5] now;
+	move flare1 to z-axis [1] now;
+	move flare2 to z-axis [1] now;
 	gun_1 = flare1;
 	restore_delay = 3000;
 	Static_Var_5 = 0;
@@ -177,7 +177,7 @@ AimSecondary(heading, pitch)
 
 AimFromSecondary(piecenum)
 {
-	piecenum = base;
+	piecenum = flareb;
 }
 
 QuerySecondary(piecenum)
