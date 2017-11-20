@@ -43,10 +43,11 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
-local globalLightMult = 1.18
-local globalRadiusMult = 1.18
-local globalLightMultLaser = 1.18
-local globalRadiusMultLaser = 1.05	-- gets applied on top op globalRadiusMult
+local globalLightMult = 1.2
+local globalRadiusMult = 1.2
+local globalLightMultLaser = 1.1
+local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
+local globalLifeMult = 0.6
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -490,7 +491,7 @@ function loadWeaponDefs()
 			params.r, params.g, params.b = 1, 0.8, 0.4
 			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
 			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
-			params.life = 14*(0.8+ params.radius/1200)
+			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
 
 			if customParams.expl_light_color then
 				local colorList = Split(customParams.expl_light_color, " ")
@@ -575,6 +576,9 @@ function widget:Initialize()
 	WG['lighteffects'].getLaserRadius = function()
 		return globalRadiusMultLaser
 	end
+	WG['lighteffects'].getLife = function()
+		return globalLifeMult
+	end
 	WG['lighteffects'].setGlobalBrightness = function(value)
 		globalLightMult = value
 		projectileLightTypes = GetLightsFromUnitDefs()
@@ -593,6 +597,10 @@ function widget:Initialize()
 		globalRadiusMultLaser = value
 		projectileLightTypes = GetLightsFromUnitDefs()
 	end
+	WG['lighteffects'].setLife = function(value)
+		globalLifeMult = value
+		loadWeaponDefs()
+	end
 
 end
 
@@ -603,6 +611,7 @@ function widget:GetConfigData(data)
 	savedTable.globalRadiusMult = globalRadiusMult
 	savedTable.globalLightMultLaser = globalLightMultLaser
 	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
+	savedTable.globalLifeMult = globalLifeMult
 	return savedTable
 end
 
@@ -618,5 +627,8 @@ function widget:SetConfigData(data)
 	end
 	if data.globalRadiusMultLaser ~= nil then
 		globalRadiusMultLaser = data.globalRadiusMultLaser
+	end
+	if data.globalLifeMult ~= nil then
+		globalLifeMult = data.globalLifeMult
 	end
 end

@@ -65,6 +65,7 @@ return {
 				--explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 70,
 				flighttime = 100,
+				impulseFactor = 0.15,
 				metalpershot = 0,
 				model = "ChickenDefenseModels/greyrock2.s3o",
 				name = "Asteroid",

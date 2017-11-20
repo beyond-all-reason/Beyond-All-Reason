@@ -35,14 +35,13 @@ local percentage = 0.5	-- is reset somewhere else
 function gadget:Initialize()
 	--set up table to check against
 	for _,UnitDef in pairs(UnitDefs) do
-		if UnitDef.canFly == true and UnitDef.transportSize == 0 then
+		if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
 			crashable[UnitDef.id] = true
 		end
 	end
 	crashable[UnitDefNames['armliche'].id] = false
 	crashable[UnitDefNames['armpeep'].id] = false
 	crashable[UnitDefNames['corfink'].id] = false
-	crashable[UnitDefNames['critter_gull'].id] = false
 
 	crashable[UnitDefNames['corbw'].id] = false
 

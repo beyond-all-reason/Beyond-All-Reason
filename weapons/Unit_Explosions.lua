@@ -87,7 +87,7 @@ unitDeaths = {
 			nanos = 480,
 		},
         customparams = {
-            expl_light_color = "0.7 1 0.3",
+            expl_light_color = "0.8 1 0.3",
         },
 	},
 

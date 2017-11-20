@@ -117,8 +117,8 @@ Create()
 	hide flarea1;
 	hide flarea2;
 	hide flareb;
-	move flarea1 to z-axis [0.5] now;
-	move flarea2 to z-axis [0.5] now;
+	move flarea1 to z-axis [1] now;
+	move flarea2 to z-axis [1] now;
 	gun_1 = 0;
 	Static_Var_5 = 0;
 	restore_delay = 3000;
@@ -231,12 +231,12 @@ QueryWeapon1(piecenum)
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = base;
+	piecenum = flareb;
 }
 
 QueryWeapon2(piecenum)
 {
-	piecenum = base;
+	piecenum = flareb;
 }
 
 SweetSpot(piecenum)

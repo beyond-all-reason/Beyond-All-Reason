@@ -94,7 +94,6 @@ StartMoving()
 		turn lbtoe1 to x-axis <-30.000000> speed <45.000000> * currentSpeed / 100;
 		turn lbtoe2 to x-axis <-20.000000> speed <30.000000> * currentSpeed / 100;
 		sleep 55000 / currentSpeed;
-		emit-sfx 2051 from rstomp;
 		if( !bAiming )
 		{
 			turn larm to x-axis <18.000000> speed <14.000000> * currentSpeed / 100;
@@ -150,7 +149,6 @@ StartMoving()
 		turn rbtoe1 to x-axis <-30.000000> speed <45.000000> * currentSpeed / 100;
 		turn rbtoe2 to x-axis <-20.000000> speed <30.000000> * currentSpeed / 100;
 		sleep 55000 / currentSpeed;
-		emit-sfx 2051 from lstomp;
 	}
 	return (0);
 }
