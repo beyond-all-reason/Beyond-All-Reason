@@ -40,8 +40,8 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.35   0 0 0 0.01]],
-        size               = 115,
+        colormap           = [[1 0.9 0.75 0.3   0 0 0 0.01]],
+        size               = 85,
         sizegrowth         = 0,
         ttl                = 5,
         texture            = [[groundflash]],
@@ -494,8 +494,8 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.4   0 0 0 0.01]],
-        size               = 66,
+        colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
+        size               = 55,
         ttl                = 5,
       },
     },
@@ -642,8 +642,8 @@ local sizes = {
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.44   0 0 0 0.01]],
-              size               = 200,
+              colormap           = [[1 0.9 0.75 0.36   0 0 0 0.01]],
+              size               = 166,
               ttl                = 6,
           },
       },
@@ -779,15 +779,15 @@ local sizes = {
     },
     groundflash_large = {
       properties = {
-        colormap           = [[1 0.7 0.3 0.35   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.38   0 0 0 0.01]],
         size               = 265,
         ttl                = 25,
       },
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.48   0 0 0 0.01]],
-              size               = 250,
+              colormap           = [[1 0.9 0.75 0.38   0 0 0 0.01]],
+              size               = 200,
               ttl                = 7,
           },
       },
@@ -930,8 +930,8 @@ local sizes = {
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.52   0 0 0 0.01]],
-              size               = 300,
+              colormap           = [[1 0.9 0.75 0.4   0 0 0 0.01]],
+              size               = 250,
               ttl                = 7.5,
           },
       },
@@ -1067,15 +1067,15 @@ local sizes = {
     },
     groundflash_large = {
       properties = {
-        colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.43   0 0 0 0.01]],
         size               = 430,
         ttl                = 33,
       },
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.56   0 0 0 0.01]],
-              size               = 390,
+              colormap           = [[1 0.9 0.75 0.43   0 0 0 0.01]],
+              size               = 330,
               ttl                = 8,
           },
       },
