@@ -29,12 +29,12 @@ function applyIcons()
         {"sub_t2_worker.user", "LuaUI/Icons/sub_worker.png",1.66*iconScale},
 
 
-        {"wind.user", "LuaUI/Icons/wind.png",1.1*iconScale},
-        {"energy1.user", "LuaUI/Icons/energy.png",1.3*iconScale},   -- unused
-        {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
-        {"energy3.user", "LuaUI/Icons/fusion.png",1.85*iconScale},
-        {"energy4.user", "LuaUI/Icons/fusion.png",2.35*iconScale},
-        {"energy5.user", "LuaUI/Icons/fusion.png",2.85*iconScale},
+        {"wind.user", "LuaUI/Icons/wind.png",1.3*iconScale},
+        {"energy1.user", "LuaUI/Icons/solar.png",1.7*iconScale},   -- unused
+        {"energy2.user", "LuaUI/Icons/energy.png",1.7*iconScale},
+        {"energy3.user", "LuaUI/Icons/fusion.png",1.5*iconScale},
+        {"energy4.user", "LuaUI/Icons/fusion.png",1.8*iconScale},
+        {"energy5.user", "LuaUI/Icons/fusion.png",1.8*iconScale},
 
         {"eye.user", "LuaUI/Icons/eye.png",0.85*iconScale},
         {"spy.user", "LuaUI/Icons/eye.png",1.25*iconScale},
@@ -84,7 +84,7 @@ function applyIcons()
 
         {"nuke.user", "LuaUI/Icons/nuke.png",1.35*iconScale},
         {"nuke_big.user", "LuaUI/Icons/nuke.png",2*iconScale},
-        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.15*iconScale},
+        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.9*iconScale},
 
         {"aa1.user", "LuaUI/Icons/aa.png", 0.85*iconScale},
         {"aa2.user", "LuaUI/Icons/aa.png", 1.1*iconScale},
