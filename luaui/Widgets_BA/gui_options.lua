@@ -1077,7 +1077,7 @@ function applyOptionValue(i, skipRedrawWindow)
 				if widgetHandler.configData["Light Effects"] == nil then
 					widgetHandler.configData["Light Effects"] = {}
 				end
-				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
+				widgetHandler.configData["Light Effects"].globalLifeMult = value
 			end
 		elseif id == 'enemyspotter_opacity' then
 			if WG['enemyspotter'] ~= nil then

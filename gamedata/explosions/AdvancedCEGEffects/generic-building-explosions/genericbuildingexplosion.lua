@@ -40,8 +40,8 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.35   0 0 0 0.01]],
-        size               = 115,
+        colormap           = [[1 0.9 0.75 0.3   0 0 0 0.01]],
+        size               = 85,
         sizegrowth         = 0,
         ttl                = 5,
         texture            = [[groundflash]],
@@ -103,12 +103,12 @@ local definitions = {
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.01, 0]],
-        numparticles       = 14,
+        numparticles       = 13,
         particlelife       = 4,
         particlelifespread = 9,
-        particlesize       = 2.7,
+        particlesize       = 2.75,
         particlesizespread = 5,
-        particlespeed      = 1.5,
+        particlespeed      = 1.66,
         particlespeedspread = 3.75,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0.3,
@@ -494,8 +494,8 @@ local sizes = {
     },
     groundflash_white = {
       properties = {
-        colormap           = [[1 0.9 0.75 0.4   0 0 0 0.01]],
-        size               = 66,
+        colormap           = [[1 0.9 0.75 0.33   0 0 0 0.01]],
+        size               = 55,
         ttl                = 5,
       },
     },
@@ -507,11 +507,11 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 12,
+        numparticles       = 9,
         particlelifespread = 8,
-        particlesize       = 1.75,
+        particlesize       = 2.1,
         particlesizespread = 3.75,
-        particlespeed      = 1,
+        particlespeed      = 1.15,
         particlespeedspread = 2.5,
 	  }
 	},
@@ -612,7 +612,7 @@ local sizes = {
     },
     grounddust = {
       properties = {
-        numparticles       = 17,
+        numparticles       = 16,
         particlelifespread = 65,
         particlesize       = 4.1,
         particlesizespread = 2.1,
@@ -642,8 +642,8 @@ local sizes = {
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.44   0 0 0 0.01]],
-              size               = 200,
+              colormap           = [[1 0.9 0.75 0.36   0 0 0 0.01]],
+              size               = 166,
               ttl                = 6,
           },
       },
@@ -655,11 +655,11 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 22,
+        numparticles       = 15,
         particlelifespread = 11,
-        particlesize       = 4,
+        particlesize       = 5,
         particlesizespread = 11,
-        particlespeed      = 2,
+        particlespeed      = 2.2,
         particlespeedspread = 7,
 	  }
 	},
@@ -760,7 +760,7 @@ local sizes = {
     },
     grounddust = {
       properties = {
-        numparticles       = 45,
+        numparticles       = 40,
         particlelifespread = 90,
         particlesize       = 7,
         particlesizespread = 3.3,
@@ -779,15 +779,15 @@ local sizes = {
     },
     groundflash_large = {
       properties = {
-        colormap           = [[1 0.7 0.3 0.35   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.38   0 0 0 0.01]],
         size               = 265,
         ttl                = 25,
       },
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.48   0 0 0 0.01]],
-              size               = 250,
+              colormap           = [[1 0.9 0.75 0.38   0 0 0 0.01]],
+              size               = 200,
               ttl                = 7,
           },
       },
@@ -799,9 +799,9 @@ local sizes = {
     },
 	explosion = {
       properties = {
-        numparticles       = 28,
+        numparticles       = 22,
         particlelifespread = 13,
-        particlesize       = 7,
+        particlesize       = 7.5,
         particlesizespread = 14,
         particlespeed      = 3,
         particlespeedspread = 9.5,
@@ -904,7 +904,7 @@ local sizes = {
     },
     grounddust = {
       properties = {
-        numparticles       = 60,
+        numparticles       = 50,
         particlelifespread = 115,
         particlesize       = 9.5,
         particlesizespread = 5,
@@ -930,8 +930,8 @@ local sizes = {
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.52   0 0 0 0.01]],
-              size               = 300,
+              colormap           = [[1 0.9 0.75 0.4   0 0 0 0.01]],
+              size               = 250,
               ttl                = 7.5,
           },
       },
@@ -943,11 +943,11 @@ local sizes = {
     },
     explosion = {
       properties = {
-        numparticles       = 33,
+        numparticles       = 26,
         particlelifespread = 15,
-        particlesize       = 8.5,
+        particlesize       = 9,
         particlesizespread = 20,
-        particlespeed      = 4,
+        particlespeed      = 4.2,
         particlespeedspread = 10,
       }
     },
@@ -1048,7 +1048,7 @@ local sizes = {
     },
     grounddust = {
       properties = {
-        numparticles       = 70,
+        numparticles       = 60,
         particlelifespread = 130,
         particlesize       = 13,
         particlesizespread = 5.5,
@@ -1067,15 +1067,15 @@ local sizes = {
     },
     groundflash_large = {
       properties = {
-        colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.43   0 0 0 0.01]],
         size               = 430,
         ttl                = 33,
       },
     },
       groundflash_white = {
           properties = {
-              colormap           = [[1 0.9 0.75 0.56   0 0 0 0.01]],
-              size               = 390,
+              colormap           = [[1 0.9 0.75 0.43   0 0 0 0.01]],
+              size               = 330,
               ttl                = 8,
           },
       },
@@ -1087,11 +1087,11 @@ local sizes = {
     },
     explosion = {
       properties = {
-        numparticles       = 40,
+        numparticles       = 33,
         particlelifespread = 17,
         particlesize       = 10,
         particlesizespread = 24,
-        particlespeed      = 5,
+        particlespeed      = 5.5,
         particlespeedspread = 11,
       }
     },
@@ -1192,7 +1192,7 @@ local sizes = {
     },
     grounddust = {
       properties = {
-        numparticles       = 80,
+        numparticles       = 66,
         particlelifespread = 130,
         particlesize       = 14,
         particlesizespread = 7,
