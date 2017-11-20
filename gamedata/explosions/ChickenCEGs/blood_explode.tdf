@@ -15,8 +15,8 @@
 			particleLife=12;
 			particleLifeSpread=8;
 			numParticles=5;
-			particleSpeed=2.5;
-			particleSpeedSpread=5;
+			particleSpeed=2;
+			particleSpeedSpread=4.5;
 			particleSize=20;
 			particleSizeSpread=13;
 			emitRot=0;
@@ -44,7 +44,7 @@
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=20;
+			particleSize=18;
 			particleSizeSpread=13;
 			emitRot=45;
 			emitRotSpread=30;
@@ -108,8 +108,8 @@
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=20;
-			particleSizeSpread=13;
+			particleSize=17;
+			particleSizeSpread=11;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;
@@ -140,9 +140,9 @@
 		airdrag			= 0.8;
 		particleLife		= 5;
 		particleLifeSpread	= 12;
-		numParticles		= 14;
-		particleSpeed		= 6.5;
-		particleSpeedSpread	= 4/5;
+		numParticles		= 12;
+		particleSpeed		= 2.5;
+		particleSpeedSpread	= 3.5;
 		particleSize		= 15;
 		particleSizeSpread	= 10;
 
@@ -189,8 +189,8 @@
 			particleLife=6;
 			particleLifeSpread=12;
 			numParticles=2;
-			particleSpeed=2.5;
-			particleSpeedSpread=5.5;
+			particleSpeed=2;
+			particleSpeedSpread=5;
 			particleSize=4.5;
 			particleSizeSpread=9;
 			emitRot=0;
@@ -218,8 +218,8 @@
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=6;
-			particleSizeSpread=12;
+			particleSize=5;
+			particleSizeSpread=10;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;
