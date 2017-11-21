@@ -198,6 +198,7 @@ end
 local function setTarget(unitID, targetData)
 	local unitData = unitTargets[unitID]
 	if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
+		Spring.SetUnitTarget(unitID, nil)
 		return false
 	end
 	if tonumber(targetData.target) then
