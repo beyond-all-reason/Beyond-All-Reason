@@ -150,6 +150,13 @@ return {
 					commanders = 2500,
 					default = 9500,
 				},
+				customparams = {
+					light_color = "1 0.8 0.55",
+					expl_light_color = "1 0.85 0.55",
+					expl_light_mult = 1.4,
+					expl_light_life_mult = 2.4,
+					expl_light_radius_mult = 2,
+				},
 			},
 		},
 		weapons = {
