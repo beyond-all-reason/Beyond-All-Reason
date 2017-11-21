@@ -95,6 +95,12 @@ return {
 				damage = {
 					default = 2900,
 				},
+                customparams = {
+                    expl_light_color = "1 0.9 0.7",
+                    expl_light_mult = 1.6,
+                    expl_light_radius_mult = 1.6,
+                    expl_light_life_mult = 1.7,
+                },
 			},
 		},
 		weapons = {
