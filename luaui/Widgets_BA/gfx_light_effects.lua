@@ -47,7 +47,7 @@ local globalLightMult = 1.2
 local globalRadiusMult = 1.2
 local globalLightMultLaser = 1.1
 local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.6
+local globalLifeMult = 0.55
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 

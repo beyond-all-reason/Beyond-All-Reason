@@ -703,7 +703,7 @@ function SystemEvent(playerID, system)
   local lines, length = 0, 0
   local function helper(line) lines=lines+1; if string.len(line) then length = string.len(line) end return "" end
 	helper((system:gsub("(.-)\r?\n", helper)))
-  if lines <= 7 and length <= 60 then
+  if lines <= 9 and length <= 64 then
   	lastSystemData[playerID] = system
   end
 end

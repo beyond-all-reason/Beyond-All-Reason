@@ -177,13 +177,12 @@ else
 		if s_resolution ~= nil then
 			system = system..'\n'..string.gsub(s_resolution, "  ", " ")
 		end
+		if s_os ~= nil then
+			system = system..'\nOS:  '..s_os
+		end
 
 		if Engine ~= nil and Platform ~= nil then	-- v104
 			system = system..'\nEngine:  '..Engine.version
-		else
-			if s_os ~= nil then
-				system = system..'\nOS:  '..s_os
-			end
 		end
 
 		system = string.sub(system, 2)
