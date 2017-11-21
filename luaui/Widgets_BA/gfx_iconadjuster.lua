@@ -84,7 +84,7 @@ function applyIcons()
 
         {"nuke.user", "LuaUI/Icons/nuke.png",1.35*iconScale},
         {"nuke_big.user", "LuaUI/Icons/nuke.png",2*iconScale},
-        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.9*iconScale},
+        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.7*iconScale},
 
         {"aa1.user", "LuaUI/Icons/aa.png", 0.85*iconScale},
         {"aa2.user", "LuaUI/Icons/aa.png", 1.1*iconScale},
