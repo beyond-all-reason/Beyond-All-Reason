@@ -636,9 +636,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "1 1 0.75",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.5,
+            expl_light_radius_mult = 1.5,
+            expl_light_life_mult = 1.6,
         },
     },
     fusionExplosionSelfd = {
@@ -656,9 +656,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "1 1 0.75",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.5,
+            expl_light_radius_mult = 1.5,
+            expl_light_life_mult = 1.7,
         },
     },
 
@@ -677,9 +677,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "1 1 0.75",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.5,
+            expl_light_radius_mult = 1.5,
+            expl_light_life_mult = 1.5,
         },
     },
     ['fusionExplosionSelfd-uw'] = {
@@ -697,9 +697,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "1 1 0.75",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.5,
+            expl_light_radius_mult = 1.5,
+            expl_light_life_mult = 1.7,
         },
     },
 
@@ -718,9 +718,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "1 1 0.75",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.6,
+            expl_light_radius_mult = 1.6,
+            expl_light_life_mult = 2,
         },
     },
     advancedFusionExplosionSelfd = {
@@ -738,9 +738,9 @@ unitDeaths = {
         },
         customparams = {
             expl_light_color = "1 1 0.75",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.7,
+            expl_light_radius_mult = 1.7,
+            expl_light_life_mult = 2.2,
         },
     },
 	
@@ -770,9 +770,9 @@ unitDeaths = {
 		},
         customparams = {
             expl_light_color = "1 0.85 0.44",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.5,
+            expl_light_radius_mult = 1.5,
+            expl_light_life_mult = 2,
         },
 	},
     commanderexplosionselfd = {
@@ -797,9 +797,9 @@ unitDeaths = {
 		},
         customparams = {
             expl_light_color = "1 0.85 0.44",
-            expl_light_mult = 1.4,
-            expl_light_radius_mult = 1.4,
-            expl_light_life_mult = 1.4,
+            expl_light_mult = 1.6,
+            expl_light_radius_mult = 1.6,
+            expl_light_life_mult = 2.2,
         },
 	},
 
