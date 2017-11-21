@@ -2356,7 +2356,7 @@ local colors = {
     sparks = false,
   },
   bomb = {
-    explosion = {properties={colormap=[[0 0 0 0   1 0.7 0.5 0.09   0.7 0.33 0.15 0.066   0.5 0.2 0.03 0.033   0 0 0 0]]}},
+    explosion = {properties={colormap=[[0 0 0 0   1 0.64 0.44 0.09   0.7 0.3 0.12 0.066   0.5 0.17 0.025 0.033   0 0 0 0]]}},
     groundflash_small = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
     groundflash_large = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
   }
