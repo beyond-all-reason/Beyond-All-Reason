@@ -22,7 +22,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.26   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.28   0 0 0 0.01]],
         size               = 18,
         sizegrowth         = -0.5,
         ttl                = 12,
@@ -36,7 +36,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.08   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.09   0 0 0 0.01]],
         size               = 36,
         sizegrowth         = -0.5,
         ttl                = 12,
@@ -468,7 +468,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.3   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.32   0 0 0 0.01]],
         size               = 25,
         sizegrowth         = -0.5,
         ttl                = 14,
@@ -482,7 +482,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.1   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
         size               = 50,
         sizegrowth         = -0.5,
         ttl                = 14,
@@ -497,9 +497,9 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.9 0.75 0.55   0 0 0 0.01]],
-        size               = 43,
+        size               = 41,
         sizegrowth         = 0,
-        ttl                = 2,
+        ttl                = 3,
         texture            = [[groundflash]],
       },
     },
@@ -948,7 +948,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.34   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.38   0 0 0 0.01]],
         size               = 35,
         sizegrowth         = -1,
         ttl                = 17,
@@ -962,7 +962,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.12   0 0 0 0.01]],
         size               = 70,
         sizegrowth         = -1,
         ttl                = 17,
@@ -977,9 +977,9 @@ local definitions = {
       water              = true,
       properties = {
         colormap           = [[1 0.9 0.75 0.7   0 0 0 0.01]],
-        size               = 60,
+        size               = 55,
         sizegrowth         = 0,
-        ttl                = 3,
+        ttl                = 4,
         texture            = [[groundflash]],
       },
     },
@@ -1382,7 +1382,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.34   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.4   0 0 0 0.01]],
         size               = 70,
         sizegrowth         = -1.5,
         ttl                = 22,
@@ -1396,7 +1396,7 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.7 0.3 0.11   0 0 0 0.01]],
+        colormap           = [[1 0.7 0.3 0.125   0 0 0 0.01]],
         size               = 140,
         sizegrowth         = -1.5,
         ttl                = 22,
@@ -1410,10 +1410,10 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.8   0 0 0 0.01]],
-        size               = 115,
+        colormap           = [[1 0.9 0.75 0.77   0 0 0 0.01]],
+        size               = 110,
         sizegrowth         = 0,
-        ttl                = 3,
+        ttl                = 4,
         texture            = [[groundflash]],
       },
     },
@@ -1872,10 +1872,10 @@ local definitions = {
       ground             = true,
       water              = true,
       properties = {
-        colormap           = [[1 0.9 0.75 0.9   0 0 0 0.01]],
-        size               = 170,
+        colormap           = [[1 0.9 0.75 0.85   0 0 0 0.01]],
+        size               = 160,
         sizegrowth         = 0,
-        ttl                = 4,
+        ttl                = 5,
         texture            = [[groundflash]],
       },
     },
@@ -2359,6 +2359,7 @@ local colors = {
     explosion = {properties={colormap=[[0 0 0 0   1 0.64 0.44 0.09   0.7 0.3 0.12 0.066   0.5 0.17 0.025 0.033   0 0 0 0]]}},
     groundflash_small = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
     groundflash_large = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
+    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.4 0.15 0.017   0 0 0 0]]}},
   }
 }
 for color, effects in pairs(colors) do
