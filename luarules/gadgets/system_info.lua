@@ -181,10 +181,6 @@ else
 			system = system..'\nOS:  '..s_os
 		end
 
-		if Engine ~= nil and Platform ~= nil then	-- v104
-			system = system..'\nEngine:  '..Engine.version
-		end
-
 		system = string.sub(system, 2)
 		if system ~= '' then
 			SendLuaRulesMsg("$y$"..system)
