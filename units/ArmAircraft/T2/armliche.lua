@@ -109,6 +109,9 @@ return {
 					light_radius_mult = "0.4",		-- used by light_effects widget
 					light_multiplier = "0.6",		-- used by light_effects widget
 					light_color = "1 0.5 0.05",
+					expl_light_mult = 1.3,
+					expl_light_radius_mult = 1.3,
+					expl_light_life_mult = 1.7,
 				},
 			},
 			arm_pidrbomb = {
@@ -153,9 +156,9 @@ return {
 					light_radius_mult = "0.4",		-- used by light_effects widget
 					light_multiplier = "0.6",		-- used by light_effects widget
 					expl_light_color = "1 0.9 0.7",
-					expl_light_mult = 1.5,
-					expl_light_radius_mult = 1.5,
-					expl_light_life_mult = 1.35,
+					expl_light_mult = 1.3,
+					expl_light_radius_mult = 1.3,
+					expl_light_life_mult = 1.7,
 				},
 			},
 		},

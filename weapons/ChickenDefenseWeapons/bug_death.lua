@@ -7,7 +7,7 @@ return {
 		impulsefactor = "0.4",
 		explosiongenerator = "custom:chickenunitexplosion-medium-red",
 		name = "bug_death",
-		range = "450",
+		range = "400",
 		reloadtime = "3.6",
 		soundhit = "ChickenDefenseSounds/bugdie",
 		turret = "1",
