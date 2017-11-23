@@ -111,12 +111,14 @@ function widget:DrawWorld()
 	for _,unitID in ipairs(Spring.GetSelectedUnits()) do
         if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
             local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
-            gl.Color(
-            health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
-            health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
-            0, -- blue
-            highlightAlpha) -- alpha
-            gl.Unit(unitID, true)
+            if maxHealth ~= nil then
+              gl.Color(
+              health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
+              health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
+              0, -- blue
+              highlightAlpha) -- alpha
+              gl.Unit(unitID, true)
+            end
             --HilightModel(unitID)
         end
 	end
