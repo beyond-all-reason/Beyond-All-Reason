@@ -16,10 +16,10 @@
 			particleLife=12;
 			particleLifeSpread=2;
 			numParticles=2;
-			particleSpeed=8;
-			particleSpeedSpread=1.5;
-			particleSize=1.8;
-			particleSizeSpread=1;
+			particleSpeed=5;
+			particleSpeedSpread=1;
+			particleSize=1;
+			particleSizeSpread=0.4;
 			emitRot=0;
 			emitRotSpread=40;
 			directional=1;
@@ -35,10 +35,10 @@
 		[properties]
       	{
          	colorMap=1 1 1 1   1 1 1 1   0 0 0 0;
-          	size=1;
-          	length=2;
-          	sizeGrowth=13;
-          	ttl=17;
+          	size=0.8;
+          	length=1.5;
+          	sizeGrowth=10;
+          	ttl=14;
           	frontOffset=0;
           	sideTexture=bloodsplat;
           	frontTexture=bloodsplat;

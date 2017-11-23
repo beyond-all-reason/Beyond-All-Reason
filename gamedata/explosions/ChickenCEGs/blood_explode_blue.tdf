@@ -15,10 +15,10 @@
 			particleLife=12;
 			particleLifeSpread=8;
 			numParticles=5;
-			particleSpeed=1.25;
-			particleSpeedSpread=2.5;
-			particleSize=9;
-			particleSizeSpread=6;
+			particleSpeed=0.75;
+			particleSpeedSpread=1.5;
+			particleSize=5;
+			particleSizeSpread=3;
 			emitRot=0;
 			emitRotSpread=80;
 			directional=1;
@@ -39,13 +39,13 @@
 			Texture=bloodblastwhite;
 			colorMap=0 0.6 0.6 1   0 0.6 0.6 1   0 0 0 0;
 			airdrag=.9;
-			particleLife=20;
+			particleLife=18;
 			particleLifeSpread=2;
 			numParticles=1;
 			particleSpeed=0;
 			particleSpeedSpread=0;
-			particleSize=18;
-			particleSizeSpread=6;
+			particleSize=9;
+			particleSizeSpread=3;
 			emitRot=45;
 			emitRotSpread=30;
 			directional=0;
@@ -55,9 +55,9 @@
 	}
 /*	[groundflash]
 	{
-		flashSize = 96;   // flash size
-		flashAlpha = .4;    // initial alpha of the flash
-		ttl = 16;          // number of frames
+		flashSize = 84;   // flash size
+		flashAlpha = .36;    // initial alpha of the flash
+		ttl = 14;          // number of frames
 		color = .2,.4,.9;    // color RGB
 	}*/
 }

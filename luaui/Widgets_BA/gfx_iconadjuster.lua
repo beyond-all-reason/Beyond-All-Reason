@@ -84,7 +84,7 @@ function applyIcons()
 
         {"nuke.user", "LuaUI/Icons/nuke.png",1.35*iconScale},
         {"nuke_big.user", "LuaUI/Icons/nuke.png",2*iconScale},
-        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.9*iconScale},
+        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.7*iconScale},
 
         {"aa1.user", "LuaUI/Icons/aa.png", 0.85*iconScale},
         {"aa2.user", "LuaUI/Icons/aa.png", 1.1*iconScale},
@@ -132,9 +132,9 @@ function applyIcons()
         {"lrpc.user", "LuaUI/Icons/lrpc.png", 2.35*iconScale},
         {"lrpc_lolcannon.user", "LuaUI/Icons/lrpc.png", 3.5*iconScale},
 
-        {"chicken_queen.user", "LuaUI/Icons/lrpc.png", 4.5*iconScale},
+        {"chicken_queen.user", "LuaUI/Icons/queen.png", 5*iconScale},
 
-        {"meteor.user", "LuaUI/Icons/meteor.png", 1*iconScale},
+        {"meteor.user", "LuaUI/Icons/meteor.png", 2.5*iconScale},
 
         {"wall.user", "LuaUI/Icons/building.png",0.55*iconScale},
 
