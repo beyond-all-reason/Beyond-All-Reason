@@ -1,7 +1,7 @@
 function gadget:GetInfo()
   return {
     name      = "TurnRadius",
-    desc      = "Fixes TurnRadius Dynamically",
+    desc      = "Fixes TurnRadius Dynamically for bombers",
     author    = "Doo",
     date      = "Sept 19th 2017",
     license   = "GNU GPL, v2 or later",
@@ -52,7 +52,7 @@ end
 function gadget:GameFrame()
 	for unitID, isbomber in pairs (Bombers) do
 		local cQueue = Spring.GetCommandQueue(unitID,1)
-			if cQueue[1] and cQueue[1].id == CMD.ATTACK then
+			if (cQueue[1] and cQueue[1].id == CMD.ATTACK) or (not cQueue[1]) then
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
 			else
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
