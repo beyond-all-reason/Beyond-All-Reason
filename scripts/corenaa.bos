@@ -124,18 +124,16 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
+	    emit-sfx 1024 from flare1;
 		move guns to z-axis [-10.00000] now;
-		show flare1;
-		sleep 150;
-		hide flare1;
+		sleep 50;
 		move guns to z-axis [0.00000] speed [37.50000];
 	}
 	if( gun_1 == 1 )
 	{
+	    emit-sfx 1024 from flare2;
 		move guns to z-axis [-10.00000] now;
-		show flare2;
-		sleep 150;
-		hide flare2;
+		sleep 50;
 		move guns to z-axis [0.00000] speed [37.50000];
 	}
 	sleep 50;

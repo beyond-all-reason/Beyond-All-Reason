@@ -441,19 +441,17 @@ FireWeapon6()
 {
 	if( Static_Var_6 )
 	{
+	    emit-sfx 1024 + 2 from flakflare1b;
 		move flakbarrel1b to z-axis [-1.000000] speed [500.000000];
-		show flakflare1b;
-		sleep 150;
+		sleep 50;
 		move flakbarrel1b to z-axis [0.000000] speed [3.000000];
-		hide flakflare1b;
 	}
 	else
 	{
+	    emit-sfx 1024 + 2 from flakflare1a;
 		move flakbarrel1a to z-axis [-1.000000] speed [500.000000];
-		show flakflare1a;
-		sleep 150;
+		sleep 50;
 		move flakbarrel1a to z-axis [0.000000] speed [3.000000];
-		hide flakflare1a;
 	}
 	Static_Var_6 = !Static_Var_6;
 }
@@ -484,19 +482,17 @@ FireWeapon7()
 {
 	if( Static_Var_7 )
 	{
+	    emit-sfx 1024 + 2 from flakflare2b;
 		move flakbarrel2b to z-axis [-1.000000] speed [500.000000];
-		show flakflare2b;
-		sleep 150;
+		sleep 50;
 		move flakbarrel2b to z-axis [0.000000] speed [3.000000];
-		hide flakflare2b;
 	}
 	else
 	{
+	    emit-sfx 1024 + 2 from flakflare2a;
 		move flakbarrel2a to z-axis [-1.000000] speed [500.000000];
-		show flakflare2a;
-		sleep 150;
+		sleep 50;
 		move flakbarrel2a to z-axis [0.000000] speed [3.000000];
-		hide flakflare2a;
 	}
 	Static_Var_7 = !Static_Var_7;
 }
