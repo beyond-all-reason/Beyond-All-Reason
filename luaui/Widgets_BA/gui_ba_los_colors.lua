@@ -16,7 +16,7 @@ end
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
-local losWithRadarEnabled = false;
+local losWithRadarEnabled = true;
 local colorProfile = "greyscale" -- "colored"
 local specDetected = false
 
@@ -128,7 +128,7 @@ function toggleLOSColors()
     end
 end
 
-function widget:SetConfigData(data)
+function widget:Initialize()
     widgetHandler:AddAction("losradar", toggleLOSRadars)
     widgetHandler:AddAction("loscolor", toggleLOSColors)
 
@@ -137,22 +137,24 @@ function widget:SetConfigData(data)
 
     always, LOS, radar, jam, radar2 = Spring.GetLosViewColors()
 
+    if losWithRadarEnabled == true then
+        setLosWithRadars()
+    else
+        setLosWithoutRadars()
+    end
+end
+
+function widget:SetConfigData(data)
     if data.losWithRadarEnabled ~= nil then
         losWithRadarEnabled = data.losWithRadarEnabled
     else
-        losWithRadarEnabled = false
+        losWithRadarEnabled = true
     end
 
     if data.colorProfile ~= nil then
         colorProfile = data.colorProfile
     else
         colorProfile = "greyscale"
-    end
-
-    if losWithRadarEnabled == true then
-        setLosWithRadars()
-    else
-        setLosWithoutRadars()
     end
 end
 
