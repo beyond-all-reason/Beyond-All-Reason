@@ -552,10 +552,12 @@ unitDeaths = {
         damage = {
             commanders = 1250,
             default = 3500,
+        },
+        customparams = {
             expl_light_color = "1 0.9 0.66",
-            expl_light_mult = 1.6,
-            expl_light_radius_mult = 1.5,
-            expl_light_life_mult = 1.75,
+            expl_light_mult = 1.22,
+            expl_light_radius_mult = 1.22,
+            expl_light_life_mult = 1.4,
         },
     },
     banthaSelfd = {
@@ -570,10 +572,12 @@ unitDeaths = {
         damage = {
             commanders = 2000,
             default = 4500,
+        },
+        customparams = {
             expl_light_color = "1 0.9 0.66",
-            expl_light_mult = 1.7,
-            expl_light_radius_mult = 1.5,
-            expl_light_life_mult = 1.85,
+            expl_light_mult = 1.25,
+            expl_light_radius_mult = 1.25,
+            expl_light_life_mult = 1.5,
         },
     },
 
@@ -590,6 +594,11 @@ unitDeaths = {
             commanders = 1400,
             default = 2400,
         },
+        customparams = {
+            expl_light_mult = 1.22,
+            expl_light_radius_mult = 1.22,
+            expl_light_life_mult = 1.4,
+        },
     },
     flagshipExplosionSelfd = {
         weaponType = "Cannon",
@@ -603,6 +612,11 @@ unitDeaths = {
         damage = {
             commanders = 1900,
             default = 5000,
+        },
+        customparams = {
+            expl_light_mult = 1.25,
+            expl_light_radius_mult = 1.25,
+            expl_light_life_mult = 1.5,
         },
     },
 
@@ -619,6 +633,11 @@ unitDeaths = {
         damage = {
             default = 18,
         },
+        customparams = {
+            expl_light_mult = 1.1,
+            expl_light_radius_mult = 1.1,
+            expl_light_life_mult = 1.15,
+        },
     },
     decoycommanderSelfd = {
         weaponType = "Cannon",
@@ -631,6 +650,11 @@ unitDeaths = {
         explosiongenerator="custom:decoycommander-selfd",
         damage = {
             default = 280,
+        },
+        customparams = {
+            expl_light_mult = 1.13,
+            expl_light_radius_mult = 1.13,
+            expl_light_life_mult = 1.2,
         },
     },
 
