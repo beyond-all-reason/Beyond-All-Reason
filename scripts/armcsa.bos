@@ -175,7 +175,9 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
+		explode nanopoint type FALL | BITMAP5 | NOHEATCLOUD;
+		explode wake1 type FALL | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
@@ -185,22 +187,22 @@ Killed(severity, corpsetype)
 		explode cab type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode nanopoint type FALL | BITMAP5 | NOHEATCLOUD;
 		explode wake1 type FALL | BITMAP1 | NOHEATCLOUD;
-		explode wake2 type FALL | BITMAP2 | NOHEATCLOUD;
+		//explode wake2 type FALL | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode cab type SHATTER | BITMAP4 | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
+		//explode cab type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
-	explode cab type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	//explode base type SHATTER | NOHEATCLOUD;
+	//explode cab type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode nanopoint type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;

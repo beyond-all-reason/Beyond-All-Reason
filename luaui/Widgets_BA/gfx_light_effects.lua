@@ -9,7 +9,7 @@ function widget:GetInfo()
 		author    = "Floris (original by beherith)",
 		date      = "May 2017",
 		license   = "GPL V2",
-		layer     = 0,
+		layer     = 10,
 		enabled   = true
 	}
 end
@@ -612,6 +612,7 @@ function widget:GetConfigData(data)
 	savedTable.globalLightMultLaser = globalLightMultLaser
 	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
 	savedTable.globalLifeMult = globalLifeMult
+	savedTable.resetted = 1
 	return savedTable
 end
 
@@ -628,7 +629,7 @@ function widget:SetConfigData(data)
 	if data.globalRadiusMultLaser ~= nil then
 		globalRadiusMultLaser = data.globalRadiusMultLaser
 	end
-	if data.globalLifeMult ~= nil then
+	if data.globalLifeMult ~= nil and data.resetted ~= nil then
 		globalLifeMult = data.globalLifeMult
 	end
 end

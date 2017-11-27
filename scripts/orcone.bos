@@ -542,6 +542,14 @@ AimSecondary(heading, pitch)
 
 FireSecondary()
 {
+	if( gun_2 == 0 )
+	{
+	    emit-sfx 1024 from Lheadflare;
+	}
+	if( gun_2 == 1 )
+	{
+	    emit-sfx 1024 from Rheadflare;
+	}
 	gun_2 = !gun_2;
 	return (0);
 }

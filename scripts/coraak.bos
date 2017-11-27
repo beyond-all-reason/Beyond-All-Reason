@@ -482,9 +482,7 @@ AimWeapon10(heading, pitch)
 
 FireWeapon10()
 {
-	show flak_fire;
-	sleep 100;
-	hide flak_fire;
+	emit-sfx 1024 from flak_fire;
 }
 
 Killed(severity, corpsetype)

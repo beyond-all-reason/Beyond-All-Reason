@@ -187,35 +187,37 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
+		explode bombdrop type FALL | BITMAP2 | NOHEATCLOUD;
+		explode flare1 type FALL | BITMAP3 | NOHEATCLOUD;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
 		explode bombdrop type FALL | BITMAP2 | NOHEATCLOUD;
-		explode flare1 type FALL | BITMAP3 | NOHEATCLOUD;
+		//explode flare1 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode flare2 type FALL | BITMAP4 | NOHEATCLOUD;
-		explode wing1l type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode wing1l type FALL | BITMAP5 | NOHEATCLOUD;
 		return (0);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
 		explode bombdrop type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode flare1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode flare2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode wing1l type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode wing1l type FALL | BITMAP5 | NOHEATCLOUD;
 		return (0);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
+	//explode base type SHATTER | NOHEATCLOUD;
 	explode bombdrop type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode flare1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode flare2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	explode wing1l type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode wing1l type FALL | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 }
 
 setSFXoccupy(state)

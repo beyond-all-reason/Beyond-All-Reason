@@ -227,31 +227,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
+		explode sonarholder1 type FALL | BITMAP1 | NOHEATCLOUD;
+        explode lwing type FALL | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode sonar1 type SHATTER | BITMAP4 | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
+		//explode sonar1 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode sonarholder1 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode sonarholder2 type FALL | BITMAP2 | NOHEATCLOUD;
+		explode lwing type FALL | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode sonar1 type SHATTER | BITMAP4 | NOHEATCLOUD;
+		//explode base type SHATTER | NOHEATCLOUD;
+		//explode sonar1 type SHATTER | BITMAP4 | NOHEATCLOUD;
 		explode sonarholder1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode sonarholder2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+    explode lwing type FALL | BITMAP2 | NOHEATCLOUD;
+    explode rwing type FALL | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
-	explode sonar1 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	//explode base type SHATTER | NOHEATCLOUD;
+	//explode sonar1 type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode sonarholder1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode sonarholder2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+    explode lwing type FALL | BITMAP2 | NOHEATCLOUD;
+    explode rwing type FALL | BITMAP3 | NOHEATCLOUD;
 	return (corpsetype);
 }

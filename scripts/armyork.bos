@@ -114,34 +114,30 @@ FireTertiary()
 {
 	if( gun_3 == 0 )
 	{
+	    emit-sfx 1024 from flare1;
 		move gun1 to z-axis [-4.000000] now;
-		show flare1;
-		sleep 150;
-		hide flare1;
+		sleep 50;
 		move gun1 to z-axis [0.000000] speed [15.000000];
 	}
 	if( gun_3 == 1 )
 	{
+	    emit-sfx 1024 from flare4;
 		move gun4 to z-axis [-4.000000] now;
-		show flare4;
-		sleep 150;
-		hide flare4;
+		sleep 50;
 		move gun4 to z-axis [0.000000] speed [15.000000];
 	}
 	if( gun_3 == 2 )
 	{
+	    emit-sfx 1024 from flare2;
 		move gun2 to z-axis [-4.000000] now;
-		show flare2;
-		sleep 150;
-		hide flare2;
+		sleep 50;
 		move gun2 to z-axis [0.000000] speed [15.000000];
 	}
 	if( gun_3 == 3 )
 	{
+	    emit-sfx 1024 from flare3;
 		move gun3 to z-axis [-4.000000] now;
-		show flare3;
-		sleep 150;
-		hide flare3;
+		sleep 50;
 		move gun3 to z-axis [0.000000] speed [15.000000];
 	}
 	sleep 50;

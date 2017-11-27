@@ -82,11 +82,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
+		sfxtypes = {
  			pieceExplosionGenerators = { 
 				"deathceg2",
 				"deathceg3",
 				"deathceg4",
+			},
+			explosiongenerators = {
+				"custom:barrelshot-medium-aa",
 			},
 		},
 		sounds = {
@@ -132,14 +135,14 @@ return {
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "FlakCannon",
-				size = 4.4,
+				size = 4.5,
 				sizedecay = 0.08,
-				stages = 7,
+				stages = 8,
 				noselfdamage = true,
 				predictboost = 1,
 				range = 775,
 				reloadtime = 0.55,
-				rgbcolor = {1, 0.5, 0.7},
+				rgbcolor = {1, 0.33, 0.7},
 				soundhit = "flakhit",
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
