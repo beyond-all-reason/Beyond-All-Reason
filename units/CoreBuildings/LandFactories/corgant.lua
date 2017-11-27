@@ -47,7 +47,7 @@ return {
 			[3] = "corjugg",
 			[4] = "corshiva",
 			[5] = "corcat",
-			-- [6] = "corsok",
+			[6] = "corsok",
 		},
 		customparams = {
 			
