@@ -40,6 +40,7 @@ return {
 		buildoptions = {
 			"armcs",
 			"armch",
+			"armrecl",
 			"armpt",
 			"armdecade",
 			"armpship",

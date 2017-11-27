@@ -417,6 +417,8 @@ local armorDefs = {
 		"armserp",
 		"armacsub",
         "coracsub",
+		"armrecl",
+		"correcl",
 		},
 
  tinychicken =

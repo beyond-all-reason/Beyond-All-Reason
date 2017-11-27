@@ -39,6 +39,7 @@ return {
 		buildoptions = {
 			"corcs",
 			"corch",
+			"correcl",
 			"corpt",
 			"coresupp",
 			"corpship",

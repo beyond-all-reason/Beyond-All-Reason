@@ -2,7 +2,7 @@ return {
 	correcl = {
 		autoheal = 2,
 		buildcostenergy = 3200,
-		buildcostmetal = 130,
+		buildcostmetal = 200,
 		builddistance = 140,
 		builder = true,
 		shownanospray = false,
@@ -10,6 +10,7 @@ return {
 		buildtime = 0.75 * 1.5 * 5300,
 		canassist = false,
 		canmove = true,
+		canresurrect = true,
 		category = "UNDERWATER ALL NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 -3 2",
 		collisionvolumescales = "37 15 48",

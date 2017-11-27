@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, exhaust, door1, door2, boom, neck, gun;
+piece  base, flare, exhaust1, exhaust2, door1, door2, boom, neck, gun;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -15,8 +15,6 @@ activatescr()
 {
 	if( TRUE )
 	{
-		move exhaust to y-axis [-0.403192] now;
-		move exhaust to z-axis [3.775989] now;
 		move flare to y-axis [0.172803] now;
 		move flare to z-axis [-1.375995] now;
 		turn door1 to z-axis <0.000000> now;
@@ -38,8 +36,6 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move exhaust to y-axis [-0.403192] now;
-		move exhaust to z-axis [3.775989] now;
 		move flare to y-axis [0.172803] now;
 		move flare to z-axis [-1.375995] now;
 		turn boom to x-axis <39.384615> now;
@@ -65,7 +61,8 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	while( TRUE )
 	{
-		emit-sfx 256 | 3 from exhaust;
+		emit-sfx 256 | 3 from exhaust1;
+		emit-sfx 256 | 3 from exhaust2;
 		sleep 250;
 	}
 }
@@ -178,7 +175,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		explode base type SHATTER | NOHEATCLOUD;
 		explode boom type FALL | BITMAP2 | NOHEATCLOUD;
-		explode exhaust type FALL | BITMAP5 | NOHEATCLOUD;
+		explode exhaust1 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
 		explode gun type FALL | BITMAP2 | NOHEATCLOUD;
 		explode neck type FALL | BITMAP3 | NOHEATCLOUD;
@@ -189,7 +186,7 @@ Killed(severity, corpsetype)
 		corpsetype = 3;
 		explode base type SHATTER | NOHEATCLOUD;
 		explode boom type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode exhaust type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode exhaust2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode flare type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode gun type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode neck type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
@@ -198,7 +195,7 @@ Killed(severity, corpsetype)
 	corpsetype = 3;
 	explode base type SHATTER | NOHEATCLOUD;
 	explode boom type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode exhaust type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode exhaust1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode flare type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode gun type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode neck type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;

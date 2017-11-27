@@ -2,7 +2,7 @@ return {
 	armrecl = {
 		autoheal = 2,
 		buildcostenergy = 3000,
-		buildcostmetal = 140,
+		buildcostmetal = 210,
 		builddistance = 140,
 		builder = true,
 		shownanospray = false,
@@ -10,6 +10,7 @@ return {
 		buildtime = 0.75 * 1.5 * 5500,
 		canassist = false,
 		canmove = true,
+		canresurrect = true,
 		category = "ALL UNDERWATER NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "38 17 50",

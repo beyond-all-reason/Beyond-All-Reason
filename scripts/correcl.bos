@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, door1, door2, plate, wake1, wake2, post,
+piece  base, beam, door1, door2, plate, wake1, post,
        gun;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
@@ -70,7 +70,6 @@ StartMoving()
 	while( TRUE )
 	{
 		emit-sfx 256 | 3 from wake1;
-		emit-sfx 256 | 3 from wake2;
 		sleep 250;
 	}
 }
@@ -186,7 +185,6 @@ Killed(severity, corpsetype)
 		explode gun type FALL | BITMAP5 | NOHEATCLOUD;
 		explode post type FALL | BITMAP2 | NOHEATCLOUD;
 		explode wake1 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode wake2 type FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
@@ -197,7 +195,6 @@ Killed(severity, corpsetype)
 		explode gun type FALL | BITMAP5 | NOHEATCLOUD;
 		explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
@@ -206,6 +203,5 @@ Killed(severity, corpsetype)
 	explode gun type FALL | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode post type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode wake1 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode wake2 type FALL | FIRE | SMOKE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }
