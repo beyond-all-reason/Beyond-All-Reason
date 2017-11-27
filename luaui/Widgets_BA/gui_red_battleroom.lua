@@ -614,33 +614,33 @@ local function processLine(line,g,cfg,newlinecolor)
 	
 	
 	-- filter Sync error when its a spectator
-	if sfind(line,"^Sync error for ") then
-		name = ssub(line,16,sfind(line," in frame ")-1)
-		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
-			ignoreThisMessage = true
-		end
-	end
+	--if sfind(line,"^Sync error for ") then
+	--	name = ssub(line,16,sfind(line," in frame ")-1)
+	--	if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
+	--		ignoreThisMessage = true
+	--	end
+	--end
 	
 	-- filter Sync error when its a spectator
-	if sfind(line,"^Error: %[DESYNC WARNING%] ") then
-		name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
-		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
-			ignoreThisMessage = true
-		end
-	end
+	--if sfind(line,"^Error: %[DESYNC WARNING%] ") then
+	--	name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
+	--	if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
+	--		ignoreThisMessage = true
+	--	end
+	--end
 	
 	-- filter Connection attempts
-	if sfind(line,"^Connection attempt from ") then
-		name = ssub(line,25)
-		lastConnectionAttempt = name
-	  ignoreThisMessage = true
-	end
+	--if sfind(line,"^Connection attempt from ") then
+	--	name = ssub(line,25)
+	--	lastConnectionAttempt = name
+	--  ignoreThisMessage = true
+	--end
 	
 	-- filter Connection established
-	if sfind(line," Connection established") then
-		name = lastConnectionAttempt
-	  ignoreThisMessage = true
-	end
+	--if sfind(line," Connection established") then
+	--	name = lastConnectionAttempt
+	--  ignoreThisMessage = true
+	--end
 	
 	
 	if linetype==0 then
