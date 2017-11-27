@@ -65,6 +65,19 @@ local options={
 	},	
 	
 	{
+		key="map_terraintype",
+		name="Map TerrainTypes",
+		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
+		type="list",
+		def="enabled",
+		section="ba_options",
+		items={
+			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
+			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
+		}
+	},	
+	
+	{
 		key="map_waterlevel",
 		name="Water Level",
 		desc="-1 = Dry, 0 = Unchanged, 1-100 = Waterlevel in % of max height",
