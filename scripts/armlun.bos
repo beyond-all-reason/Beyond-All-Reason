@@ -126,6 +126,9 @@ Create()
 	bAiming = FALSE;
 	gun_1 = lflare;
 	gun_2 = lflare;
+	hide lrocket;
+	hide rrocket;
+	hide launch;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	return (0);
