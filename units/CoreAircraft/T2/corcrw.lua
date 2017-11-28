@@ -148,7 +148,7 @@ return {
 				},
 				customparams = {
 					light_radius_mult = "1.2",		-- used by light_effects widget
-					light_multiplier = "1.05",		-- used by light_effects widget
+					light_mult = "1.05",		-- used by light_effects widget
 				},
 			},
 		},

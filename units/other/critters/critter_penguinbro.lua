@@ -101,7 +101,7 @@ unitDef = {
       },
       customparams = {
         light_radius_mult = "0.7",		-- used by light_effects widget
-        light_multiplier = "0.7",		-- used by light_effects widget
+        light_mult = "0.7",		-- used by light_effects widget
       },
     },
   },

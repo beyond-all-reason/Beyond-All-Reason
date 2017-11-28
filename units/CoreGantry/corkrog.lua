@@ -149,7 +149,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "0.03",		-- used by light_effects widget
+					light_mult = "0.03",		-- used by light_effects widget
 				},
 			},
 			corkrog_laser = {
@@ -191,7 +191,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_multiplier = "2",		-- used by light_effects widget
+					light_mult = "2",		-- used by light_effects widget
 					light_radius_mult = "0.6",		-- used by light_effects widget
 				},
 			},

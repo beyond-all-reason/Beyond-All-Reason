@@ -151,7 +151,7 @@ return {
 					vtol = 65,
 				},
 				customparams = {
-					light_multiplier = "0.8",		-- used by light_effects widget
+					light_mult = "0.8",		-- used by light_effects widget
 				},
 			},
 		},
