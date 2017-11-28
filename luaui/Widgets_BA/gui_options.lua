@@ -675,7 +675,11 @@ function widget:Update(dt)
 				changes = true
 			end
 		end
-		local widgetDataChanges = loadWidgetConfigData()
+		local widgetDataChanges = false
+		if checkWidgetDataChanges ~= nil and checkWidgetDataChanges == true then
+			widgetDataChanges = loadWidgetConfigData()
+			checkWidgetDataChanges = false
+		end
 		if changes or widgetDataChanges then
 			if windowList then
 				gl.DeleteList(windowList)
@@ -839,6 +843,9 @@ function widget:DrawScreen()
 			  WG['guishader_api'].setScreenBlur(false)
 			end
 		end
+  end
+	if checkWidgetDataChanges == nil then
+		checkWidgetDataChanges = true
 	end
 end
 
