@@ -1625,4 +1625,24 @@ function widget:Shutdown()
 		WG['guishader_api'].RemoveRect('topbar_buttons')
 		WG['guishader_api'].RemoveRect('topbar_rejoin')
 	end
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].RemoveTooltip('coms')
+		WG['tooltip'].RemoveTooltip('wind')
+		WG['tooltip'].RemoveTooltip('rejoin')
+		local res = 'energy'
+		WG['tooltip'].RemoveTooltip(res..'_share_slider')
+		WG['tooltip'].RemoveTooltip(res..'_share_slider2')
+		WG['tooltip'].RemoveTooltip(res..'_metalmaker_slider')
+		WG['tooltip'].RemoveTooltip(res..'_pull')
+		WG['tooltip'].RemoveTooltip(res..'_income')
+		WG['tooltip'].RemoveTooltip(res..'_storage')
+		WG['tooltip'].RemoveTooltip(res..'_curent')
+		res = 'metal'
+		WG['tooltip'].RemoveTooltip(res..'_share_slider')
+		WG['tooltip'].RemoveTooltip(res..'_share_slider2')
+		WG['tooltip'].RemoveTooltip(res..'_pull')
+		WG['tooltip'].RemoveTooltip(res..'_income')
+		WG['tooltip'].RemoveTooltip(res..'_storage')
+		WG['tooltip'].RemoveTooltip(res..'_curent')
+	end
 end

@@ -9,7 +9,7 @@ function widget:GetInfo()
 		author    = "Floris (original by beherith)",
 		date      = "May 2017",
 		license   = "GPL V2",
-		layer     = 10,
+		layer     = 0,
 		enabled   = true
 	}
 end

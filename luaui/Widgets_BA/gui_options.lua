@@ -1747,7 +1747,7 @@ function widget:Initialize()
 		end
 	end
 
-		WG['options'] = {}
+	WG['options'] = {}
 	WG['options'].toggle = function(state)
 		if state ~= nil then
 			show = state
