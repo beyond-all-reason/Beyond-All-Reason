@@ -60,11 +60,12 @@ local icons = {
 
 
   {"wind.user", "LuaUI/Icons/wind.png",1.1*iconScale},
-  {"energy1.user", "LuaUI/Icons/energy.png",1.3*iconScale},   -- unused
+  {"energy1.user", "LuaUI/Icons/solar.png",1.75*iconScale},   
   {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
   {"energy3.user", "LuaUI/Icons/fusion.png",1.4*iconScale},
-  {"energy4.user", "LuaUI/Icons/fusion.png",1.5*iconScale},
+  {"energy4.user", "LuaUI/Icons/hazardous.png",1.8*iconScale},
   {"energy5.user", "LuaUI/Icons/fusion.png",1.6*iconScale},
+  {"energy6.user", "LuaUI/Icons/energy.png",2.2*iconScale},
 
   {"eye.user", "LuaUI/Icons/eye.png",0.85*iconScale},
   {"spy.user", "LuaUI/Icons/eye.png",1.25*iconScale},
@@ -249,7 +250,9 @@ function changeUnitIcons()
       Spring.SetUnitDefIcon(udid, "energy4.user")
     elseif (ud.name=="armgmm") or  (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then
       Spring.SetUnitDefIcon(udid, "energy3.user")
-    elseif (ud.name=="armadvsol" or ud.name=="coradvsol" or ud.name=="armgeo" or ud.name=="corgeo" or ud.name=="corbhmth") then
+    elseif ud.name=="armgeo" or ud.name=="corgeo" or ud.name=="corbhmth" then
+      Spring.SetUnitDefIcon(udid, "energy6.user")
+elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
       Spring.SetUnitDefIcon(udid, "energy2.user")
 
       -- lrpc
