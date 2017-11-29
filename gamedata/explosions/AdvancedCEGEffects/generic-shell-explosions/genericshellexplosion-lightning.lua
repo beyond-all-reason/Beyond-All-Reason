@@ -287,7 +287,7 @@ return {
       water              = true,
 	  underwater         = true,
       properties = {
-                heat               = 9,
+        heat               = 9,
         heatfalloff        = 1.3,
         maxheat            = 20,
         pos                = [[r-2 r2, 5, r-2 r2]],
@@ -312,10 +312,10 @@ return {
     },
     groundflash = {
       air                = true,
-            flashalpha         = 0.12,
+      flashalpha         = 0.16,
       flashsize          = [[110]],
       ground             = true,
-      ttl                = 110,
+      ttl                = 160,
       water              = true,
 	  underwater         = true,
       color = {
