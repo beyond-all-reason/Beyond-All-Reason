@@ -46,10 +46,9 @@ local kbotBrakerateMultiplier = 0.75
 
 function UnitDef_Post(name, uDef)
 
-	--if uDef.category['chicken'] ~= nil then	-- doesnt seem to work
-	--	uDef.turnrate = 1800
-	--	uDef.turninplaceanglelimit = 90
-	--end
+	if uDef.category['chicken'] ~= nil then	-- doesnt seem to work
+		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
+	end
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
