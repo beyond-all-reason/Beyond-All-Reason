@@ -166,6 +166,26 @@ StopMoving()
 	return (0);
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
+FirePrimary()
+{
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	return (1);
+}
+
+FireSecondary()
+{
+	return (0);
+}
+
 QueryPrimary(piecenum)
 {
 	piecenum = weapon1;

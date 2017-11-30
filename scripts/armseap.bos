@@ -149,8 +149,14 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
+AimWeapon1(heading, pitch)
+{
+	return (1);
+}
+
 FireWeapon1()
 {
+	return (0);
 }
 
 QueryWeapon1(piecenum)

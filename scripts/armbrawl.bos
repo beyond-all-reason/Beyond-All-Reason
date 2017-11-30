@@ -204,6 +204,11 @@ AimFromPrimary(piecenum)
 	}
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
 Killed(severity, corpsetype)
 {
 	hide flare1a;

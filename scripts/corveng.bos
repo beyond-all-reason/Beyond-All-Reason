@@ -118,6 +118,16 @@ Deactivate()
 	return (0);
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	return (1);
+}
+
 FirePrimary(Func_Var_1)
 {
 	Static_Var_2 = !Static_Var_2;

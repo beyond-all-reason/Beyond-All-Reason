@@ -16,9 +16,9 @@ activatescr()
 	if( TRUE )
 	{
 		move rwing to x-axis [0.00000] now;
-		move rwing to x-axis [11.47499] speed [15.00000];
+		move rwing to x-axis [4.47499] speed [15.00000];
 		move lwing to x-axis [-0.50000] now;
-		move lwing to x-axis [-11.47499] speed [15.00000];
+		move lwing to x-axis [-4.47499] speed [15.00000];
 		sleep 675;
 	}
 	if( TRUE )
@@ -27,14 +27,14 @@ activatescr()
 	}
 	if( TRUE )
 	{
-		move sonarholder1 to z-axis [10.75000] speed [15.00000];
-		move sonarholder2 to z-axis [10.95000] speed [15.00000];
+		move sonarholder1 to z-axis [4.75000] speed [15.00000];
+		move sonarholder2 to z-axis [4.95000] speed [15.00000];
 		sleep 679;
 	}
 	if( TRUE )
 	{
-		move sonarholder1 to z-axis [10.72499] speed [0.00000];
-		move sonarholder2 to z-axis [10.95000] speed [0.00000];
+		move sonarholder1 to z-axis [4.72499] speed [0.00000];
+		move sonarholder2 to z-axis [4.95000] speed [0.00000];
 		sleep 681;
 	}
 	sleep 679;
@@ -46,12 +46,12 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move rwing to x-axis [11.47499] now;
-		move lwing to x-axis [-11.47499] now;
-		move sonarholder1 to z-axis [10.72499] now;
-		move sonarholder1 to z-axis [10.75000] speed [0.00000];
-		move sonarholder2 to z-axis [10.95000] now;
-		move sonarholder2 to z-axis [10.95000] speed [0.00000];
+		move rwing to x-axis [4.47499] now;
+		move lwing to x-axis [-4.47499] now;
+		move sonarholder1 to z-axis [4.72499] now;
+		move sonarholder1 to z-axis [4.75000] speed [0.00000];
+		move sonarholder2 to z-axis [4.95000] now;
+		move sonarholder2 to z-axis [4.95000] speed [0.00000];
 		sleep 620;
 	}
 	if( TRUE )
