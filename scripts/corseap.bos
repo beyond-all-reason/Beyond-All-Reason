@@ -158,22 +158,14 @@ QueryTertiary(piecenum)
 	piecenum = gun_3;
 }
 
-AimPrimary(heading, pitch)
-{
-	return (1);
-}
-
-FirePrimary()
-{
-	gun_1 = !gun_1;
-	return (0);
-}
-
 FireTertiary()
 {
 	gun_3 = !gun_3;
 }
 
+FireWeapon1()
+{
+}
 
 QueryWeapon1(piecenum)
 {
