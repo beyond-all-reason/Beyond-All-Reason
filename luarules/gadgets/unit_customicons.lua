@@ -64,7 +64,7 @@ local icons = {
   {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
   {"energy3.user", "LuaUI/Icons/fusion.png",1.4*iconScale},
   {"energy4.user", "LuaUI/Icons/hazardous.png",1.8*iconScale},
-  {"energy5.user", "LuaUI/Icons/fusion.png",1.6*iconScale},
+  {"energy5.user", "LuaUI/Icons/fusion.png",1.8*iconScale},
   {"energy6.user", "LuaUI/Icons/energy.png",2.2*iconScale},
 
   {"eye.user", "LuaUI/Icons/eye.png",0.85*iconScale},
@@ -103,7 +103,7 @@ local icons = {
   {"jammer_t2.user", "LuaUI/Icons/jammer.png", 1.2*iconScale},
 
   {"krogoth.user", "LuaUI/Icons/mech.png",3.2*iconScale},
-  {"bantha.user", "LuaUI/Icons/mech.png",2.6*iconScale},
+  {"bantha.user", "LuaUI/Icons/bantha.png",2.6*iconScale},
   {"juggernaut.user", "LuaUI/Icons/kbot.png",2.75*iconScale},
   {"commando.user", "LuaUI/Icons/mech.png",1.3*iconScale},
 
@@ -164,7 +164,7 @@ local icons = {
   {"lrpc.user", "LuaUI/Icons/lrpc.png", 2.35*iconScale},
   {"lrpc_lolcannon.user", "LuaUI/Icons/lrpc.png", 3.5*iconScale},
 
-  {"chicken_queen.user", "LuaUI/Icons/lrpc.png", 4.5*iconScale},
+  {"chicken_queen.user", "LuaUI/Icons/queen.png", 4*iconScale},
 
   {"meteor.user", "LuaUI/Icons/meteor.png", 1*iconScale},
 
