@@ -2496,10 +2496,10 @@ local colors = {
     sparks = false,
   },
   bomb = {
-    explosion = {properties={colormap=[[0 0 0 0   1 0.64 0.44 0.09   0.7 0.3 0.12 0.066   0.5 0.17 0.025 0.033   0 0 0 0]]}},
-    groundflash_small = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
-    groundflash_large = {properties={colormap=[[1 0.5 0.3 0.08   0 0 0 0.01]]}},
-    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.4 0.15 0.017   0 0 0 0]]}},
+    explosion = {properties={colormap=[[0 0 0 0   1 0.62 0.38 0.09   0.7 0.27 0.1 0.066   0.5 0.15 0.025 0.033   0 0 0 0]]}},
+    groundflash_small = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
+    groundflash_large = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
+    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.36 0.13 0.017   0 0 0 0]]}},
   }
 }
 for color, effects in pairs(colors) do
@@ -2534,6 +2534,7 @@ for size, e in pairs(sizes) do
     definitions[defname].shard1.properties.numparticles = [[0.2 r1.2]]
     definitions[defname].shard2.properties.numparticles = [[0.2 r0.6]]
     definitions[defname].shard3.properties.numparticles = [[0.2 r0.6]]
+    definitions[defname].dustparticles.properties.numparticles = [[0.25 r0.9]]
 
     if definitions[defname].innersmoke ~= nil then
         definitions[defname].innersmoke.properties.numparticles = [[0 r1.7]]

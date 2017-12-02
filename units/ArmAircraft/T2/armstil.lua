@@ -103,10 +103,10 @@ return {
 					default = 4000,
 				},
                 customparams = {
-                    expl_light_radius_mult = 1.5,
-                    expl_light_mult = 1.4,
+                    expl_light_radius_mult = 1.15,
+                    expl_light_mult = 1,
                     expl_light_color = "0.5 0.5 1",
-                    expl_light_life_mult = 2,
+                    expl_light_life_mult = 1.3,
                 },
 			},
 		},
