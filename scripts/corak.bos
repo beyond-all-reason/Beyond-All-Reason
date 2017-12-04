@@ -551,7 +551,7 @@ Killed(severity, corpsetype)
 		explode arms type FALL | BITMAP1 | NOHEATCLOUD;
 		explode pelvis type FALL | BITMAP4 | NOHEATCLOUD;
 		//explode rfire type FALL | BITMAP5 | NOHEATCLOUD;
-		explode torso type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode torso type FALL | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
@@ -564,7 +564,7 @@ Killed(severity, corpsetype)
 		explode pelvis type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
 		//explode rfire type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 		explode rthigh type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
-		explode torso type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode torso type FALL | BITMAP1 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
@@ -575,6 +575,6 @@ Killed(severity, corpsetype)
 	explode pelvis type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
 	//explode rfire type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 	explode rthigh type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
-	explode torso type SHATTER | BITMAP1 | NOHEATCLOUD;
+	explode torso type FALL | BITMAP1 | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -477,40 +477,40 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode base type FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode base type FALL | NOHEATCLOUD;
 		explode dingle1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode dingle2 type FALL | BITMAP3 | NOHEATCLOUD;
 		explode rotary type FALL | BITMAP4 | NOHEATCLOUD;
-		explode stands type SHATTER | BITMAP1 | NOHEATCLOUD;
-		explode sleeve1 type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode stands type FALL | BITMAP1 | NOHEATCLOUD;
+		explode sleeve1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode rocketbox type FALL | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode base type FALL | NOHEATCLOUD;
 		explode dingle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode dingle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode rotary type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode stands type SHATTER | BITMAP2 | NOHEATCLOUD;
-		explode sleeve1 type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode stands type FALL | BITMAP2 | NOHEATCLOUD;
+		explode sleeve1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode rocketbox type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | NOHEATCLOUD;
+	explode base type FALL | NOHEATCLOUD;
 	explode dingle1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode dingle2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode rotary type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	explode stands type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode sleeve1 type SHATTER | BITMAP2 | NOHEATCLOUD;
+	explode stands type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode sleeve1 type FALL | BITMAP2 | NOHEATCLOUD;
 	explode rocketbox type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	return corpsetype;
 }
