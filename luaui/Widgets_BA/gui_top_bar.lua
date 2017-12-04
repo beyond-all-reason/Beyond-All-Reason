@@ -102,6 +102,8 @@ local nextGuishaderCheck = guishaderCheckUpdateRate
 local now = os.clock()
 local gameFrame = Spring.GetGameFrame()
 
+local draggingShareIndicatorValue = {}
+
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
@@ -508,7 +510,6 @@ end
 
 
 local function updateResbarText(res)
-
     if dlistResbar[res][3] ~= nil then
         glDeleteList(dlistResbar[res][3])
     end
@@ -548,7 +549,7 @@ end
 
 local function updateResbar(res)
 	local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur 2 = cap 3 = pull 4 = income 5 = expense 6 = share
-	
+
 	local area = resbarArea[res]
 	
 	if dlistResbar[res][1] ~= nil then
@@ -629,7 +630,7 @@ local function updateResbar(res)
 		-- Metalmaker Conversion slider
 		if showConversionSlider and res == 'energy' then
             local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
-            if draggingConversionIndicator ~= nil and draggingConversionIndicatorValue ~= nil then
+            if draggingConversionIndicatorValue ~= nil then
                 convValue = draggingConversionIndicatorValue/100
 			end
 			if convValue == nil then
@@ -650,8 +651,8 @@ local function updateResbar(res)
 		end
 		-- Share slider
         local value = r[6]
-        if draggingShareIndicator~= nil and draggingShareIndicator == res and draggingShareIndicatorValue ~= nil then
-            value = draggingShareIndicatorValue
+        if draggingShareIndicatorValue[res] ~= nil then
+            value = draggingShareIndicatorValue[res]
         end
 		shareIndicatorArea[res] = {barArea[1]+(value * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(value * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 		glTexture(barbg)
@@ -836,6 +837,8 @@ function widget:Update(dt)
 	end
 
 	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+		draggingShareIndicatorValue = {}
+		draggingConversionIndicatorValue = nil
 		updateResbar('metal')
 		updateResbar('energy')
 	end
@@ -1149,7 +1152,7 @@ local function adjustSliders(x, y)
 		if shareValue < 0 then shareValue = 0 end
 		if shareValue > 1 then shareValue = 1 end
 		Spring.SetShareLevel(draggingShareIndicator, shareValue)
-        draggingShareIndicatorValue = shareValue
+        draggingShareIndicatorValue[draggingShareIndicator] = shareValue
 		updateResbar(draggingShareIndicator)
 	end
 	if showConversionSlider and draggingConversionIndicator and not spec then

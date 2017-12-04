@@ -8,7 +8,7 @@ Important:
  • Lots of things changed, please grant us some time to adjust
 
 Chicken Defence
- • Has been integrated into BA. Just add an chicken AI bot and makes sure you have startboxes set. ("!autobalance off" to manually get everyone on the same team)
+ • Has been integrated into BA. Just add an chicken AI bot and make sure you have startboxes set. ("!autobalance off" to manually get everyone on the same team)
 
 Balance changes:
  • All Energy and metal prices have been rounded (because buildmenu shows prices)
@@ -81,6 +81,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
 
  Mod options
+ • Added map_terraintype (Allows to cancel the TerrainType movespeed buffs of a map.) default enabled
  • Added mo_unba (Unbalanced Commanders) modoption. When enabled, the commander levels up as it gains XP. Up to 5 levels are actually availible with model changes and upgraded weapons and 5 more will be coming soon. A complete table with all the upgrades will be available once the setup is complete.
  • Added reclaimunitefficiency (Set how much metal a reclaimed unit should give back. 1 = max, 0.5 = half)
  • Added mm_diminish_factor (The strength of diminishing returns from metal makers. 0 = off, 1 = very strong diminish effect.)
@@ -132,19 +133,17 @@ Other:
 
  Graphics
  • All new particle/lighting effects!
- • Radar/distance icons are sharper and more various
+ • Radar/distance icons are more detailed/sharper and more various
  • Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
  • Added outline widget, toggable via Options (default disabled)
  • Unit textures reprocessed with bigger color range and less grain
  • More units have been given a shatter effect on death
  • Bloomshader: prettier and more pronounced, offers 2 levels (modest/heavier) via Options
- • A few more turrets/barrels get a kickback when they fire
  • Some walking animations are improved
  • Changed some missile models
  • One universal tank script for the most basic tanks, which has preset animations that can be tweaked directly via unitDefs
 
  Interface
- • Re-added betting functionality. More starting chips. Betted chips still count for your score as showed in advplayerslist
  • Console split into Chat Only and Battle/Autohost:
 Chat console will handle all chats between players from and to lobby/all/team/spectators.
 Battle/Autohost will handle all battlestates messages (warnings, errors, pauses, lags, afk, resigns...) and all autohosts messages (votes, rings...)
@@ -199,6 +198,7 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  • Settarget will stick to water surface instead of ground level if main weapon (weapon 1) cannot reach underwater.
  • Highlight unit/highlight selected units widgets skip a unit when its shown as icon
  • Map startbox widget wont enable fog any longer
+ • Fixed BA los colors not initializing on first launch + enabled radar view by default
 
 
 9.45 -> 9.46
