@@ -115,7 +115,7 @@ return {
 					default = 22500,
 				},
 				customparams = {
-					light_multiplier = "0.8",		-- used by light_effects widget
+					light_mult = "0.8",		-- used by light_effects widget
 					light_radius_mult = "0.8",		-- used by light_effects widget
                     light_color = "0.7 0.7 1",
                     expl_light_color = "0.7 0.7 1",

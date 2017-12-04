@@ -675,8 +675,7 @@ function widget:Update(dt)
 				changes = true
 			end
 		end
-		local widgetDataChanges = loadWidgetConfigData()
-		if changes or widgetDataChanges then
+		if changes then
 			if windowList then
 				gl.DeleteList(windowList)
 			end
@@ -839,6 +838,10 @@ function widget:DrawScreen()
 			  WG['guishader_api'].setScreenBlur(false)
 			end
 		end
+  end
+	if checkedWidgetDataChanges == nil then
+		checkedWidgetDataChanges = true
+		loadWidgetConfigData()
 	end
 end
 
@@ -1536,7 +1539,7 @@ function init()
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 
 		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
-		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.25, max=1, step=0.05, type="slider", value=0.55, description='lifetime of explosion lights'},
+		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.25, max=1, step=0.05, type="slider", value=0.7, description='lifetime of explosion lights'},
 		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2.2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above'},
@@ -1747,7 +1750,7 @@ function widget:Initialize()
 		end
 	end
 
-		WG['options'] = {}
+	WG['options'] = {}
 	WG['options'].toggle = function(state)
 		if state ~= nil then
 			show = state

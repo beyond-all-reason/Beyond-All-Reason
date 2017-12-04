@@ -71,6 +71,11 @@ AimFromPrimary(piecenum)
 	piecenum = flash;
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
 QueryPrimary(piecenum)
 {
 	piecenum = flash;

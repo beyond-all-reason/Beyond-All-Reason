@@ -64,7 +64,7 @@ unitDef = {
       areaofeffect = 8,
       avoidfeature = false,
       beamtime = 0.22,
-      corethickness = 0.05,
+      corethickness = 0.07,
       craterareaofeffect = 0,
       craterboost = 0,
       cratermult = 0,
@@ -87,7 +87,7 @@ unitDef = {
       soundstart = "lasrfir3",
       soundtrigger = 1,
       targetmoveerror = 0.1,
-      thickness = 0.5,
+      thickness = 0.6,
       tolerance = 6000,
       turret = false,
       weapontype = "BeamLaser",
@@ -101,7 +101,7 @@ unitDef = {
       },
       customparams = {
         light_radius_mult = "0.26",		-- used by light_effects widget
-        light_multiplier = "0.7   ",		-- used by light_effects widget
+        light_mult = "0.7   ",		-- used by light_effects widget
       },
     },
   },

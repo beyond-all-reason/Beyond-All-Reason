@@ -60,11 +60,12 @@ local icons = {
 
 
   {"wind.user", "LuaUI/Icons/wind.png",1.1*iconScale},
-  {"energy1.user", "LuaUI/Icons/energy.png",1.3*iconScale},   -- unused
+  {"energy1.user", "LuaUI/Icons/solar.png",1.75*iconScale},   
   {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
-  {"energy3.user", "LuaUI/Icons/fusion.png",1.85*iconScale},
-  {"energy4.user", "LuaUI/Icons/fusion.png",2.35*iconScale},
-  {"energy5.user", "LuaUI/Icons/fusion.png",2.85*iconScale},
+  {"energy3.user", "LuaUI/Icons/fusion.png",1.4*iconScale},
+  {"energy4.user", "LuaUI/Icons/hazardous.png",1.8*iconScale},
+  {"energy5.user", "LuaUI/Icons/fusion.png",1.8*iconScale},
+  {"energy6.user", "LuaUI/Icons/energy.png",2.2*iconScale},
 
   {"eye.user", "LuaUI/Icons/eye.png",0.85*iconScale},
   {"spy.user", "LuaUI/Icons/eye.png",1.25*iconScale},
@@ -102,7 +103,7 @@ local icons = {
   {"jammer_t2.user", "LuaUI/Icons/jammer.png", 1.2*iconScale},
 
   {"krogoth.user", "LuaUI/Icons/mech.png",3.2*iconScale},
-  {"bantha.user", "LuaUI/Icons/mech.png",2.6*iconScale},
+  {"bantha.user", "LuaUI/Icons/bantha.png",2.6*iconScale},
   {"juggernaut.user", "LuaUI/Icons/kbot.png",2.75*iconScale},
   {"commando.user", "LuaUI/Icons/mech.png",1.3*iconScale},
 
@@ -112,9 +113,10 @@ local icons = {
   {"metalmaker_t1.user", "LuaUI/Icons/metalmaker.png",0.75*iconScale},
   {"metalmaker_t2.user", "LuaUI/Icons/metalmaker.png",1.15*iconScale},
 
-  {"nuke.user", "LuaUI/Icons/nuke.png",1.35*iconScale},
-  {"nuke_big.user", "LuaUI/Icons/nuke.png",2*iconScale},
-  {"antinuke.user", "LuaUI/Icons/antinuke.png",1.15*iconScale},
+  {"nuke.user", "LuaUI/Icons/nuke.png",1.8*iconScale},
+        {"nuke_big.user", "LuaUI/Icons/nuke.png",2.5*iconScale},
+        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.8*iconScale},
+        {"antinuke_mobile.user", "LuaUI/Icons/antinuke.png",1.3*iconScale},
 
   {"aa1.user", "LuaUI/Icons/aa.png", 0.85*iconScale},
   {"aa2.user", "LuaUI/Icons/aa.png", 1.1*iconScale},
@@ -162,7 +164,7 @@ local icons = {
   {"lrpc.user", "LuaUI/Icons/lrpc.png", 2.35*iconScale},
   {"lrpc_lolcannon.user", "LuaUI/Icons/lrpc.png", 3.5*iconScale},
 
-  {"chicken_queen.user", "LuaUI/Icons/lrpc.png", 4.5*iconScale},
+  {"chicken_queen.user", "LuaUI/Icons/queen.png", 4*iconScale},
 
   {"meteor.user", "LuaUI/Icons/meteor.png", 1*iconScale},
 
@@ -248,7 +250,9 @@ function changeUnitIcons()
       Spring.SetUnitDefIcon(udid, "energy4.user")
     elseif (ud.name=="armgmm") or  (ud.name=="armfus") or (ud.name=="corfus") or (ud.name=="armckfus") or (ud.name=="armdf") or (ud.name=="armuwfus") or (ud.name=="coruwfus") then
       Spring.SetUnitDefIcon(udid, "energy3.user")
-    elseif (ud.name=="armadvsol" or ud.name=="coradvsol" or ud.name=="armgeo" or ud.name=="corgeo" or ud.name=="corbhmth") then
+    elseif ud.name=="armgeo" or ud.name=="corgeo" or ud.name=="corbhmth" then
+      Spring.SetUnitDefIcon(udid, "energy6.user")
+elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
       Spring.SetUnitDefIcon(udid, "energy2.user")
 
       -- lrpc
@@ -276,16 +280,18 @@ function changeUnitIcons()
         Spring.SetUnitDefIcon(udid, "factory_t1")
       end
 
-      -- anti nuke
-    elseif (ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab" or ud.name=="armcarry" or ud.name=="corcarry") then
-      Spring.SetUnitDefIcon(udid,"antinuke.user")
-    elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer" or ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
-      -- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
-      if ud.name=="armsilo" or ud.name=="corsilo" then
-        Spring.SetUnitDefIcon(udid, "nuke_big.user")
-      else
-        Spring.SetUnitDefIcon(udid, "nuke.user")
-      end
+     -- anti nuke
+        elseif (ud.name=="corfmd" or ud.name=="armamd") then
+            Spring.SetUnitDefIcon(udid,"antinuke.user")
+        elseif (ud.name=="cormabm" or ud.name=="armscab" or ud.name=="armcarry" or ud.name=="corcarry") then
+            Spring.SetUnitDefIcon(udid,"antinuke_mobile.user")
+        elseif (ud.stockpileWeaponDef ~= nil) and not (ud.name=="armmercury" or ud.name=="corscreamer" or ud.name=="corfmd" or ud.name=="armamd" or ud.name=="cormabm" or ud.name=="armscab") then
+            -- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
+            if ud.name=="armsilo" or ud.name=="corsilo" then
+                Spring.SetUnitDefIcon(udid, "nuke_big.user")
+            elseif ud.name=="armjuno" or ud.name=="corjuno" then Spring.SetUnitDefIcon(udid, "jammer_t2.user")else
+                Spring.SetUnitDefIcon(udid, "nuke.user")
+            end
 
       -- shield
     elseif (ud.shieldWeaponDef) then

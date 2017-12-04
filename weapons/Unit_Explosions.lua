@@ -807,9 +807,9 @@ unitDeaths = {
 		},
         customparams = {
             expl_light_color = "1 0.85 0.44",
-            expl_light_mult = 1.9,
-            expl_light_radius_mult = 1.45,
-            expl_light_life_mult = 2.15,
+            expl_light_mult = 1.66,
+            expl_light_radius_mult = 1.3,
+            expl_light_life_mult = 1.9,
         },
 	},
     commanderexplosionselfd = {
@@ -834,9 +834,9 @@ unitDeaths = {
 		},
         customparams = {
             expl_light_color = "1 0.85 0.44",
-            expl_light_mult = 2,
-            expl_light_radius_mult = 1.5,
-            expl_light_life_mult = 2.33,
+            expl_light_mult = 1.7,
+            expl_light_radius_mult = 1.3,
+            expl_light_life_mult = 2,
         },
 	},
 

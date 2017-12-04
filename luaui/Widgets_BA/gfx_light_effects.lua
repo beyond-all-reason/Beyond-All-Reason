@@ -9,7 +9,7 @@ function widget:GetInfo()
 		author    = "Floris (original by beherith)",
 		date      = "May 2017",
 		license   = "GPL V2",
-		layer     = 10,
+		layer     = 0,
 		enabled   = true
 	}
 end
@@ -47,7 +47,7 @@ local globalLightMult = 1.2
 local globalRadiusMult = 1.2
 local globalLightMultLaser = 1.1
 local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.55
+local globalLifeMult = 0.65
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -160,9 +160,9 @@ local function GetLightsFromUnitDefs()
 		if customParams.light_opacity then
 			lightMultiplier = customParams.light_opacity
 		end
-		if customParams.light_multiplier ~= nil then
+		if customParams.light_mult ~= nil then
 			recalcRGB = true
-			lightMultiplier = lightMultiplier * tonumber(customParams.light_multiplier)
+			lightMultiplier = lightMultiplier * tonumber(customParams.light_mult)
 		end
 
 		-- For long lasers or projectiles
@@ -509,8 +509,8 @@ function loadWeaponDefs()
 				params.orgMult = customParams.expl_light_opacity * globalLightMult
 			end
 
-			if customParams.expl_light_multiplier ~= nil then
-				params.orgMult = params.orgMult * customParams.expl_light_multiplier
+			if customParams.expl_light_mult ~= nil then
+				params.orgMult = params.orgMult * customParams.expl_light_mult
 			end
 
 			if customParams.expl_light_radius then
@@ -612,7 +612,7 @@ function widget:GetConfigData(data)
 	savedTable.globalLightMultLaser = globalLightMultLaser
 	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
 	savedTable.globalLifeMult = globalLifeMult
-	savedTable.resetted = 1
+	savedTable.resetted = 1.1
 	return savedTable
 end
 
@@ -629,7 +629,7 @@ function widget:SetConfigData(data)
 	if data.globalRadiusMultLaser ~= nil then
 		globalRadiusMultLaser = data.globalRadiusMultLaser
 	end
-	if data.globalLifeMult ~= nil and data.resetted ~= nil then
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.1 then
 		globalLifeMult = data.globalLifeMult
 	end
 end

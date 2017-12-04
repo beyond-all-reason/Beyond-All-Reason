@@ -177,6 +177,11 @@ StopMoving()
 	return (0);
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
 FirePrimary()
 {
 	turn guns to x-axis <10.00000> speed <50.00000>;
