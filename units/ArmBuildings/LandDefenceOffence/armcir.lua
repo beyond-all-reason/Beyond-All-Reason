@@ -130,7 +130,7 @@ return {
 				noselfdamage = true,
 				projectiles = 1,
 				proximitypriority = -2,
-				range = 1500,
+				range = 1250,
 				reloadtime = 1.6,
 				smoketrail = false,
 				soundhit = "xplosml2",
@@ -157,6 +157,7 @@ return {
 					light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
+					expl_light_radius_mult = 0.66,
 				},
 			},
 		},

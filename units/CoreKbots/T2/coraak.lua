@@ -154,6 +154,7 @@ return {
                     light_mult = 0.8,
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
+					expl_light_radius_mult = 0.66,
 				},
 			},
 			bogus_missile = {
@@ -229,6 +230,7 @@ return {
                     light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
+					expl_light_radius_mult = 0.66,
                 },
 			},
 			coraakbot_missile2 = {
@@ -277,6 +279,7 @@ return {
                     light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
+					expl_light_radius_mult = 0.66,
                 },
 			},
 			coraakbot_missile3 = {
@@ -325,6 +328,7 @@ return {
                     light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
+					expl_light_radius_mult = 0.66,
                 },
 			},
 			coraakbot_missile4 = {
@@ -373,6 +377,7 @@ return {
                     light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
+					expl_light_radius_mult = 0.66,
                 },
 			},
 		},
