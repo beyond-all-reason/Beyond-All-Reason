@@ -146,9 +146,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1300,
 				damage = {
-					bombers = 200,
-					fighters = 200,
-					vtol = 200,
+					bombers = 220,
+					fighters = 220,
+					vtol = 220,
 				},
 				customparams = {
                     light_radius_mult = 0.55,
@@ -196,9 +196,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 200,
-					fighters = 200,
-					vtol = 200,
+					bombers = 150,
+					fighters = 150,
+					vtol = 150,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget
@@ -232,7 +232,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				soundstartvolume = 7.5,
-				startvelocity = 540,
+				startvelocity = 580,
 				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tolerance = 9000,

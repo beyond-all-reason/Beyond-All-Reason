@@ -145,9 +145,9 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 1400,
 				damage = {
-					bombers = 200,
-					fighters = 200,
-					vtol = 200,
+					bombers = 220,
+					fighters = 220,
+					vtol = 220,
 				},
 				customparams = {
                     light_radius_mult = 0.55,
@@ -222,9 +222,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 33,
-					fighters = 33,
-					vtol = 33,
+					bombers = 40,
+					fighters = 40,
+					vtol = 40,
 				},
                 customparams = {
                     light_skip = true,		-- used by light_effects widget
@@ -271,9 +271,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 33,
-					fighters = 33,
-					vtol = 33,
+					bombers = 40,
+					fighters = 40,
+					vtol = 40,
 				},
                 customparams = {
                     light_skip = true,		-- used by light_effects widget
@@ -320,9 +320,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
-					bombers = 33,
-					fighters = 33,
-					vtol = 33,
+					bombers = 40,
+					fighters = 40,
+					vtol = 40,
 				},
                 customparams = {
                     light_skip = true,		-- used by light_effects widget
