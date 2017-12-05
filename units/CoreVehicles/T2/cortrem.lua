@@ -122,7 +122,7 @@ return {
 		},
 		weapondefs = {
 			tremor = {
-				accuracy = 1400,
+				accuracy = 1190,
 				areaofeffect = 160,
 				avoidfeature = false,
 				craterareaofeffect = 160,

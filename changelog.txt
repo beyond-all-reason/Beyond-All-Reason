@@ -51,7 +51,6 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
  • Fighters (T1,T2,seaplanes) a2g missiles damages 75% decreased (default) and do 50% less damages than default to commanders.
 
-
  Long range plasma
  • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
  • Armvulc and corbuzz cost increased by 40%
@@ -70,7 +69,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Fixed viper overshooting (when aiming at radar dots)
  • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
  • Moho Exploiter now has same health (2000 -> 3500) as regular moho, but does less damage per shot
- • Core Tremor m cost 2000 -> 1800
+ • Core Tremor m cost 2000 -> 1800 + accuracy increased 15%
  • Pelicans damages 70 -> 80, hp 910 -> 1050, turretspeed 150 -> 200 (y and x axis)
 
  T3
