@@ -18,14 +18,14 @@ return {
 		energyuse = 0.23,
 		explodeas = "smallExplosionGeneric",
 		floater = true,
-		footprintx = 2,
-		footprintz = 4,
+		footprintx = 3,
+		footprintz = 3,
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 120,
 		minwaterdepth = 6,
-		movementclass = "BOAT42X4",
+		movementclass = "BOAT43X3",
 		name = "Searcher",
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "CORPT",
@@ -44,7 +44,7 @@ return {
 		turnrate = 347,
 		--end move
 		customparams = {
-
+			maxrange = "260",
 		},
 		featuredefs = {
 			dead = {
