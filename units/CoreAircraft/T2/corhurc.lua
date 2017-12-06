@@ -1,7 +1,7 @@
 return {
 	corhurc = {
-		acceleration = 0.20,
-		brakerate = 0.1,
+		acceleration = 0.04,
+		brakerate = 0.045,
 		buildcostenergy = 18500,
 		buildcostmetal = 310,
 		buildpic = "CORHURC.DDS",
@@ -34,7 +34,7 @@ return {
 		turnrate = 400,
 		blocking = false,
 		customparams = {
-		wingsurface = 1.0,
+		    wingsurface = 0.4,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

@@ -15,7 +15,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-	local enableUnitDecorations = false		-- burst out xmas ball after unit death
+	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
@@ -23,7 +23,7 @@ if gadgetHandler:IsSyncedCode() then
 			xmasballUdefID = udefID
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = 15
+			hasDecoration[udefID] = 11
 		end
 	end
 
@@ -93,7 +93,7 @@ if gadgetHandler:IsSyncedCode() then
 					decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (math.random()*decorationLifeTimeVariation)
 					setGaiaUnitSpecifics(uID)
 					Spring.SetUnitRotation(uID,math.random()*360,math.random()*360,math.random()*360)
-					Spring.AddUnitImpulse(uID, (math.random()-0.5)*3.3, 1+(math.random()*3), (math.random()-0.5)*3.3)
+					Spring.AddUnitImpulse(uID, (math.random()-0.5)*4.2, 1+(math.random()*5.2), (math.random()-0.5)*4.2)
 					i = i + 1
 				end
 			end

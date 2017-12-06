@@ -1,6 +1,6 @@
 return {
 	armthund = {
-		acceleration = 0.15,
+		acceleration = 0.05,
 		brakerate = 0.05,
 		buildcostenergy = 4000,
 		buildcostmetal = 150,
@@ -34,8 +34,8 @@ return {
 		turnrate = 850,
 		customparams = {
 			description_long = "The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORE counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle.",
-			wingsurface = 0.75,
-			},
+			wingsurface = 0.4,
+		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
 				"deathceg2",

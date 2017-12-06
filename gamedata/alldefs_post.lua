@@ -83,7 +83,7 @@ function UnitDef_Post(name, uDef)
 		uDef.wingdrag = 0.07/2 + uDef.brakerate * 2
 		uDef.wingangle = 0.08/2 + turn/2
 		uDef.speedtofront = 0.07*(1/2 + wingsurffactor/2)
-		uDef.turnradius =64
+		uDef.turnradius = 64
 		uDef.maxbank = 0.8
 		uDef.maxpitch = 0.8/2 + 0.45/2
 		uDef.maxaileron =0.015/2 + turn/2
