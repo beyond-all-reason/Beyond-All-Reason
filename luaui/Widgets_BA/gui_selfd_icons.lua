@@ -21,6 +21,7 @@ local scalefaktor			= 2.9
 local unitConf				= {}
 
 
+
 local font = gl.LoadFont(LUAUI_DIRNAME..'Fonts/FreeSansBold.otf', 50, 4, 3)
 
 --------------------------------------------------------------------------------
@@ -36,6 +37,8 @@ local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
 local spGetUnitCommands			= Spring.GetUnitCommands
 local spIsUnitAllied			= Spring.IsUnitAllied
+
+local spec = Spring.GetSpectatingState()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -81,7 +84,13 @@ end
 -- Engine Calls
 --------------------------------------------------------------------------------
 
+function widget:PlayerChanged(playerID)
+	spec = Spring.GetSpectatingState()
+end
+
 function widget:Initialize()
+	spec = Spring.GetSpectatingState()
+
 	SetUnitConf()
 	
 	-- check all units for selfd cmd
@@ -116,7 +125,7 @@ function widget:DrawWorld()
 	
 	local unitDefs, unitScale, countdown
 	for unitID, unitEndSecs in pairs(selfdUnits) do
-		if spIsUnitAllied(unitID) then
+		if spIsUnitAllied(unitID) or spec then
 			if spIsUnitInView(unitID) then
 				unitDefs = unitConf[spGetUnitDefID(unitID)]
 				unitScale = unitDefs.xscale*1.22 - (unitDefs.xscale/6.6)
