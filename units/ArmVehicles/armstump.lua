@@ -113,7 +113,6 @@ return {
  			pieceExplosionGenerators = { 
 				"deathceg2",
 				"deathceg3",
-				"deathceg4",
 			},
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
