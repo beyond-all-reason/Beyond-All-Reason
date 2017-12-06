@@ -151,6 +151,7 @@ return {
 		},
 		customparams = {
 			unittype = "mobile",
+			maxrange = "200",
 		},
 	},
 }

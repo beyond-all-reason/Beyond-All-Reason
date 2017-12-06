@@ -44,7 +44,7 @@ return {
 		turnrate = 360,
 		--end move
 		customparams = {
-			
+			maxrange = "260",
 		},
 		featuredefs = {
 			dead = {
