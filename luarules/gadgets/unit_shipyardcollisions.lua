@@ -40,7 +40,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID)
 	if defIDIsShipyard[Spring.GetUnitDefID(unitID)] then
-		Spring.Echo("shipyardbuilt")
+		-- Spring.Echo("shipyardbuilt")
 		local uix, uiy, uiz = Spring.GetUnitPosition(unitID)
 		shipyard[unitID] = {x = uix, y = uiy, z = uiz}
 	end
@@ -52,7 +52,7 @@ end
 
 function gadget:UnitUnitCollision(colliderID, collideeID)
 if shipyard[collideeID] or shipyard[colliderID] then
-Spring.Echo("trigger")
+-- Spring.Echo("trigger")
 	if shipyard[colliderID] then
 		shipyardID = colliderID
 		unitID = collideeID
