@@ -135,4 +135,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:GameOver()
+		gadgetHandler:RemoveGadget(self)
+	end
+
 end
