@@ -19,7 +19,7 @@ end
 local firstlaunchsetupDone = false
 function widget:GetConfigData()
     savedTable = {}
-    savedTable.firsttimesetupDone = firsttimesetupDone
+    savedTable.firsttimesetupDone = firstlaunchsetupDone
     return savedTable
 end
 
