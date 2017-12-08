@@ -27,8 +27,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local decorationLifeTime = 20*25
-	local decorationLifeTimeVariation = 30*5
+	local decorationLifeTime = 35*25
+	local decorationLifeTimeVariation = 30*15
 
 	local decorations = {}
 	local decorationsTerminal = {}
