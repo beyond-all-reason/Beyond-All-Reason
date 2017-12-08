@@ -89,6 +89,13 @@ local smoothoutTime			= 2			-- time to smoothout sudden changes (value = time be
 
 
 
+local vsx,vsy = Spring.GetViewGeometry()
+local lineScale = (0.75 + (vsx*vsy / 7500000))
+function widget:ViewResize()
+	local vsx,vsy = Spring.GetViewGeometry()
+	lineScale = (0.75 + (vsx*vsy / 7500000))
+end
+
 
 -- track coms --
 
@@ -375,7 +382,7 @@ function widget:DrawWorldPreUnit()
 						glColor(1, 0, 0, .5*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange)
 
-						glLineWidth(10)
+						glLineWidth(6.5*lineScale)
 						glColor(1, 0, 0, .225*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.1666))
 
