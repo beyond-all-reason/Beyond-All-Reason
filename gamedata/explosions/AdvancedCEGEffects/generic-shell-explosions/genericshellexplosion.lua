@@ -2583,6 +2583,8 @@ definitions['genericshellexplosion-debris'].outerflash = nil
 
 definitions['genericshellexplosion-debris2'] = deepcopy(definitions[root.."-debris"])
 definitions['genericshellexplosion-debris2'].explosion.properties.numparticles = 2
+definitions['genericshellexplosion-debris2'].explosion.properties.particlesize = 0.35
+definitions['genericshellexplosion-debris2'].explosion.properties.particlesizespread = 0.45
 definitions['genericshellexplosion-debris2'].explosion.properties.particlespeed = 0.25
 definitions['genericshellexplosion-debris2'].explosion.properties.particlespeedspread = 0.66
 
