@@ -13,24 +13,21 @@ Chicken Defence
 Balance changes:
  • All Energy and metal prices have been rounded (because buildmenu shows prices)
  • Introduced a minimum (slightly larger) buildrange
- • Due to the introduction of collision volumes back in 2012-2013 that were smaller than the default radius previously used, a global edgeeffectiveness buff of 0.15 has been applyied to get back some of the aoe damages (both on aoe weapons and death explosions) that were previously lost. 
-The reasoning behind this change is: because the hitboxes were made smaller, the distance between an aoe weapon and the unit's colvol were made bigger, and therefor less damages were applyied. 
-By globally increasing edgeeffectiveness we decrease the effect of distance on the final damage value and we get back some of the damages that were lost in the process of reducing the hitboxes. (Doo)
- • All weapons use TargetBorder = 1.0. It means that instead of aiming for the center of a unit (classic BA behaviour) and be unable to aim when this aimpoint is outside of range while the hitbox is still inside, weapons will try to aim for the closest hitbox's border. 
-This change seems to only apply to box shaped hitboxes at the moment. We hope that with Spring 104 out, this issue will be resolved and we will be able to use this functionnality as a default BA setting. (Doo, not currently used)
- • Reclaimspeed is 10% reduced compared to older versions.
+ • Global edgeeffectiveness buff of 0.15.
+ • TargetBorder for all weapons: They don't aim for unit centers, but rather any part of the unit that can be aimed at.
+ • Wrecks reclaim speed is more dependant on reclaimer's reclaimSpeed and reclaimSpeeds have been overall reduced (-10%).
 
  Movement
  • Raw unit movement implemented
  • Pathing improvement: units wont get stuck in cliffs any longer
- • Vehicles with tracks can turn-in-place. The angle limit: 110, 60 for cons. Wheeled vehicles cannot do this (Jeffy/Samson) 
- • Some units are able to go in reverse on small distances, at 40% of maxspeed (60% for tachyons, artillery, banishers)
+ • Vehicles with tracks can turn-in-place. The angle limit depends on the unit's turnrate (equal to the turn that can be performed in one second). Wheeled vehicles cannot do this (Jeffy/Samson) 
+ • Tachyons, artillery and banishers can move in reverse at 60% max speed.
  • Improved Air Units maniability and lowered TurnRadius (allowing close move commands)
 
  Commanders
- • Blast radius untill dgun range same damage als before, after that it has gotten a non-lethal falloff dmg to other commanders
+ • Diminishied blast radius damages versus Commanders, still lethal at dgun range.
  • Torso turnspeed increased 33% + dgun reloadspeed reduced 10%
- • Current Test: Uwlaser damages increased to 150 per second.
+ • UWLaser damages increased to 150 dps (default) and 75 dps (subs).
  • Decoy commanders have been given same lasers as regular commanders
  • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
  
@@ -40,7 +37,7 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Fixed flak doing ludicrous damage to ground units
  • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
  • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
- • Chainsaw costs 8700e 750m => 7000e/600m, airlos 1000 -> 1200, range 1200 ->1500
+ • Chainsaw costs 8700e 750m => 7000e/600m, airlos 1000 -> 1200, range 1200 ->1250
  • Armaak: missile damages +33 % (1:150 => 200 and 2:75 => 100)
  • Coraak: flak reload time 5.5 -> 4.5
 
@@ -57,9 +54,8 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Bertha and Intimidator weapons have 25% more Area of Effect
 
  T1
- • Thud/Hammer (plasma kbots) reduced projectile speed: 15%
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
- • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 70% increased HP.
+ • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 25% increased HP.
  • Guardians/punishers have lower m cost (1500 -> 1250)
 
  T2
@@ -77,11 +73,13 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
  • Marauder does 10% more damage and has 5% more health
  • Shiva has more sightdistance (300 -> 520)
  • Reintroduced KrogStomp (vs ground scouts + pws/aks only) aswell as a GFX/SFX
- • Removed T3 Hovercrafts from t3 factories until we can reintroduce a more balanced version with more coherent models.
+ • Removed T3 Hovercrafts from t3 sea factories, reduced costs, weaponery, hp and tweaked model size.
 
  Mod options
- • Added map_terraintype (Allows to cancel the TerrainType movespeed buffs of a map.) default enabled
- • Added mo_unba (Unbalanced Commanders) modoption. When enabled, the commander levels up as it gains XP. Up to 5 levels are actually availible with model changes and upgraded weapons and 5 more will be coming soon. A complete table with all the upgrades will be available once the setup is complete.
+ • Added map_terraintype: allows to cancel the TerrainType movespeed buffs of a map when disabled.
+ • Added map_waterlevel: allows to alter waterlevel (-1 = dry, 0 = unchanged, 1-100 = %maxheight)
+ • Added map_tidal: allows to change tidalstrength value (unchanged, low = 13, medium = 18, high = 23)
+ • Added mo_unba (Unbalanced Commanders) modoption. When enabled, the commander levels up as it gains XP, therefor gaining new weapons and abilities.
  • Added reclaimunitefficiency (Set how much metal a reclaimed unit should give back. 1 = max, 0.5 = half)
  • Added mm_diminish_factor (The strength of diminishing returns from metal makers. 0 = off, 1 = very strong diminish effect.)
  • Control victory options: info on startup and offers a better scoreboard window
@@ -95,26 +93,32 @@ This change seems to only apply to box shaped hitboxes at the moment. We hope th
 
 T1 ships:
  • Increased T1 shipyards costs.
- • Increased Patrol Boats laser reloadtime and decreased hp, costs. Added a small sonar. Tweaked their speeds.
- • Decreased Submarines costs, tweaked their speeds.
- • Decreased Destroyers speed, costs, and depthcharge AoE, increased range, damages (especially towards submarines), hp and reloadtime.
+ • Increased Patrol Boats laser reloadtime and decreased hp, costs. Added a small sonar. Tweaked their speeds. Reduced AA range.
+ • Decreased Submarines costs and HP, tweaked their speeds.
+ • Decreased Destroyers speed, costs, and depthcharge AoE/speed, increased range, damages (especially towards submarines), HP and reloadtime.
  • Added Plasma Frigates to both factions available in T1 Shipyard.
- • Added Missile Frigates to both factions available in T1 Shipyard.
+ • Added Support Frigates (AA/Antisub) to both factions available in T1 Shipyard.
  • Reduced Construction ships costs, buildpower, added land labs in buildmenu, tweaked speeds.
- • Reduced corvettes costs and HP, tweaked speeds and renamed "Fast Assault Corvette".
- • Removed the resurection submarine from t1 sea labs.
+ • Reduced Corvettes costs and HP, tweaked speeds and renamed "Fast Assault Corvette".
+ • Reduced rez submarines hp, costs, worketime and rez speed, tweaked speed.
  • Added the Construction Hovercraft to the t1 sea labs.
  • Nerfed the Construction Hovercraft build power to 90 for both arm and core (arm 150, core 125 before nerf)
 
 T1 buildings:
  • Guardian, punisher, ambusher and toaster now have increased damages against ships (this was an old BA feature)
- • Added GUN PLATFORM to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
- • Added SEA PLATFORM to both factions available in all buildmenus (t1 and t2 cons, land, sea, air, hover, ships)
+ • Added Gun Platform to both factions available in T1 ship con, t2 engineer and Commander buildmenus.
  • Reduced the Floating HLTs costs.
  • Reduced the Torpedo Launchers costs, reload time and damages, increased their ranges to 475.
  • Added Nanot Turret Platform to both factions available in amphibs, hovers, t1 construction ships and seaplanes.
  • Merged the sonar and the floating radar into a floating Radar/Sonar tower with 1200 sonar range and its old radar range. Radar cost unchanged.
- • Now using surface mexes in sea to allow early game mex raiding and raids from hovers/aircrafts right from tech 1.
+
+T1.5 Seaplanes:
+ • Reduced the factory's metal and energy costs
+ • Used the generic amphibious build menu for Construction Seaplanes
+ • Reduced some of the energy costs that were crazily huge.
+
+T1.5 Amphibious lab:
+ • Removed Submarine from amphibious lab.
 
  Movement: 
  • Uses Raw move to avoid needless turns in water
