@@ -18,17 +18,17 @@ if gadgetHandler:IsSyncedCode() then
 
 --CEG setup: For more spawn chance of a certain ceg, copy it multiple times in the table...
 cegtospawn = {
-"genericshellexplosion-small",
-"genericshellexplosion-small",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-tiny",
-"genericshellexplosion-medium",
+    "genericshellexplosion-debris",
+    "genericshellexplosion-debris",
+    "genericshellexplosion-debris",
+    "genericshellexplosion-debris",
+    "genericshellexplosion-debris",
+    "genericshellexplosion-debris2",
+    "genericshellexplosion-debris2",
+    "genericshellexplosion-debris2",
+    "genericshellexplosion-debris2",
+    "genericshellexplosion-debris2",
+    "genericshellexplosion-debris2",
 }
 
 function gadget:Initialize()

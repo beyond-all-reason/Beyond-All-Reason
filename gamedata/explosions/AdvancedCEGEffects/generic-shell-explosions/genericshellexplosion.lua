@@ -2552,6 +2552,40 @@ for size, e in pairs(sizes) do
 end
 
 
+definitions['genericshellexplosion-debris'] = deepcopy(definitions[root.."-tiny"])
+definitions['genericshellexplosion-debris'].explosion.properties.colormap = [[0 0 0 0   1 0.77 0.44 0.06   0.75 0.38 0.14 0.045   0.55 0.22 0.04 0.02   0 0 0 0]]
+definitions['genericshellexplosion-debris'].explosion.properties.numparticles = 3
+definitions['genericshellexplosion-debris'].explosion.properties.particlesize = 0.44
+definitions['genericshellexplosion-debris'].explosion.properties.particlesizespread = 0.6
+definitions['genericshellexplosion-debris'].explosion.properties.particlespeed = 0.35
+definitions['genericshellexplosion-debris'].explosion.properties.particlespeedspread = 1.1
+definitions['genericshellexplosion-debris'].innersmoke.properties.particleLife = 7
+definitions['genericshellexplosion-debris'].innersmoke.properties.particleLifeSpread = 10
+definitions['genericshellexplosion-debris'].innersmoke.properties.particlesize = 4
+definitions['genericshellexplosion-debris'].innersmoke.properties.particlesizespread = 2.2
+definitions['genericshellexplosion-debris'].innersmoke.properties.particlespeedspread = 1.2
+definitions['genericshellexplosion-debris'].groundflash_small.properties.colormap = [[1 0.6 0.25 0.2   0 0 0 0.01]]
+definitions['genericshellexplosion-debris'].groundflash_small.properties.size = 13
+definitions['genericshellexplosion-debris'].groundflash_small.properties.ttl = 9
+definitions['genericshellexplosion-debris'].outersmoke = nil
+definitions['genericshellexplosion-debris'].sparks = nil
+definitions['genericshellexplosion-debris'].groundflash_large = nil
+definitions['genericshellexplosion-debris'].heatedgroundflash = nil
+definitions['genericshellexplosion-debris'].centerflare = nil
+definitions['genericshellexplosion-debris'].dustparticles = nil
+definitions['genericshellexplosion-debris'].dirt = nil
+definitions['genericshellexplosion-debris'].dirt2 = nil
+definitions['genericshellexplosion-debris'].shard1 = nil
+definitions['genericshellexplosion-debris'].shard2 = nil
+definitions['genericshellexplosion-debris'].shard3 = nil
+definitions['genericshellexplosion-debris'].clouddust = nil
+definitions['genericshellexplosion-debris'].outerflash = nil
+
+definitions['genericshellexplosion-debris2'] = deepcopy(definitions[root.."-debris"])
+definitions['genericshellexplosion-debris2'].explosion.properties.numparticles = 2
+definitions['genericshellexplosion-debris2'].explosion.properties.particlespeed = 0.25
+definitions['genericshellexplosion-debris2'].explosion.properties.particlespeedspread = 0.66
+
 definitions['genericshellexplosion-catapult'] = deepcopy(definitions[root.."-large-bomb"])
 definitions['genericshellexplosion-catapult'].explosion.properties.numparticles = 8
 definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[0 0 0 0   0.8 0.25 0.15 0.09   0.57 0.17 0.1 0.066   0.35 0.08 0.03 0.033   0 0 0 0]]
@@ -2596,7 +2630,7 @@ definitions['expldgun'].groundflash_large = {
     texture            = [[groundflash]],
   },
 }
-definitions['expldgun'].groundflash_white = false
+definitions['expldgun'].groundflash_white = nil
 definitions['expldgun'].heatedgroundflash = {
   class              = [[CSimpleGroundFlash]],
   count              = 1,
