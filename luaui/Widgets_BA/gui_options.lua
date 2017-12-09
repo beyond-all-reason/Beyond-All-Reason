@@ -1736,6 +1736,7 @@ end
 
 
 function widget:Initialize()
+	Spring.SetConfigInt("UsePBO",0)
 
 	-- making sure a redui console is displayed without the alternatives in play
 	if widgetHandler.orderList['Red Console (old)'] ~= nil and widgetHandler.orderList['Red Console (In-game chat only)'] ~= nil and widgetHandler.orderList['Red Console (Battle and autohosts)'] ~= nil then
