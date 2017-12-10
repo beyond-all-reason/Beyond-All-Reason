@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 
-if (Game and Game.version and string.find(Game.version, 'test')) then
+if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) then
 
 	-- usage: /luarules give 1 armcom 0
 
@@ -23,11 +23,9 @@ if (Game and Game.version and string.find(Game.version, 'test')) then
 
 	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower', 'Floris'}
 
-
 	local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true}
 
 	if gadgetHandler:IsSyncedCode() then
-
 
 		local startPlayers = {}
 		function checkStartPlayers()

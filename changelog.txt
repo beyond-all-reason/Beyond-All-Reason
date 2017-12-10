@@ -3,9 +3,6 @@ XX/12/2017
 
 Important:
  • Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
- • Decay resigned as balancing dev/maintainer
- • Doo assigned to redesign Sea
- • Lots of things changed, please grant us some time to adjust
 
 Chicken Defence
  • Has been integrated into BA. Just add an chicken AI bot and make sure you have startboxes set. ("!autobalance off" to manually get everyone on the same team)
@@ -22,7 +19,7 @@ Balance changes:
  • Pathing improvement: units wont get stuck in cliffs any longer
  • Vehicles with tracks can turn-in-place. The angle limit depends on the unit's turnrate (equal to the turn that can be performed in one second). Wheeled vehicles cannot do this (Jeffy/Samson) 
  • Tachyons, artillery and banishers can move in reverse at 60% max speed.
- • Improved Air Units maniability and lowered TurnRadius (allowing close move commands)
+ • Improved Air Units manoeuvrability and lowered TurnRadius (allowing close move commands)
 
  Commanders
  • Diminishied blast radius damages versus Commanders, still lethal at dgun range.
