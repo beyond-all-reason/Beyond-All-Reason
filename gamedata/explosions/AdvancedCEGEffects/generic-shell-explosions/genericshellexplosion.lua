@@ -401,7 +401,7 @@ local definitions = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.15, 0]],
-        numparticles       = 3,
+        numparticles       = 2,
         particlelife       = 4,
         particlelifespread = 8,
         particlesize       = 13,
@@ -415,58 +415,6 @@ local definitions = {
         useairlos          = false,
       },
     },
-    --kickedupwater = {
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 1,
-    --  water              = true,
-    --  underwater         = true,
-    --  properties = {
-    --    airdrag            = 0.87,
-    --    colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
-    --    directional        = false,
-    --    emitrot            = 90,
-    --    emitrotspread      = 5,
-    --    emitvector         = [[0, 1, 0]],
-    --    gravity            = [[0, 0.1, 0]],
-    --    numparticles       = 1,--20
-    --    particlelife       = 2,
-    --    particlelifespread = 15,
-    --    particlesize       = 0.66,
-    --    particlesizespread = 1,
-    --    particlespeed      = 1.5,
-    --    particlespeedspread = 3.5,
-    --    pos                = [[0, 1, 0]],
-    --    sizegrowth         = 0.5,
-    --    sizemod            = 1.0,
-    --    texture            = [[wake]],
-    --  },
-    --},
-    --underwaterexplosionsparks = {
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 2,
-    --  underwater         = 1,
-    --  properties = {
-    --    airdrag            = 0.9,
-    --    colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
-    --    directional        = true,
-    --    emitrot            = 45,
-    --    emitrotspread      = 32,
-    --    emitvector         = [[0, 1, 0]],
-    --    gravity            = [[0, 0.5, 0]],
-    --    numparticles       = 2,
-    --    particlelife       = 3,
-    --    particlelifespread = 12,
-    --    particlesize       = 0.3,
-    --    particlesizespread = 0,
-    --    particlespeed      = 2,
-    --    particlespeedspread = 2,
-    --    pos                = [[0, 2, 0]],
-    --    sizegrowth         = 2,
-    --    sizemod            = 0.26,
-    --    texture            = [[wake]],
-    --    useairlos          = false,
-    --  },
-    --},
     outerflash = {
       air                = true,
       class              = [[heatcloud]],
@@ -891,12 +839,12 @@ local definitions = {
         emitrotspread      = 35,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.15, 0]],
-        numparticles       = 3,
+        numparticles       = 2,
         particlelife       = 5,
         particlelifespread = 8,
         particlesize       = 17,
         particlesizespread = 14,
-        particlespeed      = 2,
+        particlespeed      = 1.75,
         particlespeedspread = 2,
         pos                = [[0, 2, 0]],
         sizegrowth         = 0.77,
@@ -905,58 +853,6 @@ local definitions = {
         useairlos          = false,
       },
     },
-    --kickedupwater = {
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 1,
-    --  water              = true,
-    --  underwater         = true,
-    --  properties = {
-    --    airdrag            = 0.87,
-    --    colormap           = [[0.7 0.7 0.9 0.35	0 0 0 0.0]],
-    --    directional        = false,
-    --    emitrot            = 90,
-    --    emitrotspread      = 5,
-    --    emitvector         = [[0, 1, 0]],
-    --    gravity            = [[0, 0.1, 0]],
-    --    numparticles       = 30,
-    --    particlelife       = 2,
-    --    particlelifespread = 15,
-    --    particlesize       = 0.66,
-    --    particlesizespread = 1,
-    --    particlespeed      = 2,
-    --    particlespeedspread = 6,
-    --    pos                = [[0, 1, 0]],
-    --    sizegrowth         = 0.5,
-    --    sizemod            = 1.0,
-    --    texture            = [[wake]],
-    --  },
-    --},
-    --underwaterexplosionsparks = {
-    --  class              = [[CSimpleParticleSystem]],
-    --  count              = 2,
-    --  underwater         = 1,
-    --  properties = {
-    --    airdrag            = 0.9,
-    --    colormap           = [[0.7 0.8 0.9 0.03   0.2 0.5 0.9 0.01		0 0 0 0.0]],
-    --    directional        = true,
-    --    emitrot            = 45,
-    --    emitrotspread      = 32,
-    --    emitvector         = [[0, 1, 0]],
-    --    gravity            = [[0, 0.5, 0]],
-    --    numparticles       = 4,
-    --    particlelife       = 4,
-    --    particlelifespread = 15,
-    --    particlesize       = 0.4,
-    --    particlesizespread = 0,
-    --    particlespeed      = 2.5,
-    --    particlespeedspread = 3,
-    --    pos                = [[0, 2, 0]],
-    --    sizegrowth         = 2,
-    --    sizemod            = 0.26,
-    --    texture            = [[wake]],
-    --    useairlos          = false,
-    --  },
-    --},
     outerflash = {
       air                = true,
       class              = [[heatcloud]],
@@ -1069,7 +965,7 @@ local definitions = {
         emitrotspread      = 32,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.01, 0]],
-        numparticles       = 10,
+        numparticles       = 5,
         particlelife       = 5,
         particlelifespread = 9,
         particlesize       = 4.4,
@@ -2449,7 +2345,11 @@ local sizes = {
 	},
 }
 for size, effects in pairs(sizes) do
-	--definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
+  --definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
+  definitions[root.."-"..size].explosion.properties.numparticles = math.ceil(definitions[root.."-"..size].explosion.properties.numparticles/2)
+  definitions[root.."-"..size].explosion2 = deepcopy(definitions[root.."-"..size].explosion)
+  definitions[root.."-"..size].explosion2.properties.colormap = [[1 0.33 0 0.1   0.5 0.15 0 0.05   0.07 0.03 0 0.02   0 0 0 0]]
+  definitions[root.."-"..size].explosion2.properties.numparticles = definitions[root.."-"..size].explosion.properties.numparticles-1
 end
 
 -- add coloring
@@ -2466,6 +2366,7 @@ local colors = {
     centerflare = {air=false, ground=false, water=false, unit=true},
     clouddust = {air=false, ground=false, water=false, unit=true},
     explosion = {air=false, ground=false, water=false, unit=true},
+    explosion2 = {air=false, ground=false, water=false, unit=true},
     sparks = {air=false, ground=false, water=false, unit=true},
     outerflash = {air=false, ground=false, water=false, unit=true},
   },
@@ -2481,6 +2382,7 @@ local colors = {
     centerflare = {ground=false, water=false},
     clouddust = {ground=false, water=false},
     explosion = {ground=false, water=false, properties={colormap=[[0 0 0 0   1 0.9 0.8 0.09   0.9 0.5 0.55 0.066   0.66 0.28 0.35 0.033   0 0 0 0]]}},
+    explosion2 = {ground=false, water=false, properties={colormap=[[0 0 0 0   1 0.6 0.4 0.09   0.6 0.3 0.45 0.066   0.46 0.18 0.25 0.033   0 0 0 0]]}},
     sparks = {ground=false, water=false},
     outerflash = {ground=false, water=false},
   },
@@ -2491,12 +2393,14 @@ local colors = {
     underwaterexplosionsparks = false,
     kickedupwater = false,
     explosion = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0 0 0 0   1 0.75 0.9 0.09   0.45 0.4 0.66 0.066   0.33 0.3 0.05 0.033   0 0 0 0]]}},
+    explosion2 = {ground=false, water=false, air=false, underwater=true, properties={colormap=[[0 0 0 0   1 0.5 0.7 0.09   0.3 0.27 0.44 0.066   0.22 0.2 0.03 0.033   0 0 0 0]]}},
     dirt = false,
     dirt2 = false,
     sparks = false,
   },
   bomb = {
     explosion = {properties={colormap=[[0 0 0 0   1 0.62 0.38 0.09   0.7 0.27 0.1 0.066   0.5 0.15 0.025 0.033   0 0 0 0]]}},
+    explosion2 = {properties={colormap=[[0 0 0 0   1 0.32 0.18 0.09   0.7 0.17 0.05 0.066   0.3 0.08 0.015 0.033   0 0 0 0]]}},
     innersmoke = {properties={colormap=[[1 0.6 0.4 0.4    0.5 0.24 0.14 0.5   0.27 0.17 0.13 0.42    0.21 0.16 0.14 0.35   0.105 0.095 0.088 0.25   0.07 0.064 0.058 0.17    0 0 0 0.01]]}},
     outersmoke = {properties={colormap=[[1 0.58 0.36 0.4    0.48 0.24 0.14 0.45   0.26 0.16 0.13 0.4    0.2 0.16 0.14 0.35   0.1 0.09 0.088 0.25   0.07 0.063 0.058 0.17    0 0 0 0.01]]}},
     groundflash_small = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
@@ -2529,7 +2433,8 @@ for size, e in pairs(sizes) do
     definitions[defname].groundflash_white = false
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)
-	definitions[defname].explosion.properties.numparticles = [[0 r1.1]]
+    definitions[defname].explosion.properties.numparticles = [[0 r1.05]]
+    definitions[defname].explosion2.properties.numparticles = [[0 r1.05]]
     definitions[defname].sparks.properties.numparticles = [[0 r2.1]]
     definitions[defname].dirt.properties.numparticles = [[0 r2.1]]
     definitions[defname].dirt2.properties.numparticles = [[0 r2.1]]
@@ -2567,6 +2472,7 @@ definitions['genericshellexplosion-debris'].innersmoke.properties.particlespeeds
 definitions['genericshellexplosion-debris'].groundflash_small.properties.colormap = [[1 0.6 0.25 0.2   0 0 0 0.01]]
 definitions['genericshellexplosion-debris'].groundflash_small.properties.size = 13
 definitions['genericshellexplosion-debris'].groundflash_small.properties.ttl = 9
+definitions['genericshellexplosion-debris'].explosion2 = nil
 definitions['genericshellexplosion-debris'].outersmoke = nil
 definitions['genericshellexplosion-debris'].sparks = nil
 definitions['genericshellexplosion-debris'].groundflash_large = nil
@@ -2587,10 +2493,13 @@ definitions['genericshellexplosion-debris2'].explosion.properties.particlesize =
 definitions['genericshellexplosion-debris2'].explosion.properties.particlesizespread = 0.45
 definitions['genericshellexplosion-debris2'].explosion.properties.particlespeed = 0.25
 definitions['genericshellexplosion-debris2'].explosion.properties.particlespeedspread = 0.66
+definitions['genericshellexplosion-debris2'].explosion2 = nil
 
 definitions['genericshellexplosion-catapult'] = deepcopy(definitions[root.."-large-bomb"])
-definitions['genericshellexplosion-catapult'].explosion.properties.numparticles = 8
+definitions['genericshellexplosion-catapult'].explosion.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[0 0 0 0   0.8 0.25 0.15 0.09   0.57 0.17 0.1 0.066   0.35 0.08 0.03 0.033   0 0 0 0]]
+definitions['genericshellexplosion-catapult'].explosion2.properties.numparticles = 4
+definitions['genericshellexplosion-catapult'].explosion2.properties.colormap = [[0 0 0 0   0.6 0.15 0.07 0.09   0.37 0.1 0.05 0.066   0.2 0.05 0.02 0.033   0 0 0 0]]
 definitions['genericshellexplosion-catapult'].dustparticles.properties.numparticles = 1
 definitions['genericshellexplosion-catapult'].dirt.properties.numparticles = 2
 definitions['genericshellexplosion-catapult'].dirt2.properties.numparticles = 2
@@ -2599,7 +2508,8 @@ definitions['genericshellexplosion-catapult'].clouddust.properties.numparticles 
 
 
 definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-medium"])
-definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0 0 0.22   1 0.13 0.11 0.16   0.8 0.13 0.07 0.07   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0.3 0.15 0.22   1 0.2 0.12 0.16   0.8 0.16 0.09 0.07   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].explosion2.properties.colormap    = [[0 0 0 0   1 0 0 0.22   1 0.1 0.09 0.16   0.8 0.1 0.05 0.07   0 0 0 0]]
 definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = [[1 0.3 0.1 0.01   0.9 0.3 0.2 0.017   0 0 0 0]]
 
 
@@ -2648,9 +2558,9 @@ definitions['expldgun'].heatedgroundflash = {
     texture            = [[groundflash]],
   },
 }
-definitions['expldgun'].sparks.properties.numparticles = 3
-definitions['expldgun'].dirt.properties.numparticles = 5
-definitions['expldgun'].dirt2.properties.numparticles = 2
+definitions['expldgun'].sparks.properties.numparticles = 1
+definitions['expldgun'].dirt.properties.numparticles = 2
+definitions['expldgun'].dirt2.properties.numparticles = 1
 
 --definitions['expldgun'].groundflash2 = {
 --    class              = [[CSimpleGroundFlash]],
@@ -2667,13 +2577,19 @@ definitions['expldgun'].explosion.properties.numparticles         = definitions[
 definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.8
 definitions['expldgun'].explosion.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
 definitions['expldgun'].explosion.properties.particlespeedspread  = definitions['expldgun'].explosion.properties.particlespeedspread*0.85
+definitions['expldgun'].explosion2.properties.numparticles         = definitions['expldgun'].explosion.properties.numparticles/1.4
+definitions['expldgun'].explosion2.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.8
+definitions['expldgun'].explosion2.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
+definitions['expldgun'].explosion2.properties.particlespeedspread  = definitions['expldgun'].explosion.properties.particlespeedspread*0.85
 definitions['expldgun'].sparks.properties.particlelife            = definitions['expldgun'].sparks.properties.particlelife*1.3
 definitions['expldgun'].sparks.properties.particlespeed           = definitions['expldgun'].sparks.properties.particlespeed*1.3
 definitions['expldgun'].sparks.properties.particlespeedspread     = definitions['expldgun'].sparks.properties.particlespeedspread*1.8
-definitions['expldgun'].sparks.properties.numparticles            = definitions['expldgun'].sparks.properties.numparticles*0.66
 definitions['expldgun'].dirt.properties.particlelife              = definitions['expldgun'].dirt.properties.particlelife*1.2
 definitions['expldgun'].dirt.properties.particlespeed             = definitions['expldgun'].dirt.properties.particlespeed*1.25
 definitions['expldgun'].dirt.properties.particlespeedspread       = definitions['expldgun'].dirt.properties.particlespeedspread*1.4
+definitions['expldgun'].dustparticles.properties.numparticles         = 1
+definitions['expldgun'].dustparticles.properties.particlespeed  = definitions['expldgun'].explosion.properties.particlespeed*1.2
+definitions['expldgun'].dustparticles.properties.particlespeedspread  = definitions['expldgun'].explosion.properties.particlespeedspread*1.2
 
 definitions['expldgun'].clouddust.properties.numparticles = definitions['expldgun'].clouddust.properties.numparticles/2
 definitions['expldgun'].innersmoke = nil
