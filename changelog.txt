@@ -51,7 +51,7 @@ Balance changes:
  Long range plasma
  • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
  • Armvulc and corbuzz cost increased by 40%
- • Bertha and Intimidator weapons have 10% more Area of Effect
+ • Bertha and Intimidator weapons have 15% more Area of Effect
 
  T1
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.

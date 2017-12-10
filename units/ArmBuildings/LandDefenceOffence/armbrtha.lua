@@ -112,7 +112,7 @@ return {
 		weapondefs = {
 			arm_berthacannon = {
 				accuracy = 300,
-				areaofeffect = 128,
+				areaofeffect = 135,
 				avoidfeature = false,
 				craterareaofeffect = 116,
 				craterboost = 0.1,

@@ -2497,9 +2497,9 @@ definitions['genericshellexplosion-debris2'].explosion2 = nil
 
 definitions['genericshellexplosion-catapult'] = deepcopy(definitions[root.."-large-bomb"])
 definitions['genericshellexplosion-catapult'].explosion.properties.numparticles = 4
-definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[0 0 0 0   0.8 0.25 0.15 0.09   0.57 0.17 0.1 0.066   0.35 0.08 0.03 0.033   0 0 0 0]]
+definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[0 0 0 0   1 0.45 0.25 0.09   0.75 0.35 0.15 0.066   0.44 0.25 0.06 0.033   0 0 0 0]]
 definitions['genericshellexplosion-catapult'].explosion2.properties.numparticles = 4
-definitions['genericshellexplosion-catapult'].explosion2.properties.colormap = [[0 0 0 0   0.6 0.15 0.07 0.09   0.37 0.1 0.05 0.066   0.2 0.05 0.02 0.033   0 0 0 0]]
+definitions['genericshellexplosion-catapult'].explosion2.properties.colormap = [[0 0 0 0   1 0.38 0.1 0.09   0.55 0.22 0.05 0.066   0.25 0.08 0.03 0.033   0 0 0 0]]
 definitions['genericshellexplosion-catapult'].dustparticles.properties.numparticles = 1
 definitions['genericshellexplosion-catapult'].dirt.properties.numparticles = 2
 definitions['genericshellexplosion-catapult'].dirt2.properties.numparticles = 2

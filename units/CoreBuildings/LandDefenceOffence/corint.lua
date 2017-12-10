@@ -112,7 +112,7 @@ return {
 		weapondefs = {
 			core_intimidator = {
 				accuracy = 335,
-				areaofeffect = 150,
+				areaofeffect = 157,
 				avoidfeature = false,
 				craterareaofeffect = 136,
 				craterboost = 0.1,
