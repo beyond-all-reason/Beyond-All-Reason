@@ -148,11 +148,14 @@ if gadgetHandler:IsSyncedCode() then
 		for i=1, candycaneAmount do
 			local x = random(0, Game.mapSizeX)
 			local z = random(0, Game.mapSizeZ)
-			local y = GetGroundHeight(x, z)
-			local caneType = math.ceil(random(1,7))
-			local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
-			Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
-			candycanes[featureID] = caneType
+			local groundType, groundType2 = Spring.GetGroundInfo(x,z)
+			if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
+				local y = GetGroundHeight(x, z)
+				local caneType = math.ceil(random(1,7))
+				local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
+				Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
+				candycanes[featureID] = caneType
+			end
 		end
 	end
 end
