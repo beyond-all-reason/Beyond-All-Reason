@@ -1736,7 +1736,9 @@ end
 
 
 function widget:Initialize()
-	Spring.SetConfigInt("UsePBO",0)
+	if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
+		Spring.SetConfigInt("UsePBO",0)
+	end
 
 	-- making sure a redui console is displayed without the alternatives in play
 	if widgetHandler.orderList['Red Console (old)'] ~= nil and widgetHandler.orderList['Red Console (In-game chat only)'] ~= nil and widgetHandler.orderList['Red Console (Battle and autohosts)'] ~= nil then
