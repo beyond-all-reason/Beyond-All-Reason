@@ -8,7 +8,7 @@ Chicken Defence
  • Has been integrated into BA. Just add an chicken AI bot and make sure you have startboxes set. ("!autobalance off" to manually get everyone on the same team)
 
 Balance changes:
- • All Energy and metal prices have been rounded (because buildmenu shows prices)
+ • All Energy and metal prices have been rounded (to fit their display in buildmenu)
  • Introduced a minimum (slightly larger) buildrange
  • Global edgeeffectiveness buff of 0.15.
  • TargetBorder for all weapons: They don't aim for unit centers, but rather any part of the unit that can be aimed at.
@@ -16,13 +16,14 @@ Balance changes:
 
  Movement
  • Raw unit movement implemented
- • Pathing improvement: units wont get stuck in cliffs any longer
+ • Pathing improvement: units won't get stuck in cliffs any longer
+ • Pathing improvement: units won't go back and forth while walking along a cliff
  • Vehicles with tracks can turn-in-place. The angle limit depends on the unit's turnrate (equal to the turn that can be performed in one second). Wheeled vehicles cannot do this (Jeffy/Samson) 
  • Tachyons, artillery and banishers can move in reverse at 60% max speed.
  • Improved Air Units manoeuvrability and lowered TurnRadius (allowing close move commands)
 
  Commanders
- • Diminishied blast radius damages versus Commanders, still lethal at dgun range.
+ • Diminished blast radius damages versus Commanders, still lethal at dgun range.
  • Torso turnspeed increased 33% + dgun reloadspeed reduced 10%
  • UWLaser damages increased to 150 dps (default) and 75 dps (subs).
  • Decoy commanders have been given same lasers as regular commanders
@@ -51,14 +52,14 @@ Balance changes:
  • Bertha and Intimidator weapons have 15% more Area of Effect
 
  T1
- • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot.
+ • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot, due to obstacles/ally units on the way.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 25% increased HP.
  • Guardians/punishers have lower m cost (1500 -> 1250)
 
  T2
  • Fark workerspeed increased 16%
  • Armmart and cormart (mobile T2 arty) do 15% more damage
- • Morties are 5% slower and are a bit less acurate (even more when moving)
+ • Morties are 5% slower and are a bit less accurate (even more when moving)
  • Fixed viper overshooting (when aiming at radar dots)
  • T2 mexes now use 20 energy instead of 25. (exploiter consumed 12, and now 20 aswell).
  • Moho Exploiter now has same health (2000 -> 3500) as regular moho, but does less damage per shot
@@ -137,6 +138,7 @@ Other:
  • Projectiles/explosions/laserbeams can have lighting. 'Lighting Effects' option toggable via options widget. (default enabled)
  • Added outline widget, toggable via Options (default disabled)
  • Unit textures reprocessed with bigger color range and less grain
+ • Some units got remodeled for better looks
  • More units have been given a shatter effect on death
  • Bloomshader: prettier and more pronounced, offers 2 levels (modest/heavier) via Options
  • Some walking animations are improved
@@ -188,6 +190,8 @@ Autohosts vote feedbacks only include: who started the vote, whose votes are mis
  Fixes
  • Removed useless repeat/stop/wait order buttons from a lot of buildings
  • Commands FX widget: improved performance
+ • Fixed units flying across the map after unloading from transporters
+ • Thanks to the new engine and pathfinding units will not get lost when walking along walls (ie. dsd west north spot)
  • Ally Cursors widget: improved performance
  • Fixed Team stats widget creating an unresponsive darkened/blurred screen
  • Fixed commander nametags occasionally showing spectator name
