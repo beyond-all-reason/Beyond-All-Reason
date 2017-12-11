@@ -35,7 +35,12 @@ if gadgetHandler:IsSyncedCode() then
 	local createDecorations = {}
 	local createdDecorations = {}
 
+	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1500000)
+	local candycanes = {}
+
 	local GaiaTeam = Spring.GetGaiaTeamID()
+	local random = math.random
+	local GetGroundHeight = Spring.GetGroundHeight
 
 	local function setGaiaUnitSpecifics(unitID)
 		Spring.SetUnitNeutral(unitID, true)
@@ -90,10 +95,10 @@ if gadgetHandler:IsSyncedCode() then
 				local amount = hasDecoration[data[5]]
 				while i < amount do
 					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, data[4])
-					decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (math.random()*decorationLifeTimeVariation)
+					decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
 					setGaiaUnitSpecifics(uID)
-					Spring.SetUnitRotation(uID,math.random()*360,math.random()*360,math.random()*360)
-					Spring.AddUnitImpulse(uID, (math.random()-0.5)*4.2, 1+(math.random()*5.2), (math.random()-0.5)*4.2)
+					Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
+					Spring.AddUnitImpulse(uID, (random()-0.5)*4.2, 1+(random()*5.2), (random()-0.5)*4.2)
 					i = i + 1
 				end
 			end
@@ -103,13 +108,13 @@ if gadgetHandler:IsSyncedCode() then
 		-- add gifted unit decorations
 		for _, unitID in ipairs(createdDecorations) do
 			if decorations[unitID] == nil then
-				decorations[unitID] = Spring.GetGameFrame() + decorationLifeTime + (math.random()*decorationLifeTimeVariation)
+				decorations[unitID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
 				setGaiaUnitSpecifics(unitID)
 				--local x,y,z = Spring.GetUnitPosition(unitID)
 				--Spring.SetUnitPosition(unitID,x,y,z)
-				--Spring.SetUnitVelocity(unitID,0,math.random()*20,0)
-				Spring.SetUnitRotation(unitID,math.random()*360,math.random()*360,math.random()*360)
-				Spring.AddUnitImpulse(unitID, (math.random()-0.5)*1.5, 2.5+(math.random()*1), (math.random()-0.5)*1.5)
+				--Spring.SetUnitVelocity(unitID,0,random()*20,0)
+				Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
+				Spring.AddUnitImpulse(unitID, (random()-0.5)*1.5, 2.5+(random()*1), (random()-0.5)*1.5)
 			end
 		end
 		createdDecorations = {}
@@ -139,4 +144,15 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveGadget(self)
 	end
 
+	function gadget:Initialize()
+		for i=1, candycaneAmount do
+			local x = random(0, Game.mapSizeX)
+			local z = random(0, Game.mapSizeZ)
+			local y = GetGroundHeight(x, z)
+			local caneType = math.ceil(random(1,7))
+			local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
+			Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
+			candycanes[featureID] = caneType
+		end
+	end
 end
