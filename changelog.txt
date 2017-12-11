@@ -72,6 +72,8 @@ Balance changes:
  • Shiva has more sightdistance (300 -> 520)
  • Reintroduced KrogStomp (vs ground scouts + pws/aks only) aswell as a GFX/SFX
  • Removed T3 Hovercrafts from t3 sea factories, reduced costs, weaponery, hp and tweaked model size.
+ARM = 1150m/33000e, 4750hp, UW capable cannon, 370 aoe damages per 1.8s
+CORE = 950m/12000e, 3800hp, Surface only Heavy beam laser, 2150 damages over 1s per 9s.
 
  Mod options
  • Added map_terraintype: allows to cancel the TerrainType movespeed buffs of a map when disabled.
