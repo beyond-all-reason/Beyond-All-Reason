@@ -1046,7 +1046,14 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'iconadjuster' then
 			WG['iconadjuster'].setScale(value)
 		elseif id == 'bloombrightness' then
-			WG['bloom'].setBrightness(value)
+			if WG['bloom'] ~= nil then
+				WG['bloom'].setBrightness(value)
+			else
+				if widgetHandler.configData["Bloom Shader"] == nil then
+					widgetHandler.configData["Bloom Shader"] = {}
+				end
+				widgetHandler.configData["Bloom Shader"].basicAlpha = value
+			end
 		elseif id == 'guishaderintensity' then
 			WG['guishader_api'].setBlurIntensity(value)
 		elseif id == 'lighteffects_brightness' then
