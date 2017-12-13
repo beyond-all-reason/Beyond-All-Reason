@@ -28,7 +28,7 @@ local spGetVisibleUnits		= Spring.GetVisibleUnits
 local spGetVisibleFeatures	= Spring.GetVisibleFeatures
 local spGetFPS				= Spring.GetFPS
 local spHaveShadows			= Spring.HaveShadows
-local averageFps			= spGetFPS()
+local averageFps			= spGetFPS() + 5
 
 local previousQuality		= maxQuality
 local previousQualityFps	= 30
@@ -56,9 +56,15 @@ end
 function widget:GameFrame(gameFrame)
 	if spHaveShadows() or shadowsAtInit and turnedShadowsOff then
 		
-		if gameFrame%109==0 then 
-			local modelCount = #spGetVisibleUnits(-1,nil,false) + #spGetVisibleFeatures(-1,nil,false,false) -- expensive
-			averageFps = averageFps + (((spGetFPS()*(modelCount/50)) - averageFps*(modelCount/50)) / 70)
+		if gameFrame%109==0 then
+			local modelCount = #spGetVisibleUnits(-1,nil,false) + #spGetVisibleFeatures(-1,nil,false,false) -- expensive)
+			local modelCountWeight = modelCount/1700
+			if modelCountWeight > 1 then modelCountWeight = 1 end
+			if modelCountWeight < 0.05 then modelCountWeight = 0.05 end
+			local newAvgFps = ((spGetFPS() + (averageFps*14)) / 15
+			averageFps = averageFps + ((newAvgFps - averageFps) * modelCountWeight)	-- make it so that high model count impact avg fps changes more
+			--local dquality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
+			--Spring.Echo(averageFps..'   '..dquality)
 		end
 		if gameFrame%skipGameframes==0 then 
 			quality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
