@@ -1558,7 +1558,7 @@ function init()
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.75, step=0.05, value=0.4, description=''},
 		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 		{id="guishader", group="gfx", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
-		{id="guishaderintensity", group="gfx", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0007, description='NOTE: does 2nd blur when value is above 0.0015'},
+		{id="guishaderintensity", group="gfx", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
