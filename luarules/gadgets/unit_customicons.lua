@@ -74,6 +74,7 @@ local icons = {
   {"hover_t1_worker.user", "LuaUI/Icons/hover_worker.png",0.9*iconScale},
   {"hover_t1_aa.user", "LuaUI/Icons/hover_aa.png",0.9*iconScale},
   {"hover_t2.user", "LuaUI/Icons/hover.png",1.3*iconScale},
+  {"hover_t3.user", "LuaUI/Icons/hover.png",1.6*iconScale},
 
   {"ship_tiny.user", "LuaUI/Icons/ship.png",0.8*iconScale},
   {"ship.user", "LuaUI/Icons/ship.png",1.2*iconScale},
@@ -181,6 +182,9 @@ local icons = {
   {"air_t2_hover_t1.user", "LuaUI/Icons/air_hover.png",1.55*iconScale},
   {"air_t2_bomber.user", "LuaUI/Icons/air_bomber.png",1.66*iconScale},
   {"air_t2_transport.user", "LuaUI/Icons/transport.png",1.6*iconScale},
+  {"veh_transport.user", "LuaUI/Icons/vehtrans.png",1.7*iconScale},
+  {"hover_transport.user", "LuaUI/Icons/hovertrans.png",1.5*iconScale},
+  {"ship_transport.user", "LuaUI/Icons/shiptrans.png",2.2*iconScale},
   {"air_t2_radar_t1.user", "LuaUI/Icons/air_los.png",1.33*iconScale},
   {"air_bladew.user", "LuaUI/Icons/air_hover.png",0.75*iconScale},
   {"air_krow.user", "LuaUI/Icons/air_hover.png",2*iconScale},
@@ -319,6 +323,12 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
       -- transports
       if (ud.name=="armdfly" or ud.name=="corseah") then
         Spring.SetUnitDefIcon(udid, "air_t2_transport.user")
+      elseif (ud.name=="armthovr" or ud.name=="corthovr") then
+        Spring.SetUnitDefIcon(udid, "hover_transport.user")
+      elseif ud.name=="corintr" then
+        Spring.SetUnitDefIcon(udid, "veh_transport.user")
+      elseif (ud.name=="armtship" or ud.name=="cortship") then
+        Spring.SetUnitDefIcon(udid, "ship_transport.user")
       else
         Spring.SetUnitDefIcon(udid, "air_t1_transport.user")
       end
@@ -367,8 +377,10 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
         Spring.SetUnitDefIcon(udid, "hover_t1_worker.user")
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         Spring.SetUnitDefIcon(udid, "hover_t1_aa.user")
-      elseif ud.name=="corhal" or ud.name=="corsok" then
+      elseif ud.name=="corhal" then
         Spring.SetUnitDefIcon(udid, "hover_t2.user")
+      elseif ud.name=="armlun" or ud.name=="corsok" then
+        Spring.SetUnitDefIcon(udid, "hover_t3.user")
       else
         Spring.SetUnitDefIcon(udid, "hover_t1.user")
       end
