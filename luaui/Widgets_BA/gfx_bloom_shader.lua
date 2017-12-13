@@ -16,8 +16,8 @@ end
 
 local basicAlpha = 0.4
 
-local drawHighlights = true		-- apply extra bloom bright spots (note: quite costly)
-local highlightsAlpha = 0.4
+local drawHighlights = false		-- apply extra bloom bright spots (note: quite costly)
+local highlightsAlpha = 0.35
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
@@ -134,7 +134,7 @@ function reset()
 	
 	if drawHighlights then
 		usedBasicAlpha = basicAlpha
-		drawWorldAlpha				= 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
+		drawWorldAlpha = 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/11) + (0.018 * highlightsAlpha)
 		drawWorldPreUnitAlpha = 0.16 - (illumThreshold*0.4)  + (usedBasicAlpha/6.2)  + (0.023 * highlightsAlpha)
 	else
 		usedBasicAlpha = basicAlpha
@@ -186,8 +186,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	
 	ivsx = 1.0 / vsx
 	ivsy = 1.0 / vsy
-	kernelRadius = vsy / 73.0
-	kernelRadius2 = vsy / 25.0
+	kernelRadius = vsy / 80.0
+	kernelRadius2 = vsy / 30.0
 	
 	reset()
 end
@@ -237,7 +237,7 @@ function widget:Initialize()
   end
   WG['bloom'].setAdvBloom = function(value)
   	drawHighlights = value
-		reset()
+	reset()
   	if initialized == false then
   		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
   	end
@@ -246,8 +246,8 @@ function widget:Initialize()
   	return basicAlpha
   end
   WG['bloom'].setBrightness = function(value)
-	  basicAlpha = value
-		reset()
+	basicAlpha = value
+	reset()
   	if initialized == false then
   		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
   	end
@@ -550,14 +550,17 @@ end
 
 function widget:GetConfigData(data)
     savedTable = {}
-    savedTable.basicAlpha	= basicAlpha
-    savedTable.drawHighlights	= drawHighlights
+    savedTable.basicAlpha = basicAlpha
+    savedTable.drawHighlights = drawHighlights
     return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.basicAlpha ~= nil then
-		--basicAlpha = data.basicAlpha
+		basicAlpha = data.basicAlpha
+		if data.highlightsAlpha ~= nil then
+			highlightsAlpha = data.highlightsAlpha
+		end
 		drawHighlights = data.drawHighlights
 	end
 end

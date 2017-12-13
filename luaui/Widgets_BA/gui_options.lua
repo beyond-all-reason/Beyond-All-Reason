@@ -103,6 +103,7 @@ local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these
 local presets = {
 	lowest = {
 		bloom = 0,
+		bloomhighlights = false,
 		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
@@ -126,6 +127,7 @@ local presets = {
 	},
 	low = {
 		bloom = 0,
+		bloomhighlights = false,
 		water = 2,
 		mapedgeextension = false,
 		lighteffects = false,
@@ -149,6 +151,7 @@ local presets = {
 	},
 	medium = {
 		bloom = 1,
+		bloomhighlights = false,
 		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -172,6 +175,7 @@ local presets = {
 	},
 	high = {
 		bloom = 1,
+		bloomhighlights = false,
 		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -195,6 +199,7 @@ local presets = {
 	},
 	ultra = {
 		bloom = 2,
+		bloomhighlights = true,
 		water = 3,
 		mapedgeextension = true,
 		lighteffects = true,
@@ -917,6 +922,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			WG['red_buildmenu'].setConfigUnitTooltip(options[i].value)
 		elseif id == 'buildmenubigtooltip' then
 			WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
+		elseif id == 'bloomhighlights' then
+			WG['bloom'].setAdvBloom(options[i].value)
 		elseif id == 'darkenmap_darkenfeatures' then
 			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
@@ -1038,6 +1045,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			WG['darkenmap'].setMapDarkness(value)
 		elseif id == 'iconadjuster' then
 			WG['iconadjuster'].setScale(value)
+		elseif id == 'bloombrightness' then
+			WG['bloom'].setBrightness(value)
 		elseif id == 'lighteffects_brightness' then
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalBrightness(value)
@@ -1452,6 +1461,20 @@ end
 
 function loadWidgetConfigData()
 	local changes = false
+
+	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].basicAlpha ~= nil then
+		if options[getOptionByID("bloombrightness")].value ~= widgetHandler.configData["Bloom Shader"].basicAlpha then
+			options[getOptionByID("bloombrightness")].value = widgetHandler.configData["Bloom Shader"].basicAlpha
+			changes = true
+		end
+	end
+	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].drawHighlights ~= nil then
+		if options[getOptionByID("bloomhighlights")].value ~= widgetHandler.configData["Bloom Shader"].drawHighlights then
+			options[getOptionByID("bloomhighlights")].value = widgetHandler.configData["Bloom Shader"].drawHighlights
+			changes = true
+		end
+	end
+
 	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
 		if options[getOptionByID("enemyspotter_opacity")].value ~= widgetHandler.configData.EnemySpotter.spotterOpacity then
 			options[getOptionByID("enemyspotter_opacity")].value = widgetHandler.configData.EnemySpotter.spotterOpacity
@@ -1528,10 +1551,12 @@ function init()
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
-
-		--{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom shader", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
-		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom shader", type="slider", min=0, max=2, step=1, value=0, description='Bloom will make the map and units glow\n\nSetting the slider all the way will stress your GPU more'},
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
+
+		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom shader", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
+		--{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="slider", min=0, max=2, step=1, value=0, description='Bloom will make the map and units glow\n\nSetting the slider all the way will stress your GPU more'},
+		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.75, step=0.05, value=0.4, description=''},
+		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 		{id="guishader", group="gfx", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
