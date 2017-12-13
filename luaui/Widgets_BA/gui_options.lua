@@ -135,7 +135,7 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 10000,
-		nanoparticles = 700,
+		nanoparticles = 800,
 		grassdetail = 0,
 		treeradius = 200,
 		advsky = false,
@@ -159,7 +159,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 15000,
-		nanoparticles = 1000,
+		nanoparticles = 1200,
 		grassdetail = 0,
 		treeradius = 400,
 		advsky = false,
@@ -183,7 +183,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 20000,
-		nanoparticles = 1500,
+		nanoparticles = 2000,
 		grassdetail = 0,
 		treeradius = 800,
 		advsky = true,
@@ -207,7 +207,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 25000,
-		nanoparticles = 2500,
+		nanoparticles = 5000,
 		grassdetail = 0,
 		treeradius = 800,
 		advsky = true,
@@ -1046,7 +1046,16 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'iconadjuster' then
 			WG['iconadjuster'].setScale(value)
 		elseif id == 'bloombrightness' then
-			WG['bloom'].setBrightness(value)
+			if WG['bloom'] ~= nil then
+				WG['bloom'].setBrightness(value)
+			else
+				if widgetHandler.configData["Bloom Shader"] == nil then
+					widgetHandler.configData["Bloom Shader"] = {}
+				end
+				widgetHandler.configData["Bloom Shader"].basicAlpha = value
+			end
+		elseif id == 'guishaderintensity' then
+			WG['guishader_api'].setBlurIntensity(value)
 		elseif id == 'lighteffects_brightness' then
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalBrightness(value)
@@ -1401,16 +1410,6 @@ function mouseEvent(x, y, button, release)
 						end
 					end
 				end
-				--[[ on close button
-				local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-				local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-				if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
-					if release then
-						showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-						show = not show
-					end
-					return true
-				end]]--
 
 				if button == 1 or button == 3 then
 					return true
@@ -1471,6 +1470,13 @@ function loadWidgetConfigData()
 	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].drawHighlights ~= nil then
 		if options[getOptionByID("bloomhighlights")].value ~= widgetHandler.configData["Bloom Shader"].drawHighlights then
 			options[getOptionByID("bloomhighlights")].value = widgetHandler.configData["Bloom Shader"].drawHighlights
+			changes = true
+		end
+	end
+
+	if widgetHandler.configData["GUI-Shader"] ~= nil and widgetHandler.configData["GUI-Shader"].blurIntensity ~= nil then
+		if options[getOptionByID("guishaderintensity")].value ~= widgetHandler.configData["GUI-Shader"].blurIntensity then
+			options[getOptionByID("guishaderintensity")].value = widgetHandler.configData["GUI-Shader"].blurIntensity
 			changes = true
 		end
 	end
@@ -1559,6 +1565,7 @@ function init()
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.75, step=0.05, value=0.4, description=''},
 		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 		{id="guishader", group="gfx", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
+		{id="guishaderintensity", group="gfx", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 

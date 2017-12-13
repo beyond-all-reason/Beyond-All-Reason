@@ -32,7 +32,7 @@ end
 --------------------------------------------------------------------------------
 
 local imageDirectory			 = ":n:"..LUAUI_DIRNAME.."Images/guishader/"
-local defaultBlurIntensity = 0.0007
+local defaultBlurIntensity = 0.0014
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -368,19 +368,33 @@ function widget:DrawScreenEffectsBlur()
 	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
 	  gl.Texture(screencopy)
 	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
-	  
-	  gl.UseShader(blurShader)
-			gl.Uniform(intensityLoc, blurIntensity)
-			
-		  gl.Texture(2,stenciltex)
-		  gl.Texture(2,false)
 
-		  gl.Texture(blurtex)
-		  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
-		  gl.Texture(blurtex2)
-		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
-	  gl.UseShader(0)
-	  
+      gl.UseShader(blurShader)
+      gl.Uniform(intensityLoc, blurIntensity)
+
+      gl.Texture(2,stenciltex)
+      gl.Texture(2,false)
+
+      gl.Texture(blurtex)
+      gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+      gl.Texture(blurtex2)
+      gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+      gl.UseShader(0)
+
+      if blurIntensity >= 0.0016 then
+          gl.UseShader(blurShader)
+          gl.Uniform(intensityLoc, blurIntensity*0.5)
+
+          gl.Texture(2,stenciltex)
+          gl.Texture(2,false)
+
+          gl.Texture(blurtex)
+          gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+          gl.Texture(blurtex2)
+          gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+          gl.UseShader(0)
+      end
+
 	  gl.Texture(blurtex)
 	  gl.TexRect(0,vsy,vsx,0)
 	  gl.Texture(false)
@@ -393,7 +407,6 @@ function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
 
 	if screenBlur and allowScreenBlur then
-
 	  gl.Texture(false)
 	  gl.Color(1,1,1,1)
 	  gl.Blending(false)
@@ -406,10 +419,10 @@ function widget:DrawScreen()
 	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
 	  gl.Texture(screencopy)
 	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
-	  
+
 	  gl.UseShader(blurShader)
 			gl.Uniform(intensityLoc, blurIntensity)
-			
+
 		  gl.Texture(2,stenciltex)
 		  gl.Texture(2,false)
 
@@ -418,11 +431,11 @@ function widget:DrawScreen()
 		  gl.Texture(blurtex2)
 		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 	  gl.UseShader(0)
-	  
+
 	  --2nd pass
 	  gl.UseShader(blurShader)
 			gl.Uniform(intensityLoc, blurIntensity*0.4)
-			
+
 		  gl.Texture(2,stenciltex)
 		  gl.Texture(2,false)
 
@@ -431,7 +444,7 @@ function widget:DrawScreen()
 		  gl.Texture(blurtex2)
 		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 	  gl.UseShader(0)
-	  
+
 	  gl.Texture(blurtex)
 	  gl.TexRect(0,vsy,vsx,0)
 	  gl.Texture(false)
@@ -443,13 +456,17 @@ end
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.allowScreenBlur = allowScreenBlur
+    savedTable.blurIntensity = blurIntensity
     return savedTable
 end
 
 function widget:SetConfigData(data)
-	if data.allowScreenBlur ~= nil then
-		allowScreenBlur = data.allowScreenBlur
-	end
+    if data.allowScreenBlur ~= nil then
+        allowScreenBlur = data.allowScreenBlur
+    end
+    if data.blurIntensity ~= nil then
+        blurIntensity = data.blurIntensity
+    end
 end
 
 function widget:TextCommand(command)
