@@ -1,10 +1,10 @@
-local versionNumber = "v2.3"
+local versionNumber = "v2.3 - Doo Edit"
 
 function widget:GetInfo()
   return {
     name      = "Area Mex",
     desc      = versionNumber .. " Adds a command to cap mexes in an area.",
-    author    = "Google Frog, NTG (file handling), Chojin (metal map)",
+    author    = "Google Frog, NTG (file handling), Chojin (metal map), Doo Edit on Dec 13, 2017 (multiple enhancements)",
     date      = "Oct 23, 2010",
     license   = "GNU GPL, v2 or later",
     handler   = true,
@@ -102,6 +102,20 @@ function widget:Update()
 	end	
 end
 
+function AreAlliedUnits(unitID) -- Is unitID allied with me ?
+return Spring.AreTeamsAllied(Spring.GetMyTeamID(), Spring.GetUnitTeam(unitID))
+end
+
+function NoAlliedMex(x,z, batchextracts) -- Is there any better and allied mex at this location (returns false if there is)
+	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius)
+		for ct, uid in pairs(mexesatspot) do
+			if mexIds[Spring.GetUnitDefID(uid)] and AreAlliedUnits(uid) and UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal >= batchextracts then
+				return false
+			end	
+		end
+	return true
+end
+
 function widget:CommandNotify(id, params, options)	
 	
 	if (id == CMD_AREA_MEX) then
@@ -125,15 +139,39 @@ function widget:CommandNotify(id, params, options)
 		local aveZ = 0
 		
 		local units=spGetSelectedUnits()
-	
+		local maxbatchextracts = 0
+		local batchMexBuilder = {}
+		local lastprocessedbestbuilder = nil
+		
 		for i, id in pairs(units) do 
+		if mexBuilder[id] then -- Get best extract rates, save best builderID
+			if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal > maxbatchextracts then
+				maxbatchextracts = UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal
+				lastprocessedbestbuilder = id
+			end
+		end
+		end
+		
+		for i, id in pairs(units) do -- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 			if mexBuilder[id] then
+				if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal == maxbatchextracts then
 				local x,_,z = spGetUnitPosition(id)
 				ux = ux+x
 				uz = uz+z
 				us = us+1
+				lastprocessedbestbuilder = id
+				batchMexBuilder[id] = true
+				else
+					if not shift then 
+					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
+					shift = true
+					end
+				spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
+				batchMexBuilder[id] = nil
+				end
 			end
 		end
+		
 	
 		if (us == 0) then
 			return
@@ -145,7 +183,10 @@ function widget:CommandNotify(id, params, options)
 		for k, mex in pairs(mexes) do		
 			--if (mex.x > xmin) and (mex.x < xmax) and (mex.z > zmin) and (mex.z < zmax) then -- square area, should be faster
 			if (Distance(cx,cz,mex.x,mex.z) < cr^2) then -- circle area, slower
-				commands[#commands+1] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}
+				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
+					commands[#commands+1] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}
+				end
+			
 			end
 		end
 	
@@ -166,14 +207,29 @@ function widget:CommandNotify(id, params, options)
 		local shift = options.shift
 	
 		for i, id in ipairs(units) do 
-			if mexBuilder[id] then
+			if batchMexBuilder[id] then -- If not superior builder then skip
 				if not shift then 
 					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
 					shift = true
 				end
 				for i, command in ipairs(orderedCommands) do
 					for j=1, mexBuilder[id].buildings do
-						local buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x,0,command.z,1)
+						local buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x,spGetGroundHeight(command.x,command.z),command.z,1)
+						if not (buildable ~= 0) then -- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
+							for ox = -math.sqrt(Game.extractorRadius-25), math.sqrt(Game.extractorRadius-25) do
+								for oz = -math.sqrt(Game.extractorRadius-25), math.sqrt(Game.extractorRadius-25) do
+									if spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1) then
+										buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
+										command.x = command.x + ox
+										command.z = command.z + oz
+										break
+									end
+								end
+								if buildable ~= 0 then
+									break
+								end
+							end
+						end
 						if buildable ~= 0 then
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], {command.x,spGetGroundHeight(command.x,command.z),command.z} , {"shift"})
 							break
@@ -182,6 +238,7 @@ function widget:CommandNotify(id, params, options)
 				end
 			end
 		end
+		
   
 		return true
   

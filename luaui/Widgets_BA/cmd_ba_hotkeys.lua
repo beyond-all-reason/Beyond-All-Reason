@@ -62,6 +62,8 @@ function MakeBindsTable (swapYZ)
         "bind shift+"..Z.." buildunit_coruwmme",
         "bind "..Z.." buildunit_armuwmme",
         "bind shift+"..Z.." buildunit_armuwmme",
+        "bind "..Z.." areamex",
+        "bind shift+"..Z.." areamex",
         "bind x buildunit_armsolar",
         "bind shift+x buildunit_armsolar",
         "bind x buildunit_armwin",
