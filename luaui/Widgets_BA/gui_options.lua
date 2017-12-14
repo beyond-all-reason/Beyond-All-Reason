@@ -923,7 +923,13 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'buildmenubigtooltip' then
 			WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
 		elseif id == 'bloomhighlights' then
-			WG['bloom'].setAdvBloom(options[i].value)
+			if widgetHandler.configData["Bloom Shader"] == nil then
+				widgetHandler.configData["Bloom Shader"] = {}
+			end
+			widgetHandler.configData["Bloom Shader"].drawHighlights = options[i].value
+			if WG['bloom'] ~= nil then
+				WG['bloom'].setAdvBloom(options[i].value)
+			end
 		elseif id == 'snowmap' then
 			WG['snow'].setSnowMap(options[i].value)
 		elseif id == 'snowautoreduce' then
@@ -931,13 +937,12 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'darkenmap_darkenfeatures' then
 			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
+			if widgetHandler.configData.EnemySpotter == nil then
+				widgetHandler.configData.EnemySpotter = {}
+			end
+			widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setHighlight(options[i].value)
-			else
-				if widgetHandler.configData.EnemySpotter == nil then
-					widgetHandler.configData.EnemySpotter = {}
-				end
-				widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
 			end
 		elseif id == 'smartselect_includebuildings' then
 			WG['smartselect'].setIncludeBuildings(options[i].value)
@@ -1050,78 +1055,70 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'iconadjuster' then
 			WG['iconadjuster'].setScale(value)
 		elseif id == 'bloombrightness' then
+			if widgetHandler.configData["Bloom Shader"] == nil then
+				widgetHandler.configData["Bloom Shader"] = {}
+			end
+			widgetHandler.configData["Bloom Shader"].basicAlpha = value
 			if WG['bloom'] ~= nil then
 				WG['bloom'].setBrightness(value)
-			else
-				if widgetHandler.configData["Bloom Shader"] == nil then
-					widgetHandler.configData["Bloom Shader"] = {}
-				end
-				widgetHandler.configData["Bloom Shader"].basicAlpha = value
 			end
 		elseif id == 'guishaderintensity' then
 			WG['guishader_api'].setBlurIntensity(value)
 		elseif id == 'snowamount' then
+			if widgetHandler.configData["Snow"] == nil then
+				widgetHandler.configData["Snow"] = {}
+			end
+			widgetHandler.configData["Snow"].customParticleMultiplier = value
 			if WG['snow'] ~= nil then
 				WG['snow'].setMultiplier(value)
-			else
-				if widgetHandler.configData["Snow"] == nil then
-					widgetHandler.configData["Snow"] = {}
-				end
-				widgetHandler.configData["Snow"].customParticleMultiplier = value
 			end
 		elseif id == 'lighteffects_brightness' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalLightMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalBrightness(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalLightMult = value
 			end
 		elseif id == 'lighteffects_radius' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalRadiusMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalRadius(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalRadiusMult = value
 			end
 		elseif id == 'lighteffects_laserbrightness' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalLightMultLaser = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLaserBrightness(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalLightMultLaser = value
 			end
 		elseif id == 'lighteffects_radius' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLaserRadius(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
 			end
 		elseif id == 'lighteffects_life' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalLifeMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLife(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalLifeMult = value
 			end
 		elseif id == 'enemyspotter_opacity' then
+			if widgetHandler.configData.EnemySpotter == nil then
+				widgetHandler.configData.EnemySpotter = {}
+			end
+			widgetHandler.configData.EnemySpotter.spotterOpacity = value
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
-			else
-				if widgetHandler.configData.EnemySpotter == nil then
-					widgetHandler.configData.EnemySpotter = {}
-				end
-				widgetHandler.configData.EnemySpotter.spotterOpacity = value
 			end
 		elseif id == 'highlightselunits_opacity' then
 			WG['highlightselunits'].setOpacity(value)
@@ -1619,9 +1616,9 @@ function init()
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
-		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='By default.. maps with wintery names have this toggled'},
-		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower'},
-		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description=''},
+		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
+		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again'},
+		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
