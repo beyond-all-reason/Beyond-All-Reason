@@ -19,20 +19,21 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local minFps					= 30		-- stops snowing at
+local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
 local particleSteps				= 14		-- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
-local particleMultiplier		= 0.0045		-- amount of particles
+local particleMultiplier		= 0.005		-- amount of particles
+local customParticleMultiplier  = 1
 local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
 local particleScaleMultiplier	= 1
 
 -- pregame info message
+local autoReduce = true
 local fadetime = 13
 local fadetimeThreshold = 30
-local textStartOpacity = 0.58
-
+local textStartOpacity = 0.6
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
@@ -189,7 +190,7 @@ end
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
 local function CreateParticleLists()
 	removeParticleLists()
-	particleDensityMax	= math.floor(((vsx * vsy) * particleMultiplier) / #particleTypes)
+	particleDensityMax	= math.floor(((vsx * vsy) * (particleMultiplier*customParticleMultiplier)) / #particleTypes)
 	particleDensity		= particleDensityMax * ((averageFps-minFps) / maxFps)
 	for particleType, pt in pairs(particleTypes) do
 		particleLists[particleType] = {}
@@ -310,7 +311,40 @@ function getWindSpeed()
 end
 
 function widget:Initialize()
-	
+
+	WG['snow'] = {}
+	WG['snow'].getSnowMap = function()
+		if enabled or widgetDisabledSnow then
+			return true
+		else
+			return false
+		end
+	end
+	WG['snow'].setMultiplier = function(value)
+		customParticleMultiplier = value
+		CreateParticleLists()
+	end
+	WG['snow'].setAutoReduce = function(value)
+		autoReduce = value
+		if autoReduce == false then
+			enabled = true
+			particleStep = particleSteps
+			widgetDisabledSnow = false
+		else
+			avgFpsInit = true
+			averageFps = spGetFPS()
+		end
+	end
+	WG['snow'].setSnowMap = function(value)
+		snowMaps[currentMapname] = value
+		enabled = value
+		if value then
+			init()
+		else
+			removeSnow()
+		end
+	end
+
 	if spGetGameFrame() > 0 then
 		gameStarted = true
 	end
@@ -371,12 +405,12 @@ function widget:GameFrame(gameFrame)
 		if gameFrame%31==0 then
 			getWindSpeed()
 		end
-		if gameFrame%44==0 then 
-			averageFps = ((averageFps * 50) + spGetFPS()) / 51
+		if gameFrame%44==0 then
+			averageFps = ((averageFps * 19) + spGetFPS()) / 20
 			if averageFps < 1 then averageFps = 1 end
 			--Spring.Echo(particleStep.."  avg fps:  "..averageFps)
 		end
-		if gameFrame%88==0 then 
+		if gameFrame%88==0 and autoReduce then
 			if averageFps >= previousFps+fpsDifference or averageFps <= previousFps-fpsDifference then
 				local particleAmount = (averageFps-minFps) / (maxFps-minFps)
 				if particleAmount > 1 then 
@@ -411,7 +445,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreen()
-	if not enabled then return end
+	if not enabled or not autoReduce then return end
 
 	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
 		if not avgFpsInit then
@@ -504,12 +538,16 @@ function widget:GetConfigData(data)
     savedTable.averageFps = math.floor(averageFps)
     savedTable.particleStep = particleStep
     savedTable.gameframe = Spring.GetGameFrame()
+	savedTable.customParticleMultiplier = customParticleMultiplier
+	savedTable.autoReduce = autoReduce
     return savedTable
 end
 
 function widget:SetConfigData(data)
-  if data.snowMaps ~= nil 	then  snowMaps		= data.snowMaps end
-  if data.gameframe ~= nil and data.gameframe > 0	then  
+	if data.snowMaps ~= nil 	then  snowMaps = data.snowMaps end
+	if data.customParticleMultiplier ~= nil 	then  customParticleMultiplier = data.customParticleMultiplier end
+	if data.autoReduce ~= nil 	then  autoReduce = data.autoReduce end
+	if data.gameframe ~= nil and data.gameframe > 0	then
 		if data.averageFps ~= nil 	then  
 			averageFps = data.averageFps
 			avgFpsInit = true
@@ -523,7 +561,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:TextCommand(command)
-    if (string.find(command, "snow") == 1  and  string.len(command) == 4) then 
+    if (string.find(command, "snow") == 1  and  string.len(command) == 4) then
 		if snowMaps[currentMapname] == nil or snowMaps[currentMapname] == false then
 			snowMaps[currentMapname] = true
 			enabled = true
