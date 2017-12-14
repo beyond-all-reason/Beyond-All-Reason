@@ -165,6 +165,7 @@ AimPrimary()
 	{
 	show bomb2;
 	}
+	return (1);
 	
 }
 
