@@ -923,17 +923,26 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'buildmenubigtooltip' then
 			WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
 		elseif id == 'bloomhighlights' then
-			WG['bloom'].setAdvBloom(options[i].value)
+			if widgetHandler.configData["Bloom Shader"] == nil then
+				widgetHandler.configData["Bloom Shader"] = {}
+			end
+			widgetHandler.configData["Bloom Shader"].drawHighlights = options[i].value
+			if WG['bloom'] ~= nil then
+				WG['bloom'].setAdvBloom(options[i].value)
+			end
+		elseif id == 'snowmap' then
+			WG['snow'].setSnowMap(options[i].value)
+		elseif id == 'snowautoreduce' then
+			WG['snow'].setAutoReduce(options[i].value)
 		elseif id == 'darkenmap_darkenfeatures' then
 			WG['darkenmap'].setDarkenFeatures(options[i].value)
 		elseif id == 'enemyspotter_highlight' then
+			if widgetHandler.configData.EnemySpotter == nil then
+				widgetHandler.configData.EnemySpotter = {}
+			end
+			widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setHighlight(options[i].value)
-			else
-				if widgetHandler.configData.EnemySpotter == nil then
-					widgetHandler.configData.EnemySpotter = {}
-				end
-				widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
 			end
 		elseif id == 'smartselect_includebuildings' then
 			WG['smartselect'].setIncludeBuildings(options[i].value)
@@ -1046,69 +1055,70 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'iconadjuster' then
 			WG['iconadjuster'].setScale(value)
 		elseif id == 'bloombrightness' then
+			if widgetHandler.configData["Bloom Shader"] == nil then
+				widgetHandler.configData["Bloom Shader"] = {}
+			end
+			widgetHandler.configData["Bloom Shader"].basicAlpha = value
 			if WG['bloom'] ~= nil then
 				WG['bloom'].setBrightness(value)
-			else
-				if widgetHandler.configData["Bloom Shader"] == nil then
-					widgetHandler.configData["Bloom Shader"] = {}
-				end
-				widgetHandler.configData["Bloom Shader"].basicAlpha = value
 			end
 		elseif id == 'guishaderintensity' then
 			WG['guishader_api'].setBlurIntensity(value)
+		elseif id == 'snowamount' then
+			if widgetHandler.configData["Snow"] == nil then
+				widgetHandler.configData["Snow"] = {}
+			end
+			widgetHandler.configData["Snow"].customParticleMultiplier = value
+			if WG['snow'] ~= nil then
+				WG['snow'].setMultiplier(value)
+			end
 		elseif id == 'lighteffects_brightness' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalLightMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalBrightness(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalLightMult = value
 			end
 		elseif id == 'lighteffects_radius' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalRadiusMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setGlobalRadius(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalRadiusMult = value
 			end
 		elseif id == 'lighteffects_laserbrightness' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalLightMultLaser = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLaserBrightness(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalLightMultLaser = value
 			end
 		elseif id == 'lighteffects_radius' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLaserRadius(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
 			end
 		elseif id == 'lighteffects_life' then
+			if widgetHandler.configData["Light Effects"] == nil then
+				widgetHandler.configData["Light Effects"] = {}
+			end
+			widgetHandler.configData["Light Effects"].globalLifeMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLife(value)
-			else
-				if widgetHandler.configData["Light Effects"] == nil then
-					widgetHandler.configData["Light Effects"] = {}
-				end
-				widgetHandler.configData["Light Effects"].globalLifeMult = value
 			end
 		elseif id == 'enemyspotter_opacity' then
+			if widgetHandler.configData.EnemySpotter == nil then
+				widgetHandler.configData.EnemySpotter = {}
+			end
+			widgetHandler.configData.EnemySpotter.spotterOpacity = value
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
-			else
-				if widgetHandler.configData.EnemySpotter == nil then
-					widgetHandler.configData.EnemySpotter = {}
-				end
-				widgetHandler.configData.EnemySpotter.spotterOpacity = value
 			end
 		elseif id == 'highlightselunits_opacity' then
 			WG['highlightselunits'].setOpacity(value)
@@ -1481,6 +1491,25 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].customParticleMultiplier ~= nil then
+		if options[getOptionByID("snowamount")].value ~= widgetHandler.configData["Snow"].customParticleMultiplier then
+			options[getOptionByID("snowamount")].value = widgetHandler.configData["Snow"].customParticleMultiplier
+			changes = true
+		end
+	end
+	if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].snowMaps ~= nil and widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] ~= nil then
+		if options[getOptionByID("snowmap")].value ~= widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] then
+			options[getOptionByID("snowmap")].value = widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()]
+			changes = true
+		end
+	end
+	if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].autoReduce ~= nil then
+		if options[getOptionByID("snowautoreduce")].value ~= widgetHandler.configData["Snow"].autoReduce then
+			options[getOptionByID("snowautoreduce")].value = widgetHandler.configData["Snow"].autoReduce
+			changes = true
+		end
+	end
+
 	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
 		if options[getOptionByID("enemyspotter_opacity")].value ~= widgetHandler.configData.EnemySpotter.spotterOpacity then
 			options[getOptionByID("enemyspotter_opacity")].value = widgetHandler.configData.EnemySpotter.spotterOpacity
@@ -1582,11 +1611,14 @@ function init()
 		{id="outline", group="gfx", widget="Outline", name="Unit Outline (tiny)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
-		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
+		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
-		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snows at winter maps, auto reduces amount when fps gets lower and unitcount higher\n\nUse /snow to toggle snow for current map (it remembers)'},
-		{id="disticon", group="gfx", name="Unit icon distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
+		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
+		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
+		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again'},
+		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -1656,12 +1688,17 @@ function init()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
+
+	loadWidgetConfigData()
+
+	if WG['snow'] ~= nil and WG['snow'].getSnowMap ~= nil then
+		options[getOptionByID('snowmap')].value = WG['snow'].getSnowMap()
+	end
+
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
 	if Spring.GetConfigInt("Vsync",1) == 'x' then
 		options[getOptionByID('vsync')] = nil
 	end
-
-	loadWidgetConfigData()
 
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigShortcutsInfo == nil then
 		options[getOptionByID('buildmenushortcuts')] = nil
