@@ -14,23 +14,23 @@ end
 --local show = true
 
 local playSounds = true
-local buttonclick = LUAUI_DIRNAME .. 'Sounds/tock.wav'
-local paginatorclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
-local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
-local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local selectunfoldclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
-local selecthoverclick = LUAUI_DIRNAME .. 'Sounds/hover.wav'
-local toggleonclick = LUAUI_DIRNAME .. 'Sounds/switchon.wav'
-local toggleoffclick = LUAUI_DIRNAME .. 'Sounds/switchoff.wav'
+local buttonclick = 'LuaUI/Sounds/tock.wav'
+local paginatorclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
+local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
+local selectclick = 'LuaUI/Sounds/buildbar_click.wav'
+local selectunfoldclick = 'LuaUI/Sounds/buildbar_hover.wav'
+local selecthoverclick = 'LuaUI/Sounds/hover.wav'
+local toggleonclick = 'LuaUI/Sounds/switchon.wav'
+local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
 local loadedFontSize = 32
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
-local bgcorner1 = ":n:"..LUAUI_DIRNAME.."Images/bgcorner1.png" -- only used to draw dropdown arrow
-local backwardTex = LUAUI_DIRNAME.."Images/backward.dds"
-local forwardTex = LUAUI_DIRNAME.."Images/forward.dds"
-local glowTex = LUAUI_DIRNAME.."Images/glow.dds"
+local bgcorner = "LuaUI/Images/bgcorner.png"
+local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
+local backwardTex = "LuaUI/Images/backward.dds"
+local forwardTex = "LuaUI/Images/forward.dds"
+local glowTex = "LuaUI/Images/glow.dds"
 
 local bgMargin = 6
 

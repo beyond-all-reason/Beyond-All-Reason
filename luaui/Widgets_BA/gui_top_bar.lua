@@ -21,19 +21,19 @@ local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
 local playSounds = true
-local leftclick = LUAUI_DIRNAME .. 'Sounds/tock.wav'
-local resourceclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local leftclick = 'LuaUI/Sounds/tock.wav'
+local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
+local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
+local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
-local barbg = ":n:"..LUAUI_DIRNAME.."Images/resbar.dds"
-local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
-local barGlowEdgeTexture = LUAUI_DIRNAME.."Images/barglow-edge.dds"
-local bladesTexture = ":c:"..LUAUI_DIRNAME.."Images/blades.png"
-local poleTexture = LUAUI_DIRNAME.."Images/pole.png"
-local comTexture = LUAUI_DIRNAME.."Images/comIcon.png"
-local glowTexture = LUAUI_DIRNAME.."Images/glow.dds"
+local bgcorner = "LuaUI/Images/bgcorner.png"
+local barbg = ":n:LuaUI/Images/resbar.dds"
+local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
+local barGlowEdgeTexture = "LuaUI/Images/barglow-edge.dds"
+local bladesTexture = ":c:LuaUI/Images/blades.png"
+local poleTexture = "LuaUI/Images/pole.png"
+local comTexture = "LuaUI/Images/comIcon.png"
+local glowTexture = "LuaUI/Images/glow.dds"
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
@@ -609,9 +609,9 @@ local function updateResbar(res)
 		glColor(1,1,1,1)
 		local iconPadding = (area[4] - area[2]) / 9
 		if res == 'metal' then
-			glTexture(LUAUI_DIRNAME.."Images/metal.png")
+			glTexture("LuaUI/Images/metal.png")
 		else
-			glTexture(LUAUI_DIRNAME.."Images/energy.png")
+			glTexture("LuaUI/Images/energy.png")
 		end
 		glTexRect(area[1]+iconPadding, area[2]+iconPadding, area[1]+(height*widgetScale)-iconPadding, area[4]-iconPadding)
 		glTexture(false)

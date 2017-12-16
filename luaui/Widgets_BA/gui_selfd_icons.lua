@@ -22,7 +22,7 @@ local unitConf				= {}
 
 
 
-local font = gl.LoadFont(LUAUI_DIRNAME..'Fonts/FreeSansBold.otf', 50, 4, 3)
+local font = gl.LoadFont('LuaUI/Fonts/FreeSansBold.otf', 50, 4, 3)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ local spec = Spring.GetSpectatingState()
 
 
 function DrawIcon(posY, posX, iconSize, text)
-	gl.Texture(':n:'..LUAUI_DIRNAME..'Images/skull.dds')
+	gl.Texture(':n:LuaUI/Images/skull.dds')
 	gl.Color(0.9,0.9,0.9,1)
 	gl.Translate(posX*0.9,posY,posX*1.5)
 	gl.Billboard()

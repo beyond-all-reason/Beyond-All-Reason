@@ -56,7 +56,7 @@ local tweakUiWidth, tweakUiHeight	= 240, 215
 local tweakUiPosX, tweakUiPosY		= 500, 550
 
 -- images
-local allyCursor      			    = ":n:"..LUAUI_DIRNAME.."Images/allycursor.dds"
+local allyCursor      			    = ":n:LuaUI/Images/allycursor.dds"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

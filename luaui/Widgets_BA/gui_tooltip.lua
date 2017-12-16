@@ -41,7 +41,7 @@ local yOffset = -32-usedFontSize
 -- Speedups
 ------------------------------------------------------------------------------------
 
-local bgcorner				= LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner				= "LuaUI/Images/bgcorner.png"
 local glColor = gl.Color
 local glText = gl.Text
 local glRect = gl.Rect

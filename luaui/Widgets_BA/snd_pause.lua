@@ -13,8 +13,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local PAUSED = LUAUI_DIRNAME .. 'sounds/pause/paused.wav'
-local UNPAUSED = LUAUI_DIRNAME .. 'sounds/pause/unpaused.wav'
+local PAUSED = 'LuaUI/sounds/pause/paused.wav'
+local UNPAUSED = 'LuaUI/sounds/pause/unpaused.wav'
 
 function widget:GamePaused(playerID, paused)
     if paused then

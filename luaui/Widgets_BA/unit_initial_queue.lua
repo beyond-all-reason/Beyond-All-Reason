@@ -40,9 +40,9 @@ local hoverColor = {1,1,1,0.25}
 local pushedColor = {1,0.1,0,0.33}
 local clickColor = {0.66,1,0,0.25}
 --local pressColor = {1,0,0,0.44}
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
-local buttonhighlight = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
-local buttonpushed = ":n:"..LUAUI_DIRNAME.."Images/button-pushed.dds"
+local bgcorner = "LuaUI/Images/bgcorner.png"
+local buttonhighlight = ":n:LuaUI/Images/button-highlight.dds"
+local buttonpushed = ":n:LuaUI/Images/button-pushed.dds"
 local customScale = 0.95
 
 -- Colors

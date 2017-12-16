@@ -27,7 +27,7 @@ end
 -- 23/03/13 -- Attack order y-coord placement remade by Bluestone for spring 94+
 
 
-local dotImage			= LUAUI_DIRNAME.."Images/formationDot.dds"
+local dotImage			= "LuaUI/Images/formationDot.dds"
 
 --------------------------------------------------------------------------------
 -- User Configurable Constants

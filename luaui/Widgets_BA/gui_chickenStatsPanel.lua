@@ -64,10 +64,10 @@ local math            = math
 local table           = table
 
 local displayList
-local fontHandler     = loadstring(VFS.LoadFile(LUAUI_DIRNAME.."modfonts.lua"))()
-local panelFont       = LUAUI_DIRNAME.."Fonts/FreeSansBold_14"
-local waveFont        = LUAUI_DIRNAME.."Fonts/Skrawl_40"
-local panelTexture    = ":n:"..LUAUI_DIRNAME.."Images/panel.tga"
+local fontHandler     = loadstring(VFS.LoadFile("LuaUI/modfonts.lua"))()
+local panelFont       = "LuaUI/Fonts/FreeSansBold_14"
+local waveFont        = "LuaUI/Fonts/Skrawl_40"
+local panelTexture    = ":n:LuaUI/Images/panel.tga"
 
 local viewSizeX, viewSizeY = 0,0
 local w               = 300

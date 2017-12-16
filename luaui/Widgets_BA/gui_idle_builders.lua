@@ -29,14 +29,14 @@ local NEAR_IDLE = 0 -- this means that factories with only X build items left wi
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgcorner			= LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner			= "LuaUI/Images/bgcorner.png"
 local cornerSize		= 12
 local bgcornerSize		= cornerSize
 
 local playSounds = true
-local leftclick = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
-local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
+local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
+local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local hoversize = 0
 local rot = 0

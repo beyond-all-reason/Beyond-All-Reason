@@ -53,8 +53,8 @@ local heightOffset			= 50
 local fontSize				= 18
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 10, 10)
-local shadowFont = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", 55, 38, 1.6)
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 10, 10)
+local shadowFont = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 38, 1.6)
 
 local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
 local infotextFontsize = 20
@@ -83,7 +83,7 @@ local gaiaAllyTeamID
 
 local startTimer = Spring.GetTimer()
 
-local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
+local texName = 'LuaUI/Images/highlight_strip.png'
 local texScale = 512
 
 

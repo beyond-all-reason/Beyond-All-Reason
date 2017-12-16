@@ -47,12 +47,12 @@ local GetPlayerInfo = Spring.GetPlayerInfo
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local imageDirectory		= ":n:"..LUAUI_DIRNAME.."Images/allyres/"
+local imageDirectory		= ":n:LuaUI/Images/allyres/"
 local teamPic				= imageDirectory.."team.png"
 local teamHighlightPic		= imageDirectory.."highlight.png"
 local barBg					= imageDirectory.."barbg.png"
 local bar					= imageDirectory.."bar.png"
-local bgcorner				= LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner				= "LuaUI/Images/bgcorner.png"
 local bgcornerSize			= 8
 
 local bordercolor = {1,1,1,0.022}

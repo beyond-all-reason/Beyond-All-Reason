@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/eraser.dds"
+local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
 local iconSize = 14
 
 local spGetGameFrame			= Spring.GetGameFrame

@@ -46,7 +46,7 @@ local generalSize 				= 30		-- overall size
 local generalOpacity 			= 0.8		-- overall opacity
 local generalDuration			= 1.2		-- overall duration
 
-local imageDir					= ":n:"..LUAUI_DIRNAME.."Images/"
+local imageDir					= ":n:LuaUI/Images/"
 
 local types = {
 	leftclick = {

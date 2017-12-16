@@ -37,11 +37,11 @@ local widgetPosX 							= vsx/2.5
 local widgetPosY 							= vsy/7.5
 local pressedToMove		 					= false
 local dt									= -1
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = "LuaUI/Images/bgcorner.png"
 --------------------------------------------------------------------------------
 -- SETTINGS, configurable
 --------------------------------------------------------------------------------
-local TEST_SOUND 							= LUAUI_DIRNAME .. 'sounds/volume_osd/pop.wav'
+local TEST_SOUND 							= 'LuaUI/sounds/volume_osd/pop.wav'
 local font         							= "luaui/fonts/freesansbold_14"
 local step 									= 4 -- how many steps to change sound volume on one key press
 local dtime									= 3 --How long time the volume display is drawn, in seconds
