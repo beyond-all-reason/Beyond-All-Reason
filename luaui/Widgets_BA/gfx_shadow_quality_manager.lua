@@ -61,7 +61,7 @@ function widget:GameFrame(gameFrame)
 			local modelCountWeight = modelCount/1700
 			if modelCountWeight > 1 then modelCountWeight = 1 end
 			if modelCountWeight < 0.05 then modelCountWeight = 0.05 end
-			local newAvgFps = ((spGetFPS() + (averageFps*14)) / 15
+			local newAvgFps = ((spGetFPS() + (averageFps*14)) / 15)
 			averageFps = averageFps + ((newAvgFps - averageFps) * modelCountWeight)	-- make it so that high model count impact avg fps changes more
 			--local dquality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
 			--Spring.Echo(averageFps..'   '..dquality)

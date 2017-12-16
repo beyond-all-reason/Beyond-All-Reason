@@ -322,7 +322,9 @@ function widget:Initialize()
 	end
 	WG['snow'].setMultiplier = function(value)
 		customParticleMultiplier = value
-		CreateParticleLists()
+		if enabled or widgetDisabledSnow  then
+			CreateParticleLists()
+		end
 	end
 	WG['snow'].setAutoReduce = function(value)
 		autoReduce = value
@@ -439,6 +441,7 @@ function widget:GameFrame(gameFrame)
 end
 
 function widget:Shutdown()
+	enabled = false
 	if drawinfolist ~= nil then
 		gl.DeleteList(drawinfolist)
 	end
