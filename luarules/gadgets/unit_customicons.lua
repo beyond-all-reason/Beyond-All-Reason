@@ -63,7 +63,7 @@ local icons = {
   {"energy1.user", "LuaUI/Icons/solar.png",1.75*iconScale},   
   {"energy2.user", "LuaUI/Icons/energy.png",1.75*iconScale},
   {"energy3.user", "LuaUI/Icons/fusion.png",1.4*iconScale},
-  {"energy4.user", "LuaUI/Icons/hazardous.png",1.8*iconScale},
+  {"energy4.user", "LuaUI/Icons/hazardous.png",2.5*iconScale},
   {"energy5.user", "LuaUI/Icons/fusion.png",1.8*iconScale},
   {"energy6.user", "LuaUI/Icons/energy.png",2.2*iconScale},
 
@@ -116,7 +116,7 @@ local icons = {
 
   {"nuke.user", "LuaUI/Icons/nuke.png",1.8*iconScale},
         {"nuke_big.user", "LuaUI/Icons/nuke.png",2.5*iconScale},
-        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.8*iconScale},
+        {"antinuke.user", "LuaUI/Icons/antinuke.png",1.6*iconScale},
         {"antinuke_mobile.user", "LuaUI/Icons/antinuke.png",1.3*iconScale},
 
   {"aa1.user", "LuaUI/Icons/aa.png", 0.85*iconScale},
