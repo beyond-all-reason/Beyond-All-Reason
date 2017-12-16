@@ -1007,7 +1007,13 @@ function applyOptionValue(i, skipRedrawWindow)
 				WG['bloom'].setBrightness(value)
 			end
 		elseif id == 'guishaderintensity' then
-			WG['guishader_api'].setBlurIntensity(value)
+			if widgetHandler.configData["GUI-Shader"] == nil then
+				widgetHandler.configData["GUI-Shader"] = {}
+			end
+			widgetHandler.configData["GUI-Shader"].blurIntensity = value
+			if WG['guishader_api'] ~= nil then
+				WG['guishader_api'].setBlurIntensity(value)
+			end
 		elseif id == 'snowamount' then
 			if widgetHandler.configData["Snow"] == nil then
 				widgetHandler.configData["Snow"] = {}
