@@ -142,7 +142,8 @@ Other:
  • Unit textures reprocessed with bigger color range and less grain
  • Some units got remodeled for better looks
  • More units have been given a shatter effect on death
- • Bloomshader: prettier and more pronounced, offers 2 levels (modest/heavier) via Options
+ • Bloomshader: prettier and more pronounced, added brightness slider and highlights toggle to Options
+ • Snow: added amount slider, map toggle and auto-reduction option to Options
  • Some walking animations are improved
  • Changed some missile models
  • One universal tank script for the most basic tanks, which has preset animations that can be tweaked directly via unitDefs

@@ -172,7 +172,9 @@ function widget:Initialize()
 			  screencopy = 0,
 			},
 		})
-  	alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
+    if shaderProgram then
+  	    alphaLoc = glGetUniformLocation(shaderProgram, "alpha")
+    end
   else
     Spring.Echo("<Screen Shader>: GLSL not supported.")
   end
